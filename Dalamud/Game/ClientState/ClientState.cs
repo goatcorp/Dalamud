@@ -1,0 +1,57 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading.Tasks;
+using Dalamud.Game.ClientState.Actors;
+using Dalamud.Game.ClientState.Actors.Types;
+using Dalamud.Game.Internal;
+
+namespace Dalamud.Game.ClientState
+{
+    /// <summary>
+    /// This class represents the state of the game client at the time of access.
+    /// </summary>
+    public class ClientState : INotifyPropertyChanged {
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        private ClientStateAddressResolver Address { get; }
+
+        public readonly ClientLanguage ClientLanguage;
+
+        /// <summary>
+        /// The table of all present actors.
+        /// </summary>
+        public readonly ActorTable Actors;
+
+        /// <summary>
+        /// The local player character, if one is present.
+        /// </summary>
+        public PlayerCharacter LocalPlayer => (PlayerCharacter) this.Actors[0];
+
+        /// <summary>
+        /// The content ID of the local character.
+        /// </summary>
+        public ulong LocalContentId => (ulong) Marshal.ReadInt64(Address.LocalContentId);
+
+        /// <summary>
+        /// Set up client state access.
+        /// </summary>
+        /// <param name="dalamud">Dalamud instance</param>
+        /// /// <param name="startInfo">StartInfo of the current Dalamud launch</param>
+        /// <param name="scanner">Sig scanner</param>
+        /// <param name="targetModule">Game process module</param>
+        public ClientState(Dalamud dalamud, DalamudStartInfo startInfo, SigScanner scanner, ProcessModule targetModule) {
+            Address = new ClientStateAddressResolver();
+            Address.Setup(scanner);
+
+            this.ClientLanguage = startInfo.Language;
+
+            this.Actors = new ActorTable(Address);
+        }
+    }
+}

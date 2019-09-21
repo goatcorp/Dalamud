@@ -1,0 +1,780 @@
+{
+  "homepages": [],
+  "source_base_path": "D:/Sapphire/recorder",
+  "xrefmap": "xrefmap.yml",
+  "files": [
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Chat.EnumExtensions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Chat.EnumExtensions.html",
+          "hash": "6yhJFr/d9207Y+KxNqizVg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Chat.SeString.IntegerType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Chat.SeString.IntegerType.html",
+          "hash": "gopE9IfoMsOqIH7fQWgwOg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Chat.SeString.PlayerLinkType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Chat.SeString.PlayerLinkType.html",
+          "hash": "jMqXrBU6eFtY+akfdGW2YQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Chat.SeString.SeStringPayloadContainer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Chat.SeString.SeStringPayloadContainer.html",
+          "hash": "KdlZR0WzYsQ+K5X7e/zRMw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Chat.SeString.SeStringPayloadType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Chat.SeString.SeStringPayloadType.html",
+          "hash": "e6ODfEPrqaEj75u94fafEA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Chat.SeString.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Chat.SeString.html",
+          "hash": "xJyodmiBeXALhR4YaEMUeA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Chat.XivChatEntry.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Chat.XivChatEntry.html",
+          "hash": "1h4WBUhN4GIPrdfsS6AE5Q=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Chat.XivChatType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Chat.XivChatType.html",
+          "hash": "pt+xJ/FcTdkdzX/pXvd5bg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Chat.XivChatTypeExtensions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Chat.XivChatTypeExtensions.html",
+          "hash": "U9ulBSolOzAovAwRiroGOg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Chat.XivChatTypeInfoAttribute.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Chat.XivChatTypeInfoAttribute.html",
+          "hash": "up0Tnc+uhhH2LUXMYqEzbw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Chat.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Chat.html",
+          "hash": "QyT5VZTYhvfEnoaz6Al/Bg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.ChatHandlers.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.ChatHandlers.html",
+          "hash": "gfb449D6ktqBuCGjuLQXWQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.ClientState.Actors.ActorTable.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.ClientState.Actors.ActorTable.html",
+          "hash": "EW/l591b8WRCjGXouTqqIQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.ClientState.Actors.ObjectKind.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.ClientState.Actors.ObjectKind.html",
+          "hash": "O2I8AL8a5jVXmLOEWJa8QQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.ClientState.Actors.Position3.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.ClientState.Actors.Position3.html",
+          "hash": "VmIREFhiiky/NkPfPI7vSQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.ClientState.Actors.Resolvers.ClassJob.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.ClientState.Actors.Resolvers.ClassJob.html",
+          "hash": "xYq+hR5DdKVZFjhuxJnHbQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.ClientState.Actors.Resolvers.World.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.ClientState.Actors.Resolvers.World.html",
+          "hash": "ZTeXdpSNTrGnQqVvHw+SWw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.ClientState.Actors.Resolvers.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.ClientState.Actors.Resolvers.html",
+          "hash": "Ccjiz75ZiwiHTGGrPHrRAA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.ClientState.Actors.Types.Actor.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.ClientState.Actors.Types.Actor.html",
+          "hash": "v6+zy3DaTNZRT30JH4sexg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.ClientState.Actors.Types.Chara.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.ClientState.Actors.Types.Chara.html",
+          "hash": "/1EesV6d6Y9jmgVk0exK2Q=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.ClientState.Actors.Types.NonPlayer.BattleNpc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.ClientState.Actors.Types.NonPlayer.BattleNpc.html",
+          "hash": "8e2JmVOzy6S7SnBuhFPxYQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.ClientState.Actors.Types.NonPlayer.BattleNpcSubKind.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.ClientState.Actors.Types.NonPlayer.BattleNpcSubKind.html",
+          "hash": "/o94IWrP+Oh8wiToM9PPwQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.ClientState.Actors.Types.NonPlayer.Npc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.ClientState.Actors.Types.NonPlayer.Npc.html",
+          "hash": "i1IpEWTpaFeKKzaFhpSJTg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.ClientState.Actors.Types.NonPlayer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.ClientState.Actors.Types.NonPlayer.html",
+          "hash": "zZ7IK2ZYtCKQshXYtyK8Hg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.ClientState.Actors.Types.PlayerCharacter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.ClientState.Actors.Types.PlayerCharacter.html",
+          "hash": "nU79cnXKOkb4y7FhZby7YQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.ClientState.Actors.Types.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.ClientState.Actors.Types.html",
+          "hash": "4KXgmECTURQ6Lxg9ZfwwJg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.ClientState.Actors.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.ClientState.Actors.html",
+          "hash": "+XMx6TFLon6DsHJO+dckaA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.ClientState.ClientState.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.ClientState.ClientState.html",
+          "hash": "hA5ZiC5MEoaGY3qyr4QmUw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.ClientState.Structs.Actor.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.ClientState.Structs.Actor.html",
+          "hash": "Jq063v+UrfTBGR9vEFlalw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.ClientState.Structs.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.ClientState.Structs.html",
+          "hash": "qRRgI/wq0LZ+K7aLnqyuqA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.ClientState.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.ClientState.html",
+          "hash": "M92W6er4C53zITuFtEI74Q=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Command.CommandInfo.HandlerDelegate.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Command.CommandInfo.HandlerDelegate.html",
+          "hash": "CWPe0XdZj+BrIL+lvtWoYg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Command.CommandInfo.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Command.CommandInfo.html",
+          "hash": "8O6RCqG5hycNjf2NLs6ptw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Command.CommandManager.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Command.CommandManager.html",
+          "hash": "t4mjlEPVF8QKyFXniRXplA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Command.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Command.html",
+          "hash": "OVNml7idiakru8nT1nqZHw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Internal.Framework.OnUpdateDelegate.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Internal.Framework.OnUpdateDelegate.html",
+          "hash": "kk/NMxUktzLg9ps4Mfp4ZA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Internal.Framework.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Internal.Framework.html",
+          "hash": "fHjOnpGWFdkzm4wwC0jZMg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Internal.Gui.ChatGui.OnMessageDelegate.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Internal.Gui.ChatGui.OnMessageDelegate.html",
+          "hash": "O3MQpXZlE7iq7O3qSskBHA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Internal.Gui.ChatGui.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Internal.Gui.ChatGui.html",
+          "hash": "1H2RgptOtK/mhwW1AaaMfg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Internal.Gui.GameGui.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Internal.Gui.GameGui.html",
+          "hash": "+Rp3/3jPbferSt41tLJhXA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Internal.Gui.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Internal.Gui.html",
+          "hash": "0WfSn35S8Z++WFDr3ATjZg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Internal.Libc.LibcFunction.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Internal.Libc.LibcFunction.html",
+          "hash": "jbLknIRXAZh2AeREt0r7AA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Internal.Libc.OwnedStdString.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Internal.Libc.OwnedStdString.html",
+          "hash": "NSmJNXflzLDJVQjewX3Xvg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Internal.Libc.StdString.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Internal.Libc.StdString.html",
+          "hash": "paAU1iZ6xxiL2kF1pmUpnw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Internal.Libc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Internal.Libc.html",
+          "hash": "InmrcpCrPYqYuIqcyAhlqg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Internal.Network.GameNetwork.OnZonePacketDelegate.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Internal.Network.GameNetwork.OnZonePacketDelegate.html",
+          "hash": "WzZzhwJVWvgJWb1LmRkAwA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Internal.Network.GameNetwork.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Internal.Network.GameNetwork.html",
+          "hash": "r/15cGZQ3Cc5h279Ur8YiA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Internal.Network.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Internal.Network.html",
+          "hash": "adU/F284FGauyUzZrUgU9w=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Internal.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Internal.html",
+          "hash": "vU5WUXTzhr9DKCALA4zlnQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.SigScanner.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.SigScanner.html",
+          "hash": "mpb6u1h2mb74QeFz8n53Cw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.html",
+          "hash": "HaybHzLX7/XwMsSN2FlWuQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Plugin.DalamudPluginInterface.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Plugin.DalamudPluginInterface.html",
+          "hash": "eYC5Po+G+Zz3GgZSsuAzvg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Plugin.IDalamudPlugin.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Plugin.IDalamudPlugin.html",
+          "hash": "DJTFgHoxO+kGW2W/0uaJxQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Plugin.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Plugin.html",
+          "hash": "0GvCegiL22kocIJryW2gcQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "log_codes": [
+        "InvalidFileLink"
+      ],
+      "type": "Conceptual",
+      "source_relative_path": "api/index.md",
+      "output": {
+        ".html": {
+          "relative_path": "api/index.html",
+          "hash": "m3Ch0VzxGuugKf6rttmYKw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "api/toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/toc.html",
+          "hash": "3nmCquNSLKVX3pXex2CP5A=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/intro.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/intro.html",
+          "hash": "bcTPg+uhS+XfhW7IeUi3BQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "articles/toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "articles/toc.html",
+          "hash": "t7iiFrmuYmrKWisdq+lN6Q=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "log_codes": [
+        "InvalidFileLink"
+      ],
+      "type": "Conceptual",
+      "source_relative_path": "index.md",
+      "output": {
+        ".html": {
+          "relative_path": "index.html",
+          "hash": "T4yJJSQfgYuZdccziwuN1w=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "toc.html",
+          "hash": "1Xdjw8Ib7j95/TiJDj+CFw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    }
+  ],
+  "incremental_info": [
+    {
+      "status": {
+        "can_incremental": true,
+        "incrementalPhase": "build",
+        "total_file_count": 0,
+        "skipped_file_count": 0
+      },
+      "processors": {
+        "TocDocumentProcessor": {
+          "can_incremental": false,
+          "details": "Processor TocDocumentProcessor cannot support incremental build because the processor doesn't implement ISupportIncrementalDocumentProcessor interface.",
+          "incrementalPhase": "build",
+          "total_file_count": 0,
+          "skipped_file_count": 0
+        },
+        "ConceptualDocumentProcessor": {
+          "can_incremental": true,
+          "incrementalPhase": "build",
+          "total_file_count": 3,
+          "skipped_file_count": 3
+        },
+        "ManagedReferenceDocumentProcessor": {
+          "can_incremental": true,
+          "incrementalPhase": "build",
+          "total_file_count": 54,
+          "skipped_file_count": 51
+        }
+      }
+    },
+    {
+      "status": {
+        "can_incremental": true,
+        "details": "Can support incremental post processing.",
+        "incrementalPhase": "postProcessing",
+        "total_file_count": 0,
+        "skipped_file_count": 0
+      },
+      "processors": {}
+    }
+  ],
+  "version_info": {},
+  "groups": [
+    {
+      "xrefmap": "xrefmap.yml"
+    }
+  ]
+}

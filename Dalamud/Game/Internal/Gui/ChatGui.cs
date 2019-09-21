@@ -1,0 +1,160 @@
+using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using Dalamud.Game.Chat;
+using Dalamud.Game.Internal.Libc;
+using Dalamud.Hooking;
+using Serilog;
+
+namespace Dalamud.Game.Internal.Gui {
+    public sealed class ChatGui : IDisposable {
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        private delegate void PrintMessageDelegate(IntPtr manager, XivChatType chatType, IntPtr senderName,
+                                                   IntPtr message,
+                                                   uint senderId, byte isLocal);
+
+        public delegate void OnMessageDelegate(XivChatType type, uint senderId, string sender, ref string message,
+                                               ref bool isHandled);
+
+
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        private delegate void PopulateItemLinkDelegate(IntPtr linkObjectPtr, IntPtr itemInfoPtr);
+
+        private readonly Queue<XivChatEntry> chatQueue = new Queue<XivChatEntry>();
+
+        private readonly Hook<PrintMessageDelegate> printMessageHook;
+
+        public event OnMessageDelegate OnChatMessage;
+
+        private readonly Hook<PopulateItemLinkDelegate> populateItemLinkHook;
+
+        public int LastLinkedItemId { get; private set; }
+        public byte LastLinkedItemFlags { get; private set; }
+
+        private ChatGuiAddressResolver Address { get; }
+
+        private IntPtr baseAddress = IntPtr.Zero;
+
+        private readonly Dalamud dalamud;
+
+        public ChatGui(IntPtr baseAddress, SigScanner scanner, Dalamud dalamud) {
+            this.dalamud = dalamud;
+
+            Address = new ChatGuiAddressResolver(baseAddress);
+            Address.Setup(scanner);
+
+            Log.Verbose("Chat manager address {ChatManager}", Address.BaseAddress);
+
+            this.printMessageHook =
+                new Hook<PrintMessageDelegate>(Address.PrintMessage, new PrintMessageDelegate(HandlePrintMessageDetour),
+                                               this);
+            this.populateItemLinkHook =
+                new Hook<PopulateItemLinkDelegate>(Address.PopulateItemLinkObject,
+                                                   new PopulateItemLinkDelegate(HandlePopulateItemLinkDetour),
+                                                   this);
+        }
+
+        public void Enable() {
+            this.printMessageHook.Enable();
+            this.populateItemLinkHook.Enable();
+        }
+
+        public void Dispose() {
+            this.printMessageHook.Dispose();
+            this.populateItemLinkHook.Dispose();
+        }
+
+        private void HandlePopulateItemLinkDetour(IntPtr linkObjectPtr, IntPtr itemInfoPtr) {
+            try {
+                this.populateItemLinkHook.Original(linkObjectPtr, itemInfoPtr);
+
+                LastLinkedItemId = Marshal.ReadInt32(itemInfoPtr, 8);
+                LastLinkedItemFlags = Marshal.ReadByte(itemInfoPtr, 0x14);
+
+                Log.Debug($"HandlePopulateItemLinkDetour {linkObjectPtr} {itemInfoPtr} - linked:{LastLinkedItemId}");
+            } catch (Exception ex) {
+                Log.Error(ex, "Exception onPopulateItemLink hook.");
+                this.populateItemLinkHook.Original(linkObjectPtr, itemInfoPtr);
+            }
+        }
+
+        private void HandlePrintMessageDetour(IntPtr manager, XivChatType chattype, IntPtr pSenderName, IntPtr pMessage,
+                                              uint senderid, byte isLocal) {
+            try {
+                var senderName = StdString.ReadFromPointer(pSenderName);
+                var message = StdString.ReadFromPointer(pMessage);
+
+                //Log.Debug($"HandlePrintMessageDetour {manager} - [{chattype}] [{BitConverter.ToString(Encoding.UTF8.GetBytes(message))}] {message} from {senderName}");
+
+                var originalMessage = string.Copy(message);
+
+                // Call events
+                var isHandled = false;
+                OnChatMessage?.Invoke(chattype, senderid, senderName, ref message, ref isHandled);
+
+                var messagePtr = pMessage;
+                OwnedStdString allocatedString = null;
+
+                if (originalMessage != message) {
+                    allocatedString = this.dalamud.Framework.Libc.NewString(message);
+                    Log.Debug(
+                        $"HandlePrintMessageDetour String modified: {originalMessage}({messagePtr}) -> {message}({allocatedString.Address})");
+                    messagePtr = allocatedString.Address;
+                }
+
+                // Print the original chat if it's handled.
+                if (!isHandled)
+                    this.printMessageHook.Original(manager, chattype, pSenderName, messagePtr, senderid, isLocal);
+
+                if (this.baseAddress == IntPtr.Zero)
+                    this.baseAddress = manager;
+
+                allocatedString?.Dispose();
+            } catch (Exception ex) {
+                Log.Error(ex, "Exception on OnChatMessage hook.");
+                this.printMessageHook.Original(manager, chattype, pSenderName, pMessage, senderid, isLocal);
+            }
+        }
+
+        /// <summary>
+        ///     Queue a chat message. While method is named as PrintChat, it only add a entry to the queue,
+        ///     later to be processed when UpdateQueue() is called.
+        /// </summary>
+        /// <param name="chat">A message to send.</param>
+        public void PrintChat(XivChatEntry chat) {
+            this.chatQueue.Enqueue(chat);
+        }
+
+        public void Print(string message) {
+            PrintChat(new XivChatEntry {
+                Message = message
+            });
+        }
+
+        public void PrintError(string message) {
+            PrintChat(new XivChatEntry {
+                Message = message,
+                Type = XivChatType.Urgent
+            });
+        }
+
+        /// <summary>
+        ///     Process a chat queue.
+        /// </summary>
+        public void UpdateQueue(Framework framework) {
+            while (this.chatQueue.Count > 0) {
+                var chat = this.chatQueue.Dequeue();
+
+                var sender = chat.Name ?? "";
+                var message = chat.Message ?? "";
+
+                if (this.baseAddress != IntPtr.Zero)
+                    using (var senderVec = framework.Libc.NewString(sender))
+                    using (var messageVec = framework.Libc.NewString(message)) {
+                        this.printMessageHook.Original(this.baseAddress, chat.Type, senderVec.Address,
+                                                       messageVec.Address, chat.SenderId, 0);
+                    }
+            }
+        }
+    }
+}

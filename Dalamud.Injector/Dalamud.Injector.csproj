@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup Label="Target">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <TargetFramework>net471</TargetFramework>
+    <LangVersion>7.2</LangVersion>
+    <Platforms>AnyCPU;x64</Platforms>
+  </PropertyGroup>
+  <PropertyGroup Label="Build">
+    <OutputType>Exe</OutputType>
+    <OutputPath>$(SolutionDir)/bin</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>Portable</DebugType>
+  </PropertyGroup>
+  <PropertyGroup Label="Feature">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AssemblyVersion>2.4.0.0</AssemblyVersion>
+    <FileVersion>2.4.0.0</FileVersion>
+    <Description>XIVLauncher addon injection</Description>
+    <Version>2.4.0</Version>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="EasyHook" Version="2.7.6270" />
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Dalamud\Dalamud.csproj" />
+  </ItemGroup>
+</Project>
