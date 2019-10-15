@@ -6,6 +6,7 @@ using Dalamud.Game.Internal.Libc;
 using Dalamud.Game.Internal.Network;
 using Dalamud.Hooking;
 using Serilog;
+using Dalamud.Game.Internal.File;
 
 namespace Dalamud.Game.Internal {
     public sealed class Framework : IDisposable {
@@ -29,6 +30,8 @@ namespace Dalamud.Game.Internal {
         public GameGui Gui { get; private set; }
 
         public GameNetwork Network { get; private set; }
+
+        public ResourceManager Resource { get; private set; }
         
         public LibcFunction Libc { get; private set; }
         
@@ -52,6 +55,8 @@ namespace Dalamud.Game.Internal {
             Gui = new GameGui(Address.GuiManager, scanner, dalamud);
 
             Network = new GameNetwork(dalamud, scanner);
+
+            Resource = new ResourceManager(dalamud, scanner);
         }
 
         private void HookVTable() {
@@ -70,6 +75,7 @@ namespace Dalamud.Game.Internal {
         public void Enable() {
             Gui.Enable();
             Network.Enable();
+            //Resource.Enable();
             
             this.updateHook.Enable();
         }
@@ -77,6 +83,7 @@ namespace Dalamud.Game.Internal {
         public void Dispose() {
             Gui.Dispose();
             Network.Dispose();
+            //Resource.Dispose();
             
             this.updateHook.Dispose();
         }

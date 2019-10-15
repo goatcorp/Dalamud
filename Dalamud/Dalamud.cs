@@ -37,7 +37,11 @@ namespace Dalamud {
 
         public readonly ClientState ClientState;
 
+        public readonly DalamudStartInfo StartInfo;
+
         public Dalamud(DalamudStartInfo info) {
+            this.StartInfo = info;
+            
             this.baseDirectory = info.WorkingDirectory;
 
             this.unloadSignal = new ManualResetEvent(false);
