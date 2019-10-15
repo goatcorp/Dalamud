@@ -11,6 +11,7 @@ using Dalamud.Game.ClientState.Actors.Types;
 using Dalamud.Game.ClientState.Actors.Types.NonPlayer;
 using Dalamud.Game.Command;
 using Dalamud.Game.Internal;
+using Dalamud.Game.Internal.Gui;
 using Dalamud.Game.Network;
 using Dalamud.Plugin;
 using Dalamud.Settings;
@@ -39,6 +40,10 @@ namespace Dalamud {
 
         public readonly DalamudStartInfo StartInfo;
 
+        public readonly IconReplacer IconReplacer;
+
+        public readonly IconReplaceChecker IconReplaceChecker;
+
         public Dalamud(DalamudStartInfo info) {
             this.StartInfo = info;
             
@@ -66,6 +71,10 @@ namespace Dalamud {
 
             this.PluginManager = new PluginManager(this, info.PluginDirectory, info.DefaultPluginDirectory);
 
+            this.IconReplaceChecker = new IconReplaceChecker(this.targetModule, this.sigScanner);
+
+            this.IconReplacer = new IconReplacer(this, this.targetModule, this.sigScanner);
+
             try {
                 this.PluginManager.LoadPlugins();
             } catch (Exception ex) {
@@ -79,6 +88,10 @@ namespace Dalamud {
             Framework.Enable();
 
             this.BotManager.Start();
+
+            this.IconReplaceChecker.Enable();
+
+            this.IconReplacer.Enable();
         }
 
         public void Unload() {
@@ -95,6 +108,10 @@ namespace Dalamud {
             this.BotManager.Dispose();
 
             this.unloadSignal.Dispose();
+
+            this.IconReplaceChecker.Dispose();
+
+            this.IconReplacer.Dispose();
         }
 
         private void SetupCommands() {
