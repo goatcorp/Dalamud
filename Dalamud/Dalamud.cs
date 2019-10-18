@@ -362,6 +362,27 @@ namespace Dalamud {
                     }
                 }
                     break;
+                case "toggle": {
+                    foreach (var value in Enum.GetValues(typeof(CustomComboPreset)).Cast<CustomComboPreset>()) {
+                        if (value.ToString().ToLower() != argumentsParts[1].ToLower())
+                            continue;
+
+                        this.Configuration.ComboPresets ^= value;
+                        Framework.Gui.Chat.Print(argumentsParts[1] + " TOGGLE");
+                    }
+                }
+                    break;
+
+                case "unset": {
+                    foreach (var value in Enum.GetValues(typeof(CustomComboPreset)).Cast<CustomComboPreset>()) {
+                        if (value.ToString().ToLower() != argumentsParts[1].ToLower())
+                            continue;
+
+                        this.Configuration.ComboPresets &= ~value;
+                        Framework.Gui.Chat.Print(argumentsParts[1] + " UNSET");
+                    }
+                }
+                    break;
                 case "list": {
                     foreach (var value in Enum.GetValues(typeof(CustomComboPreset)).Cast<CustomComboPreset>()) {
                         if (this.Configuration.ComboPresets.HasFlag(value))
