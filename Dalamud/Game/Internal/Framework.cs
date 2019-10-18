@@ -56,7 +56,7 @@ namespace Dalamud.Game.Internal {
 
             Network = new GameNetwork(dalamud, scanner);
 
-            Resource = new ResourceManager(dalamud, scanner);
+            //Resource = new ResourceManager(dalamud, scanner);
         }
 
         private void HookVTable() {

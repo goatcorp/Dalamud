@@ -16,6 +16,7 @@ using Dalamud.Game.Network;
 using Dalamud.Plugin;
 using Dalamud.Settings;
 using Serilog;
+using XIVLauncher.Dalamud;
 
 namespace Dalamud {
     public sealed class Dalamud : IDisposable {
@@ -42,8 +43,11 @@ namespace Dalamud {
 
         public readonly IconReplacer IconReplacer;
 
+        public readonly DalamudConfiguration Configuration;
+
         public Dalamud(DalamudStartInfo info) {
             this.StartInfo = info;
+            this.Configuration = DalamudConfiguration.Load(info.ConfigurationPath);
             
             this.baseDirectory = info.WorkingDirectory;
 
@@ -61,11 +65,11 @@ namespace Dalamud {
             SetupCommands();
 
             ChatHandlers = new ChatHandlers(this);
-            NetworkHandlers = new NetworkHandlers(this, info.OptOutMbCollection);
+            NetworkHandlers = new NetworkHandlers(this, this.Configuration.OptOutMbCollection);
 
             this.ClientState = new ClientState(this, info, this.sigScanner, this.targetModule);
 
-            this.BotManager = new DiscordBotManager(this, info.DiscordFeatureConfig);
+            this.BotManager = new DiscordBotManager(this, this.Configuration.DiscordFeatureConfig);
 
             this.PluginManager = new PluginManager(this, info.PluginDirectory, info.DefaultPluginDirectory);
 
@@ -119,6 +123,11 @@ namespace Dalamud {
 
             CommandManager.AddHandler("/xldsay", new CommandInfo(OnCommandDebugSay) {
                 HelpMessage = "Print to chat.",
+                ShowInHelp = false
+            });
+
+            CommandManager.AddHandler("/xldcombo", new CommandInfo(OnCommandDebugCombo) {
+                HelpMessage = "COMBO debug",
                 ShowInHelp = false
             });
 
@@ -318,6 +327,54 @@ namespace Dalamud {
                     Framework.Gui.Chat.Print(
                         $"Level: {chara.Level} ClassJob: {chara.ClassJob.Name} CHP: {chara.CurrentHp} MHP: {chara.MaxHp} CMP: {chara.CurrentMp} MMP: {chara.MaxMp}");
             }
+        }
+
+        private void OnCommandDebugCombo(string command, string arguments) {
+            var argumentsParts = arguments.Split();
+
+            switch (argumentsParts[0]) {
+                case "setall": {
+                    foreach (var value in Enum.GetValues(typeof(CustomComboPreset)).Cast<CustomComboPreset>()) {
+                        if (value == CustomComboPreset.None)
+                            continue;
+
+                        this.Configuration.ComboPresets |= value;
+                    }
+
+                    Framework.Gui.Chat.Print("all SET");
+                }
+                    break;
+                case "unsetall": {
+                    foreach (var value in Enum.GetValues(typeof(CustomComboPreset)).Cast<CustomComboPreset>()) {
+                        this.Configuration.ComboPresets &= value;
+                    }
+
+                    Framework.Gui.Chat.Print("all UNSET");
+                }
+                    break;
+                case "set": {
+                    foreach (var value in Enum.GetValues(typeof(CustomComboPreset)).Cast<CustomComboPreset>()) {
+                        if (value.ToString().ToLower() != argumentsParts[1].ToLower())
+                            continue;
+
+                        this.Configuration.ComboPresets |= value;
+                        Framework.Gui.Chat.Print(argumentsParts[1] + " SET");
+                    }
+                }
+                    break;
+                case "list": {
+                    foreach (var value in Enum.GetValues(typeof(CustomComboPreset)).Cast<CustomComboPreset>()) {
+                        if (this.Configuration.ComboPresets.HasFlag(value))
+                            Framework.Gui.Chat.Print(value.ToString());
+                    }
+                }
+                    break;
+
+                default: Framework.Gui.Chat.Print("Unknown");
+                    break;
+            }
+
+            this.Configuration.Save(this.StartInfo.ConfigurationPath);
         }
 
         private void OnBotJoinCommand(string command, string arguments) {

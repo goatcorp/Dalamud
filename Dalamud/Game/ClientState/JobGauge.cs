@@ -1,11 +1,5 @@
-using Dalamud.Game.ClientState.Structs.JobGauge;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
+using Serilog;
 
 namespace Dalamud.Game.ClientState {
     public class JobGauges {
@@ -13,12 +7,14 @@ namespace Dalamud.Game.ClientState {
 
         public JobGauges(ClientStateAddressResolver addressResolver) {
             Address = addressResolver;
+
+            Log.Verbose("JobGaugeData address {JobGaugeData}", Address.ActorTable);
         }
 
         // Should only be called with the gauge types in 
         // ClientState.Structs.JobGauge
         public T Get<T>() {
-            return Marshal.PtrToStructure<T>(Address.ActorTable);
+            return Marshal.PtrToStructure<T>(Address.JobGaugeData);
         }
     }
 }
