@@ -8,6 +8,6 @@ using System.Threading.Tasks;
 namespace Dalamud.Game.ClientState.Structs.JobGauge {
 
     [StructLayout(LayoutKind.Explicit)]
-    class BRDGauge {
+    public struct BRDGauge {
     }
 }
