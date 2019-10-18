@@ -1,6 +1,5 @@
 using System;
 using System.Runtime.InteropServices;
-using Dalamud.Settings;
 using Dalamud.Game.Internal.Gui;
 using Dalamud.Game.Internal.Libc;
 using Dalamud.Game.Internal.Network;

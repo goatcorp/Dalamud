@@ -14,7 +14,6 @@ using Dalamud.Game.Internal;
 using Dalamud.Game.Internal.Gui;
 using Dalamud.Game.Network;
 using Dalamud.Plugin;
-using Dalamud.Settings;
 using Serilog;
 using XIVLauncher.Dalamud;
 
@@ -218,8 +217,8 @@ namespace Dalamud {
         }
 
         private void OnFateWatchAdd(string command, string arguments) {
-            if (PersistentSettings.Instance.Fates == null)
-                PersistentSettings.Instance.Fates = new List<PersistentSettings.FateInfo>();
+            if (this.Configuration.Fates == null)
+                this.Configuration.Fates = new List<DalamudConfiguration.FateInfo>();
 
             dynamic candidates = XivApi.Search(arguments, "Fate").GetAwaiter().GetResult();
 
@@ -228,32 +227,36 @@ namespace Dalamud {
                 return;
             }
 
-            var fateInfo = new PersistentSettings.FateInfo {
+            var fateInfo = new DalamudConfiguration.FateInfo {
                 Id = candidates.Results[0].ID,
                 Name = candidates.Results[0].Name
             };
 
-            PersistentSettings.Instance.Fates.Add(fateInfo);
+            this.Configuration.Fates.Add(fateInfo);
+
+            this.Configuration.Save(this.StartInfo.ConfigurationPath);
 
             Framework.Gui.Chat.Print($"Added fate \"{fateInfo.Name}\".");
         }
 
         private void OnFateWatchList(string command, string arguments) {
-            if (PersistentSettings.Instance.Fates == null)
-                PersistentSettings.Instance.Fates = new List<PersistentSettings.FateInfo>();
+            if (this.Configuration.Fates == null)
+                this.Configuration.Fates = new List<DalamudConfiguration.FateInfo>();
 
-            if (PersistentSettings.Instance.Fates.Count == 0) {
+            if (this.Configuration.Fates.Count == 0) {
                 Framework.Gui.Chat.Print("No fates on your watchlist.");
                 return;
             }
 
-            foreach (var fate in PersistentSettings.Instance.Fates)
+            this.Configuration.Save(this.StartInfo.ConfigurationPath);
+
+            foreach (var fate in this.Configuration.Fates)
                 Framework.Gui.Chat.Print($"Fate {fate.Id}: {fate.Name}");
         }
 
         private void OnFateWatchRemove(string command, string arguments) {
-            if (PersistentSettings.Instance.Fates == null)
-                PersistentSettings.Instance.Fates = new List<PersistentSettings.FateInfo>();
+            if (this.Configuration.Fates == null)
+                this.Configuration.Fates = new List<DalamudConfiguration.FateInfo>();
 
             dynamic candidates = XivApi.Search(arguments, "Fate").GetAwaiter().GetResult();
 
@@ -262,37 +265,45 @@ namespace Dalamud {
                 return;
             }
 
-            PersistentSettings.Instance.Fates.RemoveAll(x => x.Id == candidates.Results[0].ID);
+            this.Configuration.Fates.RemoveAll(x => x.Id == candidates.Results[0].ID);
+
+            this.Configuration.Save(this.StartInfo.ConfigurationPath);
 
             Framework.Gui.Chat.Print($"Removed fate \"{candidates.Results[0].Name}\".");
         }
 
         private void OnBadWordsAdd(string command, string arguments) {
-            if (PersistentSettings.Instance.BadWords == null)
-                PersistentSettings.Instance.BadWords = new List<string>();
+            if (this.Configuration.BadWords == null)
+                this.Configuration.BadWords = new List<string>();
 
-            PersistentSettings.Instance.BadWords.Add(arguments);
+            this.Configuration.BadWords.Add(arguments);
+
+            this.Configuration.Save(this.StartInfo.ConfigurationPath);
 
             Framework.Gui.Chat.Print($"Muted \"{arguments}\".");
         }
 
         private void OnBadWordsList(string command, string arguments) {
-            if (PersistentSettings.Instance.BadWords == null)
-                PersistentSettings.Instance.BadWords = new List<string>();
+            if (this.Configuration.BadWords == null)
+                this.Configuration.BadWords = new List<string>();
 
-            if (PersistentSettings.Instance.BadWords.Count == 0) {
+            if (this.Configuration.BadWords.Count == 0) {
                 Framework.Gui.Chat.Print("No muted words or sentences.");
                 return;
             }
 
-            foreach (var word in PersistentSettings.Instance.BadWords) Framework.Gui.Chat.Print($"\"{word}\"");
+            this.Configuration.Save(this.StartInfo.ConfigurationPath);
+
+            foreach (var word in this.Configuration.BadWords) Framework.Gui.Chat.Print($"\"{word}\"");
         }
 
         private void OnBadWordsRemove(string command, string arguments) {
-            if (PersistentSettings.Instance.BadWords == null)
-                PersistentSettings.Instance.BadWords = new List<string>();
+            if (this.Configuration.BadWords == null)
+                this.Configuration.BadWords = new List<string>();
 
-            PersistentSettings.Instance.BadWords.RemoveAll(x => x == arguments);
+            this.Configuration.BadWords.RemoveAll(x => x == arguments);
+
+            this.Configuration.Save(this.StartInfo.ConfigurationPath);
 
             Framework.Gui.Chat.Print($"Unmuted \"{arguments}\".");
         }

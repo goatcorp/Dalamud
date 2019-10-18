@@ -18,6 +18,14 @@ namespace Dalamud
 
         public List<string> BadWords { get; set; }
 
+        public class FateInfo {
+            public string Name { get; set; }
+            public int Id { get; set; }
+        }
+
+        public List<FateInfo> Fates;
+
+
         public static DalamudConfiguration Load(string path) {
             return JsonConvert.DeserializeObject<DalamudConfiguration>(File.ReadAllText(path));
         }
