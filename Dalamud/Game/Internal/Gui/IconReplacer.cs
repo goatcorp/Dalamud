@@ -24,8 +24,6 @@ namespace Dalamud.Game.Internal.Gui {
             this.address = new IconReplacerAddressResolver();
             this.address.Setup(scanner);
 
-            JobGauge.Init(module);
-
             this.byteBase = scanner.Module.BaseAddress;
             this.jobInfo = byteBase + 0x1b2d4b4;
             this.comboTimer = byteBase + 0x1AE1B10;
@@ -321,7 +319,7 @@ namespace Dalamud.Game.Internal.Gui {
             // Or with Heat Blast when overheated.
             // For some reason the shots use their unheated IDs as combo moves
             if (actionID == 7413) {
-                if (JobGauge.Gauge<MCHGauge>().IsOverheated() && level >= 35) return 7410;
+                if (this.dalamud.ClientState.JobGauges.Get<MCHGauge>().IsOverheated() && level >= 35) return 7410;
                 if (comboTime > 0) {
                     if (lastMove == 2866) return 7412;
                     if (lastMove == 2868) return 7413;
@@ -331,7 +329,7 @@ namespace Dalamud.Game.Internal.Gui {
 
             // Replace Spread Shot with Auto Crossbow when overheated.
             if (actionID == 2870) {
-                if (JobGauge.Gauge<MCHGauge>().IsOverheated() && level >= 52) return 16497;
+                if (this.dalamud.ClientState.JobGauges.Get<MCHGauge>().IsOverheated() && level >= 52) return 16497;
                 return 2870;
             }
 
@@ -339,7 +337,7 @@ namespace Dalamud.Game.Internal.Gui {
 
             // Enochian changes to B4 or F4 depending on stance.
             if (actionID == 3575) {
-                BLMGauge jobInfo = JobGauge.Gauge<BLMGauge>();
+                BLMGauge jobInfo = this.dalamud.ClientState.JobGauges.Get<BLMGauge>();
                 if (jobInfo.IsEnoActive) {
                     if (jobInfo.InUmbralIce()) return 3576;
                     return 3577;
@@ -349,7 +347,7 @@ namespace Dalamud.Game.Internal.Gui {
 
             // Umbral Soul and Transpose
             if (actionID == 149) {
-                if (JobGauge.Gauge<BLMGauge>().InUmbralIce() && level >= 76) return 16506;
+                if (this.dalamud.ClientState.JobGauges.Get<BLMGauge>().InUmbralIce() && level >= 76) return 16506;
                 return 149;
             }
 
@@ -414,7 +412,7 @@ namespace Dalamud.Game.Internal.Gui {
             
             // Standard Step is one button.
             if (actionID == 15997) {
-                DNCGauge gauge = JobGauge.Gauge<DNCGauge>();
+                DNCGauge gauge = this.dalamud.ClientState.JobGauges.Get<DNCGauge>();
                 if (gauge.IsDancing()) {
                     if (gauge.NumCompleteSteps == 2) {
                         return 16192;
@@ -429,7 +427,7 @@ namespace Dalamud.Game.Internal.Gui {
 
             // Technical Step is one button.
             if (actionID == 15998) {
-                DNCGauge gauge = JobGauge.Gauge<DNCGauge>();
+                DNCGauge gauge = this.dalamud.ClientState.JobGauges.Get<DNCGauge>();
                 if (gauge.IsDancing()) {
                     if (gauge.NumCompleteSteps == 4) {
                         return 16196;

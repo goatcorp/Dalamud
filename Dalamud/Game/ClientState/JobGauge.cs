@@ -8,18 +8,17 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Dalamud.Game.ClientState {
-    public static class JobGauge {
+    public class JobGauges {
+        private ClientStateAddressResolver Address { get; }
 
-        private static IntPtr gaugeStart;
-
-        public static void Init(ProcessModule module) {
-            gaugeStart = module.BaseAddress + 0x1b2d4b4;
+        public JobGauges(ClientStateAddressResolver addressResolver) {
+            Address = addressResolver;
         }
 
         // Should only be called with the gauge types in 
         // ClientState.Structs.JobGauge
-        public static T Gauge<T>() {
-            return Marshal.PtrToStructure<T>(gaugeStart);
+        public T Get<T>() {
+            return Marshal.PtrToStructure<T>(Address.ActorTable);
         }
     }
 }

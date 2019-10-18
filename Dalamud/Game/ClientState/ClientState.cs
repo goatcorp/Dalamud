@@ -39,6 +39,11 @@ namespace Dalamud.Game.ClientState
         public ulong LocalContentId => (ulong) Marshal.ReadInt64(Address.LocalContentId);
 
         /// <summary>
+        /// The class facilitating Job Gauge data access
+        /// </summary>
+        public JobGauges JobGauges;
+
+        /// <summary>
         /// Set up client state access.
         /// </summary>
         /// <param name="dalamud">Dalamud instance</param>
@@ -52,6 +57,8 @@ namespace Dalamud.Game.ClientState
             this.ClientLanguage = startInfo.Language;
 
             this.Actors = new ActorTable(Address);
+
+            this.JobGauges = new JobGauges(Address);
         }
     }
 }
