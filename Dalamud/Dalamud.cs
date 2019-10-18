@@ -42,8 +42,6 @@ namespace Dalamud {
 
         public readonly IconReplacer IconReplacer;
 
-        public readonly IconReplaceChecker IconReplaceChecker;
-
         public Dalamud(DalamudStartInfo info) {
             this.StartInfo = info;
             
@@ -71,9 +69,7 @@ namespace Dalamud {
 
             this.PluginManager = new PluginManager(this, info.PluginDirectory, info.DefaultPluginDirectory);
 
-            this.IconReplaceChecker = new IconReplaceChecker(this.targetModule, this.sigScanner);
-
-            this.IconReplacer = new IconReplacer(this, this.targetModule, this.sigScanner);
+            this.IconReplacer = new IconReplacer(this, this.sigScanner);
 
             try {
                 this.PluginManager.LoadPlugins();
@@ -88,8 +84,6 @@ namespace Dalamud {
             Framework.Enable();
 
             this.BotManager.Start();
-
-            this.IconReplaceChecker.Enable();
 
             this.IconReplacer.Enable();
         }
@@ -108,8 +102,6 @@ namespace Dalamud {
             this.BotManager.Dispose();
 
             this.unloadSignal.Dispose();
-
-            this.IconReplaceChecker.Dispose();
 
             this.IconReplacer.Dispose();
         }

@@ -9,8 +9,14 @@ using System.Runtime.InteropServices;
 
 namespace Dalamud.Game.Internal.Gui {
     public class IconReplacer {
-        private IconReplacerAddressResolver address;
-        private Hook<OnIconDetour> iconHook;
+        public delegate ulong OnGetIconDelegate(byte param1, uint param2);
+        public delegate ulong OnCheckIsIconReplaceableDelegate(int actionID);
+
+        private Hook<OnGetIconDelegate> iconHook;
+        private Hook<OnCheckIsIconReplaceableDelegate> checkerHook;
+
+        private IconReplacerAddressResolver Address;
+
         private IntPtr comboTimer;
         private IntPtr lastComboMove;
         private IntPtr activeBuffArray = IntPtr.Zero;
@@ -19,28 +25,39 @@ namespace Dalamud.Game.Internal.Gui {
         private Dalamud dalamud;
         private PlayerCharacter localCharacter = null;
 
-        public unsafe IconReplacer(Dalamud dalamud, ProcessModule module, SigScanner scanner) {
+        public unsafe IconReplacer(Dalamud dalamud, SigScanner scanner) {
             this.dalamud = dalamud;
-            this.address = new IconReplacerAddressResolver();
-            this.address.Setup(scanner);
+            this.Address = new IconReplacerAddressResolver();
+            this.Address.Setup(scanner);
 
             this.byteBase = scanner.Module.BaseAddress;
             this.jobInfo = byteBase + 0x1b2d4b4;
             this.comboTimer = byteBase + 0x1AE1B10;
             this.lastComboMove = byteBase + 0x1AE1B14;
 
-            this.iconHook = new Hook<OnIconDetour>(this.address.BaseAddress, (Delegate)new OnIconDetour(this.HandleIconUpdate), (object)this);
+            Log.Verbose("===== H O T B A R S =====");
+            Log.Verbose("IsIconReplaceable address {IsIconReplaceable}", Address.IsIconReplaceable);
+            Log.Verbose("GetIcon address {GetIcon}", Address.GetIcon);
 
+            this.iconHook = new Hook<OnGetIconDelegate>(this.Address.GetIcon, new OnGetIconDelegate(GetIconDetour), this);
+            this.checkerHook = new Hook<OnCheckIsIconReplaceableDelegate>(this.Address.IsIconReplaceable, new OnCheckIsIconReplaceableDelegate(CheckIsIconReplaceableDetour), this);
         }
 
         public void Enable() {
             this.iconHook.Enable();
+            this.checkerHook.Enable();
         }
 
         public void Dispose() {
             this.iconHook.Dispose();
+            this.checkerHook.Dispose();
         }
 
+        // I hate this function. This is the dumbest function to exist in the game. Just return 1.
+        // Determines which abilities are allowed to have their icons updated.
+        private ulong CheckIsIconReplaceableDetour(int actionID) {
+            return 1;
+        }
 
         /// <summary>
         ///     Replace an ability with another ability
@@ -51,7 +68,7 @@ namespace Dalamud.Game.Internal.Gui {
         ///     For example, Souleater combo on DRK happens by dragging Souleater
         ///     onto your bar and mashing it.
         /// </summary>
-        private unsafe ulong HandleIconUpdate(byte self, uint actionID) {
+        private unsafe ulong GetIconDetour(byte self, uint actionID) {
 
             // TODO: BRD, RDM, level checking for everything.
 
@@ -497,10 +514,6 @@ namespace Dalamud.Game.Internal.Gui {
             }
             return false;
         }
-
-        private delegate ulong OnIconDetour(byte param1, uint param2);
-
-        public delegate ulong OnIconDelegate(byte param1, uint param2);
 
         private unsafe delegate int* getArray(long* address);
 
