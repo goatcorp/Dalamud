@@ -1,4 +1,6 @@
+using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Actors.Types;
+using Dalamud.Game.ClientState.Structs.JobGauge;
 using Dalamud.Hooking;
 using Serilog;
 using System;
@@ -21,6 +23,8 @@ namespace Dalamud.Game.Internal.Gui {
             this.dalamud = dalamud;
             this.address = new IconReplacerAddressResolver();
             this.address.Setup(scanner);
+
+            JobGauge.Init(module);
 
             this.byteBase = scanner.Module.BaseAddress;
             this.jobInfo = byteBase + 0x1b2d4b4;
@@ -227,6 +231,9 @@ namespace Dalamud.Game.Internal.Gui {
 
             // Replace Mangetsu with Mangetsu combo
             if (actionID == 7484) {
+                if (activeBuffArray != null) {
+                    if (SearchBuffArray(1233)) return 7484;
+                }
                 if (comboTime > 0) {
                     if (lastMove == 7483) return 7484;
                 }
@@ -235,6 +242,9 @@ namespace Dalamud.Game.Internal.Gui {
 
             // Replace Yukikaze with Yukikaze combo
             if (actionID == 7485) {
+                if (activeBuffArray != null) {
+                    if (SearchBuffArray(1233)) return 7485;
+                }
                 if (comboTime > 0) {
                     if (lastMove == 7483) return 7485;
                 }
@@ -311,7 +321,7 @@ namespace Dalamud.Game.Internal.Gui {
             // Or with Heat Blast when overheated.
             // For some reason the shots use their unheated IDs as combo moves
             if (actionID == 7413) {
-                if (Marshal.ReadInt16(jobInfo, 0xc) > 0) return 7410;
+                if (JobGauge.Gauge<MCHGauge>().IsOverheated() && level >= 35) return 7410;
                 if (comboTime > 0) {
                     if (lastMove == 2866) return 7412;
                     if (lastMove == 2868) return 7413;
@@ -321,7 +331,7 @@ namespace Dalamud.Game.Internal.Gui {
 
             // Replace Spread Shot with Auto Crossbow when overheated.
             if (actionID == 2870) {
-                if (Marshal.ReadInt16(jobInfo, 0xc) > 0) return 16497;
+                if (JobGauge.Gauge<MCHGauge>().IsOverheated() && level >= 52) return 16497;
                 return 2870;
             }
 
@@ -329,16 +339,17 @@ namespace Dalamud.Game.Internal.Gui {
 
             // Enochian changes to B4 or F4 depending on stance.
             if (actionID == 3575) {
-                if (Marshal.ReadByte(jobInfo, 0x13) == 1) {
-                    if (Marshal.ReadByte(jobInfo, 0x10) > 3) return 3576;
-                    if (Marshal.ReadByte(jobInfo, 0x10) > 0) return 3577;
+                BLMGauge jobInfo = JobGauge.Gauge<BLMGauge>();
+                if (jobInfo.IsEnoActive) {
+                    if (jobInfo.InUmbralIce()) return 3576;
+                    return 3577;
                 }
                 return 3575;
             }
 
             // Umbral Soul and Transpose
-            if (actionID == 16506) {
-                if (Marshal.ReadByte(jobInfo, 0x10) > 3) return 16506;
+            if (actionID == 149) {
+                if (JobGauge.Gauge<BLMGauge>().InUmbralIce() && level >= 76) return 16506;
                 return 149;
             }
 
@@ -400,17 +411,63 @@ namespace Dalamud.Game.Internal.Gui {
             }
 
             // DANCER
-            // TODO: Single-target. This needs to be done alongside 1-button dances.
+            
+            // Standard Step is one button.
+            if (actionID == 15997) {
+                DNCGauge gauge = JobGauge.Gauge<DNCGauge>();
+                if (gauge.IsDancing()) {
+                    if (gauge.NumCompleteSteps == 2) {
+                        return 16192;
+                    }
+                    else {
+                        // C# can't implicitly cast from int to ulong.
+                        return (ulong)(15999 + gauge.StepOrder[gauge.NumCompleteSteps] - 1);
+                    }
+                }
+                return 15997;
+            }
 
-            // Handle AoE GCDs on one button. Procs take priority over combo.
+            // Technical Step is one button.
+            if (actionID == 15998) {
+                DNCGauge gauge = JobGauge.Gauge<DNCGauge>();
+                if (gauge.IsDancing()) {
+                    if (gauge.NumCompleteSteps == 4) {
+                        return 16196;
+                    }
+                    else {
+                        // C# can't implicitly cast from int to ulong.
+                        return (ulong)(15999 + gauge.StepOrder[gauge.NumCompleteSteps] - 1);
+                    }
+                }
+                return 15998;
+            }
 
-            if (actionID == 15994) {
+            // Fountain changes into Fountain combo, prioritizing procs over combo,
+            // and Fountainfall over Reverse Cascade.
+            if (actionID == 15990) {
                 if (activeBuffArray != null) {
-                    if (SearchBuffArray(1816)) return 15995;
-                    if (SearchBuffArray(1817)) return 15996;
+                    if (SearchBuffArray(1815)) return 15992;
+                    if (SearchBuffArray(1814)) return 15991;
                 }
                 if (comboTime > 0) {
-                    if (lastMove == 15993) return 15994;
+                    if (lastMove == 15989) return 15990;
+                }
+                return 15989;
+            }
+
+            // AoE GCDs are split into two buttons, because priority matters
+            // differently in different single-target moments. Thanks yoship.
+            // Replaces each GCD with its procced version.
+            if (actionID == 15994) {
+                if (activeBuffArray != null) {
+                    if (SearchBuffArray(1817)) return 15996;
+                }
+                return 15994;
+            }
+
+            if (actionID == 15993) {
+                if (activeBuffArray != null) {
+                    if (SearchBuffArray(1816)) return 15995;
                 }
                 return 15993;
             }
