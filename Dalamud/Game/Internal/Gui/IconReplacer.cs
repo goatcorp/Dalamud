@@ -100,6 +100,7 @@ namespace Dalamud.Game.Internal.Gui {
             // Don't clutter the spaghetti any worse than it already is.
             int lastMove = Marshal.ReadInt32(lastComboMove);
             float comboTime = (float)Marshal.ReadInt32(comboTimer);
+            localCharacter = dalamud.ClientState.LocalPlayer;
             byte level = localCharacter.Level;
 
             // DRAGOON
