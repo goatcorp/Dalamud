@@ -175,14 +175,11 @@ namespace XIVLauncher.Dalamud
         [CustomComboInfo("One-button Black Magic", "Replaces Verfire with the following priority: Scorch > Verflare > Dual/Swiftcast Verthunder > Verfire proc > Opener Verthunder > Jolt.", 35)]
         RedMageBlackMagicFeature = 1 << 47,
 
-        [CustomComboInfo("White Magic AoE", "Replaces Veraero 2 with Impact when Dualcast or Swiftcast are active.", 35)]
-        RedMageWhiteAoECombo = 1 << 48,
-
-        [CustomComboInfo("White Magic AoE", "Replaces Verthunder 2 with Impact when Dualcast or Swiftcast are active.", 35)]
-        RedMageBlackAoECombo = 1 << 49,
+        [CustomComboInfo("Red Mage AoE Combo", "Replaces Veraero/thunder 2 with Impact when Dualcast or Swiftcast are active.", 35)]
+        RedMageAoECombo = 1 << 48,
 
         [CustomComboInfo("Redoublement combo", "Replaces Redoublement with its combo chain, following enchantment rules.", 35)]
-        RedMageMeleeCombo = 1 << 50
+        RedMageMeleeCombo = 1 << 49
 
     }
 

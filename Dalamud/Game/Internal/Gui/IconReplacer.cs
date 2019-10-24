@@ -110,8 +110,8 @@ namespace Dalamud.Game.Internal.Gui {
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.DragoonCoerthanTormentCombo)) {
                 if (actionID == 16477) {
                     if (comboTime > 0) {
-                        if (lastMove == 86) return 7397;
-                        if (lastMove == 7397) return 16477;
+                        if (lastMove == 86 && level >= 62) return 7397;
+                        if (lastMove == 7397 && level >= 72) return 16477;
                     }
                     return 86;
                 }
@@ -122,12 +122,12 @@ namespace Dalamud.Game.Internal.Gui {
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.DragoonChaosThrustCombo)) {
                 if (actionID == 88) {
                     if (comboTime > 0) {
-                        if (lastMove == 75 || lastMove == 16479) return 87;
-                        if (lastMove == 87) return 88;
+                        if ((lastMove == 75 || lastMove == 16479) && level >= 18) return 87;
+                        if (lastMove == 87 && level >= 50) return 88;
                     }
-                    if (SearchBuffArray(802)) return 3554;
-                    if (SearchBuffArray(803)) return 3556;
-                    if (SearchBuffArray(1863)) return 16479;
+                    if (SearchBuffArray(802) && level >= 56) return 3554;
+                    if (SearchBuffArray(803) && level >= 58) return 3556;
+                    if (SearchBuffArray(1863) && level >= 76) return 16479;
 
                     return 75;
                 }
@@ -138,12 +138,12 @@ namespace Dalamud.Game.Internal.Gui {
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.DragoonFullThrustCombo)) {
                 if (actionID == 84) {
                     if (comboTime > 0) {
-                        if (lastMove == 75 || lastMove == 16479) return 78;
-                        if (lastMove == 78) return 84;
+                        if ((lastMove == 75 || lastMove == 16479) && level >= 4) return 78;
+                        if (lastMove == 78 && level >= 26) return 84;
                     }
-                    if (SearchBuffArray(802)) return 3554;
-                    if (SearchBuffArray(803)) return 3556;
-                    if (SearchBuffArray(1863)) return 16479;
+                    if (SearchBuffArray(802) && level >= 56) return 3554;
+                    if (SearchBuffArray(803) && level >= 58) return 3556;
+                    if (SearchBuffArray(1863) && level >= 76) return 16479;
 
                     return 75;
                 }
@@ -155,8 +155,8 @@ namespace Dalamud.Game.Internal.Gui {
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.DarkSouleaterCombo)) {
                 if (actionID == 3632) {
                     if (comboTime > 0) {
-                        if (lastMove == 3617) return 3623;
-                        if (lastMove == 3623) return 3632;
+                        if (lastMove == 3617 && level >= 2) return 3623;
+                        if (lastMove == 3623 && level >= 26) return 3632;
                     }
 
                     return 3617;
@@ -167,7 +167,7 @@ namespace Dalamud.Game.Internal.Gui {
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.DarkStalwartSoulCombo)) {
                 if (actionID == 16468) {
                     if (comboTime > 0) {
-                        if (lastMove == 3621) return 16468;
+                        if (lastMove == 3621 && level >= 72) return 16468;
                     }
 
                     return 3621;
@@ -180,8 +180,8 @@ namespace Dalamud.Game.Internal.Gui {
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.PaladinGoringBladeCombo)) {
                 if (actionID == 3538) {
                     if (comboTime > 0) {
-                        if (lastMove == 9) return 15;
-                        if (lastMove == 15) return 3538;
+                        if (lastMove == 9 && level >= 4) return 15;
+                        if (lastMove == 15 && level >= 54) return 3538;
                     }
 
                     return 9;
@@ -192,8 +192,8 @@ namespace Dalamud.Game.Internal.Gui {
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.PaladinRoyalAuthorityCombo)) {
                 if (actionID == 3539) {
                     if (comboTime > 0) {
-                        if (lastMove == 9) return 15;
-                        if (lastMove == 15) return 3539;
+                        if (lastMove == 9 && level >= 4) return 15;
+                        if (lastMove == 15 && level >= 60) return 3539;
                     }
 
                     return 9;
@@ -204,7 +204,7 @@ namespace Dalamud.Game.Internal.Gui {
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.PaladinProminenceCombo)) {
                 if (actionID == 16457) {
                     if (comboTime > 0) {
-                        if (lastMove == 7381) return 16457;
+                        if (lastMove == 7381 && level >= 40) return 16457;
                     }
 
                     return 7381;
@@ -217,8 +217,8 @@ namespace Dalamud.Game.Internal.Gui {
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.WarriorStormsPathCombo)) {
                 if (actionID == 42) {
                     if (comboTime > 0) {
-                        if (lastMove == 31) return 37;
-                        if (lastMove == 37) return 42;
+                        if (lastMove == 31 && level >= 4) return 37;
+                        if (lastMove == 37 && level >= 26) return 42;
                     }
 
                     return 31;
@@ -229,8 +229,8 @@ namespace Dalamud.Game.Internal.Gui {
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.WarriorStormsEyeCombo)) {
                 if (actionID == 45) {
                     if (comboTime > 0) {
-                        if (lastMove == 31) return 37;
-                        if (lastMove == 37) return 45;
+                        if (lastMove == 31 && level >= 4) return 37;
+                        if (lastMove == 37 && level >= 50) return 45;
                     }
                     return 31;
                 }
@@ -240,7 +240,7 @@ namespace Dalamud.Game.Internal.Gui {
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.WarriorMythrilTempestCombo)) {
                 if (actionID == 16462) {
                     if (comboTime > 0) {
-                        if (lastMove == 41) return 16462;
+                        if (lastMove == 41 && level >= 40) return 16462;
                     }
                     return 41;
                 }
@@ -253,7 +253,7 @@ namespace Dalamud.Game.Internal.Gui {
                 if (actionID == 7480) {
                     if (SearchBuffArray(1233)) return 7480;
                     if (comboTime > 0) {
-                        if (lastMove == 7477) return 7480;
+                        if (lastMove == 7477 && level >= 50) return 7480;
                     }
                     return 7477;
                 }
@@ -264,8 +264,8 @@ namespace Dalamud.Game.Internal.Gui {
                 if (actionID == 7481) {
                     if (SearchBuffArray(1233)) return 7481;
                     if (comboTime > 0) {
-                        if (lastMove == 7477) return 7478;
-                        if (lastMove == 7478) return 7481;
+                        if (lastMove == 7477 && level >= 4) return 7478;
+                        if (lastMove == 7478 && level >= 30) return 7481;
                     }
                     return 7477;
                 }
@@ -276,8 +276,8 @@ namespace Dalamud.Game.Internal.Gui {
                 if (actionID == 7482) {
                     if (SearchBuffArray(1233)) return 7482;
                     if (comboTime > 0) {
-                        if (lastMove == 7477) return 7479;
-                        if (lastMove == 7479) return 7482;
+                        if (lastMove == 7477 && level >= 18) return 7479;
+                        if (lastMove == 7479 && level >= 40) return 7482;
                     }
                     return 7477;
                 }
@@ -288,7 +288,7 @@ namespace Dalamud.Game.Internal.Gui {
                 if (actionID == 7484) {
                     if (SearchBuffArray(1233)) return 7484;
                     if (comboTime > 0) {
-                        if (lastMove == 7483) return 7484;
+                        if (lastMove == 7483 && level >= 35) return 7484;
                     }
                     return 7483;
                 }
@@ -299,7 +299,7 @@ namespace Dalamud.Game.Internal.Gui {
                 if (actionID == 7485) {
                     if (SearchBuffArray(1233)) return 7485;
                     if (comboTime > 0) {
-                        if (lastMove == 7483) return 7485;
+                        if (lastMove == 7483 && level >= 45) return 7485;
                     }
                     return 7483;
                 }
@@ -311,7 +311,7 @@ namespace Dalamud.Game.Internal.Gui {
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.NinjaShadowFangCombo)) {
                 if (actionID == 2257) {
                     if (comboTime > 0) {
-                        if (lastMove == 2240) return 2257;
+                        if (lastMove == 2240 && level >= 30) return 2257;
                     }
                     return 2240;
                 }
@@ -321,8 +321,8 @@ namespace Dalamud.Game.Internal.Gui {
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.NinjaArmorCrushCombo)) {
                 if (actionID == 3563) {
                     if (comboTime > 0) {
-                        if (lastMove == 2240) return 2242;
-                        if (lastMove == 2242) return 3563;
+                        if (lastMove == 2240 && level >= 4) return 2242;
+                        if (lastMove == 2242 && level >= 54) return 3563;
                     }
                     return 2240;
                 }
@@ -332,8 +332,8 @@ namespace Dalamud.Game.Internal.Gui {
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.NinjaAeolianEdgeCombo)) {
                 if (actionID == 2255) {
                     if (comboTime > 0) {
-                        if (lastMove == 2240) return 2242;
-                        if (lastMove == 2242) return 2255;
+                        if (lastMove == 2240 && level >= 4) return 2242;
+                        if (lastMove == 2242 && level >= 26) return 2255;
                     }
                     return 2240;
                 }
@@ -343,7 +343,7 @@ namespace Dalamud.Game.Internal.Gui {
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.NinjaHakkeMujinsatsuCombo)) {
                 if (actionID == 16488) {
                     if (comboTime > 0) {
-                        if (lastMove == 2254) return 16488;
+                        if (lastMove == 2254 && level >= 52) return 16488;
                     }
                     return 2254;
                 }
@@ -355,8 +355,8 @@ namespace Dalamud.Game.Internal.Gui {
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.GunbreakerSolidBarrelCombo)) {
                 if (actionID == 16145) {
                     if (comboTime > 0) {
-                        if (lastMove == 16137) return 16139;
-                        if (lastMove == 16139) return 16145;
+                        if (lastMove == 16137 && level >= 4) return 16139;
+                        if (lastMove == 16139 && level >= 26) return 16145;
                     }
                     return 16137;
                 }
@@ -377,7 +377,7 @@ namespace Dalamud.Game.Internal.Gui {
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.GunbreakerDemonSlaughterCombo)) {
                 if (actionID == 16149) {
                     if (comboTime > 0) {
-                        if (lastMove == 16141) return 16149;
+                        if (lastMove == 16141 && level >= 40) return 16149;
                     }
                     return 16141;
                 }
@@ -392,8 +392,8 @@ namespace Dalamud.Game.Internal.Gui {
                 if (actionID == 7413) {
                     if (this.dalamud.ClientState.JobGauges.Get<MCHGauge>().IsOverheated() && level >= 35) return 7410;
                     if (comboTime > 0) {
-                        if (lastMove == 2866) return 7412;
-                        if (lastMove == 2868) return 7413;
+                        if (lastMove == 2866 && level >= 2) return 7412;
+                        if (lastMove == 2868 && level >= 26) return 7413;
                     }
                     return 7411;
                 }
@@ -415,8 +415,8 @@ namespace Dalamud.Game.Internal.Gui {
                 if (actionID == 3575) {
                     BLMGauge jobInfo = this.dalamud.ClientState.JobGauges.Get<BLMGauge>();
                     if (jobInfo.IsEnoActive) {
-                        if (jobInfo.InUmbralIce()) return 3576;
-                        return 3577;
+                        if (jobInfo.InUmbralIce() && level >= 58) return 3576;
+                        if (level >= 60) return 3577;
                     }
                     return 3575;
                 }
@@ -472,7 +472,7 @@ namespace Dalamud.Game.Internal.Gui {
                             if (gauge.IsPhoenixReady()) return 16516;
                             return 7429;
                         }
-                        return 3582;
+                        if (level >= 60) return 3582;
                     }
                     else {
                         if (gauge.IsBahamutReady()) return 7427;
@@ -512,7 +512,7 @@ namespace Dalamud.Game.Internal.Gui {
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.SummonerESPainflareCombo)) {
                 if (actionID == 16510) {
                     if (this.dalamud.ClientState.JobGauges.Get<SMNGauge>().HasAetherflowStacks())
-                        if(level >= 52) return 3578;
+                        if (level >= 52) return 3578;
                     return 16510;
                 }
             }
@@ -579,7 +579,7 @@ namespace Dalamud.Game.Internal.Gui {
                     if (SearchBuffArray(1815)) return 15992;
                     if (SearchBuffArray(1814)) return 15991;
                     if (comboTime > 0) {
-                        if (lastMove == 15989) return 15990;
+                        if (lastMove == 15989 && level >= 2) return 15990;
                     }
                     return 15989;
                 }
@@ -655,7 +655,7 @@ namespace Dalamud.Game.Internal.Gui {
                         if (level >= 70) return 7409;
                         return 98;
                     }
-                    if (level > 76) return 16495;
+                    if (level >= 76) return 16495;
                     return 97;
                 }
             }
@@ -678,9 +678,9 @@ namespace Dalamud.Game.Internal.Gui {
                         else return 74;
                     }
                     else {
-                        if (SearchBuffArray(107)) return 74;
-                        if (SearchBuffArray(108)) return 61;
-                        if (SearchBuffArray(109)) return 56;
+                        if (SearchBuffArray(107) && level >= 50) return 74;
+                        if (SearchBuffArray(108) && level >= 18) return 61;
+                        if (SearchBuffArray(109) && level >= 6) return 56;
                         return 74;
                     }
                 }
@@ -702,8 +702,8 @@ namespace Dalamud.Game.Internal.Gui {
                     }
                     else {
                         if (SearchBuffArray(107)) return 53;
-                        if (SearchBuffArray(108)) return 54;
-                        if (SearchBuffArray(109)) return 66;
+                        if (SearchBuffArray(108) && level >= 4) return 54;
+                        if (SearchBuffArray(109) && level >= 30) return 66;
                         return 53;
                     }
                 }
@@ -728,9 +728,9 @@ namespace Dalamud.Game.Internal.Gui {
                         if (SearchBuffArray(107)) return 62;
                         if (SearchBuffArray(108)) {
                             if (!SearchBuffArray(101)) return 61;
-                            return 16473;
+                            if (level >= 45) return 16473;
                         }
-                        if (SearchBuffArray(109)) return 70;
+                        if (SearchBuffArray(109) && level >= 30) return 70;
                         return 62;
                     }
                 }
@@ -743,12 +743,12 @@ namespace Dalamud.Game.Internal.Gui {
             // Impact is not the first available spell to allow for precast openers.
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.RedMageWhiteMagicFeature)) {
                 if (actionID == 7511) {
-                    if ((lastMove == 7526 || lastMove == 7525) && level == 80) return 16530;
-                    if (lastMove == 7529) return 7526;
-                    if (SearchBuffArray(1249) || SearchBuffArray(167)) return 7507;
-                    if (SearchBuffArray(1235)) return 7511;
+                    if ((lastMove == 7526 || lastMove == 7525) && level >= 80) return 16530;
+                    if (lastMove == 7529 && level >= 70) return 7526;
+                    if ((SearchBuffArray(1249) || SearchBuffArray(167)) && level >= 10) return 7507;
+                    if (SearchBuffArray(1235) && level >= 30) return 7511;
                     RDMGauge gauge = this.dalamud.ClientState.JobGauges.Get<RDMGauge>();
-                    if (gauge.BlackGauge == 0 && gauge.WhiteGauge == 0) return 7507;
+                    if ((gauge.BlackGauge == 0 && gauge.WhiteGauge == 0) && level >= 10) return 7507;
                     if (level >= 62) return 7524;
                     return 7503;
                 }
@@ -759,27 +759,24 @@ namespace Dalamud.Game.Internal.Gui {
             // Impact is not the first available spell to allow for precast openers.
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.RedMageBlackMagicFeature)) {
                 if (actionID == 7510) {
-                    if ((lastMove == 7526 || lastMove == 7525) && level == 80) return 16530;
-                    if (lastMove == 7529) return 7525;
-                    if (SearchBuffArray(1249) || SearchBuffArray(167)) return 7505;
-                    if (SearchBuffArray(1234)) return 7510;
+                    if ((lastMove == 7526 || lastMove == 7525) && level >= 80) return 16530;
+                    if (lastMove == 7529 && level >= 68) return 7525;
+                    if ((SearchBuffArray(1249) || SearchBuffArray(167)) && level >= 4) return 7505;
+                    if (SearchBuffArray(1234) && level >= 26) return 7510;
                     RDMGauge gauge = this.dalamud.ClientState.JobGauges.Get<RDMGauge>();
-                    if (gauge.BlackGauge == 0 && gauge.WhiteGauge == 0) return 7505;
+                    if ((gauge.BlackGauge == 0 && gauge.WhiteGauge == 0) && level >= 4) return 7505;
                     if (level >= 62) return 7524;
                     return 7503;
                 }
             }
 
-            // Replace Veraero 2 with Impact when Dualcast is active
-            if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.RedMageWhiteAoECombo)) {
+            // Replace Veraero/thunder 2 with Impact when Dualcast is active
+            if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.RedMageAoECombo)) {
                 if (actionID == 16525) {
                     if (level >= 66 && (SearchBuffArray(1249) || SearchBuffArray(167))) return 16526;
                     return 16525;
                 }
-            }
 
-            // Replace Verthunder 2 with Impact when Dualcast is active
-            if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.RedMageBlackAoECombo)) {
                 if (actionID == 16524) {
                     if (level >= 66 && (SearchBuffArray(1249) || SearchBuffArray(167))) return 16526;
                     return 16524;
@@ -790,11 +787,11 @@ namespace Dalamud.Game.Internal.Gui {
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.RedMageMeleeCombo)) {
                 if (actionID == 7516) {
                     RDMGauge gauge = this.dalamud.ClientState.JobGauges.Get<RDMGauge>();
-                    if (lastMove == 7504 || lastMove == 7527) {
+                    if ((lastMove == 7504 || lastMove == 7527) && level >= 35) {
                         if (gauge.BlackGauge >= 25 && gauge.WhiteGauge >= 25) return 7528;
                         return 7512;
                     }
-                    if (lastMove == 7512) {
+                    if (lastMove == 7512 && level >= 50) {
                         if (gauge.BlackGauge >= 25 && gauge.WhiteGauge >= 25) return 7529;
                         return 7516;
                     }
