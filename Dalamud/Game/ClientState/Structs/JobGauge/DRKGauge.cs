@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 namespace Dalamud.Game.ClientState.Structs.JobGauge {
     [StructLayout(LayoutKind.Explicit)]
     public struct DRKGauge {
-        [FieldOffset(0xc)] public short Blood;
-        [FieldOffset(0xe)] public short DarksideTimeRemaining;
-        [FieldOffset(0x10)] public bool HasDarkArts;
-        [FieldOffset(0x12)] public short ShadowTimeRemaining;
+        [FieldOffset(0)] public short Blood;
+        [FieldOffset(2)] public short DarksideTimeRemaining;
+        [FieldOffset(4)] public bool HasDarkArts;
+        [FieldOffset(6)] public short ShadowTimeRemaining;
     }
 }

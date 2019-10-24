@@ -11,8 +11,21 @@ namespace Dalamud.Game.ClientState.Structs.JobGauge {
     public struct SMNGauge {
         
         //Unfinished
-        [FieldOffset(0xc)] public short TimerRemaining;
-        [FieldOffset(0xf)] public bool IsDemiActive;
-        [FieldOffset(0x10)] public byte NumStacks;
+        [FieldOffset(0)] public short TimerRemaining;
+        [FieldOffset(2)] public byte ReturnSummon;
+        [FieldOffset(3)] public byte ReturnSummonGlam;
+        [FieldOffset(4)] public byte NumStacks;
+
+        public bool IsPhoenixReady() {
+            return (NumStacks & 0x10) > 0;
+        }
+
+        public bool IsBahamutReady() {
+            return (NumStacks & 8) > 0;
+        }
+
+        public bool HasAetherflowStacks() {
+            return (NumStacks & 3) > 0;
+        }
     }
 }

@@ -10,12 +10,12 @@ namespace Dalamud.Game.ClientState.Structs.JobGauge {
     [StructLayout(LayoutKind.Explicit)]
     public struct MCHGauge{
 
-        [FieldOffset(0xc)] public short OverheatTimeRemaining;
-        [FieldOffset(0xe)] public short RobotTimeRemaining;
-        [FieldOffset(0x10)] public byte Heat;
-        [FieldOffset(0x11)] public byte Battery;
-        [FieldOffset(0x12)] public byte LastRobotBatteryPower;
-        [FieldOffset(0x13)] private byte TimerActive;
+        [FieldOffset(0)] public short OverheatTimeRemaining;
+        [FieldOffset(2)] public short RobotTimeRemaining;
+        [FieldOffset(4)] public byte Heat;
+        [FieldOffset(5)] public byte Battery;
+        [FieldOffset(6)] public byte LastRobotBatteryPower;
+        [FieldOffset(7)] private byte TimerActive;
 
         public bool IsOverheated() {
             return (TimerActive & 1) != 0;

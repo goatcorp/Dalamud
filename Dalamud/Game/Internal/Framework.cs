@@ -99,7 +99,7 @@ namespace Dalamud.Game.Internal {
             } catch (Exception ex) {
                 Log.Error(ex, "Exception while dispatching Framework::Update event.");
             }
-            
+
             return this.updateHook.Original(framework);
         }
     }

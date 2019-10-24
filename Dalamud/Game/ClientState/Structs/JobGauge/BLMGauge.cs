@@ -9,12 +9,12 @@ namespace Dalamud.Game.ClientState.Structs.JobGauge {
 
     [StructLayout(LayoutKind.Explicit)]
     public struct BLMGauge {
-        [FieldOffset(0xc)] public short TimeUntilNextPolyglot;  //eno timer (ms)
-        [FieldOffset(0xe)] public short ElementTimeRemaining;  //ui/af timer
-        [FieldOffset(0x10)] private byte ElementStance; //ui/af
-        [FieldOffset(0x11)] public byte NumUmbralHearts; //number of umbral hearts
-        [FieldOffset(0x12)] public byte NumPolyglotStacks; //number of polyglot stacks
-        [FieldOffset(0x13)] public bool IsEnoActive; //eno active?
+        [FieldOffset(0)] public short TimeUntilNextPolyglot;  //eno timer (ms)
+        [FieldOffset(2)] public short ElementTimeRemaining;  //ui/af timer
+        [FieldOffset(4)] private byte ElementStance; //ui/af
+        [FieldOffset(5)] public byte NumUmbralHearts; //number of umbral hearts
+        [FieldOffset(6)] public byte NumPolyglotStacks; //number of polyglot stacks
+        [FieldOffset(7)] public bool IsEnoActive; //eno active?
 
         public bool InUmbralIce() {
             return ElementStance > 4;

@@ -10,7 +10,7 @@ namespace Dalamud.Game.ClientState.Structs.JobGauge {
     [StructLayout(LayoutKind.Explicit)]
     public struct SAMGauge {
 
-        [FieldOffset(0xf)] public byte Kenki;
-        [FieldOffset(0x10)] public byte Sen;
+        [FieldOffset(3)] public byte Kenki;
+        [FieldOffset(4)] public Sen Sen;
     }
 }

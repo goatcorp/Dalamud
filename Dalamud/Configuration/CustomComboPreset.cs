@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 
 namespace XIVLauncher.Dalamud
 {
+
+    //CURRENT HIGHEST FLAG IS 45
     [Flags]
     public enum CustomComboPreset
     {
@@ -110,9 +112,21 @@ namespace XIVLauncher.Dalamud
         [CustomComboInfo("Dreadwyrm Combiner", "Now comes with Dreadwyrm Trance, Deathflare, Summon Bahamut, Enkindle Bahamut, FBT, and Enkindle Phoenix.", 27)]
         SummonerDwtCombo = 1 << 28,
 
+        [CustomComboInfo("Brand of Purgatory Combo", "Replaces Fountain of Fire with Brand of Purgatory when under the affect of Hellish Conduit.", 27)]
+        SummonerBoPCombo = 1 << 38,
+
+        [CustomComboInfo("ED Fester", "Change Energy Drain into Fester while you have Aetherflow stacks.", 27)]
+        SummonerEDFesterCombo = 1 << 39,
+
+        [CustomComboInfo("ES Painflare", "Change Energy Siphon into Painflare while you have Aetherflow stacks.", 27)]
+        SummonerESPainflareCombo = 1 << 40,
+
         // SCHOLAR
         [CustomComboInfo("Seraph Fey Blessing/Consolation", "Change Fey Blessing into Consolation when Seraph is out.", 28)]
         ScholarSeraphConsolationFeature = 1 << 29,
+
+        [CustomComboInfo("ED Aetherflow", "Change Energy Drain into Aetherflow when you have no more Aetherflow stacks.", 28)]
+        ScholarEnergyDrainFeature = 1 << 37,
 
         // DANCER
         [CustomComboInfo("Standard Step Combo", "Standard Step on one button.", 38)]
@@ -128,7 +142,48 @@ namespace XIVLauncher.Dalamud
         DancerFanDanceCombo = 1 << 33,
 
         [CustomComboInfo("Fountain Combos", "Fountain changes into Fountain combo, prioritizing procs over combo, and Fountainfall over Reverse Cascade.", 38)]
-        DancerFountainCombo = 1 << 34
+        DancerFountainCombo = 1 << 34,
+
+        // WHITE MAGE
+        [CustomComboInfo("Solace into Misery", "Replaces Afflatus Solace with Afflatus Misery when Misery is ready to be used.", 24)]
+        WhiteMageSolaceMiseryFeature = 1 << 35,
+
+        [CustomComboInfo("Rapture into Misery", "Replaces Afflatus Rapture with Afflatus Misery when Misery is ready to be used.", 24)]
+        WhiteMageRaptureMiseryFeature = 1 << 36,
+
+        // BARD
+        [CustomComboInfo("Wanderer's into Pitch Perfect", "Replaces Wanderer's Minuet with Pitch Perfect while in WM.", 23)]
+        BardWandererPPFeature = 1 << 41,
+
+        [CustomComboInfo("Heavy Shot into Straight Shot", "Replaces Heavy Shot/Burst Shot with Straight Shot/Refulgent Arrow when procced.", 23)]
+        BardStraightShotUpgradeFeature = 1 << 42,
+
+        // MONK
+        [CustomComboInfo("Flank Positional Combo", "Replaces Snap Punch with flank positionals according to stance. When PB is active, prefer Snao (with non-max GL) > Twin (with no TS active) > Bootshine.", 20)]
+        MonkFlankCombo = 1 << 43,
+
+        [CustomComboInfo("Rear Positional Combo", "Replaces Demolish with rear positionals according to stance. When PB is active, prefer Demo (with non-max GL) > Bootshine.", 20)]
+        MonkRearCombo = 1 << 44,
+
+        [CustomComboInfo("Rockbreaker Combo", "Replaces Rockbreaker according to stance. When PB is active, prefer RB (with non-max GL) > Twin Snakes (with no TS active) > AotD.", 20)]
+        MonkAoECombo = 1 << 45,
+
+        // RED MAGE
+        [CustomComboInfo("One-button White Magic", "Replaces Verstone with the following priority: Scorch > Verholy > Dual/Swiftcast Veraero > Verstone proc > Opener Veraero > Jolt.", 35)]
+        RedMageWhiteMagicFeature = 1 << 46,
+
+        [CustomComboInfo("One-button Black Magic", "Replaces Verfire with the following priority: Scorch > Verflare > Dual/Swiftcast Verthunder > Verfire proc > Opener Verthunder > Jolt.", 35)]
+        RedMageBlackMagicFeature = 1 << 47,
+
+        [CustomComboInfo("White Magic AoE", "Replaces Veraero 2 with Impact when Dualcast or Swiftcast are active.", 35)]
+        RedMageWhiteAoECombo = 1 << 48,
+
+        [CustomComboInfo("White Magic AoE", "Replaces Verthunder 2 with Impact when Dualcast or Swiftcast are active.", 35)]
+        RedMageBlackAoECombo = 1 << 49,
+
+        [CustomComboInfo("Redoublement combo", "Replaces Redoublement with its combo chain, following enchantment rules.", 35)]
+        RedMageMeleeCombo = 1 << 50
+
     }
 
     public class CustomComboInfoAttribute : Attribute

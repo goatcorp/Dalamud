@@ -32,7 +32,6 @@ namespace Dalamud.Game.Internal.Gui {
             this.Address.Setup(scanner);
 
             this.byteBase = scanner.Module.BaseAddress;
-            this.jobInfo = byteBase + 0x1b2d4b4;
             this.comboTimer = byteBase + 0x1AE1B10;
             this.lastComboMove = byteBase + 0x1AE1B14;
 
@@ -71,17 +70,29 @@ namespace Dalamud.Game.Internal.Gui {
         /// </summary>
         private unsafe ulong GetIconDetour(byte self, uint actionID) {
 
-            // TODO: BRD, RDM, level checking for everything.
+            // TODO: More jobs, level checking for everything.
 
             // Check if player is loaded in by trying to get their buffs.
             // If not, skip everything until we are (game will crash cause I'm lazy).
             if (activeBuffArray == IntPtr.Zero) {
                 try {
                     activeBuffArray = FindBuffAddress();
-                    localCharacter = dalamud.ClientState.LocalPlayer;
+                    Log.Verbose("ActiveBuffArray address: {ActiveBuffArray}", activeBuffArray);
                 }
                 catch (Exception e) {
                     activeBuffArray = IntPtr.Zero;
+                    return this.iconHook.Original(self, actionID);
+                }
+            }
+
+            // TODO: Update localCharacter without destroying the log with debug messages
+            // As it stands, don't rely on localCharacter.level for anything.
+            if (localCharacter == null) {
+                try {
+                    localCharacter = dalamud.ClientState.LocalPlayer;
+                }
+                catch(Exception e) {
+                    localCharacter = null;
                     return this.iconHook.Original(self, actionID);
                 }
             }
@@ -98,8 +109,8 @@ namespace Dalamud.Game.Internal.Gui {
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.DragoonCoerthanTormentCombo)) {
                 if (actionID == 16477) {
                     if (comboTime > 0) {
-                        if (Marshal.ReadInt32(lastComboMove) == 86) return 7397;
-                        if (Marshal.ReadInt32(lastComboMove) == 7397) return 16477;
+                        if (lastMove == 86) return 7397;
+                        if (lastMove == 7397) return 16477;
                     }
                     return 86;
                 }
@@ -112,13 +123,11 @@ namespace Dalamud.Game.Internal.Gui {
                     if (comboTime > 0) {
                         if (lastMove == 75 || lastMove == 16479) return 87;
                         if (lastMove == 87) return 88;
+                    }
+                    if (SearchBuffArray(802)) return 3554;
+                    if (SearchBuffArray(803)) return 3556;
+                    if (SearchBuffArray(1863)) return 16479;
 
-                    }
-                    if (activeBuffArray != IntPtr.Zero) {
-                        if (SearchBuffArray(802)) return 3554;
-                        if (SearchBuffArray(803)) return 3556;
-                        if (SearchBuffArray(1863)) return 16479;
-                    }
                     return 75;
                 }
             }
@@ -130,14 +139,10 @@ namespace Dalamud.Game.Internal.Gui {
                     if (comboTime > 0) {
                         if (lastMove == 75 || lastMove == 16479) return 78;
                         if (lastMove == 78) return 84;
-
                     }
-
-                    if (activeBuffArray != IntPtr.Zero) {
-                        if (SearchBuffArray(802)) return 3554;
-                        if (SearchBuffArray(803)) return 3556;
-                        if (SearchBuffArray(1863)) return 16479;
-                    }
+                    if (SearchBuffArray(802)) return 3554;
+                    if (SearchBuffArray(803)) return 3556;
+                    if (SearchBuffArray(1863)) return 16479;
 
                     return 75;
                 }
@@ -245,9 +250,7 @@ namespace Dalamud.Game.Internal.Gui {
             // Replace Yukikaze with Yukikaze combo
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.SamuraiYukikazeCombo)) {
                 if (actionID == 7480) {
-                    if (activeBuffArray != IntPtr.Zero) {
-                        if (SearchBuffArray(1233)) return 7480;
-                    }
+                    if (SearchBuffArray(1233)) return 7480;
                     if (comboTime > 0) {
                         if (lastMove == 7477) return 7480;
                     }
@@ -258,9 +261,7 @@ namespace Dalamud.Game.Internal.Gui {
             // Replace Gekko with Gekko combo
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.SamuraiGekkoCombo)) {
                 if (actionID == 7481) {
-                    if (activeBuffArray != IntPtr.Zero) {
-                        if (SearchBuffArray(1233)) return 7481;
-                    }
+                    if (SearchBuffArray(1233)) return 7481;
                     if (comboTime > 0) {
                         if (lastMove == 7477) return 7478;
                         if (lastMove == 7478) return 7481;
@@ -272,9 +273,7 @@ namespace Dalamud.Game.Internal.Gui {
             // Replace Kasha with Kasha combo
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.SamuraiKashaCombo)) {
                 if (actionID == 7482) {
-                    if (activeBuffArray != null) {
-                        if (SearchBuffArray(1233)) return 7482;
-                    }
+                    if (SearchBuffArray(1233)) return 7482;
                     if (comboTime > 0) {
                         if (lastMove == 7477) return 7479;
                         if (lastMove == 7479) return 7482;
@@ -286,9 +285,7 @@ namespace Dalamud.Game.Internal.Gui {
             // Replace Mangetsu with Mangetsu combo
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.SamuraiMangetsuCombo)) {
                 if (actionID == 7484) {
-                    if (activeBuffArray != null) {
-                        if (SearchBuffArray(1233)) return 7484;
-                    }
+                    if (SearchBuffArray(1233)) return 7484;
                     if (comboTime > 0) {
                         if (lastMove == 7483) return 7484;
                     }
@@ -299,9 +296,7 @@ namespace Dalamud.Game.Internal.Gui {
             // Replace Oka with Oka combo
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.SamuraiOkaCombo)) {
                 if (actionID == 7485) {
-                    if (activeBuffArray != null) {
-                        if (SearchBuffArray(1233)) return 7485;
-                    }
+                    if (SearchBuffArray(1233)) return 7485;
                     if (comboTime > 0) {
                         if (lastMove == 7483) return 7485;
                     }
@@ -323,7 +318,7 @@ namespace Dalamud.Game.Internal.Gui {
 
             // Replace Armor Crush with Armor Crush combo
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.NinjaArmorCrushCombo)) {
-                if (actionID == 2257) {
+                if (actionID == 3563) {
                     if (comboTime > 0) {
                         if (lastMove == 2240) return 2242;
                         if (lastMove == 2242) return 3563;
@@ -334,7 +329,7 @@ namespace Dalamud.Game.Internal.Gui {
 
             // Replace Aeolian Edge with Aeolian Edge combo
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.NinjaAeolianEdgeCombo)) {
-                if (actionID == 2257) {
+                if (actionID == 2255) {
                     if (comboTime > 0) {
                         if (lastMove == 2240) return 2242;
                         if (lastMove == 2242) return 2255;
@@ -370,7 +365,7 @@ namespace Dalamud.Game.Internal.Gui {
             // TODO: Potentially add Contuation moves as well?
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.GunbreakerGnashingFangCombo)) {
                 if (actionID == 16146) {
-                    byte ammoComboState = Marshal.ReadByte(jobInfo, 0x10);
+                    byte ammoComboState = this.dalamud.ClientState.JobGauges.Get<GNBGauge>().AmmoComboStepNumber;
                     if (ammoComboState == 1) return 16147;
                     if (ammoComboState == 2) return 16150;
                     return 16146;
@@ -414,6 +409,7 @@ namespace Dalamud.Game.Internal.Gui {
             // BLACK MAGE
 
             // Enochian changes to B4 or F4 depending on stance.
+            // TODO: For some reason this breaks only on my Crystal alt.
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.BlackEnochianFeature)) {
                 if (actionID == 3575) {
                     BLMGauge jobInfo = this.dalamud.ClientState.JobGauges.Get<BLMGauge>();
@@ -435,26 +431,26 @@ namespace Dalamud.Game.Internal.Gui {
 
             // ASTROLOGIAN
 
-            // Make cards on the same button as draw
+            // Make cards on the same button as play
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.AstrologianCardsOnDrawFeature)) {
                 if (actionID == 17055) {
-                    byte x = Marshal.ReadByte(jobInfo, 0x10);
-                    switch (x) {
-                        case 1:
+                    ASTGauge gauge = this.dalamud.ClientState.JobGauges.Get<ASTGauge>();
+                    switch (gauge.DrawnCard()) {
+                        case CardType.BALANCE:
                             return 4401;
-                        case 2:
+                        case CardType.BOLE:
                             return 4404;
-                        case 3:
+                        case CardType.ARROW:
                             return 4402;
-                        case 4:
+                        case CardType.SPEAR:
                             return 4403;
-                        case 5:
+                        case CardType.EWER:
                             return 4405;
-                        case 6:
+                        case CardType.SPIRE:
                             return 4406;
-                        case 0x70:
+                        case CardType.LORD:
                             return 7444;
-                        case 0x80:
+                        case CardType.LADY:
                             return 7445;
                         default:
                             return 3590;
@@ -469,20 +465,54 @@ namespace Dalamud.Game.Internal.Gui {
             // What a monster of a button.
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.SummonerDwtCombo)) {
                 if (actionID == 3581) {
-                    byte stackState = Marshal.ReadByte(jobInfo, 0x10);
-                    if (Marshal.ReadInt16(jobInfo, 0xc) > 0) {
-                        if (Marshal.ReadInt16(jobInfo, 0xe) > 0) {
-                            if (stackState > 0) return 16516;
+                    SMNGauge gauge = this.dalamud.ClientState.JobGauges.Get<SMNGauge>();
+                    if (gauge.TimerRemaining > 0) {
+                        if (gauge.ReturnSummon > 0) {
+                            if (gauge.IsPhoenixReady()) return 16516;
                             return 7429;
                         }
                         return 3582;
                     }
                     else {
-                        if (stackState == 0) return 3581;
-                        if (stackState == 8) return 7427;
-                        if (stackState == 0x10) return 16513;
+                        if (gauge.IsBahamutReady()) return 7427;
+                        if (gauge.IsPhoenixReady()) return 16513;
                         return 3581;
                     }
+                }
+            }
+
+            // Ruin 1 now upgrades to Brand of Purgatory in addition to Ruin 3 and Fountain of Fire
+            if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.SummonerBoPCombo)) {
+                if (actionID == 163) {
+                    SMNGauge gauge = this.dalamud.ClientState.JobGauges.Get<SMNGauge>();
+                    if (gauge.TimerRemaining > 0) {
+                        if (gauge.IsPhoenixReady()) {
+                            if (SearchBuffArray(1867)) {
+                                return 16515;
+                            }
+                            return 16514;
+                        }
+                    }
+                    if (level >= 54) return 3579;
+                    return 163;
+                }
+            }
+
+            // Change Energy Drain into Fester
+            if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.SummonerEDFesterCombo)) {
+                if (actionID == 16508) {
+                    if (this.dalamud.ClientState.JobGauges.Get<SMNGauge>().HasAetherflowStacks())
+                        return 181;
+                    return 16508;
+                }
+            }
+
+            //Change Energy Siphon into Painflare
+            if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.SummonerESPainflareCombo)) {
+                if (actionID == 16510) {
+                    if (this.dalamud.ClientState.JobGauges.Get<SMNGauge>().HasAetherflowStacks())
+                        if(level >= 52) return 3578;
+                    return 16510;
                 }
             }
 
@@ -491,13 +521,21 @@ namespace Dalamud.Game.Internal.Gui {
             // Change Fey Blessing into Consolation when Seraph is out.
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.ScholarSeraphConsolationFeature)) {
                 if (actionID == 16543) {
-                    if (Marshal.ReadInt16(jobInfo, 0x10) > 0) return 16546;
+                    if (this.dalamud.ClientState.JobGauges.Get<SCHGauge>().SeraphTimer > 0) return 16546;
                     return 16543;
                 }
             }
 
+            // Change Energy Drain into Aetherflow when you have no more Aetherflow stacks.
+            if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.ScholarEnergyDrainFeature)) {
+                if (actionID == 167) {
+                    if (this.dalamud.ClientState.JobGauges.Get<SCHGauge>().NumAetherflowStacks == 0) return 166;
+                    return 167;
+                }
+            }
+
             // DANCER
-            
+
             // Standard Step is one button.
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.DancerStandardStepCombo)) {
                 if (actionID == 15997) {
@@ -508,7 +546,7 @@ namespace Dalamud.Game.Internal.Gui {
                         }
                         else {
                             // C# can't implicitly cast from int to ulong.
-                            return (ulong)(15999 + gauge.StepOrder[gauge.NumCompleteSteps] - 1);
+                            return gauge.NextStep();
                         }
                     }
                     return 15997;
@@ -525,7 +563,7 @@ namespace Dalamud.Game.Internal.Gui {
                         }
                         else {
                             // C# can't implicitly cast from int to ulong.
-                            return (ulong)(15999 + gauge.StepOrder[gauge.NumCompleteSteps] - 1);
+                            return gauge.NextStep();
                         }
                     }
                     return 15998;
@@ -536,10 +574,9 @@ namespace Dalamud.Game.Internal.Gui {
             // and Fountainfall over Reverse Cascade.
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.DancerFountainCombo)) {
                 if (actionID == 15990) {
-                    if (activeBuffArray != null) {
-                        if (SearchBuffArray(1815)) return 15992;
-                        if (SearchBuffArray(1814)) return 15991;
-                    }
+                    if (this.dalamud.ClientState.JobGauges.Get<DNCGauge>().IsDancing()) return 15999;
+                    if (SearchBuffArray(1815)) return 15992;
+                    if (SearchBuffArray(1814)) return 15991;
                     if (comboTime > 0) {
                         if (lastMove == 15989) return 15990;
                     }
@@ -552,16 +589,12 @@ namespace Dalamud.Game.Internal.Gui {
             // Replaces each GCD with its procced version.
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.DancerAoeGcdFeature)) {
                 if (actionID == 15994) {
-                    if (activeBuffArray != null) {
-                        if (SearchBuffArray(1817)) return 15996;
-                    }
+                    if (SearchBuffArray(1817)) return 15996;
                     return 15994;
                 }
 
                 if (actionID == 15993) {
-                    if (activeBuffArray != null) {
-                        if (SearchBuffArray(1816)) return 15995;
-                    }
+                    if (SearchBuffArray(1816)) return 15995;
                     return 15993;
                 }
             }
@@ -570,26 +603,209 @@ namespace Dalamud.Game.Internal.Gui {
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.DancerFanDanceCombo)) {
                 // Fan Dance changes into Fan Dance 3 while flourishing.
                 if (actionID == 16007) {
-                    if (activeBuffArray != null) {
-                        if (SearchBuffArray(1820)) return 16009;
-                    }
+                    if (SearchBuffArray(1820)) return 16009;
 
                     return 16007;
                 }
 
                 // Fan Dance 2 changes into Fan Dance 3 while flourishing.
                 if (actionID == 16008) {
-                    if (activeBuffArray != null) {
-                        if (SearchBuffArray(1820)) return 16009;
-                    }
+                    if (SearchBuffArray(1820)) return 16009;
                     return 16008;
+                }
+            }
+
+            // WHM
+
+            // Replace Solace with Misery when full blood lily
+            if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.WhiteMageSolaceMiseryFeature)) {
+                if (actionID == 16531) {
+                    if (this.dalamud.ClientState.JobGauges.Get<WHMGauge>().NumBloodLily == 3)
+                        return 16535;
+                    return 16531;
+                }
+            }
+
+            // Replace Solace with Misery when full blood lily
+            if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.WhiteMageRaptureMiseryFeature)) {
+                if (actionID == 16534) {
+                    if (this.dalamud.ClientState.JobGauges.Get<WHMGauge>().NumBloodLily == 3)
+                        return 16535;
+                    return 16534;
+                }
+            }
+
+            // BARD
+
+            // Replace Wanderer's Minuet with PP when in WM.
+            if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.BardWandererPPFeature)) {
+                if (actionID == 3559) {
+                    if (this.dalamud.ClientState.JobGauges.Get<BRDGauge>().ActiveSong == CurrentSong.WANDERER) {
+                        return 7404;
+                    }
+                    return 3559;
+                }
+            }
+
+            // Replace HS/BS with SS/RA when procced.
+            if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.BardStraightShotUpgradeFeature)) {
+                if (actionID == 97) {
+                    if (SearchBuffArray(122)) {
+                        if (level >= 70) return 7409;
+                        return 98;
+                    }
+                    if (level > 76) return 16495;
+                    return 97;
+                }
+            }
+
+            // MONK
+
+            // Replace Snap Punch with flank positional combo.
+            // During PB, Snap (with sub-max stacks) > Twin (with no active Twin) > DK
+            if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.MonkFlankCombo)) {
+                if (actionID == 56) {
+                    if (SearchBuffArray(110)) {
+                        MNKGauge gauge = this.dalamud.ClientState.JobGauges.Get<MNKGauge>();
+                        if ((gauge.NumGLStacks < 3 && level < 76) || SearchBuffArray(103)) {
+                            return 56;
+                        }
+                        else if (gauge.NumGLStacks < 4 && level >= 76 && SearchBuffArray(105)) {
+                            return 56;
+                        }
+                        else if (!SearchBuffArray(101)) return 61;
+                        else return 74;
+                    }
+                    else {
+                        if (SearchBuffArray(107)) return 74;
+                        if (SearchBuffArray(108)) return 61;
+                        if (SearchBuffArray(109)) return 56;
+                        return 74;
+                    }
+                }
+            }
+
+            // Replace Demolish with rear positional combo.
+            // During PB, Demo (with sub-max stacks) > Bootshine.
+            if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.MonkRearCombo)) {
+                if (actionID == 66) {
+                    if (SearchBuffArray(110)) {
+                        MNKGauge gauge = this.dalamud.ClientState.JobGauges.Get<MNKGauge>();
+                        if ((gauge.NumGLStacks < 3 && level < 76) || SearchBuffArray(103)) {
+                            return 66;
+                        }
+                        else if (gauge.NumGLStacks < 4 && level >= 76 && SearchBuffArray(105)) {
+                            return 66;
+                        }
+                        else return 53;
+                    }
+                    else {
+                        if (SearchBuffArray(107)) return 53;
+                        if (SearchBuffArray(108)) return 54;
+                        if (SearchBuffArray(109)) return 66;
+                        return 53;
+                    }
+                }
+            }
+
+            // Replace Rockbreaker with AoE combo.
+            // During PB, RB (with sub-max stacks) > Twin Snakes (if not applied) > AotD.
+            if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.MonkAoECombo)) {
+                if (actionID == 70) {
+                    if (SearchBuffArray(110)) {
+                        MNKGauge gauge = this.dalamud.ClientState.JobGauges.Get<MNKGauge>();
+                        if ((gauge.NumGLStacks < 3 && level < 76) || SearchBuffArray(103)) {
+                            return 70;
+                        }
+                        else if (gauge.NumGLStacks < 4 && level >= 76 && SearchBuffArray(105)) {
+                            return 70;
+                        }
+                        else if (!SearchBuffArray(101)) return 61;
+                        else return 62;
+                    }
+                    else {
+                        if (SearchBuffArray(107)) return 62;
+                        if (SearchBuffArray(108)) {
+                            if (!SearchBuffArray(101)) return 61;
+                            return 16473;
+                        }
+                        if (SearchBuffArray(109)) return 70;
+                        return 62;
+                    }
+                }
+            }
+
+            // RED MAGE
+
+            // Replace Verstone with White Magic spells. Priority order:
+            // Scorch > Verholy > Verstone = Veraero (with Dualcast active) > opener Veraero > Jolt
+            // Impact is not the first available spell to allow for precast openers.
+            if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.RedMageWhiteMagicFeature)) {
+                if (actionID == 7511) {
+                    if ((lastMove == 7526 || lastMove == 7525) && level == 80) return 16530;
+                    if (lastMove == 7529) return 7526;
+                    if (SearchBuffArray(1249) || SearchBuffArray(167)) return 7507;
+                    if (SearchBuffArray(1235)) return 7511;
+                    RDMGauge gauge = this.dalamud.ClientState.JobGauges.Get<RDMGauge>();
+                    if (gauge.BlackGauge == 0 && gauge.WhiteGauge == 0) return 7507;
+                    if (level >= 62) return 7524;
+                    return 7503;
+                }
+            }
+
+            // Replace Verfire with Black Magic spells. Priority order:
+            // Scorch > Verflare> Verfire = Verthunder (with Dualcast active) > opener Verthunder > Jolt
+            // Impact is not the first available spell to allow for precast openers.
+            if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.RedMageBlackMagicFeature)) {
+                if (actionID == 7510) {
+                    if ((lastMove == 7526 || lastMove == 7525) && level == 80) return 16530;
+                    if (lastMove == 7529) return 7525;
+                    if (SearchBuffArray(1249) || SearchBuffArray(167)) return 7505;
+                    if (SearchBuffArray(1234)) return 7510;
+                    RDMGauge gauge = this.dalamud.ClientState.JobGauges.Get<RDMGauge>();
+                    if (gauge.BlackGauge == 0 && gauge.WhiteGauge == 0) return 7505;
+                    if (level >= 62) return 7524;
+                    return 7503;
+                }
+            }
+
+            // Replace Veraero 2 with Impact when Dualcast is active
+            if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.RedMageWhiteAoECombo)) {
+                if (actionID == 16525) {
+                    if (level >= 66 && (SearchBuffArray(1249) || SearchBuffArray(167))) return 16526;
+                    return 16525;
+                }
+            }
+
+            // Replace Verthunder 2 with Impact when Dualcast is active
+            if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.RedMageBlackAoECombo)) {
+                if (actionID == 16524) {
+                    if (level >= 66 && (SearchBuffArray(1249) || SearchBuffArray(167))) return 16526;
+                    return 16524;
+                }
+            }
+
+            // Replace Redoublement with Redoublement combo, Enchanted if possible.
+            if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.RedMageMeleeCombo)) {
+                if (actionID == 7516) {
+                    RDMGauge gauge = this.dalamud.ClientState.JobGauges.Get<RDMGauge>();
+                    if (lastMove == 7504 || lastMove == 7527) {
+                        if (gauge.BlackGauge >= 25 && gauge.WhiteGauge >= 25) return 7528;
+                        return 7512;
+                    }
+                    if (lastMove == 7512) {
+                        if (gauge.BlackGauge >= 25 && gauge.WhiteGauge >= 25) return 7529;
+                        return 7516;
+                    }
+                    if (gauge.BlackGauge >= 30 && gauge.WhiteGauge >= 30) return 7527;
+                    return 7516;
                 }
             }
 
             return this.iconHook.Original(self, actionID);
         }
 
-        private unsafe bool SearchBuffArray(short needle) {
+        private bool SearchBuffArray(short needle) {
             for (int i = 0; i < 60; i++) {
                 if (Marshal.ReadInt16(activeBuffArray + 4 * i) == needle) return true;
             }
