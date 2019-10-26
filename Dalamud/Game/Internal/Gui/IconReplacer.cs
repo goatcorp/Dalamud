@@ -193,7 +193,10 @@ namespace Dalamud.Game.Internal.Gui {
                 if (actionID == 3539) {
                     if (comboTime > 0) {
                         if (lastMove == 9 && level >= 4) return 15;
-                        if (lastMove == 15 && level >= 60) return 3539;
+                        if (lastMove == 15) {
+                            if (level >= 60) return 3539;
+                            if (level >= 26) return 21;
+                        }
                     }
 
                     return 9;
@@ -307,16 +310,6 @@ namespace Dalamud.Game.Internal.Gui {
 
             // NINJA
 
-            // Replace Shadow Fang with Shadow Fang combo
-            if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.NinjaShadowFangCombo)) {
-                if (actionID == 2257) {
-                    if (comboTime > 0) {
-                        if (lastMove == 2240 && level >= 30) return 2257;
-                    }
-                    return 2240;
-                }
-            }
-
             // Replace Armor Crush with Armor Crush combo
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.NinjaArmorCrushCombo)) {
                 if (actionID == 3563) {
@@ -392,8 +385,14 @@ namespace Dalamud.Game.Internal.Gui {
                 if (actionID == 7413) {
                     if (this.dalamud.ClientState.JobGauges.Get<MCHGauge>().IsOverheated() && level >= 35) return 7410;
                     if (comboTime > 0) {
-                        if (lastMove == 2866 && level >= 2) return 7412;
-                        if (lastMove == 2868 && level >= 26) return 7413;
+                        if (lastMove == 2866) {
+                            if (level >= 60) return 7412;
+                            if (level >= 2) return 2868;
+                        }
+                        if (lastMove == 2868) {
+                            if (level >= 64) return 7413;
+                            if (level >= 26) return 2873;
+                        }
                     }
                     return 7411;
                 }
@@ -410,11 +409,10 @@ namespace Dalamud.Game.Internal.Gui {
             // BLACK MAGE
 
             // Enochian changes to B4 or F4 depending on stance.
-            // TODO: For some reason this breaks only on my Crystal alt.
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.BlackEnochianFeature)) {
                 if (actionID == 3575) {
                     BLMGauge jobInfo = this.dalamud.ClientState.JobGauges.Get<BLMGauge>();
-                    if (jobInfo.IsEnoActive) {
+                    if (jobInfo.IsEnoActive()) {
                         if (jobInfo.InUmbralIce() && level >= 58) return 3576;
                         if (level >= 60) return 3577;
                     }
@@ -425,7 +423,8 @@ namespace Dalamud.Game.Internal.Gui {
             // Umbral Soul and Transpose
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.BlackManaFeature)) {
                 if (actionID == 149) {
-                    if (this.dalamud.ClientState.JobGauges.Get<BLMGauge>().InUmbralIce() && level >= 76) return 16506;
+                    BLMGauge gauge = this.dalamud.ClientState.JobGauges.Get<BLMGauge>();
+                    if (gauge.InUmbralIce() && gauge.IsEnoActive() && level >= 76) return 16506;
                     return 149;
                 }
             }
@@ -449,10 +448,12 @@ namespace Dalamud.Game.Internal.Gui {
                             return 4405;
                         case CardType.SPIRE:
                             return 4406;
+                        /*
                         case CardType.LORD:
                             return 7444;
                         case CardType.LADY:
                             return 7445;
+                        */
                         default:
                             return 3590;
                     }
@@ -710,7 +711,7 @@ namespace Dalamud.Game.Internal.Gui {
             }
 
             // Replace Rockbreaker with AoE combo.
-            // During PB, RB (with sub-max stacks) > Twin Snakes (if not applied) > AotD.
+            // During PB, RB (with sub-max stacks) > Twin Snakes (if not applied) > RB.
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.MonkAoECombo)) {
                 if (actionID == 70) {
                     if (SearchBuffArray(110)) {
@@ -722,7 +723,7 @@ namespace Dalamud.Game.Internal.Gui {
                             return 70;
                         }
                         else if (!SearchBuffArray(101)) return 61;
-                        else return 62;
+                        else return 70;
                     }
                     else {
                         if (SearchBuffArray(107)) return 62;

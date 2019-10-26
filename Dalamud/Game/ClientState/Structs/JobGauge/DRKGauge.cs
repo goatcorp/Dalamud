@@ -10,7 +10,11 @@ namespace Dalamud.Game.ClientState.Structs.JobGauge {
     public struct DRKGauge {
         [FieldOffset(0)] public short Blood;
         [FieldOffset(2)] public short DarksideTimeRemaining;
-        [FieldOffset(4)] public bool HasDarkArts;
+        [FieldOffset(4)] private byte DarkArtsState;
         [FieldOffset(6)] public short ShadowTimeRemaining;
+
+        public bool HasDarkArts() {
+            return DarkArtsState > 0;
+        }
     }
 }

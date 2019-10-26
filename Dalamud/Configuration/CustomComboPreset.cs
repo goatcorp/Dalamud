@@ -7,14 +7,14 @@ using System.Threading.Tasks;
 namespace XIVLauncher.Dalamud
 {
 
-    //CURRENT HIGHEST FLAG IS 45
+    //CURRENT HIGHEST FLAG IS 44
     [Flags]
     public enum CustomComboPreset : long
     {
         None   = 0,
 
         // DRAGOON
-        [CustomComboInfo("Coerthan Torment Combo", "Replace Coearthan Torment with its combo chain", 22)]
+        [CustomComboInfo("Coerthan Torment Combo", "Replace Coerthan Torment with its combo chain", 22)]
         DragoonCoerthanTormentCombo  = 1L << 0,
 
         [CustomComboInfo("Chaos Thrust Combo", "Replace Chaos Thrust with its combo chain", 22)]
@@ -68,8 +68,6 @@ namespace XIVLauncher.Dalamud
 
 
         // NINJA
-        [CustomComboInfo("Shadow Fang Combo", "Replace Shadow Fang with its combo chain", 30)]
-        NinjaShadowFangCombo = 1L << 16,
 
         [CustomComboInfo("Armor Crush Combo", "Replace Armor Crush with its combo chain", 30)]
         NinjaArmorCrushCombo = 1L << 17,
@@ -166,7 +164,7 @@ namespace XIVLauncher.Dalamud
         MonkRearCombo = 1L << 44,
 
         [CustomComboInfo("Rockbreaker Combo", "Replaces Rockbreaker according to stance. When PB is active, prefer RB (with non-max GL) > Twin Snakes (with no TS active) > AotD.", 20)]
-        MonkAoECombo = 1L << 45,
+        MonkAoECombo = 1L << 16,
 
         // RED MAGE
         [CustomComboInfo("One-button White Magic", "Replaces Verstone with the following priority: Scorch > Verholy > Dual/Swiftcast Veraero > Verstone proc > Opener Veraero > Jolt.", 35)]

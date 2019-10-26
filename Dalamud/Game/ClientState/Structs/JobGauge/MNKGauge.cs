@@ -12,6 +12,10 @@ namespace Dalamud.Game.ClientState.Structs.JobGauge {
         [FieldOffset(0)] public byte GLTimer;
         [FieldOffset(2)] public byte NumGLStacks;
         [FieldOffset(3)] public byte NumChakra;
-        [FieldOffset(4)] public bool IsGLTimerFrozen;
+        [FieldOffset(4)] private byte GLTimerFreezeState;
+
+        public bool IsGLTimerFroze() {
+            return GLTimerFreezeState > 0;
+        }
     }
 }

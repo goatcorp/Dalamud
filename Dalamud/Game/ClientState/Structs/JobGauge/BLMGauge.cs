@@ -14,7 +14,7 @@ namespace Dalamud.Game.ClientState.Structs.JobGauge {
         [FieldOffset(4)] private byte ElementStance; //ui/af
         [FieldOffset(5)] public byte NumUmbralHearts; //number of umbral hearts
         [FieldOffset(6)] public byte NumPolyglotStacks; //number of polyglot stacks
-        [FieldOffset(7)] public bool IsEnoActive; //eno active?
+        [FieldOffset(7)] private byte EnoState; //eno active?
 
         public bool InUmbralIce() {
             return ElementStance > 4;
@@ -22,6 +22,10 @@ namespace Dalamud.Game.ClientState.Structs.JobGauge {
 
         public bool InAstralFire() {
             return ElementStance > 0 && ElementStance < 4;
+        }
+
+        public bool IsEnoActive() {
+            return EnoState > 0;
         }
 
     }
