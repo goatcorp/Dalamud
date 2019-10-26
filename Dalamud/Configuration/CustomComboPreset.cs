@@ -163,7 +163,7 @@ namespace XIVLauncher.Dalamud
         [CustomComboInfo("Rear Positional Combo", "Replaces Demolish with rear positionals according to stance. When PB is active, prefer Demo (with non-max GL) > Bootshine.", 20)]
         MonkRearCombo = 1L << 44,
 
-        [CustomComboInfo("Rockbreaker Combo", "Replaces Rockbreaker according to stance. When PB is active, prefer RB (with non-max GL) > Twin Snakes (with no TS active) > AotD.", 20)]
+        [CustomComboInfo("Rockbreaker Combo", "Replaces Rockbreaker according to stance. When PB is active, prefer RB (with non-max GL) > Twin Snakes (with no TS active) > RB.", 20)]
         MonkAoECombo = 1L << 16,
 
         // RED MAGE
