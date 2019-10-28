@@ -383,7 +383,9 @@ namespace Dalamud.Game.Internal.Gui {
             // For some reason the shots use their unheated IDs as combo moves
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.MachinistHeatedClanShotFeature)) {
                 if (actionID == 7413) {
-                    if (this.dalamud.ClientState.JobGauges.Get<MCHGauge>().IsOverheated() && level >= 35) return 7410;
+                    MCHGauge gauge = this.dalamud.ClientState.JobGauges.Get<MCHGauge>();
+                    // End overheat slightly early to prevent eager button mashing clipping your gcd with a fake 6th HB.
+                    if (gauge.IsOverheated() && level >= 35 && gauge.OverheatTimeRemaining > 30) return 7410;
                     if (comboTime > 0) {
                         if (lastMove == 2866) {
                             if (level >= 60) return 7412;
@@ -465,6 +467,7 @@ namespace Dalamud.Game.Internal.Gui {
             // DWT changes. 
             // Now contains DWT, Deathflare, Summon Bahamut, Enkindle Bahamut, FBT, and Enkindle Phoenix.
             // What a monster of a button.
+            /*
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.SummonerDwtCombo)) {
                 if (actionID == 3581) {
                     SMNGauge gauge = this.dalamud.ClientState.JobGauges.Get<SMNGauge>();
@@ -480,6 +483,26 @@ namespace Dalamud.Game.Internal.Gui {
                         if (gauge.IsPhoenixReady()) return 16513;
                         return 3581;
                     }
+                }
+            }
+            */
+
+            if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.SummonerDemiCombo)) {
+                // Replace Deathflare with demi enkindles
+                if (actionID == 3582) {
+                    SMNGauge gauge = this.dalamud.ClientState.JobGauges.Get<SMNGauge>();
+                    if (gauge.IsPhoenixReady()) return 16516;
+                    if (gauge.TimerRemaining > 0 && gauge.ReturnSummon != SummonPet.NONE) return 7429;
+                    return 3582;
+                }
+
+                //Replace DWT with demi summons
+                if (actionID == 3581) {
+                    SMNGauge gauge = this.dalamud.ClientState.JobGauges.Get<SMNGauge>();
+                    if (gauge.IsBahamutReady()) return 7427;
+                    if (gauge.IsPhoenixReady() || 
+                        (gauge.TimerRemaining > 0 && gauge.ReturnSummon != SummonPet.NONE)) return 16513;
+                    return 3581;
                 }
             }
 
@@ -538,6 +561,8 @@ namespace Dalamud.Game.Internal.Gui {
 
             // DANCER
 
+            /*
+
             // Standard Step is one button.
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.DancerStandardStepCombo)) {
                 if (actionID == 15997) {
@@ -586,6 +611,8 @@ namespace Dalamud.Game.Internal.Gui {
                 }
             }
 
+            */
+
             // AoE GCDs are split into two buttons, because priority matters
             // differently in different single-target moments. Thanks yoship.
             // Replaces each GCD with its procced version.
@@ -601,9 +628,8 @@ namespace Dalamud.Game.Internal.Gui {
                 }
             }
 
-
+            // Fan Dance changes into Fan Dance 3 while flourishing.
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.DancerFanDanceCombo)) {
-                // Fan Dance changes into Fan Dance 3 while flourishing.
                 if (actionID == 16007) {
                     if (SearchBuffArray(1820)) return 16009;
 
@@ -662,6 +688,8 @@ namespace Dalamud.Game.Internal.Gui {
             }
 
             // MONK
+
+            /*
 
             // Replace Snap Punch with flank positional combo.
             // During PB, Snap (with sub-max stacks) > Twin (with no active Twin) > DK
@@ -737,7 +765,11 @@ namespace Dalamud.Game.Internal.Gui {
                 }
             }
 
+            */
+
             // RED MAGE
+
+            /*
 
             // Replace Verstone with White Magic spells. Priority order:
             // Scorch > Verholy > Verstone = Veraero (with Dualcast active) > opener Veraero > Jolt
@@ -770,7 +802,7 @@ namespace Dalamud.Game.Internal.Gui {
                     return 7503;
                 }
             }
-
+            */
             // Replace Veraero/thunder 2 with Impact when Dualcast is active
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.RedMageAoECombo)) {
                 if (actionID == 16525) {
@@ -783,6 +815,8 @@ namespace Dalamud.Game.Internal.Gui {
                     return 16524;
                 }
             }
+
+            
 
             // Replace Redoublement with Redoublement combo, Enchanted if possible.
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.RedMageMeleeCombo)) {

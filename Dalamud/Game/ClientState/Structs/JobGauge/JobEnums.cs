@@ -21,6 +21,7 @@ namespace Dalamud.Game.ClientState.Structs.JobGauge {
     }
 
     public enum SummonPet : byte {
+        NONE = 0,
         IFRIT = 3,
         TITAN,
         GARUDA

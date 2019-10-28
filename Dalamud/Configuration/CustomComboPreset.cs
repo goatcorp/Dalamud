@@ -68,7 +68,6 @@ namespace XIVLauncher.Dalamud
 
 
         // NINJA
-
         [CustomComboInfo("Armor Crush Combo", "Replace Armor Crush with its combo chain", 30)]
         NinjaArmorCrushCombo = 1L << 17,
 
@@ -92,7 +91,7 @@ namespace XIVLauncher.Dalamud
         [CustomComboInfo("Heated Clan Shot Combo/Heat", "Replace Heated Clan Shot with its combo chain or with Heat Blast when overheated.", 31)]
         MachinistHeatedClanShotFeature = 1L << 23,
 
-        [CustomComboInfo("Spread Shot Heat", "Replace Spread Shot with Heat Blast when overheated.", 31)]
+        [CustomComboInfo("Spread Shot Heat", "Replace Spread Shot with Auto Crossbow when overheated.", 31)]
         MachinistSpreadShotFeature = 1L << 24,
 
         // BLACK MAGE
@@ -103,12 +102,12 @@ namespace XIVLauncher.Dalamud
         BlackManaFeature = 1L << 26,
 
         // ASTROLOGIAN
-        [CustomComboInfo("Cards on Draw", "Play your Astrologian Cards on Draw.", 33)]
+        [CustomComboInfo("Draw on Play", "Play turns into Draw when no card is drawn, as well as the usual Play behavior.", 33)]
         AstrologianCardsOnDrawFeature = 1L << 27,
 
         // SUMMONER
-        [CustomComboInfo("Dreadwyrm Combiner", "Now comes with Dreadwyrm Trance, Deathflare, Summon Bahamut, Enkindle Bahamut, FBT, and Enkindle Phoenix.", 27)]
-        SummonerDwtCombo = 1L << 28,
+        [CustomComboInfo("Demi-summon combiners", "Dreadwyrm Trance, Summon Bahamut, and Firebird Trance are now one button. Deathflare, Enkindle Bahamut, and Enkindle Phoenix are now one button.", 27)]
+        SummonerDemiCombo = 1L << 28,
 
         [CustomComboInfo("Brand of Purgatory Combo", "Replaces Fountain of Fire with Brand of Purgatory when under the affect of Hellish Conduit.", 27)]
         SummonerBoPCombo = 1L << 38,
@@ -127,20 +126,11 @@ namespace XIVLauncher.Dalamud
         ScholarEnergyDrainFeature = 1L << 37,
 
         // DANCER
-        [CustomComboInfo("Standard Step Combo", "Standard Step on one button.", 38)]
-        DancerStandardStepCombo = 1L << 30,
-
-        [CustomComboInfo("Technical Step Combo", "Technical Step on one button.", 38)]
-        DancerTechnicalStepCombo = 1L << 31,
-
         [CustomComboInfo("AoE GCD procs", "Replaces all AoE GCDs with their procced version when available.", 38)]
         DancerAoeGcdFeature = 1L << 32,
 
         [CustomComboInfo("Fan Dance Combos", "Change Fan Dance and Fan Dance 2 into Fan Dance 3 while flourishing.", 38)]
         DancerFanDanceCombo = 1L << 33,
-
-        [CustomComboInfo("Fountain Combos", "Fountain changes into Fountain combo, prioritizing procs over combo, and Fountainfall over Reverse Cascade.", 38)]
-        DancerFountainCombo = 1L << 34,
 
         // WHITE MAGE
         [CustomComboInfo("Solace into Misery", "Replaces Afflatus Solace with Afflatus Misery when Misery is ready to be used.", 24)]
@@ -157,22 +147,8 @@ namespace XIVLauncher.Dalamud
         BardStraightShotUpgradeFeature = 1L << 42,
 
         // MONK
-        [CustomComboInfo("Flank Positional Combo", "Replaces Snap Punch with flank positionals according to stance. When PB is active, prefer Snao (with non-max GL) > Twin (with no TS active) > Bootshine.", 20)]
-        MonkFlankCombo = 1L << 43,
-
-        [CustomComboInfo("Rear Positional Combo", "Replaces Demolish with rear positionals according to stance. When PB is active, prefer Demo (with non-max GL) > Bootshine.", 20)]
-        MonkRearCombo = 1L << 44,
-
-        [CustomComboInfo("Rockbreaker Combo", "Replaces Rockbreaker according to stance. When PB is active, prefer RB (with non-max GL) > Twin Snakes (with no TS active) > RB.", 20)]
-        MonkAoECombo = 1L << 16,
-
+    
         // RED MAGE
-        [CustomComboInfo("One-button White Magic", "Replaces Verstone with the following priority: Scorch > Verholy > Dual/Swiftcast Veraero > Verstone proc > Opener Veraero > Jolt.", 35)]
-        RedMageWhiteMagicFeature = 1L << 46,
-
-        [CustomComboInfo("One-button Black Magic", "Replaces Verfire with the following priority: Scorch > Verflare > Dual/Swiftcast Verthunder > Verfire proc > Opener Verthunder > Jolt.", 35)]
-        RedMageBlackMagicFeature = 1L << 47,
-
         [CustomComboInfo("Red Mage AoE Combo", "Replaces Veraero/thunder 2 with Impact when Dualcast or Swiftcast are active.", 35)]
         RedMageAoECombo = 1L << 48,
 

@@ -12,8 +12,8 @@ namespace Dalamud.Game.ClientState.Structs.JobGauge {
         
         //Unfinished
         [FieldOffset(0)] public short TimerRemaining;
-        [FieldOffset(2)] public byte ReturnSummon;
-        [FieldOffset(3)] public byte ReturnSummonGlam;
+        [FieldOffset(2)] public SummonPet ReturnSummon;
+        [FieldOffset(3)] public PetGlam ReturnSummonGlam;
         [FieldOffset(4)] public byte NumStacks;
 
         public bool IsPhoenixReady() {
