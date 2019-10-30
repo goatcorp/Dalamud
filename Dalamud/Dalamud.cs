@@ -73,7 +73,7 @@ namespace Dalamud {
             this.PluginManager = new PluginManager(this, info.PluginDirectory, info.DefaultPluginDirectory);
 
             this.IconReplacer = new IconReplacer(this, this.sigScanner);
-
+            
             try {
                 this.PluginManager.LoadPlugins();
             } catch (Exception ex) {

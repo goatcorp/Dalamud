@@ -32,8 +32,8 @@ namespace Dalamud.Game.Internal.Gui {
             this.Address.Setup(scanner);
 
             this.byteBase = scanner.Module.BaseAddress;
-            this.comboTimer = byteBase + 0x1AE1B10;
-            this.lastComboMove = byteBase + 0x1AE1B14;
+            this.comboTimer = byteBase + 0x1BB5B50;
+            this.lastComboMove = byteBase + 0x1BB5B54;
 
             Log.Verbose("===== H O T B A R S =====");
             Log.Verbose("IsIconReplaceable address {IsIconReplaceable}", Address.IsIconReplaceable);
@@ -85,8 +85,9 @@ namespace Dalamud.Game.Internal.Gui {
                 }
             }
 
-            // TODO: Update localCharacter without destroying the log with debug messages
+            // TODO: this is currently broken
             // As it stands, don't rely on localCharacter.level for anything.
+            /*
             if (localCharacter == null) {
                 try {
                     localCharacter = dalamud.ClientState.LocalPlayer;
@@ -96,12 +97,14 @@ namespace Dalamud.Game.Internal.Gui {
                     return this.iconHook.Original(self, actionID);
                 }
             }
+            */
 
             // Don't clutter the spaghetti any worse than it already is.
             int lastMove = Marshal.ReadInt32(lastComboMove);
             float comboTime = (float)Marshal.ReadInt32(comboTimer);
-            localCharacter = dalamud.ClientState.LocalPlayer;
-            byte level = localCharacter.Level;
+            //localCharacter = dalamud.ClientState.LocalPlayer;
+            //byte level = localCharacter.Level;
+            byte level = 80;
 
             // DRAGOON
             // TODO: Jump/High Jump into Mirage Dive
@@ -848,7 +851,7 @@ namespace Dalamud.Game.Internal.Gui {
         private unsafe delegate int* getArray(long* address);
 
         private unsafe IntPtr FindBuffAddress() {
-            IntPtr randomAddress = byteBase + 0x1b2c970;
+            IntPtr randomAddress = byteBase + 0x1c04be0;
             IntPtr num = Marshal.ReadIntPtr(randomAddress);
             IntPtr step2 = (IntPtr)(Marshal.ReadInt64(num) + 0x248);
             IntPtr step3 = Marshal.ReadIntPtr(step2);
