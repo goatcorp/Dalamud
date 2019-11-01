@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Dalamud.Game.Network.MarketBoardUploaders;
 using Dalamud.Game.Network.Structures;
 using Dalamud.Game.Network.Universalis.MarketBoardUploaders;
-using Dalamud.Settings;
 using Serilog;
 
 namespace Dalamud.Game.Network {
@@ -46,14 +45,14 @@ namespace Dalamud.Game.Network {
             }
 
             if (opCode == ZoneOpCode.FateSpawn) {
-                if (PersistentSettings.Instance.Fates == null)
+                if (this.dalamud.Configuration.Fates == null)
                     return;
 
                 var data = new byte[64];
                 Marshal.Copy(dataPtr, data, 0, 64);
 
                 var fateId = data[16];
-                if (PersistentSettings.Instance.Fates.Any(x => x.Id == fateId) &&
+                if (this.dalamud.Configuration.Fates.Any(x => x.Id == fateId) &&
                     this.dalamud.BotManager.IsConnected)
                     Task.Run(() => this.dalamud.BotManager.ProcessFate(fateId));
 
