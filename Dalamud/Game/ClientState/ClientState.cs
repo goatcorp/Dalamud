@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Dalamud.Game.ClientState.Actors;
 using Dalamud.Game.ClientState.Actors.Types;
 using Dalamud.Game.Internal;
+using Serilog;
 
 namespace Dalamud.Game.ClientState
 {
@@ -53,6 +54,8 @@ namespace Dalamud.Game.ClientState
         public ClientState(Dalamud dalamud, DalamudStartInfo startInfo, SigScanner scanner, ProcessModule targetModule) {
             Address = new ClientStateAddressResolver();
             Address.Setup(scanner);
+
+            Log.Verbose("===== C L I E N T  S T A T E =====");
 
             this.ClientLanguage = startInfo.Language;
 

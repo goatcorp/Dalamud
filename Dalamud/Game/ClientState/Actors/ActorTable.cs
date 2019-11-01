@@ -37,8 +37,8 @@ namespace Dalamud.Game.ClientState.Actors {
 
                 var actorStruct = Marshal.PtrToStructure<Structs.Actor>(offset);
 
-                Log.Debug("ActorTable[{0}]: {1} - {2} - {3}", index, tblIndex.ToString("X"), offset.ToString("X"),
-                          actorStruct.ObjectKind.ToString());
+                //Log.Debug("ActorTable[{0}]: {1} - {2} - {3}", index, tblIndex.ToString("X"), offset.ToString("X"),
+                //          actorStruct.ObjectKind.ToString());
 
                 switch (actorStruct.ObjectKind) {
                     case ObjectKind.Player: return new PlayerCharacter(actorStruct);
