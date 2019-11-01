@@ -21,7 +21,7 @@
     <None Include="$(SolutionDir)/Resources/**/*" CopyToOutputDirectory="PreserveNewest" Visible="false" />
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>E:\Sapphire\recorder\FFXIV.Recorder\/bin\Dalamud.xml</DocumentationFile>
+    <DocumentationFile></DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <DocumentationFile>E:\Sapphire\recorder\FFXIV.Recorder\/bin\Dalamud.xml</DocumentationFile>

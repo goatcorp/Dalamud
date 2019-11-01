@@ -87,7 +87,6 @@ namespace Dalamud.Game.Internal.Gui {
 
             // TODO: this is currently broken
             // As it stands, don't rely on localCharacter.level for anything.
-            /*
             if (localCharacter == null) {
                 try {
                     localCharacter = dalamud.ClientState.LocalPlayer;
@@ -97,14 +96,12 @@ namespace Dalamud.Game.Internal.Gui {
                     return this.iconHook.Original(self, actionID);
                 }
             }
-            */
 
             // Don't clutter the spaghetti any worse than it already is.
-            int lastMove = Marshal.ReadInt32(lastComboMove);
-            float comboTime = (float)Marshal.ReadInt32(comboTimer);
-            //localCharacter = dalamud.ClientState.LocalPlayer;
-            //byte level = localCharacter.Level;
-            byte level = 80;
+            var lastMove = Marshal.ReadInt32(this.lastComboMove);
+            var comboTime = Marshal.ReadInt32(this.comboTimer);
+            this.localCharacter = this.dalamud.ClientState.LocalPlayer;
+            var level = this.localCharacter.Level;
 
             // DRAGOON
             // TODO: Jump/High Jump into Mirage Dive
