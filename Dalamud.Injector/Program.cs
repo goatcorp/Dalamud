@@ -19,7 +19,7 @@ namespace Dalamud.Injector {
                 Process.GetCurrentProcess().Kill();
             };
 
-            int pid = int.Parse(args[0]);
+            var pid = int.Parse(args[0]);
 
             Process process = null;
 
