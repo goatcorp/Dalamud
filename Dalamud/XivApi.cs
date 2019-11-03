@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CSharp.RuntimeBinder;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Serilog;
 
 namespace Dalamud
 {
@@ -68,6 +69,8 @@ namespace Dalamud
 
         public static async Task<dynamic> Get(string endpoint, bool noCache = false)
         {
+            Log.Verbose("XIVAPI FETCH: {0}", endpoint);
+
             if (cachedResponses.ContainsKey(endpoint) && !noCache)
                 return cachedResponses[endpoint];
 

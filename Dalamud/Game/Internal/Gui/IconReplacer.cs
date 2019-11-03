@@ -24,7 +24,6 @@ namespace Dalamud.Game.Internal.Gui {
         private IntPtr jobInfo;
         private IntPtr byteBase;
         private Dalamud dalamud;
-        private PlayerCharacter localCharacter = null;
 
         public unsafe IconReplacer(Dalamud dalamud, SigScanner scanner) {
             this.dalamud = dalamud;
@@ -68,12 +67,13 @@ namespace Dalamud.Game.Internal.Gui {
         ///     For example, Souleater combo on DRK happens by dragging Souleater
         ///     onto your bar and mashing it.
         /// </summary>
-        private unsafe ulong GetIconDetour(byte self, uint actionID) {
+        private ulong GetIconDetour(byte self, uint actionID) {
 
             // TODO: More jobs, level checking for everything.
 
             // Check if player is loaded in by trying to get their buffs.
             // If not, skip everything until we are (game will crash cause I'm lazy).
+            /*
             if (activeBuffArray == IntPtr.Zero) {
                 try {
                     activeBuffArray = FindBuffAddress();
@@ -84,24 +84,16 @@ namespace Dalamud.Game.Internal.Gui {
                     return this.iconHook.Original(self, actionID);
                 }
             }
+            */
 
             // TODO: this is currently broken
             // As it stands, don't rely on localCharacter.level for anything.
-            if (localCharacter == null) {
-                try {
-                    localCharacter = dalamud.ClientState.LocalPlayer;
-                }
-                catch(Exception e) {
-                    localCharacter = null;
-                    return this.iconHook.Original(self, actionID);
-                }
-            }
+            var localPlayer = this.dalamud.ClientState.LocalPlayer;
 
             // Don't clutter the spaghetti any worse than it already is.
             var lastMove = Marshal.ReadInt32(this.lastComboMove);
             var comboTime = Marshal.ReadInt32(this.comboTimer);
-            this.localCharacter = this.dalamud.ClientState.LocalPlayer;
-            var level = this.localCharacter.Level;
+            var level = 80;
 
             // DRAGOON
             // TODO: Jump/High Jump into Mirage Dive
@@ -838,10 +830,11 @@ namespace Dalamud.Game.Internal.Gui {
             return this.iconHook.Original(self, actionID);
         }
 
-        private bool SearchBuffArray(short needle) {
+        private bool SearchBuffArray(short needle) {/*
             for (int i = 0; i < 60; i++) {
                 if (Marshal.ReadInt16(activeBuffArray + 4 * i) == needle) return true;
             }
+            */
             return false;
         }
 

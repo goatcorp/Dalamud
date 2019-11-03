@@ -346,6 +346,7 @@ namespace Dalamud {
             var argumentsParts = arguments.Split();
 
             switch (argumentsParts[0]) {
+                /* Sorry!
                 case "setall": {
                     foreach (var value in Enum.GetValues(typeof(CustomComboPreset)).Cast<CustomComboPreset>()) {
                         if (value == CustomComboPreset.None)
@@ -393,6 +394,7 @@ namespace Dalamud {
                     }
                 }
                     break;
+                    */
                 case "list": {
                     foreach (var value in Enum.GetValues(typeof(CustomComboPreset)).Cast<CustomComboPreset>()) {
                         if (this.Configuration.ComboPresets.HasFlag(value))

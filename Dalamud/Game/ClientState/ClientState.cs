@@ -32,7 +32,7 @@ namespace Dalamud.Game.ClientState
         /// <summary>
         /// The local player character, if one is present.
         /// </summary>
-        public PlayerCharacter LocalPlayer => (PlayerCharacter) this.Actors[0];
+        public PlayerCharacter LocalPlayer { get; private set; }
 
         /// <summary>
         /// The content ID of the local character.
@@ -62,6 +62,13 @@ namespace Dalamud.Game.ClientState
             this.Actors = new ActorTable(Address);
 
             this.JobGauges = new JobGauges(Address);
+
+            dalamud.Framework.OnUpdateEvent += FrameworkOnOnUpdateEvent;
+        }
+
+        private void FrameworkOnOnUpdateEvent(Framework framework) {
+            LocalPlayer = (PlayerCharacter) this.Actors[0];
+            Log.Verbose("FRAMEWORK UPDATE");
         }
     }
 }
