@@ -158,8 +158,8 @@ namespace Dalamud {
                 HelpMessage = "Unmute a word or sentence. Usage: /fatewatchremove <word or sentence>"
             });
 
-            CommandManager.AddHandler("/xldactortable", new CommandInfo(OnDebugActorTable) {
-                HelpMessage = "Actor table operations",
+            CommandManager.AddHandler("/xldstate", new CommandInfo(OnDebugPrintGameState) {
+                HelpMessage = "Print parsed game state",
                 ShowInHelp = false
             });
 
@@ -318,11 +318,13 @@ namespace Dalamud {
             Process.Start(ChatHandlers.LastLink);
         }
 
-        private void OnDebugActorTable(string command, string arguments) {
+        private void OnDebugPrintGameState(string command, string arguments) {
             Framework.Gui.Chat.Print(this.ClientState.Actors.Length + " entries");
             Framework.Gui.Chat.Print(this.ClientState.LocalPlayer.Name);
             Framework.Gui.Chat.Print(this.ClientState.LocalPlayer.CurrentWorld.Name);
+            Framework.Gui.Chat.Print(this.ClientState.LocalPlayer.HomeWorld.Name);
             Framework.Gui.Chat.Print(this.ClientState.LocalContentId.ToString("X"));
+            Framework.Gui.Chat.Print(Framework.Gui.Chat.LastLinkedItemId.ToString());
 
             for (var i = 0; i < this.ClientState.Actors.Length; i++) {
                 var actor = this.ClientState.Actors[i];
@@ -344,6 +346,7 @@ namespace Dalamud {
             var argumentsParts = arguments.Split();
 
             switch (argumentsParts[0]) {
+                /* Sorry!
                 case "setall": {
                     foreach (var value in Enum.GetValues(typeof(CustomComboPreset)).Cast<CustomComboPreset>()) {
                         if (value == CustomComboPreset.None)
@@ -369,7 +372,6 @@ namespace Dalamud {
                             continue;
 
                         this.Configuration.ComboPresets |= value;
-                        Framework.Gui.Chat.Print(argumentsParts[1] + " SET");
                     }
                 }
                     break;
@@ -379,7 +381,6 @@ namespace Dalamud {
                             continue;
 
                         this.Configuration.ComboPresets ^= value;
-                        Framework.Gui.Chat.Print(argumentsParts[1] + " TOGGLE");
                     }
                 }
                     break;
@@ -390,10 +391,10 @@ namespace Dalamud {
                             continue;
 
                         this.Configuration.ComboPresets &= ~value;
-                        Framework.Gui.Chat.Print(argumentsParts[1] + " UNSET");
                     }
                 }
                     break;
+                    */
                 case "list": {
                     foreach (var value in Enum.GetValues(typeof(CustomComboPreset)).Cast<CustomComboPreset>()) {
                         if (this.Configuration.ComboPresets.HasFlag(value))

@@ -92,8 +92,8 @@ namespace Dalamud.Game {
                                .GetResult());
 
 
-            if (this.HandledChatTypeColors.ContainsKey(type) || type == XivChatType.Say || type == XivChatType.Shout ||
-                type == XivChatType.Alliance || type == XivChatType.TellOutgoing || type == XivChatType.Yell) {
+            if ((this.HandledChatTypeColors.ContainsKey(type) || type == XivChatType.Say || type == XivChatType.Shout ||
+                type == XivChatType.Alliance || type == XivChatType.TellOutgoing || type == XivChatType.Yell) && !message.Contains((char)0x02)) {
                 var italicsStart = message.IndexOf("*");
                 var italicsEnd = message.IndexOf("*", italicsStart + 1);
 

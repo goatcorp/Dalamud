@@ -61,6 +61,11 @@ namespace Dalamud.Game.Chat {
         [XivChatTypeInfo("Novice Network", "nn", 0xFF8B4513)]
         NoviceNetwork = 27,
 
+        [XivChatTypeInfo("Custom Emotes", "nn", 0xFF8B4513)]
+        CustomEmote = 28,
+        [XivChatTypeInfo("Standard Emotes", null, 0xFF8B4513)]
+        StandardEmote = 29,
+
         [XivChatTypeInfo("Yell", "y", 0xFFFFFF00)]
         Yell = 30,
 

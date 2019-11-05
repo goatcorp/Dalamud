@@ -20,13 +20,13 @@ namespace Dalamud.Game.ClientState.Structs
         [FieldOffset(140)] public ObjectKind ObjectKind;
         [FieldOffset(141)] public byte SubKind;
         [FieldOffset(160)] public Position3 Position;
-        [FieldOffset(6296)] public byte CurrentWorld;
-        [FieldOffset(6298)] public byte HomeWorld;
-        [FieldOffset(6308)] public int CurrentHp;
-        [FieldOffset(6312)] public int MaxHp;
-        [FieldOffset(6316)] public int CurrentMp;
-        [FieldOffset(6320)] public int MaxMp;
-        [FieldOffset(6364)] public byte ClassJob;
-        [FieldOffset(6366)] public byte Level;
+        [FieldOffset(6308)] public byte CurrentWorld;
+        [FieldOffset(6310)] public byte HomeWorld;
+        [FieldOffset(6328)] public int CurrentHp;
+        [FieldOffset(6332)] public int MaxHp;
+        [FieldOffset(6336)] public int CurrentMp;
+        [FieldOffset(6340)] public int MaxMp;
+        [FieldOffset(6388)] public byte ClassJob;
+        [FieldOffset(6390)] public byte Level;
     }
 }

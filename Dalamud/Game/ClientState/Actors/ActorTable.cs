@@ -9,7 +9,7 @@ namespace Dalamud.Game.ClientState.Actors {
     /// <summary>
     ///     This collection represents the currently spawned FFXIV actors.
     /// </summary>
-    public unsafe class ActorTable : ICollection {
+    public class ActorTable : ICollection {
         private ClientStateAddressResolver Address { get; }
 
         /// <summary>
@@ -29,8 +29,15 @@ namespace Dalamud.Game.ClientState.Actors {
         /// <returns><see cref="Actor" /> at the specified spawn index.</returns>
         public Actor this[int index] {
             get {
+                if (index > Length)
+                    return null;
+
+                Log.Information("Trying to get actor at {0}", index);
                 var tblIndex = Address.ActorTable + 8 + index * 8;
-                var offset = *(IntPtr*) tblIndex;
+
+                var offset = Marshal.ReadIntPtr(tblIndex);
+
+                Log.Information("Actor at {0}", offset.ToString());
 
                 if (offset == IntPtr.Zero)
                     throw new Exception($"Actor slot at index {index} is invalid");
@@ -76,7 +83,7 @@ namespace Dalamud.Game.ClientState.Actors {
         /// <summary>
         ///     The amount of currently spawned actors.
         /// </summary>
-        public int Length => *(int*) Address.ActorTable;
+        public int Length => Marshal.ReadInt32(Address.ActorTable);
 
         int ICollection.Count => Length;
 
