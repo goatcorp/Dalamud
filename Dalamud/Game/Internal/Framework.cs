@@ -1,6 +1,5 @@
 using System;
 using System.Runtime.InteropServices;
-using Dalamud.Settings;
 using Dalamud.Game.Internal.Gui;
 using Dalamud.Game.Internal.Libc;
 using Dalamud.Game.Internal.Network;
@@ -56,7 +55,7 @@ namespace Dalamud.Game.Internal {
 
             Network = new GameNetwork(dalamud, scanner);
 
-            Resource = new ResourceManager(dalamud, scanner);
+            //Resource = new ResourceManager(dalamud, scanner);
         }
 
         private void HookVTable() {
@@ -100,7 +99,7 @@ namespace Dalamud.Game.Internal {
             } catch (Exception ex) {
                 Log.Error(ex, "Exception while dispatching Framework::Update event.");
             }
-            
+
             return this.updateHook.Original(framework);
         }
     }

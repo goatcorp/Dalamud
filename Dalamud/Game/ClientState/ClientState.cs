@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Dalamud.Game.ClientState.Actors;
 using Dalamud.Game.ClientState.Actors.Types;
 using Dalamud.Game.Internal;
+using Serilog;
 
 namespace Dalamud.Game.ClientState
 {
@@ -31,12 +32,17 @@ namespace Dalamud.Game.ClientState
         /// <summary>
         /// The local player character, if one is present.
         /// </summary>
-        public PlayerCharacter LocalPlayer => (PlayerCharacter) this.Actors[0];
+        public PlayerCharacter LocalPlayer { get; private set; }
 
         /// <summary>
         /// The content ID of the local character.
         /// </summary>
         public ulong LocalContentId => (ulong) Marshal.ReadInt64(Address.LocalContentId);
+
+        /// <summary>
+        /// The class facilitating Job Gauge data access
+        /// </summary>
+        public JobGauges JobGauges;
 
         /// <summary>
         /// Set up client state access.
@@ -49,9 +55,20 @@ namespace Dalamud.Game.ClientState
             Address = new ClientStateAddressResolver();
             Address.Setup(scanner);
 
+            Log.Verbose("===== C L I E N T  S T A T E =====");
+
             this.ClientLanguage = startInfo.Language;
 
             this.Actors = new ActorTable(Address);
+
+            this.JobGauges = new JobGauges(Address);
+
+            dalamud.Framework.OnUpdateEvent += FrameworkOnOnUpdateEvent;
+        }
+
+        private void FrameworkOnOnUpdateEvent(Framework framework) {
+            LocalPlayer = (PlayerCharacter) this.Actors[0];
+            Log.Verbose("FRAMEWORK UPDATE");
         }
     }
 }

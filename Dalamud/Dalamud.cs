@@ -11,10 +11,11 @@ using Dalamud.Game.ClientState.Actors.Types;
 using Dalamud.Game.ClientState.Actors.Types.NonPlayer;
 using Dalamud.Game.Command;
 using Dalamud.Game.Internal;
+using Dalamud.Game.Internal.Gui;
 using Dalamud.Game.Network;
 using Dalamud.Plugin;
-using Dalamud.Settings;
 using Serilog;
+using XIVLauncher.Dalamud;
 
 namespace Dalamud {
     public sealed class Dalamud : IDisposable {
@@ -39,8 +40,13 @@ namespace Dalamud {
 
         public readonly DalamudStartInfo StartInfo;
 
+        public readonly IconReplacer IconReplacer;
+
+        public readonly DalamudConfiguration Configuration;
+
         public Dalamud(DalamudStartInfo info) {
             this.StartInfo = info;
+            this.Configuration = DalamudConfiguration.Load(info.ConfigurationPath);
             
             this.baseDirectory = info.WorkingDirectory;
 
@@ -58,14 +64,16 @@ namespace Dalamud {
             SetupCommands();
 
             ChatHandlers = new ChatHandlers(this);
-            NetworkHandlers = new NetworkHandlers(this, info.OptOutMbCollection);
+            NetworkHandlers = new NetworkHandlers(this, this.Configuration.OptOutMbCollection);
 
             this.ClientState = new ClientState(this, info, this.sigScanner, this.targetModule);
 
-            this.BotManager = new DiscordBotManager(this, info.DiscordFeatureConfig);
+            this.BotManager = new DiscordBotManager(this, this.Configuration.DiscordFeatureConfig);
 
             this.PluginManager = new PluginManager(this, info.PluginDirectory, info.DefaultPluginDirectory);
 
+            this.IconReplacer = new IconReplacer(this, this.sigScanner);
+            
             try {
                 this.PluginManager.LoadPlugins();
             } catch (Exception ex) {
@@ -79,6 +87,8 @@ namespace Dalamud {
             Framework.Enable();
 
             this.BotManager.Start();
+
+            this.IconReplacer.Enable();
         }
 
         public void Unload() {
@@ -95,6 +105,8 @@ namespace Dalamud {
             this.BotManager.Dispose();
 
             this.unloadSignal.Dispose();
+
+            this.IconReplacer.Dispose();
         }
 
         private void SetupCommands() {
@@ -110,6 +122,11 @@ namespace Dalamud {
 
             CommandManager.AddHandler("/xldsay", new CommandInfo(OnCommandDebugSay) {
                 HelpMessage = "Print to chat.",
+                ShowInHelp = false
+            });
+
+            CommandManager.AddHandler("/xldcombo", new CommandInfo(OnCommandDebugCombo) {
+                HelpMessage = "COMBO debug",
                 ShowInHelp = false
             });
 
@@ -141,8 +158,8 @@ namespace Dalamud {
                 HelpMessage = "Unmute a word or sentence. Usage: /fatewatchremove <word or sentence>"
             });
 
-            CommandManager.AddHandler("/xldactortable", new CommandInfo(OnDebugActorTable) {
-                HelpMessage = "Actor table operations",
+            CommandManager.AddHandler("/xldstate", new CommandInfo(OnDebugPrintGameState) {
+                HelpMessage = "Print parsed game state",
                 ShowInHelp = false
             });
 
@@ -200,8 +217,8 @@ namespace Dalamud {
         }
 
         private void OnFateWatchAdd(string command, string arguments) {
-            if (PersistentSettings.Instance.Fates == null)
-                PersistentSettings.Instance.Fates = new List<PersistentSettings.FateInfo>();
+            if (this.Configuration.Fates == null)
+                this.Configuration.Fates = new List<DalamudConfiguration.FateInfo>();
 
             dynamic candidates = XivApi.Search(arguments, "Fate").GetAwaiter().GetResult();
 
@@ -210,32 +227,36 @@ namespace Dalamud {
                 return;
             }
 
-            var fateInfo = new PersistentSettings.FateInfo {
+            var fateInfo = new DalamudConfiguration.FateInfo {
                 Id = candidates.Results[0].ID,
                 Name = candidates.Results[0].Name
             };
 
-            PersistentSettings.Instance.Fates.Add(fateInfo);
+            this.Configuration.Fates.Add(fateInfo);
+
+            this.Configuration.Save(this.StartInfo.ConfigurationPath);
 
             Framework.Gui.Chat.Print($"Added fate \"{fateInfo.Name}\".");
         }
 
         private void OnFateWatchList(string command, string arguments) {
-            if (PersistentSettings.Instance.Fates == null)
-                PersistentSettings.Instance.Fates = new List<PersistentSettings.FateInfo>();
+            if (this.Configuration.Fates == null)
+                this.Configuration.Fates = new List<DalamudConfiguration.FateInfo>();
 
-            if (PersistentSettings.Instance.Fates.Count == 0) {
+            if (this.Configuration.Fates.Count == 0) {
                 Framework.Gui.Chat.Print("No fates on your watchlist.");
                 return;
             }
 
-            foreach (var fate in PersistentSettings.Instance.Fates)
+            this.Configuration.Save(this.StartInfo.ConfigurationPath);
+
+            foreach (var fate in this.Configuration.Fates)
                 Framework.Gui.Chat.Print($"Fate {fate.Id}: {fate.Name}");
         }
 
         private void OnFateWatchRemove(string command, string arguments) {
-            if (PersistentSettings.Instance.Fates == null)
-                PersistentSettings.Instance.Fates = new List<PersistentSettings.FateInfo>();
+            if (this.Configuration.Fates == null)
+                this.Configuration.Fates = new List<DalamudConfiguration.FateInfo>();
 
             dynamic candidates = XivApi.Search(arguments, "Fate").GetAwaiter().GetResult();
 
@@ -244,37 +265,45 @@ namespace Dalamud {
                 return;
             }
 
-            PersistentSettings.Instance.Fates.RemoveAll(x => x.Id == candidates.Results[0].ID);
+            this.Configuration.Fates.RemoveAll(x => x.Id == candidates.Results[0].ID);
+
+            this.Configuration.Save(this.StartInfo.ConfigurationPath);
 
             Framework.Gui.Chat.Print($"Removed fate \"{candidates.Results[0].Name}\".");
         }
 
         private void OnBadWordsAdd(string command, string arguments) {
-            if (PersistentSettings.Instance.BadWords == null)
-                PersistentSettings.Instance.BadWords = new List<string>();
+            if (this.Configuration.BadWords == null)
+                this.Configuration.BadWords = new List<string>();
 
-            PersistentSettings.Instance.BadWords.Add(arguments);
+            this.Configuration.BadWords.Add(arguments);
+
+            this.Configuration.Save(this.StartInfo.ConfigurationPath);
 
             Framework.Gui.Chat.Print($"Muted \"{arguments}\".");
         }
 
         private void OnBadWordsList(string command, string arguments) {
-            if (PersistentSettings.Instance.BadWords == null)
-                PersistentSettings.Instance.BadWords = new List<string>();
+            if (this.Configuration.BadWords == null)
+                this.Configuration.BadWords = new List<string>();
 
-            if (PersistentSettings.Instance.BadWords.Count == 0) {
+            if (this.Configuration.BadWords.Count == 0) {
                 Framework.Gui.Chat.Print("No muted words or sentences.");
                 return;
             }
 
-            foreach (var word in PersistentSettings.Instance.BadWords) Framework.Gui.Chat.Print($"\"{word}\"");
+            this.Configuration.Save(this.StartInfo.ConfigurationPath);
+
+            foreach (var word in this.Configuration.BadWords) Framework.Gui.Chat.Print($"\"{word}\"");
         }
 
         private void OnBadWordsRemove(string command, string arguments) {
-            if (PersistentSettings.Instance.BadWords == null)
-                PersistentSettings.Instance.BadWords = new List<string>();
+            if (this.Configuration.BadWords == null)
+                this.Configuration.BadWords = new List<string>();
 
-            PersistentSettings.Instance.BadWords.RemoveAll(x => x == arguments);
+            this.Configuration.BadWords.RemoveAll(x => x == arguments);
+
+            this.Configuration.Save(this.StartInfo.ConfigurationPath);
 
             Framework.Gui.Chat.Print($"Unmuted \"{arguments}\".");
         }
@@ -289,11 +318,13 @@ namespace Dalamud {
             Process.Start(ChatHandlers.LastLink);
         }
 
-        private void OnDebugActorTable(string command, string arguments) {
+        private void OnDebugPrintGameState(string command, string arguments) {
             Framework.Gui.Chat.Print(this.ClientState.Actors.Length + " entries");
             Framework.Gui.Chat.Print(this.ClientState.LocalPlayer.Name);
             Framework.Gui.Chat.Print(this.ClientState.LocalPlayer.CurrentWorld.Name);
+            Framework.Gui.Chat.Print(this.ClientState.LocalPlayer.HomeWorld.Name);
             Framework.Gui.Chat.Print(this.ClientState.LocalContentId.ToString("X"));
+            Framework.Gui.Chat.Print(Framework.Gui.Chat.LastLinkedItemId.ToString());
 
             for (var i = 0; i < this.ClientState.Actors.Length; i++) {
                 var actor = this.ClientState.Actors[i];
@@ -309,6 +340,74 @@ namespace Dalamud {
                     Framework.Gui.Chat.Print(
                         $"Level: {chara.Level} ClassJob: {chara.ClassJob.Name} CHP: {chara.CurrentHp} MHP: {chara.MaxHp} CMP: {chara.CurrentMp} MMP: {chara.MaxMp}");
             }
+        }
+
+        private void OnCommandDebugCombo(string command, string arguments) {
+            var argumentsParts = arguments.Split();
+
+            switch (argumentsParts[0]) {
+                /* Sorry!
+                case "setall": {
+                    foreach (var value in Enum.GetValues(typeof(CustomComboPreset)).Cast<CustomComboPreset>()) {
+                        if (value == CustomComboPreset.None)
+                            continue;
+
+                        this.Configuration.ComboPresets |= value;
+                    }
+
+                    Framework.Gui.Chat.Print("all SET");
+                }
+                    break;
+                case "unsetall": {
+                    foreach (var value in Enum.GetValues(typeof(CustomComboPreset)).Cast<CustomComboPreset>()) {
+                        this.Configuration.ComboPresets &= value;
+                    }
+
+                    Framework.Gui.Chat.Print("all UNSET");
+                }
+                    break;
+                case "set": {
+                    foreach (var value in Enum.GetValues(typeof(CustomComboPreset)).Cast<CustomComboPreset>()) {
+                        if (value.ToString().ToLower() != argumentsParts[1].ToLower())
+                            continue;
+
+                        this.Configuration.ComboPresets |= value;
+                    }
+                }
+                    break;
+                case "toggle": {
+                    foreach (var value in Enum.GetValues(typeof(CustomComboPreset)).Cast<CustomComboPreset>()) {
+                        if (value.ToString().ToLower() != argumentsParts[1].ToLower())
+                            continue;
+
+                        this.Configuration.ComboPresets ^= value;
+                    }
+                }
+                    break;
+
+                case "unset": {
+                    foreach (var value in Enum.GetValues(typeof(CustomComboPreset)).Cast<CustomComboPreset>()) {
+                        if (value.ToString().ToLower() != argumentsParts[1].ToLower())
+                            continue;
+
+                        this.Configuration.ComboPresets &= ~value;
+                    }
+                }
+                    break;
+                    */
+                case "list": {
+                    foreach (var value in Enum.GetValues(typeof(CustomComboPreset)).Cast<CustomComboPreset>()) {
+                        if (this.Configuration.ComboPresets.HasFlag(value))
+                            Framework.Gui.Chat.Print(value.ToString());
+                    }
+                }
+                    break;
+
+                default: Framework.Gui.Chat.Print("Unknown");
+                    break;
+            }
+
+            this.Configuration.Save(this.StartInfo.ConfigurationPath);
         }
 
         private void OnBotJoinCommand(string command, string arguments) {

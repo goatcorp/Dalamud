@@ -10,10 +10,12 @@ namespace Dalamud.Game.ClientState
     public sealed class ClientStateAddressResolver : BaseAddressResolver {
         public IntPtr ActorTable { get; private set; }
         public IntPtr LocalContentId { get; private set; }
+        public IntPtr JobGaugeData { get; set; }
         
         protected override void Setup64Bit(SigScanner sig) {
-            ActorTable = sig.Module.BaseAddress + 0x1B29B40;
-            LocalContentId = sig.Module.BaseAddress + 0x1B58B60;
+            ActorTable = sig.Module.BaseAddress + 0x1C01D90;
+            LocalContentId = sig.Module.BaseAddress + 0x1C2E000;
+            JobGaugeData = sig.Module.BaseAddress + 0x1BFD110;
         }
     }
 }

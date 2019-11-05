@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Dalamud.Game.Network.MarketBoardUploaders;
 using Dalamud.Game.Network.Structures;
 using Dalamud.Game.Network.Universalis.MarketBoardUploaders;
-using Dalamud.Settings;
 using Serilog;
 
 namespace Dalamud.Game.Network {
@@ -46,14 +45,14 @@ namespace Dalamud.Game.Network {
             }
 
             if (opCode == ZoneOpCode.FateSpawn) {
-                if (PersistentSettings.Instance.Fates == null)
+                if (this.dalamud.Configuration.Fates == null)
                     return;
 
                 var data = new byte[64];
                 Marshal.Copy(dataPtr, data, 0, 64);
 
                 var fateId = data[16];
-                if (PersistentSettings.Instance.Fates.Any(x => x.Id == fateId) &&
+                if (this.dalamud.Configuration.Fates.Any(x => x.Id == fateId) &&
                     this.dalamud.BotManager.IsConnected)
                     Task.Run(() => this.dalamud.BotManager.ProcessFate(fateId));
 
@@ -65,17 +64,15 @@ namespace Dalamud.Game.Network {
                 Marshal.Copy(dataPtr, data, 0, 64);
 
                 var notifyType = data[16];
-                var contentFinderConditionId = BitConverter.ToInt16(data, 38);
+                var contentFinderConditionId = BitConverter.ToInt16(data, 28);
 
 
                 Task.Run(async () => {
-                    if (notifyType != 4)
+                    if (notifyType != 2 || contentFinderConditionId == 0)
                         return;
 
                     var contentFinderCondition =
                         await XivApi.GetContentFinderCondition(contentFinderConditionId);
-
-                    this.dalamud.Framework.Gui.Chat.Print("Duty Finder pop: " + contentFinderCondition["Name"]);
 
                     if (this.dalamud.BotManager.IsConnected)
                         await this.dalamud.BotManager.ProcessCfPop(contentFinderCondition);
@@ -180,13 +177,13 @@ namespace Dalamud.Game.Network {
         }
 
         private enum ZoneOpCode {
-            CfNotify = 0x78,
+            CfNotify = 0x8F,
             RetainerSaleItemId = 0x13F, // TODO these are probably not accurate
             RetainerSaleFinish = 0x138,
             FateSpawn = 0x226,
-            MarketBoardItemRequestStart = 0x13B,
-            MarketBoardOfferings = 0x13C,
-            MarketBoardHistory = 0x140
+            MarketBoardItemRequestStart = 0x39D,
+            MarketBoardOfferings = 0x36A,
+            MarketBoardHistory = 0x194
         }
     }
 }

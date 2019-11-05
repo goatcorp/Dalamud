@@ -5,7 +5,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Dalamud.Game.Chat;
-using Dalamud.Settings;
 using Serilog;
 
 namespace Dalamud.Game {
@@ -81,8 +80,8 @@ namespace Dalamud.Game {
 
             var originalMessage = string.Copy(message);
 
-            if (PersistentSettings.Instance.BadWords != null &&
-                PersistentSettings.Instance.BadWords.Any(x => originalMessage.Contains(x))) {
+            if (this.dalamud.Configuration.BadWords != null &&
+                this.dalamud.Configuration.BadWords.Any(x => originalMessage.Contains(x))) {
                 // This seems to be in the user block list - let's not show it
                 Log.Debug("Blocklist triggered");
                 isHandled = true;
@@ -93,8 +92,8 @@ namespace Dalamud.Game {
                                .GetResult());
 
 
-            if (this.HandledChatTypeColors.ContainsKey(type) || type == XivChatType.Say || type == XivChatType.Shout ||
-                type == XivChatType.Alliance || type == XivChatType.TellOutgoing || type == XivChatType.Yell) {
+            if ((this.HandledChatTypeColors.ContainsKey(type) || type == XivChatType.Say || type == XivChatType.Shout ||
+                type == XivChatType.Alliance || type == XivChatType.TellOutgoing || type == XivChatType.Yell) && !message.Contains((char)0x02)) {
                 var italicsStart = message.IndexOf("*");
                 var italicsEnd = message.IndexOf("*", italicsStart + 1);
 
