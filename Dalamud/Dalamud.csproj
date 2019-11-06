@@ -7,7 +7,7 @@
   </PropertyGroup>
   <PropertyGroup Label="Build">
     <OutputType>Library</OutputType>
-    <OutputPath>D:\Sapphire\recorder\FFXIV.Recorder\/bin</OutputPath>
+    <OutputPath></OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>Portable</DebugType>
