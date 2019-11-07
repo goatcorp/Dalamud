@@ -841,11 +841,11 @@ namespace Dalamud.Game.Internal.Gui {
             return this.iconHook.Original(self, actionID);
         }
 
-        private bool SearchBuffArray(short needle) {
+        private bool SearchBuffArray(short needle) {/*
             for (int i = 0; i < 60; i++) {
                 if (Marshal.ReadInt16(activeBuffArray + 4 * i) == needle) return true;
             }
-            
+            */
             return false;
         }
 
