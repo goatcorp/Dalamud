@@ -3,22 +3,28 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace Dalamud.Game.Network.Structures {
-    public class MarketBoardCurrentOfferings {
+namespace Dalamud.Game.Network.Structures
+{
+    public class MarketBoardCurrentOfferings
+    {
         public List<MarketBoardItemListing> ItemListings;
 
         public int ListingIndexEnd;
         public int ListingIndexStart;
         public int RequestId;
 
-        public static unsafe MarketBoardCurrentOfferings Read(IntPtr dataPtr) {
+        public static unsafe MarketBoardCurrentOfferings Read(IntPtr dataPtr)
+        {
             var output = new MarketBoardCurrentOfferings();
 
-            using (var stream = new UnmanagedMemoryStream((byte*) dataPtr.ToPointer(), 1544)) {
-                using (var reader = new BinaryReader(stream)) {
+            using (var stream = new UnmanagedMemoryStream((byte*)dataPtr.ToPointer(), 1544))
+            {
+                using (var reader = new BinaryReader(stream))
+                {
                     output.ItemListings = new List<MarketBoardItemListing>();
 
-                    for (var i = 0; i < 10; i++) {
+                    for (var i = 0; i < 10; i++)
+                    {
                         var listingEntry = new MarketBoardItemListing();
 
                         listingEntry.ListingId = reader.ReadUInt64();
@@ -38,7 +44,8 @@ namespace Dalamud.Game.Network.Structures {
 
                         listingEntry.Materia = new List<MarketBoardItemListing.ItemMateria>();
 
-                        for (var materiaIndex = 0; materiaIndex < 5; materiaIndex++) {
+                        for (var materiaIndex = 0; materiaIndex < 5; materiaIndex++)
+                        {
                             var materiaVal = reader.ReadUInt16();
 
                             var materiaEntry = new MarketBoardItemListing.ItemMateria();
@@ -76,7 +83,8 @@ namespace Dalamud.Game.Network.Structures {
             return output;
         }
 
-        public class MarketBoardItemListing {
+        public class MarketBoardItemListing
+        {
             public ulong ArtisanId;
             public uint CatalogId;
             public bool IsHq;
@@ -97,7 +105,8 @@ namespace Dalamud.Game.Network.Structures {
             public int StainId;
             public uint TotalTax;
 
-            public class ItemMateria {
+            public class ItemMateria
+            {
                 public int Index;
                 public int MateriaId;
             }

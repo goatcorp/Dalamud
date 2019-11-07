@@ -88,7 +88,8 @@ namespace Dalamud {
 
             this.BotManager.Start();
 
-            this.IconReplacer.Enable();
+            if (this.Configuration.ComboPresets != CustomComboPreset.None)
+                this.IconReplacer.Enable();
         }
 
         public void Unload() {
@@ -106,7 +107,8 @@ namespace Dalamud {
 
             this.unloadSignal.Dispose();
 
-            this.IconReplacer.Dispose();
+            if (this.Configuration.ComboPresets != CustomComboPreset.None)
+                this.IconReplacer.Dispose();
         }
 
         private void SetupCommands() {
@@ -346,7 +348,6 @@ namespace Dalamud {
             var argumentsParts = arguments.Split();
 
             switch (argumentsParts[0]) {
-                /* Sorry!
                 case "setall": {
                     foreach (var value in Enum.GetValues(typeof(CustomComboPreset)).Cast<CustomComboPreset>()) {
                         if (value == CustomComboPreset.None)
@@ -394,7 +395,7 @@ namespace Dalamud {
                     }
                 }
                     break;
-                    */
+
                 case "list": {
                     foreach (var value in Enum.GetValues(typeof(CustomComboPreset)).Cast<CustomComboPreset>()) {
                         if (this.Configuration.ComboPresets.HasFlag(value))

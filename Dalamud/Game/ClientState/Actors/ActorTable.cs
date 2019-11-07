@@ -32,12 +32,12 @@ namespace Dalamud.Game.ClientState.Actors {
                 if (index > Length)
                     return null;
 
-                Log.Information("Trying to get actor at {0}", index);
+                //Log.Information("Trying to get actor at {0}", index);
                 var tblIndex = Address.ActorTable + 8 + index * 8;
 
                 var offset = Marshal.ReadIntPtr(tblIndex);
 
-                Log.Information("Actor at {0}", offset.ToString());
+                //Log.Information("Actor at {0}", offset.ToString());
 
                 if (offset == IntPtr.Zero)
                     throw new Exception($"Actor slot at index {index} is invalid");
