@@ -82,7 +82,7 @@ namespace Dalamud.Game.Internal.Gui {
 
             // Check if player is loaded in by trying to get their buffs.
             // If not, skip everything until we are (game will crash cause I'm lazy).
-            
+            /*
             if (activeBuffArray == IntPtr.Zero) {
                 try {
                     activeBuffArray = FindBuffAddress();
@@ -93,7 +93,7 @@ namespace Dalamud.Game.Internal.Gui {
                     return this.iconHook.Original(self, actionID);
                 }
             }
-
+            */
             if (this.VanillaIDs.Contains(actionID)) return this.iconHook.Original(self, actionID);
             if (!this.CustomIDs.Contains(actionID)) return actionID;
 
