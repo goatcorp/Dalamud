@@ -33,7 +33,17 @@ namespace Dalamud.Game.ClientState
         /// The local player character, if one is present.
         /// </summary>
         //public PlayerCharacter LocalPlayer { get; private set; }
-        public PlayerCharacter LocalPlayer => (PlayerCharacter) this.Actors[0];
+        public PlayerCharacter LocalPlayer {
+            get {
+                var actor = this.Actors[0];
+
+                if (actor is PlayerCharacter pc)
+                    return pc;
+
+                return null;
+            }
+        }
+        //public PlayerCharacter LocalPlayer => null;
 
         /// <summary>
         /// The content ID of the local character.

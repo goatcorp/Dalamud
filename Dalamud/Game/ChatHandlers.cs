@@ -65,10 +65,16 @@ namespace Dalamud.Game {
 
         private void ChatOnOnChatMessage(XivChatType type, uint senderId, string sender, ref string message,
                                          ref bool isHandled) {
+
             if (type == XivChatType.Notice && !this.hasSeenLoadingMsg) {
                 this.dalamud.Framework.Gui.Chat.Print("XIVLauncher in-game addon loaded.");
                 this.hasSeenLoadingMsg = true;
             }
+
+#if !DEBUG
+            if (!this.hasSeenLoadingMsg)
+                return;
+#endif
 
             var matched = this.rmtRegex.IsMatch(message);
             if (matched) {

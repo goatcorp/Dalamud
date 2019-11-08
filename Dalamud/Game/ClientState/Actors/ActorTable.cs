@@ -40,7 +40,7 @@ namespace Dalamud.Game.ClientState.Actors {
                 //Log.Information("Actor at {0}", offset.ToString());
 
                 if (offset == IntPtr.Zero)
-                    throw new Exception($"Actor slot at index {index} is invalid");
+                    return null;
 
                 var actorStruct = Marshal.PtrToStructure<Structs.Actor>(offset);
 
