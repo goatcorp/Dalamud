@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Text;
 using Dalamud.Game.Chat;
 using Dalamud.Game.Internal.Libc;
 using Dalamud.Hooking;
@@ -11,7 +12,7 @@ namespace Dalamud.Game.Internal.Gui {
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         private delegate void PrintMessageDelegate(IntPtr manager, XivChatType chatType, IntPtr senderName,
                                                    IntPtr message,
-                                                   uint senderId, byte isLocal);
+                                                   uint senderId, IntPtr parameter);
 
         public delegate void OnMessageDelegate(XivChatType type, uint senderId, string sender, ref string message,
                                                ref bool isHandled);
@@ -79,12 +80,12 @@ namespace Dalamud.Game.Internal.Gui {
         }
 
         private void HandlePrintMessageDetour(IntPtr manager, XivChatType chattype, IntPtr pSenderName, IntPtr pMessage,
-                                              uint senderid, byte isLocal) {
+                                              uint senderid, IntPtr parameter) {
             try {
                 var senderName = StdString.ReadFromPointer(pSenderName);
                 var message = StdString.ReadFromPointer(pMessage);
 
-                //Log.Debug($"HandlePrintMessageDetour {manager} - [{chattype}] [{BitConverter.ToString(Encoding.UTF8.GetBytes(message))}] {message} from {senderName}");
+                Log.Debug($"HandlePrintMessageDetour {manager} - [{chattype}] [{BitConverter.ToString(Encoding.UTF8.GetBytes(message)).Replace("-", " ")}] {message} from {senderName}");
 
                 var originalMessage = string.Copy(message);
 
@@ -93,10 +94,10 @@ namespace Dalamud.Game.Internal.Gui {
                 OnChatMessage?.Invoke(chattype, senderid, senderName, ref message, ref isHandled);
 
                 var messagePtr = pMessage;
-                OwnedStdString allocatedString = null;
+                OwnedStdString allocatedString = null;  
 
                 if (originalMessage != message) {
-                    allocatedString = this.dalamud.Framework.Libc.NewString(message);
+                    allocatedString = this.dalamud.Framework.Libc.NewString(Encoding.UTF8.GetBytes(message));
                     Log.Debug(
                         $"HandlePrintMessageDetour String modified: {originalMessage}({messagePtr}) -> {message}({allocatedString.Address})");
                     messagePtr = allocatedString.Address;
@@ -104,7 +105,7 @@ namespace Dalamud.Game.Internal.Gui {
 
                 // Print the original chat if it's handled.
                 if (!isHandled)
-                    this.printMessageHook.Original(manager, chattype, pSenderName, messagePtr, senderid, isLocal);
+                    this.printMessageHook.Original(manager, chattype, pSenderName, messagePtr, senderid, parameter);
 
                 if (this.baseAddress == IntPtr.Zero)
                     this.baseAddress = manager;
@@ -112,7 +113,7 @@ namespace Dalamud.Game.Internal.Gui {
                 allocatedString?.Dispose();
             } catch (Exception ex) {
                 Log.Error(ex, "Exception on OnChatMessage hook.");
-                this.printMessageHook.Original(manager, chattype, pSenderName, pMessage, senderid, isLocal);
+                this.printMessageHook.Original(manager, chattype, pSenderName, pMessage, senderid, parameter);
             }
         }
 
@@ -127,13 +128,13 @@ namespace Dalamud.Game.Internal.Gui {
 
         public void Print(string message) {
             PrintChat(new XivChatEntry {
-                Message = message
+                MessageBytes = Encoding.UTF8.GetBytes(message)
             });
         }
 
         public void PrintError(string message) {
             PrintChat(new XivChatEntry {
-                Message = message,
+                MessageBytes = Encoding.UTF8.GetBytes(message),
                 Type = XivChatType.Urgent
             });
         }
@@ -146,13 +147,15 @@ namespace Dalamud.Game.Internal.Gui {
                 var chat = this.chatQueue.Dequeue();
 
                 var sender = chat.Name ?? "";
-                var message = chat.Message ?? "";
+                var message = chat.MessageBytes ?? new byte[0];
 
                 if (this.baseAddress != IntPtr.Zero)
-                    using (var senderVec = framework.Libc.NewString(sender))
-                    using (var messageVec = framework.Libc.NewString(message)) {
+                    using (var senderVec = framework.Libc.NewString(Encoding.UTF8.GetBytes(sender)))
+                    using (var messageVec = framework.Libc.NewString(message))
+                    {
+                        Log.Verbose($"String allocated to {messageVec.Address.ToInt64():X}");
                         this.printMessageHook.Original(this.baseAddress, chat.Type, senderVec.Address,
-                                                       messageVec.Address, chat.SenderId, 0);
+                                                       messageVec.Address, chat.SenderId, chat.Parameters);
                     }
             }
         }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Runtime.InteropServices;
 using Serilog;
 
@@ -6,7 +6,7 @@ namespace Dalamud.Game.Internal.Libc {
     public sealed class LibcFunction {
         // TODO: prolly callconv is not okay in x86
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-        private delegate IntPtr StdStringFromCStringDelegate(IntPtr pStdString, [MarshalAs(UnmanagedType.LPUTF8Str)]string content, IntPtr size);
+        private delegate IntPtr StdStringFromCStringDelegate(IntPtr pStdString, [MarshalAs(UnmanagedType.LPArray)]byte[] content, IntPtr size);
 
         // TODO: prolly callconv is not okay in x86
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
@@ -25,7 +25,7 @@ namespace Dalamud.Game.Internal.Libc {
             this.stdStringDeallocate = Marshal.GetDelegateForFunctionPointer<StdStringDeallocateDelegate>(Address.StdStringDeallocate);
         }
 
-        public OwnedStdString NewString(string content) {
+        public OwnedStdString NewString(byte[] content) {
             Log.Verbose("Allocating");
             
             // While 0x70 bytes in the memory should be enough in DX11 version,
@@ -36,7 +36,7 @@ namespace Dalamud.Game.Internal.Libc {
             var npos = new IntPtr(0xFFFFFFFF); // assumed to be -1 (0xFFFFFFFF in x86, 0xFFFFFFFF_FFFFFFFF in amd64)
             var pReallocString = this.stdStringCtorCString(pString, content, npos);
             
-            Log.Verbose("Prev: {Prev} Now: {Now}", pString, pReallocString);
+            //Log.Verbose("Prev: {Prev} Now: {Now}", pString, pReallocString);
             
             return new OwnedStdString(pReallocString, DeallocateStdString);
         }

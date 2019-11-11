@@ -42,15 +42,20 @@ namespace Dalamud.Game.ClientState.Actors {
                 if (offset == IntPtr.Zero)
                     return null;
 
-                var actorStruct = Marshal.PtrToStructure<Structs.Actor>(offset);
+                try {
+                    var actorStruct = Marshal.PtrToStructure<Structs.Actor>(offset);
 
-                //Log.Debug("ActorTable[{0}]: {1} - {2} - {3}", index, tblIndex.ToString("X"), offset.ToString("X"),
-                //          actorStruct.ObjectKind.ToString());
+                    //Log.Debug("ActorTable[{0}]: {1} - {2} - {3}", index, tblIndex.ToString("X"), offset.ToString("X"),
+                    //          actorStruct.ObjectKind.ToString());
 
-                switch (actorStruct.ObjectKind) {
-                    case ObjectKind.Player: return new PlayerCharacter(actorStruct);
-                    case ObjectKind.BattleNpc: return new BattleNpc(actorStruct);
-                    default: return new Actor(actorStruct);
+                    switch (actorStruct.ObjectKind)
+                    {
+                        case ObjectKind.Player: return new PlayerCharacter(actorStruct);
+                        case ObjectKind.BattleNpc: return new BattleNpc(actorStruct);
+                        default: return new Actor(actorStruct);
+                    }
+                } catch (AccessViolationException) {
+                    return null;
                 }
             }
         }

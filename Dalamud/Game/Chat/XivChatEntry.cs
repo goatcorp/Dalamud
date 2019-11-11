@@ -8,7 +8,7 @@ namespace Dalamud.Game.Chat {
 
         public string Name { get; set; } = string.Empty;
 
-        public string Message { get; set; } = string.Empty;
+        public byte[] MessageBytes { get; set; }
 
         public IntPtr Parameters { get; set; }
     }
