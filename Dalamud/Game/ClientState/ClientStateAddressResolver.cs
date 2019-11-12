@@ -15,7 +15,7 @@ namespace Dalamud.Game.ClientState
         protected override void Setup64Bit(SigScanner sig) {
             ActorTable = sig.Module.BaseAddress + 0x1C01D90;
             LocalContentId = sig.Module.BaseAddress + 0x1C2E000;
-            JobGaugeData = sig.Module.BaseAddress + 0x1BFD110;
+            JobGaugeData = sig.Module.BaseAddress + 0x1BF8110;
         }
     }
 }

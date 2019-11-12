@@ -35,8 +35,8 @@ namespace Dalamud.Game.Internal.Gui {
             this.Address.Setup(scanner);
 
             this.byteBase = scanner.Module.BaseAddress;
-            this.comboTimer = byteBase + 0x1BB5B50;
-            this.lastComboMove = byteBase + 0x1BB5B54;
+            this.comboTimer = byteBase + 0x1BB0B50;
+            this.lastComboMove = byteBase + 0x1BB0B54;
 
             CustomIDs = new HashSet<uint>();
             VanillaIDs = new HashSet<uint>();
