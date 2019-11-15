@@ -99,7 +99,7 @@ namespace Dalamud.Game.Internal.Gui {
 
             // TODO: this is currently broken
             // As it stands, don't rely on localCharacter.level for anything.
-            var localPlayer = this.dalamud.ClientState.LocalPlayer;
+            //var localPlayer = this.dalamud.ClientState.LocalPlayer;
 
             // Don't clutter the spaghetti any worse than it already is.
             var lastMove = Marshal.ReadInt32(this.lastComboMove);
