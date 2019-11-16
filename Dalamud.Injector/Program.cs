@@ -30,7 +30,7 @@ namespace Dalamud.Injector {
                 case -2:
                     process = Process.Start(
                         "C:\\Program Files (x86)\\SquareEnix\\FINAL FANTASY XIV - A Realm Reborn\\game\\ffxiv_dx11.exe",
-                        "DEV.TestSID=5fa077c389a61c4a45ea35153162753d7cdb34268cc38c9e206859a7 DEV.UseSqPack=1 DEV.DataPathType=1 DEV.LobbyHost01=127.0.0.1 DEV.LobbyPort01=54994 DEV.LobbyHost02=127.0.0.1 DEV.LobbyPort02=54994 DEV.LobbyHost03=127.0.0.1 DEV.LobbyPort03=54994 DEV.LobbyHost04=127.0.0.1 DEV.LobbyPort04=54994 DEV.LobbyHost05=127.0.0.1 DEV.LobbyPort05=54994 DEV.LobbyHost06=127.0.0.1 DEV.LobbyPort06=54994 DEV.LobbyHost07=127.0.0.1 DEV.LobbyPort07=54994 DEV.LobbyHost08=127.0.0.1 DEV.LobbyPort08=54994 SYS.Region=0 language=1 version=1.0.0.0 DEV.MaxEntitledExpansionID=2 DEV.GMServerHost=127.0.0.1 DEV.GameQuitMessageBox=0");
+                        "DEV.TestSID=0 DEV.UseSqPack=1 DEV.DataPathType=1 DEV.LobbyHost01=127.0.0.1 DEV.LobbyPort01=54994 DEV.LobbyHost02=127.0.0.1 DEV.LobbyPort02=54994 DEV.LobbyHost03=127.0.0.1 DEV.LobbyPort03=54994 DEV.LobbyHost04=127.0.0.1 DEV.LobbyPort04=54994 DEV.LobbyHost05=127.0.0.1 DEV.LobbyPort05=54994 DEV.LobbyHost06=127.0.0.1 DEV.LobbyPort06=54994 DEV.LobbyHost07=127.0.0.1 DEV.LobbyPort07=54994 DEV.LobbyHost08=127.0.0.1 DEV.LobbyPort08=54994 SYS.Region=0 language=1 version=1.0.0.0 DEV.MaxEntitledExpansionID=2 DEV.GMServerHost=127.0.0.1 DEV.GameQuitMessageBox=0");
                     break;
                 default:
                     process = Process.GetProcessById(pid);
