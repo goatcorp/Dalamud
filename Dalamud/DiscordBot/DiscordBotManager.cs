@@ -260,62 +260,88 @@ namespace Dalamud.DiscordBot {
             var avatarUrl = "";
             var lodestoneId = 0;
 
-            try {
-                dynamic charCandidates = await XivApi.GetCharacterSearch(sender, world);
+            if (!this.config.DisableEmbeds) {
+                try
+                {
+                    dynamic charCandidates = await XivApi.GetCharacterSearch(sender, world);
 
-                if (charCandidates.Results.Count > 0) {
-                    avatarUrl = charCandidates.Results[0].Avatar;
-                    lodestoneId = charCandidates.Results[0].ID;
+                    if (charCandidates.Results.Count > 0)
+                    {
+                        avatarUrl = charCandidates.Results[0].Avatar;
+                        lodestoneId = charCandidates.Results[0].ID;
+                    }
                 }
-            } catch (Exception ex) {
-                Log.Error(ex, "Could not get XIVAPI character search result.");
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Could not get XIVAPI character search result.");
+                }
             }
 
             Thread.Sleep(this.config.ChatDelayMs);
 
+            var name = wasOutgoingTell
+                           ? "You"
+                           : sender + (string.IsNullOrEmpty(world) || string.IsNullOrEmpty(sender)
+                                           ? ""
+                                           : $" on {world}");
+
             for (var chatTypeIndex = 0; chatTypeIndex < chatTypeConfigs.Count(); chatTypeIndex++) {
-                var embedBuilder = new EmbedBuilder
-                {
-                    Author = new EmbedAuthorBuilder
+                if (!this.config.DisableEmbeds) {
+                    var embedBuilder = new EmbedBuilder
                     {
-                        IconUrl = avatarUrl,
-                        Name = wasOutgoingTell
-                               ? "You"
-                               : sender + (string.IsNullOrEmpty(world) || string.IsNullOrEmpty(sender)
-                                               ? ""
-                                               : $" on {world}"),
-                        Url = lodestoneId != 0 ? "https://eu.finalfantasyxiv.com/lodestone/character/" + lodestoneId : null
-                    },
-                    Description = message,
-                    Timestamp = DateTimeOffset.Now,
-                    Footer = new EmbedFooterBuilder { Text = type.GetDetails().FancyName },
-                    Color = new Color((uint)(chatTypeConfigs.ElementAt(chatTypeIndex).Color & 0xFFFFFF))
-                };
+                        Author = new EmbedAuthorBuilder
+                        {
+                            IconUrl = avatarUrl,
+                            Name = name,
+                            Url = lodestoneId != 0 ? "https://eu.finalfantasyxiv.com/lodestone/character/" + lodestoneId : null
+                        },
+                        Description = message,
+                        Timestamp = DateTimeOffset.Now,
+                        Footer = new EmbedFooterBuilder { Text = type.GetDetails().FancyName },
+                        Color = new Color((uint)(chatTypeConfigs.ElementAt(chatTypeIndex).Color & 0xFFFFFF))
+                    };
 
-                if (this.config.CheckForDuplicateMessages)
-                {
-                    var recentMsg = this.recentMessages.FirstOrDefault(
-                        msg => msg.Embeds.FirstOrDefault(
-                                   embed => embed.Description == embedBuilder.Description &&
-                                            embed.Author.HasValue &&
-                                            embed.Author.Value.Name == embedBuilder.Author.Name &&
-                                            embed.Timestamp.HasValue &&
-                                            Math.Abs(
-                                                (embed.Timestamp.Value.ToUniversalTime().Date -
-                                                 embedBuilder
-                                                     .Timestamp.Value.ToUniversalTime().Date)
-                                                .Milliseconds) < 15000)
-                               != null);
-
-                    if (recentMsg != null)
+                    if (this.config.CheckForDuplicateMessages)
                     {
-                        Log.Verbose("Duplicate message: [{0}] {1}", embedBuilder.Author.Name, embedBuilder.Description);
-                        this.recentMessages.Remove(recentMsg);
-                        return;
+                        var recentMsg = this.recentMessages.FirstOrDefault(
+                            msg => msg.Embeds.FirstOrDefault(
+                                       embed => embed.Description == embedBuilder.Description &&
+                                                embed.Author.HasValue &&
+                                                embed.Author.Value.Name == embedBuilder.Author.Name &&
+                                                embed.Timestamp.HasValue &&
+                                                Math.Abs(
+                                                    (embed.Timestamp.Value.ToUniversalTime().Date -
+                                                     embedBuilder
+                                                         .Timestamp.Value.ToUniversalTime().Date)
+                                                    .Milliseconds) < 15000)
+                                   != null);
+
+                        if (recentMsg != null)
+                        {
+                            Log.Verbose("Duplicate message: [{0}] {1}", embedBuilder.Author.Name, embedBuilder.Description);
+                            this.recentMessages.Remove(recentMsg);
+                            return;
+                        }
                     }
-                }
 
-                await channels.ElementAt(chatTypeIndex).SendMessageAsync(embed: embedBuilder.Build());
+                    await channels.ElementAt(chatTypeIndex).SendMessageAsync(embed: embedBuilder.Build());
+                } else {
+                    var simpleMessage = $"{name}: {message}";
+
+                    if (this.config.CheckForDuplicateMessages) {
+                        var recentMsg = this.recentMessages.FirstOrDefault(
+                            msg => msg.Content == simpleMessage);
+
+                        if (recentMsg != null)
+                        {
+                            Log.Verbose("Duplicate message: {0}", simpleMessage);
+                            this.recentMessages.Remove(recentMsg);
+                            return;
+                        }
+                    }
+
+                    await channels.ElementAt(chatTypeIndex).SendMessageAsync($"{name}: {message}");
+                }
             }
         }
 

@@ -14,10 +14,10 @@
   </PropertyGroup>
   <PropertyGroup Label="Feature">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <AssemblyVersion>2.9.0.0</AssemblyVersion>
-    <FileVersion>2.9.0.0</FileVersion>
+    <AssemblyVersion>3.1.0.0</AssemblyVersion>
+    <FileVersion>3.1.0.0</FileVersion>
     <Description>XIVLauncher addon injection</Description>
-    <Version>2.9.0</Version>
+    <Version>3.1.0</Version>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="EasyHook" Version="2.7.6270" />

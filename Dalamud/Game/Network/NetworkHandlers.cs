@@ -61,7 +61,7 @@ namespace Dalamud.Game.Network {
             }
             */
 
-            if (opCode == ZoneOpCode.CfNotifyRoulette) {
+            if (opCode == ZoneOpCode.CfNotifyPop) {
                 var data = new byte[64];
                 Marshal.Copy(dataPtr, data, 0, 64);
 
@@ -197,15 +197,15 @@ namespace Dalamud.Game.Network {
         }
 
         private enum ZoneOpCode {
-            CfNotifyRoulette = 0xB3,
+            CfNotifyPop = 0x32D,
             CfNotify = 0x8F,
             RetainerSaleItemId = 0x13F, // TODO these are probably not accurate
             RetainerSaleFinish = 0x138,
             FateSpawn = 0x226,
-            MarketTaxRates = 0x76,
-            MarketBoardItemRequestStart = 0x39D,
-            MarketBoardOfferings = 0x36A,
-            MarketBoardHistory = 0x194
+            MarketTaxRates = 0x39F,
+            MarketBoardItemRequestStart = 0xF2,
+            MarketBoardOfferings = 0x1E2,
+            MarketBoardHistory = 0x123
         }
     }
 }
