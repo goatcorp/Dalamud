@@ -7,27 +7,28 @@
   </PropertyGroup>
   <PropertyGroup Label="Build">
     <OutputType>Library</OutputType>
-    <OutputPath>$(SolutionDir)/bin</OutputPath>
+    <OutputPath></OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>Portable</DebugType>
   </PropertyGroup>
   <PropertyGroup Label="Feature">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <AssemblyVersion>2.1.0.0</AssemblyVersion>
-    <Version>2.1.0</Version>
+    <AssemblyVersion>2.2.0.0</AssemblyVersion>
+    <Version>2.2.0</Version>
+    <FileVersion>2.2.0.0</FileVersion>
   </PropertyGroup>
   <ItemGroup Label="Resources">
     <None Include="$(SolutionDir)/Resources/**/*" CopyToOutputDirectory="PreserveNewest" Visible="false" />
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>E:\Sapphire\recorder\FFXIV.Recorder\/bin\Dalamud.xml</DocumentationFile>
+    <DocumentationFile></DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <DocumentationFile>E:\Sapphire\recorder\FFXIV.Recorder\/bin\Dalamud.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>E:\Sapphire\recorder\FFXIV.Recorder\/bin\Dalamud.xml</DocumentationFile>
+    <DocumentationFile>D:\Sapphire\recorder\FFXIV.Recorder\/bin\Dalamud.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <DocumentationFile>E:\Sapphire\recorder\FFXIV.Recorder\/bin\Dalamud.xml</DocumentationFile>
