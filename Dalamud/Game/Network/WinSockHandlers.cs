@@ -19,13 +19,13 @@ namespace Dalamud.Game
         private static extern int setsockopt(IntPtr socket, SocketOptionLevel level, SocketOptionName optName, ref IntPtr optVal, int optLen);
 
         public WinSockHandlers() {
-            ws2SocketHook = Hook<SocketDelegate>.FromSymbol("ws2_32.dll", "socket", new SocketDelegate(OnSocket));
-            ws2SocketHook.Enable();
+            this.ws2SocketHook = Hook<SocketDelegate>.FromSymbol("ws2_32.dll", "socket", new SocketDelegate(OnSocket));
+            this.ws2SocketHook.Enable();
         }
 
         private IntPtr OnSocket(int af, int type, int protocol)
         {
-            var socket = ws2SocketHook.Original(af, type, protocol);
+            var socket = this.ws2SocketHook.Original(af, type, protocol);
 
             // IPPROTO_TCP
             if (type == 1)
