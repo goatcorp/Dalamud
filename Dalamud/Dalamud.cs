@@ -46,6 +46,8 @@ namespace Dalamud {
 
         public readonly DalamudConfiguration Configuration;
 
+        internal readonly WinSockHandlers WinSock2;
+
         public Dalamud(DalamudStartInfo info) {
             this.StartInfo = info;
             this.Configuration = DalamudConfiguration.Load(info.ConfigurationPath);
@@ -75,7 +77,9 @@ namespace Dalamud {
             this.PluginManager = new PluginManager(this, info.PluginDirectory, info.DefaultPluginDirectory);
 
             this.IconReplacer = new IconReplacer(this, this.sigScanner);
-            
+
+            this.WinSock2 = new WinSockHandlers();
+
             try {
                 this.PluginManager.LoadPlugins();
             } catch (Exception ex) {
@@ -108,6 +112,8 @@ namespace Dalamud {
             this.BotManager.Dispose();
 
             this.unloadSignal.Dispose();
+
+            this.WinSock2.Dispose();
 
             if (this.Configuration.ComboPresets != CustomComboPreset.None)
                 this.IconReplacer.Dispose();
