@@ -10,7 +10,7 @@ using Serilog;
 namespace Dalamud.Game.Internal.Gui {
     public sealed class ChatGui : IDisposable {
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-        private delegate void PrintMessageDelegate(IntPtr manager, XivChatType chatType, IntPtr senderName,
+        private delegate IntPtr PrintMessageDelegate(IntPtr manager, XivChatType chatType, IntPtr senderName,
                                                    IntPtr message,
                                                    uint senderId, IntPtr parameter);
 
@@ -79,8 +79,10 @@ namespace Dalamud.Game.Internal.Gui {
             }
         }
 
-        private void HandlePrintMessageDetour(IntPtr manager, XivChatType chattype, IntPtr pSenderName, IntPtr pMessage,
+        private IntPtr HandlePrintMessageDetour(IntPtr manager, XivChatType chattype, IntPtr pSenderName, IntPtr pMessage,
                                               uint senderid, IntPtr parameter) {
+            IntPtr retVal = IntPtr.Zero;
+
             try {
                 var senderName = StdString.ReadFromPointer(pSenderName);
                 var message = StdString.ReadFromPointer(pMessage);
@@ -105,7 +107,7 @@ namespace Dalamud.Game.Internal.Gui {
 
                 // Print the original chat if it's handled.
                 if (!isHandled)
-                    this.printMessageHook.Original(manager, chattype, pSenderName, messagePtr, senderid, parameter);
+                    retVal = this.printMessageHook.Original(manager, chattype, pSenderName, messagePtr, senderid, parameter);
 
                 if (this.baseAddress == IntPtr.Zero)
                     this.baseAddress = manager;
@@ -113,8 +115,10 @@ namespace Dalamud.Game.Internal.Gui {
                 allocatedString?.Dispose();
             } catch (Exception ex) {
                 Log.Error(ex, "Exception on OnChatMessage hook.");
-                this.printMessageHook.Original(manager, chattype, pSenderName, pMessage, senderid, parameter);
+                retVal = this.printMessageHook.Original(manager, chattype, pSenderName, pMessage, senderid, parameter);
             }
+
+            return retVal;
         }
 
         /// <summary>
