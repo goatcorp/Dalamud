@@ -165,7 +165,7 @@ namespace Dalamud {
             });
 
             CommandManager.AddHandler("/xlunmute", new CommandInfo(OnBadWordsRemove) {
-                HelpMessage = "Unmute a word or sentence. Usage: /fatewatchremove <word or sentence>"
+                HelpMessage = "Unmute a word or sentence. Usage: /xlunmute <word or sentence>"
             });
 
             CommandManager.AddHandler("/xldstate", new CommandInfo(OnDebugPrintGameState) {
@@ -183,12 +183,12 @@ namespace Dalamud {
 
             CommandManager.AddHandler("/xlbgmset", new CommandInfo(OnBgmSetCommand)
             {
-                HelpMessage = "Set the Game background music. Usage: /bgmset <BGM ID>"
+                HelpMessage = "Set the Game background music. Usage: /xlbgmset <BGM ID>"
             });
 
             CommandManager.AddHandler("/xlitem", new CommandInfo(OnItemLinkCommand)
             {
-                HelpMessage = "Link an item by name. Usage: /item <Item name>"
+                HelpMessage = "Link an item by name. Usage: /xlitem <Item name>"
             });
         }
 
