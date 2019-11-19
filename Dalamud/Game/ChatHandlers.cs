@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -65,10 +67,16 @@ namespace Dalamud.Game {
 
         private void ChatOnOnChatMessage(XivChatType type, uint senderId, string sender, ref string message,
                                          ref bool isHandled) {
+
             if (type == XivChatType.Notice && !this.hasSeenLoadingMsg) {
-                this.dalamud.Framework.Gui.Chat.Print("XIVLauncher in-game addon loaded.");
+                this.dalamud.Framework.Gui.Chat.Print($"XIVLauncher in-game addon v{Assembly.GetAssembly(typeof(ChatHandlers)).GetName().Version} loaded.");
                 this.hasSeenLoadingMsg = true;
             }
+
+#if !DEBUG
+            if (!this.hasSeenLoadingMsg)
+                return;
+#endif
 
             var matched = this.rmtRegex.IsMatch(message);
             if (matched) {

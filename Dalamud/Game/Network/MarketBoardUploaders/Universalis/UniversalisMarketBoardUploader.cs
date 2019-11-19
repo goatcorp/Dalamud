@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using Dalamud.Game.Network.MarketBoardUploaders;
 using Dalamud.Game.Network.MarketBoardUploaders.Universalis;
+using Dalamud.Game.Network.Structures;
 using Newtonsoft.Json;
 using Serilog;
 
@@ -84,6 +85,32 @@ namespace Dalamud.Game.Network.Universalis.MarketBoardUploaders {
                 Log.Verbose(historyUpload);
 
                 Log.Verbose("Universalis data upload for item#{0} completed.", request.CatalogId);
+            }
+        }
+
+        public void UploadTax(MarketTaxRates taxRates) {
+            using (var client = new WebClient())
+            {
+                var taxRatesRequest = new UniversalisTaxUploadRequest();
+                taxRatesRequest.WorldId = this.dalamud.ClientState.LocalPlayer.CurrentWorld.Id;
+                taxRatesRequest.UploaderId = this.dalamud.ClientState.LocalContentId;
+
+                taxRatesRequest.TaxData = new UniversalisTaxData {
+                    LimsaLominsa = taxRates.LimsaLominsaTax,
+                    Gridania = taxRates.GridaniaTax,
+                    Uldah = taxRates.UldahTax,
+                    Ishgard = taxRates.IshgardTax,
+                    Kugane = taxRates.KuganeTax,
+                    Crystarium = taxRates.CrystariumTax
+                };
+
+                client.Headers.Add(HttpRequestHeader.ContentType, "application/json");
+
+                var historyUpload = JsonConvert.SerializeObject(taxRatesRequest);
+                client.UploadString(ApiBase + $"/upload/{ApiKey}", "POST", historyUpload);
+                Log.Verbose(historyUpload);
+
+                Log.Verbose("Universalis tax upload completed.");
             }
         }
     }

@@ -32,10 +32,13 @@ namespace Dalamud.DiscordBot
     public class DiscordFeatureConfiguration
     {
         public string Token { get; set; }
-        public ulong OwnerUserId { get; set; }
 
         public bool CheckForDuplicateMessages { get; set; }
         public int ChatDelayMs { get; set; }
+
+        public bool DisableEmbeds { get; set; }
+
+        public ulong OwnerUserId { get; set; }
 
         public List<ChatTypeConfiguration> ChatTypeConfigurations { get; set; }
 

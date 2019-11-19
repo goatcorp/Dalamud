@@ -29,6 +29,7 @@ namespace Dalamud.Game.Network {
         private void OnZonePacket(IntPtr dataPtr) {
             var opCode = (ZoneOpCode) Marshal.ReadInt16(dataPtr, 2);
 
+            /*
             if (opCode == ZoneOpCode.RetainerSaleItemId) {
                 var itemId = Marshal.ReadInt32(dataPtr + 16);
                 var amount = Marshal.ReadByte(dataPtr + 32);
@@ -58,21 +59,24 @@ namespace Dalamud.Game.Network {
 
                 return;
             }
+            */
 
-            if (opCode == ZoneOpCode.CfNotify) {
+            if (opCode == ZoneOpCode.CfNotifyPop) {
                 var data = new byte[64];
                 Marshal.Copy(dataPtr, data, 0, 64);
 
                 var notifyType = data[16];
-                var contentFinderConditionId = BitConverter.ToInt16(data, 28);
+                var contentFinderConditionId = BitConverter.ToInt16(data, 36);
 
 
                 Task.Run(async () => {
-                    if (notifyType != 2 || contentFinderConditionId == 0)
+                    if (notifyType != 3 || contentFinderConditionId == 0)
                         return;
 
                     var contentFinderCondition =
                         await XivApi.GetContentFinderCondition(contentFinderConditionId);
+
+                    this.dalamud.Framework.Gui.Chat.Print($"Duty pop: " + contentFinderCondition["Name"]);
 
                     if (this.dalamud.BotManager.IsConnected)
                         await this.dalamud.BotManager.ProcessCfPop(contentFinderCondition);
@@ -173,17 +177,35 @@ namespace Dalamud.Game.Network {
 
                     Log.Verbose("Added history for item#{0}", listing.CatalogId);
                 }
+
+                if (opCode == ZoneOpCode.MarketTaxRates)
+                {
+                    var taxes = MarketTaxRates.Read(dataPtr + 0x10);
+
+                    Log.Verbose("MarketTaxRates: limsa#{0} grid#{1} uldah#{2} ish#{3} kugane#{4} cr#{5}",
+                                taxes.LimsaLominsaTax, taxes.GridaniaTax, taxes.UldahTax, taxes.IshgardTax, taxes.KuganeTax, taxes.CrystariumTax);
+                    try
+                    {
+                        Task.Run(() => this.uploader.UploadTax(taxes));
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, "Market Board data upload failed.");
+                    }
+                }
             }
         }
 
         private enum ZoneOpCode {
+            CfNotifyPop = 0x32D,
             CfNotify = 0x8F,
             RetainerSaleItemId = 0x13F, // TODO these are probably not accurate
             RetainerSaleFinish = 0x138,
             FateSpawn = 0x226,
-            MarketBoardItemRequestStart = 0x39D,
-            MarketBoardOfferings = 0x36A,
-            MarketBoardHistory = 0x194
+            MarketTaxRates = 0x39F,
+            MarketBoardItemRequestStart = 0xF2,
+            MarketBoardOfferings = 0x1E2,
+            MarketBoardHistory = 0x123
         }
     }
 }

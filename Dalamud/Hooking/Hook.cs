@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using EasyHook;
@@ -9,7 +9,7 @@ namespace Dalamud.Hooking {
     /// This class is basically a thin wrapper around the LocalHook type to provide helper functions.
     /// </summary>
     /// <typeparam name="T">Delegate type to represents a function prototype. This must be the same prototype as original function do.</typeparam>
-    public sealed class Hook<T> : IDisposable where T : class {
+    public sealed class Hook<T> : IDisposable where T : Delegate {
         private bool isDisposed;
 
         private readonly IntPtr address;

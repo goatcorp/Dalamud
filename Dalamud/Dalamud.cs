@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Dalamud.DiscordBot;
 using Dalamud.Game;
 using Dalamud.Game.Chat;
@@ -44,6 +46,8 @@ namespace Dalamud {
 
         public readonly DalamudConfiguration Configuration;
 
+        internal readonly WinSockHandlers WinSock2;
+
         public Dalamud(DalamudStartInfo info) {
             this.StartInfo = info;
             this.Configuration = DalamudConfiguration.Load(info.ConfigurationPath);
@@ -73,7 +77,9 @@ namespace Dalamud {
             this.PluginManager = new PluginManager(this, info.PluginDirectory, info.DefaultPluginDirectory);
 
             this.IconReplacer = new IconReplacer(this, this.sigScanner);
-            
+
+            this.WinSock2 = new WinSockHandlers();
+
             try {
                 this.PluginManager.LoadPlugins();
             } catch (Exception ex) {
@@ -88,7 +94,8 @@ namespace Dalamud {
 
             this.BotManager.Start();
 
-            this.IconReplacer.Enable();
+            if (this.Configuration.ComboPresets != CustomComboPreset.None)
+                this.IconReplacer.Enable();
         }
 
         public void Unload() {
@@ -106,7 +113,10 @@ namespace Dalamud {
 
             this.unloadSignal.Dispose();
 
-            this.IconReplacer.Dispose();
+            this.WinSock2.Dispose();
+
+            if (this.Configuration.ComboPresets != CustomComboPreset.None)
+                this.IconReplacer.Dispose();
         }
 
         private void SetupCommands() {
@@ -170,6 +180,16 @@ namespace Dalamud {
             CommandManager.AddHandler("/xlbotjoin", new CommandInfo(OnBotJoinCommand) {
                 HelpMessage = "Add the XIVLauncher discord bot you set up to your server."
             });
+
+            CommandManager.AddHandler("/xlbgmset", new CommandInfo(OnBgmSetCommand)
+            {
+                HelpMessage = "Set the Game background music. Usage: /bgmset <BGM ID>"
+            });
+
+            CommandManager.AddHandler("/xlitem", new CommandInfo(OnItemLinkCommand)
+            {
+                HelpMessage = "Link an item by name. Usage: /item <Item name>"
+            });
         }
 
         private void OnUnloadCommand(string command, string arguments) {
@@ -196,7 +216,7 @@ namespace Dalamud {
             var msg = string.Join(" ", parts.Take(1).ToArray());
 
             Framework.Gui.Chat.PrintChat(new XivChatEntry {
-                Message = msg,
+                MessageBytes = Encoding.UTF8.GetBytes(msg),
                 Name = "Xiv Launcher",
                 Type = chatType
             });
@@ -346,7 +366,6 @@ namespace Dalamud {
             var argumentsParts = arguments.Split();
 
             switch (argumentsParts[0]) {
-                /* Sorry!
                 case "setall": {
                     foreach (var value in Enum.GetValues(typeof(CustomComboPreset)).Cast<CustomComboPreset>()) {
                         if (value == CustomComboPreset.None)
@@ -394,7 +413,7 @@ namespace Dalamud {
                     }
                 }
                     break;
-                    */
+
                 case "list": {
                     foreach (var value in Enum.GetValues(typeof(CustomComboPreset)).Cast<CustomComboPreset>()) {
                         if (this.Configuration.ComboPresets.HasFlag(value))
@@ -417,6 +436,64 @@ namespace Dalamud {
             else
                 Framework.Gui.Chat.Print(
                     "The XIVLauncher discord bot was not set up correctly or could not connect to discord. Please check the settings and the FAQ.");
+        }
+
+        private void OnBgmSetCommand(string command, string arguments)
+        {
+            Framework.Network.InjectBgmTest(int.Parse(arguments));
+        }
+
+        private void OnItemLinkCommand(string command, string arguments) {
+            Task.Run(async () => {
+                try {
+                    dynamic results = await XivApi.Search(arguments, "Item", 1);
+                    var itemId = (short) results.Results[0].ID;
+                    var itemName = (string)results.Results[0].Name;
+
+                    var hexData = new byte[] {
+                        0x02, 0x13, 0x06, 0xFE, 0xFF, 0xF3, 0xF3, 0xF3, 0x03, 0x02, 0x27, 0x07, 0x03, 0xF2, 0x3A, 0x2F,
+                        0x02, 0x01, 0x03, 0x02, 0x13, 0x06, 0xFE, 0xFF, 0xFF, 0x7B, 0x1A, 0x03, 0xEE, 0x82, 0xBB, 0x02,
+                        0x13, 0x02, 0xEC, 0x03
+                    };
+
+                    var endTag = new byte[] {
+                        0x02, 0x27, 0x07, 0xCF, 0x01, 0x01, 0x01, 0xFF, 0x01, 0x03, 0x02, 0x13, 0x02, 0xEC, 0x03
+                    };
+
+                    BitConverter.GetBytes(itemId).Reverse().ToArray().CopyTo(hexData, 14);
+
+                    hexData = hexData.Concat(Encoding.UTF8.GetBytes(itemName)).Concat(endTag).ToArray();
+
+                    Framework.Gui.Chat.PrintChat(new XivChatEntry {
+                        MessageBytes = hexData
+                    });
+                }
+                catch {
+                    Framework.Gui.Chat.PrintError("Could not find item.");
+                }
+
+            });
+        }
+
+        public static byte[] StringToByteArray(String value)
+        {
+            byte[] bytes = new byte[value.Length * sizeof(char)];
+            Buffer.BlockCopy(value.ToCharArray(), 0, bytes, 0, bytes.Length);
+            return bytes;
+        }
+
+        public static String ByteArrayToString(byte[] value)
+        {
+            var chars = new char[value.Length / sizeof(char)];
+
+            var atValue = 0;
+            for (var i = 0; i < chars.Length; i++) {
+                chars[i] = BitConverter.ToChar(value, atValue);
+
+                atValue += 2;
+            }
+
+            return new string(chars);
         }
     }
 }
