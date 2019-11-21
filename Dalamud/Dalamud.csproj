@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup Label="Target">
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFramework>net471</TargetFramework>
     <LangVersion>8.0</LangVersion>
     <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
@@ -14,9 +14,9 @@
   </PropertyGroup>
   <PropertyGroup Label="Feature">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <AssemblyVersion>4.1.0.3</AssemblyVersion>
-    <Version>4.1.0.3</Version>
-    <FileVersion>4.1.0.3</FileVersion>
+    <AssemblyVersion>4.1.0.5</AssemblyVersion>
+    <Version>4.1.0.5</Version>
+    <FileVersion>4.1.0.5</FileVersion>
   </PropertyGroup>
   <ItemGroup Label="Resources">
     <None Include="$(SolutionDir)/Resources/**/*" CopyToOutputDirectory="PreserveNewest" Visible="false" />
