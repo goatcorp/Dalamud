@@ -70,7 +70,8 @@ namespace Dalamud.Game.Chat {
                     if (payload[0] == (byte)PlayerLinkType.ItemLink)
                     {
                         int itemId;
-                        if ((ItemQuality)payload[1] == ItemQuality.HighQuality)
+                        bool isHQ = payload[1] == (byte)ItemQuality.HighQuality;
+                        if (isHQ)
                         {
                             // hq items have an extra 0x0F byte before the ID, and the ID is 0x4240 above the actual item ID
                             // This _seems_ consistent but I really don't know
@@ -84,7 +85,7 @@ namespace Dalamud.Game.Chat {
                         payloads.Add(new SeStringPayloadContainer
                         {
                             Type = SeStringPayloadType.PlayerLink,
-                            Param1 = itemId
+                            Param1 = (itemId, isHQ)
                         });
                     }
 
