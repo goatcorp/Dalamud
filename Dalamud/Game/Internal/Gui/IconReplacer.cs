@@ -24,6 +24,7 @@ namespace Dalamud.Game.Internal.Gui {
         private IntPtr activeBuffArray = IntPtr.Zero;
         private IntPtr jobInfo;
         private IntPtr byteBase;
+        private IntPtr playerLevel;
         private Dalamud dalamud;
 
         private HashSet<uint> CustomIDs;
@@ -37,6 +38,8 @@ namespace Dalamud.Game.Internal.Gui {
             this.byteBase = scanner.Module.BaseAddress;
             this.comboTimer = byteBase + 0x1BB0B50;
             this.lastComboMove = byteBase + 0x1BB0B54;
+            this.playerLevel = byteBase + 0x1C28FA8 + 0x78;
+
 
             CustomIDs = new HashSet<uint>();
             VanillaIDs = new HashSet<uint>();
@@ -80,31 +83,13 @@ namespace Dalamud.Game.Internal.Gui {
 
             // TODO: More jobs, level checking for everything.
 
-            // Check if player is loaded in by trying to get their buffs.
-            // If not, skip everything until we are (game will crash cause I'm lazy).
-            /*
-            if (activeBuffArray == IntPtr.Zero) {
-                try {
-                    activeBuffArray = FindBuffAddress();
-                    Log.Verbose("ActiveBuffArray address: {ActiveBuffArray}", activeBuffArray);
-                }
-                catch (Exception e) {
-                    activeBuffArray = IntPtr.Zero;
-                    return this.iconHook.Original(self, actionID);
-                }
-            }
-            */
             if (this.VanillaIDs.Contains(actionID)) return this.iconHook.Original(self, actionID);
             if (!this.CustomIDs.Contains(actionID)) return actionID;
-
-            // TODO: this is currently broken
-            // As it stands, don't rely on localCharacter.level for anything.
-            //var localPlayer = this.dalamud.ClientState.LocalPlayer;
 
             // Don't clutter the spaghetti any worse than it already is.
             var lastMove = Marshal.ReadInt32(this.lastComboMove);
             var comboTime = Marshal.ReadInt32(this.comboTimer);
-            var level = 80;
+            var level = Marshal.ReadByte(this.playerLevel);
 
             // DRAGOON
             // TODO: Jump/High Jump into Mirage Dive
@@ -119,7 +104,7 @@ namespace Dalamud.Game.Internal.Gui {
                     return 86;
                 }
             }
-            
+
 
             // Replace Chaos Thrust with the Chaos Thrust combo chain
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.DragoonChaosThrustCombo)) {
@@ -135,7 +120,7 @@ namespace Dalamud.Game.Internal.Gui {
                     return 75;
                 }
             }
-            
+
 
             // Replace Full Thrust with the Full Thrust combo chain
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.DragoonFullThrustCombo)) {
@@ -503,7 +488,7 @@ namespace Dalamud.Game.Internal.Gui {
                 if (actionID == 3581) {
                     SMNGauge gauge = this.dalamud.ClientState.JobGauges.Get<SMNGauge>();
                     if (gauge.IsBahamutReady()) return 7427;
-                    if (gauge.IsPhoenixReady() || 
+                    if (gauge.IsPhoenixReady() ||
                         (gauge.TimerRemaining > 0 && gauge.ReturnSummon != SummonPet.NONE)) return 16513;
                     return 3581;
                 }
@@ -819,7 +804,7 @@ namespace Dalamud.Game.Internal.Gui {
                 }
             }
 
-            
+
 
             // Replace Redoublement with Redoublement combo, Enchanted if possible.
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.RedMageMeleeCombo)) {
