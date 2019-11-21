@@ -50,8 +50,8 @@ namespace Dalamud.Game.Command {
             dalamud.Framework.Gui.Chat.OnChatMessage += OnChatMessage;
         }
 
-        private void OnChatMessage(XivChatType type, uint senderId, string sender, ref string message,
-                                   ref bool isHandled) {
+        private void OnChatMessage(XivChatType type, uint senderId, string sender, byte[] rawMessage,
+                        ref string message, ref bool isHandled) {
             if (type == XivChatType.GatheringSystemMessage && senderId == 0) {
                 var cmdMatch = this.CommandRegex.Match(message).Groups["command"];
                 if (cmdMatch.Success) {

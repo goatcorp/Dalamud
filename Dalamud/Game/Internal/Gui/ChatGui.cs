@@ -14,7 +14,7 @@ namespace Dalamud.Game.Internal.Gui {
                                                    IntPtr message,
                                                    uint senderId, IntPtr parameter);
 
-        public delegate void OnMessageDelegate(XivChatType type, uint senderId, string sender, ref string message,
+        public delegate void OnMessageDelegate(XivChatType type, uint senderId, string sender, byte[] rawMessage, ref string message,
                                                ref bool isHandled);
 
 
@@ -84,16 +84,19 @@ namespace Dalamud.Game.Internal.Gui {
             IntPtr retVal = IntPtr.Zero;
 
             try {
+                ByteWrapper messageBytes = new ByteWrapper();
+
                 var senderName = StdString.ReadFromPointer(pSenderName);
-                var message = StdString.ReadFromPointer(pMessage);
+                var message = StdString.ReadFromPointer(pMessage, messageBytes);
 
                 Log.Debug($"HandlePrintMessageDetour {manager} - [{chattype}] [{BitConverter.ToString(Encoding.UTF8.GetBytes(message)).Replace("-", " ")}] {message} from {senderName}");
+                // Log.Debug($"Got message bytes {BitConverter.ToString(messageBytes.Bytes).Replace("-", " ")}");
 
                 var originalMessage = string.Copy(message);
 
                 // Call events
                 var isHandled = false;
-                OnChatMessage?.Invoke(chattype, senderid, senderName, ref message, ref isHandled);
+                OnChatMessage?.Invoke(chattype, senderid, senderName, messageBytes.Bytes, ref message, ref isHandled);
 
                 var messagePtr = pMessage;
                 OwnedStdString allocatedString = null;  

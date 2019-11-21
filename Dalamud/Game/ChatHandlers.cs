@@ -1,5 +1,5 @@
+using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Reflection;
@@ -54,6 +54,34 @@ namespace Dalamud.Game {
             new Regex(@"(http|ftp|https)://([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?",
                       RegexOptions.Compiled);
 
+        private readonly Dictionary<ClientLanguage, Regex[]> retainerSaleRegexes = new Dictionary<ClientLanguage, Regex[]>() {
+            {
+                ClientLanguage.Japanese, new Regex[] {
+                    new Regex(@"^(?:.+)マーケットに(?<origValue>[\d,.]+)ギルで出品した(?<item>.*)×(?<count>[\d,.]+)が売れ、(?<value>[\d,.]+)ギルを入手しました。$", RegexOptions.Compiled),
+                    new Regex(@"^(?:.+)マーケットに(?<origValue>[\d,.]+)ギルで出品した(?<item>.*)が売れ、(?<value>[\d,.]+)ギルを入手しました。$", RegexOptions.Compiled)
+                }
+            },
+            {
+                ClientLanguage.English, new Regex[]
+                {
+                    new Regex(@"^(?<item>.+) you put up for sale in the (?:.+) markets (?:have|has) sold for (?<value>[\d,.]+) gil \(after fees\)\.$", RegexOptions.Compiled)
+                }
+            },
+            {
+                ClientLanguage.German, new Regex[]
+                {
+                    new Regex(@"^Dein Gehilfe hat (?<item>.+) auf dem Markt von (?:.+) für (?<value>[\d,.]+) Gil verkauft\.$", RegexOptions.Compiled),
+                    new Regex(@"^Dein Gehilfe hat (?<item>.+) auf dem Markt von (?:.+) verkauft und (?<value>[\d,.]+) Gil erhalten\.$", RegexOptions.Compiled)
+                }
+            },
+            {
+                ClientLanguage.French, new Regex[]
+                {
+                    new Regex(@"^Un servant a vendu (?<item>.+) pour (?<value>[\d,.]+) gil à (?:.+)\.$", RegexOptions.Compiled)
+                }
+            }
+        };
+
         private bool hasSeenLoadingMsg;
 
         public ChatHandlers(Dalamud dalamud) {
@@ -65,8 +93,8 @@ namespace Dalamud.Game {
 
         public string LastLink { get; private set; }
 
-        private void ChatOnOnChatMessage(XivChatType type, uint senderId, string sender, ref string message,
-                                         ref bool isHandled) {
+        private void ChatOnOnChatMessage(XivChatType type, uint senderId, string sender, byte[] rawMessage, 
+            ref string message, ref bool isHandled) {
 
             if (type == XivChatType.Notice && !this.hasSeenLoadingMsg) {
                 this.dalamud.Framework.Gui.Chat.Print($"XIVLauncher in-game addon v{Assembly.GetAssembly(typeof(ChatHandlers)).GetName().Version} loaded.");
@@ -96,8 +124,36 @@ namespace Dalamud.Game {
                 return;
             }
 
+            if (type == XivChatType.RetainerSale)
+            {
+                foreach (var regex in retainerSaleRegexes[dalamud.StartInfo.Language])
+                {
+                    var matchInfo = regex.Match(message);
+
+                    // we no longer really need to do/validate the item matching since we read the id from the byte array
+                    // but we'd be checking the main match anyway
+                    var itemInfo = matchInfo.Groups["item"];
+                    if (!itemInfo.Success)
+                        continue;
+                    //var itemName = SeString.Parse(itemInfo.Value).Output;
+                    var (itemId, isHQ) = (ValueTuple<int, bool>)(SeString.Parse(rawMessage).Payloads[0].Param1);
+
+                    Log.Debug($"Probable retainer sale: {message}, decoded item {itemId}, HQ {isHQ}");
+
+                    int itemValue = 0;
+                    var valueInfo = matchInfo.Groups["value"];
+                    // not sure if using a culture here would work correctly, so just strip symbols instead
+                    if (!valueInfo.Success || !int.TryParse(valueInfo.Value.Replace(",", "").Replace(".", ""), out itemValue))
+                        continue;
+
+                    Task.Run(() => this.dalamud.BotManager.ProcessRetainerSale(itemId, itemValue, isHQ));
+                    break;
+                }
+            }
+
+
             Task.Run(() => this.dalamud.BotManager.ProcessChatMessage(type, originalMessage, sender).GetAwaiter()
-                               .GetResult());
+                            .GetResult());
 
 
             if ((this.HandledChatTypeColors.ContainsKey(type) || type == XivChatType.Say || type == XivChatType.Shout ||
