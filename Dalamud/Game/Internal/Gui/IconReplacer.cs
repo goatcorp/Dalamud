@@ -85,7 +85,15 @@ namespace Dalamud.Game.Internal.Gui {
 
             if (this.VanillaIDs.Contains(actionID)) return this.iconHook.Original(self, actionID);
             if (!this.CustomIDs.Contains(actionID)) return actionID;
-
+            if (this.activeBuffArray == IntPtr.Zero) {
+                try {
+                    this.activeBuffArray = FindBuffAddress();
+                }
+                catch(Exception e) { //Before you're loaded in
+                    this.activeBuffArray = IntPtr.Zero;
+                    return this.iconHook.Original(self, actionID);
+                }
+            }
             // Don't clutter the spaghetti any worse than it already is.
             var lastMove = Marshal.ReadInt32(this.lastComboMove);
             var comboTime = Marshal.ReadInt32(this.comboTimer);
@@ -826,11 +834,10 @@ namespace Dalamud.Game.Internal.Gui {
             return this.iconHook.Original(self, actionID);
         }
 
-        private bool SearchBuffArray(short needle) {/*
+        private bool SearchBuffArray(short needle) {
             for (int i = 0; i < 60; i++) {
                 if (Marshal.ReadInt16(activeBuffArray + 4 * i) == needle) return true;
-            }
-            */
+            }           
             return false;
         }
 
