@@ -82,6 +82,8 @@ namespace Dalamud.Game.Chat {
         Echo = 56,
         SystemError = 58,
         GatheringSystemMessage = 60,
+        // not sure if this is used for anything else
+        RetainerSale = 71,
 
         [XivChatTypeInfo("Crossworld Linkshell 2", "cw2", 0xFF1E90FF)]
         CrossLinkShell2 = 101,
