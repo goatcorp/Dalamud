@@ -1,14 +1,17 @@
 using System;
+using System.Linq;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using Newtonsoft.Json.Linq;
 using Serilog;
 
 namespace Dalamud.Game.Internal.Libc {
     /// <summary>
     /// Interation with std::string
     /// </summary>
-    public static class StdString {
-        public static string ReadFromPointer(IntPtr cstring, ByteWrapper bytes = null) {
+    public class StdString {
+        public static StdString ReadFromPointer(IntPtr cstring) {
             unsafe {
                 if (cstring == IntPtr.Zero) {
                     throw new ArgumentNullException(nameof(cstring));
@@ -18,35 +21,29 @@ namespace Dalamud.Game.Internal.Libc {
                 if (innerAddress == IntPtr.Zero) {
                     throw new NullReferenceException("Inner reference to the cstring is null.");
                 }
-                
-                var pInner = (sbyte*) innerAddress.ToPointer();
+
                 var count = 0;
                 
                 // Count the number of chars. String is assumed to be zero-terminated.
-                while (*(pInner + count) != 0) {
+                while (Marshal.ReadByte(innerAddress + count) != 0) {
                     count += 1;
                 }
 
-                // raw copy if requested, as the string conversion returned from this function is lossy
-                if (bytes != null)
-                {
-                    bytes.Bytes = new byte[count];
-                    for (int i = 0; i < count; i++)
-                    {
-                        bytes.Bytes[i] = (byte)pInner[i];
-                    }
-                }
-                
-                return new string(pInner, 0, count, Encoding.UTF8);
+                // raw copy, as UTF8 string conversion is lossy
+                var rawData = new byte[count];
+                Marshal.Copy(innerAddress, rawData, 0, count);
+
+                return new StdString {
+                    RawData = rawData,
+                    Value = Encoding.UTF8.GetString(rawData)
+                };
             }
         }
-    }
 
-    /// <summary>
-    /// Wrapper so that we can use an optional byte[] as a parameter
-    /// </summary>
-    public class ByteWrapper
-    {
-        public byte[] Bytes { get; set; } = null;
+        private StdString() { }
+
+        public string Value { get; private set; }
+
+        public byte[] RawData { get; set; }
     }
 }

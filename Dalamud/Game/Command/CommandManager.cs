@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Text.RegularExpressions;
 using Dalamud.Game.Chat;
+using Dalamud.Game.Internal.Libc;
 using Serilog;
 
 namespace Dalamud.Game.Command {
@@ -50,10 +51,10 @@ namespace Dalamud.Game.Command {
             dalamud.Framework.Gui.Chat.OnChatMessage += OnChatMessage;
         }
 
-        private void OnChatMessage(XivChatType type, uint senderId, string sender, byte[] rawMessage,
-                        ref string message, ref bool isHandled) {
+        private void OnChatMessage(XivChatType type, uint senderId, ref StdString sender,
+                                   ref StdString message, ref bool isHandled) {
             if (type == XivChatType.GatheringSystemMessage && senderId == 0) {
-                var cmdMatch = this.CommandRegex.Match(message).Groups["command"];
+                var cmdMatch = this.CommandRegex.Match(message.Value).Groups["command"];
                 if (cmdMatch.Success) {
                     // Yes, it's a chat command.
                     var command = cmdMatch.Value;

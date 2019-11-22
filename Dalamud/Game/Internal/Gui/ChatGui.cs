@@ -5,6 +5,7 @@ using System.Text;
 using Dalamud.Game.Chat;
 using Dalamud.Game.Internal.Libc;
 using Dalamud.Hooking;
+using Discord.Rest;
 using Serilog;
 
 namespace Dalamud.Game.Internal.Gui {
@@ -14,7 +15,7 @@ namespace Dalamud.Game.Internal.Gui {
                                                    IntPtr message,
                                                    uint senderId, IntPtr parameter);
 
-        public delegate void OnMessageDelegate(XivChatType type, uint senderId, string sender, byte[] rawMessage, ref string message,
+        public delegate void OnMessageDelegate(XivChatType type, uint senderId, ref StdString sender, ref StdString message,
                                                ref bool isHandled);
 
 
@@ -84,25 +85,23 @@ namespace Dalamud.Game.Internal.Gui {
             IntPtr retVal = IntPtr.Zero;
 
             try {
-                ByteWrapper messageBytes = new ByteWrapper();
-
                 var senderName = StdString.ReadFromPointer(pSenderName);
-                var message = StdString.ReadFromPointer(pMessage, messageBytes);
+                var message = StdString.ReadFromPointer(pMessage);
 
-                Log.Debug($"HandlePrintMessageDetour {manager} - [{chattype}] [{BitConverter.ToString(Encoding.UTF8.GetBytes(message)).Replace("-", " ")}] {message} from {senderName}");
+                Log.Debug($"HandlePrintMessageDetour {manager} - [{chattype}] [{BitConverter.ToString(message.RawData).Replace("-", " ")}] {message} from {senderName}");
                 // Log.Debug($"Got message bytes {BitConverter.ToString(messageBytes.Bytes).Replace("-", " ")}");
 
-                var originalMessage = string.Copy(message);
+                var originalMessage = message.RawData.Clone();
 
                 // Call events
                 var isHandled = false;
-                OnChatMessage?.Invoke(chattype, senderid, senderName, messageBytes.Bytes, ref message, ref isHandled);
+                OnChatMessage?.Invoke(chattype, senderid, ref senderName, ref message, ref isHandled);
 
                 var messagePtr = pMessage;
                 OwnedStdString allocatedString = null;  
 
-                if (originalMessage != message) {
-                    allocatedString = this.dalamud.Framework.Libc.NewString(Encoding.UTF8.GetBytes(message));
+                if (originalMessage != message.RawData) {
+                    allocatedString = this.dalamud.Framework.Libc.NewString(message.RawData);
                     Log.Debug(
                         $"HandlePrintMessageDetour String modified: {originalMessage}({messagePtr}) -> {message}({allocatedString.Address})");
                     messagePtr = allocatedString.Address;

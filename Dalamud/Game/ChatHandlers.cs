@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Dalamud.Game.Chat;
+using Dalamud.Game.Internal.Libc;
 using Serilog;
 
 namespace Dalamud.Game {
@@ -93,8 +94,8 @@ namespace Dalamud.Game {
 
         public string LastLink { get; private set; }
 
-        private void ChatOnOnChatMessage(XivChatType type, uint senderId, string sender, byte[] rawMessage, 
-            ref string message, ref bool isHandled) {
+        private void ChatOnOnChatMessage(XivChatType type, uint senderId, ref StdString sender, 
+            ref StdString message, ref bool isHandled) {
 
             if (type == XivChatType.Notice && !this.hasSeenLoadingMsg) {
                 this.dalamud.Framework.Gui.Chat.Print($"XIVLauncher in-game addon v{Assembly.GetAssembly(typeof(ChatHandlers)).GetName().Version} loaded.");
@@ -106,7 +107,7 @@ namespace Dalamud.Game {
                 return;
 #endif
 
-            var matched = this.rmtRegex.IsMatch(message);
+            var matched = this.rmtRegex.IsMatch(message.Value);
             if (matched) {
                 // This seems to be a RMT ad - let's not show it
                 Log.Debug("Handled RMT ad");
@@ -114,10 +115,11 @@ namespace Dalamud.Game {
                 return;
             }
 
-            var originalMessage = string.Copy(message);
+            var messageVal = message.Value;
+            var senderVal = sender.Value;
 
             if (this.dalamud.Configuration.BadWords != null &&
-                this.dalamud.Configuration.BadWords.Any(x => originalMessage.Contains(x))) {
+                this.dalamud.Configuration.BadWords.Any(x => messageVal.Contains(x))) {
                 // This seems to be in the user block list - let's not show it
                 Log.Debug("Blocklist triggered");
                 isHandled = true;
@@ -128,7 +130,7 @@ namespace Dalamud.Game {
             {
                 foreach (var regex in retainerSaleRegexes[dalamud.StartInfo.Language])
                 {
-                    var matchInfo = regex.Match(message);
+                    var matchInfo = regex.Match(message.Value);
 
                     // we no longer really need to do/validate the item matching since we read the id from the byte array
                     // but we'd be checking the main match anyway
@@ -136,7 +138,7 @@ namespace Dalamud.Game {
                     if (!itemInfo.Success)
                         continue;
                     //var itemName = SeString.Parse(itemInfo.Value).Output;
-                    var (itemId, isHQ) = (ValueTuple<int, bool>)(SeString.Parse(rawMessage).Payloads[0].Param1);
+                    var (itemId, isHQ) = (ValueTuple<int, bool>)(SeString.Parse(message.RawData).Payloads[0].Param1);
 
                     Log.Debug($"Probable retainer sale: {message}, decoded item {itemId}, HQ {isHQ}");
 
@@ -152,27 +154,31 @@ namespace Dalamud.Game {
             }
 
 
-            Task.Run(() => this.dalamud.BotManager.ProcessChatMessage(type, originalMessage, sender).GetAwaiter()
+            Task.Run(() => this.dalamud.BotManager.ProcessChatMessage(type, messageVal, senderVal).GetAwaiter()
                             .GetResult());
 
 
             if ((this.HandledChatTypeColors.ContainsKey(type) || type == XivChatType.Say || type == XivChatType.Shout ||
-                type == XivChatType.Alliance || type == XivChatType.TellOutgoing || type == XivChatType.Yell) && !message.Contains((char)0x02)) {
-                var italicsStart = message.IndexOf("*");
-                var italicsEnd = message.IndexOf("*", italicsStart + 1);
+                type == XivChatType.Alliance || type == XivChatType.TellOutgoing || type == XivChatType.Yell) && !message.Value.Contains((char)0x02)) {
+                var italicsStart = message.Value.IndexOf("*");
+                var italicsEnd = message.Value.IndexOf("*", italicsStart + 1);
+
+                var messageString = message.Value;
 
                 while (italicsEnd != -1) {
                     var it = MakeItalics(
-                        message.Substring(italicsStart, italicsEnd - italicsStart + 1).Replace("*", ""));
-                    message = message.Remove(italicsStart, italicsEnd - italicsStart + 1);
-                    message = message.Insert(italicsStart, it);
-                    italicsStart = message.IndexOf("*");
-                    italicsEnd = message.IndexOf("*", italicsStart + 1);
+                        messageString.Substring(italicsStart, italicsEnd - italicsStart + 1).Replace("*", ""));
+                    messageString = messageString.Remove(italicsStart, italicsEnd - italicsStart + 1);
+                    messageString = messageString.Insert(italicsStart, it);
+                    italicsStart = messageString.IndexOf("*");
+                    italicsEnd = messageString.IndexOf("*", italicsStart + 1);
                 }
+
+                message.RawData = Encoding.UTF8.GetBytes(messageString);
             }
 
 
-            var linkMatch = this.urlRegex.Match(message);
+            var linkMatch = this.urlRegex.Match(message.Value);
             if (linkMatch.Value.Length > 0)
                 LastLink = linkMatch.Value;
         }

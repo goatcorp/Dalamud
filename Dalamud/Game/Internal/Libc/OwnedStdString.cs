@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Runtime.InteropServices;
 using Serilog;
 
@@ -63,7 +63,7 @@ namespace Dalamud.Game.Internal.Libc {
             GC.SuppressFinalize(this);
         }
 
-        public string Read() {
+        public StdString Read() {
             return StdString.ReadFromPointer(Address);
         }
     }
