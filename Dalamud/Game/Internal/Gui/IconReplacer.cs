@@ -57,6 +57,7 @@ namespace Dalamud.Game.Internal.Gui {
         public void Enable() {
             this.iconHook.Enable();
             this.checkerHook.Enable();
+            Log.Verbose("IconReplacer hooked");
         }
 
         public void Dispose() {
