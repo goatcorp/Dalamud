@@ -846,7 +846,7 @@ namespace Dalamud.Game.Internal.Gui {
         private unsafe delegate int* getArray(long* address);
 
         private unsafe IntPtr FindBuffAddress() {
-            IntPtr randomAddress = byteBase + 0x1c04be0;
+            IntPtr randomAddress = byteBase + 0x1BFFBE0;
             IntPtr num = Marshal.ReadIntPtr(randomAddress);
             IntPtr step2 = (IntPtr)(Marshal.ReadInt64(num) + 0x248);
             IntPtr step3 = Marshal.ReadIntPtr(step2);
