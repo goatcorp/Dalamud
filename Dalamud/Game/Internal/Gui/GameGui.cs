@@ -40,7 +40,7 @@ namespace Dalamud.Game.Internal.Gui {
             return retVal;
         }
 
-        public void SetBgm(ushort bgmKey) => this.setGlobalBgmHook.Original(bgmKey, 0, 0, 0, 0, 0);
+        public void SetBgm(ushort bgmKey) => this.setGlobalBgmHook.Original(bgmKey, 0, 0, 0, 0, 0); 
 
         public void Enable() {
             Chat.Enable();
