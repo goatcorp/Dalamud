@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Windows.Forms;
 using Dalamud.DiscordBot;
 using Dalamud.Game.Chat;
 using EasyHook;
@@ -15,8 +16,10 @@ namespace Dalamud.Injector {
             AppDomain.CurrentDomain.UnhandledException += delegate(object sender, UnhandledExceptionEventArgs eventArgs)
             {
                 File.WriteAllText("InjectorException.txt", eventArgs.ExceptionObject.ToString());
-                    
-                Process.GetCurrentProcess().Kill();
+
+                MessageBox.Show("Failed to inject the XIVLauncher in-game addon. Please report this error:\n\n" + eventArgs.ExceptionObject, "XIVLauncher Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                Environment.Exit(0);
             };
 
             var pid = int.Parse(args[0]);

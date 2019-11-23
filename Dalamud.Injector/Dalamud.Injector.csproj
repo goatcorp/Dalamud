@@ -14,10 +14,10 @@
   </PropertyGroup>
   <PropertyGroup Label="Feature">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <AssemblyVersion>4.1.0.3</AssemblyVersion>
-    <FileVersion>4.1.0.3</FileVersion>
+    <AssemblyVersion>4.1.0.6</AssemblyVersion>
+    <FileVersion>4.1.0.6</FileVersion>
     <Description>XIVLauncher addon injection</Description>
-    <Version>4.1.0.3</Version>
+    <Version>4.1.0.6</Version>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <DocumentationFile></DocumentationFile>
@@ -28,5 +28,8 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Dalamud\Dalamud.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System.Windows.Forms" />
   </ItemGroup>
 </Project>
