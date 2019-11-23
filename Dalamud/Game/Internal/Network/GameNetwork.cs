@@ -28,6 +28,7 @@ namespace Dalamud.Game.Internal.Network {
             Address = new GameNetworkAddressResolver();
             Address.Setup(scanner);
 
+            Log.Verbose("===== G A M E N E T W O R K =====");
             Log.Verbose("ProcessZonePacket address {ProcessZonePacket}", Address.ProcessZonePacket);
 
             this.processZonePacketHook =
@@ -84,10 +85,6 @@ namespace Dalamud.Game.Internal.Network {
             BitConverter.GetBytes((UInt32) param1).CopyTo(packetData, 0x14);
 
             InjectZoneProtoPacket(packetData);
-        }
-
-        public void InjectBgmTest(int key) {
-            InjectActorControl(0xa1, key);
         }
 
         /// <summary>

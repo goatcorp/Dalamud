@@ -440,7 +440,7 @@ namespace Dalamud {
 
         private void OnBgmSetCommand(string command, string arguments)
         {
-            Framework.Network.InjectBgmTest(int.Parse(arguments));
+            Framework.Gui.SetBgm(ushort.Parse(arguments));
         }
 
         private void OnItemLinkCommand(string command, string arguments) {
@@ -473,27 +473,6 @@ namespace Dalamud {
                 }
 
             });
-        }
-
-        public static byte[] StringToByteArray(String value)
-        {
-            byte[] bytes = new byte[value.Length * sizeof(char)];
-            Buffer.BlockCopy(value.ToCharArray(), 0, bytes, 0, bytes.Length);
-            return bytes;
-        }
-
-        public static String ByteArrayToString(byte[] value)
-        {
-            var chars = new char[value.Length / sizeof(char)];
-
-            var atValue = 0;
-            for (var i = 0; i < chars.Length; i++) {
-                chars[i] = BitConverter.ToChar(value, atValue);
-
-                atValue += 2;
-            }
-
-            return new string(chars);
         }
     }
 }

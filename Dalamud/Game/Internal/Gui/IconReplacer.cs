@@ -63,6 +63,7 @@ namespace Dalamud.Game.Internal.Gui {
         public void Dispose() {
             this.iconHook.Dispose();
             this.checkerHook.Dispose();
+            Log.Verbose("IconReplacer unhooked");
         }
 
         // I hate this function. This is the dumbest function to exist in the game. Just return 1.
