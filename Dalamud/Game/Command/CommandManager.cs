@@ -24,7 +24,7 @@ namespace Dalamud.Game.Command {
             new Regex(@"^„(?<command>.+)“ existiert nicht als Textkommando\.$", RegexOptions.Compiled);
 
         private readonly Regex commandRegexFr =
-            new Regex(@"^La commande texte “(?<command>.+)” ne peut pas être utilisée de cette façon\.$",
+            new Regex(@"^La commande texte “(?<command>.+)” n'existe pas\.$",
                       RegexOptions.Compiled);
 
         private readonly Regex CommandRegex;
