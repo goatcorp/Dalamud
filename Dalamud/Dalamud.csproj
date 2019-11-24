@@ -14,9 +14,9 @@
   </PropertyGroup>
   <PropertyGroup Label="Feature">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <AssemblyVersion>4.1.0.6</AssemblyVersion>
-    <Version>4.1.0.6</Version>
-    <FileVersion>4.1.0.6</FileVersion>
+    <AssemblyVersion>4.1.0.7</AssemblyVersion>
+    <Version>4.1.0.7</Version>
+    <FileVersion>4.1.0.7</FileVersion>
   </PropertyGroup>
   <ItemGroup Label="Resources">
     <None Include="$(SolutionDir)/Resources/**/*" CopyToOutputDirectory="PreserveNewest" Visible="false" />
