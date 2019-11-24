@@ -118,6 +118,9 @@ namespace XIVLauncher.Dalamud
         [CustomComboInfo("ES Painflare", "Change Energy Siphon into Painflare while you have Aetherflow stacks.", 27)]
         SummonerESPainflareCombo = 1L << 40,
 
+        [CustomComboInfo("DWT", "DWT.", 27)]
+        SummonerDwtCombo = 1L << 50,
+
         // SCHOLAR
         [CustomComboInfo("Seraph Fey Blessing/Consolation", "Change Fey Blessing into Consolation when Seraph is out.", 28)]
         ScholarSeraphConsolationFeature = 1L << 29,

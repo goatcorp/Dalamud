@@ -465,7 +465,6 @@ namespace Dalamud.Game.Internal.Gui {
             // DWT changes. 
             // Now contains DWT, Deathflare, Summon Bahamut, Enkindle Bahamut, FBT, and Enkindle Phoenix.
             // What a monster of a button.
-            /*
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.SummonerDwtCombo)) {
                 if (actionID == 3581) {
                     SMNGauge gauge = this.dalamud.ClientState.JobGauges.Get<SMNGauge>();
@@ -483,7 +482,6 @@ namespace Dalamud.Game.Internal.Gui {
                     }
                 }
             }
-            */
 
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.SummonerDemiCombo)) {
                 // Replace Deathflare with demi enkindles

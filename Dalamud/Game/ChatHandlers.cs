@@ -98,8 +98,20 @@ namespace Dalamud.Game {
             ref StdString message, ref bool isHandled) {
 
             if (type == XivChatType.Notice && !this.hasSeenLoadingMsg) {
-                this.dalamud.Framework.Gui.Chat.Print($"XIVLauncher in-game addon v{Assembly.GetAssembly(typeof(ChatHandlers)).GetName().Version} loaded.");
+                var assemblyVersion = Assembly.GetAssembly(typeof(ChatHandlers)).GetName().Version.ToString();
+
+                this.dalamud.Framework.Gui.Chat.Print($"XIVLauncher in-game addon v{assemblyVersion} loaded.");
                 this.hasSeenLoadingMsg = true;
+
+                if (string.IsNullOrEmpty(this.dalamud.Configuration.LastVersion) || !assemblyVersion.StartsWith(this.dalamud.Configuration.LastVersion)) {
+                    this.dalamud.Framework.Gui.Chat.PrintChat(new XivChatEntry {
+                        MessageBytes = Encoding.UTF8.GetBytes("The In-Game addon has been updated or was reinstalled successfully! Please check the discord for a full changelog."),
+                        Type = XivChatType.Urgent
+                    });
+
+                    this.dalamud.Configuration.LastVersion = assemblyVersion;
+                    this.dalamud.Configuration.Save(this.dalamud.StartInfo.ConfigurationPath);
+                }
             }
 
 #if !DEBUG

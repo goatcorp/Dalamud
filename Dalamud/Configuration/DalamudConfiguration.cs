@@ -25,6 +25,7 @@ namespace Dalamud
 
         public List<FateInfo> Fates;
 
+        public string LastVersion { get; set; }
 
         public static DalamudConfiguration Load(string path) {
             return JsonConvert.DeserializeObject<DalamudConfiguration>(File.ReadAllText(path));
