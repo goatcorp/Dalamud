@@ -9,13 +9,13 @@ namespace Dalamud.Game.Chat {
         None = 0,
         Debug = 1,
 
-        [XivChatTypeInfo("Urgent", null, 0xFF9400D3)]
+        [XivChatTypeInfo("Urgent", "urgent", 0xFF9400D3)]
         Urgent = 2,
 
-        [XivChatTypeInfo("Notice", null, 0xFF9400D3)]
+        [XivChatTypeInfo("Notice", "notice", 0xFF9400D3)]
         Notice = 3,
 
-        [XivChatTypeInfo("Say", "s", 0xFFFFFFFF)]
+        [XivChatTypeInfo("Say", "say", 0xFFFFFFFF)]
         Say = 10,
 
         [XivChatTypeInfo("Shout", "shout", 0xFFFF4500)]
@@ -25,10 +25,10 @@ namespace Dalamud.Game.Chat {
         [XivChatTypeInfo("Tell", "tell", 0xFFFF69B4)]
         TellIncoming = 13,
 
-        [XivChatTypeInfo("Party", "p", 0xFF1E90FF)]
+        [XivChatTypeInfo("Party", "party", 0xFF1E90FF)]
         Party = 14,
 
-        [XivChatTypeInfo("Alliance", "a", 0xFFFF4500)]
+        [XivChatTypeInfo("Alliance", "alliance", 0xFFFF4500)]
         Alliance = 15,
 
         [XivChatTypeInfo("Linkshell 1", "ls1", 0xFF228B22)]
@@ -61,24 +61,24 @@ namespace Dalamud.Game.Chat {
         [XivChatTypeInfo("Novice Network", "nn", 0xFF8B4513)]
         NoviceNetwork = 27,
 
-        [XivChatTypeInfo("Custom Emotes", "nn", 0xFF8B4513)]
+        [XivChatTypeInfo("Custom Emotes", "emote", 0xFF8B4513)]
         CustomEmote = 28,
-        [XivChatTypeInfo("Standard Emotes", null, 0xFF8B4513)]
+        [XivChatTypeInfo("Standard Emotes", "emote", 0xFF8B4513)]
         StandardEmote = 29,
 
-        [XivChatTypeInfo("Yell", "y", 0xFFFFFF00)]
+        [XivChatTypeInfo("Yell", "yell", 0xFFFFFF00)]
         Yell = 30,
 
-        [XivChatTypeInfo("Party", "p", 0xFF1E90FF)]
+        [XivChatTypeInfo("Party", "party", 0xFF1E90FF)]
         CrossParty = 32,
 
-        [XivChatTypeInfo("PvP Team", "pvp", 0xFFF4A460)]
+        [XivChatTypeInfo("PvP Team", "pvpt", 0xFFF4A460)]
         PvPTeam = 36,
 
         [XivChatTypeInfo("Crossworld Linkshell 1", "cw1", 0xFF1E90FF)]
         CrossLinkShell1 = 37,
 
-        [XivChatTypeInfo("Echo", null, 0xFF808080)]
+        [XivChatTypeInfo("Echo", "echo", 0xFF808080)]
         Echo = 56,
         SystemError = 58,
         GatheringSystemMessage = 60,

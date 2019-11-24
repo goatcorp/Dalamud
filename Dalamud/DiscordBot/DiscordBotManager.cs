@@ -38,86 +38,6 @@ namespace Dalamud.DiscordBot {
 
             this.socketClient = new DiscordSocketClient();
             this.socketClient.Ready += SocketClientOnReady;
-            this.socketClient.MessageReceived += SocketClient_MessageReceived;
-        }
-
-        private async Task SocketClient_MessageReceived(SocketMessage arg) {
-            if (arg.Embeds != null && arg.Embeds.Count == 1) {
-                this.recentMessages.Add(arg);
-                return;
-            }
-
-            var msgContent = arg.Content;
-
-            if (!msgContent.StartsWith("!f"))
-                return;
-
-            if (arg.Author.Id != this.config.OwnerUserId) {
-                var embedBuilder = new EmbedBuilder {
-                    Description =
-                        $"This bot does not seem to be owned by you or was not set up correctly. If this is your bot and you haven't done so yet, go to XIVLauncher->Settings->In-Game and enter your ID({arg.Author.Id}) into the owner ID field.",
-                    Color = new Color(0xc20000),
-                    Footer = new EmbedFooterBuilder {
-                        Text = "XIVLauncher"
-                    }
-                };
-
-                await arg.Channel.SendMessageAsync(embed: embedBuilder.Build());
-                return;
-            }
-
-            msgContent = msgContent.Substring(2);
-            var parts = msgContent.Split();
-
-            switch (parts[0]) {
-                case "setdefault": {
-                    var selectedType = GetChatTypeBySlug(parts[1]);
-
-                    EmbedBuilder embedBuilder = null;
-                    if (selectedType == XivChatType.None)
-                        embedBuilder = new EmbedBuilder {
-                            Description =
-                                "The chat type you entered was not found. Use !ftypes for a list of possible values.",
-                            Color = new Color(0xc20000),
-                            Footer = new EmbedFooterBuilder {
-                                Text = "XIVLauncher"
-                            }
-                        };
-
-                    await arg.Channel.SendMessageAsync(embed: embedBuilder.Build());
-                }
-                    break;
-
-                case "types": {
-                    var embedText = string.Empty;
-
-                    foreach (var chatType in Enum.GetValues(typeof(XivChatType)).Cast<XivChatType>()) {
-                        var details = chatType.GetDetails();
-
-                        if (details?.Slug == null)
-                            continue;
-
-                        embedText += $"{details.FancyName}    -   {details.Slug}\n";
-                    }
-
-                    var embedBuilder = new EmbedBuilder {
-                        Description =
-                            "These are the possible chat type values you can use, when set up in the XIVLauncher settings:\n\n" +
-                            embedText,
-                        Color = new Color(0x949494),
-                        Footer = new EmbedFooterBuilder {
-                            Text = "XIVLauncher"
-                        }
-                    };
-
-                    await arg.Channel.SendMessageAsync(embed: embedBuilder.Build());
-                }
-                    break;
-                default: {
-                    var selectedType = GetChatTypeBySlug(parts[0]);
-                }
-                    break;
-            }
         }
 
         private XivChatType GetChatTypeBySlug(string slug) {
@@ -237,6 +157,8 @@ namespace Dalamud.DiscordBot {
             if (!chatTypeConfigs.Any())
                 return;
 
+            var chatTypeDetail = type.GetDetails();
+
             var channels = chatTypeConfigs.Select(c => GetChannel(c.Channel).GetAwaiter().GetResult());
 
             var senderSplit = sender.Split(new[] {this.worldIcon}, StringSplitOptions.None);
@@ -340,7 +262,7 @@ namespace Dalamud.DiscordBot {
                         }
                     }
 
-                    await channels.ElementAt(chatTypeIndex).SendMessageAsync($"{name}: {message}");
+                    await channels.ElementAt(chatTypeIndex).SendMessageAsync($"**[{chatTypeDetail.Slug}]{name}**: {message}");
                 }
             }
         }
