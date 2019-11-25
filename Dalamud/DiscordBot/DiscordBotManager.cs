@@ -125,10 +125,13 @@ namespace Dalamud.DiscordBot {
         public async Task ProcessRetainerSale(int itemId, int amount, bool isHq) {
             if (this.config.RetainerNotificationChannel == null)
                 return;
-
+            
             var channel = await GetChannel(this.config.RetainerNotificationChannel);
 
             dynamic item = XivApi.GetItem(itemId).GetAwaiter().GetResult();
+
+            var character = this.dalamud.ClientState.LocalPlayer;
+            var characterInfo = await GetCharacterInfo(character.Name, character.HomeWorld.Name);
 
             var embedBuilder = new EmbedBuilder {
                 Title = (isHq ? "<:hq:593406013651156994> " : "") + item.Name,
@@ -136,7 +139,11 @@ namespace Dalamud.DiscordBot {
                 Description = "Sold " + amount,
                 Timestamp = DateTimeOffset.Now,
                 Color = new Color(0xd89b0d),
-                ThumbnailUrl = "https://xivapi.com" + item.Icon
+                ThumbnailUrl = "https://xivapi.com" + item.Icon,
+                Footer = new EmbedFooterBuilder {
+                    Text = $"XIVLauncher | {character.Name}",
+                    IconUrl = characterInfo.AvatarUrl
+                }
             };
 
             await channel.SendMessageAsync(embed: embedBuilder.Build());
@@ -180,23 +187,13 @@ namespace Dalamud.DiscordBot {
             sender = RemoveAllNonLanguageCharacters(sender);
 
             var avatarUrl = "";
-            var lodestoneId = 0;
+            var lodestoneId = "";
 
             if (!this.config.DisableEmbeds) {
-                try
-                {
-                    dynamic charCandidates = await XivApi.GetCharacterSearch(sender, world);
+                var searchResult = await GetCharacterInfo(sender, world);
 
-                    if (charCandidates.Results.Count > 0)
-                    {
-                        avatarUrl = charCandidates.Results[0].Avatar;
-                        lodestoneId = charCandidates.Results[0].ID;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Log.Error(ex, "Could not get XIVAPI character search result.");
-                }
+                lodestoneId = searchResult.LodestoneId;
+                avatarUrl = searchResult.AvatarUrl;
             }
 
             Thread.Sleep(this.config.ChatDelayMs);
@@ -215,7 +212,7 @@ namespace Dalamud.DiscordBot {
                         {
                             IconUrl = avatarUrl,
                             Name = name,
-                            Url = lodestoneId != 0 ? "https://eu.finalfantasyxiv.com/lodestone/character/" + lodestoneId : null
+                            Url = !string.IsNullOrEmpty(lodestoneId) ? "https://eu.finalfantasyxiv.com/lodestone/character/" + lodestoneId : null
                         },
                         Description = message,
                         Timestamp = DateTimeOffset.Now,
@@ -265,6 +262,27 @@ namespace Dalamud.DiscordBot {
                     await channels.ElementAt(chatTypeIndex).SendMessageAsync($"**[{chatTypeDetail.Slug}]{name}**: {message}");
                 }
             }
+        }
+
+        private async Task<(string LodestoneId, string AvatarUrl)> GetCharacterInfo(string name, string worldName) {
+            try
+            {
+                dynamic charCandidates = await XivApi.GetCharacterSearch(name, worldName);
+
+                if (charCandidates.Results.Count > 0)
+                {
+                    var avatarUrl = charCandidates.Results[0].Avatar;
+                    var lodestoneId = charCandidates.Results[0].ID;
+
+                    return (lodestoneId, avatarUrl);
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Could not get XIVAPI character search result.");
+            }
+
+            return (null, null);
         }
 
         private async Task<IMessageChannel> GetChannel(ChannelConfiguration channelConfig) {
