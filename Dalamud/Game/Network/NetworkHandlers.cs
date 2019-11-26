@@ -197,7 +197,7 @@ namespace Dalamud.Game.Network {
         }
 
         private enum ZoneOpCode {
-            CfNotifyPop = 0x32D,
+            CfNotifyPop = 0x2B0,
             CfNotify = 0x8F,
             RetainerSaleItemId = 0x13F, // TODO these are probably not accurate
             RetainerSaleFinish = 0x138,
