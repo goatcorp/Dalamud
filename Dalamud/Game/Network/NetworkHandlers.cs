@@ -202,10 +202,10 @@ namespace Dalamud.Game.Network {
             RetainerSaleItemId = 0x13F, // TODO these are probably not accurate
             RetainerSaleFinish = 0x138,
             FateSpawn = 0x226,
-            MarketTaxRates = 0x39F,
-            MarketBoardItemRequestStart = 0xF2,
-            MarketBoardOfferings = 0x1E2,
-            MarketBoardHistory = 0x123
+            MarketTaxRates = 0x185,
+            MarketBoardItemRequestStart = 0x23A,
+            MarketBoardOfferings = 0x390,
+            MarketBoardHistory = 0x1C2
         }
     }
 }
