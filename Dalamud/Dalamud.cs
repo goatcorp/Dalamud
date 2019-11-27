@@ -144,18 +144,6 @@ namespace Dalamud {
                 HelpMessage = "Shows list of commands available."
             });
 
-            CommandManager.AddHandler("/fatewatchadd", new CommandInfo(OnFateWatchAdd) {
-                HelpMessage = "Add a fate to your watch list by name. Usage: /fatewatchadd <name of fate>"
-            });
-
-            CommandManager.AddHandler("/fatewatchlist", new CommandInfo(OnFateWatchList) {
-                HelpMessage = "List fates you're currently watching."
-            });
-
-            CommandManager.AddHandler("/fatewatchremove", new CommandInfo(OnFateWatchRemove) {
-                HelpMessage = "Remove a fate from your watch list. Usage: /fatewatchremove <name of fate>"
-            });
-
             CommandManager.AddHandler("/xlmute", new CommandInfo(OnBadWordsAdd) {
                 HelpMessage = "Mute a word or sentence from appearing in chat. Usage: /xlmute <word or sentence>"
             });
@@ -234,62 +222,6 @@ namespace Dalamud {
                 Framework.Gui.Chat.PrintError("Reload failed.");
                 Log.Error(ex, "Plugin reload failed.");
             }
-        }
-
-        private void OnFateWatchAdd(string command, string arguments) {
-            if (this.Configuration.Fates == null)
-                this.Configuration.Fates = new List<DalamudConfiguration.FateInfo>();
-
-            dynamic candidates = XivApi.Search(arguments, "Fate").GetAwaiter().GetResult();
-
-            if (candidates.Results.Count == 0) {
-                Framework.Gui.Chat.Print("No fates found using that name.");
-                return;
-            }
-
-            var fateInfo = new DalamudConfiguration.FateInfo {
-                Id = candidates.Results[0].ID,
-                Name = candidates.Results[0].Name
-            };
-
-            this.Configuration.Fates.Add(fateInfo);
-
-            this.Configuration.Save(this.StartInfo.ConfigurationPath);
-
-            Framework.Gui.Chat.Print($"Added fate \"{fateInfo.Name}\".");
-        }
-
-        private void OnFateWatchList(string command, string arguments) {
-            if (this.Configuration.Fates == null)
-                this.Configuration.Fates = new List<DalamudConfiguration.FateInfo>();
-
-            if (this.Configuration.Fates.Count == 0) {
-                Framework.Gui.Chat.Print("No fates on your watchlist.");
-                return;
-            }
-
-            this.Configuration.Save(this.StartInfo.ConfigurationPath);
-
-            foreach (var fate in this.Configuration.Fates)
-                Framework.Gui.Chat.Print($"Fate {fate.Id}: {fate.Name}");
-        }
-
-        private void OnFateWatchRemove(string command, string arguments) {
-            if (this.Configuration.Fates == null)
-                this.Configuration.Fates = new List<DalamudConfiguration.FateInfo>();
-
-            dynamic candidates = XivApi.Search(arguments, "Fate").GetAwaiter().GetResult();
-
-            if (candidates.Results.Count == 0) {
-                Framework.Gui.Chat.Print("No fates found using that name.");
-                return;
-            }
-
-            this.Configuration.Fates.RemoveAll(x => x.Id == candidates.Results[0].ID);
-
-            this.Configuration.Save(this.StartInfo.ConfigurationPath);
-
-            Framework.Gui.Chat.Print($"Removed fate \"{candidates.Results[0].Name}\".");
         }
 
         private void OnBadWordsAdd(string command, string arguments) {

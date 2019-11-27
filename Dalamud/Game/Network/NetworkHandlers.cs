@@ -29,38 +29,6 @@ namespace Dalamud.Game.Network {
         private void OnZonePacket(IntPtr dataPtr) {
             var opCode = (ZoneOpCode) Marshal.ReadInt16(dataPtr, 2);
 
-            /*
-            if (opCode == ZoneOpCode.RetainerSaleItemId) {
-                var itemId = Marshal.ReadInt32(dataPtr + 16);
-                var amount = Marshal.ReadByte(dataPtr + 32);
-                var isHq = false;
-
-                if (itemId > 1000000) {
-                    itemId -= 1000000;
-                    isHq = true;
-                }
-
-                Task.Run(() => this.dalamud.BotManager.ProcessRetainerSale(itemId, amount, isHq));
-
-                return;
-            }
-
-            if (opCode == ZoneOpCode.FateSpawn) {
-                if (this.dalamud.Configuration.Fates == null)
-                    return;
-
-                var data = new byte[64];
-                Marshal.Copy(dataPtr, data, 0, 64);
-
-                var fateId = data[16];
-                if (this.dalamud.Configuration.Fates.Any(x => x.Id == fateId) &&
-                    this.dalamud.BotManager.IsConnected)
-                    Task.Run(() => this.dalamud.BotManager.ProcessFate(fateId));
-
-                return;
-            }
-            */
-
             if (opCode == ZoneOpCode.CfNotifyPop) {
                 var data = new byte[64];
                 Marshal.Copy(dataPtr, data, 0, 64);
@@ -198,10 +166,6 @@ namespace Dalamud.Game.Network {
 
         private enum ZoneOpCode {
             CfNotifyPop = 0x2B0,
-            CfNotify = 0x8F,
-            RetainerSaleItemId = 0x13F, // TODO these are probably not accurate
-            RetainerSaleFinish = 0x138,
-            FateSpawn = 0x226,
             MarketTaxRates = 0x185,
             MarketBoardItemRequestStart = 0x23A,
             MarketBoardOfferings = 0x390,
