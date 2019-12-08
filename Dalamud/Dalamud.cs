@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -178,6 +179,14 @@ namespace Dalamud {
             {
                 HelpMessage = "Link an item by name. Usage: /xlitem <Item name>"
             });
+
+#if DEBUG
+            CommandManager.AddHandler("/xldzpi", new CommandInfo(OnDebugZoneDownInject)
+            {
+                HelpMessage = "Inject zone down channel",
+                ShowInHelp = false
+            });
+#endif
         }
 
         private void OnUnloadCommand(string command, string arguments) {
@@ -405,6 +414,13 @@ namespace Dalamud {
                 }
 
             });
+        }
+
+        private void OnDebugZoneDownInject(string command, string arguments) {
+            var data = File.ReadAllBytes(arguments);
+
+            Framework.Network.InjectZoneProtoPacket(data);
+            Framework.Gui.Chat.Print($"{arguments} OK with {data.Length} bytes");
         }
     }
 }

@@ -69,7 +69,8 @@ namespace Dalamud.Game.Internal.Network {
             }
         }
 
-        private void InjectZoneProtoPacket(byte[] data) {
+#if DEBUG
+        public void InjectZoneProtoPacket(byte[] data) {
             this.zoneInjectQueue.Enqueue(data);
         }
 
@@ -86,6 +87,7 @@ namespace Dalamud.Game.Internal.Network {
 
             InjectZoneProtoPacket(packetData);
         }
+#endif
 
         /// <summary>
         ///     Process a chat queue.

@@ -122,6 +122,32 @@ namespace Dalamud.DiscordBot {
             await channel.SendMessageAsync(embed: embedBuilder.Build());
         }
 
+        public async Task ProcessCfPreferredRoleChange(string rouletteName, string prevRoleName, string currentRoleName)
+        {
+            if (this.config.CfPreferredRoleChannel == null)
+                return;
+
+            var channel = await GetChannel(this.config.CfPreferredRoleChannel);
+
+            var world = string.Empty;
+
+            if (this.dalamud.ClientState.Actors.Length > 0)
+                world = this.dalamud.ClientState.LocalPlayer.CurrentWorld.Name;
+
+            var embedBuilder = new EmbedBuilder
+            {
+                Title = "Roulette bonus changed: " + rouletteName,
+                Description = $"From {prevRoleName} to {currentRoleName}",
+                Footer = new EmbedFooterBuilder {
+                    Text = $"On {world} | XIVLauncher"
+                },
+                Timestamp = DateTimeOffset.Now,
+                Color = new Color(0xf5aa42),
+            };
+
+            await channel.SendMessageAsync(embed: embedBuilder.Build());
+        }
+
         public async Task ProcessRetainerSale(int itemId, int amount, bool isHq) {
             if (this.config.RetainerNotificationChannel == null)
                 return;

@@ -17,6 +17,8 @@ namespace Dalamud.Game.Network {
         private readonly bool optOutMbUploads;
         private readonly IMarketBoardUploader uploader;
 
+        private byte[] lastPreferredRole;
+
         public NetworkHandlers(Dalamud dalamud, bool optOutMbUploads) {
             this.dalamud = dalamud;
             this.optOutMbUploads = optOutMbUploads;
@@ -50,6 +52,52 @@ namespace Dalamud.Game.Network {
                         await this.dalamud.BotManager.ProcessCfPop(contentFinderCondition);
                 });
 
+                return;
+            }
+
+            if (opCode == ZoneOpCode.CfPreferredRole)
+            {
+                var data = new byte[64];
+                Marshal.Copy(dataPtr, data, 0, 32);
+
+                if (this.lastPreferredRole == null) {
+                    this.lastPreferredRole = data;
+                    return;
+                }
+
+
+                Task.Run(async () => {
+
+                    for (var rouletteIndex = 1; rouletteIndex < 11; rouletteIndex++) {
+                        var currentRole = data[16 + rouletteIndex];
+                        var prevRole = this.lastPreferredRole[16 + rouletteIndex];
+
+                        Log.Verbose("CfPreferredRole: {0} - {1} => {2}", rouletteIndex, prevRole, currentRole);
+
+                        if (currentRole != prevRole) {
+                            var rouletteName = rouletteIndex switch {
+                                1 => "Duty Roulette: Leveling",
+                                2 => "Duty Roulette: Level 50/60/70 Dungeons",
+                                3 => "Duty Roulette: Main Scenario",
+                                4 => "Duty Roulette: Guildhests",
+                                5 => "Duty Roulette: Expert",
+                                6 => "Duty Roulette: Trials",
+                                8 => "Duty Roulette: Mentor",
+                                9 => "Duty Roulette: Alliance Raids",
+                                10 => "Duty Roulette: Normal Raids",
+                                _ => "Unknown ContentRoulette"
+                            };
+
+                            var prevRoleName = RoleKeyToName(prevRole);
+                            var currentRoleName = RoleKeyToName(currentRole);
+
+                            if (this.dalamud.BotManager.IsConnected)
+                                await this.dalamud.BotManager.ProcessCfPreferredRoleChange(rouletteName, prevRoleName, currentRoleName);
+                        }
+                    }
+                });
+
+                this.lastPreferredRole = data;
                 return;
             }
 
@@ -166,10 +214,20 @@ namespace Dalamud.Game.Network {
 
         private enum ZoneOpCode {
             CfNotifyPop = 0x2B0,
+            CfPreferredRole = 0x2c7,
             MarketTaxRates = 0x185,
             MarketBoardItemRequestStart = 0x23A,
             MarketBoardOfferings = 0x390,
             MarketBoardHistory = 0x1C2
         }
+
+        private string RoleKeyToName(int key) => key switch
+        {
+            1 => "Tank",
+            2 => "DPS",
+            3 => "DPS",
+            4 => "Healer",
+            _ => "No Bonus "
+        };
     }
 }
