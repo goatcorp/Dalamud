@@ -89,7 +89,7 @@ namespace Dalamud.Game.Network {
                             var prevRoleName = RoleKeyToName(prevRole);
                             var currentRoleName = RoleKeyToName(currentRole);
 
-                            this.dalamud.Framework.Gui.Chat.Print($"Roulette bonus for {rouletteName} changed: {prevRole} => {currentRoleName}");
+                            this.dalamud.Framework.Gui.Chat.Print($"Roulette bonus for {rouletteName} changed: {prevRoleName} => {currentRoleName}");
 
                             if (this.dalamud.BotManager.IsConnected)
                                 await this.dalamud.BotManager.ProcessCfPreferredRoleChange(rouletteName, prevRoleName, currentRoleName);
