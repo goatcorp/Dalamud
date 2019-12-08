@@ -65,9 +65,7 @@ namespace Dalamud.Game.Network {
                     return;
                 }
 
-
                 Task.Run(async () => {
-
                     for (var rouletteIndex = 1; rouletteIndex < 11; rouletteIndex++) {
                         var currentRole = data[16 + rouletteIndex];
                         var prevRole = this.lastPreferredRole[16 + rouletteIndex];
@@ -91,13 +89,15 @@ namespace Dalamud.Game.Network {
                             var prevRoleName = RoleKeyToName(prevRole);
                             var currentRoleName = RoleKeyToName(currentRole);
 
+                            this.dalamud.Framework.Gui.Chat.Print($"Roulette bonus for {rouletteName} changed: {prevRole} => {currentRoleName}");
+
                             if (this.dalamud.BotManager.IsConnected)
                                 await this.dalamud.BotManager.ProcessCfPreferredRoleChange(rouletteName, prevRoleName, currentRoleName);
                         }
                     }
-                });
 
-                this.lastPreferredRole = data;
+                    this.lastPreferredRole = data;
+                });
                 return;
             }
 
