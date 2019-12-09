@@ -18,6 +18,8 @@ namespace Dalamud
 
         public List<string> BadWords { get; set; }
 
+        public List<Tuple<int, int>> PreferredRoleReminders { get; set; }
+
         public class FateInfo {
             public string Name { get; set; }
             public int Id { get; set; }

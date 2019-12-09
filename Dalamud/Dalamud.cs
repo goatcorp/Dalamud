@@ -141,23 +141,23 @@ namespace Dalamud {
                 ShowInHelp = false
             });
 
-            CommandManager.AddHandler("/xlhelp", new CommandInfo(OnCommandHelp) {
+            CommandManager.AddHandler("/xlhelp", new CommandInfo(OnHelpCommand) {
                 HelpMessage = "Shows list of commands available."
             });
 
-            CommandManager.AddHandler("/xlmute", new CommandInfo(OnBadWordsAdd) {
+            CommandManager.AddHandler("/xlmute", new CommandInfo(OnBadWordsAddCommand) {
                 HelpMessage = "Mute a word or sentence from appearing in chat. Usage: /xlmute <word or sentence>"
             });
 
-            CommandManager.AddHandler("/xlmutelist", new CommandInfo(OnBadWordsList) {
+            CommandManager.AddHandler("/xlmutelist", new CommandInfo(OnBadWordsListCommand) {
                 HelpMessage = "List muted words or sentences."
             });
 
-            CommandManager.AddHandler("/xlunmute", new CommandInfo(OnBadWordsRemove) {
+            CommandManager.AddHandler("/xlunmute", new CommandInfo(OnBadWordsRemoveCommand) {
                 HelpMessage = "Unmute a word or sentence. Usage: /xlunmute <word or sentence>"
             });
 
-            CommandManager.AddHandler("/xldstate", new CommandInfo(OnDebugPrintGameState) {
+            CommandManager.AddHandler("/xldstate", new CommandInfo(OnDebugPrintGameStateCommand) {
                 HelpMessage = "Print parsed game state",
                 ShowInHelp = false
             });
@@ -181,12 +181,17 @@ namespace Dalamud {
             });
 
 #if DEBUG
-            CommandManager.AddHandler("/xldzpi", new CommandInfo(OnDebugZoneDownInject)
+            CommandManager.AddHandler("/xldzpi", new CommandInfo(OnDebugZoneDownInjectCommand)
             {
                 HelpMessage = "Inject zone down channel",
                 ShowInHelp = false
             });
 #endif
+
+            CommandManager.AddHandler("/xlbonus", new CommandInfo(OnRouletteBonusNotifyCommand)
+            {
+                HelpMessage = "Notify when a roulette has a bonus you specified. Usage: /xlitem <roulette name> <role name>"
+            });
         }
 
         private void OnUnloadCommand(string command, string arguments) {
@@ -194,7 +199,7 @@ namespace Dalamud {
             Unload();
         }
 
-        private void OnCommandHelp(string command, string arguments) {
+        private void OnHelpCommand(string command, string arguments) {
             var showDebug = arguments.Contains("debug");
 
             Framework.Gui.Chat.Print("Available commands:");
@@ -233,7 +238,7 @@ namespace Dalamud {
             }
         }
 
-        private void OnBadWordsAdd(string command, string arguments) {
+        private void OnBadWordsAddCommand(string command, string arguments) {
             if (this.Configuration.BadWords == null)
                 this.Configuration.BadWords = new List<string>();
 
@@ -244,7 +249,7 @@ namespace Dalamud {
             Framework.Gui.Chat.Print($"Muted \"{arguments}\".");
         }
 
-        private void OnBadWordsList(string command, string arguments) {
+        private void OnBadWordsListCommand(string command, string arguments) {
             if (this.Configuration.BadWords == null)
                 this.Configuration.BadWords = new List<string>();
 
@@ -258,7 +263,7 @@ namespace Dalamud {
             foreach (var word in this.Configuration.BadWords) Framework.Gui.Chat.Print($"\"{word}\"");
         }
 
-        private void OnBadWordsRemove(string command, string arguments) {
+        private void OnBadWordsRemoveCommand(string command, string arguments) {
             if (this.Configuration.BadWords == null)
                 this.Configuration.BadWords = new List<string>();
 
@@ -279,7 +284,7 @@ namespace Dalamud {
             Process.Start(ChatHandlers.LastLink);
         }
 
-        private void OnDebugPrintGameState(string command, string arguments) {
+        private void OnDebugPrintGameStateCommand(string command, string arguments) {
             Framework.Gui.Chat.Print(this.ClientState.Actors.Length + " entries");
             Framework.Gui.Chat.Print(this.ClientState.LocalPlayer.Name);
             Framework.Gui.Chat.Print(this.ClientState.LocalPlayer.CurrentWorld.Name);
@@ -416,11 +421,41 @@ namespace Dalamud {
             });
         }
 
-        private void OnDebugZoneDownInject(string command, string arguments) {
+        private void OnDebugZoneDownInjectCommand(string command, string arguments) {
             var data = File.ReadAllBytes(arguments);
 
             Framework.Network.InjectZoneProtoPacket(data);
             Framework.Gui.Chat.Print($"{arguments} OK with {data.Length} bytes");
         }
+
+        private void OnRouletteBonusNotifyCommand(string command, string arguments)
+        {
+            if (this.Configuration.DiscordFeatureConfig.CfPreferredRoleChannel == null)
+                Framework.Gui.Chat.PrintError("You have not set up a discord channel for these notifications - you will only receive them in chat. To do this, please use the XIVLauncher in-game settings.");
+
+            if (string.IsNullOrEmpty(arguments))
+                Framework.Gui.Chat.Print("Possible values for roulette: leveling, 506070, msq, guildhests, expert, trials, mentor, alliance, normal, all\n" +
+                                         "Possible values for role: tank, dps, healer");
+        }
+
+        private int RouletteSlugToKey(string slug) => slug.ToLower() switch {
+            "leveling" => 1,
+            "506070" => 2,
+            "msq" => 3,
+            "guildhests" => 4,
+            "expert" => 5,
+            "trials" => 6,
+            "mentor" => 8,
+            "alliance" => 9,
+            "normal" => 10,
+            _ => 0
+        };
+
+        private int RoleNameToKey(string name) => name.ToLower() switch
+        {
+            "Tank" => 1,
+            "Healer" => 4,
+            _ => 0
+        };
     }
 }
