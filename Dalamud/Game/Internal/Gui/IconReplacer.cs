@@ -35,11 +35,13 @@ namespace Dalamud.Game.Internal.Gui {
             this.Address = new IconReplacerAddressResolver();
             this.Address.Setup(scanner);
 
-            this.byteBase = scanner.Module.BaseAddress;
-            this.comboTimer = byteBase + 0x1BB0B50;
-            this.lastComboMove = byteBase + 0x1BB0B54;
-            this.playerLevel = byteBase + 0x1C28FA8 + 0x78;
+            this.byteBase = scanner.Module.BaseAddress; 
+            //this.comboTimer = byteBase + 0x1BB0B50;
+            this.comboTimer = scanner.ScanText("E8 ?? ?? ?? ?? 80 7E 21 00") + 0x178;
+            this.lastComboMove = this.comboTimer + 0x4;
 
+            //this.playerLevel = byteBase + 0x1C28FA8 + 0x78;
+            this.playerLevel = scanner.ScanText("E8 ?? ?? ?? ?? 88 45 EF") + 0x4D;
 
             CustomIDs = new HashSet<uint>();
             VanillaIDs = new HashSet<uint>();
@@ -49,6 +51,9 @@ namespace Dalamud.Game.Internal.Gui {
             Log.Verbose("===== H O T B A R S =====");
             Log.Verbose("IsIconReplaceable address {IsIconReplaceable}", Address.IsIconReplaceable);
             Log.Verbose("GetIcon address {GetIcon}", Address.GetIcon);
+            Log.Verbose("ComboTimer address {ComboTimer}", this.comboTimer);
+            Log.Verbose("LastComboMove address {LastComboMove}", this.lastComboMove);
+            Log.Verbose("PlayerLevel address {PlayerLevel}", this.playerLevel);
 
             this.iconHook = new Hook<OnGetIconDelegate>(this.Address.GetIcon, new OnGetIconDelegate(GetIconDetour), this);
             this.checkerHook = new Hook<OnCheckIsIconReplaceableDelegate>(this.Address.IsIconReplaceable, new OnCheckIsIconReplaceableDelegate(CheckIsIconReplaceableDetour), this);
