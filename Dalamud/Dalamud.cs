@@ -16,6 +16,7 @@ using Dalamud.Game.Command;
 using Dalamud.Game.Internal;
 using Dalamud.Game.Internal.Gui;
 using Dalamud.Game.Network;
+using Dalamud.Interface;
 using Dalamud.Plugin;
 using Serilog;
 using XIVLauncher.Dalamud;
@@ -49,6 +50,8 @@ namespace Dalamud {
 
         internal readonly WinSockHandlers WinSock2;
 
+        public readonly InterfaceManager InterfaceManager;
+
         public Dalamud(DalamudStartInfo info) {
             this.StartInfo = info;
             this.Configuration = DalamudConfiguration.Load(info.ConfigurationPath);
@@ -80,6 +83,9 @@ namespace Dalamud {
             this.IconReplacer = new IconReplacer(this, this.sigScanner);
 
             this.WinSock2 = new WinSockHandlers();
+
+            this.InterfaceManager = new InterfaceManager();
+            this.InterfaceManager.Start();
 
             try {
                 this.PluginManager.LoadPlugins();
