@@ -18,14 +18,16 @@ namespace Dalamud
 
         public List<string> BadWords { get; set; }
 
-        public List<Tuple<int, int>> PreferredRoleReminders { get; set; }
-
-        public class FateInfo {
-            public string Name { get; set; }
-            public int Id { get; set; }
+        public enum PreferredRole
+        {
+            None,
+            All,
+            Tank,
+            Dps,
+            Healer
         }
 
-        public List<FateInfo> Fates;
+        public Dictionary<int, PreferredRole> PreferredRoleReminders { get; set; }
 
         public string LastVersion { get; set; }
 

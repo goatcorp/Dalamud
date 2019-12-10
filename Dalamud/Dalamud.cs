@@ -434,8 +434,38 @@ namespace Dalamud {
                 Framework.Gui.Chat.PrintError("You have not set up a discord channel for these notifications - you will only receive them in chat. To do this, please use the XIVLauncher in-game settings.");
 
             if (string.IsNullOrEmpty(arguments))
-                Framework.Gui.Chat.Print("Possible values for roulette: leveling, 506070, msq, guildhests, expert, trials, mentor, alliance, normal, all\n" +
-                                         "Possible values for role: tank, dps, healer");
+                goto InvalidArgs;
+
+            var argParts = arguments.Split();
+            if (argParts.Length < 2)
+                goto InvalidArgs;
+
+
+            if (this.Configuration.PreferredRoleReminders == null)
+                this.Configuration.PreferredRoleReminders = new Dictionary<int, DalamudConfiguration.PreferredRole>();
+
+            var rouletteIndex = RouletteSlugToKey(argParts[0]);
+
+            if (rouletteIndex == 0)
+                goto InvalidArgs;
+
+            if (!Enum.TryParse(argParts[1].First().ToString().ToUpper() + argParts[1].ToLower().Substring(1), out DalamudConfiguration.PreferredRole role))
+                goto InvalidArgs;
+
+            if (this.Configuration.PreferredRoleReminders.ContainsKey(rouletteIndex))
+                this.Configuration.PreferredRoleReminders[rouletteIndex] = role;
+            else
+                this.Configuration.PreferredRoleReminders.Add(rouletteIndex, role);
+
+            Framework.Gui.Chat.Print($"Set bonus notifications for {argParts[0]}({rouletteIndex}) to {role}");
+            this.Configuration.Save(this.StartInfo.ConfigurationPath);
+
+            return;
+
+            InvalidArgs:
+            Framework.Gui.Chat.PrintError("Unrecognized arguments.");
+            Framework.Gui.Chat.Print("Possible values for roulette: leveling, 506070, msq, guildhests, expert, trials, mentor, alliance, normal\n" +
+                                     "Possible values for role: tank, dps, healer, all");
         }
 
         private int RouletteSlugToKey(string slug) => slug.ToLower() switch {
@@ -451,11 +481,13 @@ namespace Dalamud {
             _ => 0
         };
 
-        private int RoleNameToKey(string name) => name.ToLower() switch
+        private DalamudConfiguration.PreferredRole RoleNameToPreferredRole(string name) => name.ToLower() switch
         {
-            "Tank" => 1,
-            "Healer" => 4,
-            _ => 0
+            "Tank" => DalamudConfiguration.PreferredRole.Tank,
+            "Healer" => DalamudConfiguration.PreferredRole.Healer,
+            "Dps" => DalamudConfiguration.PreferredRole.Dps,
+            "All" => DalamudConfiguration.PreferredRole.All,
+            _ => DalamudConfiguration.PreferredRole.None
         };
     }
 }
