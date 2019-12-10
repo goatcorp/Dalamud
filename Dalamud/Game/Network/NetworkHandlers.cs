@@ -55,8 +55,10 @@ namespace Dalamud.Game.Network {
                 return;
             }
 
-            if (opCode == ZoneOpCode.CfPreferredRole)
-            {
+            if (opCode == ZoneOpCode.CfPreferredRole) {
+                if (this.dalamud.Configuration.PreferredRoleReminders == null)
+                    return;
+
                 var data = new byte[64];
                 Marshal.Copy(dataPtr, data, 0, 32);
 
@@ -67,12 +69,12 @@ namespace Dalamud.Game.Network {
 
                 Task.Run(async () => {
                     for (var rouletteIndex = 1; rouletteIndex < 11; rouletteIndex++) {
-                        var currentRole = data[16 + rouletteIndex];
-                        var prevRole = this.lastPreferredRole[16 + rouletteIndex];
+                        var currentRoleKey = data[16 + rouletteIndex];
+                        var prevRoleKey = this.lastPreferredRole[16 + rouletteIndex];
 
-                        Log.Verbose("CfPreferredRole: {0} - {1} => {2}", rouletteIndex, prevRole, currentRole);
+                        Log.Verbose("CfPreferredRole: {0} - {1} => {2}", rouletteIndex, prevRoleKey, currentRoleKey);
 
-                        if (currentRole != prevRole) {
+                        if (currentRoleKey != prevRoleKey) {
                             var rouletteName = rouletteIndex switch {
                                 1 => "Duty Roulette: Leveling",
                                 2 => "Duty Roulette: Level 50/60/70 Dungeons",
@@ -86,13 +88,19 @@ namespace Dalamud.Game.Network {
                                 _ => "Unknown ContentRoulette"
                             };
 
-                            var prevRoleName = RoleKeyToName(prevRole);
-                            var currentRoleName = RoleKeyToName(currentRole);
+                            var prevRoleName = RoleKeyToPreferredRole(prevRoleKey);
+                            var currentRoleName = RoleKeyToPreferredRole(currentRoleKey);
+
+                            if (!this.dalamud.Configuration.PreferredRoleReminders.TryGetValue(rouletteIndex, out var roleToCheck))
+                                return;
+
+                            if (roleToCheck == DalamudConfiguration.PreferredRole.All || currentRoleName != roleToCheck)
+                                return;
 
                             this.dalamud.Framework.Gui.Chat.Print($"Roulette bonus for {rouletteName} changed: {prevRoleName} => {currentRoleName}");
 
                             if (this.dalamud.BotManager.IsConnected)
-                                await this.dalamud.BotManager.ProcessCfPreferredRoleChange(rouletteName, prevRoleName, currentRoleName);
+                                await this.dalamud.BotManager.ProcessCfPreferredRoleChange(rouletteName, prevRoleName.ToString(), currentRoleName.ToString());
                         }
                     }
 
@@ -213,21 +221,21 @@ namespace Dalamud.Game.Network {
         }
 
         private enum ZoneOpCode {
-            CfNotifyPop = 0x2B0,
-            CfPreferredRole = 0x2c7,
-            MarketTaxRates = 0x185,
-            MarketBoardItemRequestStart = 0x23A,
-            MarketBoardOfferings = 0x390,
-            MarketBoardHistory = 0x1C2
+            CfNotifyPop = 0x135,
+            CfPreferredRole = 0x2a2,
+            MarketTaxRates = 0x16a,
+            MarketBoardItemRequestStart = 0x349,
+            MarketBoardOfferings = 0x130,
+            MarketBoardHistory = 0x1f7
         }
 
-        private string RoleKeyToName(int key) => key switch
+        private DalamudConfiguration.PreferredRole RoleKeyToPreferredRole(int key) => key switch
         {
-            1 => "Tank",
-            2 => "DPS",
-            3 => "DPS",
-            4 => "Healer",
-            _ => "No Bonus "
+            1 => DalamudConfiguration.PreferredRole.Tank,
+            2 => DalamudConfiguration.PreferredRole.Dps,
+            3 => DalamudConfiguration.PreferredRole.Dps,
+            4 => DalamudConfiguration.PreferredRole.Healer,
+            _ => DalamudConfiguration.PreferredRole.None
         };
     }
 }
