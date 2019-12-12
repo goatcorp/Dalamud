@@ -35,13 +35,13 @@ namespace Dalamud.Game.Internal.Gui {
             this.Address = new IconReplacerAddressResolver();
             this.Address.Setup(scanner);
 
-            this.byteBase = scanner.Module.BaseAddress; 
-            //this.comboTimer = byteBase + 0x1BB0B50;
-            this.comboTimer = scanner.ScanText("E8 ?? ?? ?? ?? 80 7E 21 00") + 0x178;
+            this.byteBase = scanner.Module.BaseAddress;
+            this.comboTimer = byteBase + 0x1BB8B50;
+            //this.comboTimer = scanner.ScanText("E8 ?? ?? ?? ?? 80 7E 21 00") + 0x178;
             this.lastComboMove = this.comboTimer + 0x4;
 
-            //this.playerLevel = byteBase + 0x1C28FA8 + 0x78;
-            this.playerLevel = scanner.ScanText("E8 ?? ?? ?? ?? 88 45 EF") + 0x4D;
+            this.playerLevel = byteBase + 0x1C30FA8 + 0x78;
+            //this.playerLevel = scanner.ScanText("E8 ?? ?? ?? ?? 88 45 EF") + 0x4D;
 
             CustomIDs = new HashSet<uint>();
             VanillaIDs = new HashSet<uint>();
@@ -849,7 +849,7 @@ namespace Dalamud.Game.Internal.Gui {
         private unsafe delegate int* getArray(long* address);
 
         private unsafe IntPtr FindBuffAddress() {
-            IntPtr randomAddress = byteBase + 0x1BFFBE0;
+            IntPtr randomAddress = byteBase + 0x1C07BE0;
             IntPtr num = Marshal.ReadIntPtr(randomAddress);
             IntPtr step2 = (IntPtr)(Marshal.ReadInt64(num) + 0x248);
             IntPtr step3 = Marshal.ReadIntPtr(step2);
