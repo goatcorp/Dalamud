@@ -190,7 +190,7 @@ namespace Dalamud {
 
             CommandManager.AddHandler("/xlbonus", new CommandInfo(OnRouletteBonusNotifyCommand)
             {
-                HelpMessage = "Notify when a roulette has a bonus you specified. Usage: /xlitem <roulette name> <role name>"
+                HelpMessage = "Notify when a roulette has a bonus you specified. Usage: /xlbonus <roulette name> <role name>"
             });
         }
 
