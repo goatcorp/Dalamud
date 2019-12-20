@@ -7,13 +7,16 @@ using System.Threading.Tasks;
 namespace XIVLauncher.Dalamud
 {
 
-    //CURRENT HIGHEST FLAG IS 44
+    //CURRENT HIGHEST FLAG IS 45
     [Flags]
     public enum CustomComboPreset : long
     {
         None   = 0,
 
         // DRAGOON
+        [CustomComboInfo("Jump + Mirage Dive", "Replace Jump with Mirage Dive when Dive Ready", 22)]
+        DragoonJumpFeature = 1L << 44,
+
         [CustomComboInfo("Coerthan Torment Combo", "Replace Coerthan Torment with its combo chain", 22)]
         DragoonCoerthanTormentCombo  = 1L << 0,
 
@@ -77,19 +80,22 @@ namespace XIVLauncher.Dalamud
         [CustomComboInfo("Hakke Mujinsatsu Combo", "Replace Hakke Mujinsatsu with its combo chain", 30)]
         NinjaHakkeMujinsatsuCombo = 1L << 19,
 
+        [CustomComboInfo("Dream to Assassinate", "Replace Dream Within a Dream with Assassinate when Assassinate Ready", 30)]
+        NinjaAssassinateFeature = 1L << 45,
+
         // GUNBREAKER
         [CustomComboInfo("Solid Barrel Combo", "Replace Solid Barrel with its combo chain", 37)]
         GunbreakerSolidBarrelCombo = 1L << 20,
 
-        [CustomComboInfo("Gnashing Fang Combo", "Replace Gnashing Fang with its combo chain", 37)]
+        [CustomComboInfo("Gnashing Fang Combo", "Replace Wicked Talon with its combo chain", 37)]
         GunbreakerGnashingFangCombo = 1L << 21,
 
         [CustomComboInfo("Demon Slaughter Combo", "Replace Demon Slaughter with its combo chain", 37)]
         GunbreakerDemonSlaughterCombo = 1L << 22,
 
         // MACHINIST
-        [CustomComboInfo("Heated Clan Shot Combo/Heat", "Replace Heated Clan Shot with its combo chain or with Heat Blast when overheated.", 31)]
-        MachinistHeatedClanShotFeature = 1L << 23,
+        [CustomComboInfo("(Heated) Shot Combo", "Replace UNHEATED Split shot with its combo chain or with Heat Blast when overheated.", 31)]
+        MachinistMainCombo = 1L << 23,
 
         [CustomComboInfo("Spread Shot Heat", "Replace Spread Shot with Auto Crossbow when overheated.", 31)]
         MachinistSpreadShotFeature = 1L << 24,
@@ -112,10 +118,10 @@ namespace XIVLauncher.Dalamud
         [CustomComboInfo("Brand of Purgatory Combo", "Replaces Fountain of Fire with Brand of Purgatory when under the affect of Hellish Conduit.", 27)]
         SummonerBoPCombo = 1L << 38,
 
-        [CustomComboInfo("ED Fester", "Change Energy Drain into Fester while you have Aetherflow stacks.", 27)]
+        [CustomComboInfo("ED Fester", "Change Fester into Energy Drain when out of Aetherflow stacks.", 27)]
         SummonerEDFesterCombo = 1L << 39,
 
-        [CustomComboInfo("ES Painflare", "Change Energy Siphon into Painflare while you have Aetherflow stacks.", 27)]
+        [CustomComboInfo("ES Painflare", "Change Painflare into Energy Syphon when out of Aetherflow stacks.", 27)]
         SummonerESPainflareCombo = 1L << 40,
 
         [CustomComboInfo("DWT", "DWT.", 27)]

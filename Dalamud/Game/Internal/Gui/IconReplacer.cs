@@ -107,7 +107,17 @@ namespace Dalamud.Game.Internal.Gui {
             var level = Marshal.ReadByte(this.playerLevel);
 
             // DRAGOON
-            // TODO: Jump/High Jump into Mirage Dive
+            
+            // Change Jump/High Jump into Mirage Dive when Dive Ready
+            if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.DragoonJumpFeature)) {
+                if(actionID == 92) {
+                    if (SearchBuffArray(1243)) {
+                        return 7399;
+                    }
+                    if (level >= 74) return 16478;
+                    return 92;
+                }
+            }
 
             // Replace Coerthan Torment with Coerthan Torment combo chain
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.DragoonCoerthanTormentCombo)) {
@@ -345,6 +355,14 @@ namespace Dalamud.Game.Internal.Gui {
                 }
             }
 
+            //Replace Dream Within a Dream with Assassinate when Assassinate Ready
+            if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.NinjaAssassinateFeature)) {
+                if(actionID == 3566) {
+                    if (SearchBuffArray(1955)) return 2246;
+                    return 3566;
+                }
+            }
+
             // GUNBREAKER
 
             // Replace Solid Barrel with Solid Barrel combo
@@ -358,10 +376,10 @@ namespace Dalamud.Game.Internal.Gui {
                 }
             }
 
-            // Replace Gnashing Fang with Gnashing Fang combo
+            // Replace Wicked Talon with Gnashing Fang combo
             // TODO: Potentially add Contuation moves as well?
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.GunbreakerGnashingFangCombo)) {
-                if (actionID == 16146) {
+                if (actionID == 16150) {
                     byte ammoComboState = this.dalamud.ClientState.JobGauges.Get<GNBGauge>().AmmoComboStepNumber;
                     if (ammoComboState == 1) return 16147;
                     if (ammoComboState == 2) return 16150;
@@ -384,8 +402,8 @@ namespace Dalamud.Game.Internal.Gui {
             // Replace Heated Clean Shot with Heated Clean Shot combo
             // Or with Heat Blast when overheated.
             // For some reason the shots use their unheated IDs as combo moves
-            if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.MachinistHeatedClanShotFeature)) {
-                if (actionID == 7413) {
+            if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.MachinistMainCombo)) {
+                if (actionID == 2866) {
                     MCHGauge gauge = this.dalamud.ClientState.JobGauges.Get<MCHGauge>();
                     // End overheat slightly early to prevent eager button mashing clipping your gcd with a fake 6th HB.
                     if (gauge.IsOverheated() && level >= 35 && gauge.OverheatTimeRemaining > 30) return 7410;
@@ -399,7 +417,8 @@ namespace Dalamud.Game.Internal.Gui {
                             if (level >= 26) return 2873;
                         }
                     }
-                    return 7411;
+                    if (level >= 54) return 7411;
+                    return 2866;
                 }
             }
 
@@ -524,20 +543,21 @@ namespace Dalamud.Game.Internal.Gui {
                 }
             }
 
-            // Change Energy Drain into Fester
+            // Change Fester into Energy Drain
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.SummonerEDFesterCombo)) {
-                if (actionID == 16508) {
-                    if (this.dalamud.ClientState.JobGauges.Get<SMNGauge>().HasAetherflowStacks())
-                        return 181;
-                    return 16508;
+                if (actionID == 181) {
+                    if (!this.dalamud.ClientState.JobGauges.Get<SMNGauge>().HasAetherflowStacks())
+                        return 16508;
+                    return 181;
                 }
             }
 
-            //Change Energy Siphon into Painflare
+            //Change Painflare into Energy Syphon
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.SummonerESPainflareCombo)) {
-                if (actionID == 16510) {
-                    if (this.dalamud.ClientState.JobGauges.Get<SMNGauge>().HasAetherflowStacks())
-                        if (level >= 52) return 3578;
+                if (actionID == 3578) {
+                    if (!this.dalamud.ClientState.JobGauges.Get<SMNGauge>().HasAetherflowStacks())
+                        return 16510;
+                    if (level >= 52) return 3578;
                     return 16510;
                 }
             }
@@ -879,7 +899,7 @@ namespace Dalamud.Game.Internal.Gui {
             CustomIDs.Add(2255);
             CustomIDs.Add(16488);
             CustomIDs.Add(16145);
-            CustomIDs.Add(16146);
+            CustomIDs.Add(16150);
             CustomIDs.Add(16149);
             CustomIDs.Add(7413);
             CustomIDs.Add(2870);
@@ -889,8 +909,8 @@ namespace Dalamud.Game.Internal.Gui {
             CustomIDs.Add(3582);
             CustomIDs.Add(3581);
             CustomIDs.Add(163);
-            CustomIDs.Add(16508);
-            CustomIDs.Add(16510);
+            CustomIDs.Add(181);
+            CustomIDs.Add(3578);
             CustomIDs.Add(16543);
             CustomIDs.Add(167);
             CustomIDs.Add(15994);
@@ -904,6 +924,9 @@ namespace Dalamud.Game.Internal.Gui {
             CustomIDs.Add(16525);
             CustomIDs.Add(16524);
             CustomIDs.Add(7516);
+            CustomIDs.Add(3566);
+            CustomIDs.Add(92);
+            CustomIDs.Add(2866);
             VanillaIDs.Add(0x3e75);
             VanillaIDs.Add(0x3e76);
             VanillaIDs.Add(0x3e77);
@@ -1061,7 +1084,6 @@ namespace Dalamud.Game.Internal.Gui {
             VanillaIDs.Add(0x8d4);
             VanillaIDs.Add(0x8d5);
             VanillaIDs.Add(0x8d7);
-            VanillaIDs.Add(0xb32);
             VanillaIDs.Add(0xb34);
             VanillaIDs.Add(0xb38);
             VanillaIDs.Add(0xb39);
@@ -1072,7 +1094,6 @@ namespace Dalamud.Game.Internal.Gui {
             VanillaIDs.Add(0x31);
             VanillaIDs.Add(0x33);
             VanillaIDs.Add(0x4b);
-            VanillaIDs.Add(0x5c);
             VanillaIDs.Add(0x62);
             VanillaIDs.Add(0x64);
             VanillaIDs.Add(0x71);
