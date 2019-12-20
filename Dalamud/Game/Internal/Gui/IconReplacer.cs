@@ -501,7 +501,10 @@ namespace Dalamud.Game.Internal.Gui {
                     }
                     else {
                         if (gauge.IsBahamutReady()) return 7427;
-                        if (gauge.IsPhoenixReady()) return 16513;
+                        if (gauge.IsPhoenixReady()) {
+                            if (level == 80) return 16549;
+                            return 16513;
+                        }
                         return 3581;
                     }
                 }
