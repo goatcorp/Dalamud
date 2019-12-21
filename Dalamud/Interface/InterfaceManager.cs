@@ -5,7 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 using ImGuiNET;
 using ImGuiScene;
-using SDL2;
 
 namespace Dalamud.Interface
 {
@@ -30,27 +29,16 @@ namespace Dalamud.Interface
 
         private void Display()
         {
-            using (var scene = new SimpleImGuiScene("Debug", fullscreen: true))
+            using (var scene = SimpleImGuiScene.CreateOverlay(RendererFactory.RendererBackend.DirectX11))
             {
-                scene.Window.MakeTransparent(SimpleSDLWindow.CreateColorKey(0, 0, 0));
-
-                scene.Window.OnSDLEvent += (ref SDL.SDL_Event sdlEvent) =>
-                {
-                    if (sdlEvent.type == SDL.SDL_EventType.SDL_KEYDOWN && sdlEvent.key.keysym.scancode == SDL.SDL_Scancode.SDL_SCANCODE_ESCAPE)
-                    {
-                        scene.ShouldQuit = true;
-                    }
-                    return true;
-                };
-
-                scene.OnBuildUI += () =>
-                {
-                    ImGui.ShowDemoWindow();
-                };
-
+                scene.OnBuildUI += DrawUI;
                 scene.Run();
             }
         }
 
+        private void DrawUI()
+        {
+            ImGui.ShowDemoWindow();
+        }
     }
 }
