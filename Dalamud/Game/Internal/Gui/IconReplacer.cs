@@ -110,12 +110,24 @@ namespace Dalamud.Game.Internal.Gui {
             
             // Change Jump/High Jump into Mirage Dive when Dive Ready
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.DragoonJumpFeature)) {
-                if(actionID == 92) {
+                if (actionID == 92) {
                     if (SearchBuffArray(1243)) {
                         return 7399;
                     }
                     if (level >= 74) return 16478;
                     return 92;
+                }
+            }
+
+            // Change Blood of the Dragon into Stardiver when in Life of the Dragon
+            if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.DragoonBOTDFeature)) {
+                if (actionID == 3553) {
+                    if (level >= 80) {
+                        if (this.dalamud.ClientState.JobGauges.Get<DRGGauge>().BOTDState == BOTDState.LOTD) {
+                            return 16480;
+                        }
+                    }
+                    return 3553;
                 }
             }
 

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace XIVLauncher.Dalamud
 {
 
-    //CURRENT HIGHEST FLAG IS 45
+    //CURRENT HIGHEST FLAG IS 46
     [Flags]
     public enum CustomComboPreset : long
     {
@@ -16,6 +16,9 @@ namespace XIVLauncher.Dalamud
         // DRAGOON
         [CustomComboInfo("Jump + Mirage Dive", "Replace Jump with Mirage Dive when Dive Ready", 22)]
         DragoonJumpFeature = 1L << 44,
+
+        [CustomComboInfo("BOTD Into Stardiver", "Replace Blood of the Dragon with Stardiver when in Life of the Dragon", 22)]
+        DragoonBOTDFeature = 1L << 46,
 
         [CustomComboInfo("Coerthan Torment Combo", "Replace Coerthan Torment with its combo chain", 22)]
         DragoonCoerthanTormentCombo  = 1L << 0,
