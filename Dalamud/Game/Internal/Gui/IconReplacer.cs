@@ -942,6 +942,7 @@ namespace Dalamud.Game.Internal.Gui {
             CustomIDs.Add(3566);
             CustomIDs.Add(92);
             CustomIDs.Add(2866);
+            CustomIDs.Add(3553);
             VanillaIDs.Add(0x3e75);
             VanillaIDs.Add(0x3e76);
             VanillaIDs.Add(0x3e77);
