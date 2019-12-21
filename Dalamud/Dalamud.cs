@@ -427,12 +427,14 @@ namespace Dalamud {
             });
         }
 
+#if DEBUG
         private void OnDebugZoneDownInjectCommand(string command, string arguments) {
             var data = File.ReadAllBytes(arguments);
 
             Framework.Network.InjectZoneProtoPacket(data);
             Framework.Gui.Chat.Print($"{arguments} OK with {data.Length} bytes");
         }
+#endif
 
         private void OnRouletteBonusNotifyCommand(string command, string arguments)
         {
