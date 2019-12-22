@@ -31,6 +31,13 @@ namespace Dalamud.Interface
         {
             using (var scene = SimpleImGuiScene.CreateOverlay(RendererFactory.RendererBackend.DirectX11))
             {
+                // this basically pauses background rendering to reduce cpu load by the scene when it isn't actively in focus
+                // the impact is generally pretty minor, but it's probably best to enable when we can
+                // If we have any windows that we want to update dynamically even when the game is the focus
+                // and not the overlay, this should be disabled.
+                // It is dynamic, so we could disable it only when dynamic windows are open etc
+                scene.PauseWhenUnfocused = true;
+
                 scene.OnBuildUI += DrawUI;
                 scene.Run();
             }
