@@ -36,11 +36,11 @@ namespace Dalamud.Game.Internal.Gui {
             this.Address.Setup(scanner);
 
             this.byteBase = scanner.Module.BaseAddress;
-            this.comboTimer = byteBase + 0x1BB8B50;
+            this.comboTimer = byteBase + 0x1BB3B50;
             //this.comboTimer = scanner.ScanText("E8 ?? ?? ?? ?? 80 7E 21 00") + 0x178;
             this.lastComboMove = this.comboTimer + 0x4;
 
-            this.playerLevel = byteBase + 0x1C30FA8 + 0x78;
+            this.playerLevel = byteBase + 0x1C2BFA8 + 0x78;
             //this.playerLevel = scanner.ScanText("E8 ?? ?? ?? ?? 88 45 EF") + 0x4D;
 
             CustomIDs = new HashSet<uint>();
@@ -411,11 +411,11 @@ namespace Dalamud.Game.Internal.Gui {
 
             // MACHINIST
 
-            // Replace Heated Clean Shot with Heated Clean Shot combo
+            // Replace Clean Shot with Heated Clean Shot combo
             // Or with Heat Blast when overheated.
             // For some reason the shots use their unheated IDs as combo moves
             if (this.dalamud.Configuration.ComboPresets.HasFlag(CustomComboPreset.MachinistMainCombo)) {
-                if (actionID == 2866) {
+                if (actionID == 2873) {
                     MCHGauge gauge = this.dalamud.ClientState.JobGauges.Get<MCHGauge>();
                     // End overheat slightly early to prevent eager button mashing clipping your gcd with a fake 6th HB.
                     if (gauge.IsOverheated() && level >= 35 && gauge.OverheatTimeRemaining > 30) return 7410;
@@ -884,7 +884,7 @@ namespace Dalamud.Game.Internal.Gui {
         private unsafe delegate int* getArray(long* address);
 
         private unsafe IntPtr FindBuffAddress() {
-            IntPtr randomAddress = byteBase + 0x1C07BE0;
+            IntPtr randomAddress = byteBase + 0x1C02BE0;
             IntPtr num = Marshal.ReadIntPtr(randomAddress);
             IntPtr step2 = (IntPtr)(Marshal.ReadInt64(num) + 0x248);
             IntPtr step3 = Marshal.ReadIntPtr(step2);
@@ -941,8 +941,8 @@ namespace Dalamud.Game.Internal.Gui {
             CustomIDs.Add(7516);
             CustomIDs.Add(3566);
             CustomIDs.Add(92);
-            CustomIDs.Add(2866);
             CustomIDs.Add(3553);
+            CustomIDs.Add(2873);
             VanillaIDs.Add(0x3e75);
             VanillaIDs.Add(0x3e76);
             VanillaIDs.Add(0x3e77);
@@ -1100,9 +1100,9 @@ namespace Dalamud.Game.Internal.Gui {
             VanillaIDs.Add(0x8d4);
             VanillaIDs.Add(0x8d5);
             VanillaIDs.Add(0x8d7);
+            VanillaIDs.Add(0xb32);
             VanillaIDs.Add(0xb34);
             VanillaIDs.Add(0xb38);
-            VanillaIDs.Add(0xb39);
             VanillaIDs.Add(0xb3e);
             VanillaIDs.Add(0x12d);
             VanillaIDs.Add(0x15);

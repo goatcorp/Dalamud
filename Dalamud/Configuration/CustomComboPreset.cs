@@ -97,7 +97,7 @@ namespace XIVLauncher.Dalamud
         GunbreakerDemonSlaughterCombo = 1L << 22,
 
         // MACHINIST
-        [CustomComboInfo("(Heated) Shot Combo", "Replace UNHEATED Split shot with its combo chain or with Heat Blast when overheated.", 31)]
+        [CustomComboInfo("(Heated) Shot Combo", "Replace UNHEATED Split Shot with its combo chain or with Heat Blast when overheated.", 31)]
         MachinistMainCombo = 1L << 23,
 
         [CustomComboInfo("Spread Shot Heat", "Replace Spread Shot with Auto Crossbow when overheated.", 31)]
