@@ -13,7 +13,7 @@ namespace Dalamud.Game.ClientState
         public IntPtr JobGaugeData { get; set; }
         
         protected override void Setup64Bit(SigScanner sig) {
-            ActorTable = sig.Module.BaseAddress + 0x1BFBA38;
+            ActorTable = sig.Module.BaseAddress + 0x1BFFD90;
             LocalContentId = sig.Module.BaseAddress + 0x1C2E000;
             JobGaugeData = sig.Module.BaseAddress + 0x1BFB110;
         }

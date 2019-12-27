@@ -221,12 +221,12 @@ namespace Dalamud.Game.Network {
         }
 
         private enum ZoneOpCode {
-            CfNotifyPop = 0x135,
-            CfPreferredRole = 0x2a2,
-            MarketTaxRates = 0x16a,
-            MarketBoardItemRequestStart = 0x349,
-            MarketBoardOfferings = 0x130,
-            MarketBoardHistory = 0x1f7
+            CfNotifyPop = 0x1F8,
+            CfPreferredRole = 0x32A,
+            MarketTaxRates = 0x25E,
+            MarketBoardItemRequestStart = 0x328,
+            MarketBoardOfferings = 0x15F,
+            MarketBoardHistory = 0x113
         }
 
         private DalamudConfiguration.PreferredRole RoleKeyToPreferredRole(int key) => key switch
