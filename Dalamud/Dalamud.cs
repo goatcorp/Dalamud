@@ -177,7 +177,7 @@ namespace Dalamud {
 
             CommandManager.AddHandler("/xlitem", new CommandInfo(OnItemLinkCommand)
             {
-                HelpMessage = "Link an item by name. Usage: /xlitem <Item name>"
+                HelpMessage = "Link an item by name. Usage: /xlitem <Item name>.  For matching an item exactly, use /xlitem +<Item name>"
             });
 
 #if DEBUG
@@ -390,9 +390,16 @@ namespace Dalamud {
         }
 
         private void OnItemLinkCommand(string command, string arguments) {
+            var exactSearch = false;
+            if (arguments.StartsWith("+"))
+            {
+                exactSearch = true;
+                arguments = arguments.Substring(1);
+            }
+
             Task.Run(async () => {
                 try {
-                    dynamic results = await XivApi.Search(arguments, "Item", 1);
+                    dynamic results = await XivApi.Search(arguments, "Item", 1, exactSearch);
                     var itemId = (short) results.Results[0].ID;
                     var itemName = (string)results.Results[0].Name;
 
