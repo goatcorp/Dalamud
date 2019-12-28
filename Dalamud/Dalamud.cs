@@ -14,9 +14,7 @@ using Dalamud.Game.ClientState.Actors.Types;
 using Dalamud.Game.ClientState.Actors.Types.NonPlayer;
 using Dalamud.Game.Command;
 using Dalamud.Game.Internal;
-using Dalamud.Game.Internal.DXGI;
 using Dalamud.Game.Internal.Gui;
-using Dalamud.Game.Internal.Network;
 using Dalamud.Game.Network;
 using Dalamud.Plugin;
 using Serilog;
@@ -51,8 +49,6 @@ namespace Dalamud {
 
         internal readonly WinSockHandlers WinSock2;
 
-        internal readonly SwapChain deviceHandler;
-
         public Dalamud(DalamudStartInfo info) {
             this.StartInfo = info;
             this.Configuration = DalamudConfiguration.Load(info.ConfigurationPath);
@@ -84,8 +80,6 @@ namespace Dalamud {
             this.IconReplacer = new IconReplacer(this, this.sigScanner);
 
             this.WinSock2 = new WinSockHandlers();
-
-            this.deviceHandler = new SwapChain(this, this.sigScanner);
 
             try {
                 this.PluginManager.LoadPlugins();
