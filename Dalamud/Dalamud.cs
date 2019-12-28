@@ -190,7 +190,7 @@ namespace Dalamud {
 
             CommandManager.AddHandler("/xlbonus", new CommandInfo(OnRouletteBonusNotifyCommand)
             {
-                HelpMessage = "Notify when a roulette has a bonus you specified. Usage: /xlbonus <roulette name> <role name>"
+                HelpMessage = "Notify when a roulette has a bonus you specified. Run without parameters for more info. Usage: /xlbonus <roulette name> <role name>"
             });
         }
 
@@ -474,7 +474,7 @@ namespace Dalamud {
             InvalidArgs:
             Framework.Gui.Chat.PrintError("Unrecognized arguments.");
             Framework.Gui.Chat.Print("Possible values for roulette: leveling, 506070, msq, guildhests, expert, trials, mentor, alliance, normal\n" +
-                                     "Possible values for role: tank, dps, healer, all");
+                                     "Possible values for role: tank, dps, healer, all, none/reset");
         }
 
         private int RouletteSlugToKey(string slug) => slug.ToLower() switch {
