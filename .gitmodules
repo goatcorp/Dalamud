@@ -1,0 +1,3 @@
+[submodule "lib/ImGui.NET"]
+	path = lib/ImGui.NET
+	url = https://github.com/ff-meli/ImGui.NET.git

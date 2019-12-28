@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dalamud", "Dalamud\Dalamud.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dalamud.Injector", "Dalamud.Injector\Dalamud.Injector.csproj", "{5B832F73-5F54-4ADC-870F-D0095EF72C9A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImGui.NET-472", "lib\ImGui.NET\src\ImGui.NET-472\ImGui.NET-472.csproj", "{0483026E-C6CE-4B1A-AA68-46544C08140B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -31,6 +33,14 @@ Global
 		{5B832F73-5F54-4ADC-870F-D0095EF72C9A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{5B832F73-5F54-4ADC-870F-D0095EF72C9A}.Release|x64.ActiveCfg = Release|x64
 		{5B832F73-5F54-4ADC-870F-D0095EF72C9A}.Release|x64.Build.0 = Release|x64
+		{0483026E-C6CE-4B1A-AA68-46544C08140B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0483026E-C6CE-4B1A-AA68-46544C08140B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0483026E-C6CE-4B1A-AA68-46544C08140B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0483026E-C6CE-4B1A-AA68-46544C08140B}.Debug|x64.Build.0 = Debug|Any CPU
+		{0483026E-C6CE-4B1A-AA68-46544C08140B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0483026E-C6CE-4B1A-AA68-46544C08140B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0483026E-C6CE-4B1A-AA68-46544C08140B}.Release|x64.ActiveCfg = Release|Any CPU
+		{0483026E-C6CE-4B1A-AA68-46544C08140B}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
