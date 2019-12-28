@@ -14,16 +14,12 @@ namespace Dalamud.Plugin
         private readonly string pluginDirectory;
         private readonly string defaultPluginDirectory;
 
-        private readonly DalamudPluginInterface dalamudInterface;
-
         private List<IDalamudPlugin> plugins;
 
         public PluginManager(Dalamud dalamud, string pluginDirectory, string defaultPluginDirectory) {
             this.dalamud = dalamud;
             this.pluginDirectory = pluginDirectory;
             this.defaultPluginDirectory = defaultPluginDirectory;
-
-            this.dalamudInterface = new DalamudPluginInterface(dalamud);
         }
 
         public void UnloadPlugins() {
@@ -79,7 +75,10 @@ namespace Dalamud.Plugin
                 foreach (var pluginType in foundImplementations) 
                 { 
                     var plugin = (IDalamudPlugin)Activator.CreateInstance(pluginType);
-                    plugin.Initialize(this.dalamudInterface);
+
+                    var dalamudInterface = new DalamudPluginInterface(this.dalamud, pluginType.Assembly.GetName().Name);
+
+                    plugin.Initialize(dalamudInterface);
                     Log.Information("Loaded plugin: {0}", plugin.Name);
                     this.plugins.Add(plugin); 
                 }

@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using Dalamud.Configuration;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.Command;
 using Dalamud.Game.Internal;
@@ -29,14 +32,51 @@ namespace Dalamud.Plugin
         /// </summary>
         public readonly Framework Framework;
 
+        private readonly Dalamud dalamud;
+        private readonly string pluginName;
+
         /// <summary>
         /// Set up the interface and populate all fields needed.
         /// </summary>
         /// <param name="dalamud"></param>
-        public DalamudPluginInterface(Dalamud dalamud) {
+        public DalamudPluginInterface(Dalamud dalamud, string pluginName) {
             this.CommandManager = dalamud.CommandManager;
             this.Framework = dalamud.Framework;
             this.ClientState = dalamud.ClientState;
+
+            this.dalamud = dalamud;
+            this.pluginName = pluginName;
+        }
+
+        /// <summary>
+        /// Save a plugin configuration(inheriting IPluginConfiguration).
+        /// </summary>
+        /// <param name="currentConfig">The current configuration.</param>
+        public void SavePluginConfig(IPluginConfiguration currentConfig) {
+            if (this.dalamud.Configuration.PluginConfigurations == null)
+                this.dalamud.Configuration.PluginConfigurations = new Dictionary<string, IPluginConfiguration>();
+
+            if (this.dalamud.Configuration.PluginConfigurations.ContainsKey(this.pluginName)) {
+                this.dalamud.Configuration.PluginConfigurations[this.pluginName] = currentConfig;
+                return;
+            }
+
+            this.dalamud.Configuration.PluginConfigurations.Add(this.pluginName, currentConfig);
+            this.dalamud.Configuration.Save(this.dalamud.StartInfo.ConfigurationPath);
+        }
+
+        /// <summary>
+        /// Get a previously saved plugin configuration or null if none was saved before.
+        /// </summary>
+        /// <returns>A previously saved config or null if none was saved before.</returns>
+        public IPluginConfiguration GetPluginConfig() {
+            if (this.dalamud.Configuration.PluginConfigurations == null)
+                this.dalamud.Configuration.PluginConfigurations = new Dictionary<string, IPluginConfiguration>();
+
+            if (!this.dalamud.Configuration.PluginConfigurations.ContainsKey(this.pluginName))
+                return null;
+
+            return this.dalamud.Configuration.PluginConfigurations[this.pluginName];
         }
     }
 }
