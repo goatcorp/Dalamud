@@ -49,10 +49,16 @@ namespace Dalamud
             return await Get("ContentFinderCondition/" + contentFinderCondition);
         }
 
-        public static async Task<JObject> Search(string query, string indexes, int limit = 100) {
+        public static async Task<JObject> Search(string query, string indexes, int limit = 100, bool exact = false) {
             query = System.Net.WebUtility.UrlEncode(query);
 
-            return await Get("search" + $"?string={query}&indexes={indexes}&limit={limit}");
+            var queryString = $"?string={query}&indexes={indexes}&limit={limit}";
+            if (exact)
+            {
+                queryString += "&string_algo=match";
+            }
+
+            return await Get("search" + queryString);
         }
 
         public static async Task<JObject> GetMarketInfoWorld(int itemId, string worldName) {

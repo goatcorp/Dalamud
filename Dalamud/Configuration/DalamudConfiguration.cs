@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Dalamud.Configuration;
 using Dalamud.DiscordBot;
 using Newtonsoft.Json;
 using XIVLauncher.Dalamud;
@@ -30,6 +31,8 @@ namespace Dalamud
         public Dictionary<int, PreferredRole> PreferredRoleReminders { get; set; }
 
         public string LastVersion { get; set; }
+
+        public Dictionary<string, IPluginConfiguration> PluginConfigurations { get; set; }
 
         public static DalamudConfiguration Load(string path) {
             return JsonConvert.DeserializeObject<DalamudConfiguration>(File.ReadAllText(path));

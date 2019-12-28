@@ -183,7 +183,7 @@ namespace Dalamud {
 
             CommandManager.AddHandler("/xlitem", new CommandInfo(OnItemLinkCommand)
             {
-                HelpMessage = "Link an item by name. Usage: /xlitem <Item name>"
+                HelpMessage = "Link an item by name. Usage: /xlitem <Item name>.  For matching an item exactly, use /xlitem +<Item name>"
             });
 
 #if DEBUG
@@ -196,7 +196,7 @@ namespace Dalamud {
 
             CommandManager.AddHandler("/xlbonus", new CommandInfo(OnRouletteBonusNotifyCommand)
             {
-                HelpMessage = "Notify when a roulette has a bonus you specified. Usage: /xlitem <roulette name> <role name>"
+                HelpMessage = "Notify when a roulette has a bonus you specified. Run without parameters for more info. Usage: /xlbonus <roulette name> <role name>"
             });
         }
 
@@ -396,9 +396,16 @@ namespace Dalamud {
         }
 
         private void OnItemLinkCommand(string command, string arguments) {
+            var exactSearch = false;
+            if (arguments.StartsWith("+"))
+            {
+                exactSearch = true;
+                arguments = arguments.Substring(1);
+            }
+
             Task.Run(async () => {
                 try {
-                    dynamic results = await XivApi.Search(arguments, "Item", 1);
+                    dynamic results = await XivApi.Search(arguments, "Item", 1, exactSearch);
                     var itemId = (short) results.Results[0].ID;
                     var itemName = (string)results.Results[0].Name;
 
@@ -473,7 +480,7 @@ namespace Dalamud {
             InvalidArgs:
             Framework.Gui.Chat.PrintError("Unrecognized arguments.");
             Framework.Gui.Chat.Print("Possible values for roulette: leveling, 506070, msq, guildhests, expert, trials, mentor, alliance, normal\n" +
-                                     "Possible values for role: tank, dps, healer, all");
+                                     "Possible values for role: tank, dps, healer, all, none/reset");
         }
 
         private int RouletteSlugToKey(string slug) => slug.ToLower() switch {

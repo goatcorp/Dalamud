@@ -14,16 +14,16 @@
   </PropertyGroup>
   <PropertyGroup Label="Feature">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <AssemblyVersion>4.1.0.8</AssemblyVersion>
-    <FileVersion>4.1.0.8</FileVersion>
+    <AssemblyVersion>4.3.1.0</AssemblyVersion>
+    <FileVersion>4.3.1.0</FileVersion>
     <Description>XIVLauncher addon injection</Description>
-    <Version>4.1.0.8</Version>
+    <Version>4.3.1.0</Version>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <DocumentationFile></DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="EasyHook" Version="2.7.6270" />
+    <PackageReference Include="EasyHook" Version="2.7.7097" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
   </ItemGroup>
   <ItemGroup>
