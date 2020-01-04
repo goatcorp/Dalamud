@@ -84,7 +84,7 @@ namespace Dalamud {
 
             this.WinSock2 = new WinSockHandlers();
 
-            this.InterfaceManager = new InterfaceManager(this, this.sigScanner);
+            this.InterfaceManager = new InterfaceManager(this.sigScanner);
             //this.InterfaceManager.Start();
 
             try {

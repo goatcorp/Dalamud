@@ -1,9 +1,7 @@
+//#define RENDERDOC_HACKS
+
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using Dalamud.Game;
 using Dalamud.Game.Internal.DXGI;
 using Dalamud.Hooking;
@@ -15,6 +13,20 @@ namespace Dalamud.Interface
 {
     public class InterfaceManager : IDisposable
     {
+#if RENDERDOC_HACKS
+        [DllImport("user32.dll", SetLastError = true)]
+        static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
+
+        [DllImport("RDocHelper.dll")]
+        static extern IntPtr GetWrappedDevice(IntPtr window);
+
+        [DllImport("RDocHelper.dll")]
+        static extern void StartCapture(IntPtr device, IntPtr window);
+
+        [DllImport("RDocHelper.dll")]
+        static extern uint EndCapture();
+#endif
+
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         private delegate IntPtr PresentDelegate(IntPtr swapChain, uint syncInterval, uint presentFlags);
 
@@ -23,14 +35,10 @@ namespace Dalamud.Interface
         private SwapChainAddressResolver Address { get; }
 
 
-        //private Task _task;
-        private RawDX11Scene _scene;
-        private Dalamud _dalamud;
+        private RawDX11Scene scene;
 
-        public InterfaceManager(Dalamud dalamud, SigScanner scanner)
+        public InterfaceManager(SigScanner scanner)
         {
-            this._dalamud = dalamud;
-
             Address = new SwapChainAddressResolver();
             Address.Setup(scanner);
 
@@ -56,53 +64,35 @@ namespace Dalamud.Interface
 
         public void Dispose()
         {
-            this._scene.Dispose();
+            this.scene.Dispose();
+            // this will almost certainly crash or otherwise break
+            // we might be able to mitigate it by properly cleaning up in the detour first
+            // and essentially blocking until that completes... but I'm skeptical that would work either
             this.presentHook.Dispose();
-
-            //_task?.Wait();
-            //_task = null;
         }
-
-        //public void Start()
-        //{
-        //    if (_task == null || _task.IsCompleted || _task.IsFaulted || _task.IsCanceled)
-        //    {
-        //        _task = new Task(Display);
-        //        _task.Start();
-        //    }
-        //}
-
-        //private void Display()
-        //{
-        //    using (var scene = SimpleImGuiScene.CreateOverlay(RendererFactory.RendererBackend.DirectX11))
-        //    {
-        //        // this basically pauses background rendering to reduce cpu load by the scene when it isn't actively in focus
-        //        // the impact is generally pretty minor, but it's probably best to enable when we can
-        //        // If we have any windows that we want to update dynamically even when the game is the focus
-        //        // and not the overlay, this should be disabled.
-        //        // It is dynamic, so we could disable it only when dynamic windows are open etc
-        //        scene.PauseWhenUnfocused = true;
-
-        //        scene.OnBuildUI += DrawUI;
-        //        scene.Run();
-        //    }
-        //}
-
-        //private void DrawUI()
-        //{
-        //    ImGui.ShowDemoWindow();
-        //}
 
         private IntPtr PresentDetour(IntPtr swapChain, uint syncInterval, uint presentFlags)
         {
-            if (_scene == null)
+            if (this.scene == null)
             {
-                _scene = new RawDX11Scene(swapChain);
+#if RENDERDOC_HACKS
+                var hWnd = FindWindow(null, "FINAL FANTASY XIV");
+                var device = GetWrappedDevice(hWnd);
+                this.scene = new RawDX11Scene(device, swapChain);
+#else
+                this.scene = new RawDX11Scene(swapChain);
+#endif
+                this.scene.OnBuildUI += DrawUI;
             }
 
-            _scene.Render();
+            this.scene.Render();
 
             return this.presentHook.Original(swapChain, syncInterval, presentFlags);
+        }
+
+        private void DrawUI()
+        {
+            ImGui.ShowDemoWindow();
         }
     }
 }
