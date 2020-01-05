@@ -9,6 +9,20 @@ using ImGuiNET;
 using ImGuiScene;
 using Serilog;
 
+// general dev notes, here because it's easiest
+/*
+ * - We probably need to hook ResizeBuffers too at a minimum.. not releasing things may cause crashes.
+ * - It's probably virtually impossible to remove the present hook once we set it, which again may lead to crashes in various situations.
+ * - We may want to build our ImGui command list in a thread to keep it divorced from present.  We'd still have to block in present to
+ *   synchronize on the list and render it, but ideally the overall delay we add to present would then be shorter.  This may cause minor
+ *   timing issues with anything animated inside ImGui, but that is probably rare and may not even be noticeable.
+ * - Our hook is too low level to really work well with debugging, as we only have access to the 'real' dx objects and not any
+ *   that have been hooked/wrapped by tools.
+ * - ^ May actually mean that we bypass things like reshade through sheer luck... but that may also mean that we'll have to do extra
+ *   work to play nicely with them.
+ * - Might need to render to a separate target and composite, especially with reshade etc in the mix.
+ */
+
 namespace Dalamud.Interface
 {
     public class InterfaceManager : IDisposable
