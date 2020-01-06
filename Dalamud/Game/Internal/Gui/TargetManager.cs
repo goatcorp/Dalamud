@@ -6,7 +6,6 @@ using Serilog;
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using XIVLauncher.Dalamud;
 
 namespace Dalamud.Game.Internal.Gui {
     public class TargetManager {

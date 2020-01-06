@@ -18,7 +18,6 @@ using Dalamud.Game.Internal.Gui;
 using Dalamud.Game.Network;
 using Dalamud.Plugin;
 using Serilog;
-using XIVLauncher.Dalamud;
 
 namespace Dalamud {
     public sealed class Dalamud : IDisposable {
@@ -26,7 +25,8 @@ namespace Dalamud {
 
         private readonly ManualResetEvent unloadSignal;
 
-        private readonly ProcessModule targetModule;
+        public readonly ProcessModule TargetModule;
+
         private readonly SigScanner sigScanner;
 
         public Framework Framework { get; }
@@ -43,8 +43,6 @@ namespace Dalamud {
 
         public readonly DalamudStartInfo StartInfo;
 
-        public readonly IconReplacer IconReplacer;
-
         public readonly DalamudConfiguration Configuration;
 
         internal readonly WinSockHandlers WinSock2;
@@ -58,8 +56,8 @@ namespace Dalamud {
             this.unloadSignal = new ManualResetEvent(false);
 
             // Initialize the process information.
-            this.targetModule = Process.GetCurrentProcess().MainModule;
-            this.sigScanner = new SigScanner(this.targetModule);
+            this.TargetModule = Process.GetCurrentProcess().MainModule;
+            this.sigScanner = new SigScanner(this.TargetModule);
 
             // Initialize game subsystem
             Framework = new Framework(this.sigScanner, this);
@@ -71,13 +69,11 @@ namespace Dalamud {
             ChatHandlers = new ChatHandlers(this);
             NetworkHandlers = new NetworkHandlers(this, this.Configuration.OptOutMbCollection);
 
-            this.ClientState = new ClientState(this, info, this.sigScanner, this.targetModule);
+            this.ClientState = new ClientState(this, info, this.sigScanner, this.TargetModule);
 
             this.BotManager = new DiscordBotManager(this, this.Configuration.DiscordFeatureConfig);
 
             this.PluginManager = new PluginManager(this, info.PluginDirectory, info.DefaultPluginDirectory);
-
-            this.IconReplacer = new IconReplacer(this, this.sigScanner);
 
             this.WinSock2 = new WinSockHandlers();
 
@@ -94,9 +90,6 @@ namespace Dalamud {
             Framework.Enable();
 
             this.BotManager.Start();
-
-            if (this.Configuration.ComboPresets != CustomComboPreset.None)
-                this.IconReplacer.Enable();
         }
 
         public void Unload() {
@@ -115,9 +108,6 @@ namespace Dalamud {
             this.unloadSignal.Dispose();
 
             this.WinSock2.Dispose();
-
-            if (this.Configuration.ComboPresets != CustomComboPreset.None)
-                this.IconReplacer.Dispose();
         }
 
         private void SetupCommands() {
@@ -133,11 +123,6 @@ namespace Dalamud {
 
             CommandManager.AddHandler("/xldsay", new CommandInfo(OnCommandDebugSay) {
                 HelpMessage = "Print to chat.",
-                ShowInHelp = false
-            });
-
-            CommandManager.AddHandler("/xldcombo", new CommandInfo(OnCommandDebugCombo) {
-                HelpMessage = "COMBO debug",
                 ShowInHelp = false
             });
 
@@ -307,74 +292,6 @@ namespace Dalamud {
                         $"Level: {chara.Level} ClassJob: {chara.ClassJob.Name} CHP: {chara.CurrentHp} MHP: {chara.MaxHp} CMP: {chara.CurrentMp} MMP: {chara.MaxMp}");
             }
         }
-
-        private void OnCommandDebugCombo(string command, string arguments) {
-            var argumentsParts = arguments.Split();
-
-            switch (argumentsParts[0]) {
-                case "setall": {
-                    foreach (var value in Enum.GetValues(typeof(CustomComboPreset)).Cast<CustomComboPreset>()) {
-                        if (value == CustomComboPreset.None)
-                            continue;
-
-                        this.Configuration.ComboPresets |= value;
-                    }
-
-                    Framework.Gui.Chat.Print("all SET");
-                }
-                    break;
-                case "unsetall": {
-                    foreach (var value in Enum.GetValues(typeof(CustomComboPreset)).Cast<CustomComboPreset>()) {
-                        this.Configuration.ComboPresets &= value;
-                    }
-
-                    Framework.Gui.Chat.Print("all UNSET");
-                }
-                    break;
-                case "set": {
-                    foreach (var value in Enum.GetValues(typeof(CustomComboPreset)).Cast<CustomComboPreset>()) {
-                        if (value.ToString().ToLower() != argumentsParts[1].ToLower())
-                            continue;
-
-                        this.Configuration.ComboPresets |= value;
-                    }
-                }
-                    break;
-                case "toggle": {
-                    foreach (var value in Enum.GetValues(typeof(CustomComboPreset)).Cast<CustomComboPreset>()) {
-                        if (value.ToString().ToLower() != argumentsParts[1].ToLower())
-                            continue;
-
-                        this.Configuration.ComboPresets ^= value;
-                    }
-                }
-                    break;
-
-                case "unset": {
-                    foreach (var value in Enum.GetValues(typeof(CustomComboPreset)).Cast<CustomComboPreset>()) {
-                        if (value.ToString().ToLower() != argumentsParts[1].ToLower())
-                            continue;
-
-                        this.Configuration.ComboPresets &= ~value;
-                    }
-                }
-                    break;
-
-                case "list": {
-                    foreach (var value in Enum.GetValues(typeof(CustomComboPreset)).Cast<CustomComboPreset>()) {
-                        if (this.Configuration.ComboPresets.HasFlag(value))
-                            Framework.Gui.Chat.Print(value.ToString());
-                    }
-                }
-                    break;
-
-                default: Framework.Gui.Chat.Print("Unknown");
-                    break;
-            }
-
-            this.Configuration.Save(this.StartInfo.ConfigurationPath);
-        }
-
         private void OnBotJoinCommand(string command, string arguments) {
             if (this.BotManager != null && this.BotManager.IsConnected)
                 Process.Start(

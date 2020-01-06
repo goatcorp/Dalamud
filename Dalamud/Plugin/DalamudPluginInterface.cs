@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Dalamud.Configuration;
+using Dalamud.Game;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.Command;
 using Dalamud.Game.Internal;
@@ -32,6 +33,8 @@ namespace Dalamud.Plugin
         /// </summary>
         public readonly Framework Framework;
 
+        public readonly SigScanner TargetModuleScanner;
+
         private readonly Dalamud dalamud;
         private readonly string pluginName;
 
@@ -43,6 +46,7 @@ namespace Dalamud.Plugin
             this.CommandManager = dalamud.CommandManager;
             this.Framework = dalamud.Framework;
             this.ClientState = dalamud.ClientState;
+            this.TargetModuleScanner = new SigScanner(dalamud.TargetModule);
 
             this.dalamud = dalamud;
             this.pluginName = pluginName;
