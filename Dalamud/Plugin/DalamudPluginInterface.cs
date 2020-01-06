@@ -33,6 +33,9 @@ namespace Dalamud.Plugin
         /// </summary>
         public readonly Framework Framework;
 
+        /// <summary>
+        /// A <see cref="SigScanner">SigScanner</see> instance targeting the main module of the FFXIV process.
+        /// </summary>
         public readonly SigScanner TargetModuleScanner;
 
         private readonly Dalamud dalamud;
