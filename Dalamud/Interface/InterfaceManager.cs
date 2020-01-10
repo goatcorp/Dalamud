@@ -11,7 +11,7 @@ using Serilog;
 
 // general dev notes, here because it's easiest
 /*
- * - We probably need to hook ResizeBuffers too at a minimum.. not releasing things may cause crashes.
+ * - Hooking ResizeBuffers seemed to be unnecessary, though I'm not sure why.  Left out for now since it seems to work without it.
  * - It's probably virtually impossible to remove the present hook once we set it, which again may lead to crashes in various situations.
  * - We may want to build our ImGui command list in a thread to keep it divorced from present.  We'd still have to block in present to
  *   synchronize on the list and render it, but ideally the overall delay we add to present would then be shorter.  This may cause minor
