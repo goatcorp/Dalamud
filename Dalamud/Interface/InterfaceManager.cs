@@ -106,6 +106,13 @@ namespace Dalamud.Interface
 
         private void DrawUI()
         {
+            // this is more or less part of what reshade/etc do to avoid having to manually
+            // set the cursor inside the ui
+            // This effectively means that when the ui is hovered, there will be 2 cursors -
+            // the normal one from the game, and the one for ImGui
+            // Doing this here because it's somewhat application-specific behavior
+            ImGui.GetIO().MouseDrawCursor = ImGui.GetIO().WantCaptureMouse;
+
             ImGui.ShowDemoWindow();
         }
     }
