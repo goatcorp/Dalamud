@@ -85,7 +85,7 @@ namespace Dalamud {
             this.WinSock2 = new WinSockHandlers();
 
             this.InterfaceManager = new InterfaceManager(this.sigScanner);
-            this.InterfaceManager.ReadyToDraw += (sender, args) => this.InterfaceManager.OnBuildUi += BuildDalamudUi;
+            this.InterfaceManager.OnDraw += BuildDalamudUi;
             this.InterfaceManager.Enable();
 
             try {
@@ -140,6 +140,8 @@ namespace Dalamud {
         }
 
         public void Dispose() {
+            this.InterfaceManager.Dispose();
+
             Framework.Dispose();
 
             this.BotManager.Dispose();

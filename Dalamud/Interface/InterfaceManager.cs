@@ -1,5 +1,3 @@
-//#define RENDERDOC_HACKS
-
 using System;
 using System.Runtime.InteropServices;
 using Dalamud.Game;
@@ -12,35 +10,18 @@ using Serilog;
 // general dev notes, here because it's easiest
 /*
  * - Hooking ResizeBuffers seemed to be unnecessary, though I'm not sure why.  Left out for now since it seems to work without it.
- * - It's probably virtually impossible to remove the present hook once we set it, which again may lead to crashes in various situations.
  * - We may want to build our ImGui command list in a thread to keep it divorced from present.  We'd still have to block in present to
  *   synchronize on the list and render it, but ideally the overall delay we add to present would then be shorter.  This may cause minor
  *   timing issues with anything animated inside ImGui, but that is probably rare and may not even be noticeable.
  * - Our hook is too low level to really work well with debugging, as we only have access to the 'real' dx objects and not any
  *   that have been hooked/wrapped by tools.
- * - ^ May actually mean that we bypass things like reshade through sheer luck... but that may also mean that we'll have to do extra
- *   work to play nicely with them.
- * - Might need to render to a separate target and composite, especially with reshade etc in the mix.
+ * - Might eventually want to render to a separate target and composite, especially with reshade etc in the mix.
  */
 
 namespace Dalamud.Interface
 {
     public class InterfaceManager : IDisposable
     {
-#if RENDERDOC_HACKS
-        [DllImport("user32.dll", SetLastError = true)]
-        static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
-
-        [DllImport("RDocHelper.dll")]
-        static extern IntPtr GetWrappedDevice(IntPtr window);
-
-        [DllImport("RDocHelper.dll")]
-        static extern void StartCapture(IntPtr device, IntPtr window);
-
-        [DllImport("RDocHelper.dll")]
-        static extern uint EndCapture();
-#endif
-
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         private delegate IntPtr PresentDelegate(IntPtr swapChain, uint syncInterval, uint presentFlags);
 
@@ -53,13 +34,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// This event gets called when ImGUI is ready to draw your UI.
         /// </summary>
-        public event RawDX11Scene.BuildUIDelegate OnBuildUi
-        {
-            add => this.scene.OnBuildUI += value;
-            remove => this.scene.OnBuildUI -= value;
-        }
-
-        public EventHandler ReadyToDraw;
+        public event RawDX11Scene.BuildUIDelegate OnDraw;
 
         public InterfaceManager(SigScanner scanner)
         {
@@ -78,19 +53,35 @@ namespace Dalamud.Interface
         public void Enable()
         {
             this.presentHook.Enable();
+
+            if (this.scene != null)
+            {
+                this.scene.Enable();
+            }
         }
 
         public void Disable()
         {
             this.presentHook.Disable();
+
+            if (this.scene != null)
+            {
+                this.scene.Disable();
+            }
         }
 
         public void Dispose()
         {
+            // HACK: this is usually called on a separate thread from PresentDetour (likely on a dedicated render thread)
+            // and if we aren't already disabled, disposing of the scene and hook can frequently crash due to the hook
+            // being disposed of in this thread while it is actively in use in the render thread.
+            // This is a terrible way to prevent issues, but should basically always work to ensure that all outstanding
+            // calls to PresentDetour have finished (and Disable means no new ones will start), before we try to cleanup
+            // So... not great, but much better than constantly crashing on unload
+            this.Disable();
+            System.Threading.Thread.Sleep(100);
+
             this.scene.Dispose();
-            // this will almost certainly crash or otherwise break
-            // we might be able to mitigate it by properly cleaning up in the detour first
-            // and essentially blocking until that completes... but I'm skeptical that would work either
             this.presentHook.Dispose();
         }
 
@@ -98,15 +89,8 @@ namespace Dalamud.Interface
         {
             if (this.scene == null)
             {
-#if RENDERDOC_HACKS
-                var hWnd = FindWindow(null, "FINAL FANTASY XIV");
-                var device = GetWrappedDevice(hWnd);
-                this.scene = new RawDX11Scene(device, swapChain);
-#else
                 this.scene = new RawDX11Scene(swapChain);
-#endif
-                this.scene.OnBuildUI += HandleMouseUI;
-                this.ReadyToDraw?.Invoke(this, null);
+                this.scene.OnBuildUI += Display;
             }
 
             this.scene.Render();
@@ -114,14 +98,25 @@ namespace Dalamud.Interface
             return this.presentHook.Original(swapChain, syncInterval, presentFlags);
         }
 
-        private void HandleMouseUI()
+        private void Display()
         {
             // this is more or less part of what reshade/etc do to avoid having to manually
             // set the cursor inside the ui
-            // This effectively means that when the ui is hovered, there will be 2 cursors -
-            // the normal one from the game, and the one for ImGui
+            // This will just tell ImGui to draw its own software cursor instead of using the hardware cursor
+            // The scene internally will handle hiding and showing the hardware (game) cursor
+            // If the player has the game software cursor enabled, we can't really do anything about that and
+            // they will see both cursors.
             // Doing this here because it's somewhat application-specific behavior
             ImGui.GetIO().MouseDrawCursor = ImGui.GetIO().WantCaptureMouse;
+
+            // invoke all our external ui handlers, giving each a custom id to prevent name collisions
+            // because ImGui control names are globally shared
+            foreach (var del in this.OnDraw?.GetInvocationList())
+            {
+                //ImGui.PushID(someId);
+                del.DynamicInvoke();
+                //ImGui.PopID();
+            }
         }
     }
 }
