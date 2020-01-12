@@ -48,8 +48,18 @@ namespace Dalamud.Interface
 
         private SwapChainAddressResolver Address { get; }
 
-
         private RawDX11Scene scene;
+
+        /// <summary>
+        /// This event gets called when ImGUI is ready to draw your UI.
+        /// </summary>
+        public event RawDX11Scene.BuildUIDelegate OnBuildUi
+        {
+            add => this.scene.OnBuildUI += value;
+            remove => this.scene.OnBuildUI -= value;
+        }
+
+        public EventHandler ReadyToDraw;
 
         public InterfaceManager(SigScanner scanner)
         {
@@ -63,7 +73,6 @@ namespace Dalamud.Interface
                 new Hook<PresentDelegate>(Address.Present,
                                                     new PresentDelegate(PresentDetour),
                                                     this);
-            Enable();
         }
 
         public void Enable()
@@ -96,7 +105,8 @@ namespace Dalamud.Interface
 #else
                 this.scene = new RawDX11Scene(swapChain);
 #endif
-                this.scene.OnBuildUI += DrawUI;
+                this.scene.OnBuildUI += HandleMouseUI;
+                this.ReadyToDraw?.Invoke(this, null);
             }
 
             this.scene.Render();
@@ -104,7 +114,7 @@ namespace Dalamud.Interface
             return this.presentHook.Original(swapChain, syncInterval, presentFlags);
         }
 
-        private void DrawUI()
+        private void HandleMouseUI()
         {
             // this is more or less part of what reshade/etc do to avoid having to manually
             // set the cursor inside the ui
@@ -112,8 +122,6 @@ namespace Dalamud.Interface
             // the normal one from the game, and the one for ImGui
             // Doing this here because it's somewhat application-specific behavior
             ImGui.GetIO().MouseDrawCursor = ImGui.GetIO().WantCaptureMouse;
-
-            ImGui.ShowDemoWindow();
         }
     }
 }

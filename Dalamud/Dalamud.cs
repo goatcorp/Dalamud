@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,6 +19,7 @@ using Dalamud.Game.Internal.Gui;
 using Dalamud.Game.Network;
 using Dalamud.Interface;
 using Dalamud.Plugin;
+using ImGuiNET;
 using Serilog;
 using XIVLauncher.Dalamud;
 
@@ -52,6 +54,8 @@ namespace Dalamud {
 
         public readonly InterfaceManager InterfaceManager;
 
+        private readonly string assemblyVersion = Assembly.GetAssembly(typeof(ChatHandlers)).GetName().Version.ToString();
+
         public Dalamud(DalamudStartInfo info) {
             this.StartInfo = info;
             this.Configuration = DalamudConfiguration.Load(info.ConfigurationPath);
@@ -85,7 +89,8 @@ namespace Dalamud {
             this.WinSock2 = new WinSockHandlers();
 
             this.InterfaceManager = new InterfaceManager(this.sigScanner);
-            //this.InterfaceManager.Start();
+            this.InterfaceManager.ReadyToDraw += (sender, args) => this.InterfaceManager.OnBuildUi += BuildDalamudUi;
+            this.InterfaceManager.Enable();
 
             try {
                 this.PluginManager.LoadPlugins();
@@ -93,6 +98,34 @@ namespace Dalamud {
                 Framework.Gui.Chat.PrintError(
                     "[XIVLAUNCHER] There was an error loading additional plugins. Please check the log for more details.");
                 Log.Error(ex, "Plugin load failed.");
+            }
+        }
+
+        private bool isImguiDrawDemoWindow = true;
+        private bool isImguiDrawWelcome = true;
+
+        private bool neverDrawWelcome = false;
+
+        private void BuildDalamudUi() {
+            if (this.isImguiDrawDemoWindow)
+                ImGui.ShowDemoWindow();
+
+            if (this.isImguiDrawWelcome) {
+                if (!ImGui.Begin("Welcome to XIVLauncher", ImGuiWindowFlags.Modal | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize))
+                {
+                    // Early out if the window is collapsed, as an optimization.
+                    ImGui.End();
+                } else {
+                    ImGui.Text($"dalamud says hello. ({this.assemblyVersion})");
+                    ImGui.Checkbox("Don't show this message again", ref this.neverDrawWelcome);
+                    ImGui.Spacing();
+
+                    if (ImGui.Button("Close")) {
+                        this.isImguiDrawWelcome = false;
+                    }
+
+                    ImGui.End();
+                }
             }
         }
 
@@ -197,6 +230,11 @@ namespace Dalamud {
             CommandManager.AddHandler("/xlbonus", new CommandInfo(OnRouletteBonusNotifyCommand)
             {
                 HelpMessage = "Notify when a roulette has a bonus you specified. Run without parameters for more info. Usage: /xlbonus <roulette name> <role name>"
+            });
+
+            CommandManager.AddHandler("/xlduidrawdemo", new CommandInfo(OnDebugDrawImGuiDemo) {
+                HelpMessage = "Open ImGUI demo window",
+                ShowInHelp = false
             });
         }
 
@@ -481,6 +519,10 @@ namespace Dalamud {
             Framework.Gui.Chat.PrintError("Unrecognized arguments.");
             Framework.Gui.Chat.Print("Possible values for roulette: leveling, 506070, msq, guildhests, expert, trials, mentor, alliance, normal\n" +
                                      "Possible values for role: tank, dps, healer, all, none/reset");
+        }
+
+        private void OnDebugDrawImGuiDemo(string command, string arguments) {
+            this.isImguiDrawDemoWindow = true;
         }
 
         private int RouletteSlugToKey(string slug) => slug.ToLower() switch {

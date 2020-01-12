@@ -10,6 +10,7 @@ using Dalamud.Game.ClientState;
 using Dalamud.Game.Command;
 using Dalamud.Game.Internal;
 using Dalamud.Game.Internal.Gui;
+using Dalamud.Interface;
 
 namespace Dalamud.Plugin
 {
@@ -32,6 +33,11 @@ namespace Dalamud.Plugin
         /// </summary>
         public readonly Framework Framework;
 
+        /// <summary>
+        /// The InterfaceManager object which allows you to draw UI into the game via ImGui draw calls.
+        /// </summary>
+        public readonly InterfaceManager Interface;
+
         private readonly Dalamud dalamud;
         private readonly string pluginName;
 
@@ -43,6 +49,7 @@ namespace Dalamud.Plugin
             this.CommandManager = dalamud.CommandManager;
             this.Framework = dalamud.Framework;
             this.ClientState = dalamud.ClientState;
+            this.Interface = dalamud.InterfaceManager;
 
             this.dalamud = dalamud;
             this.pluginName = pluginName;
@@ -60,6 +67,9 @@ namespace Dalamud.Plugin
                 this.dalamud.Configuration.PluginConfigurations[this.pluginName] = currentConfig;
                 return;
             }
+
+            if (currentConfig == null)
+                return;
 
             this.dalamud.Configuration.PluginConfigurations.Add(this.pluginName, currentConfig);
             this.dalamud.Configuration.Save(this.dalamud.StartInfo.ConfigurationPath);

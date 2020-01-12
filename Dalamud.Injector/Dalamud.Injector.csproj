@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup Label="Target">
     <PlatformTarget>AnyCPU</PlatformTarget>
     <TargetFramework>net48</TargetFramework>
@@ -23,7 +23,7 @@
     <DocumentationFile></DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="EasyHook" Version="2.7.7097" />
+    <PackageReference Include="EasyHook" Version="2.7.6270" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
   </ItemGroup>
   <ItemGroup>
