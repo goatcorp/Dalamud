@@ -140,6 +140,8 @@ namespace Dalamud {
         }
 
         public void Dispose() {
+            this.InterfaceManager.Dispose();
+
             Framework.Dispose();
 
             this.BotManager.Dispose();

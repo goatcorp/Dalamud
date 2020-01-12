@@ -10,15 +10,12 @@ using Serilog;
 // general dev notes, here because it's easiest
 /*
  * - Hooking ResizeBuffers seemed to be unnecessary, though I'm not sure why.  Left out for now since it seems to work without it.
- * - It's probably virtually impossible to remove the present hook once we set it, which again may lead to crashes in various situations.
  * - We may want to build our ImGui command list in a thread to keep it divorced from present.  We'd still have to block in present to
  *   synchronize on the list and render it, but ideally the overall delay we add to present would then be shorter.  This may cause minor
  *   timing issues with anything animated inside ImGui, but that is probably rare and may not even be noticeable.
  * - Our hook is too low level to really work well with debugging, as we only have access to the 'real' dx objects and not any
  *   that have been hooked/wrapped by tools.
- * - ^ May actually mean that we bypass things like reshade through sheer luck... but that may also mean that we'll have to do extra
- *   work to play nicely with them.
- * - Might need to render to a separate target and composite, especially with reshade etc in the mix.
+ * - Might eventually want to render to a separate target and composite, especially with reshade etc in the mix.
  */
 
 namespace Dalamud.Interface
@@ -56,19 +53,35 @@ namespace Dalamud.Interface
         public void Enable()
         {
             this.presentHook.Enable();
+
+            if (this.scene != null)
+            {
+                this.scene.Enable();
+            }
         }
 
         public void Disable()
         {
             this.presentHook.Disable();
+
+            if (this.scene != null)
+            {
+                this.scene.Disable();
+            }
         }
 
         public void Dispose()
         {
+            // HACK: this is usually called on a separate thread from PresentDetour (likely on a dedicated render thread)
+            // and if we aren't already disabled, disposing of the scene and hook can frequently crash due to the hook
+            // being disposed of in this thread while it is actively in use in the render thread.
+            // This is a terrible way to prevent issues, but should basically always work to ensure that all outstanding
+            // calls to PresentDetour have finished (and Disable means no new ones will start), before we try to cleanup
+            // So... not great, but much better than constantly crashing on unload
+            this.Disable();
+            System.Threading.Thread.Sleep(100);
+
             this.scene.Dispose();
-            // this will almost certainly crash or otherwise break
-            // we might be able to mitigate it by properly cleaning up in the detour first
-            // and essentially blocking until that completes... but I'm skeptical that would work either
             this.presentHook.Dispose();
         }
 
