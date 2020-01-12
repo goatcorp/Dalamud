@@ -37,13 +37,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// This event gets called when ImGUI is ready to draw your UI.
         /// </summary>
-        public event RawDX11Scene.BuildUIDelegate OnBuildUi
-        {
-            add => this.scene.OnBuildUI += value;
-            remove => this.scene.OnBuildUI -= value;
-        }
-
-        public EventHandler ReadyToDraw;
+        public event RawDX11Scene.BuildUIDelegate OnDraw;
 
         public InterfaceManager(SigScanner scanner)
         {
@@ -83,8 +77,7 @@ namespace Dalamud.Interface
             if (this.scene == null)
             {
                 this.scene = new RawDX11Scene(swapChain);
-                this.scene.OnBuildUI += HandleMouseUI;
-                this.ReadyToDraw?.Invoke(this, null);
+                this.scene.OnBuildUI += Display;
             }
 
             this.scene.Render();
@@ -92,14 +85,25 @@ namespace Dalamud.Interface
             return this.presentHook.Original(swapChain, syncInterval, presentFlags);
         }
 
-        private void HandleMouseUI()
+        private void Display()
         {
             // this is more or less part of what reshade/etc do to avoid having to manually
             // set the cursor inside the ui
-            // This effectively means that when the ui is hovered, there will be 2 cursors -
-            // the normal one from the game, and the one for ImGui
+            // This will just tell ImGui to draw its own software cursor instead of using the hardware cursor
+            // The scene internally will handle hiding and showing the hardware (game) cursor
+            // If the player has the game software cursor enabled, we can't really do anything about that and
+            // they will see both cursors.
             // Doing this here because it's somewhat application-specific behavior
             ImGui.GetIO().MouseDrawCursor = ImGui.GetIO().WantCaptureMouse;
+
+            // invoke all our external ui handlers, giving each a custom id to prevent name collisions
+            // because ImGui control names are globally shared
+            foreach (var del in this.OnDraw?.GetInvocationList())
+            {
+                //ImGui.PushID(someId);
+                del.DynamicInvoke();
+                //ImGui.PopID();
+            }
         }
     }
 }
