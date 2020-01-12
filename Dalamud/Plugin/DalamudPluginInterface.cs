@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Dalamud.Configuration;
+using Dalamud.Game;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.Command;
 using Dalamud.Game.Internal;
@@ -34,9 +35,13 @@ namespace Dalamud.Plugin
         public readonly Framework Framework;
 
         /// <summary>
-        /// The InterfaceManager object which allows you to draw UI into the game via ImGui draw calls.
+		/// A <see cref="InterfaceManager">InterfaceManager</see> instance which allows you to draw UI into the game via ImGui draw calls.
         /// </summary>
         public readonly InterfaceManager Interface;
+
+        /// A <see cref="SigScanner">SigScanner</see> instance targeting the main module of the FFXIV process.
+        /// </summary>
+        public readonly SigScanner TargetModuleScanner;
 
         private readonly Dalamud dalamud;
         private readonly string pluginName;
@@ -50,6 +55,7 @@ namespace Dalamud.Plugin
             this.Framework = dalamud.Framework;
             this.ClientState = dalamud.ClientState;
             this.Interface = dalamud.InterfaceManager;
+            this.TargetModuleScanner = new SigScanner(dalamud.TargetModule);
 
             this.dalamud = dalamud;
             this.pluginName = pluginName;

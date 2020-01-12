@@ -4,7 +4,6 @@ using System.IO;
 using Dalamud.Configuration;
 using Dalamud.DiscordBot;
 using Newtonsoft.Json;
-using XIVLauncher.Dalamud;
 
 namespace Dalamud
 {
@@ -14,8 +13,6 @@ namespace Dalamud
         public DiscordFeatureConfiguration DiscordFeatureConfig { get; set; }
 
         public bool OptOutMbCollection { get; set; } = false;
-
-        public CustomComboPreset ComboPresets { get; set; }
 
         public List<string> BadWords { get; set; }
 
