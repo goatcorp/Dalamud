@@ -1,5 +1,3 @@
-//#define RENDERDOC_HACKS
-
 using System;
 using System.Runtime.InteropServices;
 using Dalamud.Game;
@@ -27,20 +25,6 @@ namespace Dalamud.Interface
 {
     public class InterfaceManager : IDisposable
     {
-#if RENDERDOC_HACKS
-        [DllImport("user32.dll", SetLastError = true)]
-        static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
-
-        [DllImport("RDocHelper.dll")]
-        static extern IntPtr GetWrappedDevice(IntPtr window);
-
-        [DllImport("RDocHelper.dll")]
-        static extern void StartCapture(IntPtr device, IntPtr window);
-
-        [DllImport("RDocHelper.dll")]
-        static extern uint EndCapture();
-#endif
-
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         private delegate IntPtr PresentDelegate(IntPtr swapChain, uint syncInterval, uint presentFlags);
 
@@ -98,13 +82,7 @@ namespace Dalamud.Interface
         {
             if (this.scene == null)
             {
-#if RENDERDOC_HACKS
-                var hWnd = FindWindow(null, "FINAL FANTASY XIV");
-                var device = GetWrappedDevice(hWnd);
-                this.scene = new RawDX11Scene(device, swapChain);
-#else
                 this.scene = new RawDX11Scene(swapChain);
-#endif
                 this.scene.OnBuildUI += HandleMouseUI;
                 this.ReadyToDraw?.Invoke(this, null);
             }
