@@ -18,7 +18,7 @@ namespace Dalamud.Plugin
     /// <summary>
     /// This class acts as an interface to various objects needed to interact with Dalamud and the game.
     /// </summary>
-    public class DalamudPluginInterface {
+    public class DalamudPluginInterface : IDisposable {
         /// <summary>
         /// The CommandManager object that allows you to add and remove custom chat commands.
         /// </summary>
@@ -35,9 +35,9 @@ namespace Dalamud.Plugin
         public readonly Framework Framework;
 
         /// <summary>
-		/// A <see cref="InterfaceManager">InterfaceManager</see> instance which allows you to draw UI into the game via ImGui draw calls.
+		/// A <see cref="UiBuilder">UiBuilder</see> instance which allows you to draw UI into the game via ImGui draw calls.
         /// </summary>
-        public readonly InterfaceManager Interface;
+        public readonly UiBuilder UiBuilder;
 
         /// A <see cref="SigScanner">SigScanner</see> instance targeting the main module of the FFXIV process.
         /// </summary>
@@ -54,11 +54,15 @@ namespace Dalamud.Plugin
             this.CommandManager = dalamud.CommandManager;
             this.Framework = dalamud.Framework;
             this.ClientState = dalamud.ClientState;
-            this.Interface = dalamud.InterfaceManager;
+            this.UiBuilder = new UiBuilder(dalamud.InterfaceManager, pluginName);
             this.TargetModuleScanner = new SigScanner(dalamud.TargetModule);
 
             this.dalamud = dalamud;
             this.pluginName = pluginName;
+        }
+
+        public void Dispose() {
+            this.UiBuilder.Dispose();
         }
 
         /// <summary>

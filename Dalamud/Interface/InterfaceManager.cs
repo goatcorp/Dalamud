@@ -32,7 +32,7 @@ namespace Dalamud.Interface
         private RawDX11Scene scene;
 
         /// <summary>
-        /// This event gets called when ImGUI is ready to draw your UI.
+        /// This event gets called by a plugin UiBuilder when read
         /// </summary>
         public event RawDX11Scene.BuildUIDelegate OnDraw;
 
@@ -109,14 +109,7 @@ namespace Dalamud.Interface
             // Doing this here because it's somewhat application-specific behavior
             ImGui.GetIO().MouseDrawCursor = ImGui.GetIO().WantCaptureMouse;
 
-            // invoke all our external ui handlers, giving each a custom id to prevent name collisions
-            // because ImGui control names are globally shared
-            foreach (var del in this.OnDraw?.GetInvocationList())
-            {
-                //ImGui.PushID(someId);
-                del.DynamicInvoke();
-                //ImGui.PopID();
-            }
+            OnDraw?.Invoke();
         }
     }
 }
