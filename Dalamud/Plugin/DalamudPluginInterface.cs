@@ -71,7 +71,7 @@ namespace Dalamud.Plugin
         /// <param name="currentConfig">The current configuration.</param>
         public void SavePluginConfig(IPluginConfiguration currentConfig) {
             if (this.dalamud.Configuration.PluginConfigurations == null)
-                this.dalamud.Configuration.PluginConfigurations = new Dictionary<string, IPluginConfiguration>();
+                this.dalamud.Configuration.PluginConfigurations = new Dictionary<string, object>();
 
             if (this.dalamud.Configuration.PluginConfigurations.ContainsKey(this.pluginName)) {
                 this.dalamud.Configuration.PluginConfigurations[this.pluginName] = currentConfig;
@@ -91,12 +91,12 @@ namespace Dalamud.Plugin
         /// <returns>A previously saved config or null if none was saved before.</returns>
         public IPluginConfiguration GetPluginConfig() {
             if (this.dalamud.Configuration.PluginConfigurations == null)
-                this.dalamud.Configuration.PluginConfigurations = new Dictionary<string, IPluginConfiguration>();
+                this.dalamud.Configuration.PluginConfigurations = new Dictionary<string, object>();
 
             if (!this.dalamud.Configuration.PluginConfigurations.ContainsKey(this.pluginName))
                 return null;
 
-            return this.dalamud.Configuration.PluginConfigurations[this.pluginName];
+            return this.dalamud.Configuration.PluginConfigurations[this.pluginName] as IPluginConfiguration;
         }
     }
 }

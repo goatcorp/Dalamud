@@ -29,7 +29,7 @@ namespace Dalamud
 
         public string LastVersion { get; set; }
 
-        public Dictionary<string, IPluginConfiguration> PluginConfigurations { get; set; }
+        public Dictionary<string, object> PluginConfigurations { get; set; }
 
         public bool WelcomeGuideDismissed;
 
