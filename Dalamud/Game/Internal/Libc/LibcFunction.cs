@@ -26,8 +26,6 @@ namespace Dalamud.Game.Internal.Libc {
         }
 
         public OwnedStdString NewString(byte[] content) {
-            Log.Verbose("Allocating");
-            
             // While 0x70 bytes in the memory should be enough in DX11 version,
             // I don't trust my analysis so we're just going to allocate almost two times more than that.
             var pString = Marshal.AllocHGlobal(256);
