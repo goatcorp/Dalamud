@@ -87,20 +87,23 @@ namespace Dalamud {
             this.InterfaceManager = new InterfaceManager(this.sigScanner);
             this.InterfaceManager.OnDraw += BuildDalamudUi;
             this.InterfaceManager.Enable();
-
-            try {
-                this.PluginManager.LoadPlugins();
-            } catch (Exception ex) {
-                Framework.Gui.Chat.PrintError(
-                    "[XIVLAUNCHER] There was an error loading additional plugins. Please check the log for more details.");
-                Log.Error(ex, "Plugin load failed.");
-            }
         }
 
         public void Start() {
             Framework.Enable();
 
             this.BotManager.Start();
+
+            try
+            {
+                this.PluginManager.LoadPlugins();
+            }
+            catch (Exception ex)
+            {
+                Framework.Gui.Chat.PrintError(
+                    "[XIVLAUNCHER] There was an error loading additional plugins. Please check the log for more details.");
+                Log.Error(ex, "Plugin load failed.");
+            }
         }
 
         public void Unload() {
@@ -112,6 +115,17 @@ namespace Dalamud {
         }
 
         public void Dispose() {
+            try
+            {
+                this.PluginManager.UnloadPlugins();
+            }
+            catch (Exception ex)
+            {
+                Framework.Gui.Chat.PrintError(
+                    "[XIVLAUNCHER] There was an error unloading additional plugins. Please check the log for more details.");
+                Log.Error(ex, "Plugin unload failed.");
+            }
+
             this.InterfaceManager.Dispose();
 
             Framework.Dispose();
@@ -146,30 +160,38 @@ namespace Dalamud {
             {
                 if (ImGui.BeginMainMenuBar())
                 {
-                    if (ImGui.BeginMenu("Dalamud DEBUG"))
+                    if (ImGui.BeginMenu("Dalamud"))
                     {
                         ImGui.MenuItem("Draw Dalamud dev menu", "", ref this.isImguiDrawDevMenu);
-
                         if (ImGui.MenuItem("Open Log window"))
                         {
                             this.logWindow = new DalamudLogWindow();
                             this.isImguiDrawLogWindow = true;
                         }
-
                         ImGui.MenuItem("Draw ImGui demo", "", ref this.isImguiDrawDemoWindow);
-
                         ImGui.Separator();
-
                         if (ImGui.MenuItem("Unload Dalamud"))
                         {
                             Unload();
                         }
-
                         if (ImGui.MenuItem("Kill game"))
                         {
                             Process.GetCurrentProcess().Kill();
                         }
+
+                        ImGui.EndMenu();
                     }
+
+                    if (ImGui.BeginMenu("Plugins"))
+                    {
+                        if (ImGui.MenuItem("Reload plugins"))
+                        {
+                            OnPluginReloadCommand(string.Empty, string.Empty);
+                        }
+                        ImGui.EndMenu();
+                    }
+
+                    //ImGui.EndMainMenuBar();
                 }
             }
 
