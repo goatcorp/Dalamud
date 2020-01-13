@@ -97,12 +97,42 @@ namespace Dalamud {
             }
         }
 
-        private bool isImguiDrawDemoWindow = true;
+        private bool isImguiDrawDemoWindow = false;
         private bool isImguiDrawWelcome = true;
+
+#if DEBUG
+        private bool isImguiDrawDevMenu = true;
+#else
+        private bool isImguiDrawDevMenu = false;
+#endif
 
         private bool neverDrawWelcome = false;
 
         private void BuildDalamudUi() {
+            if (this.isImguiDrawDevMenu) {
+                if (ImGui.BeginMainMenuBar()) {
+                    if (ImGui.BeginMenu("Dalamud DEBUG")) {
+                        if (ImGui.MenuItem("Open Log window")) {
+
+                        }
+
+                        ImGui.MenuItem("Draw ImGui demo", "", ref this.isImguiDrawDemoWindow);
+
+                        ImGui.Separator();
+
+                        if (ImGui.MenuItem("Unload Dalamud"))
+                        {
+                            Unload();
+                        }
+
+                        if (ImGui.MenuItem("Kill game"))
+                        {
+                            Process.GetCurrentProcess().Kill();
+                        }
+                    }
+                }
+            }
+
             if (this.isImguiDrawDemoWindow)
                 ImGui.ShowDemoWindow();
 
@@ -114,6 +144,7 @@ namespace Dalamud {
                 } else {
                     ImGui.Text($"dalamud says hello. ({this.assemblyVersion})");
                     ImGui.Checkbox("Don't show this message again", ref this.neverDrawWelcome);
+                    ImGui.Spacing();
                     ImGui.Spacing();
 
                     if (ImGui.Button("Close")) {
