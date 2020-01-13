@@ -28,7 +28,7 @@ namespace Dalamud.Interface
         public void Emit(LogEvent logEvent)
         {
             var message = logEvent.RenderMessage(_formatProvider);
-            OnLogLine?.Invoke(this, DateTimeOffset.Now.ToString() + " " + message);
+            OnLogLine?.Invoke(this, $"[{DateTimeOffset.Now.ToString()}][{logEvent.Level}] {message}");
         }
     }
 
