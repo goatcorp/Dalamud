@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using Dalamud.Interface;
 using EasyHook;
 using Serilog;
 using Serilog.Core;
@@ -42,6 +43,7 @@ namespace Dalamud {
             
             return new LoggerConfiguration()
                    .WriteTo.Async(a => a.File(logPath))
+                   .WriteTo.EventSink()
 #if DEBUG
                    .MinimumLevel.Verbose()
 #else

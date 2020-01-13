@@ -97,65 +97,6 @@ namespace Dalamud {
             }
         }
 
-        private bool isImguiDrawDemoWindow = false;
-        private bool isImguiDrawWelcome = true;
-
-#if DEBUG
-        private bool isImguiDrawDevMenu = true;
-#else
-        private bool isImguiDrawDevMenu = false;
-#endif
-
-        private bool neverDrawWelcome = false;
-
-        private void BuildDalamudUi() {
-            if (this.isImguiDrawDevMenu) {
-                if (ImGui.BeginMainMenuBar()) {
-                    if (ImGui.BeginMenu("Dalamud DEBUG")) {
-                        if (ImGui.MenuItem("Open Log window")) {
-
-                        }
-
-                        ImGui.MenuItem("Draw ImGui demo", "", ref this.isImguiDrawDemoWindow);
-
-                        ImGui.Separator();
-
-                        if (ImGui.MenuItem("Unload Dalamud"))
-                        {
-                            Unload();
-                        }
-
-                        if (ImGui.MenuItem("Kill game"))
-                        {
-                            Process.GetCurrentProcess().Kill();
-                        }
-                    }
-                }
-            }
-
-            if (this.isImguiDrawDemoWindow)
-                ImGui.ShowDemoWindow();
-
-            if (this.isImguiDrawWelcome) {
-                if (!ImGui.Begin("Welcome to XIVLauncher", ImGuiWindowFlags.Modal | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize))
-                {
-                    // Early out if the window is collapsed, as an optimization.
-                    ImGui.End();
-                } else {
-                    ImGui.Text($"dalamud says hello. ({this.assemblyVersion})");
-                    ImGui.Checkbox("Don't show this message again", ref this.neverDrawWelcome);
-                    ImGui.Spacing();
-                    ImGui.Spacing();
-
-                    if (ImGui.Button("Close")) {
-                        this.isImguiDrawWelcome = false;
-                    }
-
-                    ImGui.End();
-                }
-            }
-        }
-
         public void Start() {
             Framework.Enable();
 
@@ -181,6 +122,95 @@ namespace Dalamud {
 
             this.WinSock2.Dispose();
         }
+
+        #region Interface
+
+        private bool isImguiDrawDemoWindow = false;
+        private bool isImguiDrawWelcome = true;
+
+#if DEBUG
+        private bool isImguiDrawDevMenu = true;
+#else
+        private bool isImguiDrawDevMenu = false;
+#endif
+
+        private bool isImguiDrawLogWindow = false;
+
+        private bool neverDrawWelcome = false;
+
+        private DalamudLogWindow logWindow;
+
+        private void BuildDalamudUi()
+        {
+            if (this.isImguiDrawDevMenu)
+            {
+                if (ImGui.BeginMainMenuBar())
+                {
+                    if (ImGui.BeginMenu("Dalamud DEBUG"))
+                    {
+                        ImGui.MenuItem("Draw Dalamud dev menu", "", ref this.isImguiDrawDevMenu);
+
+                        if (ImGui.MenuItem("Open Log window"))
+                        {
+                            this.logWindow = new DalamudLogWindow();
+                            this.isImguiDrawLogWindow = true;
+                        }
+
+                        ImGui.MenuItem("Draw ImGui demo", "", ref this.isImguiDrawDemoWindow);
+
+                        ImGui.Separator();
+
+                        if (ImGui.MenuItem("Unload Dalamud"))
+                        {
+                            Unload();
+                        }
+
+                        if (ImGui.MenuItem("Kill game"))
+                        {
+                            Process.GetCurrentProcess().Kill();
+                        }
+                    }
+                }
+            }
+
+            if (this.isImguiDrawLogWindow)
+            {
+                this.isImguiDrawLogWindow = this.logWindow != null && this.logWindow.Draw();
+
+                if (this.isImguiDrawLogWindow == false)
+                {
+                    this.logWindow?.Dispose();
+                }
+            }
+
+            if (this.isImguiDrawDemoWindow)
+                ImGui.ShowDemoWindow();
+
+            if (!this.Configuration.WelcomeGuideDismissed)
+            {
+                if (!ImGui.Begin("Welcome to XIVLauncher", ImGuiWindowFlags.Modal | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize))
+                {
+                    // Early out if the window is collapsed, as an optimization.
+                    ImGui.End();
+                }
+                else
+                {
+                    ImGui.Text($"dalamud says hello. ({this.assemblyVersion})");
+                    ImGui.Spacing();
+                    ImGui.Spacing();
+
+                    if (ImGui.Button("Close"))
+                    {
+                        this.Configuration.WelcomeGuideDismissed = true;
+                        this.Configuration.Save(this.StartInfo.ConfigurationPath);
+                    }
+
+                    ImGui.End();
+                }
+            }
+        }
+
+        #endregion
 
         private void SetupCommands() {
             CommandManager.AddHandler("/xldclose", new CommandInfo(OnUnloadCommand) {
@@ -250,8 +280,8 @@ namespace Dalamud {
                 HelpMessage = "Notify when a roulette has a bonus you specified. Run without parameters for more info. Usage: /xlbonus <roulette name> <role name>"
             });
 
-            CommandManager.AddHandler("/xlduidrawdemo", new CommandInfo(OnDebugDrawImGuiDemo) {
-                HelpMessage = "Open ImGUI demo window",
+            CommandManager.AddHandler("/xldev", new CommandInfo(OnDebugDrawDevMenu) {
+                HelpMessage = "Draw dev menu DEBUG",
                 ShowInHelp = false
             });
         }
@@ -471,8 +501,8 @@ namespace Dalamud {
                                      "Possible values for role: tank, dps, healer, all, none/reset");
         }
 
-        private void OnDebugDrawImGuiDemo(string command, string arguments) {
-            this.isImguiDrawDemoWindow = true;
+        private void OnDebugDrawDevMenu(string command, string arguments) {
+            this.isImguiDrawDevMenu = true;
         }
 
         private int RouletteSlugToKey(string slug) => slug.ToLower() switch {
