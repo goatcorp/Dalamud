@@ -58,7 +58,6 @@ namespace Dalamud.Interface
             var clear = ImGui.Button("Clear");
             ImGui.SameLine();
             var copy = ImGui.Button("Copy");
-            ImGui.SameLine();
 
             ImGui.BeginChild("scrolling", new Vector2(0, 0), false, ImGuiWindowFlags.HorizontalScrollbar);
 
