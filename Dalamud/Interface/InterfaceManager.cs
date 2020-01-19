@@ -27,7 +27,7 @@ namespace Dalamud.Interface
 
         private readonly Hook<PresentDelegate> presentHook;
 
-        private SwapChainAddressResolver Address { get; }
+        private DXHookD3D11 dXHookD3D11 = new DXHookD3D11();
 
         private RawDX11Scene scene;
 
@@ -38,16 +38,15 @@ namespace Dalamud.Interface
 
         public InterfaceManager(SigScanner scanner)
         {
-            Address = new SwapChainAddressResolver();
-            Address.Setup(scanner);
 
+            IntPtr addr = dXHookD3D11.Hook();
             Log.Verbose("===== S W A P C H A I N =====");
-            Log.Verbose("Present address {Present}", Address.Present);
+            Log.Verbose("Present address {Present}", addr);
 
             this.presentHook =
-                new Hook<PresentDelegate>(Address.Present,
-                                                    new PresentDelegate(PresentDetour),
-                                                    this);
+                new Hook<PresentDelegate>(addr, 
+                    new PresentDelegate(PresentDetour),
+                    this);
         }
 
         public void Enable()
