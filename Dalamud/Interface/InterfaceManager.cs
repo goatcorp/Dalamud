@@ -1,6 +1,8 @@
 using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Dalamud.Game;
+using Dalamud.Game.Internal;
 using Dalamud.Game.Internal.DXGI;
 using Dalamud.Hooking;
 using ImGuiNET;
@@ -27,7 +29,7 @@ namespace Dalamud.Interface
 
         private readonly Hook<PresentDelegate> presentHook;
 
-        private DXHookD3D11 dXHookD3D11 = new DXHookD3D11();
+        private ISwapChainAddressResolver Address { get; }
 
         private RawDX11Scene scene;
 
@@ -38,13 +40,30 @@ namespace Dalamud.Interface
 
         public InterfaceManager(SigScanner scanner)
         {
+            try {
+                var sigResolver = new SwapChainSigResolver();
+                sigResolver.Setup(scanner);
 
-            IntPtr addr = dXHookD3D11.Hook();
+                Log.Verbose("Found SwapChain via signatures.");
+
+                Address = sigResolver;
+            } catch (Exception ex) {
+                // The SigScanner method fails on wine/proton since DXGI is not a real DLL. We fall back to vtable to detect our Present function address.
+                Log.Error(ex, "Could not get SwapChain address via sig method, falling back to vtable...");
+
+                var vtableResolver = new SwapChainVtableResolver();
+                vtableResolver.Setup(scanner);
+
+                Log.Verbose("Found SwapChain via vtable.");
+
+                Address = vtableResolver;
+            }
+
             Log.Verbose("===== S W A P C H A I N =====");
-            Log.Verbose("Present address {Present}", addr);
+            Log.Verbose("Present address {Present}", Address.Present);
 
             this.presentHook =
-                new Hook<PresentDelegate>(addr, 
+                new Hook<PresentDelegate>(Address.Present, 
                     new PresentDelegate(PresentDetour),
                     this);
         }
@@ -53,20 +72,14 @@ namespace Dalamud.Interface
         {
             this.presentHook.Enable();
 
-            if (this.scene != null)
-            {
-                this.scene.Enable();
-            }
+            this.scene?.Enable();
         }
 
-        public void Disable()
+        private void Disable()
         {
             this.presentHook.Disable();
 
-            if (this.scene != null)
-            {
-                this.scene.Disable();
-            }
+            this.scene?.Disable();
         }
 
         public void Dispose()

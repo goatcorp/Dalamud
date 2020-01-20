@@ -1,13 +1,16 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using Serilog;
 
 namespace Dalamud.Game.Internal.DXGI
 {
-    public sealed class SwapChainAddressResolver : BaseAddressResolver
+    public sealed class SwapChainSigResolver : BaseAddressResolver, ISwapChainAddressResolver
     {
-        public IntPtr Present { get; private set; }
+        public IntPtr Present { get; set; }
         //public IntPtr ResizeBuffers { get; private set; }
 
         protected override void Setup64Bit(SigScanner sig)
@@ -17,7 +20,11 @@ namespace Dalamud.Game.Internal.DXGI
             Log.Debug($"Found DXGI: {module.BaseAddress.ToInt64():X}");
 
             var scanner = new SigScanner(module);
-            Present = scanner.ScanModule("48 89 5C 24 ?? 48 89 74 24 ?? 55 57 41 56 48 8D 6C 24 ??");
+
+            // This(code after the function head - offset of it) was picked to avoid running into issues with other hooks being installed into this function.
+            Present = scanner.ScanModule("41 8B F0 8B FA 89 54 24 ?? 48 8B D9 48 89 4D ?? C6 44 24 ?? 00") - 0x37;
+
+
             // seems unnecessary for now, but we may need to handle it
             //ResizeBuffers = scanner.ScanModule("48 8B C4 55 41 54 41 55 41 56 41 57 48 8D 68 ?? 48 81 EC C0 00 00 00");
         }
