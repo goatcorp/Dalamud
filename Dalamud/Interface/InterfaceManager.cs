@@ -81,16 +81,12 @@ namespace Dalamud.Interface
         {
             this.setCursorHook.Enable();
             this.presentHook.Enable();
-
-            this.scene?.Enable();
         }
 
         private void Disable()
         {
             this.setCursorHook.Disable();
             this.presentHook.Disable();
-
-            this.scene?.Disable();
         }
 
         public void Dispose()
