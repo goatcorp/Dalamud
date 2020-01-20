@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Runtime.InteropServices;
 using Dalamud.Game;
 using Dalamud.Game.Internal.DXGI;
@@ -35,6 +36,7 @@ namespace Dalamud.Interface
 
         private ISwapChainAddressResolver Address { get; }
 
+        private Dalamud dalamud;
         private RawDX11Scene scene;
 
         /// <summary>
@@ -42,8 +44,10 @@ namespace Dalamud.Interface
         /// </summary>
         public event RawDX11Scene.BuildUIDelegate OnDraw;
 
-        public InterfaceManager(SigScanner scanner)
+        public InterfaceManager(Dalamud dalamud, SigScanner scanner)
         {
+            this.dalamud = dalamud;
+
             try {
                 var sigResolver = new SwapChainSigResolver();
                 sigResolver.Setup(scanner);
@@ -109,6 +113,7 @@ namespace Dalamud.Interface
             if (this.scene == null)
             {
                 this.scene = new RawDX11Scene(swapChain);
+                this.scene.ImGuiIniPath = Path.Combine(Path.GetDirectoryName(this.dalamud.StartInfo.ConfigurationPath), "dalamudUI.ini");
                 this.scene.OnBuildUI += Display;
             }
 
