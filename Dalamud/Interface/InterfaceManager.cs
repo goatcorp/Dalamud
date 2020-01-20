@@ -1,10 +1,12 @@
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.InteropServices;
 using Dalamud.Game;
 using Dalamud.Game.Internal;
 using Dalamud.Game.Internal.DXGI;
 using Dalamud.Hooking;
+using EasyHook;
 using ImGuiNET;
 using ImGuiScene;
 using Serilog;
@@ -28,6 +30,11 @@ namespace Dalamud.Interface
         private delegate IntPtr PresentDelegate(IntPtr swapChain, uint syncInterval, uint presentFlags);
 
         private readonly Hook<PresentDelegate> presentHook;
+
+        private readonly Hook<SetCursorDelegate> setCursorHook;
+
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        private delegate IntPtr SetCursorDelegate(IntPtr hCursor);
 
         private ISwapChainAddressResolver Address { get; }
 
@@ -59,8 +66,13 @@ namespace Dalamud.Interface
                 Address = vtableResolver;
             }
 
+            var setCursorAddr = LocalHook.GetProcAddress("user32.dll", "SetCursor");
+
             Log.Verbose("===== S W A P C H A I N =====");
+            Log.Verbose("SetCursor address {SetCursor}", setCursorAddr);
             Log.Verbose("Present address {Present}", Address.Present);
+
+            this.setCursorHook = new Hook<SetCursorDelegate>(setCursorAddr, new SetCursorDelegate(SetCursorDetour), this);
 
             this.presentHook =
                 new Hook<PresentDelegate>(Address.Present, 
@@ -70,6 +82,7 @@ namespace Dalamud.Interface
 
         public void Enable()
         {
+            this.setCursorHook.Enable();
             this.presentHook.Enable();
 
             this.scene?.Enable();
@@ -77,6 +90,7 @@ namespace Dalamud.Interface
 
         private void Disable()
         {
+            this.setCursorHook.Disable();
             this.presentHook.Disable();
 
             this.scene?.Disable();
@@ -110,6 +124,18 @@ namespace Dalamud.Interface
             return this.presentHook.Original(swapChain, syncInterval, presentFlags);
         }
 
+        // can't access imgui IO before first present call
+        private bool lastWantCapture = false;
+
+        private IntPtr SetCursorDetour(IntPtr hCursor) {
+            Log.Debug($"hCursor: {hCursor.ToInt64():X} WantCapture: {this.lastWantCapture}");
+
+            if (this.lastWantCapture == true && ImGui_Input_Impl_Direct.Cursors != null && !ImGui_Input_Impl_Direct.Cursors.Contains(hCursor))
+                return IntPtr.Zero;
+
+            return this.setCursorHook.Original(hCursor);
+        }
+
         private void Display()
         {
             // this is more or less part of what reshade/etc do to avoid having to manually
@@ -119,7 +145,8 @@ namespace Dalamud.Interface
             // If the player has the game software cursor enabled, we can't really do anything about that and
             // they will see both cursors.
             // Doing this here because it's somewhat application-specific behavior
-            ImGui.GetIO().MouseDrawCursor = ImGui.GetIO().WantCaptureMouse;
+            //ImGui.GetIO().MouseDrawCursor = ImGui.GetIO().WantCaptureMouse;
+            this.lastWantCapture = ImGui.GetIO().WantCaptureMouse;
 
             OnDraw?.Invoke();
         }
