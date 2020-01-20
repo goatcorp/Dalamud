@@ -1,9 +1,6 @@
 using System;
-using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
 using Dalamud.Game;
-using Dalamud.Game.Internal;
 using Dalamud.Game.Internal.DXGI;
 using Dalamud.Hooking;
 using EasyHook;
@@ -130,7 +127,7 @@ namespace Dalamud.Interface
         private IntPtr SetCursorDetour(IntPtr hCursor) {
             Log.Debug($"hCursor: {hCursor.ToInt64():X} WantCapture: {this.lastWantCapture}");
 
-            if (this.lastWantCapture == true && ImGui_Input_Impl_Direct.Cursors != null && !ImGui_Input_Impl_Direct.Cursors.Contains(hCursor))
+            if (this.lastWantCapture == true && (!scene?.IsImGuiCursor(hCursor) ?? false))
                 return IntPtr.Zero;
 
             return this.setCursorHook.Original(hCursor);
