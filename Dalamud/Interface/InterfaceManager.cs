@@ -126,8 +126,6 @@ namespace Dalamud.Interface
         private bool lastWantCapture = false;
 
         private IntPtr SetCursorDetour(IntPtr hCursor) {
-            Log.Debug($"hCursor: {hCursor.ToInt64():X} WantCapture: {this.lastWantCapture}");
-
             if (this.lastWantCapture == true && (!scene?.IsImGuiCursor(hCursor) ?? false))
                 return IntPtr.Zero;
 
