@@ -109,6 +109,32 @@ namespace Dalamud.Interface
             this.presentHook.Dispose();
         }
 
+        public TextureWrap LoadImage(string filePath)
+        {
+            try
+            {
+                return this.scene?.LoadImage(filePath) ?? null;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, $"Failed to load image from {filePath}");
+            }
+            return null;
+        }
+
+        public TextureWrap LoadImage(byte[] imageData)
+        {
+            try
+            {
+                return this.scene?.LoadImage(imageData) ?? null;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Failed to load image from memory");
+            }
+            return null;
+        }
+
         private IntPtr PresentDetour(IntPtr swapChain, uint syncInterval, uint presentFlags)
         {
             if (this.scene == null)
