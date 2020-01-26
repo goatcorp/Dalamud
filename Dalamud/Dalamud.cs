@@ -28,9 +28,9 @@ namespace Dalamud {
 
         private readonly ManualResetEvent unloadSignal;
 
-        public readonly ProcessModule TargetModule;
+        private readonly ProcessModule targetModule;
 
-        private readonly SigScanner sigScanner;
+        public readonly SigScanner SigScanner;
 
         public Framework Framework { get; }
 
@@ -48,7 +48,7 @@ namespace Dalamud {
 
         public readonly DalamudConfiguration Configuration;
 
-        internal readonly WinSockHandlers WinSock2;
+        private readonly WinSockHandlers WinSock2;
 
         public readonly InterfaceManager InterfaceManager;
 
@@ -63,11 +63,11 @@ namespace Dalamud {
             this.unloadSignal = new ManualResetEvent(false);
 
             // Initialize the process information.
-            this.TargetModule = Process.GetCurrentProcess().MainModule;
-            this.sigScanner = new SigScanner(this.TargetModule);
+            this.targetModule = Process.GetCurrentProcess().MainModule;
+            SigScanner = new SigScanner(this.targetModule, true);
 
             // Initialize game subsystem
-            Framework = new Framework(this.sigScanner, this);
+            Framework = new Framework(this.SigScanner, this);
 
             // Initialize managers. Basically handlers for the logic
             CommandManager = new CommandManager(this, info.Language);
@@ -76,7 +76,7 @@ namespace Dalamud {
             ChatHandlers = new ChatHandlers(this);
             NetworkHandlers = new NetworkHandlers(this, this.Configuration.OptOutMbCollection);
 
-            this.ClientState = new ClientState(this, info, this.sigScanner, this.TargetModule);
+            this.ClientState = new ClientState(this, info, this.SigScanner, this.targetModule);
 
             this.BotManager = new DiscordBotManager(this, this.Configuration.DiscordFeatureConfig);
 
@@ -84,7 +84,7 @@ namespace Dalamud {
 
             this.WinSock2 = new WinSockHandlers();
 
-            this.InterfaceManager = new InterfaceManager(this, this.sigScanner);
+            this.InterfaceManager = new InterfaceManager(this, this.SigScanner);
             this.InterfaceManager.OnDraw += BuildDalamudUi;
             this.InterfaceManager.Enable();
         }
@@ -135,6 +135,8 @@ namespace Dalamud {
             this.unloadSignal.Dispose();
 
             this.WinSock2.Dispose();
+
+            this.SigScanner.Dispose();
         }
 
         #region Interface

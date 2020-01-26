@@ -7,17 +7,23 @@ using System.Runtime.InteropServices;
 using Serilog;
 
 namespace Dalamud.Game {
-    public sealed class SigScanner {
-        public SigScanner(ProcessModule module) {
+    public sealed class SigScanner : IDisposable {
+        public SigScanner(ProcessModule module, bool doCopy = false) {
             Module = module;
             Is32BitProcess = !Environment.Is64BitProcess;
+            IsCopy = doCopy;
 
             // Limit the search space to .text section.
             SetupSearchSpace(module);
 
+            if (IsCopy)
+                SetupCopiedSegments();
+
             Log.Verbose("Module base: {Address}", TextSectionBase);
-            Log.Verbose("Moudle size: {Size}", TextSectionSize);
+            Log.Verbose("Module size: {Size}", TextSectionSize);
         }
+
+        public bool IsCopy { get; private set; }
 
         public bool Is32BitProcess { get; }
 
@@ -72,19 +78,58 @@ namespace Dalamud.Game {
             }
         }
 
+        private IntPtr textCopyPtr;
+        private IntPtr dataCopyPtr;
+
+        private unsafe void SetupCopiedSegments() {
+            Log.Verbose("text copy START");
+            // .text
+            this.textCopyPtr = Marshal.AllocHGlobal(TextSectionSize);
+            Log.Verbose($"Alloc: {this.textCopyPtr.ToInt64():x}");
+            Buffer.MemoryCopy(TextSectionBase.ToPointer(), this.textCopyPtr.ToPointer(), TextSectionSize,
+                              TextSectionSize);
+
+            Log.Verbose("data copy START");
+            // .data
+            this.dataCopyPtr = Marshal.AllocHGlobal(DataSectionSize);
+            Buffer.MemoryCopy(DataSectionBase.ToPointer(), this.dataCopyPtr.ToPointer(), DataSectionSize,
+                              DataSectionSize);
+
+            Log.Verbose("copy OK!");
+        }
+
+        public void Dispose() {
+            Marshal.FreeHGlobal(this.textCopyPtr);
+            Marshal.FreeHGlobal(this.dataCopyPtr);
+        }
+
         public IntPtr ScanText(string signature) {
-            return Scan(TextSectionBase, TextSectionSize, signature);
+            var mBase = IsCopy ? this.textCopyPtr : TextSectionBase;
+
+            var scanRet = Scan(mBase, TextSectionSize, signature);
+
+            return IsCopy
+                       ? (new IntPtr(scanRet.ToInt64() - (this.textCopyPtr.ToInt64() - TextSectionBase.ToInt64())))
+                       : scanRet;
         }
 
         public IntPtr ScanData(string signature) {
-            return Scan(DataSectionBase, DataSectionSize, signature);
+            var mBase = IsCopy ? this.dataCopyPtr : DataSectionBase;
+
+            var scanRet = Scan(DataSectionBase, DataSectionSize, signature);
+
+            return IsCopy
+                       ? (new IntPtr(scanRet.ToInt64() - (this.textCopyPtr.ToInt64() - TextSectionBase.ToInt64())))
+                       : scanRet;
         }
 
         public IntPtr ScanModule(string signature) {
+            // TODO: This does not respect the copy flag.
             return Scan(Module.BaseAddress, Module.ModuleMemorySize, signature);
         }
 
         public IntPtr Scan(IntPtr baseAddress, int size, string signature) {
+            Log.Verbose($"Scan at {baseAddress.ToInt64():x} with {size:x} for {signature}");
             var needle = SigToNeedle(signature);
 
             unsafe {

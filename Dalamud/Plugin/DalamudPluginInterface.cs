@@ -55,7 +55,7 @@ namespace Dalamud.Plugin
             this.Framework = dalamud.Framework;
             this.ClientState = dalamud.ClientState;
             this.UiBuilder = new UiBuilder(dalamud.InterfaceManager, pluginName);
-            this.TargetModuleScanner = new SigScanner(dalamud.TargetModule);
+            this.TargetModuleScanner = dalamud.SigScanner;
 
             this.dalamud = dalamud;
             this.pluginName = pluginName;
