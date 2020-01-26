@@ -27,10 +27,14 @@ namespace Dalamud.Game {
 
         public bool Is32BitProcess { get; }
 
-        public IntPtr TextSectionBase { get; private set; }
+        public IntPtr SearchBase => IsCopy ? this.moduleCopyPtr : Module.BaseAddress;
+
+        public IntPtr TextSectionBase => new IntPtr(SearchBase.ToInt64() + TextSectionOffset);
+        public long TextSectionOffset { get; private set; }
         public int TextSectionSize { get; private set; }
 
-        public IntPtr DataSectionBase { get; private set; }
+        public IntPtr DataSectionBase => new IntPtr(SearchBase.ToInt64() + DataSectionOffset);
+        public long DataSectionOffset { get; private set; }
         public int DataSectionSize { get; private set; }
 
         public ProcessModule Module { get; }
@@ -65,11 +69,11 @@ namespace Dalamud.Game {
                 // .text
                 switch (sectionName) {
                     case 0x747865742E: // .text
-                        TextSectionBase = baseAddress + Marshal.ReadInt32(sectionCursor, 12);
+                        TextSectionOffset = Marshal.ReadInt32(sectionCursor, 12);
                         TextSectionSize = Marshal.ReadInt32(sectionCursor, 8);
                         break;
                     case 0x617461642E: // .data
-                        DataSectionBase = baseAddress + Marshal.ReadInt32(sectionCursor, 12);
+                        DataSectionOffset = Marshal.ReadInt32(sectionCursor, 12);
                         DataSectionSize = Marshal.ReadInt32(sectionCursor, 8);
                         break;
                 }
@@ -78,58 +82,56 @@ namespace Dalamud.Game {
             }
         }
 
-        private IntPtr textCopyPtr;
-        private IntPtr dataCopyPtr;
+        private IntPtr moduleCopyPtr;
+        private long moduleCopyOffset;
 
         private unsafe void SetupCopiedSegments() {
-            Log.Verbose("text copy START");
+            Log.Verbose("module copy START");
             // .text
-            this.textCopyPtr = Marshal.AllocHGlobal(TextSectionSize);
-            Log.Verbose($"Alloc: {this.textCopyPtr.ToInt64():x}");
-            Buffer.MemoryCopy(TextSectionBase.ToPointer(), this.textCopyPtr.ToPointer(), TextSectionSize,
-                              TextSectionSize);
+            this.moduleCopyPtr = Marshal.AllocHGlobal(Module.ModuleMemorySize);
+            Log.Verbose($"Alloc: {this.moduleCopyPtr.ToInt64():x}");
+            Buffer.MemoryCopy(Module.BaseAddress.ToPointer(), this.moduleCopyPtr.ToPointer(), Module.ModuleMemorySize,
+                              Module.ModuleMemorySize);
 
-            Log.Verbose("data copy START");
-            // .data
-            this.dataCopyPtr = Marshal.AllocHGlobal(DataSectionSize);
-            Buffer.MemoryCopy(DataSectionBase.ToPointer(), this.dataCopyPtr.ToPointer(), DataSectionSize,
-                              DataSectionSize);
+            this.moduleCopyOffset = this.moduleCopyPtr.ToInt64() - Module.BaseAddress.ToInt64();
 
             Log.Verbose("copy OK!");
         }
 
         public void Dispose() {
-            Marshal.FreeHGlobal(this.textCopyPtr);
-            Marshal.FreeHGlobal(this.dataCopyPtr);
+            Marshal.FreeHGlobal(this.moduleCopyPtr);
         }
 
         public IntPtr ScanText(string signature) {
-            var mBase = IsCopy ? this.textCopyPtr : TextSectionBase;
+            var mBase = IsCopy ? this.moduleCopyPtr : TextSectionBase;
 
             var scanRet = Scan(mBase, TextSectionSize, signature);
 
-            return IsCopy
-                       ? (new IntPtr(scanRet.ToInt64() - (this.textCopyPtr.ToInt64() - TextSectionBase.ToInt64())))
-                       : scanRet;
+            if (IsCopy)
+                scanRet = new IntPtr(scanRet.ToInt64() - this.moduleCopyOffset);
+
+            return scanRet;
         }
 
         public IntPtr ScanData(string signature) {
-            var mBase = IsCopy ? this.dataCopyPtr : DataSectionBase;
-
             var scanRet = Scan(DataSectionBase, DataSectionSize, signature);
 
-            return IsCopy
-                       ? (new IntPtr(scanRet.ToInt64() - (this.textCopyPtr.ToInt64() - TextSectionBase.ToInt64())))
-                       : scanRet;
+            if (IsCopy)
+                scanRet = new IntPtr(scanRet.ToInt64() - this.moduleCopyOffset);
+
+            return scanRet;
         }
 
         public IntPtr ScanModule(string signature) {
-            // TODO: This does not respect the copy flag.
-            return Scan(Module.BaseAddress, Module.ModuleMemorySize, signature);
+            var scanRet = Scan(SearchBase, Module.ModuleMemorySize, signature);
+
+            if (IsCopy)
+                scanRet = new IntPtr(scanRet.ToInt64() - this.moduleCopyOffset);
+
+            return scanRet;
         }
 
         public IntPtr Scan(IntPtr baseAddress, int size, string signature) {
-            Log.Verbose($"Scan at {baseAddress.ToInt64():x} with {size:x} for {signature}");
             var needle = SigToNeedle(signature);
 
             unsafe {
