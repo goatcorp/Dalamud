@@ -33,22 +33,22 @@ namespace Dalamud.Plugin
         }
 
         public void LoadPlugins() {
-            LoadPluginsAt(this.defaultPluginDirectory);
-            LoadPluginsAt(this.pluginDirectory);
+            LoadPluginsAt(new DirectoryInfo(this.defaultPluginDirectory));
+            LoadPluginsAt(new DirectoryInfo(this.pluginDirectory));
         }
 
-        private void LoadPluginsAt(string folder) {
-            if (Directory.Exists(folder))
+        private void LoadPluginsAt(DirectoryInfo folder) {
+            if (folder.Exists)
             { 
                 Log.Debug("Loading plugins at {0}", folder);
 
-                var pluginFileNames = Directory.GetFiles(folder, "*.dll"); 
+                var pluginDlls = folder.GetFiles("*.dll", SearchOption.AllDirectories);
 
-                var assemblies = new List<Assembly>(pluginFileNames.Length); 
-                foreach (var dllFile in pluginFileNames) 
+                var assemblies = new List<Assembly>(pluginDlls.Length); 
+                foreach (var dllFile in pluginDlls) 
                 { 
                     Log.Debug("Loading assembly at {0}", dllFile);
-                    var assemblyName = AssemblyName.GetAssemblyName(dllFile); 
+                    var assemblyName = AssemblyName.GetAssemblyName(dllFile.FullName);
                     var pluginAssembly = Assembly.Load(assemblyName); 
                     assemblies.Add(pluginAssembly); 
                 }
