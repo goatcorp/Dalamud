@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Dalamud.Game.Network.MarketBoardUploaders;
 using Dalamud.Game.Network.Structures;
 using Dalamud.Game.Network.Universalis.MarketBoardUploaders;
+using Newtonsoft.Json.Linq;
 using Serilog;
 
 namespace Dalamud.Game.Network {
@@ -19,6 +20,9 @@ namespace Dalamud.Game.Network {
 
         private byte[] lastPreferredRole;
 
+        public delegate Task CfPop(JObject contentFinderCondition);
+        public event CfPop ProcessCfPop;
+
         public NetworkHandlers(Dalamud dalamud, bool optOutMbUploads) {
             this.dalamud = dalamud;
             this.optOutMbUploads = optOutMbUploads;
@@ -26,6 +30,7 @@ namespace Dalamud.Game.Network {
             this.uploader = new UniversalisMarketBoardUploader(dalamud);
 
             dalamud.Framework.Network.OnZonePacket += OnZonePacket;
+
         }
 
         private void OnZonePacket(IntPtr dataPtr) {
@@ -48,8 +53,8 @@ namespace Dalamud.Game.Network {
 
                     this.dalamud.Framework.Gui.Chat.Print($"Duty pop: " + contentFinderCondition["Name"]);
 
-                    if (this.dalamud.BotManager.IsConnected)
-                        await this.dalamud.BotManager.ProcessCfPop(contentFinderCondition);
+                    await this.ProcessCfPop?.Invoke(contentFinderCondition);
+
                 });
 
                 return;
