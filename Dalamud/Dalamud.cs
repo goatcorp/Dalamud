@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Dalamud.Data;
 using Dalamud.DiscordBot;
 using Dalamud.Game;
 using Dalamud.Game.Chat;
@@ -52,6 +53,8 @@ namespace Dalamud {
 
         public readonly InterfaceManager InterfaceManager;
 
+        public readonly DataManager Data;
+
         private readonly string assemblyVersion = Assembly.GetAssembly(typeof(ChatHandlers)).GetName().Version.ToString();
 
         public Dalamud(DalamudStartInfo info) {
@@ -75,6 +78,10 @@ namespace Dalamud {
 
             ChatHandlers = new ChatHandlers(this);
             NetworkHandlers = new NetworkHandlers(this, this.Configuration.OptOutMbCollection);
+
+            this.Data = new DataManager();
+            //Task.Run(() => );
+            this.Data.Initialize();
 
             this.ClientState = new ClientState(this, info, this.SigScanner, this.targetModule);
 
