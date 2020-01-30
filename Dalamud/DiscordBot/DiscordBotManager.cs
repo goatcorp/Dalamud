@@ -38,6 +38,7 @@ namespace Dalamud.DiscordBot {
 
             this.socketClient = new DiscordSocketClient();
             this.socketClient.Ready += SocketClientOnReady;
+            this.dalamud.NetworkHandlers.ProcessCfPop += ProcessCfPop;
         }
 
         private XivChatType GetChatTypeBySlug(string slug) {
@@ -103,6 +104,9 @@ namespace Dalamud.DiscordBot {
         }
 
         public async Task ProcessCfPop(JObject contentFinderCondition) {
+            if (!this.IsConnected)
+                return;
+
             var contentName = contentFinderCondition["Name"];
 
             if (this.config.CfNotificationChannel == null)
