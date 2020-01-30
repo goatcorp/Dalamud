@@ -41,15 +41,14 @@ namespace Dalamud.Game.Network {
                 Marshal.Copy(dataPtr, data, 0, 64);
 
                 var notifyType = data[16];
-                var contentFinderConditionId = BitConverter.ToInt16(data, 36);
+                var contentFinderConditionId = BitConverter.ToUInt16(data, 36);
 
 
                 Task.Run(async () => {
                     if (notifyType != 3 || contentFinderConditionId == 0)
                         return;
 
-                    var contentFinderCondition =
-                        await XivApi.GetContentFinderCondition(contentFinderConditionId);
+                    var contentFinderCondition = this.dalamud.Data.ContentFinderCondition[contentFinderConditionId];
 
                     this.dalamud.Framework.Gui.Chat.Print($"Duty pop: " + contentFinderCondition["Name"]);
 
