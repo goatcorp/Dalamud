@@ -81,28 +81,6 @@ namespace Dalamud.DiscordBot {
             return Task.CompletedTask;
         }
 
-        public async Task ProcessFate(int id) {
-            if (this.config.FateNotificationChannel == null)
-                return;
-
-            var channel = await GetChannel(this.config.FateNotificationChannel);
-
-            dynamic fateInfo = XivApi.GetFate(id).GetAwaiter().GetResult();
-
-            this.dalamud.Framework.Gui.Chat.Print("Watched Fate spawned: " + (string) fateInfo.Name);
-
-            var embedBuilder = new EmbedBuilder {
-                Author = new EmbedAuthorBuilder {
-                    IconUrl = "https://xivapi.com" + (string) fateInfo.Icon,
-                    Name = "Fate spawned: " + (string) fateInfo.Name
-                },
-                Color = new Color(0xa73ed1),
-                Timestamp = DateTimeOffset.Now
-            };
-
-            await channel.SendMessageAsync(embed: embedBuilder.Build());
-        }
-
         public async Task ProcessCfPop(JObject contentFinderCondition) {
             if (!this.IsConnected)
                 return;
