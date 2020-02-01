@@ -34,9 +34,12 @@ namespace Dalamud.Game.Network {
         }
 
         private void OnZonePacket(IntPtr dataPtr) {
+            if (!this.dalamud.Data.IsDataReady)
+                return;
+
             var opCode = (ushort) Marshal.ReadInt16(dataPtr, 2);
 
-            if (opCode == this.dalamud.Data.OpCodes["CfNotifyPop"]) {
+            if (opCode == this.dalamud.Data.ServerOpCodes["CfNotifyPop"]) {
                 var data = new byte[64];
                 Marshal.Copy(dataPtr, data, 0, 64);
 
@@ -59,7 +62,7 @@ namespace Dalamud.Game.Network {
                 return;
             }
 
-            if (opCode == this.dalamud.Data.OpCodes["CfPreferredRole"]) {
+            if (opCode == this.dalamud.Data.ServerOpCodes["CfPreferredRole"]) {
                 if (this.dalamud.Configuration.PreferredRoleReminders == null)
                     return;
 
@@ -114,7 +117,7 @@ namespace Dalamud.Game.Network {
             }
 
             if (!this.optOutMbUploads) {
-                if (opCode == this.dalamud.Data.OpCodes["MarketBoardItemRequestStart"]) {
+                if (opCode == this.dalamud.Data.ServerOpCodes["MarketBoardItemRequestStart"]) {
                     var catalogId = (uint) Marshal.ReadInt32(dataPtr + 0x10);
                     var amount = Marshal.ReadByte(dataPtr + 0x1B);
 
@@ -129,7 +132,7 @@ namespace Dalamud.Game.Network {
                     return;
                 }
 
-                if (opCode == this.dalamud.Data.OpCodes["MarketBoardOfferings"]) {
+                if (opCode == this.dalamud.Data.ServerOpCodes["MarketBoardOfferings"]) {
                     var listing = MarketBoardCurrentOfferings.Read(dataPtr + 0x10);
 
                     var request =
@@ -184,7 +187,7 @@ namespace Dalamud.Game.Network {
                     return;
                 }
 
-                if (opCode == this.dalamud.Data.OpCodes["MarketBoardHistory"]) {
+                if (opCode == this.dalamud.Data.ServerOpCodes["MarketBoardHistory"]) {
                     var listing = MarketBoardHistory.Read(dataPtr + 0x10);
 
                     var request = this.marketBoardRequests.LastOrDefault(r => r.CatalogId == listing.CatalogId);
@@ -206,7 +209,7 @@ namespace Dalamud.Game.Network {
                     Log.Verbose("Added history for item#{0}", listing.CatalogId);
                 }
 
-                if (opCode == this.dalamud.Data.OpCodes["MarketTaxRates"])
+                if (opCode == this.dalamud.Data.ServerOpCodes["MarketTaxRates"])
                 {
                     var taxes = MarketTaxRates.Read(dataPtr + 0x10);
 
