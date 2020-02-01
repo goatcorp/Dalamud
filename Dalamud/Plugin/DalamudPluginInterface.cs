@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Dalamud.Configuration;
+using Dalamud.Data;
 using Dalamud.Game;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.Command;
@@ -39,9 +40,15 @@ namespace Dalamud.Plugin
         /// </summary>
         public readonly UiBuilder UiBuilder;
 
+        /// <summary>
         /// A <see cref="SigScanner">SigScanner</see> instance targeting the main module of the FFXIV process.
         /// </summary>
         public readonly SigScanner TargetModuleScanner;
+
+        /// <summary>
+        /// A <see cref="DataManager">DataManager</see> instance which allows you to access game data needed by the main dalamud features.
+        /// </summary>
+        public readonly DataManager Data;
 
         private readonly Dalamud dalamud;
         private readonly string pluginName;
@@ -56,6 +63,7 @@ namespace Dalamud.Plugin
             this.ClientState = dalamud.ClientState;
             this.UiBuilder = new UiBuilder(dalamud.InterfaceManager, pluginName);
             this.TargetModuleScanner = dalamud.SigScanner;
+            this.Data = dalamud.Data;
 
             this.dalamud = dalamud;
             this.pluginName = pluginName;
