@@ -18,7 +18,7 @@ namespace Dalamud.Injector {
             {
                 File.WriteAllText("InjectorException.txt", eventArgs.ExceptionObject.ToString());
 
-                MessageBox.Show("Failed to inject the XIVLauncher in-game addon. Please report this error:\n\n" + eventArgs.ExceptionObject, "XIVLauncher Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Failed to inject the XIVLauncher in-game addon.\nPlease try restarting your game and your PC.\nIf this keeps happening, please report this error.", "XIVLauncher Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
                 Environment.Exit(0);
             };
@@ -45,6 +45,9 @@ namespace Dalamud.Injector {
             var startInfo = JsonConvert.DeserializeObject<DalamudStartInfo>(Encoding.UTF8.GetString(Convert.FromBase64String(args[1])));
             startInfo.WorkingDirectory = Directory.GetCurrentDirectory();
             
+            // Seems to help with the STATUS_INTERNAL_ERROR condition
+            Thread.Sleep(1000);
+
             // Inject to process
             Inject(process, startInfo);
         }
