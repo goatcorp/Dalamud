@@ -158,10 +158,12 @@ namespace Dalamud {
 #endif
 
         private bool isImguiDrawLogWindow = false;
+        private bool isImguiDrawDataWindow = false;
 
         private bool neverDrawWelcome = false;
 
         private DalamudLogWindow logWindow;
+        private DalamudDataWindow dataWindow;
 
         private void BuildDalamudUi()
         {
@@ -172,10 +174,16 @@ namespace Dalamud {
                     if (ImGui.BeginMenu("Dalamud"))
                     {
                         ImGui.MenuItem("Draw Dalamud dev menu", "", ref this.isImguiDrawDevMenu);
+                        ImGui.Separator();
                         if (ImGui.MenuItem("Open Log window"))
                         {
                             this.logWindow = new DalamudLogWindow();
                             this.isImguiDrawLogWindow = true;
+                        }
+                        if (ImGui.MenuItem("Open Data window"))
+                        {
+                            this.dataWindow = new DalamudDataWindow(this.Data);
+                            this.isImguiDrawDataWindow = true;
                         }
                         ImGui.MenuItem("Draw ImGui demo", "", ref this.isImguiDrawDemoWindow);
                         ImGui.Separator();
@@ -212,6 +220,11 @@ namespace Dalamud {
                 {
                     this.logWindow?.Dispose();
                 }
+            }
+
+            if (this.isImguiDrawDataWindow)
+            {
+                this.isImguiDrawDataWindow = this.dataWindow != null && this.dataWindow.Draw();
             }
 
             if (this.isImguiDrawDemoWindow)
