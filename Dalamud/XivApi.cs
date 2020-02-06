@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -13,9 +14,9 @@ namespace Dalamud
 {
     class XivApi
     {
-        private const string URL = "http://xivapi.com/";
+        private const string URL = "https://xivapi.com/";
 
-        private static readonly Dictionary<string, JObject> cachedResponses = new Dictionary<string, JObject>();
+        private static readonly ConcurrentDictionary<string, JObject> cachedResponses = new ConcurrentDictionary<string, JObject>();
 
         public static async Task<JObject> GetWorld(int world)
         {
@@ -77,8 +78,8 @@ namespace Dalamud
         {
             Log.Verbose("XIVAPI FETCH: {0}", endpoint);
 
-            if (cachedResponses.ContainsKey(endpoint) && !noCache)
-                return cachedResponses[endpoint];
+            if (cachedResponses.TryGetValue(endpoint, out var val) && !noCache)
+                return val;
 
             var client = new HttpClient();
             var response = await client.GetAsync(URL + endpoint);
@@ -87,7 +88,7 @@ namespace Dalamud
             var obj = JObject.Parse(result);
 
             if (!noCache)
-                cachedResponses.Add(endpoint, obj);
+                cachedResponses.TryAdd(endpoint, obj);
 
             return obj;
         }
