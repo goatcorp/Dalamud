@@ -1,11 +1,15 @@
 using System;
 using System.Collections.Generic;
+using System.IO.Ports;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Dalamud.Game.Chat;
+using Dalamud.Game.Chat.SeStringHandling;
+using Dalamud.Game.Chat.SeStringHandling.Payloads;
+using Dalamud.Game.Internal.Libc;
 using Discord;
 using Discord.WebSocket;
 using Newtonsoft.Json.Linq;
@@ -157,12 +161,11 @@ namespace Dalamud.DiscordBot {
             await channel.SendMessageAsync(embed: embedBuilder.Build());
         }
 
-        public async Task ProcessChatMessage(XivChatType type, string message, string sender) {
+        public async Task ProcessChatMessage(XivChatType type, StdString message, StdString sender) {
             // Special case for outgoing tells, these should be sent under Incoming tells
             var wasOutgoingTell = false;
             if (type == XivChatType.TellOutgoing) {
                 type = XivChatType.TellIncoming;
-                sender = this.dalamud.ClientState.LocalPlayer.Name;
                 wasOutgoingTell = true;
             }
 
@@ -173,32 +176,34 @@ namespace Dalamud.DiscordBot {
                 return;
 
             var chatTypeDetail = type.GetDetails();
-
             var channels = chatTypeConfigs.Select(c => GetChannel(c.Channel).GetAwaiter().GetResult());
 
-            var senderSplit = sender.Split(new[] {this.worldIcon}, StringSplitOptions.None);
 
+            var parsedSender = SeString.Parse(sender.RawData);
+            var playerLink = parsedSender.Payloads.FirstOrDefault(x => x.Type == PayloadType.Player) as PlayerPayload;
 
-            var world = string.Empty;
+            var senderName = string.Empty;
+            var senderWorld = string.Empty;
 
-            if (this.dalamud.ClientState.Actors.Length > 0)
-                world = this.dalamud.ClientState.LocalPlayer.CurrentWorld.Name;
+            if (playerLink == null) {
+                Log.Error("playerLink was null. Sender: {0}", BitConverter.ToString(sender.RawData));
 
-            if (senderSplit.Length == 2) {
-                world = senderSplit[1];
-                sender = senderSplit[0];
+                senderName = wasOutgoingTell ? this.dalamud.ClientState.LocalPlayer.Name : parsedSender.TextValue;
+                senderWorld = this.dalamud.ClientState.LocalPlayer.HomeWorld.Name;
+            } else {
+                playerLink.Resolve();
+
+                senderName = wasOutgoingTell ? this.dalamud.ClientState.LocalPlayer.Name : playerLink.PlayerName;
+                senderWorld = playerLink.ServerName;
             }
 
-            sender = SeString.Parse(sender).Output;
-            message = SeString.Parse(message).Output;
+            var rawMessage = SeString.Parse(message.RawData).TextValue;
 
-            sender = RemoveAllNonLanguageCharacters(sender);
-
-            var avatarUrl = "";
-            var lodestoneId = "";
+            var avatarUrl = string.Empty;
+            var lodestoneId = string.Empty;
 
             if (!this.config.DisableEmbeds) {
-                var searchResult = await GetCharacterInfo(sender, world);
+                var searchResult = await GetCharacterInfo(senderName, senderWorld);
 
                 lodestoneId = searchResult.LodestoneId;
                 avatarUrl = searchResult.AvatarUrl;
@@ -208,9 +213,9 @@ namespace Dalamud.DiscordBot {
 
             var name = wasOutgoingTell
                            ? "You"
-                           : sender + (string.IsNullOrEmpty(world) || string.IsNullOrEmpty(sender)
+                           : senderName + (string.IsNullOrEmpty(senderWorld) || string.IsNullOrEmpty(senderName)
                                            ? ""
-                                           : $" on {world}");
+                                           : $" on {senderWorld}");
 
             for (var chatTypeIndex = 0; chatTypeIndex < chatTypeConfigs.Count(); chatTypeIndex++) {
                 if (!this.config.DisableEmbeds) {
@@ -222,7 +227,7 @@ namespace Dalamud.DiscordBot {
                             Name = name,
                             Url = !string.IsNullOrEmpty(lodestoneId) ? "https://eu.finalfantasyxiv.com/lodestone/character/" + lodestoneId : null
                         },
-                        Description = message,
+                        Description = rawMessage,
                         Timestamp = DateTimeOffset.Now,
                         Footer = new EmbedFooterBuilder { Text = type.GetDetails().FancyName },
                         Color = new Color((uint)(chatTypeConfigs.ElementAt(chatTypeIndex).Color & 0xFFFFFF))
@@ -253,7 +258,7 @@ namespace Dalamud.DiscordBot {
 
                     await channels.ElementAt(chatTypeIndex).SendMessageAsync(embed: embedBuilder.Build());
                 } else {
-                    var simpleMessage = $"{name}: {message}";
+                    var simpleMessage = $"{name}: {rawMessage}";
 
                     if (this.config.CheckForDuplicateMessages) {
                         var recentMsg = this.recentMessages.FirstOrDefault(
@@ -267,7 +272,7 @@ namespace Dalamud.DiscordBot {
                         }
                     }
 
-                    await channels.ElementAt(chatTypeIndex).SendMessageAsync($"**[{chatTypeDetail.Slug}]{name}**: {message}");
+                    await channels.ElementAt(chatTypeIndex).SendMessageAsync($"**[{chatTypeDetail.Slug}]{name}**: {rawMessage}");
                 }
             }
         }
@@ -297,10 +302,6 @@ namespace Dalamud.DiscordBot {
             if (channelConfig.Type == ChannelType.Guild)
                 return this.socketClient.GetGuild(channelConfig.GuildId).GetTextChannel(channelConfig.ChannelId);
             return await this.socketClient.GetUser(channelConfig.ChannelId).GetOrCreateDMChannelAsync();
-        }
-
-        private string RemoveAllNonLanguageCharacters(string input) {
-            return Regex.Replace(input, @"[^\p{L} ']", "");
         }
 
         public void Dispose() {
