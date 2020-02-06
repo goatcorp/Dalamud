@@ -91,12 +91,21 @@ namespace Dalamud {
 
             this.WinSock2 = new WinSockHandlers();
 
-            this.InterfaceManager = new InterfaceManager(this, this.SigScanner);
-            this.InterfaceManager.OnDraw += BuildDalamudUi;
-            this.InterfaceManager.Enable();
+            try {
+                this.InterfaceManager = new InterfaceManager(this, this.SigScanner);
+                this.InterfaceManager.OnDraw += BuildDalamudUi;
+            } catch (Exception e) {
+                Log.Information(e, "Could not init interface.");
+            }
         }
 
         public void Start() {
+            try {
+                this.InterfaceManager?.Enable();
+            } catch (Exception e) {
+                Log.Information("Could not enable interface.");
+            }
+            
             Framework.Enable();
 
             this.BotManager.Start();
