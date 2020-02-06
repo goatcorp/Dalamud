@@ -31,10 +31,6 @@ namespace Dalamud.Data
             try {
                 Log.Verbose("Starting data download...");
 
-                // This is due to GitHub not supporting TLS 1.0
-                System.Net.ServicePointManager.SecurityProtocol =
-                    SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
-
                 using var client = new HttpClient() {
                     BaseAddress = new Uri(DataBaseUrl)
                 };
@@ -51,8 +47,6 @@ namespace Dalamud.Data
                 this.ContentFinderCondition = new ReadOnlyDictionary<uint, JObject>(cfcs);
 
                 Log.Verbose("Loaded {0} ContentFinderCondition.", cfcs.Count);
-
-                System.Net.ServicePointManager.SecurityProtocol = SecurityProtocolType.SystemDefault;
 
                 IsDataReady = true;
             } catch (Exception ex) {

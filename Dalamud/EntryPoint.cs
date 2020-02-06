@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Net;
 using Dalamud.Interface;
 using EasyHook;
 using Serilog;
@@ -17,6 +18,10 @@ namespace Dalamud {
 
             try {
                 Log.Information("Initializing a session..");
+
+                // This is due to GitHub not supporting TLS 1.0, so we enable all TLS versions globally
+                System.Net.ServicePointManager.SecurityProtocol =
+                    SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12 | SecurityProtocolType.Tls;
 
                 // Log any unhandled exception.
                 AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
