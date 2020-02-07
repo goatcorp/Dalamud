@@ -39,8 +39,6 @@ namespace Dalamud.Game.Internal.Libc {
                 // Something got seriously fucked.
                 throw new AccessViolationException();
             }
-
-            Log.Verbose("Deallocting {Addr}", Address);
             
             // Deallocate inner string first
             this.dealloc(Address);

@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Dalamud.Data;
 using Dalamud.DiscordBot;
 using Dalamud.Game;
 using Dalamud.Game.Chat;
@@ -16,7 +18,9 @@ using Dalamud.Game.Command;
 using Dalamud.Game.Internal;
 using Dalamud.Game.Internal.Gui;
 using Dalamud.Game.Network;
+using Dalamud.Interface;
 using Dalamud.Plugin;
+using ImGuiNET;
 using Serilog;
 
 namespace Dalamud {
@@ -25,9 +29,9 @@ namespace Dalamud {
 
         private readonly ManualResetEvent unloadSignal;
 
-        public readonly ProcessModule TargetModule;
+        private readonly ProcessModule targetModule;
 
-        private readonly SigScanner sigScanner;
+        public readonly SigScanner SigScanner;
 
         public Framework Framework { get; }
 
@@ -45,7 +49,13 @@ namespace Dalamud {
 
         public readonly DalamudConfiguration Configuration;
 
-        internal readonly WinSockHandlers WinSock2;
+        private readonly WinSockHandlers WinSock2;
+
+        public readonly InterfaceManager InterfaceManager;
+
+        public readonly DataManager Data;
+
+        private readonly string assemblyVersion = Assembly.GetAssembly(typeof(ChatHandlers)).GetName().Version.ToString();
 
         public Dalamud(DalamudStartInfo info) {
             this.StartInfo = info;
@@ -56,11 +66,11 @@ namespace Dalamud {
             this.unloadSignal = new ManualResetEvent(false);
 
             // Initialize the process information.
-            this.TargetModule = Process.GetCurrentProcess().MainModule;
-            this.sigScanner = new SigScanner(this.TargetModule);
+            this.targetModule = Process.GetCurrentProcess().MainModule;
+            SigScanner = new SigScanner(this.targetModule, true);
 
             // Initialize game subsystem
-            Framework = new Framework(this.sigScanner, this);
+            Framework = new Framework(this.SigScanner, this);
 
             // Initialize managers. Basically handlers for the logic
             CommandManager = new CommandManager(this, info.Language);
@@ -69,7 +79,11 @@ namespace Dalamud {
             ChatHandlers = new ChatHandlers(this);
             NetworkHandlers = new NetworkHandlers(this, this.Configuration.OptOutMbCollection);
 
-            this.ClientState = new ClientState(this, info, this.sigScanner, this.TargetModule);
+            this.Data = new DataManager();
+            //Task.Run(() => );
+            this.Data.Initialize();
+
+            this.ClientState = new ClientState(this, info, this.SigScanner, this.targetModule);
 
             this.BotManager = new DiscordBotManager(this, this.Configuration.DiscordFeatureConfig);
 
@@ -78,18 +92,34 @@ namespace Dalamud {
             this.WinSock2 = new WinSockHandlers();
 
             try {
-                this.PluginManager.LoadPlugins();
-            } catch (Exception ex) {
-                Framework.Gui.Chat.PrintError(
-                    "[XIVLAUNCHER] There was an error loading additional plugins. Please check the log for more details.");
-                Log.Error(ex, "Plugin load failed.");
+                this.InterfaceManager = new InterfaceManager(this, this.SigScanner);
+                this.InterfaceManager.OnDraw += BuildDalamudUi;
+            } catch (Exception e) {
+                Log.Information(e, "Could not init interface.");
             }
         }
 
         public void Start() {
+            try {
+                this.InterfaceManager?.Enable();
+            } catch (Exception e) {
+                Log.Information("Could not enable interface.");
+            }
+            
             Framework.Enable();
 
             this.BotManager.Start();
+
+            try
+            {
+                this.PluginManager.LoadPlugins();
+            }
+            catch (Exception ex)
+            {
+                Framework.Gui.Chat.PrintError(
+                    "[XIVLAUNCHER] There was an error loading additional plugins. Please check the log for more details.");
+                Log.Error(ex, "Plugin load failed.");
+            }
         }
 
         public void Unload() {
@@ -101,6 +131,19 @@ namespace Dalamud {
         }
 
         public void Dispose() {
+            try
+            {
+                this.PluginManager.UnloadPlugins();
+            }
+            catch (Exception ex)
+            {
+                Framework.Gui.Chat.PrintError(
+                    "[XIVLAUNCHER] There was an error unloading additional plugins. Please check the log for more details.");
+                Log.Error(ex, "Plugin unload failed.");
+            }
+
+            this.InterfaceManager.Dispose();
+
             Framework.Dispose();
 
             this.BotManager.Dispose();
@@ -108,7 +151,119 @@ namespace Dalamud {
             this.unloadSignal.Dispose();
 
             this.WinSock2.Dispose();
+
+            this.SigScanner.Dispose();
         }
+
+        #region Interface
+
+        private bool isImguiDrawDemoWindow = false;
+        private bool isImguiDrawWelcome = true;
+
+#if DEBUG
+        private bool isImguiDrawDevMenu = true;
+#else
+        private bool isImguiDrawDevMenu = false;
+#endif
+
+        private bool isImguiDrawLogWindow = false;
+        private bool isImguiDrawDataWindow = false;
+
+        private bool neverDrawWelcome = false;
+
+        private DalamudLogWindow logWindow;
+        private DalamudDataWindow dataWindow;
+
+        private void BuildDalamudUi()
+        {
+            if (this.isImguiDrawDevMenu)
+            {
+                if (ImGui.BeginMainMenuBar())
+                {
+                    if (ImGui.BeginMenu("Dalamud"))
+                    {
+                        ImGui.MenuItem("Draw Dalamud dev menu", "", ref this.isImguiDrawDevMenu);
+                        ImGui.Separator();
+                        if (ImGui.MenuItem("Open Log window"))
+                        {
+                            this.logWindow = new DalamudLogWindow();
+                            this.isImguiDrawLogWindow = true;
+                        }
+                        if (ImGui.MenuItem("Open Data window"))
+                        {
+                            this.dataWindow = new DalamudDataWindow(this.Data);
+                            this.isImguiDrawDataWindow = true;
+                        }
+                        ImGui.MenuItem("Draw ImGui demo", "", ref this.isImguiDrawDemoWindow);
+                        ImGui.Separator();
+                        if (ImGui.MenuItem("Unload Dalamud"))
+                        {
+                            Unload();
+                        }
+                        if (ImGui.MenuItem("Kill game"))
+                        {
+                            Process.GetCurrentProcess().Kill();
+                        }
+
+                        ImGui.EndMenu();
+                    }
+
+                    if (ImGui.BeginMenu("Plugins"))
+                    {
+                        if (ImGui.MenuItem("Reload plugins"))
+                        {
+                            OnPluginReloadCommand(string.Empty, string.Empty);
+                        }
+                        ImGui.EndMenu();
+                    }
+
+                    //ImGui.EndMainMenuBar();
+                }
+            }
+
+            if (this.isImguiDrawLogWindow)
+            {
+                this.isImguiDrawLogWindow = this.logWindow != null && this.logWindow.Draw();
+
+                if (this.isImguiDrawLogWindow == false)
+                {
+                    this.logWindow?.Dispose();
+                }
+            }
+
+            if (this.isImguiDrawDataWindow)
+            {
+                this.isImguiDrawDataWindow = this.dataWindow != null && this.dataWindow.Draw();
+            }
+
+            if (this.isImguiDrawDemoWindow)
+                ImGui.ShowDemoWindow();
+
+            if (!this.Configuration.WelcomeGuideDismissed)
+            {
+                if (!ImGui.Begin("Welcome to XIVLauncher", ImGuiWindowFlags.Modal | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize))
+                {
+                    // Early out if the window is collapsed, as an optimization.
+                    ImGui.End();
+                }
+                else
+                {
+                    ImGui.Text($"dalamud says hello. ({this.assemblyVersion})");
+                    ImGui.Spacing();
+                    ImGui.Spacing();
+
+                    if (ImGui.Button("Close"))
+                    {
+                        this.Configuration.WelcomeGuideDismissed = true;
+                        this.Configuration.Save(this.StartInfo.ConfigurationPath);
+                    }
+
+                    ImGui.End();
+                }
+            }
+        }
+
+        #endregion
 
         private void SetupCommands() {
             CommandManager.AddHandler("/xldclose", new CommandInfo(OnUnloadCommand) {
@@ -176,6 +331,11 @@ namespace Dalamud {
             CommandManager.AddHandler("/xlbonus", new CommandInfo(OnRouletteBonusNotifyCommand)
             {
                 HelpMessage = "Notify when a roulette has a bonus you specified. Run without parameters for more info. Usage: /xlbonus <roulette name> <role name>"
+            });
+
+            CommandManager.AddHandler("/xldev", new CommandInfo(OnDebugDrawDevMenu) {
+                HelpMessage = "Draw dev menu DEBUG",
+                ShowInHelp = false
             });
         }
 
@@ -392,6 +552,10 @@ namespace Dalamud {
             Framework.Gui.Chat.PrintError("Unrecognized arguments.");
             Framework.Gui.Chat.Print("Possible values for roulette: leveling, 506070, msq, guildhests, expert, trials, mentor, alliance, normal\n" +
                                      "Possible values for role: tank, dps, healer, all, none/reset");
+        }
+
+        private void OnDebugDrawDevMenu(string command, string arguments) {
+            this.isImguiDrawDevMenu = true;
         }
 
         private int RouletteSlugToKey(string slug) => slug.ToLower() switch {

@@ -6,18 +6,20 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Dalamud.Configuration;
+using Dalamud.Data;
 using Dalamud.Game;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.Command;
 using Dalamud.Game.Internal;
 using Dalamud.Game.Internal.Gui;
+using Dalamud.Interface;
 
 namespace Dalamud.Plugin
 {
     /// <summary>
     /// This class acts as an interface to various objects needed to interact with Dalamud and the game.
     /// </summary>
-    public class DalamudPluginInterface {
+    public class DalamudPluginInterface : IDisposable {
         /// <summary>
         /// The CommandManager object that allows you to add and remove custom chat commands.
         /// </summary>
@@ -34,9 +36,19 @@ namespace Dalamud.Plugin
         public readonly Framework Framework;
 
         /// <summary>
+		/// A <see cref="UiBuilder">UiBuilder</see> instance which allows you to draw UI into the game via ImGui draw calls.
+        /// </summary>
+        public readonly UiBuilder UiBuilder;
+
+        /// <summary>
         /// A <see cref="SigScanner">SigScanner</see> instance targeting the main module of the FFXIV process.
         /// </summary>
         public readonly SigScanner TargetModuleScanner;
+
+        /// <summary>
+        /// A <see cref="DataManager">DataManager</see> instance which allows you to access game data needed by the main dalamud features.
+        /// </summary>
+        public readonly DataManager Data;
 
         private readonly Dalamud dalamud;
         private readonly string pluginName;
@@ -49,10 +61,16 @@ namespace Dalamud.Plugin
             this.CommandManager = dalamud.CommandManager;
             this.Framework = dalamud.Framework;
             this.ClientState = dalamud.ClientState;
-            this.TargetModuleScanner = new SigScanner(dalamud.TargetModule);
+            this.UiBuilder = new UiBuilder(dalamud.InterfaceManager, pluginName);
+            this.TargetModuleScanner = dalamud.SigScanner;
+            this.Data = dalamud.Data;
 
             this.dalamud = dalamud;
             this.pluginName = pluginName;
+        }
+
+        public void Dispose() {
+            this.UiBuilder.Dispose();
         }
 
         /// <summary>
@@ -61,12 +79,15 @@ namespace Dalamud.Plugin
         /// <param name="currentConfig">The current configuration.</param>
         public void SavePluginConfig(IPluginConfiguration currentConfig) {
             if (this.dalamud.Configuration.PluginConfigurations == null)
-                this.dalamud.Configuration.PluginConfigurations = new Dictionary<string, IPluginConfiguration>();
+                this.dalamud.Configuration.PluginConfigurations = new Dictionary<string, object>();
 
             if (this.dalamud.Configuration.PluginConfigurations.ContainsKey(this.pluginName)) {
                 this.dalamud.Configuration.PluginConfigurations[this.pluginName] = currentConfig;
                 return;
             }
+
+            if (currentConfig == null)
+                return;
 
             this.dalamud.Configuration.PluginConfigurations.Add(this.pluginName, currentConfig);
             this.dalamud.Configuration.Save(this.dalamud.StartInfo.ConfigurationPath);
@@ -78,12 +99,12 @@ namespace Dalamud.Plugin
         /// <returns>A previously saved config or null if none was saved before.</returns>
         public IPluginConfiguration GetPluginConfig() {
             if (this.dalamud.Configuration.PluginConfigurations == null)
-                this.dalamud.Configuration.PluginConfigurations = new Dictionary<string, IPluginConfiguration>();
+                this.dalamud.Configuration.PluginConfigurations = new Dictionary<string, object>();
 
             if (!this.dalamud.Configuration.PluginConfigurations.ContainsKey(this.pluginName))
                 return null;
 
-            return this.dalamud.Configuration.PluginConfigurations[this.pluginName];
+            return this.dalamud.Configuration.PluginConfigurations[this.pluginName] as IPluginConfiguration;
         }
     }
 }

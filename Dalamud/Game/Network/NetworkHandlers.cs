@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Dalamud.Game.Network.MarketBoardUploaders;
 using Dalamud.Game.Network.Structures;
 using Dalamud.Game.Network.Universalis.MarketBoardUploaders;
+using Newtonsoft.Json.Linq;
 using Serilog;
 
 namespace Dalamud.Game.Network {
@@ -19,6 +20,9 @@ namespace Dalamud.Game.Network {
 
         private byte[] lastPreferredRole;
 
+        public delegate Task CfPop(JObject contentFinderCondition);
+        public event CfPop ProcessCfPop;
+
         public NetworkHandlers(Dalamud dalamud, bool optOutMbUploads) {
             this.dalamud = dalamud;
             this.optOutMbUploads = optOutMbUploads;
@@ -26,36 +30,39 @@ namespace Dalamud.Game.Network {
             this.uploader = new UniversalisMarketBoardUploader(dalamud);
 
             dalamud.Framework.Network.OnZonePacket += OnZonePacket;
+
         }
 
         private void OnZonePacket(IntPtr dataPtr) {
-            var opCode = (ZoneOpCode) Marshal.ReadInt16(dataPtr, 2);
+            if (!this.dalamud.Data.IsDataReady)
+                return;
 
-            if (opCode == ZoneOpCode.CfNotifyPop) {
+            var opCode = (ushort) Marshal.ReadInt16(dataPtr, 2);
+
+            if (opCode == this.dalamud.Data.ServerOpCodes["CfNotifyPop"]) {
                 var data = new byte[64];
                 Marshal.Copy(dataPtr, data, 0, 64);
 
                 var notifyType = data[16];
-                var contentFinderConditionId = BitConverter.ToInt16(data, 36);
+                var contentFinderConditionId = BitConverter.ToUInt16(data, 36);
 
 
                 Task.Run(async () => {
                     if (notifyType != 3 || contentFinderConditionId == 0)
                         return;
 
-                    var contentFinderCondition =
-                        await XivApi.GetContentFinderCondition(contentFinderConditionId);
+                    var contentFinderCondition = this.dalamud.Data.ContentFinderCondition[contentFinderConditionId];
 
                     this.dalamud.Framework.Gui.Chat.Print($"Duty pop: " + contentFinderCondition["Name"]);
 
-                    if (this.dalamud.BotManager.IsConnected)
-                        await this.dalamud.BotManager.ProcessCfPop(contentFinderCondition);
+                    await this.ProcessCfPop?.Invoke(contentFinderCondition);
+
                 });
 
                 return;
             }
 
-            if (opCode == ZoneOpCode.CfPreferredRole) {
+            if (opCode == this.dalamud.Data.ServerOpCodes["CfPreferredRole"]) {
                 if (this.dalamud.Configuration.PreferredRoleReminders == null)
                     return;
 
@@ -110,7 +117,7 @@ namespace Dalamud.Game.Network {
             }
 
             if (!this.optOutMbUploads) {
-                if (opCode == ZoneOpCode.MarketBoardItemRequestStart) {
+                if (opCode == this.dalamud.Data.ServerOpCodes["MarketBoardItemRequestStart"]) {
                     var catalogId = (uint) Marshal.ReadInt32(dataPtr + 0x10);
                     var amount = Marshal.ReadByte(dataPtr + 0x1B);
 
@@ -125,7 +132,7 @@ namespace Dalamud.Game.Network {
                     return;
                 }
 
-                if (opCode == ZoneOpCode.MarketBoardOfferings) {
+                if (opCode == this.dalamud.Data.ServerOpCodes["MarketBoardOfferings"]) {
                     var listing = MarketBoardCurrentOfferings.Read(dataPtr + 0x10);
 
                     var request =
@@ -180,7 +187,7 @@ namespace Dalamud.Game.Network {
                     return;
                 }
 
-                if (opCode == ZoneOpCode.MarketBoardHistory) {
+                if (opCode == this.dalamud.Data.ServerOpCodes["MarketBoardHistory"]) {
                     var listing = MarketBoardHistory.Read(dataPtr + 0x10);
 
                     var request = this.marketBoardRequests.LastOrDefault(r => r.CatalogId == listing.CatalogId);
@@ -202,7 +209,7 @@ namespace Dalamud.Game.Network {
                     Log.Verbose("Added history for item#{0}", listing.CatalogId);
                 }
 
-                if (opCode == ZoneOpCode.MarketTaxRates)
+                if (opCode == this.dalamud.Data.ServerOpCodes["MarketTaxRates"])
                 {
                     var taxes = MarketTaxRates.Read(dataPtr + 0x10);
 
@@ -218,15 +225,6 @@ namespace Dalamud.Game.Network {
                     }
                 }
             }
-        }
-
-        private enum ZoneOpCode {
-            CfNotifyPop = 0x1F8,
-            CfPreferredRole = 0x32A,
-            MarketTaxRates = 0x25E,
-            MarketBoardItemRequestStart = 0x328,
-            MarketBoardOfferings = 0x15F,
-            MarketBoardHistory = 0x113
         }
 
         private DalamudConfiguration.PreferredRole RoleKeyToPreferredRole(int key) => key switch

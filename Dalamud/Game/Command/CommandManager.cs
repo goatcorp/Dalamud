@@ -108,7 +108,7 @@ namespace Dalamud.Game.Command {
                 this.commandMap.Add(command, info);
                 return true;
             } catch (ArgumentException) {
-                Log.Warning("Command {CommandName} is already registered.", command);
+                Log.Error("Command {CommandName} is already registered.", command);
                 return false;
             }
         }

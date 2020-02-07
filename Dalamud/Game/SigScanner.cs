@@ -7,24 +7,34 @@ using System.Runtime.InteropServices;
 using Serilog;
 
 namespace Dalamud.Game {
-    public sealed class SigScanner {
-        public SigScanner(ProcessModule module) {
+    public sealed class SigScanner : IDisposable {
+        public SigScanner(ProcessModule module, bool doCopy = false) {
             Module = module;
             Is32BitProcess = !Environment.Is64BitProcess;
+            IsCopy = doCopy;
 
             // Limit the search space to .text section.
             SetupSearchSpace(module);
 
+            if (IsCopy)
+                SetupCopiedSegments();
+
             Log.Verbose("Module base: {Address}", TextSectionBase);
-            Log.Verbose("Moudle size: {Size}", TextSectionSize);
+            Log.Verbose("Module size: {Size}", TextSectionSize);
         }
+
+        public bool IsCopy { get; private set; }
 
         public bool Is32BitProcess { get; }
 
-        public IntPtr TextSectionBase { get; private set; }
+        public IntPtr SearchBase => IsCopy ? this.moduleCopyPtr : Module.BaseAddress;
+
+        public IntPtr TextSectionBase => new IntPtr(SearchBase.ToInt64() + TextSectionOffset);
+        public long TextSectionOffset { get; private set; }
         public int TextSectionSize { get; private set; }
 
-        public IntPtr DataSectionBase { get; private set; }
+        public IntPtr DataSectionBase => new IntPtr(SearchBase.ToInt64() + DataSectionOffset);
+        public long DataSectionOffset { get; private set; }
         public int DataSectionSize { get; private set; }
 
         public ProcessModule Module { get; }
@@ -59,11 +69,11 @@ namespace Dalamud.Game {
                 // .text
                 switch (sectionName) {
                     case 0x747865742E: // .text
-                        TextSectionBase = baseAddress + Marshal.ReadInt32(sectionCursor, 12);
+                        TextSectionOffset = Marshal.ReadInt32(sectionCursor, 12);
                         TextSectionSize = Marshal.ReadInt32(sectionCursor, 8);
                         break;
                     case 0x617461642E: // .data
-                        DataSectionBase = baseAddress + Marshal.ReadInt32(sectionCursor, 12);
+                        DataSectionOffset = Marshal.ReadInt32(sectionCursor, 12);
                         DataSectionSize = Marshal.ReadInt32(sectionCursor, 8);
                         break;
                 }
@@ -72,16 +82,53 @@ namespace Dalamud.Game {
             }
         }
 
+        private IntPtr moduleCopyPtr;
+        private long moduleCopyOffset;
+
+        private unsafe void SetupCopiedSegments() {
+            Log.Verbose("module copy START");
+            // .text
+            this.moduleCopyPtr = Marshal.AllocHGlobal(Module.ModuleMemorySize);
+            Log.Verbose($"Alloc: {this.moduleCopyPtr.ToInt64():x}");
+            Buffer.MemoryCopy(Module.BaseAddress.ToPointer(), this.moduleCopyPtr.ToPointer(), Module.ModuleMemorySize,
+                              Module.ModuleMemorySize);
+
+            this.moduleCopyOffset = this.moduleCopyPtr.ToInt64() - Module.BaseAddress.ToInt64();
+
+            Log.Verbose("copy OK!");
+        }
+
+        public void Dispose() {
+            Marshal.FreeHGlobal(this.moduleCopyPtr);
+        }
+
         public IntPtr ScanText(string signature) {
-            return Scan(TextSectionBase, TextSectionSize, signature);
+            var mBase = IsCopy ? this.moduleCopyPtr : TextSectionBase;
+
+            var scanRet = Scan(mBase, TextSectionSize, signature);
+
+            if (IsCopy)
+                scanRet = new IntPtr(scanRet.ToInt64() - this.moduleCopyOffset);
+
+            return scanRet;
         }
 
         public IntPtr ScanData(string signature) {
-            return Scan(DataSectionBase, DataSectionSize, signature);
+            var scanRet = Scan(DataSectionBase, DataSectionSize, signature);
+
+            if (IsCopy)
+                scanRet = new IntPtr(scanRet.ToInt64() - this.moduleCopyOffset);
+
+            return scanRet;
         }
 
         public IntPtr ScanModule(string signature) {
-            return Scan(Module.BaseAddress, Module.ModuleMemorySize, signature);
+            var scanRet = Scan(SearchBase, Module.ModuleMemorySize, signature);
+
+            if (IsCopy)
+                scanRet = new IntPtr(scanRet.ToInt64() - this.moduleCopyOffset);
+
+            return scanRet;
         }
 
         public IntPtr Scan(IntPtr baseAddress, int size, string signature) {

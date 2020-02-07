@@ -7,6 +7,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Dalamud.Game.Chat;
+using Dalamud.Game.Chat.SeStringHandling;
+using Dalamud.Game.Chat.SeStringHandling.Payloads;
 using Dalamud.Game.Internal.Libc;
 using Serilog;
 
@@ -149,10 +151,16 @@ namespace Dalamud.Game {
                     var itemInfo = matchInfo.Groups["item"];
                     if (!itemInfo.Success)
                         continue;
-                    //var itemName = SeString.Parse(itemInfo.Value).Output;
-                    var (itemId, isHQ) = (ValueTuple<int, bool>)(SeString.Parse(message.RawData).Payloads[0].Param1);
 
-                    Log.Debug($"Probable retainer sale: {message}, decoded item {itemId}, HQ {isHQ}");
+                    var itemLink =
+                        SeString.Parse(message.RawData).Payloads.First(x => x.Type == PayloadType.Item) as ItemPayload;
+
+                    if (itemLink == null) {
+                        Log.Error("itemLink was null. Msg: {0}", BitConverter.ToString(message.RawData));
+                        break;
+                    }
+
+                    Log.Debug($"Probable retainer sale: {message}, decoded item {itemLink.ItemId}, HQ {itemLink.IsHQ}");
 
                     int itemValue = 0;
                     var valueInfo = matchInfo.Groups["value"];
@@ -160,16 +168,16 @@ namespace Dalamud.Game {
                     if (!valueInfo.Success || !int.TryParse(valueInfo.Value.Replace(",", "").Replace(".", ""), out itemValue))
                         continue;
 
-                    Task.Run(() => this.dalamud.BotManager.ProcessRetainerSale(itemId, itemValue, isHQ));
+                    Task.Run(() => this.dalamud.BotManager.ProcessRetainerSale(itemLink.ItemId, itemValue, itemLink.IsHQ));
                     break;
                 }
             }
 
+            var messageCopy = message;
+            var senderCopy = sender;
+            this.dalamud.BotManager.ProcessChatMessage(type, messageCopy, senderCopy);
 
-            Task.Run(() => this.dalamud.BotManager.ProcessChatMessage(type, messageVal, senderVal).GetAwaiter()
-                            .GetResult());
-
-
+            // Handle all of this with SeString some day
             if ((this.HandledChatTypeColors.ContainsKey(type) || type == XivChatType.Say || type == XivChatType.Shout ||
                 type == XivChatType.Alliance || type == XivChatType.TellOutgoing || type == XivChatType.Yell) && !message.Value.Contains((char)0x02)) {
                 var italicsStart = message.Value.IndexOf("*");
