@@ -182,8 +182,8 @@ namespace Dalamud.DiscordBot {
             var parsedSender = SeString.Parse(sender.RawData);
             var playerLink = parsedSender.Payloads.FirstOrDefault(x => x.Type == PayloadType.Player) as PlayerPayload;
 
-            var senderName = string.Empty;
-            var senderWorld = string.Empty;
+            string senderName;
+            string senderWorld;
 
             if (playerLink == null) {
                 Log.Error("playerLink was null. Sender: {0}", BitConverter.ToString(sender.RawData));

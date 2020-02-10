@@ -21,7 +21,7 @@ namespace Dalamud {
 
                 // This is due to GitHub not supporting TLS 1.0, so we enable all TLS versions globally
                 System.Net.ServicePointManager.SecurityProtocol =
-                    SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12 | SecurityProtocolType.Tls;
+                    SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12 | SecurityProtocolType.Tls | SecurityProtocolType.Ssl3;
 
                 // Log any unhandled exception.
                 AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
