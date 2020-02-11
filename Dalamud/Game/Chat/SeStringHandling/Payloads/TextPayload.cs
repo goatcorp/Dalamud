@@ -11,7 +11,24 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
     {
         public override PayloadType Type => PayloadType.RawText;
 
-        public string Text { get; set; }
+        private string textConverted = null;
+
+        /// <summary>
+        /// The Text of this text payload as an UTF-8 converted string.
+        /// Don't rely on this for accurate representation of SE payload data, please check RawData instead.
+        /// </summary>
+        public string Text {
+            get { return this.textConverted ??= Encoding.UTF8.GetString(RawData); }
+            set {
+                this.textConverted = value;
+                RawData = Encoding.UTF8.GetBytes(value);
+            }
+        }
+
+        /// <summary>
+        /// The raw unconverted data of this text payload.
+        /// </summary>
+        public byte[] RawData { get; set; }
 
         public TextPayload() { }
 

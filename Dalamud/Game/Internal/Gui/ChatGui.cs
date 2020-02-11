@@ -113,6 +113,7 @@ namespace Dalamud.Game.Internal.Gui {
                     Log.Verbose("SeString was edited, taking precedence over StdString edit.");
                     message.RawData = newEdited;
                 }
+                Log.Debug($"\nOLD: {BitConverter.ToString(originalMessageData)}\nNEW: {BitConverter.ToString(newEdited)}");
 
                 var messagePtr = pMessage;
                 OwnedStdString allocatedString = null;
