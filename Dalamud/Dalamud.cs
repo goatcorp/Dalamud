@@ -169,8 +169,6 @@ namespace Dalamud {
         private bool isImguiDrawLogWindow = false;
         private bool isImguiDrawDataWindow = false;
 
-        private bool neverDrawWelcome = false;
-
         private DalamudLogWindow logWindow;
         private DalamudDataWindow dataWindow;
 
@@ -204,12 +202,20 @@ namespace Dalamud {
                         {
                             Process.GetCurrentProcess().Kill();
                         }
+                        ImGui.Separator();
+                        ImGui.MenuItem(this.assemblyVersion, false);
 
                         ImGui.EndMenu();
                     }
 
                     if (ImGui.BeginMenu("Plugins"))
                     {
+                        if (ImGui.MenuItem("Print plugin info")) {
+                            foreach (var plugin in this.PluginManager.Plugins) {
+                                // TODO: some more here, state maybe?
+                                Log.Information($"{plugin.Name}");
+                            }
+                        }
                         if (ImGui.MenuItem("Reload plugins"))
                         {
                             OnPluginReloadCommand(string.Empty, string.Empty);
@@ -217,7 +223,7 @@ namespace Dalamud {
                         ImGui.EndMenu();
                     }
 
-                    //ImGui.EndMainMenuBar();
+                    ImGui.EndMainMenuBar();
                 }
             }
 
