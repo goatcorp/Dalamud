@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 using Dalamud.Game.Chat;
+using Dalamud.Game.Chat.SeStringHandling;
 using Dalamud.Game.Internal.Libc;
 using Dalamud.Hooking;
 using Discord.Rest;
@@ -15,7 +16,10 @@ namespace Dalamud.Game.Internal.Gui {
                                                    IntPtr message,
                                                    uint senderId, IntPtr parameter);
 
-        public delegate void OnMessageDelegate(XivChatType type, uint senderId, ref StdString sender, ref StdString message,
+        public delegate void OnMessageDelegate(XivChatType type, uint senderId, ref SeString sender, ref SeString message,
+                                               ref bool isHandled);
+
+        public delegate void OnMessageRawDelegate(XivChatType type, uint senderId, ref StdString sender, ref StdString message,
                                                ref bool isHandled);
 
 
@@ -27,6 +31,8 @@ namespace Dalamud.Game.Internal.Gui {
         private readonly Hook<PrintMessageDelegate> printMessageHook;
 
         public event OnMessageDelegate OnChatMessage;
+        [Obsolete("Please use OnChatMessage instead. For modifications, it will take precedence.")]
+        public event OnMessageRawDelegate OnChatMessageRaw;
 
         private readonly Hook<PopulateItemLinkDelegate> populateItemLinkHook;
 
@@ -82,22 +88,34 @@ namespace Dalamud.Game.Internal.Gui {
 
         private IntPtr HandlePrintMessageDetour(IntPtr manager, XivChatType chattype, IntPtr pSenderName, IntPtr pMessage,
                                               uint senderid, IntPtr parameter) {
-            IntPtr retVal = IntPtr.Zero;
+            var retVal = IntPtr.Zero;
 
             try {
-                var senderName = StdString.ReadFromPointer(pSenderName);
+                var sender = StdString.ReadFromPointer(pSenderName);
                 var message = StdString.ReadFromPointer(pMessage);
+
+                var parsedSender = SeString.Parse(sender.RawData);
+                var parsedMessage = SeString.Parse(message.RawData);
 
                 //Log.Debug($"HandlePrintMessageDetour {manager} - [{chattype}] [{BitConverter.ToString(message.RawData).Replace("-", " ")}] {message.Value} from {senderName.Value}");
 
                 var originalMessageData = (byte[]) message.RawData.Clone();
+                var oldEdited = parsedMessage.Encode();
 
                 // Call events
                 var isHandled = false;
-                OnChatMessage?.Invoke(chattype, senderid, ref senderName, ref message, ref isHandled);
+                OnChatMessage?.Invoke(chattype, senderid, ref parsedSender, ref parsedMessage, ref isHandled);
+                OnChatMessageRaw?.Invoke(chattype, senderid, ref sender, ref message, ref isHandled);
+
+                var newEdited = parsedMessage.Encode();
+
+                if (!FastByteArrayCompare(oldEdited, newEdited)) {
+                    Log.Verbose("SeString was edited, taking precedence over StdString edit.");
+                    message.RawData = newEdited;
+                }
 
                 var messagePtr = pMessage;
-                OwnedStdString allocatedString = null;  
+                OwnedStdString allocatedString = null;
 
                 if (!FastByteArrayCompare(originalMessageData, message.RawData)) {
                     allocatedString = this.dalamud.Framework.Libc.NewString(message.RawData);

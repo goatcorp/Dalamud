@@ -90,13 +90,13 @@ namespace Dalamud.Game {
         public ChatHandlers(Dalamud dalamud) {
             this.dalamud = dalamud;
 
-            dalamud.Framework.Gui.Chat.OnChatMessage += ChatOnOnChatMessage;
+            dalamud.Framework.Gui.Chat.OnChatMessageRaw += OnChatMessage;
         }
 
 
         public string LastLink { get; private set; }
 
-        private void ChatOnOnChatMessage(XivChatType type, uint senderId, ref StdString sender, 
+        private void OnChatMessage(XivChatType type, uint senderId, ref StdString sender, 
             ref StdString message, ref bool isHandled) {
 
             if (type == XivChatType.Notice && !this.hasSeenLoadingMsg) {

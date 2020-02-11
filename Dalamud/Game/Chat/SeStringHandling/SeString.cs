@@ -13,30 +13,7 @@ namespace Dalamud.Game.Chat.SeStringHandling
     /// </summary>
     public class SeString
     {
-        private Dictionary<PayloadType, List<Payload>> mappedPayloads_ = null;
-
         public List<Payload> Payloads { get; }
-
-        public Dictionary<PayloadType, List<Payload>> MappedPayloads
-        {
-            get
-            {
-                if (mappedPayloads_ == null)
-                {
-                    mappedPayloads_ = new Dictionary<PayloadType, List<Payload>>();
-                    foreach (var p in Payloads)
-                    {
-                        if (!mappedPayloads_.ContainsKey(p.Type))
-                        {
-                            mappedPayloads_[p.Type] = new List<Payload>();
-                        }
-                        mappedPayloads_[p.Type].Add(p);
-                    }
-                }
-
-                return mappedPayloads_;
-            }
-        }
 
         public SeString(List<Payload> payloads)
         {
@@ -93,10 +70,10 @@ namespace Dalamud.Game.Chat.SeStringHandling
         /// </summary>
         /// <param name="payloads"></param>
         /// <returns>The bytes of the message.</returns>
-        public static byte[] Encode(List<Payload> payloads)
+        public byte[] Encode()
         {
             var messageBytes = new List<byte>();
-            foreach (var p in payloads)
+            foreach (var p in Payloads)
             {
                 messageBytes.AddRange(p.Encode());
             }

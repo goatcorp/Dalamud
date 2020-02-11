@@ -50,6 +50,8 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             // unk
             bytes.AddRange(new byte[] { 0x02, 0x01, END_BYTE });
 
+
+
             return bytes.ToArray();
         }
 

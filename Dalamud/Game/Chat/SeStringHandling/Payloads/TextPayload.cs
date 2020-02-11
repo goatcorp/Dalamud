@@ -11,7 +11,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
     {
         public override PayloadType Type => PayloadType.RawText;
 
-        public string Text { get; private set; }
+        public string Text { get; set; }
 
         public TextPayload() { }
 

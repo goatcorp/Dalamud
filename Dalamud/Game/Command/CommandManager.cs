@@ -48,7 +48,7 @@ namespace Dalamud.Game.Command {
                     break;
             }
 
-            dalamud.Framework.Gui.Chat.OnChatMessage += OnChatMessage;
+            dalamud.Framework.Gui.Chat.OnChatMessageRaw += OnChatMessage;
         }
 
         private void OnChatMessage(XivChatType type, uint senderId, ref StdString sender,
