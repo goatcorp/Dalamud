@@ -62,17 +62,21 @@ namespace Dalamud.Game.Chat.SeStringHandling
                             case EmbeddedInfoType.Status:
                                 payload = new StatusPayload();
                                 break;
+
                             case EmbeddedInfoType.LinkTerminator:
-                                // Does not need to be handled
-                                break;
+                                // this has no custom handling and so needs to fallthrough to ensure it is captured
                             default:
                                 Log.Verbose("Unhandled EmbeddedInfoType: {0}", subType);
+                                // rewind so we capture the Interactable byte in the raw data
+                                reader.BaseStream.Seek(-1, SeekOrigin.Current);
+                                payload = new RawPayload((byte)chunkType);
                                 break;
                         }
                     }
                     break;
                 default:
                     Log.Verbose("Unhandled SeStringChunkType: {0}", chunkType);
+                    payload = new RawPayload((byte)chunkType);
                     break;
             }
 
