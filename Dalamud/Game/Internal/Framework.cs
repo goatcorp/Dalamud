@@ -8,6 +8,9 @@ using Serilog;
 using Dalamud.Game.Internal.File;
 
 namespace Dalamud.Game.Internal {
+    /// <summary>
+    /// This class represents the Framework of the native game client and grants access to various subsystems.
+    /// </summary>
     public sealed class Framework : IDisposable {
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         private delegate bool OnUpdateDetour(IntPtr framework);
@@ -25,12 +28,18 @@ namespace Dalamud.Game.Internal {
         private FrameworkAddressResolver Address { get; }
         
 #region Subsystems
-        
+
+        /// <summary>
+        /// The GUI subsystem, used to access e.g. chat.
+        /// </summary>
         public GameGui Gui { get; private set; }
 
+        /// <summary>
+        /// The Network subsystem, used to access network data.
+        /// </summary>
         public GameNetwork Network { get; private set; }
 
-        public ResourceManager Resource { get; private set; }
+        //public ResourceManager Resource { get; private set; }
         
         public LibcFunction Libc { get; private set; }
         
