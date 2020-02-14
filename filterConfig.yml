@@ -1,0 +1,13 @@
+apiRules:
+- exclude:
+    uidRegex: ^Dalamud\.Discord
+- exclude:
+    uidRegex: ^Dalamud\.Hooking
+- exclude:
+    uidRegex: ^Dalamud\.FFNotify
+- exclude:
+    uidRegex: ^Dalamud\.Plugin\.PluginManager$
+- exclude:
+    uidRegex: AddressResolver$
+- exclude:
+    uidRegex: ^Dalamud$
