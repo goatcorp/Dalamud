@@ -103,6 +103,11 @@ namespace Dalamud.Game {
                 var assemblyVersion = Assembly.GetAssembly(typeof(ChatHandlers)).GetName().Version.ToString();
 
                 this.dalamud.Framework.Gui.Chat.Print($"XIVLauncher in-game addon v{assemblyVersion} loaded.");
+
+                foreach (var plugin in this.dalamud.PluginManager.Plugins) {
+                    this.dalamud.Framework.Gui.Chat.Print($"    -> {plugin.Name} v{plugin.GetType().Assembly.GetName().Version} loaded.");
+                }
+
                 this.hasSeenLoadingMsg = true;
 
                 if (string.IsNullOrEmpty(this.dalamud.Configuration.LastVersion) || !assemblyVersion.StartsWith(this.dalamud.Configuration.LastVersion)) {
