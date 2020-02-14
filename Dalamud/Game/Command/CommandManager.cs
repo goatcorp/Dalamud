@@ -7,11 +7,17 @@ using Dalamud.Game.Internal.Libc;
 using Serilog;
 
 namespace Dalamud.Game.Command {
+    /// <summary>
+    /// This class manages registered in-game slash commands.
+    /// </summary>
     public sealed class CommandManager {
         private readonly Dalamud dalamud;
 
         private readonly Dictionary<string, CommandInfo> commandMap = new Dictionary<string, CommandInfo>();
 
+        /// <summary>
+        /// Read-only list of all registered commands.
+        /// </summary>
         public ReadOnlyDictionary<string, CommandInfo> Commands =>
             new ReadOnlyDictionary<string, CommandInfo>(this.commandMap);
 
@@ -27,7 +33,7 @@ namespace Dalamud.Game.Command {
             new Regex(@"^La commande texte “(?<command>.+)” n'existe pas\.$",
                       RegexOptions.Compiled);
 
-        private readonly Regex CommandRegex;
+        private readonly Regex currentLangCommandRegex;
 
 
         public CommandManager(Dalamud dalamud, ClientLanguage language) {
@@ -35,16 +41,16 @@ namespace Dalamud.Game.Command {
 
             switch (language) {
                 case ClientLanguage.Japanese:
-                    this.CommandRegex = this.commandRegexJp;
+                    this.currentLangCommandRegex = this.commandRegexJp;
                     break;
                 case ClientLanguage.English:
-                    this.CommandRegex = this.commandRegexEn;
+                    this.currentLangCommandRegex = this.commandRegexEn;
                     break;
                 case ClientLanguage.German:
-                    this.CommandRegex = this.commandRegexDe;
+                    this.currentLangCommandRegex = this.commandRegexDe;
                     break;
                 case ClientLanguage.French:
-                    this.CommandRegex = this.commandRegexFr;
+                    this.currentLangCommandRegex = this.commandRegexFr;
                     break;
             }
 
@@ -54,7 +60,7 @@ namespace Dalamud.Game.Command {
         private void OnChatMessage(XivChatType type, uint senderId, ref StdString sender,
                                    ref StdString message, ref bool isHandled) {
             if (type == XivChatType.GatheringSystemMessage && senderId == 0) {
-                var cmdMatch = this.CommandRegex.Match(message.Value).Groups["command"];
+                var cmdMatch = this.currentLangCommandRegex.Match(message.Value).Groups["command"];
                 if (cmdMatch.Success) {
                     // Yes, it's a chat command.
                     var command = cmdMatch.Value;
@@ -92,6 +98,12 @@ namespace Dalamud.Game.Command {
             return true;
         }
 
+        /// <summary>
+        /// Dispatch the handling of a command.
+        /// </summary>
+        /// <param name="command">The command to dispatch.</param>
+        /// <param name="argument">The provided arguments.</param>
+        /// <param name="info">A <see cref="CommandInfo"/> object describing this command.</param>
         public void DispatchCommand(string command, string argument, CommandInfo info) {
             try {
                 info.Handler(command, argument);
@@ -101,6 +113,12 @@ namespace Dalamud.Game.Command {
             }
         }
 
+        /// <summary>
+        /// Add a command handler, which you can use to add your own custom commands to the in-game chat.
+        /// </summary>
+        /// <param name="command">The command to register.</param>
+        /// <param name="info">A <see cref="CommandInfo"/> object describing the command.</param>
+        /// <returns>If adding was successful.</returns>
         public bool AddHandler(string command, CommandInfo info) {
             if (info == null) throw new ArgumentNullException(nameof(info), "Command handler is null.");
 
@@ -113,6 +131,11 @@ namespace Dalamud.Game.Command {
             }
         }
 
+        /// <summary>
+        /// Remove a command from the command handlers.
+        /// </summary>
+        /// <param name="command">The command to remove.</param>
+        /// <returns>If the removal was successful.</returns>
         public bool RemoveHandler(string command) {
             return this.commandMap.Remove(command);
         }
