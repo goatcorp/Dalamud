@@ -36,10 +36,21 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         {
             var actualItemId = IsHQ ? ItemId + 1000000 : ItemId;
             var idBytes = MakeInteger(actualItemId);
+            bool hasName = !string.IsNullOrEmpty(ItemName);
 
             var itemIdFlag = IsHQ ? IntegerType.Int16Plus1Million : IntegerType.Int16;
 
             var chunkLen = idBytes.Length + 5;
+            if (hasName)
+            {
+                // 1 additional unknown byte compared to the nameless version, 1 byte for the name length, and then the name itself
+                chunkLen += (1 + 1 + ItemName.Length);
+                if (IsHQ)
+                {
+                    chunkLen += 4;  // unicode representation of the HQ symbol is 3 bytes, preceded by a space
+                }
+            }
+
             var bytes = new List<byte>()
             {
                 START_BYTE,
@@ -48,7 +59,32 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             };
             bytes.AddRange(idBytes);
             // unk
-            bytes.AddRange(new byte[] { 0x02, 0x01, END_BYTE });
+            bytes.AddRange(new byte[] { 0x02, 0x01 });
+
+            // Links don't have to include the name, but if they do, it requires additional work
+            if (hasName)
+            {
+                var nameLen = ItemName.Length + 1;
+                if (IsHQ)
+                {
+                    nameLen += 4;   // space plus 3 bytes for HQ symbol
+                }
+
+                bytes.AddRange(new byte[]
+                {
+                    0xFF,   // unk
+                    (byte)nameLen
+                });
+                bytes.AddRange(Encoding.UTF8.GetBytes(ItemName));
+
+                if (IsHQ)
+                {
+                    // space and HQ symbol
+                    bytes.AddRange(new byte[] { 0x20, 0xEE, 0x80, 0xBC });
+                }
+            }
+
+            bytes.Add(END_BYTE);
 
             return bytes.ToArray();
         }
@@ -74,7 +110,16 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
                 reader.ReadBytes(3);
 
                 var itemNameLen = GetInteger(reader);
-                ItemName = Encoding.UTF8.GetString(reader.ReadBytes(itemNameLen));
+                var itemNameBytes = reader.ReadBytes(itemNameLen);
+
+                // HQ items have the HQ symbol as part of the name, but since we already recorded
+                // the HQ flag, we want just the bare name
+                if (IsHQ)
+                {
+                    itemNameBytes = itemNameBytes.Take(itemNameLen - 4).ToArray();
+                }
+
+                ItemName = Encoding.UTF8.GetString(itemNameBytes);
             }
         }
     }

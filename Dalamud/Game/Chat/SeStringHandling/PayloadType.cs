@@ -26,6 +26,10 @@ namespace Dalamud.Game.Chat.SeStringHandling
         /// <summary>
         /// An SeString payload representing raw, typed text.
         /// </summary>
-        RawText
+        RawText,
+        /// <summary>
+        /// An SeString payload representing any data we don't handle.
+        /// </summary>
+        Unknown
     }
 }
