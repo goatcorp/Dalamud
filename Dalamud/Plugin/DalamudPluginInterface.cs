@@ -69,6 +69,9 @@ namespace Dalamud.Plugin
             this.pluginName = pluginName;
         }
 
+        /// <summary>
+        /// Unregister your plugin and dispose all references. You have to call this when your IDalamudPlugin is disposed.
+        /// </summary>
         public void Dispose() {
             this.UiBuilder.Dispose();
         }
