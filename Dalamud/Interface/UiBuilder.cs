@@ -8,13 +8,26 @@ using ImGuiScene;
 
 namespace Dalamud.Interface
 {
+    /// <summary>
+    /// This class represents the Dalamud UI that is drawn on top of the game.
+    /// It can be used to draw custom windows and overlays.
+    /// </summary>
     public class UiBuilder : IDisposable {
         private readonly string namespaceName;
 
+        /// <summary>
+        /// The delegate that gets called when Dalamud is ready to draw your windows or overlays.
+        /// When it is called, you can use static ImGui calls.
+        /// </summary>
         public event RawDX11Scene.BuildUIDelegate OnBuildUi;
 
-        private InterfaceManager interfaceManager;
+        private readonly InterfaceManager interfaceManager;
 
+        /// <summary>
+        /// Create a new UiBuilder and register it. You do not have to call this manually.
+        /// </summary>
+        /// <param name="interfaceManager">The interface manager to register on.</param>
+        /// <param name="namespaceName">The plugin namespace.</param>
         public UiBuilder(InterfaceManager interfaceManager, string namespaceName) {
             this.namespaceName = namespaceName;
 
@@ -22,6 +35,9 @@ namespace Dalamud.Interface
             this.interfaceManager.OnDraw += OnDraw;
         }
 
+        /// <summary>
+        /// Unregister the UiBuilder. Do not call this in plugin code.
+        /// </summary>
         public void Dispose() {
             this.interfaceManager.OnDraw -= OnDraw;
         }
