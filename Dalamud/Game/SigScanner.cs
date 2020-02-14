@@ -7,7 +7,15 @@ using System.Runtime.InteropServices;
 using Serilog;
 
 namespace Dalamud.Game {
+    /// <summary>
+    /// A SigScanner facilitates searching for memory signatures in a given ProcessModule.
+    /// </summary>
     public sealed class SigScanner : IDisposable {
+        /// <summary>
+        /// Set up the SigScanner.
+        /// </summary>
+        /// <param name="module">The ProcessModule to be used for scanning</param>
+        /// <param name="doCopy">Whether or not to copy the module upon initialization for search operations to use, as to not get disturbed by possible hooks.</param>
         public SigScanner(ProcessModule module, bool doCopy = false) {
             Module = module;
             Is32BitProcess = !Environment.Is64BitProcess;
@@ -23,20 +31,50 @@ namespace Dalamud.Game {
             Log.Verbose("Module size: {Size}", TextSectionSize);
         }
 
+        /// <summary>
+        /// If the search on this module is performed on a copy.
+        /// </summary>
         public bool IsCopy { get; private set; }
 
+        /// <summary>
+        /// If the ProcessModule is 32-bit.
+        /// </summary>
         public bool Is32BitProcess { get; }
 
+        /// <summary>
+        /// The base address of the search area. When copied, this will be the address of the copy.
+        /// </summary>
         public IntPtr SearchBase => IsCopy ? this.moduleCopyPtr : Module.BaseAddress;
 
+        /// <summary>
+        /// The base address of the .text section search area.
+        /// </summary>
         public IntPtr TextSectionBase => new IntPtr(SearchBase.ToInt64() + TextSectionOffset);
+        /// <summary>
+        /// The offset of the .text section from the base of the module.
+        /// </summary>
         public long TextSectionOffset { get; private set; }
+        /// <summary>
+        /// The size of the text section.
+        /// </summary>
         public int TextSectionSize { get; private set; }
 
+        /// <summary>
+        /// The base address of the .data section search area.
+        /// </summary>
         public IntPtr DataSectionBase => new IntPtr(SearchBase.ToInt64() + DataSectionOffset);
+        /// <summary>
+        /// The offset of the .data section from the base of the module.
+        /// </summary>
         public long DataSectionOffset { get; private set; }
+        /// <summary>
+        /// The size of the .data section.
+        /// </summary>
         public int DataSectionSize { get; private set; }
 
+        /// <summary>
+        /// The ProcessModule on which the search is performed.
+        /// </summary>
         public ProcessModule Module { get; }
 
         private IntPtr TextSectionTop => TextSectionBase + TextSectionSize;
@@ -98,10 +136,18 @@ namespace Dalamud.Game {
             Log.Verbose("copy OK!");
         }
 
+        /// <summary>
+        /// Free the memory of the copied module search area on object disposal, if applicable.
+        /// </summary>
         public void Dispose() {
             Marshal.FreeHGlobal(this.moduleCopyPtr);
         }
 
+        /// <summary>
+        /// Scan for a byte signature in the .text section.
+        /// </summary>
+        /// <param name="signature">The signature.</param>
+        /// <returns>The real offset of the found signature.</returns>
         public IntPtr ScanText(string signature) {
             var mBase = IsCopy ? this.moduleCopyPtr : TextSectionBase;
 
@@ -113,6 +159,11 @@ namespace Dalamud.Game {
             return scanRet;
         }
 
+        /// <summary>
+        /// Scan for a byte signature in the .data section.
+        /// </summary>
+        /// <param name="signature">The signature.</param>
+        /// <returns>The real offset of the found signature.</returns>
         public IntPtr ScanData(string signature) {
             var scanRet = Scan(DataSectionBase, DataSectionSize, signature);
 
@@ -122,6 +173,11 @@ namespace Dalamud.Game {
             return scanRet;
         }
 
+        /// <summary>
+        /// Scan for a byte signature in the whole module search area.
+        /// </summary>
+        /// <param name="signature">The signature.</param>
+        /// <returns>The real offset of the found signature.</returns>
         public IntPtr ScanModule(string signature) {
             var scanRet = Scan(SearchBase, Module.ModuleMemorySize, signature);
 
