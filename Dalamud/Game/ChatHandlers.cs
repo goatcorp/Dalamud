@@ -121,7 +121,7 @@ namespace Dalamud.Game {
                 }
             }
 
-#if !DEBUG
+#if !DEBUG && false
             if (!this.hasSeenLoadingMsg)
                 return;
 #endif
@@ -167,10 +167,9 @@ namespace Dalamud.Game {
 
                     Log.Debug($"Probable retainer sale: {message}, decoded item {itemLink.ItemId}, HQ {itemLink.IsHQ}");
 
-                    int itemValue = 0;
                     var valueInfo = matchInfo.Groups["value"];
                     // not sure if using a culture here would work correctly, so just strip symbols instead
-                    if (!valueInfo.Success || !int.TryParse(valueInfo.Value.Replace(",", "").Replace(".", ""), out itemValue))
+                    if (!valueInfo.Success || !int.TryParse(valueInfo.Value.Replace(",", "").Replace(".", ""), out var itemValue))
                         continue;
 
                     Task.Run(() => this.dalamud.BotManager.ProcessRetainerSale(itemLink.ItemId, itemValue, itemLink.IsHQ));
@@ -180,7 +179,7 @@ namespace Dalamud.Game {
 
             var messageCopy = message;
             var senderCopy = sender;
-            this.dalamud.BotManager.ProcessChatMessage(type, messageCopy, senderCopy);
+            Task.Run(() => this.dalamud.BotManager.ProcessChatMessage(type, messageCopy, senderCopy));
 
             // Handle all of this with SeString some day
             if ((this.HandledChatTypeColors.ContainsKey(type) || type == XivChatType.Say || type == XivChatType.Shout ||
