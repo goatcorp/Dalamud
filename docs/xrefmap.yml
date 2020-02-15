@@ -4909,6 +4909,47 @@ references:
   isSpec: "True"
   fullName: Dalamud.Plugin.DalamudPluginInterface.GetPluginConfig
   nameWithType: DalamudPluginInterface.GetPluginConfig
+- uid: Dalamud.Plugin.DalamudPluginInterface.Log(System.String,System.Object[])
+  name: Log(String, Object[])
+  href: api/Dalamud.Plugin.DalamudPluginInterface.html#Dalamud_Plugin_DalamudPluginInterface_Log_System_String_System_Object___
+  commentId: M:Dalamud.Plugin.DalamudPluginInterface.Log(System.String,System.Object[])
+  name.vb: Log(String, Object())
+  fullName: Dalamud.Plugin.DalamudPluginInterface.Log(System.String, System.Object[])
+  fullName.vb: Dalamud.Plugin.DalamudPluginInterface.Log(System.String, System.Object())
+  nameWithType: DalamudPluginInterface.Log(String, Object[])
+  nameWithType.vb: DalamudPluginInterface.Log(String, Object())
+- uid: Dalamud.Plugin.DalamudPluginInterface.Log*
+  name: Log
+  href: api/Dalamud.Plugin.DalamudPluginInterface.html#Dalamud_Plugin_DalamudPluginInterface_Log_
+  commentId: Overload:Dalamud.Plugin.DalamudPluginInterface.Log
+  isSpec: "True"
+  fullName: Dalamud.Plugin.DalamudPluginInterface.Log
+  nameWithType: DalamudPluginInterface.Log
+- uid: Dalamud.Plugin.DalamudPluginInterface.LogError(System.Exception,System.String,System.Object[])
+  name: LogError(Exception, String, Object[])
+  href: api/Dalamud.Plugin.DalamudPluginInterface.html#Dalamud_Plugin_DalamudPluginInterface_LogError_System_Exception_System_String_System_Object___
+  commentId: M:Dalamud.Plugin.DalamudPluginInterface.LogError(System.Exception,System.String,System.Object[])
+  name.vb: LogError(Exception, String, Object())
+  fullName: Dalamud.Plugin.DalamudPluginInterface.LogError(System.Exception, System.String, System.Object[])
+  fullName.vb: Dalamud.Plugin.DalamudPluginInterface.LogError(System.Exception, System.String, System.Object())
+  nameWithType: DalamudPluginInterface.LogError(Exception, String, Object[])
+  nameWithType.vb: DalamudPluginInterface.LogError(Exception, String, Object())
+- uid: Dalamud.Plugin.DalamudPluginInterface.LogError(System.String,System.Object[])
+  name: LogError(String, Object[])
+  href: api/Dalamud.Plugin.DalamudPluginInterface.html#Dalamud_Plugin_DalamudPluginInterface_LogError_System_String_System_Object___
+  commentId: M:Dalamud.Plugin.DalamudPluginInterface.LogError(System.String,System.Object[])
+  name.vb: LogError(String, Object())
+  fullName: Dalamud.Plugin.DalamudPluginInterface.LogError(System.String, System.Object[])
+  fullName.vb: Dalamud.Plugin.DalamudPluginInterface.LogError(System.String, System.Object())
+  nameWithType: DalamudPluginInterface.LogError(String, Object[])
+  nameWithType.vb: DalamudPluginInterface.LogError(String, Object())
+- uid: Dalamud.Plugin.DalamudPluginInterface.LogError*
+  name: LogError
+  href: api/Dalamud.Plugin.DalamudPluginInterface.html#Dalamud_Plugin_DalamudPluginInterface_LogError_
+  commentId: Overload:Dalamud.Plugin.DalamudPluginInterface.LogError
+  isSpec: "True"
+  fullName: Dalamud.Plugin.DalamudPluginInterface.LogError
+  nameWithType: DalamudPluginInterface.LogError
 - uid: Dalamud.Plugin.DalamudPluginInterface.SavePluginConfig(Dalamud.Configuration.IPluginConfiguration)
   name: SavePluginConfig(IPluginConfiguration)
   href: api/Dalamud.Plugin.DalamudPluginInterface.html#Dalamud_Plugin_DalamudPluginInterface_SavePluginConfig_Dalamud_Configuration_IPluginConfiguration_
