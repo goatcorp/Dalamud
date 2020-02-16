@@ -79,7 +79,7 @@ namespace Dalamud {
             ChatHandlers = new ChatHandlers(this);
             NetworkHandlers = new NetworkHandlers(this, this.Configuration.OptOutMbCollection);
 
-            this.Data = new DataManager();
+            this.Data = new DataManager(this.StartInfo.Language);
             //Task.Run(() => );
             this.Data.Initialize();
 

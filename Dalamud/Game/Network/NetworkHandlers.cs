@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using Dalamud.Data.TransientSheet;
 using Dalamud.Game.Network.MarketBoardUploaders;
 using Dalamud.Game.Network.Structures;
 using Dalamud.Game.Network.Universalis.MarketBoardUploaders;
+using Lumina.Excel;
 using Newtonsoft.Json.Linq;
 using Serilog;
 
@@ -20,7 +22,7 @@ namespace Dalamud.Game.Network {
 
         private byte[] lastPreferredRole;
 
-        public delegate Task CfPop(JObject contentFinderCondition);
+        public delegate Task CfPop(ContentFinderCondition cfc);
         public event CfPop ProcessCfPop;
 
         public NetworkHandlers(Dalamud dalamud, bool optOutMbUploads) {
@@ -46,14 +48,19 @@ namespace Dalamud.Game.Network {
                 var notifyType = data[16];
                 var contentFinderConditionId = BitConverter.ToUInt16(data, 36);
 
+                if (notifyType != 3 || contentFinderConditionId == 0)
+                    return;
+
+                var contentFinderCondition = this.dalamud.Data.GetExcelSheet<ContentFinderCondition>().GetRow(contentFinderConditionId);
+
+                if (contentFinderCondition == null)
+                {
+                    Log.Error("CFC key {0} not in lumina data.", contentFinderConditionId);
+                    return;
+                }
 
                 Task.Run(async () => {
-                    if (notifyType != 3 || contentFinderConditionId == 0)
-                        return;
-
-                    var contentFinderCondition = this.dalamud.Data.ContentFinderCondition[contentFinderConditionId];
-
-                    this.dalamud.Framework.Gui.Chat.Print($"Duty pop: " + contentFinderCondition["Name"]);
+                    this.dalamud.Framework.Gui.Chat.Print($"Duty pop: " + contentFinderCondition.Name);
 
                     await this.ProcessCfPop?.Invoke(contentFinderCondition);
 

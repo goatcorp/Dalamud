@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Dalamud.Data.TransientSheet;
 using Dalamud.Game.Chat;
 using Dalamud.Game.Chat.SeStringHandling;
 using Dalamud.Game.Chat.SeStringHandling.Payloads;
@@ -85,24 +86,24 @@ namespace Dalamud.DiscordBot {
             return Task.CompletedTask;
         }
 
-        public async Task ProcessCfPop(JObject contentFinderCondition) {
+        public async Task ProcessCfPop(ContentFinderCondition cfc) {
             if (!this.IsConnected)
                 return;
 
-            var contentName = contentFinderCondition["Name"];
-
+            var contentName = cfc.Name;
+                
             if (this.config.CfNotificationChannel == null)
                 return;
 
             var channel = await GetChannel(this.config.CfNotificationChannel);
 
-            var contentImage = contentFinderCondition["Image"];
+            var iconFolder = (cfc.Image / 1000) * 1000;
 
             var embedBuilder = new EmbedBuilder {
                 Title = "Duty is ready: " + contentName,
                 Timestamp = DateTimeOffset.Now,
                 Color = new Color(0x297c00),
-                ImageUrl = "https://xivapi.com" + contentImage
+                ImageUrl = "https://xivapi.com" + $"/i/{iconFolder}/{cfc.Image}.png"
             };
 
             await channel.SendMessageAsync(embed: embedBuilder.Build());

@@ -15,7 +15,7 @@ namespace Dalamud.Interface
 
         private bool wasReady;
         private string serverOpString;
-        private string cfcString;
+        private string cfcString = "N/A";
 
         private int currentKind;
 
@@ -29,7 +29,6 @@ namespace Dalamud.Interface
             if (this.dataMgr.IsDataReady)
             {
                 this.serverOpString = JsonConvert.SerializeObject(this.dataMgr.ServerOpCodes, Formatting.Indented);
-                this.cfcString = JsonConvert.SerializeObject(this.dataMgr.ContentFinderCondition, Formatting.Indented);
                 this.wasReady = true;
             }
         }
