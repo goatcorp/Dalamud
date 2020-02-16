@@ -158,7 +158,6 @@ namespace Dalamud {
         #region Interface
 
         private bool isImguiDrawDemoWindow = false;
-        private bool isImguiDrawWelcome = true;
 
 #if DEBUG
         private bool isImguiDrawDevMenu = true;
@@ -244,29 +243,6 @@ namespace Dalamud {
 
             if (this.isImguiDrawDemoWindow)
                 ImGui.ShowDemoWindow();
-
-            if (!this.Configuration.WelcomeGuideDismissed)
-            {
-                if (!ImGui.Begin("Welcome to XIVLauncher", ImGuiWindowFlags.Modal | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize))
-                {
-                    // Early out if the window is collapsed, as an optimization.
-                    ImGui.End();
-                }
-                else
-                {
-                    ImGui.Text($"dalamud says hello. ({this.assemblyVersion})");
-                    ImGui.Spacing();
-                    ImGui.Spacing();
-
-                    if (ImGui.Button("Close"))
-                    {
-                        this.Configuration.WelcomeGuideDismissed = true;
-                        this.Configuration.Save(this.StartInfo.ConfigurationPath);
-                    }
-
-                    ImGui.End();
-                }
-            }
         }
 
         #endregion
