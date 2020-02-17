@@ -14,6 +14,7 @@ using Newtonsoft.Json;
 namespace Dalamud.Injector {
     internal static class Program {
         private static void Main(string[] args) {
+#if !DEBUG
             AppDomain.CurrentDomain.UnhandledException += delegate(object sender, UnhandledExceptionEventArgs eventArgs)
             {
                 File.WriteAllText("InjectorException.txt", eventArgs.ExceptionObject.ToString());
@@ -22,6 +23,7 @@ namespace Dalamud.Injector {
 
                 Environment.Exit(0);
             };
+#endif
 
             var pid = int.Parse(args[0]);
 
