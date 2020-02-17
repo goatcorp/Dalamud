@@ -187,7 +187,12 @@ namespace Dalamud.DiscordBot {
             string senderWorld;
 
             if (playerLink == null) {
-                Log.Error("playerLink was null. Sender: {0}", BitConverter.ToString(sender.RawData));
+                // chat messages from the local player do not include a player link, and are just the raw name
+                // but we should still track other instances to know if this is ever an issue otherwise
+                if (parsedSender.TextValue != this.dalamud.ClientState.LocalPlayer.Name)
+                {
+                    Log.Error("playerLink was null. Sender: {0}", BitConverter.ToString(sender.RawData));
+                }
 
                 senderName = wasOutgoingTell ? this.dalamud.ClientState.LocalPlayer.Name : parsedSender.TextValue;
                 senderWorld = this.dalamud.ClientState.LocalPlayer.HomeWorld.Name;
