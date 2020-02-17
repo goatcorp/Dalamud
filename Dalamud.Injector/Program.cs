@@ -42,9 +42,17 @@ namespace Dalamud.Injector {
                     break;
             }
 
+            if (args.Length == 1) {
+                var defaultStartInfo = GetDefaultStartInfo();
+                Console.WriteLine("\nA Dalamud start info was not found in the program arguments. One has been generated for you.");
+                Console.WriteLine("\nCopy the following contents into the program arguments:");
+                Console.WriteLine(defaultStartInfo);
+                return;
+            }
+
             var startInfo = JsonConvert.DeserializeObject<DalamudStartInfo>(Encoding.UTF8.GetString(Convert.FromBase64String(args[1])));
             startInfo.WorkingDirectory = Directory.GetCurrentDirectory();
-            
+
             // Seems to help with the STATUS_INTERNAL_ERROR condition
             Thread.Sleep(1000);
 
@@ -63,8 +71,34 @@ namespace Dalamud.Injector {
             }
 
             RemoteHooking.Inject(process.Id, InjectionOptions.DoNotRequireStrongName, libPath, libPath, info);
-            
+
             Console.WriteLine("Injected");
+        }
+
+        private static string GetDefaultStartInfo() {
+            DalamudStartInfo startInfo = new DalamudStartInfo();
+
+            startInfo.WorkingDirectory = null;
+
+            startInfo.ConfigurationPath =
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) +
+                @"\XIVLauncher\dalamudConfig.json";
+
+            startInfo.PluginDirectory =
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\XIVLauncher\plugins";
+
+            startInfo.DefaultPluginDirectory =
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\XIVLauncher\defaultplugins";
+
+            startInfo.Language = ClientLanguage.English;
+
+            Console.WriteLine("Creating a StartInfo with:\n" +
+                              $"ConfigurationPath: {startInfo.ConfigurationPath}\n" +
+                              $"PluginDirectory: {startInfo.PluginDirectory}\n" +
+                              $"DefaultPluginDirectory: {startInfo.DefaultPluginDirectory}\n" +
+                              $"Language: {startInfo.Language}");
+
+            return Convert.ToBase64String(Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(startInfo)));
         }
     }
 }
