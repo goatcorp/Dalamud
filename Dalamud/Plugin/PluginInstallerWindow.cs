@@ -23,6 +23,7 @@ namespace Dalamud.Plugin
         private string pluginDirectory;
         private ReadOnlyCollection<PluginDefinition> pluginMaster;
         private bool errorModalDrawing = true;
+        private bool errorModalOnNextFrame = false;
 
         private enum PluginInstallStatus {
             None,
@@ -38,7 +39,11 @@ namespace Dalamud.Plugin
         public PluginInstallerWindow(PluginManager manager, string pluginDirectory) {
             this.manager = manager;
             this.pluginDirectory = pluginDirectory;
-            Task.Run(CachePluginMaster).ContinueWith(t => { this.masterDownloadFailed = t.IsFaulted; });
+            Task.Run(CachePluginMaster).ContinueWith(t => {
+                this.masterDownloadFailed = this.masterDownloadFailed || t.IsFaulted;
+                this.errorModalDrawing = this.masterDownloadFailed;
+                this.errorModalOnNextFrame = this.masterDownloadFailed;
+            });
         }
 
         private void CachePluginMaster() {
@@ -55,28 +60,34 @@ namespace Dalamud.Plugin
 
         private void InstallPlugin(PluginDefinition definition) {
             try {
-                var path = Path.GetTempFileName();
+                var outputDir = new DirectoryInfo(Path.Combine(this.pluginDirectory, definition.InternalName, definition.AssemblyVersion));
+                var dllFile = new FileInfo(Path.Combine(outputDir.FullName, $"{definition.InternalName}.dll"));
+                var disabledFile = new FileInfo(Path.Combine(outputDir.FullName, ".disabled"));
 
-                Log.Information("Downloading plugin to {0}", path);
-            
-                using var client = new WebClient();
+                if (dllFile.Exists) {
+                    if (disabledFile.Exists)
+                        disabledFile.Delete();
 
-                client.DownloadFile(PluginRepoBaseUrl + $"/plugins/{definition.InternalName}/latest.zip", path);
-                var outputDir = Path.Combine(this.pluginDirectory, definition.InternalName);
-
-                if (File.Exists(Path.Combine(outputDir, ".disabled"))) {
-                    Log.Information("Plugin was disabled, re-enabling.");
-                    File.Delete(Path.Combine(outputDir, ".disabled"));
+                    this.manager.LoadPluginFromAssembly(dllFile);
+                    this.installStatus = PluginInstallStatus.Success;
+                    return;
                 }
+
+                if (outputDir.Exists)
+                    outputDir.Delete(true);
+                outputDir.Create();
+
+                var path = Path.GetTempFileName();
+                Log.Information("Downloading plugin to {0}", path);
+                using var client = new WebClient();
+                client.DownloadFile(PluginRepoBaseUrl + $"/plugins/{definition.InternalName}/latest.zip", path);
 
                 Log.Information("Extracting to {0}", outputDir);
 
-                Directory.CreateDirectory(outputDir);
-
-                ZipFile.ExtractToDirectory(path, outputDir);
+                ZipFile.ExtractToDirectory(path, outputDir.FullName);
 
                 this.installStatus = PluginInstallStatus.Success;
-                this.manager.LoadPluginFromAssembly(new FileInfo(Path.Combine(outputDir, $"{definition.InternalName}.dll")));
+                this.manager.LoadPluginFromAssembly(dllFile);
             } catch (Exception e) {
                 Log.Error(e, "Plugin download failed hard.");
                 this.installStatus = PluginInstallStatus.Fail;
@@ -129,7 +140,11 @@ namespace Dalamud.Plugin
                                 {
                                     this.installStatus = PluginInstallStatus.InProgress;
 
-                                    Task.Run(() => InstallPlugin(pluginDefinition)).ContinueWith(t => { this.installStatus = t.IsFaulted ? PluginInstallStatus.Fail : this.installStatus; });
+                                    Task.Run(() => InstallPlugin(pluginDefinition)).ContinueWith(t => {
+                                        this.installStatus = t.IsFaulted ? PluginInstallStatus.Fail : this.installStatus;
+                                        this.errorModalDrawing = this.installStatus == PluginInstallStatus.Fail;
+                                        this.errorModalOnNextFrame = this.installStatus == PluginInstallStatus.Fail;
+                                    });
                                 }
                             }
 
@@ -184,20 +199,29 @@ namespace Dalamud.Plugin
 
             if (ImGui.Button("test modal")) {
                 this.installStatus = PluginInstallStatus.Fail;
+                this.errorModalDrawing = true;
+                this.errorModalOnNextFrame = true;
             }
 
             ImGui.Spacing();
 
-            if (this.installStatus == PluginInstallStatus.Fail || this.masterDownloadFailed) {
-                if (ImGui.BeginPopupModal("Installer failed", ref this.errorModalDrawing, ImGuiWindowFlags.AlwaysAutoResize))
-                {
-                    ImGui.TextWrapped("The installer ran into an issue. Please restart the game and report this error on our discord.");
+            if (ImGui.BeginPopupModal("Installer failed", ref this.errorModalDrawing, ImGuiWindowFlags.AlwaysAutoResize))
+            {
+                ImGui.Text("The plugin installer ran into an issue.");
+                ImGui.Text("Please restart the game and report this error on our discord.");
 
-                    if (ImGui.Button("OK", new Vector2(120, 40))) { ImGui.CloseCurrentPopup(); }
+                ImGui.Spacing();
 
-                    ImGui.EndPopup();
-                }
+                if (ImGui.Button("OK", new Vector2(120, 40))) { ImGui.CloseCurrentPopup(); }
+
+                ImGui.EndPopup();
             }
+
+            if (this.errorModalOnNextFrame) {
+                ImGui.OpenPopup("Installer failed");
+                this.errorModalOnNextFrame = false;
+            }
+                
 
             ImGui.End();
 

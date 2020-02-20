@@ -42,8 +42,8 @@ namespace Dalamud.Plugin
             var thisPlugin = this.Plugins.Where(x => x.Definition != null)
                                  .First(x => x.Definition.InternalName == definition.InternalName);
 
-            var outputDir = Path.Combine(this.pluginDirectory, definition.InternalName);
-            File.Create(Path.Combine(outputDir, ".disabled"));
+            var outputDir = new DirectoryInfo(Path.Combine(this.pluginDirectory, definition.InternalName, definition.AssemblyVersion));
+            File.Create(Path.Combine(outputDir.FullName, ".disabled"));
 
             thisPlugin.Plugin.Dispose();
 
@@ -68,9 +68,12 @@ namespace Dalamud.Plugin
 
                     if (type.GetInterface(interfaceType.FullName) != null)
                     {
-                        var plugin = (IDalamudPlugin)Activator.CreateInstance(type);
+                        var disabledFile = new FileInfo(Path.Combine(dllFile.Directory.FullName, ".disabled"));
 
-                        var dalamudInterface = new DalamudPluginInterface(this.dalamud, type.Assembly.GetName().Name);
+                        if (disabledFile.Exists) {
+                            Log.Information("Plugin {0} is disabled.", dllFile.FullName);
+                            return;
+                        }
 
                         var defJsonFile = new FileInfo(Path.Combine(dllFile.Directory.FullName, $"{Path.GetFileNameWithoutExtension(dllFile.Name)}.json"));
 
@@ -86,8 +89,12 @@ namespace Dalamud.Plugin
                         else
                         {
                             Log.Information("Plugin DLL {0} has no definition.", dllFile.FullName);
+                            return;
                         }
 
+                        var plugin = (IDalamudPlugin)Activator.CreateInstance(type);
+
+                        var dalamudInterface = new DalamudPluginInterface(this.dalamud, type.Assembly.GetName().Name);
                         plugin.Initialize(dalamudInterface);
                         Log.Information("Loaded plugin: {0}", plugin.Name);
                         this.Plugins.Add((plugin, pluginDef));
