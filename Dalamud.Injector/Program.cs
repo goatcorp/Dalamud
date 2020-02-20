@@ -44,15 +44,15 @@ namespace Dalamud.Injector {
                     break;
             }
 
+            DalamudStartInfo startInfo;
             if (args.Length == 1) {
-                var defaultStartInfo = GetDefaultStartInfo();
+                startInfo = GetDefaultStartInfo();
                 Console.WriteLine("\nA Dalamud start info was not found in the program arguments. One has been generated for you.");
                 Console.WriteLine("\nCopy the following contents into the program arguments:");
-                Console.WriteLine(defaultStartInfo);
-                return;
+            } else {
+                startInfo = JsonConvert.DeserializeObject<DalamudStartInfo>(Encoding.UTF8.GetString(Convert.FromBase64String(args[1])));
             }
 
-            var startInfo = JsonConvert.DeserializeObject<DalamudStartInfo>(Encoding.UTF8.GetString(Convert.FromBase64String(args[1])));
             startInfo.WorkingDirectory = Directory.GetCurrentDirectory();
 
             // Seems to help with the STATUS_INTERNAL_ERROR condition
@@ -77,22 +77,17 @@ namespace Dalamud.Injector {
             Console.WriteLine("Injected");
         }
 
-        private static string GetDefaultStartInfo() {
-            DalamudStartInfo startInfo = new DalamudStartInfo();
-
-            startInfo.WorkingDirectory = null;
-
-            startInfo.ConfigurationPath =
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) +
-                @"\XIVLauncher\dalamudConfig.json";
-
-            startInfo.PluginDirectory =
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\XIVLauncher\plugins";
-
-            startInfo.DefaultPluginDirectory =
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\XIVLauncher\defaultplugins";
-
-            startInfo.Language = ClientLanguage.English;
+        private static DalamudStartInfo GetDefaultStartInfo() {
+            var startInfo = new DalamudStartInfo {
+                WorkingDirectory = null,
+                ConfigurationPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) +
+                                    @"\XIVLauncher\dalamudConfig.json",
+                PluginDirectory = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) +
+                                  @"\XIVLauncher\plugins",
+                DefaultPluginDirectory = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) +
+                                         @"\XIVLauncher\defaultplugins",
+                Language = ClientLanguage.English
+            };
 
             Console.WriteLine("Creating a StartInfo with:\n" +
                               $"ConfigurationPath: {startInfo.ConfigurationPath}\n" +
@@ -100,7 +95,7 @@ namespace Dalamud.Injector {
                               $"DefaultPluginDirectory: {startInfo.DefaultPluginDirectory}\n" +
                               $"Language: {startInfo.Language}");
 
-            return Convert.ToBase64String(Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(startInfo)));
+            return startInfo;
         }
     }
 }

@@ -33,11 +33,13 @@ namespace Dalamud {
 
         public readonly SigScanner SigScanner;
 
-        public Framework Framework { get; }
+        public readonly Framework Framework;
 
-        public CommandManager CommandManager { get; }
-        public ChatHandlers ChatHandlers { get; }
-        public NetworkHandlers NetworkHandlers { get; }
+        public readonly CommandManager CommandManager;
+
+        public readonly ChatHandlers ChatHandlers;
+
+        public readonly NetworkHandlers NetworkHandlers;
 
         public readonly DiscordBotManager BotManager;
 
@@ -67,27 +69,26 @@ namespace Dalamud {
 
             // Initialize the process information.
             this.targetModule = Process.GetCurrentProcess().MainModule;
-            SigScanner = new SigScanner(this.targetModule, true);
+            this.SigScanner = new SigScanner(this.targetModule, true);
 
             // Initialize game subsystem
-            Framework = new Framework(this.SigScanner, this);
+            this.Framework = new Framework(this.SigScanner, this);
 
             // Initialize managers. Basically handlers for the logic
-            CommandManager = new CommandManager(this, info.Language);
+            this.CommandManager = new CommandManager(this, info.Language);
             SetupCommands();
 
-            ChatHandlers = new ChatHandlers(this);
-            NetworkHandlers = new NetworkHandlers(this, this.Configuration.OptOutMbCollection);
+            this.ChatHandlers = new ChatHandlers(this);
+            this.NetworkHandlers = new NetworkHandlers(this, this.Configuration.OptOutMbCollection);
 
             this.Data = new DataManager(this.StartInfo.Language);
-            //Task.Run(() => );
             this.Data.Initialize();
 
             this.ClientState = new ClientState(this, info, this.SigScanner, this.targetModule);
 
             this.BotManager = new DiscordBotManager(this, this.Configuration.DiscordFeatureConfig);
 
-            this.PluginManager = new PluginManager(this, info.PluginDirectory, info.DefaultPluginDirectory);
+            this.PluginManager = new PluginManager(this, info.PluginDirectory);
 
             this.WinSock2 = new WinSockHandlers();
 
@@ -105,18 +106,15 @@ namespace Dalamud {
             } catch (Exception e) {
                 Log.Information("Could not enable interface.");
             }
-            
-            Framework.Enable();
+
+            this.Framework.Enable();
 
             this.BotManager.Start();
 
-            try
-            {
+            try {
                 this.PluginManager.LoadPlugins();
-            }
-            catch (Exception ex)
-            {
-                Framework.Gui.Chat.PrintError(
+            } catch (Exception ex) {
+                this.Framework.Gui.Chat.PrintError(
                     "[XIVLAUNCHER] There was an error loading additional plugins. Please check the log for more details.");
                 Log.Error(ex, "Plugin load failed.");
             }
@@ -167,9 +165,11 @@ namespace Dalamud {
 
         private bool isImguiDrawLogWindow = false;
         private bool isImguiDrawDataWindow = false;
+        private bool isImguiDrawPluginWindow = false;
 
         private DalamudLogWindow logWindow;
         private DalamudDataWindow dataWindow;
+        private PluginInstallerWindow pluginWindow;
 
         private void BuildDalamudUi()
         {
@@ -209,10 +209,15 @@ namespace Dalamud {
 
                     if (ImGui.BeginMenu("Plugins"))
                     {
+                        if (ImGui.MenuItem("Open Plugin installer"))
+                        {
+                            this.pluginWindow = new PluginInstallerWindow(this.PluginManager, this.StartInfo.PluginDirectory);
+                            this.isImguiDrawPluginWindow = true;
+                        }
                         if (ImGui.MenuItem("Print plugin info")) {
                             foreach (var plugin in this.PluginManager.Plugins) {
                                 // TODO: some more here, state maybe?
-                                Log.Information($"{plugin.Name}");
+                                Log.Information($"{plugin.Plugin.Name}");
                             }
                         }
                         if (ImGui.MenuItem("Reload plugins"))
@@ -239,6 +244,11 @@ namespace Dalamud {
             if (this.isImguiDrawDataWindow)
             {
                 this.isImguiDrawDataWindow = this.dataWindow != null && this.dataWindow.Draw();
+            }
+
+            if (this.isImguiDrawPluginWindow)
+            {
+                this.isImguiDrawPluginWindow = this.pluginWindow != null && this.pluginWindow.Draw();
             }
 
             if (this.isImguiDrawDemoWindow)

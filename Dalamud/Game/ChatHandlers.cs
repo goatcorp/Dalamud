@@ -105,7 +105,7 @@ namespace Dalamud.Game {
                 this.dalamud.Framework.Gui.Chat.Print($"XIVLauncher in-game addon v{assemblyVersion} loaded.");
 
                 foreach (var plugin in this.dalamud.PluginManager.Plugins) {
-                    this.dalamud.Framework.Gui.Chat.Print($"    -> {plugin.Name} v{plugin.GetType().Assembly.GetName().Version} loaded.");
+                    this.dalamud.Framework.Gui.Chat.Print($"    -> {plugin.Plugin.Name} v{plugin.GetType().Assembly.GetName().Version} loaded.");
                 }
 
                 this.hasSeenLoadingMsg = true;

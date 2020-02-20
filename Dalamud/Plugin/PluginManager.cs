@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using Serilog;
 
 namespace Dalamud.Plugin
@@ -12,14 +13,14 @@ namespace Dalamud.Plugin
     public class PluginManager {
         private readonly Dalamud dalamud;
         private readonly string pluginDirectory;
-        private readonly string defaultPluginDirectory;
 
-        public List<IDalamudPlugin> Plugins;
+        private readonly Type interfaceType = typeof(IDalamudPlugin);
 
-        public PluginManager(Dalamud dalamud, string pluginDirectory, string defaultPluginDirectory) {
+        public readonly List<(IDalamudPlugin Plugin, PluginDefinition Definition)> Plugins = new List<(IDalamudPlugin plugin, PluginDefinition def)>();
+
+        public PluginManager(Dalamud dalamud, string pluginDirectory) {
             this.dalamud = dalamud;
             this.pluginDirectory = pluginDirectory;
-            this.defaultPluginDirectory = defaultPluginDirectory;
         }
 
         public void UnloadPlugins() {
@@ -27,60 +28,83 @@ namespace Dalamud.Plugin
                 return;
 
             for (var i = 0; i < this.Plugins.Count; i++) {
-                this.Plugins[i].Dispose();
-                this.Plugins[i] = null;
+                this.Plugins[i].Plugin.Dispose();
             }
+
+            this.Plugins.Clear();
         }
 
         public void LoadPlugins() {
-            LoadPluginsAt(new DirectoryInfo(this.defaultPluginDirectory));
             LoadPluginsAt(new DirectoryInfo(this.pluginDirectory));
+        }
+
+        public void DisablePlugin(PluginDefinition definition) {
+            var thisPlugin = this.Plugins.Where(x => x.Definition != null)
+                                 .First(x => x.Definition.InternalName == definition.InternalName);
+
+            var outputDir = Path.Combine(this.pluginDirectory, definition.InternalName);
+            File.Create(Path.Combine(outputDir, ".disabled"));
+
+            thisPlugin.Plugin.Dispose();
+
+            this.Plugins.Remove(thisPlugin);
+        }
+
+        public void LoadPluginFromAssembly(FileInfo dllFile) {
+            Log.Information("Loading assembly at {0}", dllFile);
+            var assemblyName = AssemblyName.GetAssemblyName(dllFile.FullName);
+            var pluginAssembly = Assembly.Load(assemblyName);
+
+            if (pluginAssembly != null)
+            {
+                Log.Information("Loading types for {0}", pluginAssembly.FullName);
+                var types = pluginAssembly.GetTypes();
+                foreach (var type in types)
+                {
+                    if (type.IsInterface || type.IsAbstract)
+                    {
+                        continue;
+                    }
+
+                    if (type.GetInterface(interfaceType.FullName) != null)
+                    {
+                        var plugin = (IDalamudPlugin)Activator.CreateInstance(type);
+
+                        var dalamudInterface = new DalamudPluginInterface(this.dalamud, type.Assembly.GetName().Name);
+
+                        var defJsonFile = new FileInfo(Path.Combine(dllFile.Directory.FullName, $"{Path.GetFileNameWithoutExtension(dllFile.Name)}.json"));
+
+                        PluginDefinition pluginDef = null;
+                        if (defJsonFile.Exists)
+                        {
+                            Log.Information("Loading definition for plugin DLL {0}", dllFile.FullName);
+
+                            pluginDef =
+                                JsonConvert.DeserializeObject<PluginDefinition>(
+                                    File.ReadAllText(defJsonFile.FullName));
+                        }
+                        else
+                        {
+                            Log.Information("Plugin DLL {0} has no definition.", dllFile.FullName);
+                        }
+
+                        plugin.Initialize(dalamudInterface);
+                        Log.Information("Loaded plugin: {0}", plugin.Name);
+                        this.Plugins.Add((plugin, pluginDef));
+                    }
+                }
+            }
         }
 
         private void LoadPluginsAt(DirectoryInfo folder) {
             if (folder.Exists)
             { 
-                Log.Debug("Loading plugins at {0}", folder);
+                Log.Information("Loading plugins at {0}", folder);
 
                 var pluginDlls = folder.GetFiles("*.dll", SearchOption.AllDirectories);
 
-                var assemblies = new List<Assembly>(pluginDlls.Length); 
-                foreach (var dllFile in pluginDlls) 
-                { 
-                    Log.Debug("Loading assembly at {0}", dllFile);
-                    var assemblyName = AssemblyName.GetAssemblyName(dllFile.FullName);
-                    var pluginAssembly = Assembly.Load(assemblyName); 
-                    assemblies.Add(pluginAssembly); 
-                }
-
-                var interfaceType = typeof(IDalamudPlugin);
-                var foundImplementations = new List<Type>();
-                foreach (var assembly in assemblies) {
-                    if (assembly != null) {
-                        Log.Debug("Loading types for {0}", assembly.FullName);
-                        var types = assembly.GetTypes();
-                        foreach (var type in types) {
-                            if (type.IsInterface || type.IsAbstract) {
-                                continue;
-                            }
-
-                            if (type.GetInterface(interfaceType.FullName) != null) {
-                                foundImplementations.Add(type);
-                            }
-                        }
-                    }
-                }
-
-                this.Plugins = new List<IDalamudPlugin>(foundImplementations.Count); 
-                foreach (var pluginType in foundImplementations) 
-                { 
-                    var plugin = (IDalamudPlugin)Activator.CreateInstance(pluginType);
-
-                    var dalamudInterface = new DalamudPluginInterface(this.dalamud, pluginType.Assembly.GetName().Name);
-
-                    plugin.Initialize(dalamudInterface);
-                    Log.Information("Loaded plugin: {0}", plugin.Name);
-                    this.Plugins.Add(plugin); 
+                foreach (var dllFile in pluginDlls) {
+                    LoadPluginFromAssembly(dllFile);
                 }
             }
         }
