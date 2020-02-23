@@ -11,6 +11,8 @@ namespace Dalamud {
         public string PluginDirectory;
         public string DefaultPluginDirectory;
         public ClientLanguage Language;
+
+        public string GameVersion;
     }
 
     public enum ClientLanguage

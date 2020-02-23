@@ -13,5 +13,6 @@ namespace Dalamud.Plugin
         public string InternalName { get; set; }
         public string AssemblyVersion { get; set; }
         public string Description { get; set; }
+        public string ApplicableGameVersion { get; set; }
     }
 }

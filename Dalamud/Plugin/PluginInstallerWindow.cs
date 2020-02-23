@@ -21,6 +21,7 @@ namespace Dalamud.Plugin
 
         private PluginManager manager;
         private string pluginDirectory;
+        private string gameVersion;
         private ReadOnlyCollection<PluginDefinition> pluginMaster;
         private bool errorModalDrawing = true;
         private bool errorModalOnNextFrame = false;
@@ -36,9 +37,10 @@ namespace Dalamud.Plugin
 
         private bool masterDownloadFailed = false;
 
-        public PluginInstallerWindow(PluginManager manager, string pluginDirectory) {
+        public PluginInstallerWindow(PluginManager manager, string pluginDirectory, string gameVersion) {
             this.manager = manager;
             this.pluginDirectory = pluginDirectory;
+            this.gameVersion = gameVersion;
             Task.Run(CachePluginMaster).ContinueWith(t => {
                 this.masterDownloadFailed = this.masterDownloadFailed || t.IsFaulted;
                 this.errorModalDrawing = this.masterDownloadFailed;
@@ -68,7 +70,7 @@ namespace Dalamud.Plugin
                     if (disabledFile.Exists)
                         disabledFile.Delete();
 
-                    this.manager.LoadPluginFromAssembly(dllFile);
+                    this.manager.LoadPluginFromAssembly(dllFile, false);
                     this.installStatus = PluginInstallStatus.Success;
                     return;
                 }
@@ -87,7 +89,7 @@ namespace Dalamud.Plugin
                 ZipFile.ExtractToDirectory(path, outputDir.FullName);
 
                 this.installStatus = PluginInstallStatus.Success;
-                this.manager.LoadPluginFromAssembly(dllFile);
+                this.manager.LoadPluginFromAssembly(dllFile, false);
             } catch (Exception e) {
                 Log.Error(e, "Plugin download failed hard.");
                 this.installStatus = PluginInstallStatus.Fail;
@@ -97,7 +99,7 @@ namespace Dalamud.Plugin
         public bool Draw() {
             var windowOpen = true;
 
-            ImGui.SetNextWindowSize(new Vector2(750, 520));
+            ImGui.SetNextWindowSize(new Vector2(750, 518));
 
             ImGui.Begin("Plugin Installer", ref windowOpen,
                 ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar);
@@ -117,10 +119,12 @@ namespace Dalamud.Plugin
             }
             else
             {
-                foreach (var pluginDefinition in this.pluginMaster)
-                {
-                    if (ImGui.CollapsingHeader(pluginDefinition.Name))
-                    {
+                foreach (var pluginDefinition in this.pluginMaster) {
+                    if (pluginDefinition.ApplicableGameVersion != this.gameVersion &&
+                        pluginDefinition.ApplicableGameVersion != "any")
+                        continue;
+
+                    if (ImGui.CollapsingHeader(pluginDefinition.Name)) {
                         ImGui.Indent();
 
                         ImGui.Text(pluginDefinition.Name);
@@ -129,41 +133,42 @@ namespace Dalamud.Plugin
 
                         ImGui.Text(pluginDefinition.Description);
 
-                        var isInstalled = this.manager.Plugins.Where(x=> x.Definition != null).Any(
+                        var isInstalled = this.manager.Plugins.Where(x => x.Definition != null).Any(
                             x => x.Definition.InternalName == pluginDefinition.InternalName);
 
                         if (!isInstalled) {
                             if (this.installStatus == PluginInstallStatus.InProgress) {
-                                ImGui.Button($"Install in progress...");
+                                ImGui.Button("Install in progress...");
                             } else {
-                                if (ImGui.Button($"Install v{pluginDefinition.AssemblyVersion}"))
-                                {
+                                if (ImGui.Button($"Install v{pluginDefinition.AssemblyVersion}")) {
                                     this.installStatus = PluginInstallStatus.InProgress;
 
                                     Task.Run(() => InstallPlugin(pluginDefinition)).ContinueWith(t => {
-                                        this.installStatus = t.IsFaulted ? PluginInstallStatus.Fail : this.installStatus;
+                                        this.installStatus =
+                                            t.IsFaulted ? PluginInstallStatus.Fail : this.installStatus;
                                         this.errorModalDrawing = this.installStatus == PluginInstallStatus.Fail;
                                         this.errorModalOnNextFrame = this.installStatus == PluginInstallStatus.Fail;
                                     });
                                 }
                             }
-
                         } else {
                             var installedPlugin = this.manager.Plugins.Where(x => x.Definition != null).First(
-                                x => x.Definition.InternalName == pluginDefinition.InternalName);
+                                x => x.Definition.InternalName ==
+                                     pluginDefinition.InternalName);
 
                             if (ImGui.Button("Disable"))
-                            {
-                                this.manager.DisablePlugin(installedPlugin.Definition);
-                            }
+                                try {
+                                    this.manager.DisablePlugin(installedPlugin.Definition);
+                                } catch (Exception exception) {
+                                    Log.Error(exception, "Could not disable plugin.");
+                                    this.errorModalDrawing = true;
+                                    this.errorModalOnNextFrame = true;
+                                }
 
                             if (installedPlugin.Plugin is IHasConfigUi v2Plugin && v2Plugin.OpenConfigUi != null) {
                                 ImGui.SameLine();
 
-                                if (ImGui.Button("Open Configuration"))
-                                {
-                                    v2Plugin.OpenConfigUi?.Invoke(null, null);
-                                }
+                                if (ImGui.Button("Open Configuration")) v2Plugin.OpenConfigUi?.Invoke(null, null);
                             }
                         }
 
@@ -195,12 +200,6 @@ namespace Dalamud.Plugin
             if (ImGui.Button("Close"))
             {
                 windowOpen = false;
-            }
-
-            if (ImGui.Button("test modal")) {
-                this.installStatus = PluginInstallStatus.Fail;
-                this.errorModalDrawing = true;
-                this.errorModalOnNextFrame = true;
             }
 
             ImGui.Spacing();

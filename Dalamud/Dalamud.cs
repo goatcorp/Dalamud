@@ -43,7 +43,7 @@ namespace Dalamud {
 
         public readonly DiscordBotManager BotManager;
 
-        public readonly PluginManager PluginManager;
+        public PluginManager PluginManager { get; private set; }
 
         public readonly ClientState ClientState;
 
@@ -88,8 +88,6 @@ namespace Dalamud {
 
             this.BotManager = new DiscordBotManager(this, this.Configuration.DiscordFeatureConfig);
 
-            this.PluginManager = new PluginManager(this, info.PluginDirectory);
-
             this.WinSock2 = new WinSockHandlers();
 
             try {
@@ -112,6 +110,7 @@ namespace Dalamud {
             this.BotManager.Start();
 
             try {
+                this.PluginManager = new PluginManager(this, this.StartInfo.PluginDirectory, this.StartInfo.DefaultPluginDirectory);
                 this.PluginManager.LoadPlugins();
             } catch (Exception ex) {
                 this.Framework.Gui.Chat.PrintError(
@@ -211,7 +210,7 @@ namespace Dalamud {
                     {
                         if (ImGui.MenuItem("Open Plugin installer"))
                         {
-                            this.pluginWindow = new PluginInstallerWindow(this.PluginManager, this.StartInfo.PluginDirectory);
+                            this.pluginWindow = new PluginInstallerWindow(this.PluginManager, this.StartInfo.PluginDirectory, this.StartInfo.GameVersion);
                             this.isImguiDrawPluginWindow = true;
                         }
                         if (ImGui.MenuItem("Print plugin info")) {

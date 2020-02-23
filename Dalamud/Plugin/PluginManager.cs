@@ -5,6 +5,9 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Dalamud.Interface;
+using Dalamud.Plugin.Features;
+using ImGuiNET;
 using Newtonsoft.Json;
 using Serilog;
 
@@ -13,14 +16,28 @@ namespace Dalamud.Plugin
     public class PluginManager {
         private readonly Dalamud dalamud;
         private readonly string pluginDirectory;
+        private readonly string devPluginDirectory;
 
         private readonly Type interfaceType = typeof(IDalamudPlugin);
 
-        public readonly List<(IDalamudPlugin Plugin, PluginDefinition Definition)> Plugins = new List<(IDalamudPlugin plugin, PluginDefinition def)>();
+        public readonly List<(IDalamudPlugin Plugin, PluginDefinition Definition, DalamudPluginInterface PluginInterface)> Plugins = new List<(IDalamudPlugin plugin, PluginDefinition def, DalamudPluginInterface PluginInterface)>();
 
-        public PluginManager(Dalamud dalamud, string pluginDirectory) {
+        public PluginManager(Dalamud dalamud, string pluginDirectory, string devPluginDirectory) {
             this.dalamud = dalamud;
             this.pluginDirectory = pluginDirectory;
+            this.devPluginDirectory = devPluginDirectory;
+
+            this.dalamud.InterfaceManager.OnDraw += InterfaceManagerOnOnDraw;
+        }
+
+        private void InterfaceManagerOnOnDraw() {
+            foreach (var plugin in this.Plugins) {
+                if (plugin.Plugin is IHasUi uiPlugin) {
+                    ImGui.PushID(plugin.Definition.InternalName);
+                    uiPlugin.Draw(plugin.PluginInterface.UiBuilder);
+                    ImGui.PopID();
+                }
+            }
         }
 
         public void UnloadPlugins() {
@@ -35,7 +52,8 @@ namespace Dalamud.Plugin
         }
 
         public void LoadPlugins() {
-            LoadPluginsAt(new DirectoryInfo(this.pluginDirectory));
+            LoadPluginsAt(new DirectoryInfo(this.pluginDirectory), false);
+            LoadPluginsAt(new DirectoryInfo(this.devPluginDirectory), true);
         }
 
         public void DisablePlugin(PluginDefinition definition) {
@@ -50,7 +68,7 @@ namespace Dalamud.Plugin
             this.Plugins.Remove(thisPlugin);
         }
 
-        public void LoadPluginFromAssembly(FileInfo dllFile) {
+        public void LoadPluginFromAssembly(FileInfo dllFile, bool raw) {
             Log.Information("Loading assembly at {0}", dllFile);
             var assemblyName = AssemblyName.GetAssemblyName(dllFile.FullName);
             var pluginAssembly = Assembly.Load(assemblyName);
@@ -70,7 +88,7 @@ namespace Dalamud.Plugin
                     {
                         var disabledFile = new FileInfo(Path.Combine(dllFile.Directory.FullName, ".disabled"));
 
-                        if (disabledFile.Exists) {
+                        if (disabledFile.Exists && !raw) {
                             Log.Information("Plugin {0} is disabled.", dllFile.FullName);
                             return;
                         }
@@ -78,7 +96,7 @@ namespace Dalamud.Plugin
                         var defJsonFile = new FileInfo(Path.Combine(dllFile.Directory.FullName, $"{Path.GetFileNameWithoutExtension(dllFile.Name)}.json"));
 
                         PluginDefinition pluginDef = null;
-                        if (defJsonFile.Exists)
+                        if (defJsonFile.Exists && !raw)
                         {
                             Log.Information("Loading definition for plugin DLL {0}", dllFile.FullName);
 
@@ -97,13 +115,13 @@ namespace Dalamud.Plugin
                         var dalamudInterface = new DalamudPluginInterface(this.dalamud, type.Assembly.GetName().Name);
                         plugin.Initialize(dalamudInterface);
                         Log.Information("Loaded plugin: {0}", plugin.Name);
-                        this.Plugins.Add((plugin, pluginDef));
+                        this.Plugins.Add((plugin, pluginDef, dalamudInterface));
                     }
                 }
             }
         }
 
-        private void LoadPluginsAt(DirectoryInfo folder) {
+        private void LoadPluginsAt(DirectoryInfo folder, bool raw) {
             if (folder.Exists)
             { 
                 Log.Information("Loading plugins at {0}", folder);
@@ -111,7 +129,7 @@ namespace Dalamud.Plugin
                 var pluginDlls = folder.GetFiles("*.dll", SearchOption.AllDirectories);
 
                 foreach (var dllFile in pluginDlls) {
-                    LoadPluginFromAssembly(dllFile);
+                    LoadPluginFromAssembly(dllFile, raw);
                 }
             }
         }

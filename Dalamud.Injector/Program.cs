@@ -86,6 +86,8 @@ namespace Dalamud.Injector {
                                   @"\XIVLauncher\plugins",
                 DefaultPluginDirectory = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) +
                                          @"\XIVLauncher\defaultplugins",
+
+                GameVersion = "2020.02.11.0000.0000",
                 Language = ClientLanguage.English
             };
 
@@ -93,7 +95,8 @@ namespace Dalamud.Injector {
                               $"ConfigurationPath: {startInfo.ConfigurationPath}\n" +
                               $"PluginDirectory: {startInfo.PluginDirectory}\n" +
                               $"DefaultPluginDirectory: {startInfo.DefaultPluginDirectory}\n" +
-                              $"Language: {startInfo.Language}");
+                              $"Language: {startInfo.Language}\n" +
+                              $"GameVersion: {startInfo.GameVersion}");
 
             return startInfo;
         }
