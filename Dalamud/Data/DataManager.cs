@@ -73,23 +73,14 @@ namespace Dalamud.Data
                     CacheFileResources = true
                 };
 
-                switch (this.language)
-                {
-                    case ClientLanguage.Japanese:
-                        luminaOptions.DefaultExcelLanguage = Language.Japanese;
-                        break;
-                    case ClientLanguage.English:
-                        luminaOptions.DefaultExcelLanguage = Language.English;
-                        break;
-                    case ClientLanguage.German:
-                        luminaOptions.DefaultExcelLanguage = Language.German;
-                        break;
-                    case ClientLanguage.French:
-                        luminaOptions.DefaultExcelLanguage = Language.French;
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException(nameof(this.language), "Unknown Language: " + this.language);
-                }
+                luminaOptions.DefaultExcelLanguage = this.language switch {
+                    ClientLanguage.Japanese => Language.Japanese,
+                    ClientLanguage.English => Language.English,
+                    ClientLanguage.German => Language.German,
+                    ClientLanguage.French => Language.French,
+                    _ => throw new ArgumentOutOfRangeException(nameof(this.language),
+                                                               "Unknown Language: " + this.language)
+                };
 
                 gameData = new Lumina.Lumina(Path.Combine(Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName), "sqpack"), luminaOptions);
 
