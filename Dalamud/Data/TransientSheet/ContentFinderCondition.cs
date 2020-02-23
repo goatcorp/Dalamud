@@ -7,7 +7,7 @@ using Lumina.Excel;
 
 namespace Dalamud.Data.TransientSheet
 {
-    [SheetName("ContentFinderCondition")]
+    [Sheet("ContentFinderCondition")]
     public class ContentFinderCondition : IExcelRow
     {
         // column defs from Thu, 13 Feb 2020 20:46:12 GMT
@@ -595,7 +595,7 @@ namespace Dalamud.Data.TransientSheet
         public int RowId { get; set; }
         public int SubRowId { get; set; }
 
-        public void PopulateData(RowParser parser)
+        public void PopulateData(RowParser parser, Lumina.Lumina lumina)
         {
             RowId = parser.Row;
             SubRowId = parser.SubRow;

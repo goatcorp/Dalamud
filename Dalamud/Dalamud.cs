@@ -202,6 +202,7 @@ namespace Dalamud {
                         }
                         ImGui.Separator();
                         ImGui.MenuItem(this.assemblyVersion, false);
+                        ImGui.MenuItem(this.StartInfo.GameVersion, false);
 
                         ImGui.EndMenu();
                     }
