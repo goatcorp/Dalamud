@@ -59,6 +59,11 @@ namespace Dalamud.Game.Network {
                     return;
                 }
 
+                if (string.IsNullOrEmpty(contentFinderCondition.Name)) {
+                    contentFinderCondition.Name = "Duty Roulette";
+                    contentFinderCondition.Image = 112324;
+                }
+
                 Task.Run(async () => {
                     this.dalamud.Framework.Gui.Chat.Print($"Duty pop: " + contentFinderCondition.Name);
 
