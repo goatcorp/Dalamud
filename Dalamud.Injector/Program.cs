@@ -1,30 +1,8 @@
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Windows.Forms;
-using Dalamud.DiscordBot;
-using Dalamud.Game.Chat;
-using EasyHook;
-using Newtonsoft.Json;
 
 namespace Dalamud.Injector {
     internal static class Program {
         private static void Main(string[] args) {
-#if !DEBUG
-            AppDomain.CurrentDomain.UnhandledException += delegate(object sender, UnhandledExceptionEventArgs eventArgs)
-            {
-                File.WriteAllText("InjectorException.txt", eventArgs.ExceptionObject.ToString());
-
-                MessageBox.Show("Failed to inject the XIVLauncher in-game addon.\nPlease try restarting your game and your PC.\nIf this keeps happening, please report this error.", "XIVLauncher Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-
-                Environment.Exit(0);
-            };
-#endif
-
             var pid = int.Parse(args[0]);
 
             Process process = null;
@@ -72,6 +50,7 @@ namespace Dalamud.Injector {
                 return;
             }
 
+            Remote
             RemoteHooking.Inject(process.Id, InjectionOptions.DoNotRequireStrongName, libPath, libPath, info);
 
             Console.WriteLine("Injected");
