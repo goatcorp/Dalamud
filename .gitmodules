@@ -4,3 +4,6 @@
 [submodule "lib/Discord.Net"]
 	path = lib/Discord.Net
 	url = https://github.com/goaaats/Discord.Net.git
+[submodule "lib/CoreHook"]
+	path = lib/CoreHook
+	url = https://github.com/unknownv2/CoreHook.git
