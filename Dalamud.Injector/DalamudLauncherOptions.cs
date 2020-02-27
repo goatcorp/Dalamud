@@ -12,13 +12,16 @@ namespace Dalamud.Injector
         };
 
         /// <summary>
-        /// 
+        /// A directory to where Dalamud data is located.
         /// </summary>
         public string RootDirectory { get; set; } = "";
 
         /// <summary>
-        /// 
+        /// A directory to where `Dalamud.dll` and its dependencies are located.
         /// </summary>
+        /// <remarks>
+        /// This path doesn't need to be the same directory as where the launcher is located.
+        /// </remarks>
         public string BinaryDirectory { get; set; } = "";
     }
 }

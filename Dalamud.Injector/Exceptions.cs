@@ -1,26 +1,27 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Dalamud.Injector
 {
-    public class DalamudException : Exception
+    /// <summary>
+    /// An error that is thrown when injecting Dalamud into the process failed.
+    /// </summary>
+    public partial class DalamudLauncherException : Exception
     {
-        public DalamudException() : base() { }
-
-        public DalamudException(string message) : base(message) { }
-
-        public DalamudException(string message, Exception inner) : base(message, inner) { }
-    }
-
-    public partial class DalamudProcessException : DalamudException
-    {
+        /// <summary>
+        /// A target process id that was attempted to.
+        /// </summary>
         public uint ProcessId { get; }
     }
 
-    public partial class DalamudProcessException
+    public partial class DalamudLauncherException
     {
-        public DalamudProcessException(uint pid, string message) : base(message)
+        public DalamudLauncherException() : base() { }
+
+        public DalamudLauncherException(string message) : base(message) { }
+
+        public DalamudLauncherException(string message, Exception inner) : base(message, inner) { }
+
+        public DalamudLauncherException(uint pid, string message, Exception inner) : base(message, inner)
         {
             ProcessId = pid;
         }

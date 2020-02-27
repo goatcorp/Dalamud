@@ -1,8 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.IO.Pipes;
-using System.Text;
-using CoreHook.BinaryInjection;
 using CoreHook.BinaryInjection.RemoteInjection;
 using CoreHook.BinaryInjection.RemoteInjection.Configuration;
 using CoreHook.IPC.Platform;
@@ -25,24 +24,55 @@ namespace Dalamud.Injector
 
         public void Relaunch(uint pid)
         {
+            // TODO
+            // 1. Open process `pid` with handle
+            // 2. Read command arguments (requires reading PEB)
+            // 3. Construct new arguments 
+            //   3.1 Decrypt arguments acquired from step.2 (possible key space is very small so it's feasible to do this)
+            //   3.2 Manipulate arguments as needed
+            //   3.3 Re-encrypt arguments with new timestamp
+            // 4 Launch a new process with new argument which was computed from step.3
+            // 5 Attempt to inject into that process.
+            // 6. If all succeeded, terminate the old process.
             //
+            // delegate Step 3 to 5 to Launch() maybe?
         }
 
+        /// <summary>
+        /// Injects Dalamud into the process. See remarks for process state prerequisites.
+        /// </summary>
+        /// <remarks>
+        /// TODO: CREATE_SUSPENDED -> entrypoint explainations
+        /// </remarks>
+        /// <param name="pid">A process id to inject Dalamud into.</param>
         public void Inject(uint pid)
         {
-
+            // Please keep in mind that this config values (especially ClrRootPath) assumes that
+            // Dalamud is compiled as self-contained to avoid requiring people to pre-install specific .NET Core version.
+            // https://docs.microsoft.com/en-us/dotnet/core/deploying/
             var corehookConfig = new RemoteInjectorConfiguration
             {
-                ClrBootstrapLibrary = "",
-                ClrRootPath = "",
-                DetourLibrary = "",
-                HostLibrary = "",
-                InjectionPipeName = "",
-                PayloadLibrary = "",
+                InjectionPipeName = $"Dalamud-{pid}-CoreHook",
+                ClrRootPath = m_options.BinaryDirectory, // `dotnet.runtimeconfig.json` is not needed for self-contained app.
+                ClrBootstrapLibrary = Path.Combine(m_options.BinaryDirectory, "CoreHook.CoreLoad.dll"),
+                DetourLibrary = Path.Combine(m_options.BinaryDirectory, "corehook64.dll"),
+                HostLibrary = Path.Combine(m_options.BinaryDirectory, "coreload64.dll"),
+                PayloadLibrary = Path.Combine(m_options.BinaryDirectory, "Dalamud.dll"),
                 VerboseLog = false,
             };
 
-            RemoteInjector.Inject((int)pid, corehookConfig, new PipePlatform(), m_options.RootDirectory);
+            try
+            {
+                RemoteInjector.Inject((int)pid, corehookConfig, new PipePlatform(), m_options.RootDirectory);
+            }
+            catch (Exception ex)
+            {
+                const string message = "Failed to inject Dalamud library into the process.";
+
+                // Could not inject Dalamud for whatever reason; it could be process is not actually running, insufficient os privilege, or whatever the thing SE put in their game;
+                // Therefore there's not much we can do on this side; You have to trobleshoot by yourself somehow.
+                throw new DalamudLauncherException(pid, message, ex);
+            }
         }
     }
 
