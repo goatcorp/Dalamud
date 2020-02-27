@@ -32,6 +32,11 @@ namespace Dalamud.Injector
             //   3.2 Manipulate arguments as needed
             //   3.3 Re-encrypt arguments with new timestamp
             // 4 Launch a new process with new argument which was computed from step.3
+            //   4.1 Create process with CREATE_SUSPENDED
+            //   4.2 Figure out entry-point of ffxiv_dx11.exe
+            //   4.3 Insert a hook on entry-point to wait for user-mode process initialization to be finished, but not the code from ffxiv_dx11.exe
+            //     - This can be implemented in a such way that constantly checking program counter from `GetThreadContext` returns a value we expect.
+            //       Before you might ask: Yes, this is not the cleanest method I could come up with per se, but hey it gives far less headache to actually implement!
             // 5 Attempt to inject into that process.
             // 6. If all succeeded, terminate the old process.
             //
