@@ -68,7 +68,7 @@ namespace Dalamud.Plugin
             this.Plugins.Remove(thisPlugin);
         }
 
-        public void LoadPluginFromAssembly(FileInfo dllFile, bool raw) {
+        public bool LoadPluginFromAssembly(FileInfo dllFile, bool raw) {
             Log.Information("Loading assembly at {0}", dllFile);
             var assemblyName = AssemblyName.GetAssemblyName(dllFile.FullName);
             var pluginAssembly = Assembly.Load(assemblyName);
@@ -90,7 +90,7 @@ namespace Dalamud.Plugin
 
                         if (disabledFile.Exists && !raw) {
                             Log.Information("Plugin {0} is disabled.", dllFile.FullName);
-                            return;
+                            return false;
                         }
 
                         var defJsonFile = new FileInfo(Path.Combine(dllFile.Directory.FullName, $"{Path.GetFileNameWithoutExtension(dllFile.Name)}.json"));
@@ -103,11 +103,16 @@ namespace Dalamud.Plugin
                             pluginDef =
                                 JsonConvert.DeserializeObject<PluginDefinition>(
                                     File.ReadAllText(defJsonFile.FullName));
+
+                            if (pluginDef.ApplicableVersion != this.dalamud.StartInfo.GameVersion && pluginDef.ApplicableVersion != "any") {
+                                Log.Information("Plugin {0} has not applicable version.", dllFile.FullName);
+                                return false;
+                            }
                         }
                         else
                         {
                             Log.Information("Plugin DLL {0} has no definition.", dllFile.FullName);
-                            return;
+                            return false;
                         }
 
                         var plugin = (IDalamudPlugin)Activator.CreateInstance(type);
@@ -116,9 +121,15 @@ namespace Dalamud.Plugin
                         plugin.Initialize(dalamudInterface);
                         Log.Information("Loaded plugin: {0}", plugin.Name);
                         this.Plugins.Add((plugin, pluginDef, dalamudInterface));
+
+                        return true;
                     }
                 }
             }
+
+            Log.Information("Plugin DLL {0} has no plugin interface.", dllFile.FullName);
+
+            return false;
         }
 
         private void LoadPluginsAt(DirectoryInfo folder, bool raw) {

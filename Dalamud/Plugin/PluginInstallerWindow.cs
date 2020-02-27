@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -60,6 +61,53 @@ namespace Dalamud.Plugin
             }
         }
 
+        public void UpdatePlugins() {
+            try {
+                var pluginsDirectory = new DirectoryInfo(this.pluginDirectory);
+                this.installStatus = PluginInstallStatus.Success;
+                foreach (var installed in pluginsDirectory.GetDirectories()) {
+                    var versions = installed.GetDirectories();
+
+                    if (versions.Length == 0) {
+                        Log.Information("Has no versions: {0}", installed.FullName);
+                        continue;
+                    }
+
+                    var sortedVersions = versions.OrderBy(x => x.CreationTime);
+                    var latest = sortedVersions.Last();
+
+                    var localInfoFile = new FileInfo(Path.Combine(latest.FullName, $"{installed.Name}.json"));
+
+                    if (!localInfoFile.Exists)
+                    {
+                        Log.Information("Has no definition: {0}", localInfoFile.FullName);
+                        continue;
+                    }
+
+                    var info = JsonConvert.DeserializeObject<PluginDefinition>(File.ReadAllText(localInfoFile.FullName));
+
+                    var remoteInfo = this.pluginMaster.FirstOrDefault(x => x.Name == info.Name);
+
+                    if (remoteInfo == null)
+                    {
+                        Log.Information("Is not in pluginmaster: {0}", info.Name);
+                        continue;
+                    }
+
+                    if (remoteInfo.AssemblyVersion != info.AssemblyVersion)
+                    {
+                        this.manager.DisablePlugin(info);
+                        InstallPlugin(remoteInfo);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "Plugin update failed hard.");
+                this.installStatus = PluginInstallStatus.Fail;
+            }
+        }
+
         private void InstallPlugin(PluginDefinition definition) {
             try {
                 var outputDir = new DirectoryInfo(Path.Combine(this.pluginDirectory, definition.InternalName, definition.AssemblyVersion));
@@ -70,8 +118,7 @@ namespace Dalamud.Plugin
                     if (disabledFile.Exists)
                         disabledFile.Delete();
 
-                    this.manager.LoadPluginFromAssembly(dllFile, false);
-                    this.installStatus = PluginInstallStatus.Success;
+                    this.installStatus = this.manager.LoadPluginFromAssembly(dllFile, false) ? PluginInstallStatus.Success : PluginInstallStatus.Fail;
                     return;
                 }
 
@@ -88,8 +135,7 @@ namespace Dalamud.Plugin
 
                 ZipFile.ExtractToDirectory(path, outputDir.FullName);
 
-                this.installStatus = PluginInstallStatus.Success;
-                this.manager.LoadPluginFromAssembly(dllFile, false);
+                this.installStatus = this.manager.LoadPluginFromAssembly(dllFile, false) ? PluginInstallStatus.Success : PluginInstallStatus.Fail;
             } catch (Exception e) {
                 Log.Error(e, "Plugin download failed hard.");
                 this.installStatus = PluginInstallStatus.Fail;
@@ -120,8 +166,11 @@ namespace Dalamud.Plugin
             else
             {
                 foreach (var pluginDefinition in this.pluginMaster) {
-                    if (pluginDefinition.ApplicableGameVersion != this.gameVersion &&
-                        pluginDefinition.ApplicableGameVersion != "any")
+                    if (pluginDefinition.ApplicableVersion != this.gameVersion &&
+                        pluginDefinition.ApplicableVersion != "any")
+                        continue;
+
+                    if (pluginDefinition.IsHide)
                         continue;
 
                     if (ImGui.CollapsingHeader(pluginDefinition.Name)) {
@@ -170,6 +219,9 @@ namespace Dalamud.Plugin
 
                                 if (ImGui.Button("Open Configuration")) v2Plugin.OpenConfigUi?.Invoke(null, null);
                             }
+
+                            ImGui.SameLine();
+                            ImGui.TextColored(new Vector4(0.5f, 0.5f, 0.5f, 1.0f), $" v{pluginDefinition.AssemblyVersion}");
                         }
 
                         ImGui.Unindent();
@@ -183,17 +235,22 @@ namespace Dalamud.Plugin
 
             ImGui.Separator();
 
-            if (ImGui.Button("Remove All"))
-            {
+            if (this.installStatus == PluginInstallStatus.InProgress) {
+                ImGui.Button("In progress...");
+            } else {
+                if (ImGui.Button("Update plugins"))
+                {
+                    this.installStatus = PluginInstallStatus.InProgress;
 
+                    Task.Run(() => UpdatePlugins()).ContinueWith(t => {
+                        this.installStatus =
+                            t.IsFaulted ? PluginInstallStatus.Fail : this.installStatus;
+                        this.errorModalDrawing = this.installStatus == PluginInstallStatus.Fail;
+                        this.errorModalOnNextFrame = this.installStatus == PluginInstallStatus.Fail;
+                    });
+                }
             }
-
-            ImGui.SameLine();
-
-            if (ImGui.Button("Open Plugin folder"))
-            {
-
-            }
+            
 
             ImGui.SameLine();
 
@@ -206,7 +263,7 @@ namespace Dalamud.Plugin
 
             if (ImGui.BeginPopupModal("Installer failed", ref this.errorModalDrawing, ImGuiWindowFlags.AlwaysAutoResize))
             {
-                ImGui.Text("The plugin installer ran into an issue.");
+                ImGui.Text("The plugin installer ran into an issue or the plugin is incompatible.");
                 ImGui.Text("Please restart the game and report this error on our discord.");
 
                 ImGui.Spacing();

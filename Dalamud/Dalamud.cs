@@ -329,6 +329,11 @@ namespace Dalamud {
                 HelpMessage = "Draw dev menu DEBUG",
                 ShowInHelp = false
             });
+
+            CommandManager.AddHandler("/xlplugins", new CommandInfo(OnOpenInstallerCommand)
+            {
+                HelpMessage = "Open the plugin installer"
+            });
         }
 
         private void OnUnloadCommand(string command, string arguments) {
@@ -548,6 +553,11 @@ namespace Dalamud {
 
         private void OnDebugDrawDevMenu(string command, string arguments) {
             this.isImguiDrawDevMenu = true;
+        }
+
+        private void OnOpenInstallerCommand(string command, string arguments) {
+            this.pluginWindow = new PluginInstallerWindow(this.PluginManager, this.StartInfo.PluginDirectory, this.StartInfo.GameVersion);
+            this.isImguiDrawPluginWindow = true;
         }
 
         private int RouletteSlugToKey(string slug) => slug.ToLower() switch {
