@@ -42,7 +42,7 @@ namespace Dalamud.Injector
                 VerboseLog = false,
             };
 
-            RemoteInjector.Inject(pid, corehookConfig, );
+            RemoteInjector.Inject((int)pid, corehookConfig, new PipePlatform(), m_options.RootDirectory);
         }
     }
 
