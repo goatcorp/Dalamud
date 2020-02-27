@@ -10,7 +10,7 @@ namespace Dalamud.Injector
             Parser.Default.ParseArguments<InjectOptions>(args)
                 .WithParsed<InjectOptions>(opt =>
                 {
-
+                    
                 });
         }
     }

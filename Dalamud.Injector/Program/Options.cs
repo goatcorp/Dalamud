@@ -10,9 +10,9 @@ namespace Dalamud.Injector
         public uint Pid { get; set; }
 
         [Option("root", Required = true, HelpText = "")]
-        public string RootDirectory { get; set; }
+        public string RootDirectory { get; set; } = null!;
 
         [Option("bin", Required = true, HelpText = "")]
-        public string BinaryDirectory { get; set; }
+        public string BinaryDirectory { get; set; } = null!;
     }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 
 namespace Dalamud.Injector
@@ -14,11 +14,11 @@ namespace Dalamud.Injector
         /// <summary>
         /// 
         /// </summary>
-        public string RootDirectory { get; set; }
+        public string RootDirectory { get; set; } = "";
 
         /// <summary>
         /// 
         /// </summary>
-        public string BinaryDirectory { get; set; }
+        public string BinaryDirectory { get; set; } = "";
     }
 }
