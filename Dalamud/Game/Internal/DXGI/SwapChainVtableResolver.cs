@@ -59,6 +59,7 @@ namespace Dalamud.Game.Internal.DXGI
         #region Addresses
 
         public IntPtr Present { get; set; }
+        public IntPtr ResizeBuffers { get; set; }
 
         #endregion
 
@@ -93,6 +94,7 @@ namespace Dalamud.Game.Internal.DXGI
             }
 
             Present = this.dxgiSwapChainVTblAddresses[8];
+            ResizeBuffers = this.dxgiSwapChainVTblAddresses[13];
         }
     }
 }

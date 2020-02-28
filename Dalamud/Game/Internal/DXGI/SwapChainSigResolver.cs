@@ -11,7 +11,7 @@ namespace Dalamud.Game.Internal.DXGI
     public sealed class SwapChainSigResolver : BaseAddressResolver, ISwapChainAddressResolver
     {
         public IntPtr Present { get; set; }
-        //public IntPtr ResizeBuffers { get; private set; }
+        public IntPtr ResizeBuffers { get; set; }
 
         protected override void Setup64Bit(SigScanner sig)
         {
@@ -24,9 +24,7 @@ namespace Dalamud.Game.Internal.DXGI
             // This(code after the function head - offset of it) was picked to avoid running into issues with other hooks being installed into this function.
             Present = scanner.ScanModule("41 8B F0 8B FA 89 54 24 ?? 48 8B D9 48 89 4D ?? C6 44 24 ?? 00") - 0x37;
 
-
-            // seems unnecessary for now, but we may need to handle it
-            //ResizeBuffers = scanner.ScanModule("48 8B C4 55 41 54 41 55 41 56 41 57 48 8D 68 ?? 48 81 EC C0 00 00 00");
+            ResizeBuffers = scanner.ScanModule("48 8B C4 55 41 54 41 55 41 56 41 57 48 8D 68 ?? 48 81 EC C0 00 00 00");
         }
     }
 }
