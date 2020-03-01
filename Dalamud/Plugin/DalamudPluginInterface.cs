@@ -84,13 +84,14 @@ namespace Dalamud.Plugin
             if (this.dalamud.Configuration.PluginConfigurations == null)
                 this.dalamud.Configuration.PluginConfigurations = new Dictionary<string, object>();
 
-            if (this.dalamud.Configuration.PluginConfigurations.ContainsKey(this.pluginName)) {
-                this.dalamud.Configuration.PluginConfigurations[this.pluginName] = currentConfig;
-                return;
-            }
-
             if (currentConfig == null)
                 return;
+
+            if (this.dalamud.Configuration.PluginConfigurations.ContainsKey(this.pluginName)) {
+                this.dalamud.Configuration.PluginConfigurations[this.pluginName] = currentConfig;
+                this.dalamud.Configuration.Save(this.dalamud.StartInfo.ConfigurationPath);
+                return;
+            }
 
             this.dalamud.Configuration.PluginConfigurations.Add(this.pluginName, currentConfig);
             this.dalamud.Configuration.Save(this.dalamud.StartInfo.ConfigurationPath);

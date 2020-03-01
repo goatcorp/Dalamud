@@ -28,7 +28,11 @@ namespace Dalamud.Interface
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         private delegate IntPtr PresentDelegate(IntPtr swapChain, uint syncInterval, uint presentFlags);
 
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        private delegate IntPtr ResizeBuffersDelegate(IntPtr swapChain, uint bufferCount, uint width, uint height, uint newFormat, uint swapChainFlags);
+
         private readonly Hook<PresentDelegate> presentHook;
+        private readonly Hook<ResizeBuffersDelegate> resizeBuffersHook;
 
         private readonly Hook<SetCursorDelegate> setCursorHook;
 
@@ -73,6 +77,7 @@ namespace Dalamud.Interface
             Log.Verbose("===== S W A P C H A I N =====");
             Log.Verbose("SetCursor address {SetCursor}", setCursorAddr);
             Log.Verbose("Present address {Present}", Address.Present);
+            Log.Verbose("ResizeBuffers address {ResizeBuffers}", Address.ResizeBuffers);
 
             this.setCursorHook = new Hook<SetCursorDelegate>(setCursorAddr, new SetCursorDelegate(SetCursorDetour), this);
 
@@ -80,18 +85,25 @@ namespace Dalamud.Interface
                 new Hook<PresentDelegate>(Address.Present, 
                     new PresentDelegate(PresentDetour),
                     this);
+
+            this.resizeBuffersHook =
+                new Hook<ResizeBuffersDelegate>(Address.ResizeBuffers,
+                    new ResizeBuffersDelegate(ResizeBuffersDetour),
+                    this);
         }
 
         public void Enable()
         {
             this.setCursorHook.Enable();
             this.presentHook.Enable();
+            this.resizeBuffersHook.Enable();
         }
 
         private void Disable()
         {
             this.setCursorHook.Disable();
             this.presentHook.Disable();
+            this.resizeBuffersHook.Disable();
         }
 
         public void Dispose()
@@ -107,6 +119,7 @@ namespace Dalamud.Interface
 
             this.scene.Dispose();
             this.presentHook.Dispose();
+            this.resizeBuffersHook.Dispose();
         }
 
         public TextureWrap LoadImage(string filePath)
@@ -180,6 +193,23 @@ namespace Dalamud.Interface
             this.scene.Render();
 
             return this.presentHook.Original(swapChain, syncInterval, presentFlags);
+        }
+
+        private IntPtr ResizeBuffersDetour(IntPtr swapChain, uint bufferCount, uint width, uint height, uint newFormat, uint swapChainFlags)
+        {
+            Log.Verbose($"Calling resizebuffers {bufferCount} {width} {height} {newFormat} {swapChainFlags}");
+
+            this.scene?.OnPreResize();
+
+            var ret = this.resizeBuffersHook.Original(swapChain, bufferCount, width, height, newFormat, swapChainFlags);
+            if (ret.ToInt64() == 0x887A0001)
+            {
+                Log.Error("invalid call to resizeBuffers");
+            }
+
+            this.scene?.OnPostResize((int)width, (int)height);
+
+            return ret;
         }
 
         // can't access imgui IO before first present call
