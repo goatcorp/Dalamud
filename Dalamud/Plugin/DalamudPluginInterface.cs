@@ -107,7 +107,12 @@ namespace Dalamud.Plugin
             if (!this.dalamud.Configuration.PluginConfigurations.ContainsKey(this.pluginName))
                 return null;
 
-            return this.dalamud.Configuration.PluginConfigurations[this.pluginName] as IPluginConfiguration;
+            if (!(this.dalamud.Configuration.PluginConfigurations[this.pluginName] is IPluginConfiguration config))
+                return null;
+
+            Serilog.Log.Information("Found plugin config for {0} v{1}", this.pluginName, config.Version);
+
+            return config;
         }
 
         #region Logging

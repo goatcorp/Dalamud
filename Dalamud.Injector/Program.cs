@@ -83,9 +83,9 @@ namespace Dalamud.Injector {
                 ConfigurationPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) +
                                     @"\XIVLauncher\dalamudConfig.json",
                 PluginDirectory = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) +
-                                  @"\XIVLauncher\plugins",
+                                  @"\XIVLauncher\installedPluginsI",
                 DefaultPluginDirectory = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) +
-                                         @"\XIVLauncher\defaultplugins",
+                                         @"\XIVLauncher\devPluginsI",
 
                 GameVersion = "2020.02.11.0000.0000",
                 Language = ClientLanguage.English
