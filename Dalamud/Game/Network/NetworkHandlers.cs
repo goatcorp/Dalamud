@@ -49,7 +49,7 @@ namespace Dalamud.Game.Network {
                 var notifyType = data[16];
                 var contentFinderConditionId = BitConverter.ToUInt16(data, 36);
 
-                if (notifyType != 3 || contentFinderConditionId == 0)
+                if (notifyType != 3)
                     return;
 
                 var contentFinderCondition = this.dalamud.Data.GetExcelSheet<ContentFinderCondition>().GetRow(contentFinderConditionId);
