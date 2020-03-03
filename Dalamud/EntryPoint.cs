@@ -1,9 +1,4 @@
 using System;
-using System.IO;
-using System.Net;
-using Dalamud.Interface;
-using Serilog;
-using Serilog.Core;
 using CoreHook;
 
 namespace Dalamud

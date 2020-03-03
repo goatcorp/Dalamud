@@ -1,6 +1,7 @@
 using System;
 using CommandLine;
 
+
 namespace Dalamud.Injector
 {
     internal static class Program
