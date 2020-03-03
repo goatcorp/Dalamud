@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Dalamud.Configuration;
 using Dalamud.Interface;
 using Dalamud.Plugin.Features;
 using ImGuiNET;
@@ -18,6 +19,8 @@ namespace Dalamud.Plugin
         private readonly string pluginDirectory;
         private readonly string devPluginDirectory;
 
+        private readonly PluginConfigurations pluginConfigs;
+
         private readonly Type interfaceType = typeof(IDalamudPlugin);
 
         public readonly List<(IDalamudPlugin Plugin, PluginDefinition Definition, DalamudPluginInterface PluginInterface)> Plugins = new List<(IDalamudPlugin plugin, PluginDefinition def, DalamudPluginInterface PluginInterface)>();
@@ -26,6 +29,8 @@ namespace Dalamud.Plugin
             this.dalamud = dalamud;
             this.pluginDirectory = pluginDirectory;
             this.devPluginDirectory = devPluginDirectory;
+
+            this.pluginConfigs = new PluginConfigurations(Path.Combine(Path.GetDirectoryName(dalamud.StartInfo.ConfigurationPath), "pluginConfigs"));
 
             this.dalamud.InterfaceManager.OnDraw += InterfaceManagerOnOnDraw;
         }
@@ -117,7 +122,7 @@ namespace Dalamud.Plugin
 
                         var plugin = (IDalamudPlugin)Activator.CreateInstance(type);
 
-                        var dalamudInterface = new DalamudPluginInterface(this.dalamud, type.Assembly.GetName().Name);
+                        var dalamudInterface = new DalamudPluginInterface(this.dalamud, type.Assembly.GetName().Name, this.pluginConfigs);
                         plugin.Initialize(dalamudInterface);
                         Log.Information("Loaded plugin: {0}", plugin.Name);
                         this.Plugins.Add((plugin, pluginDef, dalamudInterface));

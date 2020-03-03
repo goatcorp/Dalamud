@@ -29,14 +29,12 @@ namespace Dalamud
 
         public string LastVersion { get; set; }
 
-        public Dictionary<string, object> PluginConfigurations { get; set; }
-
         public static DalamudConfiguration Load(string path) {
             return JsonConvert.DeserializeObject<DalamudConfiguration>(File.ReadAllText(path));
         }
 
         public void Save(string path) {
-            File.WriteAllText(path, JsonConvert.SerializeObject(this));
+            File.WriteAllText(path, JsonConvert.SerializeObject(this, Formatting.Indented));
         }
     }
 }
