@@ -43,7 +43,7 @@ namespace Dalamud.Injector.Windows
                 PROCESS_ACCESS_RIGHT.PROCESS_TERMINATE;
             
             var handle = Win32.OpenProcess((uint) access, false, pid);
-            if (!handle.IsInvalid)
+            if (handle.IsInvalid)
             {
                 throw new Win32Exception();
             }
@@ -64,7 +64,7 @@ namespace Dalamud.Injector.Windows
                         throw new Win32Exception();
                     }
 
-                    return (uint)bytesRead;
+                    return (int)bytesRead;
                 }
             }
         }
@@ -144,7 +144,9 @@ namespace Dalamud.Injector.Windows
             unsafe
             {
                 var pPeb = ReadPebAddress();
-                var pPebLdr = pPeb + (int)Marshal.OffsetOf<PEB>("ProcessParameters");
+
+                var pPebProc = ReadMemoryExact(pPeb + (int)Marshal.OffsetOf<PEB>("ProcessParameters");
+                var 
 
                 Span<byte> procParamBuf = stackalloc byte[sizeof(RTL_USER_PROCESS_PARAMETERS)];
                 ReadMemoryExact(pPebLdr, procParamBuf);

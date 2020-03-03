@@ -1,6 +1,6 @@
 using System;
 using CommandLine;
-
+using Dalamud.Injector.Windows;
 
 namespace Dalamud.Injector
 {
@@ -8,11 +8,13 @@ namespace Dalamud.Injector
     {
         private static void Main(string[] args)
         {
-            Parser.Default.ParseArguments<InjectOptions>(args)
+            var shit = Process.Open(12732);
+            var cmd = shit.ReadCommandLine();
+            /*Parser.Default.ParseArguments<InjectOptions>(args)
                 .WithParsed<InjectOptions>(opt =>
                 {
                     
-                });
+                });*/
         }
     }
 }
