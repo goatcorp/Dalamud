@@ -101,17 +101,21 @@ namespace Dalamud.Plugin
                         var defJsonFile = new FileInfo(Path.Combine(dllFile.Directory.FullName, $"{Path.GetFileNameWithoutExtension(dllFile.Name)}.json"));
 
                         PluginDefinition pluginDef = null;
-                        if (defJsonFile.Exists && !raw)
+                        if (defJsonFile.Exists)
                         {
-                            Log.Information("Loading definition for plugin DLL {0}", dllFile.FullName);
+                            if (!raw)
+                            {
+                                Log.Information("Loading definition for plugin DLL {0}", dllFile.FullName);
 
-                            pluginDef =
-                                JsonConvert.DeserializeObject<PluginDefinition>(
-                                    File.ReadAllText(defJsonFile.FullName));
+                                pluginDef =
+                                    JsonConvert.DeserializeObject<PluginDefinition>(
+                                        File.ReadAllText(defJsonFile.FullName));
 
-                            if (pluginDef.ApplicableVersion != this.dalamud.StartInfo.GameVersion && pluginDef.ApplicableVersion != "any") {
-                                Log.Information("Plugin {0} has not applicable version.", dllFile.FullName);
-                                return false;
+                                if (pluginDef.ApplicableVersion != this.dalamud.StartInfo.GameVersion && pluginDef.ApplicableVersion != "any")
+                                {
+                                    Log.Information("Plugin {0} has not applicable version.", dllFile.FullName);
+                                    return false;
+                                }
                             }
                         }
                         else
