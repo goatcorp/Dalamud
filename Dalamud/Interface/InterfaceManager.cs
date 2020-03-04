@@ -117,7 +117,7 @@ namespace Dalamud.Interface
             this.Disable();
             System.Threading.Thread.Sleep(100);
 
-            this.scene.Dispose();
+            this.scene?.Dispose();
             this.presentHook.Dispose();
             this.resizeBuffersHook.Dispose();
         }
