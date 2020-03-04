@@ -24,8 +24,12 @@ namespace Dalamud.Injector {
                 Environment.Exit(0);
             };
 #endif
-
-            var pid = int.Parse(args[0]);
+           var pid = -1;
+            if (args.Count() > 0)
+            {
+                pid = int.Parse(args[0]);
+                args[0] = pid.ToString();
+            }
 
             Process process = null;
 
@@ -45,7 +49,7 @@ namespace Dalamud.Injector {
             }
 
             DalamudStartInfo startInfo;
-            if (args.Length == 1) {
+            if (args.Length < 2) {
                 startInfo = GetDefaultStartInfo();
                 Console.WriteLine("\nA Dalamud start info was not found in the program arguments. One has been generated for you.");
                 Console.WriteLine("\nCopy the following contents into the program arguments:");

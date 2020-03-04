@@ -304,7 +304,7 @@ namespace Dalamud {
 
             CommandManager.AddHandler("/xlbgmset", new CommandInfo(OnBgmSetCommand)
             {
-                HelpMessage = "Set the Game background music. Usage: /xlbgmset <BGM ID>"
+                HelpMessage = "Set the Game background music. Usage: /xlbgmset <BGM ID>. A list of IDs is available at https://bit.ly/2xb5p1B. Use 0 to return to the default BGM."
             });
 
             CommandManager.AddHandler("/xlitem", new CommandInfo(OnItemLinkCommand)
@@ -460,6 +460,7 @@ namespace Dalamud {
 
         private void OnBgmSetCommand(string command, string arguments)
         {
+            if (arguments == "0") arguments = "9999"; //Revert to the original BGM by specifying an invalid BGM
             Framework.Gui.SetBgm(ushort.Parse(arguments));
         }
 
