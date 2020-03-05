@@ -101,7 +101,8 @@ namespace Dalamud.Plugin
                         var defJsonFile = new FileInfo(Path.Combine(dllFile.Directory.FullName, $"{Path.GetFileNameWithoutExtension(dllFile.Name)}.json"));
 
                         PluginDefinition pluginDef = null;
-                        if (defJsonFile.Exists && !raw)
+                        // load the definition if it exists, even for raw/developer plugins
+                        if (defJsonFile.Exists)
                         {
                             Log.Information("Loading definition for plugin DLL {0}", dllFile.FullName);
 
@@ -109,18 +110,35 @@ namespace Dalamud.Plugin
                                 JsonConvert.DeserializeObject<PluginDefinition>(
                                     File.ReadAllText(defJsonFile.FullName));
 
-                            if (pluginDef.ApplicableVersion != this.dalamud.StartInfo.GameVersion && pluginDef.ApplicableVersion != "any") {
+                            if (pluginDef.ApplicableVersion != this.dalamud.StartInfo.GameVersion && pluginDef.ApplicableVersion != "any")
+                            {
                                 Log.Information("Plugin {0} has not applicable version.", dllFile.FullName);
                                 return false;
                             }
                         }
-                        else
+                        // but developer plugins don't require one to load
+                        else if (!raw)
                         {
                             Log.Information("Plugin DLL {0} has no definition.", dllFile.FullName);
                             return false;
                         }
 
                         var plugin = (IDalamudPlugin)Activator.CreateInstance(type);
+
+                        // this happens for raw plugins that don't specify a PluginDefinition - just generate a dummy one to avoid crashes anywhere
+                        if (pluginDef == null)
+                        {
+                            pluginDef = new PluginDefinition
+                            {
+                                Author = "developer",
+                                Name = plugin.Name,
+                                InternalName = "devPlugin_" + plugin.Name,
+                                AssemblyVersion = plugin.GetType().Assembly.GetName().Version.ToString(),
+                                Description = "",
+                                ApplicableVersion = "any",
+                                IsHide = false
+                            };
+                        }
 
                         var dalamudInterface = new DalamudPluginInterface(this.dalamud, type.Assembly.GetName().Name, this.pluginConfigs);
                         plugin.Initialize(dalamudInterface);
