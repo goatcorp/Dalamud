@@ -155,8 +155,23 @@ namespace Dalamud.Game {
 
             if (IsCopy)
                 scanRet = new IntPtr(scanRet.ToInt64() - this.moduleCopyOffset);
+            
+            if (Marshal.ReadByte(scanRet) == 0xE8)
+                return ReadCallSig(scanRet);
 
             return scanRet;
+        }
+
+        /// <summary>
+        /// Helper for ScanText to get the correct address for 
+        /// IDA sigs that mark the first CALL location.
+        /// </summary>
+        /// <param name="sigLocation">The address the CALL sig resolved to.</param>
+        /// <returns>The real offset of the signature.</returns>
+        private IntPtr ReadCallSig(IntPtr SigLocation)
+        {
+            int jumpOffset = Marshal.ReadInt32(IntPtr.Add(SigLocation, 1));
+            return IntPtr.Add(SigLocation, 5 + jumpOffset);
         }
 
         /// <summary>
