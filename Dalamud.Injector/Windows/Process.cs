@@ -5,18 +5,13 @@ using System.Runtime.InteropServices;
 
 namespace Dalamud.Injector.Windows
 {
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <remarks>
-    /// 
-    /// </remarks>
     internal sealed partial class Process : IDisposable
     {
         private SafeProcessHandle m_handle;
     }
 
-    internal sealed partial class Process {
+    internal sealed partial class Process
+    {
         /// <summary>
         /// 
         /// </summary>
@@ -51,6 +46,12 @@ namespace Dalamud.Injector.Windows
             return new Process(handle);
         }
 
+        /// <summary>
+        /// Reads the process memory.
+        /// </summary>
+        /// <returns>
+        /// The number of bytes that is actually read and written into the buffer.
+        /// </returns>
         public int ReadMemory(IntPtr address, Span<byte> destination)
         {
             unsafe
@@ -64,6 +65,7 @@ namespace Dalamud.Injector.Windows
                         throw new Win32Exception();
                     }
 
+                    // this is okay as Span<byte> can't really be longer than int.Max
                     return (int)bytesRead;
                 }
             }
@@ -75,11 +77,12 @@ namespace Dalamud.Injector.Windows
             while (totalBytesRead < destination.Length)
             {
                 var bytesRead = ReadMemory(address + totalBytesRead, destination[totalBytesRead..]);
-                
-                if (bytesRead == 0)
-                {
-                    throw new NotImplementedException("TODO: unexpected EOF");
-                }
+
+                // err -> partial read -> page fault?
+                //if (bytesRead == 0)
+                //{
+                //    throw new NotImplementedException("TODO: unexpected EOF");
+                //}
 
                 totalBytesRead += bytesRead;
             }
@@ -116,43 +119,39 @@ namespace Dalamud.Injector.Windows
             unsafe
             {
                 var info = new PROCESS_BASIC_INFORMATION();
-                IntPtr _retLen;
+                var status = Win32.NtQueryInformationProcess(m_handle, PROCESSINFOCLASS.ProcessBasicInformation, &info, sizeof(PROCESS_BASIC_INFORMATION), (IntPtr*)IntPtr.Zero);
 
-                var status = Win32.NtQueryInformationProcess(m_handle, PROCESSINFOCLASS.ProcessBasicInformation, &info, sizeof(PROCESS_BASIC_INFORMATION), &_retLen);
                 if (!status.Success)
                 {
-                    // TODO
-                    throw new InvalidOperationException("TODO");
+                    throw new NtStatusException(status);
                 }
 
                 return info.PebBaseAddress;
             }
         }
 
-        private ReadOnlySpan<char> ReadMemoryAsUtf16(IntPtr address, int length)
-        {
-            var buffer = new byte[length];
-            ReadMemoryExact(address, buffer);
-
-            // TODO..
-
-            return MemoryMarshal.Cast<byte, char>(buffer);
-        }
-
-        public string ReadCommandLine()
+        public string[] ReadCommandLine()
         {
             unsafe
             {
                 var pPeb = ReadPebAddress();
 
-                var pPebProc = ReadMemoryExact(pPeb + (int)Marshal.OffsetOf<PEB>("ProcessParameters");
-                var 
+                // Read peb (partially)
+                Span<byte> pebBuf = stackalloc byte[sizeof(PEB)];
+                ReadMemoryExact(pPeb, pebBuf);
+                ref readonly var peb = ref MemoryMarshal.AsRef<PEB>(pebBuf);
 
+                // Read process parameters
                 Span<byte> procParamBuf = stackalloc byte[sizeof(RTL_USER_PROCESS_PARAMETERS)];
-                ReadMemoryExact(pPebLdr, procParamBuf);
-                ref var procParam = ref MemoryMarshal.AsRef<RTL_USER_PROCESS_PARAMETERS>(procParamBuf);
+                ReadMemoryExact(peb.ProcessParameters, procParamBuf);
+                ref readonly var procParam = ref MemoryMarshal.AsRef<RTL_USER_PROCESS_PARAMETERS>(procParamBuf);
 
-                var commandLine = ReadMemoryAsUtf16(procParam.CommandLine.Buffer, procParam.CommandLine.Length);
+                // Read commandline
+                var commandLineBuf = new byte[procParam.CommandLine.Length]; // arbitrary length; allocate to gc heap
+                ReadMemoryExact(procParam.CommandLine.Buffer, commandLineBuf);
+
+
+
             }
 
             throw new NotImplementedException();

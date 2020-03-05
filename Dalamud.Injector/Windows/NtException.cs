@@ -2,11 +2,11 @@ using System;
 
 namespace Dalamud.Injector.Windows
 {
-    internal sealed class NtException : Exception
+    internal sealed class NtStatusException : Exception
     {
         public NtStatus Status { get; }
 
-        public NtException(NtStatus status)
+        public NtStatusException(NtStatus status)
         {
             Status = status;
         }

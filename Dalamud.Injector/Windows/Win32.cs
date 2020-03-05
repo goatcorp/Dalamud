@@ -23,6 +23,12 @@ namespace Dalamud.Injector.Windows
         [DllImport("kernel32", CallingConvention = CallingConvention.Winapi, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool WriteProcessMemory(SafeProcessHandle hProcess, void* lpBaseAddress, void* lpBuffer, IntPtr nSize, IntPtr* lpNumberOfBytesWritten);
+
+        [DllImport("kernel32", CallingConvention = CallingConvention.Winapi, SetLastError = true)]
+        public static extern void* LocalFree(void* hMem);
+
+        [DllImport("kernel32", CallingConvention = CallingConvention.Winapi, SetLastError = true)]
+        public static extern void* CommandLineToArgvW(, int* pNumArgs);
     }
 
     [StructLayout(LayoutKind.Sequential)]
