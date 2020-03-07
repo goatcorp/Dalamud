@@ -27,8 +27,8 @@ namespace Dalamud.Injector.Windows
         [DllImport("kernel32", CallingConvention = CallingConvention.Winapi, SetLastError = true)]
         public static extern void* LocalFree(void* hMem);
 
-        [DllImport("kernel32", CallingConvention = CallingConvention.Winapi, SetLastError = true)]
-        public static extern void* CommandLineToArgvW(, int* pNumArgs);
+        [DllImport("shell32", CallingConvention = CallingConvention.Winapi, SetLastError = true)]
+        public static extern char** CommandLineToArgvW(void* lpCmdLine, int* pNumArgs);
     }
 
     [StructLayout(LayoutKind.Sequential)]

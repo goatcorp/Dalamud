@@ -5,7 +5,7 @@ namespace Dalamud.Injector
     /// <summary>
     /// An error that is thrown when injecting Dalamud into the process failed.
     /// </summary>
-    public partial class DalamudLauncherException : Exception
+    public sealed partial class DalamudLauncherException : Exception
     {
         /// <summary>
         /// A target process id that was attempted to.
@@ -13,7 +13,7 @@ namespace Dalamud.Injector
         public uint ProcessId { get; }
     }
 
-    public partial class DalamudLauncherException
+    public sealed partial class DalamudLauncherException
     {
         public DalamudLauncherException() : base() { }
 

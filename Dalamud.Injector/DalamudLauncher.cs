@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipes;
 using CoreHook.BinaryInjection.RemoteInjection;
@@ -8,10 +7,13 @@ using CoreHook.IPC.Platform;
 
 namespace Dalamud.Injector
 {
-    public sealed class DalamudLauncher
+    public sealed partial class DalamudLauncher
     {
         private readonly DalamudLauncherOptions m_options;
+    }
 
+    public sealed partial class DalamudLauncher
+    {
         public DalamudLauncher(DalamudLauncherOptions options)
         {
             m_options = options;
@@ -19,7 +21,7 @@ namespace Dalamud.Injector
 
         public void Launch(string exePath)
         {
-            
+            throw new NotImplementedException("TODO");
         }
 
         public void Relaunch(uint pid)
@@ -41,6 +43,18 @@ namespace Dalamud.Injector
             // 6. If all succeeded, terminate the old process.
             //
             // delegate Step 3 to 5 to Launch() maybe?
+
+            // Acquire the process handle and read the command line
+            using var process = Process.Open(pid);
+            var commandLines = process.ReadCommandLine();
+            
+            // ....
+
+
+
+            process.Terminate();
+
+            throw new NotImplementedException("TODO");
         }
 
         /// <summary>

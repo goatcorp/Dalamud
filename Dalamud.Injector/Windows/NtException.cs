@@ -2,11 +2,21 @@ using System;
 
 namespace Dalamud.Injector.Windows
 {
-    internal sealed class NtStatusException : Exception
+    /// <summary>
+    /// An exception that is thrown when the function call to ntdll failed.
+    /// </summary>
+    internal sealed class NtException : Exception
     {
+        private const string DefaultMessage = "TODO: NtStatus failed message goes here";
+
         public NtStatus Status { get; }
 
-        public NtStatusException(NtStatus status)
+        public NtException(NtStatus status) : base(DefaultMessage)
+        {
+            Status = status;
+        }
+
+        public NtException(NtStatus status, string message) : base(message)
         {
             Status = status;
         }
