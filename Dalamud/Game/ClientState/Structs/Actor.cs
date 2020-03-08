@@ -19,6 +19,7 @@ namespace Dalamud.Game.ClientState.Structs
         [FieldOffset(132)] public int OwnerId;
         [FieldOffset(140)] public ObjectKind ObjectKind;
         [FieldOffset(141)] public byte SubKind;
+        [FieldOffset(142)] public bool IsFriendly;
         [FieldOffset(160)] public Position3 Position;
         [FieldOffset(6276)] public byte CurrentWorld;
         [FieldOffset(6278)] public byte HomeWorld;
