@@ -24,7 +24,7 @@ namespace Dalamud.Game.Internal.DXGI
             // This(code after the function head - offset of it) was picked to avoid running into issues with other hooks being installed into this function.
             Present = scanner.ScanModule("41 8B F0 8B FA 89 54 24 ?? 48 8B D9 48 89 4D ?? C6 44 24 ?? 00") - 0x37;
 
-            ResizeBuffers = scanner.ScanModule("48 8B C4 55 41 54 41 55 41 56 41 57 48 8D 68 ?? 48 81 EC C0 00 00 00");
+            ResizeBuffers = scanner.ScanModule("45 8B CC 45 8B C5 33 D2 48 8B CF E8 ?? ?? ?? ?? 44 8B C0 48 8D 55 ?? 48 8D 4D ?? E8 ?? ?? ?? ?? 38 9F E8 02 00 00") - 0xA9;
         }
     }
 }
