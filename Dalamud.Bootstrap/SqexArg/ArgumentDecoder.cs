@@ -4,7 +4,7 @@ namespace Dalamud.Bootstrap.SqexArg
 {
     internal static class ArgumentDecoder
     {
-        public static void Decode(ReadOnlySpan<char> argument, uint key)
+        public static ArgumentBuilder Decode(ReadOnlySpan<char> argument, uint key)
         {
             // 1. strip //**sqex003 and **//
             // 2. extract checksum
@@ -31,7 +31,7 @@ namespace Dalamud.Bootstrap.SqexArg
             
             
             // stuff
-            
+            throw new NotImplementedException("TODO");
         }
 
         private static void DecodeUrlSafeBase64(ReadOnlySpan<char> content)

@@ -26,13 +26,21 @@ namespace Dalamud.Injector
                 RootDirectory = rootDirectory,
             });
 
-            // ..
             boot.Relaunch(options.Pid);
         }
 
         private static void Launch(LaunchOptions options)
         {
+            var binDirectory = options.BinaryDirectory ?? GetDefaultBinaryDirectory();
+            var rootDirectory = options.RootDirectory ?? GetDefaultRootDirectory();
 
+            var boot = new Bootstrapper(new BootstrapperOptions
+            {
+                BinaryDirectory = binDirectory,
+                RootDirectory = rootDirectory,
+            });
+
+            boot.Launch(options.ExecutablePath, options.CommandLine);
         }
 
         private static string GetDefaultBinaryDirectory()

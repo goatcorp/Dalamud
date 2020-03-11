@@ -42,7 +42,7 @@ namespace Dalamud.Bootstrap.SqexArg
 
         public override string ToString()
         {
-            var buffer = new StringBuilder(256);
+            var buffer = new StringBuilder(300);
             
             foreach (var kv in m_dict)
             {

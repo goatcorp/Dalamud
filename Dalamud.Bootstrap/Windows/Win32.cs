@@ -29,6 +29,9 @@ namespace Dalamud.Bootstrap.Windows
 
         [DllImport("shell32", CallingConvention = CallingConvention.Winapi, SetLastError = true)]
         public static extern char** CommandLineToArgvW(void* lpCmdLine, int* pNumArgs);
+
+        [DllImport("kernel32", CallingConvention = CallingConvention.Winapi)]
+        public static extern uint GetProcessId(SafeProcessHandle hProcess);
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -63,6 +66,8 @@ namespace Dalamud.Bootstrap.Windows
         /// Equivalent to NT_ERROR
         /// </summary>
         public bool Error => 0xC0000000 <= Value;
+
+        public override string ToString() => $"0x{Value:X8}";
     }
 
     [StructLayout(LayoutKind.Sequential)]

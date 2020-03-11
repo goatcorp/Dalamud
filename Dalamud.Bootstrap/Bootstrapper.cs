@@ -4,6 +4,7 @@ using System.IO.Pipes;
 using CoreHook.BinaryInjection.RemoteInjection;
 using CoreHook.BinaryInjection.RemoteInjection.Configuration;
 using CoreHook.IPC.Platform;
+using Dalamud.Bootstrap.SqexArg;
 
 namespace Dalamud.Bootstrap
 {
@@ -16,7 +17,7 @@ namespace Dalamud.Bootstrap
             m_options = options;
         }
 
-        public void Launch(string exePath)
+        public void Launch(string exePath, string? commandLine)
         {
             throw new NotImplementedException("TODO");
         }
@@ -43,8 +44,9 @@ namespace Dalamud.Bootstrap
 
             // Acquire the process handle and read the command line
             using var process = Process.Open(pid);
-            var arguments = process.ReadCommandLine();
+            var commandLine = process.ReadCommandLine();
 
+            var argument = ArgumentDecoder.Decode(commandLine[1]);
             // TODO:
             // .... if arg1 exists
             // DecodeSqexArg(arguments[1]);
@@ -54,8 +56,7 @@ namespace Dalamud.Bootstrap
             // AddArgs(args, "T", newTick)
             // str = ToString()
             // EncodeSqexArg(str, newKey)
-
-
+            
             process.Terminate();
 
             throw new NotImplementedException("TODO");
@@ -94,7 +95,7 @@ namespace Dalamud.Bootstrap
 
                 // Could not inject Dalamud for whatever reason; it could be process is not actually running, insufficient os privilege, or whatever the thing SE put in their game;
                 // Therefore there's not much we can do on this side; You have to trobleshoot by yourself somehow.
-                throw new BootstrapException(pid, message, ex);
+                throw new ProcessException(message, pid, ex);
             }
         }
     }

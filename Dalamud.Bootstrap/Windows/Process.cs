@@ -42,17 +42,19 @@ namespace Dalamud.Bootstrap
 
             if (handle.IsInvalid)
             {
-                throw new Win32Exception();
+                ProcessException.ThrowLastOsError(pid);
             }
 
             return new Process(handle);
         }
 
+        private uint GetPid() => Win32.GetProcessId(m_handle);
+
         public void Terminate(uint exitCode = 0)
         {
             if (!Win32.TerminateProcess(m_handle, exitCode))
             {
-                throw new Win32Exception();
+                ProcessException.ThrowLastOsError(GetPid());
             }
         }
 
@@ -72,7 +74,7 @@ namespace Dalamud.Bootstrap
 
                     if (!Win32.ReadProcessMemory(m_handle, (void*)address, pDest, (IntPtr)destination.Length, &bytesRead))
                     {
-                        throw new Win32Exception();
+                        ProcessException.ThrowLastOsError(GetPid());
                     }
 
                     // this is okay as the length of the span can't be longer than int.Max
@@ -91,7 +93,7 @@ namespace Dalamud.Bootstrap
                 if (bytesRead == 0)
                 {
                     // prolly page fault; there's not much we can do here
-                    throw new Win32Exception();
+                    ProcessException.ThrowLastOsError(GetPid());
                 }
 
                 totalBytesRead += bytesRead;
@@ -128,7 +130,10 @@ namespace Dalamud.Bootstrap
 
                 if (!status.Success)
                 {
-                    throw new NtException(status);
+                    var message = $"A call to NtQueryInformationProcess failed. (Status: {status})";
+                    var pid = GetPid();
+
+                    throw new ProcessException(message, pid);
                 }
 
                 return info.PebBaseAddress;
@@ -150,7 +155,7 @@ namespace Dalamud.Bootstrap
             }
         }
 
-        private static string[] ParseCommandLine(ReadOnlySpan<byte> commandLine)
+        private string[] ParseCommandLine(ReadOnlySpan<byte> commandLine)
         {
             unsafe
             {
@@ -166,7 +171,7 @@ namespace Dalamud.Bootstrap
 
                 if (argv == null)
                 {
-                    throw new Win32Exception();
+                    ProcessException.ThrowLastOsError(GetPid());
                 }
 
                 try
