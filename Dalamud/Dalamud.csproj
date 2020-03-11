@@ -25,13 +25,13 @@
     <DocumentationFile></DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <DocumentationFile>E:\Sapphire\recorder\FFXIV.Recorder\/bin\Dalamud.xml</DocumentationFile>
+    <DocumentationFile>$(SolutionDir)/bin\Dalamud.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>D:\Sapphire\recorder\FFXIV.Recorder\/bin\Dalamud.xml</DocumentationFile>
+    <DocumentationFile>$(SolutionDir)/bin\Dalamud.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <DocumentationFile>E:\Sapphire\recorder\FFXIV.Recorder\/bin\Dalamud.xml</DocumentationFile>
+    <DocumentationFile>$(SolutionDir)/bin\Dalamud.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Resources\eye.png" />
