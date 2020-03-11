@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup Label="Target">
     <PlatformTarget>AnyCPU</PlatformTarget>
     <TargetFramework>net472</TargetFramework>
@@ -14,9 +14,9 @@
   </PropertyGroup>
   <PropertyGroup Label="Feature">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <AssemblyVersion>4.7.13.0</AssemblyVersion>
-    <Version>4.7.13.0</Version>
-    <FileVersion>4.7.13.0</FileVersion>
+    <AssemblyVersion>4.7.14.0</AssemblyVersion>
+    <Version>4.7.14.0</Version>
+    <FileVersion>4.7.14.0</FileVersion>
   </PropertyGroup>
   <ItemGroup Label="Resources">
     <None Include="$(SolutionDir)/Resources/**/*" CopyToOutputDirectory="PreserveNewest" Visible="false" />
