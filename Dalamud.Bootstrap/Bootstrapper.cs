@@ -5,16 +5,13 @@ using CoreHook.BinaryInjection.RemoteInjection;
 using CoreHook.BinaryInjection.RemoteInjection.Configuration;
 using CoreHook.IPC.Platform;
 
-namespace Dalamud.Injector
+namespace Dalamud.Bootstrap
 {
-    public sealed partial class DalamudLauncher
+    public sealed class Bootstrapper
     {
-        private readonly DalamudLauncherOptions m_options;
-    }
+        private readonly BootstrapperOptions m_options;
 
-    public sealed partial class DalamudLauncher
-    {
-        public DalamudLauncher(DalamudLauncherOptions options)
+        public Bootstrapper(BootstrapperOptions options)
         {
             m_options = options;
         }
@@ -46,10 +43,17 @@ namespace Dalamud.Injector
 
             // Acquire the process handle and read the command line
             using var process = Process.Open(pid);
-            var commandLines = process.ReadCommandLine();
-            
-            // ....
+            var arguments = process.ReadCommandLine();
 
+            // TODO:
+            // .... if arg1 exists
+            // DecodeSqexArg(arguments[1]);
+            // args = ParseArgument()
+            // FindArguments(args, "T")
+            // RemoveArgs(args, "T")
+            // AddArgs(args, "T", newTick)
+            // str = ToString()
+            // EncodeSqexArg(str, newKey)
 
 
             process.Terminate();
@@ -90,7 +94,7 @@ namespace Dalamud.Injector
 
                 // Could not inject Dalamud for whatever reason; it could be process is not actually running, insufficient os privilege, or whatever the thing SE put in their game;
                 // Therefore there's not much we can do on this side; You have to trobleshoot by yourself somehow.
-                throw new DalamudLauncherException(pid, message, ex);
+                throw new BootstrapException(pid, message, ex);
             }
         }
     }

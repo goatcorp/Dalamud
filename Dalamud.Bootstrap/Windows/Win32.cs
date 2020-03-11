@@ -2,7 +2,7 @@ using Microsoft.Win32.SafeHandles;
 using System;
 using System.Runtime.InteropServices;
 
-namespace Dalamud.Injector.Windows
+namespace Dalamud.Bootstrap.Windows
 {
     internal static unsafe class Win32
     {

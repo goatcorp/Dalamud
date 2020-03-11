@@ -1,10 +1,10 @@
-using Dalamud.Injector.Windows;
+using Dalamud.Bootstrap.Windows;
 using Microsoft.Win32.SafeHandles;
 using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 
-namespace Dalamud.Injector
+namespace Dalamud.Bootstrap
 {
     /// <summary>
     /// TODO
@@ -12,10 +12,7 @@ namespace Dalamud.Injector
     internal sealed partial class Process : IDisposable
     {
         private SafeProcessHandle m_handle;
-    }
 
-    internal sealed partial class Process
-    {
         /// <summary>
         /// Creates a process object that can be used to manipulate process's internal state.
         /// </summary>
@@ -35,6 +32,7 @@ namespace Dalamud.Injector
         {
             const PROCESS_ACCESS_RIGHT access = PROCESS_ACCESS_RIGHT.PROCESS_VM_OPERATION
                 | PROCESS_ACCESS_RIGHT.PROCESS_VM_READ
+                // | PROCESS_ACCESS_RIGHT.PROCESS_VM_WRITE // we don't need it for now
                 | PROCESS_ACCESS_RIGHT.PROCESS_QUERY_LIMITED_INFORMATION
                 | PROCESS_ACCESS_RIGHT.PROCESS_QUERY_INFORMATION
                 | PROCESS_ACCESS_RIGHT.PROCESS_CREATE_THREAD
@@ -77,7 +75,7 @@ namespace Dalamud.Injector
                         throw new Win32Exception();
                     }
 
-                    // this is okay as Span<byte> can't really be longer than int.Max
+                    // this is okay as the length of the span can't be longer than int.Max
                     return (int)bytesRead;
                 }
             }
@@ -108,13 +106,6 @@ namespace Dalamud.Injector
             return buffer;
         }
 
-        private ref T ReadMemoryValue<T>(IntPtr address, Span<byte> buffer) where T : unmanaged
-        {
-            ReadMemoryExact(address, buffer);
-            
-            return ref MemoryMarshal.AsRef<T>(buffer);
-        }
-
         private T ReadMemoryValue<T>(IntPtr address) where T : unmanaged
         {
             unsafe
@@ -123,7 +114,7 @@ namespace Dalamud.Injector
                 Span<byte> buffer = stackalloc byte[sizeof(T)];
                 ReadMemoryExact(address, buffer);
 
-                // I reckon this is still far better than allocating on the heap when T is small enough.
+                // this is still far better than allocating the temporary buffer on the heap when sizeof(T) is small enough.
                 return MemoryMarshal.Read<T>(buffer);
             }
         }
@@ -153,7 +144,7 @@ namespace Dalamud.Injector
                 var peb = ReadMemoryValue<PEB>(pebAddr);
                 var procParam = ReadMemoryValue<RTL_USER_PROCESS_PARAMETERS>(peb.ProcessParameters);
 
-                // Read the command line (utf16-like string)
+                // Read the command line (which is utf16-like string)
                 var commandLine = ReadMemoryExact(procParam.CommandLine.Buffer, procParam.CommandLine.Length);
                 return ParseCommandLine(commandLine);
             }
@@ -168,6 +159,8 @@ namespace Dalamud.Injector
 
                 fixed (byte* pCommandLine = commandLine)
                 {
+                    // TODO: maybe explain why we can't just call .Split(' ')
+                    // https://docs.microsoft.com/en-us/windows/win32/api/shellapi/nf-shellapi-commandlinetoargvw
                     argv = Win32.CommandLineToArgvW(pCommandLine, &argc);
                 }
 

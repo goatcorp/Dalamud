@@ -1,15 +1,8 @@
 using System;
-using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
 
-namespace Dalamud.Injector.Crypto
+namespace Dalamud.Bootstrap.Crypto
 {
-    /// <summary>
-    /// A struct that implements Blowfish algorithm.
-    /// </summary>
-    /// <remarks>
-    /// 
-    /// </remarks>
     internal unsafe partial struct BlowfishState
     {
         // References:
@@ -369,12 +362,12 @@ namespace Dalamud.Injector.Crypto
         }
     }
 
-    internal sealed partial class BlowfishLe
+    internal sealed partial class Blowfish
     {
         private BlowfishState m_state;
     }
 
-    internal sealed partial class BlowfishLe
+    internal sealed partial class Blowfish
     {
         /// <summary>
         /// Initializes a new instance of the Blowfish class.
@@ -384,12 +377,36 @@ namespace Dalamud.Injector.Crypto
         /// </remarks>
         /// <param name="key">A secret key used for blowfish. Key length must be between 32 and 448 bits.</param>
         /// <exception cref="ArgumentException">Length of the key is either too short or too long.</exception>
-        public BlowfishLe(ReadOnlySpan<byte> key)
+        public Blowfish(ReadOnlySpan<byte> key)
         {
             m_state = new BlowfishState(key);
         }
 
-        public unsafe void EncryptBlockUnsafe(byte* input, byte* output)
+        public void EncryptInPlace(Span<byte> buffer)
+        {
+            // TODO: this is shit
+        }
+
+        public void DecryptInPlace(Span<byte> buffer)
+        {
+            if (buffer.Length % 8 != 0)
+            {
+                throw new ArgumentException("TODO: buffer length", nameof(buffer));
+            }
+
+            unsafe
+            {
+                fixed (byte* pBuffer = buffer)
+                {
+                    for (byte* it = pBuffer; it < pBuffer + buffer.Length; it += 8)
+                    {
+                        DecryptBlockInPlace(it, it);
+                    }
+                }
+            }
+        }
+
+        private unsafe void EncryptBlockInPlace(byte* input, byte* output)
         {
             var inputBlock = (uint*)input;
             var outputBlock = (uint*)output;
@@ -417,7 +434,7 @@ namespace Dalamud.Injector.Crypto
             outputBlock[1] = xr;
         }
 
-        public unsafe void DecryptBlockUnsafe(byte* input, byte* output)
+        private unsafe void DecryptBlockInPlace(byte* input, byte* output)
         {
             var inputBlock = (uint*)input;
             var outputBlock = (uint*)output;

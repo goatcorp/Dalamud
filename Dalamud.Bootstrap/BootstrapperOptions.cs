@@ -1,11 +1,11 @@
 using System;
 using System.IO;
 
-namespace Dalamud.Injector
+namespace Dalamud.Bootstrap
 {
-    public sealed class DalamudLauncherOptions
+    public sealed class BootstrapperOptions
     {
-        public static DalamudLauncherOptions Default => new DalamudLauncherOptions
+        public static BootstrapperOptions Default => new BootstrapperOptions
         {
             RootDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Dalamud"),
             BinaryDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Dalamud", "bin"),
