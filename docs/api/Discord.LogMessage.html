@@ -1,0 +1,430 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Struct LogMessage
+   </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Struct LogMessage
+   ">
+    <meta name="generator" content="docfx 2.50.0.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Discord.LogMessage">
+  
+  
+  <h1 id="Discord_LogMessage" data-uid="Discord.LogMessage" class="text-break">Struct LogMessage
+  </h1>
+  <div class="markdown level0 summary"><p>Provides a message object used for logging purposes.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <span class="xref">System.ValueType.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.ValueType.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Discord.html">Discord</a></h6>
+  <h6><strong>Assembly</strong>: Discord.Net.Core.dll</h6>
+  <h5 id="Discord_LogMessage_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public struct LogMessage</code></pre>
+  </div>
+  <h3 id="constructors">Constructors
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_LogMessage__ctor_Discord_LogSeverity_System_String_System_String_System_Exception_.md&amp;value=---%0Auid%3A%20Discord.LogMessage.%23ctor(Discord.LogSeverity%2CSystem.String%2CSystem.String%2CSystem.Exception)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Logging/LogMessage.cs/#L48">View Source</a>
+  </span>
+  <a id="Discord_LogMessage__ctor_" data-uid="Discord.LogMessage.#ctor*"></a>
+  <h4 id="Discord_LogMessage__ctor_Discord_LogSeverity_System_String_System_String_System_Exception_" data-uid="Discord.LogMessage.#ctor(Discord.LogSeverity,System.String,System.String,System.Exception)">LogMessage(LogSeverity, String, String, Exception)</h4>
+  <div class="markdown level1 summary"><p>Initializes a new <a class="xref" href="Discord.LogMessage.html">LogMessage</a> struct with the severity, source, message of the event, and
+optionally, an exception.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public LogMessage(LogSeverity severity, string source, string message, Exception exception = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.LogSeverity.html">LogSeverity</a></td>
+        <td><span class="parametername">severity</span></td>
+        <td><p>The severity of the event.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">source</span></td>
+        <td><p>The source of the event.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">message</span></td>
+        <td><p>The message of the event.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Exception</span></td>
+        <td><span class="parametername">exception</span></td>
+        <td><p>The exception of the event.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_LogMessage_Exception.md&amp;value=---%0Auid%3A%20Discord.LogMessage.Exception%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Logging/LogMessage.cs/#L38">View Source</a>
+  </span>
+  <a id="Discord_LogMessage_Exception_" data-uid="Discord.LogMessage.Exception*"></a>
+  <h4 id="Discord_LogMessage_Exception" data-uid="Discord.LogMessage.Exception">Exception</h4>
+  <div class="markdown level1 summary"><p>Gets the exception of this log entry.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Exception Exception { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Exception</span></td>
+        <td><p>An <a class="xref" href="Discord.LogMessage.html#Discord_LogMessage_Exception">Exception</a> object associated with an incident; otherwise <code>null</code>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_LogMessage_Message.md&amp;value=---%0Auid%3A%20Discord.LogMessage.Message%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Logging/LogMessage.cs/#L31">View Source</a>
+  </span>
+  <a id="Discord_LogMessage_Message_" data-uid="Discord.LogMessage.Message*"></a>
+  <h4 id="Discord_LogMessage_Message" data-uid="Discord.LogMessage.Message">Message</h4>
+  <div class="markdown level1 summary"><p>Gets the message of this log entry.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public string Message { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>A string containing the message of this log entry.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_LogMessage_Severity.md&amp;value=---%0Auid%3A%20Discord.LogMessage.Severity%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Logging/LogMessage.cs/#L17">View Source</a>
+  </span>
+  <a id="Discord_LogMessage_Severity_" data-uid="Discord.LogMessage.Severity*"></a>
+  <h4 id="Discord_LogMessage_Severity" data-uid="Discord.LogMessage.Severity">Severity</h4>
+  <div class="markdown level1 summary"><p>Gets the severity of the log entry.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public LogSeverity Severity { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.LogSeverity.html">LogSeverity</a></td>
+        <td><p>A <a class="xref" href="Discord.LogSeverity.html">LogSeverity</a> enum to indicate the severeness of the incident or event.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_LogMessage_Source.md&amp;value=---%0Auid%3A%20Discord.LogMessage.Source%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Logging/LogMessage.cs/#L24">View Source</a>
+  </span>
+  <a id="Discord_LogMessage_Source_" data-uid="Discord.LogMessage.Source*"></a>
+  <h4 id="Discord_LogMessage_Source" data-uid="Discord.LogMessage.Source">Source</h4>
+  <div class="markdown level1 summary"><p>Gets the source of the log entry.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public string Source { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>A string representing the source of the log entry.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_LogMessage_ToString.md&amp;value=---%0Auid%3A%20Discord.LogMessage.ToString%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Logging/LogMessage.cs/#L56">View Source</a>
+  </span>
+  <a id="Discord_LogMessage_ToString_" data-uid="Discord.LogMessage.ToString*"></a>
+  <h4 id="Discord_LogMessage_ToString" data-uid="Discord.LogMessage.ToString">ToString()</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override string ToString()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.ValueType.ToString()</span></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_LogMessage_ToString_System_Text_StringBuilder_System_Boolean_System_Boolean_System_DateTimeKind_System_Nullable_System_Int32__.md&amp;value=---%0Auid%3A%20Discord.LogMessage.ToString(System.Text.StringBuilder%2CSystem.Boolean%2CSystem.Boolean%2CSystem.DateTimeKind%2CSystem.Nullable%7BSystem.Int32%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Logging/LogMessage.cs/#L57">View Source</a>
+  </span>
+  <a id="Discord_LogMessage_ToString_" data-uid="Discord.LogMessage.ToString*"></a>
+  <h4 id="Discord_LogMessage_ToString_System_Text_StringBuilder_System_Boolean_System_Boolean_System_DateTimeKind_System_Nullable_System_Int32__" data-uid="Discord.LogMessage.ToString(System.Text.StringBuilder,System.Boolean,System.Boolean,System.DateTimeKind,System.Nullable{System.Int32})">ToString(StringBuilder, Boolean, Boolean, DateTimeKind, Nullable&lt;Int32&gt;)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public string ToString(StringBuilder builder = null, bool fullException = true, bool prependTimestamp = true, DateTimeKind timestampKind = DateTimeKind.Local, int? padSource)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Text.StringBuilder</span></td>
+        <td><span class="parametername">builder</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">fullException</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">prependTimestamp</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.DateTimeKind</span></td>
+        <td><span class="parametername">timestampKind</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Nullable</span>&lt;<span class="xref">System.Int32</span>&gt;</td>
+        <td><span class="parametername">padSource</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_LogMessage.md&amp;value=---%0Auid%3A%20Discord.LogMessage%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Logging/LogMessage.cs/#L9" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+              <!-- <p><a class="back-to-top" href="#top">Back to top</a><p> -->
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

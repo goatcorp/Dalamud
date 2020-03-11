@@ -1,0 +1,1429 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class RestMessage
+   </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class RestMessage
+   ">
+    <meta name="generator" content="docfx 2.50.0.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Discord.Rest.RestMessage">
+  
+  
+  <h1 id="Discord_Rest_RestMessage" data-uid="Discord.Rest.RestMessage" class="text-break">Class RestMessage
+  </h1>
+  <div class="markdown level0 summary"><p>Represents a REST-based message.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><a class="xref" href="Discord.Rest.RestEntity-1.html">RestEntity</a>&lt;<span class="xref">System.UInt64</span>&gt;</div>
+    <div class="level2"><span class="xref">RestMessage</span></div>
+      <div class="level3"><a class="xref" href="Discord.Rest.RestSystemMessage.html">RestSystemMessage</a></div>
+      <div class="level3"><a class="xref" href="Discord.Rest.RestUserMessage.html">RestUserMessage</a></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="Discord.IMessage.html">IMessage</a></div>
+    <div><a class="xref" href="Discord.ISnowflakeEntity.html">ISnowflakeEntity</a></div>
+    <div><a class="xref" href="Discord.IEntity-1.html">IEntity</a>&lt;<span class="xref">System.UInt64</span>&gt;</div>
+    <div><a class="xref" href="Discord.IDeletable.html">IDeletable</a></div>
+    <div><a class="xref" href="Discord.IUpdateable.html">IUpdateable</a></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <a class="xref" href="Discord.Rest.RestEntity-1.html#Discord_Rest_RestEntity_1_Id">RestEntity&lt;UInt64&gt;.Id</a>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Discord.Rest.html">Discord.Rest</a></h6>
+  <h6><strong>Assembly</strong>: Discord.Net.Rest.dll</h6>
+  <h5 id="Discord_Rest_RestMessage_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public abstract class RestMessage : RestEntity&lt;ulong&gt;, IMessage, ISnowflakeEntity, IEntity&lt;ulong&gt;, IDeletable, IUpdateable</code></pre>
+  </div>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestMessage_Activity.md&amp;value=---%0Auid%3A%20Discord.Rest.RestMessage.Activity%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Messages/RestMessage.cs/#L62">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestMessage_Activity_" data-uid="Discord.Rest.RestMessage.Activity*"></a>
+  <h4 id="Discord_Rest_RestMessage_Activity" data-uid="Discord.Rest.RestMessage.Activity">Activity</h4>
+  <div class="markdown level1 summary"><p>Gets the activity associated with a message.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public MessageActivity Activity { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.MessageActivity.html">MessageActivity</a></td>
+        <td><p>A message's activity, if any is associated.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Discord_Rest_RestMessage_Activity_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Sent with Rich Presence-related chat embeds. This often refers to activity that requires end-user's
+interaction, such as a Spotify Invite activity.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestMessage_Application.md&amp;value=---%0Auid%3A%20Discord.Rest.RestMessage.Application%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Messages/RestMessage.cs/#L64">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestMessage_Application_" data-uid="Discord.Rest.RestMessage.Application*"></a>
+  <h4 id="Discord_Rest_RestMessage_Application" data-uid="Discord.Rest.RestMessage.Application">Application</h4>
+  <div class="markdown level1 summary"><p>Gets the application associated with a message.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public MessageApplication Application { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.MessageApplication.html">MessageApplication</a></td>
+        <td><p>A message's application, if any is associated.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Discord_Rest_RestMessage_Application_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Sent with Rich-Presence-related chat embeds.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestMessage_Attachments.md&amp;value=---%0Auid%3A%20Discord.Rest.RestMessage.Attachments%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Messages/RestMessage.cs/#L43">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestMessage_Attachments_" data-uid="Discord.Rest.RestMessage.Attachments*"></a>
+  <h4 id="Discord_Rest_RestMessage_Attachments" data-uid="Discord.Rest.RestMessage.Attachments">Attachments</h4>
+  <div class="markdown level1 summary"><p>Gets a collection of the <a class="xref" href="Discord.Attachment.html">Attachment</a>'s on the message.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IReadOnlyCollection&lt;Attachment&gt; Attachments { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<a class="xref" href="Discord.Attachment.html">Attachment</a>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestMessage_Author.md&amp;value=---%0Auid%3A%20Discord.Rest.RestMessage.Author%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Messages/RestMessage.cs/#L23">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestMessage_Author_" data-uid="Discord.Rest.RestMessage.Author*"></a>
+  <h4 id="Discord_Rest_RestMessage_Author" data-uid="Discord.Rest.RestMessage.Author">Author</h4>
+  <div class="markdown level1 summary"><p>Gets the Author of the message.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IUser Author { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.IUser.html">IUser</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestMessage_Channel.md&amp;value=---%0Auid%3A%20Discord.Rest.RestMessage.Channel%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Messages/RestMessage.cs/#L19">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestMessage_Channel_" data-uid="Discord.Rest.RestMessage.Channel*"></a>
+  <h4 id="Discord_Rest_RestMessage_Channel" data-uid="Discord.Rest.RestMessage.Channel">Channel</h4>
+  <div class="markdown level1 summary"><p>Gets the source channel of the message.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IMessageChannel Channel { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.IMessageChannel.html">IMessageChannel</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestMessage_Content.md&amp;value=---%0Auid%3A%20Discord.Rest.RestMessage.Content%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Messages/RestMessage.cs/#L28">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestMessage_Content_" data-uid="Discord.Rest.RestMessage.Content*"></a>
+  <h4 id="Discord_Rest_RestMessage_Content" data-uid="Discord.Rest.RestMessage.Content">Content</h4>
+  <div class="markdown level1 summary"><p>Gets the content for this message.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public string Content { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>A string that contains the body of the message; note that this field may be empty if there is an embed.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestMessage_CreatedAt.md&amp;value=---%0Auid%3A%20Discord.Rest.RestMessage.CreatedAt%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Messages/RestMessage.cs/#L31">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestMessage_CreatedAt_" data-uid="Discord.Rest.RestMessage.CreatedAt*"></a>
+  <h4 id="Discord_Rest_RestMessage_CreatedAt" data-uid="Discord.Rest.RestMessage.CreatedAt">CreatedAt</h4>
+  <div class="markdown level1 summary"><p>Gets when the snowflake was created.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public DateTimeOffset CreatedAt { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.DateTimeOffset</span></td>
+        <td><p>A <span class="xref">System.DateTimeOffset</span> representing when the entity was first created.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestMessage_EditedTimestamp.md&amp;value=---%0Auid%3A%20Discord.Rest.RestMessage.EditedTimestamp%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Messages/RestMessage.cs/#L39">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestMessage_EditedTimestamp_" data-uid="Discord.Rest.RestMessage.EditedTimestamp*"></a>
+  <h4 id="Discord_Rest_RestMessage_EditedTimestamp" data-uid="Discord.Rest.RestMessage.EditedTimestamp">EditedTimestamp</h4>
+  <div class="markdown level1 summary"><p>Gets the time of this message's last edit.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual DateTimeOffset? EditedTimestamp { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Nullable</span>&lt;<span class="xref">System.DateTimeOffset</span>&gt;</td>
+        <td><p>Time of when the message was last edited; <code>null</code> if the message is never edited.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestMessage_Embeds.md&amp;value=---%0Auid%3A%20Discord.Rest.RestMessage.Embeds%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Messages/RestMessage.cs/#L47">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestMessage_Embeds_" data-uid="Discord.Rest.RestMessage.Embeds*"></a>
+  <h4 id="Discord_Rest_RestMessage_Embeds" data-uid="Discord.Rest.RestMessage.Embeds">Embeds</h4>
+  <div class="markdown level1 summary"><p>Gets a collection of the <a class="xref" href="Discord.Embed.html">Embed</a>'s on the message.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IReadOnlyCollection&lt;Embed&gt; Embeds { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<a class="xref" href="Discord.Embed.html">Embed</a>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestMessage_IsPinned.md&amp;value=---%0Auid%3A%20Discord.Rest.RestMessage.IsPinned%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Messages/RestMessage.cs/#L35">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestMessage_IsPinned_" data-uid="Discord.Rest.RestMessage.IsPinned*"></a>
+  <h4 id="Discord_Rest_RestMessage_IsPinned" data-uid="Discord.Rest.RestMessage.IsPinned">IsPinned</h4>
+  <div class="markdown level1 summary"><p>Gets the value that indicates whether this message is pinned.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool IsPinned { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><code>true</code> if this message was added to its channel's pinned messages; otherwise <code>false</code>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestMessage_IsSuppressed.md&amp;value=---%0Auid%3A%20Discord.Rest.RestMessage.IsSuppressed%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Messages/RestMessage.cs/#L37">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestMessage_IsSuppressed_" data-uid="Discord.Rest.RestMessage.IsSuppressed*"></a>
+  <h4 id="Discord_Rest_RestMessage_IsSuppressed" data-uid="Discord.Rest.RestMessage.IsSuppressed">IsSuppressed</h4>
+  <div class="markdown level1 summary"><p>Gets the value that indicates whether or not this message's embeds are suppressed.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool IsSuppressed { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><code>true</code> if the embeds in this message have been suppressed (made invisible); otherwise <code>false</code>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestMessage_IsTTS.md&amp;value=---%0Auid%3A%20Discord.Rest.RestMessage.IsTTS%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Messages/RestMessage.cs/#L33">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestMessage_IsTTS_" data-uid="Discord.Rest.RestMessage.IsTTS*"></a>
+  <h4 id="Discord_Rest_RestMessage_IsTTS" data-uid="Discord.Rest.RestMessage.IsTTS">IsTTS</h4>
+  <div class="markdown level1 summary"><p>Gets the value that indicates whether this message was meant to be read-aloud by Discord.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual bool IsTTS { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><code>true</code> if this message was sent as a text-to-speech message; otherwise <code>false</code>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestMessage_MentionedChannelIds.md&amp;value=---%0Auid%3A%20Discord.Rest.RestMessage.MentionedChannelIds%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Messages/RestMessage.cs/#L49">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestMessage_MentionedChannelIds_" data-uid="Discord.Rest.RestMessage.MentionedChannelIds*"></a>
+  <h4 id="Discord_Rest_RestMessage_MentionedChannelIds" data-uid="Discord.Rest.RestMessage.MentionedChannelIds">MentionedChannelIds</h4>
+  <div class="markdown level1 summary"><p>Gets the IDs of channels mentioned in this message.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IReadOnlyCollection&lt;ulong&gt; MentionedChannelIds { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<span class="xref">System.UInt64</span>&gt;</td>
+        <td><p>A read-only collection of channel IDs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestMessage_MentionedRoleIds.md&amp;value=---%0Auid%3A%20Discord.Rest.RestMessage.MentionedRoleIds%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Messages/RestMessage.cs/#L51">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestMessage_MentionedRoleIds_" data-uid="Discord.Rest.RestMessage.MentionedRoleIds*"></a>
+  <h4 id="Discord_Rest_RestMessage_MentionedRoleIds" data-uid="Discord.Rest.RestMessage.MentionedRoleIds">MentionedRoleIds</h4>
+  <div class="markdown level1 summary"><p>Gets the IDs of roles mentioned in this message.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IReadOnlyCollection&lt;ulong&gt; MentionedRoleIds { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<span class="xref">System.UInt64</span>&gt;</td>
+        <td><p>A read-only collection of role IDs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestMessage_MentionedUsers.md&amp;value=---%0Auid%3A%20Discord.Rest.RestMessage.MentionedUsers%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Messages/RestMessage.cs/#L55">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestMessage_MentionedUsers_" data-uid="Discord.Rest.RestMessage.MentionedUsers*"></a>
+  <h4 id="Discord_Rest_RestMessage_MentionedUsers" data-uid="Discord.Rest.RestMessage.MentionedUsers">MentionedUsers</h4>
+  <div class="markdown level1 summary"><p>Gets a collection of the mentioned users in the message.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IReadOnlyCollection&lt;RestUser&gt; MentionedUsers { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<a class="xref" href="Discord.Rest.RestUser.html">RestUser</a>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestMessage_Reactions.md&amp;value=---%0Auid%3A%20Discord.Rest.RestMessage.Reactions%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Messages/RestMessage.cs/#L170">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestMessage_Reactions_" data-uid="Discord.Rest.RestMessage.Reactions*"></a>
+  <h4 id="Discord_Rest_RestMessage_Reactions" data-uid="Discord.Rest.RestMessage.Reactions">Reactions</h4>
+  <div class="markdown level1 summary"><p>Gets all reactions included in this message.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IReadOnlyDictionary&lt;IEmote, ReactionMetadata&gt; Reactions { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IReadOnlyDictionary</span>&lt;<a class="xref" href="Discord.IEmote.html">IEmote</a>, <a class="xref" href="Discord.ReactionMetadata.html">ReactionMetadata</a>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestMessage_Reference.md&amp;value=---%0Auid%3A%20Discord.Rest.RestMessage.Reference%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Messages/RestMessage.cs/#L66">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestMessage_Reference_" data-uid="Discord.Rest.RestMessage.Reference*"></a>
+  <h4 id="Discord_Rest_RestMessage_Reference" data-uid="Discord.Rest.RestMessage.Reference">Reference</h4>
+  <div class="markdown level1 summary"><p>Gets the reference to the original message if it was crossposted.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public MessageReference Reference { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.MessageReference.html">MessageReference</a></td>
+        <td><p>A message's reference, if any is associated.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Discord_Rest_RestMessage_Reference_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Sent with Cross-posted messages, meaning they were published from news channels
+and received by subscriber channels.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestMessage_Source.md&amp;value=---%0Auid%3A%20Discord.Rest.RestMessage.Source%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Messages/RestMessage.cs/#L25">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestMessage_Source_" data-uid="Discord.Rest.RestMessage.Source*"></a>
+  <h4 id="Discord_Rest_RestMessage_Source" data-uid="Discord.Rest.RestMessage.Source">Source</h4>
+  <div class="markdown level1 summary"><p>Gets the source type of this message.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public MessageSource Source { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.MessageSource.html">MessageSource</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestMessage_Tags.md&amp;value=---%0Auid%3A%20Discord.Rest.RestMessage.Tags%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Messages/RestMessage.cs/#L57">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestMessage_Tags_" data-uid="Discord.Rest.RestMessage.Tags*"></a>
+  <h4 id="Discord_Rest_RestMessage_Tags" data-uid="Discord.Rest.RestMessage.Tags">Tags</h4>
+  <div class="markdown level1 summary"><p>Gets all tags included in this message's content.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IReadOnlyCollection&lt;ITag&gt; Tags { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<a class="xref" href="Discord.ITag.html">ITag</a>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestMessage_Timestamp.md&amp;value=---%0Auid%3A%20Discord.Rest.RestMessage.Timestamp%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Messages/RestMessage.cs/#L60">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestMessage_Timestamp_" data-uid="Discord.Rest.RestMessage.Timestamp*"></a>
+  <h4 id="Discord_Rest_RestMessage_Timestamp" data-uid="Discord.Rest.RestMessage.Timestamp">Timestamp</h4>
+  <div class="markdown level1 summary"><p>Gets the time this message was sent.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public DateTimeOffset Timestamp { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.DateTimeOffset</span></td>
+        <td><p>Time of when the message was sent.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestMessage_AddReactionAsync_Discord_IEmote_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.Rest.RestMessage.AddReactionAsync(Discord.IEmote%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Messages/RestMessage.cs/#L173">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestMessage_AddReactionAsync_" data-uid="Discord.Rest.RestMessage.AddReactionAsync*"></a>
+  <h4 id="Discord_Rest_RestMessage_AddReactionAsync_Discord_IEmote_Discord_RequestOptions_" data-uid="Discord.Rest.RestMessage.AddReactionAsync(Discord.IEmote,Discord.RequestOptions)">AddReactionAsync(IEmote, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Adds a reaction to this message.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task AddReactionAsync(IEmote emote, RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.IEmote.html">IEmote</a></td>
+        <td><span class="parametername">emote</span></td>
+        <td><p>The emoji used to react to this message.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td><p>A task that represents the asynchronous operation for adding a reaction to this message.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Discord_Rest_RestMessage_AddReactionAsync_Discord_IEmote_Discord_RequestOptions__seealso">See Also</h5>
+  <div class="seealso">
+      <div><a class="xref" href="Discord.IEmote.html">IEmote</a></div>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestMessage_DeleteAsync_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.Rest.RestMessage.DeleteAsync(Discord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Messages/RestMessage.cs/#L148">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestMessage_DeleteAsync_" data-uid="Discord.Rest.RestMessage.DeleteAsync*"></a>
+  <h4 id="Discord_Rest_RestMessage_DeleteAsync_Discord_RequestOptions_" data-uid="Discord.Rest.RestMessage.DeleteAsync(Discord.RequestOptions)">DeleteAsync(RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Deletes this object and all its children.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task DeleteAsync(RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestMessage_GetReactionUsersAsync_Discord_IEmote_System_Int32_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.Rest.RestMessage.GetReactionUsersAsync(Discord.IEmote%2CSystem.Int32%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Messages/RestMessage.cs/#L185">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestMessage_GetReactionUsersAsync_" data-uid="Discord.Rest.RestMessage.GetReactionUsersAsync*"></a>
+  <h4 id="Discord_Rest_RestMessage_GetReactionUsersAsync_Discord_IEmote_System_Int32_Discord_RequestOptions_" data-uid="Discord.Rest.RestMessage.GetReactionUsersAsync(Discord.IEmote,System.Int32,Discord.RequestOptions)">GetReactionUsersAsync(IEmote, Int32, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Gets all users that reacted to a message with a given emote.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IAsyncEnumerable&lt;IReadOnlyCollection&lt;IUser&gt;&gt; GetReactionUsersAsync(IEmote emote, int limit, RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.IEmote.html">IEmote</a></td>
+        <td><span class="parametername">emote</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">limit</span></td>
+        <td><p>The number of users to request.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IAsyncEnumerable</span>&lt;<span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<a class="xref" href="Discord.IUser.html">IUser</a>&gt;&gt;</td>
+        <td><p>A paged collection containing a read-only collection of users that has reacted to this message.
+Flattening the paginated response into a collection of users with
+<a class="xref" href="Discord.AsyncEnumerableExtensions.html#Discord_AsyncEnumerableExtensions_FlattenAsync__1_System_Collections_Generic_IAsyncEnumerable_System_Collections_Generic_IEnumerable___0___">FlattenAsync&lt;T&gt;(IAsyncEnumerable&lt;IEnumerable&lt;T&gt;&gt;)</a> is required if you wish to access the users.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestMessage_RemoveAllReactionsAsync_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.Rest.RestMessage.RemoveAllReactionsAsync(Discord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Messages/RestMessage.cs/#L182">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestMessage_RemoveAllReactionsAsync_" data-uid="Discord.Rest.RestMessage.RemoveAllReactionsAsync*"></a>
+  <h4 id="Discord_Rest_RestMessage_RemoveAllReactionsAsync_Discord_RequestOptions_" data-uid="Discord.Rest.RestMessage.RemoveAllReactionsAsync(Discord.RequestOptions)">RemoveAllReactionsAsync(RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Removes all reactions from this message.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task RemoveAllReactionsAsync(RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td><p>A task that represents the asynchronous removal operation.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestMessage_RemoveReactionAsync_Discord_IEmote_Discord_IUser_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.Rest.RestMessage.RemoveReactionAsync(Discord.IEmote%2CDiscord.IUser%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Messages/RestMessage.cs/#L176">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestMessage_RemoveReactionAsync_" data-uid="Discord.Rest.RestMessage.RemoveReactionAsync*"></a>
+  <h4 id="Discord_Rest_RestMessage_RemoveReactionAsync_Discord_IEmote_Discord_IUser_Discord_RequestOptions_" data-uid="Discord.Rest.RestMessage.RemoveReactionAsync(Discord.IEmote,Discord.IUser,Discord.RequestOptions)">RemoveReactionAsync(IEmote, IUser, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Removes a reaction from message.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task RemoveReactionAsync(IEmote emote, IUser user, RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.IEmote.html">IEmote</a></td>
+        <td><span class="parametername">emote</span></td>
+        <td><p>The emoji used to react to this message.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.IUser.html">IUser</a></td>
+        <td><span class="parametername">user</span></td>
+        <td><p>The user that added the emoji.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td><p>A task that represents the asynchronous operation for removing a reaction to this message.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Discord_Rest_RestMessage_RemoveReactionAsync_Discord_IEmote_Discord_IUser_Discord_RequestOptions__seealso">See Also</h5>
+  <div class="seealso">
+      <div><a class="xref" href="Discord.IEmote.html">IEmote</a></div>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestMessage_RemoveReactionAsync_Discord_IEmote_System_UInt64_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.Rest.RestMessage.RemoveReactionAsync(Discord.IEmote%2CSystem.UInt64%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Messages/RestMessage.cs/#L179">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestMessage_RemoveReactionAsync_" data-uid="Discord.Rest.RestMessage.RemoveReactionAsync*"></a>
+  <h4 id="Discord_Rest_RestMessage_RemoveReactionAsync_Discord_IEmote_System_UInt64_Discord_RequestOptions_" data-uid="Discord.Rest.RestMessage.RemoveReactionAsync(Discord.IEmote,System.UInt64,Discord.RequestOptions)">RemoveReactionAsync(IEmote, UInt64, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Removes a reaction from message.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task RemoveReactionAsync(IEmote emote, ulong userId, RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.IEmote.html">IEmote</a></td>
+        <td><span class="parametername">emote</span></td>
+        <td><p>The emoji used to react to this message.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.UInt64</span></td>
+        <td><span class="parametername">userId</span></td>
+        <td><p>The ID of the user that added the emoji.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td><p>A task that represents the asynchronous operation for removing a reaction to this message.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Discord_Rest_RestMessage_RemoveReactionAsync_Discord_IEmote_System_UInt64_Discord_RequestOptions__seealso">See Also</h5>
+  <div class="seealso">
+      <div><a class="xref" href="Discord.IEmote.html">IEmote</a></div>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestMessage_ToString.md&amp;value=---%0Auid%3A%20Discord.Rest.RestMessage.ToString%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Messages/RestMessage.cs/#L157">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestMessage_ToString_" data-uid="Discord.Rest.RestMessage.ToString*"></a>
+  <h4 id="Discord_Rest_RestMessage_ToString" data-uid="Discord.Rest.RestMessage.ToString">ToString()</h4>
+  <div class="markdown level1 summary"><p>Gets the <a class="xref" href="Discord.Rest.RestMessage.html#Discord_Rest_RestMessage_Content">Content</a> of the message.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override string ToString()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>A string that is the <a class="xref" href="Discord.Rest.RestMessage.html#Discord_Rest_RestMessage_Content">Content</a> of the message.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.Object.ToString()</span></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestMessage_UpdateAsync_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.Rest.RestMessage.UpdateAsync(Discord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Messages/RestMessage.cs/#L142">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestMessage_UpdateAsync_" data-uid="Discord.Rest.RestMessage.UpdateAsync*"></a>
+  <h4 id="Discord_Rest_RestMessage_UpdateAsync_Discord_RequestOptions_" data-uid="Discord.Rest.RestMessage.UpdateAsync(Discord.RequestOptions)">UpdateAsync(RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Updates this object's properties with its current state.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task UpdateAsync(RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="eii">Explicit Interface Implementations
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestMessage_Discord_IMessage_Attachments.md&amp;value=---%0Auid%3A%20Discord.Rest.RestMessage.Discord%23IMessage%23Attachments%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Messages/RestMessage.cs/#L163">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestMessage_Discord_IMessage_Attachments_" data-uid="Discord.Rest.RestMessage.Discord#IMessage#Attachments*"></a>
+  <h4 id="Discord_Rest_RestMessage_Discord_IMessage_Attachments" data-uid="Discord.Rest.RestMessage.Discord#IMessage#Attachments">IMessage.Attachments</h4>
+  <div class="markdown level1 summary"><p>Gets all attachments included in this message.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IReadOnlyCollection&lt;IAttachment&gt; IMessage.Attachments { get; }</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<a class="xref" href="Discord.IAttachment.html">IAttachment</a>&gt;</td>
+        <td><p>A read-only collection of attachments.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Discord_Rest_RestMessage_Discord_IMessage_Attachments_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This property gets a read-only collection of attachments associated with this message. Depending on the
+user's end-client, a sent message may contain one or more attachments. For example, mobile users may
+attach more than one file in their message, while the desktop client only allows for one.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestMessage_Discord_IMessage_Author.md&amp;value=---%0Auid%3A%20Discord.Rest.RestMessage.Discord%23IMessage%23Author%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Messages/RestMessage.cs/#L161">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestMessage_Discord_IMessage_Author_" data-uid="Discord.Rest.RestMessage.Discord#IMessage#Author*"></a>
+  <h4 id="Discord_Rest_RestMessage_Discord_IMessage_Author" data-uid="Discord.Rest.RestMessage.Discord#IMessage#Author">IMessage.Author</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IUser IMessage.Author { get; }</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.IUser.html">IUser</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestMessage_Discord_IMessage_Embeds.md&amp;value=---%0Auid%3A%20Discord.Rest.RestMessage.Discord%23IMessage%23Embeds%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Messages/RestMessage.cs/#L165">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestMessage_Discord_IMessage_Embeds_" data-uid="Discord.Rest.RestMessage.Discord#IMessage#Embeds*"></a>
+  <h4 id="Discord_Rest_RestMessage_Discord_IMessage_Embeds" data-uid="Discord.Rest.RestMessage.Discord#IMessage#Embeds">IMessage.Embeds</h4>
+  <div class="markdown level1 summary"><p>Gets all embeds included in this message.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IReadOnlyCollection&lt;IEmbed&gt; IMessage.Embeds { get; }</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<a class="xref" href="Discord.IEmbed.html">IEmbed</a>&gt;</td>
+        <td><p>A read-only collection of embed objects.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestMessage_Discord_IMessage_MentionedUserIds.md&amp;value=---%0Auid%3A%20Discord.Rest.RestMessage.Discord%23IMessage%23MentionedUserIds%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Messages/RestMessage.cs/#L167">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestMessage_Discord_IMessage_MentionedUserIds_" data-uid="Discord.Rest.RestMessage.Discord#IMessage#MentionedUserIds*"></a>
+  <h4 id="Discord_Rest_RestMessage_Discord_IMessage_MentionedUserIds" data-uid="Discord.Rest.RestMessage.Discord#IMessage#MentionedUserIds">IMessage.MentionedUserIds</h4>
+  <div class="markdown level1 summary"><p>Gets the IDs of users mentioned in this message.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IReadOnlyCollection&lt;ulong&gt; IMessage.MentionedUserIds { get; }</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<span class="xref">System.UInt64</span>&gt;</td>
+        <td><p>A read-only collection of user IDs.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestMessage_Discord_IMessage_Type.md&amp;value=---%0Auid%3A%20Discord.Rest.RestMessage.Discord%23IMessage%23Type%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Messages/RestMessage.cs/#L160">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestMessage_Discord_IMessage_Type_" data-uid="Discord.Rest.RestMessage.Discord#IMessage#Type*"></a>
+  <h4 id="Discord_Rest_RestMessage_Discord_IMessage_Type" data-uid="Discord.Rest.RestMessage.Discord#IMessage#Type">IMessage.Type</h4>
+  <div class="markdown level1 summary"><p>Gets the type of this system message.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">MessageType IMessage.Type { get; }</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.MessageType.html">MessageType</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="Discord.IMessage.html">IMessage</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.ISnowflakeEntity.html">ISnowflakeEntity</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.IEntity-1.html">IEntity&lt;TId&gt;</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.IDeletable.html">IDeletable</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.IUpdateable.html">IUpdateable</a>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestMessage.md&amp;value=---%0Auid%3A%20Discord.Rest.RestMessage%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Messages/RestMessage.cs/#L13" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+              <!-- <p><a class="back-to-top" href="#top">Back to top</a><p> -->
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

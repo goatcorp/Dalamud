@@ -1,0 +1,442 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class RestNewsChannel
+   </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class RestNewsChannel
+   ">
+    <meta name="generator" content="docfx 2.50.0.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Discord.Rest.RestNewsChannel">
+  
+  
+  <h1 id="Discord_Rest_RestNewsChannel" data-uid="Discord.Rest.RestNewsChannel" class="text-break">Class RestNewsChannel
+  </h1>
+  <div class="markdown level0 summary"><p>Represents a REST-based news channel in a guild that has the same properties as a <a class="xref" href="Discord.Rest.RestTextChannel.html">RestTextChannel</a>.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><a class="xref" href="Discord.Rest.RestEntity-1.html">RestEntity</a>&lt;<span class="xref">System.UInt64</span>&gt;</div>
+    <div class="level2"><a class="xref" href="Discord.Rest.RestChannel.html">RestChannel</a></div>
+    <div class="level3"><a class="xref" href="Discord.Rest.RestGuildChannel.html">RestGuildChannel</a></div>
+    <div class="level4"><a class="xref" href="Discord.Rest.RestTextChannel.html">RestTextChannel</a></div>
+    <div class="level5"><span class="xref">RestNewsChannel</span></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="Discord.IUpdateable.html">IUpdateable</a></div>
+    <div><a class="xref" href="Discord.Rest.IRestMessageChannel.html">IRestMessageChannel</a></div>
+    <div><a class="xref" href="Discord.ITextChannel.html">ITextChannel</a></div>
+    <div><a class="xref" href="Discord.IMessageChannel.html">IMessageChannel</a></div>
+    <div><a class="xref" href="Discord.IMentionable.html">IMentionable</a></div>
+    <div><a class="xref" href="Discord.INestedChannel.html">INestedChannel</a></div>
+    <div><a class="xref" href="Discord.IGuildChannel.html">IGuildChannel</a></div>
+    <div><a class="xref" href="Discord.IChannel.html">IChannel</a></div>
+    <div><a class="xref" href="Discord.ISnowflakeEntity.html">ISnowflakeEntity</a></div>
+    <div><a class="xref" href="Discord.IEntity-1.html">IEntity</a>&lt;<span class="xref">System.UInt64</span>&gt;</div>
+    <div><a class="xref" href="Discord.IDeletable.html">IDeletable</a></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <a class="xref" href="Discord.Rest.RestTextChannel.html#Discord_Rest_RestTextChannel_Topic">RestTextChannel.Topic</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestTextChannel.html#Discord_Rest_RestTextChannel_CategoryId">RestTextChannel.CategoryId</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestTextChannel.html#Discord_Rest_RestTextChannel_Mention">RestTextChannel.Mention</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestTextChannel.html#Discord_Rest_RestTextChannel_IsNsfw">RestTextChannel.IsNsfw</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestTextChannel.html#Discord_Rest_RestTextChannel_ModifyAsync_System_Action_Discord_TextChannelProperties__Discord_RequestOptions_">RestTextChannel.ModifyAsync(Action&lt;TextChannelProperties&gt;, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestTextChannel.html#Discord_Rest_RestTextChannel_GetUserAsync_System_UInt64_Discord_RequestOptions_">RestTextChannel.GetUserAsync(UInt64, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestTextChannel.html#Discord_Rest_RestTextChannel_GetUsersAsync_Discord_RequestOptions_">RestTextChannel.GetUsersAsync(RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestTextChannel.html#Discord_Rest_RestTextChannel_GetMessageAsync_System_UInt64_Discord_RequestOptions_">RestTextChannel.GetMessageAsync(UInt64, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestTextChannel.html#Discord_Rest_RestTextChannel_GetMessagesAsync_System_Int32_Discord_RequestOptions_">RestTextChannel.GetMessagesAsync(Int32, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestTextChannel.html#Discord_Rest_RestTextChannel_GetMessagesAsync_System_UInt64_Discord_Direction_System_Int32_Discord_RequestOptions_">RestTextChannel.GetMessagesAsync(UInt64, Direction, Int32, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestTextChannel.html#Discord_Rest_RestTextChannel_GetMessagesAsync_Discord_IMessage_Discord_Direction_System_Int32_Discord_RequestOptions_">RestTextChannel.GetMessagesAsync(IMessage, Direction, Int32, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestTextChannel.html#Discord_Rest_RestTextChannel_GetPinnedMessagesAsync_Discord_RequestOptions_">RestTextChannel.GetPinnedMessagesAsync(RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestTextChannel.html#Discord_Rest_RestTextChannel_SendMessageAsync_System_String_System_Boolean_Discord_Embed_Discord_RequestOptions_">RestTextChannel.SendMessageAsync(String, Boolean, Embed, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestTextChannel.html#Discord_Rest_RestTextChannel_SendFileAsync_System_String_System_String_System_Boolean_Discord_Embed_Discord_RequestOptions_System_Boolean_">RestTextChannel.SendFileAsync(String, String, Boolean, Embed, RequestOptions, Boolean)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestTextChannel.html#Discord_Rest_RestTextChannel_SendFileAsync_System_IO_Stream_System_String_System_String_System_Boolean_Discord_Embed_Discord_RequestOptions_System_Boolean_">RestTextChannel.SendFileAsync(Stream, String, String, Boolean, Embed, RequestOptions, Boolean)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestTextChannel.html#Discord_Rest_RestTextChannel_DeleteMessageAsync_System_UInt64_Discord_RequestOptions_">RestTextChannel.DeleteMessageAsync(UInt64, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestTextChannel.html#Discord_Rest_RestTextChannel_DeleteMessageAsync_Discord_IMessage_Discord_RequestOptions_">RestTextChannel.DeleteMessageAsync(IMessage, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestTextChannel.html#Discord_Rest_RestTextChannel_DeleteMessagesAsync_System_Collections_Generic_IEnumerable_Discord_IMessage__Discord_RequestOptions_">RestTextChannel.DeleteMessagesAsync(IEnumerable&lt;IMessage&gt;, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestTextChannel.html#Discord_Rest_RestTextChannel_DeleteMessagesAsync_System_Collections_Generic_IEnumerable_System_UInt64__Discord_RequestOptions_">RestTextChannel.DeleteMessagesAsync(IEnumerable&lt;UInt64&gt;, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestTextChannel.html#Discord_Rest_RestTextChannel_TriggerTypingAsync_Discord_RequestOptions_">RestTextChannel.TriggerTypingAsync(RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestTextChannel.html#Discord_Rest_RestTextChannel_EnterTypingState_Discord_RequestOptions_">RestTextChannel.EnterTypingState(RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestTextChannel.html#Discord_Rest_RestTextChannel_CreateWebhookAsync_System_String_System_IO_Stream_Discord_RequestOptions_">RestTextChannel.CreateWebhookAsync(String, Stream, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestTextChannel.html#Discord_Rest_RestTextChannel_GetWebhookAsync_System_UInt64_Discord_RequestOptions_">RestTextChannel.GetWebhookAsync(UInt64, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestTextChannel.html#Discord_Rest_RestTextChannel_GetWebhooksAsync_Discord_RequestOptions_">RestTextChannel.GetWebhooksAsync(RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestTextChannel.html#Discord_Rest_RestTextChannel_GetCategoryAsync_Discord_RequestOptions_">RestTextChannel.GetCategoryAsync(RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestTextChannel.html#Discord_Rest_RestTextChannel_SyncPermissionsAsync_Discord_RequestOptions_">RestTextChannel.SyncPermissionsAsync(RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestTextChannel.html#Discord_Rest_RestTextChannel_CreateInviteAsync_System_Nullable_System_Int32__System_Nullable_System_Int32__System_Boolean_System_Boolean_Discord_RequestOptions_">RestTextChannel.CreateInviteAsync(Nullable&lt;Int32&gt;, Nullable&lt;Int32&gt;, Boolean, Boolean, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestTextChannel.html#Discord_Rest_RestTextChannel_GetInvitesAsync_Discord_RequestOptions_">RestTextChannel.GetInvitesAsync(RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestTextChannel.html#Discord_Rest_RestTextChannel_Discord_ITextChannel_CreateWebhookAsync_System_String_System_IO_Stream_Discord_RequestOptions_">RestTextChannel.ITextChannel.CreateWebhookAsync(String, Stream, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestTextChannel.html#Discord_Rest_RestTextChannel_Discord_ITextChannel_GetWebhookAsync_System_UInt64_Discord_RequestOptions_">RestTextChannel.ITextChannel.GetWebhookAsync(UInt64, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestTextChannel.html#Discord_Rest_RestTextChannel_Discord_ITextChannel_GetWebhooksAsync_Discord_RequestOptions_">RestTextChannel.ITextChannel.GetWebhooksAsync(RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestTextChannel.html#Discord_Rest_RestTextChannel_Discord_IMessageChannel_GetMessageAsync_System_UInt64_Discord_CacheMode_Discord_RequestOptions_">RestTextChannel.IMessageChannel.GetMessageAsync(UInt64, CacheMode, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestTextChannel.html#Discord_Rest_RestTextChannel_Discord_IMessageChannel_GetMessagesAsync_System_Int32_Discord_CacheMode_Discord_RequestOptions_">RestTextChannel.IMessageChannel.GetMessagesAsync(Int32, CacheMode, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestTextChannel.html#Discord_Rest_RestTextChannel_Discord_IMessageChannel_GetMessagesAsync_System_UInt64_Discord_Direction_System_Int32_Discord_CacheMode_Discord_RequestOptions_">RestTextChannel.IMessageChannel.GetMessagesAsync(UInt64, Direction, Int32, CacheMode, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestTextChannel.html#Discord_Rest_RestTextChannel_Discord_IMessageChannel_GetMessagesAsync_Discord_IMessage_Discord_Direction_System_Int32_Discord_CacheMode_Discord_RequestOptions_">RestTextChannel.IMessageChannel.GetMessagesAsync(IMessage, Direction, Int32, CacheMode, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestTextChannel.html#Discord_Rest_RestTextChannel_Discord_IMessageChannel_GetPinnedMessagesAsync_Discord_RequestOptions_">RestTextChannel.IMessageChannel.GetPinnedMessagesAsync(RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestTextChannel.html#Discord_Rest_RestTextChannel_Discord_IMessageChannel_SendFileAsync_System_String_System_String_System_Boolean_Discord_Embed_Discord_RequestOptions_System_Boolean_">RestTextChannel.IMessageChannel.SendFileAsync(String, String, Boolean, Embed, RequestOptions, Boolean)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestTextChannel.html#Discord_Rest_RestTextChannel_Discord_IMessageChannel_SendFileAsync_System_IO_Stream_System_String_System_String_System_Boolean_Discord_Embed_Discord_RequestOptions_System_Boolean_">RestTextChannel.IMessageChannel.SendFileAsync(Stream, String, String, Boolean, Embed, RequestOptions, Boolean)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestTextChannel.html#Discord_Rest_RestTextChannel_Discord_IMessageChannel_SendMessageAsync_System_String_System_Boolean_Discord_Embed_Discord_RequestOptions_">RestTextChannel.IMessageChannel.SendMessageAsync(String, Boolean, Embed, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestTextChannel.html#Discord_Rest_RestTextChannel_Discord_IGuildChannel_GetUserAsync_System_UInt64_Discord_CacheMode_Discord_RequestOptions_">RestTextChannel.IGuildChannel.GetUserAsync(UInt64, CacheMode, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestTextChannel.html#Discord_Rest_RestTextChannel_Discord_IGuildChannel_GetUsersAsync_Discord_CacheMode_Discord_RequestOptions_">RestTextChannel.IGuildChannel.GetUsersAsync(CacheMode, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestTextChannel.html#Discord_Rest_RestTextChannel_Discord_IChannel_GetUserAsync_System_UInt64_Discord_CacheMode_Discord_RequestOptions_">RestTextChannel.IChannel.GetUserAsync(UInt64, CacheMode, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestTextChannel.html#Discord_Rest_RestTextChannel_Discord_IChannel_GetUsersAsync_Discord_CacheMode_Discord_RequestOptions_">RestTextChannel.IChannel.GetUsersAsync(CacheMode, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestTextChannel.html#Discord_Rest_RestTextChannel_Discord_INestedChannel_GetCategoryAsync_Discord_CacheMode_Discord_RequestOptions_">RestTextChannel.INestedChannel.GetCategoryAsync(CacheMode, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_PermissionOverwrites">RestGuildChannel.PermissionOverwrites</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_Name">RestGuildChannel.Name</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_Position">RestGuildChannel.Position</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_GuildId">RestGuildChannel.GuildId</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_UpdateAsync_Discord_RequestOptions_">RestGuildChannel.UpdateAsync(RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_ModifyAsync_System_Action_Discord_GuildChannelProperties__Discord_RequestOptions_">RestGuildChannel.ModifyAsync(Action&lt;GuildChannelProperties&gt;, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_DeleteAsync_Discord_RequestOptions_">RestGuildChannel.DeleteAsync(RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_GetPermissionOverwrite_Discord_IUser_">RestGuildChannel.GetPermissionOverwrite(IUser)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_GetPermissionOverwrite_Discord_IRole_">RestGuildChannel.GetPermissionOverwrite(IRole)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_AddPermissionOverwriteAsync_Discord_IUser_Discord_OverwritePermissions_Discord_RequestOptions_">RestGuildChannel.AddPermissionOverwriteAsync(IUser, OverwritePermissions, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_AddPermissionOverwriteAsync_Discord_IRole_Discord_OverwritePermissions_Discord_RequestOptions_">RestGuildChannel.AddPermissionOverwriteAsync(IRole, OverwritePermissions, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_RemovePermissionOverwriteAsync_Discord_IUser_Discord_RequestOptions_">RestGuildChannel.RemovePermissionOverwriteAsync(IUser, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_RemovePermissionOverwriteAsync_Discord_IRole_Discord_RequestOptions_">RestGuildChannel.RemovePermissionOverwriteAsync(IRole, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_ToString">RestGuildChannel.ToString()</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_Discord_IGuildChannel_Guild">RestGuildChannel.IGuildChannel.Guild</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_Discord_IGuildChannel_GetPermissionOverwrite_Discord_IRole_">RestGuildChannel.IGuildChannel.GetPermissionOverwrite(IRole)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_Discord_IGuildChannel_GetPermissionOverwrite_Discord_IUser_">RestGuildChannel.IGuildChannel.GetPermissionOverwrite(IUser)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_Discord_IGuildChannel_AddPermissionOverwriteAsync_Discord_IRole_Discord_OverwritePermissions_Discord_RequestOptions_">RestGuildChannel.IGuildChannel.AddPermissionOverwriteAsync(IRole, OverwritePermissions, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_Discord_IGuildChannel_AddPermissionOverwriteAsync_Discord_IUser_Discord_OverwritePermissions_Discord_RequestOptions_">RestGuildChannel.IGuildChannel.AddPermissionOverwriteAsync(IUser, OverwritePermissions, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_Discord_IGuildChannel_RemovePermissionOverwriteAsync_Discord_IRole_Discord_RequestOptions_">RestGuildChannel.IGuildChannel.RemovePermissionOverwriteAsync(IRole, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_Discord_IGuildChannel_RemovePermissionOverwriteAsync_Discord_IUser_Discord_RequestOptions_">RestGuildChannel.IGuildChannel.RemovePermissionOverwriteAsync(IUser, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestChannel.html#Discord_Rest_RestChannel_CreatedAt">RestChannel.CreatedAt</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestChannel.html#Discord_Rest_RestChannel_Discord_IChannel_Name">RestChannel.IChannel.Name</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestEntity-1.html#Discord_Rest_RestEntity_1_Id">RestEntity&lt;UInt64&gt;.Id</a>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Discord.Rest.html">Discord.Rest</a></h6>
+  <h6><strong>Assembly</strong>: Discord.Net.Rest.dll</h6>
+  <h5 id="Discord_Rest_RestNewsChannel_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class RestNewsChannel : RestTextChannel, IUpdateable, IRestMessageChannel, ITextChannel, IMessageChannel, IMentionable, INestedChannel, IGuildChannel, IChannel, ISnowflakeEntity, IEntity&lt;ulong&gt;, IDeletable</code></pre>
+  </div>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestNewsChannel_SlowModeInterval.md&amp;value=---%0Auid%3A%20Discord.Rest.RestNewsChannel.SlowModeInterval%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Channels/RestNewsChannel.cs/#L27">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestNewsChannel_SlowModeInterval_" data-uid="Discord.Rest.RestNewsChannel.SlowModeInterval*"></a>
+  <h4 id="Discord_Rest_RestNewsChannel_SlowModeInterval" data-uid="Discord.Rest.RestNewsChannel.SlowModeInterval">SlowModeInterval</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override int SlowModeInterval { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Discord.Rest.RestTextChannel.html#Discord_Rest_RestTextChannel_SlowModeInterval">RestTextChannel.SlowModeInterval</a></div>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="Discord.IUpdateable.html">IUpdateable</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.Rest.IRestMessageChannel.html">IRestMessageChannel</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.ITextChannel.html">ITextChannel</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.IMessageChannel.html">IMessageChannel</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.IMentionable.html">IMentionable</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.INestedChannel.html">INestedChannel</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.IGuildChannel.html">IGuildChannel</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.IChannel.html">IChannel</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.ISnowflakeEntity.html">ISnowflakeEntity</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.IEntity-1.html">IEntity&lt;TId&gt;</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.IDeletable.html">IDeletable</a>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestNewsChannel.md&amp;value=---%0Auid%3A%20Discord.Rest.RestNewsChannel%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Channels/RestNewsChannel.cs/#L14" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+              <!-- <p><a class="back-to-top" href="#top">Back to top</a><p> -->
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

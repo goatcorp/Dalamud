@@ -1,0 +1,2191 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class SocketGroupChannel
+   </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class SocketGroupChannel
+   ">
+    <meta name="generator" content="docfx 2.50.0.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Discord.WebSocket.SocketGroupChannel">
+  
+  
+  <h1 id="Discord_WebSocket_SocketGroupChannel" data-uid="Discord.WebSocket.SocketGroupChannel" class="text-break">Class SocketGroupChannel
+  </h1>
+  <div class="markdown level0 summary"><p>Represents a WebSocket-based private group channel.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><a class="xref" href="Discord.WebSocket.SocketEntity-1.html">SocketEntity</a>&lt;<span class="xref">System.UInt64</span>&gt;</div>
+    <div class="level2"><a class="xref" href="Discord.WebSocket.SocketChannel.html">SocketChannel</a></div>
+    <div class="level3"><span class="xref">SocketGroupChannel</span></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="Discord.IGroupChannel.html">IGroupChannel</a></div>
+    <div><a class="xref" href="Discord.WebSocket.ISocketPrivateChannel.html">ISocketPrivateChannel</a></div>
+    <div><a class="xref" href="Discord.IPrivateChannel.html">IPrivateChannel</a></div>
+    <div><a class="xref" href="Discord.WebSocket.ISocketMessageChannel.html">ISocketMessageChannel</a></div>
+    <div><a class="xref" href="Discord.IMessageChannel.html">IMessageChannel</a></div>
+    <div><a class="xref" href="Discord.WebSocket.ISocketAudioChannel.html">ISocketAudioChannel</a></div>
+    <div><a class="xref" href="Discord.IAudioChannel.html">IAudioChannel</a></div>
+    <div><a class="xref" href="Discord.IChannel.html">IChannel</a></div>
+    <div><a class="xref" href="Discord.ISnowflakeEntity.html">ISnowflakeEntity</a></div>
+    <div><a class="xref" href="Discord.IEntity-1.html">IEntity</a>&lt;<span class="xref">System.UInt64</span>&gt;</div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <a class="xref" href="Discord.WebSocket.SocketChannel.html#Discord_WebSocket_SocketChannel_CreatedAt">SocketChannel.CreatedAt</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.SocketChannel.html#Discord_WebSocket_SocketChannel_Discord_IChannel_Name">SocketChannel.IChannel.Name</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.SocketEntity-1.html#Discord_WebSocket_SocketEntity_1_Id">SocketEntity&lt;UInt64&gt;.Id</a>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Discord.WebSocket.html">Discord.WebSocket</a></h6>
+  <h6><strong>Assembly</strong>: Discord.Net.WebSocket.dll</h6>
+  <h5 id="Discord_WebSocket_SocketGroupChannel_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class SocketGroupChannel : SocketChannel, IGroupChannel, ISocketPrivateChannel, IPrivateChannel, ISocketMessageChannel, IMessageChannel, ISocketAudioChannel, IAudioChannel, IChannel, ISnowflakeEntity, IEntity&lt;ulong&gt;</code></pre>
+  </div>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_SocketGroupChannel_CachedMessages.md&amp;value=---%0Auid%3A%20Discord.WebSocket.SocketGroupChannel.CachedMessages%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/Entities/Channels/SocketGroupChannel.cs/#L33">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_SocketGroupChannel_CachedMessages_" data-uid="Discord.WebSocket.SocketGroupChannel.CachedMessages*"></a>
+  <h4 id="Discord_WebSocket_SocketGroupChannel_CachedMessages" data-uid="Discord.WebSocket.SocketGroupChannel.CachedMessages">CachedMessages</h4>
+  <div class="markdown level1 summary"><p>Gets all messages in this channel's cache.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IReadOnlyCollection&lt;SocketMessage&gt; CachedMessages { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<a class="xref" href="Discord.WebSocket.SocketMessage.html">SocketMessage</a>&gt;</td>
+        <td><p>A read-only collection of WebSocket-based messages.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_SocketGroupChannel_Name.md&amp;value=---%0Auid%3A%20Discord.WebSocket.SocketGroupChannel.Name%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/Entities/Channels/SocketGroupChannel.cs/#L30">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_SocketGroupChannel_Name_" data-uid="Discord.WebSocket.SocketGroupChannel.Name*"></a>
+  <h4 id="Discord_WebSocket_SocketGroupChannel_Name" data-uid="Discord.WebSocket.SocketGroupChannel.Name">Name</h4>
+  <div class="markdown level1 summary"><p>Gets the name of this channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public string Name { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>A string containing the name of this channel.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_SocketGroupChannel_Recipients.md&amp;value=---%0Auid%3A%20Discord.WebSocket.SocketGroupChannel.Recipients%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/Entities/Channels/SocketGroupChannel.cs/#L35">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_SocketGroupChannel_Recipients_" data-uid="Discord.WebSocket.SocketGroupChannel.Recipients*"></a>
+  <h4 id="Discord_WebSocket_SocketGroupChannel_Recipients" data-uid="Discord.WebSocket.SocketGroupChannel.Recipients">Recipients</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IReadOnlyCollection&lt;SocketGroupUser&gt; Recipients { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<a class="xref" href="Discord.WebSocket.SocketGroupUser.html">SocketGroupUser</a>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_SocketGroupChannel_Users.md&amp;value=---%0Auid%3A%20Discord.WebSocket.SocketGroupChannel.Users%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/Entities/Channels/SocketGroupChannel.cs/#L34">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_SocketGroupChannel_Users_" data-uid="Discord.WebSocket.SocketGroupChannel.Users*"></a>
+  <h4 id="Discord_WebSocket_SocketGroupChannel_Users" data-uid="Discord.WebSocket.SocketGroupChannel.Users">Users</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IReadOnlyCollection&lt;SocketGroupUser&gt; Users { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<a class="xref" href="Discord.WebSocket.SocketGroupUser.html">SocketGroupUser</a>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_SocketGroupChannel_ConnectAsync.md&amp;value=---%0Auid%3A%20Discord.WebSocket.SocketGroupChannel.ConnectAsync%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/Entities/Channels/SocketGroupChannel.cs/#L75">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_SocketGroupChannel_ConnectAsync_" data-uid="Discord.WebSocket.SocketGroupChannel.ConnectAsync*"></a>
+  <h4 id="Discord_WebSocket_SocketGroupChannel_ConnectAsync" data-uid="Discord.WebSocket.SocketGroupChannel.ConnectAsync">ConnectAsync()</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;IAudioClient&gt; ConnectAsync()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<a class="xref" href="Discord.Audio.IAudioClient.html">IAudioClient</a>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.NotSupportedException</span></td>
+        <td><p>Voice is not yet supported for group channels.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_SocketGroupChannel_DeleteMessageAsync_Discord_IMessage_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.SocketGroupChannel.DeleteMessageAsync(Discord.IMessage%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/Entities/Channels/SocketGroupChannel.cs/#L180">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_SocketGroupChannel_DeleteMessageAsync_" data-uid="Discord.WebSocket.SocketGroupChannel.DeleteMessageAsync*"></a>
+  <h4 id="Discord_WebSocket_SocketGroupChannel_DeleteMessageAsync_Discord_IMessage_Discord_RequestOptions_" data-uid="Discord.WebSocket.SocketGroupChannel.DeleteMessageAsync(Discord.IMessage,Discord.RequestOptions)">DeleteMessageAsync(IMessage, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Deletes a message based on the provided message in this channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task DeleteMessageAsync(IMessage message, RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.IMessage.html">IMessage</a></td>
+        <td><span class="parametername">message</span></td>
+        <td><p>The message that would be removed.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td><p>A task that represents the asynchronous removal operation.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_SocketGroupChannel_DeleteMessageAsync_System_UInt64_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.SocketGroupChannel.DeleteMessageAsync(System.UInt64%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/Entities/Channels/SocketGroupChannel.cs/#L177">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_SocketGroupChannel_DeleteMessageAsync_" data-uid="Discord.WebSocket.SocketGroupChannel.DeleteMessageAsync*"></a>
+  <h4 id="Discord_WebSocket_SocketGroupChannel_DeleteMessageAsync_System_UInt64_Discord_RequestOptions_" data-uid="Discord.WebSocket.SocketGroupChannel.DeleteMessageAsync(System.UInt64,Discord.RequestOptions)">DeleteMessageAsync(UInt64, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Deletes a message.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task DeleteMessageAsync(ulong messageId, RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt64</span></td>
+        <td><span class="parametername">messageId</span></td>
+        <td><p>The snowflake identifier of the message that would be removed.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td><p>A task that represents the asynchronous removal operation.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_SocketGroupChannel_EnterTypingState_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.SocketGroupChannel.EnterTypingState(Discord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/Entities/Channels/SocketGroupChannel.cs/#L187">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_SocketGroupChannel_EnterTypingState_" data-uid="Discord.WebSocket.SocketGroupChannel.EnterTypingState*"></a>
+  <h4 id="Discord_WebSocket_SocketGroupChannel_EnterTypingState_Discord_RequestOptions_" data-uid="Discord.WebSocket.SocketGroupChannel.EnterTypingState(Discord.RequestOptions)">EnterTypingState(RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Continuously broadcasts the &quot;user is typing&quot; message to all users in this channel until the returned
+object is disposed.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IDisposable EnterTypingState(RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IDisposable</span></td>
+        <td><p>A disposable object that, upon its disposal, will stop the client from broadcasting its typing state in
+this channel.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_SocketGroupChannel_GetCachedMessage_System_UInt64_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.SocketGroupChannel.GetCachedMessage(System.UInt64)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/Entities/Channels/SocketGroupChannel.cs/#L82">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_SocketGroupChannel_GetCachedMessage_" data-uid="Discord.WebSocket.SocketGroupChannel.GetCachedMessage*"></a>
+  <h4 id="Discord_WebSocket_SocketGroupChannel_GetCachedMessage_System_UInt64_" data-uid="Discord.WebSocket.SocketGroupChannel.GetCachedMessage(System.UInt64)">GetCachedMessage(UInt64)</h4>
+  <div class="markdown level1 summary"><p>Gets a cached message from this channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public SocketMessage GetCachedMessage(ulong id)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt64</span></td>
+        <td><span class="parametername">id</span></td>
+        <td><p>The snowflake identifier of the message.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.WebSocket.SocketMessage.html">SocketMessage</a></td>
+        <td><p>A WebSocket-based message object; <code>null</code> if it does not exist in the cache or if caching is not
+enabled.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Discord_WebSocket_SocketGroupChannel_GetCachedMessage_System_UInt64__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><div class="WARNING"><h5>warning</h5><p>
+    This method requires the use of cache, which is not enabled by default; if caching is not enabled,
+    this method will always return <code>null</code>. Please refer to
+<a class="xref" href="Discord.WebSocket.DiscordSocketConfig.html#Discord_WebSocket_DiscordSocketConfig_MessageCacheSize">MessageCacheSize</a> for more details.
+</p></div>
+<p>
+    This method retrieves the message from the local WebSocket cache and does not send any additional
+    request to Discord. This message may be a message that has been deleted.
+</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_SocketGroupChannel_GetCachedMessages_Discord_IMessage_Discord_Direction_System_Int32_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.SocketGroupChannel.GetCachedMessages(Discord.IMessage%2CDiscord.Direction%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/Entities/Channels/SocketGroupChannel.cs/#L158">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_SocketGroupChannel_GetCachedMessages_" data-uid="Discord.WebSocket.SocketGroupChannel.GetCachedMessages*"></a>
+  <h4 id="Discord_WebSocket_SocketGroupChannel_GetCachedMessages_Discord_IMessage_Discord_Direction_System_Int32_" data-uid="Discord.WebSocket.SocketGroupChannel.GetCachedMessages(Discord.IMessage,Discord.Direction,System.Int32)">GetCachedMessages(IMessage, Direction, Int32)</h4>
+  <div class="markdown level1 summary"><p>Gets the last N cached messages starting from a certain message in this message channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IReadOnlyCollection&lt;SocketMessage&gt; GetCachedMessages(IMessage fromMessage, Direction dir, int limit = 100)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.IMessage.html">IMessage</a></td>
+        <td><span class="parametername">fromMessage</span></td>
+        <td><p>The message to start the fetching from.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.Direction.html">Direction</a></td>
+        <td><span class="parametername">dir</span></td>
+        <td><p>The direction of which the message should be gotten from.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">limit</span></td>
+        <td><p>The number of messages to get.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<a class="xref" href="Discord.WebSocket.SocketMessage.html">SocketMessage</a>&gt;</td>
+        <td><p>A read-only collection of WebSocket-based messages.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Discord_WebSocket_SocketGroupChannel_GetCachedMessages_Discord_IMessage_Discord_Direction_System_Int32__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><div class="WARNING"><h5>warning</h5><p>
+    This method requires the use of cache, which is not enabled by default; if caching is not enabled,
+    this method will always return an empty collection. Please refer to
+<a class="xref" href="Discord.WebSocket.DiscordSocketConfig.html#Discord_WebSocket_DiscordSocketConfig_MessageCacheSize">MessageCacheSize</a> for more details.
+</p></div>
+<p>
+    This method retrieves the message(s) from the local WebSocket cache and does not send any additional
+    request to Discord. This read-only collection may include messages that have been deleted. The
+    maximum number of messages that can be retrieved from this method depends on the
+<a class="xref" href="Discord.WebSocket.DiscordSocketConfig.html#Discord_WebSocket_DiscordSocketConfig_MessageCacheSize">MessageCacheSize</a> set.
+</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_SocketGroupChannel_GetCachedMessages_System_Int32_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.SocketGroupChannel.GetCachedMessages(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/Entities/Channels/SocketGroupChannel.cs/#L152">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_SocketGroupChannel_GetCachedMessages_" data-uid="Discord.WebSocket.SocketGroupChannel.GetCachedMessages*"></a>
+  <h4 id="Discord_WebSocket_SocketGroupChannel_GetCachedMessages_System_Int32_" data-uid="Discord.WebSocket.SocketGroupChannel.GetCachedMessages(System.Int32)">GetCachedMessages(Int32)</h4>
+  <div class="markdown level1 summary"><p>Gets the last N cached messages from this message channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IReadOnlyCollection&lt;SocketMessage&gt; GetCachedMessages(int limit = 100)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">limit</span></td>
+        <td><p>The number of messages to get.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<a class="xref" href="Discord.WebSocket.SocketMessage.html">SocketMessage</a>&gt;</td>
+        <td><p>A read-only collection of WebSocket-based messages.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Discord_WebSocket_SocketGroupChannel_GetCachedMessages_System_Int32__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><div class="WARNING"><h5>warning</h5><p>
+    This method requires the use of cache, which is not enabled by default; if caching is not enabled,
+    this method will always return an empty collection. Please refer to
+<a class="xref" href="Discord.WebSocket.DiscordSocketConfig.html#Discord_WebSocket_DiscordSocketConfig_MessageCacheSize">MessageCacheSize</a> for more details.
+</p></div>
+<p>
+    This method retrieves the message(s) from the local WebSocket cache and does not send any additional
+    request to Discord. This read-only collection may include messages that have been deleted. The
+    maximum number of messages that can be retrieved from this method depends on the
+<a class="xref" href="Discord.WebSocket.DiscordSocketConfig.html#Discord_WebSocket_DiscordSocketConfig_MessageCacheSize">MessageCacheSize</a> set.
+</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_SocketGroupChannel_GetCachedMessages_System_UInt64_Discord_Direction_System_Int32_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.SocketGroupChannel.GetCachedMessages(System.UInt64%2CDiscord.Direction%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/Entities/Channels/SocketGroupChannel.cs/#L155">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_SocketGroupChannel_GetCachedMessages_" data-uid="Discord.WebSocket.SocketGroupChannel.GetCachedMessages*"></a>
+  <h4 id="Discord_WebSocket_SocketGroupChannel_GetCachedMessages_System_UInt64_Discord_Direction_System_Int32_" data-uid="Discord.WebSocket.SocketGroupChannel.GetCachedMessages(System.UInt64,Discord.Direction,System.Int32)">GetCachedMessages(UInt64, Direction, Int32)</h4>
+  <div class="markdown level1 summary"><p>Gets the last N cached messages starting from a certain message in this message channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IReadOnlyCollection&lt;SocketMessage&gt; GetCachedMessages(ulong fromMessageId, Direction dir, int limit = 100)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt64</span></td>
+        <td><span class="parametername">fromMessageId</span></td>
+        <td><p>The message ID to start the fetching from.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.Direction.html">Direction</a></td>
+        <td><span class="parametername">dir</span></td>
+        <td><p>The direction of which the message should be gotten from.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">limit</span></td>
+        <td><p>The number of messages to get.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<a class="xref" href="Discord.WebSocket.SocketMessage.html">SocketMessage</a>&gt;</td>
+        <td><p>A read-only collection of WebSocket-based messages.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Discord_WebSocket_SocketGroupChannel_GetCachedMessages_System_UInt64_Discord_Direction_System_Int32__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><div class="WARNING"><h5>warning</h5><p>
+    This method requires the use of cache, which is not enabled by default; if caching is not enabled,
+    this method will always return an empty collection. Please refer to
+<a class="xref" href="Discord.WebSocket.DiscordSocketConfig.html#Discord_WebSocket_DiscordSocketConfig_MessageCacheSize">MessageCacheSize</a> for more details.
+</p></div>
+<p>
+    This method retrieves the message(s) from the local WebSocket cache and does not send any additional
+    request to Discord. This read-only collection may include messages that have been deleted. The
+    maximum number of messages that can be retrieved from this method depends on the
+<a class="xref" href="Discord.WebSocket.DiscordSocketConfig.html#Discord_WebSocket_DiscordSocketConfig_MessageCacheSize">MessageCacheSize</a> set.
+</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_SocketGroupChannel_GetMessageAsync_System_UInt64_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.SocketGroupChannel.GetMessageAsync(System.UInt64%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/Entities/Channels/SocketGroupChannel.cs/#L97">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_SocketGroupChannel_GetMessageAsync_" data-uid="Discord.WebSocket.SocketGroupChannel.GetMessageAsync*"></a>
+  <h4 id="Discord_WebSocket_SocketGroupChannel_GetMessageAsync_System_UInt64_Discord_RequestOptions_" data-uid="Discord.WebSocket.SocketGroupChannel.GetMessageAsync(System.UInt64,Discord.RequestOptions)">GetMessageAsync(UInt64, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Gets a message from this message channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;IMessage&gt; GetMessageAsync(ulong id, RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt64</span></td>
+        <td><span class="parametername">id</span></td>
+        <td><p>The snowflake identifier of the message.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<a class="xref" href="Discord.IMessage.html">IMessage</a>&gt;</td>
+        <td><p>A task that represents an asynchronous get operation for retrieving the message. The task result contains
+the retrieved message; <code>null</code> if no message is found with the specified identifier.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Discord_WebSocket_SocketGroupChannel_GetMessageAsync_System_UInt64_Discord_RequestOptions__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method follows the same behavior as described in <a class="xref" href="Discord.IMessageChannel.html#Discord_IMessageChannel_GetMessageAsync_System_UInt64_Discord_CacheMode_Discord_RequestOptions_">GetMessageAsync(UInt64, CacheMode, RequestOptions)</a>.
+Please visit its documentation for more details on this method.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_SocketGroupChannel_GetMessagesAsync_Discord_IMessage_Discord_Direction_System_Int32_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.SocketGroupChannel.GetMessagesAsync(Discord.IMessage%2CDiscord.Direction%2CSystem.Int32%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/Entities/Channels/SocketGroupChannel.cs/#L149">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_SocketGroupChannel_GetMessagesAsync_" data-uid="Discord.WebSocket.SocketGroupChannel.GetMessagesAsync*"></a>
+  <h4 id="Discord_WebSocket_SocketGroupChannel_GetMessagesAsync_Discord_IMessage_Discord_Direction_System_Int32_Discord_RequestOptions_" data-uid="Discord.WebSocket.SocketGroupChannel.GetMessagesAsync(Discord.IMessage,Discord.Direction,System.Int32,Discord.RequestOptions)">GetMessagesAsync(IMessage, Direction, Int32, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Gets a collection of messages in this channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IAsyncEnumerable&lt;IReadOnlyCollection&lt;IMessage&gt;&gt; GetMessagesAsync(IMessage fromMessage, Direction dir, int limit = 100, RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.IMessage.html">IMessage</a></td>
+        <td><span class="parametername">fromMessage</span></td>
+        <td><p>The starting message to get the messages from.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.Direction.html">Direction</a></td>
+        <td><span class="parametername">dir</span></td>
+        <td><p>The direction of the messages to be gotten from.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">limit</span></td>
+        <td><p>The numbers of message to be gotten from.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IAsyncEnumerable</span>&lt;<span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<a class="xref" href="Discord.IMessage.html">IMessage</a>&gt;&gt;</td>
+        <td><p>Paged collection of messages.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Discord_WebSocket_SocketGroupChannel_GetMessagesAsync_Discord_IMessage_Discord_Direction_System_Int32_Discord_RequestOptions__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method follows the same behavior as described in <a class="xref" href="Discord.IMessageChannel.html#Discord_IMessageChannel_GetMessagesAsync_Discord_IMessage_Discord_Direction_System_Int32_Discord_CacheMode_Discord_RequestOptions_">GetMessagesAsync(IMessage, Direction, Int32, CacheMode, RequestOptions)</a>.
+Please visit its documentation for more details on this method.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_SocketGroupChannel_GetMessagesAsync_System_Int32_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.SocketGroupChannel.GetMessagesAsync(System.Int32%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/Entities/Channels/SocketGroupChannel.cs/#L117">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_SocketGroupChannel_GetMessagesAsync_" data-uid="Discord.WebSocket.SocketGroupChannel.GetMessagesAsync*"></a>
+  <h4 id="Discord_WebSocket_SocketGroupChannel_GetMessagesAsync_System_Int32_Discord_RequestOptions_" data-uid="Discord.WebSocket.SocketGroupChannel.GetMessagesAsync(System.Int32,Discord.RequestOptions)">GetMessagesAsync(Int32, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Gets the last N messages from this message channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IAsyncEnumerable&lt;IReadOnlyCollection&lt;IMessage&gt;&gt; GetMessagesAsync(int limit = 100, RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">limit</span></td>
+        <td><p>The numbers of message to be gotten from.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IAsyncEnumerable</span>&lt;<span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<a class="xref" href="Discord.IMessage.html">IMessage</a>&gt;&gt;</td>
+        <td><p>Paged collection of messages.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Discord_WebSocket_SocketGroupChannel_GetMessagesAsync_System_Int32_Discord_RequestOptions__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method follows the same behavior as described in <a class="xref" href="Discord.IMessageChannel.html#Discord_IMessageChannel_GetMessagesAsync_System_Int32_Discord_CacheMode_Discord_RequestOptions_">GetMessagesAsync(Int32, CacheMode, RequestOptions)</a>.
+Please visit its documentation for more details on this method.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_SocketGroupChannel_GetMessagesAsync_System_UInt64_Discord_Direction_System_Int32_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.SocketGroupChannel.GetMessagesAsync(System.UInt64%2CDiscord.Direction%2CSystem.Int32%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/Entities/Channels/SocketGroupChannel.cs/#L133">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_SocketGroupChannel_GetMessagesAsync_" data-uid="Discord.WebSocket.SocketGroupChannel.GetMessagesAsync*"></a>
+  <h4 id="Discord_WebSocket_SocketGroupChannel_GetMessagesAsync_System_UInt64_Discord_Direction_System_Int32_Discord_RequestOptions_" data-uid="Discord.WebSocket.SocketGroupChannel.GetMessagesAsync(System.UInt64,Discord.Direction,System.Int32,Discord.RequestOptions)">GetMessagesAsync(UInt64, Direction, Int32, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Gets a collection of messages in this channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IAsyncEnumerable&lt;IReadOnlyCollection&lt;IMessage&gt;&gt; GetMessagesAsync(ulong fromMessageId, Direction dir, int limit = 100, RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt64</span></td>
+        <td><span class="parametername">fromMessageId</span></td>
+        <td><p>The ID of the starting message to get the messages from.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.Direction.html">Direction</a></td>
+        <td><span class="parametername">dir</span></td>
+        <td><p>The direction of the messages to be gotten from.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">limit</span></td>
+        <td><p>The numbers of message to be gotten from.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IAsyncEnumerable</span>&lt;<span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<a class="xref" href="Discord.IMessage.html">IMessage</a>&gt;&gt;</td>
+        <td><p>Paged collection of messages.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Discord_WebSocket_SocketGroupChannel_GetMessagesAsync_System_UInt64_Discord_Direction_System_Int32_Discord_RequestOptions__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method follows the same behavior as described in <a class="xref" href="Discord.IMessageChannel.html#Discord_IMessageChannel_GetMessagesAsync_System_UInt64_Discord_Direction_System_Int32_Discord_CacheMode_Discord_RequestOptions_">GetMessagesAsync(UInt64, Direction, Int32, CacheMode, RequestOptions)</a>.
+Please visit its documentation for more details on this method.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_SocketGroupChannel_GetPinnedMessagesAsync_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.SocketGroupChannel.GetPinnedMessagesAsync(Discord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/Entities/Channels/SocketGroupChannel.cs/#L161">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_SocketGroupChannel_GetPinnedMessagesAsync_" data-uid="Discord.WebSocket.SocketGroupChannel.GetPinnedMessagesAsync*"></a>
+  <h4 id="Discord_WebSocket_SocketGroupChannel_GetPinnedMessagesAsync_Discord_RequestOptions_" data-uid="Discord.WebSocket.SocketGroupChannel.GetPinnedMessagesAsync(Discord.RequestOptions)">GetPinnedMessagesAsync(RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Gets a read-only collection of pinned messages in this channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;IReadOnlyCollection&lt;RestMessage&gt;&gt; GetPinnedMessagesAsync(RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<a class="xref" href="Discord.Rest.RestMessage.html">RestMessage</a>&gt;&gt;</td>
+        <td><p>A task that represents the asynchronous get operation for retrieving pinned messages in this channel.
+The task result contains a read-only collection of messages found in the pinned messages.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Discord_WebSocket_SocketGroupChannel_GetPinnedMessagesAsync_Discord_RequestOptions__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method follows the same behavior as described in <a class="xref" href="Discord.IMessageChannel.html#Discord_IMessageChannel_GetPinnedMessagesAsync_Discord_RequestOptions_">GetPinnedMessagesAsync(RequestOptions)</a>.
+Please visit its documentation for more details on this method.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_SocketGroupChannel_GetUser_System_UInt64_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.SocketGroupChannel.GetUser(System.UInt64)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/Entities/Channels/SocketGroupChannel.cs/#L203">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_SocketGroupChannel_GetUser_" data-uid="Discord.WebSocket.SocketGroupChannel.GetUser*"></a>
+  <h4 id="Discord_WebSocket_SocketGroupChannel_GetUser_System_UInt64_" data-uid="Discord.WebSocket.SocketGroupChannel.GetUser(System.UInt64)">GetUser(UInt64)</h4>
+  <div class="markdown level1 summary"><p>Gets a user from this group.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public SocketGroupUser GetUser(ulong id)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt64</span></td>
+        <td><span class="parametername">id</span></td>
+        <td><p>The snowflake identifier of the user.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.WebSocket.SocketGroupUser.html">SocketGroupUser</a></td>
+        <td><p>A WebSocket-based group user associated with the snowflake identifier.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_SocketGroupChannel_LeaveAsync_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.SocketGroupChannel.LeaveAsync(Discord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/Entities/Channels/SocketGroupChannel.cs/#L71">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_SocketGroupChannel_LeaveAsync_" data-uid="Discord.WebSocket.SocketGroupChannel.LeaveAsync*"></a>
+  <h4 id="Discord_WebSocket_SocketGroupChannel_LeaveAsync_Discord_RequestOptions_" data-uid="Discord.WebSocket.SocketGroupChannel.LeaveAsync(Discord.RequestOptions)">LeaveAsync(RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Leaves this group.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task LeaveAsync(RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td><p>A task that represents the asynchronous leave operation.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_SocketGroupChannel_SendFileAsync_System_IO_Stream_System_String_System_String_System_Boolean_Discord_Embed_Discord_RequestOptions_System_Boolean_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.SocketGroupChannel.SendFileAsync(System.IO.Stream%2CSystem.String%2CSystem.String%2CSystem.Boolean%2CDiscord.Embed%2CDiscord.RequestOptions%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/Entities/Channels/SocketGroupChannel.cs/#L173">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_SocketGroupChannel_SendFileAsync_" data-uid="Discord.WebSocket.SocketGroupChannel.SendFileAsync*"></a>
+  <h4 id="Discord_WebSocket_SocketGroupChannel_SendFileAsync_System_IO_Stream_System_String_System_String_System_Boolean_Discord_Embed_Discord_RequestOptions_System_Boolean_" data-uid="Discord.WebSocket.SocketGroupChannel.SendFileAsync(System.IO.Stream,System.String,System.String,System.Boolean,Discord.Embed,Discord.RequestOptions,System.Boolean)">SendFileAsync(Stream, String, String, Boolean, Embed, RequestOptions, Boolean)</h4>
+  <div class="markdown level1 summary"><p>Sends a file to this message channel with an optional caption.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;RestUserMessage&gt; SendFileAsync(Stream stream, string filename, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.Stream</span></td>
+        <td><span class="parametername">stream</span></td>
+        <td><p>The <span class="xref">System.IO.Stream</span> of the file to be sent.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">filename</span></td>
+        <td><p>The name of the attachment.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">text</span></td>
+        <td><p>The message to be sent.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">isTTS</span></td>
+        <td><p>Whether the message should be read aloud by Discord or not.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.Embed.html">Embed</a></td>
+        <td><span class="parametername">embed</span></td>
+        <td><p>The <a class="xref" href="Discord.EmbedType.html#Discord_EmbedType_Rich">Rich</a> <a class="xref" href="Discord.Embed.html">Embed</a> to be sent.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">isSpoiler</span></td>
+        <td><p>Whether the message attachment should be hidden as a spoiler.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<a class="xref" href="Discord.Rest.RestUserMessage.html">RestUserMessage</a>&gt;</td>
+        <td><p>A task that represents an asynchronous send operation for delivering the message. The task result
+contains the sent message.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Discord_WebSocket_SocketGroupChannel_SendFileAsync_System_IO_Stream_System_String_System_String_System_Boolean_Discord_Embed_Discord_RequestOptions_System_Boolean__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method follows the same behavior as described in <a class="xref" href="Discord.IMessageChannel.html#Discord_IMessageChannel_SendFileAsync_System_IO_Stream_System_String_System_String_System_Boolean_Discord_Embed_Discord_RequestOptions_System_Boolean_">SendFileAsync(Stream, String, String, Boolean, Embed, RequestOptions, Boolean)</a>.
+Please visit its documentation for more details on this method.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_SocketGroupChannel_SendFileAsync_System_String_System_String_System_Boolean_Discord_Embed_Discord_RequestOptions_System_Boolean_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.SocketGroupChannel.SendFileAsync(System.String%2CSystem.String%2CSystem.Boolean%2CDiscord.Embed%2CDiscord.RequestOptions%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/Entities/Channels/SocketGroupChannel.cs/#L170">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_SocketGroupChannel_SendFileAsync_" data-uid="Discord.WebSocket.SocketGroupChannel.SendFileAsync*"></a>
+  <h4 id="Discord_WebSocket_SocketGroupChannel_SendFileAsync_System_String_System_String_System_Boolean_Discord_Embed_Discord_RequestOptions_System_Boolean_" data-uid="Discord.WebSocket.SocketGroupChannel.SendFileAsync(System.String,System.String,System.Boolean,Discord.Embed,Discord.RequestOptions,System.Boolean)">SendFileAsync(String, String, Boolean, Embed, RequestOptions, Boolean)</h4>
+  <div class="markdown level1 summary"><p>Sends a file to this message channel with an optional caption.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;RestUserMessage&gt; SendFileAsync(string filePath, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">filePath</span></td>
+        <td><p>The file path of the file.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">text</span></td>
+        <td><p>The message to be sent.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">isTTS</span></td>
+        <td><p>Whether the message should be read aloud by Discord or not.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.Embed.html">Embed</a></td>
+        <td><span class="parametername">embed</span></td>
+        <td><p>The <a class="xref" href="Discord.EmbedType.html#Discord_EmbedType_Rich">Rich</a> <a class="xref" href="Discord.Embed.html">Embed</a> to be sent.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">isSpoiler</span></td>
+        <td><p>Whether the message attachment should be hidden as a spoiler.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<a class="xref" href="Discord.Rest.RestUserMessage.html">RestUserMessage</a>&gt;</td>
+        <td><p>A task that represents an asynchronous send operation for delivering the message. The task result
+contains the sent message.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Discord_WebSocket_SocketGroupChannel_SendFileAsync_System_String_System_String_System_Boolean_Discord_Embed_Discord_RequestOptions_System_Boolean__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method follows the same behavior as described in <a class="xref" href="Discord.IMessageChannel.html#Discord_IMessageChannel_SendFileAsync_System_String_System_String_System_Boolean_Discord_Embed_Discord_RequestOptions_System_Boolean_">SendFileAsync(String, String, Boolean, Embed, RequestOptions, Boolean)</a>.
+Please visit its documentation for more details on this method.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_SocketGroupChannel_SendMessageAsync_System_String_System_Boolean_Discord_Embed_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.SocketGroupChannel.SendMessageAsync(System.String%2CSystem.Boolean%2CDiscord.Embed%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/Entities/Channels/SocketGroupChannel.cs/#L166">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_SocketGroupChannel_SendMessageAsync_" data-uid="Discord.WebSocket.SocketGroupChannel.SendMessageAsync*"></a>
+  <h4 id="Discord_WebSocket_SocketGroupChannel_SendMessageAsync_System_String_System_Boolean_Discord_Embed_Discord_RequestOptions_" data-uid="Discord.WebSocket.SocketGroupChannel.SendMessageAsync(System.String,System.Boolean,Discord.Embed,Discord.RequestOptions)">SendMessageAsync(String, Boolean, Embed, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Sends a message to this message channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;RestUserMessage&gt; SendMessageAsync(string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">text</span></td>
+        <td><p>The message to be sent.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">isTTS</span></td>
+        <td><p>Determines whether the message should be read aloud by Discord or not.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.Embed.html">Embed</a></td>
+        <td><span class="parametername">embed</span></td>
+        <td><p>The <a class="xref" href="Discord.EmbedType.html#Discord_EmbedType_Rich">Rich</a> <a class="xref" href="Discord.Embed.html">Embed</a> to be sent.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<a class="xref" href="Discord.Rest.RestUserMessage.html">RestUserMessage</a>&gt;</td>
+        <td><p>A task that represents an asynchronous send operation for delivering the message. The task result
+contains the sent message.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Discord_WebSocket_SocketGroupChannel_SendMessageAsync_System_String_System_Boolean_Discord_Embed_Discord_RequestOptions__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method follows the same behavior as described in <a class="xref" href="Discord.IMessageChannel.html#Discord_IMessageChannel_SendMessageAsync_System_String_System_Boolean_Discord_Embed_Discord_RequestOptions_">SendMessageAsync(String, Boolean, Embed, RequestOptions)</a>.
+Please visit its documentation for more details on this method.</p>
+</div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentOutOfRangeException</span></td>
+        <td><p>Message content is too long, length must be less or equal to <a class="xref" href="Discord.DiscordConfig.html#Discord_DiscordConfig_MaxMessageSize">MaxMessageSize</a>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_SocketGroupChannel_ToString.md&amp;value=---%0Auid%3A%20Discord.WebSocket.SocketGroupChannel.ToString%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/Entities/Channels/SocketGroupChannel.cs/#L255">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_SocketGroupChannel_ToString_" data-uid="Discord.WebSocket.SocketGroupChannel.ToString*"></a>
+  <h4 id="Discord_WebSocket_SocketGroupChannel_ToString" data-uid="Discord.WebSocket.SocketGroupChannel.ToString">ToString()</h4>
+  <div class="markdown level1 summary"><p>Returns the name of the group.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override string ToString()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.Object.ToString()</span></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_SocketGroupChannel_TriggerTypingAsync_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.SocketGroupChannel.TriggerTypingAsync(Discord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/Entities/Channels/SocketGroupChannel.cs/#L184">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_SocketGroupChannel_TriggerTypingAsync_" data-uid="Discord.WebSocket.SocketGroupChannel.TriggerTypingAsync*"></a>
+  <h4 id="Discord_WebSocket_SocketGroupChannel_TriggerTypingAsync_Discord_RequestOptions_" data-uid="Discord.WebSocket.SocketGroupChannel.TriggerTypingAsync(Discord.RequestOptions)">TriggerTypingAsync(RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Broadcasts the &quot;user is typing&quot; message to all users in this channel, lasting 10 seconds.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task TriggerTypingAsync(RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td><p>A task that represents the asynchronous operation that triggers the broadcast.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="eii">Explicit Interface Implementations
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_SocketGroupChannel_Discord_IAudioChannel_ConnectAsync_System_Boolean_System_Boolean_System_Boolean_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.SocketGroupChannel.Discord%23IAudioChannel%23ConnectAsync(System.Boolean%2CSystem.Boolean%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/Entities/Channels/SocketGroupChannel.cs/#L308">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_SocketGroupChannel_Discord_IAudioChannel_ConnectAsync_" data-uid="Discord.WebSocket.SocketGroupChannel.Discord#IAudioChannel#ConnectAsync*"></a>
+  <h4 id="Discord_WebSocket_SocketGroupChannel_Discord_IAudioChannel_ConnectAsync_System_Boolean_System_Boolean_System_Boolean_" data-uid="Discord.WebSocket.SocketGroupChannel.Discord#IAudioChannel#ConnectAsync(System.Boolean,System.Boolean,System.Boolean)">IAudioChannel.ConnectAsync(Boolean, Boolean, Boolean)</h4>
+  <div class="markdown level1 summary"><p>Connects to this audio channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task&lt;IAudioClient&gt; IAudioChannel.ConnectAsync(bool selfDeaf, bool selfMute, bool external)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">selfDeaf</span></td>
+        <td><p>Determines whether the client should deaf itself upon connection.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">selfMute</span></td>
+        <td><p>Determines whether the client should mute itself upon connection.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">external</span></td>
+        <td><p>Determines whether the audio client is an external one or not.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<a class="xref" href="Discord.Audio.IAudioClient.html">IAudioClient</a>&gt;</td>
+        <td><p>A task representing the asynchronous connection operation. The task result contains the
+<a class="xref" href="Discord.Audio.IAudioClient.html">IAudioClient</a> responsible for the connection.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.NotSupportedException</span></td>
+        <td><p>Connecting to a group channel is not supported.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_SocketGroupChannel_Discord_IAudioChannel_DisconnectAsync.md&amp;value=---%0Auid%3A%20Discord.WebSocket.SocketGroupChannel.Discord%23IAudioChannel%23DisconnectAsync%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/Entities/Channels/SocketGroupChannel.cs/#L309">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_SocketGroupChannel_Discord_IAudioChannel_DisconnectAsync_" data-uid="Discord.WebSocket.SocketGroupChannel.Discord#IAudioChannel#DisconnectAsync*"></a>
+  <h4 id="Discord_WebSocket_SocketGroupChannel_Discord_IAudioChannel_DisconnectAsync" data-uid="Discord.WebSocket.SocketGroupChannel.Discord#IAudioChannel#DisconnectAsync">IAudioChannel.DisconnectAsync()</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task IAudioChannel.DisconnectAsync()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_SocketGroupChannel_Discord_IChannel_GetUserAsync_System_UInt64_Discord_CacheMode_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.SocketGroupChannel.Discord%23IChannel%23GetUserAsync(System.UInt64%2CDiscord.CacheMode%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/Entities/Channels/SocketGroupChannel.cs/#L313">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_SocketGroupChannel_Discord_IChannel_GetUserAsync_" data-uid="Discord.WebSocket.SocketGroupChannel.Discord#IChannel#GetUserAsync*"></a>
+  <h4 id="Discord_WebSocket_SocketGroupChannel_Discord_IChannel_GetUserAsync_System_UInt64_Discord_CacheMode_Discord_RequestOptions_" data-uid="Discord.WebSocket.SocketGroupChannel.Discord#IChannel#GetUserAsync(System.UInt64,Discord.CacheMode,Discord.RequestOptions)">IChannel.GetUserAsync(UInt64, CacheMode, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Gets a user in this channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task&lt;IUser&gt; IChannel.GetUserAsync(ulong id, CacheMode mode, RequestOptions options)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt64</span></td>
+        <td><span class="parametername">id</span></td>
+        <td><p>The snowflake identifier of the user (e.g. <code>168693960628371456</code>).</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.CacheMode.html">CacheMode</a></td>
+        <td><span class="parametername">mode</span></td>
+        <td><p>The <a class="xref" href="Discord.CacheMode.html">CacheMode</a> that determines whether the object should be fetched from cache.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<a class="xref" href="Discord.IUser.html">IUser</a>&gt;</td>
+        <td><p>A task that represents the asynchronous get operation. The task result contains a user object that
+represents the found user; <code>null</code> if none is found.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_SocketGroupChannel_Discord_IMessageChannel_GetMessageAsync_System_UInt64_Discord_CacheMode_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.SocketGroupChannel.Discord%23IMessageChannel%23GetMessageAsync(System.UInt64%2CDiscord.CacheMode%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/Entities/Channels/SocketGroupChannel.cs/#L275">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_SocketGroupChannel_Discord_IMessageChannel_GetMessageAsync_" data-uid="Discord.WebSocket.SocketGroupChannel.Discord#IMessageChannel#GetMessageAsync*"></a>
+  <h4 id="Discord_WebSocket_SocketGroupChannel_Discord_IMessageChannel_GetMessageAsync_System_UInt64_Discord_CacheMode_Discord_RequestOptions_" data-uid="Discord.WebSocket.SocketGroupChannel.Discord#IMessageChannel#GetMessageAsync(System.UInt64,Discord.CacheMode,Discord.RequestOptions)">IMessageChannel.GetMessageAsync(UInt64, CacheMode, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Gets a message from this message channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task&lt;IMessage&gt; IMessageChannel.GetMessageAsync(ulong id, CacheMode mode, RequestOptions options)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt64</span></td>
+        <td><span class="parametername">id</span></td>
+        <td><p>The snowflake identifier of the message.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.CacheMode.html">CacheMode</a></td>
+        <td><span class="parametername">mode</span></td>
+        <td><p>The <a class="xref" href="Discord.CacheMode.html">CacheMode</a> that determines whether the object should be fetched from cache.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<a class="xref" href="Discord.IMessage.html">IMessage</a>&gt;</td>
+        <td><p>A task that represents an asynchronous get operation for retrieving the message. The task result contains
+the retrieved message; <code>null</code> if no message is found with the specified identifier.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_SocketGroupChannel_Discord_IMessageChannel_GetPinnedMessagesAsync_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.SocketGroupChannel.Discord%23IMessageChannel%23GetPinnedMessagesAsync(Discord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/Entities/Channels/SocketGroupChannel.cs/#L292">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_SocketGroupChannel_Discord_IMessageChannel_GetPinnedMessagesAsync_" data-uid="Discord.WebSocket.SocketGroupChannel.Discord#IMessageChannel#GetPinnedMessagesAsync*"></a>
+  <h4 id="Discord_WebSocket_SocketGroupChannel_Discord_IMessageChannel_GetPinnedMessagesAsync_Discord_RequestOptions_" data-uid="Discord.WebSocket.SocketGroupChannel.Discord#IMessageChannel#GetPinnedMessagesAsync(Discord.RequestOptions)">IMessageChannel.GetPinnedMessagesAsync(RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Gets a collection of pinned messages in this channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task&lt;IReadOnlyCollection&lt;IMessage&gt;&gt; IMessageChannel.GetPinnedMessagesAsync(RequestOptions options)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<a class="xref" href="Discord.IMessage.html">IMessage</a>&gt;&gt;</td>
+        <td><p>A task that represents the asynchronous get operation for retrieving pinned messages in this channel.
+The task result contains a collection of messages found in the pinned messages.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_SocketGroupChannel_Discord_IMessageChannel_SendFileAsync_System_IO_Stream_System_String_System_String_System_Boolean_Discord_Embed_Discord_RequestOptions_System_Boolean_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.SocketGroupChannel.Discord%23IMessageChannel%23SendFileAsync(System.IO.Stream%2CSystem.String%2CSystem.String%2CSystem.Boolean%2CDiscord.Embed%2CDiscord.RequestOptions%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/Entities/Channels/SocketGroupChannel.cs/#L299">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_SocketGroupChannel_Discord_IMessageChannel_SendFileAsync_" data-uid="Discord.WebSocket.SocketGroupChannel.Discord#IMessageChannel#SendFileAsync*"></a>
+  <h4 id="Discord_WebSocket_SocketGroupChannel_Discord_IMessageChannel_SendFileAsync_System_IO_Stream_System_String_System_String_System_Boolean_Discord_Embed_Discord_RequestOptions_System_Boolean_" data-uid="Discord.WebSocket.SocketGroupChannel.Discord#IMessageChannel#SendFileAsync(System.IO.Stream,System.String,System.String,System.Boolean,Discord.Embed,Discord.RequestOptions,System.Boolean)">IMessageChannel.SendFileAsync(Stream, String, String, Boolean, Embed, RequestOptions, Boolean)</h4>
+  <div class="markdown level1 summary"><p>Sends a file to this message channel with an optional caption.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task&lt;IUserMessage&gt; IMessageChannel.SendFileAsync(Stream stream, string filename, string text, bool isTTS, Embed embed, RequestOptions options, bool isSpoiler)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.Stream</span></td>
+        <td><span class="parametername">stream</span></td>
+        <td><p>The <span class="xref">System.IO.Stream</span> of the file to be sent.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">filename</span></td>
+        <td><p>The name of the attachment.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">text</span></td>
+        <td><p>The message to be sent.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">isTTS</span></td>
+        <td><p>Whether the message should be read aloud by Discord or not.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.Embed.html">Embed</a></td>
+        <td><span class="parametername">embed</span></td>
+        <td><p>The <a class="xref" href="Discord.EmbedType.html#Discord_EmbedType_Rich">Rich</a> <a class="xref" href="Discord.Embed.html">Embed</a> to be sent.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">isSpoiler</span></td>
+        <td><p>Whether the message attachment should be hidden as a spoiler.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<a class="xref" href="Discord.IUserMessage.html">IUserMessage</a>&gt;</td>
+        <td><p>A task that represents an asynchronous send operation for delivering the message. The task result
+contains the sent message.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Discord_WebSocket_SocketGroupChannel_Discord_IMessageChannel_SendFileAsync_System_IO_Stream_System_String_System_String_System_Boolean_Discord_Embed_Discord_RequestOptions_System_Boolean__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method sends a file as if you are uploading an attachment directly from your Discord client.</p>
+<div class="NOTE"><h5>note</h5><p>
+    If you wish to upload an image and have it embedded in a <a class="xref" href="Discord.EmbedType.html#Discord_EmbedType_Rich">Rich</a> embed,
+    you may upload the file and refer to the file with &quot;attachment://filename.ext&quot; in the
+<a class="xref" href="Discord.EmbedBuilder.html#Discord_EmbedBuilder_ImageUrl">ImageUrl</a>. See the example section for its usage.
+</p></div>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_SocketGroupChannel_Discord_IMessageChannel_SendFileAsync_System_String_System_String_System_Boolean_Discord_Embed_Discord_RequestOptions_System_Boolean_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.SocketGroupChannel.Discord%23IMessageChannel%23SendFileAsync(System.String%2CSystem.String%2CSystem.Boolean%2CDiscord.Embed%2CDiscord.RequestOptions%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/Entities/Channels/SocketGroupChannel.cs/#L296">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_SocketGroupChannel_Discord_IMessageChannel_SendFileAsync_" data-uid="Discord.WebSocket.SocketGroupChannel.Discord#IMessageChannel#SendFileAsync*"></a>
+  <h4 id="Discord_WebSocket_SocketGroupChannel_Discord_IMessageChannel_SendFileAsync_System_String_System_String_System_Boolean_Discord_Embed_Discord_RequestOptions_System_Boolean_" data-uid="Discord.WebSocket.SocketGroupChannel.Discord#IMessageChannel#SendFileAsync(System.String,System.String,System.Boolean,Discord.Embed,Discord.RequestOptions,System.Boolean)">IMessageChannel.SendFileAsync(String, String, Boolean, Embed, RequestOptions, Boolean)</h4>
+  <div class="markdown level1 summary"><p>Sends a file to this message channel with an optional caption.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task&lt;IUserMessage&gt; IMessageChannel.SendFileAsync(string filePath, string text, bool isTTS, Embed embed, RequestOptions options, bool isSpoiler)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">filePath</span></td>
+        <td><p>The file path of the file.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">text</span></td>
+        <td><p>The message to be sent.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">isTTS</span></td>
+        <td><p>Whether the message should be read aloud by Discord or not.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.Embed.html">Embed</a></td>
+        <td><span class="parametername">embed</span></td>
+        <td><p>The <a class="xref" href="Discord.EmbedType.html#Discord_EmbedType_Rich">Rich</a> <a class="xref" href="Discord.Embed.html">Embed</a> to be sent.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">isSpoiler</span></td>
+        <td><p>Whether the message attachment should be hidden as a spoiler.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<a class="xref" href="Discord.IUserMessage.html">IUserMessage</a>&gt;</td>
+        <td><p>A task that represents an asynchronous send operation for delivering the message. The task result
+contains the sent message.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Discord_WebSocket_SocketGroupChannel_Discord_IMessageChannel_SendFileAsync_System_String_System_String_System_Boolean_Discord_Embed_Discord_RequestOptions_System_Boolean__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method sends a file as if you are uploading an attachment directly from your Discord client.</p>
+<div class="NOTE"><h5>note</h5><p>
+    If you wish to upload an image and have it embedded in a <a class="xref" href="Discord.EmbedType.html#Discord_EmbedType_Rich">Rich</a> embed,
+    you may upload the file and refer to the file with &quot;attachment://filename.ext&quot; in the
+<a class="xref" href="Discord.EmbedBuilder.html#Discord_EmbedBuilder_ImageUrl">ImageUrl</a>. See the example section for its usage.
+</p></div>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_SocketGroupChannel_Discord_IMessageChannel_SendMessageAsync_System_String_System_Boolean_Discord_Embed_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.SocketGroupChannel.Discord%23IMessageChannel%23SendMessageAsync(System.String%2CSystem.Boolean%2CDiscord.Embed%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/Entities/Channels/SocketGroupChannel.cs/#L302">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_SocketGroupChannel_Discord_IMessageChannel_SendMessageAsync_" data-uid="Discord.WebSocket.SocketGroupChannel.Discord#IMessageChannel#SendMessageAsync*"></a>
+  <h4 id="Discord_WebSocket_SocketGroupChannel_Discord_IMessageChannel_SendMessageAsync_System_String_System_Boolean_Discord_Embed_Discord_RequestOptions_" data-uid="Discord.WebSocket.SocketGroupChannel.Discord#IMessageChannel#SendMessageAsync(System.String,System.Boolean,Discord.Embed,Discord.RequestOptions)">IMessageChannel.SendMessageAsync(String, Boolean, Embed, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Sends a message to this message channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task&lt;IUserMessage&gt; IMessageChannel.SendMessageAsync(string text, bool isTTS, Embed embed, RequestOptions options)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">text</span></td>
+        <td><p>The message to be sent.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">isTTS</span></td>
+        <td><p>Determines whether the message should be read aloud by Discord or not.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.Embed.html">Embed</a></td>
+        <td><span class="parametername">embed</span></td>
+        <td><p>The <a class="xref" href="Discord.EmbedType.html#Discord_EmbedType_Rich">Rich</a> <a class="xref" href="Discord.Embed.html">Embed</a> to be sent.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<a class="xref" href="Discord.IUserMessage.html">IUserMessage</a>&gt;</td>
+        <td><p>A task that represents an asynchronous send operation for delivering the message. The task result
+contains the sent message.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_SocketGroupChannel_Discord_IPrivateChannel_Recipients.md&amp;value=---%0Auid%3A%20Discord.WebSocket.SocketGroupChannel.Discord%23IPrivateChannel%23Recipients%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/Entities/Channels/SocketGroupChannel.cs/#L271">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_SocketGroupChannel_Discord_IPrivateChannel_Recipients_" data-uid="Discord.WebSocket.SocketGroupChannel.Discord#IPrivateChannel#Recipients*"></a>
+  <h4 id="Discord_WebSocket_SocketGroupChannel_Discord_IPrivateChannel_Recipients" data-uid="Discord.WebSocket.SocketGroupChannel.Discord#IPrivateChannel#Recipients">IPrivateChannel.Recipients</h4>
+  <div class="markdown level1 summary"><p>Gets the users that can access this channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IReadOnlyCollection&lt;IUser&gt; IPrivateChannel.Recipients { get; }</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<a class="xref" href="Discord.IUser.html">IUser</a>&gt;</td>
+        <td><p>A read-only collection of users that can access this channel.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_SocketGroupChannel_Discord_WebSocket_ISocketPrivateChannel_Recipients.md&amp;value=---%0Auid%3A%20Discord.WebSocket.SocketGroupChannel.Discord%23WebSocket%23ISocketPrivateChannel%23Recipients%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/Entities/Channels/SocketGroupChannel.cs/#L267">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_SocketGroupChannel_Discord_WebSocket_ISocketPrivateChannel_Recipients_" data-uid="Discord.WebSocket.SocketGroupChannel.Discord#WebSocket#ISocketPrivateChannel#Recipients*"></a>
+  <h4 id="Discord_WebSocket_SocketGroupChannel_Discord_WebSocket_ISocketPrivateChannel_Recipients" data-uid="Discord.WebSocket.SocketGroupChannel.Discord#WebSocket#ISocketPrivateChannel#Recipients">ISocketPrivateChannel.Recipients</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IReadOnlyCollection&lt;SocketUser&gt; ISocketPrivateChannel.Recipients { get; }</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<a class="xref" href="Discord.WebSocket.SocketUser.html">SocketUser</a>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="Discord.IGroupChannel.html">IGroupChannel</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.WebSocket.ISocketPrivateChannel.html">ISocketPrivateChannel</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.IPrivateChannel.html">IPrivateChannel</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.WebSocket.ISocketMessageChannel.html">ISocketMessageChannel</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.IMessageChannel.html">IMessageChannel</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.WebSocket.ISocketAudioChannel.html">ISocketAudioChannel</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.IAudioChannel.html">IAudioChannel</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.IChannel.html">IChannel</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.ISnowflakeEntity.html">ISnowflakeEntity</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.IEntity-1.html">IEntity&lt;TId&gt;</a>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_SocketGroupChannel.md&amp;value=---%0Auid%3A%20Discord.WebSocket.SocketGroupChannel%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/Entities/Channels/SocketGroupChannel.cs/#L20" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+              <!-- <p><a class="back-to-top" href="#top">Back to top</a><p> -->
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

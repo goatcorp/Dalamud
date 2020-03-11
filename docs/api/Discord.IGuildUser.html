@@ -1,0 +1,844 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Interface IGuildUser
+   </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Interface IGuildUser
+   ">
+    <meta name="generator" content="docfx 2.50.0.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Discord.IGuildUser">
+  
+  
+  <h1 id="Discord_IGuildUser" data-uid="Discord.IGuildUser" class="text-break">Interface IGuildUser
+  </h1>
+  <div class="markdown level0 summary"><p>Represents a generic guild user.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <a class="xref" href="Discord.IUser.html#Discord_IUser_AvatarId">IUser.AvatarId</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IUser.html#Discord_IUser_GetAvatarUrl_Discord_ImageFormat_System_UInt16_">IUser.GetAvatarUrl(ImageFormat, UInt16)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IUser.html#Discord_IUser_GetDefaultAvatarUrl">IUser.GetDefaultAvatarUrl()</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IUser.html#Discord_IUser_Discriminator">IUser.Discriminator</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IUser.html#Discord_IUser_DiscriminatorValue">IUser.DiscriminatorValue</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IUser.html#Discord_IUser_IsBot">IUser.IsBot</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IUser.html#Discord_IUser_IsWebhook">IUser.IsWebhook</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IUser.html#Discord_IUser_Username">IUser.Username</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IUser.html#Discord_IUser_GetOrCreateDMChannelAsync_Discord_RequestOptions_">IUser.GetOrCreateDMChannelAsync(RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.ISnowflakeEntity.html#Discord_ISnowflakeEntity_CreatedAt">ISnowflakeEntity.CreatedAt</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IEntity-1.html#Discord_IEntity_1_Id">IEntity&lt;UInt64&gt;.Id</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IMentionable.html#Discord_IMentionable_Mention">IMentionable.Mention</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IPresence.html#Discord_IPresence_Activity">IPresence.Activity</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IPresence.html#Discord_IPresence_Status">IPresence.Status</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IPresence.html#Discord_IPresence_ActiveClients">IPresence.ActiveClients</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IVoiceState.html#Discord_IVoiceState_IsDeafened">IVoiceState.IsDeafened</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IVoiceState.html#Discord_IVoiceState_IsMuted">IVoiceState.IsMuted</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IVoiceState.html#Discord_IVoiceState_IsSelfDeafened">IVoiceState.IsSelfDeafened</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IVoiceState.html#Discord_IVoiceState_IsSelfMuted">IVoiceState.IsSelfMuted</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IVoiceState.html#Discord_IVoiceState_IsSuppressed">IVoiceState.IsSuppressed</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IVoiceState.html#Discord_IVoiceState_VoiceChannel">IVoiceState.VoiceChannel</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IVoiceState.html#Discord_IVoiceState_VoiceSessionId">IVoiceState.VoiceSessionId</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IVoiceState.html#Discord_IVoiceState_IsStreaming">IVoiceState.IsStreaming</a>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Discord.html">Discord</a></h6>
+  <h6><strong>Assembly</strong>: Discord.Net.Core.dll</h6>
+  <h5 id="Discord_IGuildUser_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public interface IGuildUser : IUser, ISnowflakeEntity, IEntity&lt;ulong&gt;, IMentionable, IPresence, IVoiceState</code></pre>
+  </div>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_IGuildUser_Guild.md&amp;value=---%0Auid%3A%20Discord.IGuildUser.Guild%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Users/IGuildUser.cs/#L42">View Source</a>
+  </span>
+  <a id="Discord_IGuildUser_Guild_" data-uid="Discord.IGuildUser.Guild*"></a>
+  <h4 id="Discord_IGuildUser_Guild" data-uid="Discord.IGuildUser.Guild">Guild</h4>
+  <div class="markdown level1 summary"><p>Gets the guild for this user.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IGuild Guild { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.IGuild.html">IGuild</a></td>
+        <td><p>A guild object that this user belongs to.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_IGuildUser_GuildId.md&amp;value=---%0Auid%3A%20Discord.IGuildUser.GuildId%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Users/IGuildUser.cs/#L49">View Source</a>
+  </span>
+  <a id="Discord_IGuildUser_GuildId_" data-uid="Discord.IGuildUser.GuildId*"></a>
+  <h4 id="Discord_IGuildUser_GuildId" data-uid="Discord.IGuildUser.GuildId">GuildId</h4>
+  <div class="markdown level1 summary"><p>Gets the ID of the guild for this user.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">ulong GuildId { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt64</span></td>
+        <td><p>An <span class="xref">System.UInt64</span> representing the snowflake identifier of the guild that this user belongs to.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_IGuildUser_GuildPermissions.md&amp;value=---%0Auid%3A%20Discord.IGuildUser.GuildPermissions%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Users/IGuildUser.cs/#L34">View Source</a>
+  </span>
+  <a id="Discord_IGuildUser_GuildPermissions_" data-uid="Discord.IGuildUser.GuildPermissions*"></a>
+  <h4 id="Discord_IGuildUser_GuildPermissions" data-uid="Discord.IGuildUser.GuildPermissions">GuildPermissions</h4>
+  <div class="markdown level1 summary"><p>Gets the guild-level permissions for this user.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">GuildPermissions GuildPermissions { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.GuildPermissions.html">GuildPermissions</a></td>
+        <td><p>A <a class="xref" href="Discord.GuildPermissions.html">GuildPermissions</a> structure for this user, representing what
+permissions this user has in the guild.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_IGuildUser_JoinedAt.md&amp;value=---%0Auid%3A%20Discord.IGuildUser.JoinedAt%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Users/IGuildUser.cs/#L19">View Source</a>
+  </span>
+  <a id="Discord_IGuildUser_JoinedAt_" data-uid="Discord.IGuildUser.JoinedAt*"></a>
+  <h4 id="Discord_IGuildUser_JoinedAt" data-uid="Discord.IGuildUser.JoinedAt">JoinedAt</h4>
+  <div class="markdown level1 summary"><p>Gets when this user joined the guild.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">DateTimeOffset? JoinedAt { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Nullable</span>&lt;<span class="xref">System.DateTimeOffset</span>&gt;</td>
+        <td><p>A <span class="xref">System.DateTimeOffset</span> representing the time of which the user has joined the guild;
+<code>null</code> when it cannot be obtained.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_IGuildUser_Nickname.md&amp;value=---%0Auid%3A%20Discord.IGuildUser.Nickname%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Users/IGuildUser.cs/#L26">View Source</a>
+  </span>
+  <a id="Discord_IGuildUser_Nickname_" data-uid="Discord.IGuildUser.Nickname*"></a>
+  <h4 id="Discord_IGuildUser_Nickname" data-uid="Discord.IGuildUser.Nickname">Nickname</h4>
+  <div class="markdown level1 summary"><p>Gets the nickname for this user.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">string Nickname { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>A string representing the nickname of the user; <code>null</code> if none is set.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_IGuildUser_PremiumSince.md&amp;value=---%0Auid%3A%20Discord.IGuildUser.PremiumSince%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Users/IGuildUser.cs/#L56">View Source</a>
+  </span>
+  <a id="Discord_IGuildUser_PremiumSince_" data-uid="Discord.IGuildUser.PremiumSince*"></a>
+  <h4 id="Discord_IGuildUser_PremiumSince" data-uid="Discord.IGuildUser.PremiumSince">PremiumSince</h4>
+  <div class="markdown level1 summary"><p>Gets the date and time for when this user's guild boost began.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">DateTimeOffset? PremiumSince { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Nullable</span>&lt;<span class="xref">System.DateTimeOffset</span>&gt;</td>
+        <td><p>A <span class="xref">System.DateTimeOffset</span> for when the user began boosting this guild; <code>null</code> if they are not boosting the guild.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_IGuildUser_RoleIds.md&amp;value=---%0Auid%3A%20Discord.IGuildUser.RoleIds%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Users/IGuildUser.cs/#L69">View Source</a>
+  </span>
+  <a id="Discord_IGuildUser_RoleIds_" data-uid="Discord.IGuildUser.RoleIds*"></a>
+  <h4 id="Discord_IGuildUser_RoleIds" data-uid="Discord.IGuildUser.RoleIds">RoleIds</h4>
+  <div class="markdown level1 summary"><p>Gets a collection of IDs for the roles that this user currently possesses in the guild.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IReadOnlyCollection&lt;ulong&gt; RoleIds { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<span class="xref">System.UInt64</span>&gt;</td>
+        <td><p>A read-only collection of <span class="xref">System.UInt64</span>, each representing a snowflake identifier for a role that
+this user possesses.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Discord_IGuildUser_RoleIds_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This property returns a read-only collection of the identifiers of the roles that this user possesses.
+For WebSocket users, a Roles property can be found in place of this property. Due to the REST
+implementation, only a collection of identifiers can be retrieved instead of the full role objects.</p>
+</div>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_IGuildUser_AddRoleAsync_Discord_IRole_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.IGuildUser.AddRoleAsync(Discord.IRole%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Users/IGuildUser.cs/#L120">View Source</a>
+  </span>
+  <a id="Discord_IGuildUser_AddRoleAsync_" data-uid="Discord.IGuildUser.AddRoleAsync*"></a>
+  <h4 id="Discord_IGuildUser_AddRoleAsync_Discord_IRole_Discord_RequestOptions_" data-uid="Discord.IGuildUser.AddRoleAsync(Discord.IRole,Discord.RequestOptions)">AddRoleAsync(IRole, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Adds the specified role to this user in the guild.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task AddRoleAsync(IRole role, RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.IRole.html">IRole</a></td>
+        <td><span class="parametername">role</span></td>
+        <td><p>The role to be added to the user.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td><p>A task that represents the asynchronous role addition operation.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_IGuildUser_AddRolesAsync_System_Collections_Generic_IEnumerable_Discord_IRole__Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.IGuildUser.AddRolesAsync(System.Collections.Generic.IEnumerable%7BDiscord.IRole%7D%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Users/IGuildUser.cs/#L129">View Source</a>
+  </span>
+  <a id="Discord_IGuildUser_AddRolesAsync_" data-uid="Discord.IGuildUser.AddRolesAsync*"></a>
+  <h4 id="Discord_IGuildUser_AddRolesAsync_System_Collections_Generic_IEnumerable_Discord_IRole__Discord_RequestOptions_" data-uid="Discord.IGuildUser.AddRolesAsync(System.Collections.Generic.IEnumerable{Discord.IRole},Discord.RequestOptions)">AddRolesAsync(IEnumerable&lt;IRole&gt;, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Adds the specified <code data-dev-comment-type="paramref" class="paramref">roles</code> to this user in the guild.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task AddRolesAsync(IEnumerable&lt;IRole&gt; roles, RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IEnumerable</span>&lt;<a class="xref" href="Discord.IRole.html">IRole</a>&gt;</td>
+        <td><span class="parametername">roles</span></td>
+        <td><p>The roles to be added to the user.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td><p>A task that represents the asynchronous role addition operation.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_IGuildUser_GetPermissions_Discord_IGuildChannel_.md&amp;value=---%0Auid%3A%20Discord.IGuildUser.GetPermissions(Discord.IGuildChannel)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Users/IGuildUser.cs/#L87">View Source</a>
+  </span>
+  <a id="Discord_IGuildUser_GetPermissions_" data-uid="Discord.IGuildUser.GetPermissions*"></a>
+  <h4 id="Discord_IGuildUser_GetPermissions_Discord_IGuildChannel_" data-uid="Discord.IGuildUser.GetPermissions(Discord.IGuildChannel)">GetPermissions(IGuildChannel)</h4>
+  <div class="markdown level1 summary"><p>Gets the level permissions granted to this user to a given channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">ChannelPermissions GetPermissions(IGuildChannel channel)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.IGuildChannel.html">IGuildChannel</a></td>
+        <td><span class="parametername">channel</span></td>
+        <td><p>The channel to get the permission from.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.ChannelPermissions.html">ChannelPermissions</a></td>
+        <td><p>A <a class="xref" href="Discord.ChannelPermissions.html">ChannelPermissions</a> structure representing the permissions that a user has in the
+specified channel.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Discord_IGuildUser_GetPermissions_Discord_IGuildChannel__examples">Examples</h5>
+  <p>The following example checks if the current user has the ability to send a message with attachment in
+this channel; if so, uploads a file via <a class="xref" href="Discord.IMessageChannel.html#Discord_IMessageChannel_SendFileAsync_System_String_System_String_System_Boolean_Discord_Embed_Discord_RequestOptions_System_Boolean_">SendFileAsync(String, String, Boolean, Embed, RequestOptions, Boolean)</a>.</p>
+<pre><code class="lang-cs">if (currentUser?.GetPermissions(targetChannel)?.AttachFiles)
+    await targetChannel.SendFileAsync(&quot;fortnite.png&quot;);</code></pre>
+
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_IGuildUser_KickAsync_System_String_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.IGuildUser.KickAsync(System.String%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Users/IGuildUser.cs/#L97">View Source</a>
+  </span>
+  <a id="Discord_IGuildUser_KickAsync_" data-uid="Discord.IGuildUser.KickAsync*"></a>
+  <h4 id="Discord_IGuildUser_KickAsync_System_String_Discord_RequestOptions_" data-uid="Discord.IGuildUser.KickAsync(System.String,Discord.RequestOptions)">KickAsync(String, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Kicks this user from this guild.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task KickAsync(string reason = null, RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">reason</span></td>
+        <td><p>The reason for the kick which will be recorded in the audit log.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td><p>A task that represents the asynchronous kick operation.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_IGuildUser_ModifyAsync_System_Action_Discord_GuildUserProperties__Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.IGuildUser.ModifyAsync(System.Action%7BDiscord.GuildUserProperties%7D%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Users/IGuildUser.cs/#L110">View Source</a>
+  </span>
+  <a id="Discord_IGuildUser_ModifyAsync_" data-uid="Discord.IGuildUser.ModifyAsync*"></a>
+  <h4 id="Discord_IGuildUser_ModifyAsync_System_Action_Discord_GuildUserProperties__Discord_RequestOptions_" data-uid="Discord.IGuildUser.ModifyAsync(System.Action{Discord.GuildUserProperties},Discord.RequestOptions)">ModifyAsync(Action&lt;GuildUserProperties&gt;, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Modifies this user's properties in this guild.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task ModifyAsync(Action&lt;GuildUserProperties&gt; func, RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Action</span>&lt;<a class="xref" href="Discord.GuildUserProperties.html">GuildUserProperties</a>&gt;</td>
+        <td><span class="parametername">func</span></td>
+        <td><p>The delegate containing the properties to modify the user with.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td><p>A task that represents the asynchronous modification operation.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Discord_IGuildUser_ModifyAsync_System_Action_Discord_GuildUserProperties__Discord_RequestOptions__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method modifies the current guild user with the specified properties. To see an example of this
+method and what properties are available, please refer to <a class="xref" href="Discord.GuildUserProperties.html">GuildUserProperties</a>.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_IGuildUser_RemoveRoleAsync_Discord_IRole_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.IGuildUser.RemoveRoleAsync(Discord.IRole%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Users/IGuildUser.cs/#L138">View Source</a>
+  </span>
+  <a id="Discord_IGuildUser_RemoveRoleAsync_" data-uid="Discord.IGuildUser.RemoveRoleAsync*"></a>
+  <h4 id="Discord_IGuildUser_RemoveRoleAsync_Discord_IRole_Discord_RequestOptions_" data-uid="Discord.IGuildUser.RemoveRoleAsync(Discord.IRole,Discord.RequestOptions)">RemoveRoleAsync(IRole, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Removes the specified <code data-dev-comment-type="paramref" class="paramref">role</code> from this user in the guild.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task RemoveRoleAsync(IRole role, RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.IRole.html">IRole</a></td>
+        <td><span class="parametername">role</span></td>
+        <td><p>The role to be removed from the user.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td><p>A task that represents the asynchronous role removal operation.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_IGuildUser_RemoveRolesAsync_System_Collections_Generic_IEnumerable_Discord_IRole__Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.IGuildUser.RemoveRolesAsync(System.Collections.Generic.IEnumerable%7BDiscord.IRole%7D%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Users/IGuildUser.cs/#L147">View Source</a>
+  </span>
+  <a id="Discord_IGuildUser_RemoveRolesAsync_" data-uid="Discord.IGuildUser.RemoveRolesAsync*"></a>
+  <h4 id="Discord_IGuildUser_RemoveRolesAsync_System_Collections_Generic_IEnumerable_Discord_IRole__Discord_RequestOptions_" data-uid="Discord.IGuildUser.RemoveRolesAsync(System.Collections.Generic.IEnumerable{Discord.IRole},Discord.RequestOptions)">RemoveRolesAsync(IEnumerable&lt;IRole&gt;, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Removes the specified <code data-dev-comment-type="paramref" class="paramref">roles</code> from this user in the guild.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task RemoveRolesAsync(IEnumerable&lt;IRole&gt; roles, RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IEnumerable</span>&lt;<a class="xref" href="Discord.IRole.html">IRole</a>&gt;</td>
+        <td><span class="parametername">roles</span></td>
+        <td><p>The roles to be removed from the user.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td><p>A task that represents the asynchronous role removal operation.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="extensionmethods">Extension Methods</h3>
+  <div>
+      <a class="xref" href="Discord.UserExtensions.html#Discord_UserExtensions_SendMessageAsync_Discord_IUser_System_String_System_Boolean_Discord_Embed_Discord_RequestOptions_">UserExtensions.SendMessageAsync(IUser, String, Boolean, Embed, RequestOptions)</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.UserExtensions.html#Discord_UserExtensions_SendFileAsync_Discord_IUser_System_IO_Stream_System_String_System_String_System_Boolean_Discord_Embed_Discord_RequestOptions_">UserExtensions.SendFileAsync(IUser, Stream, String, String, Boolean, Embed, RequestOptions)</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.UserExtensions.html#Discord_UserExtensions_SendFileAsync_Discord_IUser_System_String_System_String_System_Boolean_Discord_Embed_Discord_RequestOptions_">UserExtensions.SendFileAsync(IUser, String, String, Boolean, Embed, RequestOptions)</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.UserExtensions.html#Discord_UserExtensions_BanAsync_Discord_IGuildUser_System_Int32_System_String_Discord_RequestOptions_">UserExtensions.BanAsync(IGuildUser, Int32, String, RequestOptions)</a>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_IGuildUser.md&amp;value=---%0Auid%3A%20Discord.IGuildUser%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Users/IGuildUser.cs/#L10" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+              <!-- <p><a class="back-to-top" href="#top">Back to top</a><p> -->
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

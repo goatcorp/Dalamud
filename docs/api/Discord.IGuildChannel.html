@@ -1,0 +1,839 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Interface IGuildChannel
+   </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Interface IGuildChannel
+   ">
+    <meta name="generator" content="docfx 2.50.0.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Discord.IGuildChannel">
+  
+  
+  <h1 id="Discord_IGuildChannel" data-uid="Discord.IGuildChannel" class="text-break">Interface IGuildChannel
+  </h1>
+  <div class="markdown level0 summary"><p>Represents a generic guild channel.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <a class="xref" href="Discord.IChannel.html#Discord_IChannel_Name">IChannel.Name</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.ISnowflakeEntity.html#Discord_ISnowflakeEntity_CreatedAt">ISnowflakeEntity.CreatedAt</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IEntity-1.html#Discord_IEntity_1_Id">IEntity&lt;UInt64&gt;.Id</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IDeletable.html#Discord_IDeletable_DeleteAsync_Discord_RequestOptions_">IDeletable.DeleteAsync(RequestOptions)</a>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Discord.html">Discord</a></h6>
+  <h6><strong>Assembly</strong>: Discord.Net.Core.dll</h6>
+  <h5 id="Discord_IGuildChannel_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public interface IGuildChannel : IChannel, ISnowflakeEntity, IEntity&lt;ulong&gt;, IDeletable</code></pre>
+  </div>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_IGuildChannel_Guild.md&amp;value=---%0Auid%3A%20Discord.IGuildChannel.Guild%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Channels/IGuildChannel.cs/#L30">View Source</a>
+  </span>
+  <a id="Discord_IGuildChannel_Guild_" data-uid="Discord.IGuildChannel.Guild*"></a>
+  <h4 id="Discord_IGuildChannel_Guild" data-uid="Discord.IGuildChannel.Guild">Guild</h4>
+  <div class="markdown level1 summary"><p>Gets the guild associated with this channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IGuild Guild { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.IGuild.html">IGuild</a></td>
+        <td><p>A guild object that this channel belongs to.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_IGuildChannel_GuildId.md&amp;value=---%0Auid%3A%20Discord.IGuildChannel.GuildId%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Channels/IGuildChannel.cs/#L38">View Source</a>
+  </span>
+  <a id="Discord_IGuildChannel_GuildId_" data-uid="Discord.IGuildChannel.GuildId*"></a>
+  <h4 id="Discord_IGuildChannel_GuildId" data-uid="Discord.IGuildChannel.GuildId">GuildId</h4>
+  <div class="markdown level1 summary"><p>Gets the guild ID associated with this channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">ulong GuildId { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt64</span></td>
+        <td><p>An <span class="xref">System.UInt64</span> representing the guild snowflake identifier for the guild that this channel
+belongs to.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_IGuildChannel_PermissionOverwrites.md&amp;value=---%0Auid%3A%20Discord.IGuildChannel.PermissionOverwrites%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Channels/IGuildChannel.cs/#L45">View Source</a>
+  </span>
+  <a id="Discord_IGuildChannel_PermissionOverwrites_" data-uid="Discord.IGuildChannel.PermissionOverwrites*"></a>
+  <h4 id="Discord_IGuildChannel_PermissionOverwrites" data-uid="Discord.IGuildChannel.PermissionOverwrites">PermissionOverwrites</h4>
+  <div class="markdown level1 summary"><p>Gets a collection of permission overwrites for this channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IReadOnlyCollection&lt;Overwrite&gt; PermissionOverwrites { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<a class="xref" href="Discord.Overwrite.html">Overwrite</a>&gt;</td>
+        <td><p>A collection of overwrites associated with this channel.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_IGuildChannel_Position.md&amp;value=---%0Auid%3A%20Discord.IGuildChannel.Position%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Channels/IGuildChannel.cs/#L22">View Source</a>
+  </span>
+  <a id="Discord_IGuildChannel_Position_" data-uid="Discord.IGuildChannel.Position*"></a>
+  <h4 id="Discord_IGuildChannel_Position" data-uid="Discord.IGuildChannel.Position">Position</h4>
+  <div class="markdown level1 summary"><p>Gets the position of this channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">int Position { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>An <span class="xref">System.Int32</span> representing the position of this channel in the guild's channel list relative to
+others of the same type.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_IGuildChannel_AddPermissionOverwriteAsync_Discord_IRole_Discord_OverwritePermissions_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.IGuildChannel.AddPermissionOverwriteAsync(Discord.IRole%2CDiscord.OverwritePermissions%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Channels/IGuildChannel.cs/#L114">View Source</a>
+  </span>
+  <a id="Discord_IGuildChannel_AddPermissionOverwriteAsync_" data-uid="Discord.IGuildChannel.AddPermissionOverwriteAsync*"></a>
+  <h4 id="Discord_IGuildChannel_AddPermissionOverwriteAsync_Discord_IRole_Discord_OverwritePermissions_Discord_RequestOptions_" data-uid="Discord.IGuildChannel.AddPermissionOverwriteAsync(Discord.IRole,Discord.OverwritePermissions,Discord.RequestOptions)">AddPermissionOverwriteAsync(IRole, OverwritePermissions, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Adds or updates the permission overwrite for the given role.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task AddPermissionOverwriteAsync(IRole role, OverwritePermissions permissions, RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.IRole.html">IRole</a></td>
+        <td><span class="parametername">role</span></td>
+        <td><p>The role to add the overwrite to.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.OverwritePermissions.html">OverwritePermissions</a></td>
+        <td><span class="parametername">permissions</span></td>
+        <td><p>The overwrite to add to the role.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td><p>A task representing the asynchronous permission operation for adding the specified permissions to the
+channel.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Discord_IGuildChannel_AddPermissionOverwriteAsync_Discord_IRole_Discord_OverwritePermissions_Discord_RequestOptions__examples">Examples</h5>
+  <p>The following example fetches a role via <a class="xref" href="Discord.IGuild.html#Discord_IGuild_GetRole_System_UInt64_">GetRole(UInt64)</a> and a channel via 
+<a class="xref" href="Discord.IGuild.html#Discord_IGuild_GetChannelAsync_System_UInt64_Discord_CacheMode_Discord_RequestOptions_">GetChannelAsync(UInt64, CacheMode, RequestOptions)</a>. Next, it checks if an overwrite had already been set via 
+<a class="xref" href="Discord.IGuildChannel.html#Discord_IGuildChannel_GetPermissionOverwrite_Discord_IRole_">GetPermissionOverwrite(IRole)</a>; if not, it denies the role from sending any
+messages to the channel.</p>
+<pre><code class="lang-cs" region="AddPermissionOverwriteAsyncRole" source="..\..\..\Discord.Net.Examples\Core\Entities\Channels\IGuildChannel.Examples.cs">public async Task MuteRoleAsync(IRole role, IGuildChannel channel)
+{
+    if (role == null) throw new ArgumentNullException(nameof(role));
+    if (channel == null) throw new ArgumentNullException(nameof(channel));
+<pre><code>// Fetches the previous overwrite and bail if one is found
+var previousOverwrite = channel.GetPermissionOverwrite(role);
+if (previousOverwrite.HasValue &amp;amp;&amp;amp; previousOverwrite.Value.SendMessages == PermValue.Deny)
+    throw new InvalidOperationException($&amp;quot;Role {role.Name} had already been muted in this channel.&amp;quot;);
+
+// Creates a new OverwritePermissions with send message set to deny and pass it into the method
+await channel.AddPermissionOverwriteAsync(role, new OverwritePermissions(sendMessages: PermValue.Deny));
+</code></pre>
+<p>}</code></pre><p>
+
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_IGuildChannel_AddPermissionOverwriteAsync_Discord_IUser_Discord_OverwritePermissions_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.IGuildChannel.AddPermissionOverwriteAsync(Discord.IUser%2CDiscord.OverwritePermissions%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Channels/IGuildChannel.cs/#L132">View Source</a>
+  </span>
+  <a id="Discord_IGuildChannel_AddPermissionOverwriteAsync_" data-uid="Discord.IGuildChannel.AddPermissionOverwriteAsync*"></a>
+  <h4 id="Discord_IGuildChannel_AddPermissionOverwriteAsync_Discord_IUser_Discord_OverwritePermissions_Discord_RequestOptions_" data-uid="Discord.IGuildChannel.AddPermissionOverwriteAsync(Discord.IUser,Discord.OverwritePermissions,Discord.RequestOptions)">AddPermissionOverwriteAsync(IUser, OverwritePermissions, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Adds or updates the permission overwrite for the given user.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task AddPermissionOverwriteAsync(IUser user, OverwritePermissions permissions, RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.IUser.html">IUser</a></td>
+        <td><span class="parametername">user</span></td>
+        <td><p>The user to add the overwrite to.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.OverwritePermissions.html">OverwritePermissions</a></td>
+        <td><span class="parametername">permissions</span></td>
+        <td><p>The overwrite to add to the user.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td><p>A task representing the asynchronous permission operation for adding the specified permissions to the channel.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Discord_IGuildChannel_AddPermissionOverwriteAsync_Discord_IUser_Discord_OverwritePermissions_Discord_RequestOptions__examples">Examples</h5>
+  <p>The following example fetches a user via <a class="xref" href="Discord.IGuild.html#Discord_IGuild_GetUserAsync_System_UInt64_Discord_CacheMode_Discord_RequestOptions_">GetUserAsync(UInt64, CacheMode, RequestOptions)</a> and a channel via 
+<a class="xref" href="Discord.IGuild.html#Discord_IGuild_GetChannelAsync_System_UInt64_Discord_CacheMode_Discord_RequestOptions_">GetChannelAsync(UInt64, CacheMode, RequestOptions)</a>. Next, it checks if an overwrite had already been set via 
+<a class="xref" href="Discord.IGuildChannel.html#Discord_IGuildChannel_GetPermissionOverwrite_Discord_IUser_">GetPermissionOverwrite(IUser)</a>; if not, it denies the user from sending any
+messages to the channel.</p>
+<pre><code class="lang-cs" region="AddPermissionOverwriteAsyncUser" source="..\..\..\Discord.Net.Examples\Core\Entities\Channels\IGuildChannel.Examples.cs">public async Task MuteUserAsync(IGuildUser user, IGuildChannel channel)
+{
+    if (user == null) throw new ArgumentNullException(nameof(user));
+    if (channel == null) throw new ArgumentNullException(nameof(channel));
+<pre><code>// Fetches the previous overwrite and bail if one is found
+var previousOverwrite = channel.GetPermissionOverwrite(user);
+if (previousOverwrite.HasValue &amp;amp;&amp;amp; previousOverwrite.Value.SendMessages == PermValue.Deny)
+    throw new InvalidOperationException($&amp;quot;User {user.Username} had already been muted in this channel.&amp;quot;);
+
+// Creates a new OverwritePermissions with send message set to deny and pass it into the method
+await channel.AddPermissionOverwriteAsync(user, new OverwritePermissions(sendMessages: PermValue.Deny));
+</code></pre>
+<p>}</code></pre><p>
+
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_IGuildChannel_GetPermissionOverwrite_Discord_IRole_.md&amp;value=---%0Auid%3A%20Discord.IGuildChannel.GetPermissionOverwrite(Discord.IRole)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Channels/IGuildChannel.cs/#L68">View Source</a>
+  </span>
+  <a id="Discord_IGuildChannel_GetPermissionOverwrite_" data-uid="Discord.IGuildChannel.GetPermissionOverwrite*"></a>
+  <h4 id="Discord_IGuildChannel_GetPermissionOverwrite_Discord_IRole_" data-uid="Discord.IGuildChannel.GetPermissionOverwrite(Discord.IRole)">GetPermissionOverwrite(IRole)</h4>
+  <div class="markdown level1 summary"><p>Gets the permission overwrite for a specific role.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">OverwritePermissions? GetPermissionOverwrite(IRole role)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.IRole.html">IRole</a></td>
+        <td><span class="parametername">role</span></td>
+        <td><p>The role to get the overwrite from.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Nullable</span>&lt;<a class="xref" href="Discord.OverwritePermissions.html">OverwritePermissions</a>&gt;</td>
+        <td><p>An overwrite object for the targeted role; <code>null</code> if none is set.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_IGuildChannel_GetPermissionOverwrite_Discord_IUser_.md&amp;value=---%0Auid%3A%20Discord.IGuildChannel.GetPermissionOverwrite(Discord.IUser)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Channels/IGuildChannel.cs/#L76">View Source</a>
+  </span>
+  <a id="Discord_IGuildChannel_GetPermissionOverwrite_" data-uid="Discord.IGuildChannel.GetPermissionOverwrite*"></a>
+  <h4 id="Discord_IGuildChannel_GetPermissionOverwrite_Discord_IUser_" data-uid="Discord.IGuildChannel.GetPermissionOverwrite(Discord.IUser)">GetPermissionOverwrite(IUser)</h4>
+  <div class="markdown level1 summary"><p>Gets the permission overwrite for a specific user.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">OverwritePermissions? GetPermissionOverwrite(IUser user)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.IUser.html">IUser</a></td>
+        <td><span class="parametername">user</span></td>
+        <td><p>The user to get the overwrite from.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Nullable</span>&lt;<a class="xref" href="Discord.OverwritePermissions.html">OverwritePermissions</a>&gt;</td>
+        <td><p>An overwrite object for the targeted user; <code>null</code> if none is set.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_IGuildChannel_GetUserAsync_System_UInt64_Discord_CacheMode_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.IGuildChannel.GetUserAsync(System.UInt64%2CDiscord.CacheMode%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Channels/IGuildChannel.cs/#L157">View Source</a>
+  </span>
+  <a id="Discord_IGuildChannel_GetUserAsync_" data-uid="Discord.IGuildChannel.GetUserAsync*"></a>
+  <h4 id="Discord_IGuildChannel_GetUserAsync_System_UInt64_Discord_CacheMode_Discord_RequestOptions_" data-uid="Discord.IGuildChannel.GetUserAsync(System.UInt64,Discord.CacheMode,Discord.RequestOptions)">GetUserAsync(UInt64, CacheMode, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Gets a user in this channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task&lt;IGuildUser&gt; GetUserAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt64</span></td>
+        <td><span class="parametername">id</span></td>
+        <td><p>The snowflake identifier of the user.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.CacheMode.html">CacheMode</a></td>
+        <td><span class="parametername">mode</span></td>
+        <td><p>The <a class="xref" href="Discord.CacheMode.html">CacheMode</a> that determines whether the object should be fetched from cache.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<a class="xref" href="Discord.IGuildUser.html">IGuildUser</a>&gt;</td>
+        <td><p>A task representing the asynchronous get operation. The task result contains a guild user object that
+represents the user; <code>null</code> if none is found.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_IGuildChannel_GetUsersAsync_Discord_CacheMode_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.IGuildChannel.GetUsersAsync(Discord.CacheMode%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Channels/IGuildChannel.cs/#L146">View Source</a>
+  </span>
+  <a id="Discord_IGuildChannel_GetUsersAsync_" data-uid="Discord.IGuildChannel.GetUsersAsync*"></a>
+  <h4 id="Discord_IGuildChannel_GetUsersAsync_Discord_CacheMode_Discord_RequestOptions_" data-uid="Discord.IGuildChannel.GetUsersAsync(Discord.CacheMode,Discord.RequestOptions)">GetUsersAsync(CacheMode, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Gets a collection of users that are able to view the channel or are currently in this channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IAsyncEnumerable&lt;IReadOnlyCollection&lt;IGuildUser&gt;&gt; GetUsersAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.CacheMode.html">CacheMode</a></td>
+        <td><span class="parametername">mode</span></td>
+        <td><p>The <a class="xref" href="Discord.CacheMode.html">CacheMode</a> that determines whether the object should be fetched from cache.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IAsyncEnumerable</span>&lt;<span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<a class="xref" href="Discord.IGuildUser.html">IGuildUser</a>&gt;&gt;</td>
+        <td><p>Paged collection of users.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Discord_IGuildChannel_GetUsersAsync_Discord_CacheMode_Discord_RequestOptions__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method follows the same behavior as described in <a class="xref" href="Discord.IChannel.html#Discord_IChannel_GetUsersAsync_Discord_CacheMode_Discord_RequestOptions_">GetUsersAsync(CacheMode, RequestOptions)</a>.
+Please visit its documentation for more details on this method.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_IGuildChannel_ModifyAsync_System_Action_Discord_GuildChannelProperties__Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.IGuildChannel.ModifyAsync(System.Action%7BDiscord.GuildChannelProperties%7D%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Channels/IGuildChannel.cs/#L59">View Source</a>
+  </span>
+  <a id="Discord_IGuildChannel_ModifyAsync_" data-uid="Discord.IGuildChannel.ModifyAsync*"></a>
+  <h4 id="Discord_IGuildChannel_ModifyAsync_System_Action_Discord_GuildChannelProperties__Discord_RequestOptions_" data-uid="Discord.IGuildChannel.ModifyAsync(System.Action{Discord.GuildChannelProperties},Discord.RequestOptions)">ModifyAsync(Action&lt;GuildChannelProperties&gt;, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Modifies this guild channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task ModifyAsync(Action&lt;GuildChannelProperties&gt; func, RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Action</span>&lt;<a class="xref" href="Discord.GuildChannelProperties.html">GuildChannelProperties</a>&gt;</td>
+        <td><span class="parametername">func</span></td>
+        <td><p>The delegate containing the properties to modify the channel with.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td><p>A task that represents the asynchronous modification operation.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Discord_IGuildChannel_ModifyAsync_System_Action_Discord_GuildChannelProperties__Discord_RequestOptions__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method modifies the current guild channel with the specified properties. To see an example of this
+method and what properties are available, please refer to <a class="xref" href="Discord.GuildChannelProperties.html">GuildChannelProperties</a>.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_IGuildChannel_RemovePermissionOverwriteAsync_Discord_IRole_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.IGuildChannel.RemovePermissionOverwriteAsync(Discord.IRole%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Channels/IGuildChannel.cs/#L85">View Source</a>
+  </span>
+  <a id="Discord_IGuildChannel_RemovePermissionOverwriteAsync_" data-uid="Discord.IGuildChannel.RemovePermissionOverwriteAsync*"></a>
+  <h4 id="Discord_IGuildChannel_RemovePermissionOverwriteAsync_Discord_IRole_Discord_RequestOptions_" data-uid="Discord.IGuildChannel.RemovePermissionOverwriteAsync(Discord.IRole,Discord.RequestOptions)">RemovePermissionOverwriteAsync(IRole, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Removes the permission overwrite for the given role, if one exists.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task RemovePermissionOverwriteAsync(IRole role, RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.IRole.html">IRole</a></td>
+        <td><span class="parametername">role</span></td>
+        <td><p>The role to remove the overwrite from.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td><p>A task representing the asynchronous operation for removing the specified permissions from the channel.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_IGuildChannel_RemovePermissionOverwriteAsync_Discord_IUser_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.IGuildChannel.RemovePermissionOverwriteAsync(Discord.IUser%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Channels/IGuildChannel.cs/#L94">View Source</a>
+  </span>
+  <a id="Discord_IGuildChannel_RemovePermissionOverwriteAsync_" data-uid="Discord.IGuildChannel.RemovePermissionOverwriteAsync*"></a>
+  <h4 id="Discord_IGuildChannel_RemovePermissionOverwriteAsync_Discord_IUser_Discord_RequestOptions_" data-uid="Discord.IGuildChannel.RemovePermissionOverwriteAsync(Discord.IUser,Discord.RequestOptions)">RemovePermissionOverwriteAsync(IUser, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Removes the permission overwrite for the given user, if one exists.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task RemovePermissionOverwriteAsync(IUser user, RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.IUser.html">IUser</a></td>
+        <td><span class="parametername">user</span></td>
+        <td><p>The user to remove the overwrite from.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td><p>A task representing the asynchronous operation for removing the specified permissions from the channel.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="seealso">See Also</h3>
+  <div class="seealso">
+      <div><a class="xref" href="Discord.ITextChannel.html">ITextChannel</a></div>
+      <div><a class="xref" href="Discord.IVoiceChannel.html">IVoiceChannel</a></div>
+      <div><a class="xref" href="Discord.ICategoryChannel.html">ICategoryChannel</a></div>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_IGuildChannel.md&amp;value=---%0Auid%3A%20Discord.IGuildChannel%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Channels/IGuildChannel.cs/#L13" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+              <!-- <p><a class="back-to-top" href="#top">Back to top</a><p> -->
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

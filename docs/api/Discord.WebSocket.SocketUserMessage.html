@@ -1,0 +1,984 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class SocketUserMessage
+   </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class SocketUserMessage
+   ">
+    <meta name="generator" content="docfx 2.50.0.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Discord.WebSocket.SocketUserMessage">
+  
+  
+  <h1 id="Discord_WebSocket_SocketUserMessage" data-uid="Discord.WebSocket.SocketUserMessage" class="text-break">Class SocketUserMessage
+  </h1>
+  <div class="markdown level0 summary"><p>Represents a WebSocket-based message sent by a user.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><a class="xref" href="Discord.WebSocket.SocketEntity-1.html">SocketEntity</a>&lt;<span class="xref">System.UInt64</span>&gt;</div>
+    <div class="level2"><a class="xref" href="Discord.WebSocket.SocketMessage.html">SocketMessage</a></div>
+    <div class="level3"><span class="xref">SocketUserMessage</span></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="Discord.IUserMessage.html">IUserMessage</a></div>
+    <div><a class="xref" href="Discord.IMessage.html">IMessage</a></div>
+    <div><a class="xref" href="Discord.ISnowflakeEntity.html">ISnowflakeEntity</a></div>
+    <div><a class="xref" href="Discord.IEntity-1.html">IEntity</a>&lt;<span class="xref">System.UInt64</span>&gt;</div>
+    <div><a class="xref" href="Discord.IDeletable.html">IDeletable</a></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <a class="xref" href="Discord.WebSocket.SocketMessage.html#Discord_WebSocket_SocketMessage_Author">SocketMessage.Author</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.SocketMessage.html#Discord_WebSocket_SocketMessage_Channel">SocketMessage.Channel</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.SocketMessage.html#Discord_WebSocket_SocketMessage_Source">SocketMessage.Source</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.SocketMessage.html#Discord_WebSocket_SocketMessage_Content">SocketMessage.Content</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.SocketMessage.html#Discord_WebSocket_SocketMessage_CreatedAt">SocketMessage.CreatedAt</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.SocketMessage.html#Discord_WebSocket_SocketMessage_Activity">SocketMessage.Activity</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.SocketMessage.html#Discord_WebSocket_SocketMessage_Application">SocketMessage.Application</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.SocketMessage.html#Discord_WebSocket_SocketMessage_Reference">SocketMessage.Reference</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.SocketMessage.html#Discord_WebSocket_SocketMessage_Reactions">SocketMessage.Reactions</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.SocketMessage.html#Discord_WebSocket_SocketMessage_Timestamp">SocketMessage.Timestamp</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.SocketMessage.html#Discord_WebSocket_SocketMessage_DeleteAsync_Discord_RequestOptions_">SocketMessage.DeleteAsync(RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.SocketMessage.html#Discord_WebSocket_SocketMessage_ToString">SocketMessage.ToString()</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.SocketMessage.html#Discord_WebSocket_SocketMessage_Discord_IMessage_Author">SocketMessage.IMessage.Author</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.SocketMessage.html#Discord_WebSocket_SocketMessage_Discord_IMessage_Channel">SocketMessage.IMessage.Channel</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.SocketMessage.html#Discord_WebSocket_SocketMessage_Discord_IMessage_Type">SocketMessage.IMessage.Type</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.SocketMessage.html#Discord_WebSocket_SocketMessage_Discord_IMessage_Attachments">SocketMessage.IMessage.Attachments</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.SocketMessage.html#Discord_WebSocket_SocketMessage_Discord_IMessage_Embeds">SocketMessage.IMessage.Embeds</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.SocketMessage.html#Discord_WebSocket_SocketMessage_Discord_IMessage_MentionedChannelIds">SocketMessage.IMessage.MentionedChannelIds</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.SocketMessage.html#Discord_WebSocket_SocketMessage_Discord_IMessage_MentionedRoleIds">SocketMessage.IMessage.MentionedRoleIds</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.SocketMessage.html#Discord_WebSocket_SocketMessage_Discord_IMessage_MentionedUserIds">SocketMessage.IMessage.MentionedUserIds</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.SocketMessage.html#Discord_WebSocket_SocketMessage_AddReactionAsync_Discord_IEmote_Discord_RequestOptions_">SocketMessage.AddReactionAsync(IEmote, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.SocketMessage.html#Discord_WebSocket_SocketMessage_RemoveReactionAsync_Discord_IEmote_Discord_IUser_Discord_RequestOptions_">SocketMessage.RemoveReactionAsync(IEmote, IUser, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.SocketMessage.html#Discord_WebSocket_SocketMessage_RemoveReactionAsync_Discord_IEmote_System_UInt64_Discord_RequestOptions_">SocketMessage.RemoveReactionAsync(IEmote, UInt64, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.SocketMessage.html#Discord_WebSocket_SocketMessage_RemoveAllReactionsAsync_Discord_RequestOptions_">SocketMessage.RemoveAllReactionsAsync(RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.SocketMessage.html#Discord_WebSocket_SocketMessage_GetReactionUsersAsync_Discord_IEmote_System_Int32_Discord_RequestOptions_">SocketMessage.GetReactionUsersAsync(IEmote, Int32, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.SocketEntity-1.html#Discord_WebSocket_SocketEntity_1_Id">SocketEntity&lt;UInt64&gt;.Id</a>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Discord.WebSocket.html">Discord.WebSocket</a></h6>
+  <h6><strong>Assembly</strong>: Discord.Net.WebSocket.dll</h6>
+  <h5 id="Discord_WebSocket_SocketUserMessage_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class SocketUserMessage : SocketMessage, IUserMessage, IMessage, ISnowflakeEntity, IEntity&lt;ulong&gt;, IDeletable</code></pre>
+  </div>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_SocketUserMessage_Attachments.md&amp;value=---%0Auid%3A%20Discord.WebSocket.SocketUserMessage.Attachments%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/Entities/Messages/SocketUserMessage.cs/#L33">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_SocketUserMessage_Attachments_" data-uid="Discord.WebSocket.SocketUserMessage.Attachments*"></a>
+  <h4 id="Discord_WebSocket_SocketUserMessage_Attachments" data-uid="Discord.WebSocket.SocketUserMessage.Attachments">Attachments</h4>
+  <div class="markdown level1 summary"><p>Returns all attachments included in this message.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override IReadOnlyCollection&lt;Attachment&gt; Attachments { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<a class="xref" href="Discord.Attachment.html">Attachment</a>&gt;</td>
+        <td><p>Collection of attachments.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Discord.WebSocket.SocketMessage.html#Discord_WebSocket_SocketMessage_Attachments">SocketMessage.Attachments</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_SocketUserMessage_EditedTimestamp.md&amp;value=---%0Auid%3A%20Discord.WebSocket.SocketUserMessage.EditedTimestamp%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/Entities/Messages/SocketUserMessage.cs/#L31">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_SocketUserMessage_EditedTimestamp_" data-uid="Discord.WebSocket.SocketUserMessage.EditedTimestamp*"></a>
+  <h4 id="Discord_WebSocket_SocketUserMessage_EditedTimestamp" data-uid="Discord.WebSocket.SocketUserMessage.EditedTimestamp">EditedTimestamp</h4>
+  <div class="markdown level1 summary"><p>Gets the time of this message's last edit.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override DateTimeOffset? EditedTimestamp { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Nullable</span>&lt;<span class="xref">System.DateTimeOffset</span>&gt;</td>
+        <td><p>Time of when the message was last edited; <code>null</code> if the message is never edited.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Discord.WebSocket.SocketMessage.html#Discord_WebSocket_SocketMessage_EditedTimestamp">SocketMessage.EditedTimestamp</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_SocketUserMessage_Embeds.md&amp;value=---%0Auid%3A%20Discord.WebSocket.SocketUserMessage.Embeds%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/Entities/Messages/SocketUserMessage.cs/#L35">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_SocketUserMessage_Embeds_" data-uid="Discord.WebSocket.SocketUserMessage.Embeds*"></a>
+  <h4 id="Discord_WebSocket_SocketUserMessage_Embeds" data-uid="Discord.WebSocket.SocketUserMessage.Embeds">Embeds</h4>
+  <div class="markdown level1 summary"><p>Returns all embeds included in this message.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override IReadOnlyCollection&lt;Embed&gt; Embeds { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<a class="xref" href="Discord.Embed.html">Embed</a>&gt;</td>
+        <td><p>Collection of embed objects.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Discord.WebSocket.SocketMessage.html#Discord_WebSocket_SocketMessage_Embeds">SocketMessage.Embeds</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_SocketUserMessage_IsPinned.md&amp;value=---%0Auid%3A%20Discord.WebSocket.SocketUserMessage.IsPinned%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/Entities/Messages/SocketUserMessage.cs/#L27">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_SocketUserMessage_IsPinned_" data-uid="Discord.WebSocket.SocketUserMessage.IsPinned*"></a>
+  <h4 id="Discord_WebSocket_SocketUserMessage_IsPinned" data-uid="Discord.WebSocket.SocketUserMessage.IsPinned">IsPinned</h4>
+  <div class="markdown level1 summary"><p>Gets the value that indicates whether this message is pinned.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override bool IsPinned { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><code>true</code> if this message was added to its channel's pinned messages; otherwise <code>false</code>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Discord.WebSocket.SocketMessage.html#Discord_WebSocket_SocketMessage_IsPinned">SocketMessage.IsPinned</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_SocketUserMessage_IsSuppressed.md&amp;value=---%0Auid%3A%20Discord.WebSocket.SocketUserMessage.IsSuppressed%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/Entities/Messages/SocketUserMessage.cs/#L29">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_SocketUserMessage_IsSuppressed_" data-uid="Discord.WebSocket.SocketUserMessage.IsSuppressed*"></a>
+  <h4 id="Discord_WebSocket_SocketUserMessage_IsSuppressed" data-uid="Discord.WebSocket.SocketUserMessage.IsSuppressed">IsSuppressed</h4>
+  <div class="markdown level1 summary"><p>Gets the value that indicates whether or not this message's embeds are suppressed.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override bool IsSuppressed { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><code>true</code> if the embeds in this message have been suppressed (made invisible); otherwise <code>false</code>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Discord.WebSocket.SocketMessage.html#Discord_WebSocket_SocketMessage_IsSuppressed">SocketMessage.IsSuppressed</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_SocketUserMessage_IsTTS.md&amp;value=---%0Auid%3A%20Discord.WebSocket.SocketUserMessage.IsTTS%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/Entities/Messages/SocketUserMessage.cs/#L25">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_SocketUserMessage_IsTTS_" data-uid="Discord.WebSocket.SocketUserMessage.IsTTS*"></a>
+  <h4 id="Discord_WebSocket_SocketUserMessage_IsTTS" data-uid="Discord.WebSocket.SocketUserMessage.IsTTS">IsTTS</h4>
+  <div class="markdown level1 summary"><p>Gets the value that indicates whether this message was meant to be read-aloud by Discord.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override bool IsTTS { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><code>true</code> if this message was sent as a text-to-speech message; otherwise <code>false</code>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Discord.WebSocket.SocketMessage.html#Discord_WebSocket_SocketMessage_IsTTS">SocketMessage.IsTTS</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_SocketUserMessage_MentionedChannels.md&amp;value=---%0Auid%3A%20Discord.WebSocket.SocketUserMessage.MentionedChannels%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/Entities/Messages/SocketUserMessage.cs/#L39">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_SocketUserMessage_MentionedChannels_" data-uid="Discord.WebSocket.SocketUserMessage.MentionedChannels*"></a>
+  <h4 id="Discord_WebSocket_SocketUserMessage_MentionedChannels" data-uid="Discord.WebSocket.SocketUserMessage.MentionedChannels">MentionedChannels</h4>
+  <div class="markdown level1 summary"><p>Returns the channels mentioned in this message.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override IReadOnlyCollection&lt;SocketGuildChannel&gt; MentionedChannels { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<a class="xref" href="Discord.WebSocket.SocketGuildChannel.html">SocketGuildChannel</a>&gt;</td>
+        <td><p>Collection of WebSocket-based guild channels.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Discord.WebSocket.SocketMessage.html#Discord_WebSocket_SocketMessage_MentionedChannels">SocketMessage.MentionedChannels</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_SocketUserMessage_MentionedRoles.md&amp;value=---%0Auid%3A%20Discord.WebSocket.SocketUserMessage.MentionedRoles%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/Entities/Messages/SocketUserMessage.cs/#L41">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_SocketUserMessage_MentionedRoles_" data-uid="Discord.WebSocket.SocketUserMessage.MentionedRoles*"></a>
+  <h4 id="Discord_WebSocket_SocketUserMessage_MentionedRoles" data-uid="Discord.WebSocket.SocketUserMessage.MentionedRoles">MentionedRoles</h4>
+  <div class="markdown level1 summary"><p>Returns the roles mentioned in this message.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override IReadOnlyCollection&lt;SocketRole&gt; MentionedRoles { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<a class="xref" href="Discord.WebSocket.SocketRole.html">SocketRole</a>&gt;</td>
+        <td><p>Collection of WebSocket-based roles.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Discord.WebSocket.SocketMessage.html#Discord_WebSocket_SocketMessage_MentionedRoles">SocketMessage.MentionedRoles</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_SocketUserMessage_MentionedUsers.md&amp;value=---%0Auid%3A%20Discord.WebSocket.SocketUserMessage.MentionedUsers%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/Entities/Messages/SocketUserMessage.cs/#L43">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_SocketUserMessage_MentionedUsers_" data-uid="Discord.WebSocket.SocketUserMessage.MentionedUsers*"></a>
+  <h4 id="Discord_WebSocket_SocketUserMessage_MentionedUsers" data-uid="Discord.WebSocket.SocketUserMessage.MentionedUsers">MentionedUsers</h4>
+  <div class="markdown level1 summary"><p>Returns the users mentioned in this message.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override IReadOnlyCollection&lt;SocketUser&gt; MentionedUsers { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<a class="xref" href="Discord.WebSocket.SocketUser.html">SocketUser</a>&gt;</td>
+        <td><p>Collection of WebSocket-based users.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Discord.WebSocket.SocketMessage.html#Discord_WebSocket_SocketMessage_MentionedUsers">SocketMessage.MentionedUsers</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_SocketUserMessage_Tags.md&amp;value=---%0Auid%3A%20Discord.WebSocket.SocketUserMessage.Tags%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/Entities/Messages/SocketUserMessage.cs/#L37">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_SocketUserMessage_Tags_" data-uid="Discord.WebSocket.SocketUserMessage.Tags*"></a>
+  <h4 id="Discord_WebSocket_SocketUserMessage_Tags" data-uid="Discord.WebSocket.SocketUserMessage.Tags">Tags</h4>
+  <div class="markdown level1 summary"><p>Gets all tags included in this message's content.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override IReadOnlyCollection&lt;ITag&gt; Tags { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<a class="xref" href="Discord.ITag.html">ITag</a>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Discord.WebSocket.SocketMessage.html#Discord_WebSocket_SocketMessage_Tags">SocketMessage.Tags</a></div>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_SocketUserMessage_ModifyAsync_System_Action_Discord_MessageProperties__Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.SocketUserMessage.ModifyAsync(System.Action%7BDiscord.MessageProperties%7D%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/Entities/Messages/SocketUserMessage.cs/#L130">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_SocketUserMessage_ModifyAsync_" data-uid="Discord.WebSocket.SocketUserMessage.ModifyAsync*"></a>
+  <h4 id="Discord_WebSocket_SocketUserMessage_ModifyAsync_System_Action_Discord_MessageProperties__Discord_RequestOptions_" data-uid="Discord.WebSocket.SocketUserMessage.ModifyAsync(System.Action{Discord.MessageProperties},Discord.RequestOptions)">ModifyAsync(Action&lt;MessageProperties&gt;, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Modifies this message.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task ModifyAsync(Action&lt;MessageProperties&gt; func, RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Action</span>&lt;<a class="xref" href="Discord.MessageProperties.html">MessageProperties</a>&gt;</td>
+        <td><span class="parametername">func</span></td>
+        <td><p>A delegate containing the properties to modify the message with.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td><p>A task that represents the asynchronous modification operation.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Discord_WebSocket_SocketUserMessage_ModifyAsync_System_Action_Discord_MessageProperties__Discord_RequestOptions__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method modifies this message with the specified properties. To see an example of this
+method and what properties are available, please refer to <a class="xref" href="Discord.MessageProperties.html">MessageProperties</a>.</p>
+</div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>Only the author of a message may modify the message.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.ArgumentOutOfRangeException</span></td>
+        <td><p>Message content is too long, length must be less or equal to <a class="xref" href="Discord.DiscordConfig.html#Discord_DiscordConfig_MaxMessageSize">MaxMessageSize</a>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_SocketUserMessage_ModifySuppressionAsync_System_Boolean_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.SocketUserMessage.ModifySuppressionAsync(System.Boolean%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/Entities/Messages/SocketUserMessage.cs/#L140">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_SocketUserMessage_ModifySuppressionAsync_" data-uid="Discord.WebSocket.SocketUserMessage.ModifySuppressionAsync*"></a>
+  <h4 id="Discord_WebSocket_SocketUserMessage_ModifySuppressionAsync_System_Boolean_Discord_RequestOptions_" data-uid="Discord.WebSocket.SocketUserMessage.ModifySuppressionAsync(System.Boolean,Discord.RequestOptions)">ModifySuppressionAsync(Boolean, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Modifies the suppression of this message.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task ModifySuppressionAsync(bool suppressEmbeds, RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">suppressEmbeds</span></td>
+        <td><p>Whether or not embeds in this message should be suppressed.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td><p>A task that represents the asynchronous modification operation.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Discord_WebSocket_SocketUserMessage_ModifySuppressionAsync_System_Boolean_Discord_RequestOptions__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method modifies whether or not embeds in this message are suppressed (hidden).</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_SocketUserMessage_PinAsync_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.SocketUserMessage.PinAsync(Discord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/Entities/Messages/SocketUserMessage.cs/#L134">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_SocketUserMessage_PinAsync_" data-uid="Discord.WebSocket.SocketUserMessage.PinAsync*"></a>
+  <h4 id="Discord_WebSocket_SocketUserMessage_PinAsync_Discord_RequestOptions_" data-uid="Discord.WebSocket.SocketUserMessage.PinAsync(Discord.RequestOptions)">PinAsync(RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Adds this message to its channel's pinned messages.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task PinAsync(RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td><p>A task that represents the asynchronous operation for pinning this message.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_SocketUserMessage_Resolve_Discord_TagHandling_Discord_TagHandling_Discord_TagHandling_Discord_TagHandling_Discord_TagHandling_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.SocketUserMessage.Resolve(Discord.TagHandling%2CDiscord.TagHandling%2CDiscord.TagHandling%2CDiscord.TagHandling%2CDiscord.TagHandling)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/Entities/Messages/SocketUserMessage.cs/#L147">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_SocketUserMessage_Resolve_" data-uid="Discord.WebSocket.SocketUserMessage.Resolve*"></a>
+  <h4 id="Discord_WebSocket_SocketUserMessage_Resolve_Discord_TagHandling_Discord_TagHandling_Discord_TagHandling_Discord_TagHandling_Discord_TagHandling_" data-uid="Discord.WebSocket.SocketUserMessage.Resolve(Discord.TagHandling,Discord.TagHandling,Discord.TagHandling,Discord.TagHandling,Discord.TagHandling)">Resolve(TagHandling, TagHandling, TagHandling, TagHandling, TagHandling)</h4>
+  <div class="markdown level1 summary"><p>Transforms this message's text into a human-readable form by resolving its tags.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public string Resolve(TagHandling userHandling = TagHandling.Name, TagHandling channelHandling = TagHandling.Name, TagHandling roleHandling = TagHandling.Name, TagHandling everyoneHandling = TagHandling.Ignore, TagHandling emojiHandling = TagHandling.Name)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.TagHandling.html">TagHandling</a></td>
+        <td><span class="parametername">userHandling</span></td>
+        <td><p>Determines how the user tag should be handled.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.TagHandling.html">TagHandling</a></td>
+        <td><span class="parametername">channelHandling</span></td>
+        <td><p>Determines how the channel tag should be handled.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.TagHandling.html">TagHandling</a></td>
+        <td><span class="parametername">roleHandling</span></td>
+        <td><p>Determines how the role tag should be handled.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.TagHandling.html">TagHandling</a></td>
+        <td><span class="parametername">everyoneHandling</span></td>
+        <td><p>Determines how the @everyone tag should be handled.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.TagHandling.html">TagHandling</a></td>
+        <td><span class="parametername">emojiHandling</span></td>
+        <td><p>Determines how the emoji tag should be handled.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_SocketUserMessage_Resolve_System_Int32_Discord_TagHandling_Discord_TagHandling_Discord_TagHandling_Discord_TagHandling_Discord_TagHandling_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.SocketUserMessage.Resolve(System.Int32%2CDiscord.TagHandling%2CDiscord.TagHandling%2CDiscord.TagHandling%2CDiscord.TagHandling%2CDiscord.TagHandling)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/Entities/Messages/SocketUserMessage.cs/#L143">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_SocketUserMessage_Resolve_" data-uid="Discord.WebSocket.SocketUserMessage.Resolve*"></a>
+  <h4 id="Discord_WebSocket_SocketUserMessage_Resolve_System_Int32_Discord_TagHandling_Discord_TagHandling_Discord_TagHandling_Discord_TagHandling_Discord_TagHandling_" data-uid="Discord.WebSocket.SocketUserMessage.Resolve(System.Int32,Discord.TagHandling,Discord.TagHandling,Discord.TagHandling,Discord.TagHandling,Discord.TagHandling)">Resolve(Int32, TagHandling, TagHandling, TagHandling, TagHandling, TagHandling)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public string Resolve(int startIndex, TagHandling userHandling = TagHandling.Name, TagHandling channelHandling = TagHandling.Name, TagHandling roleHandling = TagHandling.Name, TagHandling everyoneHandling = TagHandling.Ignore, TagHandling emojiHandling = TagHandling.Name)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">startIndex</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.TagHandling.html">TagHandling</a></td>
+        <td><span class="parametername">userHandling</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.TagHandling.html">TagHandling</a></td>
+        <td><span class="parametername">channelHandling</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.TagHandling.html">TagHandling</a></td>
+        <td><span class="parametername">roleHandling</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.TagHandling.html">TagHandling</a></td>
+        <td><span class="parametername">everyoneHandling</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.TagHandling.html">TagHandling</a></td>
+        <td><span class="parametername">emojiHandling</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_SocketUserMessage_UnpinAsync_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.SocketUserMessage.UnpinAsync(Discord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/Entities/Messages/SocketUserMessage.cs/#L137">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_SocketUserMessage_UnpinAsync_" data-uid="Discord.WebSocket.SocketUserMessage.UnpinAsync*"></a>
+  <h4 id="Discord_WebSocket_SocketUserMessage_UnpinAsync_Discord_RequestOptions_" data-uid="Discord.WebSocket.SocketUserMessage.UnpinAsync(Discord.RequestOptions)">UnpinAsync(RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Removes this message from its channel's pinned messages.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task UnpinAsync(RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td><p>A task that represents the asynchronous operation for unpinning this message.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="Discord.IUserMessage.html">IUserMessage</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.IMessage.html">IMessage</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.ISnowflakeEntity.html">ISnowflakeEntity</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.IEntity-1.html">IEntity&lt;TId&gt;</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.IDeletable.html">IDeletable</a>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_SocketUserMessage.md&amp;value=---%0Auid%3A%20Discord.WebSocket.SocketUserMessage%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/Entities/Messages/SocketUserMessage.cs/#L15" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+              <!-- <p><a class="back-to-top" href="#top">Back to top</a><p> -->
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

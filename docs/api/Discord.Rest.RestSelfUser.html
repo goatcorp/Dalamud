@@ -1,0 +1,574 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class RestSelfUser
+   </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class RestSelfUser
+   ">
+    <meta name="generator" content="docfx 2.50.0.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Discord.Rest.RestSelfUser">
+  
+  
+  <h1 id="Discord_Rest_RestSelfUser" data-uid="Discord.Rest.RestSelfUser" class="text-break">Class RestSelfUser
+  </h1>
+  <div class="markdown level0 summary"><p>Represents the logged-in REST-based user.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><a class="xref" href="Discord.Rest.RestEntity-1.html">RestEntity</a>&lt;<span class="xref">System.UInt64</span>&gt;</div>
+    <div class="level2"><a class="xref" href="Discord.Rest.RestUser.html">RestUser</a></div>
+    <div class="level3"><span class="xref">RestSelfUser</span></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="Discord.IUpdateable.html">IUpdateable</a></div>
+    <div><a class="xref" href="Discord.ISelfUser.html">ISelfUser</a></div>
+    <div><a class="xref" href="Discord.IUser.html">IUser</a></div>
+    <div><a class="xref" href="Discord.ISnowflakeEntity.html">ISnowflakeEntity</a></div>
+    <div><a class="xref" href="Discord.IEntity-1.html">IEntity</a>&lt;<span class="xref">System.UInt64</span>&gt;</div>
+    <div><a class="xref" href="Discord.IMentionable.html">IMentionable</a></div>
+    <div><a class="xref" href="Discord.IPresence.html">IPresence</a></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <a class="xref" href="Discord.Rest.RestUser.html#Discord_Rest_RestUser_IsBot">RestUser.IsBot</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestUser.html#Discord_Rest_RestUser_Username">RestUser.Username</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestUser.html#Discord_Rest_RestUser_DiscriminatorValue">RestUser.DiscriminatorValue</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestUser.html#Discord_Rest_RestUser_AvatarId">RestUser.AvatarId</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestUser.html#Discord_Rest_RestUser_CreatedAt">RestUser.CreatedAt</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestUser.html#Discord_Rest_RestUser_Discriminator">RestUser.Discriminator</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestUser.html#Discord_Rest_RestUser_Mention">RestUser.Mention</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestUser.html#Discord_Rest_RestUser_Activity">RestUser.Activity</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestUser.html#Discord_Rest_RestUser_Status">RestUser.Status</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestUser.html#Discord_Rest_RestUser_ActiveClients">RestUser.ActiveClients</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestUser.html#Discord_Rest_RestUser_IsWebhook">RestUser.IsWebhook</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestUser.html#Discord_Rest_RestUser_GetOrCreateDMChannelAsync_Discord_RequestOptions_">RestUser.GetOrCreateDMChannelAsync(RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestUser.html#Discord_Rest_RestUser_GetAvatarUrl_Discord_ImageFormat_System_UInt16_">RestUser.GetAvatarUrl(ImageFormat, UInt16)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestUser.html#Discord_Rest_RestUser_GetDefaultAvatarUrl">RestUser.GetDefaultAvatarUrl()</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestUser.html#Discord_Rest_RestUser_ToString">RestUser.ToString()</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestUser.html#Discord_Rest_RestUser_Discord_IUser_GetOrCreateDMChannelAsync_Discord_RequestOptions_">RestUser.IUser.GetOrCreateDMChannelAsync(RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestEntity-1.html#Discord_Rest_RestEntity_1_Id">RestEntity&lt;UInt64&gt;.Id</a>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Discord.Rest.html">Discord.Rest</a></h6>
+  <h6><strong>Assembly</strong>: Discord.Net.Rest.dll</h6>
+  <h5 id="Discord_Rest_RestSelfUser_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class RestSelfUser : RestUser, IUpdateable, ISelfUser, IUser, ISnowflakeEntity, IEntity&lt;ulong&gt;, IMentionable, IPresence</code></pre>
+  </div>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestSelfUser_Email.md&amp;value=---%0Auid%3A%20Discord.Rest.RestSelfUser.Email%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Users/RestSelfUser.cs/#L15">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestSelfUser_Email_" data-uid="Discord.Rest.RestSelfUser.Email*"></a>
+  <h4 id="Discord_Rest_RestSelfUser_Email" data-uid="Discord.Rest.RestSelfUser.Email">Email</h4>
+  <div class="markdown level1 summary"><p>Gets the email associated with this user.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public string Email { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestSelfUser_Flags.md&amp;value=---%0Auid%3A%20Discord.Rest.RestSelfUser.Flags%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Users/RestSelfUser.cs/#L21">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestSelfUser_Flags_" data-uid="Discord.Rest.RestSelfUser.Flags*"></a>
+  <h4 id="Discord_Rest_RestSelfUser_Flags" data-uid="Discord.Rest.RestSelfUser.Flags">Flags</h4>
+  <div class="markdown level1 summary"><p>Gets the flags that are applied to a user's account.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public UserProperties Flags { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.UserProperties.html">UserProperties</a></td>
+        <td><p>The value of flags for this user.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Discord_Rest_RestSelfUser_Flags_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This value is determined by bitwise OR-ing <a class="xref" href="Discord.UserProperties.html">UserProperties</a> values together.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestSelfUser_IsMfaEnabled.md&amp;value=---%0Auid%3A%20Discord.Rest.RestSelfUser.IsMfaEnabled%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Users/RestSelfUser.cs/#L19">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestSelfUser_IsMfaEnabled_" data-uid="Discord.Rest.RestSelfUser.IsMfaEnabled*"></a>
+  <h4 id="Discord_Rest_RestSelfUser_IsMfaEnabled" data-uid="Discord.Rest.RestSelfUser.IsMfaEnabled">IsMfaEnabled</h4>
+  <div class="markdown level1 summary"><p>Indicates whether or not this user has MFA enabled on their account.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool IsMfaEnabled { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><code>true</code> if this user has enabled multi-factor authentication on their account; <code>false</code> if not.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestSelfUser_IsVerified.md&amp;value=---%0Auid%3A%20Discord.Rest.RestSelfUser.IsVerified%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Users/RestSelfUser.cs/#L17">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestSelfUser_IsVerified_" data-uid="Discord.Rest.RestSelfUser.IsVerified*"></a>
+  <h4 id="Discord_Rest_RestSelfUser_IsVerified" data-uid="Discord.Rest.RestSelfUser.IsVerified">IsVerified</h4>
+  <div class="markdown level1 summary"><p>Indicates whether or not this user has their email verified.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool IsVerified { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><code>true</code> if this user's email has been verified; <code>false</code> if not.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestSelfUser_Locale.md&amp;value=---%0Auid%3A%20Discord.Rest.RestSelfUser.Locale%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Users/RestSelfUser.cs/#L25">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestSelfUser_Locale_" data-uid="Discord.Rest.RestSelfUser.Locale*"></a>
+  <h4 id="Discord_Rest_RestSelfUser_Locale" data-uid="Discord.Rest.RestSelfUser.Locale">Locale</h4>
+  <div class="markdown level1 summary"><p>Gets the user's chosen language option.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public string Locale { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>The IETF language tag of the user's chosen region, if provided.
+For example, a locale of &quot;English, US&quot; is &quot;en-US&quot;, &quot;Chinese (Taiwan)&quot; is &quot;zh-TW&quot;, etc.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestSelfUser_PremiumType.md&amp;value=---%0Auid%3A%20Discord.Rest.RestSelfUser.PremiumType%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Users/RestSelfUser.cs/#L23">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestSelfUser_PremiumType_" data-uid="Discord.Rest.RestSelfUser.PremiumType*"></a>
+  <h4 id="Discord_Rest_RestSelfUser_PremiumType" data-uid="Discord.Rest.RestSelfUser.PremiumType">PremiumType</h4>
+  <div class="markdown level1 summary"><p>Gets the type of Nitro subscription that is active on this user's account.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public PremiumType PremiumType { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.PremiumType.html">PremiumType</a></td>
+        <td><p>The type of Nitro subscription the user subscribes to, if any.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Discord_Rest_RestSelfUser_PremiumType_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This information may only be available with the identify OAuth scope.</p>
+</div>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestSelfUser_ModifyAsync_System_Action_Discord_SelfUserProperties__Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.Rest.RestSelfUser.ModifyAsync(System.Action%7BDiscord.SelfUserProperties%7D%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Users/RestSelfUser.cs/#L68">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestSelfUser_ModifyAsync_" data-uid="Discord.Rest.RestSelfUser.ModifyAsync*"></a>
+  <h4 id="Discord_Rest_RestSelfUser_ModifyAsync_System_Action_Discord_SelfUserProperties__Discord_RequestOptions_" data-uid="Discord.Rest.RestSelfUser.ModifyAsync(System.Action{Discord.SelfUserProperties},Discord.RequestOptions)">ModifyAsync(Action&lt;SelfUserProperties&gt;, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Modifies the user's properties.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task ModifyAsync(Action&lt;SelfUserProperties&gt; func, RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Action</span>&lt;<a class="xref" href="Discord.SelfUserProperties.html">SelfUserProperties</a>&gt;</td>
+        <td><span class="parametername">func</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>Unable to modify this object using a different token.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestSelfUser_UpdateAsync_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.Rest.RestSelfUser.UpdateAsync(Discord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Users/RestSelfUser.cs/#L58">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestSelfUser_UpdateAsync_" data-uid="Discord.Rest.RestSelfUser.UpdateAsync*"></a>
+  <h4 id="Discord_Rest_RestSelfUser_UpdateAsync_Discord_RequestOptions_" data-uid="Discord.Rest.RestSelfUser.UpdateAsync(Discord.RequestOptions)">UpdateAsync(RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Updates this object's properties with its current state.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override Task UpdateAsync(RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Discord.Rest.RestUser.html#Discord_Rest_RestUser_UpdateAsync_Discord_RequestOptions_">RestUser.UpdateAsync(RequestOptions)</a></div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.InvalidOperationException</span></td>
+        <td><p>Unable to update this object using a different token.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="Discord.IUpdateable.html">IUpdateable</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.ISelfUser.html">ISelfUser</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.IUser.html">IUser</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.ISnowflakeEntity.html">ISnowflakeEntity</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.IEntity-1.html">IEntity&lt;TId&gt;</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.IMentionable.html">IMentionable</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.IPresence.html">IPresence</a>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestSelfUser.md&amp;value=---%0Auid%3A%20Discord.Rest.RestSelfUser%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Users/RestSelfUser.cs/#L11" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+              <!-- <p><a class="back-to-top" href="#top">Back to top</a><p> -->
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

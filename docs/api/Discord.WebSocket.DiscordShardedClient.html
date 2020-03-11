@@ -1,0 +1,2383 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class DiscordShardedClient
+   </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class DiscordShardedClient
+   ">
+    <meta name="generator" content="docfx 2.50.0.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Discord.WebSocket.DiscordShardedClient">
+  
+  
+  <h1 id="Discord_WebSocket_DiscordShardedClient" data-uid="Discord.WebSocket.DiscordShardedClient" class="text-break">Class DiscordShardedClient
+  </h1>
+  <div class="markdown level0 summary"></div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><a class="xref" href="Discord.Rest.BaseDiscordClient.html">BaseDiscordClient</a></div>
+    <div class="level2"><a class="xref" href="Discord.WebSocket.BaseSocketClient.html">BaseSocketClient</a></div>
+    <div class="level3"><span class="xref">DiscordShardedClient</span></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="Discord.IDiscordClient.html">IDiscordClient</a></div>
+    <div><span class="xref">System.IDisposable</span></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_BaseConfig">BaseSocketClient.BaseConfig</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_CurrentUser">BaseSocketClient.CurrentUser</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_CreateGuildAsync_System_String_Discord_IVoiceRegion_System_IO_Stream_Discord_RequestOptions_">BaseSocketClient.CreateGuildAsync(String, IVoiceRegion, Stream, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_GetConnectionsAsync_Discord_RequestOptions_">BaseSocketClient.GetConnectionsAsync(RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_GetInviteAsync_System_String_Discord_RequestOptions_">BaseSocketClient.GetInviteAsync(String, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_ChannelCreated">BaseSocketClient.ChannelCreated</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_ChannelDestroyed">BaseSocketClient.ChannelDestroyed</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_ChannelUpdated">BaseSocketClient.ChannelUpdated</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_MessageReceived">BaseSocketClient.MessageReceived</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_MessageDeleted">BaseSocketClient.MessageDeleted</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_MessagesBulkDeleted">BaseSocketClient.MessagesBulkDeleted</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_MessageUpdated">BaseSocketClient.MessageUpdated</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_ReactionAdded">BaseSocketClient.ReactionAdded</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_ReactionRemoved">BaseSocketClient.ReactionRemoved</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_ReactionsCleared">BaseSocketClient.ReactionsCleared</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_RoleCreated">BaseSocketClient.RoleCreated</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_RoleDeleted">BaseSocketClient.RoleDeleted</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_RoleUpdated">BaseSocketClient.RoleUpdated</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_JoinedGuild">BaseSocketClient.JoinedGuild</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_LeftGuild">BaseSocketClient.LeftGuild</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_GuildAvailable">BaseSocketClient.GuildAvailable</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_GuildUnavailable">BaseSocketClient.GuildUnavailable</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_GuildMembersDownloaded">BaseSocketClient.GuildMembersDownloaded</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_GuildUpdated">BaseSocketClient.GuildUpdated</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_UserJoined">BaseSocketClient.UserJoined</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_UserLeft">BaseSocketClient.UserLeft</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_UserBanned">BaseSocketClient.UserBanned</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_UserUnbanned">BaseSocketClient.UserUnbanned</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_UserUpdated">BaseSocketClient.UserUpdated</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_GuildMemberUpdated">BaseSocketClient.GuildMemberUpdated</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_UserVoiceStateUpdated">BaseSocketClient.UserVoiceStateUpdated</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_VoiceServerUpdated">BaseSocketClient.VoiceServerUpdated</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_CurrentUserUpdated">BaseSocketClient.CurrentUserUpdated</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_UserIsTyping">BaseSocketClient.UserIsTyping</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_RecipientAdded">BaseSocketClient.RecipientAdded</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_RecipientRemoved">BaseSocketClient.RecipientRemoved</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.BaseDiscordClient.html#Discord_Rest_BaseDiscordClient_Log">BaseDiscordClient.Log</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.BaseDiscordClient.html#Discord_Rest_BaseDiscordClient_LoggedIn">BaseDiscordClient.LoggedIn</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.BaseDiscordClient.html#Discord_Rest_BaseDiscordClient_LoggedOut">BaseDiscordClient.LoggedOut</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.BaseDiscordClient.html#Discord_Rest_BaseDiscordClient_LoginState">BaseDiscordClient.LoginState</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.BaseDiscordClient.html#Discord_Rest_BaseDiscordClient_TokenType">BaseDiscordClient.TokenType</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.BaseDiscordClient.html#Discord_Rest_BaseDiscordClient_LoginAsync_Discord_TokenType_System_String_System_Boolean_">BaseDiscordClient.LoginAsync(TokenType, String, Boolean)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.BaseDiscordClient.html#Discord_Rest_BaseDiscordClient_LogoutAsync">BaseDiscordClient.LogoutAsync()</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.BaseDiscordClient.html#Discord_Rest_BaseDiscordClient_Dispose">BaseDiscordClient.Dispose()</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.BaseDiscordClient.html#Discord_Rest_BaseDiscordClient_GetRecommendedShardCountAsync_Discord_RequestOptions_">BaseDiscordClient.GetRecommendedShardCountAsync(RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.BaseDiscordClient.html#Discord_Rest_BaseDiscordClient_Discord_IDiscordClient_ConnectionState">BaseDiscordClient.IDiscordClient.ConnectionState</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.BaseDiscordClient.html#Discord_Rest_BaseDiscordClient_Discord_IDiscordClient_CurrentUser">BaseDiscordClient.IDiscordClient.CurrentUser</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.BaseDiscordClient.html#Discord_Rest_BaseDiscordClient_Discord_IDiscordClient_GetDMChannelsAsync_Discord_CacheMode_Discord_RequestOptions_">BaseDiscordClient.IDiscordClient.GetDMChannelsAsync(CacheMode, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.BaseDiscordClient.html#Discord_Rest_BaseDiscordClient_Discord_IDiscordClient_GetGroupChannelsAsync_Discord_CacheMode_Discord_RequestOptions_">BaseDiscordClient.IDiscordClient.GetGroupChannelsAsync(CacheMode, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.BaseDiscordClient.html#Discord_Rest_BaseDiscordClient_Discord_IDiscordClient_GetWebhookAsync_System_UInt64_Discord_RequestOptions_">BaseDiscordClient.IDiscordClient.GetWebhookAsync(UInt64, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.BaseDiscordClient.html#Discord_Rest_BaseDiscordClient_Discord_IDiscordClient_StartAsync">BaseDiscordClient.IDiscordClient.StartAsync()</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.BaseDiscordClient.html#Discord_Rest_BaseDiscordClient_Discord_IDiscordClient_StopAsync">BaseDiscordClient.IDiscordClient.StopAsync()</a>
+    </div>
+    <div>
+      <span class="xref">System.Object.ToString()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Discord.WebSocket.html">Discord.WebSocket</a></h6>
+  <h6><strong>Assembly</strong>: Discord.Net.WebSocket.dll</h6>
+  <h5 id="Discord_WebSocket_DiscordShardedClient_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class DiscordShardedClient : BaseSocketClient, IDiscordClient, IDisposable</code></pre>
+  </div>
+  <h3 id="constructors">Constructors
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_DiscordShardedClient__ctor.md&amp;value=---%0Auid%3A%20Discord.WebSocket.DiscordShardedClient.%23ctor%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/DiscordShardedClient.cs/#L46">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_DiscordShardedClient__ctor_" data-uid="Discord.WebSocket.DiscordShardedClient.#ctor*"></a>
+  <h4 id="Discord_WebSocket_DiscordShardedClient__ctor" data-uid="Discord.WebSocket.DiscordShardedClient.#ctor">DiscordShardedClient()</h4>
+  <div class="markdown level1 summary"><p>Creates a new REST/WebSocket Discord client.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public DiscordShardedClient()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_DiscordShardedClient__ctor_Discord_WebSocket_DiscordSocketConfig_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.DiscordShardedClient.%23ctor(Discord.WebSocket.DiscordSocketConfig)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/DiscordShardedClient.cs/#L49">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_DiscordShardedClient__ctor_" data-uid="Discord.WebSocket.DiscordShardedClient.#ctor*"></a>
+  <h4 id="Discord_WebSocket_DiscordShardedClient__ctor_Discord_WebSocket_DiscordSocketConfig_" data-uid="Discord.WebSocket.DiscordShardedClient.#ctor(Discord.WebSocket.DiscordSocketConfig)">DiscordShardedClient(DiscordSocketConfig)</h4>
+  <div class="markdown level1 summary"><p>Creates a new REST/WebSocket Discord client.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public DiscordShardedClient(DiscordSocketConfig config)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.WebSocket.DiscordSocketConfig.html">DiscordSocketConfig</a></td>
+        <td><span class="parametername">config</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_DiscordShardedClient__ctor_System_Int32___.md&amp;value=---%0Auid%3A%20Discord.WebSocket.DiscordShardedClient.%23ctor(System.Int32%5B%5D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/DiscordShardedClient.cs/#L52">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_DiscordShardedClient__ctor_" data-uid="Discord.WebSocket.DiscordShardedClient.#ctor*"></a>
+  <h4 id="Discord_WebSocket_DiscordShardedClient__ctor_System_Int32___" data-uid="Discord.WebSocket.DiscordShardedClient.#ctor(System.Int32[])">DiscordShardedClient(Int32[])</h4>
+  <div class="markdown level1 summary"><p>Creates a new REST/WebSocket Discord client.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public DiscordShardedClient(int[] ids)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span>[]</td>
+        <td><span class="parametername">ids</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_DiscordShardedClient__ctor_System_Int32___Discord_WebSocket_DiscordSocketConfig_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.DiscordShardedClient.%23ctor(System.Int32%5B%5D%2CDiscord.WebSocket.DiscordSocketConfig)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/DiscordShardedClient.cs/#L55">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_DiscordShardedClient__ctor_" data-uid="Discord.WebSocket.DiscordShardedClient.#ctor*"></a>
+  <h4 id="Discord_WebSocket_DiscordShardedClient__ctor_System_Int32___Discord_WebSocket_DiscordSocketConfig_" data-uid="Discord.WebSocket.DiscordShardedClient.#ctor(System.Int32[],Discord.WebSocket.DiscordSocketConfig)">DiscordShardedClient(Int32[], DiscordSocketConfig)</h4>
+  <div class="markdown level1 summary"><p>Creates a new REST/WebSocket Discord client.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public DiscordShardedClient(int[] ids, DiscordSocketConfig config)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span>[]</td>
+        <td><span class="parametername">ids</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.WebSocket.DiscordSocketConfig.html">DiscordSocketConfig</a></td>
+        <td><span class="parametername">config</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_DiscordShardedClient_Activity.md&amp;value=---%0Auid%3A%20Discord.WebSocket.DiscordShardedClient.Activity%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/DiscordShardedClient.cs/#L29">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_DiscordShardedClient_Activity_" data-uid="Discord.WebSocket.DiscordShardedClient.Activity*"></a>
+  <h4 id="Discord_WebSocket_DiscordShardedClient_Activity" data-uid="Discord.WebSocket.DiscordShardedClient.Activity">Activity</h4>
+  <div class="markdown level1 summary"><p>Gets the activity for the logged-in user.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override IActivity Activity { get; protected set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.IActivity.html">IActivity</a></td>
+        <td><p>An activity object that represents the user's current activity.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_Activity">BaseSocketClient.Activity</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_DiscordShardedClient_Guilds.md&amp;value=---%0Auid%3A%20Discord.WebSocket.DiscordShardedClient.Guilds%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/DiscordShardedClient.cs/#L33">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_DiscordShardedClient_Guilds_" data-uid="Discord.WebSocket.DiscordShardedClient.Guilds*"></a>
+  <h4 id="Discord_WebSocket_DiscordShardedClient_Guilds" data-uid="Discord.WebSocket.DiscordShardedClient.Guilds">Guilds</h4>
+  <div class="markdown level1 summary"><p>Gets a collection of guilds that the user is currently in.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override IReadOnlyCollection&lt;SocketGuild&gt; Guilds { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<a class="xref" href="Discord.WebSocket.SocketGuild.html">SocketGuild</a>&gt;</td>
+        <td><p>A read-only collection of guilds that the current user is in.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_Guilds">BaseSocketClient.Guilds</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_DiscordShardedClient_Latency.md&amp;value=---%0Auid%3A%20Discord.WebSocket.DiscordShardedClient.Latency%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/DiscordShardedClient.cs/#L25">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_DiscordShardedClient_Latency_" data-uid="Discord.WebSocket.DiscordShardedClient.Latency*"></a>
+  <h4 id="Discord_WebSocket_DiscordShardedClient_Latency" data-uid="Discord.WebSocket.DiscordShardedClient.Latency">Latency</h4>
+  <div class="markdown level1 summary"><p>Gets the estimated round-trip latency, in milliseconds, to the gateway server.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override int Latency { get; protected set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>An <span class="xref">System.Int32</span> that represents the round-trip latency to the WebSocket server. Please
+note that this value does not represent a &quot;true&quot; latency for operations such as sending a message.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_Latency">BaseSocketClient.Latency</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_DiscordShardedClient_PrivateChannels.md&amp;value=---%0Auid%3A%20Discord.WebSocket.DiscordShardedClient.PrivateChannels%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/DiscordShardedClient.cs/#L35">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_DiscordShardedClient_PrivateChannels_" data-uid="Discord.WebSocket.DiscordShardedClient.PrivateChannels*"></a>
+  <h4 id="Discord_WebSocket_DiscordShardedClient_PrivateChannels" data-uid="Discord.WebSocket.DiscordShardedClient.PrivateChannels">PrivateChannels</h4>
+  <div class="markdown level1 summary"><p>Gets a collection of private channels opened in this session.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override IReadOnlyCollection&lt;ISocketPrivateChannel&gt; PrivateChannels { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<a class="xref" href="Discord.WebSocket.ISocketPrivateChannel.html">ISocketPrivateChannel</a>&gt;</td>
+        <td><p>A read-only collection of private channels that the user currently partakes in.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_PrivateChannels">BaseSocketClient.PrivateChannels</a></div>
+  <h5 id="Discord_WebSocket_DiscordShardedClient_PrivateChannels_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method will retrieve all private channels (including direct-message, group channel and such) that
+are currently opened in this session.</p>
+<div class="WARNING"><h5>warning</h5><p>
+    This method will not return previously opened private channels outside of the current session! If
+    you have just started the client, this may return an empty collection.
+</p></div>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_DiscordShardedClient_Rest.md&amp;value=---%0Auid%3A%20Discord.WebSocket.DiscordShardedClient.Rest%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/DiscordShardedClient.cs/#L43">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_DiscordShardedClient_Rest_" data-uid="Discord.WebSocket.DiscordShardedClient.Rest*"></a>
+  <h4 id="Discord_WebSocket_DiscordShardedClient_Rest" data-uid="Discord.WebSocket.DiscordShardedClient.Rest">Rest</h4>
+  <div class="markdown level1 summary"><p>Provides access to a REST-only client with a shared state from this client.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override DiscordSocketRestClient Rest { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.WebSocket.DiscordSocketRestClient.html">DiscordSocketRestClient</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_Rest">BaseSocketClient.Rest</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_DiscordShardedClient_Shards.md&amp;value=---%0Auid%3A%20Discord.WebSocket.DiscordShardedClient.Shards%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/DiscordShardedClient.cs/#L36">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_DiscordShardedClient_Shards_" data-uid="Discord.WebSocket.DiscordShardedClient.Shards*"></a>
+  <h4 id="Discord_WebSocket_DiscordShardedClient_Shards" data-uid="Discord.WebSocket.DiscordShardedClient.Shards">Shards</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IReadOnlyCollection&lt;DiscordSocketClient&gt; Shards { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<a class="xref" href="Discord.WebSocket.DiscordSocketClient.html">DiscordSocketClient</a>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_DiscordShardedClient_Status.md&amp;value=---%0Auid%3A%20Discord.WebSocket.DiscordShardedClient.Status%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/DiscordShardedClient.cs/#L27">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_DiscordShardedClient_Status_" data-uid="Discord.WebSocket.DiscordShardedClient.Status*"></a>
+  <h4 id="Discord_WebSocket_DiscordShardedClient_Status" data-uid="Discord.WebSocket.DiscordShardedClient.Status">Status</h4>
+  <div class="markdown level1 summary"><p>Gets the status for the logged-in user.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override UserStatus Status { get; protected set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.UserStatus.html">UserStatus</a></td>
+        <td><p>A status object that represents the user's online presence status.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_Status">BaseSocketClient.Status</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_DiscordShardedClient_VoiceRegions.md&amp;value=---%0Auid%3A%20Discord.WebSocket.DiscordShardedClient.VoiceRegions%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/DiscordShardedClient.cs/#L38">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_DiscordShardedClient_VoiceRegions_" data-uid="Discord.WebSocket.DiscordShardedClient.VoiceRegions*"></a>
+  <h4 id="Discord_WebSocket_DiscordShardedClient_VoiceRegions" data-uid="Discord.WebSocket.DiscordShardedClient.VoiceRegions">VoiceRegions</h4>
+  <div class="markdown level1 summary"><p>Gets a collection of available voice regions.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override IReadOnlyCollection&lt;RestVoiceRegion&gt; VoiceRegions { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<a class="xref" href="Discord.Rest.RestVoiceRegion.html">RestVoiceRegion</a>&gt;</td>
+        <td><p>A read-only collection of voice regions that the user has access to.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_VoiceRegions">BaseSocketClient.VoiceRegions</a></div>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_DiscordShardedClient_DownloadUsersAsync_System_Collections_Generic_IEnumerable_Discord_IGuild__.md&amp;value=---%0Auid%3A%20Discord.WebSocket.DiscordShardedClient.DownloadUsersAsync(System.Collections.Generic.IEnumerable%7BDiscord.IGuild%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/DiscordShardedClient.cs/#L235">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_DiscordShardedClient_DownloadUsersAsync_" data-uid="Discord.WebSocket.DiscordShardedClient.DownloadUsersAsync*"></a>
+  <h4 id="Discord_WebSocket_DiscordShardedClient_DownloadUsersAsync_System_Collections_Generic_IEnumerable_Discord_IGuild__" data-uid="Discord.WebSocket.DiscordShardedClient.DownloadUsersAsync(System.Collections.Generic.IEnumerable{Discord.IGuild})">DownloadUsersAsync(IEnumerable&lt;IGuild&gt;)</h4>
+  <div class="markdown level1 summary"><p>Attempts to download users into the user cache for the selected guilds.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override Task DownloadUsersAsync(IEnumerable&lt;IGuild&gt; guilds)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IEnumerable</span>&lt;<a class="xref" href="Discord.IGuild.html">IGuild</a>&gt;</td>
+        <td><span class="parametername">guilds</span></td>
+        <td><p>The guilds to download the members from.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td><p>A task that represents the asynchronous download operation.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_DownloadUsersAsync_System_Collections_Generic_IEnumerable_Discord_IGuild__">BaseSocketClient.DownloadUsersAsync(IEnumerable&lt;IGuild&gt;)</a></div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentNullException</span></td>
+        <td><p><code data-dev-comment-type="paramref" class="paramref">guilds</code> is <span class="xref">null</span></p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_DiscordShardedClient_GetApplicationInfoAsync_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.DiscordShardedClient.GetApplicationInfoAsync(Discord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/DiscordShardedClient.cs/#L156">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_DiscordShardedClient_GetApplicationInfoAsync_" data-uid="Discord.WebSocket.DiscordShardedClient.GetApplicationInfoAsync*"></a>
+  <h4 id="Discord_WebSocket_DiscordShardedClient_GetApplicationInfoAsync_Discord_RequestOptions_" data-uid="Discord.WebSocket.DiscordShardedClient.GetApplicationInfoAsync(Discord.RequestOptions)">GetApplicationInfoAsync(RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Gets a Discord application information for the logged-in user.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override Task&lt;RestApplication&gt; GetApplicationInfoAsync(RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<a class="xref" href="Discord.Rest.RestApplication.html">RestApplication</a>&gt;</td>
+        <td><p>A task that represents the asynchronous get operation. The task result contains the application
+information.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_GetApplicationInfoAsync_Discord_RequestOptions_">BaseSocketClient.GetApplicationInfoAsync(RequestOptions)</a></div>
+  <h5 id="Discord_WebSocket_DiscordShardedClient_GetApplicationInfoAsync_Discord_RequestOptions__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method reflects your application information you submitted when creating a Discord application via
+the Developer Portal.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_DiscordShardedClient_GetChannel_System_UInt64_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.DiscordShardedClient.GetChannel(System.UInt64)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/DiscordShardedClient.cs/#L164">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_DiscordShardedClient_GetChannel_" data-uid="Discord.WebSocket.DiscordShardedClient.GetChannel*"></a>
+  <h4 id="Discord_WebSocket_DiscordShardedClient_GetChannel_System_UInt64_" data-uid="Discord.WebSocket.DiscordShardedClient.GetChannel(System.UInt64)">GetChannel(UInt64)</h4>
+  <div class="markdown level1 summary"><p>Gets a channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override SocketChannel GetChannel(ulong id)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt64</span></td>
+        <td><span class="parametername">id</span></td>
+        <td><p>The snowflake identifier of the channel (e.g. <code>381889909113225237</code>).</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.WebSocket.SocketChannel.html">SocketChannel</a></td>
+        <td><p>A generic WebSocket-based channel object (voice, text, category, etc.) associated with the identifier;
+<code>null</code> when the channel cannot be found.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_GetChannel_System_UInt64_">BaseSocketClient.GetChannel(UInt64)</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_DiscordShardedClient_GetGuild_System_UInt64_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.DiscordShardedClient.GetGuild(System.UInt64)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/DiscordShardedClient.cs/#L160">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_DiscordShardedClient_GetGuild_" data-uid="Discord.WebSocket.DiscordShardedClient.GetGuild*"></a>
+  <h4 id="Discord_WebSocket_DiscordShardedClient_GetGuild_System_UInt64_" data-uid="Discord.WebSocket.DiscordShardedClient.GetGuild(System.UInt64)">GetGuild(UInt64)</h4>
+  <div class="markdown level1 summary"><p>Gets a guild.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override SocketGuild GetGuild(ulong id)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt64</span></td>
+        <td><span class="parametername">id</span></td>
+        <td><p>The guild snowflake identifier.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.WebSocket.SocketGuild.html">SocketGuild</a></td>
+        <td><p>A WebSocket-based guild associated with the snowflake identifier; <code>null</code> when the guild cannot be
+found.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_GetGuild_System_UInt64_">BaseSocketClient.GetGuild(UInt64)</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_DiscordShardedClient_GetShard_System_Int32_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.DiscordShardedClient.GetShard(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/DiscordShardedClient.cs/#L140">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_DiscordShardedClient_GetShard_" data-uid="Discord.WebSocket.DiscordShardedClient.GetShard*"></a>
+  <h4 id="Discord_WebSocket_DiscordShardedClient_GetShard_System_Int32_" data-uid="Discord.WebSocket.DiscordShardedClient.GetShard(System.Int32)">GetShard(Int32)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public DiscordSocketClient GetShard(int id)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">id</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.WebSocket.DiscordSocketClient.html">DiscordSocketClient</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_DiscordShardedClient_GetShardFor_Discord_IGuild_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.DiscordShardedClient.GetShardFor(Discord.IGuild)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/DiscordShardedClient.cs/#L152">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_DiscordShardedClient_GetShardFor_" data-uid="Discord.WebSocket.DiscordShardedClient.GetShardFor*"></a>
+  <h4 id="Discord_WebSocket_DiscordShardedClient_GetShardFor_Discord_IGuild_" data-uid="Discord.WebSocket.DiscordShardedClient.GetShardFor(Discord.IGuild)">GetShardFor(IGuild)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public DiscordSocketClient GetShardFor(IGuild guild)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.IGuild.html">IGuild</a></td>
+        <td><span class="parametername">guild</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.WebSocket.DiscordSocketClient.html">DiscordSocketClient</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_DiscordShardedClient_GetShardIdFor_Discord_IGuild_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.DiscordShardedClient.GetShardIdFor(Discord.IGuild)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/DiscordShardedClient.cs/#L148">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_DiscordShardedClient_GetShardIdFor_" data-uid="Discord.WebSocket.DiscordShardedClient.GetShardIdFor*"></a>
+  <h4 id="Discord_WebSocket_DiscordShardedClient_GetShardIdFor_Discord_IGuild_" data-uid="Discord.WebSocket.DiscordShardedClient.GetShardIdFor(Discord.IGuild)">GetShardIdFor(IGuild)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int GetShardIdFor(IGuild guild)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.IGuild.html">IGuild</a></td>
+        <td><span class="parametername">guild</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_DiscordShardedClient_GetUser_System_String_System_String_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.DiscordShardedClient.GetUser(System.String%2CSystem.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/DiscordShardedClient.cs/#L218">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_DiscordShardedClient_GetUser_" data-uid="Discord.WebSocket.DiscordShardedClient.GetUser*"></a>
+  <h4 id="Discord_WebSocket_DiscordShardedClient_GetUser_System_String_System_String_" data-uid="Discord.WebSocket.DiscordShardedClient.GetUser(System.String,System.String)">GetUser(String, String)</h4>
+  <div class="markdown level1 summary"><p>Gets a user.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override SocketUser GetUser(string username, string discriminator)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">username</span></td>
+        <td><p>The name of the user.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">discriminator</span></td>
+        <td><p>The discriminator value of the user.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.WebSocket.SocketUser.html">SocketUser</a></td>
+        <td><p>A generic WebSocket-based user; <code>null</code> when the user cannot be found.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_GetUser_System_String_System_String_">BaseSocketClient.GetUser(String, String)</a></div>
+  <h5 id="Discord_WebSocket_DiscordShardedClient_GetUser_System_String_System_String__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method gets the user present in the WebSocket cache with the given condition.</p>
+<div class="WARNING"><h5>warning</h5><p>
+    Sometimes a user may return <code>null</code> due to Discord not sending offline users in large guilds
+    (i.e. guild with 100+ members) actively. To download users on startup and to see more information
+    about this subject, see <a class="xref" href="Discord.WebSocket.DiscordSocketConfig.html#Discord_WebSocket_DiscordSocketConfig_AlwaysDownloadUsers">AlwaysDownloadUsers</a>.
+</p></div>
+<div class="NOTE"><h5>note</h5><p>
+    This method does not attempt to fetch users that the logged-in user does not have access to (i.e.
+    users who don&apos;t share mutual guild(s) with the current user). If you wish to get a user that you do
+    not have access to, consider using the REST implementation of
+<a class="xref" href="Discord.Rest.DiscordRestClient.html#Discord_Rest_DiscordRestClient_GetUserAsync_System_UInt64_Discord_RequestOptions_">GetUserAsync(UInt64, RequestOptions)</a>.
+</p></div>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_DiscordShardedClient_GetUser_System_UInt64_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.DiscordShardedClient.GetUser(System.UInt64)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/DiscordShardedClient.cs/#L207">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_DiscordShardedClient_GetUser_" data-uid="Discord.WebSocket.DiscordShardedClient.GetUser*"></a>
+  <h4 id="Discord_WebSocket_DiscordShardedClient_GetUser_System_UInt64_" data-uid="Discord.WebSocket.DiscordShardedClient.GetUser(System.UInt64)">GetUser(UInt64)</h4>
+  <div class="markdown level1 summary"><p>Gets a generic user.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override SocketUser GetUser(ulong id)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt64</span></td>
+        <td><span class="parametername">id</span></td>
+        <td><p>The user snowflake ID.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.WebSocket.SocketUser.html">SocketUser</a></td>
+        <td><p>A generic WebSocket-based user; <code>null</code> when the user cannot be found.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_GetUser_System_UInt64_">BaseSocketClient.GetUser(UInt64)</a></div>
+  <h5 id="Discord_WebSocket_DiscordShardedClient_GetUser_System_UInt64__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method gets the user present in the WebSocket cache with the given condition.</p>
+<div class="WARNING"><h5>warning</h5><p>
+    Sometimes a user may return <code>null</code> due to Discord not sending offline users in large guilds
+    (i.e. guild with 100+ members) actively. To download users on startup and to see more information
+    about this subject, see <a class="xref" href="Discord.WebSocket.DiscordSocketConfig.html#Discord_WebSocket_DiscordSocketConfig_AlwaysDownloadUsers">AlwaysDownloadUsers</a>.
+</p></div>
+<div class="NOTE"><h5>note</h5><p>
+    This method does not attempt to fetch users that the logged-in user does not have access to (i.e.
+    users who don&apos;t share mutual guild(s) with the current user). If you wish to get a user that you do
+    not have access to, consider using the REST implementation of
+<a class="xref" href="Discord.Rest.DiscordRestClient.html#Discord_Rest_DiscordRestClient_GetUserAsync_System_UInt64_Discord_RequestOptions_">GetUserAsync(UInt64, RequestOptions)</a>.
+</p></div>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_DiscordShardedClient_GetVoiceRegion_System_String_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.DiscordShardedClient.GetVoiceRegion(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/DiscordShardedClient.cs/#L230">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_DiscordShardedClient_GetVoiceRegion_" data-uid="Discord.WebSocket.DiscordShardedClient.GetVoiceRegion*"></a>
+  <h4 id="Discord_WebSocket_DiscordShardedClient_GetVoiceRegion_System_String_" data-uid="Discord.WebSocket.DiscordShardedClient.GetVoiceRegion(System.String)">GetVoiceRegion(String)</h4>
+  <div class="markdown level1 summary"><p>Gets a voice region.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override RestVoiceRegion GetVoiceRegion(string id)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">id</span></td>
+        <td><p>The identifier of the voice region (e.g. <code>eu-central</code> ).</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.Rest.RestVoiceRegion.html">RestVoiceRegion</a></td>
+        <td><p>A REST-based voice region associated with the identifier; <code>null</code> if the voice region is not
+found.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_GetVoiceRegion_System_String_">BaseSocketClient.GetVoiceRegion(String)</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_DiscordShardedClient_SetActivityAsync_Discord_IActivity_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.DiscordShardedClient.SetActivityAsync(Discord.IActivity)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/DiscordShardedClient.cs/#L272">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_DiscordShardedClient_SetActivityAsync_" data-uid="Discord.WebSocket.DiscordShardedClient.SetActivityAsync*"></a>
+  <h4 id="Discord_WebSocket_DiscordShardedClient_SetActivityAsync_Discord_IActivity_" data-uid="Discord.WebSocket.DiscordShardedClient.SetActivityAsync(Discord.IActivity)">SetActivityAsync(IActivity)</h4>
+  <div class="markdown level1 summary"><p>Sets the <code data-dev-comment-type="paramref" class="paramref">activity</code> of the logged-in user.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override Task SetActivityAsync(IActivity activity)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.IActivity.html">IActivity</a></td>
+        <td><span class="parametername">activity</span></td>
+        <td><p>The activity to be set.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td><p>A task that represents the asynchronous set operation.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_SetActivityAsync_Discord_IActivity_">BaseSocketClient.SetActivityAsync(IActivity)</a></div>
+  <h5 id="Discord_WebSocket_DiscordShardedClient_SetActivityAsync_Discord_IActivity__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method sets the <code data-dev-comment-type="paramref" class="paramref">activity</code> of the user.</p>
+<div class="NOTE"><h5>note</h5><p>
+    Discord will only accept setting of name and the type of activity.
+</p></div>
+<div class="WARNING"><h5>warning</h5><p>
+    Rich Presence cannot be set via this method or client. Rich Presence is strictly limited to RPC
+    clients only. 
+</p></div>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_DiscordShardedClient_SetGameAsync_System_String_System_String_Discord_ActivityType_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.DiscordShardedClient.SetGameAsync(System.String%2CSystem.String%2CDiscord.ActivityType)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/DiscordShardedClient.cs/#L262">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_DiscordShardedClient_SetGameAsync_" data-uid="Discord.WebSocket.DiscordShardedClient.SetGameAsync*"></a>
+  <h4 id="Discord_WebSocket_DiscordShardedClient_SetGameAsync_System_String_System_String_Discord_ActivityType_" data-uid="Discord.WebSocket.DiscordShardedClient.SetGameAsync(System.String,System.String,Discord.ActivityType)">SetGameAsync(String, String, ActivityType)</h4>
+  <div class="markdown level1 summary"><p>Sets the game of the user.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override Task SetGameAsync(string name, string streamUrl = null, ActivityType type = ActivityType.Playing)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">name</span></td>
+        <td><p>The name of the game.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">streamUrl</span></td>
+        <td><p>If streaming, the URL of the stream. Must be a valid Twitch URL.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.ActivityType.html">ActivityType</a></td>
+        <td><span class="parametername">type</span></td>
+        <td><p>The type of the game.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td><p>A task that represents the asynchronous set operation.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_SetGameAsync_System_String_System_String_Discord_ActivityType_">BaseSocketClient.SetGameAsync(String, String, ActivityType)</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_DiscordShardedClient_SetStatusAsync_Discord_UserStatus_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.DiscordShardedClient.SetStatusAsync(Discord.UserStatus)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/DiscordShardedClient.cs/#L256">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_DiscordShardedClient_SetStatusAsync_" data-uid="Discord.WebSocket.DiscordShardedClient.SetStatusAsync*"></a>
+  <h4 id="Discord_WebSocket_DiscordShardedClient_SetStatusAsync_Discord_UserStatus_" data-uid="Discord.WebSocket.DiscordShardedClient.SetStatusAsync(Discord.UserStatus)">SetStatusAsync(UserStatus)</h4>
+  <div class="markdown level1 summary"><p>Sets the current status of the user (e.g. Online, Do not Disturb).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override Task SetStatusAsync(UserStatus status)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.UserStatus.html">UserStatus</a></td>
+        <td><span class="parametername">status</span></td>
+        <td><p>The new status to be set.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td><p>A task that represents the asynchronous set operation.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_SetStatusAsync_Discord_UserStatus_">BaseSocketClient.SetStatusAsync(UserStatus)</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_DiscordShardedClient_StartAsync.md&amp;value=---%0Auid%3A%20Discord.WebSocket.DiscordShardedClient.StartAsync%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/DiscordShardedClient.cs/#L134">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_DiscordShardedClient_StartAsync_" data-uid="Discord.WebSocket.DiscordShardedClient.StartAsync*"></a>
+  <h4 id="Discord_WebSocket_DiscordShardedClient_StartAsync" data-uid="Discord.WebSocket.DiscordShardedClient.StartAsync">StartAsync()</h4>
+  <div class="markdown level1 summary"><p>Starts the connection between Discord and the client..</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override Task StartAsync()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td><p>A task that represents the asynchronous start operation.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_StartAsync">BaseSocketClient.StartAsync()</a></div>
+  <h5 id="Discord_WebSocket_DiscordShardedClient_StartAsync_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method will initialize the connection between the client and Discord.</p>
+<div class="IMPORTANT"><h5>important</h5><p>
+    This method will immediately return after it is called, as it will initialize the connection on
+    another thread.
+</p></div>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_DiscordShardedClient_StopAsync.md&amp;value=---%0Auid%3A%20Discord.WebSocket.DiscordShardedClient.StopAsync%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/DiscordShardedClient.cs/#L137">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_DiscordShardedClient_StopAsync_" data-uid="Discord.WebSocket.DiscordShardedClient.StopAsync*"></a>
+  <h4 id="Discord_WebSocket_DiscordShardedClient_StopAsync" data-uid="Discord.WebSocket.DiscordShardedClient.StopAsync">StopAsync()</h4>
+  <div class="markdown level1 summary"><p>Stops the connection between Discord and the client.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override Task StopAsync()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td><p>A task that represents the asynchronous stop operation.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Discord.WebSocket.BaseSocketClient.html#Discord_WebSocket_BaseSocketClient_StopAsync">BaseSocketClient.StopAsync()</a></div>
+  <h3 id="events">Events
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_DiscordShardedClient_ShardConnected.md&amp;value=---%0Auid%3A%20Discord.WebSocket.DiscordShardedClient.ShardConnected%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/DiscordShardedClient.Events.cs/#L10">View Source</a>
+  </span>
+  <h4 id="Discord_WebSocket_DiscordShardedClient_ShardConnected" data-uid="Discord.WebSocket.DiscordShardedClient.ShardConnected">ShardConnected</h4>
+  <div class="markdown level1 summary"><p>Fired when a shard is connected to the Discord gateway.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public event Func&lt;DiscordSocketClient, Task&gt; ShardConnected</code></pre>
+  </div>
+  <h5 class="eventType">Event Type</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Func</span>&lt;<a class="xref" href="Discord.WebSocket.DiscordSocketClient.html">DiscordSocketClient</a>, <span class="xref">System.Threading.Tasks.Task</span>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_DiscordShardedClient_ShardDisconnected.md&amp;value=---%0Auid%3A%20Discord.WebSocket.DiscordShardedClient.ShardDisconnected%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/DiscordShardedClient.Events.cs/#L17">View Source</a>
+  </span>
+  <h4 id="Discord_WebSocket_DiscordShardedClient_ShardDisconnected" data-uid="Discord.WebSocket.DiscordShardedClient.ShardDisconnected">ShardDisconnected</h4>
+  <div class="markdown level1 summary"><p>Fired when a shard is disconnected from the Discord gateway.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public event Func&lt;Exception, DiscordSocketClient, Task&gt; ShardDisconnected</code></pre>
+  </div>
+  <h5 class="eventType">Event Type</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Func</span>&lt;<span class="xref">System.Exception</span>, <a class="xref" href="Discord.WebSocket.DiscordSocketClient.html">DiscordSocketClient</a>, <span class="xref">System.Threading.Tasks.Task</span>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_DiscordShardedClient_ShardLatencyUpdated.md&amp;value=---%0Auid%3A%20Discord.WebSocket.DiscordShardedClient.ShardLatencyUpdated%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/DiscordShardedClient.Events.cs/#L31">View Source</a>
+  </span>
+  <h4 id="Discord_WebSocket_DiscordShardedClient_ShardLatencyUpdated" data-uid="Discord.WebSocket.DiscordShardedClient.ShardLatencyUpdated">ShardLatencyUpdated</h4>
+  <div class="markdown level1 summary"><p>Fired when a shard receives a heartbeat from the Discord gateway.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public event Func&lt;int, int, DiscordSocketClient, Task&gt; ShardLatencyUpdated</code></pre>
+  </div>
+  <h5 class="eventType">Event Type</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Func</span>&lt;<span class="xref">System.Int32</span>, <span class="xref">System.Int32</span>, <a class="xref" href="Discord.WebSocket.DiscordSocketClient.html">DiscordSocketClient</a>, <span class="xref">System.Threading.Tasks.Task</span>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_DiscordShardedClient_ShardReady.md&amp;value=---%0Auid%3A%20Discord.WebSocket.DiscordShardedClient.ShardReady%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/DiscordShardedClient.Events.cs/#L24">View Source</a>
+  </span>
+  <h4 id="Discord_WebSocket_DiscordShardedClient_ShardReady" data-uid="Discord.WebSocket.DiscordShardedClient.ShardReady">ShardReady</h4>
+  <div class="markdown level1 summary"><p>Fired when a guild data for a shard has finished downloading.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public event Func&lt;DiscordSocketClient, Task&gt; ShardReady</code></pre>
+  </div>
+  <h5 class="eventType">Event Type</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Func</span>&lt;<a class="xref" href="Discord.WebSocket.DiscordSocketClient.html">DiscordSocketClient</a>, <span class="xref">System.Threading.Tasks.Task</span>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="eii">Explicit Interface Implementations
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_DiscordShardedClient_Discord_IDiscordClient_CreateGuildAsync_System_String_Discord_IVoiceRegion_System_IO_Stream_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.DiscordShardedClient.Discord%23IDiscordClient%23CreateGuildAsync(System.String%2CDiscord.IVoiceRegion%2CSystem.IO.Stream%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/DiscordShardedClient.cs/#L369">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_DiscordShardedClient_Discord_IDiscordClient_CreateGuildAsync_" data-uid="Discord.WebSocket.DiscordShardedClient.Discord#IDiscordClient#CreateGuildAsync*"></a>
+  <h4 id="Discord_WebSocket_DiscordShardedClient_Discord_IDiscordClient_CreateGuildAsync_System_String_Discord_IVoiceRegion_System_IO_Stream_Discord_RequestOptions_" data-uid="Discord.WebSocket.DiscordShardedClient.Discord#IDiscordClient#CreateGuildAsync(System.String,Discord.IVoiceRegion,System.IO.Stream,Discord.RequestOptions)">IDiscordClient.CreateGuildAsync(String, IVoiceRegion, Stream, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Creates a guild for the logged-in user who is in less than 10 active guilds.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task&lt;IGuild&gt; IDiscordClient.CreateGuildAsync(string name, IVoiceRegion region, Stream jpegIcon, RequestOptions options)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">name</span></td>
+        <td><p>The name of the new guild.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.IVoiceRegion.html">IVoiceRegion</a></td>
+        <td><span class="parametername">region</span></td>
+        <td><p>The voice region to create the guild with.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.IO.Stream</span></td>
+        <td><span class="parametername">jpegIcon</span></td>
+        <td><p>The icon of the guild.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<a class="xref" href="Discord.IGuild.html">IGuild</a>&gt;</td>
+        <td><p>A task that represents the asynchronous creation operation. The task result contains the created guild.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Discord_WebSocket_DiscordShardedClient_Discord_IDiscordClient_CreateGuildAsync_System_String_Discord_IVoiceRegion_System_IO_Stream_Discord_RequestOptions__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method creates a new guild on behalf of the logged-in user.</p>
+<div class="WARNING"><h5>warning</h5><p>
+    Due to Discord&apos;s limitation, this method will only work for users that are in less than 10 guilds.
+</p></div>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_DiscordShardedClient_Discord_IDiscordClient_GetApplicationInfoAsync_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.DiscordShardedClient.Discord%23IDiscordClient%23GetApplicationInfoAsync(Discord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/DiscordShardedClient.cs/#L344">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_DiscordShardedClient_Discord_IDiscordClient_GetApplicationInfoAsync_" data-uid="Discord.WebSocket.DiscordShardedClient.Discord#IDiscordClient#GetApplicationInfoAsync*"></a>
+  <h4 id="Discord_WebSocket_DiscordShardedClient_Discord_IDiscordClient_GetApplicationInfoAsync_Discord_RequestOptions_" data-uid="Discord.WebSocket.DiscordShardedClient.Discord#IDiscordClient#GetApplicationInfoAsync(Discord.RequestOptions)">IDiscordClient.GetApplicationInfoAsync(RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Gets a Discord application information for the logged-in user.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task&lt;IApplication&gt; IDiscordClient.GetApplicationInfoAsync(RequestOptions options)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<a class="xref" href="Discord.IApplication.html">IApplication</a>&gt;</td>
+        <td><p>A task that represents the asynchronous get operation. The task result contains the application
+information.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Discord_WebSocket_DiscordShardedClient_Discord_IDiscordClient_GetApplicationInfoAsync_Discord_RequestOptions__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method reflects your application information you submitted when creating a Discord application via
+the Developer Portal.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_DiscordShardedClient_Discord_IDiscordClient_GetChannelAsync_System_UInt64_Discord_CacheMode_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.DiscordShardedClient.Discord%23IDiscordClient%23GetChannelAsync(System.UInt64%2CDiscord.CacheMode%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/DiscordShardedClient.cs/#L348">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_DiscordShardedClient_Discord_IDiscordClient_GetChannelAsync_" data-uid="Discord.WebSocket.DiscordShardedClient.Discord#IDiscordClient#GetChannelAsync*"></a>
+  <h4 id="Discord_WebSocket_DiscordShardedClient_Discord_IDiscordClient_GetChannelAsync_System_UInt64_Discord_CacheMode_Discord_RequestOptions_" data-uid="Discord.WebSocket.DiscordShardedClient.Discord#IDiscordClient#GetChannelAsync(System.UInt64,Discord.CacheMode,Discord.RequestOptions)">IDiscordClient.GetChannelAsync(UInt64, CacheMode, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Gets a generic channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task&lt;IChannel&gt; IDiscordClient.GetChannelAsync(ulong id, CacheMode mode, RequestOptions options)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt64</span></td>
+        <td><span class="parametername">id</span></td>
+        <td><p>The snowflake identifier of the channel (e.g. <code>381889909113225237</code>).</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.CacheMode.html">CacheMode</a></td>
+        <td><span class="parametername">mode</span></td>
+        <td><p>The <a class="xref" href="Discord.CacheMode.html">CacheMode</a> that determines whether the object should be fetched from cache.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<a class="xref" href="Discord.IChannel.html">IChannel</a>&gt;</td>
+        <td><p>A task that represents the asynchronous get operation. The task result contains the channel associated
+with the snowflake identifier; <code>null</code> when the channel cannot be found.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_DiscordShardedClient_Discord_IDiscordClient_GetConnectionsAsync_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.DiscordShardedClient.Discord%23IDiscordClient%23GetConnectionsAsync(Discord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/DiscordShardedClient.cs/#L355">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_DiscordShardedClient_Discord_IDiscordClient_GetConnectionsAsync_" data-uid="Discord.WebSocket.DiscordShardedClient.Discord#IDiscordClient#GetConnectionsAsync*"></a>
+  <h4 id="Discord_WebSocket_DiscordShardedClient_Discord_IDiscordClient_GetConnectionsAsync_Discord_RequestOptions_" data-uid="Discord.WebSocket.DiscordShardedClient.Discord#IDiscordClient#GetConnectionsAsync(Discord.RequestOptions)">IDiscordClient.GetConnectionsAsync(RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Gets the connections that the user has set up.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task&lt;IReadOnlyCollection&lt;IConnection&gt;&gt; IDiscordClient.GetConnectionsAsync(RequestOptions options)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<a class="xref" href="Discord.IConnection.html">IConnection</a>&gt;&gt;</td>
+        <td><p>A task that represents the asynchronous get operation. The task result contains a read-only collection of connections.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_DiscordShardedClient_Discord_IDiscordClient_GetGuildAsync_System_UInt64_Discord_CacheMode_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.DiscordShardedClient.Discord%23IDiscordClient%23GetGuildAsync(System.UInt64%2CDiscord.CacheMode%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/DiscordShardedClient.cs/#L363">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_DiscordShardedClient_Discord_IDiscordClient_GetGuildAsync_" data-uid="Discord.WebSocket.DiscordShardedClient.Discord#IDiscordClient#GetGuildAsync*"></a>
+  <h4 id="Discord_WebSocket_DiscordShardedClient_Discord_IDiscordClient_GetGuildAsync_System_UInt64_Discord_CacheMode_Discord_RequestOptions_" data-uid="Discord.WebSocket.DiscordShardedClient.Discord#IDiscordClient#GetGuildAsync(System.UInt64,Discord.CacheMode,Discord.RequestOptions)">IDiscordClient.GetGuildAsync(UInt64, CacheMode, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Gets a guild.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task&lt;IGuild&gt; IDiscordClient.GetGuildAsync(ulong id, CacheMode mode, RequestOptions options)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt64</span></td>
+        <td><span class="parametername">id</span></td>
+        <td><p>The guild snowflake identifier.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.CacheMode.html">CacheMode</a></td>
+        <td><span class="parametername">mode</span></td>
+        <td><p>The <a class="xref" href="Discord.CacheMode.html">CacheMode</a> that determines whether the object should be fetched from cache.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<a class="xref" href="Discord.IGuild.html">IGuild</a>&gt;</td>
+        <td><p>A task that represents the asynchronous get operation. The task result contains the guild associated
+with the snowflake identifier; <code>null</code> when the guild cannot be found.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_DiscordShardedClient_Discord_IDiscordClient_GetGuildsAsync_Discord_CacheMode_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.DiscordShardedClient.Discord%23IDiscordClient%23GetGuildsAsync(Discord.CacheMode%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/DiscordShardedClient.cs/#L366">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_DiscordShardedClient_Discord_IDiscordClient_GetGuildsAsync_" data-uid="Discord.WebSocket.DiscordShardedClient.Discord#IDiscordClient#GetGuildsAsync*"></a>
+  <h4 id="Discord_WebSocket_DiscordShardedClient_Discord_IDiscordClient_GetGuildsAsync_Discord_CacheMode_Discord_RequestOptions_" data-uid="Discord.WebSocket.DiscordShardedClient.Discord#IDiscordClient#GetGuildsAsync(Discord.CacheMode,Discord.RequestOptions)">IDiscordClient.GetGuildsAsync(CacheMode, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Gets a collection of guilds that the user is currently in.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task&lt;IReadOnlyCollection&lt;IGuild&gt;&gt; IDiscordClient.GetGuildsAsync(CacheMode mode, RequestOptions options)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.CacheMode.html">CacheMode</a></td>
+        <td><span class="parametername">mode</span></td>
+        <td><p>The <a class="xref" href="Discord.CacheMode.html">CacheMode</a> that determines whether the object should be fetched from cache.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<a class="xref" href="Discord.IGuild.html">IGuild</a>&gt;&gt;</td>
+        <td><p>A task that represents the asynchronous get operation. The task result contains a read-only collection
+of guilds that the current user is in.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_DiscordShardedClient_Discord_IDiscordClient_GetInviteAsync_System_String_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.DiscordShardedClient.Discord%23IDiscordClient%23GetInviteAsync(System.String%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/DiscordShardedClient.cs/#L359">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_DiscordShardedClient_Discord_IDiscordClient_GetInviteAsync_" data-uid="Discord.WebSocket.DiscordShardedClient.Discord#IDiscordClient#GetInviteAsync*"></a>
+  <h4 id="Discord_WebSocket_DiscordShardedClient_Discord_IDiscordClient_GetInviteAsync_System_String_Discord_RequestOptions_" data-uid="Discord.WebSocket.DiscordShardedClient.Discord#IDiscordClient#GetInviteAsync(System.String,Discord.RequestOptions)">IDiscordClient.GetInviteAsync(String, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Gets an invite.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task&lt;IInvite&gt; IDiscordClient.GetInviteAsync(string inviteId, RequestOptions options)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">inviteId</span></td>
+        <td><p>The invitation identifier.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<a class="xref" href="Discord.IInvite.html">IInvite</a>&gt;</td>
+        <td><p>A task that represents the asynchronous get operation. The task result contains the invite information.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_DiscordShardedClient_Discord_IDiscordClient_GetPrivateChannelsAsync_Discord_CacheMode_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.DiscordShardedClient.Discord%23IDiscordClient%23GetPrivateChannelsAsync(Discord.CacheMode%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/DiscordShardedClient.cs/#L351">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_DiscordShardedClient_Discord_IDiscordClient_GetPrivateChannelsAsync_" data-uid="Discord.WebSocket.DiscordShardedClient.Discord#IDiscordClient#GetPrivateChannelsAsync*"></a>
+  <h4 id="Discord_WebSocket_DiscordShardedClient_Discord_IDiscordClient_GetPrivateChannelsAsync_Discord_CacheMode_Discord_RequestOptions_" data-uid="Discord.WebSocket.DiscordShardedClient.Discord#IDiscordClient#GetPrivateChannelsAsync(Discord.CacheMode,Discord.RequestOptions)">IDiscordClient.GetPrivateChannelsAsync(CacheMode, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Gets a collection of private channels opened in this session.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task&lt;IReadOnlyCollection&lt;IPrivateChannel&gt;&gt; IDiscordClient.GetPrivateChannelsAsync(CacheMode mode, RequestOptions options)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.CacheMode.html">CacheMode</a></td>
+        <td><span class="parametername">mode</span></td>
+        <td><p>The <a class="xref" href="Discord.CacheMode.html">CacheMode</a> that determines whether the object should be fetched from cache.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<a class="xref" href="Discord.IPrivateChannel.html">IPrivateChannel</a>&gt;&gt;</td>
+        <td><p>A task that represents the asynchronous get operation. The task result contains a read-only collection
+of private channels that the user currently partakes in.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Discord_WebSocket_DiscordShardedClient_Discord_IDiscordClient_GetPrivateChannelsAsync_Discord_CacheMode_Discord_RequestOptions__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method will retrieve all private channels (including direct-message, group channel and such) that
+are currently opened in this session.</p>
+<div class="WARNING"><h5>warning</h5><p>
+    This method will not return previously opened private channels outside of the current session! If
+    you have just started the client, this may return an empty collection.
+</p></div>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_DiscordShardedClient_Discord_IDiscordClient_GetUserAsync_System_String_System_String_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.DiscordShardedClient.Discord%23IDiscordClient%23GetUserAsync(System.String%2CSystem.String%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/DiscordShardedClient.cs/#L376">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_DiscordShardedClient_Discord_IDiscordClient_GetUserAsync_" data-uid="Discord.WebSocket.DiscordShardedClient.Discord#IDiscordClient#GetUserAsync*"></a>
+  <h4 id="Discord_WebSocket_DiscordShardedClient_Discord_IDiscordClient_GetUserAsync_System_String_System_String_Discord_RequestOptions_" data-uid="Discord.WebSocket.DiscordShardedClient.Discord#IDiscordClient#GetUserAsync(System.String,System.String,Discord.RequestOptions)">IDiscordClient.GetUserAsync(String, String, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Gets a user.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task&lt;IUser&gt; IDiscordClient.GetUserAsync(string username, string discriminator, RequestOptions options)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">username</span></td>
+        <td><p>The name of the user (e.g. <code>Still</code>).</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">discriminator</span></td>
+        <td><p>The discriminator value of the user (e.g. <code>2876</code>).</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<a class="xref" href="Discord.IUser.html">IUser</a>&gt;</td>
+        <td><p>A task that represents the asynchronous get operation. The task result contains the user associated with
+the name and the discriminator; <code>null</code> if the user is not found.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_DiscordShardedClient_Discord_IDiscordClient_GetUserAsync_System_UInt64_Discord_CacheMode_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.DiscordShardedClient.Discord%23IDiscordClient%23GetUserAsync(System.UInt64%2CDiscord.CacheMode%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/DiscordShardedClient.cs/#L373">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_DiscordShardedClient_Discord_IDiscordClient_GetUserAsync_" data-uid="Discord.WebSocket.DiscordShardedClient.Discord#IDiscordClient#GetUserAsync*"></a>
+  <h4 id="Discord_WebSocket_DiscordShardedClient_Discord_IDiscordClient_GetUserAsync_System_UInt64_Discord_CacheMode_Discord_RequestOptions_" data-uid="Discord.WebSocket.DiscordShardedClient.Discord#IDiscordClient#GetUserAsync(System.UInt64,Discord.CacheMode,Discord.RequestOptions)">IDiscordClient.GetUserAsync(UInt64, CacheMode, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Gets a user.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task&lt;IUser&gt; IDiscordClient.GetUserAsync(ulong id, CacheMode mode, RequestOptions options)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt64</span></td>
+        <td><span class="parametername">id</span></td>
+        <td><p>The snowflake identifier of the user (e.g. <code>168693960628371456</code>).</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.CacheMode.html">CacheMode</a></td>
+        <td><span class="parametername">mode</span></td>
+        <td><p>The <a class="xref" href="Discord.CacheMode.html">CacheMode</a> that determines whether the object should be fetched from cache.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<a class="xref" href="Discord.IUser.html">IUser</a>&gt;</td>
+        <td><p>A task that represents the asynchronous get operation. The task result contains the user associated with
+the snowflake identifier; <code>null</code> if the user is not found.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_DiscordShardedClient_Discord_IDiscordClient_GetVoiceRegionAsync_System_String_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.DiscordShardedClient.Discord%23IDiscordClient%23GetVoiceRegionAsync(System.String%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/DiscordShardedClient.cs/#L383">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_DiscordShardedClient_Discord_IDiscordClient_GetVoiceRegionAsync_" data-uid="Discord.WebSocket.DiscordShardedClient.Discord#IDiscordClient#GetVoiceRegionAsync*"></a>
+  <h4 id="Discord_WebSocket_DiscordShardedClient_Discord_IDiscordClient_GetVoiceRegionAsync_System_String_Discord_RequestOptions_" data-uid="Discord.WebSocket.DiscordShardedClient.Discord#IDiscordClient#GetVoiceRegionAsync(System.String,Discord.RequestOptions)">IDiscordClient.GetVoiceRegionAsync(String, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Gets a voice region.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task&lt;IVoiceRegion&gt; IDiscordClient.GetVoiceRegionAsync(string id, RequestOptions options)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">id</span></td>
+        <td><p>The identifier of the voice region (e.g. <code>eu-central</code> ).</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<a class="xref" href="Discord.IVoiceRegion.html">IVoiceRegion</a>&gt;</td>
+        <td><p>A task that represents the asynchronous get operation. The task result contains the voice region
+associated with the identifier; <code>null</code> if the voice region is not found.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_DiscordShardedClient_Discord_IDiscordClient_GetVoiceRegionsAsync_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.DiscordShardedClient.Discord%23IDiscordClient%23GetVoiceRegionsAsync(Discord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/DiscordShardedClient.cs/#L380">View Source</a>
+  </span>
+  <a id="Discord_WebSocket_DiscordShardedClient_Discord_IDiscordClient_GetVoiceRegionsAsync_" data-uid="Discord.WebSocket.DiscordShardedClient.Discord#IDiscordClient#GetVoiceRegionsAsync*"></a>
+  <h4 id="Discord_WebSocket_DiscordShardedClient_Discord_IDiscordClient_GetVoiceRegionsAsync_Discord_RequestOptions_" data-uid="Discord.WebSocket.DiscordShardedClient.Discord#IDiscordClient#GetVoiceRegionsAsync(Discord.RequestOptions)">IDiscordClient.GetVoiceRegionsAsync(RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Gets a collection of the available voice regions.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task&lt;IReadOnlyCollection&lt;IVoiceRegion&gt;&gt; IDiscordClient.GetVoiceRegionsAsync(RequestOptions options)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<a class="xref" href="Discord.IVoiceRegion.html">IVoiceRegion</a>&gt;&gt;</td>
+        <td><p>A task that represents the asynchronous get operation. The task result contains a read-only collection
+with all of the available voice regions in this session.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="Discord.IDiscordClient.html">IDiscordClient</a>
+  </div>
+  <div>
+      <span class="xref">System.IDisposable</span>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_WebSocket_DiscordShardedClient.md&amp;value=---%0Auid%3A%20Discord.WebSocket.DiscordShardedClient%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.WebSocket/DiscordShardedClient.Events.cs/#L6" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+              <!-- <p><a class="back-to-top" href="#top">Back to top</a><p> -->
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

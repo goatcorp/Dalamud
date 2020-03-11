@@ -22,16 +22,16 @@
     <None Include="$(SolutionDir)/Resources/**/*" CopyToOutputDirectory="PreserveNewest" Visible="false" />
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile></DocumentationFile>
+      <DocumentationFile>$(SolutionDir)\bin\Dalamud.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <DocumentationFile>$(SolutionDir)/bin\Dalamud.xml</DocumentationFile>
+    <DocumentationFile>$(SolutionDir)\bin\Dalamud.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>$(SolutionDir)/bin\Dalamud.xml</DocumentationFile>
+    <DocumentationFile>$(SolutionDir)\bin\Dalamud.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <DocumentationFile>$(SolutionDir)/bin\Dalamud.xml</DocumentationFile>
+    <DocumentationFile>$(SolutionDir)bin\Dalamud.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Resources\eye.png" />

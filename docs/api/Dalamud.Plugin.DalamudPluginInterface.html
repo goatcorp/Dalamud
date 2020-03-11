@@ -10,7 +10,7 @@
     <meta name="viewport" content="width=device-width">
     <meta name="title" content="Class DalamudPluginInterface
    ">
-    <meta name="generator" content="docfx 2.48.1.0">
+    <meta name="generator" content="docfx 2.50.0.0">
     
     <link rel="shortcut icon" href="../favicon.ico">
     <link rel="stylesheet" href="../styles/docfx.vendor.css">
@@ -119,19 +119,19 @@
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Plugin_DalamudPluginInterface__ctor_Dalamud_Dalamud_System_String_.md&amp;value=---%0Auid%3A%20Dalamud.Plugin.DalamudPluginInterface.%23ctor(Dalamud.Dalamud%2CSystem.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Plugin_DalamudPluginInterface__ctor_Dalamud_Dalamud_System_String_Dalamud_Configuration_PluginConfigurations_.md&amp;value=---%0Auid%3A%20Dalamud.Plugin.DalamudPluginInterface.%23ctor(Dalamud.Dalamud%2CSystem.String%2CDalamud.Configuration.PluginConfigurations)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Plugin/DalamudPluginInterface.cs/#L60">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Plugin/DalamudPluginInterface.cs/#L61">View Source</a>
   </span>
   <a id="Dalamud_Plugin_DalamudPluginInterface__ctor_" data-uid="Dalamud.Plugin.DalamudPluginInterface.#ctor*"></a>
-  <h4 id="Dalamud_Plugin_DalamudPluginInterface__ctor_Dalamud_Dalamud_System_String_" data-uid="Dalamud.Plugin.DalamudPluginInterface.#ctor(Dalamud.Dalamud,System.String)">DalamudPluginInterface(Dalamud, String)</h4>
+  <h4 id="Dalamud_Plugin_DalamudPluginInterface__ctor_Dalamud_Dalamud_System_String_Dalamud_Configuration_PluginConfigurations_" data-uid="Dalamud.Plugin.DalamudPluginInterface.#ctor(Dalamud.Dalamud,System.String,Dalamud.Configuration.PluginConfigurations)">DalamudPluginInterface(Dalamud, String, PluginConfigurations)</h4>
   <div class="markdown level1 summary"><p>Set up the interface and populate all fields needed.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public DalamudPluginInterface(Dalamud dalamud, string pluginName)</code></pre>
+    <pre><code class="lang-csharp hljs">public DalamudPluginInterface(Dalamud dalamud, string pluginName, PluginConfigurations configs)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -151,6 +151,11 @@
       <tr>
         <td><span class="xref">System.String</span></td>
         <td><span class="parametername">pluginName</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Dalamud.Configuration.PluginConfigurations.html">PluginConfigurations</a></td>
+        <td><span class="parametername">configs</span></td>
         <td></td>
       </tr>
     </tbody>
@@ -344,7 +349,7 @@
     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Plugin_DalamudPluginInterface_Dispose.md&amp;value=---%0Auid%3A%20Dalamud.Plugin.DalamudPluginInterface.Dispose%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Plugin/DalamudPluginInterface.cs/#L75">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Plugin/DalamudPluginInterface.cs/#L77">View Source</a>
   </span>
   <a id="Dalamud_Plugin_DalamudPluginInterface_Dispose_" data-uid="Dalamud.Plugin.DalamudPluginInterface.Dispose*"></a>
   <h4 id="Dalamud_Plugin_DalamudPluginInterface_Dispose" data-uid="Dalamud.Plugin.DalamudPluginInterface.Dispose">Dispose()</h4>
@@ -360,7 +365,7 @@
     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Plugin_DalamudPluginInterface_GetPluginConfig.md&amp;value=---%0Auid%3A%20Dalamud.Plugin.DalamudPluginInterface.GetPluginConfig%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Plugin/DalamudPluginInterface.cs/#L103">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Plugin/DalamudPluginInterface.cs/#L96">View Source</a>
   </span>
   <a id="Dalamud_Plugin_DalamudPluginInterface_GetPluginConfig_" data-uid="Dalamud.Plugin.DalamudPluginInterface.GetPluginConfig*"></a>
   <h4 id="Dalamud_Plugin_DalamudPluginInterface_GetPluginConfig" data-uid="Dalamud.Plugin.DalamudPluginInterface.GetPluginConfig">GetPluginConfig()</h4>
@@ -392,7 +397,7 @@
     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Plugin_DalamudPluginInterface_Log_System_String_System_Object___.md&amp;value=---%0Auid%3A%20Dalamud.Plugin.DalamudPluginInterface.Log(System.String%2CSystem.Object%5B%5D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Plugin/DalamudPluginInterface.cs/#L120">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Plugin/DalamudPluginInterface.cs/#L107">View Source</a>
   </span>
   <a id="Dalamud_Plugin_DalamudPluginInterface_Log_" data-uid="Dalamud.Plugin.DalamudPluginInterface.Log*"></a>
   <h4 id="Dalamud_Plugin_DalamudPluginInterface_Log_System_String_System_Object___" data-uid="Dalamud.Plugin.DalamudPluginInterface.Log(System.String,System.Object[])">Log(String, Object[])</h4>
@@ -432,7 +437,7 @@
     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Plugin_DalamudPluginInterface_LogError_System_Exception_System_String_System_Object___.md&amp;value=---%0Auid%3A%20Dalamud.Plugin.DalamudPluginInterface.LogError(System.Exception%2CSystem.String%2CSystem.Object%5B%5D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Plugin/DalamudPluginInterface.cs/#L140">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Plugin/DalamudPluginInterface.cs/#L127">View Source</a>
   </span>
   <a id="Dalamud_Plugin_DalamudPluginInterface_LogError_" data-uid="Dalamud.Plugin.DalamudPluginInterface.LogError*"></a>
   <h4 id="Dalamud_Plugin_DalamudPluginInterface_LogError_System_Exception_System_String_System_Object___" data-uid="Dalamud.Plugin.DalamudPluginInterface.LogError(System.Exception,System.String,System.Object[])">LogError(Exception, String, Object[])</h4>
@@ -478,7 +483,7 @@
     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Plugin_DalamudPluginInterface_LogError_System_String_System_Object___.md&amp;value=---%0Auid%3A%20Dalamud.Plugin.DalamudPluginInterface.LogError(System.String%2CSystem.Object%5B%5D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Plugin/DalamudPluginInterface.cs/#L129">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Plugin/DalamudPluginInterface.cs/#L116">View Source</a>
   </span>
   <a id="Dalamud_Plugin_DalamudPluginInterface_LogError_" data-uid="Dalamud.Plugin.DalamudPluginInterface.LogError*"></a>
   <h4 id="Dalamud_Plugin_DalamudPluginInterface_LogError_System_String_System_Object___" data-uid="Dalamud.Plugin.DalamudPluginInterface.LogError(System.String,System.Object[])">LogError(String, Object[])</h4>
@@ -518,7 +523,7 @@
     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Plugin_DalamudPluginInterface_SavePluginConfig_Dalamud_Configuration_IPluginConfiguration_.md&amp;value=---%0Auid%3A%20Dalamud.Plugin.DalamudPluginInterface.SavePluginConfig(Dalamud.Configuration.IPluginConfiguration)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Plugin/DalamudPluginInterface.cs/#L83">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Plugin/DalamudPluginInterface.cs/#L85">View Source</a>
   </span>
   <a id="Dalamud_Plugin_DalamudPluginInterface_SavePluginConfig_" data-uid="Dalamud.Plugin.DalamudPluginInterface.SavePluginConfig*"></a>
   <h4 id="Dalamud_Plugin_DalamudPluginInterface_SavePluginConfig_Dalamud_Configuration_IPluginConfiguration_" data-uid="Dalamud.Plugin.DalamudPluginInterface.SavePluginConfig(Dalamud.Configuration.IPluginConfiguration)">SavePluginConfig(IPluginConfiguration)</h4>

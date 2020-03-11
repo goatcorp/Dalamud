@@ -1,0 +1,430 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class RestCategoryChannel
+   </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class RestCategoryChannel
+   ">
+    <meta name="generator" content="docfx 2.50.0.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Discord.Rest.RestCategoryChannel">
+  
+  
+  <h1 id="Discord_Rest_RestCategoryChannel" data-uid="Discord.Rest.RestCategoryChannel" class="text-break">Class RestCategoryChannel
+  </h1>
+  <div class="markdown level0 summary"><p>Represents a REST-based category channel.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><a class="xref" href="Discord.Rest.RestEntity-1.html">RestEntity</a>&lt;<span class="xref">System.UInt64</span>&gt;</div>
+    <div class="level2"><a class="xref" href="Discord.Rest.RestChannel.html">RestChannel</a></div>
+    <div class="level3"><a class="xref" href="Discord.Rest.RestGuildChannel.html">RestGuildChannel</a></div>
+    <div class="level4"><span class="xref">RestCategoryChannel</span></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="Discord.IUpdateable.html">IUpdateable</a></div>
+    <div><a class="xref" href="Discord.ICategoryChannel.html">ICategoryChannel</a></div>
+    <div><a class="xref" href="Discord.IGuildChannel.html">IGuildChannel</a></div>
+    <div><a class="xref" href="Discord.IChannel.html">IChannel</a></div>
+    <div><a class="xref" href="Discord.ISnowflakeEntity.html">ISnowflakeEntity</a></div>
+    <div><a class="xref" href="Discord.IEntity-1.html">IEntity</a>&lt;<span class="xref">System.UInt64</span>&gt;</div>
+    <div><a class="xref" href="Discord.IDeletable.html">IDeletable</a></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_PermissionOverwrites">RestGuildChannel.PermissionOverwrites</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_Name">RestGuildChannel.Name</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_Position">RestGuildChannel.Position</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_GuildId">RestGuildChannel.GuildId</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_UpdateAsync_Discord_RequestOptions_">RestGuildChannel.UpdateAsync(RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_ModifyAsync_System_Action_Discord_GuildChannelProperties__Discord_RequestOptions_">RestGuildChannel.ModifyAsync(Action&lt;GuildChannelProperties&gt;, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_DeleteAsync_Discord_RequestOptions_">RestGuildChannel.DeleteAsync(RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_GetPermissionOverwrite_Discord_IUser_">RestGuildChannel.GetPermissionOverwrite(IUser)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_GetPermissionOverwrite_Discord_IRole_">RestGuildChannel.GetPermissionOverwrite(IRole)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_AddPermissionOverwriteAsync_Discord_IUser_Discord_OverwritePermissions_Discord_RequestOptions_">RestGuildChannel.AddPermissionOverwriteAsync(IUser, OverwritePermissions, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_AddPermissionOverwriteAsync_Discord_IRole_Discord_OverwritePermissions_Discord_RequestOptions_">RestGuildChannel.AddPermissionOverwriteAsync(IRole, OverwritePermissions, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_RemovePermissionOverwriteAsync_Discord_IUser_Discord_RequestOptions_">RestGuildChannel.RemovePermissionOverwriteAsync(IUser, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_RemovePermissionOverwriteAsync_Discord_IRole_Discord_RequestOptions_">RestGuildChannel.RemovePermissionOverwriteAsync(IRole, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_ToString">RestGuildChannel.ToString()</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_Discord_IGuildChannel_Guild">RestGuildChannel.IGuildChannel.Guild</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_Discord_IGuildChannel_GetPermissionOverwrite_Discord_IRole_">RestGuildChannel.IGuildChannel.GetPermissionOverwrite(IRole)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_Discord_IGuildChannel_GetPermissionOverwrite_Discord_IUser_">RestGuildChannel.IGuildChannel.GetPermissionOverwrite(IUser)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_Discord_IGuildChannel_AddPermissionOverwriteAsync_Discord_IRole_Discord_OverwritePermissions_Discord_RequestOptions_">RestGuildChannel.IGuildChannel.AddPermissionOverwriteAsync(IRole, OverwritePermissions, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_Discord_IGuildChannel_AddPermissionOverwriteAsync_Discord_IUser_Discord_OverwritePermissions_Discord_RequestOptions_">RestGuildChannel.IGuildChannel.AddPermissionOverwriteAsync(IUser, OverwritePermissions, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_Discord_IGuildChannel_RemovePermissionOverwriteAsync_Discord_IRole_Discord_RequestOptions_">RestGuildChannel.IGuildChannel.RemovePermissionOverwriteAsync(IRole, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_Discord_IGuildChannel_RemovePermissionOverwriteAsync_Discord_IUser_Discord_RequestOptions_">RestGuildChannel.IGuildChannel.RemovePermissionOverwriteAsync(IUser, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_Discord_IGuildChannel_GetUsersAsync_Discord_CacheMode_Discord_RequestOptions_">RestGuildChannel.IGuildChannel.GetUsersAsync(CacheMode, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_Discord_IGuildChannel_GetUserAsync_System_UInt64_Discord_CacheMode_Discord_RequestOptions_">RestGuildChannel.IGuildChannel.GetUserAsync(UInt64, CacheMode, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestChannel.html#Discord_Rest_RestChannel_CreatedAt">RestChannel.CreatedAt</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestChannel.html#Discord_Rest_RestChannel_Discord_IChannel_Name">RestChannel.IChannel.Name</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestEntity-1.html#Discord_Rest_RestEntity_1_Id">RestEntity&lt;UInt64&gt;.Id</a>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Discord.Rest.html">Discord.Rest</a></h6>
+  <h6><strong>Assembly</strong>: Discord.Net.Rest.dll</h6>
+  <h5 id="Discord_Rest_RestCategoryChannel_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class RestCategoryChannel : RestGuildChannel, IUpdateable, ICategoryChannel, IGuildChannel, IChannel, ISnowflakeEntity, IEntity&lt;ulong&gt;, IDeletable</code></pre>
+  </div>
+  <h3 id="eii">Explicit Interface Implementations
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestCategoryChannel_Discord_IChannel_GetUserAsync_System_UInt64_Discord_CacheMode_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.Rest.RestCategoryChannel.Discord%23IChannel%23GetUserAsync(System.UInt64%2CDiscord.CacheMode%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Channels/RestCategoryChannel.cs/#L35">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestCategoryChannel_Discord_IChannel_GetUserAsync_" data-uid="Discord.Rest.RestCategoryChannel.Discord#IChannel#GetUserAsync*"></a>
+  <h4 id="Discord_Rest_RestCategoryChannel_Discord_IChannel_GetUserAsync_System_UInt64_Discord_CacheMode_Discord_RequestOptions_" data-uid="Discord.Rest.RestCategoryChannel.Discord#IChannel#GetUserAsync(System.UInt64,Discord.CacheMode,Discord.RequestOptions)">IChannel.GetUserAsync(UInt64, CacheMode, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Gets a user in this channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task&lt;IUser&gt; IChannel.GetUserAsync(ulong id, CacheMode mode, RequestOptions options)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt64</span></td>
+        <td><span class="parametername">id</span></td>
+        <td><p>The snowflake identifier of the user (e.g. <code>168693960628371456</code>).</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.CacheMode.html">CacheMode</a></td>
+        <td><span class="parametername">mode</span></td>
+        <td><p>The <a class="xref" href="Discord.CacheMode.html">CacheMode</a> that determines whether the object should be fetched from cache.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<a class="xref" href="Discord.IUser.html">IUser</a>&gt;</td>
+        <td><p>A task that represents the asynchronous get operation. The task result contains a user object that
+represents the found user; <code>null</code> if none is found.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.NotSupportedException</span></td>
+        <td><p>This method is not supported with category channels.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestCategoryChannel_Discord_IChannel_GetUsersAsync_Discord_CacheMode_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.Rest.RestCategoryChannel.Discord%23IChannel%23GetUsersAsync(Discord.CacheMode%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Channels/RestCategoryChannel.cs/#L31">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestCategoryChannel_Discord_IChannel_GetUsersAsync_" data-uid="Discord.Rest.RestCategoryChannel.Discord#IChannel#GetUsersAsync*"></a>
+  <h4 id="Discord_Rest_RestCategoryChannel_Discord_IChannel_GetUsersAsync_Discord_CacheMode_Discord_RequestOptions_" data-uid="Discord.Rest.RestCategoryChannel.Discord#IChannel#GetUsersAsync(Discord.CacheMode,Discord.RequestOptions)">IChannel.GetUsersAsync(CacheMode, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Gets a collection of users that are able to view the channel or are currently in this channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IAsyncEnumerable&lt;IReadOnlyCollection&lt;IUser&gt;&gt; IChannel.GetUsersAsync(CacheMode mode, RequestOptions options)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.CacheMode.html">CacheMode</a></td>
+        <td><span class="parametername">mode</span></td>
+        <td><p>The <a class="xref" href="Discord.CacheMode.html">CacheMode</a> that determines whether the object should be fetched from cache.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IAsyncEnumerable</span>&lt;<span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<a class="xref" href="Discord.IUser.html">IUser</a>&gt;&gt;</td>
+        <td><p>Paged collection of users.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Discord_Rest_RestCategoryChannel_Discord_IChannel_GetUsersAsync_Discord_CacheMode_Discord_RequestOptions__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><div class="IMPORTANT"><h5>important</h5><p>
+    The returned collection is an asynchronous enumerable object; one must call 
+<a class="xref" href="Discord.AsyncEnumerableExtensions.html#Discord_AsyncEnumerableExtensions_FlattenAsync__1_System_Collections_Generic_IAsyncEnumerable_System_Collections_Generic_IEnumerable___0___">FlattenAsync&lt;T&gt;(IAsyncEnumerable&lt;IEnumerable&lt;T&gt;&gt;)</a> to access the individual messages as a
+collection.
+</p></div>
+This method will attempt to fetch all users that is able to view this channel or is currently in this channel.
+The library will attempt to split up the requests according to and <a class="xref" href="Discord.DiscordConfig.html#Discord_DiscordConfig_MaxUsersPerBatch">MaxUsersPerBatch</a>.
+In other words, if there are 3000 users, and the <a class="xref" href="Discord.DiscordConfig.html#Discord_DiscordConfig_MaxUsersPerBatch">MaxUsersPerBatch</a> constant
+is <code>1000</code>, the request will be split into 3 individual requests; thus returning 53individual asynchronous
+responses, hence the need of flattening.
+</div>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.NotSupportedException</span></td>
+        <td><p>This method is not supported with category channels.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="Discord.IUpdateable.html">IUpdateable</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.ICategoryChannel.html">ICategoryChannel</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.IGuildChannel.html">IGuildChannel</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.IChannel.html">IChannel</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.ISnowflakeEntity.html">ISnowflakeEntity</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.IEntity-1.html">IEntity&lt;TId&gt;</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.IDeletable.html">IDeletable</a>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestCategoryChannel.md&amp;value=---%0Auid%3A%20Discord.Rest.RestCategoryChannel%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Channels/RestCategoryChannel.cs/#L12" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+              <!-- <p><a class="back-to-top" href="#top">Back to top</a><p> -->
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

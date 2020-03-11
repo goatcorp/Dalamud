@@ -1,0 +1,695 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Interface ITextChannel
+   </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Interface ITextChannel
+   ">
+    <meta name="generator" content="docfx 2.50.0.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Discord.ITextChannel">
+  
+  
+  <h1 id="Discord_ITextChannel" data-uid="Discord.ITextChannel" class="text-break">Interface ITextChannel
+  </h1>
+  <div class="markdown level0 summary"><p>Represents a generic channel in a guild that can send and receive messages.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <a class="xref" href="Discord.IMessageChannel.html#Discord_IMessageChannel_SendMessageAsync_System_String_System_Boolean_Discord_Embed_Discord_RequestOptions_">IMessageChannel.SendMessageAsync(String, Boolean, Embed, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IMessageChannel.html#Discord_IMessageChannel_SendFileAsync_System_String_System_String_System_Boolean_Discord_Embed_Discord_RequestOptions_System_Boolean_">IMessageChannel.SendFileAsync(String, String, Boolean, Embed, RequestOptions, Boolean)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IMessageChannel.html#Discord_IMessageChannel_SendFileAsync_System_IO_Stream_System_String_System_String_System_Boolean_Discord_Embed_Discord_RequestOptions_System_Boolean_">IMessageChannel.SendFileAsync(Stream, String, String, Boolean, Embed, RequestOptions, Boolean)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IMessageChannel.html#Discord_IMessageChannel_GetMessageAsync_System_UInt64_Discord_CacheMode_Discord_RequestOptions_">IMessageChannel.GetMessageAsync(UInt64, CacheMode, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IMessageChannel.html#Discord_IMessageChannel_GetMessagesAsync_System_Int32_Discord_CacheMode_Discord_RequestOptions_">IMessageChannel.GetMessagesAsync(Int32, CacheMode, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IMessageChannel.html#Discord_IMessageChannel_GetMessagesAsync_System_UInt64_Discord_Direction_System_Int32_Discord_CacheMode_Discord_RequestOptions_">IMessageChannel.GetMessagesAsync(UInt64, Direction, Int32, CacheMode, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IMessageChannel.html#Discord_IMessageChannel_GetMessagesAsync_Discord_IMessage_Discord_Direction_System_Int32_Discord_CacheMode_Discord_RequestOptions_">IMessageChannel.GetMessagesAsync(IMessage, Direction, Int32, CacheMode, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IMessageChannel.html#Discord_IMessageChannel_GetPinnedMessagesAsync_Discord_RequestOptions_">IMessageChannel.GetPinnedMessagesAsync(RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IMessageChannel.html#Discord_IMessageChannel_DeleteMessageAsync_System_UInt64_Discord_RequestOptions_">IMessageChannel.DeleteMessageAsync(UInt64, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IMessageChannel.html#Discord_IMessageChannel_DeleteMessageAsync_Discord_IMessage_Discord_RequestOptions_">IMessageChannel.DeleteMessageAsync(IMessage, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IMessageChannel.html#Discord_IMessageChannel_TriggerTypingAsync_Discord_RequestOptions_">IMessageChannel.TriggerTypingAsync(RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IMessageChannel.html#Discord_IMessageChannel_EnterTypingState_Discord_RequestOptions_">IMessageChannel.EnterTypingState(RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IMentionable.html#Discord_IMentionable_Mention">IMentionable.Mention</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.INestedChannel.html#Discord_INestedChannel_CategoryId">INestedChannel.CategoryId</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.INestedChannel.html#Discord_INestedChannel_GetCategoryAsync_Discord_CacheMode_Discord_RequestOptions_">INestedChannel.GetCategoryAsync(CacheMode, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.INestedChannel.html#Discord_INestedChannel_SyncPermissionsAsync_Discord_RequestOptions_">INestedChannel.SyncPermissionsAsync(RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.INestedChannel.html#Discord_INestedChannel_CreateInviteAsync_System_Nullable_System_Int32__System_Nullable_System_Int32__System_Boolean_System_Boolean_Discord_RequestOptions_">INestedChannel.CreateInviteAsync(Nullable&lt;Int32&gt;, Nullable&lt;Int32&gt;, Boolean, Boolean, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.INestedChannel.html#Discord_INestedChannel_GetInvitesAsync_Discord_RequestOptions_">INestedChannel.GetInvitesAsync(RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IGuildChannel.html#Discord_IGuildChannel_Position">IGuildChannel.Position</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IGuildChannel.html#Discord_IGuildChannel_Guild">IGuildChannel.Guild</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IGuildChannel.html#Discord_IGuildChannel_GuildId">IGuildChannel.GuildId</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IGuildChannel.html#Discord_IGuildChannel_PermissionOverwrites">IGuildChannel.PermissionOverwrites</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IGuildChannel.html#Discord_IGuildChannel_ModifyAsync_System_Action_Discord_GuildChannelProperties__Discord_RequestOptions_">IGuildChannel.ModifyAsync(Action&lt;GuildChannelProperties&gt;, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IGuildChannel.html#Discord_IGuildChannel_GetPermissionOverwrite_Discord_IRole_">IGuildChannel.GetPermissionOverwrite(IRole)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IGuildChannel.html#Discord_IGuildChannel_GetPermissionOverwrite_Discord_IUser_">IGuildChannel.GetPermissionOverwrite(IUser)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IGuildChannel.html#Discord_IGuildChannel_RemovePermissionOverwriteAsync_Discord_IRole_Discord_RequestOptions_">IGuildChannel.RemovePermissionOverwriteAsync(IRole, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IGuildChannel.html#Discord_IGuildChannel_RemovePermissionOverwriteAsync_Discord_IUser_Discord_RequestOptions_">IGuildChannel.RemovePermissionOverwriteAsync(IUser, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IGuildChannel.html#Discord_IGuildChannel_AddPermissionOverwriteAsync_Discord_IRole_Discord_OverwritePermissions_Discord_RequestOptions_">IGuildChannel.AddPermissionOverwriteAsync(IRole, OverwritePermissions, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IGuildChannel.html#Discord_IGuildChannel_AddPermissionOverwriteAsync_Discord_IUser_Discord_OverwritePermissions_Discord_RequestOptions_">IGuildChannel.AddPermissionOverwriteAsync(IUser, OverwritePermissions, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IGuildChannel.html#Discord_IGuildChannel_GetUsersAsync_Discord_CacheMode_Discord_RequestOptions_">IGuildChannel.GetUsersAsync(CacheMode, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IGuildChannel.html#Discord_IGuildChannel_GetUserAsync_System_UInt64_Discord_CacheMode_Discord_RequestOptions_">IGuildChannel.GetUserAsync(UInt64, CacheMode, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IChannel.html#Discord_IChannel_Name">IChannel.Name</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.ISnowflakeEntity.html#Discord_ISnowflakeEntity_CreatedAt">ISnowflakeEntity.CreatedAt</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IEntity-1.html#Discord_IEntity_1_Id">IEntity&lt;UInt64&gt;.Id</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IDeletable.html#Discord_IDeletable_DeleteAsync_Discord_RequestOptions_">IDeletable.DeleteAsync(RequestOptions)</a>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Discord.html">Discord</a></h6>
+  <h6><strong>Assembly</strong>: Discord.Net.Core.dll</h6>
+  <h5 id="Discord_ITextChannel_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public interface ITextChannel : IMessageChannel, IMentionable, INestedChannel, IGuildChannel, IChannel, ISnowflakeEntity, IEntity&lt;ulong&gt;, IDeletable</code></pre>
+  </div>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_ITextChannel_IsNsfw.md&amp;value=---%0Auid%3A%20Discord.ITextChannel.IsNsfw%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Channels/ITextChannel.cs/#L19">View Source</a>
+  </span>
+  <a id="Discord_ITextChannel_IsNsfw_" data-uid="Discord.ITextChannel.IsNsfw*"></a>
+  <h4 id="Discord_ITextChannel_IsNsfw" data-uid="Discord.ITextChannel.IsNsfw">IsNsfw</h4>
+  <div class="markdown level1 summary"><p>Gets a value that indicates whether the channel is NSFW.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool IsNsfw { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><code>true</code> if the channel has the NSFW flag enabled; otherwise <code>false</code>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_ITextChannel_SlowModeInterval.md&amp;value=---%0Auid%3A%20Discord.ITextChannel.SlowModeInterval%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Channels/ITextChannel.cs/#L36">View Source</a>
+  </span>
+  <a id="Discord_ITextChannel_SlowModeInterval_" data-uid="Discord.ITextChannel.SlowModeInterval*"></a>
+  <h4 id="Discord_ITextChannel_SlowModeInterval" data-uid="Discord.ITextChannel.SlowModeInterval">SlowModeInterval</h4>
+  <div class="markdown level1 summary"><p>Gets the current slow-mode delay for this channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">int SlowModeInterval { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>An <span class="xref">System.Int32</span> representing the time in seconds required before the user can send another
+message; <code>0</code> if disabled.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_ITextChannel_Topic.md&amp;value=---%0Auid%3A%20Discord.ITextChannel.Topic%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Channels/ITextChannel.cs/#L27">View Source</a>
+  </span>
+  <a id="Discord_ITextChannel_Topic_" data-uid="Discord.ITextChannel.Topic*"></a>
+  <h4 id="Discord_ITextChannel_Topic" data-uid="Discord.ITextChannel.Topic">Topic</h4>
+  <div class="markdown level1 summary"><p>Gets the current topic for this text channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">string Topic { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>A string representing the topic set in the channel; <code>null</code> if none is set.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_ITextChannel_CreateWebhookAsync_System_String_System_IO_Stream_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.ITextChannel.CreateWebhookAsync(System.String%2CSystem.IO.Stream%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Channels/ITextChannel.cs/#L97">View Source</a>
+  </span>
+  <a id="Discord_ITextChannel_CreateWebhookAsync_" data-uid="Discord.ITextChannel.CreateWebhookAsync*"></a>
+  <h4 id="Discord_ITextChannel_CreateWebhookAsync_System_String_System_IO_Stream_Discord_RequestOptions_" data-uid="Discord.ITextChannel.CreateWebhookAsync(System.String,System.IO.Stream,Discord.RequestOptions)">CreateWebhookAsync(String, Stream, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Creates a webhook in this text channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task&lt;IWebhook&gt; CreateWebhookAsync(string name, Stream avatar = null, RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">name</span></td>
+        <td><p>The name of the webhook.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.IO.Stream</span></td>
+        <td><span class="parametername">avatar</span></td>
+        <td><p>The avatar of the webhook.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<a class="xref" href="Discord.IWebhook.html">IWebhook</a>&gt;</td>
+        <td><p>A task that represents the asynchronous creation operation. The task result contains the newly created
+webhook.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_ITextChannel_DeleteMessagesAsync_System_Collections_Generic_IEnumerable_Discord_IMessage__Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.ITextChannel.DeleteMessagesAsync(System.Collections.Generic.IEnumerable%7BDiscord.IMessage%7D%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Channels/ITextChannel.cs/#L59">View Source</a>
+  </span>
+  <a id="Discord_ITextChannel_DeleteMessagesAsync_" data-uid="Discord.ITextChannel.DeleteMessagesAsync*"></a>
+  <h4 id="Discord_ITextChannel_DeleteMessagesAsync_System_Collections_Generic_IEnumerable_Discord_IMessage__Discord_RequestOptions_" data-uid="Discord.ITextChannel.DeleteMessagesAsync(System.Collections.Generic.IEnumerable{Discord.IMessage},Discord.RequestOptions)">DeleteMessagesAsync(IEnumerable&lt;IMessage&gt;, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Bulk-deletes multiple messages.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task DeleteMessagesAsync(IEnumerable&lt;IMessage&gt; messages, RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IEnumerable</span>&lt;<a class="xref" href="Discord.IMessage.html">IMessage</a>&gt;</td>
+        <td><span class="parametername">messages</span></td>
+        <td><p>The messages to be bulk-deleted.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td><p>A task that represents the asynchronous bulk-removal operation.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Discord_ITextChannel_DeleteMessagesAsync_System_Collections_Generic_IEnumerable_Discord_IMessage__Discord_RequestOptions__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method attempts to remove the messages specified in bulk.</p>
+<div class="IMPORTANT"><h5>important</h5><p>
+    Due to the limitation set by Discord, this method can only remove messages that are posted within 14 days!
+</p></div>
+</div>
+  <h5 id="Discord_ITextChannel_DeleteMessagesAsync_System_Collections_Generic_IEnumerable_Discord_IMessage__Discord_RequestOptions__examples">Examples</h5>
+  <p>The following example gets 250 messages from the channel and deletes them.</p>
+<pre><code class="lang-cs">var messages = await textChannel.GetMessagesAsync(250).FlattenAsync();
+await textChannel.DeleteMessagesAsync(messages);</code></pre>
+
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_ITextChannel_DeleteMessagesAsync_System_Collections_Generic_IEnumerable_System_UInt64__Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.ITextChannel.DeleteMessagesAsync(System.Collections.Generic.IEnumerable%7BSystem.UInt64%7D%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Channels/ITextChannel.cs/#L74">View Source</a>
+  </span>
+  <a id="Discord_ITextChannel_DeleteMessagesAsync_" data-uid="Discord.ITextChannel.DeleteMessagesAsync*"></a>
+  <h4 id="Discord_ITextChannel_DeleteMessagesAsync_System_Collections_Generic_IEnumerable_System_UInt64__Discord_RequestOptions_" data-uid="Discord.ITextChannel.DeleteMessagesAsync(System.Collections.Generic.IEnumerable{System.UInt64},Discord.RequestOptions)">DeleteMessagesAsync(IEnumerable&lt;UInt64&gt;, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Bulk-deletes multiple messages.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task DeleteMessagesAsync(IEnumerable&lt;ulong&gt; messageIds, RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IEnumerable</span>&lt;<span class="xref">System.UInt64</span>&gt;</td>
+        <td><span class="parametername">messageIds</span></td>
+        <td><p>The snowflake identifier of the messages to be bulk-deleted.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td><p>A task that represents the asynchronous bulk-removal operation.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Discord_ITextChannel_DeleteMessagesAsync_System_Collections_Generic_IEnumerable_System_UInt64__Discord_RequestOptions__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method attempts to remove the messages specified in bulk.</p>
+<div class="IMPORTANT"><h5>important</h5><p>
+    Due to the limitation set by Discord, this method can only remove messages that are posted within 14 days!
+</p></div>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_ITextChannel_GetWebhookAsync_System_UInt64_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.ITextChannel.GetWebhookAsync(System.UInt64%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Channels/ITextChannel.cs/#L107">View Source</a>
+  </span>
+  <a id="Discord_ITextChannel_GetWebhookAsync_" data-uid="Discord.ITextChannel.GetWebhookAsync*"></a>
+  <h4 id="Discord_ITextChannel_GetWebhookAsync_System_UInt64_Discord_RequestOptions_" data-uid="Discord.ITextChannel.GetWebhookAsync(System.UInt64,Discord.RequestOptions)">GetWebhookAsync(UInt64, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Gets a webhook available in this text channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task&lt;IWebhook&gt; GetWebhookAsync(ulong id, RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt64</span></td>
+        <td><span class="parametername">id</span></td>
+        <td><p>The identifier of the webhook.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<a class="xref" href="Discord.IWebhook.html">IWebhook</a>&gt;</td>
+        <td><p>A task that represents the asynchronous get operation. The task result contains a webhook associated
+with the identifier; <code>null</code> if the webhook is not found.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_ITextChannel_GetWebhooksAsync_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.ITextChannel.GetWebhooksAsync(Discord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Channels/ITextChannel.cs/#L116">View Source</a>
+  </span>
+  <a id="Discord_ITextChannel_GetWebhooksAsync_" data-uid="Discord.ITextChannel.GetWebhooksAsync*"></a>
+  <h4 id="Discord_ITextChannel_GetWebhooksAsync_Discord_RequestOptions_" data-uid="Discord.ITextChannel.GetWebhooksAsync(Discord.RequestOptions)">GetWebhooksAsync(RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Gets the webhooks available in this text channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task&lt;IReadOnlyCollection&lt;IWebhook&gt;&gt; GetWebhooksAsync(RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<a class="xref" href="Discord.IWebhook.html">IWebhook</a>&gt;&gt;</td>
+        <td><p>A task that represents the asynchronous get operation. The task result contains a read-only collection
+of webhooks that is available in this channel.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_ITextChannel_ModifyAsync_System_Action_Discord_TextChannelProperties__Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.ITextChannel.ModifyAsync(System.Action%7BDiscord.TextChannelProperties%7D%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Channels/ITextChannel.cs/#L85">View Source</a>
+  </span>
+  <a id="Discord_ITextChannel_ModifyAsync_" data-uid="Discord.ITextChannel.ModifyAsync*"></a>
+  <h4 id="Discord_ITextChannel_ModifyAsync_System_Action_Discord_TextChannelProperties__Discord_RequestOptions_" data-uid="Discord.ITextChannel.ModifyAsync(System.Action{Discord.TextChannelProperties},Discord.RequestOptions)">ModifyAsync(Action&lt;TextChannelProperties&gt;, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Modifies this text channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task ModifyAsync(Action&lt;TextChannelProperties&gt; func, RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Action</span>&lt;<a class="xref" href="Discord.TextChannelProperties.html">TextChannelProperties</a>&gt;</td>
+        <td><span class="parametername">func</span></td>
+        <td><p>The delegate containing the properties to modify the channel with.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td><p>A task that represents the asynchronous modification operation.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Discord_ITextChannel_ModifyAsync_System_Action_Discord_TextChannelProperties__Discord_RequestOptions__seealso">See Also</h5>
+  <div class="seealso">
+      <div><a class="xref" href="Discord.TextChannelProperties.html">TextChannelProperties</a></div>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_ITextChannel.md&amp;value=---%0Auid%3A%20Discord.ITextChannel%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Channels/ITextChannel.cs/#L11" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+              <!-- <p><a class="back-to-top" href="#top">Back to top</a><p> -->
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

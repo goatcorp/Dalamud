@@ -10,7 +10,7 @@
     <meta name="viewport" content="width=device-width">
     <meta name="title" content="Namespace ImGuiScene
    ">
-    <meta name="generator" content="docfx 2.48.1.0">
+    <meta name="generator" content="docfx 2.50.0.0">
     
     <link rel="shortcut icon" href="../favicon.ico">
     <link rel="stylesheet" href="../styles/docfx.vendor.css">
@@ -88,9 +88,10 @@ Provides a simple wrapped view of the disposeable resource as well as the handle
       <h4><a class="xref" href="ImGuiScene.ImGui_Impl_DX11.html">ImGui_Impl_DX11</a></h4>
       <section><p>Currently undocumented because it is a horrible mess.
 A near-direct port of <a href="https://github.com/ocornut/imgui/blob/master/examples/imgui_impl_dx11.cpp">https://github.com/ocornut/imgui/blob/master/examples/imgui_impl_dx11.cpp</a>
-State backup was removed because ImGui does it poorly and SharpDX makes it worse; state caching should
-be the responsibility of the main render application anyway (which for most uses of this class does not
-exist at all)</p>
+State backup follows the general layout of imgui's sample (which is a mess), but has been rather
+expanded to cover the vast majority of render state, following the example here
+<a href="https://github.com/GPUOpen-LibrariesAndSDKs/CrossfireAPI11/blob/master/amd_lib/src/AMD_SaveRestoreState.cpp">https://github.com/GPUOpen-LibrariesAndSDKs/CrossfireAPI11/blob/master/amd_lib/src/AMD_SaveRestoreState.cpp</a>
+Would be nice to organize it better, but it seems to work</p>
 </section>
       <h4><a class="xref" href="ImGuiScene.ImGui_Impl_OpenGL3.html">ImGui_Impl_OpenGL3</a></h4>
       <section><p>Currently undocumented because it is a horrible mess.

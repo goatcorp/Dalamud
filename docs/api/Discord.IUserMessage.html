@@ -1,0 +1,521 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Interface IUserMessage
+   </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Interface IUserMessage
+   ">
+    <meta name="generator" content="docfx 2.50.0.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Discord.IUserMessage">
+  
+  
+  <h1 id="Discord_IUserMessage" data-uid="Discord.IUserMessage" class="text-break">Interface IUserMessage
+  </h1>
+  <div class="markdown level0 summary"><p>Represents a generic message sent by a user.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <a class="xref" href="Discord.IMessage.html#Discord_IMessage_Type">IMessage.Type</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IMessage.html#Discord_IMessage_Source">IMessage.Source</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IMessage.html#Discord_IMessage_IsTTS">IMessage.IsTTS</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IMessage.html#Discord_IMessage_IsPinned">IMessage.IsPinned</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IMessage.html#Discord_IMessage_IsSuppressed">IMessage.IsSuppressed</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IMessage.html#Discord_IMessage_Content">IMessage.Content</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IMessage.html#Discord_IMessage_Timestamp">IMessage.Timestamp</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IMessage.html#Discord_IMessage_EditedTimestamp">IMessage.EditedTimestamp</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IMessage.html#Discord_IMessage_Channel">IMessage.Channel</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IMessage.html#Discord_IMessage_Author">IMessage.Author</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IMessage.html#Discord_IMessage_Attachments">IMessage.Attachments</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IMessage.html#Discord_IMessage_Embeds">IMessage.Embeds</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IMessage.html#Discord_IMessage_Tags">IMessage.Tags</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IMessage.html#Discord_IMessage_MentionedChannelIds">IMessage.MentionedChannelIds</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IMessage.html#Discord_IMessage_MentionedRoleIds">IMessage.MentionedRoleIds</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IMessage.html#Discord_IMessage_MentionedUserIds">IMessage.MentionedUserIds</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IMessage.html#Discord_IMessage_Activity">IMessage.Activity</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IMessage.html#Discord_IMessage_Application">IMessage.Application</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IMessage.html#Discord_IMessage_Reference">IMessage.Reference</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IMessage.html#Discord_IMessage_Reactions">IMessage.Reactions</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IMessage.html#Discord_IMessage_AddReactionAsync_Discord_IEmote_Discord_RequestOptions_">IMessage.AddReactionAsync(IEmote, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IMessage.html#Discord_IMessage_RemoveReactionAsync_Discord_IEmote_Discord_IUser_Discord_RequestOptions_">IMessage.RemoveReactionAsync(IEmote, IUser, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IMessage.html#Discord_IMessage_RemoveReactionAsync_Discord_IEmote_System_UInt64_Discord_RequestOptions_">IMessage.RemoveReactionAsync(IEmote, UInt64, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IMessage.html#Discord_IMessage_RemoveAllReactionsAsync_Discord_RequestOptions_">IMessage.RemoveAllReactionsAsync(RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IMessage.html#Discord_IMessage_GetReactionUsersAsync_Discord_IEmote_System_Int32_Discord_RequestOptions_">IMessage.GetReactionUsersAsync(IEmote, Int32, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.ISnowflakeEntity.html#Discord_ISnowflakeEntity_CreatedAt">ISnowflakeEntity.CreatedAt</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IEntity-1.html#Discord_IEntity_1_Id">IEntity&lt;UInt64&gt;.Id</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IDeletable.html#Discord_IDeletable_DeleteAsync_Discord_RequestOptions_">IDeletable.DeleteAsync(RequestOptions)</a>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Discord.html">Discord</a></h6>
+  <h6><strong>Assembly</strong>: Discord.Net.Core.dll</h6>
+  <h5 id="Discord_IUserMessage_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public interface IUserMessage : IMessage, ISnowflakeEntity, IEntity&lt;ulong&gt;, IDeletable</code></pre>
+  </div>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_IUserMessage_ModifyAsync_System_Action_Discord_MessageProperties__Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.IUserMessage.ModifyAsync(System.Action%7BDiscord.MessageProperties%7D%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Messages/IUserMessage.cs/#L30">View Source</a>
+  </span>
+  <a id="Discord_IUserMessage_ModifyAsync_" data-uid="Discord.IUserMessage.ModifyAsync*"></a>
+  <h4 id="Discord_IUserMessage_ModifyAsync_System_Action_Discord_MessageProperties__Discord_RequestOptions_" data-uid="Discord.IUserMessage.ModifyAsync(System.Action{Discord.MessageProperties},Discord.RequestOptions)">ModifyAsync(Action&lt;MessageProperties&gt;, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Modifies this message.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task ModifyAsync(Action&lt;MessageProperties&gt; func, RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Action</span>&lt;<a class="xref" href="Discord.MessageProperties.html">MessageProperties</a>&gt;</td>
+        <td><span class="parametername">func</span></td>
+        <td><p>A delegate containing the properties to modify the message with.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td><p>A task that represents the asynchronous modification operation.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Discord_IUserMessage_ModifyAsync_System_Action_Discord_MessageProperties__Discord_RequestOptions__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method modifies this message with the specified properties. To see an example of this
+method and what properties are available, please refer to <a class="xref" href="Discord.MessageProperties.html">MessageProperties</a>.</p>
+</div>
+  <h5 id="Discord_IUserMessage_ModifyAsync_System_Action_Discord_MessageProperties__Discord_RequestOptions__examples">Examples</h5>
+  <p>The following example replaces the content of the message with <code>Hello World!</code>.</p>
+<pre><code class="lang-cs">await msg.ModifyAsync(x => x.Content = &quot;Hello World!&quot;);</code></pre>
+
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_IUserMessage_ModifySuppressionAsync_System_Boolean_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.IUserMessage.ModifySuppressionAsync(System.Boolean%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Messages/IUserMessage.cs/#L42">View Source</a>
+  </span>
+  <a id="Discord_IUserMessage_ModifySuppressionAsync_" data-uid="Discord.IUserMessage.ModifySuppressionAsync*"></a>
+  <h4 id="Discord_IUserMessage_ModifySuppressionAsync_System_Boolean_Discord_RequestOptions_" data-uid="Discord.IUserMessage.ModifySuppressionAsync(System.Boolean,Discord.RequestOptions)">ModifySuppressionAsync(Boolean, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Modifies the suppression of this message.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task ModifySuppressionAsync(bool suppressEmbeds, RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">suppressEmbeds</span></td>
+        <td><p>Whether or not embeds in this message should be suppressed.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td><p>A task that represents the asynchronous modification operation.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Discord_IUserMessage_ModifySuppressionAsync_System_Boolean_Discord_RequestOptions__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method modifies whether or not embeds in this message are suppressed (hidden).</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_IUserMessage_PinAsync_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.IUserMessage.PinAsync(Discord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Messages/IUserMessage.cs/#L50">View Source</a>
+  </span>
+  <a id="Discord_IUserMessage_PinAsync_" data-uid="Discord.IUserMessage.PinAsync*"></a>
+  <h4 id="Discord_IUserMessage_PinAsync_Discord_RequestOptions_" data-uid="Discord.IUserMessage.PinAsync(Discord.RequestOptions)">PinAsync(RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Adds this message to its channel's pinned messages.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task PinAsync(RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td><p>A task that represents the asynchronous operation for pinning this message.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_IUserMessage_Resolve_Discord_TagHandling_Discord_TagHandling_Discord_TagHandling_Discord_TagHandling_Discord_TagHandling_.md&amp;value=---%0Auid%3A%20Discord.IUserMessage.Resolve(Discord.TagHandling%2CDiscord.TagHandling%2CDiscord.TagHandling%2CDiscord.TagHandling%2CDiscord.TagHandling)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Messages/IUserMessage.cs/#L68">View Source</a>
+  </span>
+  <a id="Discord_IUserMessage_Resolve_" data-uid="Discord.IUserMessage.Resolve*"></a>
+  <h4 id="Discord_IUserMessage_Resolve_Discord_TagHandling_Discord_TagHandling_Discord_TagHandling_Discord_TagHandling_Discord_TagHandling_" data-uid="Discord.IUserMessage.Resolve(Discord.TagHandling,Discord.TagHandling,Discord.TagHandling,Discord.TagHandling,Discord.TagHandling)">Resolve(TagHandling, TagHandling, TagHandling, TagHandling, TagHandling)</h4>
+  <div class="markdown level1 summary"><p>Transforms this message's text into a human-readable form by resolving its tags.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">string Resolve(TagHandling userHandling = TagHandling.Name, TagHandling channelHandling = TagHandling.Name, TagHandling roleHandling = TagHandling.Name, TagHandling everyoneHandling = TagHandling.Ignore, TagHandling emojiHandling = TagHandling.Name)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.TagHandling.html">TagHandling</a></td>
+        <td><span class="parametername">userHandling</span></td>
+        <td><p>Determines how the user tag should be handled.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.TagHandling.html">TagHandling</a></td>
+        <td><span class="parametername">channelHandling</span></td>
+        <td><p>Determines how the channel tag should be handled.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.TagHandling.html">TagHandling</a></td>
+        <td><span class="parametername">roleHandling</span></td>
+        <td><p>Determines how the role tag should be handled.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.TagHandling.html">TagHandling</a></td>
+        <td><span class="parametername">everyoneHandling</span></td>
+        <td><p>Determines how the @everyone tag should be handled.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.TagHandling.html">TagHandling</a></td>
+        <td><span class="parametername">emojiHandling</span></td>
+        <td><p>Determines how the emoji tag should be handled.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_IUserMessage_UnpinAsync_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.IUserMessage.UnpinAsync(Discord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Messages/IUserMessage.cs/#L58">View Source</a>
+  </span>
+  <a id="Discord_IUserMessage_UnpinAsync_" data-uid="Discord.IUserMessage.UnpinAsync*"></a>
+  <h4 id="Discord_IUserMessage_UnpinAsync_Discord_RequestOptions_" data-uid="Discord.IUserMessage.UnpinAsync(Discord.RequestOptions)">UnpinAsync(RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Removes this message from its channel's pinned messages.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task UnpinAsync(RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td><p>A task that represents the asynchronous operation for unpinning this message.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="extensionmethods">Extension Methods</h3>
+  <div>
+      <a class="xref" href="Discord.MessageExtensions.html#Discord_MessageExtensions_GetJumpUrl_Discord_IMessage_">MessageExtensions.GetJumpUrl(IMessage)</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.MessageExtensions.html#Discord_MessageExtensions_AddReactionsAsync_Discord_IUserMessage_Discord_IEmote___Discord_RequestOptions_">MessageExtensions.AddReactionsAsync(IUserMessage, IEmote[], RequestOptions)</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.MessageExtensions.html#Discord_MessageExtensions_RemoveReactionsAsync_Discord_IUserMessage_Discord_IUser_Discord_IEmote___Discord_RequestOptions_">MessageExtensions.RemoveReactionsAsync(IUserMessage, IUser, IEmote[], RequestOptions)</a>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_IUserMessage.md&amp;value=---%0Auid%3A%20Discord.IUserMessage%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Messages/IUserMessage.cs/#L10" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+              <!-- <p><a class="back-to-top" href="#top">Back to top</a><p> -->
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

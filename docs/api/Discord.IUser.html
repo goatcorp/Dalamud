@@ -1,0 +1,540 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Interface IUser
+   </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Interface IUser
+   ">
+    <meta name="generator" content="docfx 2.50.0.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Discord.IUser">
+  
+  
+  <h1 id="Discord_IUser" data-uid="Discord.IUser" class="text-break">Interface IUser
+  </h1>
+  <div class="markdown level0 summary"><p>Represents a generic user.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <a class="xref" href="Discord.ISnowflakeEntity.html#Discord_ISnowflakeEntity_CreatedAt">ISnowflakeEntity.CreatedAt</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IEntity-1.html#Discord_IEntity_1_Id">IEntity&lt;UInt64&gt;.Id</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IMentionable.html#Discord_IMentionable_Mention">IMentionable.Mention</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IPresence.html#Discord_IPresence_Activity">IPresence.Activity</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IPresence.html#Discord_IPresence_Status">IPresence.Status</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.IPresence.html#Discord_IPresence_ActiveClients">IPresence.ActiveClients</a>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Discord.html">Discord</a></h6>
+  <h6><strong>Assembly</strong>: Discord.Net.Core.dll</h6>
+  <h5 id="Discord_IUser_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public interface IUser : ISnowflakeEntity, IEntity&lt;ulong&gt;, IMentionable, IPresence</code></pre>
+  </div>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_IUser_AvatarId.md&amp;value=---%0Auid%3A%20Discord.IUser.AvatarId%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Users/IUser.cs/#L13">View Source</a>
+  </span>
+  <a id="Discord_IUser_AvatarId_" data-uid="Discord.IUser.AvatarId*"></a>
+  <h4 id="Discord_IUser_AvatarId" data-uid="Discord.IUser.AvatarId">AvatarId</h4>
+  <div class="markdown level1 summary"><p>Gets the identifier of this user's avatar.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">string AvatarId { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_IUser_Discriminator.md&amp;value=---%0Auid%3A%20Discord.IUser.Discriminator%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Users/IUser.cs/#L51">View Source</a>
+  </span>
+  <a id="Discord_IUser_Discriminator_" data-uid="Discord.IUser.Discriminator*"></a>
+  <h4 id="Discord_IUser_Discriminator" data-uid="Discord.IUser.Discriminator">Discriminator</h4>
+  <div class="markdown level1 summary"><p>Gets the per-username unique ID for this user.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">string Discriminator { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_IUser_DiscriminatorValue.md&amp;value=---%0Auid%3A%20Discord.IUser.DiscriminatorValue%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Users/IUser.cs/#L55">View Source</a>
+  </span>
+  <a id="Discord_IUser_DiscriminatorValue_" data-uid="Discord.IUser.DiscriminatorValue*"></a>
+  <h4 id="Discord_IUser_DiscriminatorValue" data-uid="Discord.IUser.DiscriminatorValue">DiscriminatorValue</h4>
+  <div class="markdown level1 summary"><p>Gets the per-username unique ID for this user.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">ushort DiscriminatorValue { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt16</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_IUser_IsBot.md&amp;value=---%0Auid%3A%20Discord.IUser.IsBot%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Users/IUser.cs/#L66">View Source</a>
+  </span>
+  <a id="Discord_IUser_IsBot_" data-uid="Discord.IUser.IsBot*"></a>
+  <h4 id="Discord_IUser_IsBot" data-uid="Discord.IUser.IsBot">IsBot</h4>
+  <div class="markdown level1 summary"><p>Gets a value that indicates whether this user is identified as a bot.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool IsBot { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><code>true</code> if the user is a bot application; otherwise <code>false</code>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Discord_IUser_IsBot_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This property retrieves a value that indicates whether this user is a registered bot application
+(indicated by the blue BOT tag within the official chat client).</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_IUser_IsWebhook.md&amp;value=---%0Auid%3A%20Discord.IUser.IsWebhook%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Users/IUser.cs/#L73">View Source</a>
+  </span>
+  <a id="Discord_IUser_IsWebhook_" data-uid="Discord.IUser.IsWebhook*"></a>
+  <h4 id="Discord_IUser_IsWebhook" data-uid="Discord.IUser.IsWebhook">IsWebhook</h4>
+  <div class="markdown level1 summary"><p>Gets a value that indicates whether this user is a webhook user.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool IsWebhook { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p><code>true</code> if the user is a webhook; otherwise <code>false</code>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_IUser_Username.md&amp;value=---%0Auid%3A%20Discord.IUser.Username%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Users/IUser.cs/#L77">View Source</a>
+  </span>
+  <a id="Discord_IUser_Username_" data-uid="Discord.IUser.Username*"></a>
+  <h4 id="Discord_IUser_Username" data-uid="Discord.IUser.Username">Username</h4>
+  <div class="markdown level1 summary"><p>Gets the username for this user.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">string Username { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_IUser_GetAvatarUrl_Discord_ImageFormat_System_UInt16_.md&amp;value=---%0Auid%3A%20Discord.IUser.GetAvatarUrl(Discord.ImageFormat%2CSystem.UInt16)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Users/IUser.cs/#L35">View Source</a>
+  </span>
+  <a id="Discord_IUser_GetAvatarUrl_" data-uid="Discord.IUser.GetAvatarUrl*"></a>
+  <h4 id="Discord_IUser_GetAvatarUrl_Discord_ImageFormat_System_UInt16_" data-uid="Discord.IUser.GetAvatarUrl(Discord.ImageFormat,System.UInt16)">GetAvatarUrl(ImageFormat, UInt16)</h4>
+  <div class="markdown level1 summary"><p>Gets the avatar URL for this user.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">string GetAvatarUrl(ImageFormat format = ImageFormat.Auto, ushort size = 128)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.ImageFormat.html">ImageFormat</a></td>
+        <td><span class="parametername">format</span></td>
+        <td><p>The format to return.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.UInt16</span></td>
+        <td><span class="parametername">size</span></td>
+        <td><p>The size of the image to return in. This can be any power of two between 16 and 2048.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>A string representing the user's avatar URL; <code>null</code> if the user does not have an avatar in place.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Discord_IUser_GetAvatarUrl_Discord_ImageFormat_System_UInt16__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This property retrieves a URL for this user's avatar. In event that the user does not have a valid avatar
+(i.e. their avatar identifier is not set), this property will return <code>null</code>. If you wish to
+retrieve the default avatar for this user, consider using <a class="xref" href="Discord.IUser.html#Discord_IUser_GetDefaultAvatarUrl">GetDefaultAvatarUrl()</a> (see
+example).</p>
+</div>
+  <h5 id="Discord_IUser_GetAvatarUrl_Discord_ImageFormat_System_UInt16__examples">Examples</h5>
+  <pre><code>The following example attempts to retrieve the user&amp;apos;s current avatar and send it to a channel; if one is
+not set, a default avatar for this user will be returned instead.
+</code></pre>
+<pre><code class="lang-cs" region="GetAvatarUrl" source="..\..\..\Discord.Net.Examples\Core\Entities\Users\IUser.Examples.cs">public async Task GetAvatarAsync(IUser user, ITextChannel textChannel)
+{
+    var userAvatarUrl = user.GetAvatarUrl() ?? user.GetDefaultAvatarUrl();
+    await textChannel.SendMessageAsync(userAvatarUrl);
+}</code></pre>
+
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_IUser_GetDefaultAvatarUrl.md&amp;value=---%0Auid%3A%20Discord.IUser.GetDefaultAvatarUrl%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Users/IUser.cs/#L47">View Source</a>
+  </span>
+  <a id="Discord_IUser_GetDefaultAvatarUrl_" data-uid="Discord.IUser.GetDefaultAvatarUrl*"></a>
+  <h4 id="Discord_IUser_GetDefaultAvatarUrl" data-uid="Discord.IUser.GetDefaultAvatarUrl">GetDefaultAvatarUrl()</h4>
+  <div class="markdown level1 summary"><p>Gets the default avatar URL for this user.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">string GetDefaultAvatarUrl()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>A string representing the user's avatar URL.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Discord_IUser_GetDefaultAvatarUrl_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This property retrieves a URL for this user's default avatar generated by Discord (Discord logo followed
+by a random color as its background). This property will always return a value as it is calculated based
+on the user's <a class="xref" href="Discord.IUser.html#Discord_IUser_DiscriminatorValue">DiscriminatorValue</a> (<code>discriminator % 5</code>).</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_IUser_GetOrCreateDMChannelAsync_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.IUser.GetOrCreateDMChannelAsync(Discord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Users/IUser.cs/#L103">View Source</a>
+  </span>
+  <a id="Discord_IUser_GetOrCreateDMChannelAsync_" data-uid="Discord.IUser.GetOrCreateDMChannelAsync*"></a>
+  <h4 id="Discord_IUser_GetOrCreateDMChannelAsync_Discord_RequestOptions_" data-uid="Discord.IUser.GetOrCreateDMChannelAsync(Discord.RequestOptions)">GetOrCreateDMChannelAsync(RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Gets the direct message channel of this user, or create one if it does not already exist.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task&lt;IDMChannel&gt; GetOrCreateDMChannelAsync(RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<a class="xref" href="Discord.IDMChannel.html">IDMChannel</a>&gt;</td>
+        <td><p>A task that represents the asynchronous operation for getting or creating a DM channel. The task result
+contains the DM channel associated with this user.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Discord_IUser_GetOrCreateDMChannelAsync_Discord_RequestOptions__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method is used to obtain or create a channel used to send a direct message.</p>
+<div class="WARNING"><h5>warning</h5><p>
+     In event that the current user cannot send a message to the target user, a channel can and will
+     still be created by Discord. However, attempting to send a message will yield a 
+<a class="xref" href="Discord.Net.HttpException.html">HttpException</a> with a 403 as its 
+<a class="xref" href="Discord.Net.HttpException.html#Discord_Net_HttpException_HttpCode">HttpCode</a>. There are currently no official workarounds by
+Discord.
+</p></div>
+</div>
+  <h5 id="Discord_IUser_GetOrCreateDMChannelAsync_Discord_RequestOptions__examples">Examples</h5>
+  <pre><code>The following example attempts to send a direct message to the target user and logs the incident should
+it fail.
+</code></pre>
+<pre><code class="lang-cs" region="GetOrCreateDMChannelAsync" source="../../../Discord.Net.Examples/Core/Entities/Users/IUser.Examples.cs">public async Task MessageUserAsync(IUser user)
+{
+    var channel = await user.GetOrCreateDMChannelAsync();
+    try
+    {
+        await channel.SendMessageAsync(&quot;Awesome stuff!&quot;);
+    }
+    catch (Discord.Net.HttpException ex) when (ex.HttpCode == HttpStatusCode.Forbidden)
+    {
+        Console.WriteLine($&quot;Boo, I cannot message {user}.&quot;);
+    }
+}</code></pre>
+
+  <h3 id="extensionmethods">Extension Methods</h3>
+  <div>
+      <a class="xref" href="Discord.UserExtensions.html#Discord_UserExtensions_SendMessageAsync_Discord_IUser_System_String_System_Boolean_Discord_Embed_Discord_RequestOptions_">UserExtensions.SendMessageAsync(IUser, String, Boolean, Embed, RequestOptions)</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.UserExtensions.html#Discord_UserExtensions_SendFileAsync_Discord_IUser_System_IO_Stream_System_String_System_String_System_Boolean_Discord_Embed_Discord_RequestOptions_">UserExtensions.SendFileAsync(IUser, Stream, String, String, Boolean, Embed, RequestOptions)</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.UserExtensions.html#Discord_UserExtensions_SendFileAsync_Discord_IUser_System_String_System_String_System_Boolean_Discord_Embed_Discord_RequestOptions_">UserExtensions.SendFileAsync(IUser, String, String, Boolean, Embed, RequestOptions)</a>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_IUser.md&amp;value=---%0Auid%3A%20Discord.IUser%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Core/Entities/Users/IUser.cs/#L8" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+              <!-- <p><a class="back-to-top" href="#top">Back to top</a><p> -->
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

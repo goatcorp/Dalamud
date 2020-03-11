@@ -1,0 +1,958 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class RestVoiceChannel
+   </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class RestVoiceChannel
+   ">
+    <meta name="generator" content="docfx 2.50.0.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Discord.Rest.RestVoiceChannel">
+  
+  
+  <h1 id="Discord_Rest_RestVoiceChannel" data-uid="Discord.Rest.RestVoiceChannel" class="text-break">Class RestVoiceChannel
+  </h1>
+  <div class="markdown level0 summary"><p>Represents a REST-based voice channel in a guild.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><a class="xref" href="Discord.Rest.RestEntity-1.html">RestEntity</a>&lt;<span class="xref">System.UInt64</span>&gt;</div>
+    <div class="level2"><a class="xref" href="Discord.Rest.RestChannel.html">RestChannel</a></div>
+    <div class="level3"><a class="xref" href="Discord.Rest.RestGuildChannel.html">RestGuildChannel</a></div>
+    <div class="level4"><span class="xref">RestVoiceChannel</span></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="Discord.IUpdateable.html">IUpdateable</a></div>
+    <div><a class="xref" href="Discord.IVoiceChannel.html">IVoiceChannel</a></div>
+    <div><a class="xref" href="Discord.INestedChannel.html">INestedChannel</a></div>
+    <div><a class="xref" href="Discord.IGuildChannel.html">IGuildChannel</a></div>
+    <div><a class="xref" href="Discord.IDeletable.html">IDeletable</a></div>
+    <div><a class="xref" href="Discord.Rest.IRestAudioChannel.html">IRestAudioChannel</a></div>
+    <div><a class="xref" href="Discord.IAudioChannel.html">IAudioChannel</a></div>
+    <div><a class="xref" href="Discord.IChannel.html">IChannel</a></div>
+    <div><a class="xref" href="Discord.ISnowflakeEntity.html">ISnowflakeEntity</a></div>
+    <div><a class="xref" href="Discord.IEntity-1.html">IEntity</a>&lt;<span class="xref">System.UInt64</span>&gt;</div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_PermissionOverwrites">RestGuildChannel.PermissionOverwrites</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_Name">RestGuildChannel.Name</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_Position">RestGuildChannel.Position</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_GuildId">RestGuildChannel.GuildId</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_UpdateAsync_Discord_RequestOptions_">RestGuildChannel.UpdateAsync(RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_ModifyAsync_System_Action_Discord_GuildChannelProperties__Discord_RequestOptions_">RestGuildChannel.ModifyAsync(Action&lt;GuildChannelProperties&gt;, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_DeleteAsync_Discord_RequestOptions_">RestGuildChannel.DeleteAsync(RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_GetPermissionOverwrite_Discord_IUser_">RestGuildChannel.GetPermissionOverwrite(IUser)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_GetPermissionOverwrite_Discord_IRole_">RestGuildChannel.GetPermissionOverwrite(IRole)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_AddPermissionOverwriteAsync_Discord_IUser_Discord_OverwritePermissions_Discord_RequestOptions_">RestGuildChannel.AddPermissionOverwriteAsync(IUser, OverwritePermissions, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_AddPermissionOverwriteAsync_Discord_IRole_Discord_OverwritePermissions_Discord_RequestOptions_">RestGuildChannel.AddPermissionOverwriteAsync(IRole, OverwritePermissions, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_RemovePermissionOverwriteAsync_Discord_IUser_Discord_RequestOptions_">RestGuildChannel.RemovePermissionOverwriteAsync(IUser, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_RemovePermissionOverwriteAsync_Discord_IRole_Discord_RequestOptions_">RestGuildChannel.RemovePermissionOverwriteAsync(IRole, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_ToString">RestGuildChannel.ToString()</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_Discord_IGuildChannel_Guild">RestGuildChannel.IGuildChannel.Guild</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_Discord_IGuildChannel_GetPermissionOverwrite_Discord_IRole_">RestGuildChannel.IGuildChannel.GetPermissionOverwrite(IRole)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_Discord_IGuildChannel_GetPermissionOverwrite_Discord_IUser_">RestGuildChannel.IGuildChannel.GetPermissionOverwrite(IUser)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_Discord_IGuildChannel_AddPermissionOverwriteAsync_Discord_IRole_Discord_OverwritePermissions_Discord_RequestOptions_">RestGuildChannel.IGuildChannel.AddPermissionOverwriteAsync(IRole, OverwritePermissions, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_Discord_IGuildChannel_AddPermissionOverwriteAsync_Discord_IUser_Discord_OverwritePermissions_Discord_RequestOptions_">RestGuildChannel.IGuildChannel.AddPermissionOverwriteAsync(IUser, OverwritePermissions, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_Discord_IGuildChannel_RemovePermissionOverwriteAsync_Discord_IRole_Discord_RequestOptions_">RestGuildChannel.IGuildChannel.RemovePermissionOverwriteAsync(IRole, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_Discord_IGuildChannel_RemovePermissionOverwriteAsync_Discord_IUser_Discord_RequestOptions_">RestGuildChannel.IGuildChannel.RemovePermissionOverwriteAsync(IUser, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_Discord_IChannel_GetUsersAsync_Discord_CacheMode_Discord_RequestOptions_">RestGuildChannel.IChannel.GetUsersAsync(CacheMode, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestGuildChannel.html#Discord_Rest_RestGuildChannel_Discord_IChannel_GetUserAsync_System_UInt64_Discord_CacheMode_Discord_RequestOptions_">RestGuildChannel.IChannel.GetUserAsync(UInt64, CacheMode, RequestOptions)</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestChannel.html#Discord_Rest_RestChannel_CreatedAt">RestChannel.CreatedAt</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestChannel.html#Discord_Rest_RestChannel_Discord_IChannel_Name">RestChannel.IChannel.Name</a>
+    </div>
+    <div>
+      <a class="xref" href="Discord.Rest.RestEntity-1.html#Discord_Rest_RestEntity_1_Id">RestEntity&lt;UInt64&gt;.Id</a>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Discord.Rest.html">Discord.Rest</a></h6>
+  <h6><strong>Assembly</strong>: Discord.Net.Rest.dll</h6>
+  <h5 id="Discord_Rest_RestVoiceChannel_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class RestVoiceChannel : RestGuildChannel, IUpdateable, IVoiceChannel, INestedChannel, IGuildChannel, IDeletable, IRestAudioChannel, IAudioChannel, IChannel, ISnowflakeEntity, IEntity&lt;ulong&gt;</code></pre>
+  </div>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestVoiceChannel_Bitrate.md&amp;value=---%0Auid%3A%20Discord.Rest.RestVoiceChannel.Bitrate%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Channels/RestVoiceChannel.cs/#L18">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestVoiceChannel_Bitrate_" data-uid="Discord.Rest.RestVoiceChannel.Bitrate*"></a>
+  <h4 id="Discord_Rest_RestVoiceChannel_Bitrate" data-uid="Discord.Rest.RestVoiceChannel.Bitrate">Bitrate</h4>
+  <div class="markdown level1 summary"><p>Gets the bit-rate that the clients in this voice channel are requested to use.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int Bitrate { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>An <span class="xref">System.Int32</span> representing the bit-rate (bps) that this voice channel defines and requests the
+client(s) to use.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestVoiceChannel_CategoryId.md&amp;value=---%0Auid%3A%20Discord.Rest.RestVoiceChannel.CategoryId%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Channels/RestVoiceChannel.cs/#L22">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestVoiceChannel_CategoryId_" data-uid="Discord.Rest.RestVoiceChannel.CategoryId*"></a>
+  <h4 id="Discord_Rest_RestVoiceChannel_CategoryId" data-uid="Discord.Rest.RestVoiceChannel.CategoryId">CategoryId</h4>
+  <div class="markdown level1 summary"><p>Gets the parent (category) ID of this channel in the guild's channel list.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ulong? CategoryId { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Nullable</span>&lt;<span class="xref">System.UInt64</span>&gt;</td>
+        <td><p>A <span class="xref">System.UInt64</span> representing the snowflake identifier of the parent of this channel;
+<code>null</code> if none is set.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestVoiceChannel_UserLimit.md&amp;value=---%0Auid%3A%20Discord.Rest.RestVoiceChannel.UserLimit%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Channels/RestVoiceChannel.cs/#L20">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestVoiceChannel_UserLimit_" data-uid="Discord.Rest.RestVoiceChannel.UserLimit*"></a>
+  <h4 id="Discord_Rest_RestVoiceChannel_UserLimit" data-uid="Discord.Rest.RestVoiceChannel.UserLimit">UserLimit</h4>
+  <div class="markdown level1 summary"><p>Gets the max number of users allowed to be connected to this channel at once.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int? UserLimit { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Nullable</span>&lt;<span class="xref">System.Int32</span>&gt;</td>
+        <td><p>An <span class="xref">System.Int32</span> representing the maximum number of users that are allowed to be connected to this
+channel at once; <code>null</code> if a limit is not set.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestVoiceChannel_CreateInviteAsync_System_Nullable_System_Int32__System_Nullable_System_Int32__System_Boolean_System_Boolean_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.Rest.RestVoiceChannel.CreateInviteAsync(System.Nullable%7BSystem.Int32%7D%2CSystem.Nullable%7BSystem.Int32%7D%2CSystem.Boolean%2CSystem.Boolean%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Channels/RestVoiceChannel.cs/#L66">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestVoiceChannel_CreateInviteAsync_" data-uid="Discord.Rest.RestVoiceChannel.CreateInviteAsync*"></a>
+  <h4 id="Discord_Rest_RestVoiceChannel_CreateInviteAsync_System_Nullable_System_Int32__System_Nullable_System_Int32__System_Boolean_System_Boolean_Discord_RequestOptions_" data-uid="Discord.Rest.RestVoiceChannel.CreateInviteAsync(System.Nullable{System.Int32},System.Nullable{System.Int32},System.Boolean,System.Boolean,Discord.RequestOptions)">CreateInviteAsync(Nullable&lt;Int32&gt;, Nullable&lt;Int32&gt;, Boolean, Boolean, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Creates a new invite to this channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;IInviteMetadata&gt; CreateInviteAsync(int? maxAge, int? maxUses = default(int? ), bool isTemporary = false, bool isUnique = false, RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Nullable</span>&lt;<span class="xref">System.Int32</span>&gt;</td>
+        <td><span class="parametername">maxAge</span></td>
+        <td><p>The time (in seconds) until the invite expires. Set to <code>null</code> to never expire.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Nullable</span>&lt;<span class="xref">System.Int32</span>&gt;</td>
+        <td><span class="parametername">maxUses</span></td>
+        <td><p>The max amount of times this invite may be used. Set to <code>null</code> to have unlimited uses.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">isTemporary</span></td>
+        <td><p>If <code>true</code>, the user accepting this invite will be kicked from the guild after closing their client.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">isUnique</span></td>
+        <td><p>If <code>true</code>, don't try to reuse a similar invite (useful for creating many unique one time use invites).</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<a class="xref" href="Discord.IInviteMetadata.html">IInviteMetadata</a>&gt;</td>
+        <td><p>A task that represents the asynchronous invite creation operation. The task result contains an invite
+metadata object containing information for the created invite.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestVoiceChannel_GetCategoryAsync_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.Rest.RestVoiceChannel.GetCategoryAsync(Discord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Channels/RestVoiceChannel.cs/#L58">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestVoiceChannel_GetCategoryAsync_" data-uid="Discord.Rest.RestVoiceChannel.GetCategoryAsync*"></a>
+  <h4 id="Discord_Rest_RestVoiceChannel_GetCategoryAsync_Discord_RequestOptions_" data-uid="Discord.Rest.RestVoiceChannel.GetCategoryAsync(Discord.RequestOptions)">GetCategoryAsync(RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Gets the parent (category) channel of this channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;ICategoryChannel&gt; GetCategoryAsync(RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<a class="xref" href="Discord.ICategoryChannel.html">ICategoryChannel</a>&gt;</td>
+        <td><p>A task that represents the asynchronous get operation. The task result contains the category channel
+representing the parent of this channel; <code>null</code> if none is set.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestVoiceChannel_GetInvitesAsync_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.Rest.RestVoiceChannel.GetInvitesAsync(Discord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Channels/RestVoiceChannel.cs/#L69">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestVoiceChannel_GetInvitesAsync_" data-uid="Discord.Rest.RestVoiceChannel.GetInvitesAsync*"></a>
+  <h4 id="Discord_Rest_RestVoiceChannel_GetInvitesAsync_Discord_RequestOptions_" data-uid="Discord.Rest.RestVoiceChannel.GetInvitesAsync(Discord.RequestOptions)">GetInvitesAsync(RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Gets a collection of all invites to this channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;IReadOnlyCollection&lt;IInviteMetadata&gt;&gt; GetInvitesAsync(RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<a class="xref" href="Discord.IInviteMetadata.html">IInviteMetadata</a>&gt;&gt;</td>
+        <td><p>A task that represents the asynchronous get operation. The task result contains a read-only collection
+of invite metadata that are created for this channel.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestVoiceChannel_ModifyAsync_System_Action_Discord_VoiceChannelProperties__Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.Rest.RestVoiceChannel.ModifyAsync(System.Action%7BDiscord.VoiceChannelProperties%7D%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Channels/RestVoiceChannel.cs/#L44">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestVoiceChannel_ModifyAsync_" data-uid="Discord.Rest.RestVoiceChannel.ModifyAsync*"></a>
+  <h4 id="Discord_Rest_RestVoiceChannel_ModifyAsync_System_Action_Discord_VoiceChannelProperties__Discord_RequestOptions_" data-uid="Discord.Rest.RestVoiceChannel.ModifyAsync(System.Action{Discord.VoiceChannelProperties},Discord.RequestOptions)">ModifyAsync(Action&lt;VoiceChannelProperties&gt;, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Modifies this voice channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task ModifyAsync(Action&lt;VoiceChannelProperties&gt; func, RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Action</span>&lt;<a class="xref" href="Discord.VoiceChannelProperties.html">VoiceChannelProperties</a>&gt;</td>
+        <td><span class="parametername">func</span></td>
+        <td><p>The properties to modify the channel with.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td><p>A task that represents the asynchronous modification operation.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Discord_Rest_RestVoiceChannel_ModifyAsync_System_Action_Discord_VoiceChannelProperties__Discord_RequestOptions__seealso">See Also</h5>
+  <div class="seealso">
+      <div><a class="xref" href="Discord.VoiceChannelProperties.html">VoiceChannelProperties</a></div>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestVoiceChannel_SyncPermissionsAsync_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.Rest.RestVoiceChannel.SyncPermissionsAsync(Discord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Channels/RestVoiceChannel.cs/#L61">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestVoiceChannel_SyncPermissionsAsync_" data-uid="Discord.Rest.RestVoiceChannel.SyncPermissionsAsync*"></a>
+  <h4 id="Discord_Rest_RestVoiceChannel_SyncPermissionsAsync_Discord_RequestOptions_" data-uid="Discord.Rest.RestVoiceChannel.SyncPermissionsAsync(Discord.RequestOptions)">SyncPermissionsAsync(RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Syncs the permissions of this nested channel with its parent's.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task SyncPermissionsAsync(RequestOptions options = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td><p>A task that represents the asynchronous operation for syncing channel permissions with its parent's.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="eii">Explicit Interface Implementations
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestVoiceChannel_Discord_IAudioChannel_ConnectAsync_System_Boolean_System_Boolean_System_Boolean_.md&amp;value=---%0Auid%3A%20Discord.Rest.RestVoiceChannel.Discord%23IAudioChannel%23ConnectAsync(System.Boolean%2CSystem.Boolean%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Channels/RestVoiceChannel.cs/#L77">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestVoiceChannel_Discord_IAudioChannel_ConnectAsync_" data-uid="Discord.Rest.RestVoiceChannel.Discord#IAudioChannel#ConnectAsync*"></a>
+  <h4 id="Discord_Rest_RestVoiceChannel_Discord_IAudioChannel_ConnectAsync_System_Boolean_System_Boolean_System_Boolean_" data-uid="Discord.Rest.RestVoiceChannel.Discord#IAudioChannel#ConnectAsync(System.Boolean,System.Boolean,System.Boolean)">IAudioChannel.ConnectAsync(Boolean, Boolean, Boolean)</h4>
+  <div class="markdown level1 summary"><p>Connects to this audio channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task&lt;IAudioClient&gt; IAudioChannel.ConnectAsync(bool selfDeaf, bool selfMute, bool external)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">selfDeaf</span></td>
+        <td><p>Determines whether the client should deaf itself upon connection.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">selfMute</span></td>
+        <td><p>Determines whether the client should mute itself upon connection.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">external</span></td>
+        <td><p>Determines whether the audio client is an external one or not.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<a class="xref" href="Discord.Audio.IAudioClient.html">IAudioClient</a>&gt;</td>
+        <td><p>A task representing the asynchronous connection operation. The task result contains the
+<a class="xref" href="Discord.Audio.IAudioClient.html">IAudioClient</a> responsible for the connection.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.NotSupportedException</span></td>
+        <td><p>Connecting to a REST-based channel is not supported.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestVoiceChannel_Discord_IAudioChannel_DisconnectAsync.md&amp;value=---%0Auid%3A%20Discord.Rest.RestVoiceChannel.Discord%23IAudioChannel%23DisconnectAsync%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Channels/RestVoiceChannel.cs/#L78">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestVoiceChannel_Discord_IAudioChannel_DisconnectAsync_" data-uid="Discord.Rest.RestVoiceChannel.Discord#IAudioChannel#DisconnectAsync*"></a>
+  <h4 id="Discord_Rest_RestVoiceChannel_Discord_IAudioChannel_DisconnectAsync" data-uid="Discord.Rest.RestVoiceChannel.Discord#IAudioChannel#DisconnectAsync">IAudioChannel.DisconnectAsync()</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task IAudioChannel.DisconnectAsync()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestVoiceChannel_Discord_IGuildChannel_GetUserAsync_System_UInt64_Discord_CacheMode_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.Rest.RestVoiceChannel.Discord%23IGuildChannel%23GetUserAsync(System.UInt64%2CDiscord.CacheMode%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Channels/RestVoiceChannel.cs/#L82">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestVoiceChannel_Discord_IGuildChannel_GetUserAsync_" data-uid="Discord.Rest.RestVoiceChannel.Discord#IGuildChannel#GetUserAsync*"></a>
+  <h4 id="Discord_Rest_RestVoiceChannel_Discord_IGuildChannel_GetUserAsync_System_UInt64_Discord_CacheMode_Discord_RequestOptions_" data-uid="Discord.Rest.RestVoiceChannel.Discord#IGuildChannel#GetUserAsync(System.UInt64,Discord.CacheMode,Discord.RequestOptions)">IGuildChannel.GetUserAsync(UInt64, CacheMode, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Gets a user in this channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task&lt;IGuildUser&gt; IGuildChannel.GetUserAsync(ulong id, CacheMode mode, RequestOptions options)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt64</span></td>
+        <td><span class="parametername">id</span></td>
+        <td><p>The snowflake identifier of the user.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.CacheMode.html">CacheMode</a></td>
+        <td><span class="parametername">mode</span></td>
+        <td><p>The <a class="xref" href="Discord.CacheMode.html">CacheMode</a> that determines whether the object should be fetched from cache.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<a class="xref" href="Discord.IGuildUser.html">IGuildUser</a>&gt;</td>
+        <td><p>A task representing the asynchronous get operation. The task result contains a guild user object that
+represents the user; <code>null</code> if none is found.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestVoiceChannel_Discord_IGuildChannel_GetUsersAsync_Discord_CacheMode_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.Rest.RestVoiceChannel.Discord%23IGuildChannel%23GetUsersAsync(Discord.CacheMode%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Channels/RestVoiceChannel.cs/#L85">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestVoiceChannel_Discord_IGuildChannel_GetUsersAsync_" data-uid="Discord.Rest.RestVoiceChannel.Discord#IGuildChannel#GetUsersAsync*"></a>
+  <h4 id="Discord_Rest_RestVoiceChannel_Discord_IGuildChannel_GetUsersAsync_Discord_CacheMode_Discord_RequestOptions_" data-uid="Discord.Rest.RestVoiceChannel.Discord#IGuildChannel#GetUsersAsync(Discord.CacheMode,Discord.RequestOptions)">IGuildChannel.GetUsersAsync(CacheMode, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Gets a collection of users that are able to view the channel or are currently in this channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IAsyncEnumerable&lt;IReadOnlyCollection&lt;IGuildUser&gt;&gt; IGuildChannel.GetUsersAsync(CacheMode mode, RequestOptions options)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.CacheMode.html">CacheMode</a></td>
+        <td><span class="parametername">mode</span></td>
+        <td><p>The <a class="xref" href="Discord.CacheMode.html">CacheMode</a> that determines whether the object should be fetched from cache.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.IAsyncEnumerable</span>&lt;<span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<a class="xref" href="Discord.IGuildUser.html">IGuildUser</a>&gt;&gt;</td>
+        <td><p>Paged collection of users.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Discord_Rest_RestVoiceChannel_Discord_IGuildChannel_GetUsersAsync_Discord_CacheMode_Discord_RequestOptions__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method follows the same behavior as described in <a class="xref" href="Discord.IChannel.html#Discord_IChannel_GetUsersAsync_Discord_CacheMode_Discord_RequestOptions_">GetUsersAsync(CacheMode, RequestOptions)</a>.
+Please visit its documentation for more details on this method.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestVoiceChannel_Discord_INestedChannel_GetCategoryAsync_Discord_CacheMode_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.Rest.RestVoiceChannel.Discord%23INestedChannel%23GetCategoryAsync(Discord.CacheMode%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Channels/RestVoiceChannel.cs/#L90">View Source</a>
+  </span>
+  <a id="Discord_Rest_RestVoiceChannel_Discord_INestedChannel_GetCategoryAsync_" data-uid="Discord.Rest.RestVoiceChannel.Discord#INestedChannel#GetCategoryAsync*"></a>
+  <h4 id="Discord_Rest_RestVoiceChannel_Discord_INestedChannel_GetCategoryAsync_Discord_CacheMode_Discord_RequestOptions_" data-uid="Discord.Rest.RestVoiceChannel.Discord#INestedChannel#GetCategoryAsync(Discord.CacheMode,Discord.RequestOptions)">INestedChannel.GetCategoryAsync(CacheMode, RequestOptions)</h4>
+  <div class="markdown level1 summary"><p>Gets the parent (category) channel of this channel.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task&lt;ICategoryChannel&gt; INestedChannel.GetCategoryAsync(CacheMode mode, RequestOptions options)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Discord.CacheMode.html">CacheMode</a></td>
+        <td><span class="parametername">mode</span></td>
+        <td><p>The <a class="xref" href="Discord.CacheMode.html">CacheMode</a> that determines whether the object should be fetched from cache.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
+        <td><span class="parametername">options</span></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<a class="xref" href="Discord.ICategoryChannel.html">ICategoryChannel</a>&gt;</td>
+        <td><p>A task that represents the asynchronous get operation. The task result contains the category channel
+representing the parent of this channel; <code>null</code> if none is set.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="Discord.IUpdateable.html">IUpdateable</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.IVoiceChannel.html">IVoiceChannel</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.INestedChannel.html">INestedChannel</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.IGuildChannel.html">IGuildChannel</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.IDeletable.html">IDeletable</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.Rest.IRestAudioChannel.html">IRestAudioChannel</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.IAudioChannel.html">IAudioChannel</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.IChannel.html">IChannel</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.ISnowflakeEntity.html">ISnowflakeEntity</a>
+  </div>
+  <div>
+      <a class="xref" href="Discord.IEntity-1.html">IEntity&lt;TId&gt;</a>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/goaaats/Discord.Net/new/819a325cec923e4a817ab2f08be5c7bbe0d775d0/apiSpec/new?filename=Discord_Rest_RestVoiceChannel.md&amp;value=---%0Auid%3A%20Discord.Rest.RestVoiceChannel%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/goaaats/Discord.Net/blob/819a325cec923e4a817ab2f08be5c7bbe0d775d0/src/Discord.Net.Rest/Entities/Channels/RestVoiceChannel.cs/#L14" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+              <!-- <p><a class="back-to-top" href="#top">Back to top</a><p> -->
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>
