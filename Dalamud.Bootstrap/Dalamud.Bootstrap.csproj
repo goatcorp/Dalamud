@@ -5,7 +5,12 @@
     <LangVersion>preview</LangVersion>
     <nullable>enable</nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources> <!-- Required by CoreHook to build -->
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Resources.Extensions" Version="4.7.0" /> <!-- Required by CoreHook to build -->
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\lib\CoreHook\src\CoreHook.BinaryInjection\CoreHook.BinaryInjection.csproj" />

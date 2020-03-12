@@ -26,14 +26,14 @@ namespace Dalamud.Bootstrap.SqexArg
             }
 
             var checksum = argument[^5];
-            var payload = argument[11..^5]
-                .Replace(; // encoded in url-safe variant of base64
+            var payload = argument[11..^5];
 
             // decode 
 
-            Convert.FromBase64String();
-            container = new ArgumentContainer(payload, checksum);
+            //Convert.FromBase64String();
+            //container = new ArgumentContainer(payload, checksum);
 
+            container = null;
             return true;
         }
     }
