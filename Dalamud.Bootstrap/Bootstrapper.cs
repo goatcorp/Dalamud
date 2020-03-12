@@ -46,7 +46,12 @@ namespace Dalamud.Bootstrap
             using var process = Process.Open(pid);
             var commandLine = process.ReadCommandLine();
 
-            var argument = ArgumentDecoder.Decode(commandLine[1]);
+            if (!ArgumentContainer.Parse(commandLine[1], out var container))
+            {
+
+            }
+
+            
             // TODO:
             // .... if arg1 exists
             // DecodeSqexArg(arguments[1]);
