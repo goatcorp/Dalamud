@@ -27,7 +27,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dalamud.Bootstrap", "Dalamu
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dalamud.Testing", "Dalamud.Testing\Dalamud.Testing.csproj", "{0A99A6B3-12E2-4197-A6F3-9211B6D4D824}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Build", "build\Build.csproj", "{A6BB70E8-7F14-410F-A296-1B4495F6F069}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Build", "Build\Build.csproj", "{A6BB70E8-7F14-410F-A296-1B4495F6F069}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
