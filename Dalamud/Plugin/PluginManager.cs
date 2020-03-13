@@ -123,6 +123,11 @@ namespace Dalamud.Plugin
                             return false;
                         }
 
+                        if (this.Plugins.Any(x => x.Plugin.GetType().Assembly.GetName().Name == type.Assembly.GetName().Name)) {
+                            Log.Error("Duplicate plugin found: {0}", dllFile.FullName);
+                            return false;
+                        }
+
                         var plugin = (IDalamudPlugin)Activator.CreateInstance(type);
 
                         // this happens for raw plugins that don't specify a PluginDefinition - just generate a dummy one to avoid crashes anywhere
