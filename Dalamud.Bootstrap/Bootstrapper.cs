@@ -19,6 +19,8 @@ namespace Dalamud.Bootstrap
 
         public void Launch(string exePath, string? commandLine)
         {
+            commandLine = commandLine ?? "";
+
             throw new NotImplementedException("TODO");
         }
 
@@ -46,7 +48,7 @@ namespace Dalamud.Bootstrap
             using var process = Process.Open(pid);
             var commandLine = process.ReadCommandLine();
 
-            if (!ArgumentContainer.Parse(commandLine[1], out var container))
+            if (!EncodedArgument.Parse(commandLine[1], out var container))
             {
 
             }

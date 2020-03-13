@@ -35,6 +35,8 @@ class DalamudBuild : NukeBuild
 
     AbsolutePath OutputDirectory => RootDirectory / "output";
 
+    //AbsolutePath DefaultDalamudRoot => 
+
     Target Clean => _ => _
         .Before(Restore)
         .Executes(() =>
@@ -59,7 +61,7 @@ class DalamudBuild : NukeBuild
                 .SetAssemblyVersion(GitVersion.AssemblySemVer)
                 .SetFileVersion(GitVersion.AssemblySemFileVer)
                 .SetInformationalVersion(GitVersion.InformationalVersion)
-                /*.EnableNoRestore()*/);
+                .EnableNoRestore());
         });
 
     Target Install => _ => _
@@ -67,5 +69,6 @@ class DalamudBuild : NukeBuild
         .Executes(() =>
         {
             // TODO
+            Direct
         });
 }

@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 
 namespace Dalamud.Bootstrap.Crypto
 {
-    internal unsafe partial struct BlowfishState
+    internal unsafe struct BlowfishState
     {
         // References:
         // https://www.schneier.com/academic/archives/1994/09/description_of_a_new.html
@@ -171,14 +171,9 @@ namespace Dalamud.Bootstrap.Crypto
         private fixed uint m_s1[SSize];
         private fixed uint m_s2[SSize];
         private fixed uint m_s3[SSize];
-    }
 
-    internal unsafe partial struct BlowfishState
-    {
         public BlowfishState(ReadOnlySpan<byte> key)
         {
-            CheckKeyLength(key);
-
             // initializes P-array and S-boxes to initial values.
             fixed (uint* pSrc = PInit)
             fixed (uint* pDst = m_p)
@@ -213,15 +208,15 @@ namespace Dalamud.Bootstrap.Crypto
             InitKey(key);
         }
 
-        private void CheckKeyLength(ReadOnlySpan<byte> key)
-        {
-            // Supported key sizes: 32–448 bits
-            // https://en.wikipedia.org/wiki/Blowfish_(cipher)#The_algorithm
-            if (key.Length < 4 || key.Length > 56)
-            {
-                throw new ArgumentException("Key length must be between from 32 to 448 bits.", nameof(key));
-            }
-        }
+        // private void CheckKeyLength(ReadOnlySpan<byte> key)
+        // {
+        //     // Supported key sizes: 32–448 bits
+        //     // https://en.wikipedia.org/wiki/Blowfish_(cipher)#The_algorithm
+        //     if (key.Length < 4 || key.Length > 56)
+        //     {
+        //         throw new ArgumentException("Key length must be between from 32 to 448 bits.", nameof(key));
+        //     }
+        // }
 
         /// <summary>
         /// Encrypts a block.
@@ -363,13 +358,10 @@ namespace Dalamud.Bootstrap.Crypto
         }
     }
 
-    internal sealed partial class Blowfish
+    internal sealed class Blowfish
     {
         private BlowfishState m_state;
-    }
-
-    internal sealed partial class Blowfish
-    {
+        
         /// <summary>
         /// Initializes a new instance of the Blowfish class.
         /// </summary>
