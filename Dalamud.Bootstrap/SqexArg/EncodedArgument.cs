@@ -27,37 +27,34 @@ namespace Dalamud.Bootstrap.SqexArg
             m_key = key;
         }
 
-        public static bool TryParse(string argument, out EncodedArgument? value)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="argument"></param>
+        /// <returns></returns>
+        public static EncodedArgument Parse(string argument)
         {
             if (argument.Length <= 17)
             {
                 // does not contain: //**sqex0003 + payload + checksum + **//
-                value = null;
-                return false;
+                var exMessage = $"The string ({argument}) is too short to parse encoded argument.";
+                throw new SqexArgException(exMessage);
             }
 
             if (!argument.StartsWith("//**sqex0003") || !argument.EndsWith("**//"))
             {
-                value = null;
-                return false;
+                var exMessage = $"The string ({argument}) doesn't look like valid encoded argument format."
+                    + $"It either doesn't start with //**sqeex003 or end with **// marker.";
+                throw new SqexArgException(exMessage);
             }
 
             var checksum = argument[^5];
             var payload = DecodeUrlSafeBase64(argument.Substring(12, argument.Length - 1 - 12 - 4)); // //**sqex0003, checksum, **//
 
-            if (!FindPartialKey(checksum, out var partialKey))
-            {
-                value = null;
-                return false;
-            }
-
-            for (var i = 0u; i <= 0xFFF; i++)
-            {
-                var key = (i << 20) | partialKey;
-            }
+            // ...
         }
 
-        private static bool FindPartialKey(char checksum, out uint recoveredKey)
+        private static bool GetKeyFragmentFromChecksum(char checksum, out uint recoveredKey)
         {
             var index = MemoryExtensions.IndexOf(ChecksumTable, checksum);
             

@@ -69,6 +69,6 @@ class DalamudBuild : NukeBuild
         .Executes(() =>
         {
             // TODO
-            Direct
+            
         });
 }

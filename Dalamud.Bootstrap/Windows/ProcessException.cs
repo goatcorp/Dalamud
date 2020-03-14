@@ -1,21 +1,8 @@
 using System;
-using System.ComponentModel;
 
-namespace Dalamud.Bootstrap
+namespace Dalamud.Bootstrap.Windows
 {
-    /// <summary>
-    /// An error that is thrown when bootstraping Dalamud failed.
-    /// </summary>
-    public class BootstrapException : Exception
-    {
-        internal BootstrapException() : base() { }
-
-        internal BootstrapException(string message) : base(message) { }
-
-        internal BootstrapException(string message, Exception innerException) : base(message, innerException) { }
-    }
-
-    public class ProcessException : BootstrapException
+    public class ProcessException : Exception
     {
         public uint Pid { get; }
 
