@@ -185,14 +185,15 @@ namespace Dalamud.Game {
         public IntPtr GetStaticAddressFromSig(string signature, int offset)
         {
             IntPtr instrAddr = ScanText(signature);
-            instrAddr = IntPtr.Add(instrAddr, offset + 1);
+            instrAddr = IntPtr.Add(instrAddr, offset);
             long bAddr = (long)Module.BaseAddress;
-            var num = (long)Marshal.ReadInt32(instrAddr) + (long)instrAddr + 4 - bAddr;
-            while(! (num >= DataSectionOffset && num <= DataSectionOffset + DataSectionSize))
+            long num;
+            do
             {
-                instrAddr= IntPtr.Add(instrAddr, 1);
+                instrAddr = IntPtr.Add(instrAddr, 1);
                 num = Marshal.ReadInt32(instrAddr) + (long)instrAddr + 4 - bAddr;
             }
+            while (!(num >= DataSectionOffset && num <= DataSectionOffset + DataSectionSize));
             return IntPtr.Add(instrAddr, Marshal.ReadInt32(instrAddr) + 4);
         }
 
