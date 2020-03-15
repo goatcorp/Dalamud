@@ -15,11 +15,12 @@ namespace Dalamud.Bootstrap.SqexArg
             '5', 'C', 'A', 'P', '4', '_', 'V', 'L'
         };
 
+        /// <summary>
+        /// Denotes that no checksum is encoded.
+        /// </summary>
+        private const char NoChecksumMarker = '!';
+
         private readonly ReadOnlyMemory<byte> m_data;
-
-        private readonly uint m_key;
-
-        //private readonly Blowfish m_cachedBlowfish;
 
         public EncodedArgument(ReadOnlyMemory<byte> data, uint key)
         {
@@ -51,23 +52,56 @@ namespace Dalamud.Bootstrap.SqexArg
             var checksum = argument[^5];
             var payload = DecodeUrlSafeBase64(argument.Substring(12, argument.Length - 1 - 12 - 4)); // //**sqex0003, checksum, **//
 
+
             // ...
         }
 
-        private static bool GetKeyFragmentFromChecksum(char checksum, out uint recoveredKey)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="payload"></param>
+        /// <param name="checksum"></param>
+        /// <returns></returns>
+        private static Blowfish RecoverKey(ReadOnlySpan<byte> payload, char checksum)
         {
-            var index = MemoryExtensions.IndexOf(ChecksumTable, checksum);
-            
-            if (index < 0)
-            {
-                recoveredKey = 0;
-                return false;
-            }
+            var (keyFragment, step) = RecoverKeyFragmentFromChecksum(checksum);
 
-            recoveredKey = (uint) (index << 16);
-            return true;
+            var keyCandicate = keyFragment;
+            while (true)
+            {
+                // try with keyCandicate
+
+                try
+                {
+                    keyCandicate = checked(keyCandicate + step);
+                }
+                catch (OverflowException)
+                {
+                    break;
+                }
+            }
         }
-        
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="keyFragment"></param>
+        /// <param name="step"></param>
+        /// <returns></returns>
+        private static (uint keyFragment, uint step) RecoverKeyFragmentFromChecksum(char checksum)
+        {
+            if (checksum == NoChecksumMarker)
+            {
+                return (0x0001_0000, 0x0001_0000);
+            }
+                
+            return MemoryExtensions.IndexOf(ChecksumTable, checksum) switch
+            {
+                -1 => throw new SqexArgException($"{checksum} is not a valid checksum character."),
+                var index => ((uint) (index << 16), 0x0010_0000)
+            };
+        }
+
         /// <summary>
         /// Converts url safe variant of base64 string to bytes.
         /// </summary>

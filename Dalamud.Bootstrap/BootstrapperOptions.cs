@@ -3,7 +3,7 @@ using System.IO;
 
 namespace Dalamud.Bootstrap
 {
-    public sealed class BootstrapperOptions
+    public class BootstrapperOptions
     {
         public static BootstrapperOptions Default => new BootstrapperOptions
         {
