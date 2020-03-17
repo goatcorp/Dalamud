@@ -69,7 +69,7 @@ namespace Dalamud.Game.Network {
                 flashInfo.cbSize = (uint) Marshal.SizeOf<NativeFunctions.FLASHWINFO>();
                 flashInfo.uCount = uint.MaxValue;
                 flashInfo.dwTimeout = 0;
-                flashInfo.dwFlags = NativeFunctions.FlashWindow.FLASHW_ALL |
+                flashInfo.dwFlags = NativeFunctions.FlashWindow.FLASHW_TRAY |
                                     NativeFunctions.FlashWindow.FLASHW_TIMERNOFG;
                 flashInfo.hwnd = Process.GetCurrentProcess().MainWindowHandle;
                 NativeFunctions.FlashWindowEx(ref flashInfo);
