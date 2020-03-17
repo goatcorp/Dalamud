@@ -166,12 +166,35 @@ namespace Dalamud.Game {
         /// Helper for ScanText to get the correct address for 
         /// IDA sigs that mark the first CALL location.
         /// </summary>
-        /// <param name="sigLocation">The address the CALL sig resolved to.</param>
+        /// <param name="SigLocation">The address the CALL sig resolved to.</param>
         /// <returns>The real offset of the signature.</returns>
         private IntPtr ReadCallSig(IntPtr SigLocation)
         {
             int jumpOffset = Marshal.ReadInt32(IntPtr.Add(SigLocation, 1));
             return IntPtr.Add(SigLocation, 5 + jumpOffset);
+        }
+
+        /// <summary>
+        /// Scan for a .data address using a .text function.
+        /// This is intended to be used with IDA sigs.
+        /// Place your cursor on the line calling a static address, and create and IDA sig.
+        /// </summary>
+        /// <param name="signature">The signature of the function using the data.</param>
+        /// <param name="offset">The offset from function start of the instruction using the data.</param>
+        /// <returns>An IntPtr to the static memory location.</returns>
+        public IntPtr GetStaticAddressFromSig(string signature, int offset)
+        {
+            IntPtr instrAddr = ScanText(signature);
+            instrAddr = IntPtr.Add(instrAddr, offset);
+            long bAddr = (long)Module.BaseAddress;
+            long num;
+            do
+            {
+                instrAddr = IntPtr.Add(instrAddr, 1);
+                num = Marshal.ReadInt32(instrAddr) + (long)instrAddr + 4 - bAddr;
+            }
+            while (!(num >= DataSectionOffset && num <= DataSectionOffset + DataSectionSize));
+            return IntPtr.Add(instrAddr, Marshal.ReadInt32(instrAddr) + 4);
         }
 
         /// <summary>
