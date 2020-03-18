@@ -151,7 +151,11 @@ namespace Dalamud.Plugin
                 var pluginDlls = folder.GetFiles("*.dll", SearchOption.AllDirectories);
 
                 foreach (var dllFile in pluginDlls) {
-                    LoadPluginFromAssembly(dllFile, raw);
+                    try {
+                        LoadPluginFromAssembly(dllFile, raw);
+                    } catch (Exception ex) {
+                        Log.Error(ex, $"Plugin load for {dllFile.FullName} failed.");
+                    }
                 }
             }
         }
