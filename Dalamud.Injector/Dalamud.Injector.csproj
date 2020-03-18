@@ -14,13 +14,16 @@
   </PropertyGroup>
   <PropertyGroup Label="Feature">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <AssemblyVersion>4.7.16.0</AssemblyVersion>
-    <FileVersion>4.7.16.0</FileVersion>
+    <AssemblyVersion>4.7.17.0</AssemblyVersion>
+    <FileVersion>4.7.17.0</FileVersion>
     <Description>XIVLauncher addon injection</Description>
-    <Version>4.7.16.0</Version>
+    <Version>4.7.17.0</Version>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <DocumentationFile></DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="EasyHook" Version="2.7.6270" />
