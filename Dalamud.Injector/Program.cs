@@ -87,7 +87,7 @@ namespace Dalamud.Injector {
                 DefaultPluginDirectory = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) +
                                          @"\XIVLauncher\devPlugins",
 
-                GameVersion = "2020.02.11.0000.0000",
+                GameVersion = File.ReadAllText(@"C:\Program Files (x86)\SquareEnix\FINAL FANTASY XIV - A Realm Reborn\game\ffxivgame.ver"),
                 Language = ClientLanguage.English
             };
 
