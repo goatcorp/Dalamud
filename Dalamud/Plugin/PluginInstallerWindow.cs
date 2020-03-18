@@ -73,7 +73,7 @@ namespace Dalamud.Plugin
                         continue;
                     }
 
-                    var sortedVersions = versions.OrderBy(x => x.CreationTime);
+                    var sortedVersions = versions.OrderBy(x => int.Parse(x.Name.Replace(".","")));
                     var latest = sortedVersions.Last();
 
                     var localInfoFile = new FileInfo(Path.Combine(latest.FullName, $"{installed.Name}.json"));
@@ -96,7 +96,17 @@ namespace Dalamud.Plugin
 
                     if (remoteInfo.AssemblyVersion != info.AssemblyVersion)
                     {
-                        this.manager.DisablePlugin(info);
+                        foreach (var sortedVersion in sortedVersions) {
+                            File.Create(Path.Combine(sortedVersion.FullName, ".disabled"));
+                        }
+
+                        // Try to disable plugin if it is loaded
+                        try {
+                            this.manager.DisablePlugin(info);
+                        } catch {
+                            // ignored
+                        }
+
                         InstallPlugin(remoteInfo);
                     }
                 }
