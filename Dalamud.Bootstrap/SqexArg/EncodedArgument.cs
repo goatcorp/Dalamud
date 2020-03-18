@@ -66,11 +66,30 @@ namespace Dalamud.Bootstrap.SqexArg
         {
             var (keyFragment, step) = RecoverKeyFragmentFromChecksum(checksum);
 
+            Span<byte> keyBytes = stackalloc byte[8];
+
             var keyCandicate = keyFragment;
             while (true)
             {
-                // try with keyCandicate
+                if (!CreateKey(keyBytes, keyCandicate))
+                {
+                    var message = $"BUG";
+                    throw new InvalidOperationException(message);
+                }
 
+                var blowfish = new Blowfish(keyBytes);
+                blowfish.DecryptInPlace();
+
+                if (/* if data looks valid, return blowfish */)
+                {
+                    // ...
+                    // TODO: test if it's looks like valid utf8 string?
+                    // ???
+
+                    return blowfish;
+                }
+
+                // .. next key plz
                 try
                 {
                     keyCandicate = checked(keyCandicate + step);
@@ -82,12 +101,8 @@ namespace Dalamud.Bootstrap.SqexArg
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="keyFragment"></param>
-        /// <param name="step"></param>
-        /// <returns></returns>
+        private static bool CreateKey(Span<byte> destination, uint key) => Utf8Formatter.TryFormat(key, destination, out var _, new StandardFormat('X', 8));
+
         private static (uint keyFragment, uint step) RecoverKeyFragmentFromChecksum(char checksum)
         {
             if (checksum == NoChecksumMarker)
@@ -103,7 +118,7 @@ namespace Dalamud.Bootstrap.SqexArg
         }
 
         /// <summary>
-        /// Converts url safe variant of base64 string to bytes.
+        /// Converts the url-safe variant of base64 string to bytes.
         /// </summary>
         /// <param name="payload">A url-safe variant of base64 string.</param>
         private static byte[] DecodeUrlSafeBase64(string payload)

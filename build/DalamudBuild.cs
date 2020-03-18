@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Linq;
 using Nuke.Common;
 using Nuke.Common.Execution;
@@ -13,6 +14,7 @@ using static Nuke.Common.EnvironmentInfo;
 using static Nuke.Common.IO.FileSystemTasks;
 using static Nuke.Common.IO.PathConstruction;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
+using static Nuke.Common.Logger;
 
 [CheckBuildProjectConfigurations]
 [UnsetVisualStudioEnvironmentVariables]
@@ -35,7 +37,7 @@ class DalamudBuild : NukeBuild
 
     AbsolutePath OutputDirectory => RootDirectory / "output";
 
-    //AbsolutePath DefaultDalamudRoot => 
+    AbsolutePath DefaultInstallDirectory => (AbsolutePath)Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) / "Dalamud" / "bin" / GitVersion.SemVer;
 
     Target Clean => _ => _
         .Before(Restore)
@@ -68,7 +70,7 @@ class DalamudBuild : NukeBuild
         .DependsOn(Compile)
         .Executes(() =>
         {
+            Info($"Installing Dalamud to {DefaultInstallDirectory}");
             // TODO
-            
         });
 }
