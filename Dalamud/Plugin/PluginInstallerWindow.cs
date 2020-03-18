@@ -182,6 +182,8 @@ namespace Dalamud.Plugin
                     if (pluginDefinition.IsHide)
                         continue;
 
+                    ImGui.PushID(pluginDefinition.InternalName + pluginDefinition.AssemblyVersion);
+
                     if (ImGui.CollapsingHeader(pluginDefinition.Name)) {
                         ImGui.Indent();
 
@@ -235,6 +237,8 @@ namespace Dalamud.Plugin
 
                         ImGui.Unindent();
                     }
+
+                    ImGui.PopID();
                 }
             }
 
