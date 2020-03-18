@@ -4,7 +4,146 @@ using System.Runtime.CompilerServices;
 
 namespace Dalamud.Bootstrap.Crypto
 {
-    internal unsafe struct BlowfishState
+    /// <summary>
+    /// A class that implements Blowfish algorithm.
+    /// </summary>
+    /// <remarks>
+    /// Sole purpose of this class is that to produce the value barely enough to be compatible with the algorithm seen in FINAL FANTASY XIV: A Relam Reborn.
+    /// Therefore, codes are not audited by security experts nor I don't believe that this is a correct implementation.
+    /// Heck, it even uses ECB block cipher mode! (because that's what FFXIV uses)
+    /// 
+    /// Please, don't try to use this in production.
+    /// </remarks>
+    internal sealed class Blowfish
+    {
+        private BlowfishState m_state;
+
+        /// <summary>
+        /// Initializes a new instance of the Blowfish class.
+        /// </summary>
+        /// <remarks>
+        /// This function also calculates P-array and S-boxes from the given key which is most expensive operation in the blowfish algorithm.
+        /// </remarks>
+        /// <param name="key">A secret key. The length of the key must be between 32 and 448 bits.</param>
+        /// <exception cref="ArgumentException">The length of the key is either too short or too long.</exception>
+        public Blowfish(ReadOnlySpan<byte> key)
+        {
+            if (!CheckKeyLength(key.Length))
+            {
+                var message = "The length of the secret key is either too short or too long.";
+                throw new ArgumentException(message, nameof(key));
+            }
+
+            m_state = new BlowfishState(key);
+        }
+
+        /// <summary>
+        /// Checks if given key size is supported.
+        /// </summary>
+        /// <param name="length">A key size in bytes.</param>
+        /// <returns>Returns true if supported, false otherwise.</returns>
+        private static bool CheckKeyLength(int length) => length switch
+        {
+            // valid size: 32~448 bits
+            _ when length >= 4 && length <= 56 => true,
+            _ => false,
+        };
+
+        private static bool CheckBufferLength(int length) => length switch
+        {
+            _ when length % 8 == 0 => true,
+            _ => false,
+        };
+
+        public void EncryptInPlace(Span<byte> buffer)
+        {
+            // TODO: this is shit
+            throw new NotImplementedException();
+        }
+
+        public void DecryptInPlace(Span<byte> buffer)
+        {
+            if (CheckBufferLength(buffer.Length))
+            {
+                throw new ArgumentException("TODO: buffer length", nameof(buffer));
+            }
+
+            unsafe
+            {
+                fixed (byte* pBuffer = buffer)
+                {
+                    for (byte* it = pBuffer; it < pBuffer + buffer.Length; it += 8)
+                    {
+                        DecryptBlockInPlace(it, it);
+                    }
+                }
+            }
+        }
+
+        private unsafe void EncryptBlockInPlace(byte* input, byte* output)
+        {
+            var inputBlock = (uint*)input;
+            var outputBlock = (uint*)output;
+
+            var xl = inputBlock[0];
+            var xr = inputBlock[1];
+
+            // will be elided by JIT
+            if (!BitConverter.IsLittleEndian)
+            {
+                xl = BinaryPrimitives.ReverseEndianness(xl);
+                xr = BinaryPrimitives.ReverseEndianness(xr);
+            }
+
+            (xl, xr) = m_state.EncryptBlock(xl, xr);
+
+            // will be elided by JIT
+            if (!BitConverter.IsLittleEndian)
+            {
+                xl = BinaryPrimitives.ReverseEndianness(xl);
+                xr = BinaryPrimitives.ReverseEndianness(xr);
+            }
+
+            outputBlock[0] = xl;
+            outputBlock[1] = xr;
+        }
+
+        private unsafe void DecryptBlockInPlace(byte* input, byte* output)
+        {
+            var inputBlock = (uint*)input;
+            var outputBlock = (uint*)output;
+
+            var xl = inputBlock[0];
+            var xr = inputBlock[1];
+
+            // will be elided by JIT
+            if (!BitConverter.IsLittleEndian)
+            {
+                xl = BinaryPrimitives.ReverseEndianness(xl);
+                xr = BinaryPrimitives.ReverseEndianness(xr);
+            }
+
+            (xl, xr) = m_state.DecryptBlock(xl, xr);
+
+            // will be elided by JIT
+            if (!BitConverter.IsLittleEndian)
+            {
+                xl = BinaryPrimitives.ReverseEndianness(xl);
+                xr = BinaryPrimitives.ReverseEndianness(xr);
+            }
+
+            outputBlock[0] = xl;
+            outputBlock[1] = xr;
+        }
+    }
+
+    /// <summary>
+    /// Contains internal state of Blowfish algorithm. (P-box and S-boxes)
+    /// </summary>
+    /// <remarks>
+    /// This struct is even more unsafe than Blowfish because it doesn't have a boundary check at all. (It assumes Blowfish class will)
+    /// </remarks>
+    internal struct BlowfishState
     {
         // References:
         // https://www.schneier.com/academic/archives/1994/09/description_of_a_new.html
@@ -166,13 +305,15 @@ namespace Dalamud.Bootstrap.Crypto
             0x90D4F869, 0xA65CDEA0, 0x3F09252D, 0xC208E69F, 0xB74E6132, 0xCE77E25B, 0x578FDFE3, 0x3AC372E6
         };
 
-        private fixed uint m_p[PSize];
-        private fixed uint m_s0[SSize];
-        private fixed uint m_s1[SSize];
-        private fixed uint m_s2[SSize];
-        private fixed uint m_s3[SSize];
+        // The reason why it's implemented as a value type is that fixed keyword is only available in this type.
+        // We don't want the compiler to produce a boundary check for every iteration.
+        private unsafe fixed uint m_p[PSize];
+        private unsafe fixed uint m_s0[SSize];
+        private unsafe fixed uint m_s1[SSize];
+        private unsafe fixed uint m_s2[SSize];
+        private unsafe fixed uint m_s3[SSize];
 
-        public BlowfishState(ReadOnlySpan<byte> key)
+        public unsafe BlowfishState(ReadOnlySpan<byte> key)
         {
             // initializes P-array and S-boxes to initial values.
             fixed (uint* pSrc = PInit)
@@ -207,17 +348,7 @@ namespace Dalamud.Bootstrap.Crypto
 
             InitKey(key);
         }
-
-        // private void CheckKeyLength(ReadOnlySpan<byte> key)
-        // {
-        //     // Supported key sizes: 32–448 bits
-        //     // https://en.wikipedia.org/wiki/Blowfish_(cipher)#The_algorithm
-        //     if (key.Length < 4 || key.Length > 56)
-        //     {
-        //         throw new ArgumentException("Key length must be between from 32 to 448 bits.", nameof(key));
-        //     }
-        // }
-
+        
         /// <summary>
         /// Encrypts a block.
         /// </summary>
@@ -225,24 +356,27 @@ namespace Dalamud.Bootstrap.Crypto
         /// <param name="xr">A right side of the block.</param>
         public (uint, uint) EncryptBlock(uint xl, uint xr)
         {
-            // https://en.wikipedia.org/wiki/Feistel_cipher#Construction_details
-            for (var i = 0; i < Rounds; i += 2)
+            unsafe
             {
-                xl ^= m_p[i];
-                xr ^= Round(xl);
-                xr ^= m_p[i + 1];
-                xl ^= Round(xr);
+                // https://en.wikipedia.org/wiki/Feistel_cipher#Construction_details
+                for (var i = 0; i < Rounds; i += 2)
+                {
+                    xl ^= m_p[i];
+                    xr ^= Round(xl);
+                    xr ^= m_p[i + 1];
+                    xl ^= Round(xr);
+                }
+
+                xl ^= m_p[16];
+                xr ^= m_p[17];
+
+                // swap(L, R)
+                var temp = xl;
+                xl = xr;
+                xr = temp;
+
+                return (xl, xr);
             }
-
-            xl ^= m_p[16];
-            xr ^= m_p[17];
-
-            // swap(L, R)
-            var temp = xl;
-            xl = xr;
-            xr = temp;
-
-            return (xl, xr);
         }
 
         /// <summary>
@@ -252,24 +386,27 @@ namespace Dalamud.Bootstrap.Crypto
         /// <param name="xr">A right side of the blick.</param>
         public (uint, uint) DecryptBlock(uint xl, uint xr)
         {
-            // https://en.wikipedia.org/wiki/Feistel_cipher#Construction_details
-            for (var i = Rounds; i > 0; i -= 2)
+            unsafe
             {
-                xl ^= m_p[i + 1];
-                xr ^= Round(xr);
-                xr ^= m_p[i];
-                xr ^= Round(xr);
+                // https://en.wikipedia.org/wiki/Feistel_cipher#Construction_details
+                for (var i = Rounds; i > 0; i -= 2)
+                {
+                    xl ^= m_p[i + 1];
+                    xr ^= Round(xr);
+                    xr ^= m_p[i];
+                    xr ^= Round(xr);
+                }
+
+                xl ^= m_p[1];
+                xr ^= m_p[0];
+
+                // swap(L, R);
+                var temp = xl;
+                xl = xr;
+                xr = temp;
+
+                return (xl, xr);
             }
-
-            xl ^= m_p[1];
-            xr ^= m_p[0];
-
-            // swap(L, R);
-            var temp = xl;
-            xl = xr;
-            xr = temp;
-
-            return (xl, xr);
         }
 
         /// <summary>
@@ -278,6 +415,7 @@ namespace Dalamud.Bootstrap.Crypto
         /// <param name="key">A setup key.</param>
         private void InitKey(ReadOnlySpan<byte> key)
         {
+            unsafe
             {
                 var keyPos = 0;
 
@@ -303,6 +441,7 @@ namespace Dalamud.Bootstrap.Crypto
                 }
             }
 
+            unsafe
             {
                 var xl = 0u;
                 var xr = 0u;
@@ -352,107 +491,15 @@ namespace Dalamud.Bootstrap.Crypto
         [MethodImpl(MethodImplOptions.AggressiveInlining /* | MethodImplOptions.AggressiveOptimization */)]
         private uint Round(uint x)
         {
-            return unchecked(
-                ((m_s0[x >> 24] + m_s1[(byte)(x >> 16)]) ^ m_s2[(byte)(x >> 8)]) + m_s3[(byte)x]
-            );
-        }
-    }
-
-    internal sealed class Blowfish
-    {
-        private BlowfishState m_state;
-        
-        /// <summary>
-        /// Initializes a new instance of the Blowfish class.
-        /// </summary>
-        /// <remarks>
-        /// This function also calculates P-array and S-boxes from the given key. This is most expensive operation in blowfish algorithm.
-        /// </remarks>
-        /// <param name="key">A secret key used for blowfish. Key length must be between 32 and 448 bits.</param>
-        /// <exception cref="ArgumentException">Length of the key is either too short or too long.</exception>
-        public Blowfish(ReadOnlySpan<byte> key)
-        {
-            m_state = new BlowfishState(key);
-        }
-
-        public void EncryptInPlace(Span<byte> buffer)
-        {
-            // TODO: this is shit
-        }
-
-        public void DecryptInPlace(Span<byte> buffer)
-        {
-            if (buffer.Length % 8 != 0)
-            {
-                throw new ArgumentException("TODO: buffer length", nameof(buffer));
-            }
-
             unsafe
             {
-                fixed (byte* pBuffer = buffer)
-                {
-                    for (byte* it = pBuffer; it < pBuffer + buffer.Length; it += 8)
-                    {
-                        DecryptBlockInPlace(it, it);
-                    }
-                }
+                // NOTE: this is still sub-optimal
+                return unchecked
+                (
+                    ((m_s0[x >> 24] + m_s1[(byte)(x >> 16)]) ^ m_s2[(byte)(x >> 8)]) + m_s3[(byte)x]
+                );
             }
-        }
-
-        private unsafe void EncryptBlockInPlace(byte* input, byte* output)
-        {
-            var inputBlock = (uint*)input;
-            var outputBlock = (uint*)output;
-
-            var xl = inputBlock[0];
-            var xr = inputBlock[1];
-
-            // will be elided by JIT
-            if (!BitConverter.IsLittleEndian)
-            {
-                xl = BinaryPrimitives.ReverseEndianness(xl);
-                xr = BinaryPrimitives.ReverseEndianness(xr);
-            }
-
-            (xl, xr) = m_state.EncryptBlock(xl, xr);
-
-            // will be elided by JIT
-            if (!BitConverter.IsLittleEndian)
-            {
-                xl = BinaryPrimitives.ReverseEndianness(xl);
-                xr = BinaryPrimitives.ReverseEndianness(xr);
-            }
-
-            outputBlock[0] = xl;
-            outputBlock[1] = xr;
-        }
-
-        private unsafe void DecryptBlockInPlace(byte* input, byte* output)
-        {
-            var inputBlock = (uint*)input;
-            var outputBlock = (uint*)output;
-
-            var xl = inputBlock[0];
-            var xr = inputBlock[1];
-
-            // will be elided by JIT
-            if (!BitConverter.IsLittleEndian)
-            {
-                xl = BinaryPrimitives.ReverseEndianness(xl);
-                xr = BinaryPrimitives.ReverseEndianness(xr);
-            }
-
-            (xl, xr) = m_state.DecryptBlock(xl, xr);
-
-            // will be elided by JIT
-            if (!BitConverter.IsLittleEndian)
-            {
-                xl = BinaryPrimitives.ReverseEndianness(xl);
-                xr = BinaryPrimitives.ReverseEndianness(xr);
-            }
-
-            outputBlock[0] = xl;
-            outputBlock[1] = xr;
+            
         }
     }
 }
