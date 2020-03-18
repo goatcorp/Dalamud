@@ -61,6 +61,8 @@ namespace Dalamud.Plugin
         }
 
         public void UpdatePlugins() {
+            Log.Information("Starting plugin update...");
+
             try {
                 var pluginsDirectory = new DirectoryInfo(this.pluginDirectory);
                 this.installStatus = PluginInstallStatus.Success;
@@ -95,6 +97,8 @@ namespace Dalamud.Plugin
 
                     if (remoteInfo.AssemblyVersion != info.AssemblyVersion)
                     {
+                        Log.Information("Eligible for update: {0}", remoteInfo.InternalName);
+
                         foreach (var sortedVersion in sortedVersions) {
                             File.Create(Path.Combine(sortedVersion.FullName, ".disabled"));
                         }
@@ -107,6 +111,8 @@ namespace Dalamud.Plugin
                         }
 
                         InstallPlugin(remoteInfo);
+                    } else {
+                        Log.Information("Up to date: {0}", remoteInfo.InternalName);
                     }
                 }
             }
@@ -115,6 +121,8 @@ namespace Dalamud.Plugin
                 Log.Error(e, "Plugin update failed hard.");
                 this.installStatus = PluginInstallStatus.Fail;
             }
+
+            Log.Information("Plugin update OK.");
         }
 
         private void InstallPlugin(PluginDefinition definition) {
