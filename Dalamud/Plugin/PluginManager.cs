@@ -3,12 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using Dalamud.Configuration;
-using Dalamud.Interface;
-using Dalamud.Plugin.Features;
-using ImGuiNET;
 using Newtonsoft.Json;
 using Serilog;
 
@@ -31,18 +26,6 @@ namespace Dalamud.Plugin
             this.devPluginDirectory = devPluginDirectory;
 
             this.pluginConfigs = new PluginConfigurations(Path.Combine(Path.GetDirectoryName(dalamud.StartInfo.ConfigurationPath), "pluginConfigs"));
-
-            this.dalamud.InterfaceManager.OnDraw += InterfaceManagerOnOnDraw;
-        }
-
-        private void InterfaceManagerOnOnDraw() {
-            foreach (var plugin in this.Plugins) {
-                if (plugin.Plugin is IHasUi uiPlugin) {
-                    ImGui.PushID(plugin.Definition.InternalName);
-                    uiPlugin.Draw(plugin.PluginInterface.UiBuilder);
-                    ImGui.PopID();
-                }
-            }
         }
 
         public void UnloadPlugins() {

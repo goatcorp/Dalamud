@@ -10,7 +10,6 @@ using System.Net.Http;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
-using Dalamud.Plugin.Features;
 using ImGuiNET;
 using Newtonsoft.Json;
 using Serilog;
@@ -224,10 +223,10 @@ namespace Dalamud.Plugin
                                     this.errorModalOnNextFrame = true;
                                 }
 
-                            if (installedPlugin.Plugin is IHasConfigUi v2Plugin && v2Plugin.OpenConfigUi != null) {
+                            if (installedPlugin.PluginInterface.UiBuilder.OnOpenConfigUi != null) {
                                 ImGui.SameLine();
 
-                                if (ImGui.Button("Open Configuration")) v2Plugin.OpenConfigUi?.Invoke(null, null);
+                                if (ImGui.Button("Open Configuration")) installedPlugin.PluginInterface.UiBuilder.OnOpenConfigUi?.Invoke(null, null);
                             }
 
                             ImGui.SameLine();

@@ -58,6 +58,11 @@ namespace Dalamud.Interface
         public TextureWrap LoadImage(byte[] imageData) =>
             this.interfaceManager.LoadImage(imageData);
 
+        /// <summary>
+        /// Event that is fired when the plugin should open its configuration interface.
+        /// </summary>
+        public EventHandler OnOpenConfigUi;
+
         private void OnDraw() {
             ImGui.PushID(this.namespaceName);
             OnBuildUi?.Invoke();
