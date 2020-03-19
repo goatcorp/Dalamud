@@ -55,37 +55,80 @@ namespace Dalamud.Bootstrap.Crypto
             _ => false,
         };
 
-        public void EncryptInPlace(Span<byte> buffer)
+        public void Encrypt(ReadOnlySpan<byte> source, Span<byte> destination)
         {
+            CheckBuffer(source, destination);
+
             // TODO: this is shit
             throw new NotImplementedException();
         }
 
-        public void DecryptInPlace(Span<byte> buffer)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="destination">A buffer to store decrypted data be stored.</param>
+        /// <exception cref="ArgumentException">
+        /// Thrown when either the length of the buffer is not multiple of the block size. (i.e. 8 bytes)
+        /// or `source` and `destination` are overlapped in the memory. 
+        /// </exception>
+        /// <remarks>
+        /// `source` and `destination` must not overlap in the memory. 
+        /// </remarks>
+        public void Decrypt(ReadOnlySpan<byte> source, Span<byte> destination)
         {
-            if (CheckBufferLength(buffer.Length))
-            {
-                throw new ArgumentException("TODO: buffer length", nameof(buffer));
-            }
+            CheckBuffer(source, destination);
 
             unsafe
             {
-                fixed (byte* pBuffer = buffer)
+                fixed (byte* pSrc = source)
+                fixed (byte* pDst = destination)
                 {
-                    for (byte* it = pBuffer; it < pBuffer + buffer.Length; it += 8)
+                    ref var a = source.[4];
+                    for (byte* it = pDst; it < pDst + buffer.Length; it += 8)
                     {
-                        DecryptBlockInPlace(it, it);
+                        DecryptBlock(it, it);
                     }
                 }
             }
         }
 
-        private unsafe void EncryptBlockInPlace(byte* input, byte* output)
+        /// <summary>
+        /// This is a helper function that throws exception when prerequisites for encrypting or decrypting data are not met.  
+        /// </summary>
+        private static void CheckBuffer(ReadOnlySpan<byte> source, ReadOnlySpan<byte> destination)
+        {
+            if (source.Length > destination.Length)
+            {
+                var message = $"The destination buffer is too small to store data. (Destination buffer is smaller than source)";
+                throw new ArgumentException(message, nameof(destination));
+            }
+
+            if (source.Overlaps(destination))
+            {
+                var message = $"Source buffer and destination buffer must not overlap.";
+                throw new ArgumentException(message);
+            }
+
+            if (!CheckBufferLength(source.Length))
+            {
+                var message = $"The length of the source buffer must be aligned to the block size. (i.e. 8 bytes)";
+                throw new ArgumentException(message, nameof(source));
+            }
+
+            if (!CheckBufferLength(destination.Length))
+            {
+                var message = $"The length of the destination buffer must be aligned to the block size. (i.e. 8 bytes)";
+                throw new ArgumentException(message, nameof(destination));
+            }
+        }
+
+        private unsafe void EncryptBlock(byte* input, byte* output)
         {
             var inputBlock = (uint*)input;
             var outputBlock = (uint*)output;
 
-            var xl = inputBlock[0];
+            var xl = UinputBlock[0];
             var xr = inputBlock[1];
 
             // will be elided by JIT
@@ -108,14 +151,17 @@ namespace Dalamud.Bootstrap.Crypto
             outputBlock[1] = xr;
         }
 
-        private unsafe void DecryptBlockInPlace(byte* input, byte* output)
+        /// <summary>
+        /// Decrypts a block
+        /// </summary>
+        /// <remarks>
+        /// `input` and `output` are assumed to be unaligned to 4 bytes. (left and right part of the block)
+        /// </remarks>
+        private unsafe void DecryptBlock(byte* input, byte* output)
         {
-            var inputBlock = (uint*)input;
-            var outputBlock = (uint*)output;
-
-            var xl = inputBlock[0];
-            var xr = inputBlock[1];
-
+            var xl = Unsafe.ReadUnaligned<uint>(input);
+            var xr = Unsafe.ReadUnaligned<uint>(input + 4);
+            
             // will be elided by JIT
             if (!BitConverter.IsLittleEndian)
             {
@@ -132,8 +178,8 @@ namespace Dalamud.Bootstrap.Crypto
                 xr = BinaryPrimitives.ReverseEndianness(xr);
             }
 
-            outputBlock[0] = xl;
-            outputBlock[1] = xr;
+            Unsafe.WriteUnaligned(output, xl);
+            Unsafe.WriteUnaligned(output + 4, xr);
         }
     }
 

@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="System.Resources.Extensions" Version="4.7.0" /> <!-- Required by CoreHook to build -->
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.7.0" />
   </ItemGroup>
 
   <ItemGroup>
