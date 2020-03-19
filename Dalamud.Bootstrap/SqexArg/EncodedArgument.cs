@@ -69,6 +69,7 @@ namespace Dalamud.Bootstrap.SqexArg
             Span<byte> keyBytes = stackalloc byte[8];
 
             var keyCandicate = keyFragment;
+            
             while (true)
             {
                 if (!CreateKey(keyBytes, keyCandicate))
@@ -78,8 +79,7 @@ namespace Dalamud.Bootstrap.SqexArg
                 }
 
                 var blowfish = new Blowfish(keyBytes);
-                blowfish.DecryptInPlace();
-
+                
                 if (/* if data looks valid, return blowfish */)
                 {
                     // ...

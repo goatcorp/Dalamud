@@ -5,14 +5,13 @@ using System.Runtime.CompilerServices;
 namespace Dalamud.Bootstrap.Crypto
 {
     /// <summary>
-    /// A class that implements Blowfish algorithm.
+    /// A class that implements Blowfish (with ECB block mode of operation; see remarks.) algorithm.
     /// </summary>
     /// <remarks>
-    /// Sole purpose of this class is that to produce the value barely enough to be compatible with the algorithm seen in FINAL FANTASY XIV: A Relam Reborn.
+    /// Sole purpose of this class is that to produce the value **barely** enough to be compatible with the algorithm seen in FINAL FANTASY XIV: A Relam Reborn.
     /// Therefore, codes are not audited by security experts nor I don't believe that this is a correct implementation.
-    /// Heck, it even uses ECB block cipher mode! (because that's what FFXIV uses)
     /// 
-    /// Please, don't try to use this in production.
+    /// Please, don't even use this in production.
     /// </remarks>
     internal sealed class Blowfish
     {
@@ -59,8 +58,17 @@ namespace Dalamud.Bootstrap.Crypto
         {
             CheckBuffer(source, destination);
 
-            // TODO: this is shit
-            throw new NotImplementedException();
+            unsafe
+            {
+                fixed (byte* pSrc = source)
+                fixed (byte* pDst = destination)
+                {
+                    for (var offset = 0; offset < source.Length; offset += 8)
+                    {
+                        EncryptBlock(pSrc + offset, pDst + offset);
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -84,10 +92,9 @@ namespace Dalamud.Bootstrap.Crypto
                 fixed (byte* pSrc = source)
                 fixed (byte* pDst = destination)
                 {
-                    ref var a = source.[4];
-                    for (byte* it = pDst; it < pDst + buffer.Length; it += 8)
+                    for (var offset = 0; offset < source.Length; offset += 8)
                     {
-                        DecryptBlock(it, it);
+                        DecryptBlock(pSrc + offset, pDst + offset);
                     }
                 }
             }
@@ -125,11 +132,8 @@ namespace Dalamud.Bootstrap.Crypto
 
         private unsafe void EncryptBlock(byte* input, byte* output)
         {
-            var inputBlock = (uint*)input;
-            var outputBlock = (uint*)output;
-
-            var xl = UinputBlock[0];
-            var xr = inputBlock[1];
+            var xl = Unsafe.ReadUnaligned<uint>(input);
+            var xr = Unsafe.ReadUnaligned<uint>(input + 4);
 
             // will be elided by JIT
             if (!BitConverter.IsLittleEndian)
@@ -147,15 +151,15 @@ namespace Dalamud.Bootstrap.Crypto
                 xr = BinaryPrimitives.ReverseEndianness(xr);
             }
 
-            outputBlock[0] = xl;
-            outputBlock[1] = xr;
+            Unsafe.WriteUnaligned(output, xl);
+            Unsafe.WriteUnaligned(output + 4, xr);
         }
 
         /// <summary>
         /// Decrypts a block
         /// </summary>
         /// <remarks>
-        /// `input` and `output` are assumed to be unaligned to 4 bytes. (left and right part of the block)
+        /// `input` and `output` are assumed to be not aligned.
         /// </remarks>
         private unsafe void DecryptBlock(byte* input, byte* output)
         {
