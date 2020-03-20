@@ -189,12 +189,20 @@ namespace Dalamud.DiscordBot {
             if (playerLink == null) {
                 // chat messages from the local player do not include a player link, and are just the raw name
                 // but we should still track other instances to know if this is ever an issue otherwise
-                if (parsedSender.TextValue != this.dalamud.ClientState.LocalPlayer.Name)
+
+                // Special case 2 - When the local player talks in party/alliance, the name comes through as raw text,
+                // but prefixed by their position number in the party (which for local player may always be 1)
+                if (parsedSender.TextValue.EndsWith(this.dalamud.ClientState.LocalPlayer.Name))
+                {
+                    senderName = this.dalamud.ClientState.LocalPlayer.Name;
+                }
+                else
                 {
                     Log.Error("playerLink was null. Sender: {0}", BitConverter.ToString(sender.RawData));
+
+                    senderName = wasOutgoingTell ? this.dalamud.ClientState.LocalPlayer.Name : parsedSender.TextValue;
                 }
 
-                senderName = wasOutgoingTell ? this.dalamud.ClientState.LocalPlayer.Name : parsedSender.TextValue;
                 senderWorld = this.dalamud.ClientState.LocalPlayer.HomeWorld.Name;
             } else {
                 playerLink.Resolve();
