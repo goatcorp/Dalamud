@@ -165,9 +165,11 @@ namespace Dalamud {
         private bool isImguiDrawLogWindow = false;
         private bool isImguiDrawDataWindow = false;
         private bool isImguiDrawPluginWindow = false;
+        private bool isImguiDrawCreditsWindow = false;
 
         private DalamudLogWindow logWindow;
         private DalamudDataWindow dataWindow;
+        private DalamudCreditsWindow creditsWindow;
         private PluginInstallerWindow pluginWindow;
 
         private void BuildDalamudUi()
@@ -189,6 +191,13 @@ namespace Dalamud {
                         {
                             this.dataWindow = new DalamudDataWindow(this.Data);
                             this.isImguiDrawDataWindow = true;
+                        }
+                        if (ImGui.MenuItem("Open Credits window")) {
+                            var logoGraphic =
+                                this.InterfaceManager.LoadImage(
+                                    Path.Combine(this.StartInfo.WorkingDirectory, "UIRes", "logo.png"));
+                            this.creditsWindow = new DalamudCreditsWindow(logoGraphic, this.Framework);
+                            this.isImguiDrawCreditsWindow = true;
                         }
                         ImGui.MenuItem("Draw ImGui demo", "", ref this.isImguiDrawDemoWindow);
                         ImGui.Separator();
@@ -238,6 +247,7 @@ namespace Dalamud {
                 if (this.isImguiDrawLogWindow == false)
                 {
                     this.logWindow?.Dispose();
+                    this.logWindow = null;
                 }
             }
 
@@ -249,6 +259,17 @@ namespace Dalamud {
             if (this.isImguiDrawPluginWindow)
             {
                 this.isImguiDrawPluginWindow = this.pluginWindow != null && this.pluginWindow.Draw();
+            }
+
+            if (this.isImguiDrawCreditsWindow)
+            {
+                this.isImguiDrawCreditsWindow = this.creditsWindow != null && this.creditsWindow.Draw();
+
+                if (this.isImguiDrawCreditsWindow == false)
+                {
+                    this.creditsWindow?.Dispose();
+                    this.creditsWindow = null;
+                }
             }
 
             if (this.isImguiDrawDemoWindow)
@@ -333,6 +354,11 @@ namespace Dalamud {
             CommandManager.AddHandler("/xlplugins", new CommandInfo(OnOpenInstallerCommand)
             {
                 HelpMessage = "Open the plugin installer"
+            });
+
+            this.CommandManager.AddHandler("/xlcredits", new CommandInfo(OnOpenCreditsCommand) {
+                HelpMessage = "Opens the credits for dalamud.",
+                ShowInHelp = false
             });
         }
 
@@ -558,6 +584,15 @@ namespace Dalamud {
         private void OnOpenInstallerCommand(string command, string arguments) {
             this.pluginWindow = new PluginInstallerWindow(this.PluginManager, this.StartInfo.PluginDirectory, this.StartInfo.GameVersion);
             this.isImguiDrawPluginWindow = true;
+        }
+
+        private void OnOpenCreditsCommand(string command, string arguments)
+        {
+            var logoGraphic =
+                this.InterfaceManager.LoadImage(
+                    Path.Combine(this.StartInfo.WorkingDirectory, "UIRes", "logo.png"));
+            this.creditsWindow = new DalamudCreditsWindow(logoGraphic, this.Framework);
+            this.isImguiDrawCreditsWindow = true;
         }
 
         private int RouletteSlugToKey(string slug) => slug.ToLower() switch {
