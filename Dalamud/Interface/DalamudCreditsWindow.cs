@@ -8,31 +8,46 @@ namespace Dalamud.Interface
 {
     class DalamudCreditsWindow : IDisposable {
         private string creditsText = @"
-                                                Dalamud
-                              A FFXIV Hooking Framework
+Dalamud
+A FFXIV Hooking Framework
 
 
 
-                                    created by:
+created by:
 
-                                        goat
-                                        Mino
-                                        Meli
-                                        attick
-                                        Aida-Enna
-                                        perchbird
-                                        Wintermute
+goat
+Mino
+Meli
+attick
+Aida-Enna
+perchbird
+Wintermute
 
 
 
-                                    Special thanks:
-                                        Adam
-                                        karashiiro
-                                        Kubera
-                                        Truci
-                                        Haplo
+Logo by:
 
-             Everyone in the XIVLauncher Discord server
+gucciBane
+
+
+
+Special thanks:
+
+Adam
+karashiiro
+Kubera
+Truci
+Haplo
+
+Everyone in the XIVLauncher Discord server
+
+
+
+Licensed under AGPL
+Read the code: https://github.com/goaaats/Dalamud
+
+
+Thank you for using XIVLauncher!
 ";
 
         private TextureWrap logoTexture;
@@ -42,7 +57,7 @@ namespace Dalamud.Interface
             this.logoTexture = logoTexture;
             this.framework = framework;
 
-            framework.Gui.SetBgm(726);
+            framework.Gui.SetBgm(132);
         }
 
         public void Dispose() {
@@ -50,7 +65,11 @@ namespace Dalamud.Interface
         }
 
         public bool Draw() {
-            ImGui.SetNextWindowSize(new Vector2(500, 400), ImGuiCond.FirstUseEver);
+            var windowSize = new Vector2(500, 400);
+            ImGui.SetNextWindowSize(windowSize, ImGuiCond.Always);
+            
+            var screenSize = ImGui.GetIO().DisplaySize;
+            ImGui.SetNextWindowPos(new Vector2((screenSize.X / 2) - windowSize.X /2, (screenSize.Y / 2) - windowSize.Y / 2), ImGuiCond.Always);
 
             var isOpen = true;
 
@@ -66,19 +85,27 @@ namespace Dalamud.Interface
 
             ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(0, 0));
 
-            ImGui.Dummy(new Vector2(0, 60f));
+            ImGui.Dummy(new Vector2(0, 340f));
             ImGui.Text("");
 
             ImGui.SameLine(150f);
-            ImGui.Image(this.logoTexture.ImGuiHandle, new Vector2(150f, 150f));
+            ImGui.Image(this.logoTexture.ImGuiHandle, new Vector2(190f, 190f));
 
             ImGui.Dummy(new Vector2(0, 20f));
 
-            ImGui.TextUnformatted(this.creditsText);
+            var windowX = ImGui.GetWindowSize().X;
+
+            foreach (var creditsLine in this.creditsText.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None)) {
+                var lineLenX = ImGui.CalcTextSize(creditsLine).X;
+                
+                ImGui.Dummy(new Vector2((windowX / 2) - lineLenX / 2, 0f));
+                ImGui.SameLine();
+                ImGui.TextUnformatted(creditsLine);
+            }
 
             ImGui.PopStyleVar();
 
-            if (ImGui.GetScrollY() < ImGui.GetScrollMaxY())
+            if (ImGui.GetScrollY() < ImGui.GetScrollMaxY() - 0.2f)
                 ImGui.SetScrollY(ImGui.GetScrollY() + 0.2f);
 
             ImGui.EndChild();

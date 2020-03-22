@@ -24,6 +24,9 @@
   </PropertyGroup>
   <PropertyGroup>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <PackageIcon></PackageIcon>
+    <PackageIconUrl />
+    <ApplicationIcon>dalamud.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="EasyHook" Version="2.7.6270" />
