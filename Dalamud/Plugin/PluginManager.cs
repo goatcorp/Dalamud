@@ -99,8 +99,8 @@ namespace Dalamud.Plugin
 
             Log.Information("Loading assembly at {0}", dllFile);
 
-            var assemblyName = AssemblyName.GetAssemblyName(dllFile.FullName);
-            var pluginAssembly = Assembly.Load(assemblyName);
+            // Assembly.Load() by name here will not load multiple versions with the same name, in the case of updates
+            var pluginAssembly = Assembly.LoadFile(dllFile.FullName);
 
             if (pluginAssembly != null)
             {
