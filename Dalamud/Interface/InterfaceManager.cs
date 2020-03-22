@@ -156,7 +156,7 @@ namespace Dalamud.Interface
                 this.scene.ImGuiIniPath = Path.Combine(Path.GetDirectoryName(this.dalamud.StartInfo.ConfigurationPath), "dalamudUI.ini");
                 this.scene.OnBuildUI += Display;
 
-                var fontPathJp = Path.Combine(Path.GetDirectoryName(typeof(InterfaceManager).Assembly.Location), "UIRes", "NotoSansCJKjp-Medium.otf");
+                var fontPathJp = Path.Combine(this.dalamud.StartInfo.WorkingDirectory, "UIRes", "NotoSansCJKjp-Medium.otf");
                 ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPathJp, 17.0f, null, ImGui.GetIO().Fonts.GetGlyphRangesJapanese());
 
                 ImGui.GetIO().Fonts.Build();
