@@ -94,6 +94,24 @@ namespace Dalamud.Plugin
         /// </summary>
         /// <returns>A previously saved config or null if none was saved before.</returns>
         public IPluginConfiguration GetPluginConfig() {
+            // This is done to support json deserialization of plugin configurations
+            // even after running an in-game update of plugins, where the assembly version
+            // changes.
+            // Eventually it might make sense to have a separate method on this class
+            // T GetPluginConfig<T>() where T : IPluginConfiguration
+            // that can invoke LoadForType() directly instead of via reflection
+            // This is here for now to support the current plugin API
+            foreach (var type in Assembly.GetCallingAssembly().GetTypes())
+            {
+                if (type.GetInterface(typeof(IPluginConfiguration).FullName) != null)
+                {
+                    var mi = this.configs.GetType().GetMethod("LoadForType");
+                    var fn = mi.MakeGenericMethod(type);
+                    return (IPluginConfiguration)fn.Invoke(this.configs, new object[] { this.pluginName });
+                }
+            }
+
+            // this shouldn't be a thing, I think, but just in case
             return this.configs.Load(this.pluginName);
         }
 

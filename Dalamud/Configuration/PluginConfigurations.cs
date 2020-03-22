@@ -16,6 +16,10 @@ namespace Dalamud.Configuration
             this.configDirectory.Create();
         }
 
+        // NOTE:  Save/Load are still using Type information for now, despite LoadForType<> superseding Load
+        // and not requiring or using it.  It might be worth removing the Type info from Save, to strip it from
+        // all future saved configs, and then Load() can probably be removed entirey.
+
         public void Save(IPluginConfiguration config, string pluginName) {
             File.WriteAllText(GetPath(pluginName).FullName, JsonConvert.SerializeObject(config, Formatting.Indented, new JsonSerializerSettings
             {
@@ -36,6 +40,22 @@ namespace Dalamud.Configuration
                                                                                TypeNameAssemblyFormatHandling.Simple,
                                                                            TypeNameHandling = TypeNameHandling.Objects
                                                                        });
+        }
+
+        // Parameterized deserialization
+        // Currently this is called via reflection from DalamudPluginInterface.GetPluginConfig()
+        // Eventually there may be an additional pluginInterface method that can call this directly
+        // without reflection - for now this is in support of the existing plugin api
+        public T LoadForType<T>(string pluginName) where T : IPluginConfiguration
+        {
+            var path = GetPath(pluginName);
+
+            if (!path.Exists)
+                return default(T);
+
+            // intentionally no type handling - it will break when updating a plugin at runtime
+            // and turns out to be unnecessary when we fully qualify the object type
+            return JsonConvert.DeserializeObject<T>(File.ReadAllText(path.FullName));
         }
 
         private FileInfo GetPath(string pluginName) => new FileInfo(Path.Combine(this.configDirectory.FullName, $"{pluginName}.json"));

@@ -99,15 +99,19 @@ namespace Dalamud.Plugin
                     {
                         Log.Information("Eligible for update: {0}", remoteInfo.InternalName);
 
-                        foreach (var sortedVersion in sortedVersions) {
-                            File.Create(Path.Combine(sortedVersion.FullName, ".disabled"));
-                        }
+                        // DisablePlugin() below immediately creates a .disabled file anyway, but will fail
+                        // with an exception if we try to do it twice in row like this
+                        // TODO: not sure if doing this for all versions is really necessary, since the
+                        // others really needed to be disabled before anyway
+                        //foreach (var sortedVersion in sortedVersions) {
+                        //    File.Create(Path.Combine(sortedVersion.FullName, ".disabled"));
+                        //}
 
                         // Try to disable plugin if it is loaded
                         try {
                             this.manager.DisablePlugin(info);
-                        } catch {
-                            // ignored
+                        } catch (Exception ex) {
+                            Log.Error(ex, "Plugin disable failed");
                         }
 
                         InstallPlugin(remoteInfo);
