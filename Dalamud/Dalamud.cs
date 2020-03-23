@@ -44,6 +44,7 @@ namespace Dalamud {
         public readonly DiscordBotManager BotManager;
 
         public PluginManager PluginManager { get; private set; }
+        public PluginRepository PluginRepository { get; private set; }
 
         public readonly ClientState ClientState;
 
@@ -112,6 +113,8 @@ namespace Dalamud {
             try {
                 this.PluginManager = new PluginManager(this, this.StartInfo.PluginDirectory, this.StartInfo.DefaultPluginDirectory);
                 this.PluginManager.LoadPlugins();
+
+                PluginRepository = new PluginRepository(PluginManager, this.StartInfo.PluginDirectory, this.StartInfo.GameVersion);
             } catch (Exception ex) {
                 this.Framework.Gui.Chat.PrintError(
                     "[XIVLAUNCHER] There was an error loading additional plugins. Please check the log for more details.");
@@ -220,7 +223,7 @@ namespace Dalamud {
                     {
                         if (ImGui.MenuItem("Open Plugin installer"))
                         {
-                            this.pluginWindow = new PluginInstallerWindow(this.PluginManager, this.StartInfo.PluginDirectory, this.StartInfo.GameVersion);
+                            this.pluginWindow = new PluginInstallerWindow(this.PluginManager, this.PluginRepository, this.StartInfo.GameVersion);
                             this.isImguiDrawPluginWindow = true;
                         }
                         if (ImGui.MenuItem("Print plugin info")) {
@@ -582,7 +585,7 @@ namespace Dalamud {
         }
 
         private void OnOpenInstallerCommand(string command, string arguments) {
-            this.pluginWindow = new PluginInstallerWindow(this.PluginManager, this.StartInfo.PluginDirectory, this.StartInfo.GameVersion);
+            this.pluginWindow = new PluginInstallerWindow(this.PluginManager, PluginRepository, this.StartInfo.GameVersion);
             this.isImguiDrawPluginWindow = true;
         }
 
