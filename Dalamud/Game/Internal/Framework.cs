@@ -25,7 +25,7 @@ namespace Dalamud.Game.Internal {
         /// <summary>
         /// A raw pointer to the instance of Client::Framework
         /// </summary>
-        private FrameworkAddressResolver Address { get; }
+        public FrameworkAddressResolver Address { get; }
         
 #region Subsystems
 

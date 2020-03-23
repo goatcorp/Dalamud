@@ -192,7 +192,7 @@ namespace Dalamud {
                         }
                         if (ImGui.MenuItem("Open Data window"))
                         {
-                            this.dataWindow = new DalamudDataWindow(this.Data);
+                            this.dataWindow = new DalamudDataWindow(this);
                             this.isImguiDrawDataWindow = true;
                         }
                         if (ImGui.MenuItem("Open Credits window")) {
@@ -313,11 +313,6 @@ namespace Dalamud {
                 HelpMessage = "Unmute a word or sentence. Usage: /xlunmute <word or sentence>"
             });
 
-            CommandManager.AddHandler("/xldstate", new CommandInfo(OnDebugPrintGameStateCommand) {
-                HelpMessage = "Print parsed game state",
-                ShowInHelp = false
-            });
-
             CommandManager.AddHandler("/ll", new CommandInfo(OnLastLinkCommand) {
                 HelpMessage = "Open the last posted link in your default browser."
             });
@@ -360,8 +355,7 @@ namespace Dalamud {
             });
 
             this.CommandManager.AddHandler("/xlcredits", new CommandInfo(OnOpenCreditsCommand) {
-                HelpMessage = "Opens the credits for dalamud.",
-                ShowInHelp = false
+                HelpMessage = "Opens the credits for dalamud."
             });
         }
 
@@ -455,29 +449,6 @@ namespace Dalamud {
             Process.Start(ChatHandlers.LastLink);
         }
 
-        private void OnDebugPrintGameStateCommand(string command, string arguments) {
-            Framework.Gui.Chat.Print(this.ClientState.Actors.Length + " entries");
-            Framework.Gui.Chat.Print(this.ClientState.LocalPlayer.Name);
-            Framework.Gui.Chat.Print(this.ClientState.LocalPlayer.CurrentWorld.Name);
-            Framework.Gui.Chat.Print(this.ClientState.LocalPlayer.HomeWorld.Name);
-            Framework.Gui.Chat.Print(this.ClientState.LocalContentId.ToString("X"));
-            Framework.Gui.Chat.Print(Framework.Gui.Chat.LastLinkedItemId.ToString());
-
-            for (var i = 0; i < this.ClientState.Actors.Length; i++) {
-                var actor = this.ClientState.Actors[i];
-
-                Log.Debug(actor.Name);
-                Framework.Gui.Chat.Print(
-                    $"{i} - {actor.Name} - {actor.Position.X} {actor.Position.Y} {actor.Position.Z}");
-
-                if (actor is Npc npc)
-                    Framework.Gui.Chat.Print($"DataId: {npc.DataId}");
-
-                if (actor is Chara chara)
-                    Framework.Gui.Chat.Print(
-                        $"Level: {chara.Level} ClassJob: {chara.ClassJob.Name} CHP: {chara.CurrentHp} MHP: {chara.MaxHp} CMP: {chara.CurrentMp} MMP: {chara.MaxMp}");
-            }
-        }
         private void OnBotJoinCommand(string command, string arguments) {
             if (this.BotManager != null && this.BotManager.IsConnected)
                 Process.Start(

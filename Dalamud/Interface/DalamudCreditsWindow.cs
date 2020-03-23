@@ -7,10 +7,10 @@ using ImGuiScene;
 namespace Dalamud.Interface
 {
     class DalamudCreditsWindow : IDisposable {
-        private string creditsText = @"
+        private string creditsText = @$"
 Dalamud
 A FFXIV Hooking Framework
-
+Version {typeof(Dalamud).Assembly.GetName().Version}
 
 
 created by:
@@ -40,11 +40,12 @@ Truci
 Haplo
 
 Everyone in the XIVLauncher Discord server
+Join us at: https://discord.gg/3NMcUV5
 
 
 
 Licensed under AGPL
-Read the code: https://github.com/goaaats/Dalamud
+Contribute at: https://github.com/goaaats/Dalamud
 
 
 Thank you for using XIVLauncher!
