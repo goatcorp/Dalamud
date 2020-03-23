@@ -61,8 +61,7 @@ namespace Dalamud.Game.ClientState
         /// <param name="dalamud">Dalamud instance</param>
         /// /// <param name="startInfo">StartInfo of the current Dalamud launch</param>
         /// <param name="scanner">Sig scanner</param>
-        /// <param name="targetModule">Game process module</param>
-        public ClientState(Dalamud dalamud, DalamudStartInfo startInfo, SigScanner scanner, ProcessModule targetModule) {
+        public ClientState(Dalamud dalamud, DalamudStartInfo startInfo, SigScanner scanner) {
             Address = new ClientStateAddressResolver();
             Address.Setup(scanner);
 
@@ -70,7 +69,7 @@ namespace Dalamud.Game.ClientState
 
             this.ClientLanguage = startInfo.Language;
 
-            this.Actors = new ActorTable(Address);
+            this.Actors = new ActorTable(dalamud, Address);
 
             this.JobGauges = new JobGauges(Address);
 

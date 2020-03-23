@@ -85,7 +85,7 @@ namespace Dalamud {
             this.Data = new DataManager(this.StartInfo.Language);
             this.Data.Initialize();
 
-            this.ClientState = new ClientState(this, info, this.SigScanner, this.targetModule);
+            this.ClientState = new ClientState(this, info, this.SigScanner);
 
             this.BotManager = new DiscordBotManager(this, this.Configuration.DiscordFeatureConfig);
 

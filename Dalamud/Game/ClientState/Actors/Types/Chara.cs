@@ -9,7 +9,8 @@ namespace Dalamud.Game.ClientState.Actors.Types {
         ///     Set up a new Chara with the provided memory representation.
         /// </summary>
         /// <param name="actorStruct">The memory representation of the base actor.</param>
-        public Chara(Structs.Actor actorStruct) : base(actorStruct) { }
+        /// <param name="dalamud">A dalamud reference needed to access game data in Resolvers.</param>
+        protected Chara(Structs.Actor actorStruct, Dalamud dalamud) : base(actorStruct, dalamud) { }
 
         /// <summary>
         ///     The level of this Chara.
@@ -19,7 +20,7 @@ namespace Dalamud.Game.ClientState.Actors.Types {
         /// <summary>
         ///     The ClassJob of this Chara.
         /// </summary>
-        public ClassJob ClassJob => new ClassJob(this.actorStruct.ClassJob);
+        public ClassJob ClassJob => new ClassJob(this.actorStruct.ClassJob, this.dalamud);
 
         /// <summary>
         ///     The current HP of this Chara.

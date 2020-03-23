@@ -119,7 +119,7 @@ namespace Dalamud.DiscordBot {
             var world = string.Empty;
 
             if (this.dalamud.ClientState.Actors.Length > 0)
-                world = this.dalamud.ClientState.LocalPlayer.CurrentWorld.Name;
+                world = this.dalamud.ClientState.LocalPlayer.CurrentWorld.GameData.Name;
 
             var embedBuilder = new EmbedBuilder
             {
@@ -144,7 +144,7 @@ namespace Dalamud.DiscordBot {
             dynamic item = XivApi.GetItem(itemId).GetAwaiter().GetResult();
 
             var character = this.dalamud.ClientState.LocalPlayer;
-            var characterInfo = await GetCharacterInfo(character.Name, character.HomeWorld.Name);
+            var characterInfo = await GetCharacterInfo(character.Name, character.HomeWorld.GameData.Name);
 
             var embedBuilder = new EmbedBuilder {
                 Title = (isHq ? "<:hq:593406013651156994> " : "") + item.Name,
@@ -203,7 +203,7 @@ namespace Dalamud.DiscordBot {
                     senderName = wasOutgoingTell ? this.dalamud.ClientState.LocalPlayer.Name : parsedSender.TextValue;
                 }
 
-                senderWorld = this.dalamud.ClientState.LocalPlayer.HomeWorld.Name;
+                senderWorld = this.dalamud.ClientState.LocalPlayer.HomeWorld.GameData.Name;
             } else {
                 playerLink.Resolve();
 

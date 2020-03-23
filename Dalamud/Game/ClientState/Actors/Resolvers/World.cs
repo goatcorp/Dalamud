@@ -9,22 +9,23 @@ namespace Dalamud.Game.ClientState.Actors.Resolvers
     /// <summary>
     /// This object represents a world a character can reside on.
     /// </summary>
-    public class World {
+    public class World : BaseResolver {
         /// <summary>
         /// ID of the world.
         /// </summary>
         public readonly int Id;
 
         /// <summary>
-        /// Name of the world.
+        /// GameData linked to this world.
         /// </summary>
-        public string Name => (string) XivApi.GetWorld(this.Id).GetAwaiter().GetResult()["Name"];
+        public Lumina.Excel.GeneratedSheets.World GameData =>
+            this.dalamud.Data.GetExcelSheet<Lumina.Excel.GeneratedSheets.World>().GetRow(this.Id);
 
         /// <summary>
         /// Set up the world resolver with the provided ID.
         /// </summary>
         /// <param name="id">The ID of the world.</param>
-        public World(byte id) {
+        public World(byte id, Dalamud dalamud) : base(dalamud) {
             this.Id = id;
         }
     }

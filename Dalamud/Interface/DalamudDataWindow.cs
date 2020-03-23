@@ -69,8 +69,8 @@ namespace Dalamud.Interface
 
                         stateString += $"ActorTableLen: {this.dalamud.ClientState.Actors.Length}\n";
                         stateString += $"LocalPlayerName: {this.dalamud.ClientState.LocalPlayer.Name}\n";
-                        stateString += $"CurrentWorldName: {this.dalamud.ClientState.LocalPlayer.CurrentWorld.Name}\n";
-                        stateString += $"HomeWorldName: {this.dalamud.ClientState.LocalPlayer.HomeWorld.Name}\n";
+                        stateString += $"CurrentWorldName: {this.dalamud.ClientState.LocalPlayer.CurrentWorld.GameData.Name}\n";
+                        stateString += $"HomeWorldName: {this.dalamud.ClientState.LocalPlayer.HomeWorld.GameData.Name}\n";
                         stateString += $"LocalCID: {this.dalamud.ClientState.LocalContentId:X}\n";
                         stateString += $"LastLinkedItem: {this.dalamud.Framework.Gui.Chat.LastLinkedItemId.ToString()}\n";
 
@@ -85,7 +85,7 @@ namespace Dalamud.Interface
 
                             if (actor is Chara chara)
                                 stateString +=
-                                    $"       Level: {chara.Level} ClassJob: {chara.ClassJob.Name} CHP: {chara.CurrentHp} MHP: {chara.MaxHp} CMP: {chara.CurrentMp} MMP: {chara.MaxMp}\n";
+                                    $"       Level: {chara.Level} ClassJob: {chara.ClassJob.GameData.Name} CHP: {chara.CurrentHp} MHP: {chara.MaxHp} CMP: {chara.CurrentMp} MMP: {chara.MaxMp}\n";
                             ;
                         }
 

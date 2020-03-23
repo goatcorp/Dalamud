@@ -8,12 +8,16 @@ namespace Dalamud.Game.ClientState.Actors.Types {
         /// </summary>
         protected Structs.Actor actorStruct;
 
+        protected Dalamud dalamud;
+
         /// <summary>
         ///     Initialize a representation of a basic FFXIV actor.
         /// </summary>
         /// <param name="actorStruct">The memory representation of the base actor.</param>
-        public Actor(Structs.Actor actorStruct) {
+        /// <param name="dalamud">A dalamud reference needed to access game data in Resolvers.</param>
+        public Actor(Structs.Actor actorStruct, Dalamud dalamud) {
             this.actorStruct = actorStruct;
+            this.dalamud = dalamud;
         }
 
         /// <summary>

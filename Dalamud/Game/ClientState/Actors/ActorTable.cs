@@ -11,13 +11,15 @@ namespace Dalamud.Game.ClientState.Actors {
     /// </summary>
     public class ActorTable : ICollection {
         private ClientStateAddressResolver Address { get; }
+        private Dalamud dalamud;
 
         /// <summary>
         ///     Set up the actor table collection.
         /// </summary>
         /// <param name="addressResolver">Client state address resolver.</param>
-        public ActorTable(ClientStateAddressResolver addressResolver) {
+        public ActorTable(Dalamud dalamud, ClientStateAddressResolver addressResolver) {
             Address = addressResolver;
+            this.dalamud = dalamud;
 
             Log.Verbose("Actor table address {ActorTable}", Address.ActorTable);
         }
@@ -50,9 +52,9 @@ namespace Dalamud.Game.ClientState.Actors {
 
                     switch (actorStruct.ObjectKind)
                     {
-                        case ObjectKind.Player: return new PlayerCharacter(actorStruct);
-                        case ObjectKind.BattleNpc: return new BattleNpc(actorStruct);
-                        default: return new Actor(actorStruct);
+                        case ObjectKind.Player: return new PlayerCharacter(actorStruct, this.dalamud);
+                        case ObjectKind.BattleNpc: return new BattleNpc(actorStruct, this.dalamud);
+                        default: return new Actor(actorStruct, this.dalamud);
                     }
                 } catch (AccessViolationException) {
                     return null;
