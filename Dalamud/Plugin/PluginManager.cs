@@ -49,7 +49,11 @@ namespace Dalamud.Plugin
                                  .First(x => x.Definition.InternalName == definition.InternalName);
 
             var outputDir = new DirectoryInfo(Path.Combine(this.pluginDirectory, definition.InternalName, definition.AssemblyVersion));
-            File.Create(Path.Combine(outputDir.FullName, ".disabled"));
+
+            // Need to do it with Open so the file handle gets closed immediately
+            // TODO: Don't use the ".disabled" crap, do it in a config
+            var disabledFile = File.Open(Path.Combine(outputDir.FullName, ".disabled"), FileMode.Create);
+            disabledFile.Close();
 
             thisPlugin.Plugin.Dispose();
 
