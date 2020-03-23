@@ -14,10 +14,10 @@
   </PropertyGroup>
   <PropertyGroup Label="Feature">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <AssemblyVersion>4.7.19.0</AssemblyVersion>
-    <FileVersion>4.7.19.0</FileVersion>
+    <AssemblyVersion>4.7.20.0</AssemblyVersion>
+    <FileVersion>4.7.20.0</FileVersion>
     <Description>XIVLauncher addon injection</Description>
-    <Version>4.7.19.0</Version>
+    <Version>4.7.20.0</Version>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <DocumentationFile></DocumentationFile>
