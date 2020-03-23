@@ -57,9 +57,50 @@ namespace Dalamud.Plugin
         }
 
         public bool LoadPluginFromAssembly(FileInfo dllFile, bool raw) {
+            Log.Information("Loading plugin at {0}", dllFile.Directory.FullName);
+
+            // If this entire folder has been marked as a disabled plugin, don't even try to load anything
+            var disabledFile = new FileInfo(Path.Combine(dllFile.Directory.FullName, ".disabled"));
+            if (disabledFile.Exists && !raw)    // should raw/dev plugins really not respect this?
+            {
+                Log.Information("Plugin {0} is disabled.", dllFile.FullName);
+                return false;
+            }
+
+            // read the plugin def if present - again, fail before actually trying to load the dll if there is a problem
+            var defJsonFile = new FileInfo(Path.Combine(dllFile.Directory.FullName, $"{Path.GetFileNameWithoutExtension(dllFile.Name)}.json"));
+
+            PluginDefinition pluginDef = null;
+            // load the definition if it exists, even for raw/developer plugins
+            if (defJsonFile.Exists)
+            {
+                Log.Information("Loading definition for plugin DLL {0}", dllFile.FullName);
+
+                pluginDef =
+                    JsonConvert.DeserializeObject<PluginDefinition>(
+                        File.ReadAllText(defJsonFile.FullName));
+
+                if (pluginDef.ApplicableVersion != this.dalamud.StartInfo.GameVersion && pluginDef.ApplicableVersion != "any")
+                {
+                    Log.Information("Plugin {0} has not applicable version.", dllFile.FullName);
+                    return false;
+                }
+            }
+            // but developer plugins don't require one to load
+            else if (!raw)
+            {
+                Log.Information("Plugin DLL {0} has no definition.", dllFile.FullName);
+                return false;
+            }
+
+            // TODO: given that it exists, the pluginDef's InternalName should probably be used
+            // as the actual assembly to load
+            // But plugins should also probably be loaded by directory and not by looking for every dll
+
             Log.Information("Loading assembly at {0}", dllFile);
-            var assemblyName = AssemblyName.GetAssemblyName(dllFile.FullName);
-            var pluginAssembly = Assembly.Load(assemblyName);
+
+            // Assembly.Load() by name here will not load multiple versions with the same name, in the case of updates
+            var pluginAssembly = Assembly.LoadFile(dllFile.FullName);
 
             if (pluginAssembly != null)
             {
@@ -74,38 +115,6 @@ namespace Dalamud.Plugin
 
                     if (type.GetInterface(interfaceType.FullName) != null)
                     {
-                        var disabledFile = new FileInfo(Path.Combine(dllFile.Directory.FullName, ".disabled"));
-
-                        if (disabledFile.Exists && !raw) {
-                            Log.Information("Plugin {0} is disabled.", dllFile.FullName);
-                            return false;
-                        }
-
-                        var defJsonFile = new FileInfo(Path.Combine(dllFile.Directory.FullName, $"{Path.GetFileNameWithoutExtension(dllFile.Name)}.json"));
-
-                        PluginDefinition pluginDef = null;
-                        // load the definition if it exists, even for raw/developer plugins
-                        if (defJsonFile.Exists)
-                        {
-                            Log.Information("Loading definition for plugin DLL {0}", dllFile.FullName);
-
-                            pluginDef =
-                                JsonConvert.DeserializeObject<PluginDefinition>(
-                                    File.ReadAllText(defJsonFile.FullName));
-
-                            if (pluginDef.ApplicableVersion != this.dalamud.StartInfo.GameVersion && pluginDef.ApplicableVersion != "any")
-                            {
-                                Log.Information("Plugin {0} has not applicable version.", dllFile.FullName);
-                                return false;
-                            }
-                        }
-                        // but developer plugins don't require one to load
-                        else if (!raw)
-                        {
-                            Log.Information("Plugin DLL {0} has no definition.", dllFile.FullName);
-                            return false;
-                        }
-
                         if (this.Plugins.Any(x => x.Plugin.GetType().Assembly.GetName().Name == type.Assembly.GetName().Name)) {
                             Log.Error("Duplicate plugin found: {0}", dllFile.FullName);
                             return false;
@@ -120,7 +129,7 @@ namespace Dalamud.Plugin
                             {
                                 Author = "developer",
                                 Name = plugin.Name,
-                                InternalName = "devPlugin_" + plugin.Name,
+                                InternalName = Path.GetFileNameWithoutExtension(dllFile.Name),
                                 AssemblyVersion = plugin.GetType().Assembly.GetName().Version.ToString(),
                                 Description = "",
                                 ApplicableVersion = "any",
