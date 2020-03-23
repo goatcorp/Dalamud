@@ -7,7 +7,7 @@ using Dalamud.Bootstrap.Crypto;
 
 namespace Dalamud.Bootstrap.SqexArg
 {
-    internal sealed class EncodedArgument
+    internal sealed class EncodedArgument : IDisposable
     {
         private static char[] ChecksumTable = new char[]
         {
@@ -20,12 +20,36 @@ namespace Dalamud.Bootstrap.SqexArg
         /// </summary>
         private const char NoChecksumMarker = '!';
 
-        private readonly ReadOnlyMemory<byte> m_data;
+        /// <summary>
+        /// A data that is not encrypted.
+        /// </summary>
+        private IMemoryOwner<byte> m_data;
 
-        public EncodedArgument(ReadOnlyMemory<byte> data, uint key)
+        /// <summary>
+        /// Creates an object that can take (e.g. /T=1234)
+        /// </summary>
+        /// <param name="data">A data that is not encrypted.</param>
+        /// <remarks>
+        /// This takes the ownership of the data.
+        /// </remarks>
+        public EncodedArgument(IMemoryOwner<byte> data)
         {
             m_data = data;
-            m_key = key;
+        }
+
+        
+        public EncodedArgument(string argument)
+        {
+            var buffer = MemoryPool<byte>.Shared.Rent(Encoding.UTF8.GetByteCount(argument));
+            Encoding.UTF8.GetBytes(argument, buffer.Memory.Span);
+
+            m_data = buffer;
+        }
+
+        public void Dispose()
+        {
+            m_data?.Dispose();
+            m_data = null!;
         }
 
         /// <summary>
@@ -38,81 +62,97 @@ namespace Dalamud.Bootstrap.SqexArg
             if (argument.Length <= 17)
             {
                 // does not contain: //**sqex0003 + payload + checksum + **//
-                var exMessage = $"The string ({argument}) is too short to parse encoded argument.";
+                var exMessage = $"The string ({argument}) is too short to parse the encoded argument."
+                + $" It should be atleast large enough to contain the start marker, end marker, payload and checksum.";
                 throw new SqexArgException(exMessage);
             }
 
             if (!argument.StartsWith("//**sqex0003") || !argument.EndsWith("**//"))
             {
-                var exMessage = $"The string ({argument}) doesn't look like valid encoded argument format."
-                    + $"It either doesn't start with //**sqeex003 or end with **// marker.";
+                var exMessage = $"The string ({argument}) doesn't look like the valid argument."
+                    + $" It should start with //**sqeex003 and end with **// string.";
                 throw new SqexArgException(exMessage);
             }
 
+            // Extract the data
             var checksum = argument[^5];
-            var payload = DecodeUrlSafeBase64(argument.Substring(12, argument.Length - 1 - 12 - 4)); // //**sqex0003, checksum, **//
+            var encryptedData = DecodeUrlSafeBase64(argument.Substring(12, argument.Length - 1 - 12 - 4)); // //**sqex0003, checksum, **//
 
+            // Dedice a partial key from the checksum
+            var (partialKey, recoverStep) = RecoverKeyFragmentFromChecksum(checksum);
 
-            // ...
+            var decryptedData = MemoryPool<byte>.Shared.Rent(encryptedData.Length);
+            if (!RecoverKey(encryptedData, decryptedData.Memory.Span, partialKey, recoverStep))
+            {
+                // we need to free the memory to avoid a memory leak.
+                decryptedData.Dispose();
+
+                var exMessage = $"Could not find a valid key to decrypt the encoded argument.";
+                throw new SqexArgException(exMessage);
+            }
+            
+            return new EncodedArgument(decryptedData);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="payload"></param>
-        /// <param name="checksum"></param>
-        /// <returns></returns>
-        private static Blowfish RecoverKey(ReadOnlySpan<byte> payload, char checksum)
+        private static bool RecoverKey(ReadOnlySpan<byte> encryptedData, Span<byte> decryptedData, uint partialKey, uint recoverStep)
         {
-            var (keyFragment, step) = RecoverKeyFragmentFromChecksum(checksum);
-
+            
             Span<byte> keyBytes = stackalloc byte[8];
-
-            var keyCandicate = keyFragment;
+            var keyCandicate = partialKey;
             
             while (true)
             {
                 if (!CreateKey(keyBytes, keyCandicate))
                 {
-                    var message = $"BUG";
+                    var message = $"BUG: Could not create a key"; // This should not fail but..
                     throw new InvalidOperationException(message);
                 }
 
                 var blowfish = new Blowfish(keyBytes);
-                
-                if (/* if data looks valid, return blowfish */)
-                {
-                    // ...
-                    // TODO: test if it's looks like valid utf8 string?
-                    // ???
+                blowfish.Decrypt(encryptedData, decryptedData);
 
-                    return blowfish;
+                // Check if the decrypted data looks valid
+                if (CheckDecryptedData(decryptedData))
+                {
+                    return true;
                 }
 
-                // .. next key plz
+                // Try again with the next key.
                 try
                 {
-                    keyCandicate = checked(keyCandicate + step);
+                    keyCandicate = checked(keyCandicate + recoverStep);
                 }
                 catch (OverflowException)
                 {
-                    break;
+                    // We've exhausted the key space and could not find a valid key.
+                    return false;
                 }
             }
         }
 
+        private static bool CheckDecryptedData(ReadOnlySpan<byte> decryptedData)
+        {
+            // TODO
+            return false;
+        }
+
         private static bool CreateKey(Span<byte> destination, uint key) => Utf8Formatter.TryFormat(key, destination, out var _, new StandardFormat('X', 8));
 
-        private static (uint keyFragment, uint step) RecoverKeyFragmentFromChecksum(char checksum)
-        {
-            if (checksum == NoChecksumMarker)
-            {
-                return (0x0001_0000, 0x0001_0000);
-            }
-                
+        /// <summary>
+        /// Deduces a partial key from the checksum.
+        /// </summary>
+        /// <returns>
+        /// `partialKey` can be or'd (a | partialKey) to recover some bits from the key.
+        /// </returns>
+        /// <remarks>
+        /// The partialKey here is very useful because it can further reduce the number of possible key
+        /// from 0xFFFF to 0xFFF which is 16 times smaller. (and therefore we can initialize the blowfish 16 times less which is quite expensive to do so.)   
+        /// </remarks>
+        private static (uint partialKey, uint step) RecoverKeyFragmentFromChecksum(char checksum)
+        {                
             return MemoryExtensions.IndexOf(ChecksumTable, checksum) switch
             {
-                -1 => throw new SqexArgException($"{checksum} is not a valid checksum character."),
+                -1 => (0x0001_0000, 0x0001_0000), // This covers '!' as well (no checksum are encoded)
                 var index => ((uint) (index << 16), 0x0010_0000)
             };
         }
