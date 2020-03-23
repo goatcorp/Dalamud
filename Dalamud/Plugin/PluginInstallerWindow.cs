@@ -26,6 +26,9 @@ namespace Dalamud.Plugin
         private bool errorModalDrawing = true;
         private bool errorModalOnNextFrame = false;
 
+        private bool updateComplete = false;
+        private int updatePluginCount = 0;
+
         private enum PluginInstallStatus {
             None,
             InProgress,
@@ -63,9 +66,11 @@ namespace Dalamud.Plugin
         public void UpdatePlugins() {
             Log.Information("Starting plugin update...");
 
+            var updatedCount = 0;
+            this.installStatus = PluginInstallStatus.Success;
+
             try {
                 var pluginsDirectory = new DirectoryInfo(this.pluginDirectory);
-                this.installStatus = PluginInstallStatus.Success;
                 foreach (var installed in pluginsDirectory.GetDirectories()) {
                     var versions = installed.GetDirectories();
 
@@ -114,7 +119,13 @@ namespace Dalamud.Plugin
                             Log.Error(ex, "Plugin disable failed");
                         }
 
-                        InstallPlugin(remoteInfo);
+                        var installSuccess = InstallPlugin(remoteInfo);
+
+                        if (installSuccess) {
+                            updatedCount++;
+                        } else {
+                            Log.Error("InstallPlugin failed.");
+                        }
                     } else {
                         Log.Information("Up to date: {0}", remoteInfo.InternalName);
                     }
@@ -126,10 +137,13 @@ namespace Dalamud.Plugin
                 this.installStatus = PluginInstallStatus.Fail;
             }
 
+            this.updatePluginCount = updatedCount;
+            this.updateComplete = true;
+
             Log.Information("Plugin update OK.");
         }
 
-        private void InstallPlugin(PluginDefinition definition) {
+        private bool InstallPlugin(PluginDefinition definition) {
             try {
                 var outputDir = new DirectoryInfo(Path.Combine(this.pluginDirectory, definition.InternalName, definition.AssemblyVersion));
                 var dllFile = new FileInfo(Path.Combine(outputDir.FullName, $"{definition.InternalName}.dll"));
@@ -140,7 +154,7 @@ namespace Dalamud.Plugin
                         disabledFile.Delete();
 
                     this.installStatus = this.manager.LoadPluginFromAssembly(dllFile, false) ? PluginInstallStatus.Success : PluginInstallStatus.Fail;
-                    return;
+                    return this.installStatus == PluginInstallStatus.Success;
                 }
 
                 if (outputDir.Exists)
@@ -161,6 +175,8 @@ namespace Dalamud.Plugin
                 Log.Error(e, "Plugin download failed hard.");
                 this.installStatus = PluginInstallStatus.Fail;
             }
+
+            return this.installStatus == PluginInstallStatus.Success;
         }
 
         public bool Draw() {
@@ -261,18 +277,24 @@ namespace Dalamud.Plugin
             ImGui.Separator();
 
             if (this.installStatus == PluginInstallStatus.InProgress) {
-                ImGui.Button("In progress...");
+                ImGui.Button("Updating...");
             } else {
-                if (ImGui.Button("Update plugins"))
-                {
-                    this.installStatus = PluginInstallStatus.InProgress;
+                if (this.updateComplete) {
+                    ImGui.Button(this.updatePluginCount == 0
+                                     ? "No updates found!"
+                                     : $"{this.updatePluginCount} plugins updated!");
+                } else {
+                    if (ImGui.Button("Update plugins"))
+                    {
+                        this.installStatus = PluginInstallStatus.InProgress;
 
-                    Task.Run(() => UpdatePlugins()).ContinueWith(t => {
-                        this.installStatus =
-                            t.IsFaulted ? PluginInstallStatus.Fail : this.installStatus;
-                        this.errorModalDrawing = this.installStatus == PluginInstallStatus.Fail;
-                        this.errorModalOnNextFrame = this.installStatus == PluginInstallStatus.Fail;
-                    });
+                        Task.Run(UpdatePlugins).ContinueWith(t => {
+                            this.installStatus =
+                                t.IsFaulted ? PluginInstallStatus.Fail : this.installStatus;
+                            this.errorModalDrawing = this.installStatus == PluginInstallStatus.Fail;
+                            this.errorModalOnNextFrame = this.installStatus == PluginInstallStatus.Fail;
+                        });
+                    }   
                 }
             }
             
