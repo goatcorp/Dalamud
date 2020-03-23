@@ -10,7 +10,7 @@
     <meta name="viewport" content="width=device-width">
     <meta name="title" content="Class Chara
    ">
-    <meta name="generator" content="docfx 2.50.0.0">
+    <meta name="generator" content="docfx 2.48.1.0">
     
     <link rel="shortcut icon" href="../favicon.ico">
     <link rel="stylesheet" href="../styles/docfx.vendor.css">
@@ -90,6 +90,9 @@
       <a class="xref" href="Dalamud.Game.ClientState.Actors.Types.Actor.html#Dalamud_Game_ClientState_Actors_Types_Actor_actorStruct">Actor.actorStruct</a>
     </div>
     <div>
+      <a class="xref" href="Dalamud.Game.ClientState.Actors.Types.Actor.html#Dalamud_Game_ClientState_Actors_Types_Actor_dalamud">Actor.dalamud</a>
+    </div>
+    <div>
       <a class="xref" href="Dalamud.Game.ClientState.Actors.Types.Actor.html#Dalamud_Game_ClientState_Actors_Types_Actor_Position">Actor.Position</a>
     </div>
     <div>
@@ -133,19 +136,19 @@
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Actors_Types_Chara__ctor_Dalamud_Game_ClientState_Structs_Actor_.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Actors.Types.Chara.%23ctor(Dalamud.Game.ClientState.Structs.Actor)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Actors_Types_Chara__ctor_Dalamud_Game_ClientState_Structs_Actor_Dalamud_Dalamud_.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Actors.Types.Chara.%23ctor(Dalamud.Game.ClientState.Structs.Actor%2CDalamud.Dalamud)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/Types/Chara.cs/#L12">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/Types/Chara.cs/#L13">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_Actors_Types_Chara__ctor_" data-uid="Dalamud.Game.ClientState.Actors.Types.Chara.#ctor*"></a>
-  <h4 id="Dalamud_Game_ClientState_Actors_Types_Chara__ctor_Dalamud_Game_ClientState_Structs_Actor_" data-uid="Dalamud.Game.ClientState.Actors.Types.Chara.#ctor(Dalamud.Game.ClientState.Structs.Actor)">Chara(Actor)</h4>
+  <h4 id="Dalamud_Game_ClientState_Actors_Types_Chara__ctor_Dalamud_Game_ClientState_Structs_Actor_Dalamud_Dalamud_" data-uid="Dalamud.Game.ClientState.Actors.Types.Chara.#ctor(Dalamud.Game.ClientState.Structs.Actor,Dalamud.Dalamud)">Chara(Actor, Dalamud)</h4>
   <div class="markdown level1 summary"><p>Set up a new Chara with the provided memory representation.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public Chara(Actor actorStruct)</code></pre>
+    <pre><code class="lang-csharp hljs">protected Chara(Actor actorStruct, Dalamud dalamud)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -163,6 +166,12 @@
         <td><p>The memory representation of the base actor.</p>
 </td>
       </tr>
+      <tr>
+        <td><span class="xref">Dalamud.Dalamud</span></td>
+        <td><span class="parametername">dalamud</span></td>
+        <td><p>A dalamud reference needed to access game data in Resolvers.</p>
+</td>
+      </tr>
     </tbody>
   </table>
   <h3 id="properties">Properties
@@ -172,7 +181,7 @@
     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Actors_Types_Chara_ClassJob.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Actors.Types.Chara.ClassJob%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/Types/Chara.cs/#L22">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/Types/Chara.cs/#L23">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_Actors_Types_Chara_ClassJob_" data-uid="Dalamud.Game.ClientState.Actors.Types.Chara.ClassJob*"></a>
   <h4 id="Dalamud_Game_ClientState_Actors_Types_Chara_ClassJob" data-uid="Dalamud.Game.ClientState.Actors.Types.Chara.ClassJob">ClassJob</h4>
@@ -203,7 +212,7 @@
     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Actors_Types_Chara_CurrentHp.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Actors.Types.Chara.CurrentHp%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/Types/Chara.cs/#L27">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/Types/Chara.cs/#L28">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_Actors_Types_Chara_CurrentHp_" data-uid="Dalamud.Game.ClientState.Actors.Types.Chara.CurrentHp*"></a>
   <h4 id="Dalamud_Game_ClientState_Actors_Types_Chara_CurrentHp" data-uid="Dalamud.Game.ClientState.Actors.Types.Chara.CurrentHp">CurrentHp</h4>
@@ -234,7 +243,7 @@
     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Actors_Types_Chara_CurrentMp.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Actors.Types.Chara.CurrentMp%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/Types/Chara.cs/#L37">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/Types/Chara.cs/#L38">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_Actors_Types_Chara_CurrentMp_" data-uid="Dalamud.Game.ClientState.Actors.Types.Chara.CurrentMp*"></a>
   <h4 id="Dalamud_Game_ClientState_Actors_Types_Chara_CurrentMp" data-uid="Dalamud.Game.ClientState.Actors.Types.Chara.CurrentMp">CurrentMp</h4>
@@ -265,7 +274,7 @@
     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Actors_Types_Chara_Level.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Actors.Types.Chara.Level%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/Types/Chara.cs/#L17">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/Types/Chara.cs/#L18">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_Actors_Types_Chara_Level_" data-uid="Dalamud.Game.ClientState.Actors.Types.Chara.Level*"></a>
   <h4 id="Dalamud_Game_ClientState_Actors_Types_Chara_Level" data-uid="Dalamud.Game.ClientState.Actors.Types.Chara.Level">Level</h4>
@@ -296,7 +305,7 @@
     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Actors_Types_Chara_MaxHp.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Actors.Types.Chara.MaxHp%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/Types/Chara.cs/#L32">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/Types/Chara.cs/#L33">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_Actors_Types_Chara_MaxHp_" data-uid="Dalamud.Game.ClientState.Actors.Types.Chara.MaxHp*"></a>
   <h4 id="Dalamud_Game_ClientState_Actors_Types_Chara_MaxHp" data-uid="Dalamud.Game.ClientState.Actors.Types.Chara.MaxHp">MaxHp</h4>
@@ -327,7 +336,7 @@
     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Actors_Types_Chara_MaxMp.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Actors.Types.Chara.MaxMp%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/Types/Chara.cs/#L42">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/Types/Chara.cs/#L43">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_Actors_Types_Chara_MaxMp_" data-uid="Dalamud.Game.ClientState.Actors.Types.Chara.MaxMp*"></a>
   <h4 id="Dalamud_Game_ClientState_Actors_Types_Chara_MaxMp" data-uid="Dalamud.Game.ClientState.Actors.Types.Chara.MaxMp">MaxMp</h4>
