@@ -10,6 +10,7 @@ using Dalamud.Game.Chat;
 using Dalamud.Game.Chat.SeStringHandling;
 using Dalamud.Game.Chat.SeStringHandling.Payloads;
 using Dalamud.Game.Internal.Libc;
+using Dalamud.Plugin;
 using Serilog;
 
 namespace Dalamud.Game {
@@ -113,11 +114,25 @@ namespace Dalamud.Game {
                 if (string.IsNullOrEmpty(this.dalamud.Configuration.LastVersion) || !assemblyVersion.StartsWith(this.dalamud.Configuration.LastVersion)) {
                     this.dalamud.Framework.Gui.Chat.PrintChat(new XivChatEntry {
                         MessageBytes = Encoding.UTF8.GetBytes("The In-Game addon has been updated or was reinstalled successfully! Please check the discord for a full changelog."),
-                        Type = XivChatType.Urgent
+                        Type = XivChatType.Notice
                     });
 
                     this.dalamud.Configuration.LastVersion = assemblyVersion;
                     this.dalamud.Configuration.Save(this.dalamud.StartInfo.ConfigurationPath);
+                }
+
+                try {
+                    var hasNeedsUpdate = this.dalamud.PluginRepository.UpdatePlugins(true).UpdatedCount != 0;
+
+                    if (hasNeedsUpdate) {
+                        this.dalamud.Framework.Gui.Chat.PrintChat(new XivChatEntry
+                        {
+                            MessageBytes = Encoding.UTF8.GetBytes("One or more of your plugins needs to be updated. Please use the /xlplugins command in-game to update them!"),
+                            Type = XivChatType.Urgent
+                        });
+                    }
+                } catch (Exception e) {
+                    Log.Error(e, "Could not check for plugin updates.");
                 }
             }
 
