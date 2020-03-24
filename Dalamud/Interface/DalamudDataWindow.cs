@@ -73,6 +73,7 @@ namespace Dalamud.Interface
                         stateString += $"HomeWorldName: {this.dalamud.ClientState.LocalPlayer.HomeWorld.GameData.Name}\n";
                         stateString += $"LocalCID: {this.dalamud.ClientState.LocalContentId:X}\n";
                         stateString += $"LastLinkedItem: {this.dalamud.Framework.Gui.Chat.LastLinkedItemId.ToString()}\n";
+                        stateString += $"TerritoryType: {this.dalamud.ClientState.TerritoryType}\n"; 
 
                         for (var i = 0; i < this.dalamud.ClientState.Actors.Length; i++) {
                             var actor = this.dalamud.ClientState.Actors[i];

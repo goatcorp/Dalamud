@@ -32,7 +32,6 @@ namespace Dalamud.Game.ClientState
         /// <summary>
         /// The local player character, if one is present.
         /// </summary>
-        //public PlayerCharacter LocalPlayer { get; private set; }
         public PlayerCharacter LocalPlayer {
             get {
                 var actor = this.Actors[0];
@@ -43,7 +42,8 @@ namespace Dalamud.Game.ClientState
                 return null;
             }
         }
-        //public PlayerCharacter LocalPlayer => null;
+
+        public ushort TerritoryType => (ushort) Marshal.ReadInt16(Address.TerritoryType);
 
         /// <summary>
         /// The content ID of the local character.
@@ -72,6 +72,8 @@ namespace Dalamud.Game.ClientState
             this.Actors = new ActorTable(dalamud, Address);
 
             this.JobGauges = new JobGauges(Address);
+
+            Log.Verbose("TerritoryType address {TerritoryType}", Address.TerritoryType);
 
             dalamud.Framework.OnUpdateEvent += FrameworkOnOnUpdateEvent;
         }
