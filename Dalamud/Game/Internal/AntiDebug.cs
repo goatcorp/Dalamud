@@ -25,7 +25,7 @@ namespace Dalamud.Game.Internal
         }
 
         public void Enable() {
-            //this.debuggerPresentHook.Enable();
+            this.debuggerPresentHook.Enable();
         }
 
         public void Dispose() {

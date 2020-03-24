@@ -43,9 +43,7 @@ namespace Dalamud.Game.Internal {
         
         public LibcFunction Libc { get; private set; }
 
-        private AntiDebug antiDebug;
-        
-#endregion
+        #endregion
         
         public Framework(SigScanner scanner, Dalamud dalamud) {
             Address = new FrameworkAddressResolver();
@@ -67,8 +65,6 @@ namespace Dalamud.Game.Internal {
             Network = new GameNetwork(dalamud, scanner);
 
             //Resource = new ResourceManager(dalamud, scanner);
-
-            this.antiDebug = new AntiDebug();
         }
 
         private void HookVTable() {
@@ -85,7 +81,6 @@ namespace Dalamud.Game.Internal {
         }
         
         public void Enable() {
-            this.antiDebug.Enable();
             Gui.Enable();
             Network.Enable();
             //Resource.Enable();
@@ -94,7 +89,6 @@ namespace Dalamud.Game.Internal {
         }
         
         public void Dispose() {
-            this.antiDebug.Dispose();
             Gui.Dispose();
             Network.Dispose();
             //Resource.Dispose();
