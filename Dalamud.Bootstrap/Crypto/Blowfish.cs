@@ -442,9 +442,9 @@ namespace Dalamud.Bootstrap.Crypto
                 for (var i = Rounds; i > 0; i -= 2)
                 {
                     xl ^= m_p[i + 1];
-                    xr ^= Round(xr);
+                    xr ^= Round(xl);
                     xr ^= m_p[i];
-                    xr ^= Round(xr);
+                    xl ^= Round(xr);
                 }
 
                 xl ^= m_p[1];
