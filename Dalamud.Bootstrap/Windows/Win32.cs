@@ -32,16 +32,17 @@ namespace Dalamud.Bootstrap.Windows
 
         [DllImport("kernel32", CallingConvention = CallingConvention.Winapi)]
         public static extern uint GetProcessId(SafeProcessHandle hProcess);
+
+        [DllImport("kernel32", CallingConvention = CallingConvention.Winapi, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool GetProcessTimes(SafeProcessHandle hProcess, FileTime* lpCreationTime, FileTime* lpExitTime, FileTime* lpKernelTime, FileTime* lpUserTime);
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    internal partial struct NtStatus
+    internal struct NtStatus
     {
         public uint Value { get; }
-    }
 
-    internal partial struct NtStatus
-    {
         public NtStatus(uint value)
         {
             Value = value;
@@ -68,6 +69,21 @@ namespace Dalamud.Bootstrap.Windows
         public bool Error => 0xC0000000 <= Value;
 
         public override string ToString() => $"0x{Value:X8}";
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct FileTime
+    {
+        public uint LowDateTime;
+
+        public uint HighDateTime;
+
+        public static explicit operator DateTime(FileTime value)
+        {
+            var time = ((long)value.HighDateTime << 32) | value.LowDateTime;
+            
+            return DateTime.FromFileTime(time);
+        }
     }
 
     [StructLayout(LayoutKind.Sequential)]

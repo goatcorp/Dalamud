@@ -24,6 +24,13 @@ namespace Dalamud.Bootstrap
             throw new NotImplementedException("TODO");
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="pid"></param>
+        /// <exception cref="BootstrapException">
+        /// Thrown when it could not relaunch FINAL FANTASY XIV or inject Dalamud.
+        /// </exception>
         public void Relaunch(uint pid)
         {
             // TODO
@@ -48,10 +55,11 @@ namespace Dalamud.Bootstrap
             using var process = Process.Open(pid);
             var commandLine = process.ReadCommandLine();
 
-            if (!EncodedArgument.Parse(commandLine[1], out var container))
-            {
+            // Recover the key
 
-            }
+            // TODO: check if contains arg[1]
+
+            if EncryptedArgument.Extract(commandLine[1], )
 
             
             // TODO:
@@ -65,6 +73,20 @@ namespace Dalamud.Bootstrap
             // EncodeSqexArg(str, newKey)
             
             process.Terminate();
+        }
+
+        private static uint RecoverKey(Process gameProcess)
+        {
+            var createdTime = gameProcess.GetCreationTime();
+            
+            var currentDt = DateTime.Now;
+            var currentTick = Environment.TickCount;
+
+            var delta = currentDt - createdTime;
+            var createdTick = (uint)currentTick - (uint)delta.TotalMilliseconds;
+
+            // only the high nibble is used.
+            return createdTick & 0xFFFF_0000;
         }
 
         /// <summary>

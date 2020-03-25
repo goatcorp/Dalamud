@@ -155,6 +155,24 @@ namespace Dalamud.Bootstrap
             }
         }
 
+        /// <summary>
+        /// Returns a time when the process was started.
+        /// </summary>
+        public DateTime GetCreationTime()
+        {
+            unsafe
+            {
+                FileTime creationTime, exitTime, kernelTime, userTime;
+
+                if (Win32.GetProcessTimes(m_handle, &creationTime, &exitTime, &kernelTime, &userTime))
+                {
+                    ProcessException.ThrowLastOsError(GetPid());
+                }
+
+                return (DateTime)creationTime;
+            }
+        }
+
         private string[] ParseCommandLine(ReadOnlySpan<byte> commandLine)
         {
             unsafe
