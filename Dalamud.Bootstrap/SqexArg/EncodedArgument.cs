@@ -57,20 +57,24 @@ namespace Dalamud.Bootstrap.SqexArg
         /// </summary>
         /// <param name="argument"></param>
         /// <returns></returns>
+        /// <exception cref="SqexArgException">
+        /// Thrown when the function could not parse the encoded argument.
+        /// Message property will carry additional information.
+        /// </exception>
         public static EncodedArgument Parse(string argument)
         {
-            if (argument.Length <= 17)
+            // check if argument contains is large enough to contain start marker, checksum and end marker.
+            if (argument.Length < "//**sqex0003!**//".Length)
             {
-                // does not contain: //**sqex0003 + payload + checksum + **//
                 var exMessage = $"The string ({argument}) is too short to parse the encoded argument."
-                + $" It should be atleast large enough to contain the start marker, end marker, payload and checksum.";
+                + $" It should be atleast large enough to store the start marker,checksum and end marker..";
                 throw new SqexArgException(exMessage);
             }
 
-            if (!argument.StartsWith("//**sqex0003") || !argument.EndsWith("**//"))
+            if (!argument.StartsWith("//**sqex0003") || !argument[13..].EndsWith("**//"))
             {
                 var exMessage = $"The string ({argument}) doesn't look like the valid argument."
-                    + $" It should start with //**sqeex003 and end with **// string.";
+                    + $" It should start with //**sqex0003 and end with **// string.";
                 throw new SqexArgException(exMessage);
             }
 
@@ -102,11 +106,7 @@ namespace Dalamud.Bootstrap.SqexArg
             
             while (true)
             {
-                if (!CreateKey(keyBytes, keyCandicate))
-                {
-                    var message = $"BUG: Could not create a key"; // This should not fail but..
-                    throw new InvalidOperationException(message);
-                }
+                CreateKey(keyBytes, keyCandicate);
 
                 var blowfish = new Blowfish(keyBytes);
                 blowfish.Decrypt(encryptedData, decryptedData);
@@ -130,13 +130,30 @@ namespace Dalamud.Bootstrap.SqexArg
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="decryptedData"></param>
+        /// <returns></returns>
         private static bool CheckDecryptedData(ReadOnlySpan<byte> decryptedData)
         {
             // TODO
             return false;
         }
 
-        private static bool CreateKey(Span<byte> destination, uint key) => Utf8Formatter.TryFormat(key, destination, out var _, new StandardFormat('X', 8));
+        /// <summary>
+        /// Formats the key.
+        /// </summary>
+        /// <param name="key">A secret key.</param>
+        /// <param name="destination">A buffer where formatted key will be stored. This must be larger than 8 bytes.</param>
+        private static void CreateKey(uint key, Span<byte> destination)
+        {
+            if (!Utf8Formatter.TryFormat(key, destination, out var _, new StandardFormat('X', 8)))
+            {
+                var message = $"BUG: Could not create a key"; // This should not fail but..
+                throw new InvalidOperationException(message);
+            }
+        }
 
         /// <summary>
         /// Deduces a partial key from the checksum.

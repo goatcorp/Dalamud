@@ -65,8 +65,6 @@ namespace Dalamud.Bootstrap
             // EncodeSqexArg(str, newKey)
             
             process.Terminate();
-
-            throw new NotImplementedException("TODO");
         }
 
         /// <summary>
