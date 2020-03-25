@@ -26,6 +26,22 @@ namespace Dalamud.Plugin
             this.devPluginDirectory = devPluginDirectory;
 
             this.pluginConfigs = new PluginConfigurations(Path.Combine(Path.GetDirectoryName(dalamud.StartInfo.ConfigurationPath), "pluginConfigs"));
+
+            // Try to load missing assemblies from the local directory of the requesting assembly
+            // This would usually be implicit when using Assembly.Load(), but Assembly.LoadFile() doesn't do it...
+            // This handler should only be invoked on things that fail regular lookups, but it *is* global to this appdomain
+            AppDomain.CurrentDomain.AssemblyResolve += (object source, ResolveEventArgs e) =>
+            {
+                Log.Debug($"Resolving missing assembly {e.Name}");
+                // This looks weird but I'm pretty sure it's actually correct.  Pretty sure.  Probably.
+                var assemblyPath = Path.Combine(Path.GetDirectoryName(e.RequestingAssembly.Location), new AssemblyName(e.Name).Name + ".dll");
+                if (!File.Exists(assemblyPath))
+                {
+                    Log.Error($"Assembly not found at {assemblyPath}");
+                    return null;
+                }
+                return Assembly.LoadFrom(assemblyPath);
+            };
         }
 
         public void UnloadPlugins() {
