@@ -15,6 +15,8 @@ namespace Dalamud.Bootstrap.Crypto
     /// </remarks>
     internal sealed class Blowfish
     {
+        public static int BlockSize => 8;
+
         private BlowfishState m_state;
 
         /// <summary>
@@ -50,7 +52,7 @@ namespace Dalamud.Bootstrap.Crypto
 
         private static bool CheckBufferLength(int length) => length switch
         {
-            _ when length % 8 == 0 => true,
+            _ when length % BlockSize == 0 => true,
             _ => false,
         };
 

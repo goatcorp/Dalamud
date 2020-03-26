@@ -26,6 +26,19 @@ namespace Dalamud.Bootstrap.SqexArg
             return this;
         }
 
+        public bool ContainsKey(string key) => m_dict.ContainsKey(key);
+
+        public bool ContainsValue(string value) => m_dict.ContainsValue(value);
+
+        public ArgumentBuilder Remove(string key)
+        {
+            m_dict.Remove(key);
+
+            return this;
+        }
+
+        public bool TryRemove(string key) => m_dict.Remove(key);
+
         private static void Write(StringBuilder buffer, string key, string value)
         {
             var escapedKey = EscapeValue(key);

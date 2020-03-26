@@ -53,7 +53,7 @@ namespace Dalamud.Bootstrap.SqexArg
         }
 
         /// <summary>
-        /// 
+        /// Extracts the payload and checksum from the encrypted argument.
         /// </summary>
         /// <param name="argument"></param>
         /// <param name="payload">An encrypted payload encoded in url-safe base64 string extracted. The value is undefined if the function fails.</param>
@@ -83,6 +83,13 @@ namespace Dalamud.Bootstrap.SqexArg
             Span<byte> keyBytes = stackalloc byte[8];
             CreateKey(key, keyBytes);
 
+            if (!Extract(argument, out var encryptedStr, out var _))
+            {
+                throw new SqexArgException($"Could not extract the argument and checksum from {argument}");
+            }
+
+            var encryptedData = DecodeUrlSafeBase64(encryptedStr);
+
             // Allocate the buffer to store decrypted data
             var decryptedData = CreateAlignedBuffer(encryptedData.Length);
             
@@ -101,25 +108,24 @@ namespace Dalamud.Bootstrap.SqexArg
             return new EncryptedArgument(decryptedData);
         }
 
-        private static IMemoryOwner<byte> CreateAlignedBuffer(int minimumSize)
-        {
-            // align (by padding) to block size if needed
-            throw new NotImplementedException("TODO");
-        }
-
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="decryptedData"></param>
-        /// <returns></returns>
-        private static bool CheckDecryptedData(ReadOnlySpan<byte> decryptedData)
+        /// <param name="minimumSize">Indicates that returned buffer must be larger than `minimumSize` bytes.</param>
+        /// <returns>
+        /// A buffer aligned to next multiple of block size.
+        /// Dispose() must be called when it's not used anymore.
+        /// </returns>
+        private static IMemoryOwner<byte> CreateAlignedBuffer(int minimumSize)
         {
-            // TODO
-            return false;
+            // align to next multiple of block size.
+            var alignedSize = (minimumSize + Blowfish.BlockSize - 1) & (~(-Blowfish.BlockSize));
+            
+            return MemoryPool<byte>.Shared.Rent(alignedSize);
         }
 
         /// <summary>
-        /// Formats the key.
+        /// Formats a key.
         /// </summary>
         /// <param name="key">A secret key.</param>
         /// <param name="destination">A buffer where formatted key will be stored. This must be larger than 8 bytes.</param>
@@ -127,8 +133,7 @@ namespace Dalamud.Bootstrap.SqexArg
         {
             if (!Utf8Formatter.TryFormat(key, destination, out var _, new StandardFormat('x', 8)))
             {
-                var message = $"BUG: Could not create a key"; // This should not fail but..
-                throw new InvalidOperationException(message);
+                throw new InvalidOperationException("BUG: Could not create a key");
             }
         }
 
@@ -143,6 +148,11 @@ namespace Dalamud.Bootstrap.SqexArg
                 .Replace('_', '/');
             
             return Convert.FromBase64String(base64Str);
+        }
+
+        public string Encrypt(uint key)
+        {
+            
         }
     }
 }
