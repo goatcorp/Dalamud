@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Net;
+using System.Threading.Tasks;
 using Dalamud.Interface;
 using EasyHook;
 using Serilog;
@@ -25,14 +26,14 @@ namespace Dalamud {
 
                 // Log any unhandled exception.
                 AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
+                TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
 
-                using (var dalamud = new Dalamud(info)) {
-                    Log.Information("Starting a session..");
+                using var dalamud = new Dalamud(info);
+                Log.Information("Starting a session..");
                     
-                    // Run session
-                    dalamud.Start();
-                    dalamud.WaitForUnload();
-                }
+                // Run session
+                dalamud.Start();
+                dalamud.WaitForUnload();
             } catch (Exception ex) {
                 Log.Fatal(ex, "Unhandled exception on main thread.");
             } finally {
@@ -42,21 +43,21 @@ namespace Dalamud {
                 Log.CloseAndFlush();
             }
         }
-        
+
         private Logger NewLogger(string baseDirectory) {
             var logPath = Path.Combine(baseDirectory, "dalamud.txt");
-            
+
             return new LoggerConfiguration()
                    .WriteTo.Async(a => a.File(logPath))
                    .WriteTo.EventSink()
 #if DEBUG
                    .MinimumLevel.Verbose()
 #else
-                .MinimumLevel.Information()
+                   .MinimumLevel.Information()
 #endif
                    .CreateLogger();
         }
-        
+
         private void OnUnhandledException(object sender, UnhandledExceptionEventArgs arg) {
             switch (arg.ExceptionObject) {
                 case Exception ex:
@@ -66,6 +67,12 @@ namespace Dalamud {
                     Log.Fatal("Unhandled SEH object on AppDomain: {Object}", arg.ExceptionObject);
                     break;
             }
+        }
+
+        private void OnUnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
+        {
+            if (!e.Observed)
+                Log.Error(e.Exception, "Unobserved exception in Task.");
         }
     }
 }
