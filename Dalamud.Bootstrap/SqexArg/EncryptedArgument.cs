@@ -8,7 +8,7 @@ using Dalamud.Bootstrap.Crypto;
 
 namespace Dalamud.Bootstrap.SqexArg
 {
-    internal sealed class EncryptedArgument : IDisposable
+    internal sealed class EncryptedArgument
     {
         private static char[] ChecksumTable = new char[]
         {
@@ -21,45 +21,26 @@ namespace Dalamud.Bootstrap.SqexArg
         /// </summary>
         private const char NoChecksumMarker = '!';
 
-        /// <summary>
-        /// A data that is not encrypted.
-        /// </summary>
-        private IMemoryOwner<byte> m_data;
+        private IMemoryOwner<byte> m_encryptedData;
 
         /// <summary>
-        /// Creates an object that can take (e.g. /T=1234)
+        /// Encrypts the argument with given key.
         /// </summary>
-        /// <param name="data">A data that is not encrypted.</param>
-        /// <remarks>
-        /// This takes the ownership of the data.
-        /// </remarks>
-        public EncryptedArgument(IMemoryOwner<byte> data)
+        /// <param name="argument"></param>
+        /// <param name="key"></param>
+        public EncryptedArgument(string argument, uint key)
         {
-            m_data = data;
-        }
-        
-        public EncryptedArgument(string argument)
-        {
-            var buffer = MemoryPool<byte>.Shared.Rent(Encoding.UTF8.GetByteCount(argument));
-            Encoding.UTF8.GetBytes(argument, buffer.Memory.Span);
-
-            m_data = buffer;
-        }
-
-        public void Dispose()
-        {
-            m_data?.Dispose();
-            m_data = null!;
+            
         }
 
         /// <summary>
         /// Extracts the payload and checksum from the encrypted argument.
         /// </summary>
         /// <param name="argument"></param>
-        /// <param name="payload">An encrypted payload encoded in url-safe base64 string extracted. The value is undefined if the function fails.</param>
+        /// <param name="payload">An encrypted payload extracted. The value is undefined if the function fails.</param>
         /// <param name="checksum">A checksum of the key extracted. The value is undefined if the function fails.</param>
         /// <returns>Returns true on success, false otherwise.</returns>
-        public static bool Extract(string argument, out string payload, out char checksum)
+        public static bool Extract(string argument, out byte[] payload, out char checksum)
         {
             // must start with //**sqex0003, some characters, one checksum character and end with **//
             var regex = new Regex(@"^\/\/\*\*sqex0003(?<payload>.+)(?<checksum>.)\*\*\/\/$");
@@ -67,45 +48,31 @@ namespace Dalamud.Bootstrap.SqexArg
             var match = regex.Match(argument);
             if (!match.Success)
             {
-                payload = "";
+                payload = null!;
                 checksum = '\0';
                 return false;
             }
 
-            payload = match.Groups["payload"].Value;
+            // Extract checksum
             checksum = match.Groups["checksum"].Value[0];
+            
+            // Extract payload
+            var payloadStr = match.Groups["payload"].Value;
+            payload = DecodeUrlSafeBase64(payloadStr);
+
             return true;
         }
 
-        public static EncryptedArgument FromEncryptedData(string argument, uint key)
+        public override string ToString()
         {
-            // Create the key
-            Span<byte> keyBytes = stackalloc byte[8];
-            CreateKey(key, keyBytes);
+            var checksum = GetChecksumFromKey();
+        }
 
-            if (!Extract(argument, out var encryptedStr, out var _))
-            {
-                throw new SqexArgException($"Could not extract the argument and checksum from {argument}");
-            }
-
-            var encryptedData = DecodeUrlSafeBase64(encryptedStr);
-
-            // Allocate the buffer to store decrypted data
-            var decryptedData = CreateAlignedBuffer(encryptedData.Length);
+        private static char GetChecksumFromKey(uint key)
+        {
+            var index = (key & 0x000F_0000) >> 16;
             
-            // Decrypt the data with the key
-            try
-            {
-                var blowfish = new Blowfish(keyBytes);
-                blowfish.Decrypt(encryptedData, decryptedData.Memory.Span);
-            }
-            catch (Exception)
-            {
-                decryptedData?.Dispose(); // TODO: clean up this thing?
-                throw;
-            }
-            
-            return new EncryptedArgument(decryptedData);
+            return ChecksumTable[index];
         }
 
         /// <summary>
@@ -147,12 +114,25 @@ namespace Dalamud.Bootstrap.SqexArg
                 .Replace('-', '+')
                 .Replace('_', '/');
             
-            return Convert.FromBase64String(base64Str);
+            try
+            {
+                return Convert.FromBase64String(base64Str);
+            }
+            catch (FormatException ex)
+            {
+                // This is expected to happen if the argument is ill-formed
+                throw new SqexArgException($"A payload {payload} does not look like a valid encrypted argument.", ex);
+            }            
         }
 
-        public string Encrypt(uint key)
+        private static string EncodeUrlSafeBase64(byte[] payload)
         {
+            var payloadStr = Convert.ToBase64String(payload);
             
+            return payloadStr
+                .Replace('+', '-')
+                .Replace('/', '_');
+
         }
     }
 }

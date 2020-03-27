@@ -53,15 +53,11 @@ namespace Dalamud.Bootstrap
 
             // Acquire the process handle and read the command line
             using var process = Process.Open(pid);
-            var commandLine = process.ReadCommandLine();
 
-            // Recover the key
-
-            // TODO: check if contains arg[1]
-
-            if EncryptedArgument.Extract(commandLine[1], )
-
+            var argument = ReadGameArgument(process);
             
+            argument.Remove("T");
+            //var newCommandLine =
             // TODO:
             // .... if arg1 exists
             // DecodeSqexArg(arguments[1]);
@@ -87,6 +83,22 @@ namespace Dalamud.Bootstrap
 
             // only the high nibble is used.
             return createdTick & 0xFFFF_0000;
+        }
+
+        private static ArgumentBuilder ReadGameArgument(Process process)
+        {
+            var arguments = process.ReadArguments();
+
+            if (arguments.Length < 1)
+            {
+                throw new BootstrapException($"Process id {process.Id} does not have any arguments to parse.");
+            }
+
+            if (EncryptedArgument.Extract(arguments[0], out var encryptedPayload, out var _))
+            {
+                var key = RecoverKey(process);
+                EncryptedArgument.Decry(encryptedPayload, key)
+            }
         }
 
         /// <summary>

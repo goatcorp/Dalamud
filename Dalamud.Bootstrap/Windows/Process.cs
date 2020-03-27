@@ -140,7 +140,7 @@ namespace Dalamud.Bootstrap
             }
         }
 
-        public string[] ReadCommandLine()
+        public string[] ReadArguments()
         {
             unsafe
             {
@@ -151,7 +151,8 @@ namespace Dalamud.Bootstrap
 
                 // Read the command line (which is utf16-like string)
                 var commandLine = ReadMemoryExact(procParam.CommandLine.Buffer, procParam.CommandLine.Length);
-                return ParseCommandLine(commandLine);
+                
+                return ParseCommandLineToArguments(commandLine);
             }
         }
 
@@ -173,7 +174,7 @@ namespace Dalamud.Bootstrap
             }
         }
 
-        private string[] ParseCommandLine(ReadOnlySpan<byte> commandLine)
+        private string[] ParseCommandLineToArguments(ReadOnlySpan<byte> commandLine)
         {
             unsafe
             {
