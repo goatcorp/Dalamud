@@ -94,11 +94,15 @@ namespace Dalamud.Bootstrap
                 throw new BootstrapException($"Process id {process.Id} does not have any arguments to parse.");
             }
 
-            if (EncryptedArgument.Extract(arguments[0], out var encryptedPayload, out var _))
+            var argument = arguments[0];
+            
+            if (EncryptedArgument.TryParse(argument, out var encryptedArgument))
             {
                 var key = RecoverKey(process);
-                EncryptedArgument.Decry(encryptedPayload, key)
+                //
             }
+
+            
         }
 
         /// <summary>
