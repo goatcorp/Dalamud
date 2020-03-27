@@ -1,12 +1,5 @@
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using Dalamud.Game.ClientState.Actors;
 using Dalamud.Game.ClientState.Actors.Types;
 using Dalamud.Game.Internal;
@@ -43,7 +36,10 @@ namespace Dalamud.Game.ClientState
             }
         }
 
-        public ushort TerritoryType => (ushort) Marshal.ReadInt16(Address.TerritoryType);
+        /// <summary>
+        /// The current Territory the player resides in.
+        /// </summary>
+        public uint TerritoryType => (uint) Marshal.ReadInt32(Address.TerritoryType);
 
         /// <summary>
         /// The content ID of the local character.
@@ -79,7 +75,7 @@ namespace Dalamud.Game.ClientState
         }
 
         private void FrameworkOnOnUpdateEvent(Framework framework) {
-            //LocalPlayer = (PlayerCharacter) this.Actors[0];
+            // ignored
         }
     }
 }
