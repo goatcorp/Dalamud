@@ -1,8 +1,12 @@
+using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using Dalamud.Game.ClientState.Actors;
 using Dalamud.Game.ClientState.Actors.Types;
 using Dalamud.Game.Internal;
+using Dalamud.Game.Internal.Network;
+using Dalamud.Hooking;
+using Lumina.Excel.GeneratedSheets;
 using Serilog;
 
 namespace Dalamud.Game.ClientState
@@ -10,7 +14,7 @@ namespace Dalamud.Game.ClientState
     /// <summary>
     /// This class represents the state of the game client at the time of access.
     /// </summary>
-    public class ClientState : INotifyPropertyChanged {
+    public class ClientState : INotifyPropertyChanged, IDisposable {
         public event PropertyChangedEventHandler PropertyChanged;
 
         private ClientStateAddressResolver Address { get; }
@@ -36,10 +40,35 @@ namespace Dalamud.Game.ClientState
             }
         }
 
+        #region TerritoryType
+
+        // TODO: The hooking logic for this should go into a separate class.
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        private delegate IntPtr SetupTerritoryTypeDelegate(IntPtr manager, ushort terriType);
+
+        private readonly Hook<SetupTerritoryTypeDelegate> setupTerritoryTypeHook;
+
         /// <summary>
         /// The current Territory the player resides in.
         /// </summary>
-        public uint TerritoryType => (uint) Marshal.ReadInt32(Address.TerritoryType);
+        public ushort TerritoryType;
+
+        /// <summary>
+        /// Event that gets fired when the current Territory changes.
+        /// </summary>
+        public EventHandler<ushort> TerritoryChanged;
+
+        private IntPtr SetupTerritoryTypeDetour(IntPtr manager, ushort terriType)
+        {
+            this.TerritoryType = terriType;
+            this.TerritoryChanged?.Invoke(this, terriType);
+
+            Log.Debug("TerritoryType changed: {0}", terriType);
+
+            return this.setupTerritoryTypeHook.Original(manager, terriType);
+        }
+
+        #endregion
 
         /// <summary>
         /// The content ID of the local character.
@@ -69,9 +98,21 @@ namespace Dalamud.Game.ClientState
 
             this.JobGauges = new JobGauges(Address);
 
-            Log.Verbose("TerritoryType address {TerritoryType}", Address.TerritoryType);
+            Log.Verbose("SetupTerritoryType address {SetupTerritoryType}", Address.SetupTerritoryType);
+
+            this.setupTerritoryTypeHook = new Hook<SetupTerritoryTypeDelegate>(Address.SetupTerritoryType,
+                                                                               new SetupTerritoryTypeDelegate(SetupTerritoryTypeDetour),
+                                                                               this);
 
             dalamud.Framework.OnUpdateEvent += FrameworkOnOnUpdateEvent;
+        }
+
+        public void Enable() {
+            this.setupTerritoryTypeHook.Enable();
+        }
+
+        public void Dispose() {
+            this.setupTerritoryTypeHook.Dispose();
         }
 
         private void FrameworkOnOnUpdateEvent(Framework framework) {

@@ -110,6 +110,7 @@ namespace Dalamud {
             }
 
             this.Framework.Enable();
+            this.ClientState.Enable();
 
             this.BotManager.Start();
 
@@ -147,7 +148,8 @@ namespace Dalamud {
 
             this.InterfaceManager.Dispose();
 
-            Framework.Dispose();
+            this.Framework.Dispose();
+            this.ClientState.Dispose();
 
             this.BotManager.Dispose();
 

@@ -17,6 +17,9 @@ namespace Dalamud.Game.Internal {
 
         public delegate void OnUpdateDelegate(Framework framework);
 
+        /// <summary>
+        /// Event that gets fired every time the game framework updates.
+        /// </summary>
         public event OnUpdateDelegate OnUpdateEvent;
         
         private Hook<OnUpdateDetour> updateHook;
