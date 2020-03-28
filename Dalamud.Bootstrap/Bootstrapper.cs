@@ -56,26 +56,19 @@ namespace Dalamud.Bootstrap
 
             var argument = ReadArgumentFromProcess(process);
             
-            var newTick = Environment.TickCount;
+            var newTick = (uint)Environment.TickCount;
             var newKey = newTick & 0xFFFF_0000; // only the high nibble is used
             
-            var newArgument = argument.Remove("T")
+            var newArgument = argument
+                .Remove("T")
                 .Add("T", $"{newTick}")
                 .ToString();
 
-            // TODO: encode as a encrypted?
-            // TODO: launch it
+            var encryptedArgument = new EncryptedArgument(newArgument, newKey);
+            
 
-            //var newCommandLine =
-            // TODO:
-            // .... if arg1 exists
-            // DecodeSqexArg(arguments[1]);
-            // args = ParseArgument()
-            // FindArguments(args, "T")
-            // RemoveArgs(args, "T")
-            // AddArgs(args, "T", newTick)
-            // str = ToString()
-            // EncodeSqexArg(str, newKey)
+            // TODO: launch new exe with the argument from encryptedArgument.ToString()
+
             
             process.Terminate();
         }
@@ -111,7 +104,7 @@ namespace Dalamud.Bootstrap
                 argument = encryptedArgument.Decrypt(key);
             }
             
-            return ArgumentBuilder.TryParse(argument);
+            return ArgumentBuilder.Parse(argument);
         }
 
         /// <summary>
@@ -143,11 +136,11 @@ namespace Dalamud.Bootstrap
             }
             catch (Exception ex)
             {
-                const string message = "Failed to inject Dalamud library into the process.";
+                var exMessage = $"Failed to inject Dalamud library into the process id {pid}.";
 
                 // Could not inject Dalamud for whatever reason; it could be process is not actually running, insufficient os privilege, or whatever the thing SE put in their game;
                 // Therefore there's not much we can do on this side; You have to trobleshoot by yourself somehow.
-                throw new ProcessException(message, pid, ex);
+                throw new BootstrapException(exMessage, ex);
             }
         }
     }

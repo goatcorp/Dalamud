@@ -12,6 +12,11 @@ namespace Dalamud.Bootstrap.SqexArg
             m_dict = new Dictionary<string, string>();
         }
 
+        public static ArgumentBuilder Parse(string argument)
+        {
+            
+        }
+
         public ArgumentBuilder Add(string key, string value)
         {
             m_dict.Add(key, value);
