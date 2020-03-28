@@ -77,7 +77,7 @@ namespace Dalamud.Bootstrap.Crypto
         /// 
         /// </summary>
         /// <param name="source"></param>
-        /// <param name="destination">A buffer to store decrypted data be stored.</param>
+        /// <param name="destination">A buffer to store decrypted data.</param>
         /// <exception cref="ArgumentException">
         /// Thrown when either the length of the buffer is not multiple of the block size. (i.e. 8 bytes)
         /// or `source` and `destination` are overlapped in the memory. 
