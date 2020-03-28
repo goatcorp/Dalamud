@@ -8,6 +8,7 @@ namespace Dalamud.Game.ClientState
         public IntPtr ActorTable { get; private set; }
         public IntPtr LocalContentId { get; private set; }
         public IntPtr JobGaugeData { get; private set; }
+        public IntPtr KeyboardState { get; private set; }
 
         // Functions
         public IntPtr SetupTerritoryType { get; private set; }
@@ -18,6 +19,9 @@ namespace Dalamud.Game.ClientState
             JobGaugeData = sig.GetStaticAddressFromSig("E8 ?? ?? ?? ?? FF C6 48 8D 5B 0C", 0xB9) + 0x10;
 
             SetupTerritoryType = sig.ScanText("48 89 5C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 48 8B F9 66 89 91 ?? ?? ?? ??");
+
+            // This resolves to a fixed offset only, without the base address added in, so GetStaticAddressFromSig() can't be used
+            KeyboardState = sig.ScanText("48 8D 0C 85 ?? ?? ?? ?? 8B 04 31 85 C2 0F 85") + 0x4;
         }
     }
 }
