@@ -2,7 +2,7 @@ using System;
 
 namespace Dalamud.Bootstrap.SqexArg
 {    
-    public class SqexArgException : Exception
+    internal sealed class SqexArgException : Exception
     {
         public SqexArgException() { }
         public SqexArgException(string message) : base(message) { }

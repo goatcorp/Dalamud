@@ -4,9 +4,9 @@ using System.ComponentModel;
 namespace Dalamud.Bootstrap
 {
     /// <summary>
-    /// An error that is thrown when bootstraping Dalamud failed.
+    /// An error that is thrown when there was a problem with bootstraping.
     /// </summary>
-    public class BootstrapException : Exception
+    public sealed class BootstrapException : Exception
     {
         internal BootstrapException() : base() { }
 

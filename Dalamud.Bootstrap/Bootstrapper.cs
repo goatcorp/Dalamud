@@ -8,7 +8,7 @@ using Dalamud.Bootstrap.SqexArg;
 
 namespace Dalamud.Bootstrap
 {
-    public class Bootstrapper
+    public sealed class Bootstrapper
     {
         private readonly BootstrapperOptions m_options;
 

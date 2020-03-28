@@ -6,7 +6,7 @@ namespace Dalamud.Bootstrap.Windows
     /// <summary>
     /// An exception that is thrown when there was an error while interacting with the process.
     /// </summary>
-    public class ProcessException : Exception
+    internal sealed class ProcessException : Exception
     {
         public uint Pid { get; }
 
