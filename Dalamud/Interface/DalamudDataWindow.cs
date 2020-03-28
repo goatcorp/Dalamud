@@ -65,29 +65,38 @@ namespace Dalamud.Interface
                         break;
                     case 2: {
                         var stateString = string.Empty;
-                        stateString += $"FrameworkBase: {this.dalamud.Framework.Address.BaseAddress.ToInt64():X}\n";
+                        // LocalPlayer is null in a number of situations (at least with the current visible-actors list)
+                        // which would crash here.
+                        if (this.dalamud.ClientState.Actors.Length == 0 || this.dalamud.ClientState.LocalPlayer == null)
+                        {
+                            ImGui.TextUnformatted("Data not ready.");
+                        }
+                        else
+                        {
+                            stateString += $"FrameworkBase: {this.dalamud.Framework.Address.BaseAddress.ToInt64():X}\n";
 
-                        stateString += $"ActorTableLen: {this.dalamud.ClientState.Actors.Length}\n";
-                        stateString += $"LocalPlayerName: {this.dalamud.ClientState.LocalPlayer.Name}\n";
-                        stateString += $"CurrentWorldName: {this.dalamud.ClientState.LocalPlayer.CurrentWorld.GameData.Name}\n";
-                        stateString += $"HomeWorldName: {this.dalamud.ClientState.LocalPlayer.HomeWorld.GameData.Name}\n";
-                        stateString += $"LocalCID: {this.dalamud.ClientState.LocalContentId:X}\n";
-                        stateString += $"LastLinkedItem: {this.dalamud.Framework.Gui.Chat.LastLinkedItemId.ToString()}\n";
-                        stateString += $"TerritoryType: {this.dalamud.ClientState.TerritoryType}\n"; 
+                            stateString += $"ActorTableLen: {this.dalamud.ClientState.Actors.Length}\n";
+                            stateString += $"LocalPlayerName: {this.dalamud.ClientState.LocalPlayer.Name}\n";
+                            stateString += $"CurrentWorldName: {this.dalamud.ClientState.LocalPlayer.CurrentWorld.GameData.Name}\n";
+                            stateString += $"HomeWorldName: {this.dalamud.ClientState.LocalPlayer.HomeWorld.GameData.Name}\n";
+                            stateString += $"LocalCID: {this.dalamud.ClientState.LocalContentId:X}\n";
+                            stateString += $"LastLinkedItem: {this.dalamud.Framework.Gui.Chat.LastLinkedItemId.ToString()}\n";
+                            stateString += $"TerritoryType: {this.dalamud.ClientState.TerritoryType}\n";
 
-                        for (var i = 0; i < this.dalamud.ClientState.Actors.Length; i++) {
-                            var actor = this.dalamud.ClientState.Actors[i];
+                            for (var i = 0; i < this.dalamud.ClientState.Actors.Length; i++) {
+                                var actor = this.dalamud.ClientState.Actors[i];
 
-                            stateString +=
-                                $"   -> {i} - {actor.Name} - {actor.Position.X} {actor.Position.Y} {actor.Position.Z}\n";
-
-                            if (actor is Npc npc)
-                                stateString += $"       DataId: {npc.DataId}\n";
-
-                            if (actor is Chara chara)
                                 stateString +=
-                                    $"       Level: {chara.Level} ClassJob: {chara.ClassJob.GameData.Name} CHP: {chara.CurrentHp} MHP: {chara.MaxHp} CMP: {chara.CurrentMp} MMP: {chara.MaxMp}\n";
-                            ;
+                                    $"   -> {i} - {actor.Name} - {actor.Position.X} {actor.Position.Y} {actor.Position.Z}\n";
+
+                                if (actor is Npc npc)
+                                    stateString += $"       DataId: {npc.DataId}\n";
+
+                                if (actor is Chara chara)
+                                    stateString +=
+                                        $"       Level: {chara.Level} ClassJob: {chara.ClassJob.GameData.Name} CHP: {chara.CurrentHp} MHP: {chara.MaxHp} CMP: {chara.CurrentMp} MMP: {chara.MaxMp}\n";
+                                ;
+                            }
                         }
 
                         ImGui.TextUnformatted(stateString);
