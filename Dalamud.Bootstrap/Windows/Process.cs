@@ -48,7 +48,7 @@ namespace Dalamud.Bootstrap
             return new Process(handle);
         }
 
-        private uint GetPid() => Win32.GetProcessId(m_handle);
+        public uint GetPid() => Win32.GetProcessId(m_handle);
 
         public void Terminate(uint exitCode = 0)
         {

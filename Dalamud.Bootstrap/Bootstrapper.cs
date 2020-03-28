@@ -54,9 +54,18 @@ namespace Dalamud.Bootstrap
             // Acquire the process handle and read the command line
             using var process = Process.Open(pid);
 
-            var argument = ReadGameArgument(process);
+            var argument = ReadArgumentFromProcess(process);
             
-            argument.Remove("T");
+            var newTick = Environment.TickCount;
+            var newKey = newTick & 0xFFFF_0000; // only the high nibble is used
+            
+            var newArgument = argument.Remove("T")
+                .Add("T", $"{newTick}")
+                .ToString();
+
+            // TODO: encode as a encrypted?
+            // TODO: launch it
+
             //var newCommandLine =
             // TODO:
             // .... if arg1 exists
@@ -85,24 +94,24 @@ namespace Dalamud.Bootstrap
             return createdTick & 0xFFFF_0000;
         }
 
-        private static ArgumentBuilder ReadGameArgument(Process process)
+        private static ArgumentBuilder ReadArgumentFromProcess(Process process)
         {
             var arguments = process.ReadArguments();
 
             if (arguments.Length < 1)
             {
-                throw new BootstrapException($"Process id {process.Id} does not have any arguments to parse.");
+                throw new BootstrapException($"Process id {process.GetPid()} does not have any arguments to parse.");
             }
 
             var argument = arguments[0];
             
             if (EncryptedArgument.TryParse(argument, out var encryptedArgument))
             {
-                var key = RecoverKey(process);
-                //
+                var key = RecoverKey(process);   
+                argument = encryptedArgument.Decrypt(key);
             }
-
             
+            return ArgumentBuilder.TryParse(argument);
         }
 
         /// <summary>

@@ -8,6 +8,13 @@ namespace Dalamud.Bootstrap.SqexArg
 {
     internal static class EncryptedArgumentExtensions
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="argument"></param>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        /// <exception cref="SqexArgException">Thrown when the data property does not have a valid base64 string.</exception>
         public static string Decrypt(this EncryptedArgument argument, uint key)
         {
             Span<byte> keyBytes = stackalloc byte[8];
