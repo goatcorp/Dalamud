@@ -12,9 +12,14 @@ namespace Dalamud.Bootstrap.SqexArg
             m_dict = new Dictionary<string, string>();
         }
 
+        /// <summary>
+        /// Creates an argument builder from the argument (e.g. /T =1234)
+        /// </summary>
+        /// <param name="argument"></param>
+        /// <returns></returns>
         public static ArgumentBuilder Parse(string argument)
         {
-            
+            throw new NotImplementedException("TODO");
         }
 
         public ArgumentBuilder Add(string key, string value)
