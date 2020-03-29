@@ -1,4 +1,5 @@
 using Dalamud.Game.ClientState.Actors.Resolvers;
+using SharpDX.Text;
 
 namespace Dalamud.Game.ClientState.Actors.Types {
     /// <summary>
@@ -21,5 +22,10 @@ namespace Dalamud.Game.ClientState.Actors.Types {
         ///     The home <see cref="World">world</see> of the character.
         /// </summary>
         public World HomeWorld => new World(this.actorStruct.HomeWorld, this.dalamud);
+
+        /// <summary>
+        ///     The Free Company tag of this player.
+        /// </summary>
+        public string CompanyTag => Encoding.UTF8.GetString(this.actorStruct.CompanyTag).Substring(2).Replace("\0", "");
     }
 }

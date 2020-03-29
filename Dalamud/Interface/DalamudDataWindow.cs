@@ -95,7 +95,10 @@ namespace Dalamud.Interface
                                 if (actor is Chara chara)
                                     stateString +=
                                         $"       Level: {chara.Level} ClassJob: {chara.ClassJob.GameData.Name} CHP: {chara.CurrentHp} MHP: {chara.MaxHp} CMP: {chara.CurrentMp} MMP: {chara.MaxMp}\n";
-                                ;
+
+                                if (actor is PlayerCharacter pc)
+                                    stateString +=
+                                        $"       HomeWorld: {pc.HomeWorld.GameData.Name} CurrentWorld: {pc.CurrentWorld.GameData.Name} FC: {pc.CompanyTag}\n";
                             }
                         }
 
