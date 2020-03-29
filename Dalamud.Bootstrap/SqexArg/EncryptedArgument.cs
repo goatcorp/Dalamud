@@ -1,6 +1,7 @@
 using System;
 using System.Buffers;
 using System.Buffers.Text;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using Dalamud.Bootstrap.Crypto;
@@ -90,7 +91,7 @@ namespace Dalamud.Bootstrap.SqexArg
             // plainText <- utf8Bytes <- encryptedBytes(payload) <- base64(payloadStr)
 
             // base64: 3 bytes per 4 characters
-            // We also want the size to be aligned with the block size.
+            // We also want the size to be aligned with the block size. Usually this is not a problem but we don't know what payload is actually from.
             var dataLength = (payload.Length / 4) * 3;
             var alignedDataLength = AlignBufferLength(dataLength);
             var encryptedData = new byte[alignedDataLength];
@@ -112,9 +113,14 @@ namespace Dalamud.Bootstrap.SqexArg
             blowfish.Decrypt(encryptedData, decryptedData);
 
             // utf8Bytes -> C# string
-            var plainText = Encoding.UTF8.GetString(decryptedData[..dataLength]);
-
-            return plainText;
+            // notice that decryptedData is a null terminated string.
+            unsafe
+            {
+                fixed (byte* pDecryptedData = decryptedData)
+                {
+                    return Marshal.PtrToStringUTF8(new IntPtr(pDecryptedData));
+                }
+            }
         }
 
         /// <summary>

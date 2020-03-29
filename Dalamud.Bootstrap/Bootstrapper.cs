@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.IO.Pipes;
+using System.Text.RegularExpressions;
 using CoreHook.BinaryInjection.RemoteInjection;
 using CoreHook.BinaryInjection.RemoteInjection.Configuration;
 using CoreHook.IPC.Platform;
@@ -61,7 +62,7 @@ namespace Dalamud.Bootstrap
             
             var newTick = (uint)Environment.TickCount;
             var newKey = newTick & 0xFFFF_0000; // only the high nibble is used
-            
+
             var newArgument = argument
                 .Remove("T")
                 .Add("T", $"{newTick}")
@@ -72,6 +73,9 @@ namespace Dalamud.Bootstrap
             // TODO: launch new exe with the argument from encryptedArgument.ToString()
             // TODO: we also need to figure out where the exe is located
             
+            // This is just for poc purpose.
+            System.Diagnostics.Process.Start(exePath, encryptedArgument.ToString());
+
             process.Terminate();
         }
 
@@ -93,12 +97,12 @@ namespace Dalamud.Bootstrap
         {
             var arguments = process.ReadArguments();
 
-            if (arguments.Length < 1)
+            if (arguments.Length < 2)
             {
                 throw new BootstrapException($"Process id {process.GetPid()} does not have any arguments to parse.");
             }
 
-            var argument = arguments[0];
+            var argument = arguments[1];
             
             if (EncryptedArgument.TryParse(argument, out var encryptedArgument))
             {

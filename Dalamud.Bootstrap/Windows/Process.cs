@@ -166,7 +166,7 @@ namespace Dalamud.Bootstrap
             {
                 FileTime creationTime, exitTime, kernelTime, userTime;
 
-                if (Win32.GetProcessTimes(m_handle, &creationTime, &exitTime, &kernelTime, &userTime))
+                if (!Win32.GetProcessTimes(m_handle, &creationTime, &exitTime, &kernelTime, &userTime))
                 {
                     ProcessException.ThrowLastOsError(GetPid());
                 }

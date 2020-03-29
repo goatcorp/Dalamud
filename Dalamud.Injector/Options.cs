@@ -8,10 +8,10 @@ namespace Dalamud.Injector
         [Option('p', "pid", Required = true, HelpText = "A target process id to inject.")]
         public uint Pid { get; set; }
 
-        [Option("root", Required = false)]
+        [Option("root")]
         public string? RootDirectory { get; set; }
 
-        [Option("bin", Required = false)]
+        [Option("bin")]
         public string? BinaryDirectory { get; set; }
     }
 
