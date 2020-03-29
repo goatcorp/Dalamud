@@ -155,6 +155,7 @@ namespace Dalamud.Interface
                 this.scene = new RawDX11Scene(swapChain);
                 this.scene.ImGuiIniPath = Path.Combine(Path.GetDirectoryName(this.dalamud.StartInfo.ConfigurationPath), "dalamudUI.ini");
                 this.scene.OnBuildUI += Display;
+                this.scene.OnNewInputFrame += OnNewInputFrame;
 
                 var fontPathJp = Path.Combine(this.dalamud.StartInfo.WorkingDirectory, "UIRes", "NotoSansCJKjp-Medium.otf");
                 ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPathJp, 17.0f, null, ImGui.GetIO().Fonts.GetGlyphRangesJapanese());
@@ -220,6 +221,20 @@ namespace Dalamud.Interface
                 return IntPtr.Zero;
 
             return this.setCursorHook.Original(hCursor);
+        }
+
+        private void OnNewInputFrame()
+        {
+            // fix for keys in game getting stuck, if you were holding a game key (like run)
+            // and then clicked on an imgui textbox - imgui would swallow the keyup event,
+            // so the game would think the key remained pressed continuously until you left
+            // imgui and pressed and released the key again
+            if (ImGui.GetIO().WantTextInput)
+            {
+                this.dalamud.ClientState.KeyState.ClearAll();
+            }
+
+            // TODO: mouse state?
         }
 
         private void Display()

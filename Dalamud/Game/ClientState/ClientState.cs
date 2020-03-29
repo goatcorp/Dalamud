@@ -81,6 +81,11 @@ namespace Dalamud.Game.ClientState
         public JobGauges JobGauges;
 
         /// <summary>
+        /// Provides access to the keypress state of keyboard keys in game.
+        /// </summary>
+        public KeyState KeyState;
+
+        /// <summary>
         /// Set up client state access.
         /// </summary>
         /// <param name="dalamud">Dalamud instance</param>
@@ -97,6 +102,8 @@ namespace Dalamud.Game.ClientState
             this.Actors = new ActorTable(dalamud, Address);
 
             this.JobGauges = new JobGauges(Address);
+
+            this.KeyState = new KeyState(Address, scanner.Module.BaseAddress);
 
             Log.Verbose("SetupTerritoryType address {SetupTerritoryType}", Address.SetupTerritoryType);
 
