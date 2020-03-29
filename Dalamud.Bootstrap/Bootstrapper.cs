@@ -70,7 +70,7 @@ namespace Dalamud.Bootstrap
             var encryptedArgument = new EncryptedArgument(newArgument, newKey);
             
             // TODO: launch new exe with the argument from encryptedArgument.ToString()
-
+            // TODO: we also need to figure out where the exe is located
             
             process.Terminate();
         }
