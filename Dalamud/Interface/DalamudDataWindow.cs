@@ -30,7 +30,7 @@ namespace Dalamud.Interface
         }
 
         public bool Draw() {
-            ImGui.SetNextWindowSize(new Vector2(500, 500), ImGuiCond.Always);
+            ImGui.SetNextWindowSize(new Vector2(500, 500), ImGuiCond.FirstUseEver);
 
             var isOpen = true;
 

@@ -115,10 +115,12 @@ namespace Dalamud.Game.ClientState
         }
 
         public void Enable() {
+            this.Actors.Enable();
             this.setupTerritoryTypeHook.Enable();
         }
 
         public void Dispose() {
+            this.Actors.Dispose();
             this.setupTerritoryTypeHook.Dispose();
         }
 

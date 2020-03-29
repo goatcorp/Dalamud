@@ -8,7 +8,7 @@ namespace Dalamud.Game.ClientState {
         public JobGauges(ClientStateAddressResolver addressResolver) {
             Address = addressResolver;
 
-            Log.Verbose("JobGaugeData address {JobGaugeData}", Address.ActorTable);
+            Log.Verbose("JobGaugeData address {JobGaugeData}", Address.JobGaugeData);
         }
 
         // Should only be called with the gauge types in 

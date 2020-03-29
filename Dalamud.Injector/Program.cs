@@ -58,6 +58,8 @@ namespace Dalamud.Injector {
             // Seems to help with the STATUS_INTERNAL_ERROR condition
             Thread.Sleep(1000);
 
+            //Thread.Sleep(10000);
+
             // Inject to process
             Inject(process, startInfo);
         }
