@@ -9,7 +9,15 @@ namespace Dalamud.Injector
     internal static class Program
     {
         private static void Main(string[] args)
-        {            
+        {
+            var boot = new Bootstrapper(new BootstrapperOptions
+            {
+                BinaryDirectory = "",
+                RootDirectory = "",
+            });
+
+            boot.Launch("", "");
+
             Parser.Default.ParseArguments<InjectOptions, LaunchOptions>(args)
                 .WithParsed<InjectOptions>(Inject)
                 .WithParsed<LaunchOptions>(Launch);

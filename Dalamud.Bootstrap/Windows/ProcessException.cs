@@ -20,7 +20,7 @@ namespace Dalamud.Bootstrap.Windows
         
         internal ProcessException(string message, uint pid, Exception innerException) : base(message, innerException) => Pid = pid;
 
-        internal static ProcessException ThrowLastOsError(uint pid)
+        internal static void ThrowLastOsError(uint pid)
         {
             var inner = new Win32Exception();
 

@@ -21,7 +21,8 @@ namespace Dalamud.Bootstrap
         {
             commandLine = commandLine ?? "";
 
-            throw new NotImplementedException("TODO");
+
+            //throw new NotImplementedException("TODO");
         }
 
         /// <summary>
@@ -54,6 +55,8 @@ namespace Dalamud.Bootstrap
             // Acquire the process handle and read the command line
             using var process = Process.Open(pid);
 
+            var exePath = process.GetImageFilePath();
+
             var argument = ReadArgumentFromProcess(process);
             
             var newTick = (uint)Environment.TickCount;
@@ -66,7 +69,6 @@ namespace Dalamud.Bootstrap
 
             var encryptedArgument = new EncryptedArgument(newArgument, newKey);
             
-
             // TODO: launch new exe with the argument from encryptedArgument.ToString()
 
             

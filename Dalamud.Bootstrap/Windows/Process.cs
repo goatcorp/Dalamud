@@ -3,6 +3,7 @@ using Microsoft.Win32.SafeHandles;
 using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace Dalamud.Bootstrap
 {
@@ -209,6 +210,23 @@ namespace Dalamud.Bootstrap
                     Win32.LocalFree(argv);
                 }
             }
+        }
+
+        public string GetImageFilePath()
+        {
+            var buffer = new StringBuilder(300);
+
+            // From docs:
+            // On input, specifies the size of the lpExeName buffer, in characters.
+            // On success, receives the number of characters written to the buffer, not including the null-terminating character.
+            var size = buffer.Capacity;
+
+            if (!Win32.QueryFullProcessImageNameW(m_handle, 0, buffer, ref size))
+            {
+                ProcessException.ThrowLastOsError(GetPid());
+            }
+
+            return buffer.ToString();
         }
     }
 }

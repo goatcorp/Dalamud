@@ -1,6 +1,7 @@
 using Microsoft.Win32.SafeHandles;
 using System;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace Dalamud.Bootstrap.Windows
 {
@@ -27,7 +28,7 @@ namespace Dalamud.Bootstrap.Windows
         [DllImport("kernel32", CallingConvention = CallingConvention.Winapi, SetLastError = true)]
         public static extern void* LocalFree(void* hMem);
 
-        [DllImport("shell32", CallingConvention = CallingConvention.Winapi, SetLastError = true)]
+        [DllImport("shell32", CallingConvention = CallingConvention.Winapi, SetLastError = true, ExactSpelling = true)]
         public static extern char** CommandLineToArgvW(void* lpCmdLine, int* pNumArgs);
 
         [DllImport("kernel32", CallingConvention = CallingConvention.Winapi)]
@@ -36,6 +37,10 @@ namespace Dalamud.Bootstrap.Windows
         [DllImport("kernel32", CallingConvention = CallingConvention.Winapi, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool GetProcessTimes(SafeProcessHandle hProcess, FileTime* lpCreationTime, FileTime* lpExitTime, FileTime* lpKernelTime, FileTime* lpUserTime);
+
+        [DllImport("kernel32", CallingConvention = CallingConvention.Winapi, SetLastError = true, ExactSpelling = true, CharSet = CharSet.Unicode)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool QueryFullProcessImageNameW(SafeProcessHandle hProcess, uint dwFlags, [MarshalAs(UnmanagedType.LPWStr)] StringBuilder lpExeName, ref int lpdwSize);
     }
 
     [StructLayout(LayoutKind.Sequential)]
