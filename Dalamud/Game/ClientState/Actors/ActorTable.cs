@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
+using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
+using System.Security;
 using System.Windows.Forms;
 using Dalamud.Game.ClientState.Actors.Types;
 using Dalamud.Game.ClientState.Actors.Types.NonPlayer;
@@ -56,30 +58,35 @@ namespace Dalamud.Game.ClientState.Actors {
         /// </summary>
         /// <param name="index">Spawn index.</param>
         /// <returns><see cref="Actor" /> at the specified spawn index.</returns>
-        public Actor this[int index] {
-            get {
+        public Actor this[int index] => At(index);
+
+        [HandleProcessCorruptedStateExceptions]
+        [SecurityCritical]
+        private Actor At(int index) {
+            try {
                 if (!this.isReady)
                     return null;
 
-                if (this.someActorTableAccessHook != null) {
+                if (this.someActorTableAccessHook != null)
+                {
                     this.someActorTableAccessHook.Dispose();
                     this.someActorTableAccessHook = null;
                 }
 
                 if (index > Length)
                     return null;
-
-                //Log.Information("Trying to get actor at {0}", index);
+                
                 var tblIndex = this.realActorTablePtr + 8 + index * 8;
 
                 var offset = Marshal.ReadIntPtr(tblIndex);
 
-                //Log.Information("Actor at {0}", offset.ToString());
+                Log.Information("Actor at {0} for {1}", offset.ToInt64().ToString("X"), index);
 
                 if (offset == IntPtr.Zero)
                     return null;
 
-                try {
+                try
+                {
                     var actorStruct = Marshal.PtrToStructure<Structs.Actor>(offset);
 
                     //Log.Debug("ActorTable[{0}]: {1} - {2} - {3}", index, tblIndex.ToString("X"), offset.ToString("X"),
@@ -91,9 +98,14 @@ namespace Dalamud.Game.ClientState.Actors {
                         case ObjectKind.BattleNpc: return new BattleNpc(actorStruct, this.dalamud);
                         default: return new Actor(actorStruct, this.dalamud);
                     }
-                } catch (AccessViolationException) {
+                }
+                catch (AccessViolationException)
+                {
                     return null;
                 }
+            } catch (Exception e) {
+                Log.Error(e, "Could not get Actor.");
+                return null;
             }
         }
 
