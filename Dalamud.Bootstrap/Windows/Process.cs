@@ -8,7 +8,7 @@ using System.Text;
 namespace Dalamud.Bootstrap
 {
     /// <summary>
-    /// TODO
+    /// A class that provides a wrapper over operations on Win32 process.
     /// </summary>
     internal sealed partial class Process : IDisposable
     {
@@ -29,16 +29,8 @@ namespace Dalamud.Bootstrap
             m_handle = null!;
         }
 
-        public static Process Open(uint pid)
+        public static Process Open(uint pid, PROCESS_ACCESS_RIGHT access)
         {
-            const PROCESS_ACCESS_RIGHT access = PROCESS_ACCESS_RIGHT.PROCESS_VM_OPERATION
-                | PROCESS_ACCESS_RIGHT.PROCESS_VM_READ
-                // | PROCESS_ACCESS_RIGHT.PROCESS_VM_WRITE // we don't need it for now
-                | PROCESS_ACCESS_RIGHT.PROCESS_QUERY_LIMITED_INFORMATION
-                | PROCESS_ACCESS_RIGHT.PROCESS_QUERY_INFORMATION
-                | PROCESS_ACCESS_RIGHT.PROCESS_CREATE_THREAD
-                | PROCESS_ACCESS_RIGHT.PROCESS_TERMINATE;
-            
             var handle = Win32.OpenProcess((uint) access, false, pid);
 
             if (handle.IsInvalid)

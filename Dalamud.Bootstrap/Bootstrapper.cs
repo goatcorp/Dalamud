@@ -54,65 +54,36 @@ namespace Dalamud.Bootstrap
             // delegate Step 3 to 5 to Launch() maybe?
 
             // Acquire the process handle and read the command line
-            using var process = Process.Open(pid);
+            using var process = GameProcess.Open(pid);
 
             var exePath = process.GetImageFilePath();
 
             var argument = ReadArgumentFromProcess(process);
+            var encryptedArgument = EncryptArgument(argument.ToString());
             
-            var newTick = (uint)Environment.TickCount;
-            var newKey = newTick & 0xFFFF_0000; // only the high nibble is used
 
-            var newArgument = argument
-                .Remove("T")
-                .Add("T", $"{newTick}")
-                .ToString();
 
-            var encryptedArgument = new EncryptedArgument(newArgument, newKey);
-            
             // TODO: launch new exe with the argument from encryptedArgument.ToString()
             // TODO: we also need to figure out where the exe is located
             
             // This is just for poc purpose.
-            System.Diagnostics.Process.Start(exePath, encryptedArgument.ToString());
 
-            process.Terminate();
+            //process.Terminate();
         }
 
-        private static uint RecoverKey(Process gameProcess)
+        private static string EncryptArgument(string argument)
         {
-            var createdTime = gameProcess.GetCreationTime();
-            
-            var currentDt = DateTime.Now;
-            var currentTick = Environment.TickCount;
+            // for testing purpose
+            return argument;
 
-            var delta = currentDt - createdTime;
-            var createdTick = (uint)currentTick - (uint)delta.TotalMilliseconds;
+            //
+            // var tick = (uint)Environment.TickCount;
+            // var key = tick & 0xFFFF_0000; // only the high nibble is used
 
-            // only the high nibble is used.
-            return createdTick & 0xFFFF_0000;
+            // var encryptedArgument = new EncryptedArgument(argument, key);
+            // return encryptedArgument.ToString();
         }
-
-        private static ArgumentBuilder ReadArgumentFromProcess(Process process)
-        {
-            var arguments = process.ReadArguments();
-
-            if (arguments.Length < 2)
-            {
-                throw new BootstrapException($"Process id {process.GetPid()} does not have any arguments to parse.");
-            }
-
-            var argument = arguments[1];
-            
-            if (EncryptedArgument.TryParse(argument, out var encryptedArgument))
-            {
-                var key = RecoverKey(process);   
-                argument = encryptedArgument.Decrypt(key);
-            }
-            
-            return ArgumentBuilder.Parse(argument);
-        }
-
+        
         /// <summary>
         /// Injects Dalamud into the process. See remarks for process state prerequisites.
         /// </summary>

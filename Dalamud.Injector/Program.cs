@@ -10,18 +10,6 @@ namespace Dalamud.Injector
     {
         private static void Main(string[] args)
         {
-            var pid = 12336u;
-            var binDirectory = "";
-            var rootDirectory = "";
-
-            var boot = new Bootstrapper(new BootstrapperOptions
-            {
-                BinaryDirectory = "",
-                RootDirectory = "",
-            });
-
-            boot.Relaunch(pid);
-
             Parser.Default.ParseArguments<InjectOptions, LaunchOptions>(args)
                 .WithParsed<InjectOptions>(Inject)
                 .WithParsed<LaunchOptions>(Launch);
