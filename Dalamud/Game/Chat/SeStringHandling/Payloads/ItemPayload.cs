@@ -38,7 +38,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             var idBytes = MakeInteger(actualItemId);
             bool hasName = !string.IsNullOrEmpty(ItemName);
 
-            var itemIdFlag = IsHQ ? IntegerType.Int16Plus1Million : IntegerType.Int16;
+            var itemIdFlag = IsHQ ? IntegerType.Int24Special : IntegerType.Int16;
 
             var chunkLen = idBytes.Length + 5;
             if (hasName)

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Dalamud.Data;
 using Dalamud.Game.Chat.SeStringHandling.Payloads;
 using Serilog;
 
@@ -16,22 +17,32 @@ namespace Dalamud.Game.Chat.SeStringHandling
     {
         public abstract PayloadType Type { get; }
 
+        protected DataManager dataResolver;
+
         public abstract void Resolve();
 
         public abstract byte[] Encode();
 
         protected abstract void ProcessChunkImpl(BinaryReader reader, long endOfStream);
 
-        public static Payload Process(BinaryReader reader)
+        public static Payload Process(BinaryReader reader, DataManager dataResolver)
         {
+            Payload payload = null;
             if ((byte)reader.PeekChar() != START_BYTE)
             {
-                return ProcessText(reader);
+                payload = ProcessText(reader);
             }
             else
             {
-                return ProcessChunk(reader);
+                payload = ProcessChunk(reader);
             }
+
+            if (payload != null)
+            {
+                payload.dataResolver = dataResolver;
+            }
+
+            return payload;
         }
 
         private static Payload ProcessChunk(BinaryReader reader)
@@ -59,6 +70,10 @@ namespace Dalamud.Game.Chat.SeStringHandling
                                 payload = new ItemPayload();
                                 break;
 
+                            case EmbeddedInfoType.MapPositionLink:
+                                payload = new MapLinkPayload();
+                                break;
+
                             case EmbeddedInfoType.Status:
                                 payload = new StatusPayload();
                                 break;
@@ -74,6 +89,7 @@ namespace Dalamud.Game.Chat.SeStringHandling
                         }
                     }
                     break;
+
                 default:
                     Log.Verbose("Unhandled SeStringChunkType: {0}", chunkType);
                     payload = new RawPayload((byte)chunkType);
@@ -111,6 +127,7 @@ namespace Dalamud.Game.Chat.SeStringHandling
         {
             PlayerName = 0x01,
             ItemLink = 0x03,
+            MapPositionLink = 0x04,
             Status = 0x09,
 
             LinkTerminator = 0xCF // not clear but seems to always follow a link
@@ -118,10 +135,14 @@ namespace Dalamud.Game.Chat.SeStringHandling
 
         protected enum IntegerType
         {
+            // used as an internal marker; sometimes single bytes are bare with no marker at all
+            None = 0,
+
             Byte = 0xF0,
             ByteTimes256 = 0xF1,
             Int16 = 0xF2,
-            Int16Plus1Million = 0xF6,
+            Int16Packed = 0xF4,         // seen in map links, seemingly 2 8-bit values packed into 2 bytes with only one marker
+            Int24Special = 0xF6,        // unsure how different form Int24 - used for hq items that add 1 million, also used for normal 24-bit values in map links
             Int24 = 0xFA,
             Int32 = 0xFE
         }
@@ -147,25 +168,22 @@ namespace Dalamud.Game.Chat.SeStringHandling
             {
                 case IntegerType.Byte:
                     return input.ReadByte();
+
                 case IntegerType.ByteTimes256:
                     return input.ReadByte() * 256;
+
                 case IntegerType.Int16:
+                    // fallthrough - same logic
+                case IntegerType.Int16Packed:
                     {
                         var v = 0;
                         v |= input.ReadByte() << 8;
                         v |= input.ReadByte();
                         return v;
                     }
-                case IntegerType.Int16Plus1Million:
-                    {
-                        var v = 0;
-                        v |= input.ReadByte() << 16;
-                        v |= input.ReadByte() << 8;
-                        v |= input.ReadByte();
-                        // need the actual value since it's used as a flag
-                        // v -= 1000000;
-                        return v;
-                    }
+
+                case IntegerType.Int24Special:
+                    // Fallthrough - same logic
                 case IntegerType.Int24:
                     {
                         var v = 0;
@@ -174,6 +192,7 @@ namespace Dalamud.Game.Chat.SeStringHandling
                         v |= input.ReadByte();
                         return v;
                     }
+
                 case IntegerType.Int32:
                     {
                         var v = 0;
@@ -183,6 +202,7 @@ namespace Dalamud.Game.Chat.SeStringHandling
                         v |= input.ReadByte();
                         return v;
                     }
+
                 default:
                     throw new NotSupportedException();
             }
@@ -219,6 +239,27 @@ namespace Dalamud.Game.Chat.SeStringHandling
             }
 
             throw new NotSupportedException();
+        }
+
+        protected static (int, int) GetPackedIntegers(BinaryReader input)
+        {
+            var value = (uint)GetInteger(input);
+            if (value > 0xFFFF)
+            {
+                return ((int)((value & 0xFFFF0000) >> 16), (int)(value & 0xFFFF));
+            }
+            else if (value > 0xFF)
+            {
+                return ((int)((value & 0xFF00) >> 8), (int)(value & 0xFF));
+            }
+
+            // unsure if there are other cases, like "odd" pairings of 2+1 bytes etc
+            throw new NotSupportedException();
+        }
+
+        protected static byte[] MakePackedInteger(int val1, int val2)
+        {
+            return MakeInteger(val1).Concat(MakeInteger(val2)).ToArray();
         }
         #endregion
     }

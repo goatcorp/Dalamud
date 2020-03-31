@@ -28,6 +28,10 @@ namespace Dalamud.Game.Chat.SeStringHandling
         /// </summary>
         RawText,
         /// <summary>
+        /// An SeString payload representing a map position link, such as from &lt;flag&gt; or &lt;pos&gt;.
+        /// </summary>
+        MapLink,
+        /// <summary>
         /// An SeString payload representing any data we don't handle.
         /// </summary>
         Unknown
