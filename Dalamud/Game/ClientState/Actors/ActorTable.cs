@@ -1,9 +1,7 @@
 using System;
 using System.Collections;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Windows.Forms;
 using Dalamud.Game.ClientState.Actors.Types;
 using Dalamud.Game.ClientState.Actors.Types.NonPlayer;
 using Dalamud.Hooking;
@@ -76,20 +74,20 @@ namespace Dalamud.Game.ClientState.Actors {
                 if (!this.isReady)
                     return null;
 
-                if (this.someActorTableAccessHook != null) {
+                if (this.someActorTableAccessHook != null)
+                {
                     this.someActorTableAccessHook.Dispose();
                     this.someActorTableAccessHook = null;
                 }
 
                 if (index >= Length)
                     return null;
-
-                //Log.Information("Trying to get actor at {0}", index);
+                
                 var tblIndex = this.realActorTablePtr + 8 + index * 8;
 
                 var offset = Marshal.ReadIntPtr(tblIndex);
 
-                //Log.Information("Actor at {0}", offset.ToString());
+                Log.Verbose("Actor at {0} for {1}", offset.ToInt64().ToString("X"), index);
 
                 if (offset == IntPtr.Zero)
                     return null;
