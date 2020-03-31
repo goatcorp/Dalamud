@@ -80,7 +80,7 @@ namespace Dalamud.Game.ClientState.Actors {
 
                 var offset = Marshal.ReadIntPtr(tblIndex);
 
-                Log.Information("Actor at {0} for {1}", offset.ToInt64().ToString("X"), index);
+                Log.Verbose("Actor at {0} for {1}", offset.ToInt64().ToString("X"), index);
 
                 if (offset == IntPtr.Zero)
                     return null;
