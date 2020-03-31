@@ -1,5 +1,7 @@
 using System;
 using System.Collections;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using Dalamud.Game.ClientState.Actors.Types;
@@ -12,6 +14,17 @@ namespace Dalamud.Game.ClientState.Actors {
     ///     This collection represents the currently spawned FFXIV actors.
     /// </summary>
     public class ActorTable : ICollection, IDisposable {
+
+        #region temporary imports for crash workaround
+        [DllImport("kernel32.dll", SetLastError = true)]
+        static extern bool ReadProcessMemory(
+            IntPtr hProcess,
+            IntPtr lpBaseAddress,
+            IntPtr lpBuffer,
+            int dwSize,
+            out IntPtr lpNumberOfBytesRead);
+        #endregion
+
         private ClientStateAddressResolver Address { get; }
         private Dalamud dalamud;
 
@@ -43,6 +56,8 @@ namespace Dalamud.Game.ClientState.Actors {
         public void Dispose() {
             if (!this.isReady)
                 this.someActorTableAccessHook.Dispose();
+
+            this.isReady = false;
         }
 
         private IntPtr SomeActorTableAccessDetour(IntPtr manager, IntPtr offset) {
@@ -66,7 +81,7 @@ namespace Dalamud.Game.ClientState.Actors {
                     this.someActorTableAccessHook = null;
                 }
 
-                if (index > Length)
+                if (index >= Length)
                     return null;
 
                 //Log.Information("Trying to get actor at {0}", index);
@@ -79,20 +94,26 @@ namespace Dalamud.Game.ClientState.Actors {
                 if (offset == IntPtr.Zero)
                     return null;
 
-                try {
-                    var actorStruct = Marshal.PtrToStructure<Structs.Actor>(offset);
-
-                    //Log.Debug("ActorTable[{0}]: {1} - {2} - {3}", index, tblIndex.ToString("X"), offset.ToString("X"),
-                    //          actorStruct.ObjectKind.ToString());
-
-                    switch (actorStruct.ObjectKind)
-                    {
-                        case ObjectKind.Player: return new PlayerCharacter(actorStruct, this.dalamud);
-                        case ObjectKind.BattleNpc: return new BattleNpc(actorStruct, this.dalamud);
-                        default: return new Actor(actorStruct, this.dalamud);
-                    }
-                } catch (AccessViolationException) {
+                // FIXME: hack workaround for trying to access the player on logout, after the main object has been deleted
+                var sz = Marshal.SizeOf(typeof(Structs.Actor));
+                var actorMem = Marshal.AllocHGlobal(sz);        // we arguably could just reuse this
+                if (!ReadProcessMemory(Process.GetCurrentProcess().Handle, offset, actorMem, sz, out _))
+                {
+                    Log.Debug("ActorTable - ReadProcessMemory failed: likely player deletion during logout");
                     return null;
+                }
+
+                var actorStruct = Marshal.PtrToStructure<Structs.Actor>(actorMem);
+                Marshal.FreeHGlobal(actorMem);
+
+                //Log.Debug("ActorTable[{0}]: {1} - {2} - {3}", index, tblIndex.ToString("X"), offset.ToString("X"),
+                //          actorStruct.ObjectKind.ToString());
+
+                switch (actorStruct.ObjectKind)
+                {
+                    case ObjectKind.Player: return new PlayerCharacter(actorStruct, this.dalamud);
+                    case ObjectKind.BattleNpc: return new BattleNpc(actorStruct, this.dalamud);
+                    default: return new Actor(actorStruct, this.dalamud);
                 }
             }
         }
