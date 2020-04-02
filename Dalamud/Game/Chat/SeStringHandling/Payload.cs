@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Dalamud.Game.Chat.SeStringHandling.Payloads;
 using Serilog;
 
@@ -74,6 +72,15 @@ namespace Dalamud.Game.Chat.SeStringHandling
                         }
                     }
                     break;
+
+                case SeStringChunkType.UIForeground:
+                    payload = new UIForegroundPayload();
+                    break;
+
+                case SeStringChunkType.UIGlow:
+                    payload = new UIGlowPayload();
+                    break;
+
                 default:
                     Log.Verbose("Unhandled SeStringChunkType: {0}", chunkType);
                     payload = new RawPayload((byte)chunkType);
@@ -104,7 +111,9 @@ namespace Dalamud.Game.Chat.SeStringHandling
 
         protected enum SeStringChunkType
         {
-            Interactable = 0x27
+            Interactable = 0x27,
+            UIForeground = 0x48,
+            UIGlow = 0x49
         }
 
         protected enum EmbeddedInfoType
@@ -118,6 +127,9 @@ namespace Dalamud.Game.Chat.SeStringHandling
 
         protected enum IntegerType
         {
+            // Custom value indicating no marker at all
+            None = 0x0,
+
             Byte = 0xF0,
             ByteTimes256 = 0xF1,
             Int16 = 0xF2,
@@ -188,37 +200,49 @@ namespace Dalamud.Game.Chat.SeStringHandling
             }
         }
 
-        protected static byte[] MakeInteger(int value)
+        protected virtual byte[] MakeInteger(int value)
         {
-            // clearly the epitome of efficiency
+            // single-byte values below the marker values have no marker and have 1 added
+            if (value + 1 < (int)IntegerType.Byte)
+            {
+                value++;
+                return new byte[] { (byte)value };
+            }
 
             var bytesPadded = BitConverter.GetBytes(value);
             Array.Reverse(bytesPadded);
-            return bytesPadded.SkipWhile(b => b == 0x00).ToArray();
+            var shrunkValue = bytesPadded.SkipWhile(b => b == 0x00).ToArray();
+
+            var encodedNum = new List<byte>();
+
+            var marker = GetMarkerForIntegerBytes(shrunkValue);
+            if (marker != 0)
+            {
+                encodedNum.Add(marker);
+            }
+
+            encodedNum.AddRange(shrunkValue);
+
+            return encodedNum.ToArray();
         }
 
-        protected static IntegerType GetTypeForIntegerBytes(byte[] bytes)
+        // This is only accurate in a very general sense
+        // Different payloads seem to use different default values for things
+        // So this should be overridden where necessary
+        protected virtual byte GetMarkerForIntegerBytes(byte[] bytes)
         {
             // not the most scientific, exists mainly for laziness
 
-            if (bytes.Length == 1)
+            var marker = bytes.Length switch
             {
-                return IntegerType.Byte;
-            }
-            else if (bytes.Length == 2)
-            {
-                return IntegerType.Int16;
-            }
-            else if (bytes.Length == 3)
-            {
-                return IntegerType.Int24;
-            }
-            else if (bytes.Length == 4)
-            {
-                return IntegerType.Int32;
-            }
+                1 => IntegerType.Byte,
+                2 => IntegerType.Int16,
+                3 => IntegerType.Int24,
+                4 => IntegerType.Int32,
+                _ => throw new NotSupportedException()
+            };
 
-            throw new NotSupportedException();
+            return (byte)marker;
         }
         #endregion
     }

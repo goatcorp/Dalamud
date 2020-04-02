@@ -38,9 +38,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             var idBytes = MakeInteger(actualItemId);
             bool hasName = !string.IsNullOrEmpty(ItemName);
 
-            var itemIdFlag = IsHQ ? IntegerType.Int16Plus1Million : IntegerType.Int16;
-
-            var chunkLen = idBytes.Length + 5;
+            var chunkLen = idBytes.Length + 4;
             if (hasName)
             {
                 // 1 additional unknown byte compared to the nameless version, 1 byte for the name length, and then the name itself
@@ -54,8 +52,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             var bytes = new List<byte>()
             {
                 START_BYTE,
-                (byte)SeStringChunkType.Interactable, (byte)chunkLen, (byte)EmbeddedInfoType.ItemLink,
-                (byte)itemIdFlag
+                (byte)SeStringChunkType.Interactable, (byte)chunkLen, (byte)EmbeddedInfoType.ItemLink
             };
             bytes.AddRange(idBytes);
             // unk
@@ -121,6 +118,17 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 
                 ItemName = Encoding.UTF8.GetString(itemNameBytes);
             }
+        }
+
+        protected override byte GetMarkerForIntegerBytes(byte[] bytes)
+        {
+            // custom marker just for hq items?
+            if (bytes.Length == 3 && IsHQ)
+            {
+                return (byte)IntegerType.Int16Plus1Million;
+            }
+
+            return base.GetMarkerForIntegerBytes(bytes);
         }
     }
 }

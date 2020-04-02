@@ -28,6 +28,14 @@ namespace Dalamud.Game.Chat.SeStringHandling
         /// </summary>
         RawText,
         /// <summary>
+        /// An SeString payload representing a text foreground color.
+        /// </summary>
+        UIForeground,
+        /// <summary>
+        /// An SeString payload representing a text glow color.
+        /// </summary>
+        UIGlow,
+        /// <summary>
         /// An SeString payload representing any data we don't handle.
         /// </summary>
         Unknown
