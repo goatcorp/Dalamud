@@ -77,7 +77,10 @@ namespace Dalamud.Plugin
 
                     ImGui.PushID(pluginDefinition.InternalName + pluginDefinition.AssemblyVersion);
 
-                    if (ImGui.CollapsingHeader(pluginDefinition.Name)) {
+                    var isInstalled = this.manager.Plugins.Where(x => x.Definition != null).Any(
+                        x => x.Definition.InternalName == pluginDefinition.InternalName);
+
+                    if (ImGui.CollapsingHeader(pluginDefinition.Name + (isInstalled ? " (installed)" : string.Empty))) {
                         ImGui.Indent();
 
                         ImGui.Text(pluginDefinition.Name);
@@ -85,9 +88,6 @@ namespace Dalamud.Plugin
                         ImGui.TextColored(new Vector4(0.5f, 0.5f, 0.5f, 1.0f), $" by {pluginDefinition.Author}");
 
                         ImGui.Text(pluginDefinition.Description);
-
-                        var isInstalled = this.manager.Plugins.Where(x => x.Definition != null).Any(
-                            x => x.Definition.InternalName == pluginDefinition.InternalName);
 
                         if (!isInstalled) {
                             if (this.installStatus == PluginInstallStatus.InProgress) {

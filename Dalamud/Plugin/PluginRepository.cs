@@ -142,11 +142,6 @@ namespace Dalamud.Plugin
 
                         // DisablePlugin() below immediately creates a .disabled file anyway, but will fail
                         // with an exception if we try to do it twice in row like this
-                        // TODO: not sure if doing this for all versions is really necessary, since the
-                        // others really needed to be disabled before anyway
-                        //foreach (var sortedVersion in sortedVersions) {
-                        //    File.Create(Path.Combine(sortedVersion.FullName, ".disabled"));
-                        //}
 
                         if (!dryRun)
                         {
@@ -159,6 +154,18 @@ namespace Dalamud.Plugin
                             {
                                 Log.Error(ex, "Plugin disable failed");
                                 hasError = true;
+                            }
+
+                            try {
+                                // Just to be safe
+                                foreach (var sortedVersion in sortedVersions)
+                                {
+                                    var disabledFile = new FileInfo(Path.Combine(sortedVersion.FullName, ".disabled"));
+                                    if (!disabledFile.Exists)
+                                        disabledFile.Create();
+                                }
+                            } catch (Exception ex) {
+                                Log.Error(ex, "Plugin disable failed");
                             }
 
                             var installSuccess = InstallPlugin(remoteInfo);
