@@ -5,9 +5,19 @@ using Microsoft.Win32.SafeHandles;
 
 namespace Dalamud.Bootstrap
 {
-    internal sealed class GameProcess : Process
+    internal sealed class GameProcess : IDisposable
     {
-        public GameProcess(SafeProcessHandle handle) : base(handle) { }
+        private Process m_process;
+        public GameProcess(Process process)
+        {
+            m_process = process;
+        }
+
+        public void Dispose()
+        {
+            m_process?.Dispose();
+            m_process = null!;
+        }
 
         public static GameProcess Open(uint pid)
         {
@@ -21,9 +31,9 @@ namespace Dalamud.Bootstrap
 
             // TODO: unfuck VM_WRITE
 
-            var handle = Process.OpenHandle(pid, access);
+            var process = Process.Open(pid, access);
 
-            return new GameProcess(handle);
+            return new GameProcess(process);
         }
 
         /// <summary>
