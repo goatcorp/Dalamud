@@ -59,6 +59,17 @@ namespace Dalamud.Interface
             this.interfaceManager.LoadImage(imageData);
 
         /// <summary>
+        /// Loads an image from raw unformatted pixel data, with no type or header information.  To load formatted data, use <see cref="LoadImage(byte[])"/>.
+        /// </summary>
+        /// <param name="imageData">A byte array containing the raw pixel data.</param>
+        /// <param name="width">The width of the image contained in <paramref name="imageData"/>.</param>
+        /// <param name="height">The height of the image contained in <paramref name="imageData"/>.</param>
+        /// <param name="numChannels">The number of channels (bytes per pixel) of the image contained in <paramref name="imageData"/>.  This should usually be 4.</param>
+        /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image()</returns>
+        public TextureWrap LoadImageRaw(byte[] imageData, int width, int height, int numChannels) =>
+            this.interfaceManager.LoadImageRaw(imageData, width, height, numChannels);
+
+        /// <summary>
         /// Event that is fired when the plugin should open its configuration interface.
         /// </summary>
         public EventHandler OnOpenConfigUi;

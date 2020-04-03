@@ -148,6 +148,19 @@ namespace Dalamud.Interface
             return null;
         }
 
+        public TextureWrap LoadImageRaw(byte[] imageData, int width, int height, int numChannels)
+        {
+            try
+            {
+                return this.scene?.LoadImageRaw(imageData, width, height, numChannels) ?? null;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Failed to load image from raw data");
+            }
+            return null;
+        }
+
         private IntPtr PresentDetour(IntPtr swapChain, uint syncInterval, uint presentFlags)
         {
             if (this.scene == null)
