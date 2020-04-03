@@ -80,6 +80,10 @@ namespace Dalamud.Game.Chat.SeStringHandling
                     }
                     break;
 
+                case SeStringChunkType.AutoTranslateKey:
+                    payload = new AutoTranslatePayload();
+                    break;
+
                 case SeStringChunkType.UIForeground:
                     payload = new UIForegroundPayload();
                     break;
@@ -119,6 +123,7 @@ namespace Dalamud.Game.Chat.SeStringHandling
         protected enum SeStringChunkType
         {
             Interactable = 0x27,
+            AutoTranslateKey = 0x2E,
             UIForeground = 0x48,
             UIGlow = 0x49
         }
