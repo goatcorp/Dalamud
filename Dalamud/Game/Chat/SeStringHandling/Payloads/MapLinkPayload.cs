@@ -52,16 +52,17 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 
         public override void Resolve()
         {
-            if (string.IsNullOrEmpty(Territory))
-            {
-                var terrRow = dataResolver.GetExcelSheet<TerritoryType>().GetRow((int)TerritoryTypeId);
-                Territory = dataResolver.GetExcelSheet<PlaceName>().GetRow(terrRow.PlaceName).Name;
-                Zone = dataResolver.GetExcelSheet<PlaceName>().GetRow(terrRow.PlaceNameZone).Name;
+            // TODO: add once lumina DI is figured out
+            //if (string.IsNullOrEmpty(Territory))
+            //{
+            //    var terrRow = dataResolver.GetExcelSheet<TerritoryType>().GetRow((int)TerritoryTypeId);
+            //    Territory = dataResolver.GetExcelSheet<PlaceName>().GetRow(terrRow.PlaceName).Name;
+            //    Zone = dataResolver.GetExcelSheet<PlaceName>().GetRow(terrRow.PlaceNameZone).Name;
 
-                var mapSizeFactor = dataResolver.GetExcelSheet<Map>().GetRow((int)MapId).SizeFactor;
-                XCoord = ConvertRawPositionToMapCoordinate(RawX, mapSizeFactor);
-                YCoord = ConvertRawPositionToMapCoordinate(RawY, mapSizeFactor);
-            }
+            //    var mapSizeFactor = dataResolver.GetExcelSheet<Map>().GetRow((int)MapId).SizeFactor;
+            //    XCoord = ConvertRawPositionToMapCoordinate(RawX, mapSizeFactor);
+            //    YCoord = ConvertRawPositionToMapCoordinate(RawY, mapSizeFactor);
+            //}
         }
 
         protected override void ProcessChunkImpl(BinaryReader reader, long endOfStream)

@@ -88,9 +88,6 @@ namespace Dalamud {
             this.Data = new DataManager(this.StartInfo.Language);
             this.Data.Initialize();
 
-            // FIXME: need a better way to get this into the string payloads
-            Game.Chat.SeStringHandling.SeString.DataResolver = this.Data;
-
             this.ClientState = new ClientState(this, info, this.SigScanner);
 
             this.BotManager = new DiscordBotManager(this, this.Configuration.DiscordFeatureConfig);

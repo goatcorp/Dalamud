@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Dalamud.Data;
 using Dalamud.Game.Chat.SeStringHandling.Payloads;
 using Serilog;
 
@@ -15,15 +14,13 @@ namespace Dalamud.Game.Chat.SeStringHandling
     {
         public abstract PayloadType Type { get; }
 
-        protected DataManager dataResolver;
-
         public abstract void Resolve();
 
         public abstract byte[] Encode();
 
         protected abstract void ProcessChunkImpl(BinaryReader reader, long endOfStream);
 
-        public static Payload Process(BinaryReader reader, DataManager dataResolver)
+        public static Payload Process(BinaryReader reader)
         {
             Payload payload = null;
             if ((byte)reader.PeekChar() != START_BYTE)
@@ -33,11 +30,6 @@ namespace Dalamud.Game.Chat.SeStringHandling
             else
             {
                 payload = ProcessChunk(reader);
-            }
-
-            if (payload != null)
-            {
-                payload.dataResolver = dataResolver;
             }
 
             return payload;

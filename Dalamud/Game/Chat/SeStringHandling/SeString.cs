@@ -14,8 +14,6 @@ namespace Dalamud.Game.Chat.SeStringHandling
     /// </summary>
     public class SeString
     {
-        public static DataManager DataResolver { get; set; }
-
         public List<Payload> Payloads { get; }
 
         public SeString(List<Payload> payloads)
@@ -59,7 +57,7 @@ namespace Dalamud.Game.Chat.SeStringHandling
 
                 while (stream.Position < bytes.Length)
                 {
-                    var payload = Payload.Process(reader, DataResolver);
+                    var payload = Payload.Process(reader);
                     if (payload != null)
                         payloads.Add(payload);
                 }
