@@ -10,8 +10,8 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         public override PayloadType Type => PayloadType.MapLink;
 
         // pre-Resolve() values
-        public int TerritoryTypeId { get; set; }
-        public int MapId { get; set;  }
+        public uint TerritoryTypeId { get; set; }
+        public uint MapId { get; set;  }
         public uint RawX { get; set; }
         public uint RawY { get; set; }
 
@@ -29,8 +29,8 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             // eventually we should allow creation using 'nice' values that then encode properly
 
             var packedTerritoryAndMapBytes = MakePackedInteger(TerritoryTypeId, MapId);
-            var xBytes = MakeInteger((int)RawX);
-            var yBytes = MakeInteger((int)RawY);
+            var xBytes = MakeInteger(RawX);
+            var yBytes = MakeInteger(RawY);
 
             var chunkLen = 4 + packedTerritoryAndMapBytes.Length + xBytes.Length + yBytes.Length;
 
@@ -54,11 +54,11 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         {
             if (string.IsNullOrEmpty(Territory))
             {
-                var terrRow = dataResolver.GetExcelSheet<TerritoryType>().GetRow(TerritoryTypeId);
+                var terrRow = dataResolver.GetExcelSheet<TerritoryType>().GetRow((int)TerritoryTypeId);
                 Territory = dataResolver.GetExcelSheet<PlaceName>().GetRow(terrRow.PlaceName).Name;
                 Zone = dataResolver.GetExcelSheet<PlaceName>().GetRow(terrRow.PlaceNameZone).Name;
 
-                var mapSizeFactor = dataResolver.GetExcelSheet<Map>().GetRow(MapId).SizeFactor;
+                var mapSizeFactor = dataResolver.GetExcelSheet<Map>().GetRow((int)MapId).SizeFactor;
                 XCoord = ConvertRawPositionToMapCoordinate(RawX, mapSizeFactor);
                 YCoord = ConvertRawPositionToMapCoordinate(RawY, mapSizeFactor);
             }

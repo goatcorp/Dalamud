@@ -105,8 +105,8 @@ namespace Dalamud.Game.Chat.SeStringHandling
             payload?.ProcessChunkImpl(reader, reader.BaseStream.Position + chunkLen - 1);
 
             // read through the rest of the packet
-            var readBytes = (int)(reader.BaseStream.Position - packetStart);
-            reader.ReadBytes(chunkLen - readBytes + 1); // +1 for the END_BYTE marker
+            var readBytes = (uint)(reader.BaseStream.Position - packetStart);
+            reader.ReadBytes((int)(chunkLen - readBytes + 1)); // +1 for the END_BYTE marker
 
             return payload;
         }
@@ -157,20 +157,20 @@ namespace Dalamud.Game.Chat.SeStringHandling
 
         // made protected, unless we actually want to use it externally
         // in which case it should probably go live somewhere else
-        protected static int GetInteger(BinaryReader input)
+        protected static uint GetInteger(BinaryReader input)
         {
             var t = input.ReadByte();
             var type = (IntegerType)t;
             return GetInteger(input, type);
         }
 
-        private static int GetInteger(BinaryReader input, IntegerType type)
+        private static uint GetInteger(BinaryReader input, IntegerType type)
         {
             const byte ByteLengthCutoff = 0xF0;
 
             var t = (byte)type;
             if (t < ByteLengthCutoff)
-                return t - 1;
+                return (uint)(t - 1);
 
             switch (type)
             {
@@ -178,7 +178,7 @@ namespace Dalamud.Game.Chat.SeStringHandling
                     return input.ReadByte();
 
                 case IntegerType.ByteTimes256:
-                    return input.ReadByte() * 256;
+                    return input.ReadByte() * (uint)256;
 
                 case IntegerType.Int16:
                     // fallthrough - same logic
@@ -187,7 +187,7 @@ namespace Dalamud.Game.Chat.SeStringHandling
                         var v = 0;
                         v |= input.ReadByte() << 8;
                         v |= input.ReadByte();
-                        return v;
+                        return (uint)v;
                     }
 
                 case IntegerType.Int24Special:
@@ -198,7 +198,7 @@ namespace Dalamud.Game.Chat.SeStringHandling
                         v |= input.ReadByte() << 16;
                         v |= input.ReadByte() << 8;
                         v |= input.ReadByte();
-                        return v;
+                        return (uint)v;
                     }
 
                 case IntegerType.Int32:
@@ -208,7 +208,7 @@ namespace Dalamud.Game.Chat.SeStringHandling
                         v |= input.ReadByte() << 16;
                         v |= input.ReadByte() << 8;
                         v |= input.ReadByte();
-                        return v;
+                        return (uint)v;
                     }
 
                 default:
@@ -216,10 +216,10 @@ namespace Dalamud.Game.Chat.SeStringHandling
             }
         }
 
-        protected virtual byte[] MakeInteger(int value, bool withMarker = true)
+        protected virtual byte[] MakeInteger(uint value, bool withMarker = true, bool incrementSmallInts = true) // TODO: better way to handle this
         {
             // single-byte values below the marker values have no marker and have 1 added
-            if (value + 1 < (int)IntegerType.Byte)
+            if (incrementSmallInts && (value + 1 < (int)IntegerType.Byte))
             {
                 value++;
                 return new byte[] { (byte)value };
@@ -266,9 +266,10 @@ namespace Dalamud.Game.Chat.SeStringHandling
 
         protected virtual byte GetMarkerForPackedIntegerBytes(byte[] bytes)
         {
-            // So far I've only ever seen this with 2 8-bit values packed into a short
+            // unsure if any 'strange' size groupings exist; only ever seen these
             var type = bytes.Length switch
             {
+                4 => IntegerType.Int32,
                 2 => IntegerType.Int16Packed,
                 _ => throw new NotSupportedException()
             };
@@ -276,25 +277,25 @@ namespace Dalamud.Game.Chat.SeStringHandling
             return (byte)type;
         }
 
-        protected (int, int) GetPackedIntegers(BinaryReader input)
+        protected (uint, uint) GetPackedIntegers(BinaryReader input)
         {
-            var value = (uint)GetInteger(input);
+            var value = GetInteger(input);
             if (value > 0xFFFF)
             {
-                return ((int)((value & 0xFFFF0000) >> 16), (int)(value & 0xFFFF));
+                return ((uint)((value & 0xFFFF0000) >> 16), (uint)(value & 0xFFFF));
             }
             else if (value > 0xFF)
             {
-                return ((int)((value & 0xFF00) >> 8), (int)(value & 0xFF));
+                return ((uint)((value & 0xFF00) >> 8), (uint)(value & 0xFF));
             }
 
             // unsure if there are other cases, like "odd" pairings of 2+1 bytes etc
             throw new NotSupportedException();
         }
 
-        protected byte[] MakePackedInteger(int val1, int val2, bool withMarker = true)
+        protected byte[] MakePackedInteger(uint val1, uint val2, bool withMarker = true)
         {
-            var value = MakeInteger(val1, false).Concat(MakeInteger(val2, false)).ToArray();
+            var value = MakeInteger(val1, false, false).Concat(MakeInteger(val2, false, false)).ToArray();
 
             var valueBytes = new List<byte>();
             if (withMarker)

@@ -11,13 +11,13 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
     {
         public override PayloadType Type => PayloadType.Item;
 
-        public int ItemId { get; private set; }
+        public uint ItemId { get; private set; }
         public string ItemName { get; private set; } = string.Empty;
         public bool IsHQ { get; private set; } = false;
 
         public ItemPayload() { }
 
-        public ItemPayload(int itemId, bool isHQ)
+        public ItemPayload(uint itemId, bool isHQ)
         {
             ItemId = itemId;
             IsHQ = isHQ;
@@ -27,7 +27,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         {
             if (string.IsNullOrEmpty(ItemName))
             {
-                dynamic item = XivApi.GetItem(ItemId).GetAwaiter().GetResult();
+                dynamic item = XivApi.GetItem((int)ItemId).GetAwaiter().GetResult();
                 ItemName = item.Name;
             }
         }
@@ -106,7 +106,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
                 // unk
                 reader.ReadBytes(3);
 
-                var itemNameLen = GetInteger(reader);
+                var itemNameLen = (int)GetInteger(reader);
                 var itemNameBytes = reader.ReadBytes(itemNameLen);
 
                 // HQ items have the HQ symbol as part of the name, but since we already recorded

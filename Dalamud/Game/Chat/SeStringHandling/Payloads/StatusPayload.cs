@@ -11,13 +11,13 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
     {
         public override PayloadType Type => PayloadType.Status;
 
-        public int StatusId { get; private set; }
+        public uint StatusId { get; private set; }
 
         public string StatusName { get; private set; } = string.Empty;
 
         public StatusPayload() { }
 
-        public StatusPayload(int statusId)
+        public StatusPayload(uint statusId)
         {
             StatusId = statusId;
         }
