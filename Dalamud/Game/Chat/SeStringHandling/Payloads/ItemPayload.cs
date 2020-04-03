@@ -125,7 +125,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             // custom marker just for hq items?
             if (bytes.Length == 3 && IsHQ)
             {
-                return (byte)IntegerType.Int16Plus1Million;
+                return (byte)IntegerType.Int24Special;
             }
 
             return base.GetMarkerForIntegerBytes(bytes);
