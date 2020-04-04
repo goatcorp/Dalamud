@@ -58,7 +58,13 @@ namespace Dalamud.Bootstrap
 
             var exePath = process.GetImageFilePath();
 
-            var argument = ReadArgumentFromProcess(process);
+            var argument = process.GetGameArguments();
+
+
+
+
+
+
             var encryptedArgument = EncryptArgument(argument.ToString());
             
 

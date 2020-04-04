@@ -5,19 +5,9 @@ using Microsoft.Win32.SafeHandles;
 
 namespace Dalamud.Bootstrap
 {
-    internal sealed class GameProcess : IDisposable
+    internal sealed class GameProcess : Process
     {
-        private Process m_process;
-        public GameProcess(Process process)
-        {
-            m_process = process;
-        }
-
-        public void Dispose()
-        {
-            m_process?.Dispose();
-            m_process = null!;
-        }
+        public GameProcess(SafeProcessHandle handle) : base(handle) { }
 
         public static GameProcess Open(uint pid)
         {
@@ -29,11 +19,11 @@ namespace Dalamud.Bootstrap
                 | PROCESS_ACCESS_RIGHT.PROCESS_CREATE_THREAD
                 | PROCESS_ACCESS_RIGHT.PROCESS_TERMINATE;
 
-            // TODO: unfuck VM_WRITE
+            // TODO: unfuck VM_WRITE?
 
-            var process = Process.Open(pid, access);
+            var handle = OpenHandle(pid, access);
 
-            return new GameProcess(process);
+            return new GameProcess(handle);
         }
 
         /// <summary>
@@ -46,7 +36,7 @@ namespace Dalamud.Bootstrap
         /// </remarks>
         private uint GetArgumentEncryptionKey()
         {
-            var createdTime = m_process.GetCreationTime();
+            var createdTime = GetCreationTime();
 
             // Get current tick
             var currentDt = DateTime.Now;
@@ -67,14 +57,14 @@ namespace Dalamud.Bootstrap
         /// Command-line arguments that looks like this:
         /// /DEV.TestSID =ABCD /UserPath =C:\Examples
         /// </returns>
-        public string ReadArguments()
+        public string GetGameArguments()
         {
-            var processArguments = m_process.GetArguments();
+            var processArguments = GetProcessArguments();
 
             // arg[0] is a path to exe(normally), arg[1] is actual stuff.
             if (processArguments.Length < 2)
             {
-                throw new BootstrapException($"Process id {m_process.GetPid()} have no arguments to parse.");
+                throw new ProcessException($"There are no process arguments to parse.", GetPid());
             }
 
             // We're interested in argument that contains session id

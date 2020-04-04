@@ -15,21 +15,21 @@ namespace Dalamud.Bootstrap.Windows
         public static extern bool TerminateProcess(SafeProcessHandle hProcess, uint uExitCode);
 
         [DllImport("ntdll", CallingConvention = CallingConvention.Winapi, SetLastError = true)]
-        public static extern NtStatus NtQueryInformationProcess(SafeProcessHandle processHandle, PROCESSINFOCLASS processInfoClass, void* processInformation, int processInformationLength, IntPtr* returnLength);
+        public static extern NtStatus NtQueryInformationProcess(SafeProcessHandle processHandle, PROCESSINFOCLASS processInfoClass, void* processInformation, int processInformationLength, out IntPtr returnLength);
 
         [DllImport("kernel32", CallingConvention = CallingConvention.Winapi, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool ReadProcessMemory(SafeProcessHandle hProcess, void* lpBaseAddress, void* lpBuffer, IntPtr nSize, IntPtr* lpNumberOfBytesRead);
+        public static extern bool ReadProcessMemory(SafeProcessHandle hProcess, void* lpBaseAddress, void* lpBuffer, IntPtr nSize, out IntPtr lpNumberOfBytesRead);
 
         [DllImport("kernel32", CallingConvention = CallingConvention.Winapi, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool WriteProcessMemory(SafeProcessHandle hProcess, void* lpBaseAddress, void* lpBuffer, IntPtr nSize, IntPtr* lpNumberOfBytesWritten);
+        public static extern bool WriteProcessMemory(SafeProcessHandle hProcess, void* lpBaseAddress, void* lpBuffer, IntPtr nSize, out IntPtr lpNumberOfBytesWritten);
 
         [DllImport("kernel32", CallingConvention = CallingConvention.Winapi, SetLastError = true)]
         public static extern void* LocalFree(void* hMem);
 
         [DllImport("shell32", CallingConvention = CallingConvention.Winapi, SetLastError = true, ExactSpelling = true)]
-        public static extern char** CommandLineToArgvW(void* lpCmdLine, int* pNumArgs);
+        public static extern char** CommandLineToArgvW(void* lpCmdLine, out int pNumArgs);
 
         [DllImport("kernel32", CallingConvention = CallingConvention.Winapi)]
         public static extern uint GetProcessId(SafeProcessHandle hProcess);
@@ -41,6 +41,10 @@ namespace Dalamud.Bootstrap.Windows
         [DllImport("kernel32", CallingConvention = CallingConvention.Winapi, SetLastError = true, ExactSpelling = true, CharSet = CharSet.Unicode)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool QueryFullProcessImageNameW(SafeProcessHandle hProcess, uint dwFlags, [MarshalAs(UnmanagedType.LPWStr)] StringBuilder lpExeName, ref int lpdwSize);
+
+        [DllImport("kernel32", CallingConvention = CallingConvention.Winapi, SetLastError = true, ExactSpelling = true, CharSet = CharSet.Unicode)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool CreateProcessW(string lpApplicationName, StringBuilder lpCommandLine, ref SECURITY_ATTRIBUTES lpProcessAttributes, ref SECURITY_ATTRIBUTES lpThreadAttributes, [MarshalAs(UnmanagedType.Bool)] bool bInheritHandles, PROCESS_CREATION_FLAG dwCreationFlags, lpEnvironment, string lpCurrentDirectory, lpStartupInfo, lpProcessInformation);
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -173,5 +177,44 @@ namespace Dalamud.Bootstrap.Windows
         PROCESS_SUSPEND_RESUME = 0x800,
         PROCESS_QUERY_LIMITED_INFORMATION = 0x1000,
         SYNCHRONIZE = 0x100000,
+    }
+
+    [Flags]
+    internal enum PROCESS_CREATION_FLAG : uint
+    {
+        CREATE_BREAKAWAY_FROM_JOB = 0x01000000,
+        CREATE_DEFAULT_ERROR_MODE = 0x04000000,
+        CREATE_NEW_CONSOLE = 0x00000010,
+        CREATE_NEW_PROCESS_GROUP = 0x00000200,
+        CREATE_NO_WINDOW = 0x08000000,
+        CREATE_PROTECTED_PROCESS = 0x00040000,
+        CREATE_PRESERVE_CODE_AUTHZ_LEVEL = 0x02000000,
+        CREATE_SECURE_PROCESS = 0x00400000,
+        CREATE_SEPARATE_WOW_VDM = 0x00000800,
+        CREATE_SHARED_WOW_VDM = 0x00001000,
+        CREATE_SUSPENDED = 0x00000004,
+        CREATE_UNICODE_ENVIRONMENT = 0x00000400,
+        DEBUG_ONLY_THIS_PROCESS = 0x00000002,
+        DEBUG_PROCESS = 0x00000001,
+        DETACHED_PROCESS = 0x00000008,
+        EXTENDED_STARTUPINFO_PRESENT = 0x00080000,
+        INHERIT_PARENT_AFFINITY = 0x00010000,
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal unsafe struct SECURITY_ATTRIBUTES
+    {
+        public uint Length;
+
+        public SECURITY_DESCRIPTOR* SecurityDescriptor;
+
+        [MarshalAs(UnmanagedType.Bool)]
+        public bool InheritHandle;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct SECURITY_DESCRIPTOR
+    {
+
     }
 }

@@ -10,9 +10,9 @@ namespace Dalamud.Bootstrap
     /// <summary>
     /// A class that provides a wrapper over operations on Win32 process.
     /// </summary>
-    internal sealed class Process : IDisposable
+    internal class Process : IDisposable
     {
-        private SafeProcessHandle m_handle;
+        protected SafeProcessHandle Handle { get; set; }
 
         /// <summary>
         /// Creates a process object that can be used to manipulate process's internal state.
@@ -20,16 +20,40 @@ namespace Dalamud.Bootstrap
         /// <param name="handle">A process handle. Note that this functinon will take the ownership of the handle.</param>
         public Process(SafeProcessHandle handle)
         {
-            m_handle = handle;
+            Handle = handle;
+        }
+
+        ~Process()
+        {
+            Dispose(false);
         }
 
         public void Dispose()
         {
-            m_handle?.Dispose();
-            m_handle = null!;
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
-        private static SafeProcessHandle OpenHandle(uint pid, PROCESS_ACCESS_RIGHT access)
+        protected virtual void Dispose(bool disposing)
+        {
+            Handle?.Dispose();
+            Handle = null!;
+        }
+
+        public static Process Create(ProcessCreationOptions options)
+        {
+            //
+
+            if (!Win32.CreateProcessW())
+            {
+                ProcessException.ThrowLastOsError("Failed to create a new process.");
+            }
+
+            //
+            //
+        }
+
+        protected static SafeProcessHandle OpenHandle(uint pid, PROCESS_ACCESS_RIGHT access)
         {
             var handle = Win32.OpenProcess((uint)access, false, pid);
 
@@ -48,11 +72,11 @@ namespace Dalamud.Bootstrap
             return new Process(handle);
         }
 
-        public uint GetPid() => Win32.GetProcessId(m_handle);
+        public uint GetPid() => Win32.GetProcessId(Handle);
 
         public void Terminate(uint exitCode = 0)
         {
-            if (!Win32.TerminateProcess(m_handle, exitCode))
+            if (!Win32.TerminateProcess(Handle, exitCode))
             {
                 ProcessException.ThrowLastOsError(GetPid());
             }
@@ -64,15 +88,13 @@ namespace Dalamud.Bootstrap
         /// <returns>
         /// The number of bytes that is actually read.
         /// </returns>
-        private int ReadMemory(IntPtr address, Span<byte> destination)
+        protected int ReadMemory(IntPtr address, Span<byte> destination)
         {
             unsafe
             {
                 fixed (byte* pDest = destination)
                 {
-                    IntPtr bytesRead;
-
-                    if (!Win32.ReadProcessMemory(m_handle, (void*)address, pDest, (IntPtr)destination.Length, &bytesRead))
+                    if (!Win32.ReadProcessMemory(Handle, (void*)address, pDest, (IntPtr)destination.Length, out var bytesRead))
                     {
                         ProcessException.ThrowLastOsError(GetPid());
                     }
@@ -83,7 +105,7 @@ namespace Dalamud.Bootstrap
             }
         }
 
-        private void ReadMemoryExact(IntPtr address, Span<byte> destination)
+        protected void ReadMemoryExact(IntPtr address, Span<byte> destination)
         {
             var totalBytesRead = 0;
             while (totalBytesRead < destination.Length)
@@ -126,7 +148,7 @@ namespace Dalamud.Bootstrap
             unsafe
             {
                 var info = new PROCESS_BASIC_INFORMATION();
-                var status = Win32.NtQueryInformationProcess(m_handle, PROCESSINFOCLASS.ProcessBasicInformation, &info, sizeof(PROCESS_BASIC_INFORMATION), (IntPtr*)IntPtr.Zero);
+                var status = Win32.NtQueryInformationProcess(Handle, PROCESSINFOCLASS.ProcessBasicInformation, &info, sizeof(PROCESS_BASIC_INFORMATION), (IntPtr*)IntPtr.Zero);
 
                 if (!status.Success)
                 {
@@ -143,7 +165,7 @@ namespace Dalamud.Bootstrap
         /// <summary>
         /// Reads command-line arguments from the process.
         /// </summary>
-        public string[] GetArguments()
+        public string[] GetProcessArguments()
         {
             unsafe
             {
@@ -168,7 +190,7 @@ namespace Dalamud.Bootstrap
             {
                 FileTime creationTime, exitTime, kernelTime, userTime;
 
-                if (!Win32.GetProcessTimes(m_handle, &creationTime, &exitTime, &kernelTime, &userTime))
+                if (!Win32.GetProcessTimes(Handle, &creationTime, &exitTime, &kernelTime, &userTime))
                 {
                     ProcessException.ThrowLastOsError(GetPid());
                 }
@@ -186,9 +208,7 @@ namespace Dalamud.Bootstrap
 
                 fixed (byte* pCommandLine = commandLine)
                 {
-                    // TODO: maybe explain why we can't just call .Split(' ')
-                    // https://docs.microsoft.com/en-us/windows/win32/api/shellapi/nf-shellapi-commandlinetoargvw
-                    argv = Win32.CommandLineToArgvW(pCommandLine, &argc);
+                    argv = Win32.CommandLineToArgvW(pCommandLine, out argc);
                 }
 
                 if (argv == null)
@@ -223,7 +243,7 @@ namespace Dalamud.Bootstrap
             // On success, receives the number of characters written to the buffer, not including the null-terminating character.
             var size = buffer.Capacity;
 
-            if (!Win32.QueryFullProcessImageNameW(m_handle, 0, buffer, ref size))
+            if (!Win32.QueryFullProcessImageNameW(Handle, 0, buffer, ref size))
             {
                 ProcessException.ThrowLastOsError(GetPid());
             }
