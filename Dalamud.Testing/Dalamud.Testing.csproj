@@ -20,4 +20,8 @@
     </PackageReference>
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Dalamud.Bootstrap\Dalamud.Bootstrap.csproj" />
+  </ItemGroup>
+
 </Project>

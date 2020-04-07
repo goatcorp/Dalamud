@@ -1,14 +1,15 @@
-using System;
+using Dalamud.Bootstrap;
 using Xunit;
 
 namespace Dalamud.Testing
 {
-    public class UnitTest1
+    public class BootstrapTests
     {
         [Fact]
         public void Test1()
         {
-
+            Bootstrapper.Test();
         }
+
     }
 }

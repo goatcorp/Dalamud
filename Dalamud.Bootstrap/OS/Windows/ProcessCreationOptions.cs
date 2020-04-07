@@ -6,6 +6,6 @@ namespace Dalamud.Bootstrap.Windows
 
         public string? CommandLine { get; set; } = null;
 
-        public bool CreateSuspended { get; set; } = true;
+        public bool CreateSuspended { get; set; }
     }
 }
