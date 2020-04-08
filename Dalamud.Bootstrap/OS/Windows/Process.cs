@@ -29,6 +29,11 @@ namespace Dalamud.Bootstrap.OS
             m_handle = null!;
         }
 
+        public static Process Create(ProcessCreationOptions options)
+        {
+            
+        }
+
         public static Process Open(uint pid, PROCESS_ACCESS_RIGHTS access)
         {
             var handle = OpenHandle(pid, access);

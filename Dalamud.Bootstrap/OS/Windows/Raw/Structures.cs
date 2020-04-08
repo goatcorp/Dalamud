@@ -122,6 +122,12 @@ namespace Dalamud.Bootstrap.OS.Windows.Raw
     [StructLayout(LayoutKind.Sequential)]
     internal struct SECURITY_DESCRIPTOR
     {
-
+        public byte Revision;
+        public byte Sbz1;
+        public SECURITY_DESCRIPTOR_CONTROL Control;
+        public IntPtr Owner;
+        public IntPtr Group;
+        public IntPtr Sacl;
+        public IntPtr Dacl;
     }
 }
