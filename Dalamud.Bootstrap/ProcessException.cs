@@ -1,12 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Text;
 
-namespace Dalamud.Bootstrap.Windows
+namespace Dalamud.Bootstrap
 {
-    /// <summary>
-    /// An exception that is thrown when there was an error while interacting with the process.
-    /// </summary>
-    internal sealed class ProcessException : Exception
+    public class ProcessException : BootstrapException
     {
         internal ProcessException() : base() { }
 
@@ -14,10 +13,11 @@ namespace Dalamud.Bootstrap.Windows
 
         internal ProcessException(string message, Exception innerException) : base(message, innerException) { }
 
-        internal static void ThrowLastOsError(string message)
+        internal static void ThrowLastOsError()
         {
             var inner = new Win32Exception();
-            throw new ProcessException(message, inner);
+
+            throw new ProcessException(inner.Message, inner);
         }
     }
 }

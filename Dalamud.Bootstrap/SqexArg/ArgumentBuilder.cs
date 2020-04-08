@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Dalamud.Bootstrap.SqexArg
 {
-    internal sealed class ArgumentBuilder
+    public sealed class ArgumentBuilder
     {
         private readonly Dictionary<string, string> m_dict;
 

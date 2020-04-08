@@ -2,10 +2,7 @@ using System;
 
 namespace Dalamud.Bootstrap
 {
-    /// <summary>
-    /// An error that is thrown when there was a problem with bootstraping.
-    /// </summary>
-    public sealed class BootstrapException : Exception
+    public class BootstrapException : Exception
     {
         internal BootstrapException() : base() { }
 
