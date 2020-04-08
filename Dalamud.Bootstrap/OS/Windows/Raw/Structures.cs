@@ -130,4 +130,24 @@ namespace Dalamud.Bootstrap.OS.Windows.Raw
         public IntPtr Sacl;
         public IntPtr Dacl;
     }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct EXPLICIT_ACCESS_A
+    {
+        // TODO
+        uint grfAccessPermissions;
+        ACCESS_MODE grfAccessMode;
+        uint grfInheritance;
+        TRUSTEE_A Trustee;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct ACL
+    {
+        byte AclRevision;
+        byte Sbz1;
+        ushort AclSize;
+        ushort AceCount;
+        ushort Sbz2;
+    }
 }
