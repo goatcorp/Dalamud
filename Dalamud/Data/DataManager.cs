@@ -6,7 +6,9 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Dalamud.Data.LuminaExtensions;
 using Lumina.Data;
+using Lumina.Data.Files;
 using Lumina.Excel;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -40,6 +42,8 @@ namespace Dalamud.Data
         private Lumina.Lumina gameData;
 
         private ClientLanguage language;
+
+        private const string IconFileFormat = "ui/icon/{0:D3}000/{1}{2:D6}.tex";
 
         public DataManager(ClientLanguage language)
         {
@@ -129,6 +133,53 @@ namespace Dalamud.Data
                 return default(T);
             Repository repository;
             return this.gameData.Repositories.TryGetValue(filePath.Repository, out repository) ? repository.GetFile<T>(filePath.Category, filePath) : default(T);
+        }
+
+        /// <summary>
+        /// Get a <see cref="TexFile"/> containing the icon with the given ID.
+        /// </summary>
+        /// <param name="iconId">The icon ID.</param>
+        /// <returns>The <see cref="TexFile"/> containing the icon.</returns>
+        public TexFile GetIcon(int iconId)
+        {
+            return GetIcon(string.Empty, iconId);
+        }
+
+        /// <summary>
+        /// Get a <see cref="TexFile"/> containing the icon with the given ID, of the given language.
+        /// </summary>
+        /// <param name="iconLanguage">The requested language.</param>
+        /// <param name="iconId">The icon ID.</param>
+        /// <returns>The <see cref="TexFile"/> containing the icon.</returns>
+        public TexFile GetIcon(Language iconLanguage, int iconId)
+        {
+            var type = iconLanguage.GetCode();
+            if (type.Length > 0)
+                type += "/";
+            return GetIcon(type, iconId);
+        }
+
+        /// <summary>
+        /// Get a <see cref="TexFile"/> containing the icon with the given ID, of the given type.
+        /// </summary>
+        /// <param name="type">The type of the icon (e.g. 'hq' to get the HQ variant of an item icon).</param>
+        /// <param name="iconId">The icon ID.</param>
+        /// <returns>The <see cref="TexFile"/> containing the icon.</returns>
+        public TexFile GetIcon(string type, int iconId)
+        {
+            type ??= string.Empty;
+            if (type.Length > 0 && !type.EndsWith("/"))
+                type += "/";
+
+            var filePath = string.Format(IconFileFormat, iconId / 1000, type, iconId);
+            var file = this.GetFile<TexFile>(filePath);
+
+            if (file != default(TexFile) || type.Length <= 0) return file;
+
+            // Couldn't get specific type, try for generic version.
+            filePath = string.Format(IconFileFormat, iconId / 1000, string.Empty, iconId);
+            file = this.GetFile<TexFile>(filePath);
+            return file;
         }
 
         #endregion
