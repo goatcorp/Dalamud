@@ -18,6 +18,10 @@ namespace Dalamud.Game.Internal.Gui {
         private delegate IntPtr HandleItemHoverDelegate(IntPtr hoverState, IntPtr a2, IntPtr a3, ulong a4);
         private readonly Hook<HandleItemHoverDelegate> handleItemHoverHook;
 
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        private delegate IntPtr HandleItemOutDelegate(IntPtr hoverState, IntPtr a2, IntPtr a3, ulong a4);
+        private readonly Hook<HandleItemOutDelegate> handleItemOutHook;
+
         /// <summary>
         /// The item ID that is currently hovered by the player. 0 when no item is hovered.
         /// If > 1.000.000, subtract 1.000.000 and treat it as HQ
@@ -38,6 +42,7 @@ namespace Dalamud.Game.Internal.Gui {
             Log.Verbose("GameGuiManager address {Address}", Address.BaseAddress);
             Log.Verbose("SetGlobalBgm address {Address}", Address.SetGlobalBgm);
             Log.Verbose("HandleItemHover address {Address}", Address.HandleItemHover);
+            Log.Verbose("HandleItemOut address {Address}", Address.HandleItemOut);
 
             Chat = new ChatGui(Address.ChatManager, scanner, dalamud);
 
@@ -49,6 +54,11 @@ namespace Dalamud.Game.Internal.Gui {
                 new Hook<HandleItemHoverDelegate>(Address.HandleItemHover,
                                                new HandleItemHoverDelegate(HandleItemHoverDetour),
                                                this);
+
+            this.handleItemOutHook =
+                new Hook<HandleItemOutDelegate>(Address.HandleItemOut,
+                                                  new HandleItemOutDelegate(HandleItemOutDetour),
+                                                  this);
         }
 
         private IntPtr HandleSetGlobalBgmDetour(UInt16 bgmKey, byte a2, UInt32 a3, UInt32 a4, UInt32 a5, byte a6) {
@@ -64,6 +74,7 @@ namespace Dalamud.Game.Internal.Gui {
 
             if (retVal.ToInt64() == 22) {
                 var itemId = (ulong)Marshal.ReadInt32(hoverState, 0x130);
+                this.HoveredItem = itemId;
 
                 try {
                     HoveredItemChanged?.Invoke(this, itemId);
@@ -77,18 +88,43 @@ namespace Dalamud.Game.Internal.Gui {
             return retVal;
         }
 
+        private IntPtr HandleItemOutDetour(IntPtr hoverState, IntPtr a2, IntPtr a3, ulong a4)
+        {
+            var retVal = this.handleItemOutHook.Original(hoverState, a2, a3, a4);
+
+            if (a3 != IntPtr.Zero && a4 == 1) {
+                var a3Val = Marshal.ReadByte(a3, 0x8);
+
+                if (a3Val == 255) {
+                    this.HoveredItem = 0ul;
+
+                    try {
+                        HoveredItemChanged?.Invoke(this, 0ul);
+                    } catch (Exception e) {
+                        Log.Error(e, "Could not dispatch HoveredItemChanged event.");
+                    }
+
+                    Log.Verbose("HoverItemId: 0");
+                }
+            }
+
+            return retVal;
+        }
+
         public void SetBgm(ushort bgmKey) => this.setGlobalBgmHook.Original(bgmKey, 0, 0, 0, 0, 0); 
 
         public void Enable() {
             Chat.Enable();
             this.setGlobalBgmHook.Enable();
             this.handleItemHoverHook.Enable();
+            this.handleItemOutHook.Enable();
         }
 
         public void Dispose() {
             Chat.Dispose();
             this.setGlobalBgmHook.Dispose();
             this.handleItemHoverHook.Dispose();
+            this.handleItemOutHook.Dispose();
         }
     }
 }
