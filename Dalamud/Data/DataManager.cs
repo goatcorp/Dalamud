@@ -142,7 +142,7 @@ namespace Dalamud.Data
         /// <returns>The <see cref="TexFile"/> containing the icon.</returns>
         public TexFile GetIcon(int iconId)
         {
-            return GetIcon(string.Empty, iconId);
+            return GetIcon(this.language, iconId);
         }
 
         /// <summary>
@@ -151,11 +151,17 @@ namespace Dalamud.Data
         /// <param name="iconLanguage">The requested language.</param>
         /// <param name="iconId">The icon ID.</param>
         /// <returns>The <see cref="TexFile"/> containing the icon.</returns>
-        public TexFile GetIcon(Language iconLanguage, int iconId)
+        public TexFile GetIcon(ClientLanguage iconLanguage, int iconId)
         {
-            var type = iconLanguage.GetCode();
-            if (type.Length > 0)
-                type += "/";
+            var type = iconLanguage switch {
+                ClientLanguage.Japanese => "ja/",
+                ClientLanguage.English => "en/",
+                ClientLanguage.German => "de/",
+                ClientLanguage.French => "fr/",
+                _ => throw new ArgumentOutOfRangeException(nameof(this.language),
+                                                           "Unknown Language: " + this.language)
+            };
+
             return GetIcon(type, iconId);
         }
 
