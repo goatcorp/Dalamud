@@ -122,6 +122,7 @@ namespace Dalamud.Plugin
         /// </summary>
         /// <param name="messageTemplate">The message template.</param>
         /// <param name="values">Values to log.</param>
+        [Obsolete]
         public void Log(string messageTemplate, params object[] values) {
             Serilog.Log.Information(messageTemplate, values);
         }
@@ -131,6 +132,7 @@ namespace Dalamud.Plugin
         /// </summary>
         /// <param name="messageTemplate">The message template.</param>
         /// <param name="values">Values to log.</param>
+        [Obsolete]
         public void LogError(string messageTemplate, params object[] values)
         {
             Serilog.Log.Error(messageTemplate, values);
@@ -142,6 +144,7 @@ namespace Dalamud.Plugin
         /// <param name="exception">The exception that caused the error.</param>
         /// <param name="messageTemplate">The message template.</param>
         /// <param name="values">Values to log.</param>
+        [Obsolete]
         public void LogError(Exception exception, string messageTemplate, params object[] values)
         {
             Serilog.Log.Error(exception, messageTemplate, values);
