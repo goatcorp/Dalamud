@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Dalamud.Game.Chat.SeStringHandling
 {
@@ -27,6 +22,22 @@ namespace Dalamud.Game.Chat.SeStringHandling
         /// An SeString payload representing raw, typed text.
         /// </summary>
         RawText,
+        /// <summary>
+        /// An SeString payload representing a text foreground color.
+        /// </summary>
+        UIForeground,
+        /// <summary>
+        /// An SeString payload representing a text glow color.
+        /// </summary>
+        UIGlow,
+        /// <summary>
+        /// An SeString payload representing a map position link, such as from &lt;flag&gt; or &lt;pos&gt;.
+        /// </summary>
+        MapLink,
+        /// <summary>
+        /// An SeString payload representing an auto-translate dictionary entry.
+        /// </summary>
+        AutoTranslateText,
         /// <summary>
         /// An SeString payload representing any data we don't handle.
         /// </summary>

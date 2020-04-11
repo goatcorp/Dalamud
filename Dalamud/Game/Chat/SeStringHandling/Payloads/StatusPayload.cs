@@ -11,13 +11,13 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
     {
         public override PayloadType Type => PayloadType.Status;
 
-        public int StatusId { get; private set; }
+        public uint StatusId { get; private set; }
 
         public string StatusName { get; private set; } = string.Empty;
 
         public StatusPayload() { }
 
-        public StatusPayload(int statusId)
+        public StatusPayload(uint statusId)
         {
             StatusId = statusId;
         }
@@ -35,13 +35,11 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         public override byte[] Encode()
         {
             var idBytes = MakeInteger(StatusId);
-            var idPrefix = GetTypeForIntegerBytes(idBytes);
 
-            var chunkLen = idBytes.Length + 8;
+            var chunkLen = idBytes.Length + 7;
             var bytes = new List<byte>()
             {
-                START_BYTE, (byte)SeStringChunkType.Interactable, (byte)chunkLen, (byte)EmbeddedInfoType.Status,
-                (byte)idPrefix
+                START_BYTE, (byte)SeStringChunkType.Interactable, (byte)chunkLen, (byte)EmbeddedInfoType.Status
             };
 
             bytes.AddRange(idBytes);

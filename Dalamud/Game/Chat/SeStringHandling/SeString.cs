@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Dalamud.Data;
 using Dalamud.Game.Chat.SeStringHandling.Payloads;
 
 namespace Dalamud.Game.Chat.SeStringHandling

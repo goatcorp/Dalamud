@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Dalamud.Game.Chat.SeStringHandling.Payloads;
 using Serilog;
 
@@ -24,14 +22,17 @@ namespace Dalamud.Game.Chat.SeStringHandling
 
         public static Payload Process(BinaryReader reader)
         {
+            Payload payload = null;
             if ((byte)reader.PeekChar() != START_BYTE)
             {
-                return ProcessText(reader);
+                payload = ProcessText(reader);
             }
             else
             {
-                return ProcessChunk(reader);
+                payload = ProcessChunk(reader);
             }
+
+            return payload;
         }
 
         private static Payload ProcessChunk(BinaryReader reader)
@@ -59,6 +60,10 @@ namespace Dalamud.Game.Chat.SeStringHandling
                                 payload = new ItemPayload();
                                 break;
 
+                            case EmbeddedInfoType.MapPositionLink:
+                                payload = new MapLinkPayload();
+                                break;
+
                             case EmbeddedInfoType.Status:
                                 payload = new StatusPayload();
                                 break;
@@ -74,6 +79,19 @@ namespace Dalamud.Game.Chat.SeStringHandling
                         }
                     }
                     break;
+
+                case SeStringChunkType.AutoTranslateKey:
+                    payload = new AutoTranslatePayload();
+                    break;
+
+                case SeStringChunkType.UIForeground:
+                    payload = new UIForegroundPayload();
+                    break;
+
+                case SeStringChunkType.UIGlow:
+                    payload = new UIGlowPayload();
+                    break;
+
                 default:
                     Log.Verbose("Unhandled SeStringChunkType: {0}", chunkType);
                     payload = new RawPayload((byte)chunkType);
@@ -83,8 +101,8 @@ namespace Dalamud.Game.Chat.SeStringHandling
             payload?.ProcessChunkImpl(reader, reader.BaseStream.Position + chunkLen - 1);
 
             // read through the rest of the packet
-            var readBytes = (int)(reader.BaseStream.Position - packetStart);
-            reader.ReadBytes(chunkLen - readBytes + 1); // +1 for the END_BYTE marker
+            var readBytes = (uint)(reader.BaseStream.Position - packetStart);
+            reader.ReadBytes((int)(chunkLen - readBytes + 1)); // +1 for the END_BYTE marker
 
             return payload;
         }
@@ -104,13 +122,17 @@ namespace Dalamud.Game.Chat.SeStringHandling
 
         protected enum SeStringChunkType
         {
-            Interactable = 0x27
+            Interactable = 0x27,
+            AutoTranslateKey = 0x2E,
+            UIForeground = 0x48,
+            UIGlow = 0x49
         }
 
         protected enum EmbeddedInfoType
         {
             PlayerName = 0x01,
             ItemLink = 0x03,
+            MapPositionLink = 0x04,
             Status = 0x09,
 
             LinkTerminator = 0xCF // not clear but seems to always follow a link
@@ -118,62 +140,64 @@ namespace Dalamud.Game.Chat.SeStringHandling
 
         protected enum IntegerType
         {
+            // used as an internal marker; sometimes single bytes are bare with no marker at all
+            None = 0,
+
             Byte = 0xF0,
             ByteTimes256 = 0xF1,
             Int16 = 0xF2,
-            Int16Plus1Million = 0xF6,
+            Int16Packed = 0xF4,         // seen in map links, seemingly 2 8-bit values packed into 2 bytes with only one marker
+            Int24Special = 0xF6,        // unsure how different form Int24 - used for hq items that add 1 million, also used for normal 24-bit values in map links
             Int24 = 0xFA,
             Int32 = 0xFE
         }
 
         // made protected, unless we actually want to use it externally
         // in which case it should probably go live somewhere else
-        protected static int GetInteger(BinaryReader input)
+        protected static uint GetInteger(BinaryReader input)
         {
             var t = input.ReadByte();
             var type = (IntegerType)t;
             return GetInteger(input, type);
         }
 
-        private static int GetInteger(BinaryReader input, IntegerType type)
+        private static uint GetInteger(BinaryReader input, IntegerType type)
         {
             const byte ByteLengthCutoff = 0xF0;
 
             var t = (byte)type;
             if (t < ByteLengthCutoff)
-                return t - 1;
+                return (uint)(t - 1);
 
             switch (type)
             {
                 case IntegerType.Byte:
                     return input.ReadByte();
+
                 case IntegerType.ByteTimes256:
-                    return input.ReadByte() * 256;
+                    return input.ReadByte() * (uint)256;
+
                 case IntegerType.Int16:
+                    // fallthrough - same logic
+                case IntegerType.Int16Packed:
                     {
                         var v = 0;
                         v |= input.ReadByte() << 8;
                         v |= input.ReadByte();
-                        return v;
+                        return (uint)v;
                     }
-                case IntegerType.Int16Plus1Million:
-                    {
-                        var v = 0;
-                        v |= input.ReadByte() << 16;
-                        v |= input.ReadByte() << 8;
-                        v |= input.ReadByte();
-                        // need the actual value since it's used as a flag
-                        // v -= 1000000;
-                        return v;
-                    }
+
+                case IntegerType.Int24Special:
+                    // Fallthrough - same logic
                 case IntegerType.Int24:
                     {
                         var v = 0;
                         v |= input.ReadByte() << 16;
                         v |= input.ReadByte() << 8;
                         v |= input.ReadByte();
-                        return v;
+                        return (uint)v;
                     }
+
                 case IntegerType.Int32:
                     {
                         var v = 0;
@@ -181,44 +205,104 @@ namespace Dalamud.Game.Chat.SeStringHandling
                         v |= input.ReadByte() << 16;
                         v |= input.ReadByte() << 8;
                         v |= input.ReadByte();
-                        return v;
+                        return (uint)v;
                     }
+
                 default:
                     throw new NotSupportedException();
             }
         }
 
-        protected static byte[] MakeInteger(int value)
+        protected virtual byte[] MakeInteger(uint value, bool withMarker = true, bool incrementSmallInts = true) // TODO: better way to handle this
         {
-            // clearly the epitome of efficiency
+            // single-byte values below the marker values have no marker and have 1 added
+            if (incrementSmallInts && (value + 1 < (int)IntegerType.Byte))
+            {
+                value++;
+                return new byte[] { (byte)value };
+            }
 
             var bytesPadded = BitConverter.GetBytes(value);
             Array.Reverse(bytesPadded);
-            return bytesPadded.SkipWhile(b => b == 0x00).ToArray();
+            var shrunkValue = bytesPadded.SkipWhile(b => b == 0x00).ToArray();
+
+            var encodedNum = new List<byte>();
+
+            if (withMarker)
+            {
+                var marker = GetMarkerForIntegerBytes(shrunkValue);
+                if (marker != 0)
+                {
+                    encodedNum.Add(marker);
+                }
+            }
+
+            encodedNum.AddRange(shrunkValue);
+
+            return encodedNum.ToArray();
         }
 
-        protected static IntegerType GetTypeForIntegerBytes(byte[] bytes)
+        // This is only accurate in a very general sense
+        // Different payloads seem to use different default values for things
+        // So this should be overridden where necessary
+        protected virtual byte GetMarkerForIntegerBytes(byte[] bytes)
         {
             // not the most scientific, exists mainly for laziness
 
-            if (bytes.Length == 1)
+            var marker = bytes.Length switch
             {
-                return IntegerType.Byte;
+                1 => IntegerType.Byte,
+                2 => IntegerType.Int16,
+                3 => IntegerType.Int24,
+                4 => IntegerType.Int32,
+                _ => throw new NotSupportedException()
+            };
+
+            return (byte)marker;
+        }
+
+        protected virtual byte GetMarkerForPackedIntegerBytes(byte[] bytes)
+        {
+            // unsure if any 'strange' size groupings exist; only ever seen these
+            var type = bytes.Length switch
+            {
+                4 => IntegerType.Int32,
+                2 => IntegerType.Int16Packed,
+                _ => throw new NotSupportedException()
+            };
+
+            return (byte)type;
+        }
+
+        protected (uint, uint) GetPackedIntegers(BinaryReader input)
+        {
+            var value = GetInteger(input);
+            if (value > 0xFFFF)
+            {
+                return ((uint)((value & 0xFFFF0000) >> 16), (uint)(value & 0xFFFF));
             }
-            else if (bytes.Length == 2)
+            else if (value > 0xFF)
             {
-                return IntegerType.Int16;
-            }
-            else if (bytes.Length == 3)
-            {
-                return IntegerType.Int24;
-            }
-            else if (bytes.Length == 4)
-            {
-                return IntegerType.Int32;
+                return ((uint)((value & 0xFF00) >> 8), (uint)(value & 0xFF));
             }
 
+            // unsure if there are other cases, like "odd" pairings of 2+1 bytes etc
             throw new NotSupportedException();
+        }
+
+        protected byte[] MakePackedInteger(uint val1, uint val2, bool withMarker = true)
+        {
+            var value = MakeInteger(val1, false, false).Concat(MakeInteger(val2, false, false)).ToArray();
+
+            var valueBytes = new List<byte>();
+            if (withMarker)
+            {
+                valueBytes.Add(GetMarkerForPackedIntegerBytes(value));
+            }
+
+            valueBytes.AddRange(value);
+
+            return valueBytes.ToArray();
         }
         #endregion
     }

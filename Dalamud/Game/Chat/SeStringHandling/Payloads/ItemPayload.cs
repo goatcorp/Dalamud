@@ -11,13 +11,13 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
     {
         public override PayloadType Type => PayloadType.Item;
 
-        public int ItemId { get; private set; }
+        public uint ItemId { get; private set; }
         public string ItemName { get; private set; } = string.Empty;
         public bool IsHQ { get; private set; } = false;
 
         public ItemPayload() { }
 
-        public ItemPayload(int itemId, bool isHQ)
+        public ItemPayload(uint itemId, bool isHQ)
         {
             ItemId = itemId;
             IsHQ = isHQ;
@@ -27,7 +27,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         {
             if (string.IsNullOrEmpty(ItemName))
             {
-                dynamic item = XivApi.GetItem(ItemId).GetAwaiter().GetResult();
+                dynamic item = XivApi.GetItem((int)ItemId).GetAwaiter().GetResult();
                 ItemName = item.Name;
             }
         }
@@ -38,9 +38,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             var idBytes = MakeInteger(actualItemId);
             bool hasName = !string.IsNullOrEmpty(ItemName);
 
-            var itemIdFlag = IsHQ ? IntegerType.Int16Plus1Million : IntegerType.Int16;
-
-            var chunkLen = idBytes.Length + 5;
+            var chunkLen = idBytes.Length + 4;
             if (hasName)
             {
                 // 1 additional unknown byte compared to the nameless version, 1 byte for the name length, and then the name itself
@@ -54,8 +52,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             var bytes = new List<byte>()
             {
                 START_BYTE,
-                (byte)SeStringChunkType.Interactable, (byte)chunkLen, (byte)EmbeddedInfoType.ItemLink,
-                (byte)itemIdFlag
+                (byte)SeStringChunkType.Interactable, (byte)chunkLen, (byte)EmbeddedInfoType.ItemLink
             };
             bytes.AddRange(idBytes);
             // unk
@@ -109,7 +106,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
                 // unk
                 reader.ReadBytes(3);
 
-                var itemNameLen = GetInteger(reader);
+                var itemNameLen = (int)GetInteger(reader);
                 var itemNameBytes = reader.ReadBytes(itemNameLen);
 
                 // HQ items have the HQ symbol as part of the name, but since we already recorded
@@ -121,6 +118,17 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 
                 ItemName = Encoding.UTF8.GetString(itemNameBytes);
             }
+        }
+
+        protected override byte GetMarkerForIntegerBytes(byte[] bytes)
+        {
+            // custom marker just for hq items?
+            if (bytes.Length == 3 && IsHQ)
+            {
+                return (byte)IntegerType.Int24Special;
+            }
+
+            return base.GetMarkerForIntegerBytes(bytes);
         }
     }
 }

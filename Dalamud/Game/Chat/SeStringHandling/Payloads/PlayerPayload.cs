@@ -12,12 +12,12 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         public override PayloadType Type => PayloadType.Player;
 
         public string PlayerName { get; private set; }
-        public int ServerId { get; private set; }
+        public uint ServerId { get; private set; }
         public string ServerName { get; private set; } = String.Empty;
 
         public PlayerPayload() { }
 
-        public PlayerPayload(string playerName, int serverId)
+        public PlayerPayload(string playerName, uint serverId)
         {
             PlayerName = playerName;
             ServerId = serverId;
@@ -78,7 +78,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             // unk
             reader.ReadBytes(2);
 
-            var nameLen = GetInteger(reader);
+            var nameLen = (int)GetInteger(reader);
             PlayerName = Encoding.UTF8.GetString(reader.ReadBytes(nameLen));
         }
     }
