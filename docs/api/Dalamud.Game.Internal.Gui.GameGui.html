@@ -121,7 +121,7 @@
     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Internal_Gui_GameGui__ctor_System_IntPtr_Dalamud_Game_SigScanner_Dalamud_Dalamud_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Internal.Gui.GameGui.%23ctor(System.IntPtr%2CDalamud.Game.SigScanner%2CDalamud.Dalamud)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Internal/Gui/GameGui.cs/#L18">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Internal/Gui/GameGui.cs/#L36">View Source</a>
   </span>
   <a id="Dalamud_Game_Internal_Gui_GameGui__ctor_" data-uid="Dalamud.Game.Internal.Gui.GameGui.#ctor*"></a>
   <h4 id="Dalamud_Game_Internal_Gui_GameGui__ctor_System_IntPtr_Dalamud_Game_SigScanner_Dalamud_Dalamud_" data-uid="Dalamud.Game.Internal.Gui.GameGui.#ctor(System.IntPtr,Dalamud.Game.SigScanner,Dalamud.Dalamud)">GameGui(IntPtr, SigScanner, Dalamud)</h4>
@@ -190,6 +190,69 @@
       </tr>
     </tbody>
   </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Internal_Gui_GameGui_HoveredItem.md&amp;value=---%0Auid%3A%20Dalamud.Game.Internal.Gui.GameGui.HoveredItem%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Internal/Gui/GameGui.cs/#L29">View Source</a>
+  </span>
+  <a id="Dalamud_Game_Internal_Gui_GameGui_HoveredItem_" data-uid="Dalamud.Game.Internal.Gui.GameGui.HoveredItem*"></a>
+  <h4 id="Dalamud_Game_Internal_Gui_GameGui_HoveredItem" data-uid="Dalamud.Game.Internal.Gui.GameGui.HoveredItem">HoveredItem</h4>
+  <div class="markdown level1 summary"><p>The item ID that is currently hovered by the player. 0 when no item is hovered.
+If &gt; 1.000.000, subtract 1.000.000 and treat it as HQ</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ulong HoveredItem { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt64</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Internal_Gui_GameGui_HoveredItemChanged.md&amp;value=---%0Auid%3A%20Dalamud.Game.Internal.Gui.GameGui.HoveredItemChanged%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Internal/Gui/GameGui.cs/#L34">View Source</a>
+  </span>
+  <a id="Dalamud_Game_Internal_Gui_GameGui_HoveredItemChanged_" data-uid="Dalamud.Game.Internal.Gui.GameGui.HoveredItemChanged*"></a>
+  <h4 id="Dalamud_Game_Internal_Gui_GameGui_HoveredItemChanged" data-uid="Dalamud.Game.Internal.Gui.GameGui.HoveredItemChanged">HoveredItemChanged</h4>
+  <div class="markdown level1 summary"><p>Event that is fired when the currently hovered item changes.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public EventHandler&lt;ulong&gt; HoveredItemChanged { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.EventHandler</span>&lt;<span class="xref">System.UInt64</span>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
   <h3 id="methods">Methods
   </h3>
   <span class="small pull-right mobile-hide">
@@ -197,7 +260,7 @@
     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Internal_Gui_GameGui_Dispose.md&amp;value=---%0Auid%3A%20Dalamud.Game.Internal.Gui.GameGui.Dispose%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Internal/Gui/GameGui.cs/#L50">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Internal/Gui/GameGui.cs/#L123">View Source</a>
   </span>
   <a id="Dalamud_Game_Internal_Gui_GameGui_Dispose_" data-uid="Dalamud.Game.Internal.Gui.GameGui.Dispose*"></a>
   <h4 id="Dalamud_Game_Internal_Gui_GameGui_Dispose" data-uid="Dalamud.Game.Internal.Gui.GameGui.Dispose">Dispose()</h4>
@@ -212,7 +275,7 @@
     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Internal_Gui_GameGui_Enable.md&amp;value=---%0Auid%3A%20Dalamud.Game.Internal.Gui.GameGui.Enable%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Internal/Gui/GameGui.cs/#L45">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Internal/Gui/GameGui.cs/#L116">View Source</a>
   </span>
   <a id="Dalamud_Game_Internal_Gui_GameGui_Enable_" data-uid="Dalamud.Game.Internal.Gui.GameGui.Enable*"></a>
   <h4 id="Dalamud_Game_Internal_Gui_GameGui_Enable" data-uid="Dalamud.Game.Internal.Gui.GameGui.Enable">Enable()</h4>
@@ -227,7 +290,7 @@
     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Internal_Gui_GameGui_SetBgm_System_UInt16_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Internal.Gui.GameGui.SetBgm(System.UInt16)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Internal/Gui/GameGui.cs/#L43">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Internal/Gui/GameGui.cs/#L114">View Source</a>
   </span>
   <a id="Dalamud_Game_Internal_Gui_GameGui_SetBgm_" data-uid="Dalamud.Game.Internal.Gui.GameGui.SetBgm*"></a>
   <h4 id="Dalamud_Game_Internal_Gui_GameGui_SetBgm_System_UInt16_" data-uid="Dalamud.Game.Internal.Gui.GameGui.SetBgm(System.UInt16)">SetBgm(UInt16)</h4>

@@ -11,3 +11,5 @@ apiRules:
     uidRegex: AddressResolver$
 - exclude:
     uidRegex: ^Dalamud$
+- exclude:
+    uidRegex: ^Discord.Net
