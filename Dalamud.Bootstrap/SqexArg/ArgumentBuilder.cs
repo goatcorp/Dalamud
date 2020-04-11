@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -23,7 +22,7 @@ namespace Dalamud.Bootstrap.SqexArg
         /// </summary>
         /// <param name="argument"></param>
         /// <returns></returns>
-        public static ArgumentBuilder Parse(ReadOnlySpan<char> argument)
+        public static ArgumentBuilder Parse(string argument)
         {
             return new ArgumentBuilder(ArgumentParser.Parse(argument));
         }
@@ -60,7 +59,7 @@ namespace Dalamud.Bootstrap.SqexArg
             var escapedKey = EscapeValue(key);
             var escapedvalue = EscapeValue(value);
 
-            buffer.Append($" /{escapedKey} ={escapedvalue}");
+            buffer.Append($" /{escapedKey} ={escapedvalue}"); // TODO: this is broken
         }
 
         private static string EscapeValue(string value)

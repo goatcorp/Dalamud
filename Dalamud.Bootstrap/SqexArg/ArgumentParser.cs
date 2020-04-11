@@ -35,7 +35,7 @@ namespace Dalamud.Bootstrap.SqexArg
         /// <param name="input"></param>
         /// <returns></returns>
         /// <exception cref="SqexArgException">Thrown when failed to parse the input.</exception>
-        public static IEnumerable<KeyValuePair<string, string>> Parse(ReadOnlySpan<char> input)
+        public static IEnumerable<KeyValuePair<string, string>> Parse(string input)
         {
             var test = KeyMarker.Parse(input);
             var result = Parser.Parse(input);

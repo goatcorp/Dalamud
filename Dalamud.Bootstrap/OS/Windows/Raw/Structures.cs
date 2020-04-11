@@ -131,14 +131,23 @@ namespace Dalamud.Bootstrap.OS.Windows.Raw
         public IntPtr Dacl;
     }
 
-    [StructLayout(LayoutKind.Sequential)]
-    internal struct EXPLICIT_ACCESS_A
+    [StructLayout(LayoutKind.Explicit)]
+    internal unsafe struct TRUSTEE_W
     {
-        // TODO
+        public TRUSTEE_W* pMultipleTrustee;
+        public MULTIPLE_TRUSTEE_OPERATION MULTIPLE_TRUSTEE_OPERATION;
+        public TRUSTEE_FORM TrusteeForm;
+        public TRUSTEE_TYPE TrusteeType;
+        public void* ptstrName;
+    }
+    
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct EXPLICIT_ACCESS_W
+    {
         uint grfAccessPermissions;
         ACCESS_MODE grfAccessMode;
         uint grfInheritance;
-        TRUSTEE_A Trustee;
+        TRUSTEE_W Trustee;
     }
 
     [StructLayout(LayoutKind.Sequential)]

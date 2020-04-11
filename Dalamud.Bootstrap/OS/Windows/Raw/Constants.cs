@@ -66,4 +66,62 @@ namespace Dalamud.Bootstrap.OS.Windows.Raw
         SE_SACL_PROTECTED = 0x2000,
         SE_SELF_RELATIVE = 0x8000,
     }
+
+    internal enum ACCESS_MODE : uint
+    {
+        NOT_USED_ACCESS,
+        GRANT_ACCESS,
+        SET_ACCESS,
+        DENY_ACCESS,
+        REVOKE_ACCESS,
+        SET_AUDIT_SUCCESS,
+        SET_AUDIT_FAILURE,
+    }
+
+    internal enum MULTIPLE_TRUSTEE_OPERATION : uint
+    {
+        NO_MULTIPLE_TRUSTEE,
+        TRUSTEE_IS_IMPERSONATE,
+    }
+
+    internal enum TRUSTEE_FORM : uint
+    {
+        TRUSTEE_IS_SID,
+        TRUSTEE_IS_NAME,
+        TRUSTEE_BAD_FORM,
+        TRUSTEE_IS_OBJECTS_AND_SID,
+        TRUSTEE_IS_OBJECTS_AND_NAME,
+    }
+
+    internal enum TRUSTEE_TYPE : uint
+    {
+        TRUSTEE_IS_UNKNOWN,
+        TRUSTEE_IS_USER,
+        TRUSTEE_IS_GROUP,
+        TRUSTEE_IS_DOMAIN,
+        TRUSTEE_IS_ALIAS,
+        TRUSTEE_IS_WELL_KNOWN_GROUP,
+        TRUSTEE_IS_DELETED,
+        TRUSTEE_IS_INVALID,
+        TRUSTEE_IS_COMPUTER,
+    }
+
+    internal enum SE_OBJECT_TYPE : uint
+    {
+
+        SE_UNKNOWN_OBJECT_TYPE,
+        SE_FILE_OBJECT,
+        SE_SERVICE,
+        SE_PRINTER,
+        SE_REGISTRY_KEY,
+        SE_LMSHARE,
+        SE_KERNEL_OBJECT,
+        SE_WINDOW_OBJECT,
+        SE_DS_OBJECT,
+        SE_DS_OBJECT_ALL,
+        SE_PROVIDER_DEFINED_OBJECT,
+        SE_WMIGUID_OBJECT,
+        SE_REGISTRY_WOW64_32KEY,
+        SE_REGISTRY_WOW64_64KEY
+    }
 }

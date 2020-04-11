@@ -1,4 +1,5 @@
 using Dalamud.Bootstrap.OS;
+using Dalamud.Bootstrap.OS.Windows;
 using Dalamud.Bootstrap.OS.Windows.Raw;
 using Microsoft.Win32.SafeHandles;
 using System;
@@ -7,42 +8,33 @@ namespace Dalamud.Bootstrap
 {
     public sealed partial class GameProcess : IDisposable
     {
-        private SafeProcessHandle m_handle;
+        private Process m_process;
 
-        private GameProcess(SafeProcessHandle handle)
+        // maybe saved acl shit
+
+        private GameProcess(Process process)
         {
-            m_handle = handle;
-        }
-
-        public static GameProcess Create(GameProcessCreationOptions options)
-        {
-
-        }
-
-        public static GameProcess Open(uint pid)
-        {
-            
-            var handle = OpenHandle(pid, TODO);
-
-            return new GameProcess(handle);
-        }
-
-        private static SafeProcessHandle OpenHandle(uint pid, PROCESS_ACCESS_RIGHTS access)
-        {
-            var handle = Kernel32.OpenProcess((uint)access, false, pid);
-
-            if (handle.IsInvalid)
-            {
-                ProcessException.ThrowLastOsError();
-            }
-
-            return handle;
+            m_process = process;
         }
 
         public void Dispose()
         {
-            m_handle?.Dispose();
-            m_handle = null!;
+            m_process?.Dispose();
+            m_process = null!;
         }
+
+        // /// <summary>
+        // /// 
+        // /// </summary>
+        // /// <param name="handle">A process handle.</param>
+        // private static void AllowHandleAccess(Process handle)
+        // {
+
+        // }
+
+        // private static void DenyHandleAccess(SafeProcessHandle handle)
+        // {
+
+        // }
     }
 }

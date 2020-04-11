@@ -1,3 +1,4 @@
+using System;
 using System.Runtime.InteropServices;
 
 namespace Dalamud.Bootstrap.OS.Windows.Raw
@@ -12,5 +13,11 @@ namespace Dalamud.Bootstrap.OS.Windows.Raw
 
         [DllImport(Name, CallingConvention = CallingConvention.Winapi)]
         public static extern uint SetEntriesInAclA(ulong cCountOfExplicitEntries, ref ACL oldAcl, out ACL* NewAcl);
+        
+        [DllImport(Name, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, CharSet = CharSet.Unicode)]
+        public static extern void BuildExplicitAccessWithNameW(out EXPLICIT_ACCESS_W pExplicitAccess, string pTrusteeName, uint AccessPermissions, ACCESS_MODE AccessMode, uint Inheritance);
+        
+        [DllImport(Name, CallingConvention = CallingConvention.Winapi)]
+        public static extern uint GetSecurityInfo(IntPtr handle, SE_OBJECT_TYPE ObjectType, SECURITY_INFORMATION SecurityInfo);
     }
 }
