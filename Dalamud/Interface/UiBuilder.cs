@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ImGuiNET;
 using ImGuiScene;
+using Serilog;
 
 namespace Dalamud.Interface
 {
@@ -74,9 +75,33 @@ namespace Dalamud.Interface
         /// </summary>
         public EventHandler OnOpenConfigUi;
 
+        private bool hasErrorWindow;
+
         private void OnDraw() {
             ImGui.PushID(this.namespaceName);
-            OnBuildUi?.Invoke();
+
+            if (this.hasErrorWindow && ImGui.Begin(string.Format("{0} Error", this.namespaceName), ref this.hasErrorWindow,
+                                             ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize)) {
+                ImGui.Text(string.Format("The plugin {0} ran into an error.\nContact the plugin developer for support.\n\nPlease try restarting your game.", this.namespaceName));
+                ImGui.Spacing();
+
+                if (ImGui.Button("OK")) {
+                    this.hasErrorWindow = false;
+                }
+
+                ImGui.End();
+            }
+
+            try {
+                OnBuildUi?.Invoke();
+            } catch (Exception ex) {
+                Log.Error("[{0}] UiBuilder OnBuildUi caught exception");
+                OnBuildUi = null;
+                OnOpenConfigUi = null;
+
+                this.hasErrorWindow = true;
+            }
+            
             ImGui.PopID();
         }
     }
