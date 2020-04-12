@@ -28,13 +28,13 @@ namespace Dalamud
                 if (ApplicableLangCodes.Any(x => currentUiLang.TwoLetterISOLanguageName == x)) {
                     SetupWithLangCode(currentUiLang.TwoLetterISOLanguageName);
                 } else {
-                    Loc.Setup("{}");
+                    Loc.SetupWithFallbacks();
                 }
             }
             catch (Exception ex)
             {
                 Log.Error(ex, "Could not get language information. Setting up fallbacks.");
-                Loc.Setup("{}");
+                Loc.SetupWithFallbacks();
             }
         }
 
