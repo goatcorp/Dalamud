@@ -10,6 +10,7 @@ using System.Net.Http;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using CheapLoc;
 using ImGuiNET;
 using Newtonsoft.Json;
 using Serilog;
@@ -49,11 +50,10 @@ namespace Dalamud.Plugin
 
             ImGui.SetNextWindowSize(new Vector2(750, 520));
 
-            ImGui.Begin("Plugin Installer", ref windowOpen,
+            ImGui.Begin(Loc.Localize("InstallerHeader", "Plugin Installer"), ref windowOpen,
                 ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar);
 
-            ImGui.Text("This window allows you install and remove in-game plugins.");
-            ImGui.Text("They are made by third-party developers.");
+            ImGui.Text(Loc.Localize("InstallerHint", "This window allows you install and remove in-game plugins.\nThey are made by third-party developers."));
             ImGui.Separator();
 
             ImGui.BeginChild("scrolling", new Vector2(0, 400), true, ImGuiWindowFlags.HorizontalScrollbar);
@@ -61,9 +61,9 @@ namespace Dalamud.Plugin
             ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(1, 3));
 
             if (this.repository.State == PluginRepository.InitializationState.InProgress) {
-                ImGui.Text("Loading plugins...");
+                ImGui.Text(Loc.Localize("InstallerLoading", "Loading plugins..."));
             } else if (this.repository.State == PluginRepository.InitializationState.Fail) {
-                ImGui.Text("Download failed.");
+                ImGui.Text(Loc.Localize("InstallerDownloadFailed", "Download failed."));
             }
             else
             {
@@ -80,7 +80,7 @@ namespace Dalamud.Plugin
                     var isInstalled = this.manager.Plugins.Where(x => x.Definition != null).Any(
                         x => x.Definition.InternalName == pluginDefinition.InternalName);
 
-                    if (ImGui.CollapsingHeader(pluginDefinition.Name + (isInstalled ? " (installed)" : string.Empty))) {
+                    if (ImGui.CollapsingHeader(pluginDefinition.Name + (isInstalled ? Loc.Localize("InstallerInstalled", " (installed)") : string.Empty))) {
                         ImGui.Indent();
 
                         ImGui.Text(pluginDefinition.Name);
@@ -91,7 +91,7 @@ namespace Dalamud.Plugin
 
                         if (!isInstalled) {
                             if (this.installStatus == PluginInstallStatus.InProgress) {
-                                ImGui.Button("Install in progress...");
+                                ImGui.Button(Loc.Localize("InstallerInProgress", "Install in progress..."));
                             } else {
                                 if (ImGui.Button($"Install v{pluginDefinition.AssemblyVersion}")) {
                                     this.installStatus = PluginInstallStatus.InProgress;
@@ -112,7 +112,7 @@ namespace Dalamud.Plugin
                                 x => x.Definition.InternalName ==
                                      pluginDefinition.InternalName);
 
-                            if (ImGui.Button("Disable"))
+                            if (ImGui.Button(Loc.Localize("InstallerDisable", "Disable")))
                                 try {
                                     this.manager.DisablePlugin(installedPlugin.Definition);
                                 } catch (Exception exception) {
@@ -124,7 +124,7 @@ namespace Dalamud.Plugin
                             if (installedPlugin.PluginInterface.UiBuilder.OnOpenConfigUi != null) {
                                 ImGui.SameLine();
 
-                                if (ImGui.Button("Open Configuration")) installedPlugin.PluginInterface.UiBuilder.OnOpenConfigUi?.Invoke(null, null);
+                                if (ImGui.Button(Loc.Localize("InstallerOpenConfig", "Open Configuration"))) installedPlugin.PluginInterface.UiBuilder.OnOpenConfigUi?.Invoke(null, null);
                             }
 
                             ImGui.SameLine();
@@ -145,14 +145,14 @@ namespace Dalamud.Plugin
             ImGui.Separator();
 
             if (this.installStatus == PluginInstallStatus.InProgress) {
-                ImGui.Button("Updating...");
+                ImGui.Button(Loc.Localize("InstallerUpdating", "Updating..."));
             } else {
                 if (this.updateComplete) {
                     ImGui.Button(this.updatePluginCount == 0
-                                     ? "No updates found!"
-                                     : $"{this.updatePluginCount} plugins updated!");
+                                     ? Loc.Localize("InstallerNoUpdates", "No updates found!")
+                                     : string.Format(Loc.Localize("InstallerUpdateComplete", "{0} plugins updated!"), this.updatePluginCount));
                 } else {
-                    if (ImGui.Button("Update plugins"))
+                    if (ImGui.Button(Loc.Localize("InstallerUpdatePlugins", "Update plugins")))
                     {
                         this.installStatus = PluginInstallStatus.InProgress;
 
@@ -177,27 +177,26 @@ namespace Dalamud.Plugin
 
             ImGui.SameLine();
 
-            if (ImGui.Button("Close"))
+            if (ImGui.Button(Loc.Localize("Close", "Close")))
             {
                 windowOpen = false;
             }
 
             ImGui.Spacing();
 
-            if (ImGui.BeginPopupModal("Installer failed", ref this.errorModalDrawing, ImGuiWindowFlags.AlwaysAutoResize))
+            if (ImGui.BeginPopupModal(Loc.Localize("InstallerError","Installer failed"), ref this.errorModalDrawing, ImGuiWindowFlags.AlwaysAutoResize))
             {
-                ImGui.Text("The plugin installer ran into an issue or the plugin is incompatible.");
-                ImGui.Text("Please restart the game and report this error on our discord.");
+                ImGui.Text(Loc.Localize("InstallerErrorHint", "The plugin installer ran into an issue or the plugin is incompatible.\nPlease restart the game and report this error on our discord."));
 
                 ImGui.Spacing();
 
-                if (ImGui.Button("OK", new Vector2(120, 40))) { ImGui.CloseCurrentPopup(); }
+                if (ImGui.Button(Loc.Localize("OK", "OK"), new Vector2(120, 40))) { ImGui.CloseCurrentPopup(); }
 
                 ImGui.EndPopup();
             }
 
             if (this.errorModalOnNextFrame) {
-                ImGui.OpenPopup("Installer failed");
+                ImGui.OpenPopup(Loc.Localize("InstallerError", "Installer failed"));
                 this.errorModalOnNextFrame = false;
             }
                 

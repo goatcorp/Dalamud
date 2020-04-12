@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using CheapLoc;
 using Dalamud.Data;
 using Dalamud.DiscordBot;
 using Dalamud.Game;
@@ -61,10 +62,17 @@ namespace Dalamud {
         private AntiDebug antiDebug;
 
 
+        private Localization localizationMgr;
+
+
         private readonly string assemblyVersion = Assembly.GetAssembly(typeof(ChatHandlers)).GetName().Version.ToString();
 
         public Dalamud(DalamudStartInfo info) {
             this.StartInfo = info;
+
+            this.localizationMgr = new Localization(this.StartInfo.WorkingDirectory);
+            this.localizationMgr.SetupWithUiCulture();
+
             this.Configuration = DalamudConfiguration.Load(info.ConfigurationPath);
             
             this.baseDirectory = info.WorkingDirectory;
@@ -120,8 +128,6 @@ namespace Dalamud {
 
                 PluginRepository = new PluginRepository(PluginManager, this.StartInfo.PluginDirectory, this.StartInfo.GameVersion);
             } catch (Exception ex) {
-                this.Framework.Gui.Chat.PrintError(
-                    "[XIVLAUNCHER] There was an error loading additional plugins. Please check the log for more details.");
                 Log.Error(ex, "Plugin load failed.");
             }
         }
@@ -147,8 +153,6 @@ namespace Dalamud {
             }
             catch (Exception ex)
             {
-                Framework.Gui.Chat.PrintError(
-                    "[XIVLAUNCHER] There was an error unloading additional plugins. Please check the log for more details.");
                 Log.Error(ex, "Plugin unload failed.");
             }
 
@@ -261,6 +265,36 @@ namespace Dalamud {
                         ImGui.EndMenu();
                     }
 
+                    if (ImGui.BeginMenu("Localization"))
+                    {
+                        if (ImGui.MenuItem("Export localizable"))
+                        {
+                            Loc.ExportLocalizable();
+                        }
+
+                        if (ImGui.BeginMenu("Load language..."))
+                        {
+                            if (ImGui.MenuItem("From Fallbacks"))
+                            {
+                                Loc.SetupWithFallbacks();
+                            }
+
+                            if (ImGui.MenuItem("From UICulture")) {
+                                this.localizationMgr.SetupWithUiCulture();
+                            }
+
+                            foreach (var applicableLangCode in Localization.ApplicableLangCodes) {
+                                if (ImGui.MenuItem($"Applicable: {applicableLangCode}"))
+                                {
+                                    this.localizationMgr.SetupWithLangCode(applicableLangCode);
+                                }
+                            }
+
+                            ImGui.EndMenu();
+                        }
+                        ImGui.EndMenu();
+                    }
+
                     ImGui.EndMainMenuBar();
                 }
             }
@@ -305,52 +339,52 @@ namespace Dalamud {
 
         private void SetupCommands() {
             CommandManager.AddHandler("/xldclose", new CommandInfo(OnUnloadCommand) {
-                HelpMessage = "Unloads XIVLauncher in-game addon.",
+                HelpMessage = Loc.Localize("DalamudUnloadHelp", "Unloads XIVLauncher in-game addon."),
                 ShowInHelp = false
             });
 
             CommandManager.AddHandler("/xldreloadplugins", new CommandInfo(OnPluginReloadCommand) {
-                HelpMessage = "Reloads all plugins.",
-                ShowInHelp = false
+                HelpMessage = Loc.Localize("DalamudPluginReloadHelp", "Reloads all plugins."),
+                                           ShowInHelp = false
             });
 
             CommandManager.AddHandler("/xldsay", new CommandInfo(OnCommandDebugSay) {
-                HelpMessage = "Print to chat.",
-                ShowInHelp = false
+                HelpMessage = Loc.Localize("DalamudPrintChatHelp", "Print to chat."),
+                                           ShowInHelp = false
             });
 
             CommandManager.AddHandler("/xlhelp", new CommandInfo(OnHelpCommand) {
-                HelpMessage = "Shows list of commands available."
+                HelpMessage = Loc.Localize("DalamudCmdInfoHelp", "Shows list of commands available.")
             });
 
             CommandManager.AddHandler("/xlmute", new CommandInfo(OnBadWordsAddCommand) {
-                HelpMessage = "Mute a word or sentence from appearing in chat. Usage: /xlmute <word or sentence>"
+                HelpMessage = Loc.Localize("DalamudMuteHelp", "Mute a word or sentence from appearing in chat. Usage: /xlmute <word or sentence>")
             });
 
             CommandManager.AddHandler("/xlmutelist", new CommandInfo(OnBadWordsListCommand) {
-                HelpMessage = "List muted words or sentences."
+                HelpMessage = Loc.Localize("DalamudMuteListHelp", "List muted words or sentences.")
             });
 
             CommandManager.AddHandler("/xlunmute", new CommandInfo(OnBadWordsRemoveCommand) {
-                HelpMessage = "Unmute a word or sentence. Usage: /xlunmute <word or sentence>"
+                HelpMessage = Loc.Localize("DalamudUnmuteHelp", "Unmute a word or sentence. Usage: /xlunmute <word or sentence>")
             });
 
             CommandManager.AddHandler("/ll", new CommandInfo(OnLastLinkCommand) {
-                HelpMessage = "Open the last posted link in your default browser."
+                HelpMessage = Loc.Localize("DalamudLastLinkHelp", "Open the last posted link in your default browser.")
             });
 
             CommandManager.AddHandler("/xlbotjoin", new CommandInfo(OnBotJoinCommand) {
-                HelpMessage = "Add the XIVLauncher discord bot you set up to your server."
+                HelpMessage = Loc.Localize("DalamudBotJoinHelp", "Add the XIVLauncher discord bot you set up to your server.")
             });
 
             CommandManager.AddHandler("/xlbgmset", new CommandInfo(OnBgmSetCommand)
             {
-                HelpMessage = "Set the Game background music. Usage: /xlbgmset <BGM ID>"
+                HelpMessage = Loc.Localize("DalamudBgmSetHelp", "Set the Game background music. Usage: /xlbgmset <BGM ID>")
             });
 
             CommandManager.AddHandler("/xlitem", new CommandInfo(OnItemLinkCommand)
             {
-                HelpMessage = "Link an item by name. Usage: /xlitem <Item name>.  For matching an item exactly, use /xlitem +<Item name>"
+                HelpMessage = Loc.Localize("DalamudItemLinkHelp", "Link an item by name. Usage: /xlitem <Item name>.  For matching an item exactly, use /xlitem +<Item name>")
             });
 
 #if DEBUG
@@ -363,21 +397,21 @@ namespace Dalamud {
 
             CommandManager.AddHandler("/xlbonus", new CommandInfo(OnRouletteBonusNotifyCommand)
             {
-                HelpMessage = "Notify when a roulette has a bonus you specified. Run without parameters for more info. Usage: /xlbonus <roulette name> <role name>"
+                HelpMessage = Loc.Localize("DalamudBonusHelp", "Notify when a roulette has a bonus you specified. Run without parameters for more info. Usage: /xlbonus <roulette name> <role name>")
             });
 
             CommandManager.AddHandler("/xldev", new CommandInfo(OnDebugDrawDevMenu) {
-                HelpMessage = "Draw dev menu DEBUG",
-                ShowInHelp = false
+                HelpMessage = Loc.Localize("DalamudDevMenuHelp", "Draw dev menu DEBUG"),
+                                           ShowInHelp = false
             });
 
             CommandManager.AddHandler("/xlplugins", new CommandInfo(OnOpenInstallerCommand)
             {
-                HelpMessage = "Open the plugin installer"
+                HelpMessage = Loc.Localize("DalamudInstallerHelp", "Open the plugin installer")
             });
 
             this.CommandManager.AddHandler("/xlcredits", new CommandInfo(OnOpenCreditsCommand) {
-                HelpMessage = "Opens the credits for dalamud."
+                HelpMessage = Loc.Localize("DalamudCreditsHelp", "Opens the credits for dalamud.")
             });
         }
 
@@ -389,7 +423,7 @@ namespace Dalamud {
         private void OnHelpCommand(string command, string arguments) {
             var showDebug = arguments.Contains("debug");
 
-            Framework.Gui.Chat.Print("Available commands:");
+            Framework.Gui.Chat.Print(Loc.Localize("DalamudCmdHelpAvailable", "Available commands:"));
             foreach (var cmd in CommandManager.Commands) {
                 if (!cmd.Value.ShowInHelp && !showDebug)
                     continue;
@@ -433,7 +467,7 @@ namespace Dalamud {
 
             this.Configuration.Save(this.StartInfo.ConfigurationPath);
 
-            Framework.Gui.Chat.Print($"Muted \"{arguments}\".");
+            Framework.Gui.Chat.Print(string.Format(Loc.Localize("DalamudMuted", "Muted \"{0}\"."), arguments));
         }
 
         private void OnBadWordsListCommand(string command, string arguments) {
@@ -441,7 +475,7 @@ namespace Dalamud {
                 this.Configuration.BadWords = new List<string>();
 
             if (this.Configuration.BadWords.Count == 0) {
-                Framework.Gui.Chat.Print("No muted words or sentences.");
+                Framework.Gui.Chat.Print(Loc.Localize("DalamudNoneMuted", "No muted words or sentences."));
                 return;
             }
 
@@ -458,16 +492,16 @@ namespace Dalamud {
 
             this.Configuration.Save(this.StartInfo.ConfigurationPath);
 
-            Framework.Gui.Chat.Print($"Unmuted \"{arguments}\".");
+            Framework.Gui.Chat.Print(string.Format(Loc.Localize("DalamudUnmuted", "Unmuted \"{0}\"."), arguments));
         }
 
         private void OnLastLinkCommand(string command, string arguments) {
             if (string.IsNullOrEmpty(ChatHandlers.LastLink)) {
-                Framework.Gui.Chat.Print("No last link...");
+                Framework.Gui.Chat.Print(Loc.Localize("DalamudNoLastLink", "No last link..."));
                 return;
             }
 
-            Framework.Gui.Chat.Print("Opening " + ChatHandlers.LastLink);
+            Framework.Gui.Chat.Print(string.Format(Loc.Localize("DalamudOpeningLink", "Opening {0}"), ChatHandlers.LastLink));
             Process.Start(ChatHandlers.LastLink);
         }
 
@@ -477,7 +511,7 @@ namespace Dalamud {
                     $"https://discordapp.com/oauth2/authorize?client_id={this.BotManager.UserId}&scope=bot&permissions=117760");
             else
                 Framework.Gui.Chat.Print(
-                    "The XIVLauncher discord bot was not set up correctly or could not connect to discord. Please check the settings and the FAQ.");
+                    Loc.Localize("DalamudBotNotSetup", "The XIVLauncher discord bot was not set up correctly or could not connect to discord. Please check the settings and the FAQ."));
         }
 
         private void OnBgmSetCommand(string command, string arguments)
@@ -518,7 +552,7 @@ namespace Dalamud {
                     });
                 }
                 catch {
-                    Framework.Gui.Chat.PrintError("Could not find item.");
+                    Framework.Gui.Chat.PrintError(Loc.Localize("DalamudItemNotFound", "Could not find item."));
                 }
 
             });
@@ -536,7 +570,7 @@ namespace Dalamud {
         private void OnRouletteBonusNotifyCommand(string command, string arguments)
         {
             if (this.Configuration.DiscordFeatureConfig.CfPreferredRoleChannel == null)
-                Framework.Gui.Chat.PrintError("You have not set up a discord channel for these notifications - you will only receive them in chat. To do this, please use the XIVLauncher in-game settings.");
+                Framework.Gui.Chat.PrintError(Loc.Localize("DalamudChannelNotSetup", "You have not set up a discord channel for these notifications - you will only receive them in chat. To do this, please use the XIVLauncher in-game settings."));
 
             if (string.IsNullOrEmpty(arguments))
                 goto InvalidArgs;
@@ -563,14 +597,14 @@ namespace Dalamud {
                 this.Configuration.PreferredRoleReminders.Add(rouletteIndex, role);
 
             Framework.Gui.Chat.Print($"Set bonus notifications for {argParts[0]}({rouletteIndex}) to {role}");
+            Framework.Gui.Chat.Print(string.Format(Loc.Localize("DalamudBonusSet", "Set bonus notifications for {0}({1}) to {2}"), argParts[0], rouletteIndex, role));
             this.Configuration.Save(this.StartInfo.ConfigurationPath);
 
             return;
 
             InvalidArgs:
-            Framework.Gui.Chat.PrintError("Unrecognized arguments.");
-            Framework.Gui.Chat.Print("Possible values for roulette: leveling, 506070, msq, guildhests, expert, trials, mentor, alliance, normal\n" +
-                                     "Possible values for role: tank, dps, healer, all, none/reset");
+            Framework.Gui.Chat.PrintError(Loc.Localize("DalamudInvalidArguments", "Unrecognized arguments."));
+            Framework.Gui.Chat.Print(Loc.Localize("DalamudBonusPossibleValues", "Possible values for roulette: leveling, 506070, msq, guildhests, expert, trials, mentor, alliance, normal\nPossible values for role: tank, dps, healer, all, none/reset"));
         }
 
         private void OnDebugDrawDevMenu(string command, string arguments) {

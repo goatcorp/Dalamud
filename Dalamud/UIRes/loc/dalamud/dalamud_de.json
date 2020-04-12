@@ -1,0 +1,194 @@
+{
+  "DalamudUnloadHelp": {
+    "message": "Entläd das XIVLauncher In-Game-Addon.",
+    "description": "Dalamud.SetupCommands"
+  },
+  "DalamudPluginReloadHelp": {
+    "message": "Läd alle Plugins neu.",
+    "description": "Dalamud.SetupCommands"
+  },
+  "DalamudPrintChatHelp": {
+    "message": "Gibt eine Nachricht im Chat aus.",
+    "description": "Dalamud.SetupCommands"
+  },
+  "DalamudCmdInfoHelp": {
+    "message": "Zeigt eine Liste aller verfügbaren Textkommandos an.",
+    "description": "Dalamud.SetupCommands"
+  },
+  "DalamudMuteHelp": {
+    "message": "Gib ein Wort oder einen Satz ein, der nicht im Chat auftauchen soll. Nutzung: /xlmute <word or sentence>",
+    "description": "Dalamud.SetupCommands"
+  },
+  "DalamudMuteListHelp": {
+    "message": "Listet stummgeschaltete Worte oder Sätze auf.",
+    "description": "Dalamud.SetupCommands"
+  },
+  "DalamudUnmuteHelp": {
+    "message": "Löscht ein Wort oder einen Satz von der Liste der stummgeschalteten Worte. Nutzung: /xlunmute <word or sentence>",
+    "description": "Dalamud.SetupCommands"
+  },
+  "DalamudLastLinkHelp": {
+    "message": "Öffnet den zuletzt im Chat geposteten Link in deinem Browser.",
+    "description": "Dalamud.SetupCommands"
+  },
+  "DalamudBotJoinHelp": {
+    "message": "Füge den XIVLauncher Discord-Bot zu einem deiner Server hinzu.",
+    "description": "Dalamud.SetupCommands"
+  },
+  "DalamudBgmSetHelp": {
+    "message": "Setzt die Hintergrundmusik im Spiel. Nutzung: /xlbgmset <BGM ID>",
+    "description": "Dalamud.SetupCommands"
+  },
+  "DalamudItemLinkHelp": {
+    "message": "Verlinkt den angegebenen Gegenstand. Nutzung: /xlitem <Item name>.  Um den exakten Namen anzugeben, nutze /xlitem +<Item name>",
+    "description": "Dalamud.SetupCommands"
+  },
+  "DalamudBonusHelp": {
+    "message": "Sende eine Benachrichtigung, wenn ein Zufallsinhalt einen Bonus für die Rolle hast, die du angibst. Nutzung: /xlbonus <roulette name> <role name>",
+    "description": "Dalamud.SetupCommands"
+  },
+  "DalamudDevMenuHelp": {
+    "message": "Öffne das dev-Menü DEBUG",
+    "description": "Dalamud.SetupCommands"
+  },
+  "DalamudInstallerHelp": {
+    "message": "Öffnet den Plugin-Installer",
+    "description": "Dalamud.SetupCommands"
+  },
+  "DalamudCreditsHelp": {
+    "message": "Öffnet die Liste der Mitwirkenden",
+    "description": "Dalamud.SetupCommands"
+  },
+  "DalamudCmdHelpAvailable": {
+    "message": "Verfügbare Kommandos:",
+    "description": "Dalamud.OnHelpCommand"
+  },
+  "DalamudMuted": {
+    "message": "\"{0}\" stummgeschaltet.",
+    "description": "Dalamud.OnBadWordsAddCommand"
+  },
+  "DalamudNoneMuted": {
+    "message": "Keine stummgeschalteten Wörte oder Sätze.",
+    "description": "Dalamud.OnBadWordsListCommand"
+  },
+  "DalamudUnmuted": {
+    "message": "\"{0}\" freigegeben.",
+    "description": "Dalamud.OnBadWordsRemoveCommand"
+  },
+  "DalamudNoLastLink": {
+    "message": "Keinen Link gefunden...",
+    "description": "Dalamud.OnLastLinkCommand"
+  },
+  "DalamudOpeningLink": {
+    "message": "{0} wird geöffnet",
+    "description": "Dalamud.OnLastLinkCommand"
+  },
+  "DalamudBotNotSetup": {
+    "message": "Der XIVLauncher Discord-Bot wurde nicht korrekt eingestellt. Bitte prüfe die Einstellungen und unser FAQ.",
+    "description": "Dalamud.OnBotJoinCommand"
+  },
+  "DalamudChannelNotSetup": {
+    "message": "Du hast keinen Discord-Kanal für diese Notifikationen eingestellt - du wirst sie also nur im Chat erhalten.\nUm einen Kanal einzustellen, nutze bitte die XIVLauncher-Einstellungen.",
+    "description": "Dalamud.OnRouletteBonusNotifyCommand"
+  },
+  "DalamudBonusSet": {
+    "message": "Bonus-Notifikationen für {0}({1}) auf {2} gesetzt",
+    "description": "Dalamud.OnRouletteBonusNotifyCommand"
+  },
+  "DalamudInvalidArguments": {
+    "message": "Parameter nicht erkannt.",
+    "description": "Dalamud.OnRouletteBonusNotifyCommand"
+  },
+  "DalamudBonusPossibleValues": {
+    "message": "Mögliche Werte für Zufallsinhalte: leveling, 506070, msq, guildhests, expert, trials, mentor, alliance, normal\nMögliche Werte für Rollen: tank, dps, healer, all, none/reset",
+    "description": "Dalamud.OnRouletteBonusNotifyCommand"
+  },
+  "DalamudItemNotFound": {
+    "message": "Gegenstand konnte nicht gefunden werden.",
+    "description": "<<OnItemLinkCommand>b__0>d.MoveNext"
+  },
+  "InstallerHeader": {
+    "message": "Plugin-Installer",
+    "description": "PluginInstallerWindow.Draw"
+  },
+  "InstallerHint": {
+    "message": "Dieses Fenster erlaubt es dir, Plugins zu installieren.\nSie werden von Drittanbietern entwickelt.",
+    "description": "PluginInstallerWindow.Draw"
+  },
+  "InstallerLoading": {
+    "message": "Plugins werden geladen...",
+    "description": "PluginInstallerWindow.Draw"
+  },
+  "InstallerDownloadFailed": {
+    "message": "Download fehlgeschlagen.",
+    "description": "PluginInstallerWindow.Draw"
+  },
+  "InstallerInstalled": {
+    "message": " (installiert)",
+    "description": "PluginInstallerWindow.Draw"
+  },
+  "InstallerInProgress": {
+    "message": "Wird installiert...",
+    "description": "PluginInstallerWindow.Draw"
+  },
+  "InstallerDisable": {
+    "message": "Deaktivieren",
+    "description": "PluginInstallerWindow.Draw"
+  },
+  "InstallerOpenConfig": {
+    "message": "Einstellungen öffnen",
+    "description": "PluginInstallerWindow.Draw"
+  },
+  "InstallerUpdating": {
+    "message": "Wird aktualisiert...",
+    "description": "PluginInstallerWindow.Draw"
+  },
+  "InstallerUpdateComplete": {
+    "message": "{0} Plugins aktualisiert!",
+    "description": "PluginInstallerWindow.Draw"
+  },
+  "InstallerNoUpdates": {
+    "message": "Keine Aktualisierungen gefunden!",
+    "description": "PluginInstallerWindow.Draw"
+  },
+  "InstallerUpdatePlugins": {
+    "message": "Plugins aktualisieren",
+    "description": "PluginInstallerWindow.Draw"
+  },
+  "Close": {
+    "message": "Schließen",
+    "description": "PluginInstallerWindow.Draw"
+  },
+  "InstallerError": {
+    "message": "Installation fehlgeschlagen",
+    "description": "PluginInstallerWindow.Draw"
+  },
+  "InstallerErrorHint": {
+    "message": "Der Plugin-Installer konnte die Operation nicht erfolgreich beenden.\nBitte starte das Spiel neu und melde diesen Fehler auf unserem Discord-Server.",
+    "description": "PluginInstallerWindow.Draw"
+  },
+  "OK": {
+    "message": "OK",
+    "description": "PluginInstallerWindow.Draw"
+  },
+  "DalamudWelcome": {
+    "message": "XIVLauncher In-Game-Addon v{0} geladen.",
+    "description": "ChatHandlers.OnChatMessage"
+  },
+  "DalamudPluginLoaded": {
+    "message": "    》 {0} v{1} geladen.",
+    "description": "ChatHandlers.OnChatMessage"
+  },
+  "DalamudUpdated": {
+    "message": "Das In-Game-Addon wurde aktualisiert oder neu installiert. Bitte prüfe unseren Discord-Server für weitere Informationen!",
+    "description": "ChatHandlers.OnChatMessage"
+  },
+  "DalamudPluginUpdateRequired": {
+    "message": "Eines oder mehrere deiner Plugins müssen aktualisiert werden. Bitte nutze das /xlplugins-Kommando, um sie zu aktualisieren.",
+    "description": "ChatHandlers.OnChatMessage"
+  },
+  "DalamudPluginUpdateCheckFail": {
+    "message": "Konnte nicht auf Plugin-Aktualisierungen prüfen.",
+    "description": "ChatHandlers.OnChatMessage"
+  }
+}

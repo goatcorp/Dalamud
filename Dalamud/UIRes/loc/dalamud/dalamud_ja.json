@@ -1,0 +1,194 @@
+{
+  "DalamudUnloadHelp": {
+    "message": "XIVLauncher In-Game アドオンをアンロードします。",
+    "description": "Dalamud.SetupCommands"
+  },
+  "DalamudPluginReloadHelp": {
+    "message": "全てのプラグインをリロードします。",
+    "description": "Dalamud.SetupCommands"
+  },
+  "DalamudPrintChatHelp": {
+    "message": "チャットに出力する。",
+    "description": "Dalamud.SetupCommands"
+  },
+  "DalamudCmdInfoHelp": {
+    "message": "利用可能なコマンド一覧を表示します。",
+    "description": "Dalamud.SetupCommands"
+  },
+  "DalamudMuteHelp": {
+    "message": "チャットに表示される単語や文章をミュートします。 利用法: /xlmute <単語 または、文章>",
+    "description": "Dalamud.SetupCommands"
+  },
+  "DalamudMuteListHelp": {
+    "message": "ミュートされた単語または文章の一覧を表示します。",
+    "description": "Dalamud.SetupCommands"
+  },
+  "DalamudUnmuteHelp": {
+    "message": "単語または文章のミュートを解除します。利用法: /xlunmute <単語 または、文章>",
+    "description": "Dalamud.SetupCommands"
+  },
+  "DalamudLastLinkHelp": {
+    "message": "デフォルトブラウザで直前に投稿したリンクを開きます。",
+    "description": "Dalamud.SetupCommands"
+  },
+  "DalamudBotJoinHelp": {
+    "message": "設定した XIVLauncher の Discord ボットを自分のサーバーへ追加します。",
+    "description": "Dalamud.SetupCommands"
+  },
+  "DalamudBgmSetHelp": {
+    "message": "ゲームBGMを設定します。利用法: /xlbgmset <BGM ID>",
+    "description": "Dalamud.SetupCommands"
+  },
+  "DalamudItemLinkHelp": {
+    "message": "アイテムを名前でリンクします。使用法: /xlitem <アイテム名>  アイテム名を完全一致したい場合: /xlitem +<アイテム名>",
+    "description": "Dalamud.SetupCommands"
+  },
+  "DalamudBonusHelp": {
+    "message": "ルーレットに指定したボーナスがある場合に通知します。詳細はパラメータなしで実行してください。使用法: /xlbonus <ルーレット名> <ロール名>",
+    "description": "Dalamud.SetupCommands"
+  },
+  "DalamudDevMenuHelp": {
+    "message": "DEBUG 開発メニューを表示します。",
+    "description": "Dalamud.SetupCommands"
+  },
+  "DalamudInstallerHelp": {
+    "message": "プラグインインストーラを開きます",
+    "description": "Dalamud.SetupCommands"
+  },
+  "DalamudCreditsHelp": {
+    "message": "Dalamud のクレジットを開きます。",
+    "description": "Dalamud.SetupCommands"
+  },
+  "DalamudCmdHelpAvailable": {
+    "message": "利用可能なコマンド:",
+    "description": "Dalamud.OnHelpCommand"
+  },
+  "DalamudMuted": {
+    "message": "\"{0}\" をミュートしました。",
+    "description": "Dalamud.OnBadWordsAddCommand"
+  },
+  "DalamudNoneMuted": {
+    "message": "ミュートされている単語または、文章はありません。",
+    "description": "Dalamud.OnBadWordsListCommand"
+  },
+  "DalamudUnmuted": {
+    "message": "\"{0}\" のミュートを解除しました。",
+    "description": "Dalamud.OnBadWordsRemoveCommand"
+  },
+  "DalamudNoLastLink": {
+    "message": "直前のリンクがありません……",
+    "description": "Dalamud.OnLastLinkCommand"
+  },
+  "DalamudOpeningLink": {
+    "message": "{0} を開いています。",
+    "description": "Dalamud.OnLastLinkCommand"
+  },
+  "DalamudBotNotSetup": {
+    "message": "XIVLauncher の Discordボットが正しく設定されていないか、Discord に接続できませんでした。設定やFAQをご確認ください。",
+    "description": "Dalamud.OnBotJoinCommand"
+  },
+  "DalamudChannelNotSetup": {
+    "message": "通知用の Discord チャンネルを設定していません (チャットでのみ受信できます)。Discord で通知を受け取るには、XIVLauncher の In-Game 設定をしてください。",
+    "description": "Dalamud.OnRouletteBonusNotifyCommand"
+  },
+  "DalamudBonusSet": {
+    "message": "{0}({1}) のボーナス通知を {2} に設定します",
+    "description": "Dalamud.OnRouletteBonusNotifyCommand"
+  },
+  "DalamudInvalidArguments": {
+    "message": "認識できないパラメータです。",
+    "description": "Dalamud.OnRouletteBonusNotifyCommand"
+  },
+  "DalamudBonusPossibleValues": {
+    "message": "ルーレットの可能な入力：leveling, 506070, msq, guildhests, expert, trials, mentor, alliance, normal\nロールの可能な入力：tank, dps, healer, all, none/reset",
+    "description": "Dalamud.OnRouletteBonusNotifyCommand"
+  },
+  "DalamudItemNotFound": {
+    "message": "アイテムを見つけられませんでした。",
+    "description": "<<OnItemLinkCommand>b__0>d.MoveNext"
+  },
+  "InstallerHeader": {
+    "message": "プラグインインストーラ",
+    "description": "PluginInstallerWindow.Draw"
+  },
+  "InstallerHint": {
+    "message": "このウィンドウでは、In-Game プラグインのインストールと削除を行うことができます。\nこれらはサードパーティの開発者によって作られたものです。",
+    "description": "PluginInstallerWindow.Draw"
+  },
+  "InstallerLoading": {
+    "message": "プラグインをロード中……",
+    "description": "PluginInstallerWindow.Draw"
+  },
+  "InstallerDownloadFailed": {
+    "message": "ダウンロードが失敗しました。",
+    "description": "PluginInstallerWindow.Draw"
+  },
+  "InstallerInstalled": {
+    "message": " (導入済み)",
+    "description": "PluginInstallerWindow.Draw"
+  },
+  "InstallerInProgress": {
+    "message": "インストール中……",
+    "description": "PluginInstallerWindow.Draw"
+  },
+  "InstallerDisable": {
+    "message": "無効化",
+    "description": "PluginInstallerWindow.Draw"
+  },
+  "InstallerOpenConfig": {
+    "message": "設定を開く",
+    "description": "PluginInstallerWindow.Draw"
+  },
+  "InstallerUpdating": {
+    "message": "アップデートしています……",
+    "description": "PluginInstallerWindow.Draw"
+  },
+  "InstallerUpdateComplete": {
+    "message": "{0} のプラグインが更新されました！",
+    "description": "PluginInstallerWindow.Draw"
+  },
+  "InstallerNoUpdates": {
+    "message": "アップデートが見つかりませんでした！",
+    "description": "PluginInstallerWindow.Draw"
+  },
+  "InstallerUpdatePlugins": {
+    "message": "プラグインをアップデートする",
+    "description": "PluginInstallerWindow.Draw"
+  },
+  "Close": {
+    "message": "閉じる",
+    "description": "PluginInstallerWindow.Draw"
+  },
+  "InstallerError": {
+    "message": "インストールが失敗しました",
+    "description": "PluginInstallerWindow.Draw"
+  },
+  "InstallerErrorHint": {
+    "message": "プラグインのインストーラに問題が発生したか、プラグインとの互換性がありません。\nゲームを再起動して、このエラーを私たちのディスコードで報告してください。",
+    "description": "PluginInstallerWindow.Draw"
+  },
+  "OK": {
+    "message": "OK",
+    "description": "PluginInstallerWindow.Draw"
+  },
+  "DalamudWelcome": {
+    "message": "XIVLauncher In-Game アドオン v{0} がロードされました.",
+    "description": "ChatHandlers.OnChatMessage"
+  },
+  "DalamudPluginLoaded": {
+    "message": "    》 {0} v{1} がロードされました。",
+    "description": "ChatHandlers.OnChatMessage"
+  },
+  "DalamudUpdated": {
+    "message": "In-Game アドオンの更新または、再インストールに成功しました。詳細な変更履歴はDiscordで確認してください。",
+    "description": "ChatHandlers.OnChatMessage"
+  },
+  "DalamudPluginUpdateRequired": {
+    "message": "いくつかのプラグインで更新が必要です。/xlplugins コマンドを使用して、プラグインを更新してください。",
+    "description": "ChatHandlers.OnChatMessage"
+  },
+  "DalamudPluginUpdateCheckFail": {
+    "message": "プラグインの更新を確認できませんでした。",
+    "description": "ChatHandlers.OnChatMessage"
+  }
+}

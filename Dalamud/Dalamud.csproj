@@ -42,6 +42,7 @@
     <None Remove="Resources\**" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="CheapLoc" Version="1.1.1" />
     <PackageReference Include="Lumina" Version="1.1.1" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
     <PackageReference Include="PropertyChanged.Fody" Version="2.6.1" />
@@ -76,6 +77,21 @@
   </ItemGroup>
   <ItemGroup>
     <None Update="NotoSansCJKjp-Medium.otf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="UIRes\loc\dalamud\dalamud_de.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="UIRes\loc\dalamud\dalamud_es.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="UIRes\loc\dalamud\dalamud_fr.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="UIRes\loc\dalamud\dalamud_it.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="UIRes\loc\dalamud\dalamud_ja.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="UIRes\logo.png">
