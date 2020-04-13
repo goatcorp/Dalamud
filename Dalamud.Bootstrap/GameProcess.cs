@@ -9,6 +9,8 @@ namespace Dalamud.Bootstrap
 {
     public sealed partial class GameProcess : IDisposable
     {
+        private const uint OpenProcessRights = 0;
+
         private IntPtr m_handle;
 
         public GameProcess(IntPtr handle)
@@ -51,13 +53,14 @@ namespace Dalamud.Bootstrap
 
         public static GameProcess Open(uint pid)
         {
-            //
             var secHandle = OpenProcessHandle(pid, (uint)(PROCESS_ACCESS_RIGHTS.READ_CONTROL | PROCESS_ACCESS_RIGHTS.WRITE_DAC));
             try
             {
-                RelaxProcessHandle(secHandle, (_) =>
+                return RelaxProcessHandle(secHandle, (_) =>
                 {
+                    var handle = OpenProcessHandle(pid, OpenProcessRights);
 
+                    return new GameProcess(handle);
                 });
             }
             finally
@@ -66,15 +69,17 @@ namespace Dalamud.Bootstrap
             }
         }
 
-        private static void RelaxProcessHandle(IntPtr handle, Action<IntPtr> scope)
+        private static T RelaxProcessHandle<T>(IntPtr handle, Func<IntPtr, T> scope)
         {
             // relax shit
             unsafe
             {
+                T result;
+                uint error;
                 SECURITY_DESCRIPTOR* pSecurityDescOrig;
-                ACL* pDaclOrig, pDaclRelaxed;
+                ACL* pDaclOrig;
 
-                var error = Advapi32.GetSecurityInfo(
+                error = Advapi32.GetSecurityInfo(
                     handle,
                     SE_OBJECT_TYPE.SE_KERNEL_OBJECT,
                     SECURITY_INFORMATION.DACL_SECURITY_INFORMATION,
@@ -92,18 +97,53 @@ namespace Dalamud.Bootstrap
 
                 try
                 {
-                    scope(handle);
+                    EXPLICIT_ACCESS_W explictAccess;
+                    ACL* pRelaxedAcl;
+
+                    Advapi32.BuildExplicitAccessWithNameW(&explictAccess, "TODO", OpenProcessRights, ACCESS_MODE.GRANT_ACCESS, 0);
+
+                    error = Advapi32.SetEntriesInAclW(1, &explictAccess, null, &pRelaxedAcl);
+
+                    if (error != 0)
+                    {
+                        throw new ProcessException();
+                    }
+
+                    error = Advapi32.SetSecurityInfo(
+                        handle,
+                        SE_OBJECT_TYPE.SE_KERNEL_OBJECT,
+                        SECURITY_INFORMATION.DACL_SECURITY_INFORMATION,
+                        null,
+                        null,
+                        pRelaxedAcl,
+                        null
+                    );
+
+                    if (error != 0)
+                    {
+                        throw new ProcessException();
+                    }
+
+                    result = scope(handle);
                 }
                 finally
                 {
-                    // Restore permission
+                    // Restore permission; also we don't care about an error for now
+                    Advapi32.SetSecurityInfo(
+                        handle,
+                        SE_OBJECT_TYPE.SE_KERNEL_OBJECT,
+                        SECURITY_INFORMATION.DACL_SECURITY_INFORMATION,
+                        null,
+                        null,
+                        pDaclOrig,
+                        null
+                    );
 
                     Kernel32.LocalFree(pSecurityDescOrig);
                 }
-            }
 
-            
-            
+                return result;
+            }
         }
 
         public void GetSecurityInfo()

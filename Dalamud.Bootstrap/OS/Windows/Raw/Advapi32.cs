@@ -11,11 +11,11 @@ namespace Dalamud.Bootstrap.OS.Windows.Raw
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool InitializeSecurityDescriptor(out SECURITY_DESCRIPTOR pSecurityDescriptor, uint revision);
 
-        [DllImport(Name, CallingConvention = CallingConvention.Winapi)]
-        public static extern uint SetEntriesInAclA(ulong cCountOfExplicitEntries, ref ACL oldAcl, out ACL* NewAcl);
+        [DllImport(Name, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, CharSet = CharSet.Unicode)]
+        public static extern uint SetEntriesInAclW(ulong cCountOfExplicitEntries, EXPLICIT_ACCESS_W* pListOfExplicitEntries, ACL* oldAcl, ACL** NewAcl);
         
         [DllImport(Name, CallingConvention = CallingConvention.Winapi, ExactSpelling = true, CharSet = CharSet.Unicode)]
-        public static extern void BuildExplicitAccessWithNameW(out EXPLICIT_ACCESS_W pExplicitAccess, string pTrusteeName, uint AccessPermissions, ACCESS_MODE AccessMode, uint Inheritance);
+        public static extern void BuildExplicitAccessWithNameW(EXPLICIT_ACCESS_W* pExplicitAccess, string pTrusteeName, uint AccessPermissions, ACCESS_MODE AccessMode, uint Inheritance);
         
         [DllImport(Name, CallingConvention = CallingConvention.Winapi)]
         public static extern uint GetSecurityInfo(IntPtr handle, SE_OBJECT_TYPE ObjectType, SECURITY_INFORMATION SecurityInfo, SID** ppsidOwner, SID** ppsidGroup, ACL** ppDacl, ACL** ppSacl, SECURITY_DESCRIPTOR** ppSecurityDescriptor);
