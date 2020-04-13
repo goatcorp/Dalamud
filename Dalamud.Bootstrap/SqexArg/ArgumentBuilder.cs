@@ -59,7 +59,11 @@ namespace Dalamud.Bootstrap.SqexArg
             var escapedKey = EscapeValue(key);
             var escapedvalue = EscapeValue(value);
 
-            buffer.Append($" /{escapedKey} ={escapedvalue}"); // TODO: this is broken
+            // TODO: (from chat)
+            // This line, the = in your version has a space before it
+            // If you're sending the arguments in plaintext, game doesn't like the space there
+            // (But I think it needs to be there in crypted args)
+            buffer.Append($" /{escapedKey} ={escapedvalue}"); // TODO: thanks SE
         }
 
         private static string EscapeValue(string value)
