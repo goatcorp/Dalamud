@@ -18,6 +18,9 @@ namespace Dalamud.Bootstrap.OS.Windows.Raw
         public static extern void BuildExplicitAccessWithNameW(out EXPLICIT_ACCESS_W pExplicitAccess, string pTrusteeName, uint AccessPermissions, ACCESS_MODE AccessMode, uint Inheritance);
         
         [DllImport(Name, CallingConvention = CallingConvention.Winapi)]
-        public static extern uint GetSecurityInfo(IntPtr handle, SE_OBJECT_TYPE ObjectType, SECURITY_INFORMATION SecurityInfo);
+        public static extern uint GetSecurityInfo(IntPtr handle, SE_OBJECT_TYPE ObjectType, SECURITY_INFORMATION SecurityInfo, SID** ppsidOwner, SID** ppsidGroup, ACL** ppDacl, ACL** ppSacl, SECURITY_DESCRIPTOR** ppSecurityDescriptor);
+        
+        [DllImport(Name, CallingConvention = CallingConvention.Winapi)]
+        public static extern uint SetSecurityInfo(IntPtr handle, SE_OBJECT_TYPE _OBJECT_TYPE, SECURITY_INFORMATION SecurityInfo, SID* psidOwner, SID* psidGroup, ACL* pDacl, ACL* pSacl);
     }
 }

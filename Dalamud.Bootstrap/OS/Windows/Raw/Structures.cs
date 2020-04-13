@@ -131,7 +131,7 @@ namespace Dalamud.Bootstrap.OS.Windows.Raw
         public IntPtr Dacl;
     }
 
-    [StructLayout(LayoutKind.Explicit)]
+    [StructLayout(LayoutKind.Sequential)]
     internal unsafe struct TRUSTEE_W
     {
         public TRUSTEE_W* pMultipleTrustee;
@@ -144,19 +144,36 @@ namespace Dalamud.Bootstrap.OS.Windows.Raw
     [StructLayout(LayoutKind.Sequential)]
     internal struct EXPLICIT_ACCESS_W
     {
-        uint grfAccessPermissions;
-        ACCESS_MODE grfAccessMode;
-        uint grfInheritance;
-        TRUSTEE_W Trustee;
+        public uint grfAccessPermissions;
+        public ACCESS_MODE grfAccessMode;
+        public uint grfInheritance;
+        public TRUSTEE_W Trustee;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct SID
+    {
+        // NOTE: this structure actually has no fixed length and therefore should not be used directly.
+        // https://docs.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-sid
+        byte Revision;
+        byte SubAuthorityCount;
+        SID_IDENTIFIER_AUTHORITY IdentifierAuthority;
+        uint SubAuthority; 
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct SID_IDENTIFIER_AUTHORITY
+    {
+        public unsafe fixed byte Value[6];
     }
 
     [StructLayout(LayoutKind.Sequential)]
     internal struct ACL
     {
-        byte AclRevision;
-        byte Sbz1;
-        ushort AclSize;
-        ushort AceCount;
-        ushort Sbz2;
+        public byte AclRevision;
+        public byte Sbz1;
+        public ushort AclSize;
+        public ushort AceCount;
+        public ushort Sbz2;
     }
 }
