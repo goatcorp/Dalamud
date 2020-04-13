@@ -25,6 +25,18 @@ Wintermute
 
 
 
+Localization by:
+
+Truci
+fmauNeko
+Roy
+karashiiro
+Miu
+qtBxi
+N30n014
+
+
+
 Logo by:
 
 gucciBane
