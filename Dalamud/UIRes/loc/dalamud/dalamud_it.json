@@ -1,170 +1,170 @@
 {
   "DalamudUnloadHelp": {
-    "message": "Unloads XIVLauncher in-game addon.",
+    "message": "Disattiva l'addon in gioco di XIVLauncher.",
     "description": "Dalamud.SetupCommands"
   },
   "DalamudPluginReloadHelp": {
-    "message": "Reloads all plugins.",
+    "message": "Ricarica tutti i plugin.",
     "description": "Dalamud.SetupCommands"
   },
   "DalamudPrintChatHelp": {
-    "message": "Print to chat.",
+    "message": "Stampa in chat.",
     "description": "Dalamud.SetupCommands"
   },
   "DalamudCmdInfoHelp": {
-    "message": "Shows list of commands available.",
+    "message": "Mostra lista dei comandi disponibili.",
     "description": "Dalamud.SetupCommands"
   },
   "DalamudMuteHelp": {
-    "message": "Mute a word or sentence from appearing in chat. Usage: /xlmute <word or sentence>",
+    "message": "Proibisci a una parola o a una frase di apparire in chat. Uso: /xlmute <parola o frase>",
     "description": "Dalamud.SetupCommands"
   },
   "DalamudMuteListHelp": {
-    "message": "List muted words or sentences.",
+    "message": "Elenca parole e frasi proibite.",
     "description": "Dalamud.SetupCommands"
   },
   "DalamudUnmuteHelp": {
-    "message": "Unmute a word or sentence. Usage: /xlunmute <word or sentence>",
+    "message": "Permetti a una parola o a una frase di apparire in chat. Uso: /xlunmute <parola o frase>",
     "description": "Dalamud.SetupCommands"
   },
   "DalamudLastLinkHelp": {
-    "message": "Open the last posted link in your default browser.",
+    "message": "Apri il link piú recente della chat nel tuo browser predefinito.",
     "description": "Dalamud.SetupCommands"
   },
   "DalamudBotJoinHelp": {
-    "message": "Add the XIVLauncher discord bot you set up to your server.",
+    "message": "Aggiungi al tuo server il bot Discord di XIVLauncher che hai impostato.",
     "description": "Dalamud.SetupCommands"
   },
   "DalamudBgmSetHelp": {
-    "message": "Set the Game background music. Usage: /xlbgmset <BGM ID>",
+    "message": "Imposta la musica di sottofondo del gioco. Uso: /xlbgmset <ID Musica>",
     "description": "Dalamud.SetupCommands"
   },
   "DalamudItemLinkHelp": {
-    "message": "Link an item by name. Usage: /xlitem <Item name>.  For matching an item exactly, use /xlitem +<Item name>",
+    "message": "Linka un oggetto per nome. Uso: /xlitem <Nome oggetto>. Per abbinare un oggetto specifico, usa /xlitem +<Nome oggetto>",
     "description": "Dalamud.SetupCommands"
   },
   "DalamudBonusHelp": {
-    "message": "Notify when a roulette has a bonus you specified. Run without parameters for more info. Usage: /xlbonus <roulette name> <role name>",
+    "message": "Notificami quando una roulette contiene un bonus specifico. Esegui senza parametri aggiuntivi per maggiori informazioni. Uso: /xlbonus <Nome roulette> <Nome ruolo>",
     "description": "Dalamud.SetupCommands"
   },
   "DalamudDevMenuHelp": {
-    "message": "Draw dev menu DEBUG",
+    "message": "Mostra menu sviluppatore DEBUG",
     "description": "Dalamud.SetupCommands"
   },
   "DalamudInstallerHelp": {
-    "message": "Open the plugin installer",
+    "message": "Apri l'installatore dei plugin",
     "description": "Dalamud.SetupCommands"
   },
   "DalamudCreditsHelp": {
-    "message": "Opens the credits for dalamud.",
+    "message": "Apri i titoli di coda per dalamud.",
     "description": "Dalamud.SetupCommands"
   },
   "DalamudCmdHelpAvailable": {
-    "message": "Available commands:",
+    "message": "Comandi disponibili:",
     "description": "Dalamud.OnHelpCommand"
   },
   "DalamudMuted": {
-    "message": "Muted \"{0}\".",
+    "message": "Silenziato \"{0}\".",
     "description": "Dalamud.OnBadWordsAddCommand"
   },
   "DalamudNoneMuted": {
-    "message": "No muted words or sentences.",
+    "message": "Nessuna parola o frase proibita.",
     "description": "Dalamud.OnBadWordsListCommand"
   },
   "DalamudUnmuted": {
-    "message": "Unmuted \"{0}\".",
+    "message": "Riattivato \"{0}\".",
     "description": "Dalamud.OnBadWordsRemoveCommand"
   },
   "DalamudNoLastLink": {
-    "message": "No last link...",
+    "message": "Nessun link recente...",
     "description": "Dalamud.OnLastLinkCommand"
   },
   "DalamudOpeningLink": {
-    "message": "Opening {0}",
+    "message": "Aprendo {0}",
     "description": "Dalamud.OnLastLinkCommand"
   },
   "DalamudBotNotSetup": {
-    "message": "The XIVLauncher discord bot was not set up correctly or could not connect to discord. Please check the settings and the FAQ.",
+    "message": "Il bot Discord di XIVLauncher non è stato impostato correttamente o non ha potuto connettersi a Discord. Per favore controlla le impostazioni e le FAQ.",
     "description": "Dalamud.OnBotJoinCommand"
   },
   "DalamudChannelNotSetup": {
-    "message": "You have not set up a discord channel for these notifications - you will only receive them in chat. To do this, please use the XIVLauncher in-game settings.",
+    "message": "Non hai impostato un canale Discord per queste notifiche - Per fare ció, utilizza le impostazioni di gioco di XIVLauncher. Al momento, riceverai le notifiche solo nella chat.",
     "description": "Dalamud.OnRouletteBonusNotifyCommand"
   },
   "DalamudBonusSet": {
-    "message": "Set bonus notifications for {0}({1}) to {2}",
+    "message": "Impostate notifiche bonus per {0}({1} a {2})",
     "description": "Dalamud.OnRouletteBonusNotifyCommand"
   },
   "DalamudInvalidArguments": {
-    "message": "Unrecognized arguments.",
+    "message": "Argomenti non risconosciuti.",
     "description": "Dalamud.OnRouletteBonusNotifyCommand"
   },
   "DalamudBonusPossibleValues": {
-    "message": "Possible values for roulette: leveling, 506070, msq, guildhests, expert, trials, mentor, alliance, normal\nPossible values for role: tank, dps, healer, all, none/reset",
+    "message": "Possibili valori per la roulette: leveling, 506070, msq, guildhests, expert, trials, mentor, alliance, normal\nPossibili valori per i ruoli: tank, dps, healer, all, none/reset",
     "description": "Dalamud.OnRouletteBonusNotifyCommand"
   },
   "DalamudItemNotFound": {
-    "message": "Could not find item.",
+    "message": "Oggetto non trovato.",
     "description": "<<OnItemLinkCommand>b__0>d.MoveNext"
   },
   "InstallerHeader": {
-    "message": "Plugin Installer",
+    "message": "Installatore Plugin",
     "description": "PluginInstallerWindow.Draw"
   },
   "InstallerHint": {
-    "message": "This window allows you install and remove in-game plugins.\nThey are made by third-party developers.",
+    "message": "Questa finestra ti permette di installare e rimuovere i plugin di gioco.\nSono sviluppati da terze parti.",
     "description": "PluginInstallerWindow.Draw"
   },
   "InstallerLoading": {
-    "message": "Loading plugins...",
+    "message": "Caricamento plugins...",
     "description": "PluginInstallerWindow.Draw"
   },
   "InstallerDownloadFailed": {
-    "message": "Download failed.",
+    "message": "Download fallito.",
     "description": "PluginInstallerWindow.Draw"
   },
   "InstallerInstalled": {
-    "message": " (installed)",
+    "message": " (installato)",
     "description": "PluginInstallerWindow.Draw"
   },
   "InstallerInProgress": {
-    "message": "Install in progress...",
+    "message": "Installazione in corso...",
     "description": "PluginInstallerWindow.Draw"
   },
   "InstallerDisable": {
-    "message": "Disable",
+    "message": "Disabilita",
     "description": "PluginInstallerWindow.Draw"
   },
   "InstallerOpenConfig": {
-    "message": "Open Configuration",
+    "message": "Apri configurazione",
     "description": "PluginInstallerWindow.Draw"
   },
   "InstallerUpdating": {
-    "message": "Updating...",
+    "message": "Aggiornamento...",
     "description": "PluginInstallerWindow.Draw"
   },
   "InstallerUpdateComplete": {
-    "message": "{0} plugins updated!",
+    "message": "{0} plugins aggiornati!",
     "description": "PluginInstallerWindow.Draw"
   },
   "InstallerNoUpdates": {
-    "message": "No updates found!",
+    "message": "Nessun aggiornamento trovato!",
     "description": "PluginInstallerWindow.Draw"
   },
   "InstallerUpdatePlugins": {
-    "message": "Update plugins",
+    "message": "Aggiorna plugins",
     "description": "PluginInstallerWindow.Draw"
   },
   "Close": {
-    "message": "Close",
+    "message": "Chiudi",
     "description": "PluginInstallerWindow.Draw"
   },
   "InstallerError": {
-    "message": "Installer failed",
+    "message": "Installazione fallita",
     "description": "PluginInstallerWindow.Draw"
   },
   "InstallerErrorHint": {
-    "message": "The plugin installer ran into an issue or the plugin is incompatible.\nPlease restart the game and report this error on our discord.",
+    "message": "L'installatore ha riscontrato dei problemi o il plugin é incompatibile.\nRiavvia il gioco e segnalaci questo errore sul nostro Discord.",
     "description": "PluginInstallerWindow.Draw"
   },
   "OK": {
@@ -172,23 +172,23 @@
     "description": "PluginInstallerWindow.Draw"
   },
   "DalamudWelcome": {
-    "message": "XIVLauncher in-game addon v{0} loaded.",
+    "message": "XIVLauncher addon in gioco v{0} caricato.",
     "description": "ChatHandlers.OnChatMessage"
   },
   "DalamudPluginLoaded": {
-    "message": "    》 {0} v{1} loaded.",
+    "message": "    》 {0} v{1} caricato.",
     "description": "ChatHandlers.OnChatMessage"
   },
   "DalamudUpdated": {
-    "message": "The In-Game addon has been updated or was reinstalled successfully! Please check the discord for a full changelog.",
+    "message": "L'addon in gioco è stato aggiornato o reinstallato con successo! Controlla su Discord per un changelog completo.",
     "description": "ChatHandlers.OnChatMessage"
   },
   "DalamudPluginUpdateRequired": {
-    "message": "One or more of your plugins needs to be updated. Please use the /xlplugins command in-game to update them!",
+    "message": "Uno o piú dei tuoi plugins necessita un aggiornamento. Usa il comando /xlplugins in gioco per aggiornarli!",
     "description": "ChatHandlers.OnChatMessage"
   },
   "DalamudPluginUpdateCheckFail": {
-    "message": "Could not check for plugin updates.",
+    "message": "Non è stato possibile controllare gli aggiornamenti dei plugin.",
     "description": "ChatHandlers.OnChatMessage"
   }
 }
