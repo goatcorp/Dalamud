@@ -1,7 +1,12 @@
 using System;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Text;
+using CheapLoc;
 using Dalamud.Game;
 using Dalamud.Game.Internal.DXGI;
 using Dalamud.Hooking;
@@ -44,6 +49,9 @@ namespace Dalamud.Interface
         private Dalamud dalamud;
         private RawDX11Scene scene;
 
+        private delegate void InstallRTSSHook();
+        private string rtssPath;
+
         /// <summary>
         /// This event gets called by a plugin UiBuilder when read
         /// </summary>
@@ -72,6 +80,23 @@ namespace Dalamud.Interface
                 Address = vtableResolver;
             }
 
+            try {
+                var rtss = NativeFunctions.GetModuleHandle("RTSSHooks64.dll");
+
+                if (rtss != IntPtr.Zero) {
+                    var fileName = new StringBuilder(255);
+                    NativeFunctions.GetModuleFileName(rtss, fileName, fileName.Capacity);
+                    this.rtssPath = fileName.ToString();
+                    Log.Verbose("RTSS at {0}", this.rtssPath);
+
+                    if (!NativeFunctions.FreeLibrary(rtss))
+                        throw new Win32Exception();
+                }
+            } catch (Exception e) {
+                Log.Error(e, "RTSS Free failed");
+            }
+            
+
             var setCursorAddr = LocalHook.GetProcAddress("user32.dll", "SetCursor");
 
             Log.Verbose("===== S W A P C H A I N =====");
@@ -97,6 +122,18 @@ namespace Dalamud.Interface
             this.setCursorHook.Enable();
             this.presentHook.Enable();
             this.resizeBuffersHook.Enable();
+
+            try {
+                if (!string.IsNullOrEmpty(this.rtssPath)) {
+                    NativeFunctions.LoadLibrary(this.rtssPath);
+
+                    var installAddr = LocalHook.GetProcAddress("RTSSHooks64.dll", "InstallRTSSHook");
+                    var installDele = Marshal.GetDelegateForFunctionPointer<InstallRTSSHook>(installAddr);
+                    installDele.Invoke();
+                }
+            } catch (Exception ex) {
+                Log.Error(ex, "Could not reload RTSS");
+            }
         }
 
         private void Disable()
