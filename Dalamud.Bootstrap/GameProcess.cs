@@ -4,6 +4,7 @@ using Dalamud.Bootstrap.OS.Windows.Raw;
 using Microsoft.Win32.SafeHandles;
 using System;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace Dalamud.Bootstrap
 {
@@ -336,7 +337,7 @@ namespace Dalamud.Bootstrap
             // On success, receives the number of characters written to the buffer, not including the null-terminating character.
             var size = buffer.Capacity;
 
-            if (!Kernel32.QueryFullProcessImageNameW(Handle, 0, buffer, ref size))
+            if (!Kernel32.QueryFullProcessImageNameW(m_handle, 0, buffer, ref size))
             {
                 ProcessException.ThrowLastOsError();
             }
