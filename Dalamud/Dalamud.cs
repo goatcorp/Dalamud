@@ -320,6 +320,17 @@ namespace Dalamud {
                 this.isImguiDrawPluginWindow = this.pluginWindow != null && this.pluginWindow.Draw();
             }
 
+            if (this.isImguiDrawItemSearchWindow)
+            {
+                this.isImguiDrawItemSearchWindow = this.itemSearchCommandWindow != null && this.itemSearchCommandWindow.Draw();
+
+                if (this.isImguiDrawItemSearchWindow == false)
+                {
+                    this.itemSearchCommandWindow?.Dispose();
+                    this.itemSearchCommandWindow = null;
+                }
+            }
+
             if (this.isImguiDrawCreditsWindow)
             {
                 this.isImguiDrawCreditsWindow = this.creditsWindow != null && this.creditsWindow.Draw();
@@ -519,43 +530,31 @@ namespace Dalamud {
             Framework.Gui.SetBgm(ushort.Parse(arguments));
         }
 
+        private ItemSearchWindow itemSearchCommandWindow;
+        private bool isImguiDrawItemSearchWindow;
+
         private void OnItemLinkCommand(string command, string arguments) {
-            var exactSearch = false;
-            if (arguments.StartsWith("+"))
-            {
-                exactSearch = true;
-                arguments = arguments.Substring(1);
-            }
+            this.itemSearchCommandWindow = new ItemSearchWindow(this.Data, new UiBuilder(this.InterfaceManager, "ItemSearcher"));
+            this.itemSearchCommandWindow.OnItemChosen += (sender, item) => {
+                var hexData = new byte[] {
+                    0x02, 0x13, 0x06, 0xFE, 0xFF, 0xF3, 0xF3, 0xF3, 0x03, 0x02, 0x27, 0x07, 0x03, 0xF2, 0x3A, 0x2F,
+                    0x02, 0x01, 0x03, 0x02, 0x13, 0x06, 0xFE, 0xFF, 0xFF, 0x7B, 0x1A, 0x03, 0xEE, 0x82, 0xBB, 0x02,
+                    0x13, 0x02, 0xEC, 0x03
+                };
 
-            Task.Run(async () => {
-                try {
-                    dynamic results = await XivApi.Search(arguments, "Item", 1, exactSearch);
-                    var itemId = (short) results.Results[0].ID;
-                    var itemName = (string)results.Results[0].Name;
+                var endTag = new byte[] {
+                    0x02, 0x27, 0x07, 0xCF, 0x01, 0x01, 0x01, 0xFF, 0x01, 0x03, 0x02, 0x13, 0x02, 0xEC, 0x03
+                };
 
-                    var hexData = new byte[] {
-                        0x02, 0x13, 0x06, 0xFE, 0xFF, 0xF3, 0xF3, 0xF3, 0x03, 0x02, 0x27, 0x07, 0x03, 0xF2, 0x3A, 0x2F,
-                        0x02, 0x01, 0x03, 0x02, 0x13, 0x06, 0xFE, 0xFF, 0xFF, 0x7B, 0x1A, 0x03, 0xEE, 0x82, 0xBB, 0x02,
-                        0x13, 0x02, 0xEC, 0x03
-                    };
+                BitConverter.GetBytes((short) item.RowId).Reverse().ToArray().CopyTo(hexData, 14);
 
-                    var endTag = new byte[] {
-                        0x02, 0x27, 0x07, 0xCF, 0x01, 0x01, 0x01, 0xFF, 0x01, 0x03, 0x02, 0x13, 0x02, 0xEC, 0x03
-                    };
+                hexData = hexData.Concat(Encoding.UTF8.GetBytes(item.Name)).Concat(endTag).ToArray();
 
-                    BitConverter.GetBytes(itemId).Reverse().ToArray().CopyTo(hexData, 14);
-
-                    hexData = hexData.Concat(Encoding.UTF8.GetBytes(itemName)).Concat(endTag).ToArray();
-
-                    Framework.Gui.Chat.PrintChat(new XivChatEntry {
-                        MessageBytes = hexData
-                    });
-                }
-                catch {
-                    Framework.Gui.Chat.PrintError(Loc.Localize("DalamudItemNotFound", "Could not find item."));
-                }
-
-            });
+                this.Framework.Gui.Chat.PrintChat(new XivChatEntry {
+                    MessageBytes = hexData
+                });
+            };
+            this.isImguiDrawItemSearchWindow = true;
         }
 
 #if DEBUG
