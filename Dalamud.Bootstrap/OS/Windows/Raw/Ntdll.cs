@@ -9,6 +9,6 @@ namespace Dalamud.Bootstrap.OS.Windows.Raw
         private const string Name = "ntdll";
 
         [DllImport(Name, CallingConvention = CallingConvention.Winapi, SetLastError = true)]
-        public static extern NTSTATUS NtQueryInformationProcess(SafeProcessHandle processHandle, PROCESSINFOCLASS processInfoClass, void* processInformation, int processInformationLength, IntPtr* returnLength);
+        public static extern NTSTATUS NtQueryInformationProcess(IntPtr processHandle, PROCESSINFOCLASS processInfoClass, void* processInformation, int processInformationLength, IntPtr* returnLength);
     }
 }

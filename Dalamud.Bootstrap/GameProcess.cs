@@ -1,6 +1,7 @@
 using Dalamud.Bootstrap.OS;
 using Dalamud.Bootstrap.OS.Windows;
 using Dalamud.Bootstrap.OS.Windows.Raw;
+using Dalamud.Bootstrap.SqexArg;
 using Microsoft.Win32.SafeHandles;
 using System;
 using System.Runtime.InteropServices;
@@ -8,7 +9,7 @@ using System.Text;
 
 namespace Dalamud.Bootstrap
 {
-    public sealed partial class GameProcess : IDisposable
+    public sealed class GameProcess : IDisposable
     {
         private const uint OpenProcessRights = 0;
 
@@ -55,9 +56,11 @@ namespace Dalamud.Bootstrap
         public static GameProcess Open(uint pid)
         {
             var secHandle = OpenProcessHandle(pid, (uint)(PROCESS_ACCESS_RIGHTS.READ_CONTROL | PROCESS_ACCESS_RIGHTS.WRITE_DAC));
+            
             try
             {
-                return RelaxProcessHandle(secHandle, (_) =>
+                // We can get VM_WRITE this way
+                return RelaxProcessHandle(secHandle, OpenProcessRights, (_) =>
                 {
                     var handle = OpenProcessHandle(pid, OpenProcessRights);
 
@@ -70,7 +73,15 @@ namespace Dalamud.Bootstrap
             }
         }
 
-        private static T RelaxProcessHandle<T>(IntPtr handle, Func<IntPtr, T> scope)
+        /// <summary>
+        /// Temporary grants access rights to the handle.
+        /// </summary>
+        /// <param name="handle">A handle to set access rights on it. Must be SE_KERNEL_OBJECT</param>
+        /// <param name="access">An access right to grant.</param>
+        /// <param name="scope">A function to execute while temporary access is granted.</param>
+        /// <typeparam name="T">A return type.</typeparam>
+        /// <returns>A value returned from the scope function.</returns>
+        private static T RelaxProcessHandle<T>(IntPtr handle, uint access, Func<IntPtr, T> scope)
         {
             // relax shit
             unsafe
@@ -93,7 +104,7 @@ namespace Dalamud.Bootstrap
 
                 if (error != 0)
                 {
-                    throw new ProcessException();
+                    throw new ProcessException($"Could not get security info. (Error {error})");
                 }
 
                 try
@@ -101,13 +112,13 @@ namespace Dalamud.Bootstrap
                     EXPLICIT_ACCESS_W explictAccess;
                     ACL* pRelaxedAcl;
 
-                    Advapi32.BuildExplicitAccessWithNameW(&explictAccess, "TODO", OpenProcessRights, ACCESS_MODE.GRANT_ACCESS, 0);
+                    Advapi32.BuildExplicitAccessWithNameW(&explictAccess, Environment.UserName, access, ACCESS_MODE.SET_ACCESS, 0 /* NO_INHERITANCE */);
 
                     error = Advapi32.SetEntriesInAclW(1, &explictAccess, null, &pRelaxedAcl);
 
                     if (error != 0)
                     {
-                        throw new ProcessException();
+                        throw new ProcessException($"Could not set security info. (Error {error})");
                     }
 
                     error = Advapi32.SetSecurityInfo(
@@ -147,24 +158,6 @@ namespace Dalamud.Bootstrap
             }
         }
 
-        public void GetSecurityInfo()
-        {
-
-            var error = Advapi32.GetSecurityInfo(m_handle, SE_OBJECT_TYPE.SE_KERNEL_OBJECT, SECURITY_INFORMATION.DACL_SECURITY_INFORMATION, );
-
-            if (error != 0 /* ERROR_SUCCESS */)
-            {
-                throw new ProcessException($"Could not read a security info. (Error {error})");
-            }
-
-
-        }
-
-        private static void AllowDacl(Process process)
-        {
-
-        }
-
         /// <summary>
         /// Reads process memory.
         /// </summary>
@@ -180,7 +173,7 @@ namespace Dalamud.Bootstrap
             {
                 fixed (byte* pDest = destination)
                 {
-                    if (!Kernel32.ReadProcessMemory(Handle, address, pDest, (IntPtr)destination.Length, out var bytesRead))
+                    if (!Kernel32.ReadProcessMemory(m_handle, address, pDest, (IntPtr)destination.Length, out var bytesRead))
                     {
                         ProcessException.ThrowLastOsError();
                     }
@@ -249,7 +242,7 @@ namespace Dalamud.Bootstrap
             {
                 PROCESS_BASIC_INFORMATION info = default;
 
-                var status = Ntdll.NtQueryInformationProcess(Handle, PROCESSINFOCLASS.ProcessBasicInformation, &info, sizeof(PROCESS_BASIC_INFORMATION), (IntPtr*)IntPtr.Zero);
+                var status = Ntdll.NtQueryInformationProcess(m_handle, PROCESSINFOCLASS.ProcessBasicInformation, &info, sizeof(PROCESS_BASIC_INFORMATION), (IntPtr*)IntPtr.Zero);
 
                 if (!status.Success)
                 {
@@ -284,9 +277,14 @@ namespace Dalamud.Bootstrap
         /// </summary>
         public DateTime GetCreationTime()
         {
-            if (!Kernel32.GetProcessTimes(Handle, out var creationTime, out var _, out var _, out var _))
+            FILETIME creationTime, exitTime, kernelTime, userTime;
+
+            unsafe
             {
-                ProcessException.ThrowLastOsError();
+                if (!Kernel32.GetProcessTimes(m_handle, &creationTime, &exitTime, &kernelTime, &userTime))
+                {
+                    ProcessException.ThrowLastOsError();
+                }
             }
 
             return creationTime.ToDateTime();
@@ -343,6 +341,60 @@ namespace Dalamud.Bootstrap
             }
 
             return buffer.ToString();
+        }
+
+        /// <summary>
+        /// Recovers a key used in encrypting process arguments.
+        /// </summary>
+        /// <returns>A key recovered from the time when the process was created.</returns>
+        /// <remarks>
+        /// This is possible because the key to encrypt arguments is just a high nibble value from GetTickCount() at the time when the process was created.
+        /// (Thanks Wintermute!)
+        /// </remarks>
+        private uint GetArgumentEncryptionKey()
+        {
+            var createdTime = GetCreationTime();
+
+            // Get current tick
+            var currentDt = DateTime.Now;
+            var currentTick = Environment.TickCount;
+
+            // We know that GetTickCount() is just a system uptime in milliseconds.
+            var delta = currentDt - createdTime;
+            var createdTick = (uint)currentTick - (uint)delta.TotalMilliseconds;
+
+            // only the high nibble is used.
+            return createdTick & 0xFFFF_0000;
+        }
+
+        /// <summary>
+        /// Reads command-line arguments from the game and decrypts them if necessary.
+        /// </summary>
+        /// <returns>
+        /// Command-line arguments that looks like this:
+        /// /DEV.TestSID =ABCD /UserPath =C:\Examples
+        /// </returns>
+        public ArgumentBuilder GetGameArguments()
+        {
+            var processArguments = GetProcessArguments();
+
+            // arg[0] is a path to exe(normally), arg[1] is actual stuff.
+            if (processArguments.Length < 2)
+            {
+                throw new ProcessException($"There's only {processArguments.Length} process arguments. It must have at least 2 arguments.");
+            }
+
+            // We're interested in argument that contains session id
+            var argument = processArguments[1];
+
+            // If it's encrypted, we need to decrypt it first
+            if (EncryptedArgument.TryParse(argument, out var encryptedArgument))
+            {
+                var key = GetArgumentEncryptionKey();
+                argument = encryptedArgument.Decrypt(key);
+            }
+
+            return argument;
         }
     }
 }
