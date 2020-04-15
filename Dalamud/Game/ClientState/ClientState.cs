@@ -81,6 +81,11 @@ namespace Dalamud.Game.ClientState
         public JobGauges JobGauges;
 
         /// <summary>
+        /// The class facilitating party list data access
+        /// </summary>
+        public PartyList PartyList;
+
+        /// <summary>
         /// Provides access to the keypress state of keyboard keys in game.
         /// </summary>
         public KeyState KeyState;
@@ -101,6 +106,8 @@ namespace Dalamud.Game.ClientState
 
             this.Actors = new ActorTable(dalamud, Address);
 
+            this.PartyList = new PartyList(dalamud, Address);
+
             this.JobGauges = new JobGauges(Address);
 
             this.KeyState = new KeyState(Address, scanner.Module.BaseAddress);
@@ -116,11 +123,13 @@ namespace Dalamud.Game.ClientState
 
         public void Enable() {
             this.Actors.Enable();
+            this.PartyList.Enable();
             this.setupTerritoryTypeHook.Enable();
         }
 
         public void Dispose() {
             this.Actors.Dispose();
+            this.PartyList.Dispose();
             this.setupTerritoryTypeHook.Dispose();
         }
 
