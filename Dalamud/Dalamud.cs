@@ -23,6 +23,8 @@ using Dalamud.Interface;
 using Dalamud.Plugin;
 using ImGuiNET;
 using Serilog;
+using Serilog.Core;
+using Serilog.Events;
 
 namespace Dalamud {
     public sealed class Dalamud : IDisposable {
@@ -50,6 +52,7 @@ namespace Dalamud {
         public readonly ClientState ClientState;
 
         public readonly DalamudStartInfo StartInfo;
+        private readonly LoggingLevelSwitch loggingLevelSwitch;
 
         public readonly DalamudConfiguration Configuration;
 
@@ -67,14 +70,19 @@ namespace Dalamud {
 
         private readonly string assemblyVersion = Assembly.GetAssembly(typeof(ChatHandlers)).GetName().Version.ToString();
 
-        public Dalamud(DalamudStartInfo info) {
+        public Dalamud(DalamudStartInfo info, LoggingLevelSwitch loggingLevelSwitch) {
             this.StartInfo = info;
-
-            this.localizationMgr = new Localization(this.StartInfo.WorkingDirectory);
-            this.localizationMgr.SetupWithUiCulture();
+            this.loggingLevelSwitch = loggingLevelSwitch;
 
             this.Configuration = DalamudConfiguration.Load(info.ConfigurationPath);
-            
+            this.localizationMgr = new Localization(this.StartInfo.WorkingDirectory);
+
+            if (!string.IsNullOrEmpty(this.Configuration.LanguageOverride)) {
+                this.localizationMgr.SetupWithLangCode(this.Configuration.LanguageOverride);
+            } else {
+                this.localizationMgr.SetupWithUiCulture();
+            }
+
             this.baseDirectory = info.WorkingDirectory;
 
             this.unloadSignal = new ManualResetEvent(false);
@@ -207,6 +215,18 @@ namespace Dalamud {
                             this.logWindow = new DalamudLogWindow();
                             this.isImguiDrawLogWindow = true;
                         }
+                        if (ImGui.BeginMenu("Set log level..."))
+                        {
+                            foreach (var logLevel in Enum.GetValues(typeof(LogEventLevel)).Cast<LogEventLevel>()) {
+                                if (ImGui.MenuItem(logLevel + "##logLevelSwitch", "", this.loggingLevelSwitch.MinimumLevel == logLevel))
+                                {
+                                    this.loggingLevelSwitch.MinimumLevel = logLevel;
+                                }
+                            }
+
+                            ImGui.EndMenu();
+                        }
+                        ImGui.Separator();
                         if (ImGui.MenuItem("Open Data window"))
                         {
                             this.dataWindow = new DalamudDataWindow(this);
@@ -424,6 +444,11 @@ namespace Dalamud {
             this.CommandManager.AddHandler("/xlcredits", new CommandInfo(OnOpenCreditsCommand) {
                 HelpMessage = Loc.Localize("DalamudCreditsHelp", "Opens the credits for dalamud.")
             });
+
+            this.CommandManager.AddHandler("/xllanguage", new CommandInfo(OnSetLanguageCommand)
+            {
+                HelpMessage = Loc.Localize("DalamudLanguageHelp", "Set the language for the in-game addon and plugins that support it.")
+            });
         }
 
         private void OnUnloadCommand(string command, string arguments) {
@@ -622,6 +647,19 @@ namespace Dalamud {
                     Path.Combine(this.StartInfo.WorkingDirectory, "UIRes", "logo.png"));
             this.creditsWindow = new DalamudCreditsWindow(logoGraphic, this.Framework);
             this.isImguiDrawCreditsWindow = true;
+        }
+
+        private void OnSetLanguageCommand(string command, string arguments)
+        {
+            if (Localization.ApplicableLangCodes.Contains(arguments.ToLower())) {
+                this.localizationMgr.SetupWithLangCode(arguments.ToLower());
+                this.Configuration.LanguageOverride = arguments.ToLower();
+            } else {
+                this.localizationMgr.SetupWithUiCulture();
+                this.Configuration.LanguageOverride = null;
+            }
+
+            this.Configuration.Save(this.StartInfo.ConfigurationPath);
         }
 
         private int RouletteSlugToKey(string slug) => slug.ToLower() switch {

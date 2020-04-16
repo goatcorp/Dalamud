@@ -6,6 +6,7 @@ using Dalamud.Interface;
 using EasyHook;
 using Serilog;
 using Serilog.Core;
+using Serilog.Events;
 
 namespace Dalamud {
     public sealed class EntryPoint : IEntryPoint {
@@ -15,7 +16,8 @@ namespace Dalamud {
 
         public void Run(RemoteHooking.IContext ctx, DalamudStartInfo info) {
             // Setup logger
-            Log.Logger = NewLogger(info.WorkingDirectory);
+            var (logger, levelSwitch) = NewLogger(info.WorkingDirectory);
+            Log.Logger = logger;
 
             try {
                 Log.Information("Initializing a session..");
@@ -28,7 +30,7 @@ namespace Dalamud {
                 AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
                 TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
 
-                using var dalamud = new Dalamud(info);
+                using var dalamud = new Dalamud(info, levelSwitch);
                 Log.Information("Starting a session..");
                     
                 // Run session
@@ -44,18 +46,24 @@ namespace Dalamud {
             }
         }
 
-        private Logger NewLogger(string baseDirectory) {
+        private (Logger logger, LoggingLevelSwitch levelSwitch) NewLogger(string baseDirectory) {
             var logPath = Path.Combine(baseDirectory, "dalamud.txt");
 
-            return new LoggerConfiguration()
+            var levelSwitch = new LoggingLevelSwitch();
+
+#if DEBUG
+            levelSwitch.MinimumLevel = LogEventLevel.Verbose;
+#else
+            levelSwitch.MinimumLevel = LogEventLevel.Information;
+#endif
+
+            var newLogger =  new LoggerConfiguration()
                    .WriteTo.Async(a => a.File(logPath))
                    .WriteTo.EventSink()
-#if DEBUG
-                   .MinimumLevel.Verbose()
-#else
-                   .MinimumLevel.Information()
-#endif
+                   .MinimumLevel.ControlledBy(levelSwitch)
                    .CreateLogger();
+
+            return (newLogger, levelSwitch);
         }
 
         private void OnUnhandledException(object sender, UnhandledExceptionEventArgs arg) {

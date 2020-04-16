@@ -39,6 +39,11 @@ namespace Dalamud
         }
 
         public void SetupWithLangCode(string langCode) {
+            if (langCode.ToLower() == "en") {
+                Loc.SetupWithFallbacks();
+                return;
+            }
+
             Loc.Setup(File.ReadAllText(Path.Combine(this.workingDirectory, "UIRes", "loc", "dalamud", $"dalamud_{langCode}.json")));
         }
     }
