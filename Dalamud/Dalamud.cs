@@ -62,8 +62,6 @@ namespace Dalamud {
 
         public readonly DataManager Data;
 
-        private AntiDebug antiDebug;
-
 
         private Localization localizationMgr;
 
@@ -174,8 +172,6 @@ namespace Dalamud {
             this.WinSock2.Dispose();
 
             this.SigScanner.Dispose();
-
-            this.antiDebug?.Dispose();
         }
 
         #region Interface
@@ -187,8 +183,6 @@ namespace Dalamud {
 #else
         private bool isImguiDrawDevMenu = false;
 #endif
-
-        private bool isAntiDebugEnabled = false;
 
         private bool isImguiDrawLogWindow = false;
         private bool isImguiDrawDataWindow = false;
@@ -240,15 +234,6 @@ namespace Dalamud {
                             this.isImguiDrawCreditsWindow = true;
                         }
                         ImGui.MenuItem("Draw ImGui demo", "", ref this.isImguiDrawDemoWindow);
-                        ImGui.Separator();
-                        if (ImGui.MenuItem("Enable AntiDebug", "", ref this.isAntiDebugEnabled)) {
-                            if (this.isAntiDebugEnabled) {
-                                this.antiDebug = new AntiDebug();
-                                this.antiDebug.Enable();
-                            } else {
-                                this.antiDebug?.Dispose();
-                            }
-                        }
                         ImGui.Separator();
                         if (ImGui.MenuItem("Unload Dalamud"))
                         {
