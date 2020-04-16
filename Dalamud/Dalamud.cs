@@ -501,7 +501,7 @@ namespace Dalamud {
 
             this.Configuration.BadWords.Add(arguments);
 
-            this.Configuration.Save(this.StartInfo.ConfigurationPath);
+            this.Configuration.Save();
 
             Framework.Gui.Chat.Print(string.Format(Loc.Localize("DalamudMuted", "Muted \"{0}\"."), arguments));
         }
@@ -515,7 +515,7 @@ namespace Dalamud {
                 return;
             }
 
-            this.Configuration.Save(this.StartInfo.ConfigurationPath);
+            this.Configuration.Save();
 
             foreach (var word in this.Configuration.BadWords) Framework.Gui.Chat.Print($"\"{word}\"");
         }
@@ -526,7 +526,7 @@ namespace Dalamud {
 
             this.Configuration.BadWords.RemoveAll(x => x == arguments);
 
-            this.Configuration.Save(this.StartInfo.ConfigurationPath);
+            this.Configuration.Save();
 
             Framework.Gui.Chat.Print(string.Format(Loc.Localize("DalamudUnmuted", "Unmuted \"{0}\"."), arguments));
         }
@@ -622,7 +622,7 @@ namespace Dalamud {
 
             Framework.Gui.Chat.Print($"Set bonus notifications for {argParts[0]}({rouletteIndex}) to {role}");
             Framework.Gui.Chat.Print(string.Format(Loc.Localize("DalamudBonusSet", "Set bonus notifications for {0}({1}) to {2}"), argParts[0], rouletteIndex, role));
-            this.Configuration.Save(this.StartInfo.ConfigurationPath);
+            this.Configuration.Save();
 
             return;
 
@@ -659,7 +659,7 @@ namespace Dalamud {
                 this.Configuration.LanguageOverride = null;
             }
 
-            this.Configuration.Save(this.StartInfo.ConfigurationPath);
+            this.Configuration.Save();
         }
 
         private int RouletteSlugToKey(string slug) => slug.ToLower() switch {

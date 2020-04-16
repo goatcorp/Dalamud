@@ -31,12 +31,21 @@ namespace Dalamud
 
         public string LastVersion { get; set; }
 
+        [JsonIgnore]
+        public string ConfigPath;
+
         public static DalamudConfiguration Load(string path) {
-            return JsonConvert.DeserializeObject<DalamudConfiguration>(File.ReadAllText(path));
+            var deserialized = JsonConvert.DeserializeObject<DalamudConfiguration>(File.ReadAllText(path));
+            deserialized.ConfigPath = path;
+
+            return deserialized;
         }
 
-        public void Save(string path) {
-            File.WriteAllText(path, JsonConvert.SerializeObject(this, Formatting.Indented));
+        /// <summary>
+        /// Save the configuration at the path it was loaded from.
+        /// </summary>
+        public void Save() {
+            File.WriteAllText(this.ConfigPath, JsonConvert.SerializeObject(this, Formatting.Indented));
         }
     }
 }
