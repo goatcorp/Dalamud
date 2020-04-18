@@ -115,8 +115,7 @@ namespace Dalamud.Bootstrap.OS.Windows.Raw
 
         public SECURITY_DESCRIPTOR* SecurityDescriptor;
 
-        [MarshalAs(UnmanagedType.Bool)]
-        public bool InheritHandle;
+        public uint InheritHandle;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -175,5 +174,37 @@ namespace Dalamud.Bootstrap.OS.Windows.Raw
         public ushort AclSize;
         public ushort AceCount;
         public ushort Sbz2;
+    }
+    
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct STARTUPINFOW
+    {
+        public uint cb;
+        public IntPtr lpReserved;
+        public IntPtr lpDesktop;
+        public IntPtr lpTitle;
+        public uint dwX;
+        public uint dwY;
+        public uint dwXSize;
+        public uint dwYSize;
+        public uint dwXCountChars;
+        public uint dwYCountChars;
+        public uint dwFillAttribute;
+        public uint dwFlags;
+        public ushort wShowWindow;
+        public ushort cbReserved2;
+        public IntPtr lpReserved2;
+        public IntPtr hStdInput;
+        public IntPtr hStdOutput;
+        public IntPtr hStdError;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct PROCESS_INFORMATION
+    {
+        public IntPtr hProcess;
+        public IntPtr hThread;
+        public uint dwProcessId;
+        public uint dwThreadId;
     }
 }

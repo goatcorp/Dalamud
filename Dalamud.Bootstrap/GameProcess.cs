@@ -11,7 +11,15 @@ namespace Dalamud.Bootstrap
 {
     public sealed class GameProcess : IDisposable
     {
-        private const uint OpenProcessRights = 0;
+        private const uint OpenProcessRights = (uint) (
+            PROCESS_ACCESS_RIGHTS.PROCESS_QUERY_INFORMATION |
+            PROCESS_ACCESS_RIGHTS.PROCESS_QUERY_LIMITED_INFORMATION |
+            PROCESS_ACCESS_RIGHTS.PROCESS_SUSPEND_RESUME |
+            PROCESS_ACCESS_RIGHTS.PROCESS_TERMINATE |
+            PROCESS_ACCESS_RIGHTS.PROCESS_VM_OPERATION |
+            PROCESS_ACCESS_RIGHTS.PROCESS_VM_READ |
+            PROCESS_ACCESS_RIGHTS.PROCESS_VM_WRITE
+        );
 
         private IntPtr m_handle;
 
@@ -41,7 +49,7 @@ namespace Dalamud.Bootstrap
             }
         }
 
-        private static IntPtr OpenProcessHandle(uint pid, uint access)
+        private static IntPtr OpenProcessHandleRaw(uint pid, uint access)
         {
             var handle = Kernel32.OpenProcess(access, false, pid);
 
@@ -53,23 +61,38 @@ namespace Dalamud.Bootstrap
             return handle;
         }
 
-        public static GameProcess Open(uint pid)
+        private static IntPtr OpenProcessHandle(uint pid, uint access)
         {
-            var secHandle = OpenProcessHandle(pid, (uint)(PROCESS_ACCESS_RIGHTS.READ_CONTROL | PROCESS_ACCESS_RIGHTS.WRITE_DAC));
+            var processDacHandle = OpenProcessHandleRaw(pid, (uint)(PROCESS_ACCESS_RIGHTS.READ_CONTROL | PROCESS_ACCESS_RIGHTS.WRITE_DAC));
             
             try
             {
-                // We can get VM_WRITE this way
-                return RelaxProcessHandle(secHandle, OpenProcessRights, (_) =>
+                return RelaxProcessHandle(processDacHandle, access, (_) =>
                 {
-                    var handle = OpenProcessHandle(pid, OpenProcessRights);
+                    var handle = OpenProcessHandleRaw(pid, access);
 
-                    return new GameProcess(handle);
+                    return handle;
                 });
             }
             finally
             {
-                Kernel32.CloseHandle(secHandle);
+                Kernel32.CloseHandle(processDacHandle);
+            }
+        }
+
+        public static GameProcess Open(uint pid)
+        {
+            var handle = OpenProcessHandle(pid, OpenProcessRights);
+
+            try
+            {
+                return new GameProcess(handle);
+            }
+            catch
+            {
+                // If something bad thing happens in .ctor we need to close the handle to avoid leak.
+                Kernel32.CloseHandle(handle);
+                throw;
             }
         }
 
@@ -158,6 +181,38 @@ namespace Dalamud.Bootstrap
             }
         }
 
+        public static GameProcess Create(GameProcessCreationOptions options)
+        {
+            unsafe
+            {
+                SECURITY_ATTRIBUTES processAttr, threadAttr;
+                STARTUPINFOW startupInfo = default;
+                PROCESS_INFORMATION processInfo = default;
+                uint creationFlag;
+
+                BuildCommandLine(options);
+
+                if (!Kernel32.CreateProcessW(
+                    options.ImagePath,
+                    commandLine,
+                    &processAttr,
+                    &threadAttr,
+                    false,
+                    creationFlag,
+                    /* env */,
+                    currentDirectory,
+                    &startupInfo,
+                    &processInfo
+                ))
+                {
+                    ProcessException.ThrowLastOsError();
+                }
+            }
+            
+
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// Reads process memory.
         /// </summary>
@@ -242,7 +297,13 @@ namespace Dalamud.Bootstrap
             {
                 PROCESS_BASIC_INFORMATION info = default;
 
-                var status = Ntdll.NtQueryInformationProcess(m_handle, PROCESSINFOCLASS.ProcessBasicInformation, &info, sizeof(PROCESS_BASIC_INFORMATION), (IntPtr*)IntPtr.Zero);
+                var status = Ntdll.NtQueryInformationProcess(
+                    m_handle,
+                    PROCESSINFOCLASS.ProcessBasicInformation,
+                    &info,
+                    Marshal.SizeOf<PROCESS_BASIC_INFORMATION>(),
+                    (IntPtr*)IntPtr.Zero
+                );
 
                 if (!status.Success)
                 {
@@ -277,17 +338,17 @@ namespace Dalamud.Bootstrap
         /// </summary>
         public DateTime GetCreationTime()
         {
-            FILETIME creationTime, exitTime, kernelTime, userTime;
-
             unsafe
             {
+                FILETIME creationTime, exitTime, kernelTime, userTime;
+
                 if (!Kernel32.GetProcessTimes(m_handle, &creationTime, &exitTime, &kernelTime, &userTime))
                 {
                     ProcessException.ThrowLastOsError();
                 }
-            }
 
-            return creationTime.ToDateTime();
+                return creationTime.ToDateTime();
+            }
         }
 
         private string[] ParseCommandLineToArguments(ReadOnlySpan<byte> commandLine)

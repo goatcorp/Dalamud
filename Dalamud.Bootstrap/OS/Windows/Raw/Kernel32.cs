@@ -39,7 +39,18 @@ namespace Dalamud.Bootstrap.OS.Windows.Raw
 
         [DllImport(Name, CallingConvention = CallingConvention.Winapi, SetLastError = true, ExactSpelling = true, CharSet = CharSet.Unicode)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool CreateProcessW(void* lpApplicationName, void* lpCommandLine, SECURITY_ATTRIBUTES* lpProcessAttributes, SECURITY_ATTRIBUTES* lpThreadAttributes, uint bInheritHandles, uint dwCreationFlags, void* lpEnvironment, void* lpCurrentDirectory, void* lpStartupInfo, void* lpProcessInformation);
+        public static extern bool CreateProcessW(
+            [MarshalAs(UnmanagedType.LPWStr)] string lpApplicationName,
+            [MarshalAs(UnmanagedType.LPWStr)] StringBuilder? lpCommandLine,
+            SECURITY_ATTRIBUTES* lpProcessAttributes,
+            SECURITY_ATTRIBUTES* lpThreadAttributes,
+            [MarshalAs(UnmanagedType.Bool)] bool bInheritHandles,
+            uint dwCreationFlags,
+            void* lpEnvironment,
+            [MarshalAs(UnmanagedType.LPWStr)] string lpCurrentDirectory,
+            STARTUPINFOW* lpStartupInfo,
+            PROCESS_INFORMATION* lpProcessInformation
+        );
 
         [DllImport(Name, CallingConvention = CallingConvention.Winapi, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
