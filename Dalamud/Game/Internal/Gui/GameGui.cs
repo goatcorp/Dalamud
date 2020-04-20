@@ -1,6 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
-using Dalamud.Game.Chat;
+using Dalamud.Game.Chat.SeStringHandling.Payloads;
 using Dalamud.Hooking;
 using Serilog;
 
@@ -21,6 +21,18 @@ namespace Dalamud.Game.Internal.Gui {
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         private delegate IntPtr HandleItemOutDelegate(IntPtr hoverState, IntPtr a2, IntPtr a3, ulong a4);
         private readonly Hook<HandleItemOutDelegate> handleItemOutHook;
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate IntPtr GetUIObjectDelegate();
+        private readonly GetUIObjectDelegate getUIObject;
+
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        private delegate IntPtr GetUIMapObjectDelegate(IntPtr UIObject);
+        private GetUIMapObjectDelegate getUIMapObject;
+
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall, CharSet = CharSet.Ansi)]
+        private delegate bool OpenMapWithFlagDelegate(IntPtr UIMapObject, string flag);
+        private OpenMapWithFlagDelegate openMapWithFlag;
 
         /// <summary>
         /// The item ID that is currently hovered by the player. 0 when no item is hovered.
@@ -43,6 +55,7 @@ namespace Dalamud.Game.Internal.Gui {
             Log.Verbose("SetGlobalBgm address {Address}", Address.SetGlobalBgm);
             Log.Verbose("HandleItemHover address {Address}", Address.HandleItemHover);
             Log.Verbose("HandleItemOut address {Address}", Address.HandleItemOut);
+            Log.Verbose("GetUIObject address {Address}", Address.GetUIObject);
 
             Chat = new ChatGui(Address.ChatManager, scanner, dalamud);
 
@@ -59,6 +72,8 @@ namespace Dalamud.Game.Internal.Gui {
                 new Hook<HandleItemOutDelegate>(Address.HandleItemOut,
                                                   new HandleItemOutDelegate(HandleItemOutDetour),
                                                   this);
+
+            this.getUIObject = Marshal.GetDelegateForFunctionPointer<GetUIObjectDelegate>(Address.GetUIObject);
         }
 
         private IntPtr HandleSetGlobalBgmDetour(UInt16 bgmKey, byte a2, UInt32 a3, UInt32 a4, UInt32 a5, byte a6) {
@@ -109,6 +124,39 @@ namespace Dalamud.Game.Internal.Gui {
             }
 
             return retVal;
+        }
+
+        public bool OpenMapWithMapLink(MapLinkPayload mapLink)
+        {
+            var uiObjectPtr = getUIObject();
+
+            if (uiObjectPtr.Equals(IntPtr.Zero))
+            {
+                Log.Error("OpenMapWithMapLink: Null pointer returned from getUIObject()");
+                return false;
+            }
+
+            getUIMapObject =
+                Address.GetVirtualFunction<GetUIMapObjectDelegate>(uiObjectPtr, 0, 8);
+
+
+            var uiMapObjectPtr = this.getUIMapObject(uiObjectPtr);
+
+            if (uiMapObjectPtr.Equals(IntPtr.Zero))
+            {
+                Log.Error("OpenMapWithMapLink: Null pointer returned from GetUIMapObject()");
+                return false;
+            }
+
+            openMapWithFlag =
+                Address.GetVirtualFunction<OpenMapWithFlagDelegate>(uiMapObjectPtr, 0, 63);
+
+            var mapLinkString =
+                $"m:{mapLink.TerritoryTypeId},{mapLink.MapId},{unchecked((int)mapLink.RawX)},{unchecked((int)mapLink.RawY)}";
+
+            Log.Debug($"OpenMapWithMapLink: Opening Map Link: {mapLinkString}");
+
+            return this.openMapWithFlag(uiMapObjectPtr, mapLinkString);
         }
 
         public void SetBgm(ushort bgmKey) => this.setGlobalBgmHook.Original(bgmKey, 0, 0, 0, 0, 0); 
