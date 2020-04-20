@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Runtime.InteropServices;
 
 namespace Dalamud.Game.Internal {
@@ -35,7 +35,7 @@ namespace Dalamud.Game.Internal {
             // Do nothing 
         }
 
-        protected T GetVirtualFunction<T>(IntPtr address, int vtableOffset, int count) where T : class {
+        public T GetVirtualFunction<T>(IntPtr address, int vtableOffset, int count) where T : class {
             // Get vtable
             var vtable = Marshal.ReadIntPtr(address, vtableOffset);
             
