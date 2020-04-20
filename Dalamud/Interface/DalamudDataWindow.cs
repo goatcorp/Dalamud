@@ -87,7 +87,7 @@ namespace Dalamud.Interface
                                 var actor = this.dalamud.ClientState.Actors[i];
 
                                 stateString +=
-                                    $"   -> {i} - {actor.Name} - {actor.Position.X} {actor.Position.Y} {actor.Position.Z}\n";
+                                    $"   -> {actor.ActorId:X}[{i}] - {actor.ObjectKind} - {actor.Name} - {actor.Position.X} {actor.Position.Y} {actor.Position.Z}\n";
 
                                 if (actor is Npc npc)
                                     stateString += $"       DataId: {npc.DataId}  NameId:{npc.NameId}\n";
