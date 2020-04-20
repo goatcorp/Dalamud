@@ -90,7 +90,7 @@ namespace Dalamud.Interface
                                     $"   -> {i} - {actor.Name} - {actor.Position.X} {actor.Position.Y} {actor.Position.Z}\n";
 
                                 if (actor is Npc npc)
-                                    stateString += $"       DataId: {npc.DataId}\n";
+                                    stateString += $"       DataId: {npc.DataId}  NameId:{npc.NameId}\n";
 
                                 if (actor is Chara chara)
                                     stateString +=

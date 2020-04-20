@@ -14,5 +14,10 @@ namespace Dalamud.Game.ClientState.Actors.Types.NonPlayer {
         ///     The data ID of the NPC linking to their respective game data.
         /// </summary>
         public int DataId => this.actorStruct.DataId;
+
+        /// <summary>
+        ///     The name ID of the NPC linking to their respective game data.
+        /// </summary>
+        public int NameId => this.actorStruct.NameId;
     }
 }

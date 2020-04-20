@@ -24,7 +24,8 @@ namespace Dalamud.Game.ClientState.Structs
 
         // This field can't be correctly aligned, so we have to cut it manually.
         [FieldOffset(0x17d0)] [MarshalAs(UnmanagedType.ByValArray, SizeConst = 7)] public byte[] CompanyTag;
-        
+
+        [FieldOffset(0x1868)] public int NameId;
         [FieldOffset(0x1884)] public byte CurrentWorld;
         [FieldOffset(0x1886)] public byte HomeWorld;
         [FieldOffset(6328)] public int CurrentHp;
