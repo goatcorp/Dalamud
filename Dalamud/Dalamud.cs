@@ -403,7 +403,7 @@ namespace Dalamud {
 
             CommandManager.AddHandler("/xlitem", new CommandInfo(OnItemLinkCommand)
             {
-                HelpMessage = Loc.Localize("DalamudItemLinkHelp", "Link an item by name. Usage: /xlitem <Item name>.  For matching an item exactly, use /xlitem +<Item name>")
+                HelpMessage = Loc.Localize("DalamudItemLinkHelp", "Open a window you can use to link any specific item to chat.")
             });
 
 #if DEBUG
