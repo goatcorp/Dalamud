@@ -24,6 +24,7 @@ namespace Dalamud.Interface
     {
         private readonly DataManager data;
         private readonly UiBuilder builder;
+        private readonly bool closeOnChoose;
 
         private string lastSearchText = string.Empty;
         private string searchText = string.Empty;
@@ -40,14 +41,16 @@ namespace Dalamud.Interface
 
         public event EventHandler<Item> OnItemChosen;
 
-        public ItemSearchWindow(DataManager data, UiBuilder builder) {
+        public ItemSearchWindow(DataManager data, UiBuilder builder, bool closeOnChoose = true) {
             this.data = data;
             this.builder = builder;
+            this.closeOnChoose = closeOnChoose;
 
             while (!data.IsDataReady)
                 Thread.Sleep(1);
 
-            this.luminaItems = this.data.GetExcelSheet<Item>().GetRows();
+            
+            Task.Run(() => this.data.GetExcelSheet<Item>().GetRows()).ContinueWith(t => this.luminaItems = t.Result);
         }
 
         public bool Draw() {
@@ -95,56 +98,69 @@ namespace Dalamud.Interface
 
             ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(0, 0));
 
-            if (!string.IsNullOrEmpty(this.searchText) || this.currentKind != 0) {
-                if (this.lastSearchText != this.searchText || this.lastKind != this.currentKind) {
-                    this.lastSearchText = this.searchText;
-                    this.lastKind = this.currentKind;
+            if (this.luminaItems != null) {
+                if (!string.IsNullOrEmpty(this.searchText) || this.currentKind != 0)
+                {
+                    if (this.lastSearchText != this.searchText || this.lastKind != this.currentKind)
+                    {
+                        this.lastSearchText = this.searchText;
+                        this.lastKind = this.currentKind;
 
-                    this.searchCancelTokenSource?.Cancel();
+                        this.searchCancelTokenSource?.Cancel();
 
-                    this.searchCancelTokenSource = new CancellationTokenSource();
+                        this.searchCancelTokenSource = new CancellationTokenSource();
 
-                    var asyncEnum = this.luminaItems.ToAsyncEnumerable();
+                        var asyncEnum = this.luminaItems.ToAsyncEnumerable();
 
-                    if (!string.IsNullOrEmpty(this.searchText)) {
-                        Log.Debug("Searching for " + this.searchText);
-                        asyncEnum = asyncEnum.Where(
-                            x => (x.Name.ToLower().Contains(this.searchText.ToLower()) ||
-                                  int.TryParse(this.searchText, out var parsedId) &&
-                                  parsedId == x.RowId));
+                        if (!string.IsNullOrEmpty(this.searchText))
+                        {
+                            Log.Debug("Searching for " + this.searchText);
+                            asyncEnum = asyncEnum.Where(
+                                x => (x.Name.ToLower().Contains(this.searchText.ToLower()) ||
+                                      int.TryParse(this.searchText, out var parsedId) &&
+                                      parsedId == x.RowId));
+                        }
+
+                        if (this.currentKind != 0)
+                        {
+                            Log.Debug("Searching for C" + this.currentKind);
+                            asyncEnum = asyncEnum.Where(x => x.ItemSearchCategory == this.currentKind);
+                        }
+
+                        this.selectedItemIndex = -1;
+                        this.selectedItemTex?.Dispose();
+                        this.selectedItemTex = null;
+
+                        this.searchTask = asyncEnum.ToListAsync(this.searchCancelTokenSource.Token);
                     }
 
-                    if (this.currentKind != 0) {
-                        Log.Debug("Searching for C" + this.currentKind);
-                        asyncEnum = asyncEnum.Where(x => x.ItemSearchCategory == this.currentKind);
+                    if (this.searchTask.IsCompletedSuccessfully)
+                    {
+                        for (var i = 0; i < this.searchTask.Result.Count; i++)
+                        {
+                            if (ImGui.Selectable(this.searchTask.Result[i].Name, this.selectedItemIndex == i))
+                            {
+                                this.selectedItemIndex = i;
+
+                                var iconTex = this.data.GetIcon(this.searchTask.Result[i].Icon);
+                                this.selectedItemTex?.Dispose();
+                                this.selectedItemTex =
+                                    this.builder.LoadImageRaw(iconTex.GetRgbaImageData(), iconTex.Header.Width,
+                                                              iconTex.Header.Height, 4);
+                            }
+                        }
                     }
+                }
+                else
+                {
+                    ImGui.TextColored(new Vector4(0.86f, 0.86f, 0.86f, 1.00f), Loc.Localize("DalamudItemSelectHint", "Type to start searching..."));
 
                     this.selectedItemIndex = -1;
                     this.selectedItemTex?.Dispose();
                     this.selectedItemTex = null;
-
-                    this.searchTask = asyncEnum.ToListAsync(this.searchCancelTokenSource.Token);
-                }
-
-                if (this.searchTask.IsCompletedSuccessfully) {
-                    for (var i = 0; i < this.searchTask.Result.Count; i++) {
-                        if (ImGui.Selectable(this.searchTask.Result[i].Name, this.selectedItemIndex == i)) {
-                            this.selectedItemIndex = i;
-
-                            var iconTex = this.data.GetIcon(this.searchTask.Result[i].Icon);
-                            this.selectedItemTex?.Dispose();
-                            this.selectedItemTex =
-                                this.builder.LoadImageRaw(iconTex.GetRgbaImageData(), iconTex.Header.Width,
-                                                          iconTex.Header.Height, 4);
-                        }
-                    }
                 }
             } else {
-                ImGui.TextColored(new Vector4(0.86f, 0.86f, 0.86f, 1.00f), Loc.Localize("DalamudItemSelectHint", "Type to start searching..."));
-
-                this.selectedItemIndex = -1;
-                this.selectedItemTex?.Dispose();
-                this.selectedItemTex = null;
+                ImGui.TextColored(new Vector4(0.86f, 0.86f, 0.86f, 1.00f), Loc.Localize("DalamudItemSelectLoading", "Loading item list..."));
             }
 
             ImGui.PopStyleVar();
@@ -153,8 +169,20 @@ namespace Dalamud.Interface
 
             if (ImGui.Button(Loc.Localize("Choose", "Choose"))) {
                 OnItemChosen?.Invoke(this, this.searchTask.Result[this.selectedItemIndex]);
-                this.selectedItemTex?.Dispose();
-                isOpen = false;
+
+                if (this.closeOnChoose) {
+                    this.selectedItemTex?.Dispose();
+                    isOpen = false;
+                }
+            }
+
+            if (!this.closeOnChoose) {
+                ImGui.SameLine();
+                if (ImGui.Button(Loc.Localize("Close", "Close")))
+                {
+                    this.selectedItemTex?.Dispose();
+                    isOpen = false;
+                }
             }
 
             ImGui.End();
