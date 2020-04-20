@@ -52,6 +52,8 @@ namespace Dalamud.Interface
         private delegate void InstallRTSSHook();
         private string rtssPath;
 
+        public ImGuiIOPtr LastImGuiIoPtr;
+
         /// <summary>
         /// This event gets called by a plugin UiBuilder when read
         /// </summary>
@@ -297,7 +299,8 @@ namespace Dalamud.Interface
             // they will see both cursors.
             // Doing this here because it's somewhat application-specific behavior
             //ImGui.GetIO().MouseDrawCursor = ImGui.GetIO().WantCaptureMouse;
-            this.lastWantCapture = ImGui.GetIO().WantCaptureMouse;
+            this.LastImGuiIoPtr = ImGui.GetIO();
+            this.lastWantCapture = this.LastImGuiIoPtr.WantCaptureMouse;
 
             OnDraw?.Invoke();
         }

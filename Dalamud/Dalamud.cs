@@ -22,6 +22,7 @@ using Dalamud.Game.Network;
 using Dalamud.Interface;
 using Dalamud.Plugin;
 using ImGuiNET;
+using Newtonsoft.Json;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
@@ -234,6 +235,8 @@ namespace Dalamud {
                             this.isImguiDrawCreditsWindow = true;
                         }
                         ImGui.MenuItem("Draw ImGui demo", "", ref this.isImguiDrawDemoWindow);
+                        if (ImGui.MenuItem("Dump ImGui info"))
+                            OnDebugImInfoCommand(null, null);
                         ImGui.Separator();
                         if (ImGui.MenuItem("Unload Dalamud"))
                         {
@@ -434,6 +437,12 @@ namespace Dalamud {
             {
                 HelpMessage = Loc.Localize("DalamudLanguageHelp", "Set the language for the in-game addon and plugins that support it.")
             });
+
+            this.CommandManager.AddHandler("/imdebug", new CommandInfo(OnDebugImInfoCommand)
+            {
+                HelpMessage = "ImGui DEBUG",
+                ShowInHelp = false
+            });
         }
 
         private void OnUnloadCommand(string command, string arguments) {
@@ -618,6 +627,28 @@ namespace Dalamud {
 
         private void OnDebugDrawDevMenu(string command, string arguments) {
             this.isImguiDrawDevMenu = true;
+        }
+
+        private void OnDebugImInfoCommand(string command, string arguments) {
+            var io = this.InterfaceManager.LastImGuiIoPtr;
+            var info = $"WantCaptureKeyboard: {io.WantCaptureKeyboard}\n";
+            info += $"WantCaptureMouse: {io.WantCaptureMouse}\n";
+            info += $"WantSetMousePos: {io.WantSetMousePos}\n";
+            info += $"WantTextInput: {io.WantTextInput}\n";
+            info += $"WantSaveIniSettings: {io.WantSaveIniSettings}\n"; 
+            info += $"BackendFlags: {(int) io.BackendFlags}\n";
+            info += $"DeltaTime: {io.DeltaTime}\n";
+            info += $"DisplaySize: {io.DisplaySize.X} {io.DisplaySize.Y}\n";
+            info += $"Framerate: {io.Framerate}\n";
+            info += $"MetricsActiveWindows: {io.MetricsActiveWindows}\n";
+            info += $"MetricsRenderWindows: {io.MetricsRenderWindows}\n";
+            info += $"MousePos: {io.MousePos.X} {io.MousePos.Y}\n";
+            info += $"MouseClicked: {io.MouseClicked}\n";
+            info += $"MouseDown: {io.MouseDown}\n";
+            info += $"NavActive: {io.NavActive}\n";
+            info += $"NavVisible: {io.NavVisible}\n";
+
+            Log.Information(info);
         }
 
         private void OnOpenInstallerCommand(string command, string arguments) {
