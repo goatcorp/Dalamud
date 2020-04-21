@@ -65,6 +65,11 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             //}
         }
 
+        public override string ToString()
+        {
+            return $"{Type} - TerritoryTypeId: {TerritoryTypeId}, MapId: {MapId}, RawX: {RawX}, RawY: {RawY}";
+        }
+
         protected override void ProcessChunkImpl(BinaryReader reader, long endOfStream)
         {
             (TerritoryTypeId, MapId) = GetPackedIntegers(reader);
