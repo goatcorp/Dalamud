@@ -72,13 +72,27 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 
         protected override void ProcessChunkImpl(BinaryReader reader, long endOfStream)
         {
-            (TerritoryTypeId, MapId) = GetPackedIntegers(reader);
-            RawX = (uint)GetInteger(reader);
-            RawY = (uint)GetInteger(reader);
-            // the Z coordinate is never in this chunk, just the text (if applicable)
+            // for debugging for now
+            var oldPos = reader.BaseStream.Position;
+            var bytes = reader.ReadBytes((int)(endOfStream - reader.BaseStream.Position));
+            reader.BaseStream.Position = oldPos;
 
-            // seems to always be FF 01
-            reader.ReadBytes(2);
+            try
+            {
+                (TerritoryTypeId, MapId) = GetPackedIntegers(reader);
+                RawX = (uint)GetInteger(reader);
+                RawY = (uint)GetInteger(reader);
+                // the Z coordinate is never in this chunk, just the text (if applicable)
+
+                // seems to always be FF 01
+                reader.ReadBytes(2);
+            }
+            catch (NotSupportedException)
+            {
+                Serilog.Log.Information($"Unsupported map bytes {BitConverter.ToString(bytes).Replace("-", " ")}");
+                // we still want to break here for now, or we'd just throw again later
+                throw;
+            }
         }
 
         #region ugliness
