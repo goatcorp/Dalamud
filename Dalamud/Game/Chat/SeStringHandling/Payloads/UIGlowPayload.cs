@@ -8,7 +8,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
     {
         public override PayloadType Type => PayloadType.UIGlow;
 
-        public ushort RawColor { get; private set; }
+        public ushort RawColor { get; set; }
 
         //public int Red { get; private set; }
         //public int Green { get; private set; }
