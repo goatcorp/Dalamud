@@ -8,10 +8,10 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
     {
         public override PayloadType Type => PayloadType.Unknown;
 
-        public byte ChunkType { get; private set; }
-        public byte[] Data { get; private set; }
+        public byte ChunkType { get; set; }
+        public byte[] Data { get; set; }
 
-        public RawPayload(byte chunkType)
+        public RawPayload(byte chunkType = 0)
         {
             ChunkType = chunkType;
         }
