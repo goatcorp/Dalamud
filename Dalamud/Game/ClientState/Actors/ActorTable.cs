@@ -109,9 +109,9 @@ namespace Dalamud.Game.ClientState.Actors {
 
                 switch (actorStruct.ObjectKind)
                 {
-                    case ObjectKind.Player: return new PlayerCharacter(actorStruct, this.dalamud);
-                    case ObjectKind.BattleNpc: return new BattleNpc(actorStruct, this.dalamud);
-                    default: return new Actor(actorStruct, this.dalamud);
+                    case ObjectKind.Player: return new PlayerCharacter(offset, actorStruct, this.dalamud);
+                    case ObjectKind.BattleNpc: return new BattleNpc(offset, actorStruct, this.dalamud);
+                    default: return new Actor(offset, actorStruct, this.dalamud);
                 }
             }
         }
