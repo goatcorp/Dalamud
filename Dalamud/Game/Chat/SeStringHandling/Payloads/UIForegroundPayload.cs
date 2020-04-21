@@ -1,3 +1,4 @@
+using Lumina.Excel.GeneratedSheets;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,15 +9,29 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
     {
         public override PayloadType Type => PayloadType.UIForeground;
 
-        public ushort RawColor { get; private set; }
+        private UIColor color;
+        public UIColor UIColor
+        {
+            get
+            {
+                this.color ??= this.dataResolver.GetExcelSheet<UIColor>().GetRow(this.colorKey);
+                return this.color;
+            }
+        }
 
-        //public int Red { get; private set; }
-        //public int Green { get; private set; }
-        //public int Blue { get; private set; }
+        public uint RGB
+        {
+            get
+            {
+                return UIColor.UIForeground;
+            }
+        }
+
+        private ushort colorKey;
 
         public override byte[] Encode()
         {
-            var colorBytes = MakeInteger(RawColor);
+            var colorBytes = MakeInteger(this.colorKey);
             var chunkLen = colorBytes.Length + 1;
 
             var bytes = new List<byte>(new byte[]
@@ -30,19 +45,14 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             return bytes.ToArray();
         }
 
-        public override void Resolve()
-        {
-            // TODO: resolve color keys to hex colors via UIColor table
-        }
-
         public override string ToString()
         {
-            return $"{Type} - RawColor: {RawColor}";
+            return $"{Type} - UIColor: {colorKey}";
         }
 
         protected override void ProcessChunkImpl(BinaryReader reader, long endOfStream)
         {
-            RawColor = (ushort)GetInteger(reader);
+            this.colorKey = (ushort)GetInteger(reader);
         }
 
         protected override byte GetMarkerForIntegerBytes(byte[] bytes)

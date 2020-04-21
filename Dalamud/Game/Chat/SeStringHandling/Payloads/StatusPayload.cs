@@ -1,9 +1,7 @@
+using Lumina.Excel.GeneratedSheets;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 {
@@ -11,30 +9,21 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
     {
         public override PayloadType Type => PayloadType.Status;
 
-        public uint StatusId { get; private set; }
-
-        public string StatusName { get; private set; } = string.Empty;
-
-        public StatusPayload() { }
-
-        public StatusPayload(uint statusId)
+        private Status status;
+        public Status Status
         {
-            StatusId = statusId;
-        }
-
-        public override void Resolve()
-        {
-            if (string.IsNullOrEmpty(StatusName))
+            get
             {
-                dynamic status = XivApi.Get($"Status/{StatusId}").GetAwaiter().GetResult();
-                //Console.WriteLine($"Resolved status {StatusId} to {status.Name}");
-                StatusName = status.Name;
+                status ??= this.dataResolver.GetExcelSheet<Status>().GetRow((int)this.statusId);
+                return status;
             }
         }
 
+        private uint statusId;
+
         public override byte[] Encode()
         {
-            var idBytes = MakeInteger(StatusId);
+            var idBytes = MakeInteger(this.statusId);
 
             var chunkLen = idBytes.Length + 7;
             var bytes = new List<byte>()
@@ -51,12 +40,12 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 
         public override string ToString()
         {
-            return $"{Type} - StatusId: {StatusId}, StatusName: {StatusName}";
+            return $"{Type} - StatusId: {statusId}";
         }
 
         protected override void ProcessChunkImpl(BinaryReader reader, long endOfStream)
         {
-            StatusId = GetInteger(reader);
+            this.statusId = GetInteger(reader);
         }
     }
 }

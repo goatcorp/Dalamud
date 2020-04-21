@@ -9,18 +9,69 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
     {
         public override PayloadType Type => PayloadType.MapLink;
 
-        // pre-Resolve() values
-        public uint TerritoryTypeId { get; set; }
-        public uint MapId { get; set;  }
-        public uint RawX { get; set; }
-        public uint RawY { get; set; }
+        private Map map;
+        public Map Map
+        {
+            get
+            {
+                this.map ??= this.dataResolver.GetExcelSheet<Map>().GetRow((int)this.mapId);
+                return this.map;
+            }
+        }
 
-        // Resolved values
-        // It might make sense to have Territory be an external type, that has assorted relevant info
-        public string Territory { get; private set; }
-        public string Zone { get; private set; }
-        public float XCoord { get; private set; }
-        public float YCoord { get; private set; }
+        private TerritoryType territoryType;
+        public TerritoryType TerritoryType
+        {
+            get
+            {
+                this.territoryType ??= this.dataResolver.GetExcelSheet<TerritoryType>().GetRow((int)this.territoryTypeId);
+                return this.territoryType;
+            }
+        }
+
+        // these could be cached, but this isn't really too egregious
+        public float XCoord
+        {
+            get
+            {
+                return ConvertRawPositionToMapCoordinate(this.rawX, Map.SizeFactor);
+            }
+        }
+
+        public float YCoord
+        {
+            get
+            {
+                return ConvertRawPositionToMapCoordinate(this.rawY, Map.SizeFactor);
+            }
+        }
+
+        private string placeNameRegion;
+        public string PlaceNameRegion
+        {
+            get
+            {
+                this.placeNameRegion ??= this.dataResolver.GetExcelSheet<PlaceName>().GetRow(TerritoryType.PlaceNameRegion).Name;
+                return this.placeNameRegion;
+            }
+        }
+
+        private string placeName;
+        public string PlaceName
+        {
+            get
+            {
+                this.placeName ??= this.dataResolver.GetExcelSheet<PlaceName>().GetRow(TerritoryType.PlaceName).Name;
+                return this.placeName;
+            }
+        }
+
+        public string DataString => $"m:{TerritoryType.RowId},{Map.RowId},{unchecked((int)rawX)},{unchecked((int)rawY)}";
+
+        private uint territoryTypeId;
+        private uint mapId;
+        private uint rawX;
+        private uint rawY;
         // there is no Z; it's purely in the text payload where applicable
 
         public override byte[] Encode()
@@ -28,9 +79,9 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             // TODO: for now we just encode the raw/internal values
             // eventually we should allow creation using 'nice' values that then encode properly
 
-            var packedTerritoryAndMapBytes = MakePackedInteger(TerritoryTypeId, MapId);
-            var xBytes = MakeInteger(RawX);
-            var yBytes = MakeInteger(RawY);
+            var packedTerritoryAndMapBytes = MakePackedInteger(this.territoryTypeId, this.mapId);
+            var xBytes = MakeInteger(this.rawX);
+            var yBytes = MakeInteger(this.rawY);
 
             var chunkLen = 4 + packedTerritoryAndMapBytes.Length + xBytes.Length + yBytes.Length;
 
@@ -50,24 +101,9 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             return bytes.ToArray();
         }
 
-        public override void Resolve()
-        {
-            // TODO: add once lumina DI is figured out
-            //if (string.IsNullOrEmpty(Territory))
-            //{
-            //    var terrRow = dataResolver.GetExcelSheet<TerritoryType>().GetRow((int)TerritoryTypeId);
-            //    Territory = dataResolver.GetExcelSheet<PlaceName>().GetRow(terrRow.PlaceName).Name;
-            //    Zone = dataResolver.GetExcelSheet<PlaceName>().GetRow(terrRow.PlaceNameZone).Name;
-
-            //    var mapSizeFactor = dataResolver.GetExcelSheet<Map>().GetRow((int)MapId).SizeFactor;
-            //    XCoord = ConvertRawPositionToMapCoordinate(RawX, mapSizeFactor);
-            //    YCoord = ConvertRawPositionToMapCoordinate(RawY, mapSizeFactor);
-            //}
-        }
-
         public override string ToString()
         {
-            return $"{Type} - TerritoryTypeId: {TerritoryTypeId}, MapId: {MapId}, RawX: {RawX}, RawY: {RawY}";
+            return $"{Type} - TerritoryTypeId: {territoryTypeId}, MapId: {mapId}, RawX: {rawX}, RawY: {rawY}";
         }
 
         protected override void ProcessChunkImpl(BinaryReader reader, long endOfStream)
@@ -79,9 +115,9 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 
             try
             {
-                (TerritoryTypeId, MapId) = GetPackedIntegers(reader);
-                RawX = (uint)GetInteger(reader);
-                RawY = (uint)GetInteger(reader);
+                (this.territoryTypeId, this.mapId) = GetPackedIntegers(reader);
+                this.rawX = (uint)GetInteger(reader);
+                this.rawY = (uint)GetInteger(reader);
                 // the Z coordinate is never in this chunk, just the text (if applicable)
 
                 // seems to always be FF 01

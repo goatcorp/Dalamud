@@ -12,6 +12,7 @@ using Dalamud.Data;
 using Dalamud.DiscordBot;
 using Dalamud.Game;
 using Dalamud.Game.Chat;
+using Dalamud.Game.Chat.SeStringHandling;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Actors.Types;
 using Dalamud.Game.ClientState.Actors.Types.NonPlayer;
@@ -102,6 +103,9 @@ namespace Dalamud {
 
             this.Data = new DataManager(this.StartInfo.Language);
             this.Data.Initialize();
+
+            // TODO: better way to do this?  basically for lumina injection
+            SeString.Dalamud = this;
 
             this.ClientState = new ClientState(this, info, this.SigScanner);
 

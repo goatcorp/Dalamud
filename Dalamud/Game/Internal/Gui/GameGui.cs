@@ -151,8 +151,7 @@ namespace Dalamud.Game.Internal.Gui {
             openMapWithFlag =
                 Address.GetVirtualFunction<OpenMapWithFlagDelegate>(uiMapObjectPtr, 0, 63);
 
-            var mapLinkString =
-                $"m:{mapLink.TerritoryTypeId},{mapLink.MapId},{unchecked((int)mapLink.RawX)},{unchecked((int)mapLink.RawY)}";
+            var mapLinkString = mapLink.DataString;
 
             Log.Debug($"OpenMapWithMapLink: Opening Map Link: {mapLinkString}");
 

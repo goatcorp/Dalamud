@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 {
@@ -11,36 +9,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
     {
         public override PayloadType Type => PayloadType.RawText;
 
-        private string textConverted = null;
-
-        /// <summary>
-        /// The Text of this text payload as an UTF-8 converted string.
-        /// Don't rely on this for accurate representation of SE payload data, please check RawData instead.
-        /// </summary>
-        public string Text {
-            get { return this.textConverted ??= Encoding.UTF8.GetString(RawData); }
-            set {
-                this.textConverted = value;
-                RawData = Encoding.UTF8.GetBytes(value);
-            }
-        }
-
-        /// <summary>
-        /// The raw unconverted data of this text payload.
-        /// </summary>
-        public byte[] RawData { get; set; }
-
-        public TextPayload() { }
-
-        public TextPayload(string text)
-        {
-            Text = text;
-        }
-
-        public override void Resolve()
-        {
-            // nothing to do
-        }
+        public string Text { get; private set; }
 
         public override byte[] Encode()
         {

@@ -181,14 +181,14 @@ namespace Dalamud.Game {
                         break;
                     }
 
-                    Log.Debug($"Probable retainer sale: {message}, decoded item {itemLink.ItemId}, HQ {itemLink.IsHQ}");
+                    Log.Debug($"Probable retainer sale: {message}, decoded item {itemLink.Item.RowId}, HQ {itemLink.IsHQ}");
 
                     var valueInfo = matchInfo.Groups["value"];
                     // not sure if using a culture here would work correctly, so just strip symbols instead
                     if (!valueInfo.Success || !int.TryParse(valueInfo.Value.Replace(",", "").Replace(".", ""), out var itemValue))
                         continue;
 
-                    Task.Run(() => this.dalamud.BotManager.ProcessRetainerSale((int)itemLink.ItemId, itemValue, itemLink.IsHQ));
+                    Task.Run(() => this.dalamud.BotManager.ProcessRetainerSale((int)itemLink.Item.RowId, itemValue, itemLink.IsHQ));
                     break;
                 }
             }

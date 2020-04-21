@@ -1,9 +1,9 @@
+using Dalamud.Data.TransientSheet;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 {
@@ -11,38 +11,34 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
     {
         public override PayloadType Type => PayloadType.Item;
 
-        public uint ItemId { get; private set; }
-        public string ItemName { get; private set; } = string.Empty;
-        public bool IsHQ { get; private set; } = false;
-
-        public ItemPayload() { }
-
-        public ItemPayload(uint itemId, bool isHQ)
+        private Item item;
+        public Item Item
         {
-            ItemId = itemId;
-            IsHQ = isHQ;
-        }
-
-        public override void Resolve()
-        {
-            if (string.IsNullOrEmpty(ItemName))
+            get
             {
-                dynamic item = XivApi.GetItem((int)ItemId).GetAwaiter().GetResult();
-                ItemName = item.Name;
+                this.item ??= this.dataResolver.GetExcelSheet<Item>().GetRow((int)this.itemId);
+                return this.item;
             }
         }
 
+        public bool IsHQ { get; private set; } = false;
+
+        private uint itemId;
+        // mainly to allow overriding the name (for things like owo)
+        private string displayName;
+
+
         public override byte[] Encode()
         {
-            var actualItemId = IsHQ ? ItemId + 1000000 : ItemId;
+            var actualItemId = IsHQ ? this.itemId + 1000000 : this.itemId;
             var idBytes = MakeInteger(actualItemId);
-            bool hasName = !string.IsNullOrEmpty(ItemName);
+            bool hasName = !string.IsNullOrEmpty(this.displayName);
 
             var chunkLen = idBytes.Length + 4;
             if (hasName)
             {
                 // 1 additional unknown byte compared to the nameless version, 1 byte for the name length, and then the name itself
-                chunkLen += (1 + 1 + ItemName.Length);
+                chunkLen += (1 + 1 + this.displayName.Length);
                 if (IsHQ)
                 {
                     chunkLen += 4;  // unicode representation of the HQ symbol is 3 bytes, preceded by a space
@@ -61,7 +57,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             // Links don't have to include the name, but if they do, it requires additional work
             if (hasName)
             {
-                var nameLen = ItemName.Length + 1;
+                var nameLen = this.displayName.Length + 1;
                 if (IsHQ)
                 {
                     nameLen += 4;   // space plus 3 bytes for HQ symbol
@@ -72,7 +68,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
                     0xFF,   // unk
                     (byte)nameLen
                 });
-                bytes.AddRange(Encoding.UTF8.GetBytes(ItemName));
+                bytes.AddRange(Encoding.UTF8.GetBytes(this.displayName));
 
                 if (IsHQ)
                 {
@@ -88,16 +84,16 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 
         public override string ToString()
         {
-            return $"{Type} - ItemId: {ItemId}, ItemName: {ItemName}, IsHQ: {IsHQ}";
+            return $"{Type} - ItemId: {itemId}, IsHQ: {IsHQ}";
         }
 
         protected override void ProcessChunkImpl(BinaryReader reader, long endOfStream)
         {
-            ItemId = GetInteger(reader);
+            this.itemId = GetInteger(reader);
 
-            if (ItemId > 1000000)
+            if (this.itemId > 1000000)
             {
-                ItemId -= 1000000;
+                this.itemId -= 1000000;
                 IsHQ = true;
             }
 
@@ -109,6 +105,11 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
                 var itemNameLen = (int)GetInteger(reader);
                 var itemNameBytes = reader.ReadBytes(itemNameLen);
 
+                // it probably isn't necessary to store this, as we now get the lumina Item
+                // on demand from the id, which will have the name
+                // For incoming links, the name "should?" always match
+                // but we'll store it for use in encode just in case it doesn't
+
                 // HQ items have the HQ symbol as part of the name, but since we already recorded
                 // the HQ flag, we want just the bare name
                 if (IsHQ)
@@ -116,7 +117,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
                     itemNameBytes = itemNameBytes.Take(itemNameLen - 4).ToArray();
                 }
 
-                ItemName = Encoding.UTF8.GetString(itemNameBytes);
+                this.displayName = Encoding.UTF8.GetString(itemNameBytes);
             }
         }
 

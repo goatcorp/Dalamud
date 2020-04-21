@@ -1,10 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using Dalamud.Data;
 using Dalamud.Game.Chat.SeStringHandling.Payloads;
 
 namespace Dalamud.Game.Chat.SeStringHandling
@@ -14,6 +11,9 @@ namespace Dalamud.Game.Chat.SeStringHandling
     /// </summary>
     public class SeString
     {
+        // TODO: probably change how this is done/where it comes from
+        public static Dalamud Dalamud { get; internal set; }
+
         public List<Payload> Payloads { get; }
 
         public SeString(List<Payload> payloads)
@@ -37,6 +37,11 @@ namespace Dalamud.Game.Chat.SeStringHandling
                     {
                         sb.Append(((TextPayload)p).Text);
                     }
+                    // TODO: temporary (probably)
+                    else if (p.Type == PayloadType.AutoTranslateText)
+                    {
+                        sb.Append($"{{ {((AutoTranslatePayload)p).Text} }}");
+                    }
                 }
 
                 return sb.ToString();
@@ -52,9 +57,9 @@ namespace Dalamud.Game.Chat.SeStringHandling
         {
             var payloads = new List<Payload>();
 
-            using (var stream = new MemoryStream(bytes)) {
-                using var reader = new BinaryReader(stream);
-
+            using (var stream = new MemoryStream(bytes))
+            using (var reader = new BinaryReader(stream))
+            {
                 while (stream.Position < bytes.Length)
                 {
                     var payload = Payload.Process(reader);

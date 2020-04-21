@@ -1,9 +1,8 @@
+using Lumina.Excel.GeneratedSheets;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 {
@@ -12,25 +11,18 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         public override PayloadType Type => PayloadType.Player;
 
         public string PlayerName { get; private set; }
-        public uint ServerId { get; private set; }
-        public string ServerName { get; private set; } = String.Empty;
 
-        public PlayerPayload() { }
-
-        public PlayerPayload(string playerName, uint serverId)
+        private World world;
+        public World World
         {
-            PlayerName = playerName;
-            ServerId = serverId;
-        }
-
-        public override void Resolve()
-        {
-            if (string.IsNullOrEmpty(ServerName))
+            get
             {
-                dynamic server = XivApi.Get($"World/{ServerId}").GetAwaiter().GetResult();
-                ServerName = server.Name;
+                this.world ??= this.dataResolver.GetExcelSheet<World>().GetRow((int)this.serverId);
+                return this.world;
             }
         }
+
+        private uint serverId;
 
         public override byte[] Encode()
         {
@@ -40,7 +32,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
                 START_BYTE,
                 (byte)SeStringChunkType.Interactable, (byte)chunkLen, (byte)EmbeddedInfoType.PlayerName,
                 /* unk */ 0x01,
-                (byte)(ServerId+1),     // I didn't want to deal with single-byte values in MakeInteger, so we have to do the +1 manually
+                (byte)(this.serverId+1),                 // I didn't want to deal with single-byte values in MakeInteger, so we have to do the +1 manually
                 /* unk */0x01, /* unk */0xFF,       // these sometimes vary but are frequently this
                 (byte)(PlayerName.Length+1)
             };
@@ -50,7 +42,10 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 
             // encoded names are followed by the name in plain text again
             // use the payload parsing for consistency, as this is technically a new chunk
-            bytes.AddRange(new TextPayload(PlayerName).Encode());
+            // bytes.AddRange(new TextPayload(PlayerName).Encode());
+
+            // FIXME
+            bytes.AddRange(Encoding.UTF8.GetBytes(PlayerName));
 
             // unsure about this entire packet, but it seems to always follow a name
             bytes.AddRange(new byte[]
@@ -65,7 +60,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 
         public override string ToString()
         {
-            return $"{Type} - PlayerName: {PlayerName}, ServerId: {ServerId}, ServerName: {ServerName}";
+            return $"{Type} - PlayerName: {PlayerName}, ServerId: {serverId}";
         }
 
         protected override void ProcessChunkImpl(BinaryReader reader, long endOfStream)
@@ -73,7 +68,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             // unk
             reader.ReadByte();
 
-            ServerId = GetInteger(reader);
+            this.serverId = GetInteger(reader);
 
             // unk
             reader.ReadBytes(2);

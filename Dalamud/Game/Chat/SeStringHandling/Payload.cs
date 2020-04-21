@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Dalamud.Data;
 using Dalamud.Game.Chat.SeStringHandling.Payloads;
 using Serilog;
 
@@ -11,6 +12,7 @@ using Serilog;
 //   - lumina DI
 //   - design for handling raw values vs resolved values, both for input and output
 //   - wrapper class(es) for handling of composite links in chat (item, map etc) and formatting operations
+//   - add italics payload
 
 namespace Dalamud.Game.Chat.SeStringHandling
 {
@@ -21,11 +23,22 @@ namespace Dalamud.Game.Chat.SeStringHandling
     {
         public abstract PayloadType Type { get; }
 
-        public abstract void Resolve();
-
         public abstract byte[] Encode();
 
         protected abstract void ProcessChunkImpl(BinaryReader reader, long endOfStream);
+
+        // :(
+        protected DataManager dataResolver;
+
+        public Payload()
+        {
+            // this is not a good way to do this, but I don't want to have to include a dalamud
+            // reference on multiple methods in every payload class
+            // We could also just directly reference this static where we use it, but this at least
+            // allows for more easily changing how this is injected later, without affecting code
+            // that makes use of it
+            this.dataResolver = SeString.Dalamud.Data;
+        }
 
         public static Payload Process(BinaryReader reader)
         {
@@ -78,10 +91,13 @@ namespace Dalamud.Game.Chat.SeStringHandling
                             case EmbeddedInfoType.LinkTerminator:
                                 // this has no custom handling and so needs to fallthrough to ensure it is captured
                             default:
-                                Log.Verbose("Unhandled EmbeddedInfoType: {0}", subType);
+                                // but I'm also tired of this log
+                                if (subType != EmbeddedInfoType.LinkTerminator)
+                                {
+                                    Log.Verbose("Unhandled EmbeddedInfoType: {0}", subType);
+                                }
                                 // rewind so we capture the Interactable byte in the raw data
                                 reader.BaseStream.Seek(-1, SeekOrigin.Current);
-                                payload = new RawPayload((byte)chunkType);
                                 break;
                         }
                     }
@@ -101,11 +117,11 @@ namespace Dalamud.Game.Chat.SeStringHandling
 
                 default:
                     Log.Verbose("Unhandled SeStringChunkType: {0}", chunkType);
-                    payload = new RawPayload((byte)chunkType);
                     break;
             }
 
-            payload?.ProcessChunkImpl(reader, reader.BaseStream.Position + chunkLen - 1);
+            payload ??= new RawPayload((byte)chunkType);
+            payload.ProcessChunkImpl(reader, reader.BaseStream.Position + chunkLen - 1);
 
             // read through the rest of the packet
             var readBytes = (uint)(reader.BaseStream.Position - packetStart);
