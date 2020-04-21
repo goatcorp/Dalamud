@@ -5,6 +5,13 @@ using System.Linq;
 using Dalamud.Game.Chat.SeStringHandling.Payloads;
 using Serilog;
 
+// TODOs:
+//   - refactor integer handling now that we have multiple packed types
+//   - common construction/property design for subclasses
+//   - lumina DI
+//   - design for handling raw values vs resolved values, both for input and output
+//   - wrapper class(es) for handling of composite links in chat (item, map etc) and formatting operations
+
 namespace Dalamud.Game.Chat.SeStringHandling
 {
     /// <summary>
@@ -148,6 +155,7 @@ namespace Dalamud.Game.Chat.SeStringHandling
             Int16 = 0xF2,
             Int16Packed = 0xF4,         // seen in map links, seemingly 2 8-bit values packed into 2 bytes with only one marker
             Int24Special = 0xF6,        // unsure how different form Int24 - used for hq items that add 1 million, also used for normal 24-bit values in map links
+            Int24Packed = 0xFC,         // used in map links- sometimes short+byte, sometimes... not??
             Int24 = 0xFA,
             Int32 = 0xFE
         }
@@ -189,6 +197,8 @@ namespace Dalamud.Game.Chat.SeStringHandling
 
                 case IntegerType.Int24Special:
                     // Fallthrough - same logic
+                case IntegerType.Int24Packed:
+                // fallthrough again
                 case IntegerType.Int24:
                     {
                         var v = 0;
@@ -267,6 +277,7 @@ namespace Dalamud.Game.Chat.SeStringHandling
             var type = bytes.Length switch
             {
                 4 => IntegerType.Int32,
+                3 => IntegerType.Int24Packed,
                 2 => IntegerType.Int16Packed,
                 _ => throw new NotSupportedException()
             };
@@ -276,17 +287,32 @@ namespace Dalamud.Game.Chat.SeStringHandling
 
         protected (uint, uint) GetPackedIntegers(BinaryReader input)
         {
+            // HACK - this was already a hack, but the addition of Int24Packed made it even worse
+            // All of this should be redone/removed at some point
+
+            var marker = (IntegerType)input.ReadByte();
+            input.BaseStream.Position--;
+
             var value = GetInteger(input);
-            if (value > 0xFFFF)
+
+            if (marker == IntegerType.Int24Packed)
             {
-                return ((uint)((value & 0xFFFF0000) >> 16), (uint)(value & 0xFFFF));
+                return ((uint)((value & 0xFFFF00) >> 8), (uint)(value & 0xFF));
             }
-            else if (value > 0xFF)
+            // this used to be the catchall before Int24Packed; leave it for now to ensure we handle all encodings
+            else // if (marker == IntegerType.Int16Packed || marker == IntegerType.Int32)
             {
-                return ((uint)((value & 0xFF00) >> 8), (uint)(value & 0xFF));
+                if (value > 0xFFFF)
+                {
+                    return ((uint)((value & 0xFFFF0000) >> 16), (uint)(value & 0xFFFF));
+                }
+                else if (value > 0xFF)
+                {
+                    return ((uint)((value & 0xFF00) >> 8), (uint)(value & 0xFF));
+                }
             }
 
-            // unsure if there are other cases, like "odd" pairings of 2+1 bytes etc
+            // unsure if there are other cases
             throw new NotSupportedException();
         }
 
