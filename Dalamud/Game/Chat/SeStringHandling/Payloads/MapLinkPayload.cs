@@ -12,8 +12,8 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         // pre-Resolve() values
         public uint TerritoryTypeId { get; set; }
         public uint MapId { get; set;  }
-        public uint RawX { get; set; }
-        public uint RawY { get; set; }
+        public int RawX { get; set; }
+        public int RawY { get; set; }
 
         // Resolved values
         // It might make sense to have Territory be an external type, that has assorted relevant info
@@ -29,8 +29,8 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             // eventually we should allow creation using 'nice' values that then encode properly
 
             var packedTerritoryAndMapBytes = MakePackedInteger(TerritoryTypeId, MapId);
-            var xBytes = MakeInteger(RawX);
-            var yBytes = MakeInteger(RawY);
+            var xBytes = MakeInteger((uint)RawX);
+            var yBytes = MakeInteger((uint)RawY);
 
             var chunkLen = 4 + packedTerritoryAndMapBytes.Length + xBytes.Length + yBytes.Length;
 
@@ -73,8 +73,8 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         protected override void ProcessChunkImpl(BinaryReader reader, long endOfStream)
         {
             (TerritoryTypeId, MapId) = GetPackedIntegers(reader);
-            RawX = (uint)GetInteger(reader);
-            RawY = (uint)GetInteger(reader);
+            RawX = (int)GetInteger(reader);
+            RawY = (int)GetInteger(reader);
             // the Z coordinate is never in this chunk, just the text (if applicable)
 
             // seems to always be FF 01
