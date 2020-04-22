@@ -41,6 +41,15 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 
         private uint itemId;
 
+        internal ItemPayload() { }
+
+        public ItemPayload(uint itemId, bool isHQ, string displayNameOverride = null)
+        {
+            this.itemId = itemId;
+            this.IsHQ = isHQ;
+            this.displayName = displayNameOverride;
+        }
+
         public override string ToString()
         {
             return $"{Type} - ItemId: {itemId}, IsHQ: {IsHQ}";

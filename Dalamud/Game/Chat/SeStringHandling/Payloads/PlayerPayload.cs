@@ -33,6 +33,14 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 
         private uint serverId;
 
+        internal PlayerPayload() { }
+
+        public PlayerPayload(string playerName, uint serverId)
+        {
+            this.playerName = playerName;
+            this.serverId = serverId;
+        }
+
         public override string ToString()
         {
             return $"{Type} - PlayerName: {PlayerName}, ServerId: {serverId}";
@@ -58,12 +66,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 
             // encoded names are followed by the name in plain text again
             // use the payload parsing for consistency, as this is technically a new chunk
-            bytes.AddRange(
-                new TextPayload()
-                {
-                    Text = playerName
-                }.Encode()
-            );
+            bytes.AddRange(new TextPayload(playerName).Encode());
 
             // unsure about this entire packet, but it seems to always follow a name
             bytes.AddRange(new byte[]

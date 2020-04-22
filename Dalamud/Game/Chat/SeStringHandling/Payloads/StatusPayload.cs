@@ -21,6 +21,13 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 
         private uint statusId;
 
+        internal StatusPayload() { }
+
+        public StatusPayload(uint statusId)
+        {
+            this.statusId = statusId;
+        }
+
         public override string ToString()
         {
             return $"{Type} - StatusId: {statusId}";

@@ -46,6 +46,18 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             }
         }
 
+        public string CoordinateString
+        {
+            get
+            {
+                // this truncates the values to one decimal without rounding, which is what the game does
+                var x = Math.Truncate(XCoord * 10.0f) / 10.0f;
+                var y = Math.Truncate(YCoord * 10.0f) / 10.0f;
+
+                return $"( {x.ToString("0.0")}, {y.ToString("0.0")} )";
+            }
+        }
+
         private string placeNameRegion;
         public string PlaceNameRegion
         {
@@ -66,13 +78,31 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             }
         }
 
-        public string DataString => $"m:{TerritoryType.RowId},{Map.RowId},{unchecked((int)rawX)},{unchecked((int)rawY)}";
+        public string DataString => $"m:{TerritoryType.RowId},{Map.RowId},{rawX},{rawY}";
 
         private uint territoryTypeId;
         private uint mapId;
-        private uint rawX;
-        private uint rawY;
+        private int rawX;
+        private int rawY;
         // there is no Z; it's purely in the text payload where applicable
+
+        internal MapLinkPayload() { }
+
+        public MapLinkPayload(uint territoryTypeId, uint mapId, float niceXCoord, float niceYCoord)
+        {
+            this.territoryTypeId = territoryTypeId;
+            this.mapId = mapId;
+            this.rawX = this.ConvertMapCoordinateToRawPosition(niceXCoord, Map.SizeFactor);
+            this.rawY = this.ConvertMapCoordinateToRawPosition(niceYCoord, Map.SizeFactor);
+        }
+
+        public MapLinkPayload(uint territoryTypeId, uint mapId, int rawX, int rawY)
+        {
+            this.territoryTypeId = territoryTypeId;
+            this.mapId = mapId;
+            this.rawX = rawX;
+            this.rawY = rawY;
+        }
 
         public override string ToString()
         {
@@ -81,12 +111,9 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 
         protected override byte[] EncodeImpl()
         {
-            // TODO: for now we just encode the raw/internal values
-            // eventually we should allow creation using 'nice' values that then encode properly
-
             var packedTerritoryAndMapBytes = MakePackedInteger(this.territoryTypeId, this.mapId);
-            var xBytes = MakeInteger(this.rawX);
-            var yBytes = MakeInteger(this.rawY);
+            var xBytes = MakeInteger(unchecked((uint)this.rawX));
+            var yBytes = MakeInteger(unchecked((uint)this.rawY));
 
             var chunkLen = 4 + packedTerritoryAndMapBytes.Length + xBytes.Length + yBytes.Length;
 
@@ -116,8 +143,8 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             try
             {
                 (this.territoryTypeId, this.mapId) = GetPackedIntegers(reader);
-                this.rawX = (uint)GetInteger(reader);
-                this.rawY = (uint)GetInteger(reader);
+                this.rawX = unchecked((int)GetInteger(reader));
+                this.rawY = unchecked((int)GetInteger(reader));
                 // the Z coordinate is never in this chunk, just the text (if applicable)
 
                 // seems to always be FF 01
@@ -134,16 +161,16 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         #region ugliness
         // from https://github.com/xivapi/ffxiv-datamining/blob/master/docs/MapCoordinates.md
         // extra 1/1000 because that is how the network ints are done
-        private float ConvertRawPositionToMapCoordinate(uint pos, float scale)
+        private float ConvertRawPositionToMapCoordinate(int pos, float scale)
         {
             var c = scale / 100.0f;
-            var scaledPos = (int)pos * c / 1000.0f;
+            var scaledPos = pos * c / 1000.0f;
 
             return ((41.0f / c) * ((scaledPos + 1024.0f) / 2048.0f)) + 1.0f;
         }
 
         // Created as the inverse of ConvertRawPositionToMapCoordinate(), since no one seemed to have a version of that
-        private float ConvertMapCoordinateToRawPosition(float pos, float scale)
+        private int ConvertMapCoordinateToRawPosition(float pos, float scale)
         {
             var c = scale / 100.0f;
 

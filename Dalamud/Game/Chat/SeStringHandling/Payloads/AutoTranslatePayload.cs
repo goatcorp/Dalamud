@@ -27,6 +27,16 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         private uint group;
         private uint key;
 
+        internal AutoTranslatePayload() { }
+
+        public AutoTranslatePayload(uint group, uint key)
+        {
+            this.group = group;
+            this.key = key;
+        }
+
+        // TODO: friendlier ctor? not sure how to handle that given how weird the tables are
+
         public override string ToString()
         {
             return $"{Type} - Group: {group}, Key: {key}";

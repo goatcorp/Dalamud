@@ -26,6 +26,13 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             return $"{Type} - Text: {Text}";
         }
 
+        internal TextPayload() { }
+
+        public TextPayload(string text)
+        {
+            this.text = text;
+        }
+
         protected override byte[] EncodeImpl()
         {
             return Encoding.UTF8.GetBytes(Text);

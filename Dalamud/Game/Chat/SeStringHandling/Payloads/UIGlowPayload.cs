@@ -40,6 +40,13 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 
         private ushort colorKey;
 
+        internal UIGlowPayload() { }
+
+        public UIGlowPayload(ushort colorKey)
+        {
+            this.colorKey = colorKey;
+        }
+
         public override string ToString()
         {
             return $"{Type} - UIColor: {colorKey}";

@@ -35,7 +35,7 @@ namespace Dalamud.Game.Chat.SeStringHandling
 
         protected byte[] encodedData;
 
-        public Payload()
+        protected Payload()
         {
             // this is not a good way to do this, but I don't want to have to include a dalamud
             // reference on multiple methods in every payload class
