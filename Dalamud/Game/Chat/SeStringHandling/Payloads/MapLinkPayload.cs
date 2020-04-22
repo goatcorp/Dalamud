@@ -51,10 +51,13 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             get
             {
                 // this truncates the values to one decimal without rounding, which is what the game does
-                var x = Math.Truncate(XCoord * 10.0f) / 10.0f;
-                var y = Math.Truncate(YCoord * 10.0f) / 10.0f;
+                // the fudge also just attempts to correct the truncated/displayed value for rounding/fp issues
+                // TODO: should this fudge factor be the same as in the ctor? currently not since that is customizable
+                const float fudge = 0.02f;
+                var x = Math.Truncate((XCoord+fudge) * 10.0f) / 10.0f;
+                var y = Math.Truncate((YCoord+fudge) * 10.0f) / 10.0f;
 
-                return $"( {x.ToString("0.0")}, {y.ToString("0.0")} )";
+                return $"( {x.ToString("0.0")}  , {y.ToString("0.0")} )";
             }
         }
 
@@ -88,12 +91,15 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 
         internal MapLinkPayload() { }
 
-        public MapLinkPayload(uint territoryTypeId, uint mapId, float niceXCoord, float niceYCoord)
+        public MapLinkPayload(uint territoryTypeId, uint mapId, float niceXCoord, float niceYCoord, float fudgeFactor = 0.05f)
         {
             this.territoryTypeId = territoryTypeId;
             this.mapId = mapId;
-            this.rawX = this.ConvertMapCoordinateToRawPosition(niceXCoord, Map.SizeFactor);
-            this.rawY = this.ConvertMapCoordinateToRawPosition(niceYCoord, Map.SizeFactor);
+            // this fudge is necessary basically to ensure we don't shift down a full tenth
+            // because essentially values are truncated instead of rounded, so 3.09999f will become
+            // 3.0f and not 3.1f
+            this.rawX = this.ConvertMapCoordinateToRawPosition(niceXCoord + fudgeFactor, Map.SizeFactor);
+            this.rawY = this.ConvertMapCoordinateToRawPosition(niceYCoord + fudgeFactor, Map.SizeFactor);
         }
 
         public MapLinkPayload(uint territoryTypeId, uint mapId, int rawX, int rawY)
@@ -177,7 +183,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             var scaledPos = ((((pos - 1.0f) * c / 41.0f) * 2048.0f) - 1024.0f) / c;
             scaledPos *= 1000.0f;
 
-            return (int)Math.Round(scaledPos);
+            return (int)scaledPos;
         }
         #endregion
 
