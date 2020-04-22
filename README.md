@@ -1,7 +1,7 @@
 # Dalamud  [![Actions Status](https://github.com/goaaats/Dalamud/workflows/Build%20Dalamud/badge.svg)](https://github.com/goaaats/Dalamud/actions) [![Discord Shield](https://discordapp.com/api/guilds/581875019861328007/widget.png?style=shield)](https://discord.gg/3NMcUV5)
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/goaaats/Dalamud/master/Dalamud/UIRes/logo.png" alt="FFXIV Sapphire" width="200"/>
+  <img src="https://raw.githubusercontent.com/goatcorp/Dalamud/master/Dalamud/UIRes/logo.png" alt="Dalamud" width="200"/>
 </p>
 
 Dalamud is a plugin development framework for FINAL FANTASY XIV that provides access to game data and native interoperability with the game itself to add functionality and quality-of-life.
