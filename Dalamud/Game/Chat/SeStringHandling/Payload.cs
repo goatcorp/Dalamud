@@ -8,12 +8,12 @@ using Serilog;
 
 // TODOs:
 //   - refactor integer handling now that we have multiple packed types
-//   - common construction/property design for subclasses
 //   - wrapper class(es) for handling of composite links in chat (item, map etc) and formatting operations
-//   - add italics payload
 // Maybes:
 //   - convert parsing to custom structs for each payload?  would make some code prettier and easier to work with
 //     but also wouldn't work out as well for things that are dynamically-sized
+//   - [SeString] some way to add surrounding formatting information as flags/data to text (or other?) payloads?
+//     eg, if a text payload is surrounded by italics payloads, strip them out and mark the text payload as italicized
 
 namespace Dalamud.Game.Chat.SeStringHandling
 {
@@ -98,6 +98,10 @@ namespace Dalamud.Game.Chat.SeStringHandling
 
             switch (chunkType)
             {
+                case SeStringChunkType.EmphasisItalic:
+                    payload = new EmphasisItalicPayload();
+                    break;
+
                 case SeStringChunkType.Interactable:
                     {
                         var subType = (EmbeddedInfoType)reader.ReadByte();
@@ -176,6 +180,7 @@ namespace Dalamud.Game.Chat.SeStringHandling
 
         protected enum SeStringChunkType
         {
+            EmphasisItalic = 0x1A,
             Interactable = 0x27,
             AutoTranslateKey = 0x2E,
             UIForeground = 0x48,
