@@ -24,7 +24,12 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 
         private uint serverId;
 
-        public override byte[] Encode()
+        public override string ToString()
+        {
+            return $"{Type} - PlayerName: {PlayerName}, ServerId: {serverId}";
+        }
+
+        protected override byte[] EncodeImpl()
         {
             var chunkLen = PlayerName.Length + 7;
             var bytes = new List<byte>()
@@ -58,12 +63,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             return bytes.ToArray();
         }
 
-        public override string ToString()
-        {
-            return $"{Type} - PlayerName: {PlayerName}, ServerId: {serverId}";
-        }
-
-        protected override void ProcessChunkImpl(BinaryReader reader, long endOfStream)
+        protected override void DecodeImpl(BinaryReader reader, long endOfStream)
         {
             // unk
             reader.ReadByte();

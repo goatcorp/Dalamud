@@ -17,7 +17,12 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             this.chunkType = chunkType;
         }
 
-        public override byte[] Encode()
+        public override string ToString()
+        {
+            return $"{Type} - Chunk type: {chunkType:X}, Data: {BitConverter.ToString(Data).Replace("-", " ")}";
+        }
+
+        protected override byte[] EncodeImpl()
         {
             var chunkLen = Data.Length + 1;
 
@@ -34,12 +39,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             return bytes.ToArray();
         }
 
-        public override string ToString()
-        {
-            return $"{Type} - Chunk type: {chunkType:X}, Data: {BitConverter.ToString(Data).Replace("-", " ")}";
-        }
-
-        protected override void ProcessChunkImpl(BinaryReader reader, long endOfStream)
+        protected override void DecodeImpl(BinaryReader reader, long endOfStream)
         {
             Data = reader.ReadBytes((int)(endOfStream - reader.BaseStream.Position + 1));
         }

@@ -9,7 +9,6 @@ using Serilog;
 // TODOs:
 //   - refactor integer handling now that we have multiple packed types
 //   - common construction/property design for subclasses
-//   - lumina DI
 //   - design for handling raw values vs resolved values, both for input and output
 //   - wrapper class(es) for handling of composite links in chat (item, map etc) and formatting operations
 //   - add italics payload
@@ -23,12 +22,16 @@ namespace Dalamud.Game.Chat.SeStringHandling
     {
         public abstract PayloadType Type { get; }
 
-        public abstract byte[] Encode();
+        public bool Dirty { get; protected set; } = true;
 
-        protected abstract void ProcessChunkImpl(BinaryReader reader, long endOfStream);
+        protected abstract byte[] EncodeImpl();
+
+        protected abstract void DecodeImpl(BinaryReader reader, long endOfStream);
 
         // :(
         protected DataManager dataResolver;
+
+        protected byte[] encodedData;
 
         public Payload()
         {
@@ -40,22 +43,48 @@ namespace Dalamud.Game.Chat.SeStringHandling
             this.dataResolver = SeString.Dalamud.Data;
         }
 
-        public static Payload Process(BinaryReader reader)
+        public byte[] Encode(bool force = false)
         {
+            if (Dirty || force)
+            {
+                this.encodedData = EncodeImpl();
+                Dirty = false;
+            }
+
+            return this.encodedData;
+        }
+
+        public static Payload Decode(BinaryReader reader)
+        {
+            var payloadStartPos = reader.BaseStream.Position;
+
             Payload payload = null;
             if ((byte)reader.PeekChar() != START_BYTE)
             {
-                payload = ProcessText(reader);
+                payload = DecodeText(reader);
             }
             else
             {
-                payload = ProcessChunk(reader);
+                payload = DecodeChunk(reader);
             }
+
+            // for now, cache off the actual binary data for this payload, so we don't have to
+            // regenerate it if the payload isn't modified
+            // TODO: probably better ways to handle this
+            var payloadEndPos = reader.BaseStream.Position;
+
+            reader.BaseStream.Position = payloadStartPos;
+            payload.encodedData = reader.ReadBytes((int)(payloadEndPos - payloadStartPos));
+            payload.Dirty = false;
+
+            // Log.Verbose($"got payload bytes {BitConverter.ToString(payload.encodedData).Replace("-", " ")}");
+
+            reader.BaseStream.Position = payloadEndPos;
 
             return payload;
         }
 
-        private static Payload ProcessChunk(BinaryReader reader)
+        private static Payload DecodeChunk(BinaryReader reader)
         {
             Payload payload = null;
 
@@ -121,7 +150,7 @@ namespace Dalamud.Game.Chat.SeStringHandling
             }
 
             payload ??= new RawPayload((byte)chunkType);
-            payload.ProcessChunkImpl(reader, reader.BaseStream.Position + chunkLen - 1);
+            payload.DecodeImpl(reader, reader.BaseStream.Position + chunkLen - 1);
 
             // read through the rest of the packet
             var readBytes = (uint)(reader.BaseStream.Position - packetStart);
@@ -130,10 +159,10 @@ namespace Dalamud.Game.Chat.SeStringHandling
             return payload;
         }
 
-        private static Payload ProcessText(BinaryReader reader)
+        private static Payload DecodeText(BinaryReader reader)
         {
             var payload = new TextPayload();
-            payload.ProcessChunkImpl(reader, reader.BaseStream.Length);
+            payload.DecodeImpl(reader, reader.BaseStream.Length);
 
             return payload;
         }

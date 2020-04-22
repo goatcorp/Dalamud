@@ -29,7 +29,12 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 
         private ushort colorKey;
 
-        public override byte[] Encode()
+        public override string ToString()
+        {
+            return $"{Type} - UIColor: {colorKey}";
+        }
+
+        protected override byte[] EncodeImpl()
         {
             var colorBytes = MakeInteger(this.colorKey);
             var chunkLen = colorBytes.Length + 1;
@@ -45,12 +50,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             return bytes.ToArray();
         }
 
-        public override string ToString()
-        {
-            return $"{Type} - UIColor: {colorKey}";
-        }
-
-        protected override void ProcessChunkImpl(BinaryReader reader, long endOfStream)
+        protected override void DecodeImpl(BinaryReader reader, long endOfStream)
         {
             this.colorKey = (ushort)GetInteger(reader);
         }

@@ -74,7 +74,12 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         private uint rawY;
         // there is no Z; it's purely in the text payload where applicable
 
-        public override byte[] Encode()
+        public override string ToString()
+        {
+            return $"{Type} - TerritoryTypeId: {territoryTypeId}, MapId: {mapId}, RawX: {rawX}, RawY: {rawY}";
+        }
+
+        protected override byte[] EncodeImpl()
         {
             // TODO: for now we just encode the raw/internal values
             // eventually we should allow creation using 'nice' values that then encode properly
@@ -101,12 +106,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             return bytes.ToArray();
         }
 
-        public override string ToString()
-        {
-            return $"{Type} - TerritoryTypeId: {territoryTypeId}, MapId: {mapId}, RawX: {rawX}, RawY: {rawY}";
-        }
-
-        protected override void ProcessChunkImpl(BinaryReader reader, long endOfStream)
+        protected override void DecodeImpl(BinaryReader reader, long endOfStream)
         {
             // for debugging for now
             var oldPos = reader.BaseStream.Position;

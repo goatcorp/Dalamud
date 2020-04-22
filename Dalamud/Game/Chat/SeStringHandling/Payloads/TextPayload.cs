@@ -11,17 +11,17 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 
         public string Text { get; private set; }
 
-        public override byte[] Encode()
-        {
-            return Encoding.UTF8.GetBytes(Text);
-        }
-
         public override string ToString()
         {
             return $"{Type} - Text: {Text}";
         }
 
-        protected override void ProcessChunkImpl(BinaryReader reader, long endOfStream)
+        protected override byte[] EncodeImpl()
+        {
+            return Encoding.UTF8.GetBytes(Text);
+        }
+
+        protected override void DecodeImpl(BinaryReader reader, long endOfStream)
         {
             var text = new List<byte>();
 

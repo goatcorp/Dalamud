@@ -21,7 +21,12 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 
         private uint statusId;
 
-        public override byte[] Encode()
+        public override string ToString()
+        {
+            return $"{Type} - StatusId: {statusId}";
+        }
+
+        protected override byte[] EncodeImpl()
         {
             var idBytes = MakeInteger(this.statusId);
 
@@ -38,12 +43,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             return bytes.ToArray();
         }
 
-        public override string ToString()
-        {
-            return $"{Type} - StatusId: {statusId}";
-        }
-
-        protected override void ProcessChunkImpl(BinaryReader reader, long endOfStream)
+        protected override void DecodeImpl(BinaryReader reader, long endOfStream)
         {
             this.statusId = GetInteger(reader);
         }

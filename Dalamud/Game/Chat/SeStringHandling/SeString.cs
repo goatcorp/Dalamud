@@ -62,7 +62,7 @@ namespace Dalamud.Game.Chat.SeStringHandling
             {
                 while (stream.Position < bytes.Length)
                 {
-                    var payload = Payload.Process(reader);
+                    var payload = Payload.Decode(reader);
                     if (payload != null)
                         payloads.Add(payload);
                 }

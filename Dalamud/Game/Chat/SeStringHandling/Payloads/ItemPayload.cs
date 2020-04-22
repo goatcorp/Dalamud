@@ -27,8 +27,12 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         // mainly to allow overriding the name (for things like owo)
         private string displayName;
 
+        public override string ToString()
+        {
+            return $"{Type} - ItemId: {itemId}, IsHQ: {IsHQ}";
+        }
 
-        public override byte[] Encode()
+        protected override byte[] EncodeImpl()
         {
             var actualItemId = IsHQ ? this.itemId + 1000000 : this.itemId;
             var idBytes = MakeInteger(actualItemId);
@@ -82,12 +86,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             return bytes.ToArray();
         }
 
-        public override string ToString()
-        {
-            return $"{Type} - ItemId: {itemId}, IsHQ: {IsHQ}";
-        }
-
-        protected override void ProcessChunkImpl(BinaryReader reader, long endOfStream)
+        protected override void DecodeImpl(BinaryReader reader, long endOfStream)
         {
             this.itemId = GetInteger(reader);
 

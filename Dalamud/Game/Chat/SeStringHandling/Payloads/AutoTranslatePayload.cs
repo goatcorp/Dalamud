@@ -25,7 +25,12 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         private uint group;
         private uint key;
 
-        public override byte[] Encode()
+        public override string ToString()
+        {
+            return $"{Type} - Group: {group}, Key: {key}";
+        }
+
+        protected override byte[] EncodeImpl()
         {
             var keyBytes = MakeInteger(this.key);
 
@@ -42,12 +47,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             return bytes.ToArray();
         }
 
-        public override string ToString()
-        {
-            return $"{Type} - Group: {group}, Key: {key}";
-        }
-
-        protected override void ProcessChunkImpl(BinaryReader reader, long endOfStream)
+        protected override void DecodeImpl(BinaryReader reader, long endOfStream)
         {
             // this seems to always be a bare byte, and not following normal integer encoding
             // the values in the table are all <70 so this is presumably ok
