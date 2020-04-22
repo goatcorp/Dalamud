@@ -34,7 +34,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         {
             get
             {
-                return UIColor.UIGlow;
+                return (UIColor.UIGlow & 0xFFFFFF);
             }
         }
 

@@ -54,6 +54,8 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             bytes.AddRange(Encoding.UTF8.GetBytes(this.playerName));
             bytes.Add(END_BYTE);
 
+            // TODO: should these really be here? additional payloads should come in separately already...
+
             // encoded names are followed by the name in plain text again
             // use the payload parsing for consistency, as this is technically a new chunk
             bytes.AddRange(

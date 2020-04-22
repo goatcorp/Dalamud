@@ -40,7 +40,7 @@ namespace Dalamud.Game.Chat.SeStringHandling
                     // TODO: temporary (probably)
                     else if (p.Type == PayloadType.AutoTranslateText)
                     {
-                        sb.Append($"{{ {((AutoTranslatePayload)p).Text} }}");
+                        sb.Append(((AutoTranslatePayload)p).Text);
                     }
                 }
 

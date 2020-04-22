@@ -9,9 +9,11 @@ using Serilog;
 // TODOs:
 //   - refactor integer handling now that we have multiple packed types
 //   - common construction/property design for subclasses
-//   - design for handling raw values vs resolved values, both for input and output
 //   - wrapper class(es) for handling of composite links in chat (item, map etc) and formatting operations
 //   - add italics payload
+// Maybes:
+//   - convert parsing to custom structs for each payload?  would make some code prettier and easier to work with
+//     but also wouldn't work out as well for things that are dynamically-sized
 
 namespace Dalamud.Game.Chat.SeStringHandling
 {
@@ -200,8 +202,8 @@ namespace Dalamud.Game.Chat.SeStringHandling
             Int16 = 0xF2,
             Int16Packed = 0xF4,         // seen in map links, seemingly 2 8-bit values packed into 2 bytes with only one marker
             Int24Special = 0xF6,        // unsure how different form Int24 - used for hq items that add 1 million, also used for normal 24-bit values in map links
-            Int24Packed = 0xFC,         // used in map links- sometimes short+byte, sometimes... not??
             Int24 = 0xFA,
+            Int24Packed = 0xFC,         // used in map links- sometimes short+byte, sometimes... not??
             Int32 = 0xFE
         }
 

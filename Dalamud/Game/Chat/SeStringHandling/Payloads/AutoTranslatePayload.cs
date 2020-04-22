@@ -17,7 +17,9 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         {
             get
             {
-                this.text ??= Resolve();
+                // wrap the text in the colored brackets that is uses in-game, since those
+                // are not actually part of any of the payloads
+                this.text ??= $"\uE040 {Resolve()} \uE041";
                 return this.text;
             }
         }
