@@ -7,6 +7,9 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 {
     public class RawPayload : Payload
     {
+        // this and others could be an actual static member somewhere and avoid construction costs, but that probably isn't a real concern
+        public static RawPayload LinkTerminator => new RawPayload(new byte[] { 0x02, 0x27, 0x07, 0xCF, 0x01, 0x01, 0x01, 0xFF, 0x01, 0x03 });
+
         public override PayloadType Type => PayloadType.Unknown;
 
         private byte[] data;

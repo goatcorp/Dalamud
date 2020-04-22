@@ -7,6 +7,8 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 {
     public class UIGlowPayload : Payload
     {
+        public static UIGlowPayload UIGlowOff => new UIGlowPayload(0);
+
         public override PayloadType Type => PayloadType.UIGlow;
 
         public bool IsEnabled => ColorKey != 0;

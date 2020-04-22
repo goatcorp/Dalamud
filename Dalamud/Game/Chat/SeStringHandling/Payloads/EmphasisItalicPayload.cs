@@ -6,6 +6,9 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 {
     class EmphasisItalicPayload : Payload
     {
+        public static EmphasisItalicPayload ItalicsOn => new EmphasisItalicPayload(true);
+        public static EmphasisItalicPayload ItalicsOff => new EmphasisItalicPayload(false);
+
         public override PayloadType Type => PayloadType.EmphasisItalic;
 
         public bool IsEnabled { get; private set; }

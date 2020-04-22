@@ -19,19 +19,17 @@ namespace Dalamud.Game.Chat.SeStringHandling
                 displayName += " \uE03C";
             }
 
+            // TODO: probably a cleaner way to build these than doing the bulk+insert
             var payloads = new List<Payload>(new Payload[]
             {
                 new UIForegroundPayload(0x0225),
                 new UIGlowPayload(0x0226),
                 new ItemPayload(itemId, isHQ),
-                new UIForegroundPayload(0x01F4),
-                new UIGlowPayload(0x01F5),
-                new TextPayload("\uE0BB"),
-                new UIGlowPayload(0),
-                new UIForegroundPayload(0),
+                // arrow goes here
                 new TextPayload(displayName),
-                new RawPayload(new byte[] { 0x02, 0x27, 0x07, 0xCF, 0x01, 0x01, 0x01, 0xFF, 0x01, 0x03 })
+                RawPayload.LinkTerminator
             });
+            payloads.InsertRange(3, TextArrowPayloads());
 
             return new SeString(payloads);
         }
@@ -44,14 +42,11 @@ namespace Dalamud.Game.Chat.SeStringHandling
             var payloads = new List<Payload>(new Payload[]
             {
                 mapPayload,
-                new UIForegroundPayload(0x01F4),
-                new UIGlowPayload(0x01F5),
-                new TextPayload("\uE0BB"),
-                new UIGlowPayload(0),
-                new UIForegroundPayload(0),
+                // arrow goes here
                 new TextPayload(nameString),
-                new RawPayload(new byte[] { 0x02, 0x27, 0x07, 0xCF, 0x01, 0x01, 0x01, 0xFF, 0x01, 0x03 })
+                RawPayload.LinkTerminator
             });
+            payloads.InsertRange(1, TextArrowPayloads());
 
             return new SeString(payloads);
         }
@@ -75,6 +70,18 @@ namespace Dalamud.Game.Chat.SeStringHandling
 
             // TODO: empty? throw?
             return null;
+        }
+
+        public static List<Payload> TextArrowPayloads()
+        {
+            return new List<Payload>(new Payload[]
+            {
+                new UIForegroundPayload(0x01F4),
+                new UIGlowPayload(0x01F5),
+                new TextPayload("\uE0BB"),
+                UIGlowPayload.UIGlowOff,
+                UIForegroundPayload.UIForegroundOff
+            });
         }
     }
 }

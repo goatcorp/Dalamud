@@ -7,6 +7,8 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 {
     public class UIForegroundPayload : Payload
     {
+        public static UIForegroundPayload UIForegroundOff => new UIForegroundPayload(0);
+
         public override PayloadType Type => PayloadType.UIForeground;
 
         public bool IsEnabled => ColorKey != 0;
