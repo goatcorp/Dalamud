@@ -440,7 +440,7 @@ namespace Dalamud {
 
             this.CommandManager.AddHandler("/xllanguage", new CommandInfo(OnSetLanguageCommand)
             {
-                HelpMessage = Loc.Localize("DalamudLanguageHelp", "Set the language for the in-game addon and plugins that support it.")
+                HelpMessage = Loc.Localize("DalamudLanguageHelp", "Set the language for the in-game addon and plugins that support it. Available languages: ") + Localization.ApplicableLangCodes.Aggregate("en", (current, code) => current + ", " + code)
             });
 
             this.CommandManager.AddHandler("/imdebug", new CommandInfo(OnDebugImInfoCommand)
@@ -619,15 +619,15 @@ namespace Dalamud {
             else
                 this.Configuration.PreferredRoleReminders.Add(rouletteIndex, role);
 
-            Framework.Gui.Chat.Print($"Set bonus notifications for {argParts[0]}({rouletteIndex}) to {role}");
-            Framework.Gui.Chat.Print(string.Format(Loc.Localize("DalamudBonusSet", "Set bonus notifications for {0}({1}) to {2}"), argParts[0], rouletteIndex, role));
+            this.Framework.Gui.Chat.Print($"Set bonus notifications for {argParts[0]}({rouletteIndex}) to {role}");
+            this.Framework.Gui.Chat.Print(string.Format(Loc.Localize("DalamudBonusSet", "Set bonus notifications for {0}({1}) to {2}"), argParts[0], rouletteIndex, role));
             this.Configuration.Save();
 
             return;
 
             InvalidArgs:
-            Framework.Gui.Chat.PrintError(Loc.Localize("DalamudInvalidArguments", "Unrecognized arguments."));
-            Framework.Gui.Chat.Print(Loc.Localize("DalamudBonusPossibleValues", "Possible values for roulette: leveling, 506070, msq, guildhests, expert, trials, mentor, alliance, normal\nPossible values for role: tank, dps, healer, all, none/reset"));
+            this.Framework.Gui.Chat.PrintError(Loc.Localize("DalamudInvalidArguments", "Unrecognized arguments."));
+            this.Framework.Gui.Chat.Print(Loc.Localize("DalamudBonusPossibleValues", "Possible values for roulette: leveling, 506070, msq, guildhests, expert, trials, mentor, alliance, normal\nPossible values for role: tank, dps, healer, all, none/reset"));
         }
 
         private void OnDebugDrawDevMenu(string command, string arguments) {
@@ -675,9 +675,13 @@ namespace Dalamud {
             if (Localization.ApplicableLangCodes.Contains(arguments.ToLower())) {
                 this.localizationMgr.SetupWithLangCode(arguments.ToLower());
                 this.Configuration.LanguageOverride = arguments.ToLower();
+
+                this.Framework.Gui.Chat.Print(string.Format(Loc.Localize("DalamudLanguageSetTo", "Language set to {0}"), arguments));
             } else {
                 this.localizationMgr.SetupWithUiCulture();
                 this.Configuration.LanguageOverride = null;
+
+                this.Framework.Gui.Chat.Print(string.Format(Loc.Localize("DalamudLanguageSetTo", "Language set to {0}"), "default"));
             }
 
             this.Configuration.Save();
