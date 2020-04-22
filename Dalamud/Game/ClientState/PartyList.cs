@@ -10,9 +10,8 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Dalamud.Game.ClientState
-
 {
-    public class PartyList : ICollection, IDisposable
+    public class PartyList : IReadOnlyCollection<PartyMember>, ICollection, IDisposable
     {
         private ClientStateAddressResolver Address { get; }
         private Dalamud dalamud;
@@ -73,7 +72,7 @@ namespace Dalamud.Game.ClientState
             }
         }
 
-        private class PartyListEnumerator : IEnumerator
+        private class PartyListEnumerator : IEnumerator<PartyMember>
         {
             private readonly PartyList party;
             private int currentIndex;
@@ -82,8 +81,6 @@ namespace Dalamud.Game.ClientState
             {
                 party = list;
             }
-
-            public object Current => party[currentIndex];
 
             public bool MoveNext()
             {
@@ -95,14 +92,26 @@ namespace Dalamud.Game.ClientState
             {
                 currentIndex = 0;
             }
+
+            public PartyMember Current => this.party[this.currentIndex];
+
+            object IEnumerator.Current => Current;
+
+            // Required by IEnumerator<T> even though we have nothing we want to dispose here.
+            public void Dispose() {}
         }
 
-        public IEnumerator GetEnumerator()
-        {
+        public IEnumerator<PartyMember> GetEnumerator() {
             return new PartyListEnumerator(this);
         }
 
+        IEnumerator IEnumerable.GetEnumerator() {
+            return GetEnumerator();
+        }
+
         public int Length => !this.isReady ? 0 : Marshal.ReadByte(partyListBegin + 0xF0);
+
+        int IReadOnlyCollection<PartyMember>.Count => Length;
 
         public int Count => Length;
 
