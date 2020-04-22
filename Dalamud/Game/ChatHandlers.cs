@@ -224,8 +224,16 @@ namespace Dalamud.Game {
         }
 
         private static string MakeItalics(string text) {
-            return Encoding.UTF8.GetString(new byte[] {0x02, 0x1A, 0x02, 0x02, 0x03}) + text +
-                   Encoding.UTF8.GetString(new byte[] {0x02, 0x1A, 0x02, 0x01, 0x03});
+            // TODO: when the above code is switched to SeString, this can be a straight insertion of the
+            // italics payloads only, and be a lot cleaner
+            var italicString = new SeString(new List<Payload>(new Payload[]
+            {
+                EmphasisItalicPayload.ItalicsOn,
+                new TextPayload(text),
+                EmphasisItalicPayload.ItalicsOff
+            }));
+
+            return Encoding.UTF8.GetString(italicString.Encode());
         }
     }
 }
