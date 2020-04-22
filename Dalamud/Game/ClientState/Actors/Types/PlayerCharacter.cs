@@ -1,3 +1,4 @@
+using System;
 using Dalamud.Game.ClientState.Actors.Resolvers;
 using SharpDX.Text;
 
@@ -11,7 +12,8 @@ namespace Dalamud.Game.ClientState.Actors.Types {
         /// </summary>
         /// <param name="actorStruct">The memory representation of the base actor.</param>
         /// <param name="dalamud">A dalamud reference needed to access game data in Resolvers.</param>
-        public PlayerCharacter(Structs.Actor actorStruct, Dalamud dalamud) : base(actorStruct, dalamud) { }
+        /// <param name="address">The address of this actor in memory.</param>
+        public PlayerCharacter(IntPtr address, Structs.Actor actorStruct, Dalamud dalamud) : base(address, actorStruct, dalamud) { }
 
         /// <summary>
         ///     The current <see cref="World">world</see> of the character.

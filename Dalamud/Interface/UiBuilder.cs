@@ -95,7 +95,7 @@ namespace Dalamud.Interface
             try {
                 OnBuildUi?.Invoke();
             } catch (Exception ex) {
-                Log.Error("[{0}] UiBuilder OnBuildUi caught exception");
+                Log.Error(ex, "[{0}] UiBuilder OnBuildUi caught exception", this.namespaceName);
                 OnBuildUi = null;
                 OnOpenConfigUi = null;
 

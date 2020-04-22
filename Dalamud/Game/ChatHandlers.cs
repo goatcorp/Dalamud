@@ -119,7 +119,7 @@ namespace Dalamud.Game {
                     });
 
                     this.dalamud.Configuration.LastVersion = assemblyVersion;
-                    this.dalamud.Configuration.Save(this.dalamud.StartInfo.ConfigurationPath);
+                    this.dalamud.Configuration.Save();
                 }
 
                 try {

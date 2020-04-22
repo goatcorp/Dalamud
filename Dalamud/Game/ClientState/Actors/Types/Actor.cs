@@ -1,3 +1,5 @@
+using System;
+
 namespace Dalamud.Game.ClientState.Actors.Types {
     /// <summary>
     ///     This class represents a basic FFXIV actor.
@@ -11,13 +13,20 @@ namespace Dalamud.Game.ClientState.Actors.Types {
         protected Dalamud dalamud;
 
         /// <summary>
+        /// The address of this actor in memory.
+        /// </summary>
+        public readonly IntPtr Address;
+
+        /// <summary>
         ///     Initialize a representation of a basic FFXIV actor.
         /// </summary>
         /// <param name="actorStruct">The memory representation of the base actor.</param>
         /// <param name="dalamud">A dalamud reference needed to access game data in Resolvers.</param>
-        public Actor(Structs.Actor actorStruct, Dalamud dalamud) {
+        /// <param name="address">The address of this actor in memory.</param>
+        public Actor(IntPtr address, Structs.Actor actorStruct, Dalamud dalamud) {
             this.actorStruct = actorStruct;
             this.dalamud = dalamud;
+            this.Address = address;
         }
 
         /// <summary>

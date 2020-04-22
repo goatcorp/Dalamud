@@ -1,4 +1,5 @@
 using System.Numerics;
+using Dalamud.Game.Chat;
 using Dalamud.Game.ClientState.Actors.Types;
 using Dalamud.Game.ClientState.Actors.Types.NonPlayer;
 using ImGuiNET;
@@ -45,8 +46,8 @@ namespace Dalamud.Interface
             ImGui.SameLine();
             var copy = ImGui.Button("Copy all");
             ImGui.SameLine();
-            ImGui.Combo("Data kind", ref this.currentKind, new[] {"ServerOpCode", "ContentFinderCondition", "State"},
-                        3);
+            ImGui.Combo("Data kind", ref this.currentKind, new[] {"ServerOpCode", "ContentFinderCondition", "State", "Font Test"},
+                        4);
 
             ImGui.BeginChild("scrolling", new Vector2(0, 0), false, ImGuiWindowFlags.HorizontalScrollbar);
 
@@ -81,16 +82,16 @@ namespace Dalamud.Interface
                             stateString += $"HomeWorldName: {this.dalamud.ClientState.LocalPlayer.HomeWorld.GameData.Name}\n";
                             stateString += $"LocalCID: {this.dalamud.ClientState.LocalContentId:X}\n";
                             stateString += $"LastLinkedItem: {this.dalamud.Framework.Gui.Chat.LastLinkedItemId.ToString()}\n";
-                            stateString += $"TerritoryType: {this.dalamud.ClientState.TerritoryType}\n";
+                            stateString += $"TerritoryType: {this.dalamud.ClientState.TerritoryType}\n\n";
 
                             for (var i = 0; i < this.dalamud.ClientState.Actors.Length; i++) {
                                 var actor = this.dalamud.ClientState.Actors[i];
 
                                 stateString +=
-                                    $"   -> {i} - {actor.Name} - {actor.Position.X} {actor.Position.Y} {actor.Position.Z}\n";
+                                    $"{actor.Address.ToInt64():X}:{actor.ActorId:X}[{i}] - {actor.ObjectKind} - {actor.Name} - {actor.Position.X} {actor.Position.Y} {actor.Position.Z}\n";
 
                                 if (actor is Npc npc)
-                                    stateString += $"       DataId: {npc.DataId}\n";
+                                    stateString += $"       DataId: {npc.DataId}  NameId:{npc.NameId}\n";
 
                                 if (actor is Chara chara)
                                     stateString +=
@@ -104,6 +105,14 @@ namespace Dalamud.Interface
 
                         ImGui.TextUnformatted(stateString);
                     }
+                        break;
+                    case 3:
+                        var specialChars = string.Empty;
+                        for (var i = 0xE020; i <= 0xE0DB; i++) {
+                            specialChars += $"0x{i:X} - {(SeIconChar) i} - {(char) i}\n";
+                        }
+
+                        ImGui.TextUnformatted(specialChars);
                         break;
                 }
             else

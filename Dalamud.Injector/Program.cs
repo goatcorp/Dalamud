@@ -13,6 +13,8 @@ using Newtonsoft.Json;
 
 namespace Dalamud.Injector {
     internal static class Program {
+        static private Process process = null;
+
         private static void Main(string[] args) {
 #if !DEBUG
             AppDomain.CurrentDomain.UnhandledException += delegate(object sender, UnhandledExceptionEventArgs eventArgs)
@@ -25,9 +27,10 @@ namespace Dalamud.Injector {
             };
 #endif
 
-            var pid = int.Parse(args[0]);
-
-            Process process = null;
+            var pid = -1;
+            if (args.Length == 1) {
+                pid = int.Parse(args[0]);
+            }
 
             switch (pid) {
                 case -1:
@@ -45,10 +48,12 @@ namespace Dalamud.Injector {
             }
 
             DalamudStartInfo startInfo;
-            if (args.Length == 1) {
+            if (args.Length <= 1) {
                 startInfo = GetDefaultStartInfo();
                 Console.WriteLine("\nA Dalamud start info was not found in the program arguments. One has been generated for you.");
                 Console.WriteLine("\nCopy the following contents into the program arguments:");
+                Console.WriteLine();
+                Console.WriteLine(Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(startInfo))));
             } else {
                 startInfo = JsonConvert.DeserializeObject<DalamudStartInfo>(Encoding.UTF8.GetString(Convert.FromBase64String(args[1])));
             }
@@ -80,6 +85,7 @@ namespace Dalamud.Injector {
         }
 
         private static DalamudStartInfo GetDefaultStartInfo() {
+            var ffxivDir = Path.GetDirectoryName(process.MainModule.FileName);
             var startInfo = new DalamudStartInfo {
                 WorkingDirectory = null,
                 ConfigurationPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) +
@@ -89,7 +95,7 @@ namespace Dalamud.Injector {
                 DefaultPluginDirectory = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) +
                                          @"\XIVLauncher\devPlugins",
 
-                GameVersion = File.ReadAllText(@"C:\Program Files (x86)\SquareEnix\FINAL FANTASY XIV - A Realm Reborn\game\ffxivgame.ver"),
+                GameVersion = File.ReadAllText(Path.Combine(ffxivDir, "ffxivgame.ver")),
                 Language = ClientLanguage.English
             };
 
