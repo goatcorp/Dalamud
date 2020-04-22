@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Numerics;
 using Dalamud.Game.Chat;
 using Dalamud.Game.ClientState.Actors.Types;
@@ -46,8 +47,8 @@ namespace Dalamud.Interface
             ImGui.SameLine();
             var copy = ImGui.Button("Copy all");
             ImGui.SameLine();
-            ImGui.Combo("Data kind", ref this.currentKind, new[] {"ServerOpCode", "ContentFinderCondition", "State", "Font Test"},
-                        4);
+            ImGui.Combo("Data kind", ref this.currentKind, new[] {"ServerOpCode", "ContentFinderCondition", "Actor Table", "Font Test", "Party List"},
+                        5);
 
             ImGui.BeginChild("scrolling", new Vector2(0, 0), false, ImGuiWindowFlags.HorizontalScrollbar);
 
@@ -113,6 +114,20 @@ namespace Dalamud.Interface
                         }
 
                         ImGui.TextUnformatted(specialChars);
+                        break;
+                    case 4:
+                        var partyString = string.Empty;
+
+                        if (this.dalamud.ClientState.PartyList.Length == 0) {
+                            ImGui.TextUnformatted("Data not ready.");
+                        } else {
+
+                            partyString += $"{this.dalamud.ClientState.PartyList.Count} Members";
+                            partyString = this.dalamud.ClientState.PartyList.Aggregate(partyString, (current, member) => current + $"{member.CharacterName} - {member.ObjectKind} - {member.Actor.ActorId}");
+
+                            ImGui.TextUnformatted(partyString);
+                        }
+
                         break;
                 }
             else
