@@ -21,11 +21,25 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             }
         }
 
+        // mainly to allow overriding the name (for things like owo)
+        private string displayName;
+        public string DisplayName
+        {
+            get
+            {
+                return this.displayName;
+            }
+
+            set
+            {
+                this.displayName = value;
+                Dirty = true;
+            }
+        }
+
         public bool IsHQ { get; private set; } = false;
 
         private uint itemId;
-        // mainly to allow overriding the name (for things like owo)
-        private string displayName;
 
         public override string ToString()
         {

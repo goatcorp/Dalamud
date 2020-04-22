@@ -9,7 +9,17 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
     {
         public override PayloadType Type => PayloadType.RawText;
 
-        public string Text { get; private set; }
+        // allow modifying the text of existing payloads on the fly
+        private string text;
+        public string Text
+        {
+            get { return this.text; }
+            set
+            {
+                this.text = value;
+                Dirty = true;
+            }
+        }
 
         public override string ToString()
         {
@@ -23,7 +33,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 
         protected override void DecodeImpl(BinaryReader reader, long endOfStream)
         {
-            var text = new List<byte>();
+            var textBytes = new List<byte>();
 
             while (reader.BaseStream.Position < endOfStream)
             {
@@ -31,13 +41,13 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
                     break;
 
                 // not the most efficient, but the easiest
-                text.Add(reader.ReadByte());
+                textBytes.Add(reader.ReadByte());
             }
 
-            if (text.Count > 0)
+            if (textBytes.Count > 0)
             {
                 // TODO: handling of the game's assorted special unicode characters
-                Text = Encoding.UTF8.GetString(text.ToArray());
+                this.text = Encoding.UTF8.GetString(textBytes.ToArray());
             }
         }
     }

@@ -19,6 +19,17 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             }
         }
 
+        public ushort ColorKey
+        {
+            get { return this.colorKey; }
+            set
+            {
+                this.colorKey = value;
+                this.color = null;
+                Dirty = true;
+            }
+        }
+
         public uint RGB
         {
             get

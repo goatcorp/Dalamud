@@ -10,7 +10,16 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
     {
         public override PayloadType Type => PayloadType.Player;
 
-        public string PlayerName { get; private set; }
+        private string playerName;
+        public string PlayerName
+        {
+            get { return this.playerName; }
+            set
+            {
+                this.playerName = value;
+                Dirty = true;
+            }
+        }
 
         private World world;
         public World World
@@ -31,7 +40,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 
         protected override byte[] EncodeImpl()
         {
-            var chunkLen = PlayerName.Length + 7;
+            var chunkLen = this.playerName.Length + 7;
             var bytes = new List<byte>()
             {
                 START_BYTE,
@@ -39,18 +48,20 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
                 /* unk */ 0x01,
                 (byte)(this.serverId+1),                 // I didn't want to deal with single-byte values in MakeInteger, so we have to do the +1 manually
                 /* unk */0x01, /* unk */0xFF,       // these sometimes vary but are frequently this
-                (byte)(PlayerName.Length+1)
+                (byte)(this.playerName.Length+1)
             };
 
-            bytes.AddRange(Encoding.UTF8.GetBytes(PlayerName));
+            bytes.AddRange(Encoding.UTF8.GetBytes(this.playerName));
             bytes.Add(END_BYTE);
 
             // encoded names are followed by the name in plain text again
             // use the payload parsing for consistency, as this is technically a new chunk
-            // bytes.AddRange(new TextPayload(PlayerName).Encode());
-
-            // FIXME
-            bytes.AddRange(Encoding.UTF8.GetBytes(PlayerName));
+            bytes.AddRange(
+                new TextPayload()
+                {
+                    Text = playerName
+                }.Encode()
+            );
 
             // unsure about this entire packet, but it seems to always follow a name
             bytes.AddRange(new byte[]
@@ -74,7 +85,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             reader.ReadBytes(2);
 
             var nameLen = (int)GetInteger(reader);
-            PlayerName = Encoding.UTF8.GetString(reader.ReadBytes(nameLen));
+            this.playerName = Encoding.UTF8.GetString(reader.ReadBytes(nameLen));
         }
     }
 }
