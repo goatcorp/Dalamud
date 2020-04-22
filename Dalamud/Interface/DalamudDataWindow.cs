@@ -15,6 +15,8 @@ namespace Dalamud.Interface
 
         private int currentKind;
 
+        private const string FontTestString = "E000E010\nE020E030\nE040E050\nE060E070\nE080E090\nE0A0E0B0\nE0C0E0D0\nE0E0E0F0\nE100E110\nE120E130\nE140E150\nE160E170\nE180E190\nE1A0E1B0\nE1C0E1D0\nE1E0E1F0\nE200E210\nE220E230\nE240E250\nE260E270\nE280E290\nE2A0E2B0\nE2C0E2D0\nE2E0E2F0\nE300E310\nE320E330\nE340E350\nE360E370\nE380E390\nE3A0E3B0\nE3C0E3D0\nE3E0E3F0\nE400";
+
         public DalamudDataWindow(Dalamud dalamud) {
             this.dalamud = dalamud;
 
@@ -45,8 +47,8 @@ namespace Dalamud.Interface
             ImGui.SameLine();
             var copy = ImGui.Button("Copy all");
             ImGui.SameLine();
-            ImGui.Combo("Data kind", ref this.currentKind, new[] {"ServerOpCode", "ContentFinderCondition", "State"},
-                        3);
+            ImGui.Combo("Data kind", ref this.currentKind, new[] {"ServerOpCode", "ContentFinderCondition", "State", "Font Test"},
+                        4);
 
             ImGui.BeginChild("scrolling", new Vector2(0, 0), false, ImGuiWindowFlags.HorizontalScrollbar);
 
@@ -104,6 +106,9 @@ namespace Dalamud.Interface
 
                         ImGui.TextUnformatted(stateString);
                     }
+                        break;
+                    case 3:
+                        ImGui.TextUnformatted(FontTestString);
                         break;
                 }
             else
