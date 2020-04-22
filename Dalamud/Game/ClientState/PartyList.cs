@@ -26,29 +26,30 @@ namespace Dalamud.Game.ClientState
         {
             Address = addressResolver;
             this.dalamud = dalamud;
-            partyListUpdateHook = new Hook<PartyListUpdateDelegate>(Address.PartyListUpdate, new PartyListUpdateDelegate(PartyListUpdateDetour), this);
+            this.partyListUpdateHook = new Hook<PartyListUpdateDelegate>(Address.PartyListUpdate, new PartyListUpdateDelegate(PartyListUpdateDetour), this);
         }
 
         public void Enable()
         {
-            partyListUpdateHook.Enable();
+            this.partyListUpdateHook.Enable();
         }
 
         public void Dispose()
         {
             if (!this.isReady)
-                partyListUpdateHook.Dispose();
-            isReady = false;
+                this.partyListUpdateHook.Dispose();
+            this.isReady = false;
         }
 
         private long PartyListUpdateDetour(IntPtr structBegin, long param2, char param3)
         {
-            var result = partyListUpdateHook.Original(structBegin, param2, param3);
-            partyListBegin = structBegin + 0xB48;
-            partyListUpdateHook.Dispose();
-            isReady = true;
+            var result = this.partyListUpdateHook.Original(structBegin, param2, param3);
+            this.partyListBegin = structBegin + 0xB48;
+            this.partyListUpdateHook.Dispose();
+            this.isReady = true;
             return result;
         }
+
         public PartyMember this[int index]
         {
             get
@@ -59,7 +60,7 @@ namespace Dalamud.Game.ClientState
                     return null;
                 var tblIndex = partyListBegin + index * 24;
                 var memberStruct = Marshal.PtrToStructure<Structs.PartyMember>(tblIndex);
-                return new PartyMember(dalamud.ClientState.Actors, memberStruct);
+                return new PartyMember(this.dalamud.ClientState.Actors, memberStruct);
             }
         }
 
@@ -84,13 +85,13 @@ namespace Dalamud.Game.ClientState
 
             public bool MoveNext()
             {
-                currentIndex++;
-                return currentIndex != party.Length;
+                this.currentIndex++;
+                return this.currentIndex != this.party.Length;
             }
 
             public void Reset()
             {
-                currentIndex = 0;
+                this.currentIndex = 0;
             }
 
             public PartyMember Current => this.party[this.currentIndex];
