@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 {
-    public class TextPayload : Payload
+    public class TextPayload : Payload, ITextProvider
     {
         public override PayloadType Type => PayloadType.RawText;
 

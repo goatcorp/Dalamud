@@ -8,7 +8,7 @@ using System.Linq;
 
 namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 {
-    public class AutoTranslatePayload : Payload
+    public class AutoTranslatePayload : Payload, ITextProvider
     {
         public override PayloadType Type => PayloadType.AutoTranslateText;
 

@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
-using Dalamud.Game.Chat.SeStringHandling.Payloads;
 
 namespace Dalamud.Game.Chat.SeStringHandling
 {
@@ -29,22 +29,12 @@ namespace Dalamud.Game.Chat.SeStringHandling
         /// </returns>
         public string TextValue
         {
-            get {
-                var sb = new StringBuilder();
-                foreach (var p in Payloads)
-                {
-                    if (p.Type == PayloadType.RawText)
-                    {
-                        sb.Append(((TextPayload)p).Text);
-                    }
-                    // TODO: temporary (probably)
-                    else if (p.Type == PayloadType.AutoTranslateText)
-                    {
-                        sb.Append(((AutoTranslatePayload)p).Text);
-                    }
-                }
-
-                return sb.ToString();
+            get
+            {
+                return Payloads
+                    .Where(p => p is ITextProvider)
+                    .Cast<ITextProvider>()
+                    .Aggregate(new StringBuilder(), (sb, tp) => sb.Append(tp.Text), sb => sb.ToString());
             }
         }
 

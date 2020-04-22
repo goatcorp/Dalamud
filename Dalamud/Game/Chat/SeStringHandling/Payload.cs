@@ -200,6 +200,7 @@ namespace Dalamud.Game.Chat.SeStringHandling
             Byte = 0xF0,
             ByteTimes256 = 0xF1,
             Int16 = 0xF2,
+            // ByteTimes65536 = 0xF3,   // from RE but never seen
             Int16Packed = 0xF4,         // seen in map links, seemingly 2 8-bit values packed into 2 bytes with only one marker
             Int24Special = 0xF6,        // unsure how different form Int24 - used for hq items that add 1 million, also used for normal 24-bit values in map links
             Int24 = 0xFA,
