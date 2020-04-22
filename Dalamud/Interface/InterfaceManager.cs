@@ -232,6 +232,7 @@ namespace Dalamud.Interface
                 ImGui.GetIO().Fonts.Build();
 
                 fontConfig.Destroy();
+                rangeHandle.Free();
 
                 ImGui.GetStyle().GrabRounding = 3f;
                 ImGui.GetStyle().FrameRounding = 4f;
