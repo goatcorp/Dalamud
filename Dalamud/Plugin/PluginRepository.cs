@@ -14,7 +14,7 @@ namespace Dalamud.Plugin
 {
     public class PluginRepository
     {
-        private const string PluginRepoBaseUrl = "https://goaaats.github.io/DalamudPlugins/";
+        private const string PluginRepoBaseUrl = "https://goatcorp.github.io/DalamudPlugins/";
 
         private PluginManager manager;
         private string pluginDirectory;

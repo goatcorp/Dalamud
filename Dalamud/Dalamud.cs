@@ -39,13 +39,13 @@ namespace Dalamud {
 
         public readonly Framework Framework;
 
-        public readonly CommandManager CommandManager;
+        public CommandManager CommandManager { get; private set; }
 
-        public readonly ChatHandlers ChatHandlers;
+        public ChatHandlers ChatHandlers { get; private set; }
 
-        public readonly NetworkHandlers NetworkHandlers;
+        public NetworkHandlers NetworkHandlers { get; private set; }
 
-        public readonly DiscordBotManager BotManager;
+        public DiscordBotManager BotManager { get; private set; }
 
         public PluginManager PluginManager { get; private set; }
         public PluginRepository PluginRepository { get; private set; }
@@ -59,13 +59,14 @@ namespace Dalamud {
 
         private readonly WinSockHandlers WinSock2;
 
-        public readonly InterfaceManager InterfaceManager;
+        public InterfaceManager InterfaceManager { get; private set; }
 
-        public readonly DataManager Data;
+        public DataManager Data { get; private set; }
 
 
         private Localization localizationMgr;
 
+        public bool IsReady { get; private set; }
 
         private readonly string assemblyVersion = Assembly.GetAssembly(typeof(ChatHandlers)).GetName().Version.ToString();
 
@@ -74,13 +75,6 @@ namespace Dalamud {
             this.loggingLevelSwitch = loggingLevelSwitch;
 
             this.Configuration = DalamudConfiguration.Load(info.ConfigurationPath);
-            this.localizationMgr = new Localization(this.StartInfo.WorkingDirectory);
-
-            if (!string.IsNullOrEmpty(this.Configuration.LanguageOverride)) {
-                this.localizationMgr.SetupWithLangCode(this.Configuration.LanguageOverride);
-            } else {
-                this.localizationMgr.SetupWithUiCulture();
-            }
 
             this.baseDirectory = info.WorkingDirectory;
 
@@ -93,50 +87,61 @@ namespace Dalamud {
             // Initialize game subsystem
             this.Framework = new Framework(this.SigScanner, this);
 
-            // Initialize managers. Basically handlers for the logic
-            this.CommandManager = new CommandManager(this, info.Language);
-            SetupCommands();
-
-            this.ChatHandlers = new ChatHandlers(this);
-            this.NetworkHandlers = new NetworkHandlers(this, this.Configuration.OptOutMbCollection);
-
-            this.Data = new DataManager(this.StartInfo.Language);
-            this.Data.Initialize();
-
             this.ClientState = new ClientState(this, info, this.SigScanner);
-
-            this.BotManager = new DiscordBotManager(this, this.Configuration.DiscordFeatureConfig);
 
             this.WinSock2 = new WinSockHandlers();
 
-            try {
-                this.InterfaceManager = new InterfaceManager(this, this.SigScanner);
-                this.InterfaceManager.OnDraw += BuildDalamudUi;
-            } catch (Exception e) {
-                Log.Information(e, "Could not init interface.");
-            }
+            AssetManager.EnsureAssets(this.baseDirectory).ContinueWith(async task => {
+                this.localizationMgr = new Localization(this.StartInfo.WorkingDirectory);
+                if (!string.IsNullOrEmpty(this.Configuration.LanguageOverride)) {
+                    this.localizationMgr.SetupWithLangCode(this.Configuration.LanguageOverride);
+                } else {
+                    this.localizationMgr.SetupWithUiCulture();
+                }
+
+                try {
+                    this.InterfaceManager = new InterfaceManager(this, this.SigScanner);
+                    this.InterfaceManager.OnDraw += BuildDalamudUi;
+
+                    this.InterfaceManager.Enable();
+                } catch (Exception e) {
+                    Log.Information(e, "Could not init interface.");
+                }
+
+                this.Data = new DataManager(this.StartInfo.Language);
+                await this.Data.Initialize(this.baseDirectory);
+
+                this.NetworkHandlers = new NetworkHandlers(this, this.Configuration.OptOutMbCollection);
+
+                // Initialize managers. Basically handlers for the logic
+                this.CommandManager = new CommandManager(this, info.Language);
+                SetupCommands();
+
+                this.ChatHandlers = new ChatHandlers(this);
+
+                // Discord Bot Manager
+                this.BotManager = new DiscordBotManager(this, this.Configuration.DiscordFeatureConfig);
+                this.BotManager.Start();
+
+                try
+                {
+                    this.PluginManager = new PluginManager(this, this.StartInfo.PluginDirectory, this.StartInfo.DefaultPluginDirectory);
+                    this.PluginManager.LoadPlugins();
+
+                    this.PluginRepository = new PluginRepository(PluginManager, this.StartInfo.PluginDirectory, this.StartInfo.GameVersion);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Plugin load failed.");
+                }
+
+                IsReady = true;
+            });
         }
 
         public void Start() {
-            try {
-                this.InterfaceManager?.Enable();
-            } catch (Exception e) {
-                Log.Information("Could not enable interface.");
-            }
-
             this.Framework.Enable();
             this.ClientState.Enable();
-
-            this.BotManager.Start();
-
-            try {
-                this.PluginManager = new PluginManager(this, this.StartInfo.PluginDirectory, this.StartInfo.DefaultPluginDirectory);
-                this.PluginManager.LoadPlugins();
-
-                PluginRepository = new PluginRepository(PluginManager, this.StartInfo.PluginDirectory, this.StartInfo.GameVersion);
-            } catch (Exception ex) {
-                Log.Error(ex, "Plugin load failed.");
-            }
         }
 
         public void Unload() {
@@ -152,7 +157,7 @@ namespace Dalamud {
             // due to rendering happening on another thread, where a plugin might receive
             // a render call after it has been disposed, which can crash if it attempts to
             // use any resources that it freed in its own Dispose method
-            this.InterfaceManager.Dispose();
+            this.InterfaceManager?.Dispose();
 
             try
             {

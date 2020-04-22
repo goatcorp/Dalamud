@@ -22,8 +22,6 @@ namespace Dalamud.Data
     /// This class provides data for Dalamud-internal features, but can also be used by plugins if needed.
     /// </summary>
     public class DataManager {
-        private const string DataBaseUrl = "https://goaaats.github.io/ffxiv/tools/launcher/addons/Hooks/Data/";
-
         public ReadOnlyDictionary<string, ushort> ServerOpCodes { get; private set; }
 
         /// <summary>
@@ -53,20 +51,14 @@ namespace Dalamud.Data
             this.language = language;
         }
 
-        public async Task Initialize()
+        public async Task Initialize(string baseDir)
         {
             try
             {
                 Log.Verbose("Starting data download...");
 
-                using var client = new HttpClient()
-                {
-                    BaseAddress = new Uri(DataBaseUrl)
-                };
-
                 var opCodeDict =
-                    JsonConvert.DeserializeObject<Dictionary<string, ushort>>(
-                        await client.GetStringAsync(DataBaseUrl + "serveropcode.json"));
+                    JsonConvert.DeserializeObject<Dictionary<string, ushort>>(File.ReadAllText(Path.Combine(baseDir, "UIRes", "serveropcode.json")));
                 this.ServerOpCodes = new ReadOnlyDictionary<string, ushort>(opCodeDict);
 
                 Log.Verbose("Loaded {0} ServerOpCodes.", opCodeDict.Count);
