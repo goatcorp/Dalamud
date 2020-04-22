@@ -12,14 +12,9 @@ namespace Dalamud.Game.Chat.SeStringHandling
     public class SeString
     {
         // TODO: probably change how this is done/where it comes from
-        public static Dalamud Dalamud { get; internal set; }
+        internal static Dalamud Dalamud { get; set; }
 
         public List<Payload> Payloads { get; }
-
-        public SeString(List<Payload> payloads)
-        {
-            Payloads = payloads;
-        }
 
         /// <summary>
         /// Helper function to get all raw text from a message as a single joined string
@@ -39,10 +34,10 @@ namespace Dalamud.Game.Chat.SeStringHandling
         }
 
         /// <summary>
-        /// Parse an array of bytes to a SeString.
+        /// Parse a binary game message into an SeString.
         /// </summary>
-        /// <param name="bytes"></param>
-        /// <returns></returns>
+        /// <param name="bytes">Binary message payload data in SE's internal format.</param>
+        /// <returns>An SeString containing parsed Payload objects for each payload in the data.</returns>
         public static SeString Parse(byte[] bytes)
         {
             var payloads = new List<Payload>();
@@ -61,12 +56,30 @@ namespace Dalamud.Game.Chat.SeStringHandling
             return new SeString(payloads);
         }
 
-        /// <summary>
-        /// Encode a parsed/created SeString to an array of bytes, to be used for injection.
-        /// </summary>
-        /// <param name="payloads"></param>
-        /// <returns>The bytes of the message.</returns>
-        public byte[] Encode()
+        public SeString(List<Payload> payloads)
+        {
+            Payloads = payloads;
+        }
+
+        public SeString Append(SeString other)
+        {
+            Payloads.AddRange(other.Payloads);
+            return this;
+        }
+
+        public SeString Append(List<Payload> payloads)
+        {
+            Payloads.AddRange(payloads);
+            return this;
+        }
+
+        public SeString Append(Payload payload)
+        {
+            Payloads.Add(payload);
+            return this;
+        }
+
+        internal byte[] Encode()
         {
             var messageBytes = new List<byte>();
             foreach (var p in Payloads)

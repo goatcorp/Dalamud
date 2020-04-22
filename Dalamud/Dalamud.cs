@@ -558,23 +558,11 @@ namespace Dalamud {
 
         private void OnItemLinkCommand(string command, string arguments) {
             this.itemSearchCommandWindow = new ItemSearchWindow(this.Data, new UiBuilder(this.InterfaceManager, "ItemSearcher"), false);
-            this.itemSearchCommandWindow.OnItemChosen += (sender, item) => {
-                var hexData = new byte[] {
-                    0x02, 0x13, 0x06, 0xFE, 0xFF, 0xF3, 0xF3, 0xF3, 0x03, 0x02, 0x27, 0x07, 0x03, 0xF2, 0x3A, 0x2F,
-                    0x02, 0x01, 0x03, 0x02, 0x13, 0x06, 0xFE, 0xFF, 0xFF, 0x7B, 0x1A, 0x03, 0xEE, 0x82, 0xBB, 0x02,
-                    0x13, 0x02, 0xEC, 0x03
-                };
-
-                var endTag = new byte[] {
-                    0x02, 0x27, 0x07, 0xCF, 0x01, 0x01, 0x01, 0xFF, 0x01, 0x03, 0x02, 0x13, 0x02, 0xEC, 0x03
-                };
-
-                BitConverter.GetBytes((short) item.RowId).Reverse().ToArray().CopyTo(hexData, 14);
-
-                hexData = hexData.Concat(Encoding.UTF8.GetBytes(item.Name)).Concat(endTag).ToArray();
-
-                this.Framework.Gui.Chat.PrintChat(new XivChatEntry {
-                    MessageBytes = hexData
+            this.itemSearchCommandWindow.OnItemChosen += (sender, item) =>
+            {
+                this.Framework.Gui.Chat.PrintChat(new XivChatEntry
+                {
+                    MessageBytes = SeStringUtils.CreateItemLink((uint)item.RowId, false).Encode()
                 });
             };
             this.isImguiDrawItemSearchWindow = true;

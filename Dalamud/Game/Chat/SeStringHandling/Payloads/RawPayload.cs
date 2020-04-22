@@ -29,8 +29,10 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 
         public RawPayload(byte[] data)
         {
-            this.chunkType = data[0];
-            this.data = data.Skip(1).ToArray();
+            // this payload is 'special' in that we require the entire chunk to be passed in
+            // and not just the data after the header
+            this.chunkType = data[1];
+            this.data = data.Skip(3).Take(data.Length-4).ToArray();
         }
 
         public override string ToString()

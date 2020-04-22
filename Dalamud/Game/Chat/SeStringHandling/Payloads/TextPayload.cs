@@ -35,7 +35,14 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 
         protected override byte[] EncodeImpl()
         {
-            return Encoding.UTF8.GetBytes(Text);
+            // special case to allow for empty text payloads, so users don't have to check
+            // this may change or go away
+            if (string.IsNullOrEmpty(this.text))
+            {
+                return new byte[] { };
+            }
+
+            return Encoding.UTF8.GetBytes(this.text);
         }
 
         protected override void DecodeImpl(BinaryReader reader, long endOfStream)
