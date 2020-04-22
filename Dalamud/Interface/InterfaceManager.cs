@@ -200,7 +200,7 @@ namespace Dalamud.Interface
             return null;
         }
 
-        private IntPtr PresentDetour(IntPtr swapChain, uint syncInterval, uint presentFlags)
+        private unsafe IntPtr PresentDetour(IntPtr swapChain, uint syncInterval, uint presentFlags)
         {
             if (this.scene == null)
             {
@@ -209,8 +209,25 @@ namespace Dalamud.Interface
                 this.scene.OnBuildUI += Display;
                 this.scene.OnNewInputFrame += OnNewInputFrame;
 
+                ImFontConfigPtr fontConfig = ImGuiNative.ImFontConfig_ImFontConfig();
+                fontConfig.MergeMode = true;
+                fontConfig.PixelSnapH = true;
+
                 var fontPathJp = Path.Combine(this.dalamud.StartInfo.WorkingDirectory, "UIRes", "NotoSansCJKjp-Medium.otf");
                 ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPathJp, 17.0f, null, ImGui.GetIO().Fonts.GetGlyphRangesJapanese());
+
+                var fontPathGame = Path.Combine(this.dalamud.StartInfo.WorkingDirectory, "UIRes", "gamesym.ttf");
+                Log.Verbose(fontPathGame);
+
+                var rangeHandle = GCHandle.Alloc(new ushort[]
+                {
+                    0xE020,
+                    0xE0DB,
+                    0
+                }, GCHandleType.Pinned);
+
+
+                ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPathGame, 17.0f, fontConfig, rangeHandle.AddrOfPinnedObject());
 
                 ImGui.GetIO().Fonts.Build();
 
