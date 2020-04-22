@@ -80,7 +80,7 @@ namespace Dalamud.Game.ClientState
 
             public PartyListEnumerator(PartyList list)
             {
-                party = list;
+                this.party = list;
             }
 
             public bool MoveNext()
@@ -102,13 +102,9 @@ namespace Dalamud.Game.ClientState
             public void Dispose() {}
         }
 
-        public IEnumerator<PartyMember> GetEnumerator() {
-            return new PartyListEnumerator(this);
-        }
+        public IEnumerator<PartyMember> GetEnumerator() => new PartyListEnumerator(this);
 
-        IEnumerator IEnumerable.GetEnumerator() {
-            return GetEnumerator();
-        }
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         public int Length => !this.isReady ? 0 : Marshal.ReadByte(partyListBegin + 0xF0);
 

@@ -122,8 +122,18 @@ namespace Dalamud.Interface
                             ImGui.TextUnformatted("Data not ready.");
                         } else {
 
-                            partyString += $"{this.dalamud.ClientState.PartyList.Count} Members";
-                            partyString = this.dalamud.ClientState.PartyList.Aggregate(partyString, (current, member) => current + $"{member.CharacterName} - {member.ObjectKind} - {member.Actor.ActorId}");
+                            partyString += $"{this.dalamud.ClientState.PartyList.Count} Members\n";
+                            for (var i = 0; i < this.dalamud.ClientState.PartyList.Count; i++) {
+                                var member = this.dalamud.ClientState.PartyList[i];
+                                if (member == null) {
+                                    partyString +=
+                                        $"[{i}] was null\n";
+                                    continue;
+                                }
+
+                                partyString +=
+                                    $"[{i}] {member.CharacterName} - {member.ObjectKind} - {member.Actor.ActorId}\n";
+                            }
 
                             ImGui.TextUnformatted(partyString);
                         }
