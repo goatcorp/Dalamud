@@ -1,11 +1,13 @@
 using System;
 using System.Linq;
 
-namespace Dalamud.Game.Chat {
+namespace Dalamud.Game.Chat
+{
     /// <summary>
     ///     The FFXIV chat types as seen in the LogKind ex table.
     /// </summary>
-    public enum XivChatType : ushort {
+    public enum XivChatType : ushort
+    {
         None = 0,
         Debug = 1,
 
@@ -81,7 +83,10 @@ namespace Dalamud.Game.Chat {
         [XivChatTypeInfo("Echo", "echo", 0xFF808080)]
         Echo = 56,
         SystemError = 58,
-        GatheringSystemMessage = 60,
+
+        SystemMessage = 57,
+        GatheringSystemMessage = 59,
+        ErrorMessage = 60,
         // not sure if this is used for anything else
         RetainerSale = 71,
 
@@ -107,14 +112,18 @@ namespace Dalamud.Game.Chat {
         CrossLinkShell8 = 107
     }
 
-    public static class XivChatTypeExtensions {
-        public static XivChatTypeInfoAttribute GetDetails(this XivChatType p) {
+    public static class XivChatTypeExtensions
+    {
+        public static XivChatTypeInfoAttribute GetDetails(this XivChatType p)
+        {
             return p.GetAttribute<XivChatTypeInfoAttribute>();
         }
     }
 
-    public class XivChatTypeInfoAttribute : Attribute {
-        internal XivChatTypeInfoAttribute(string fancyName, string slug, uint defaultColor) {
+    public class XivChatTypeInfoAttribute : Attribute
+    {
+        internal XivChatTypeInfoAttribute(string fancyName, string slug, uint defaultColor)
+        {
             FancyName = fancyName;
             Slug = slug;
             DefaultColor = defaultColor;
@@ -125,9 +134,11 @@ namespace Dalamud.Game.Chat {
         public uint DefaultColor { get; }
     }
 
-    public static class EnumExtensions {
+    public static class EnumExtensions
+    {
         public static TAttribute GetAttribute<TAttribute>(this Enum value)
-            where TAttribute : Attribute {
+            where TAttribute : Attribute
+        {
             var type = value.GetType();
             var name = Enum.GetName(type, value);
             return type.GetField(name) // I prefer to get attributes this way

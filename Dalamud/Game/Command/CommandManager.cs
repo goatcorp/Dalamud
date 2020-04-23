@@ -59,7 +59,7 @@ namespace Dalamud.Game.Command {
 
         private void OnChatMessage(XivChatType type, uint senderId, ref StdString sender,
                                    ref StdString message, ref bool isHandled) {
-            if (type == XivChatType.GatheringSystemMessage && senderId == 0) {
+            if (type == XivChatType.ErrorMessage && senderId == 0) {
                 var cmdMatch = this.currentLangCommandRegex.Match(message.Value).Groups["command"];
                 if (cmdMatch.Success) {
                     // Yes, it's a chat command.
