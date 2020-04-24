@@ -81,7 +81,7 @@ namespace Dalamud.Interface
             ImGui.Separator();
             
 
-            ImGui.Text("Search: ");
+            ImGui.Text(Loc.Localize("DalamudItemSearchVerb", "Search: "));
             ImGui.SameLine();
             ImGui.InputText("##searchbox", ref this.searchText, 32);
 
@@ -152,7 +152,7 @@ namespace Dalamud.Interface
                                                                  iconTex.Header.Height, 4);
                                 } catch (Exception ex)
                                 {
-                                    Log.Debug("Failed loading item texture");
+                                    Log.Error(ex, "Failed loading item texture");
                                     this.selectedItemTex?.Dispose();
                                     this.selectedItemTex = null;
                                 }
