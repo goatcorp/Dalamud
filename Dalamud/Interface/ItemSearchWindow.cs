@@ -142,11 +142,20 @@ namespace Dalamud.Interface
                             {
                                 this.selectedItemIndex = i;
 
-                                var iconTex = this.data.GetIcon(this.searchTask.Result[i].Icon);
-                                this.selectedItemTex?.Dispose();
-                                this.selectedItemTex =
-                                    this.builder.LoadImageRaw(iconTex.GetRgbaImageData(), iconTex.Header.Width,
-                                                              iconTex.Header.Height, 4);
+                                try
+                                {
+                                    var iconTex = this.data.GetIcon(this.searchTask.Result[i].Icon);
+                                    this.selectedItemTex?.Dispose();
+                                
+                                    this.selectedItemTex =
+                                       this.builder.LoadImageRaw(iconTex.GetRgbaImageData(), iconTex.Header.Width,
+                                                                 iconTex.Header.Height, 4);
+                                } catch (Exception ex)
+                                {
+                                    Log.Debug("Failed loading item texture");
+                                    this.selectedItemTex?.Dispose();
+                                    this.selectedItemTex = null;
+                                }
                             }
                         }
                     }
