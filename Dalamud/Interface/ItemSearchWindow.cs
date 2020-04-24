@@ -33,6 +33,7 @@ namespace Dalamud.Interface
         private int currentKind = 0;
 
         private int selectedItemIndex = -1;
+        private long selectedTime = 0;
         private TextureWrap selectedItemTex;
 
         private CancellationTokenSource searchCancelTokenSource;
@@ -140,6 +141,7 @@ namespace Dalamud.Interface
                         {
                             if (ImGui.Selectable(this.searchTask.Result[i].Name, this.selectedItemIndex == i))
                             {
+                                long nowTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
                                 this.selectedItemIndex = i;
 
                                 try
@@ -156,6 +158,17 @@ namespace Dalamud.Interface
                                     this.selectedItemTex?.Dispose();
                                     this.selectedItemTex = null;
                                 }
+
+                                if (this.selectedItemIndex == i && nowTime < (selectedTime + 1000))
+                                {
+                                    OnItemChosen?.Invoke(this, this.searchTask.Result[i]);
+                                    if (this.closeOnChoose)
+                                    {
+                                        this.selectedItemTex?.Dispose();
+                                        isOpen = false;
+                                    }
+                                }
+                                this.selectedTime = nowTime;
                             }
                         }
                     }
