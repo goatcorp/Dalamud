@@ -58,7 +58,7 @@ namespace Dalamud.Game.ClientState.Actors {
 
                 var offset = Marshal.ReadIntPtr(tblIndex);
 
-                Log.Debug($"Reading actor {index} at {tblIndex.ToInt64():X} pointing to {offset.ToInt64():X}");
+                //Log.Debug($"Reading actor {index} at {tblIndex.ToInt64():X} pointing to {offset.ToInt64():X}");
 
                 if (offset == IntPtr.Zero)
                     return null;
