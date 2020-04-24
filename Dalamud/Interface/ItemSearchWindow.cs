@@ -140,7 +140,6 @@ namespace Dalamud.Interface
                         {
                             if (ImGui.Selectable(this.searchTask.Result[i].Name, this.selectedItemIndex == i, ImGuiSelectableFlags.AllowDoubleClick))
                             {
-                                
                                 this.selectedItemIndex = i;
 
                                 try
