@@ -139,9 +139,9 @@ namespace Dalamud.Interface
                     {
                         for (var i = 0; i < this.searchTask.Result.Count; i++)
                         {
-                            if (ImGui.Selectable(this.searchTask.Result[i].Name, this.selectedItemIndex == i))
+                            if (ImGui.Selectable(this.searchTask.Result[i].Name, this.selectedItemIndex == i, ImGuiSelectableFlags.AllowDoubleClick))
                             {
-                                long nowTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                                
                                 this.selectedItemIndex = i;
 
                                 try
@@ -159,7 +159,7 @@ namespace Dalamud.Interface
                                     this.selectedItemTex = null;
                                 }
 
-                                if (this.selectedItemIndex == i && nowTime < (selectedTime + 1000))
+                                if (ImGui.IsMouseDoubleClicked(0))
                                 {
                                     OnItemChosen?.Invoke(this, this.searchTask.Result[i]);
                                     if (this.closeOnChoose)
@@ -168,7 +168,6 @@ namespace Dalamud.Interface
                                         isOpen = false;
                                     }
                                 }
-                                this.selectedTime = nowTime;
                             }
                         }
                     }
