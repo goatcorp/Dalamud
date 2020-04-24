@@ -90,6 +90,9 @@
       <a class="xref" href="Dalamud.Game.ClientState.Actors.Types.NonPlayer.Npc.html#Dalamud_Game_ClientState_Actors_Types_NonPlayer_Npc_DataId">Npc.DataId</a>
     </div>
     <div>
+      <a class="xref" href="Dalamud.Game.ClientState.Actors.Types.NonPlayer.Npc.html#Dalamud_Game_ClientState_Actors_Types_NonPlayer_Npc_NameId">Npc.NameId</a>
+    </div>
+    <div>
       <a class="xref" href="Dalamud.Game.ClientState.Actors.Types.Chara.html#Dalamud_Game_ClientState_Actors_Types_Chara_Level">Chara.Level</a>
     </div>
     <div>
@@ -112,6 +115,9 @@
     </div>
     <div>
       <a class="xref" href="Dalamud.Game.ClientState.Actors.Types.Actor.html#Dalamud_Game_ClientState_Actors_Types_Actor_dalamud">Actor.dalamud</a>
+    </div>
+    <div>
+      <a class="xref" href="Dalamud.Game.ClientState.Actors.Types.Actor.html#Dalamud_Game_ClientState_Actors_Types_Actor_Address">Actor.Address</a>
     </div>
     <div>
       <a class="xref" href="Dalamud.Game.ClientState.Actors.Types.Actor.html#Dalamud_Game_ClientState_Actors_Types_Actor_Position">Actor.Position</a>
@@ -157,19 +163,19 @@
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Actors_Types_NonPlayer_BattleNpc__ctor_Dalamud_Game_ClientState_Structs_Actor_Dalamud_Dalamud_.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Actors.Types.NonPlayer.BattleNpc.%23ctor(Dalamud.Game.ClientState.Structs.Actor%2CDalamud.Dalamud)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Actors_Types_NonPlayer_BattleNpc__ctor_System_IntPtr_Dalamud_Game_ClientState_Structs_Actor_Dalamud_Dalamud_.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Actors.Types.NonPlayer.BattleNpc.%23ctor(System.IntPtr%2CDalamud.Game.ClientState.Structs.Actor%2CDalamud.Dalamud)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/Types/NonPlayer/BattleNpc.cs/#L11">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/Types/NonPlayer/BattleNpc.cs/#L14">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_Actors_Types_NonPlayer_BattleNpc__ctor_" data-uid="Dalamud.Game.ClientState.Actors.Types.NonPlayer.BattleNpc.#ctor*"></a>
-  <h4 id="Dalamud_Game_ClientState_Actors_Types_NonPlayer_BattleNpc__ctor_Dalamud_Game_ClientState_Structs_Actor_Dalamud_Dalamud_" data-uid="Dalamud.Game.ClientState.Actors.Types.NonPlayer.BattleNpc.#ctor(Dalamud.Game.ClientState.Structs.Actor,Dalamud.Dalamud)">BattleNpc(Actor, Dalamud)</h4>
+  <h4 id="Dalamud_Game_ClientState_Actors_Types_NonPlayer_BattleNpc__ctor_System_IntPtr_Dalamud_Game_ClientState_Structs_Actor_Dalamud_Dalamud_" data-uid="Dalamud.Game.ClientState.Actors.Types.NonPlayer.BattleNpc.#ctor(System.IntPtr,Dalamud.Game.ClientState.Structs.Actor,Dalamud.Dalamud)">BattleNpc(IntPtr, Actor, Dalamud)</h4>
   <div class="markdown level1 summary"><p>Set up a new BattleNpc with the provided memory representation.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public BattleNpc(Actor actorStruct, Dalamud dalamud)</code></pre>
+    <pre><code class="lang-csharp hljs">public BattleNpc(IntPtr address, Actor actorStruct, Dalamud dalamud)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -181,6 +187,12 @@
       </tr>
     </thead>
     <tbody>
+      <tr>
+        <td><span class="xref">System.IntPtr</span></td>
+        <td><span class="parametername">address</span></td>
+        <td><p>The address of this actor in memory.</p>
+</td>
+      </tr>
       <tr>
         <td><a class="xref" href="Dalamud.Game.ClientState.Structs.Actor.html">Actor</a></td>
         <td><span class="parametername">actorStruct</span></td>
@@ -202,7 +214,7 @@
     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Actors_Types_NonPlayer_BattleNpc_BattleNpcKind.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Actors.Types.NonPlayer.BattleNpc.BattleNpcKind%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/Types/NonPlayer/BattleNpc.cs/#L16">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/Types/NonPlayer/BattleNpc.cs/#L19">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_Actors_Types_NonPlayer_BattleNpc_BattleNpcKind_" data-uid="Dalamud.Game.ClientState.Actors.Types.NonPlayer.BattleNpc.BattleNpcKind*"></a>
   <h4 id="Dalamud_Game_ClientState_Actors_Types_NonPlayer_BattleNpc_BattleNpcKind" data-uid="Dalamud.Game.ClientState.Actors.Types.NonPlayer.BattleNpc.BattleNpcKind">BattleNpcKind</h4>
@@ -233,7 +245,7 @@
     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Actors_Types_NonPlayer_BattleNpc_OwnerId.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Actors.Types.NonPlayer.BattleNpc.OwnerId%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/Types/NonPlayer/BattleNpc.cs/#L21">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/Types/NonPlayer/BattleNpc.cs/#L24">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_Actors_Types_NonPlayer_BattleNpc_OwnerId_" data-uid="Dalamud.Game.ClientState.Actors.Types.NonPlayer.BattleNpc.OwnerId*"></a>
   <h4 id="Dalamud_Game_ClientState_Actors_Types_NonPlayer_BattleNpc_OwnerId" data-uid="Dalamud.Game.ClientState.Actors.Types.NonPlayer.BattleNpc.OwnerId">OwnerId</h4>
@@ -270,7 +282,7 @@
                     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Actors_Types_NonPlayer_BattleNpc.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Actors.Types.NonPlayer.BattleNpc%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
                   </li>
                   <li>
-                    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/Types/NonPlayer/BattleNpc.cs/#L5" class="contribution-link">View Source</a>
+                    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/Types/NonPlayer/BattleNpc.cs/#L7" class="contribution-link">View Source</a>
                   </li>
                 </ul>
               </div>
