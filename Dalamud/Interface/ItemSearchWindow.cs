@@ -33,7 +33,6 @@ namespace Dalamud.Interface
         private int currentKind = 0;
 
         private int selectedItemIndex = -1;
-        private long selectedTime = 0;
         private TextureWrap selectedItemTex;
 
         private CancellationTokenSource searchCancelTokenSource;
