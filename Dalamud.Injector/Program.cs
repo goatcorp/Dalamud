@@ -16,18 +16,20 @@ namespace Dalamud.Injector {
         static private Process process = null;
 
         private static void Main(string[] args) {
-#if !DEBUG
+
             AppDomain.CurrentDomain.UnhandledException += delegate(object sender, UnhandledExceptionEventArgs eventArgs)
             {
                 File.WriteAllText("InjectorException.txt", eventArgs.ExceptionObject.ToString());
-
+#if !DEBUG
                 MessageBox.Show("Failed to inject the XIVLauncher in-game addon.\nPlease try restarting your game and your PC.\nIf this keeps happening, please report this error.", "XIVLauncher Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-
+#else
+                MessageBox.Show("Couldn't inject.\nMake sure that Dalamud was not injected into your target process as a release build before and that the target process can be accessed with VM_WRITE permissions.\n\n" + eventArgs.ExceptionObject, "Debug Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+#endif
                 Environment.Exit(0);
             };
-#endif
 
-            var pid = -1;
+
+                var pid = -1;
             if (args.Length == 1) {
                 pid = int.Parse(args[0]);
             }
