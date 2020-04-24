@@ -69,7 +69,12 @@ namespace Dalamud.Game.Command {
             }
         }
 
-        private bool ProcessCommand(string content) {
+        /// <summary>
+        /// Process a command in full.
+        /// </summary>
+        /// <param name="content">The full command string.</param>
+        /// <returns>True if the command was found and dispatched.</returns>
+        public bool ProcessCommand(string content) {
             string command;
             string argument;
 

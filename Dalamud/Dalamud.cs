@@ -212,7 +212,7 @@ namespace Dalamud {
                         ImGui.Separator();
                         if (ImGui.MenuItem("Open Log window"))
                         {
-                            this.logWindow = new DalamudLogWindow();
+                            this.logWindow = new DalamudLogWindow(CommandManager);
                             this.isImguiDrawLogWindow = true;
                         }
                         if (ImGui.BeginMenu("Set log level..."))

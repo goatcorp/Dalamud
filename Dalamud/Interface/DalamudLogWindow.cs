@@ -4,15 +4,21 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using Dalamud.Game.Command;
 using ImGuiNET;
+using Serilog;
 
 namespace Dalamud.Interface
 {
     class DalamudLogWindow : IDisposable {
+        private readonly CommandManager commandManager;
         private bool autoScroll = true;
         private string logText = string.Empty;
 
-        public DalamudLogWindow() {
+        private string commandText = string.Empty;
+
+        public DalamudLogWindow(CommandManager commandManager) {
+            this.commandManager = commandManager;
             SerilogEventSink.Instance.OnLogLine += Serilog_OnLogLine;
         }
 
@@ -58,6 +64,18 @@ namespace Dalamud.Interface
             var clear = ImGui.Button("Clear");
             ImGui.SameLine();
             var copy = ImGui.Button("Copy");
+
+            ImGui.Text("Enter command: ");
+            ImGui.SameLine();
+            ImGui.InputText("##commandbox", ref this.commandText, 255);
+            ImGui.SameLine();
+            if (ImGui.Button("Send")) {
+                if (this.commandManager.ProcessCommand(this.commandText)) {
+                    Log.Information("Command was dispatched.");
+                } else {
+                    Log.Information("Command {0} not registered.", this.commandText);
+                }
+            }
 
             ImGui.BeginChild("scrolling", new Vector2(0, 0), false, ImGuiWindowFlags.HorizontalScrollbar);
 
