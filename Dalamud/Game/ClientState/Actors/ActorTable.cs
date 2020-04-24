@@ -6,13 +6,16 @@ using System.Runtime.InteropServices;
 using Dalamud.Game.ClientState.Actors.Types;
 using Dalamud.Game.ClientState.Actors.Types.NonPlayer;
 using Dalamud.Hooking;
+using JetBrains.Annotations;
 using Serilog;
 
 namespace Dalamud.Game.ClientState.Actors {
     /// <summary>
     ///     This collection represents the currently spawned FFXIV actors.
     /// </summary>
-    public class ActorTable : IReadOnlyCollection<Actor>, ICollection, IDisposable {
+    public class ActorTable : IReadOnlyCollection<Actor>, ICollection {
+
+        private const int ActorTableLength = 424;
 
         #region temporary imports for crash workaround
 
@@ -29,14 +32,6 @@ namespace Dalamud.Game.ClientState.Actors {
         private ClientStateAddressResolver Address { get; }
         private Dalamud dalamud;
 
-        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-        private delegate IntPtr SomeActorTableAccessDelegate(IntPtr manager, IntPtr offset);
-
-        private Hook<SomeActorTableAccessDelegate> someActorTableAccessHook;
-
-        private bool isReady = false;
-        private IntPtr realActorTablePtr;
-
         /// <summary>
         ///     Set up the actor table collection.
         /// </summary>
@@ -45,27 +40,7 @@ namespace Dalamud.Game.ClientState.Actors {
             Address = addressResolver;
             this.dalamud = dalamud;
 
-            this.someActorTableAccessHook = new Hook<SomeActorTableAccessDelegate>(
-                Address.SomeActorTableAccess, new SomeActorTableAccessDelegate(SomeActorTableAccessDetour), this);
-
-            Log.Verbose("Actor table address {ActorTable}", Address.ViewportActorTable);
-        }
-
-        public void Enable() {
-            this.someActorTableAccessHook.Enable();
-        }
-
-        public void Dispose() {
-            if (!this.isReady)
-                this.someActorTableAccessHook.Dispose();
-
-            this.isReady = false;
-        }
-
-        private IntPtr SomeActorTableAccessDetour(IntPtr manager, IntPtr offset) {
-            this.realActorTablePtr = offset;
-            this.isReady = true;
-            return this.someActorTableAccessHook.Original(manager, offset);
+            Log.Verbose("Actor table address {ActorTable}", Address.ActorTable);
         }
 
         /// <summary>
@@ -73,24 +48,17 @@ namespace Dalamud.Game.ClientState.Actors {
         /// </summary>
         /// <param name="index">Spawn index.</param>
         /// <returns><see cref="Actor" /> at the specified spawn index.</returns>
+        [CanBeNull]
         public Actor this[int index] {
             get {
-                if (!this.isReady)
-                    return null;
-
-                if (this.someActorTableAccessHook != null) {
-                    this.someActorTableAccessHook.Dispose();
-                    this.someActorTableAccessHook = null;
-                }
-
                 if (index >= Length)
                     return null;
 
-                var tblIndex = this.realActorTablePtr + 8 + index * 8;
+                var tblIndex = Address.ActorTable + index * 8;
 
                 var offset = Marshal.ReadIntPtr(tblIndex);
 
-                //Log.Verbose("Actor at {0} for {1}", offset.ToInt64().ToString("X"), index);
+                Log.Debug($"Reading actor {index} at {tblIndex.ToInt64():X} pointing to {offset.ToInt64():X}");
 
                 if (offset == IntPtr.Zero)
                     return null;
@@ -154,7 +122,7 @@ namespace Dalamud.Game.ClientState.Actors {
         /// <summary>
         ///     The amount of currently spawned actors.
         /// </summary>
-        public int Length => !this.isReady ? 0 : Marshal.ReadInt32(this.realActorTablePtr);
+        public int Length => ActorTableLength;
 
         int IReadOnlyCollection<Actor>.Count => Length;
 

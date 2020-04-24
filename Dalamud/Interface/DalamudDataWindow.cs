@@ -69,12 +69,11 @@ namespace Dalamud.Interface
                         var stateString = string.Empty;
                         // LocalPlayer is null in a number of situations (at least with the current visible-actors list)
                         // which would crash here.
-                        if (this.dalamud.ClientState.Actors.Length == 0 || this.dalamud.ClientState.LocalPlayer == null)
-                        {
+                        if (this.dalamud.ClientState.Actors.Length == 0) {
                             ImGui.TextUnformatted("Data not ready.");
-                        }
-                        else
-                        {
+                        } else if (this.dalamud.ClientState.LocalPlayer == null) {
+                            ImGui.TextUnformatted("LocalPlayer null.");
+                        } else {
                             stateString += $"FrameworkBase: {this.dalamud.Framework.Address.BaseAddress.ToInt64():X}\n";
 
                             stateString += $"ActorTableLen: {this.dalamud.ClientState.Actors.Length}\n";
@@ -87,6 +86,9 @@ namespace Dalamud.Interface
 
                             for (var i = 0; i < this.dalamud.ClientState.Actors.Length; i++) {
                                 var actor = this.dalamud.ClientState.Actors[i];
+
+                                if (actor == null) 
+                                    continue;
 
                                 stateString +=
                                     $"{actor.Address.ToInt64():X}:{actor.ActorId:X}[{i}] - {actor.ObjectKind} - {actor.Name} - {actor.Position.X} {actor.Position.Y} {actor.Position.Z}\n";
