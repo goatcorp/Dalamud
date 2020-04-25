@@ -91,15 +91,38 @@ namespace Dalamud.Game {
 
         public ChatHandlers(Dalamud dalamud) {
             this.dalamud = dalamud;
-
+            
+            dalamud.Framework.Gui.Chat.OnCheckMessageHandled += OnCheckMessageHandled;
             dalamud.Framework.Gui.Chat.OnChatMessageRaw += OnChatMessage;
         }
 
+        private void OnCheckMessageHandled(XivChatType type, uint senderid, ref SeString sender, ref SeString message, ref bool isHandled) {
+            var textVal = message.TextValue;
+
+            var matched = this.rmtRegex.IsMatch(textVal);
+            if (matched)
+            {
+                // This seems to be a RMT ad - let's not show it
+                Log.Debug("Handled RMT ad: " + message.TextValue);
+                isHandled = true;
+                return;
+            }
+
+
+            if (this.dalamud.Configuration.BadWords != null &&
+                this.dalamud.Configuration.BadWords.Any(x => textVal.Contains(x)))
+            {
+                // This seems to be in the user block list - let's not show it
+                Log.Debug("Blocklist triggered");
+                isHandled = true;
+                return;
+            }
+        }
 
         public string LastLink { get; private set; }
 
         private void OnChatMessage(XivChatType type, uint senderId, ref StdString sender, 
-            ref StdString message, ref bool isHandled) {
+            ref StdString message, bool isHandled) {
 
             if (type == XivChatType.Notice && !this.hasSeenLoadingMsg) {
                 var assemblyVersion = Assembly.GetAssembly(typeof(ChatHandlers)).GetName().Version.ToString();
@@ -142,24 +165,8 @@ namespace Dalamud.Game {
                 return;
 #endif
 
-            var matched = this.rmtRegex.IsMatch(message.Value);
-            if (matched) {
-                // This seems to be a RMT ad - let's not show it
-                Log.Debug("Handled RMT ad");
-                isHandled = true;
-                return;
-            }
-
             var messageVal = message.Value;
             var senderVal = sender.Value;
-
-            if (this.dalamud.Configuration.BadWords != null &&
-                this.dalamud.Configuration.BadWords.Any(x => messageVal.Contains(x))) {
-                // This seems to be in the user block list - let's not show it
-                Log.Debug("Blocklist triggered");
-                isHandled = true;
-                return;
-            }
 
             if (type == XivChatType.RetainerSale)
             {

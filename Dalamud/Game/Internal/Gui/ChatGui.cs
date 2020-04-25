@@ -11,30 +11,52 @@ using Serilog;
 
 namespace Dalamud.Game.Internal.Gui {
     public sealed class ChatGui : IDisposable {
+        private readonly Queue<XivChatEntry> chatQueue = new Queue<XivChatEntry>();
+
+        #region Events
+
+        public delegate void OnMessageDelegate(XivChatType type, uint senderId, ref SeString sender, ref SeString message, bool isHandled);
+        public delegate void OnMessageRawDelegate(XivChatType type, uint senderId, ref StdString sender, ref StdString message, bool isHandled);
+        public delegate void OnCheckMessageHandledDelegate(XivChatType type, uint senderId, ref SeString sender, ref SeString message, ref bool isHandled);
+
+        /// <summary>
+        /// Event that allows you to stop messages from appearing in chat by setting the isHandled parameter to true.
+        /// </summary>
+        public event OnCheckMessageHandledDelegate OnCheckMessageHandled;
+
+        /// <summary>
+        /// Event that will be fired when a chat message is sent to chat by the game.
+        /// </summary>
+        public event OnMessageDelegate OnChatMessage;
+
+        /// <summary>
+        /// Event that will be fired when a chat message is sent by the game, containing raw, unparsed data.
+        /// </summary>
+        [Obsolete("Please use OnChatMessage instead. For modifications, it will take precedence.")]
+        public event OnMessageRawDelegate OnChatMessageRaw;
+
+        #endregion
+
+        #region Hooks
+
+        private readonly Hook<PrintMessageDelegate> printMessageHook;
+
+        private readonly Hook<PopulateItemLinkDelegate> populateItemLinkHook;
+
+        #endregion
+
+        #region Delegates
+
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         private delegate IntPtr PrintMessageDelegate(IntPtr manager, XivChatType chatType, IntPtr senderName,
-                                                   IntPtr message,
-                                                   uint senderId, IntPtr parameter);
-
-        public delegate void OnMessageDelegate(XivChatType type, uint senderId, ref SeString sender, ref SeString message,
-                                               ref bool isHandled);
-
-        public delegate void OnMessageRawDelegate(XivChatType type, uint senderId, ref StdString sender, ref StdString message,
-                                               ref bool isHandled);
+                                                     IntPtr message,
+                                                     uint senderId, IntPtr parameter);
 
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         private delegate void PopulateItemLinkDelegate(IntPtr linkObjectPtr, IntPtr itemInfoPtr);
 
-        private readonly Queue<XivChatEntry> chatQueue = new Queue<XivChatEntry>();
-
-        private readonly Hook<PrintMessageDelegate> printMessageHook;
-
-        public event OnMessageDelegate OnChatMessage;
-        [Obsolete("Please use OnChatMessage instead. For modifications, it will take precedence.")]
-        public event OnMessageRawDelegate OnChatMessageRaw;
-
-        private readonly Hook<PopulateItemLinkDelegate> populateItemLinkHook;
+        #endregion
 
         public int LastLinkedItemId { get; private set; }
         public byte LastLinkedItemFlags { get; private set; }
@@ -106,8 +128,10 @@ namespace Dalamud.Game.Internal.Gui {
 
                 // Call events
                 var isHandled = false;
-                OnChatMessage?.Invoke(chattype, senderid, ref parsedSender, ref parsedMessage, ref isHandled);
-                OnChatMessageRaw?.Invoke(chattype, senderid, ref sender, ref message, ref isHandled);
+                OnCheckMessageHandled?.Invoke(chattype, senderid, ref parsedSender, ref parsedMessage, ref isHandled);
+
+                OnChatMessage?.Invoke(chattype, senderid, ref parsedSender, ref parsedMessage, isHandled);
+                OnChatMessageRaw?.Invoke(chattype, senderid, ref sender, ref message, isHandled);
 
                 var newEdited = parsedMessage.Encode();
 
