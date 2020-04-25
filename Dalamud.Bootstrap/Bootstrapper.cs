@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipes;
 using System.Text.RegularExpressions;
@@ -18,17 +19,18 @@ namespace Dalamud.Bootstrap
             m_options = options;
         }
 
-        public static void Test()
+        public void Launch(string exePath, IDictionary<string, string> arguments)
         {
-            //
-        }
+            var options = new GameProcessCreationOptions
+            {
+                ImagePath = exePath,
+                Arguments = arguments,
+                CreateSuspended = true
+            };
 
-        public void Launch(string exePath, string? commandLine)
-        {
-            commandLine = commandLine ?? "";
+            using var process = GameProcess.Create(options);
 
-
-            //throw new NotImplementedException("TODO");
+            // TODO: Inject(process);
         }
 
         /// <summary>
@@ -62,12 +64,7 @@ namespace Dalamud.Bootstrap
             using var process = GameProcess.Open(pid);
 
             var exePath = process.GetImageFilePath();
-
             var argument = process.GetGameArguments();
-
-
-
-
 
 
             var encryptedArgument = EncryptArgument(argument.ToString());

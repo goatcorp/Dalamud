@@ -8,7 +8,7 @@ using Dalamud.Bootstrap.Crypto;
 
 namespace Dalamud.Bootstrap.SqexArg
 {
-    internal sealed class EncryptedArgument
+    internal sealed class SqexEncryptedArgument
     {
         private static readonly char[] ChecksumTable =
         {
@@ -32,7 +32,7 @@ namespace Dalamud.Bootstrap.SqexArg
         /// </summary>
         /// <param name="encodedData">A string that is already encrypted and encoded to url-safe variant of base64.</param>
         /// <param name="checksum">A checksum that is used to validate the encryption key.</param>
-        private EncryptedArgument(string encodedData, char checksum)
+        private SqexEncryptedArgument(string encodedData, char checksum)
         {
             Data = encodedData;
             Checksum = checksum;
@@ -43,7 +43,7 @@ namespace Dalamud.Bootstrap.SqexArg
         /// </summary>
         /// <param name="plainText">A data that is not encrypted.</param>
         /// <param name="key">A key that is used to encrypt the data.</param>
-        public EncryptedArgument(string plainText, uint key)
+        public SqexEncryptedArgument(string plainText, uint key)
         {
             Span<byte> keyBytes = stackalloc byte[8];
             CreateKey(key, keyBytes);
@@ -157,7 +157,7 @@ namespace Dalamud.Bootstrap.SqexArg
         /// </summary>
         /// <param name="argument">An argument that is encrypted and usually starts with //**sqex0003 and ends with **//</param>
         /// <returns>Returns true if successful, false otherwise.</returns>
-        public static bool TryParse(string argument, out EncryptedArgument output)
+        public static bool TryParse(string argument, out SqexEncryptedArgument output)
         {
             if (!Extract(argument, out var data, out var checksum))
             {
@@ -165,7 +165,7 @@ namespace Dalamud.Bootstrap.SqexArg
                 return false;
             }
 
-            output = new EncryptedArgument(data, checksum);
+            output = new SqexEncryptedArgument(data, checksum);
             return true;
         }
 
@@ -196,7 +196,7 @@ namespace Dalamud.Bootstrap.SqexArg
             return true;
         }
 
-        public override string ToString() => $"//**sqex0003{Data}{Checksum}**//";
+        public string Build() => $"//**sqex0003{Data}{Checksum}**//";
 
         /// <summary>
         /// Formats a key.

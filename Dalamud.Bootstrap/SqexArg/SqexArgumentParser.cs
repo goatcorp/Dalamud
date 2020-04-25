@@ -6,7 +6,7 @@ using static Pidgin.Parser<char>;
 
 namespace Dalamud.Bootstrap.SqexArg
 {
-    public static class ArgumentParser
+    public static class SqexArgumentParser
     {
         private static readonly Parser<char, string> KeyMarkerNoEscape = String(" ");
 

@@ -8,7 +8,7 @@ namespace Dalamud.Bootstrap
     {
         public string ImagePath { get; set; } = null!;
 
-        public IList<string>? Arguments { get; set; }
+        public IDictionary<string, string> Arguments { get; set; }
 
         public IDictionary<string, string>? Environments { get; set; }
 

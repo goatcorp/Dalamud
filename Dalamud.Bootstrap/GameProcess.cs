@@ -4,6 +4,8 @@ using Dalamud.Bootstrap.OS.Windows.Raw;
 using Dalamud.Bootstrap.SqexArg;
 using Microsoft.Win32.SafeHandles;
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -181,6 +183,11 @@ namespace Dalamud.Bootstrap
             }
         }
 
+        private static uint CreateCommandLineKey()
+        {
+            return (uint)(Environment.TickCount & 0xFFFF_0000);
+        }
+
         public static GameProcess Create(GameProcessCreationOptions options)
         {
             unsafe
@@ -188,9 +195,17 @@ namespace Dalamud.Bootstrap
                 SECURITY_ATTRIBUTES processAttr, threadAttr;
                 STARTUPINFOW startupInfo = default;
                 PROCESS_INFORMATION processInfo = default;
-                uint creationFlag;
+                uint creationFlag = default;
 
-                BuildCommandLine(options);
+                var key = CreateCommandLineKey();
+                var commandLine = BuildCommandLine(options.Arguments, key);
+                var currentDirectory = Path.Combine(Directory.GetParent(Path.GetDirectoryName(options.ImagePath)).FullName, "boot"); // this is fucked
+                var environments = BuildEnvironments(options.Environments);
+
+                if (options.CreateSuspended)
+                {
+                    creationFlag |= (uint)PROCESS_CREATION_FLAGS.CREATE_SUSPENDED;
+                }
 
                 if (!Kernel32.CreateProcessW(
                     options.ImagePath,
@@ -207,10 +222,23 @@ namespace Dalamud.Bootstrap
                 {
                     ProcessException.ThrowLastOsError();
                 }
-            }
-            
 
-            throw new NotImplementedException();
+                Kernel32.CloseHandle(//////////////////// fucking thread )
+
+                return new GameProcess(processInfo.hProcess);
+            }
+        }
+
+        private static string BuildCommandLine(IDictionary<string, string> arguments, uint key)
+        {
+            var builder = new SqexArgBuilder(arguments);
+            
+            return builder.Build(key);
+        }
+
+        private static byte[] BuildEnvironments(IDictionary<string, string>? environments)
+        {
+
         }
 
         /// <summary>
@@ -289,7 +317,6 @@ namespace Dalamud.Bootstrap
 
             ReadMemoryExact(address, buffer);
         }
-
 
         private IntPtr GetPebAddress()
         {
@@ -428,34 +455,6 @@ namespace Dalamud.Bootstrap
             return createdTick & 0xFFFF_0000;
         }
 
-        /// <summary>
-        /// Reads command-line arguments from the game and decrypts them if necessary.
-        /// </summary>
-        /// <returns>
-        /// Command-line arguments that looks like this:
-        /// /DEV.TestSID =ABCD /UserPath =C:\Examples
-        /// </returns>
-        public ArgumentBuilder GetGameArguments()
-        {
-            var processArguments = GetProcessArguments();
-
-            // arg[0] is a path to exe(normally), arg[1] is actual stuff.
-            if (processArguments.Length < 2)
-            {
-                throw new ProcessException($"There's only {processArguments.Length} process arguments. It must have at least 2 arguments.");
-            }
-
-            // We're interested in argument that contains session id
-            var argument = processArguments[1];
-
-            // If it's encrypted, we need to decrypt it first
-            if (EncryptedArgument.TryParse(argument, out var encryptedArgument))
-            {
-                var key = GetArgumentEncryptionKey();
-                argument = encryptedArgument.Decrypt(key);
-            }
-
-            return argument;
-        }
+        public uint Id => Kernel32.GetProcessId(m_handle);
     }
 }
