@@ -562,7 +562,7 @@ namespace Dalamud {
             {
                 this.Framework.Gui.Chat.PrintChat(new XivChatEntry
                 {
-                    MessageBytes = SeStringUtils.CreateItemLink((uint)item.RowId, false).Encode()
+                    MessageBytes = SeStringUtils.CreateItemLink(item, false).Encode()
                 });
             };
             this.isImguiDrawItemSearchWindow = true;

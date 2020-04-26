@@ -3,7 +3,6 @@ using Lumina.Excel.GeneratedSheets;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 using DalamudItem = Dalamud.Data.TransientSheet.Item;
 
@@ -36,7 +35,7 @@ namespace Dalamud.Game.Chat.SeStringHandling
             return new SeString(payloads);
         }
 
-        public static SeString CreateItemLink(Item item, bool isHQ, string displayNameOverride = null)
+        public static SeString CreateItemLink(DalamudItem item, bool isHQ, string displayNameOverride = null)
         {
             return CreateItemLink((uint)item.RowId, isHQ, displayNameOverride ?? item.Name);
         }
