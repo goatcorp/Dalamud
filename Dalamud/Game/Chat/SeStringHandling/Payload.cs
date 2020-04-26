@@ -30,7 +30,10 @@ namespace Dalamud.Game.Chat.SeStringHandling
         public static Payload Process(BinaryReader reader)
         {
             Payload payload = null;
-            if ((byte)reader.PeekChar() != START_BYTE)
+
+            var initialByte = reader.ReadByte();
+            reader.BaseStream.Position--;
+            if (initialByte != START_BYTE)
             {
                 payload = ProcessText(reader);
             }

@@ -58,11 +58,15 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 
             while (reader.BaseStream.Position < endOfStream)
             {
-                if ((byte)reader.PeekChar() == START_BYTE)
+                var nextByte = reader.ReadByte();
+                if (nextByte == START_BYTE)
+                {
+                    // rewind since this byte isn't part of this payload
+                    reader.BaseStream.Position--;
                     break;
+                }
 
-                // not the most efficient, but the easiest
-                text.Add(reader.ReadByte());
+                text.Add(nextByte);
             }
 
             if (text.Count > 0)
