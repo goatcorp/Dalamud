@@ -15,7 +15,7 @@ namespace Dalamud.Game.Chat.SeStringHandling
             string displayName = displayNameOverride ?? SeString.Dalamud.Data.GetExcelSheet<DalamudItem>().GetRow((int)itemId).Name;
             if (isHQ)
             {
-                displayName += " \uE03C";
+                displayName += $" {(char)SeIconChar.HighQuality}";
             }
 
             // TODO: probably a cleaner way to build these than doing the bulk+insert
@@ -84,7 +84,7 @@ namespace Dalamud.Game.Chat.SeStringHandling
             {
                 new UIForegroundPayload(0x01F4),
                 new UIGlowPayload(0x01F5),
-                new TextPayload("\uE0BB"),
+                new TextPayload($"{(char)SeIconChar.LinkMarker}"),
                 UIGlowPayload.UIGlowOff,
                 UIForegroundPayload.UIForegroundOff
             });
