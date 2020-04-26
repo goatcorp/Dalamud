@@ -15,8 +15,8 @@ namespace Dalamud.Game.Internal.Gui {
 
         #region Events
 
-        public delegate void OnMessageDelegate(XivChatType type, uint senderId, ref SeString sender, ref SeString message, bool isHandled);
-        public delegate void OnMessageRawDelegate(XivChatType type, uint senderId, ref StdString sender, ref StdString message, bool isHandled);
+        public delegate void OnMessageDelegate(XivChatType type, uint senderId, ref SeString sender, ref SeString message, ref bool isHandled);
+        public delegate void OnMessageRawDelegate(XivChatType type, uint senderId, ref StdString sender, ref StdString message, ref bool isHandled);
         public delegate void OnCheckMessageHandledDelegate(XivChatType type, uint senderId, ref SeString sender, ref SeString message, ref bool isHandled);
 
         /// <summary>
@@ -130,8 +130,8 @@ namespace Dalamud.Game.Internal.Gui {
                 var isHandled = false;
                 OnCheckMessageHandled?.Invoke(chattype, senderid, ref parsedSender, ref parsedMessage, ref isHandled);
 
-                OnChatMessage?.Invoke(chattype, senderid, ref parsedSender, ref parsedMessage, isHandled);
-                OnChatMessageRaw?.Invoke(chattype, senderid, ref sender, ref message, isHandled);
+                OnChatMessage?.Invoke(chattype, senderid, ref parsedSender, ref parsedMessage, ref isHandled);
+                OnChatMessageRaw?.Invoke(chattype, senderid, ref sender, ref message, ref isHandled);
 
                 var newEdited = parsedMessage.Encode();
 

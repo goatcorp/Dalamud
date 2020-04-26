@@ -122,7 +122,7 @@ namespace Dalamud.Game {
         public string LastLink { get; private set; }
 
         private void OnChatMessage(XivChatType type, uint senderId, ref StdString sender, 
-            ref StdString message, bool isHandled) {
+            ref StdString message, ref bool isHandled) {
 
             if (type == XivChatType.Notice && !this.hasSeenLoadingMsg) {
                 var assemblyVersion = Assembly.GetAssembly(typeof(ChatHandlers)).GetName().Version.ToString();
