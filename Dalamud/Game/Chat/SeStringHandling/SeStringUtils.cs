@@ -28,10 +28,17 @@ namespace Dalamud.Game.Chat.SeStringHandling
                 // arrow goes here
                 new TextPayload(displayName),
                 RawPayload.LinkTerminator
+                // sometimes there is another set of uiglow/foreground off payloads here
+                // might be necessary when including additional text after the item name
             });
             payloads.InsertRange(3, TextArrowPayloads());
 
             return new SeString(payloads);
+        }
+
+        public static SeString CreateItemLink(Item item, bool isHQ, string displayNameOverride = null)
+        {
+            return CreateItemLink((uint)item.RowId, isHQ, displayNameOverride ?? item.Name);
         }
 
         public static SeString CreateMapLink(uint territoryId, uint mapId, float xCoord, float yCoord, float fudgeFactor = 0.05f)
