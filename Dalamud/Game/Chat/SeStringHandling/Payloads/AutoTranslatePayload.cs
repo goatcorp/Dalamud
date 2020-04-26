@@ -133,7 +133,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
                         "Mount" => this.dataResolver.GetExcelSheet<Mount>().GetRow(ikey).Singular,
                         "Pet" => this.dataResolver.GetExcelSheet<Pet>().GetRow(ikey).Name,
                         "PetAction" => this.dataResolver.GetExcelSheet<PetAction>().GetRow(ikey).Name,
-                        // TODO: lumina doesn't have PetMirage
+                        "PetMirage" => this.dataResolver.GetExcelSheet<PetMirage>().GetRow(ikey).Name,
                         "PlaceName" => this.dataResolver.GetExcelSheet<PlaceName>().GetRow(ikey).Name,
                         "Race" => this.dataResolver.GetExcelSheet<Race>().GetRow(ikey).Masculine,
                         "TextCommand" => this.dataResolver.GetExcelSheet<TextCommand>().GetRow(ikey).Command,
