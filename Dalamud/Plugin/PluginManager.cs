@@ -122,6 +122,23 @@ namespace Dalamud.Plugin
             // Assembly.Load() by name here will not load multiple versions with the same name, in the case of updates
             var pluginAssembly = Assembly.LoadFile(dllFile.FullName);
 
+            // Don't wanna fuck this up
+            // This is a fix for earlier Chat Extender versions, since they break command handlers
+            try
+            {
+                var ver = int.Parse(pluginAssembly.GetName().Version.ToString().Replace(".", ""));
+                if (dllFile.Name.Contains("ChatExtender") &&
+                    ver < 1410)
+                {
+                    Log.Information($"Found banned v{ver} ChatExtender, skipping...");
+                    return false;
+                }
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
+
             if (pluginAssembly != null)
             {
                 Log.Information("Loading types for {0}", pluginAssembly.FullName);
