@@ -100,6 +100,19 @@ namespace Dalamud.Plugin
                     JsonConvert.DeserializeObject<PluginDefinition>(
                         File.ReadAllText(defJsonFile.FullName));
 
+                // Don't wanna fuck this up
+                // This is a fix for earlier Chat Extender versions, since they break command handlers
+                try {
+                    if (dllFile.Name.Contains("ChatExtender") &&
+                        int.Parse(pluginDef.AssemblyVersion.Replace(".", "")) < 1410) {
+                        Log.Information("Found banned ChatExtender, skipping...");
+                        return false;
+                    }
+                } catch (Exception) {
+                    // ignored
+                }
+                
+
                 if (pluginDef.ApplicableVersion != this.dalamud.StartInfo.GameVersion && pluginDef.ApplicableVersion != "any")
                 {
                     Log.Information("Plugin {0} has not applicable version.", dllFile.FullName);
