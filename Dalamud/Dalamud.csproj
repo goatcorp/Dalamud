@@ -14,9 +14,9 @@
   </PropertyGroup>
   <PropertyGroup Label="Feature">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <AssemblyVersion>4.9.0.0</AssemblyVersion>
-    <Version>4.9.0.0</Version>
-    <FileVersion>4.9.0.0</FileVersion>
+    <AssemblyVersion>4.9.1.0</AssemblyVersion>
+    <Version>4.9.1.0</Version>
+    <FileVersion>4.9.1.0</FileVersion>
   </PropertyGroup>
   <ItemGroup Label="Resources">
     <None Include="$(SolutionDir)/Resources/**/*" CopyToOutputDirectory="PreserveNewest" Visible="false" />
@@ -75,10 +75,5 @@
     <ProjectReference Include="..\lib\ImGuiScene\deps\ImGui.NET\src\ImGui.NET-472\ImGui.NET-472.csproj" />
     <ProjectReference Include="..\lib\ImGuiScene\deps\SDL2-CS\SDL2-CS.csproj" />
     <ProjectReference Include="..\lib\ImGuiScene\ImGuiScene\ImGuiScene.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Update="NotoSansCJKjp-Medium.otf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 </Project>
