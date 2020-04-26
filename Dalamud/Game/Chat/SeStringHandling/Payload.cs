@@ -93,7 +93,10 @@ namespace Dalamud.Game.Chat.SeStringHandling
             var payloadStartPos = reader.BaseStream.Position;
 
             Payload payload = null;
-            if ((byte)reader.PeekChar() != START_BYTE)
+
+            var initialByte = reader.ReadByte();
+            reader.BaseStream.Position--;
+            if (initialByte != START_BYTE)
             {
                 payload = DecodeText(reader);
             }
