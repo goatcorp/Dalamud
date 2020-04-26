@@ -22,6 +22,7 @@ using Dalamud.Game.Network;
 using Dalamud.Interface;
 using Dalamud.Plugin;
 using ImGuiNET;
+using Lumina.Excel.GeneratedSheets;
 using Newtonsoft.Json;
 using Serilog;
 using Serilog.Core;
@@ -92,6 +93,10 @@ namespace Dalamud {
             this.WinSock2 = new WinSockHandlers();
 
             AssetManager.EnsureAssets(this.baseDirectory).ContinueWith(async task => {
+                if (task.IsCanceled || task.IsFaulted) {
+                    throw new Exception("Could not ensure assets.", task.Exception);
+                }
+
                 this.localizationMgr = new Localization(this.StartInfo.WorkingDirectory);
                 if (!string.IsNullOrEmpty(this.Configuration.LanguageOverride)) {
                     this.localizationMgr.SetupWithLangCode(this.Configuration.LanguageOverride);
