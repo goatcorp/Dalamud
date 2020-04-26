@@ -5,12 +5,19 @@ using System.Text;
 
 namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 {
+    /// <summary>
+    /// An SeString Payload representing a plain text string.
+    /// </summary>
     public class TextPayload : Payload, ITextProvider
     {
         public override PayloadType Type => PayloadType.RawText;
 
         // allow modifying the text of existing payloads on the fly
         private string text;
+        /// <summary>
+        /// The text contained in this payload.
+        /// This may contain SE's special unicode characters.
+        /// </summary>
         public string Text
         {
             get { return this.text; }
@@ -28,6 +35,10 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 
         internal TextPayload() { }
 
+        /// <summary>
+        /// Creates a new TextPayload for the given text.
+        /// </summary>
+        /// <param name="text">The text to include for this payload.</param>
         public TextPayload(string text)
         {
             this.text = text;

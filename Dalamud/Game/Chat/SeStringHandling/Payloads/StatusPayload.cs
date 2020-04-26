@@ -5,11 +5,20 @@ using System.IO;
 
 namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 {
+    /// <summary>
+    /// An SeString Payload representing an interactable status link.
+    /// </summary>
     public class StatusPayload : Payload
     {
         public override PayloadType Type => PayloadType.Status;
 
         private Status status;
+        /// <summary>
+        /// The Lumina Status object represented by this payload.
+        /// </summary>
+        /// <remarks>
+        /// Value is evaluated lazily and cached.
+        /// </remarks>
         public Status Status
         {
             get
@@ -23,6 +32,10 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 
         internal StatusPayload() { }
 
+        /// <summary>
+        /// Creates a new StatusPayload for the given status id.
+        /// </summary>
+        /// <param name="statusId">The id of the Status for this link.</param>
         public StatusPayload(uint statusId)
         {
             this.statusId = statusId;
@@ -30,7 +43,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 
         public override string ToString()
         {
-            return $"{Type} - StatusId: {statusId}";
+            return $"{Type} - StatusId: {statusId}, Name: {Status.Name}";
         }
 
         protected override byte[] EncodeImpl()

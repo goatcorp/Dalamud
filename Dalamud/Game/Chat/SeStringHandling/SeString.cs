@@ -14,6 +14,9 @@ namespace Dalamud.Game.Chat.SeStringHandling
         // TODO: probably change how this is done/where it comes from
         internal static Dalamud Dalamud { get; set; }
 
+        /// <summary>
+        /// The ordered list of payloads included in this SeString.
+        /// </summary>
         public List<Payload> Payloads { get; }
 
         /// <summary>
@@ -56,30 +59,54 @@ namespace Dalamud.Game.Chat.SeStringHandling
             return new SeString(payloads);
         }
 
+        /// <summary>
+        /// Creates a new SeString from an ordered list of payloads.
+        /// </summary>
+        /// <param name="payloads">The Payload objects to make up this string.</param>
         public SeString(List<Payload> payloads)
         {
             Payloads = payloads;
         }
 
+        /// <summary>
+        /// Appends the contents of one SeString to this one.
+        /// </summary>
+        /// <param name="other">The SeString to append to this one.</param>
+        /// <returns>This object.</returns>
         public SeString Append(SeString other)
         {
             Payloads.AddRange(other.Payloads);
             return this;
         }
 
+        /// <summary>
+        /// Appends a list of payloads to this SeString.
+        /// </summary>
+        /// <param name="payloads">The Payloads to append.</param>
+        /// <returns>This object.</returns>
         public SeString Append(List<Payload> payloads)
         {
             Payloads.AddRange(payloads);
             return this;
         }
 
+        /// <summary>
+        /// Appends a single payload to this SeString.
+        /// </summary>
+        /// <param name="payload">The payload to append.</param>
+        /// <returns>This object.</returns>
         public SeString Append(Payload payload)
         {
             Payloads.Add(payload);
             return this;
         }
 
-        internal byte[] Encode()
+        /// <summary>
+        /// Encodes the Payloads in this SeString into a binary representation
+        /// suitable for use by in-game handlers, such as the chat log.
+        /// </summary>
+        /// <returns>The binary encoded payload data.</returns>
+        public byte[] Encode()
         {
             var messageBytes = new List<byte>();
             foreach (var p in Payloads)

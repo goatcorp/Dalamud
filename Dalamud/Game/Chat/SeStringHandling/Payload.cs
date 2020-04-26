@@ -8,7 +8,6 @@ using Serilog;
 
 // TODOs:
 //   - refactor integer handling now that we have multiple packed types
-//   - wrapper class(es) for handling of composite links in chat (item, map etc) and formatting operations
 // Maybes:
 //   - convert parsing to custom structs for each payload?  would make some code prettier and easier to work with
 //     but also wouldn't work out as well for things that are dynamically-sized
@@ -22,18 +21,41 @@ namespace Dalamud.Game.Chat.SeStringHandling
     /// </summary>
     public abstract class Payload
     {
+        /// <summary>
+        /// The type of this payload.
+        /// </summary>
         public abstract PayloadType Type { get; }
 
+        /// <summary>
+        /// Whether this payload has been modified since the last Encode().
+        /// </summary>
         public bool Dirty { get; protected set; } = true;
 
+        /// <summary>
+        /// Encodes the internal state of this payload into a byte[] suitable for sending to in-game
+        /// handlers such as the chat log.
+        /// </summary>
+        /// <returns>Encoded binary payload data suitable for use with in-game handlers.</returns>
         protected abstract byte[] EncodeImpl();
 
+        // TODO: endOfStream is somewhat legacy now that payload length is always handled correctly.
+        // This could be changed to just take a straight byte[], but that would complicate reading
+        // but we could probably at least remove the end param
+        /// <summary>
+        /// Decodes a byte stream from the game into a payload object.
+        /// </summary>
+        /// <param name="reader">A BinaryReader containing at least all the data for this payload.</param>
+        /// <param name="endOfStream">The location holding the end of the data for this payload.</param>
         protected abstract void DecodeImpl(BinaryReader reader, long endOfStream);
 
-        // :(
+        /// <summary>
+        /// The Lumina instance to use for any necessary data lookups.
+        /// </summary>
         protected DataManager dataResolver;
 
-        protected byte[] encodedData;
+        // private for now, since subclasses shouldn't interact with this
+        // To force-invalidate it, Dirty can be set to true
+        private byte[] encodedData;
 
         protected Payload()
         {
@@ -45,6 +67,11 @@ namespace Dalamud.Game.Chat.SeStringHandling
             this.dataResolver = SeString.Dalamud.Data;
         }
 
+        /// <summary>
+        /// Encode this payload object into a byte[] useable in-game for things like the chat log.
+        /// </summary>
+        /// <param name="force">If true, ignores any cached value and forcibly reencodes the payload from its internal representation.</param>
+        /// <returns>A byte[] suitable for use with in-game handlers such as the chat log.</returns>
         public byte[] Encode(bool force = false)
         {
             if (Dirty || force)
@@ -56,6 +83,11 @@ namespace Dalamud.Game.Chat.SeStringHandling
             return this.encodedData;
         }
 
+        /// <summary>
+        /// Decodes a binary representation of a payload into its corresponding nice object payload.
+        /// </summary>
+        /// <param name="reader">A reader positioned at the start of the payload, and containing at least one entire payload.</param>
+        /// <returns>The constructed Payload-derived object that was decoded from the binary data.</returns>
         public static Payload Decode(BinaryReader reader)
         {
             var payloadStartPos = reader.BaseStream.Position;
@@ -96,6 +128,7 @@ namespace Dalamud.Game.Chat.SeStringHandling
 
             var packetStart = reader.BaseStream.Position;
 
+            // any unhandled payload types will be turned into a RawPayload with the exact same binary data
             switch (chunkType)
             {
                 case SeStringChunkType.EmphasisItalic:
@@ -197,6 +230,10 @@ namespace Dalamud.Game.Chat.SeStringHandling
             LinkTerminator = 0xCF // not clear but seems to always follow a link
         }
 
+
+        // TODO - everything below needs to be completely refactored, now that we have run into
+        // a lot more cases than were originally handled.
+
         protected enum IntegerType
         {
             // used as an internal marker; sometimes single bytes are bare with no marker at all
@@ -205,7 +242,6 @@ namespace Dalamud.Game.Chat.SeStringHandling
             Byte = 0xF0,
             ByteTimes256 = 0xF1,
             Int16 = 0xF2,
-            // ByteTimes65536 = 0xF3,   // from RE but never seen
             Int16Packed = 0xF4,         // seen in map links, seemingly 2 8-bit values packed into 2 bytes with only one marker
             Int24Special = 0xF6,        // unsure how different form Int24 - used for hq items that add 1 million, also used for normal 24-bit values in map links
             Int24 = 0xFA,

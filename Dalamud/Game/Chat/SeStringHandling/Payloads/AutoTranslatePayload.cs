@@ -8,11 +8,20 @@ using System.Linq;
 
 namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 {
+    /// <summary>
+    /// An SeString Payload containing an auto-translation/completion chat message.
+    /// </summary>
     public class AutoTranslatePayload : Payload, ITextProvider
     {
         public override PayloadType Type => PayloadType.AutoTranslateText;
 
         private string text;
+        /// <summary>
+        /// The actual text displayed in-game for this payload.
+        /// </summary>
+        /// <remarks>
+        /// Value is evaluated lazily and cached.
+        /// </remarks>
         public string Text
         {
             get
@@ -29,6 +38,15 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 
         internal AutoTranslatePayload() { }
 
+        /// <summary>
+        /// Creates a new auto-translate payload.
+        /// </summary>
+        /// <param name="group">The group id for this message.</param>
+        /// <param name="key">The key/row id for this message.  Which table this is in depends on the group id and details the Completion table.</param>
+        /// <remarks>
+        /// This table is somewhat complicated in structure, and so using this constructor may not be very nice.
+        /// There is probably little use to create one of these, however.
+        /// </remarks>
         public AutoTranslatePayload(uint group, uint key)
         {
             this.group = group;
@@ -39,7 +57,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 
         public override string ToString()
         {
-            return $"{Type} - Group: {group}, Key: {key}";
+            return $"{Type} - Group: {group}, Key: {key}, Text: {Text}";
         }
 
         protected override byte[] EncodeImpl()

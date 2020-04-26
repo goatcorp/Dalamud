@@ -4,17 +4,37 @@ using System.IO;
 
 namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 {
-    class EmphasisItalicPayload : Payload
+    /// <summary>
+    /// An SeString Payload containing information about enabling or disabling italics formatting on following text.
+    /// </summary>
+    /// <remarks>
+    /// As with other formatting payloads, this is only useful in a payload block, where it affects any subsequent
+    /// text payloads.
+    /// </remarks>
+    public class EmphasisItalicPayload : Payload
     {
+        /// <summary>
+        /// Payload representing enabling italics on following text.
+        /// </summary>
         public static EmphasisItalicPayload ItalicsOn => new EmphasisItalicPayload(true);
+        /// <summary>
+        /// Payload representing disabling italics on following text.
+        /// </summary>
         public static EmphasisItalicPayload ItalicsOff => new EmphasisItalicPayload(false);
 
         public override PayloadType Type => PayloadType.EmphasisItalic;
 
+        /// <summary>
+        /// Whether this payload enables italics formatting for following text.
+        /// </summary>
         public bool IsEnabled { get; private set; }
 
         internal EmphasisItalicPayload() { }
 
+        /// <summary>
+        /// Creates an EmphasisItalicPayload.
+        /// </summary>
+        /// <param name="enabled">Whether italics formatting should be enabled or disabled for following text.</param>
         public EmphasisItalicPayload(bool enabled)
         {
             IsEnabled = enabled;

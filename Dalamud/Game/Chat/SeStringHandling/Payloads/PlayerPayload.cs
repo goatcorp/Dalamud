@@ -6,11 +6,17 @@ using System.Text;
 
 namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 {
+    /// <summary>
+    /// An SeString Payload representing a player link.
+    /// </summary>
     public class PlayerPayload : Payload
     {
         public override PayloadType Type => PayloadType.Player;
 
         private string playerName;
+        /// <summary>
+        /// The player's displayed name.  This does not contain the server name.
+        /// </summary>
         public string PlayerName
         {
             get { return this.playerName; }
@@ -22,6 +28,12 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         }
 
         private World world;
+        /// <summary>
+        /// The Lumina object representing the player's home server.
+        /// </summary>
+        /// <remarks>
+        /// Value is evaluated lazily and cached.
+        /// </remarks>
         public World World
         {
             get
@@ -31,10 +43,21 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             }
         }
 
+        /// <summary>
+        /// A text representation of this player link matching how it might appear in-game.
+        /// The world name will always be present.
+        /// </summary>
+        public string DisplayedName => $"{PlayerName}{(char)SeIconChar.CrossWorld}{World.Name}";
+
         private uint serverId;
 
         internal PlayerPayload() { }
 
+        /// <summary>
+        /// Create a PlayerPayload link for the specified player.
+        /// </summary>
+        /// <param name="playerName">The player's displayed name.</param>
+        /// <param name="serverId">The player's home server id.</param>
         public PlayerPayload(string playerName, uint serverId)
         {
             this.playerName = playerName;
@@ -43,7 +66,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 
         public override string ToString()
         {
-            return $"{Type} - PlayerName: {PlayerName}, ServerId: {serverId}";
+            return $"{Type} - PlayerName: {PlayerName}, ServerId: {serverId}, ServerName: {World.Name}";
         }
 
         protected override byte[] EncodeImpl()

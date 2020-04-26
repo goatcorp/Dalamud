@@ -5,15 +5,30 @@ using System.IO;
 
 namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 {
+    /// <summary>
+    /// An SeString Payload representing a UI foreground color applied to following text payloads.
+    /// </summary>
     public class UIForegroundPayload : Payload
     {
+        /// <summary>
+        /// Payload representing disabling foreground color on following text.
+        /// </summary>
         public static UIForegroundPayload UIForegroundOff => new UIForegroundPayload(0);
 
         public override PayloadType Type => PayloadType.UIForeground;
 
+        /// <summary>
+        /// Whether or not this payload represents applying a foreground color, or disabling one.
+        /// </summary>
         public bool IsEnabled => ColorKey != 0;
 
         private UIColor color;
+        /// <summary>
+        /// A Lumina UIColor object representing this payload.  The actual color data is at UIColor.UIForeground
+        /// </summary>
+        /// <remarks>
+        /// Value is evaluated lazily and cached.
+        /// </remarks>
         public UIColor UIColor
         {
             get
@@ -23,6 +38,9 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             }
         }
 
+        /// <summary>
+        /// The color key used as a lookup in the UIColor table for this foreground color.
+        /// </summary>
         public ushort ColorKey
         {
             get { return this.colorKey; }
@@ -34,6 +52,9 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             }
         }
 
+        /// <summary>
+        /// The Red/Green/Blue values for this foreground color, encoded as a typical hex color.
+        /// </summary>
         public uint RGB
         {
             get
@@ -46,6 +67,10 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 
         internal UIForegroundPayload() { }
 
+        /// <summary>
+        /// Creates a new UIForegroundPayload for the given UIColor key.
+        /// </summary>
+        /// <param name="colorKey"></param>
         public UIForegroundPayload(ushort colorKey)
         {
             this.colorKey = colorKey;
@@ -53,7 +78,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 
         public override string ToString()
         {
-            return $"{Type} - UIColor: {colorKey}";
+            return $"{Type} - UIColor: {colorKey} color: {(IsEnabled ? RGB : 0)}";
         }
 
         protected override byte[] EncodeImpl()

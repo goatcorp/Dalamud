@@ -8,8 +8,18 @@ using DalamudItem = Dalamud.Data.TransientSheet.Item;
 
 namespace Dalamud.Game.Chat.SeStringHandling
 {
-    public class SeStringUtils
+    /// <summary>
+    /// A utility class for working with common SeString variants.
+    /// </summary>
+    public static class SeStringUtils
     {
+        /// <summary>
+        /// Creates an SeString representing an entire Payload chain that can be used to link an item in the chat log.
+        /// </summary>
+        /// <param name="itemId">The id of the item to link.</param>
+        /// <param name="isHQ">Whether to link the high-quality variant of the item.</param>
+        /// <param name="displayNameOverride">An optional name override to display, instead of the actual item name.</param>
+        /// <returns>An SeString containing all the payloads necessary to display an item link in the chat log.</returns>
         public static SeString CreateItemLink(uint itemId, bool isHQ, string displayNameOverride = null)
         {
             string displayName = displayNameOverride ?? SeString.Dalamud.Data.GetExcelSheet<DalamudItem>().GetRow((int)itemId).Name;
@@ -35,11 +45,44 @@ namespace Dalamud.Game.Chat.SeStringHandling
             return new SeString(payloads);
         }
 
+        /// <summary>
+        /// Creates an SeString representing an entire Payload chain that can be used to link an item in the chat log.
+        /// </summary>
+        /// <param name="item">The Lumina Item to link.</param>
+        /// <param name="isHQ">Whether to link the high-quality variant of the item.</param>
+        /// <param name="displayNameOverride">An optional name override to display, instead of the actual item name.</param>
+        /// <returns>An SeString containing all the payloads necessary to display an item link in the chat log.</returns>
         public static SeString CreateItemLink(DalamudItem item, bool isHQ, string displayNameOverride = null)
         {
             return CreateItemLink((uint)item.RowId, isHQ, displayNameOverride ?? item.Name);
         }
 
+        public static SeString CreateMapLink(uint territoryId, uint mapId, int rawX, int rawY)
+        {
+            var mapPayload = new MapLinkPayload(territoryId, mapId, rawX, rawY);
+            var nameString = $"{mapPayload.PlaceName} {mapPayload.CoordinateString}";
+
+            var payloads = new List<Payload>(new Payload[]
+            {
+                mapPayload,
+                // arrow goes here
+                new TextPayload(nameString),
+                RawPayload.LinkTerminator
+            });
+            payloads.InsertRange(1, TextArrowPayloads());
+
+            return new SeString(payloads);
+        }
+
+        /// <summary>
+        /// Creates an SeString representing an entire Payload chain that can be used to link a map position in the chat log.
+        /// </summary>
+        /// <param name="territoryId">The id of the TerritoryType for this map link.</param>
+        /// <param name="mapId">The id of the Map for this map link.</param>
+        /// <param name="xCoord">The human-readable x-coordinate for this link.</param>
+        /// <param name="yCoord">The human-readable y-coordinate for this link.</param>
+        /// <param name="fudgeFactor">An optional offset to account for rounding and truncation errors; it is best to leave this untouched in most cases.</param>
+        /// <returns>An SeString containing all of the payloads necessary to display a map link in the chat log.</returns>
         public static SeString CreateMapLink(uint territoryId, uint mapId, float xCoord, float yCoord, float fudgeFactor = 0.05f)
         {
             var mapPayload = new MapLinkPayload(territoryId, mapId, xCoord, yCoord, fudgeFactor);
@@ -57,6 +100,14 @@ namespace Dalamud.Game.Chat.SeStringHandling
             return new SeString(payloads);
         }
 
+        /// <summary>
+        /// Creates an SeString representing an entire Payload chain that can be used to link a map position in the chat log, matching a specified zone name.
+        /// </summary>
+        /// <param name="placeName">The name of the location for this link.  This should be exactly the name as seen in a displayed map link in-game for the same zone.</param>
+        /// <param name="xCoord">The human-readable x-coordinate for this link.</param>
+        /// <param name="yCoord">The human-readable y-coordinate for this link.</param>
+        /// <param name="fudgeFactor">An optional offset to account for rounding and truncation errors; it is best to leave this untouched in most cases.</param>
+        /// <returns>An SeString containing all of the payloads necessary to display a map link in the chat log.</returns>
         public static SeString CreateMapLink(string placeName, float xCoord, float yCoord, float fudgeFactor = 0.05f)
         {
             var mapSheet = SeString.Dalamud.Data.GetExcelSheet<Map>();
@@ -78,6 +129,11 @@ namespace Dalamud.Game.Chat.SeStringHandling
             return null;
         }
 
+        /// <summary>
+        /// Creates a list of Payloads necessary to display the arrow link marker icon in chat
+        /// with the appropriate glow and coloring.
+        /// </summary>
+        /// <returns>A list of all the payloads required to insert the link marker.</returns>
         public static List<Payload> TextArrowPayloads()
         {
             return new List<Payload>(new Payload[]

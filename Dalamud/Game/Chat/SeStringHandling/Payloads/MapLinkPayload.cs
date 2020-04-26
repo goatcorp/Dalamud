@@ -5,11 +5,20 @@ using System.IO;
 
 namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 {
+    /// <summary>
+    /// An SeString Payload representing an interactable map position link.
+    /// </summary>
     public class MapLinkPayload : Payload
     {
         public override PayloadType Type => PayloadType.MapLink;
 
         private Map map;
+        /// <summary>
+        /// The Map specified for this map link.
+        /// </summary>
+        /// <remarks>
+        /// Value is evaluated lazily and cached.
+        /// </remarks>
         public Map Map
         {
             get
@@ -20,6 +29,12 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         }
 
         private TerritoryType territoryType;
+        /// <summary>
+        /// The TerritoryType specified for this map link.
+        /// </summary>
+        /// <remarks>
+        /// Value is evaluated lazily and cached.
+        /// </remarks>
         public TerritoryType TerritoryType
         {
             get
@@ -29,23 +44,43 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             }
         }
 
+        /// <summary>
+        /// The internal x-coordinate for this map position.
+        /// </summary>
+        public int RawX { get; private set; }
+
+        /// <summary>
+        /// The internal y-coordinate for this map position.
+        /// </summary>
+        public int RawY { get; private set; }
+
         // these could be cached, but this isn't really too egregious
+        /// <summary>
+        /// The readable x-coordinate position for this map link.  This value is approximate and unrounded.
+        /// </summary>
         public float XCoord
         {
             get
             {
-                return ConvertRawPositionToMapCoordinate(this.rawX, Map.SizeFactor);
+                return ConvertRawPositionToMapCoordinate(RawX, Map.SizeFactor);
             }
         }
 
+        /// <summary>
+        /// The readable y-coordinate position for this map link.  This value is approximate and unrounded.
+        /// </summary>
         public float YCoord
         {
             get
             {
-                return ConvertRawPositionToMapCoordinate(this.rawY, Map.SizeFactor);
+                return ConvertRawPositionToMapCoordinate(RawY, Map.SizeFactor);
             }
         }
 
+        /// <summary>
+        /// The printable map coordinates for this link.  This value tries to match the in-game printable text as closely as possible
+        /// but is an approximation and may be slightly off for some positions.
+        /// </summary>
         public string CoordinateString
         {
             get
@@ -57,11 +92,15 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
                 var x = Math.Truncate((XCoord+fudge) * 10.0f) / 10.0f;
                 var y = Math.Truncate((YCoord+fudge) * 10.0f) / 10.0f;
 
+                // the formatting and spacing the game uses
                 return $"( {x.ToString("0.0")}  , {y.ToString("0.0")} )";
             }
         }
 
         private string placeNameRegion;
+        /// <summary>
+        /// The region name for this map link.  This corresponds to the upper zone name found in the actual in-game map UI.  eg, "La Noscea"
+        /// </summary>
         public string PlaceNameRegion
         {
             get
@@ -72,6 +111,9 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         }
 
         private string placeName;
+        /// <summary>
+        /// The place name for this map link.  This corresponds to the lower zone name found in the actual in-game map UI.  eg, "Limsa Lominsa Upper Decks"
+        /// </summary>
         public string PlaceName
         {
             get
@@ -81,16 +123,25 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             }
         }
 
-        public string DataString => $"m:{TerritoryType.RowId},{Map.RowId},{rawX},{rawY}";
+        /// <summary>
+        /// The data string for this map link, for use by internal game functions that take a string variant and not a binary payload.
+        /// </summary>
+        public string DataString => $"m:{TerritoryType.RowId},{Map.RowId},{RawX},{RawY}";
 
         private uint territoryTypeId;
         private uint mapId;
-        private int rawX;
-        private int rawY;
         // there is no Z; it's purely in the text payload where applicable
 
         internal MapLinkPayload() { }
 
+        /// <summary>
+        /// Creates an interactable MapLinkPayload from a human-readable position.
+        /// </summary>
+        /// <param name="territoryTypeId">The id of the TerritoryType entry for this link.</param>
+        /// <param name="mapId">The id of the Map entry for this link.</param>
+        /// <param name="niceXCoord">The human-readable x-coordinate for this link.</param>
+        /// <param name="niceYCoord">The human-readable y-coordinate for this link.</param>
+        /// <param name="fudgeFactor">An optional offset to account for rounding and truncation errors; it is best to leave this untouched in most cases.</param>
         public MapLinkPayload(uint territoryTypeId, uint mapId, float niceXCoord, float niceYCoord, float fudgeFactor = 0.05f)
         {
             this.territoryTypeId = territoryTypeId;
@@ -98,28 +149,35 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             // this fudge is necessary basically to ensure we don't shift down a full tenth
             // because essentially values are truncated instead of rounded, so 3.09999f will become
             // 3.0f and not 3.1f
-            this.rawX = this.ConvertMapCoordinateToRawPosition(niceXCoord + fudgeFactor, Map.SizeFactor);
-            this.rawY = this.ConvertMapCoordinateToRawPosition(niceYCoord + fudgeFactor, Map.SizeFactor);
+            RawX = this.ConvertMapCoordinateToRawPosition(niceXCoord + fudgeFactor, Map.SizeFactor);
+            RawY = this.ConvertMapCoordinateToRawPosition(niceYCoord + fudgeFactor, Map.SizeFactor);
         }
 
+        /// <summary>
+        /// Creates an interactable MapLinkPayload from a raw position.
+        /// </summary>
+        /// <param name="territoryTypeId">The id of the TerritoryType entry for this link.</param>
+        /// <param name="mapId">The id of the Map entry for this link.</param>
+        /// <param name="rawX">The internal raw x-coordinate for this link.</param>
+        /// <param name="rawY">The internal raw y-coordinate for this link.</param>
         public MapLinkPayload(uint territoryTypeId, uint mapId, int rawX, int rawY)
         {
             this.territoryTypeId = territoryTypeId;
             this.mapId = mapId;
-            this.rawX = rawX;
-            this.rawY = rawY;
+            RawX = rawX;
+            RawY = rawY;
         }
 
         public override string ToString()
         {
-            return $"{Type} - TerritoryTypeId: {territoryTypeId}, MapId: {mapId}, RawX: {rawX}, RawY: {rawY}";
+            return $"{Type} - TerritoryTypeId: {territoryTypeId}, MapId: {mapId}, RawX: {RawX}, RawY: {RawY}, display: {PlaceName} {CoordinateString}";
         }
 
         protected override byte[] EncodeImpl()
         {
             var packedTerritoryAndMapBytes = MakePackedInteger(this.territoryTypeId, this.mapId);
-            var xBytes = MakeInteger(unchecked((uint)this.rawX));
-            var yBytes = MakeInteger(unchecked((uint)this.rawY));
+            var xBytes = MakeInteger(unchecked((uint)RawX));
+            var yBytes = MakeInteger(unchecked((uint)RawY));
 
             var chunkLen = 4 + packedTerritoryAndMapBytes.Length + xBytes.Length + yBytes.Length;
 
@@ -149,8 +207,8 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             try
             {
                 (this.territoryTypeId, this.mapId) = GetPackedIntegers(reader);
-                this.rawX = unchecked((int)GetInteger(reader));
-                this.rawY = unchecked((int)GetInteger(reader));
+                RawX = unchecked((int)GetInteger(reader));
+                RawY = unchecked((int)GetInteger(reader));
                 // the Z coordinate is never in this chunk, just the text (if applicable)
 
                 // seems to always be FF 01
