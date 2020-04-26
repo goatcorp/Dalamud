@@ -81,7 +81,7 @@ namespace Dalamud.Interface
             ImGui.Separator();
             
 
-            ImGui.Text("Search: ");
+            ImGui.Text(Loc.Localize("DalamudItemSearchVerb", "Search: "));
             ImGui.SameLine();
             ImGui.InputText("##searchbox", ref this.searchText, 32);
 
@@ -138,15 +138,34 @@ namespace Dalamud.Interface
                     {
                         for (var i = 0; i < this.searchTask.Result.Count; i++)
                         {
-                            if (ImGui.Selectable(this.searchTask.Result[i].Name, this.selectedItemIndex == i))
+                            if (ImGui.Selectable(this.searchTask.Result[i].Name, this.selectedItemIndex == i, ImGuiSelectableFlags.AllowDoubleClick))
                             {
                                 this.selectedItemIndex = i;
 
-                                var iconTex = this.data.GetIcon(this.searchTask.Result[i].Icon);
-                                this.selectedItemTex?.Dispose();
-                                this.selectedItemTex =
-                                    this.builder.LoadImageRaw(iconTex.GetRgbaImageData(), iconTex.Header.Width,
-                                                              iconTex.Header.Height, 4);
+                                try
+                                {
+                                    var iconTex = this.data.GetIcon(this.searchTask.Result[i].Icon);
+                                    this.selectedItemTex?.Dispose();
+                                
+                                    this.selectedItemTex =
+                                       this.builder.LoadImageRaw(iconTex.GetRgbaImageData(), iconTex.Header.Width,
+                                                                 iconTex.Header.Height, 4);
+                                } catch (Exception ex)
+                                {
+                                    Log.Error(ex, "Failed loading item texture");
+                                    this.selectedItemTex?.Dispose();
+                                    this.selectedItemTex = null;
+                                }
+
+                                if (ImGui.IsMouseDoubleClicked(0))
+                                {
+                                    OnItemChosen?.Invoke(this, this.searchTask.Result[i]);
+                                    if (this.closeOnChoose)
+                                    {
+                                        this.selectedItemTex?.Dispose();
+                                        isOpen = false;
+                                    }
+                                }
                             }
                         }
                     }

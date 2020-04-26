@@ -116,19 +116,19 @@
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Actors_Types_Actor__ctor_Dalamud_Game_ClientState_Structs_Actor_Dalamud_Dalamud_.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Actors.Types.Actor.%23ctor(Dalamud.Game.ClientState.Structs.Actor%2CDalamud.Dalamud)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Actors_Types_Actor__ctor_System_IntPtr_Dalamud_Game_ClientState_Structs_Actor_Dalamud_Dalamud_.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Actors.Types.Actor.%23ctor(System.IntPtr%2CDalamud.Game.ClientState.Structs.Actor%2CDalamud.Dalamud)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/Types/Actor.cs/#L18">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/Types/Actor.cs/#L26">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_Actors_Types_Actor__ctor_" data-uid="Dalamud.Game.ClientState.Actors.Types.Actor.#ctor*"></a>
-  <h4 id="Dalamud_Game_ClientState_Actors_Types_Actor__ctor_Dalamud_Game_ClientState_Structs_Actor_Dalamud_Dalamud_" data-uid="Dalamud.Game.ClientState.Actors.Types.Actor.#ctor(Dalamud.Game.ClientState.Structs.Actor,Dalamud.Dalamud)">Actor(Actor, Dalamud)</h4>
+  <h4 id="Dalamud_Game_ClientState_Actors_Types_Actor__ctor_System_IntPtr_Dalamud_Game_ClientState_Structs_Actor_Dalamud_Dalamud_" data-uid="Dalamud.Game.ClientState.Actors.Types.Actor.#ctor(System.IntPtr,Dalamud.Game.ClientState.Structs.Actor,Dalamud.Dalamud)">Actor(IntPtr, Actor, Dalamud)</h4>
   <div class="markdown level1 summary"><p>Initialize a representation of a basic FFXIV actor.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public Actor(Actor actorStruct, Dalamud dalamud)</code></pre>
+    <pre><code class="lang-csharp hljs">public Actor(IntPtr address, Actor actorStruct, Dalamud dalamud)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -140,6 +140,12 @@
       </tr>
     </thead>
     <tbody>
+      <tr>
+        <td><span class="xref">System.IntPtr</span></td>
+        <td><span class="parametername">address</span></td>
+        <td><p>The address of this actor in memory.</p>
+</td>
+      </tr>
       <tr>
         <td><a class="xref" href="Dalamud.Game.ClientState.Structs.Actor.html">Actor</a></td>
         <td><span class="parametername">actorStruct</span></td>
@@ -161,7 +167,7 @@
     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Actors_Types_Actor_actorStruct.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Actors.Types.Actor.actorStruct%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/Types/Actor.cs/#L9">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/Types/Actor.cs/#L11">View Source</a>
   </span>
   <h4 id="Dalamud_Game_ClientState_Actors_Types_Actor_actorStruct" data-uid="Dalamud.Game.ClientState.Actors.Types.Actor.actorStruct">actorStruct</h4>
   <div class="markdown level1 summary"><p>The memory representation of the base actor.</p>
@@ -188,10 +194,40 @@
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Actors_Types_Actor_Address.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Actors.Types.Actor.Address%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/Types/Actor.cs/#L18">View Source</a>
+  </span>
+  <h4 id="Dalamud_Game_ClientState_Actors_Types_Actor_Address" data-uid="Dalamud.Game.ClientState.Actors.Types.Actor.Address">Address</h4>
+  <div class="markdown level1 summary"><p>The address of this actor in memory.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public readonly IntPtr Address</code></pre>
+  </div>
+  <h5 class="fieldValue">Field Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IntPtr</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Actors_Types_Actor_dalamud.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Actors.Types.Actor.dalamud%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/Types/Actor.cs/#L11">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/Types/Actor.cs/#L13">View Source</a>
   </span>
   <h4 id="Dalamud_Game_ClientState_Actors_Types_Actor_dalamud" data-uid="Dalamud.Game.ClientState.Actors.Types.Actor.dalamud">dalamud</h4>
   <div class="markdown level1 summary"></div>
@@ -222,7 +258,7 @@
     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Actors_Types_Actor_ActorId.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Actors.Types.Actor.ActorId%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/Types/Actor.cs/#L36">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/Types/Actor.cs/#L45">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_Actors_Types_Actor_ActorId_" data-uid="Dalamud.Game.ClientState.Actors.Types.Actor.ActorId*"></a>
   <h4 id="Dalamud_Game_ClientState_Actors_Types_Actor_ActorId" data-uid="Dalamud.Game.ClientState.Actors.Types.Actor.ActorId">ActorId</h4>
@@ -253,7 +289,7 @@
     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Actors_Types_Actor_Name.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Actors.Types.Actor.Name%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/Types/Actor.cs/#L31">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/Types/Actor.cs/#L40">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_Actors_Types_Actor_Name_" data-uid="Dalamud.Game.ClientState.Actors.Types.Actor.Name*"></a>
   <h4 id="Dalamud_Game_ClientState_Actors_Types_Actor_Name" data-uid="Dalamud.Game.ClientState.Actors.Types.Actor.Name">Name</h4>
@@ -284,7 +320,7 @@
     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Actors_Types_Actor_ObjectKind.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Actors.Types.Actor.ObjectKind%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/Types/Actor.cs/#L42">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/Types/Actor.cs/#L51">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_Actors_Types_Actor_ObjectKind_" data-uid="Dalamud.Game.ClientState.Actors.Types.Actor.ObjectKind*"></a>
   <h4 id="Dalamud_Game_ClientState_Actors_Types_Actor_ObjectKind" data-uid="Dalamud.Game.ClientState.Actors.Types.Actor.ObjectKind">ObjectKind</h4>
@@ -316,7 +352,7 @@ possible values.</p>
     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Actors_Types_Actor_Position.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Actors.Types.Actor.Position%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/Types/Actor.cs/#L26">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/Types/Actor.cs/#L35">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_Actors_Types_Actor_Position_" data-uid="Dalamud.Game.ClientState.Actors.Types.Actor.Position*"></a>
   <h4 id="Dalamud_Game_ClientState_Actors_Types_Actor_Position" data-uid="Dalamud.Game.ClientState.Actors.Types.Actor.Position">Position</h4>
@@ -353,7 +389,7 @@ possible values.</p>
                     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Actors_Types_Actor.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Actors.Types.Actor%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
                   </li>
                   <li>
-                    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/Types/Actor.cs/#L5" class="contribution-link">View Source</a>
+                    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/Types/Actor.cs/#L7" class="contribution-link">View Source</a>
                   </li>
                 </ul>
               </div>

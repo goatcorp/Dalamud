@@ -40,13 +40,13 @@ namespace Dalamud {
 
         public readonly Framework Framework;
 
-        public readonly CommandManager CommandManager;
+        public CommandManager CommandManager { get; private set; }
 
-        public readonly ChatHandlers ChatHandlers;
+        public ChatHandlers ChatHandlers { get; private set; }
 
-        public readonly NetworkHandlers NetworkHandlers;
+        public NetworkHandlers NetworkHandlers { get; private set; }
 
-        public readonly DiscordBotManager BotManager;
+        public DiscordBotManager BotManager { get; private set; }
 
         public PluginManager PluginManager { get; private set; }
         public PluginRepository PluginRepository { get; private set; }
@@ -60,13 +60,14 @@ namespace Dalamud {
 
         private readonly WinSockHandlers WinSock2;
 
-        public readonly InterfaceManager InterfaceManager;
+        public InterfaceManager InterfaceManager { get; private set; }
 
-        public readonly DataManager Data;
+        public DataManager Data { get; private set; }
 
 
         private Localization localizationMgr;
 
+        public bool IsReady { get; private set; }
 
         private readonly string assemblyVersion = Assembly.GetAssembly(typeof(ChatHandlers)).GetName().Version.ToString();
 
@@ -75,13 +76,6 @@ namespace Dalamud {
             this.loggingLevelSwitch = loggingLevelSwitch;
 
             this.Configuration = DalamudConfiguration.Load(info.ConfigurationPath);
-            this.localizationMgr = new Localization(this.StartInfo.WorkingDirectory);
-
-            if (!string.IsNullOrEmpty(this.Configuration.LanguageOverride)) {
-                this.localizationMgr.SetupWithLangCode(this.Configuration.LanguageOverride);
-            } else {
-                this.localizationMgr.SetupWithUiCulture();
-            }
 
             this.baseDirectory = info.WorkingDirectory;
 
@@ -94,53 +88,63 @@ namespace Dalamud {
             // Initialize game subsystem
             this.Framework = new Framework(this.SigScanner, this);
 
-            // Initialize managers. Basically handlers for the logic
-            this.CommandManager = new CommandManager(this, info.Language);
-            SetupCommands();
-
-            this.ChatHandlers = new ChatHandlers(this);
-            this.NetworkHandlers = new NetworkHandlers(this, this.Configuration.OptOutMbCollection);
-
-            this.Data = new DataManager(this.StartInfo.Language);
-            this.Data.Initialize();
-
-            // TODO: better way to do this?  basically for lumina injection
-            SeString.Dalamud = this;
-
             this.ClientState = new ClientState(this, info, this.SigScanner);
-
-            this.BotManager = new DiscordBotManager(this, this.Configuration.DiscordFeatureConfig);
 
             this.WinSock2 = new WinSockHandlers();
 
-            try {
-                this.InterfaceManager = new InterfaceManager(this, this.SigScanner);
-                this.InterfaceManager.OnDraw += BuildDalamudUi;
-            } catch (Exception e) {
-                Log.Information(e, "Could not init interface.");
-            }
+            AssetManager.EnsureAssets(this.baseDirectory).ContinueWith(async task => {
+                this.localizationMgr = new Localization(this.StartInfo.WorkingDirectory);
+                if (!string.IsNullOrEmpty(this.Configuration.LanguageOverride)) {
+                    this.localizationMgr.SetupWithLangCode(this.Configuration.LanguageOverride);
+                } else {
+                    this.localizationMgr.SetupWithUiCulture();
+                }
+
+                try {
+                    this.InterfaceManager = new InterfaceManager(this, this.SigScanner);
+                    this.InterfaceManager.OnDraw += BuildDalamudUi;
+
+                    this.InterfaceManager.Enable();
+                } catch (Exception e) {
+                    Log.Information(e, "Could not init interface.");
+                }
+
+                this.Data = new DataManager(this.StartInfo.Language);
+                await this.Data.Initialize(this.baseDirectory);
+
+				// TODO: better way to do this?  basically for lumina injection
+            	SeString.Dalamud = this;
+
+                this.NetworkHandlers = new NetworkHandlers(this, this.Configuration.OptOutMbCollection);
+
+                // Initialize managers. Basically handlers for the logic
+                this.CommandManager = new CommandManager(this, info.Language);
+                SetupCommands();
+
+                this.ChatHandlers = new ChatHandlers(this);
+                // Discord Bot Manager
+                this.BotManager = new DiscordBotManager(this, this.Configuration.DiscordFeatureConfig);
+                this.BotManager.Start();
+
+                try
+                {
+                    this.PluginManager = new PluginManager(this, this.StartInfo.PluginDirectory, this.StartInfo.DefaultPluginDirectory);
+                    this.PluginManager.LoadPlugins();
+
+                    this.PluginRepository = new PluginRepository(PluginManager, this.StartInfo.PluginDirectory, this.StartInfo.GameVersion);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Plugin load failed.");
+                }
+
+                IsReady = true;
+            });
         }
 
         public void Start() {
-            try {
-                this.InterfaceManager?.Enable();
-            } catch (Exception e) {
-                Log.Information("Could not enable interface.");
-            }
-
             this.Framework.Enable();
             this.ClientState.Enable();
-
-            this.BotManager.Start();
-
-            try {
-                this.PluginManager = new PluginManager(this, this.StartInfo.PluginDirectory, this.StartInfo.DefaultPluginDirectory);
-                this.PluginManager.LoadPlugins();
-
-                PluginRepository = new PluginRepository(PluginManager, this.StartInfo.PluginDirectory, this.StartInfo.GameVersion);
-            } catch (Exception ex) {
-                Log.Error(ex, "Plugin load failed.");
-            }
         }
 
         public void Unload() {
@@ -156,7 +160,7 @@ namespace Dalamud {
             // due to rendering happening on another thread, where a plugin might receive
             // a render call after it has been disposed, which can crash if it attempts to
             // use any resources that it freed in its own Dispose method
-            this.InterfaceManager.Dispose();
+            this.InterfaceManager?.Dispose();
 
             try
             {
@@ -211,7 +215,7 @@ namespace Dalamud {
                         ImGui.Separator();
                         if (ImGui.MenuItem("Open Log window"))
                         {
-                            this.logWindow = new DalamudLogWindow();
+                            this.logWindow = new DalamudLogWindow(CommandManager);
                             this.isImguiDrawLogWindow = true;
                         }
                         if (ImGui.BeginMenu("Set log level..."))
@@ -439,7 +443,7 @@ namespace Dalamud {
 
             this.CommandManager.AddHandler("/xllanguage", new CommandInfo(OnSetLanguageCommand)
             {
-                HelpMessage = Loc.Localize("DalamudLanguageHelp", "Set the language for the in-game addon and plugins that support it.")
+                HelpMessage = Loc.Localize("DalamudLanguageHelp", "Set the language for the in-game addon and plugins that support it. Available languages: ") + Localization.ApplicableLangCodes.Aggregate("en", (current, code) => current + ", " + code)
             });
 
             this.CommandManager.AddHandler("/imdebug", new CommandInfo(OnDebugImInfoCommand)
@@ -606,15 +610,15 @@ namespace Dalamud {
             else
                 this.Configuration.PreferredRoleReminders.Add(rouletteIndex, role);
 
-            Framework.Gui.Chat.Print($"Set bonus notifications for {argParts[0]}({rouletteIndex}) to {role}");
-            Framework.Gui.Chat.Print(string.Format(Loc.Localize("DalamudBonusSet", "Set bonus notifications for {0}({1}) to {2}"), argParts[0], rouletteIndex, role));
+            this.Framework.Gui.Chat.Print($"Set bonus notifications for {argParts[0]}({rouletteIndex}) to {role}");
+            this.Framework.Gui.Chat.Print(string.Format(Loc.Localize("DalamudBonusSet", "Set bonus notifications for {0}({1}) to {2}"), argParts[0], rouletteIndex, role));
             this.Configuration.Save();
 
             return;
 
             InvalidArgs:
-            Framework.Gui.Chat.PrintError(Loc.Localize("DalamudInvalidArguments", "Unrecognized arguments."));
-            Framework.Gui.Chat.Print(Loc.Localize("DalamudBonusPossibleValues", "Possible values for roulette: leveling, 506070, msq, guildhests, expert, trials, mentor, alliance, normal\nPossible values for role: tank, dps, healer, all, none/reset"));
+            this.Framework.Gui.Chat.PrintError(Loc.Localize("DalamudInvalidArguments", "Unrecognized arguments."));
+            this.Framework.Gui.Chat.Print(Loc.Localize("DalamudBonusPossibleValues", "Possible values for roulette: leveling, 506070, msq, guildhests, expert, trials, mentor, alliance, normal\nPossible values for role: tank, dps, healer, all, none/reset"));
         }
 
         private void OnDebugDrawDevMenu(string command, string arguments) {
@@ -662,9 +666,13 @@ namespace Dalamud {
             if (Localization.ApplicableLangCodes.Contains(arguments.ToLower())) {
                 this.localizationMgr.SetupWithLangCode(arguments.ToLower());
                 this.Configuration.LanguageOverride = arguments.ToLower();
+
+                this.Framework.Gui.Chat.Print(string.Format(Loc.Localize("DalamudLanguageSetTo", "Language set to {0}"), arguments));
             } else {
                 this.localizationMgr.SetupWithUiCulture();
                 this.Configuration.LanguageOverride = null;
+
+                this.Framework.Gui.Chat.Print(string.Format(Loc.Localize("DalamudLanguageSetTo", "Language set to {0}"), "default"));
             }
 
             this.Configuration.Save();

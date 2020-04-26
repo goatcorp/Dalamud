@@ -1,19 +1,24 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Dalamud.Game.ClientState.Actors.Types;
 using Dalamud.Game.ClientState.Actors.Types.NonPlayer;
 using Dalamud.Hooking;
+using JetBrains.Annotations;
 using Serilog;
 
 namespace Dalamud.Game.ClientState.Actors {
     /// <summary>
     ///     This collection represents the currently spawned FFXIV actors.
     /// </summary>
-    public class ActorTable : ICollection, IDisposable {
+    public class ActorTable : IReadOnlyCollection<Actor>, ICollection {
+
+        private const int ActorTableLength = 424;
 
         #region temporary imports for crash workaround
+
         [DllImport("kernel32.dll", SetLastError = true)]
         static extern bool ReadProcessMemory(
             IntPtr hProcess,
@@ -21,18 +26,11 @@ namespace Dalamud.Game.ClientState.Actors {
             IntPtr lpBuffer,
             int dwSize,
             out IntPtr lpNumberOfBytesRead);
+
         #endregion
 
         private ClientStateAddressResolver Address { get; }
         private Dalamud dalamud;
-
-        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-        private delegate IntPtr SomeActorTableAccessDelegate(IntPtr manager, IntPtr offset);
-
-        private Hook<SomeActorTableAccessDelegate> someActorTableAccessHook;
-
-        private bool isReady = false;
-        private IntPtr realActorTablePtr;
 
         /// <summary>
         ///     Set up the actor table collection.
@@ -42,26 +40,7 @@ namespace Dalamud.Game.ClientState.Actors {
             Address = addressResolver;
             this.dalamud = dalamud;
 
-            this.someActorTableAccessHook = new Hook<SomeActorTableAccessDelegate>(Address.SomeActorTableAccess, new SomeActorTableAccessDelegate(SomeActorTableAccessDetour), this);
-
-            Log.Verbose("Actor table address {ActorTable}", Address.ViewportActorTable);
-        }
-
-        public void Enable() {
-            this.someActorTableAccessHook.Enable();
-        }
-
-        public void Dispose() {
-            if (!this.isReady)
-                this.someActorTableAccessHook.Dispose();
-
-            this.isReady = false;
-        }
-
-        private IntPtr SomeActorTableAccessDetour(IntPtr manager, IntPtr offset) {
-            this.realActorTablePtr = offset;
-            this.isReady = true;
-            return this.someActorTableAccessHook.Original(manager, offset);
+            Log.Verbose("Actor table address {ActorTable}", Address.ActorTable);
         }
 
         /// <summary>
@@ -69,34 +48,25 @@ namespace Dalamud.Game.ClientState.Actors {
         /// </summary>
         /// <param name="index">Spawn index.</param>
         /// <returns><see cref="Actor" /> at the specified spawn index.</returns>
+        [CanBeNull]
         public Actor this[int index] {
             get {
-                if (!this.isReady)
-                    return null;
-
-                if (this.someActorTableAccessHook != null)
-                {
-                    this.someActorTableAccessHook.Dispose();
-                    this.someActorTableAccessHook = null;
-                }
-
                 if (index >= Length)
                     return null;
-                
-                var tblIndex = this.realActorTablePtr + 8 + index * 8;
+
+                var tblIndex = Address.ActorTable + index * 8;
 
                 var offset = Marshal.ReadIntPtr(tblIndex);
 
-                //Log.Verbose("Actor at {0} for {1}", offset.ToInt64().ToString("X"), index);
+                //Log.Debug($"Reading actor {index} at {tblIndex.ToInt64():X} pointing to {offset.ToInt64():X}");
 
                 if (offset == IntPtr.Zero)
                     return null;
 
                 // FIXME: hack workaround for trying to access the player on logout, after the main object has been deleted
                 var sz = Marshal.SizeOf(typeof(Structs.Actor));
-                var actorMem = Marshal.AllocHGlobal(sz);        // we arguably could just reuse this
-                if (!ReadProcessMemory(Process.GetCurrentProcess().Handle, offset, actorMem, sz, out _))
-                {
+                var actorMem = Marshal.AllocHGlobal(sz); // we arguably could just reuse this
+                if (!ReadProcessMemory(Process.GetCurrentProcess().Handle, offset, actorMem, sz, out _)) {
                     Log.Debug("ActorTable - ReadProcessMemory failed: likely player deletion during logout");
                     return null;
                 }
@@ -106,9 +76,8 @@ namespace Dalamud.Game.ClientState.Actors {
 
                 //Log.Debug("ActorTable[{0}]: {1} - {2} - {3}", index, tblIndex.ToString("X"), offset.ToString("X"),
                 //          actorStruct.ObjectKind.ToString());
-
-                switch (actorStruct.ObjectKind)
-                {
+                
+                switch (actorStruct.ObjectKind) {
                     case ObjectKind.Player: return new PlayerCharacter(offset, actorStruct, this.dalamud);
                     case ObjectKind.BattleNpc: return new BattleNpc(offset, actorStruct, this.dalamud);
                     default: return new Actor(offset, actorStruct, this.dalamud);
@@ -116,7 +85,7 @@ namespace Dalamud.Game.ClientState.Actors {
             }
         }
 
-        private class ActorTableEnumerator : IEnumerator {
+        private class ActorTableEnumerator : IEnumerator<Actor> {
             private readonly ActorTable table;
 
             private int currentIndex;
@@ -134,17 +103,28 @@ namespace Dalamud.Game.ClientState.Actors {
                 this.currentIndex = 0;
             }
 
-            public object Current => this.table[this.currentIndex];
+            public Actor Current => this.table[this.currentIndex];
+
+            object IEnumerator.Current => Current;
+
+            // Required by IEnumerator<T> even though we have nothing we want to dispose here.
+            public void Dispose() {}
         }
 
-        public IEnumerator GetEnumerator() {
+        public IEnumerator<Actor> GetEnumerator() {
             return new ActorTableEnumerator(this);
+        }
+
+        IEnumerator IEnumerable.GetEnumerator() {
+            return GetEnumerator();
         }
 
         /// <summary>
         ///     The amount of currently spawned actors.
         /// </summary>
-        public int Length => !this.isReady ? 0 : Marshal.ReadInt32(this.realActorTablePtr);
+        public int Length => ActorTableLength;
+
+        int IReadOnlyCollection<Actor>.Count => Length;
 
         int ICollection.Count => Length;
 

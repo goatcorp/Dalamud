@@ -97,6 +97,8 @@ namespace Dalamud.Game.Internal.Gui {
                 var parsedSender = SeString.Parse(sender.RawData);
                 var parsedMessage = SeString.Parse(message.RawData);
 
+                Log.Verbose("[CHATGUI][{0}][{1}]", parsedSender.TextValue, parsedMessage.TextValue);
+
                 //Log.Debug($"HandlePrintMessageDetour {manager} - [{chattype}] [{BitConverter.ToString(message.RawData).Replace("-", " ")}] {message.Value} from {senderName.Value}");
 
                 var originalMessageData = (byte[]) message.RawData.Clone();
@@ -173,12 +175,14 @@ namespace Dalamud.Game.Internal.Gui {
         }
 
         public void Print(string message) {
+            Log.Verbose("[CHATGUI PRINT]{0}", message);
             PrintChat(new XivChatEntry {
                 MessageBytes = Encoding.UTF8.GetBytes(message)
             });
         }
 
         public void PrintError(string message) {
+            Log.Verbose("[CHATGUI PRINT ERROR]{0}", message);
             PrintChat(new XivChatEntry {
                 MessageBytes = Encoding.UTF8.GetBytes(message),
                 Type = XivChatType.Urgent

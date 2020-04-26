@@ -1,4 +1,6 @@
+using System.Linq;
 using System.Numerics;
+using Dalamud.Game.Chat;
 using Dalamud.Game.ClientState.Actors.Types;
 using Dalamud.Game.ClientState.Actors.Types.NonPlayer;
 using ImGuiNET;
@@ -45,8 +47,8 @@ namespace Dalamud.Interface
             ImGui.SameLine();
             var copy = ImGui.Button("Copy all");
             ImGui.SameLine();
-            ImGui.Combo("Data kind", ref this.currentKind, new[] {"ServerOpCode", "ContentFinderCondition", "State"},
-                        3);
+            ImGui.Combo("Data kind", ref this.currentKind, new[] {"ServerOpCode", "ContentFinderCondition", "Actor Table", "Font Test", "Party List"},
+                        5);
 
             ImGui.BeginChild("scrolling", new Vector2(0, 0), false, ImGuiWindowFlags.HorizontalScrollbar);
 
@@ -67,12 +69,11 @@ namespace Dalamud.Interface
                         var stateString = string.Empty;
                         // LocalPlayer is null in a number of situations (at least with the current visible-actors list)
                         // which would crash here.
-                        if (this.dalamud.ClientState.Actors.Length == 0 || this.dalamud.ClientState.LocalPlayer == null)
-                        {
+                        if (this.dalamud.ClientState.Actors.Length == 0) {
                             ImGui.TextUnformatted("Data not ready.");
-                        }
-                        else
-                        {
+                        } else if (this.dalamud.ClientState.LocalPlayer == null) {
+                            ImGui.TextUnformatted("LocalPlayer null.");
+                        } else {
                             stateString += $"FrameworkBase: {this.dalamud.Framework.Address.BaseAddress.ToInt64():X}\n";
 
                             stateString += $"ActorTableLen: {this.dalamud.ClientState.Actors.Length}\n";
@@ -85,6 +86,9 @@ namespace Dalamud.Interface
 
                             for (var i = 0; i < this.dalamud.ClientState.Actors.Length; i++) {
                                 var actor = this.dalamud.ClientState.Actors[i];
+
+                                if (actor == null) 
+                                    continue;
 
                                 stateString +=
                                     $"{actor.Address.ToInt64():X}:{actor.ActorId:X}[{i}] - {actor.ObjectKind} - {actor.Name} - {actor.Position.X} {actor.Position.Y} {actor.Position.Z}\n";
@@ -104,6 +108,38 @@ namespace Dalamud.Interface
 
                         ImGui.TextUnformatted(stateString);
                     }
+                        break;
+                    case 3:
+                        var specialChars = string.Empty;
+                        for (var i = 0xE020; i <= 0xE0DB; i++) {
+                            specialChars += $"0x{i:X} - {(SeIconChar) i} - {(char) i}\n";
+                        }
+
+                        ImGui.TextUnformatted(specialChars);
+                        break;
+                    case 4:
+                        var partyString = string.Empty;
+
+                        if (this.dalamud.ClientState.PartyList.Length == 0) {
+                            ImGui.TextUnformatted("Data not ready.");
+                        } else {
+
+                            partyString += $"{this.dalamud.ClientState.PartyList.Count} Members\n";
+                            for (var i = 0; i < this.dalamud.ClientState.PartyList.Count; i++) {
+                                var member = this.dalamud.ClientState.PartyList[i];
+                                if (member == null) {
+                                    partyString +=
+                                        $"[{i}] was null\n";
+                                    continue;
+                                }
+
+                                partyString +=
+                                    $"[{i}] {member.CharacterName} - {member.ObjectKind} - {member.Actor.ActorId}\n";
+                            }
+
+                            ImGui.TextUnformatted(partyString);
+                        }
+
                         break;
                 }
             else
