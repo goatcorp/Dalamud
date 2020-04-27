@@ -58,14 +58,15 @@ namespace Dalamud.Plugin
             }
         }
 
-        public bool InstallPlugin(PluginDefinition definition) {
+        public bool InstallPlugin(PluginDefinition definition, bool enableAfterInstall = true) {
             try
             {
                 var outputDir = new DirectoryInfo(Path.Combine(this.pluginDirectory, definition.InternalName, definition.AssemblyVersion));
                 var dllFile = new FileInfo(Path.Combine(outputDir.FullName, $"{definition.InternalName}.dll"));
                 var disabledFile = new FileInfo(Path.Combine(outputDir.FullName, ".disabled"));
+                var wasDisabled = disabledFile.Exists;
 
-                if (dllFile.Exists)
+                if (dllFile.Exists && enableAfterInstall)
                 {
                     if (disabledFile.Exists)
                         disabledFile.Delete();
@@ -73,9 +74,17 @@ namespace Dalamud.Plugin
                     return this.manager.LoadPluginFromAssembly(dllFile, false);
                 }
 
-                if (outputDir.Exists)
-                    outputDir.Delete(true);
-                outputDir.Create();
+                if (dllFile.Exists && !enableAfterInstall) {
+                    return true;
+                }
+
+                try {
+                    if (outputDir.Exists)
+                        outputDir.Delete(true);
+                    outputDir.Create();
+                } catch {
+                    // ignored, since the plugin may be loaded already
+                }
 
                 var path = Path.GetTempFileName();
                 Log.Information("Downloading plugin to {0}", path);
@@ -85,6 +94,11 @@ namespace Dalamud.Plugin
                 Log.Information("Extracting to {0}", outputDir);
 
                 ZipFile.ExtractToDirectory(path, outputDir.FullName);
+
+                if (wasDisabled || !enableAfterInstall) {
+                    disabledFile.Create();
+                    return true;
+                }
 
                 return this.manager.LoadPluginFromAssembly(dllFile, false);
             }
@@ -145,6 +159,12 @@ namespace Dalamud.Plugin
 
                         if (!dryRun)
                         {
+                            var wasEnabled =
+                                this.manager.Plugins.Where(x => x.Definition != null).Any(
+                                    x => x.Definition.InternalName == info.InternalName); ;
+
+                            Log.Verbose("wasEnabled: {0}", wasEnabled);
+
                             // Try to disable plugin if it is loaded
                             try
                             {
@@ -153,7 +173,7 @@ namespace Dalamud.Plugin
                             catch (Exception ex)
                             {
                                 Log.Error(ex, "Plugin disable failed");
-                                hasError = true;
+                                //hasError = true;
                             }
 
                             try {
@@ -165,10 +185,10 @@ namespace Dalamud.Plugin
                                         disabledFile.Create();
                                 }
                             } catch (Exception ex) {
-                                Log.Error(ex, "Plugin disable failed");
+                                Log.Error(ex, "Plugin disable old versions failed");
                             }
 
-                            var installSuccess = InstallPlugin(remoteInfo);
+                            var installSuccess = InstallPlugin(remoteInfo, wasEnabled);
 
                             if (installSuccess)
                             {
