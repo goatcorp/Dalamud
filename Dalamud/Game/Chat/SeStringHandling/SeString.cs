@@ -69,6 +69,15 @@ namespace Dalamud.Game.Chat.SeStringHandling
         }
 
         /// <summary>
+        /// Creates a new SeString from an ordered list of payloads.
+        /// </summary>
+        /// <param name="payloads">The Payload objects to make up this string.</param>
+        public SeString(Payload[] payloads)
+        {
+            Payloads = new List<Payload>(payloads);
+        }
+
+        /// <summary>
         /// Appends the contents of one SeString to this one.
         /// </summary>
         /// <param name="other">The SeString to append to this one.</param>
