@@ -27,17 +27,6 @@ namespace Dalamud.Interface
         public static async Task EnsureAssets(string baseDir) {
             using var client = new HttpClient();
 
-            var assetVerRemote = await client.GetStringAsync(AssetStoreUrl + "version");
-
-            var assetVerPath = Path.Combine(baseDir, "assetver");
-            var assetVerLocal = "0";
-            if (File.Exists(assetVerPath))
-                assetVerLocal = File.ReadAllText(assetVerPath);
-
-            var forceRedownload = assetVerLocal != assetVerRemote;
-            if (forceRedownload)
-                Log.Information("Assets need redownload");
-
             Log.Verbose("Starting asset download");
 
             foreach (var entry in AssetDictionary) {
@@ -45,7 +34,7 @@ namespace Dalamud.Interface
 
                 Directory.CreateDirectory(Path.GetDirectoryName(filePath));
 
-                if (!File.Exists(filePath) || forceRedownload) {
+                if (!File.Exists(filePath)) {
                     Log.Verbose("Downloading {0} to {1}...", entry.Key, entry.Value);
                     try {
                         File.WriteAllBytes(filePath, await client.GetByteArrayAsync(entry.Key));
@@ -56,13 +45,6 @@ namespace Dalamud.Interface
                     
                 }
             }
-
-            try {
-                File.WriteAllText(assetVerPath, assetVerRemote);
-            } catch (Exception ex) {
-                Log.Error(ex, "Could not write asset version.");
-            }
         }
-
     }
 }
