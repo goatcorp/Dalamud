@@ -216,7 +216,7 @@ namespace Dalamud.DiscordBot {
             var avatarUrl = string.Empty;
             var lodestoneId = string.Empty;
 
-            if (!this.config.DisableEmbeds) {
+            if (!this.config.DisableEmbeds && !string.IsNullOrEmpty(senderName)) {
                 var searchResult = await GetCharacterInfo(senderName, senderWorld);
 
                 lodestoneId = searchResult.LodestoneId;
