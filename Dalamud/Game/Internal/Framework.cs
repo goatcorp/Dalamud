@@ -65,7 +65,7 @@ namespace Dalamud.Game.Internal {
             
             Gui = new GameGui(Address.GuiManager, scanner, dalamud);
 
-            Network = new GameNetwork(dalamud, scanner);
+            Network = new GameNetwork(scanner);
 
             //Resource = new ResourceManager(dalamud, scanner);
         }

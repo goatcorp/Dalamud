@@ -23,11 +23,6 @@ namespace Dalamud.Game.Internal.Network {
         private GameNetworkAddressResolver Address { get; }
         private IntPtr baseAddress;
 
-        public delegate void OnZonePacketDelegate(IntPtr dataPtr);
-
-        [Obsolete("Please use OnNetworkMessage instead. For modifications, it will take precedence.")]
-        public OnZonePacketDelegate OnZonePacket;
-
         public delegate void OnNetworkMessageDelegate(IntPtr dataPtr, NetworkMessageDirection direction);
 
         /// <summary>
@@ -73,7 +68,6 @@ namespace Dalamud.Game.Internal.Network {
 
             try {
                 // Call events
-                this.OnZonePacket?.Invoke(dataPtr);
                 this.OnNetworkMessage?.Invoke(dataPtr, NetworkMessageDirection.ZoneDown);
 
                 this.processZonePacketDownHook.Original(a, b, dataPtr);

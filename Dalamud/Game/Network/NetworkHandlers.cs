@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Dalamud.Data.TransientSheet;
+using Dalamud.Game.Internal.Network;
 using Dalamud.Game.Network.MarketBoardUploaders;
 using Dalamud.Game.Network.Structures;
 using Dalamud.Game.Network.Universalis.MarketBoardUploaders;
@@ -32,11 +33,14 @@ namespace Dalamud.Game.Network {
 
             this.uploader = new UniversalisMarketBoardUploader(dalamud);
 
-            dalamud.Framework.Network.OnZonePacket += OnZonePacket;
+            dalamud.Framework.Network.OnNetworkMessage += OnNetworkMessage;
 
         }
 
-        private void OnZonePacket(IntPtr dataPtr) {
+        private void OnNetworkMessage(IntPtr dataPtr, NetworkMessageDirection direction) {
+            if (direction != NetworkMessageDirection.ZoneDown)
+                return;
+
             if (!this.dalamud.Data.IsDataReady)
                 return;
 
