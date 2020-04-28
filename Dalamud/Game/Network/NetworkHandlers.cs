@@ -69,14 +69,16 @@ namespace Dalamud.Game.Network {
                     contentFinderCondition.Image = 112324;
                 }
 
-                var flashInfo = new NativeFunctions.FLASHWINFO();
-                flashInfo.cbSize = (uint) Marshal.SizeOf<NativeFunctions.FLASHWINFO>();
-                flashInfo.uCount = uint.MaxValue;
-                flashInfo.dwTimeout = 0;
-                flashInfo.dwFlags = NativeFunctions.FlashWindow.FLASHW_TRAY |
-                                    NativeFunctions.FlashWindow.FLASHW_TIMERNOFG;
-                flashInfo.hwnd = Process.GetCurrentProcess().MainWindowHandle;
-                NativeFunctions.FlashWindowEx(ref flashInfo);
+                if (!NativeFunctions.ApplicationIsActivated()) {
+                    var flashInfo = new NativeFunctions.FLASHWINFO();
+                    flashInfo.cbSize = (uint)Marshal.SizeOf<NativeFunctions.FLASHWINFO>();
+                    flashInfo.uCount = uint.MaxValue;
+                    flashInfo.dwTimeout = 0;
+                    flashInfo.dwFlags = NativeFunctions.FlashWindow.FLASHW_ALL |
+                                        NativeFunctions.FlashWindow.FLASHW_TIMERNOFG;
+                    flashInfo.hwnd = Process.GetCurrentProcess().MainWindowHandle;
+                    NativeFunctions.FlashWindowEx(ref flashInfo);
+                }
 
                 Task.Run(async () => {
                     this.dalamud.Framework.Gui.Chat.Print("Duty pop: " + contentFinderCondition.Name);
