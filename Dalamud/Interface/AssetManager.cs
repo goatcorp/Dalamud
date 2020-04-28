@@ -43,7 +43,6 @@ namespace Dalamud.Interface
                         // If another game is running, we don't want to just fail in here
                         Log.Error(ex, "Could not download asset.");
                     }
-                    
                 }
             }
         }

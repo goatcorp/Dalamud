@@ -11,7 +11,7 @@ namespace Dalamud.Game.Internal.Network {
         #region Hooks
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-        private delegate void ProcessZonePacketDownDelegate(IntPtr a, IntPtr b, IntPtr dataPtr);
+        private delegate void ProcessZonePacketDownDelegate(IntPtr a, uint targetId, IntPtr dataPtr);
         private readonly Hook<ProcessZonePacketDownDelegate> processZonePacketDownHook;
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
@@ -23,7 +23,7 @@ namespace Dalamud.Game.Internal.Network {
         private GameNetworkAddressResolver Address { get; }
         private IntPtr baseAddress;
 
-        public delegate void OnNetworkMessageDelegate(IntPtr dataPtr, NetworkMessageDirection direction);
+        public delegate void OnNetworkMessageDelegate(IntPtr dataPtr, ushort opCode, uint targetId, NetworkMessageDirection direction);
 
         /// <summary>
         /// Event that is called when a network message is sent/received.
@@ -63,14 +63,14 @@ namespace Dalamud.Game.Internal.Network {
             this.processZonePacketUpHook.Dispose();
         }
 
-        private void ProcessZonePacketDownDetour(IntPtr a, IntPtr b, IntPtr dataPtr) {
+        private void ProcessZonePacketDownDetour(IntPtr a, uint targetId, IntPtr dataPtr) {
             this.baseAddress = a;
 
             try {
                 // Call events
-                this.OnNetworkMessage?.Invoke(dataPtr, NetworkMessageDirection.ZoneDown);
+                this.OnNetworkMessage?.Invoke(dataPtr + 0x10, (ushort) Marshal.ReadInt16(dataPtr, 2), targetId, NetworkMessageDirection.ZoneDown);
 
-                this.processZonePacketDownHook.Original(a, b, dataPtr);
+                this.processZonePacketDownHook.Original(a, targetId, dataPtr);
             } catch (Exception ex) {
                 string header;
                 try {
@@ -83,7 +83,7 @@ namespace Dalamud.Game.Internal.Network {
 
                 Log.Error(ex, "Exception on ProcessZonePacketDown hook. Header: " + header);
 
-                this.processZonePacketDownHook.Original(a, b, dataPtr);
+                this.processZonePacketDownHook.Original(a, targetId, dataPtr);
             }
         }
 
@@ -92,7 +92,7 @@ namespace Dalamud.Game.Internal.Network {
             try
             {
                 // Call events
-                this.OnNetworkMessage?.Invoke(dataPtr, NetworkMessageDirection.ZoneUp);
+                this.OnNetworkMessage?.Invoke(dataPtr + 0x20, (ushort) Marshal.ReadInt16(dataPtr), 0x0, NetworkMessageDirection.ZoneUp);
 
                 var op = Marshal.ReadInt16(dataPtr);
                 var length = Marshal.ReadInt16(dataPtr, 8);
@@ -153,7 +153,7 @@ namespace Dalamud.Game.Internal.Network {
                 Marshal.Copy(packetData, 0, unmanagedPacketData, packetData.Length);
 
                 if (this.baseAddress != IntPtr.Zero) {
-                    this.processZonePacketDownHook.Original(this.baseAddress, IntPtr.Zero, unmanagedPacketData);
+                    this.processZonePacketDownHook.Original(this.baseAddress, 0, unmanagedPacketData);
                 }
 
                 Marshal.FreeHGlobal(unmanagedPacketData);

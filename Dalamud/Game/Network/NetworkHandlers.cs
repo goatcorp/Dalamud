@@ -37,21 +37,19 @@ namespace Dalamud.Game.Network {
 
         }
 
-        private void OnNetworkMessage(IntPtr dataPtr, NetworkMessageDirection direction) {
+        private void OnNetworkMessage(IntPtr dataPtr, ushort opCode, uint targetId, NetworkMessageDirection direction) {
             if (direction != NetworkMessageDirection.ZoneDown)
                 return;
 
             if (!this.dalamud.Data.IsDataReady)
                 return;
 
-            var opCode = (ushort) Marshal.ReadInt16(dataPtr, 2);
-
             if (opCode == this.dalamud.Data.ServerOpCodes["CfNotifyPop"]) {
                 var data = new byte[64];
                 Marshal.Copy(dataPtr, data, 0, 64);
 
-                var notifyType = data[16];
-                var contentFinderConditionId = BitConverter.ToUInt16(data, 36);
+                var notifyType = data[0];
+                var contentFinderConditionId = BitConverter.ToUInt16(data, 0x14);
 
                 if (notifyType != 3)
                     return;
@@ -103,8 +101,8 @@ namespace Dalamud.Game.Network {
 
                 Task.Run(async () => {
                     for (var rouletteIndex = 1; rouletteIndex < 11; rouletteIndex++) {
-                        var currentRoleKey = data[16 + rouletteIndex];
-                        var prevRoleKey = this.lastPreferredRole[16 + rouletteIndex];
+                        var currentRoleKey = data[rouletteIndex];
+                        var prevRoleKey = this.lastPreferredRole[rouletteIndex];
 
                         Log.Verbose("CfPreferredRole: {0} - {1} => {2}", rouletteIndex, prevRoleKey, currentRoleKey);
 
@@ -145,8 +143,8 @@ namespace Dalamud.Game.Network {
 
             if (!this.optOutMbUploads) {
                 if (opCode == this.dalamud.Data.ServerOpCodes["MarketBoardItemRequestStart"]) {
-                    var catalogId = (uint) Marshal.ReadInt32(dataPtr + 0x10);
-                    var amount = Marshal.ReadByte(dataPtr + 0x1B);
+                    var catalogId = (uint) Marshal.ReadInt32(dataPtr);
+                    var amount = Marshal.ReadByte(dataPtr + 0xB);
 
                     this.marketBoardRequests.Add(new MarketBoardItemRequest {
                         CatalogId = catalogId,
@@ -160,7 +158,7 @@ namespace Dalamud.Game.Network {
                 }
 
                 if (opCode == this.dalamud.Data.ServerOpCodes["MarketBoardOfferings"]) {
-                    var listing = MarketBoardCurrentOfferings.Read(dataPtr + 0x10);
+                    var listing = MarketBoardCurrentOfferings.Read(dataPtr);
 
                     var request =
                         this.marketBoardRequests.LastOrDefault(
@@ -215,7 +213,7 @@ namespace Dalamud.Game.Network {
                 }
 
                 if (opCode == this.dalamud.Data.ServerOpCodes["MarketBoardHistory"]) {
-                    var listing = MarketBoardHistory.Read(dataPtr + 0x10);
+                    var listing = MarketBoardHistory.Read(dataPtr);
 
                     var request = this.marketBoardRequests.LastOrDefault(r => r.CatalogId == listing.CatalogId);
 
@@ -238,7 +236,7 @@ namespace Dalamud.Game.Network {
 
                 if (opCode == this.dalamud.Data.ServerOpCodes["MarketTaxRates"])
                 {
-                    var taxes = MarketTaxRates.Read(dataPtr + 0x10);
+                    var taxes = MarketTaxRates.Read(dataPtr);
 
                     Log.Verbose("MarketTaxRates: limsa#{0} grid#{1} uldah#{2} ish#{3} kugane#{4} cr#{5}",
                                 taxes.LimsaLominsaTax, taxes.GridaniaTax, taxes.UldahTax, taxes.IshgardTax, taxes.KuganeTax, taxes.CrystariumTax);
