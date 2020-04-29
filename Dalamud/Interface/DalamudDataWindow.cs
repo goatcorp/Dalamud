@@ -17,6 +17,8 @@ namespace Dalamud.Interface
 
         private int currentKind;
 
+        private bool drawActors = false;
+
         public DalamudDataWindow(Dalamud dalamud) {
             this.dalamud = dalamud;
 
@@ -84,6 +86,8 @@ namespace Dalamud.Interface
                             stateString += $"LastLinkedItem: {this.dalamud.Framework.Gui.Chat.LastLinkedItemId.ToString()}\n";
                             stateString += $"TerritoryType: {this.dalamud.ClientState.TerritoryType}\n\n";
 
+                            ImGui.Checkbox("Draw actors on screen", ref this.drawActors);
+
                             for (var i = 0; i < this.dalamud.ClientState.Actors.Length; i++) {
                                 var actor = this.dalamud.ClientState.Actors[i];
 
@@ -103,6 +107,22 @@ namespace Dalamud.Interface
                                 if (actor is PlayerCharacter pc)
                                     stateString +=
                                         $"       HomeWorld: {pc.HomeWorld.GameData.Name} CurrentWorld: {pc.CurrentWorld.GameData.Name} FC: {pc.CompanyTag}\n";
+
+                                if (this.drawActors) {
+                                    var screenCoords = this.dalamud.Framework.Gui.WorldToScreen(actor.Position);
+
+                                    ImGui.PushID("ActorWindow" + i);
+                                    ImGui.SetNextWindowPos(new Vector2(screenCoords.X, screenCoords.Y));
+                                    ImGui.SetNextWindowBgAlpha(0.35f);
+                                    if (ImGui.Begin("Actor" + i,
+                                                    ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.AlwaysAutoResize |
+                                                    ImGuiWindowFlags.NoSavedSettings | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoMouseInputs |
+                                                    ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoNav)) {
+                                        ImGui.Text($"{actor.Address.ToInt64():X}:{actor.ActorId:X}[{i}] - {actor.ObjectKind} - {actor.Name}");
+                                        ImGui.End();
+                                    }
+                                    ImGui.PopID();
+                                }
                             }
                         }
 
