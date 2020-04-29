@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Numerics;
 using Dalamud.Game.Chat;
@@ -18,6 +19,7 @@ namespace Dalamud.Interface
         private int currentKind;
 
         private bool drawActors = false;
+        private float maxActorDrawDistance = 20;
 
         public DalamudDataWindow(Dalamud dalamud) {
             this.dalamud = dalamud;
@@ -87,6 +89,7 @@ namespace Dalamud.Interface
                             stateString += $"TerritoryType: {this.dalamud.ClientState.TerritoryType}\n\n";
 
                             ImGui.Checkbox("Draw actors on screen", ref this.drawActors);
+                            ImGui.SliderFloat("Draw Distance", ref this.maxActorDrawDistance, 2f, 40f);
 
                             for (var i = 0; i < this.dalamud.ClientState.Actors.Length; i++) {
                                 var actor = this.dalamud.ClientState.Actors[i];
@@ -95,7 +98,7 @@ namespace Dalamud.Interface
                                     continue;
 
                                 stateString +=
-                                    $"{actor.Address.ToInt64():X}:{actor.ActorId:X}[{i}] - {actor.ObjectKind} - {actor.Name} - {actor.Position.X} {actor.Position.Y} {actor.Position.Z}\n";
+                                    $"{actor.Address.ToInt64():X}:{actor.ActorId:X}[{i}] - {actor.ObjectKind} - {actor.Name} - X{actor.Position.X} Y{actor.Position.Y} Z{actor.Position.Z} D{actor.YalmDistanceX}\n";
 
                                 if (actor is Npc npc)
                                     stateString += $"       DataId: {npc.DataId}  NameId:{npc.NameId}\n";
@@ -111,7 +114,11 @@ namespace Dalamud.Interface
                                 if (this.drawActors && this.dalamud.Framework.Gui.WorldToScreen(actor.Position, out var screenCoords)) {
                                     ImGui.PushID("ActorWindow" + i);
                                     ImGui.SetNextWindowPos(new Vector2(screenCoords.X, screenCoords.Y));
-                                    ImGui.SetNextWindowBgAlpha(0.35f);
+
+                                    if (actor.YalmDistanceX > this.maxActorDrawDistance)
+                                        continue;
+
+                                    ImGui.SetNextWindowBgAlpha(Math.Max(1f - (actor.YalmDistanceX / this.maxActorDrawDistance), 0.2f));
                                     if (ImGui.Begin("Actor" + i,
                                                     ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.AlwaysAutoResize |
                                                     ImGuiWindowFlags.NoSavedSettings | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoMouseInputs |

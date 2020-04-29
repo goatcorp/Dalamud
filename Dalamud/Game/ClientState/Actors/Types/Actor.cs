@@ -49,5 +49,15 @@ namespace Dalamud.Game.ClientState.Actors.Types {
         ///     possible values.
         /// </summary>
         public ObjectKind ObjectKind => this.actorStruct.ObjectKind;
+
+        /// <summary>
+        /// The X distance from the local player in yalms.
+        /// </summary>
+        public byte YalmDistanceX => this.actorStruct.YalmDistanceFromPlayerX;
+
+        /// <summary>
+        /// The Y distance from the local player in yalms.
+        /// </summary>
+        public byte YalmDistanceY => this.actorStruct.YalmDistanceFromPlayerY;
     }
 }
