@@ -12,6 +12,8 @@ namespace Dalamud.Game.Internal.Gui {
         public IntPtr HandleItemHover { get; set; }
         public IntPtr HandleItemOut { get; set; }
         public IntPtr GetUIObject { get; private set; }
+        public IntPtr GetMatrixSingleton { get; private set; }
+        public IntPtr ScreenToWorld { get; private set; }
 
         public GameGuiAddressResolver(IntPtr baseAddress) {
             BaseAddress = baseAddress;
@@ -31,6 +33,8 @@ namespace Dalamud.Game.Internal.Gui {
             HandleItemHover = sig.ScanText("E8 ?? ?? ?? ?? 48 8B 5C 24 ?? 48 89 AE ?? ?? ?? ??");
             HandleItemOut = sig.ScanText("48 89 5C 24 ?? 57 48 83 EC 20 48 8B FA 48 8B D9 4D");
             GetUIObject = sig.ScanText("E8 ?? ?? ?? ?? 48 8B C8 48 8B 10 FF 52 40 80 88 ?? ?? ?? ?? 01 E9");
+            GetMatrixSingleton = sig.ScanText("E8 ?? ?? ?? ?? 48 8D 4C 24 ?? 48 89 4c 24 ?? 4C 8D 4D ?? 4C 8D 44 24 ??");
+            ScreenToWorld = sig.ScanText("48 83 EC 48 48 8B 05 ?? ?? ?? ?? 4D 8B D1"); 
         }
     }
 }

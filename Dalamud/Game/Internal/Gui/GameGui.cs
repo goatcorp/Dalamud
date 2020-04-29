@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using Dalamud.Game.Chat.SeStringHandling.Payloads;
 using Dalamud.Hooking;
 using Serilog;
+using SharpDX;
 
 namespace Dalamud.Game.Internal.Gui {
     public sealed class GameGui : IDisposable {
@@ -33,6 +34,14 @@ namespace Dalamud.Game.Internal.Gui {
         [UnmanagedFunctionPointer(CallingConvention.ThisCall, CharSet = CharSet.Ansi)]
         private delegate bool OpenMapWithFlagDelegate(IntPtr UIMapObject, string flag);
         private OpenMapWithFlagDelegate openMapWithFlag;
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        internal delegate IntPtr GetMatrixSingletonDelegate();
+        internal readonly GetMatrixSingletonDelegate getMatrixSingleton;
+
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        private unsafe delegate IntPtr ScreenToWorldNativeDelegate(float *camPosition, float *clipCoords, float rayDistance, float *worldCoords, float *unknown);
+        private readonly ScreenToWorldNativeDelegate screenToWorldNative;
 
         /// <summary>
         /// The item ID that is currently hovered by the player. 0 when no item is hovered.
@@ -74,6 +83,12 @@ namespace Dalamud.Game.Internal.Gui {
                                                   this);
 
             this.getUIObject = Marshal.GetDelegateForFunctionPointer<GetUIObjectDelegate>(Address.GetUIObject);
+
+            this.getMatrixSingleton =
+                Marshal.GetDelegateForFunctionPointer<GetMatrixSingletonDelegate>(Address.GetMatrixSingleton);
+
+            this.screenToWorldNative =
+                Marshal.GetDelegateForFunctionPointer<ScreenToWorldNativeDelegate>(Address.ScreenToWorld);
         }
 
         private IntPtr HandleSetGlobalBgmDetour(UInt16 bgmKey, byte a2, UInt32 a3, UInt32 a4, UInt32 a5, byte a6) {
@@ -157,6 +172,39 @@ namespace Dalamud.Game.Internal.Gui {
             Log.Debug($"OpenMapWithMapLink: Opening Map Link: {mapLinkString}");
 
             return this.openMapWithFlag(uiMapObjectPtr, mapLinkString);
+        }
+
+        public Vector2 WorldToScreen(Vector3 worldCoords)
+        {
+            // Get base object with matrices
+            var matrixSingleton = this.getMatrixSingleton();
+
+            // Read current ViewProjectionMatrix plus game window size
+            var viewProjectionMatrix = new Matrix();
+            float width, height;
+            unsafe {
+                var rawMatrix = (float*) (matrixSingleton + 0x1b4).ToPointer();
+
+                for (var i = 0; i < 16; i++, rawMatrix += 1) {
+                    viewProjectionMatrix[i] = *rawMatrix;
+                }
+
+                width = *rawMatrix; 
+                height = *(rawMatrix + 1);
+            }
+
+            Vector3.Transform(ref worldCoords, ref viewProjectionMatrix, out Vector3 pCoords);
+
+            var normalProjCoords = new Vector2(pCoords.X / pCoords.Z, pCoords.Y / pCoords.Z);
+
+            normalProjCoords.X = 0.5f * width * (normalProjCoords.X + 1f);
+            normalProjCoords.Y = 0.5f * height * (1f - normalProjCoords.Y);
+
+            return normalProjCoords;
+        }
+
+        public Vector3 ScreenToWorld(Vector2 screenCoords) {
+            return new Vector3();
         }
 
         public void SetBgm(ushort bgmKey) => this.setGlobalBgmHook.Original(bgmKey, 0, 0, 0, 0, 0); 
