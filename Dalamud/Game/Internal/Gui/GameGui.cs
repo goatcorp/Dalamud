@@ -141,6 +141,11 @@ namespace Dalamud.Game.Internal.Gui {
             return retVal;
         }
 
+        /// <summary>
+        /// Opens the in-game map with a flag on the location of the parameter
+        /// </summary>
+        /// <param name="mapLink">Link to the map to be opened</param>
+        /// <returns>True if there were no errors and it could open the map</returns>
         public bool OpenMapWithMapLink(MapLinkPayload mapLink)
         {
             var uiObjectPtr = getUIObject();
@@ -174,7 +179,13 @@ namespace Dalamud.Game.Internal.Gui {
             return this.openMapWithFlag(uiMapObjectPtr, mapLinkString);
         }
 
-        public Vector2 WorldToScreen(Vector3 worldCoords)
+        /// <summary>
+        /// Converts in-world coordinates to screen coordinates (upper left corner origin).
+        /// </summary>
+        /// <param name="worldPos">Coordinates in the world</param>
+        /// <param name="screenPos">Converted coordinates</param>
+        /// <returns>True if worldPos corresponds to a position in front of the camera</returns>
+        public bool WorldToScreen(Vector3 worldPos, out Vector2 screenPos)
         {
             // Get base object with matrices
             var matrixSingleton = this.getMatrixSingleton();
@@ -193,14 +204,14 @@ namespace Dalamud.Game.Internal.Gui {
                 height = *(rawMatrix + 1);
             }
 
-            Vector3.Transform(ref worldCoords, ref viewProjectionMatrix, out Vector3 pCoords);
+            Vector3.Transform( ref worldPos, ref viewProjectionMatrix, out Vector3 pCoords);
 
-            var normalProjCoords = new Vector2(pCoords.X / pCoords.Z, pCoords.Y / pCoords.Z);
+            screenPos = new Vector2(pCoords.X / pCoords.Z, pCoords.Y / pCoords.Z);
 
-            normalProjCoords.X = 0.5f * width * (normalProjCoords.X + 1f);
-            normalProjCoords.Y = 0.5f * height * (1f - normalProjCoords.Y);
+            screenPos.X = 0.5f * width * (screenPos.X + 1f);
+            screenPos.Y = 0.5f * height * (1f - screenPos.Y);
 
-            return normalProjCoords;
+            return pCoords.Z > 0;
         }
 
         public Vector3 ScreenToWorld(Vector2 screenCoords) {

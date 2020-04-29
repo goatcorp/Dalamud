@@ -108,9 +108,7 @@ namespace Dalamud.Interface
                                     stateString +=
                                         $"       HomeWorld: {pc.HomeWorld.GameData.Name} CurrentWorld: {pc.CurrentWorld.GameData.Name} FC: {pc.CompanyTag}\n";
 
-                                if (this.drawActors) {
-                                    var screenCoords = this.dalamud.Framework.Gui.WorldToScreen(actor.Position);
-
+                                if (this.drawActors && this.dalamud.Framework.Gui.WorldToScreen(actor.Position, out var screenCoords)) {
                                     ImGui.PushID("ActorWindow" + i);
                                     ImGui.SetNextWindowPos(new Vector2(screenCoords.X, screenCoords.Y));
                                     ImGui.SetNextWindowBgAlpha(0.35f);
