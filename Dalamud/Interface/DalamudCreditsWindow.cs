@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Numerics;
 using Dalamud.Game.Internal;
 using ImGuiNET;
@@ -7,10 +8,10 @@ using ImGuiScene;
 namespace Dalamud.Interface
 {
     class DalamudCreditsWindow : IDisposable {
-        private string creditsText = @$"
+        private const string CreditsTextTempl = @"
 Dalamud
 A FFXIV Hooking Framework
-Version {typeof(Dalamud).Assembly.GetName().Version}
+Version {0}
 
 
 created by:
@@ -44,6 +45,11 @@ gucciBane
 
 
 
+Your plugins were made by:
+
+{1}
+
+
 Special thanks:
 
 Adam
@@ -64,14 +70,23 @@ Contribute at: https://github.com/goaaats/Dalamud
 Thank you for using XIVLauncher!
 ";
 
+        private readonly Dalamud dalamud;
         private TextureWrap logoTexture;
         private Framework framework;
 
-        public DalamudCreditsWindow(TextureWrap logoTexture, Framework framework) {
+        private string creditsText;
+
+        public DalamudCreditsWindow(Dalamud dalamud, TextureWrap logoTexture, Framework framework) {
+            this.dalamud = dalamud;
             this.logoTexture = logoTexture;
             this.framework = framework;
 
             framework.Gui.SetBgm(132);
+
+            var pluginCredits = dalamud.PluginManager.Plugins.Where(x => x.Definition != null).Aggregate(string.Empty, (current, plugin) => current + $"{plugin.Definition.Name} by {plugin.Definition.Author}\n");
+
+            this.creditsText =
+                string.Format(CreditsTextTempl, typeof(Dalamud).Assembly.GetName().Version, pluginCredits);
         }
 
         public void Dispose() {
