@@ -74,7 +74,8 @@ namespace Dalamud.Interface
         /// An event that is called any time ImGui fonts need to be rebuilt.<br/>
         /// Any ImFontPtr objects that you store <strong>can be invalidated</strong> when fonts are rebuilt
         /// (at any time), so you should both reload your custom fonts and restore those
-        /// pointers inside this handler.
+        /// pointers inside this handler.<br/>
+        /// <strong>PLEASE remove this handler inside Dipose, or when you no longer need your fonts!</strong>
         /// </summary>
         public Action OnBuildFonts
         {
