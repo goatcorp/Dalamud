@@ -1,41 +1,46 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup Label="Target">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <TargetFramework>net48</TargetFramework>
-    <LangVersion>8.0</LangVersion>
-    <Platforms>AnyCPU;x64</Platforms>
-  </PropertyGroup>
-  <PropertyGroup Label="Build">
-    <OutputType>Exe</OutputType>
-    <OutputPath>$(SolutionDir)/bin</OutputPath>
-    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>Portable</DebugType>
-  </PropertyGroup>
-  <PropertyGroup Label="Feature">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <AssemblyVersion>4.9.3.0</AssemblyVersion>
-    <FileVersion>4.9.3.0</FileVersion>
-    <Description>XIVLauncher addon injection</Description>
-    <Version>4.9.3.0</Version>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile></DocumentationFile>
-  </PropertyGroup>
-  <PropertyGroup>
-    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-    <PackageIcon></PackageIcon>
-    <PackageIconUrl />
-    <ApplicationIcon>dalamud.ico</ApplicationIcon>
-  </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="EasyHook" Version="2.7.6270" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Dalamud\Dalamud.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="System.Windows.Forms" />
-  </ItemGroup>
+    <PropertyGroup Label="Target">
+        <PlatformTarget>AnyCPU</PlatformTarget>
+        <TargetFramework>net48</TargetFramework>
+        <LangVersion>8.0</LangVersion>
+        <Platforms>AnyCPU;x64</Platforms>
+    </PropertyGroup>
+    <PropertyGroup Label="Build">
+        <OutputType>Exe</OutputType>
+        <OutputPath>$(SolutionDir)/bin</OutputPath>
+        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+        <DebugSymbols>true</DebugSymbols>
+        <DebugType>Portable</DebugType>
+    </PropertyGroup>
+    <PropertyGroup Label="Feature">
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <AssemblyVersion>4.9.3.0</AssemblyVersion>
+        <FileVersion>4.9.3.0</FileVersion>
+        <Description>XIVLauncher addon injection</Description>
+        <Version>4.9.3.0</Version>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+        <DocumentationFile></DocumentationFile>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)'=='Release'">
+        <AppOutputBase>$(MSBuildProjectDirectory)\</AppOutputBase>
+        <PathMap>$(AppOutputBase)=C:\goatsoft\companysecrets\injector\</PathMap>
+        <Deterministic>true</Deterministic>
+    </PropertyGroup>
+    <PropertyGroup>
+        <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+        <PackageIcon></PackageIcon>
+        <PackageIconUrl />
+        <ApplicationIcon>dalamud.ico</ApplicationIcon>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="EasyHook" Version="2.7.6270" />
+        <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\Dalamud\Dalamud.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+        <Reference Include="System.Windows.Forms" />
+    </ItemGroup>
 </Project>
