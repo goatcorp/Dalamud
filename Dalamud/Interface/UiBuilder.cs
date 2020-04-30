@@ -71,6 +71,27 @@ namespace Dalamud.Interface
             this.interfaceManager.LoadImageRaw(imageData, width, height, numChannels);
 
         /// <summary>
+        /// An event that is called any time ImGui fonts need to be rebuilt.<br/>
+        /// Any ImFontPtr objects that you store <strong>can be invalidated</strong> when fonts are rebuilt
+        /// (at any time), so you should both reload your custom fonts and restore those
+        /// pointers inside this handler.<br/>
+        /// <strong>PLEASE remove this handler inside Dipose, or when you no longer need your fonts!</strong>
+        /// </summary>
+        public Action OnBuildFonts
+        {
+            get { return this.interfaceManager.OnBuildFonts; }
+            set { this.interfaceManager.OnBuildFonts = value; }
+        }
+
+        /// <summary>
+        /// Call this to queue a rebuild of the font atlas.<br/>
+        /// This will invoke any <see cref="OnBuildFonts"/> handlers and ensure that any loaded fonts are
+        /// ready to be used on the next UI frame.
+        /// </summary>
+        public void RebuildFonts() =>
+            this.interfaceManager.RebuildFonts();
+
+        /// <summary>
         /// Event that is fired when the plugin should open its configuration interface.
         /// </summary>
         public EventHandler OnOpenConfigUi;
