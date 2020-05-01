@@ -26,6 +26,7 @@ namespace Dalamud.Game.ClientState.Structs
         [FieldOffset(145)] public byte PlayerTargetStatus; // This is some kind of enum
         [FieldOffset(146)] public byte YalmDistanceFromPlayerY; // and the other is z distance
         [FieldOffset(160)] public Position3 Position;
+        [FieldOffset(176)] public float Rotation; // Rotation around the vertical axis (yaw), from -pi to pi radians     
 
         [FieldOffset(0x17B8)] [MarshalAs(UnmanagedType.ByValArray, SizeConst = 28)] public byte[] Customize;
 
