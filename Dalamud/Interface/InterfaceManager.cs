@@ -54,10 +54,14 @@ namespace Dalamud.Interface
 
         public ImGuiIOPtr LastImGuiIoPtr;
 
+        public Action OnBuildFonts;
+        private bool isRebuildingFonts = false;
+
         /// <summary>
         /// This event gets called by a plugin UiBuilder when read
         /// </summary>
         public event RawDX11Scene.BuildUIDelegate OnDraw;
+
 
         public InterfaceManager(Dalamud dalamud, SigScanner scanner)
         {
@@ -200,7 +204,18 @@ namespace Dalamud.Interface
             return null;
         }
 
-        private unsafe IntPtr PresentDetour(IntPtr swapChain, uint syncInterval, uint presentFlags)
+        // Sets up a deferred invocation of font rebuilding, before the next render frame
+        public void RebuildFonts()
+        {
+            // don't invoke this multiple times per frame, in case multiple plugins call it
+            if (!this.isRebuildingFonts)
+            {
+                this.isRebuildingFonts = true;
+                this.scene.OnNewRenderFrame += RebuildFontsInternal;
+            }
+        }
+
+        private IntPtr PresentDetour(IntPtr swapChain, uint syncInterval, uint presentFlags)
         {
             if (this.scene == null)
             {
@@ -209,30 +224,7 @@ namespace Dalamud.Interface
                 this.scene.OnBuildUI += Display;
                 this.scene.OnNewInputFrame += OnNewInputFrame;
 
-                ImFontConfigPtr fontConfig = ImGuiNative.ImFontConfig_ImFontConfig();
-                fontConfig.MergeMode = true;
-                fontConfig.PixelSnapH = true;
-
-                var fontPathJp = Path.Combine(this.dalamud.StartInfo.WorkingDirectory, "UIRes", "NotoSansCJKjp-Medium.otf");
-                ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPathJp, 17.0f, null, ImGui.GetIO().Fonts.GetGlyphRangesJapanese());
-
-                var fontPathGame = Path.Combine(this.dalamud.StartInfo.WorkingDirectory, "UIRes", "gamesym.ttf");
-                Log.Verbose(fontPathGame);
-
-                var rangeHandle = GCHandle.Alloc(new ushort[]
-                {
-                    0xE020,
-                    0xE0DB,
-                    0
-                }, GCHandleType.Pinned);
-
-
-                ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPathGame, 17.0f, fontConfig, rangeHandle.AddrOfPinnedObject());
-
-                ImGui.GetIO().Fonts.Build();
-
-                fontConfig.Destroy();
-                rangeHandle.Free();
+                SetupFonts();
 
                 ImGui.GetStyle().GrabRounding = 3f;
                 ImGui.GetStyle().FrameRounding = 4f;
@@ -266,6 +258,49 @@ namespace Dalamud.Interface
             this.scene.Render();
 
             return this.presentHook.Original(swapChain, syncInterval, presentFlags);
+        }
+
+        private unsafe void SetupFonts()
+        {
+            ImGui.GetIO().Fonts.Clear();
+
+            ImFontConfigPtr fontConfig = ImGuiNative.ImFontConfig_ImFontConfig();
+            fontConfig.MergeMode = true;
+            fontConfig.PixelSnapH = true;
+
+            var fontPathJp = Path.Combine(this.dalamud.StartInfo.WorkingDirectory, "UIRes", "NotoSansCJKjp-Medium.otf");
+            ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPathJp, 17.0f, null, ImGui.GetIO().Fonts.GetGlyphRangesJapanese());
+
+            var fontPathGame = Path.Combine(this.dalamud.StartInfo.WorkingDirectory, "UIRes", "gamesym.ttf");
+            Log.Verbose(fontPathGame);
+
+            var rangeHandle = GCHandle.Alloc(new ushort[]
+            {
+                0xE020,
+                0xE0DB,
+                0
+            }, GCHandleType.Pinned);
+
+
+            ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPathGame, 17.0f, fontConfig, rangeHandle.AddrOfPinnedObject());
+
+            OnBuildFonts?.Invoke();
+
+            ImGui.GetIO().Fonts.Build();
+
+            fontConfig.Destroy();
+            rangeHandle.Free();
+        }
+
+        // This is intended to only be called as a handler attached to scene.OnNewRenderFrame
+        private void RebuildFontsInternal()
+        {
+            SetupFonts();
+
+            this.scene.OnNewRenderFrame -= RebuildFontsInternal;
+            this.scene.InvalidateFonts();
+
+            this.isRebuildingFonts = false;
         }
 
         private IntPtr ResizeBuffersDetour(IntPtr swapChain, uint bufferCount, uint width, uint height, uint newFormat, uint swapChainFlags)

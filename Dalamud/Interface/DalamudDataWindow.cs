@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Numerics;
 using Dalamud.Game.Chat;
@@ -16,6 +17,9 @@ namespace Dalamud.Interface
         private string cfcString = "N/A";
 
         private int currentKind;
+
+        private bool drawActors = false;
+        private float maxActorDrawDistance = 20;
 
         public DalamudDataWindow(Dalamud dalamud) {
             this.dalamud = dalamud;
@@ -84,6 +88,9 @@ namespace Dalamud.Interface
                             stateString += $"LastLinkedItem: {this.dalamud.Framework.Gui.Chat.LastLinkedItemId.ToString()}\n";
                             stateString += $"TerritoryType: {this.dalamud.ClientState.TerritoryType}\n\n";
 
+                            ImGui.Checkbox("Draw actors on screen", ref this.drawActors);
+                            ImGui.SliderFloat("Draw Distance", ref this.maxActorDrawDistance, 2f, 40f);
+
                             for (var i = 0; i < this.dalamud.ClientState.Actors.Length; i++) {
                                 var actor = this.dalamud.ClientState.Actors[i];
 
@@ -91,18 +98,36 @@ namespace Dalamud.Interface
                                     continue;
 
                                 stateString +=
-                                    $"{actor.Address.ToInt64():X}:{actor.ActorId:X}[{i}] - {actor.ObjectKind} - {actor.Name} - {actor.Position.X} {actor.Position.Y} {actor.Position.Z}\n";
+                                    $"{actor.Address.ToInt64():X}:{actor.ActorId:X}[{i}] - {actor.ObjectKind} - {actor.Name} - X{actor.Position.X} Y{actor.Position.Y} Z{actor.Position.Z} D{actor.YalmDistanceX} R{actor.Rotation}\n";
 
                                 if (actor is Npc npc)
                                     stateString += $"       DataId: {npc.DataId}  NameId:{npc.NameId}\n";
 
                                 if (actor is Chara chara)
                                     stateString +=
-                                        $"       Level: {chara.Level} ClassJob: {chara.ClassJob.GameData.Name} CHP: {chara.CurrentHp} MHP: {chara.MaxHp} CMP: {chara.CurrentMp} MMP: {chara.MaxMp}\n";
+                                        $"       Level: {chara.Level} ClassJob: {chara.ClassJob.GameData.Name} CHP: {chara.CurrentHp} MHP: {chara.MaxHp} CMP: {chara.CurrentMp} MMP: {chara.MaxMp}\n       Customize: {BitConverter.ToString(chara.Customize).Replace("-", " ")}\n";
 
                                 if (actor is PlayerCharacter pc)
                                     stateString +=
                                         $"       HomeWorld: {pc.HomeWorld.GameData.Name} CurrentWorld: {pc.CurrentWorld.GameData.Name} FC: {pc.CompanyTag}\n";
+
+                                if (this.drawActors && this.dalamud.Framework.Gui.WorldToScreen(actor.Position, out var screenCoords)) {
+                                    ImGui.PushID("ActorWindow" + i);
+                                    ImGui.SetNextWindowPos(new Vector2(screenCoords.X, screenCoords.Y));
+
+                                    if (actor.YalmDistanceX > this.maxActorDrawDistance)
+                                        continue;
+
+                                    ImGui.SetNextWindowBgAlpha(Math.Max(1f - (actor.YalmDistanceX / this.maxActorDrawDistance), 0.2f));
+                                    if (ImGui.Begin("Actor" + i,
+                                                    ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.AlwaysAutoResize |
+                                                    ImGuiWindowFlags.NoSavedSettings | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoMouseInputs |
+                                                    ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoNav)) {
+                                        ImGui.Text($"{actor.Address.ToInt64():X}:{actor.ActorId:X}[{i}] - {actor.ObjectKind} - {actor.Name}");
+                                        ImGui.End();
+                                    }
+                                    ImGui.PopID();
+                                }
                             }
                         }
 

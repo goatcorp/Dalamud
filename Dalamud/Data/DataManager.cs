@@ -22,7 +22,14 @@ namespace Dalamud.Data
     /// This class provides data for Dalamud-internal features, but can also be used by plugins if needed.
     /// </summary>
     public class DataManager {
+        /// <summary>
+        /// OpCodes sent by the server to the client.
+        /// </summary>
         public ReadOnlyDictionary<string, ushort> ServerOpCodes { get; private set; }
+        /// <summary>
+        /// OpCodes sent by the client to the server.
+        /// </summary>
+        public ReadOnlyDictionary<string, ushort> ClientOpCodes { get; private set; }
 
         /// <summary>
         /// An <see cref="ExcelModule"/> object which gives access to any of the game's sheet data.
@@ -55,13 +62,19 @@ namespace Dalamud.Data
         {
             try
             {
-                Log.Verbose("Starting data download...");
+                Log.Verbose("Starting data load...");
 
-                var opCodeDict =
+                var zoneOpCodeDict =
                     JsonConvert.DeserializeObject<Dictionary<string, ushort>>(File.ReadAllText(Path.Combine(baseDir, "UIRes", "serveropcode.json")));
-                this.ServerOpCodes = new ReadOnlyDictionary<string, ushort>(opCodeDict);
+                ServerOpCodes = new ReadOnlyDictionary<string, ushort>(zoneOpCodeDict);
 
-                Log.Verbose("Loaded {0} ServerOpCodes.", opCodeDict.Count);
+                Log.Verbose("Loaded {0} ServerOpCodes.", zoneOpCodeDict.Count);
+
+                var clientOpCodeDict =
+                    JsonConvert.DeserializeObject<Dictionary<string, ushort>>(File.ReadAllText(Path.Combine(baseDir, "UIRes", "clientopcode.json")));
+                ClientOpCodes = new ReadOnlyDictionary<string, ushort>(clientOpCodeDict);
+
+                Log.Verbose("Loaded {0} ClientOpCodes.", clientOpCodeDict.Count);
 
 
                 var luminaOptions = new LuminaOptions

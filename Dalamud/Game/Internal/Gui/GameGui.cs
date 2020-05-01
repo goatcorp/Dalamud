@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using Dalamud.Game.Chat.SeStringHandling.Payloads;
 using Dalamud.Hooking;
 using Serilog;
+using SharpDX;
 
 namespace Dalamud.Game.Internal.Gui {
     public sealed class GameGui : IDisposable {
@@ -33,6 +34,14 @@ namespace Dalamud.Game.Internal.Gui {
         [UnmanagedFunctionPointer(CallingConvention.ThisCall, CharSet = CharSet.Ansi)]
         private delegate bool OpenMapWithFlagDelegate(IntPtr UIMapObject, string flag);
         private OpenMapWithFlagDelegate openMapWithFlag;
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        internal delegate IntPtr GetMatrixSingletonDelegate();
+        internal readonly GetMatrixSingletonDelegate getMatrixSingleton;
+
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        private unsafe delegate IntPtr ScreenToWorldNativeDelegate(float *camPosition, float *clipCoords, float rayDistance, float *worldCoords, float *unknown);
+        private readonly ScreenToWorldNativeDelegate screenToWorldNative;
 
         /// <summary>
         /// The item ID that is currently hovered by the player. 0 when no item is hovered.
@@ -74,6 +83,12 @@ namespace Dalamud.Game.Internal.Gui {
                                                   this);
 
             this.getUIObject = Marshal.GetDelegateForFunctionPointer<GetUIObjectDelegate>(Address.GetUIObject);
+
+            this.getMatrixSingleton =
+                Marshal.GetDelegateForFunctionPointer<GetMatrixSingletonDelegate>(Address.GetMatrixSingleton);
+
+            this.screenToWorldNative =
+                Marshal.GetDelegateForFunctionPointer<ScreenToWorldNativeDelegate>(Address.ScreenToWorld);
         }
 
         private IntPtr HandleSetGlobalBgmDetour(UInt16 bgmKey, byte a2, UInt32 a3, UInt32 a4, UInt32 a5, byte a6) {
@@ -126,6 +141,11 @@ namespace Dalamud.Game.Internal.Gui {
             return retVal;
         }
 
+        /// <summary>
+        /// Opens the in-game map with a flag on the location of the parameter
+        /// </summary>
+        /// <param name="mapLink">Link to the map to be opened</param>
+        /// <returns>True if there were no errors and it could open the map</returns>
         public bool OpenMapWithMapLink(MapLinkPayload mapLink)
         {
             var uiObjectPtr = getUIObject();
@@ -156,6 +176,45 @@ namespace Dalamud.Game.Internal.Gui {
             Log.Debug($"OpenMapWithMapLink: Opening Map Link: {mapLinkString}");
 
             return this.openMapWithFlag(uiMapObjectPtr, mapLinkString);
+        }
+
+        /// <summary>
+        /// Converts in-world coordinates to screen coordinates (upper left corner origin).
+        /// </summary>
+        /// <param name="worldPos">Coordinates in the world</param>
+        /// <param name="screenPos">Converted coordinates</param>
+        /// <returns>True if worldPos corresponds to a position in front of the camera</returns>
+        public bool WorldToScreen(Vector3 worldPos, out Vector2 screenPos)
+        {
+            // Get base object with matrices
+            var matrixSingleton = this.getMatrixSingleton();
+
+            // Read current ViewProjectionMatrix plus game window size
+            var viewProjectionMatrix = new Matrix();
+            float width, height;
+            unsafe {
+                var rawMatrix = (float*) (matrixSingleton + 0x1b4).ToPointer();
+
+                for (var i = 0; i < 16; i++, rawMatrix += 1) {
+                    viewProjectionMatrix[i] = *rawMatrix;
+                }
+
+                width = *rawMatrix; 
+                height = *(rawMatrix + 1);
+            }
+
+            Vector3.Transform( ref worldPos, ref viewProjectionMatrix, out Vector3 pCoords);
+
+            screenPos = new Vector2(pCoords.X / pCoords.Z, pCoords.Y / pCoords.Z);
+
+            screenPos.X = 0.5f * width * (screenPos.X + 1f);
+            screenPos.Y = 0.5f * height * (1f - screenPos.Y);
+
+            return pCoords.Z > 0;
+        }
+
+        public Vector3 ScreenToWorld(Vector2 screenCoords) {
+            return new Vector3();
         }
 
         public void SetBgm(ushort bgmKey) => this.setGlobalBgmHook.Original(bgmKey, 0, 0, 0, 0, 0); 

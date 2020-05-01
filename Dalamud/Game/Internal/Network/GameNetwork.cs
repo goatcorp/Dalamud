@@ -4,55 +4,73 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Dalamud.Hooking;
 using Serilog;
+using SharpDX.DXGI;
 
 namespace Dalamud.Game.Internal.Network {
     public sealed class GameNetwork : IDisposable {
-        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-        private delegate void ProcessZonePacketDelegate(IntPtr a, IntPtr b, IntPtr dataPtr);
+        #region Hooks
 
-        private readonly Hook<ProcessZonePacketDelegate> processZonePacketHook;
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        private delegate void ProcessZonePacketDownDelegate(IntPtr a, uint targetId, IntPtr dataPtr);
+        private readonly Hook<ProcessZonePacketDownDelegate> processZonePacketDownHook;
+
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        private delegate byte ProcessZonePacketUpDelegate(IntPtr a1, IntPtr dataPtr, IntPtr a3, byte a4);
+        private readonly Hook<ProcessZonePacketUpDelegate> processZonePacketUpHook;
+
+        #endregion
 
         private GameNetworkAddressResolver Address { get; }
         private IntPtr baseAddress;
 
-        public delegate void OnZonePacketDelegate(IntPtr dataPtr);
+        public delegate void OnNetworkMessageDelegate(IntPtr dataPtr, ushort opCode, uint targetId, NetworkMessageDirection direction);
 
-        public OnZonePacketDelegate OnZonePacket;
+        /// <summary>
+        /// Event that is called when a network message is sent/received.
+        /// </summary>
+        public OnNetworkMessageDelegate OnNetworkMessage;
 
-        private readonly Dalamud dalamud;
+
 
         private readonly Queue<byte[]> zoneInjectQueue = new Queue<byte[]>();
 
-        public GameNetwork(Dalamud dalamud, SigScanner scanner) {
-            this.dalamud = dalamud;
+        public GameNetwork(SigScanner scanner) {
             Address = new GameNetworkAddressResolver();
             Address.Setup(scanner);
 
             Log.Verbose("===== G A M E N E T W O R K =====");
-            Log.Verbose("ProcessZonePacket address {ProcessZonePacket}", Address.ProcessZonePacket);
+            Log.Verbose("ProcessZonePacketDown address {ProcessZonePacketDown}", Address.ProcessZonePacketDown);
+            Log.Verbose("ProcessZonePacketUp address {ProcessZonePacketUp}", Address.ProcessZonePacketUp);
 
-            this.processZonePacketHook =
-                new Hook<ProcessZonePacketDelegate>(Address.ProcessZonePacket,
-                                                    new ProcessZonePacketDelegate(ProcessZonePacketDetour),
+            this.processZonePacketDownHook =
+                new Hook<ProcessZonePacketDownDelegate>(Address.ProcessZonePacketDown,
+                                                    new ProcessZonePacketDownDelegate(ProcessZonePacketDownDetour),
                                                     this);
+
+            this.processZonePacketUpHook =
+                new Hook<ProcessZonePacketUpDelegate>(Address.ProcessZonePacketUp,
+                                                        new ProcessZonePacketUpDelegate(ProcessZonePacketUpDetour),
+                                                        this);
         }
 
         public void Enable() {
-            this.processZonePacketHook.Enable();
+            this.processZonePacketDownHook.Enable();
+            this.processZonePacketUpHook.Enable();
         }
 
         public void Dispose() {
-            this.processZonePacketHook.Dispose();
+            this.processZonePacketDownHook.Dispose();
+            this.processZonePacketUpHook.Dispose();
         }
 
-        private void ProcessZonePacketDetour(IntPtr a, IntPtr b, IntPtr dataPtr) {
+        private void ProcessZonePacketDownDetour(IntPtr a, uint targetId, IntPtr dataPtr) {
             this.baseAddress = a;
 
-            // Call events
-            this.OnZonePacket?.Invoke(dataPtr);
-
             try {
-                this.processZonePacketHook.Original(a, b, dataPtr);
+                // Call events
+                this.OnNetworkMessage?.Invoke(dataPtr + 0x10, (ushort) Marshal.ReadInt16(dataPtr, 2), targetId, NetworkMessageDirection.ZoneDown);
+
+                this.processZonePacketDownHook.Original(a, targetId, dataPtr);
             } catch (Exception ex) {
                 string header;
                 try {
@@ -63,10 +81,43 @@ namespace Dalamud.Game.Internal.Network {
                     header = "failed";
                 }
 
-                Log.Error(ex, "Exception on ProcessZonePacket hook. Header: " + header);
+                Log.Error(ex, "Exception on ProcessZonePacketDown hook. Header: " + header);
 
-                this.processZonePacketHook.Original(a, b, dataPtr);
+                this.processZonePacketDownHook.Original(a, targetId, dataPtr);
             }
+        }
+
+        private byte ProcessZonePacketUpDetour(IntPtr a1, IntPtr dataPtr, IntPtr a3, byte a4) {
+
+            try
+            {
+                // Call events
+                this.OnNetworkMessage?.Invoke(dataPtr + 0x20, (ushort) Marshal.ReadInt16(dataPtr), 0x0, NetworkMessageDirection.ZoneUp);
+
+                var op = Marshal.ReadInt16(dataPtr);
+                var length = Marshal.ReadInt16(dataPtr, 8);
+
+                Log.Verbose("[ZONEUP] op: {0} len: {1}", op.ToString("X"), length);
+                Util.DumpMemory(dataPtr + 0x20, length);
+            }
+            catch (Exception ex)
+            {
+                string header;
+                try
+                {
+                    var data = new byte[32];
+                    Marshal.Copy(dataPtr, data, 0, 32);
+                    header = BitConverter.ToString(data);
+                }
+                catch (Exception)
+                {
+                    header = "failed";
+                }
+
+                Log.Error(ex, "Exception on ProcessZonePacketUp hook. Header: " + header);
+            }
+
+            return this.processZonePacketUpHook.Original(a1, dataPtr, a3, a4);
         }
 
 #if DEBUG
@@ -102,7 +153,7 @@ namespace Dalamud.Game.Internal.Network {
                 Marshal.Copy(packetData, 0, unmanagedPacketData, packetData.Length);
 
                 if (this.baseAddress != IntPtr.Zero) {
-                    this.processZonePacketHook.Original(this.baseAddress, IntPtr.Zero, unmanagedPacketData);
+                    this.processZonePacketDownHook.Original(this.baseAddress, 0, unmanagedPacketData);
                 }
 
                 Marshal.FreeHGlobal(unmanagedPacketData);

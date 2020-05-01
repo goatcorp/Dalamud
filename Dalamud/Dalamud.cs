@@ -241,11 +241,7 @@ namespace Dalamud {
                             this.isImguiDrawDataWindow = true;
                         }
                         if (ImGui.MenuItem("Open Credits window")) {
-                            var logoGraphic =
-                                this.InterfaceManager.LoadImage(
-                                    Path.Combine(this.StartInfo.WorkingDirectory, "UIRes", "logo.png"));
-                            this.creditsWindow = new DalamudCreditsWindow(logoGraphic, this.Framework);
-                            this.isImguiDrawCreditsWindow = true;
+                            OnOpenCreditsCommand(null, null);
                         }
                         ImGui.MenuItem("Draw ImGui demo", "", ref this.isImguiDrawDemoWindow);
                         if (ImGui.MenuItem("Dump ImGui info"))
@@ -662,7 +658,7 @@ namespace Dalamud {
             var logoGraphic =
                 this.InterfaceManager.LoadImage(
                     Path.Combine(this.StartInfo.WorkingDirectory, "UIRes", "logo.png"));
-            this.creditsWindow = new DalamudCreditsWindow(logoGraphic, this.Framework);
+            this.creditsWindow = new DalamudCreditsWindow(this, logoGraphic, this.Framework);
             this.isImguiDrawCreditsWindow = true;
         }
 

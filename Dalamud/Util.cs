@@ -1,19 +1,21 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using Serilog;
 
-namespace Dalamud
-{
-    static class Util
-    {
-        public static string ByteArrayToHex(byte[] bytes, int offset = 0, int bytesPerLine = 16)
-        {
-            if (bytes == null)
-            {
-                return String.Empty;
-            }
+namespace Dalamud {
+    internal static class Util {
+        public static void DumpMemory(IntPtr offset, int len = 512) {
+            var data = new byte[len];
+            Marshal.Copy(offset, data, 0, len);
+            Log.Information(ByteArrayToHex(data));
+        }
+
+        public static string ByteArrayToHex(byte[] bytes, int offset = 0, int bytesPerLine = 16) {
+            if (bytes == null) return string.Empty;
 
             var hexChars = "0123456789ABCDEF".ToCharArray();
 
@@ -26,8 +28,7 @@ namespace Dalamud
 
             var sb = new StringBuilder(numLines * lineLength);
 
-            for (var i = 0; i < bytes.Length; i += bytesPerLine)
-            {
+            for (var i = 0; i < bytes.Length; i += bytesPerLine) {
                 var h = i + offset;
 
                 line[0] = hexChars[(h >> 28) & 0xF];
@@ -42,25 +43,18 @@ namespace Dalamud
                 var hexColumn = offsetBlock;
                 var charColumn = byteBlock;
 
-                for (var j = 0; j < bytesPerLine; j++)
-                {
-                    if (j > 0 && (j & 7) == 0)
-                    {
-                        hexColumn++;
-                    }
+                for (var j = 0; j < bytesPerLine; j++) {
+                    if (j > 0 && (j & 7) == 0) hexColumn++;
 
-                    if (i + j >= bytes.Length)
-                    {
+                    if (i + j >= bytes.Length) {
                         line[hexColumn] = ' ';
                         line[hexColumn + 1] = ' ';
                         line[charColumn] = ' ';
-                    }
-                    else
-                    {
+                    } else {
                         var by = bytes[i + j];
-                        line[hexColumn] = hexChars[(@by >> 4) & 0xF];
-                        line[hexColumn + 1] = hexChars[@by & 0xF];
-                        line[charColumn] = @by < 32 ? '.' : (char)@by;
+                        line[hexColumn] = hexChars[(by >> 4) & 0xF];
+                        line[hexColumn + 1] = hexChars[by & 0xF];
+                        line[charColumn] = by < 32 ? '.' : (char) by;
                     }
 
                     hexColumn += 3;
