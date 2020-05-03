@@ -26,6 +26,7 @@ namespace Dalamud.Game.ClientState.Structs
         [FieldOffset(145)] public byte PlayerTargetStatus; // This is some kind of enum
         [FieldOffset(146)] public byte YalmDistanceFromPlayerY; // and the other is z distance
         [FieldOffset(160)] public Position3 Position;
+        [FieldOffset(176)] public float Rotation; // Rotation around the vertical axis (yaw), from -pi to pi radians     
 
         [FieldOffset(0x17B8)] [MarshalAs(UnmanagedType.ByValArray, SizeConst = 28)] public byte[] Customize;
 
@@ -38,12 +39,16 @@ namespace Dalamud.Game.ClientState.Structs
         [FieldOffset(0x1868)] public int NameId;
         [FieldOffset(0x1884)] public byte CurrentWorld;
         [FieldOffset(0x1886)] public byte HomeWorld;
-        [FieldOffset(6328)] public int CurrentHp;
-        [FieldOffset(6332)] public int MaxHp;
-        [FieldOffset(6336)] public int CurrentMp;
-        [FieldOffset(6340)] public int MaxMp;
+        [FieldOffset(0x1898)] public int CurrentHp;
+        [FieldOffset(0x189C)] public int MaxHp;
+        [FieldOffset(0x18A0)] public int CurrentMp;
+        // This value is weird.  It seems to change semi-randomly between 0 and 10k, definitely
+        // in response to mp-using events, but it doesn't often have a value and the changing seems
+        // somewhat arbitrary.
+        [FieldOffset(0x18AA)] public int MaxMp;
         [FieldOffset(6358)] public byte ClassJob;
         [FieldOffset(6360)] public byte Level;
+        [FieldOffset(0x1958)][MarshalAs(UnmanagedType.ByValArray, SizeConst = 20)] public StatusEffect[] UIStatusEffects; 
         
     }
 }

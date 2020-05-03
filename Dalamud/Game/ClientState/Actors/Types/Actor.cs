@@ -35,6 +35,12 @@ namespace Dalamud.Game.ClientState.Actors.Types {
         public Position3 Position => this.actorStruct.Position;
 
         /// <summary>
+        /// Rotation of this <see cref="Actor"/>.<br/>
+        /// This ranges from -pi to pi radians.
+        /// </summary>
+        public float Rotation => this.actorStruct.Rotation;
+
+        /// <summary>
         ///     Displayname of this <see cref="Actor">Actor</see>.
         /// </summary>
         public string Name => this.actorStruct.Name;
