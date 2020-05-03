@@ -41,11 +41,11 @@ namespace Dalamud.Interface
 
         public event EventHandler<Item> OnItemChosen;
 
-        public ItemSearchWindow(DataManager data, UiBuilder builder, bool closeOnChoose = true) {
+        public ItemSearchWindow(DataManager data, UiBuilder builder, bool closeOnChoose = true, string searchText = "") {
             this.data = data;
             this.builder = builder;
             this.closeOnChoose = closeOnChoose;
-
+            this.searchText = searchText;
             while (!data.IsDataReady)
                 Thread.Sleep(1);
 
