@@ -46,6 +46,7 @@ namespace Dalamud.Interface
             this.builder = builder;
             this.closeOnChoose = closeOnChoose;
             this.searchText = searchText;
+
             while (!data.IsDataReady)
                 Thread.Sleep(1);
 
