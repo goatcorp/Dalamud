@@ -559,7 +559,7 @@ namespace Dalamud {
         private bool isImguiDrawItemSearchWindow;
 
         private void OnItemLinkCommand(string command, string arguments) {
-            this.itemSearchCommandWindow = new ItemSearchWindow(this.Data, new UiBuilder(this.InterfaceManager, "ItemSearcher"), false);
+            this.itemSearchCommandWindow = new ItemSearchWindow(this.Data, new UiBuilder(this.InterfaceManager, "ItemSearcher"), false, arguments);
             this.itemSearchCommandWindow.OnItemChosen += (sender, item) => {
                 var hexData = new byte[] {
                     0x02, 0x13, 0x06, 0xFE, 0xFF, 0xF3, 0xF3, 0xF3, 0x03, 0x02, 0x27, 0x07, 0x03, 0xF2, 0x3A, 0x2F,
