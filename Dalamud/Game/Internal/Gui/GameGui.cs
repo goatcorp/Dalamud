@@ -40,7 +40,8 @@ namespace Dalamud.Game.Internal.Gui {
         internal readonly GetMatrixSingletonDelegate getMatrixSingleton;
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-        private unsafe delegate IntPtr ScreenToWorldNativeDelegate(float *camPosition, float *clipCoords, float rayDistance, float *worldCoords, float *unknown);
+        private unsafe delegate bool ScreenToWorldNativeDelegate(
+            float *camPos, float *clipPos, float rayDistance, float *worldPos, int *unknown);
         private readonly ScreenToWorldNativeDelegate screenToWorldNative;
 
         /// <summary>
@@ -196,9 +197,8 @@ namespace Dalamud.Game.Internal.Gui {
             unsafe {
                 var rawMatrix = (float*) (matrixSingleton + 0x1b4).ToPointer();
 
-                for (var i = 0; i < 16; i++, rawMatrix += 1) {
+                for (var i = 0; i < 16; i++, rawMatrix++)
                     viewProjectionMatrix[i] = *rawMatrix;
-                }
 
                 width = *rawMatrix; 
                 height = *(rawMatrix + 1);
@@ -214,8 +214,73 @@ namespace Dalamud.Game.Internal.Gui {
             return pCoords.Z > 0;
         }
 
-        public Vector3 ScreenToWorld(Vector2 screenCoords) {
-            return new Vector3();
+        /// <summary>
+        /// Converts screen coordinates to in-world coordinates via raycasting.
+        /// </summary>
+        /// <param name="screenPos">Screen coordinates</param>
+        /// <param name="worldPos">Converted coordinates</param>
+        /// <param name="rayDistance">How far to search for a collision</param>
+        /// <returns>True if successful. On false, worldPos's contents are undefined</returns>
+        public bool ScreenToWorld(Vector2 screenPos, out Vector3 worldPos, float rayDistance = 100000.0f)
+        {
+            // Get base object with matrices
+            var matrixSingleton = this.getMatrixSingleton();
+
+            // Read current ViewProjectionMatrix plus game window size
+            var viewProjectionMatrix = new Matrix();
+            float width, height;
+            unsafe
+            {
+                var rawMatrix = (float*)(matrixSingleton + 0x1b4).ToPointer();
+
+                for (var i = 0; i < 16; i++, rawMatrix++)
+                    viewProjectionMatrix[i] = *rawMatrix;
+
+                width = *rawMatrix;
+                height = *(rawMatrix + 1);
+            }
+
+            viewProjectionMatrix.Invert();
+
+            var screenPos3D = new Vector3 {
+                X = screenPos.X / width * 2.0f - 1.0f,
+                Y = -(screenPos.Y / height * 2.0f - 1.0f),
+                Z = 0
+            };
+
+            Vector3.TransformCoordinate(ref screenPos3D, ref viewProjectionMatrix, out var camPos);
+            
+            screenPos3D.Z = 1;
+            Vector3.TransformCoordinate(ref screenPos3D, ref viewProjectionMatrix, out var camPosOne);
+
+            var clipPos = camPosOne - camPos;
+            clipPos.Normalize();
+
+            bool isSuccess;
+            unsafe {
+                var camPosArray = camPos.ToArray();
+                var clipPosArray = clipPos.ToArray();
+
+                // This array is larger than necessary because it contains more info than we currently use
+                var worldPosArray = stackalloc float[32];
+
+                // Theory: this is some kind of flag on what type of things the ray collides with
+                var unknown = stackalloc int[3] { 0x4000, 0x4000, 0x0 };
+
+                fixed (float* pCamPos = camPosArray) {
+                    fixed (float* pClipPos = clipPosArray) {
+                        isSuccess = this.screenToWorldNative(pCamPos, pClipPos, rayDistance, worldPosArray, unknown);
+                    }
+                }
+
+                worldPos = new Vector3 {
+                    X = worldPosArray[0],
+                    Y = worldPosArray[1],
+                    Z = worldPosArray[2]
+                };
+            }
+
+            return isSuccess;
         }
 
         public void SetBgm(ushort bgmKey) => this.setGlobalBgmHook.Original(bgmKey, 0, 0, 0, 0, 0); 
