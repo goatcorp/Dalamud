@@ -87,7 +87,8 @@ namespace Dalamud.Interface
             ImGui.InputText("##searchbox", ref this.searchText, 32);
 
             var kinds = new List<string> {Loc.Localize("DalamudItemSelectAll", "All")};
-            kinds.AddRange(this.data.GetExcelSheet<ItemSearchCategory>().GetRows().Where(x => !string.IsNullOrEmpty(x.Name)).Select(x => x.Name));
+            kinds.AddRange(this.data.GetExcelSheet<ItemUICategory>().GetRows().Where(x => !string.IsNullOrEmpty(x.Name)).Select(x => x.Name.Replace("\u0002\u001F\u0001\u0003", "-")));
+
             ImGui.Text(Loc.Localize("DalamudItemSelectCategory", "Category: "));
             ImGui.SameLine();
             ImGui.Combo("##kindbox", ref this.currentKind, kinds.ToArray(),
@@ -125,7 +126,7 @@ namespace Dalamud.Interface
                         if (this.currentKind != 0)
                         {
                             Log.Debug("Searching for C" + this.currentKind);
-                            asyncEnum = asyncEnum.Where(x => x.ItemSearchCategory == this.currentKind);
+                            asyncEnum = asyncEnum.Where(x => x.ItemUICategory == this.currentKind);
                         }
 
                         this.selectedItemIndex = -1;
