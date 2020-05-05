@@ -87,12 +87,7 @@ namespace Dalamud.Interface
             ImGui.InputText("##searchbox", ref this.searchText, 32);
 
             var kinds = new List<string> {Loc.Localize("DalamudItemSelectAll", "All")};
-            kinds.AddRange(this.data.GetExcelSheet<ItemUICategory>().GetRows().Where(x => !string.IsNullOrEmpty(x.Name)).Select(x => x.Name));
-
-            // Fix (hack) display of hyphen in UI Category names
-            for(int i = 0; i < kinds.Count; i++){
-                kinds[i] = kinds[i].Replace("\u0002\u001F\u0001\u0003", "-");
-            }
+            kinds.AddRange(this.data.GetExcelSheet<ItemUICategory>().GetRows().Where(x => !string.IsNullOrEmpty(x.Name)).Select(x => x.Name.Replace("\u0002\u001F\u0001\u0003", "-")));
 
             ImGui.Text(Loc.Localize("DalamudItemSelectCategory", "Category: "));
             ImGui.SameLine();
