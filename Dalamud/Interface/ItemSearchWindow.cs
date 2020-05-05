@@ -41,10 +41,11 @@ namespace Dalamud.Interface
 
         public event EventHandler<Item> OnItemChosen;
 
-        public ItemSearchWindow(DataManager data, UiBuilder builder, bool closeOnChoose = true) {
+        public ItemSearchWindow(DataManager data, UiBuilder builder, bool closeOnChoose = true, string searchText = "") {
             this.data = data;
             this.builder = builder;
             this.closeOnChoose = closeOnChoose;
+            this.searchText = searchText;
 
             while (!data.IsDataReady)
                 Thread.Sleep(1);
@@ -186,14 +187,22 @@ namespace Dalamud.Interface
 
             ImGui.EndChild();
 
-            if (ImGui.Button(Loc.Localize("Choose", "Choose"))) {
-                OnItemChosen?.Invoke(this, this.searchTask.Result[this.selectedItemIndex]);
+            // Darken choose button if it shouldn't be clickable
+            ImGui.PushStyleVar(ImGuiStyleVar.Alpha, this.selectedItemIndex < 0 ? 0.25f : 1);
 
-                if (this.closeOnChoose) {
-                    this.selectedItemTex?.Dispose();
-                    isOpen = false;
+            if (ImGui.Button(Loc.Localize("Choose", "Choose"))) {
+                try {
+                    OnItemChosen?.Invoke(this, this.searchTask.Result[this.selectedItemIndex]);
+                    if (this.closeOnChoose) {
+                        this.selectedItemTex?.Dispose();
+                        isOpen = false;
+                    }
+                } catch (Exception ex) {
+                    Log.Error($"Exception in Choose: {ex.Message}");
                 }
             }
+
+            ImGui.PopStyleVar();
 
             if (!this.closeOnChoose) {
                 ImGui.SameLine();
