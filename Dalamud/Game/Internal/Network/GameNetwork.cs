@@ -23,7 +23,7 @@ namespace Dalamud.Game.Internal.Network {
         private GameNetworkAddressResolver Address { get; }
         private IntPtr baseAddress;
 
-        public delegate void OnNetworkMessageDelegate(IntPtr dataPtr, ushort opCode, uint targetId, NetworkMessageDirection direction);
+        public delegate void OnNetworkMessageDelegate(IntPtr dataPtr, ushort opCode, uint sourceActorId, uint targetActorId, NetworkMessageDirection direction);
 
         /// <summary>
         /// Event that is called when a network message is sent/received.
@@ -66,11 +66,16 @@ namespace Dalamud.Game.Internal.Network {
         private void ProcessZonePacketDownDetour(IntPtr a, uint targetId, IntPtr dataPtr) {
             this.baseAddress = a;
 
-            try {
-                // Call events
-                this.OnNetworkMessage?.Invoke(dataPtr + 0x10, (ushort) Marshal.ReadInt16(dataPtr, 2), targetId, NetworkMessageDirection.ZoneDown);
+            // Go back 0x10 to get back to the start of the packet header
+            dataPtr -= 0x10;
 
-                this.processZonePacketDownHook.Original(a, targetId, dataPtr);
+            try {
+                
+
+                // Call events
+                this.OnNetworkMessage?.Invoke(dataPtr + 0x20, (ushort) Marshal.ReadInt16(dataPtr, 0x12), 0, targetId, NetworkMessageDirection.ZoneDown);
+
+                this.processZonePacketDownHook.Original(a, targetId, dataPtr + 0x10);
             } catch (Exception ex) {
                 string header;
                 try {
@@ -83,7 +88,7 @@ namespace Dalamud.Game.Internal.Network {
 
                 Log.Error(ex, "Exception on ProcessZonePacketDown hook. Header: " + header);
 
-                this.processZonePacketDownHook.Original(a, targetId, dataPtr);
+                this.processZonePacketDownHook.Original(a, targetId, dataPtr + 0x10);
             }
         }
 
@@ -92,13 +97,8 @@ namespace Dalamud.Game.Internal.Network {
             try
             {
                 // Call events
-                this.OnNetworkMessage?.Invoke(dataPtr + 0x20, (ushort) Marshal.ReadInt16(dataPtr), 0x0, NetworkMessageDirection.ZoneUp);
-
-                var op = Marshal.ReadInt16(dataPtr);
-                var length = Marshal.ReadInt16(dataPtr, 8);
-
-                Log.Verbose("[ZONEUP] op: {0} len: {1}", op.ToString("X"), length);
-                Util.DumpMemory(dataPtr + 0x20, length);
+                // TODO: Implement actor IDs
+                this.OnNetworkMessage?.Invoke(dataPtr + 0x20, (ushort) Marshal.ReadInt16(dataPtr), 0x0, 0x0, NetworkMessageDirection.ZoneUp);
             }
             catch (Exception ex)
             {

@@ -37,7 +37,7 @@ namespace Dalamud.Game.Network {
 
         }
 
-        private void OnNetworkMessage(IntPtr dataPtr, ushort opCode, uint targetId, NetworkMessageDirection direction) {
+        private void OnNetworkMessage(IntPtr dataPtr, ushort opCode, uint sourceActorId, uint targetActorId, NetworkMessageDirection direction) {
             if (direction != NetworkMessageDirection.ZoneDown)
                 return;
 
