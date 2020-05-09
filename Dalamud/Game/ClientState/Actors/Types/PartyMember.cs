@@ -22,7 +22,7 @@ namespace Dalamud.Game.ClientState.Actors.Types
             Actor = null;
             for (var i = 0; i < table.Length; i++)
             {
-                if (table[i].ActorId == rawData.actorId)
+                if (table[i] != null && table[i].ActorId == rawData.actorId)
                 {
                     Actor = table[i];
                     break;
