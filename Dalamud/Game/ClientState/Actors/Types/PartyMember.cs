@@ -20,7 +20,7 @@ namespace Dalamud.Game.ClientState.Actors.Types
             CharacterName = Marshal.PtrToStringAnsi(rawData.namePtr);
             Unknown = rawData.unknown;
             Actor = null;
-            for (var i = 0; i < table.Length; i++)
+            for (var i = 0; i < 244; i += 2)
             {
                 if (table[i] != null && table[i].ActorId == rawData.actorId)
                 {
