@@ -205,10 +205,8 @@ namespace Dalamud.DiscordBot {
 
                 senderWorld = this.dalamud.ClientState.LocalPlayer.HomeWorld.GameData.Name;
             } else {
-                playerLink.Resolve();
-
                 senderName = wasOutgoingTell ? this.dalamud.ClientState.LocalPlayer.Name : playerLink.PlayerName;
-                senderWorld = playerLink.ServerName;
+                senderWorld = playerLink.World.Name;
             }
 
             var rawMessage = SeString.Parse(message.RawData).TextValue;

@@ -12,6 +12,7 @@ using Dalamud.Data;
 using Dalamud.DiscordBot;
 using Dalamud.Game;
 using Dalamud.Game.Chat;
+using Dalamud.Game.Chat.SeStringHandling;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Actors.Types;
 using Dalamud.Game.ClientState.Actors.Types.NonPlayer;
@@ -116,6 +117,9 @@ namespace Dalamud {
                 this.Data = new DataManager(this.StartInfo.Language);
                 await this.Data.Initialize(this.baseDirectory);
 
+				// TODO: better way to do this?  basically for lumina injection
+            	SeString.Dalamud = this;
+
                 this.NetworkHandlers = new NetworkHandlers(this, this.Configuration.OptOutMbCollection);
 
                 // Initialize managers. Basically handlers for the logic
@@ -123,7 +127,6 @@ namespace Dalamud {
                 SetupCommands();
 
                 this.ChatHandlers = new ChatHandlers(this);
-
                 // Discord Bot Manager
                 this.BotManager = new DiscordBotManager(this, this.Configuration.DiscordFeatureConfig);
                 this.BotManager.Start();
@@ -558,25 +561,14 @@ namespace Dalamud {
         private ItemSearchWindow itemSearchCommandWindow;
         private bool isImguiDrawItemSearchWindow;
 
-        private void OnItemLinkCommand(string command, string arguments) {
+        private void OnItemLinkCommand(string command, string arguments)
+        {
             this.itemSearchCommandWindow = new ItemSearchWindow(this.Data, new UiBuilder(this.InterfaceManager, "ItemSearcher"), false, arguments);
-            this.itemSearchCommandWindow.OnItemChosen += (sender, item) => {
-                var hexData = new byte[] {
-                    0x02, 0x13, 0x06, 0xFE, 0xFF, 0xF3, 0xF3, 0xF3, 0x03, 0x02, 0x27, 0x07, 0x03, 0xF2, 0x3A, 0x2F,
-                    0x02, 0x01, 0x03, 0x02, 0x13, 0x06, 0xFE, 0xFF, 0xFF, 0x7B, 0x1A, 0x03, 0xEE, 0x82, 0xBB, 0x02,
-                    0x13, 0x02, 0xEC, 0x03
-                };
-
-                var endTag = new byte[] {
-                    0x02, 0x27, 0x07, 0xCF, 0x01, 0x01, 0x01, 0xFF, 0x01, 0x03, 0x02, 0x13, 0x02, 0xEC, 0x03
-                };
-
-                BitConverter.GetBytes((short) item.RowId).Reverse().ToArray().CopyTo(hexData, 14);
-
-                hexData = hexData.Concat(Encoding.UTF8.GetBytes(item.Name)).Concat(endTag).ToArray();
-
-                this.Framework.Gui.Chat.PrintChat(new XivChatEntry {
-                    MessageBytes = hexData
+            this.itemSearchCommandWindow.OnItemChosen += (sender, item) =>
+            {
+                this.Framework.Gui.Chat.PrintChat(new XivChatEntry
+                {
+                    MessageBytes = SeStringUtils.CreateItemLink(item, false).Encode()
                 });
             };
             this.isImguiDrawItemSearchWindow = true;

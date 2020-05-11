@@ -188,14 +188,14 @@ namespace Dalamud.Game {
                         break;
                     }
 
-                    Log.Debug($"Probable retainer sale: {message}, decoded item {itemLink.ItemId}, HQ {itemLink.IsHQ}");
+                    Log.Debug($"Probable retainer sale: {message}, decoded item {itemLink.Item.RowId}, HQ {itemLink.IsHQ}");
 
                     var valueInfo = matchInfo.Groups["value"];
                     // not sure if using a culture here would work correctly, so just strip symbols instead
                     if (!valueInfo.Success || !int.TryParse(valueInfo.Value.Replace(",", "").Replace(".", ""), out var itemValue))
                         continue;
 
-                    Task.Run(() => this.dalamud.BotManager.ProcessRetainerSale((int)itemLink.ItemId, itemValue, itemLink.IsHQ));
+                    Task.Run(() => this.dalamud.BotManager.ProcessRetainerSale((int)itemLink.Item.RowId, itemValue, itemLink.IsHQ));
                     break;
                 }
             }
@@ -231,8 +231,16 @@ namespace Dalamud.Game {
         }
 
         private static string MakeItalics(string text) {
-            return Encoding.UTF8.GetString(new byte[] {0x02, 0x1A, 0x02, 0x02, 0x03}) + text +
-                   Encoding.UTF8.GetString(new byte[] {0x02, 0x1A, 0x02, 0x01, 0x03});
+            // TODO: when the above code is switched to SeString, this can be a straight insertion of the
+            // italics payloads only, and be a lot cleaner
+            var italicString = new SeString(new List<Payload>(new Payload[]
+            {
+                EmphasisItalicPayload.ItalicsOn,
+                new TextPayload(text),
+                EmphasisItalicPayload.ItalicsOff
+            }));
+
+            return Encoding.UTF8.GetString(italicString.Encode());
         }
     }
 }

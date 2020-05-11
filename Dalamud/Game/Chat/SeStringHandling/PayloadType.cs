@@ -39,6 +39,10 @@ namespace Dalamud.Game.Chat.SeStringHandling
         /// </summary>
         AutoTranslateText,
         /// <summary>
+        /// An SeString payload representing italic emphasis formatting on text.
+        /// </summary>
+        EmphasisItalic,
+        /// <summary>
         /// An SeString payload representing any data we don't handle.
         /// </summary>
         Unknown

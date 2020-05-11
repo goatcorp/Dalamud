@@ -1,50 +1,31 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 {
-    public class TextPayload : Payload
+    /// <summary>
+    /// An SeString Payload representing a plain text string.
+    /// </summary>
+    public class TextPayload : Payload, ITextProvider
     {
         public override PayloadType Type => PayloadType.RawText;
 
-        private string textConverted = null;
-
+        // allow modifying the text of existing payloads on the fly
+        private string text;
         /// <summary>
-        /// The Text of this text payload as an UTF-8 converted string.
-        /// Don't rely on this for accurate representation of SE payload data, please check RawData instead.
+        /// The text contained in this payload.
+        /// This may contain SE's special unicode characters.
         /// </summary>
-        public string Text {
-            get { return this.textConverted ??= Encoding.UTF8.GetString(RawData); }
-            set {
-                this.textConverted = value;
-                RawData = Encoding.UTF8.GetBytes(value);
+        public string Text
+        {
+            get { return this.text; }
+            set
+            {
+                this.text = value;
+                Dirty = true;
             }
-        }
-
-        /// <summary>
-        /// The raw unconverted data of this text payload.
-        /// </summary>
-        public byte[] RawData { get; set; }
-
-        public TextPayload() { }
-
-        public TextPayload(string text)
-        {
-            Text = text;
-        }
-
-        public override void Resolve()
-        {
-            // nothing to do
-        }
-
-        public override byte[] Encode()
-        {
-            return Encoding.UTF8.GetBytes(Text);
         }
 
         public override string ToString()
@@ -52,9 +33,32 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             return $"{Type} - Text: {Text}";
         }
 
-        protected override void ProcessChunkImpl(BinaryReader reader, long endOfStream)
+        internal TextPayload() { }
+
+        /// <summary>
+        /// Creates a new TextPayload for the given text.
+        /// </summary>
+        /// <param name="text">The text to include for this payload.</param>
+        public TextPayload(string text)
         {
-            var text = new List<byte>();
+            this.text = text;
+        }
+
+        protected override byte[] EncodeImpl()
+        {
+            // special case to allow for empty text payloads, so users don't have to check
+            // this may change or go away
+            if (string.IsNullOrEmpty(this.text))
+            {
+                return new byte[] { };
+            }
+
+            return Encoding.UTF8.GetBytes(this.text);
+        }
+
+        protected override void DecodeImpl(BinaryReader reader, long endOfStream)
+        {
+            var textBytes = new List<byte>();
 
             while (reader.BaseStream.Position < endOfStream)
             {
@@ -66,13 +70,13 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
                     break;
                 }
 
-                text.Add(nextByte);
+                textBytes.Add(nextByte);
             }
 
-            if (text.Count > 0)
+            if (textBytes.Count > 0)
             {
                 // TODO: handling of the game's assorted special unicode characters
-                Text = Encoding.UTF8.GetString(text.ToArray());
+                this.text = Encoding.UTF8.GetString(textBytes.ToArray());
             }
         }
     }

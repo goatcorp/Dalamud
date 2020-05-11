@@ -1,40 +1,54 @@
+using Lumina.Excel.GeneratedSheets;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 {
+    /// <summary>
+    /// An SeString Payload representing an interactable status link.
+    /// </summary>
     public class StatusPayload : Payload
     {
         public override PayloadType Type => PayloadType.Status;
 
-        public uint StatusId { get; private set; }
-
-        public string StatusName { get; private set; } = string.Empty;
-
-        public StatusPayload() { }
-
-        public StatusPayload(uint statusId)
+        private Status status;
+        /// <summary>
+        /// The Lumina Status object represented by this payload.
+        /// </summary>
+        /// <remarks>
+        /// Value is evaluated lazily and cached.
+        /// </remarks>
+        public Status Status
         {
-            StatusId = statusId;
-        }
-
-        public override void Resolve()
-        {
-            if (string.IsNullOrEmpty(StatusName))
+            get
             {
-                dynamic status = XivApi.Get($"Status/{StatusId}").GetAwaiter().GetResult();
-                //Console.WriteLine($"Resolved status {StatusId} to {status.Name}");
-                StatusName = status.Name;
+                status ??= this.dataResolver.GetExcelSheet<Status>().GetRow((int)this.statusId);
+                return status;
             }
         }
 
-        public override byte[] Encode()
+        private uint statusId;
+
+        internal StatusPayload() { }
+
+        /// <summary>
+        /// Creates a new StatusPayload for the given status id.
+        /// </summary>
+        /// <param name="statusId">The id of the Status for this link.</param>
+        public StatusPayload(uint statusId)
         {
-            var idBytes = MakeInteger(StatusId);
+            this.statusId = statusId;
+        }
+
+        public override string ToString()
+        {
+            return $"{Type} - StatusId: {statusId}, Name: {Status.Name}";
+        }
+
+        protected override byte[] EncodeImpl()
+        {
+            var idBytes = MakeInteger(this.statusId);
 
             var chunkLen = idBytes.Length + 7;
             var bytes = new List<byte>()
@@ -49,14 +63,9 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             return bytes.ToArray();
         }
 
-        public override string ToString()
+        protected override void DecodeImpl(BinaryReader reader, long endOfStream)
         {
-            return $"{Type} - StatusId: {StatusId}, StatusName: {StatusName}";
-        }
-
-        protected override void ProcessChunkImpl(BinaryReader reader, long endOfStream)
-        {
-            StatusId = GetInteger(reader);
+            this.statusId = GetInteger(reader);
         }
     }
 }
