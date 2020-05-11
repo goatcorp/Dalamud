@@ -1,48 +1,98 @@
+using Dalamud.Data.TransientSheet;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 {
+    /// <summary>
+    /// An SeString Payload representing an interactable item link.
+    /// </summary>
     public class ItemPayload : Payload
     {
         public override PayloadType Type => PayloadType.Item;
 
-        public uint ItemId { get; private set; }
-        public string ItemName { get; private set; } = string.Empty;
-        public bool IsHQ { get; private set; } = false;
-
-        public ItemPayload() { }
-
-        public ItemPayload(uint itemId, bool isHQ)
+        private Item item;
+        /// <summary>
+        /// The underlying Lumina Item represented by this payload.
+        /// </summary>
+        /// <remarks>
+        /// Value is evaluated lazily and cached.
+        /// </remarks>
+        public Item Item
         {
-            ItemId = itemId;
-            IsHQ = isHQ;
-        }
-
-        public override void Resolve()
-        {
-            if (string.IsNullOrEmpty(ItemName))
+            get
             {
-                dynamic item = XivApi.GetItem((int)ItemId).GetAwaiter().GetResult();
-                ItemName = item.Name;
+                this.item ??= this.dataResolver.GetExcelSheet<Item>().GetRow((int)this.itemId);
+                return this.item;
             }
         }
 
-        public override byte[] Encode()
+        // mainly to allow overriding the name (for things like owo)
+        // TODO: even though this is present in some item links, it may not really have a use at all
+        //   For things like owo, changing the text payload is probably correct, whereas changing the
+        //   actual embedded name might not work properly.
+        private string displayName = null;
+        /// <summary>
+        /// The displayed name for this item link.  Note that incoming links only sometimes have names embedded,
+        /// often the name is only present in a following text payload.
+        /// </summary>
+        public string DisplayName
         {
-            var actualItemId = IsHQ ? ItemId + 1000000 : ItemId;
+            get
+            {
+                return this.displayName;
+            }
+
+            set
+            {
+                this.displayName = value;
+                Dirty = true;
+            }
+        }
+
+        /// <summary>
+        /// Whether or not this item link is for a high-quality version of the item.
+        /// </summary>
+        public bool IsHQ { get; private set; } = false;
+
+        private uint itemId;
+
+        internal ItemPayload() { }
+
+        /// <summary>
+        /// Creates a payload representing an interactable item link for the specified item.
+        /// </summary>
+        /// <param name="itemId">The id of the item.</param>
+        /// <param name="isHQ">Whether or not the link should be for the high-quality variant of the item.</param>
+        /// <param name="displayNameOverride">An optional name to include in the item link.  Typically this should
+        /// be left as null, or set to the normal item name.  Actual overrides are better done with the subsequent
+        /// TextPayload that is a part of a full item link in chat.</param>
+        public ItemPayload(uint itemId, bool isHQ, string displayNameOverride = null)
+        {
+            this.itemId = itemId;
+            this.IsHQ = isHQ;
+            this.displayName = displayNameOverride;
+        }
+
+        public override string ToString()
+        {
+            return $"{Type} - ItemId: {itemId}, IsHQ: {IsHQ}, Name: {this.displayName ?? Item.Name}";
+        }
+
+        protected override byte[] EncodeImpl()
+        {
+            var actualItemId = IsHQ ? this.itemId + 1000000 : this.itemId;
             var idBytes = MakeInteger(actualItemId);
-            bool hasName = !string.IsNullOrEmpty(ItemName);
+            bool hasName = !string.IsNullOrEmpty(this.displayName);
 
             var chunkLen = idBytes.Length + 4;
             if (hasName)
             {
                 // 1 additional unknown byte compared to the nameless version, 1 byte for the name length, and then the name itself
-                chunkLen += (1 + 1 + ItemName.Length);
+                chunkLen += (1 + 1 + this.displayName.Length);
                 if (IsHQ)
                 {
                     chunkLen += 4;  // unicode representation of the HQ symbol is 3 bytes, preceded by a space
@@ -61,7 +111,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             // Links don't have to include the name, but if they do, it requires additional work
             if (hasName)
             {
-                var nameLen = ItemName.Length + 1;
+                var nameLen = this.displayName.Length + 1;
                 if (IsHQ)
                 {
                     nameLen += 4;   // space plus 3 bytes for HQ symbol
@@ -72,7 +122,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
                     0xFF,   // unk
                     (byte)nameLen
                 });
-                bytes.AddRange(Encoding.UTF8.GetBytes(ItemName));
+                bytes.AddRange(Encoding.UTF8.GetBytes(this.displayName));
 
                 if (IsHQ)
                 {
@@ -86,18 +136,13 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             return bytes.ToArray();
         }
 
-        public override string ToString()
+        protected override void DecodeImpl(BinaryReader reader, long endOfStream)
         {
-            return $"{Type} - ItemId: {ItemId}, ItemName: {ItemName}, IsHQ: {IsHQ}";
-        }
+            this.itemId = GetInteger(reader);
 
-        protected override void ProcessChunkImpl(BinaryReader reader, long endOfStream)
-        {
-            ItemId = GetInteger(reader);
-
-            if (ItemId > 1000000)
+            if (this.itemId > 1000000)
             {
-                ItemId -= 1000000;
+                this.itemId -= 1000000;
                 IsHQ = true;
             }
 
@@ -109,6 +154,11 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
                 var itemNameLen = (int)GetInteger(reader);
                 var itemNameBytes = reader.ReadBytes(itemNameLen);
 
+                // it probably isn't necessary to store this, as we now get the lumina Item
+                // on demand from the id, which will have the name
+                // For incoming links, the name "should?" always match
+                // but we'll store it for use in encode just in case it doesn't
+
                 // HQ items have the HQ symbol as part of the name, but since we already recorded
                 // the HQ flag, we want just the bare name
                 if (IsHQ)
@@ -116,8 +166,26 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
                     itemNameBytes = itemNameBytes.Take(itemNameLen - 4).ToArray();
                 }
 
-                ItemName = Encoding.UTF8.GetString(itemNameBytes);
+                this.displayName = Encoding.UTF8.GetString(itemNameBytes);
             }
+        }
+
+        protected override byte[] MakeInteger(uint value, bool withMarker = true, bool incrementSmallInts = true)
+        {
+            // TODO: as part of refactor
+
+            // linking an item id that is a multiple of 256 seemingly *requires* using byte*256 marker encoding
+            // or the link will not display correctly
+            // I am unsure if this applies to other data types as well, so keeping localized here, pending the
+            // refactor of all this integer handling mess
+            if (value % 256 == 0)
+            {
+                value /= 256;
+                // this is no longer a small int, but it was likely converted to that range
+                incrementSmallInts = false;
+            }
+
+            return base.MakeInteger(value, withMarker, incrementSmallInts);
         }
 
         protected override byte GetMarkerForIntegerBytes(byte[] bytes)
@@ -126,6 +194,12 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             if (bytes.Length == 3 && IsHQ)
             {
                 return (byte)IntegerType.Int24Special;
+            }
+
+            // TODO: as in the above function
+            if (bytes.Length == 1 && (this.itemId % 256 == 0))
+            {
+                return (byte)IntegerType.ByteTimes256;
             }
 
             return base.GetMarkerForIntegerBytes(bytes);
