@@ -502,6 +502,11 @@ namespace Dalamud {
             if (this.Configuration.BadWords == null)
                 this.Configuration.BadWords = new List<string>();
 
+            if (string.IsNullOrEmpty(arguments)) {
+                Framework.Gui.Chat.Print(Loc.Localize("DalamudMuteNoArgs", "Please provide a word to mute."));
+                return;
+            }
+
             this.Configuration.BadWords.Add(arguments);
 
             this.Configuration.Save();

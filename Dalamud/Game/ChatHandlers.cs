@@ -110,7 +110,7 @@ namespace Dalamud.Game {
 
 
             if (this.dalamud.Configuration.BadWords != null &&
-                this.dalamud.Configuration.BadWords.Any(x => textVal.Contains(x)))
+                this.dalamud.Configuration.BadWords.Any(x => !string.IsNullOrEmpty(x) && textVal.Contains(x)))
             {
                 // This seems to be in the user block list - let's not show it
                 Log.Debug("Blocklist triggered");
