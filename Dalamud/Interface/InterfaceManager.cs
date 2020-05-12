@@ -260,6 +260,9 @@ namespace Dalamud.Interface
             return this.presentHook.Original(swapChain, syncInterval, presentFlags);
         }
 
+        public static ImFontPtr DefaultFont { get; private set; }
+        public static ImFontPtr IconFont { get; private set; }
+
         private unsafe void SetupFonts()
         {
             ImGui.GetIO().Fonts.Clear();
@@ -269,27 +272,36 @@ namespace Dalamud.Interface
             fontConfig.PixelSnapH = true;
 
             var fontPathJp = Path.Combine(this.dalamud.StartInfo.WorkingDirectory, "UIRes", "NotoSansCJKjp-Medium.otf");
-            ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPathJp, 17.0f, null, ImGui.GetIO().Fonts.GetGlyphRangesJapanese());
+            DefaultFont = ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPathJp, 17.0f, null, ImGui.GetIO().Fonts.GetGlyphRangesJapanese());
 
             var fontPathGame = Path.Combine(this.dalamud.StartInfo.WorkingDirectory, "UIRes", "gamesym.ttf");
-            Log.Verbose(fontPathGame);
 
-            var rangeHandle = GCHandle.Alloc(new ushort[]
+            var gameRangeHandle = GCHandle.Alloc(new ushort[]
             {
                 0xE020,
                 0xE0DB,
                 0
             }, GCHandleType.Pinned);
 
+            ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPathGame, 17.0f, fontConfig, gameRangeHandle.AddrOfPinnedObject());
 
-            ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPathGame, 17.0f, fontConfig, rangeHandle.AddrOfPinnedObject());
+            var fontPathIcon = Path.Combine(this.dalamud.StartInfo.WorkingDirectory, "UIRes", "FontAwesome5FreeSolid.otf");
 
-            OnBuildFonts?.Invoke();
+            var iconRangeHandle = GCHandle.Alloc(new ushort[]
+            {
+                0xE000,
+                0xF8FF,
+                0
+            }, GCHandleType.Pinned);
+            IconFont = ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPathIcon, 17.0f, null, iconRangeHandle.AddrOfPinnedObject());
+
+            this.OnBuildFonts?.Invoke();
 
             ImGui.GetIO().Fonts.Build();
 
             fontConfig.Destroy();
-            rangeHandle.Free();
+            gameRangeHandle.Free();
+            iconRangeHandle.Free();
         }
 
         // This is intended to only be called as a handler attached to scene.OnNewRenderFrame

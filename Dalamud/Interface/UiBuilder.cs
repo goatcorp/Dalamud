@@ -17,6 +17,15 @@ namespace Dalamud.Interface
         private readonly string namespaceName;
 
         /// <summary>
+        /// The default Dalamud font based on Noto Sans CJK Medium in 17pt - supporting all game languages and icons.
+        /// </summary>
+        public static ImFontPtr DefaultFont => InterfaceManager.DefaultFont;
+        /// <summary>
+        /// The default Dalamud icon font based on FontAwesome 5 Free solid in 20pt.
+        /// </summary>
+        public static ImFontPtr IconFont => InterfaceManager.IconFont;
+
+        /// <summary>
         /// The delegate that gets called when Dalamud is ready to draw your windows or overlays.
         /// When it is called, you can use static ImGui calls.
         /// </summary>
