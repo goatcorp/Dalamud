@@ -21,7 +21,7 @@ namespace Dalamud.Interface
         /// </summary>
         public static ImFontPtr DefaultFont => InterfaceManager.DefaultFont;
         /// <summary>
-        /// The default Dalamud icon font based on FontAwesome 5 Free solid in 20pt.
+        /// The default Dalamud icon font based on FontAwesome 5 Free solid in 17pt.
         /// </summary>
         public static ImFontPtr IconFont => InterfaceManager.IconFont;
 

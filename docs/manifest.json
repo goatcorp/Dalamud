@@ -12,7 +12,7 @@
           "hash": "yo5hKdKfdbR+p+3nFKHDfQ=="
         }
       },
-      "is_incremental": false,
+      "is_incremental": true,
       "version": ""
     },
     {
@@ -57,7 +57,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Data.DataManager.html",
-          "hash": "PIyTzH/Sbs7PR3LktsdoGA=="
+          "hash": "PFLedPNyoK+45na9BoTxHw=="
         }
       },
       "is_incremental": false,
@@ -89,6 +89,18 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Data.TransientSheet.Completion.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Data.TransientSheet.Completion.html",
+          "hash": "RfXFSxHzCWFsmzQSCvAsvg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/Dalamud.Data.TransientSheet.ContentFinderCondition.yml",
       "output": {
         ".html": {
@@ -113,11 +125,23 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Data.TransientSheet.PetMirage.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Data.TransientSheet.PetMirage.html",
+          "hash": "xO8ByaFzwoFhZZjiVcQIrA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/Dalamud.Data.TransientSheet.yml",
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Data.TransientSheet.html",
-          "hash": "ryAwNFruIZCM1JevF1nOlg=="
+          "hash": "nEFaGAJ4b+VK66JWPFYgbg=="
         }
       },
       "is_incremental": false,
@@ -165,7 +189,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payload.EmbeddedInfoType.html",
-          "hash": "Zf9wnT/VJCB7ld5UMDXYHg=="
+          "hash": "78w5C9TIh6yPJT4sX1lpPQ=="
         }
       },
       "is_incremental": false,
@@ -177,7 +201,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payload.IntegerType.html",
-          "hash": "uA/Ljcdhcylmoyqymldhag=="
+          "hash": "8WnW22cnFZJMXndVXxL9kg=="
         }
       },
       "is_incremental": false,
@@ -189,7 +213,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payload.SeStringChunkType.html",
-          "hash": "exii6FMzSgHI1Iwq9pyEKA=="
+          "hash": "HXZQtAmi2TuQc/hkLKNzYg=="
         }
       },
       "is_incremental": false,
@@ -201,7 +225,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payload.html",
-          "hash": "xb5eSgXJ0kQEdOPxWfROFQ=="
+          "hash": "lyRjKY4JgXot5cwm+CWDEA=="
         }
       },
       "is_incremental": false,
@@ -213,7 +237,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.PayloadType.html",
-          "hash": "akVuVeDC0CVg3i+HRsI8fg=="
+          "hash": "jZYqJzHULP9337ZYXgUSTg=="
         }
       },
       "is_incremental": false,
@@ -225,7 +249,19 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payloads.AutoTranslatePayload.html",
-          "hash": "pwTSd9Mv2saN27t+LKXitQ=="
+          "hash": "g847jLfWpMC8urm7zvqRWw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payloads.EmphasisItalicPayload.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payloads.EmphasisItalicPayload.html",
+          "hash": "mlLBqcDKbHF4csnJIHCABQ=="
         }
       },
       "is_incremental": false,
@@ -237,7 +273,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.html",
-          "hash": "5QaVPpEtgC62DYso8lS66A=="
+          "hash": "zEHZgi+hYsWdza85AyuByA=="
         }
       },
       "is_incremental": false,
@@ -249,7 +285,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.html",
-          "hash": "Y5QVz+/OFhkggXcEZdOJCQ=="
+          "hash": "rnoyemuG1GN1Uv1MXE/8+A=="
         }
       },
       "is_incremental": false,
@@ -261,7 +297,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payloads.PlayerPayload.html",
-          "hash": "zOoJsh2XuVLSKiANvRqrJA=="
+          "hash": "xT9+X0VcsPYhdSzeJmegdg=="
         }
       },
       "is_incremental": false,
@@ -273,7 +309,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payloads.RawPayload.html",
-          "hash": "S/lZbpdfewXoWixpd9dPvA=="
+          "hash": "cxeizxz073Y4/lH79vxBkA=="
         }
       },
       "is_incremental": false,
@@ -285,7 +321,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payloads.StatusPayload.html",
-          "hash": "K9ihx560npPesawUh6J0mQ=="
+          "hash": "gvdrq9TtUkFvw+6DKfAZVQ=="
         }
       },
       "is_incremental": false,
@@ -297,7 +333,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payloads.TextPayload.html",
-          "hash": "CRT+BatPfl8IrY49G3pqVg=="
+          "hash": "JRIyKE+quF8pv2ZDnx2TrA=="
         }
       },
       "is_incremental": false,
@@ -309,7 +345,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payloads.UIForegroundPayload.html",
-          "hash": "aoHM+JHsaU0TuXFHhErUwQ=="
+          "hash": "qnZmKj8CJJfAVb2Sbop5KQ=="
         }
       },
       "is_incremental": false,
@@ -321,7 +357,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payloads.UIGlowPayload.html",
-          "hash": "PcXZhimSJa7wr6o/ZiAePg=="
+          "hash": "1y9C/3tcaWj0Ac7+wRbWJg=="
         }
       },
       "is_incremental": false,
@@ -333,7 +369,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payloads.html",
-          "hash": "uybSLHf9j1Vl/AlkpZjUeg=="
+          "hash": "t/uVf/rMsuIUXAYwsR6UzQ=="
         }
       },
       "is_incremental": false,
@@ -345,7 +381,19 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.SeString.html",
-          "hash": "5UfxX9BYI2qUUetDEjpmJg=="
+          "hash": "qkURtV9APX+oIQMtvr0jBQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Chat.SeStringHandling.SeStringUtils.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.SeStringUtils.html",
+          "hash": "/UaTvvBI3/Y9v6D72NaAsQ=="
         }
       },
       "is_incremental": false,
@@ -357,7 +405,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.html",
-          "hash": "2SZCPIorLO+gADvmE7ujbw=="
+          "hash": "aOhsVjcwda0uqiHNNPc9xw=="
         }
       },
       "is_incremental": false,
@@ -429,7 +477,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.ChatHandlers.html",
-          "hash": "ENFvJ7ZWgSnujJ8sKoJMUA=="
+          "hash": "vRysh+wEuL/Lwq7lzUJrKg=="
         }
       },
       "is_incremental": false,
@@ -442,6 +490,18 @@
         ".html": {
           "relative_path": "api/Dalamud.Game.ClientState.Actors.ActorTable.html",
           "hash": "1wHmo4hokQcmfbAJQaTk5Q=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.ClientState.Actors.CustomizeIndex.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.ClientState.Actors.CustomizeIndex.html",
+          "hash": "ttb43BJmgfAusdGiF19Www=="
         }
       },
       "is_incremental": false,
@@ -465,7 +525,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.ClientState.Actors.Position3.html",
-          "hash": "BWEKqnUN0hQdjnn02SO7Pg=="
+          "hash": "zVwghOGVQtHa9b5INMPemw=="
         }
       },
       "is_incremental": false,
@@ -525,7 +585,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.ClientState.Actors.Types.Actor.html",
-          "hash": "VLVOQqa0Z237fwnYrYTyvQ=="
+          "hash": "VtuCC3wwIzuak9mzonsLkQ=="
         }
       },
       "is_incremental": false,
@@ -537,7 +597,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.ClientState.Actors.Types.Chara.html",
-          "hash": "okddf70EuNIE9noVQ5fB2A=="
+          "hash": "IDy9j1MLGbuMPXY8mh6ntw=="
         }
       },
       "is_incremental": false,
@@ -549,7 +609,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.ClientState.Actors.Types.NonPlayer.BattleNpc.html",
-          "hash": "wejHQty0dxZ4wiq8j06s4w=="
+          "hash": "qLHLHJUys4jQHeZZDHPshA=="
         }
       },
       "is_incremental": false,
@@ -573,7 +633,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.ClientState.Actors.Types.NonPlayer.Npc.html",
-          "hash": "TIq+xgTiEx4k+1W6Aglgsw=="
+          "hash": "RQD616Px0nkntQMzrcCctw=="
         }
       },
       "is_incremental": false,
@@ -609,7 +669,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.ClientState.Actors.Types.PlayerCharacter.html",
-          "hash": "Uz8QBBP2KmBiR0FQ8aWONw=="
+          "hash": "LbdvyetpPRpiQJl+zI035w=="
         }
       },
       "is_incremental": false,
@@ -633,7 +693,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.ClientState.Actors.html",
-          "hash": "myhMjPpGGS3xYb3mVB/jrA=="
+          "hash": "7US7QxfMp/Wj+eIY6TG1Dg=="
         }
       },
       "is_incremental": false,
@@ -693,7 +753,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.ClientState.Structs.Actor.html",
-          "hash": "F/kCRZJzAvzf1gYEwKusiA=="
+          "hash": "VNGYlaaO9lW/A57XNbdjkg=="
         }
       },
       "is_incremental": false,
@@ -1037,11 +1097,23 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.ClientState.Structs.StatusEffect.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.ClientState.Structs.StatusEffect.html",
+          "hash": "APuHshc1XAFvjXkUJFSPow=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/Dalamud.Game.ClientState.Structs.yml",
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.ClientState.Structs.html",
-          "hash": "7y6azPKwwBA3cYFtiRoX4A=="
+          "hash": "DHsSQ00n5kwY3YVS/Is2Tw=="
         }
       },
       "is_incremental": false,
@@ -1089,7 +1161,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Command.CommandManager.html",
-          "hash": "yMuaqvUwWY/ZMudpFQyfXA=="
+          "hash": "6FkqJall18qmIHO/nO8gow=="
         }
       },
       "is_incremental": false,
@@ -1193,11 +1265,23 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Internal.Gui.ChatGui.OnCheckMessageHandledDelegate.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Internal.Gui.ChatGui.OnCheckMessageHandledDelegate.html",
+          "hash": "JPt2Bd8A+d29Z2x9v/nSiA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/Dalamud.Game.Internal.Gui.ChatGui.OnMessageDelegate.yml",
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Internal.Gui.ChatGui.OnMessageDelegate.html",
-          "hash": "bAjnZQD/hA31q7SG7tytlQ=="
+          "hash": "F4jiMt3kMRVY4/6oh2yqbQ=="
         }
       },
       "is_incremental": false,
@@ -1209,7 +1293,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Internal.Gui.ChatGui.OnMessageRawDelegate.html",
-          "hash": "UkCeXkQSbXYxhQZV+pjxcg=="
+          "hash": "9LlFgxRZ9TncDJGjEkoZNg=="
         }
       },
       "is_incremental": false,
@@ -1221,7 +1305,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Internal.Gui.ChatGui.html",
-          "hash": "/c5QWDWMdBnF72QnRufrFA=="
+          "hash": "zrmt5RzIL5hYIs8AgO4fyg=="
         }
       },
       "is_incremental": false,
@@ -1233,7 +1317,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Internal.Gui.GameGui.html",
-          "hash": "sRr5tuJK57sBXNzCr45NYQ=="
+          "hash": "4b6nORh1NVnstmoUjTWi0w=="
         }
       },
       "is_incremental": false,
@@ -1269,7 +1353,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Internal.Gui.html",
-          "hash": "m80x6jKz7GimYvD1uOs64A=="
+          "hash": "J8TPrM6eaoSzhNMWoeKZ6g=="
         }
       },
       "is_incremental": false,
@@ -1325,11 +1409,11 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/Dalamud.Game.Internal.Network.GameNetwork.OnZonePacketDelegate.yml",
+      "source_relative_path": "api/Dalamud.Game.Internal.Network.GameNetwork.OnNetworkMessageDelegate.yml",
       "output": {
         ".html": {
-          "relative_path": "api/Dalamud.Game.Internal.Network.GameNetwork.OnZonePacketDelegate.html",
-          "hash": "oGLJ1ZZDyWiJYl9ORJQhEQ=="
+          "relative_path": "api/Dalamud.Game.Internal.Network.GameNetwork.OnNetworkMessageDelegate.html",
+          "hash": "HLVDg25AKEJfIvgD+8WAzA=="
         }
       },
       "is_incremental": false,
@@ -1341,7 +1425,19 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Internal.Network.GameNetwork.html",
-          "hash": "mFZv4famcWJK4wp0V0cDIQ=="
+          "hash": "bJAQvoOgO93k0w9NGF5Ejg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Internal.Network.NetworkMessageDirection.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Internal.Network.NetworkMessageDirection.html",
+          "hash": "YtLiLVCpUD/TQZqTyejJZg=="
         }
       },
       "is_incremental": false,
@@ -1353,7 +1449,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Internal.Network.html",
-          "hash": "Z6AULGl7gQ2srIhgUlXibQ=="
+          "hash": "fBd8o4I53lLDu0LHUA8HDA=="
         }
       },
       "is_incremental": false,
@@ -1377,7 +1473,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Network.NetworkHandlers.CfPop.html",
-          "hash": "uaWCsQWM9OKQxoS5TTVXRg=="
+          "hash": "R8pOJzghDB7JyaJcyTHrMw=="
         }
       },
       "is_incremental": false,
@@ -1389,7 +1485,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Network.NetworkHandlers.html",
-          "hash": "fT34OH/JvOJgAad0Bc3Q7w=="
+          "hash": "AGmEM4G5bMSYk9bMtPA4ZA=="
         }
       },
       "is_incremental": false,
@@ -1517,11 +1613,35 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Interface.FontAwesomeExtensions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Interface.FontAwesomeExtensions.html",
+          "hash": "CqEDap8Qyr2KkWKozeToPQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Interface.FontAwesomeIcon.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Interface.FontAwesomeIcon.html",
+          "hash": "gkZEYfCKr4qEdeCy4i2YMQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/Dalamud.Interface.InterfaceManager.yml",
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Interface.InterfaceManager.html",
-          "hash": "am7JcP2MJ35RT8wnMDODAw=="
+          "hash": "RH70RL/tuRjUwwqKLfQQlw=="
         }
       },
       "is_incremental": false,
@@ -1557,7 +1677,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Interface.UiBuilder.html",
-          "hash": "424FpUY04C3qGSPGgnmoVw=="
+          "hash": "IwrausWlwAIZTIXiLrA6qQ=="
         }
       },
       "is_incremental": false,
@@ -1569,7 +1689,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Interface.html",
-          "hash": "X9p3on2vILi8oK3E83yTww=="
+          "hash": "1+IkcM85h2stuonXW/X/cQ=="
         }
       },
       "is_incremental": false,
@@ -1605,7 +1725,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Plugin.PluginDefinition.html",
-          "hash": "yfsrji+ITHqXktZWT9jt2g=="
+          "hash": "XjCrKSwjPi9wUtDlN8rEoQ=="
         }
       },
       "is_incremental": false,
@@ -1641,7 +1761,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Plugin.PluginRepository.html",
-          "hash": "HIzogukwBo+ueR6c4sy9Rg=="
+          "hash": "LKHAm/izB1DlrMEvahqzQw=="
         }
       },
       "is_incremental": false,
@@ -6105,7 +6225,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.FramerateLimit.LimitType.html",
-          "hash": "cmldzAyEyUPpIwlx0bt/LQ=="
+          "hash": "qR92Hc24HE6h6FQELByT2Q=="
         }
       },
       "is_incremental": false,
@@ -6117,7 +6237,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.FramerateLimit.html",
-          "hash": "GUzTWXbOCK4m4mwdICn96w=="
+          "hash": "3b6ep7TnLRACLamB0eA3yQ=="
         }
       },
       "is_incremental": false,
@@ -6129,7 +6249,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.GLTextureWrap.html",
-          "hash": "opMqBJzp4a4pBwJmz7wBkg=="
+          "hash": "S/pfP6Rxbv/G1P7rwApyJQ=="
         }
       },
       "is_incremental": false,
@@ -6141,7 +6261,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.IImGuiInputHandler.html",
-          "hash": "RxxLzksMrYIdcDoCd1exYg=="
+          "hash": "yAJLNCnngpNcAQHC3phLGw=="
         }
       },
       "is_incremental": false,
@@ -6153,7 +6273,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.IImGuiRenderer.html",
-          "hash": "7Ji2U6n4q3qDpAgE/x4x/Q=="
+          "hash": "ppG1ALWbXRFaWx45YYBJsg=="
         }
       },
       "is_incremental": false,
@@ -6165,7 +6285,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.IRenderer.html",
-          "hash": "28pI5gZQrSq12hTNdZVVKQ=="
+          "hash": "4BYRSXZWapGYWvu+THAo3Q=="
         }
       },
       "is_incremental": false,
@@ -6177,7 +6297,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.ImGui_Impl_DX11.html",
-          "hash": "FqHRldf3U0a8Po69MGMpDQ=="
+          "hash": "XBrVzizOZEcFuj+Yfx4N7A=="
         }
       },
       "is_incremental": false,
@@ -6189,7 +6309,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.ImGui_Impl_OpenGL3.html",
-          "hash": "dwd5S/Qtp61sybAWESo56w=="
+          "hash": "ZLacgFzjP4s7E9LOmSZJqg=="
         }
       },
       "is_incremental": false,
@@ -6201,7 +6321,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.ImGui_Impl_SDL.html",
-          "hash": "/tTICtTY8Iz5fUA5Qh79bA=="
+          "hash": "324lFTiQCMCsw/oxe5ua1g=="
         }
       },
       "is_incremental": false,
@@ -6213,7 +6333,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.ImGui_Input_Impl_Direct.html",
-          "hash": "LL86EjHReMKesWeKgthIjw=="
+          "hash": "QpzvjPL/XyCAYX9HQjvhRQ=="
         }
       },
       "is_incremental": false,
@@ -6225,7 +6345,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.RawDX11Scene.BuildUIDelegate.html",
-          "hash": "4vl0299+zB4iknYLmv2TuA=="
+          "hash": "YdeavpLlGdk3q+HNLTfPnQ=="
         }
       },
       "is_incremental": false,
@@ -6237,7 +6357,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.RawDX11Scene.NewInputFrameDelegate.html",
-          "hash": "fFz/IbQKSJ46JLuLtPRHFw=="
+          "hash": "pnj4y7J2ipz9mShypXBD4w=="
         }
       },
       "is_incremental": false,
@@ -6249,7 +6369,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.RawDX11Scene.NewRenderFrameDelegate.html",
-          "hash": "8OMVLgdu0ODxCaF161/dIQ=="
+          "hash": "kCrzzdu9kvuObw87ORybPQ=="
         }
       },
       "is_incremental": false,
@@ -6261,7 +6381,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.RawDX11Scene.html",
-          "hash": "pvInqyAE2nubz8Cgty94CQ=="
+          "hash": "mNn6EykNC6+H4K88Ckv6yA=="
         }
       },
       "is_incremental": false,
@@ -6273,7 +6393,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.RendererFactory.RendererBackend.html",
-          "hash": "7AdH/sMHUcyx7wkFxMygSg=="
+          "hash": "Wz19MwFq0XoWIgJ7WBqgbg=="
         }
       },
       "is_incremental": false,
@@ -6285,7 +6405,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.RendererFactory.html",
-          "hash": "IP71ZGxPIPSxA+Y2+8tUZg=="
+          "hash": "21YY09BPoQcZrcwk3b9wnA=="
         }
       },
       "is_incremental": false,
@@ -6297,7 +6417,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.SDLWindowGL.html",
-          "hash": "v0v3giPC2H7UMtbtLIHU9Q=="
+          "hash": "C2HsMLVFUISO8GRIfC+A3Q=="
         }
       },
       "is_incremental": false,
@@ -6309,7 +6429,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.SimpleD3D.html",
-          "hash": "6zBV4dR5+93nkaQKS/ISBw=="
+          "hash": "w7q5GUx6WmrZEthsqCd6hA=="
         }
       },
       "is_incremental": false,
@@ -6321,7 +6441,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.SimpleImGuiScene.BuildUIDelegate.html",
-          "hash": "Pnpi+LJ1C4sQReVNbgc/tw=="
+          "hash": "p6Z/qM59OaVF0gpiQdktHg=="
         }
       },
       "is_incremental": false,
@@ -6333,7 +6453,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.SimpleImGuiScene.html",
-          "hash": "bo+gCA7MXHFHhm0r3QviWQ=="
+          "hash": "SqCjdI1s00ZvrbSxBMBCJA=="
         }
       },
       "is_incremental": false,
@@ -6345,7 +6465,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.SimpleOGL3.html",
-          "hash": "LIrRmsQGqpDTPB28m1alRg=="
+          "hash": "901q3rlvbXWP6RI8TyGYGg=="
         }
       },
       "is_incremental": false,
@@ -6357,7 +6477,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.SimpleSDLWindow.ProcessEventDelegate.html",
-          "hash": "VPbQrdzbSYb7UEnGc1Qzvg=="
+          "hash": "mmXA+snJzxP660aTpfS3Bg=="
         }
       },
       "is_incremental": false,
@@ -6369,7 +6489,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.SimpleSDLWindow.html",
-          "hash": "6JuC8xkkIhEltEy2OpHWgQ=="
+          "hash": "6sVDBjlcd7xoyt/S5PbKeA=="
         }
       },
       "is_incremental": false,
@@ -6381,7 +6501,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.TextureWrap.html",
-          "hash": "hS7n7VpN6h03NPVg18S/OQ=="
+          "hash": "y2c82fHAbmDv3mg7PbSKcA=="
         }
       },
       "is_incremental": false,
@@ -6393,7 +6513,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.WindowCreateInfo.html",
-          "hash": "F5g+ZXbcUn60eLZSN+KTRg=="
+          "hash": "RJXUKnrIxy3Ef9J+HepDUw=="
         }
       },
       "is_incremental": false,
@@ -6405,7 +6525,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.WindowFactory.html",
-          "hash": "qlok82oIRo3AcE/jQiWWkw=="
+          "hash": "BS1au7LW+wXPGX56/uSL2w=="
         }
       },
       "is_incremental": false,
@@ -8097,7 +8217,7 @@
       "output": {
         ".html": {
           "relative_path": "api/toc.html",
-          "hash": "d7erxmCTTcS4xt/5o4dboQ=="
+          "hash": "mKCFQBc/CIevm+89yqfGfw=="
         }
       },
       "is_incremental": false,
@@ -8132,17 +8252,17 @@
           "total_file_count": 0,
           "skipped_file_count": 0
         },
+        "ManagedReferenceDocumentProcessor": {
+          "can_incremental": true,
+          "incrementalPhase": "build",
+          "total_file_count": 682,
+          "skipped_file_count": 601
+        },
         "ConceptualDocumentProcessor": {
           "can_incremental": true,
           "incrementalPhase": "build",
           "total_file_count": 3,
-          "skipped_file_count": 2
-        },
-        "ManagedReferenceDocumentProcessor": {
-          "can_incremental": true,
-          "incrementalPhase": "build",
-          "total_file_count": 672,
-          "skipped_file_count": 615
+          "skipped_file_count": 3
         }
       }
     },

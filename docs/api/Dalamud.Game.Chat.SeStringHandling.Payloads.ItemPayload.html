@@ -73,7 +73,8 @@
   
   <h1 id="Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload" class="text-break">Class ItemPayload
   </h1>
-  <div class="markdown level0 summary"></div>
+  <div class="markdown level0 summary"><p>An SeString Payload representing an interactable item link.</p>
+</div>
   <div class="markdown level0 conceptual"></div>
   <div class="inheritance">
     <h5>Inheritance</h5>
@@ -84,7 +85,16 @@
   <div class="inheritedMembers">
     <h5>Inherited Members</h5>
     <div>
-      <a class="xref" href="Dalamud.Game.Chat.SeStringHandling.Payload.html#Dalamud_Game_Chat_SeStringHandling_Payload_Process_System_IO_BinaryReader_">Payload.Process(BinaryReader)</a>
+      <a class="xref" href="Dalamud.Game.Chat.SeStringHandling.Payload.html#Dalamud_Game_Chat_SeStringHandling_Payload_Dirty">Payload.Dirty</a>
+    </div>
+    <div>
+      <a class="xref" href="Dalamud.Game.Chat.SeStringHandling.Payload.html#Dalamud_Game_Chat_SeStringHandling_Payload_dataResolver">Payload.dataResolver</a>
+    </div>
+    <div>
+      <a class="xref" href="Dalamud.Game.Chat.SeStringHandling.Payload.html#Dalamud_Game_Chat_SeStringHandling_Payload_Encode_System_Boolean_">Payload.Encode(Boolean)</a>
+    </div>
+    <div>
+      <a class="xref" href="Dalamud.Game.Chat.SeStringHandling.Payload.html#Dalamud_Game_Chat_SeStringHandling_Payload_Decode_System_IO_BinaryReader_">Payload.Decode(BinaryReader)</a>
     </div>
     <div>
       <a class="xref" href="Dalamud.Game.Chat.SeStringHandling.Payload.html#Dalamud_Game_Chat_SeStringHandling_Payload_START_BYTE">Payload.START_BYTE</a>
@@ -94,9 +104,6 @@
     </div>
     <div>
       <a class="xref" href="Dalamud.Game.Chat.SeStringHandling.Payload.html#Dalamud_Game_Chat_SeStringHandling_Payload_GetInteger_System_IO_BinaryReader_">Payload.GetInteger(BinaryReader)</a>
-    </div>
-    <div>
-      <a class="xref" href="Dalamud.Game.Chat.SeStringHandling.Payload.html#Dalamud_Game_Chat_SeStringHandling_Payload_MakeInteger_System_UInt32_System_Boolean_System_Boolean_">Payload.MakeInteger(UInt32, Boolean, Boolean)</a>
     </div>
     <div>
       <a class="xref" href="Dalamud.Game.Chat.SeStringHandling.Payload.html#Dalamud_Game_Chat_SeStringHandling_Payload_GetMarkerForPackedIntegerBytes_System_Byte___">Payload.GetMarkerForPackedIntegerBytes(Byte[])</a>
@@ -136,33 +143,19 @@
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload__ctor.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.%23ctor%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload__ctor_System_UInt32_System_Boolean_System_String_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.%23ctor(System.UInt32%2CSystem.Boolean%2CSystem.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/ItemPayload.cs/#L18">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/ItemPayload.cs/#L73">View Source</a>
   </span>
   <a id="Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload__ctor_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.#ctor*"></a>
-  <h4 id="Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload__ctor" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.#ctor">ItemPayload()</h4>
-  <div class="markdown level1 summary"></div>
+  <h4 id="Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload__ctor_System_UInt32_System_Boolean_System_String_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.#ctor(System.UInt32,System.Boolean,System.String)">ItemPayload(UInt32, Boolean, String)</h4>
+  <div class="markdown level1 summary"><p>Creates a payload representing an interactable item link for the specified item.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ItemPayload()</code></pre>
-  </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload__ctor_System_UInt32_System_Boolean_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.%23ctor(System.UInt32%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/ItemPayload.cs/#L20">View Source</a>
-  </span>
-  <a id="Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload__ctor_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.#ctor*"></a>
-  <h4 id="Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload__ctor_System_UInt32_System_Boolean_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.#ctor(System.UInt32,System.Boolean)">ItemPayload(UInt32, Boolean)</h4>
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-  <h5 class="decalaration">Declaration</h5>
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ItemPayload(uint itemId, bool isHQ)</code></pre>
+    <pre><code class="lang-csharp hljs">public ItemPayload(uint itemId, bool isHQ, string displayNameOverride = null)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -177,12 +170,22 @@
       <tr>
         <td><span class="xref">System.UInt32</span></td>
         <td><span class="parametername">itemId</span></td>
-        <td></td>
+        <td><p>The id of the item.</p>
+</td>
       </tr>
       <tr>
         <td><span class="xref">System.Boolean</span></td>
         <td><span class="parametername">isHQ</span></td>
-        <td></td>
+        <td><p>Whether or not the link should be for the high-quality variant of the item.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">displayNameOverride</span></td>
+        <td><p>An optional name to include in the item link.  Typically this should
+be left as null, or set to the normal item name.  Actual overrides are better done with the subsequent
+TextPayload that is a part of a full item link in chat.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -190,14 +193,47 @@
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload_DisplayName.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.DisplayName%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/ItemPayload.cs/#L42">View Source</a>
+  </span>
+  <a id="Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload_DisplayName_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.DisplayName*"></a>
+  <h4 id="Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload_DisplayName" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.DisplayName">DisplayName</h4>
+  <div class="markdown level1 summary"><p>The displayed name for this item link.  Note that incoming links only sometimes have names embedded,
+often the name is only present in a following text payload.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public string DisplayName { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload_IsHQ.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.IsHQ%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/ItemPayload.cs/#L16">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/ItemPayload.cs/#L59">View Source</a>
   </span>
   <a id="Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload_IsHQ_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.IsHQ*"></a>
   <h4 id="Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload_IsHQ" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.IsHQ">IsHQ</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Whether or not this item link is for a high-quality version of the item.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -220,18 +256,19 @@
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload_ItemId.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.ItemId%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload_Item.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.Item%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/ItemPayload.cs/#L14">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/ItemPayload.cs/#L24">View Source</a>
   </span>
-  <a id="Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload_ItemId_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.ItemId*"></a>
-  <h4 id="Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload_ItemId" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.ItemId">ItemId</h4>
-  <div class="markdown level1 summary"></div>
+  <a id="Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload_Item_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.Item*"></a>
+  <h4 id="Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload_Item" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.Item">Item</h4>
+  <div class="markdown level1 summary"><p>The underlying Lumina Item represented by this payload.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public uint ItemId { get; }</code></pre>
+    <pre><code class="lang-csharp hljs">public Item Item { get; }</code></pre>
   </div>
   <h5 class="propertyValue">Property Value</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -243,47 +280,20 @@
     </thead>
     <tbody>
       <tr>
-        <td><span class="xref">System.UInt32</span></td>
+        <td><a class="xref" href="Dalamud.Data.TransientSheet.Item.html">Item</a></td>
         <td></td>
       </tr>
     </tbody>
   </table>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload_ItemName.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.ItemName%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/ItemPayload.cs/#L15">View Source</a>
-  </span>
-  <a id="Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload_ItemName_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.ItemName*"></a>
-  <h4 id="Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload_ItemName" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.ItemName">ItemName</h4>
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-  <h5 class="decalaration">Declaration</h5>
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public string ItemName { get; }</code></pre>
-  </div>
-  <h5 class="propertyValue">Property Value</h5>
-  <table class="table table-bordered table-striped table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><span class="xref">System.String</span></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
+  <h5 id="Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload_Item_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Value is evaluated lazily and cached.</p>
+</div>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload_Type.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.Type%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/ItemPayload.cs/#L12">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/ItemPayload.cs/#L15">View Source</a>
   </span>
   <a id="Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload_Type_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.Type*"></a>
   <h4 id="Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload_Type" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.Type">Type</h4>
@@ -314,18 +324,57 @@
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload_Encode.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.Encode%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload_DecodeImpl_System_IO_BinaryReader_System_Int64_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.DecodeImpl(System.IO.BinaryReader%2CSystem.Int64)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/ItemPayload.cs/#L35">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/ItemPayload.cs/#L139">View Source</a>
   </span>
-  <a id="Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload_Encode_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.Encode*"></a>
-  <h4 id="Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload_Encode" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.Encode">Encode()</h4>
+  <a id="Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload_DecodeImpl_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.DecodeImpl*"></a>
+  <h4 id="Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload_DecodeImpl_System_IO_BinaryReader_System_Int64_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.DecodeImpl(System.IO.BinaryReader,System.Int64)">DecodeImpl(BinaryReader, Int64)</h4>
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public override byte[] Encode()</code></pre>
+    <pre><code class="lang-csharp hljs">protected override void DecodeImpl(BinaryReader reader, long endOfStream)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IO.BinaryReader</span></td>
+        <td><span class="parametername">reader</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><span class="parametername">endOfStream</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Dalamud.Game.Chat.SeStringHandling.Payload.html#Dalamud_Game_Chat_SeStringHandling_Payload_DecodeImpl_System_IO_BinaryReader_System_Int64_">Payload.DecodeImpl(BinaryReader, Int64)</a></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload_EncodeImpl.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.EncodeImpl%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/ItemPayload.cs/#L85">View Source</a>
+  </span>
+  <a id="Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload_EncodeImpl_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.EncodeImpl*"></a>
+  <h4 id="Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload_EncodeImpl" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.EncodeImpl">EncodeImpl()</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override byte[] EncodeImpl()</code></pre>
   </div>
   <h5 class="returns">Returns</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -343,13 +392,13 @@
     </tbody>
   </table>
   <h5 class="overrides">Overrides</h5>
-  <div><a class="xref" href="Dalamud.Game.Chat.SeStringHandling.Payload.html#Dalamud_Game_Chat_SeStringHandling_Payload_Encode">Payload.Encode()</a></div>
+  <div><a class="xref" href="Dalamud.Game.Chat.SeStringHandling.Payload.html#Dalamud_Game_Chat_SeStringHandling_Payload_EncodeImpl">Payload.EncodeImpl()</a></div>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload_GetMarkerForIntegerBytes_System_Byte___.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.GetMarkerForIntegerBytes(System.Byte%5B%5D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/ItemPayload.cs/#L123">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/ItemPayload.cs/#L191">View Source</a>
   </span>
   <a id="Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload_GetMarkerForIntegerBytes_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.GetMarkerForIntegerBytes*"></a>
   <h4 id="Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload_GetMarkerForIntegerBytes_System_Byte___" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.GetMarkerForIntegerBytes(System.Byte[])">GetMarkerForIntegerBytes(Byte[])</h4>
@@ -395,18 +444,18 @@
   <div><a class="xref" href="Dalamud.Game.Chat.SeStringHandling.Payload.html#Dalamud_Game_Chat_SeStringHandling_Payload_GetMarkerForIntegerBytes_System_Byte___">Payload.GetMarkerForIntegerBytes(Byte[])</a></div>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload_ProcessChunkImpl_System_IO_BinaryReader_System_Int64_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.ProcessChunkImpl(System.IO.BinaryReader%2CSystem.Int64)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload_MakeInteger_System_UInt32_System_Boolean_System_Boolean_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.MakeInteger(System.UInt32%2CSystem.Boolean%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/ItemPayload.cs/#L94">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/ItemPayload.cs/#L173">View Source</a>
   </span>
-  <a id="Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload_ProcessChunkImpl_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.ProcessChunkImpl*"></a>
-  <h4 id="Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload_ProcessChunkImpl_System_IO_BinaryReader_System_Int64_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.ProcessChunkImpl(System.IO.BinaryReader,System.Int64)">ProcessChunkImpl(BinaryReader, Int64)</h4>
+  <a id="Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload_MakeInteger_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.MakeInteger*"></a>
+  <h4 id="Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload_MakeInteger_System_UInt32_System_Boolean_System_Boolean_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.MakeInteger(System.UInt32,System.Boolean,System.Boolean)">MakeInteger(UInt32, Boolean, Boolean)</h4>
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">protected override void ProcessChunkImpl(BinaryReader reader, long endOfStream)</code></pre>
+    <pre><code class="lang-csharp hljs">protected override byte[] MakeInteger(uint value, bool withMarker = true, bool incrementSmallInts = true)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -419,42 +468,45 @@
     </thead>
     <tbody>
       <tr>
-        <td><span class="xref">System.IO.BinaryReader</span></td>
-        <td><span class="parametername">reader</span></td>
+        <td><span class="xref">System.UInt32</span></td>
+        <td><span class="parametername">value</span></td>
         <td></td>
       </tr>
       <tr>
-        <td><span class="xref">System.Int64</span></td>
-        <td><span class="parametername">endOfStream</span></td>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">withMarker</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">incrementSmallInts</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Byte</span>[]</td>
         <td></td>
       </tr>
     </tbody>
   </table>
   <h5 class="overrides">Overrides</h5>
-  <div><a class="xref" href="Dalamud.Game.Chat.SeStringHandling.Payload.html#Dalamud_Game_Chat_SeStringHandling_Payload_ProcessChunkImpl_System_IO_BinaryReader_System_Int64_">Payload.ProcessChunkImpl(BinaryReader, Int64)</a></div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload_Resolve.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.Resolve%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/ItemPayload.cs/#L26">View Source</a>
-  </span>
-  <a id="Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload_Resolve_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.Resolve*"></a>
-  <h4 id="Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload_Resolve" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.Resolve">Resolve()</h4>
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-  <h5 class="decalaration">Declaration</h5>
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public override void Resolve()</code></pre>
-  </div>
-  <h5 class="overrides">Overrides</h5>
-  <div><a class="xref" href="Dalamud.Game.Chat.SeStringHandling.Payload.html#Dalamud_Game_Chat_SeStringHandling_Payload_Resolve">Payload.Resolve()</a></div>
+  <div><a class="xref" href="Dalamud.Game.Chat.SeStringHandling.Payload.html#Dalamud_Game_Chat_SeStringHandling_Payload_MakeInteger_System_UInt32_System_Boolean_System_Boolean_">Payload.MakeInteger(UInt32, Boolean, Boolean)</a></div>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload_ToString.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.ToString%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/ItemPayload.cs/#L89">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/ItemPayload.cs/#L80">View Source</a>
   </span>
   <a id="Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload_ToString_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.ToString*"></a>
   <h4 id="Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload_ToString" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.ToString">ToString()</h4>
@@ -492,7 +544,7 @@
                     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_ItemPayload.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
                   </li>
                   <li>
-                    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/ItemPayload.cs/#L10" class="contribution-link">View Source</a>
+                    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/ItemPayload.cs/#L13" class="contribution-link">View Source</a>
                   </li>
                 </ul>
               </div>

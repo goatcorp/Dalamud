@@ -221,18 +221,18 @@
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Plugin_PluginRepository_InstallPlugin_Dalamud_Plugin_PluginDefinition_.md&amp;value=---%0Auid%3A%20Dalamud.Plugin.PluginRepository.InstallPlugin(Dalamud.Plugin.PluginDefinition)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Plugin_PluginRepository_InstallPlugin_Dalamud_Plugin_PluginDefinition_System_Boolean_.md&amp;value=---%0Auid%3A%20Dalamud.Plugin.PluginRepository.InstallPlugin(Dalamud.Plugin.PluginDefinition%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
     <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Plugin/PluginRepository.cs/#L61">View Source</a>
   </span>
   <a id="Dalamud_Plugin_PluginRepository_InstallPlugin_" data-uid="Dalamud.Plugin.PluginRepository.InstallPlugin*"></a>
-  <h4 id="Dalamud_Plugin_PluginRepository_InstallPlugin_Dalamud_Plugin_PluginDefinition_" data-uid="Dalamud.Plugin.PluginRepository.InstallPlugin(Dalamud.Plugin.PluginDefinition)">InstallPlugin(PluginDefinition)</h4>
+  <h4 id="Dalamud_Plugin_PluginRepository_InstallPlugin_Dalamud_Plugin_PluginDefinition_System_Boolean_" data-uid="Dalamud.Plugin.PluginRepository.InstallPlugin(Dalamud.Plugin.PluginDefinition,System.Boolean)">InstallPlugin(PluginDefinition, Boolean)</h4>
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public bool InstallPlugin(PluginDefinition definition)</code></pre>
+    <pre><code class="lang-csharp hljs">public bool InstallPlugin(PluginDefinition definition, bool enableAfterInstall = true)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -247,6 +247,11 @@
       <tr>
         <td><a class="xref" href="Dalamud.Plugin.PluginDefinition.html">PluginDefinition</a></td>
         <td><span class="parametername">definition</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">enableAfterInstall</span></td>
         <td></td>
       </tr>
     </tbody>
@@ -271,7 +276,7 @@
     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Plugin_PluginRepository_UpdatePlugins_System_Boolean_.md&amp;value=---%0Auid%3A%20Dalamud.Plugin.PluginRepository.UpdatePlugins(System.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Plugin/PluginRepository.cs/#L98">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Plugin/PluginRepository.cs/#L112">View Source</a>
   </span>
   <a id="Dalamud_Plugin_PluginRepository_UpdatePlugins_" data-uid="Dalamud.Plugin.PluginRepository.UpdatePlugins*"></a>
   <h4 id="Dalamud_Plugin_PluginRepository_UpdatePlugins_System_Boolean_" data-uid="Dalamud.Plugin.PluginRepository.UpdatePlugins(System.Boolean)">UpdatePlugins(Boolean)</h4>
