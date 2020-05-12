@@ -14,6 +14,7 @@ namespace Dalamud.Plugin
         public string AssemblyVersion { get; set; }
         public string Description { get; set; }
         public string ApplicableVersion { get; set; }
+        public string RepoUrl { get; set; }
         public bool IsHide { get; set; }
     }
 }

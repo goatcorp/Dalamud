@@ -11,6 +11,7 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using CheapLoc;
+using Dalamud.Interface;
 using ImGuiNET;
 using Newtonsoft.Json;
 using Serilog;
@@ -125,6 +126,17 @@ namespace Dalamud.Plugin
                                 ImGui.SameLine();
 
                                 if (ImGui.Button(Loc.Localize("InstallerOpenConfig", "Open Configuration"))) installedPlugin.PluginInterface.UiBuilder.OnOpenConfigUi?.Invoke(null, null);
+                            }
+
+                            if (!string.IsNullOrEmpty(installedPlugin.Definition.RepoUrl)) {
+                                ImGui.PushFont(InterfaceManager.IconFont);
+
+                                ImGui.SameLine();
+                                if (ImGui.Button(FontAwesomeIcon.Globe.ToIconString()) &&
+                                    installedPlugin.Definition.RepoUrl.StartsWith("https://"))
+                                    Process.Start(installedPlugin.Definition.RepoUrl);
+
+                                ImGui.PopFont();
                             }
 
                             ImGui.SameLine();
