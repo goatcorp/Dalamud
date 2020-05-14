@@ -1,11 +1,17 @@
 using System;
+using System.Dynamic;
 using System.Linq;
+using System.Net.Mime;
 using System.Numerics;
 using Dalamud.Game.Chat;
 using Dalamud.Game.ClientState.Actors.Types;
 using Dalamud.Game.ClientState.Actors.Types.NonPlayer;
+using Dalamud.Plugin;
 using ImGuiNET;
+using JetBrains.Annotations;
 using Newtonsoft.Json;
+using Serilog;
+using SharpDX.Direct3D11;
 
 namespace Dalamud.Interface
 {
@@ -51,8 +57,8 @@ namespace Dalamud.Interface
             ImGui.SameLine();
             var copy = ImGui.Button("Copy all");
             ImGui.SameLine();
-            ImGui.Combo("Data kind", ref this.currentKind, new[] {"ServerOpCode", "ContentFinderCondition", "Actor Table", "Font Test", "Party List"},
-                        5);
+            ImGui.Combo("Data kind", ref this.currentKind, new[] {"ServerOpCode", "ContentFinderCondition", "Actor Table", "Font Test", "Party List", "Plugin IPC"},
+                        6);
 
             ImGui.BeginChild("scrolling", new Vector2(0, 0), false, ImGuiWindowFlags.HorizontalScrollbar);
 
@@ -165,6 +171,27 @@ namespace Dalamud.Interface
                             ImGui.TextUnformatted(partyString);
                         }
 
+                        break;
+                    case 5:
+                        var i1 = new DalamudPluginInterface(this.dalamud, "DalamudTestSub", null);
+                        var i2 = new DalamudPluginInterface(this.dalamud, "DalamudTestPub", null);
+
+                        if (ImGui.Button("Add test sub")) i1.Subscribe("DalamudTestPub", o => {
+                            dynamic msg = o;
+                            Log.Debug(msg.Expand);
+                        });
+
+                        if (ImGui.Button("Remove test sub")) i1.Unsubscribe("DalamudTestPub");
+
+                        if (ImGui.Button("Send test message")) {
+                            dynamic testMsg = new ExpandoObject();
+                            testMsg.Expand = "dong";
+                            i2.SendMessage(testMsg);
+                        }
+
+                        foreach (var sub in this.dalamud.PluginManager.IpcSubscriptions) {
+                            ImGui.Text($"Source:{sub.SourcePluginName} Sub:{sub.SubPluginName}");
+                        }
                         break;
                 }
             else
