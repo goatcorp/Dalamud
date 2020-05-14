@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -19,6 +21,8 @@ namespace Dalamud.Plugin
         private readonly Type interfaceType = typeof(IDalamudPlugin);
 
         public readonly List<(IDalamudPlugin Plugin, PluginDefinition Definition, DalamudPluginInterface PluginInterface)> Plugins = new List<(IDalamudPlugin plugin, PluginDefinition def, DalamudPluginInterface PluginInterface)>();
+
+        public List<(string SourcePluginName, string SubPluginName, Action<ExpandoObject> SubAction)> IpcSubscriptions = new List<(string SourcePluginName, string SubPluginName, Action<ExpandoObject> SubAction)>();
 
         public PluginManager(Dalamud dalamud, string pluginDirectory, string devPluginDirectory) {
             this.dalamud = dalamud;

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -114,6 +115,45 @@ namespace Dalamud.Plugin
             // this shouldn't be a thing, I think, but just in case
             return this.configs.Load(this.pluginName);
         }
+
+        #region IPC
+
+        /// <summary>
+        /// Subscribe to an IPC message by a plugin.
+        /// </summary>
+        /// <param name="pluginName">The InternalName of the plugin to subscribe to.</param>
+        /// <param name="action">The action to take when a message was received.</param>
+        public void Subscribe(string pluginName, Action<ExpandoObject> action) {
+            if (this.dalamud.PluginManager.IpcSubscriptions.Any(x => x.SourcePluginName == this.pluginName && x.SubPluginName == pluginName))
+                throw new InvalidOperationException("Can't add multiple subscriptions for the same plugin.");
+
+            this.dalamud.PluginManager.IpcSubscriptions.Add((this.pluginName, pluginName, action));
+        }
+
+        /// <summary>
+        /// Unsubscribe from messages from a plugin.
+        /// </summary>
+        /// <param name="pluginName">The InternalName of the plugin to unsubscribe from.</param>
+        public void Unsubscribe(string pluginName) {
+            var sub = this.dalamud.PluginManager.IpcSubscriptions.FirstOrDefault(x => x.SourcePluginName == this.pluginName && x.SubPluginName == pluginName);
+            if (sub.SubAction == null)
+                throw new InvalidOperationException("Wasn't subscribed to this plugin.");
+
+            this.dalamud.PluginManager.IpcSubscriptions.Remove(sub);
+        }
+
+        /// <summary>
+        /// Send a message to all subscribed plugins.
+        /// </summary>
+        /// <param name="message">The message to send.</param>
+        public void SendMessage(ExpandoObject message) {
+            var subs = this.dalamud.PluginManager.IpcSubscriptions.Where(x => x.SubPluginName == this.pluginName);
+            foreach (var sub in subs.Select(x => x.SubAction)) {
+                sub.Invoke(message);
+            }
+        }
+
+        #endregion
 
         #region Logging
 
