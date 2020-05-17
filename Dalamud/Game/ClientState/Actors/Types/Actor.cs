@@ -67,8 +67,11 @@ namespace Dalamud.Game.ClientState.Actors.Types {
         public byte YalmDistanceY => this.actorStruct.YalmDistanceFromPlayerY;
 
         /// <summary>
-        /// The Actor ID of the target.
+        /// Get the Actor ID of the target.
         /// </summary>
-        public int TargetActorId => this.actorStruct.TargetActorId;
+        /// <returns>TargetActorID</returns>
+        public int GetTargetActorId() {
+            return this.actorStruct.TargetActorId;
+        }
     }
 }

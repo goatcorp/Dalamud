@@ -30,7 +30,8 @@ namespace Dalamud.Game.ClientState.Structs
 
         [FieldOffset(0x17B8)] [MarshalAs(UnmanagedType.ByValArray, SizeConst = 28)] public byte[] Customize;
 
-        [FieldOffset(496)] public int TargetActorId;
+        [FieldOffset(0x1F0)] public int PlayerTargetActorId;
+        [FieldOffset(0x17F8)] public int TargetActorId;
 
         // This field can't be correctly aligned, so we have to cut it manually.
         [FieldOffset(0x17d0)] [MarshalAs(UnmanagedType.ByValArray, SizeConst = 7)]
