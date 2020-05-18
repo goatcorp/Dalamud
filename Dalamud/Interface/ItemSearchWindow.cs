@@ -120,7 +120,7 @@ namespace Dalamud.Interface
                             asyncEnum = asyncEnum.Where(
                                 x => (x.Name.ToLower().Contains(this.searchText.ToLower()) ||
                                       int.TryParse(this.searchText, out var parsedId) &&
-                                      parsedId == x.RowId));
+                                      parsedId == x.RowId) && x.Icon < 65000);
                         }
 
                         if (this.currentKind != 0)
