@@ -120,7 +120,7 @@ namespace Dalamud.Interface
                             asyncEnum = asyncEnum.Where(
                                 x => (x.Name.ToLower().Contains(this.searchText.ToLower()) ||
                                       int.TryParse(this.searchText, out var parsedId) &&
-                                      parsedId == x.RowId));
+                                      parsedId == x.RowId) && x.Icon < 65000);
                         }
 
                         if (this.currentKind != 0)
@@ -161,11 +161,13 @@ namespace Dalamud.Interface
 
                                 if (ImGui.IsMouseDoubleClicked(0))
                                 {
-                                    OnItemChosen?.Invoke(this, this.searchTask.Result[i]);
-                                    if (this.closeOnChoose)
-                                    {
-                                        this.selectedItemTex?.Dispose();
-                                        isOpen = false;
+                                    if (this.selectedItemTex != null){
+                                        OnItemChosen?.Invoke(this, this.searchTask.Result[i]);
+                                        if (this.closeOnChoose)
+                                        {
+                                            this.selectedItemTex?.Dispose();
+                                            isOpen = false;
+                                        }
                                     }
                                 }
                             }
@@ -189,14 +191,16 @@ namespace Dalamud.Interface
             ImGui.EndChild();
 
             // Darken choose button if it shouldn't be clickable
-            ImGui.PushStyleVar(ImGuiStyleVar.Alpha, this.selectedItemIndex < 0 ? 0.25f : 1);
+            ImGui.PushStyleVar(ImGuiStyleVar.Alpha, this.selectedItemIndex < 0 || this.selectedItemTex == null ? 0.25f : 1);
 
             if (ImGui.Button(Loc.Localize("Choose", "Choose"))) {
                 try {
-                    OnItemChosen?.Invoke(this, this.searchTask.Result[this.selectedItemIndex]);
-                    if (this.closeOnChoose) {
-                        this.selectedItemTex?.Dispose();
-                        isOpen = false;
+                    if (this.selectedItemTex != null) {
+                        OnItemChosen?.Invoke(this, this.searchTask.Result[this.selectedItemIndex]);
+                        if (this.closeOnChoose) {
+                            this.selectedItemTex?.Dispose();
+                            isOpen = false;
+                        }
                     }
                 } catch (Exception ex) {
                     Log.Error($"Exception in Choose: {ex.Message}");
@@ -212,6 +216,11 @@ namespace Dalamud.Interface
                     this.selectedItemTex?.Dispose();
                     isOpen = false;
                 }
+            }
+
+            if (this.selectedItemIndex >= 0 && this.selectedItemTex == null) {
+                ImGui.SameLine();
+                ImGui.Text(Loc.Localize("DalamudItemNotLinkable", "This item is not linkable."));
             }
 
             ImGui.End();
