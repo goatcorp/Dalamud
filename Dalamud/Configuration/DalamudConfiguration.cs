@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Dalamud.Configuration;
 using Dalamud.DiscordBot;
+using Dalamud.Game.Chat;
 using Newtonsoft.Json;
 
 namespace Dalamud
@@ -30,6 +31,8 @@ namespace Dalamud
         public string LanguageOverride { get; set; }
 
         public string LastVersion { get; set; }
+
+        public XivChatType GeneralChatType { get; set; } = XivChatType.Debug;
 
         [JsonIgnore]
         public string ConfigPath;

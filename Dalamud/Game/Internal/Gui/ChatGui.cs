@@ -201,7 +201,8 @@ namespace Dalamud.Game.Internal.Gui {
         public void Print(string message) {
             Log.Verbose("[CHATGUI PRINT]{0}", message);
             PrintChat(new XivChatEntry {
-                MessageBytes = Encoding.UTF8.GetBytes(message)
+                MessageBytes = Encoding.UTF8.GetBytes(message),
+                Type = this.dalamud.Configuration.GeneralChatType
             });
         }
 

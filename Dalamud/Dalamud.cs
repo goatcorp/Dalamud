@@ -202,10 +202,12 @@ namespace Dalamud {
         private bool isImguiDrawDataWindow = false;
         private bool isImguiDrawPluginWindow = false;
         private bool isImguiDrawCreditsWindow = false;
+        private bool isImguiDrawSettingsWindow = false;
 
         private DalamudLogWindow logWindow;
         private DalamudDataWindow dataWindow;
         private DalamudCreditsWindow creditsWindow;
+        private DalamudSettingsWindow settingsWindow;
         private PluginInstallerWindow pluginWindow;
 
         private void BuildDalamudUi()
@@ -242,6 +244,10 @@ namespace Dalamud {
                         }
                         if (ImGui.MenuItem("Open Credits window")) {
                             OnOpenCreditsCommand(null, null);
+                        }
+                        if (ImGui.MenuItem("Open Settings window"))
+                        {
+                            OnOpenSettingsCommand(null, null);
                         }
                         ImGui.MenuItem("Draw ImGui demo", "", ref this.isImguiDrawDemoWindow);
                         if (ImGui.MenuItem("Dump ImGui info"))
@@ -359,6 +365,11 @@ namespace Dalamud {
                 }
             }
 
+            if (this.isImguiDrawSettingsWindow)
+            {
+                this.isImguiDrawSettingsWindow = this.settingsWindow != null && this.settingsWindow.Draw();
+            }
+
             if (this.isImguiDrawDemoWindow)
                 ImGui.ShowDemoWindow();
         }
@@ -445,6 +456,12 @@ namespace Dalamud {
             this.CommandManager.AddHandler("/xllanguage", new CommandInfo(OnSetLanguageCommand)
             {
                 HelpMessage = Loc.Localize("DalamudLanguageHelp", "Set the language for the in-game addon and plugins that support it. Available languages: ") + Localization.ApplicableLangCodes.Aggregate("en", (current, code) => current + ", " + code)
+            });
+
+            this.CommandManager.AddHandler("/xlsettings", new CommandInfo(OnOpenSettingsCommand)
+            {
+                HelpMessage = Loc.Localize("DalamudSettingsHelp", "Change various In-Game-Addon settings like chat channels and the discord bot setup."),
+                ShowInHelp = false // Not quite ready yet
             });
 
             this.CommandManager.AddHandler("/imdebug", new CommandInfo(OnDebugImInfoCommand)
@@ -683,6 +700,12 @@ namespace Dalamud {
             }
 
             this.Configuration.Save();
+        }
+
+        private void OnOpenSettingsCommand(string command, string arguments)
+        {
+            this.settingsWindow = new DalamudSettingsWindow(this);
+            this.isImguiDrawSettingsWindow = true;
         }
 
         private int RouletteSlugToKey(string slug) => slug.ToLower() switch {
