@@ -182,7 +182,7 @@ namespace Dalamud.Game {
         /// <param name="signature">The signature of the function using the data.</param>
         /// <param name="offset">The offset from function start of the instruction using the data.</param>
         /// <returns>An IntPtr to the static memory location.</returns>
-        public IntPtr GetStaticAddressFromSig(string signature, int offset)
+        public IntPtr GetStaticAddressFromSig(string signature, int offset = 0)
         {
             IntPtr instrAddr = ScanText(signature);
             instrAddr = IntPtr.Add(instrAddr, offset);

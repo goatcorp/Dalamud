@@ -145,6 +145,8 @@ namespace Dalamud {
 
                 IsReady = true;
             });
+            
+            this.conditionDebugWindow = new ConditionDebugWindow( this );
         }
 
         public void Start() {
@@ -209,6 +211,7 @@ namespace Dalamud {
         private DalamudCreditsWindow creditsWindow;
         private DalamudSettingsWindow settingsWindow;
         private PluginInstallerWindow pluginWindow;
+        private ConditionDebugWindow conditionDebugWindow;
 
         private void BuildDalamudUi()
         {
@@ -265,6 +268,16 @@ namespace Dalamud {
                         ImGui.MenuItem(this.assemblyVersion, false);
                         ImGui.MenuItem(this.StartInfo.GameVersion, false);
 
+                        ImGui.EndMenu();
+                    }
+
+                    if( ImGui.BeginMenu( "Game" ) )
+                    {
+                        if( ImGui.MenuItem( "Condition Debug" ) )
+                        {
+                            this.conditionDebugWindow.Enabled = !this.conditionDebugWindow.Enabled;
+                        }
+                        
                         ImGui.EndMenu();
                     }
 
@@ -372,6 +385,11 @@ namespace Dalamud {
 
             if (this.isImguiDrawDemoWindow)
                 ImGui.ShowDemoWindow();
+
+            if( this.conditionDebugWindow.Enabled )
+            {
+                this.conditionDebugWindow.Draw();
+            }
         }
 
         #endregion
