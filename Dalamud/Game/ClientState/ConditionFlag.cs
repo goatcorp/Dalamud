@@ -15,7 +15,7 @@ namespace Dalamud.Game.ClientState
         /// <summary>
         /// Unable to execute command under normal conditions.
         /// </summary>
-        AbnormalConditions = 1,
+        NormalConditions = 1,
 
         /// <summary>
         /// Unable to execute command while unconscious.
