@@ -273,7 +273,7 @@ namespace Dalamud.Interface
 
             var fontPathJp = Path.Combine(this.dalamud.StartInfo.WorkingDirectory, "UIRes", "NotoSansCJKjp-Medium.otf");
 
-            var japaneseRangeHandle = GlyphRangesJapanese.GetRangeHandle();
+            var japaneseRangeHandle = GCHandle.Alloc(GlyphRangesJapanese.GlyphRanges, GCHandleType.Pinned);
 
             DefaultFont = ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPathJp, 17.0f, null, japaneseRangeHandle.AddrOfPinnedObject());
 
@@ -303,6 +303,7 @@ namespace Dalamud.Interface
             ImGui.GetIO().Fonts.Build();
 
             fontConfig.Destroy();
+            japaneseRangeHandle.Free();
             gameRangeHandle.Free();
             iconRangeHandle.Free();
         }
