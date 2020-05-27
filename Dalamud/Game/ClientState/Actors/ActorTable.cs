@@ -87,7 +87,9 @@ namespace Dalamud.Game.ClientState.Actors {
 
         public IEnumerator<Actor> GetEnumerator() {
             for (int i=0;i<Length;i++){
-                yield return this[i];
+                if (this[i] != null) {
+                    yield return this[i];
+                }
             }
         }
 
