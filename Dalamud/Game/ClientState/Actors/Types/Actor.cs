@@ -65,5 +65,10 @@ namespace Dalamud.Game.ClientState.Actors.Types {
         /// The Y distance from the local player in yalms.
         /// </summary>
         public byte YalmDistanceY => this.actorStruct.YalmDistanceFromPlayerY;
+
+        /// <summary>
+        /// The target of the actor
+        /// </summary>
+        public virtual int TargetActorID => 0;
     }
 }

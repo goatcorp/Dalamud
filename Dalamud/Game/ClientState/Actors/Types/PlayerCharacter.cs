@@ -29,5 +29,11 @@ namespace Dalamud.Game.ClientState.Actors.Types {
         ///     The Free Company tag of this player.
         /// </summary>
         public string CompanyTag => Encoding.UTF8.GetString(this.actorStruct.CompanyTag).Substring(2).Replace("\0", "");
+
+        /// <summary>
+        /// Target of the PlayerCharacter
+        /// </summary>
+        public override int TargetActorID => this.actorStruct.PlayerCharacterTargetActorId;
+
     }
 }
