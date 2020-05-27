@@ -272,7 +272,10 @@ namespace Dalamud.Interface
             fontConfig.PixelSnapH = true;
 
             var fontPathJp = Path.Combine(this.dalamud.StartInfo.WorkingDirectory, "UIRes", "NotoSansCJKjp-Medium.otf");
-            DefaultFont = ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPathJp, 17.0f, null, ImGui.GetIO().Fonts.GetGlyphRangesJapanese());
+
+            var japaneseRangeHandle = GlyphRangesJapanese.GetRangeHandle();
+
+            DefaultFont = ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPathJp, 17.0f, null, japaneseRangeHandle.AddrOfPinnedObject());
 
             var fontPathGame = Path.Combine(this.dalamud.StartInfo.WorkingDirectory, "UIRes", "gamesym.ttf");
 
