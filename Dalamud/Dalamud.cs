@@ -106,13 +106,18 @@ namespace Dalamud {
                     this.localizationMgr.SetupWithUiCulture();
                 }
 
-                try {
-                    this.InterfaceManager = new InterfaceManager(this, this.SigScanner);
-                    this.InterfaceManager.OnDraw += BuildDalamudUi;
+                if (Environment.GetEnvironmentVariable("DALAMUD_NOT_HAVE_INTERFACE") != "True") {
+                    try
+                    {
+                        this.InterfaceManager = new InterfaceManager(this, this.SigScanner);
+                        this.InterfaceManager.OnDraw += BuildDalamudUi;
 
-                    this.InterfaceManager.Enable();
-                } catch (Exception e) {
-                    Log.Information(e, "Could not init interface.");
+                        this.InterfaceManager.Enable();
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Information(e, "Could not init interface.");
+                    }
                 }
 
                 this.Data = new DataManager(this.StartInfo.Language);
