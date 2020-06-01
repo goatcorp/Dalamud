@@ -93,6 +93,11 @@ namespace Dalamud.Game.ClientState
         public KeyState KeyState;
 
         /// <summary>
+        /// Provides access to client conditions/player state. Allows you to check if a player is in a duty, mounted, etc.
+        /// </summary>
+        public Condition Condition;
+
+        /// <summary>
         /// Set up client state access.
         /// </summary>
         /// <param name="dalamud">Dalamud instance</param>
@@ -113,6 +118,8 @@ namespace Dalamud.Game.ClientState
             this.JobGauges = new JobGauges(Address);
 
             this.KeyState = new KeyState(Address, scanner.Module.BaseAddress);
+
+            this.Condition = new Condition( Address );
 
             Log.Verbose("SetupTerritoryType address {SetupTerritoryType}", Address.SetupTerritoryType);
 
