@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Threading;
@@ -464,6 +465,13 @@ namespace Dalamud {
                 ShowInHelp = false // Not quite ready yet
             });
 
+            this.CommandManager.AddHandler("/xlbugreport", new CommandInfo(OnBugReportCommand)
+            {
+                HelpMessage = Loc.Localize("DalamudBugReport", "Upload a log to be analyzed by our professional development team."),
+                ShowInHelp = false // Not quite ready yet
+            });
+
+
             this.CommandManager.AddHandler("/imdebug", new CommandInfo(OnDebugImInfoCommand)
             {
                 HelpMessage = "ImGui DEBUG",
@@ -706,6 +714,25 @@ namespace Dalamud {
         {
             this.settingsWindow = new DalamudSettingsWindow(this);
             this.isImguiDrawSettingsWindow = true;
+        }
+
+        private void OnBugReportCommand(string command, string arguments) {
+            Task.Run(() => {
+                try {
+                    using var file = new FileStream(Path.Combine(this.StartInfo.WorkingDirectory, "dalamud.txt"), FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                    using var reader = new StreamReader(file, Encoding.UTF8);
+
+                    using var client = new WebClient();
+                    var response = client.UploadString("https://dalamud-bugbait.herokuapp.com/catch", reader.ReadToEnd());
+
+                    this.Framework.Gui.Chat.PrintError(
+                        "Your bug report was submitted. A certified technical support specialist will be with you shortly. Please tell them this number: " +
+                        response);
+                } catch (Exception ex) {
+                    Log.Error(ex, "Bug report failed.");
+                    this.Framework.Gui.Chat.PrintError("Could not submit bug report");
+                }
+            });
         }
 
         private int RouletteSlugToKey(string slug) => slug.ToLower() switch {
