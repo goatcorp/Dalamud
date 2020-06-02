@@ -211,6 +211,7 @@ namespace Dalamud {
         private bool isImguiDrawPluginWindow = false;
         private bool isImguiDrawCreditsWindow = false;
         private bool isImguiDrawSettingsWindow = false;
+        private bool isImguiDrawPluginStatWindow = false;
 
         private DalamudLogWindow logWindow;
         private DalamudDataWindow dataWindow;
@@ -218,6 +219,7 @@ namespace Dalamud {
         private DalamudSettingsWindow settingsWindow;
         private PluginInstallerWindow pluginWindow;
         private ConditionDebugWindow conditionDebugWindow;
+        private DalamudPluginStatWindow pluginStatWindow;
 
         private void BuildDalamudUi()
         {
@@ -293,6 +295,12 @@ namespace Dalamud {
                         {
                             this.pluginWindow = new PluginInstallerWindow(this.PluginManager, this.PluginRepository, this.StartInfo.GameVersion);
                             this.isImguiDrawPluginWindow = true;
+                        }
+                        if (ImGui.MenuItem("Open Plugin Stats")) {
+                            if (!this.isImguiDrawPluginStatWindow) {
+                                this.pluginStatWindow = new DalamudPluginStatWindow(this.PluginManager);
+                                this.isImguiDrawPluginStatWindow = true;
+                            }
                         }
                         if (ImGui.MenuItem("Print plugin info")) {
                             foreach (var plugin in this.PluginManager.Plugins) {
@@ -395,6 +403,14 @@ namespace Dalamud {
             if( this.conditionDebugWindow.Enabled )
             {
                 this.conditionDebugWindow.Draw();
+            }
+
+            if (this.isImguiDrawPluginStatWindow) {
+                this.isImguiDrawPluginStatWindow = this.pluginStatWindow != null && this.pluginStatWindow.Draw();
+                if (!this.isImguiDrawPluginStatWindow) {
+                    this.pluginStatWindow?.Dispose();
+                    this.pluginStatWindow = null;
+                }
             }
         }
 
