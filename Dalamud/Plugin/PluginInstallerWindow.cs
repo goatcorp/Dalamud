@@ -81,7 +81,7 @@ namespace Dalamud.Plugin
                     var isInstalled = this.manager.Plugins.Where(x => x.Definition != null).Any(
                         x => x.Definition.InternalName == pluginDefinition.InternalName);
 
-                    if (ImGui.CollapsingHeader(pluginDefinition.Name + (isInstalled ? Loc.Localize("InstallerInstalled", " (installed)") : string.Empty))) {
+                    if (ImGui.CollapsingHeader(pluginDefinition.Name + (isInstalled ? Loc.Localize("InstallerInstalled", " (installed)") : string.Empty) + "###Header" + pluginDefinition.InternalName)) {
                         ImGui.Indent();
 
                         ImGui.Text(pluginDefinition.Name);
