@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net.Mime;
 using System.Numerics;
 using Dalamud.Game.Chat;
+using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Actors.Types;
 using Dalamud.Game.ClientState.Actors.Types.NonPlayer;
 using Dalamud.Plugin;
@@ -57,8 +58,8 @@ namespace Dalamud.Interface
             ImGui.SameLine();
             var copy = ImGui.Button("Copy all");
             ImGui.SameLine();
-            ImGui.Combo("Data kind", ref this.currentKind, new[] {"ServerOpCode", "ContentFinderCondition", "Actor Table", "Font Test", "Party List", "Plugin IPC"},
-                        6);
+            ImGui.Combo("Data kind", ref this.currentKind, new[] {"ServerOpCode", "ContentFinderCondition", "Actor Table", "Font Test", "Party List", "Plugin IPC", "Condition"},
+                        7);
 
             ImGui.BeginChild("scrolling", new Vector2(0, 0), false, ImGuiWindowFlags.HorizontalScrollbar);
 
@@ -75,6 +76,8 @@ namespace Dalamud.Interface
                     case 1:
                         ImGui.TextUnformatted(this.cfcString);
                         break;
+
+                    // AT
                     case 2: {
                         var stateString = string.Empty;
                         // LocalPlayer is null in a number of situations (at least with the current visible-actors list)
@@ -140,6 +143,8 @@ namespace Dalamud.Interface
                         ImGui.TextUnformatted(stateString);
                     }
                         break;
+
+                    // Font
                     case 3:
                         var specialChars = string.Empty;
                         for (var i = 0xE020; i <= 0xE0DB; i++) {
@@ -148,6 +153,8 @@ namespace Dalamud.Interface
 
                         ImGui.TextUnformatted(specialChars);
                         break;
+
+                    // Party
                     case 4:
                         var partyString = string.Empty;
 
@@ -172,6 +179,8 @@ namespace Dalamud.Interface
                         }
 
                         break;
+
+                    // Subscriptions
                     case 5:
                         var i1 = new DalamudPluginInterface(this.dalamud, "DalamudTestSub", null);
                         var i2 = new DalamudPluginInterface(this.dalamud, "DalamudTestPub", null);
@@ -192,6 +201,39 @@ namespace Dalamud.Interface
                         foreach (var sub in this.dalamud.PluginManager.IpcSubscriptions) {
                             ImGui.Text($"Source:{sub.SourcePluginName} Sub:{sub.SubPluginName}");
                         }
+                        break;
+
+                    // Condition
+                    case 6:
+#if DEBUG
+                        ImGui.Text($"ptr: {this.dalamud.ClientState.Condition.conditionArrayBase.ToString("X16")}");
+#endif
+
+                        ImGui.Text("Current Conditions:");
+                        ImGui.Separator();
+
+                        var didAny = false;
+
+                        for (var i = 0; i < Condition.MaxConditionEntries; i++)
+                        {
+                            var typedCondition = (ConditionFlag)i;
+                            var cond = this.dalamud.ClientState.Condition[typedCondition];
+
+                            if (!cond)
+                            {
+                                continue;
+                            }
+
+                            didAny = true;
+
+                            ImGui.Text($"ID: {i} Enum: {typedCondition}");
+                        }
+
+                        if (!didAny)
+                        {
+                            ImGui.Text("None. Talk to a shop NPC or visit a market board to find out more!!!!!!!");
+                        }
+
                         break;
                 }
             else
