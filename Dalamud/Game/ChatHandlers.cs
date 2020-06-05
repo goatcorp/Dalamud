@@ -124,41 +124,12 @@ namespace Dalamud.Game {
         private void OnChatMessage(XivChatType type, uint senderId, ref StdString sender, 
             ref StdString message, ref bool isHandled) {
 
-            if (type == XivChatType.Notice && !this.hasSeenLoadingMsg) {
-                var assemblyVersion = Assembly.GetAssembly(typeof(ChatHandlers)).GetName().Version.ToString();
+            if (type == XivChatType.Notice && !this.hasSeenLoadingMsg) 
+                PrintWelcomeMessage();
 
-                this.dalamud.Framework.Gui.Chat.Print(string.Format(Loc.Localize("DalamudWelcome", "XIVLauncher in-game addon v{0} loaded."), assemblyVersion));
-
-                foreach (var plugin in this.dalamud.PluginManager.Plugins) {
-                    this.dalamud.Framework.Gui.Chat.Print(string.Format(Loc.Localize("DalamudPluginLoaded", "    》 {0} v{1} loaded."), plugin.Plugin.Name, plugin.Plugin.GetType().Assembly.GetName().Version));
-                }
-
-                this.hasSeenLoadingMsg = true;
-
-                if (string.IsNullOrEmpty(this.dalamud.Configuration.LastVersion) || !assemblyVersion.StartsWith(this.dalamud.Configuration.LastVersion)) {
-                    this.dalamud.Framework.Gui.Chat.PrintChat(new XivChatEntry {
-                        MessageBytes = Encoding.UTF8.GetBytes(Loc.Localize("DalamudUpdated", "The In-Game addon has been updated or was reinstalled successfully! Please check the discord for a full changelog.")),
-                        Type = XivChatType.Notice
-                    });
-
-                    this.dalamud.Configuration.LastVersion = assemblyVersion;
-                    this.dalamud.Configuration.Save();
-                }
-
-                try {
-                    var hasNeedsUpdate = this.dalamud.PluginRepository.UpdatePlugins(true).UpdatedCount != 0;
-
-                    if (hasNeedsUpdate) {
-                        this.dalamud.Framework.Gui.Chat.PrintChat(new XivChatEntry
-                        {
-                            MessageBytes = Encoding.UTF8.GetBytes(Loc.Localize("DalamudPluginUpdateRequired", "One or more of your plugins needs to be updated. Please use the /xlplugins command in-game to update them!")),
-                            Type = XivChatType.Urgent
-                        });
-                    }
-                } catch (Exception e) {
-                    Log.Error(e, Loc.Localize("DalamudPluginUpdateCheckFail", "Could not check for plugin updates."));
-                }
-            }
+            // For injections while logged in
+            if (this.dalamud.ClientState.LocalPlayer != null && this.dalamud.ClientState.TerritoryType == 0 && !this.hasSeenLoadingMsg)
+                PrintWelcomeMessage();
 
 #if !DEBUG && false
             if (!this.hasSeenLoadingMsg)
@@ -228,6 +199,49 @@ namespace Dalamud.Game {
             var linkMatch = this.urlRegex.Match(message.Value);
             if (linkMatch.Value.Length > 0)
                 LastLink = linkMatch.Value;
+        }
+
+        private void PrintWelcomeMessage() {
+            var assemblyVersion = Assembly.GetAssembly(typeof(ChatHandlers)).GetName().Version.ToString();
+
+            this.dalamud.Framework.Gui.Chat.Print(string.Format(Loc.Localize("DalamudWelcome", "Dalamud v{0} loaded."), assemblyVersion));
+
+            foreach (var plugin in this.dalamud.PluginManager.Plugins)
+            {
+                this.dalamud.Framework.Gui.Chat.Print(string.Format(Loc.Localize("DalamudPluginLoaded", "    》 {0} v{1} loaded."), plugin.Plugin.Name, plugin.Plugin.GetType().Assembly.GetName().Version));
+            }
+
+            this.hasSeenLoadingMsg = true;
+
+            if (string.IsNullOrEmpty(this.dalamud.Configuration.LastVersion) || !assemblyVersion.StartsWith(this.dalamud.Configuration.LastVersion))
+            {
+                this.dalamud.Framework.Gui.Chat.PrintChat(new XivChatEntry
+                {
+                    MessageBytes = Encoding.UTF8.GetBytes(Loc.Localize("DalamudUpdated", "The In-Game addon has been updated or was reinstalled successfully! Please check the discord for a full changelog.")),
+                    Type = XivChatType.Notice
+                });
+
+                this.dalamud.Configuration.LastVersion = assemblyVersion;
+                this.dalamud.Configuration.Save();
+            }
+
+            try
+            {
+                var hasNeedsUpdate = this.dalamud.PluginRepository.UpdatePlugins(true).UpdatedCount != 0;
+
+                if (hasNeedsUpdate)
+                {
+                    this.dalamud.Framework.Gui.Chat.PrintChat(new XivChatEntry
+                    {
+                        MessageBytes = Encoding.UTF8.GetBytes(Loc.Localize("DalamudPluginUpdateRequired", "One or more of your plugins needs to be updated. Please use the /xlplugins command in-game to update them!")),
+                        Type = XivChatType.Urgent
+                    });
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, Loc.Localize("DalamudPluginUpdateCheckFail", "Could not check for plugin updates."));
+            }
         }
 
         private static string MakeItalics(string text) {
