@@ -1218,7 +1218,8 @@ found.</p>
   </span>
   <a id="Discord_WebSocket_BaseSocketClient_StartAsync_" data-uid="Discord.WebSocket.BaseSocketClient.StartAsync*"></a>
   <h4 id="Discord_WebSocket_BaseSocketClient_StartAsync" data-uid="Discord.WebSocket.BaseSocketClient.StartAsync">StartAsync()</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Starts the connection between Discord and the client..</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -1235,10 +1236,18 @@ found.</p>
     <tbody>
       <tr>
         <td><span class="xref">System.Threading.Tasks.Task</span></td>
-        <td></td>
+        <td><p>A task that represents the asynchronous start operation.</p>
+</td>
       </tr>
     </tbody>
   </table>
+  <h5 id="Discord_WebSocket_BaseSocketClient_StartAsync_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method will initialize the connection between the client and Discord.</p>
+<div class="IMPORTANT"><h5>important</h5><p>
+    This method will immediately return after it is called, as it will initialize the connection on
+    another thread.
+</p></div>
+</div>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
     <a href="https://github.com/goaaats/Discord.Net/new/dev/apiSpec/new?filename=Discord_WebSocket_BaseSocketClient_StopAsync.md&amp;value=---%0Auid%3A%20Discord.WebSocket.BaseSocketClient.StopAsync%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
@@ -1248,7 +1257,8 @@ found.</p>
   </span>
   <a id="Discord_WebSocket_BaseSocketClient_StopAsync_" data-uid="Discord.WebSocket.BaseSocketClient.StopAsync*"></a>
   <h4 id="Discord_WebSocket_BaseSocketClient_StopAsync" data-uid="Discord.WebSocket.BaseSocketClient.StopAsync">StopAsync()</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Stops the connection between Discord and the client.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -1265,7 +1275,8 @@ found.</p>
     <tbody>
       <tr>
         <td><span class="xref">System.Threading.Tasks.Task</span></td>
-        <td></td>
+        <td><p>A task that represents the asynchronous stop operation.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -2436,7 +2447,8 @@ public async Task HandleReactionAddedAsync(Cacheable&lt;IUserMessage, ulong> cac
   </span>
   <a id="Discord_WebSocket_BaseSocketClient_Discord_IDiscordClient_CreateGuildAsync_" data-uid="Discord.WebSocket.BaseSocketClient.Discord#IDiscordClient#CreateGuildAsync*"></a>
   <h4 id="Discord_WebSocket_BaseSocketClient_Discord_IDiscordClient_CreateGuildAsync_System_String_Discord_IVoiceRegion_System_IO_Stream_Discord_RequestOptions_" data-uid="Discord.WebSocket.BaseSocketClient.Discord#IDiscordClient#CreateGuildAsync(System.String,Discord.IVoiceRegion,System.IO.Stream,Discord.RequestOptions)">IDiscordClient.CreateGuildAsync(String, IVoiceRegion, Stream, RequestOptions)</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Creates a guild for the logged-in user who is in less than 10 active guilds.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -2455,22 +2467,26 @@ public async Task HandleReactionAddedAsync(Cacheable&lt;IUserMessage, ulong> cac
       <tr>
         <td><span class="xref">System.String</span></td>
         <td><span class="parametername">name</span></td>
-        <td></td>
+        <td><p>The name of the new guild.</p>
+</td>
       </tr>
       <tr>
         <td><a class="xref" href="Discord.IVoiceRegion.html">IVoiceRegion</a></td>
         <td><span class="parametername">region</span></td>
-        <td></td>
+        <td><p>The voice region to create the guild with.</p>
+</td>
       </tr>
       <tr>
         <td><span class="xref">System.IO.Stream</span></td>
         <td><span class="parametername">jpegIcon</span></td>
-        <td></td>
+        <td><p>The icon of the guild.</p>
+</td>
       </tr>
       <tr>
         <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
         <td><span class="parametername">options</span></td>
-        <td></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -2485,10 +2501,17 @@ public async Task HandleReactionAddedAsync(Cacheable&lt;IUserMessage, ulong> cac
     <tbody>
       <tr>
         <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<a class="xref" href="Discord.IGuild.html">IGuild</a>&gt;</td>
-        <td></td>
+        <td><p>A task that represents the asynchronous creation operation. The task result contains the created guild.</p>
+</td>
       </tr>
     </tbody>
   </table>
+  <h5 id="Discord_WebSocket_BaseSocketClient_Discord_IDiscordClient_CreateGuildAsync_System_String_Discord_IVoiceRegion_System_IO_Stream_Discord_RequestOptions__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method creates a new guild on behalf of the logged-in user.</p>
+<div class="WARNING"><h5>warning</h5><p>
+    Due to Discord&apos;s limitation, this method will only work for users that are in less than 10 guilds.
+</p></div>
+</div>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
     <a href="https://github.com/goaaats/Discord.Net/new/dev/apiSpec/new?filename=Discord_WebSocket_BaseSocketClient_Discord_IDiscordClient_GetApplicationInfoAsync_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.BaseSocketClient.Discord%23IDiscordClient%23GetApplicationInfoAsync(Discord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
@@ -2498,7 +2521,8 @@ public async Task HandleReactionAddedAsync(Cacheable&lt;IUserMessage, ulong> cac
   </span>
   <a id="Discord_WebSocket_BaseSocketClient_Discord_IDiscordClient_GetApplicationInfoAsync_" data-uid="Discord.WebSocket.BaseSocketClient.Discord#IDiscordClient#GetApplicationInfoAsync*"></a>
   <h4 id="Discord_WebSocket_BaseSocketClient_Discord_IDiscordClient_GetApplicationInfoAsync_Discord_RequestOptions_" data-uid="Discord.WebSocket.BaseSocketClient.Discord#IDiscordClient#GetApplicationInfoAsync(Discord.RequestOptions)">IDiscordClient.GetApplicationInfoAsync(RequestOptions)</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Gets a Discord application information for the logged-in user.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -2517,7 +2541,8 @@ public async Task HandleReactionAddedAsync(Cacheable&lt;IUserMessage, ulong> cac
       <tr>
         <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
         <td><span class="parametername">options</span></td>
-        <td></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -2532,10 +2557,16 @@ public async Task HandleReactionAddedAsync(Cacheable&lt;IUserMessage, ulong> cac
     <tbody>
       <tr>
         <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<a class="xref" href="Discord.IApplication.html">IApplication</a>&gt;</td>
-        <td></td>
+        <td><p>A task that represents the asynchronous get operation. The task result contains the application
+information.</p>
+</td>
       </tr>
     </tbody>
   </table>
+  <h5 id="Discord_WebSocket_BaseSocketClient_Discord_IDiscordClient_GetApplicationInfoAsync_Discord_RequestOptions__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method reflects your application information you submitted when creating a Discord application via
+the Developer Portal.</p>
+</div>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
     <a href="https://github.com/goaaats/Discord.Net/new/dev/apiSpec/new?filename=Discord_WebSocket_BaseSocketClient_Discord_IDiscordClient_GetChannelAsync_System_UInt64_Discord_CacheMode_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.BaseSocketClient.Discord%23IDiscordClient%23GetChannelAsync(System.UInt64%2CDiscord.CacheMode%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
@@ -2545,7 +2576,8 @@ public async Task HandleReactionAddedAsync(Cacheable&lt;IUserMessage, ulong> cac
   </span>
   <a id="Discord_WebSocket_BaseSocketClient_Discord_IDiscordClient_GetChannelAsync_" data-uid="Discord.WebSocket.BaseSocketClient.Discord#IDiscordClient#GetChannelAsync*"></a>
   <h4 id="Discord_WebSocket_BaseSocketClient_Discord_IDiscordClient_GetChannelAsync_System_UInt64_Discord_CacheMode_Discord_RequestOptions_" data-uid="Discord.WebSocket.BaseSocketClient.Discord#IDiscordClient#GetChannelAsync(System.UInt64,Discord.CacheMode,Discord.RequestOptions)">IDiscordClient.GetChannelAsync(UInt64, CacheMode, RequestOptions)</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Gets a generic channel.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -2564,17 +2596,20 @@ public async Task HandleReactionAddedAsync(Cacheable&lt;IUserMessage, ulong> cac
       <tr>
         <td><span class="xref">System.UInt64</span></td>
         <td><span class="parametername">id</span></td>
-        <td></td>
+        <td><p>The snowflake identifier of the channel (e.g. <code>381889909113225237</code>).</p>
+</td>
       </tr>
       <tr>
         <td><a class="xref" href="Discord.CacheMode.html">CacheMode</a></td>
         <td><span class="parametername">mode</span></td>
-        <td></td>
+        <td><p>The <a class="xref" href="Discord.CacheMode.html">CacheMode</a> that determines whether the object should be fetched from cache.</p>
+</td>
       </tr>
       <tr>
         <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
         <td><span class="parametername">options</span></td>
-        <td></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -2589,7 +2624,9 @@ public async Task HandleReactionAddedAsync(Cacheable&lt;IUserMessage, ulong> cac
     <tbody>
       <tr>
         <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<a class="xref" href="Discord.IChannel.html">IChannel</a>&gt;</td>
-        <td></td>
+        <td><p>A task that represents the asynchronous get operation. The task result contains the channel associated
+with the snowflake identifier; <code>null</code> when the channel cannot be found.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -2602,7 +2639,8 @@ public async Task HandleReactionAddedAsync(Cacheable&lt;IUserMessage, ulong> cac
   </span>
   <a id="Discord_WebSocket_BaseSocketClient_Discord_IDiscordClient_GetConnectionsAsync_" data-uid="Discord.WebSocket.BaseSocketClient.Discord#IDiscordClient#GetConnectionsAsync*"></a>
   <h4 id="Discord_WebSocket_BaseSocketClient_Discord_IDiscordClient_GetConnectionsAsync_Discord_RequestOptions_" data-uid="Discord.WebSocket.BaseSocketClient.Discord#IDiscordClient#GetConnectionsAsync(Discord.RequestOptions)">IDiscordClient.GetConnectionsAsync(RequestOptions)</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Gets the connections that the user has set up.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -2621,7 +2659,8 @@ public async Task HandleReactionAddedAsync(Cacheable&lt;IUserMessage, ulong> cac
       <tr>
         <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
         <td><span class="parametername">options</span></td>
-        <td></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -2636,7 +2675,8 @@ public async Task HandleReactionAddedAsync(Cacheable&lt;IUserMessage, ulong> cac
     <tbody>
       <tr>
         <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<a class="xref" href="Discord.IConnection.html">IConnection</a>&gt;&gt;</td>
-        <td></td>
+        <td><p>A task that represents the asynchronous get operation. The task result contains a read-only collection of connections.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -2649,7 +2689,8 @@ public async Task HandleReactionAddedAsync(Cacheable&lt;IUserMessage, ulong> cac
   </span>
   <a id="Discord_WebSocket_BaseSocketClient_Discord_IDiscordClient_GetGuildAsync_" data-uid="Discord.WebSocket.BaseSocketClient.Discord#IDiscordClient#GetGuildAsync*"></a>
   <h4 id="Discord_WebSocket_BaseSocketClient_Discord_IDiscordClient_GetGuildAsync_System_UInt64_Discord_CacheMode_Discord_RequestOptions_" data-uid="Discord.WebSocket.BaseSocketClient.Discord#IDiscordClient#GetGuildAsync(System.UInt64,Discord.CacheMode,Discord.RequestOptions)">IDiscordClient.GetGuildAsync(UInt64, CacheMode, RequestOptions)</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Gets a guild.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -2668,17 +2709,20 @@ public async Task HandleReactionAddedAsync(Cacheable&lt;IUserMessage, ulong> cac
       <tr>
         <td><span class="xref">System.UInt64</span></td>
         <td><span class="parametername">id</span></td>
-        <td></td>
+        <td><p>The guild snowflake identifier.</p>
+</td>
       </tr>
       <tr>
         <td><a class="xref" href="Discord.CacheMode.html">CacheMode</a></td>
         <td><span class="parametername">mode</span></td>
-        <td></td>
+        <td><p>The <a class="xref" href="Discord.CacheMode.html">CacheMode</a> that determines whether the object should be fetched from cache.</p>
+</td>
       </tr>
       <tr>
         <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
         <td><span class="parametername">options</span></td>
-        <td></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -2693,7 +2737,9 @@ public async Task HandleReactionAddedAsync(Cacheable&lt;IUserMessage, ulong> cac
     <tbody>
       <tr>
         <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<a class="xref" href="Discord.IGuild.html">IGuild</a>&gt;</td>
-        <td></td>
+        <td><p>A task that represents the asynchronous get operation. The task result contains the guild associated
+with the snowflake identifier; <code>null</code> when the guild cannot be found.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -2706,7 +2752,8 @@ public async Task HandleReactionAddedAsync(Cacheable&lt;IUserMessage, ulong> cac
   </span>
   <a id="Discord_WebSocket_BaseSocketClient_Discord_IDiscordClient_GetGuildsAsync_" data-uid="Discord.WebSocket.BaseSocketClient.Discord#IDiscordClient#GetGuildsAsync*"></a>
   <h4 id="Discord_WebSocket_BaseSocketClient_Discord_IDiscordClient_GetGuildsAsync_Discord_CacheMode_Discord_RequestOptions_" data-uid="Discord.WebSocket.BaseSocketClient.Discord#IDiscordClient#GetGuildsAsync(Discord.CacheMode,Discord.RequestOptions)">IDiscordClient.GetGuildsAsync(CacheMode, RequestOptions)</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Gets a collection of guilds that the user is currently in.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -2725,12 +2772,14 @@ public async Task HandleReactionAddedAsync(Cacheable&lt;IUserMessage, ulong> cac
       <tr>
         <td><a class="xref" href="Discord.CacheMode.html">CacheMode</a></td>
         <td><span class="parametername">mode</span></td>
-        <td></td>
+        <td><p>The <a class="xref" href="Discord.CacheMode.html">CacheMode</a> that determines whether the object should be fetched from cache.</p>
+</td>
       </tr>
       <tr>
         <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
         <td><span class="parametername">options</span></td>
-        <td></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -2745,7 +2794,9 @@ public async Task HandleReactionAddedAsync(Cacheable&lt;IUserMessage, ulong> cac
     <tbody>
       <tr>
         <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<a class="xref" href="Discord.IGuild.html">IGuild</a>&gt;&gt;</td>
-        <td></td>
+        <td><p>A task that represents the asynchronous get operation. The task result contains a read-only collection
+of guilds that the current user is in.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -2758,7 +2809,8 @@ public async Task HandleReactionAddedAsync(Cacheable&lt;IUserMessage, ulong> cac
   </span>
   <a id="Discord_WebSocket_BaseSocketClient_Discord_IDiscordClient_GetInviteAsync_" data-uid="Discord.WebSocket.BaseSocketClient.Discord#IDiscordClient#GetInviteAsync*"></a>
   <h4 id="Discord_WebSocket_BaseSocketClient_Discord_IDiscordClient_GetInviteAsync_System_String_Discord_RequestOptions_" data-uid="Discord.WebSocket.BaseSocketClient.Discord#IDiscordClient#GetInviteAsync(System.String,Discord.RequestOptions)">IDiscordClient.GetInviteAsync(String, RequestOptions)</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Gets an invite.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -2777,12 +2829,14 @@ public async Task HandleReactionAddedAsync(Cacheable&lt;IUserMessage, ulong> cac
       <tr>
         <td><span class="xref">System.String</span></td>
         <td><span class="parametername">inviteId</span></td>
-        <td></td>
+        <td><p>The invitation identifier.</p>
+</td>
       </tr>
       <tr>
         <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
         <td><span class="parametername">options</span></td>
-        <td></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -2797,7 +2851,8 @@ public async Task HandleReactionAddedAsync(Cacheable&lt;IUserMessage, ulong> cac
     <tbody>
       <tr>
         <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<a class="xref" href="Discord.IInvite.html">IInvite</a>&gt;</td>
-        <td></td>
+        <td><p>A task that represents the asynchronous get operation. The task result contains the invite information.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -2810,7 +2865,8 @@ public async Task HandleReactionAddedAsync(Cacheable&lt;IUserMessage, ulong> cac
   </span>
   <a id="Discord_WebSocket_BaseSocketClient_Discord_IDiscordClient_GetPrivateChannelsAsync_" data-uid="Discord.WebSocket.BaseSocketClient.Discord#IDiscordClient#GetPrivateChannelsAsync*"></a>
   <h4 id="Discord_WebSocket_BaseSocketClient_Discord_IDiscordClient_GetPrivateChannelsAsync_Discord_CacheMode_Discord_RequestOptions_" data-uid="Discord.WebSocket.BaseSocketClient.Discord#IDiscordClient#GetPrivateChannelsAsync(Discord.CacheMode,Discord.RequestOptions)">IDiscordClient.GetPrivateChannelsAsync(CacheMode, RequestOptions)</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Gets a collection of private channels opened in this session.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -2829,12 +2885,14 @@ public async Task HandleReactionAddedAsync(Cacheable&lt;IUserMessage, ulong> cac
       <tr>
         <td><a class="xref" href="Discord.CacheMode.html">CacheMode</a></td>
         <td><span class="parametername">mode</span></td>
-        <td></td>
+        <td><p>The <a class="xref" href="Discord.CacheMode.html">CacheMode</a> that determines whether the object should be fetched from cache.</p>
+</td>
       </tr>
       <tr>
         <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
         <td><span class="parametername">options</span></td>
-        <td></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -2849,10 +2907,20 @@ public async Task HandleReactionAddedAsync(Cacheable&lt;IUserMessage, ulong> cac
     <tbody>
       <tr>
         <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<a class="xref" href="Discord.IPrivateChannel.html">IPrivateChannel</a>&gt;&gt;</td>
-        <td></td>
+        <td><p>A task that represents the asynchronous get operation. The task result contains a read-only collection
+of private channels that the user currently partakes in.</p>
+</td>
       </tr>
     </tbody>
   </table>
+  <h5 id="Discord_WebSocket_BaseSocketClient_Discord_IDiscordClient_GetPrivateChannelsAsync_Discord_CacheMode_Discord_RequestOptions__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method will retrieve all private channels (including direct-message, group channel and such) that
+are currently opened in this session.</p>
+<div class="WARNING"><h5>warning</h5><p>
+    This method will not return previously opened private channels outside of the current session! If
+    you have just started the client, this may return an empty collection.
+</p></div>
+</div>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
     <a href="https://github.com/goaaats/Discord.Net/new/dev/apiSpec/new?filename=Discord_WebSocket_BaseSocketClient_Discord_IDiscordClient_GetUserAsync_System_String_System_String_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.WebSocket.BaseSocketClient.Discord%23IDiscordClient%23GetUserAsync(System.String%2CSystem.String%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
@@ -2862,7 +2930,8 @@ public async Task HandleReactionAddedAsync(Cacheable&lt;IUserMessage, ulong> cac
   </span>
   <a id="Discord_WebSocket_BaseSocketClient_Discord_IDiscordClient_GetUserAsync_" data-uid="Discord.WebSocket.BaseSocketClient.Discord#IDiscordClient#GetUserAsync*"></a>
   <h4 id="Discord_WebSocket_BaseSocketClient_Discord_IDiscordClient_GetUserAsync_System_String_System_String_Discord_RequestOptions_" data-uid="Discord.WebSocket.BaseSocketClient.Discord#IDiscordClient#GetUserAsync(System.String,System.String,Discord.RequestOptions)">IDiscordClient.GetUserAsync(String, String, RequestOptions)</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Gets a user.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -2881,17 +2950,20 @@ public async Task HandleReactionAddedAsync(Cacheable&lt;IUserMessage, ulong> cac
       <tr>
         <td><span class="xref">System.String</span></td>
         <td><span class="parametername">username</span></td>
-        <td></td>
+        <td><p>The name of the user (e.g. <code>Still</code>).</p>
+</td>
       </tr>
       <tr>
         <td><span class="xref">System.String</span></td>
         <td><span class="parametername">discriminator</span></td>
-        <td></td>
+        <td><p>The discriminator value of the user (e.g. <code>2876</code>).</p>
+</td>
       </tr>
       <tr>
         <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
         <td><span class="parametername">options</span></td>
-        <td></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -2906,7 +2978,9 @@ public async Task HandleReactionAddedAsync(Cacheable&lt;IUserMessage, ulong> cac
     <tbody>
       <tr>
         <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<a class="xref" href="Discord.IUser.html">IUser</a>&gt;</td>
-        <td></td>
+        <td><p>A task that represents the asynchronous get operation. The task result contains the user associated with
+the name and the discriminator; <code>null</code> if the user is not found.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -2919,7 +2993,8 @@ public async Task HandleReactionAddedAsync(Cacheable&lt;IUserMessage, ulong> cac
   </span>
   <a id="Discord_WebSocket_BaseSocketClient_Discord_IDiscordClient_GetUserAsync_" data-uid="Discord.WebSocket.BaseSocketClient.Discord#IDiscordClient#GetUserAsync*"></a>
   <h4 id="Discord_WebSocket_BaseSocketClient_Discord_IDiscordClient_GetUserAsync_System_UInt64_Discord_CacheMode_Discord_RequestOptions_" data-uid="Discord.WebSocket.BaseSocketClient.Discord#IDiscordClient#GetUserAsync(System.UInt64,Discord.CacheMode,Discord.RequestOptions)">IDiscordClient.GetUserAsync(UInt64, CacheMode, RequestOptions)</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Gets a user.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -2938,17 +3013,20 @@ public async Task HandleReactionAddedAsync(Cacheable&lt;IUserMessage, ulong> cac
       <tr>
         <td><span class="xref">System.UInt64</span></td>
         <td><span class="parametername">id</span></td>
-        <td></td>
+        <td><p>The snowflake identifier of the user (e.g. <code>168693960628371456</code>).</p>
+</td>
       </tr>
       <tr>
         <td><a class="xref" href="Discord.CacheMode.html">CacheMode</a></td>
         <td><span class="parametername">mode</span></td>
-        <td></td>
+        <td><p>The <a class="xref" href="Discord.CacheMode.html">CacheMode</a> that determines whether the object should be fetched from cache.</p>
+</td>
       </tr>
       <tr>
         <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
         <td><span class="parametername">options</span></td>
-        <td></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -2963,7 +3041,9 @@ public async Task HandleReactionAddedAsync(Cacheable&lt;IUserMessage, ulong> cac
     <tbody>
       <tr>
         <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<a class="xref" href="Discord.IUser.html">IUser</a>&gt;</td>
-        <td></td>
+        <td><p>A task that represents the asynchronous get operation. The task result contains the user associated with
+the snowflake identifier; <code>null</code> if the user is not found.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -2976,7 +3056,8 @@ public async Task HandleReactionAddedAsync(Cacheable&lt;IUserMessage, ulong> cac
   </span>
   <a id="Discord_WebSocket_BaseSocketClient_Discord_IDiscordClient_GetVoiceRegionAsync_" data-uid="Discord.WebSocket.BaseSocketClient.Discord#IDiscordClient#GetVoiceRegionAsync*"></a>
   <h4 id="Discord_WebSocket_BaseSocketClient_Discord_IDiscordClient_GetVoiceRegionAsync_System_String_Discord_RequestOptions_" data-uid="Discord.WebSocket.BaseSocketClient.Discord#IDiscordClient#GetVoiceRegionAsync(System.String,Discord.RequestOptions)">IDiscordClient.GetVoiceRegionAsync(String, RequestOptions)</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Gets a voice region.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -2995,12 +3076,14 @@ public async Task HandleReactionAddedAsync(Cacheable&lt;IUserMessage, ulong> cac
       <tr>
         <td><span class="xref">System.String</span></td>
         <td><span class="parametername">id</span></td>
-        <td></td>
+        <td><p>The identifier of the voice region (e.g. <code>eu-central</code> ).</p>
+</td>
       </tr>
       <tr>
         <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
         <td><span class="parametername">options</span></td>
-        <td></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -3015,7 +3098,9 @@ public async Task HandleReactionAddedAsync(Cacheable&lt;IUserMessage, ulong> cac
     <tbody>
       <tr>
         <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<a class="xref" href="Discord.IVoiceRegion.html">IVoiceRegion</a>&gt;</td>
-        <td></td>
+        <td><p>A task that represents the asynchronous get operation. The task result contains the voice region
+associated with the identifier; <code>null</code> if the voice region is not found.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -3028,7 +3113,8 @@ public async Task HandleReactionAddedAsync(Cacheable&lt;IUserMessage, ulong> cac
   </span>
   <a id="Discord_WebSocket_BaseSocketClient_Discord_IDiscordClient_GetVoiceRegionsAsync_" data-uid="Discord.WebSocket.BaseSocketClient.Discord#IDiscordClient#GetVoiceRegionsAsync*"></a>
   <h4 id="Discord_WebSocket_BaseSocketClient_Discord_IDiscordClient_GetVoiceRegionsAsync_Discord_RequestOptions_" data-uid="Discord.WebSocket.BaseSocketClient.Discord#IDiscordClient#GetVoiceRegionsAsync(Discord.RequestOptions)">IDiscordClient.GetVoiceRegionsAsync(RequestOptions)</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Gets a collection of the available voice regions.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -3047,7 +3133,8 @@ public async Task HandleReactionAddedAsync(Cacheable&lt;IUserMessage, ulong> cac
       <tr>
         <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
         <td><span class="parametername">options</span></td>
-        <td></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -3062,7 +3149,9 @@ public async Task HandleReactionAddedAsync(Cacheable&lt;IUserMessage, ulong> cac
     <tbody>
       <tr>
         <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<a class="xref" href="Discord.IVoiceRegion.html">IVoiceRegion</a>&gt;&gt;</td>
-        <td></td>
+        <td><p>A task that represents the asynchronous get operation. The task result contains a read-only collection
+with all of the available voice regions in this session.</p>
+</td>
       </tr>
     </tbody>
   </table>

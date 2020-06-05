@@ -142,7 +142,8 @@
   </span>
   <a id="Discord_Rest_RestGuildChannel_GuildId_" data-uid="Discord.Rest.RestGuildChannel.GuildId*"></a>
   <h4 id="Discord_Rest_RestGuildChannel_GuildId" data-uid="Discord.Rest.RestGuildChannel.GuildId">GuildId</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Gets the guild ID associated with this channel.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -159,7 +160,9 @@
     <tbody>
       <tr>
         <td><span class="xref">System.UInt64</span></td>
-        <td></td>
+        <td><p>An <span class="xref">System.UInt64</span> representing the guild snowflake identifier for the guild that this channel
+belongs to.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -172,7 +175,8 @@
   </span>
   <a id="Discord_Rest_RestGuildChannel_Name_" data-uid="Discord.Rest.RestGuildChannel.Name*"></a>
   <h4 id="Discord_Rest_RestGuildChannel_Name" data-uid="Discord.Rest.RestGuildChannel.Name">Name</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Gets the name of this channel.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -189,7 +193,8 @@
     <tbody>
       <tr>
         <td><span class="xref">System.String</span></td>
-        <td></td>
+        <td><p>A string containing the name of this channel.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -202,7 +207,8 @@
   </span>
   <a id="Discord_Rest_RestGuildChannel_PermissionOverwrites_" data-uid="Discord.Rest.RestGuildChannel.PermissionOverwrites*"></a>
   <h4 id="Discord_Rest_RestGuildChannel_PermissionOverwrites" data-uid="Discord.Rest.RestGuildChannel.PermissionOverwrites">PermissionOverwrites</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Gets a collection of permission overwrites for this channel.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -219,7 +225,8 @@
     <tbody>
       <tr>
         <td><span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<a class="xref" href="Discord.Overwrite.html">Overwrite</a>&gt;</td>
-        <td></td>
+        <td><p>A collection of overwrites associated with this channel.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -232,7 +239,8 @@
   </span>
   <a id="Discord_Rest_RestGuildChannel_Position_" data-uid="Discord.Rest.RestGuildChannel.Position*"></a>
   <h4 id="Discord_Rest_RestGuildChannel_Position" data-uid="Discord.Rest.RestGuildChannel.Position">Position</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Gets the position of this channel.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -249,7 +257,9 @@
     <tbody>
       <tr>
         <td><span class="xref">System.Int32</span></td>
-        <td></td>
+        <td><p>An <span class="xref">System.Int32</span> representing the position of this channel in the guild's channel list relative to
+others of the same type.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -388,7 +398,8 @@
   </span>
   <a id="Discord_Rest_RestGuildChannel_DeleteAsync_" data-uid="Discord.Rest.RestGuildChannel.DeleteAsync*"></a>
   <h4 id="Discord_Rest_RestGuildChannel_DeleteAsync_Discord_RequestOptions_" data-uid="Discord.Rest.RestGuildChannel.DeleteAsync(Discord.RequestOptions)">DeleteAsync(RequestOptions)</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Deletes this object and all its children.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -407,7 +418,8 @@
       <tr>
         <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
         <td><span class="parametername">options</span></td>
-        <td></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -535,7 +547,8 @@
   </span>
   <a id="Discord_Rest_RestGuildChannel_ModifyAsync_" data-uid="Discord.Rest.RestGuildChannel.ModifyAsync*"></a>
   <h4 id="Discord_Rest_RestGuildChannel_ModifyAsync_System_Action_Discord_GuildChannelProperties__Discord_RequestOptions_" data-uid="Discord.Rest.RestGuildChannel.ModifyAsync(System.Action{Discord.GuildChannelProperties},Discord.RequestOptions)">ModifyAsync(Action&lt;GuildChannelProperties&gt;, RequestOptions)</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Modifies this guild channel.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -554,12 +567,14 @@
       <tr>
         <td><span class="xref">System.Action</span>&lt;<a class="xref" href="Discord.GuildChannelProperties.html">GuildChannelProperties</a>&gt;</td>
         <td><span class="parametername">func</span></td>
-        <td></td>
+        <td><p>The delegate containing the properties to modify the channel with.</p>
+</td>
       </tr>
       <tr>
         <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
         <td><span class="parametername">options</span></td>
-        <td></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -574,10 +589,15 @@
     <tbody>
       <tr>
         <td><span class="xref">System.Threading.Tasks.Task</span></td>
-        <td></td>
+        <td><p>A task that represents the asynchronous modification operation.</p>
+</td>
       </tr>
     </tbody>
   </table>
+  <h5 id="Discord_Rest_RestGuildChannel_ModifyAsync_System_Action_Discord_GuildChannelProperties__Discord_RequestOptions__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method modifies the current guild channel with the specified properties. To see an example of this
+method and what properties are available, please refer to <a class="xref" href="Discord.GuildChannelProperties.html">GuildChannelProperties</a>.</p>
+</div>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
     <a href="https://github.com/goaaats/Discord.Net/new/dev/apiSpec/new?filename=Discord_Rest_RestGuildChannel_RemovePermissionOverwriteAsync_Discord_IRole_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.Rest.RestGuildChannel.RemovePermissionOverwriteAsync(Discord.IRole%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
@@ -733,7 +753,8 @@
   </span>
   <a id="Discord_Rest_RestGuildChannel_UpdateAsync_" data-uid="Discord.Rest.RestGuildChannel.UpdateAsync*"></a>
   <h4 id="Discord_Rest_RestGuildChannel_UpdateAsync_Discord_RequestOptions_" data-uid="Discord.Rest.RestGuildChannel.UpdateAsync(Discord.RequestOptions)">UpdateAsync(RequestOptions)</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Updates this object's properties with its current state.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -784,7 +805,8 @@
   </span>
   <a id="Discord_Rest_RestGuildChannel_Discord_IChannel_GetUserAsync_" data-uid="Discord.Rest.RestGuildChannel.Discord#IChannel#GetUserAsync*"></a>
   <h4 id="Discord_Rest_RestGuildChannel_Discord_IChannel_GetUserAsync_System_UInt64_Discord_CacheMode_Discord_RequestOptions_" data-uid="Discord.Rest.RestGuildChannel.Discord#IChannel#GetUserAsync(System.UInt64,Discord.CacheMode,Discord.RequestOptions)">IChannel.GetUserAsync(UInt64, CacheMode, RequestOptions)</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Gets a user in this channel.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -803,17 +825,20 @@
       <tr>
         <td><span class="xref">System.UInt64</span></td>
         <td><span class="parametername">id</span></td>
-        <td></td>
+        <td><p>The snowflake identifier of the user (e.g. <code>168693960628371456</code>).</p>
+</td>
       </tr>
       <tr>
         <td><a class="xref" href="Discord.CacheMode.html">CacheMode</a></td>
         <td><span class="parametername">mode</span></td>
-        <td></td>
+        <td><p>The <a class="xref" href="Discord.CacheMode.html">CacheMode</a> that determines whether the object should be fetched from cache.</p>
+</td>
       </tr>
       <tr>
         <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
         <td><span class="parametername">options</span></td>
-        <td></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -828,7 +853,9 @@
     <tbody>
       <tr>
         <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<a class="xref" href="Discord.IUser.html">IUser</a>&gt;</td>
-        <td></td>
+        <td><p>A task that represents the asynchronous get operation. The task result contains a user object that
+represents the found user; <code>null</code> if none is found.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -841,7 +868,8 @@
   </span>
   <a id="Discord_Rest_RestGuildChannel_Discord_IChannel_GetUsersAsync_" data-uid="Discord.Rest.RestGuildChannel.Discord#IChannel#GetUsersAsync*"></a>
   <h4 id="Discord_Rest_RestGuildChannel_Discord_IChannel_GetUsersAsync_Discord_CacheMode_Discord_RequestOptions_" data-uid="Discord.Rest.RestGuildChannel.Discord#IChannel#GetUsersAsync(Discord.CacheMode,Discord.RequestOptions)">IChannel.GetUsersAsync(CacheMode, RequestOptions)</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Gets a collection of users that are able to view the channel or are currently in this channel.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -860,12 +888,14 @@
       <tr>
         <td><a class="xref" href="Discord.CacheMode.html">CacheMode</a></td>
         <td><span class="parametername">mode</span></td>
-        <td></td>
+        <td><p>The <a class="xref" href="Discord.CacheMode.html">CacheMode</a> that determines whether the object should be fetched from cache.</p>
+</td>
       </tr>
       <tr>
         <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
         <td><span class="parametername">options</span></td>
-        <td></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -880,10 +910,23 @@
     <tbody>
       <tr>
         <td><span class="xref">System.Collections.Generic.IAsyncEnumerable</span>&lt;<span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<a class="xref" href="Discord.IUser.html">IUser</a>&gt;&gt;</td>
-        <td></td>
+        <td><p>Paged collection of users.</p>
+</td>
       </tr>
     </tbody>
   </table>
+  <h5 id="Discord_Rest_RestGuildChannel_Discord_IChannel_GetUsersAsync_Discord_CacheMode_Discord_RequestOptions__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><div class="IMPORTANT"><h5>important</h5><p>
+    The returned collection is an asynchronous enumerable object; one must call 
+<a class="xref" href="Discord.AsyncEnumerableExtensions.html#Discord_AsyncEnumerableExtensions_FlattenAsync__1_System_Collections_Generic_IAsyncEnumerable_System_Collections_Generic_IEnumerable___0___">FlattenAsync&lt;T&gt;(IAsyncEnumerable&lt;IEnumerable&lt;T&gt;&gt;)</a> to access the individual messages as a
+collection.
+</p></div>
+This method will attempt to fetch all users that is able to view this channel or is currently in this channel.
+The library will attempt to split up the requests according to and <a class="xref" href="Discord.DiscordConfig.html#Discord_DiscordConfig_MaxUsersPerBatch">MaxUsersPerBatch</a>.
+In other words, if there are 3000 users, and the <a class="xref" href="Discord.DiscordConfig.html#Discord_DiscordConfig_MaxUsersPerBatch">MaxUsersPerBatch</a> constant
+is <code>1000</code>, the request will be split into 3 individual requests; thus returning 53individual asynchronous
+responses, hence the need of flattening.
+</div>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
     <a href="https://github.com/goaaats/Discord.Net/new/dev/apiSpec/new?filename=Discord_Rest_RestGuildChannel_Discord_IGuildChannel_AddPermissionOverwriteAsync_Discord_IRole_Discord_OverwritePermissions_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.Rest.RestGuildChannel.Discord%23IGuildChannel%23AddPermissionOverwriteAsync(Discord.IRole%2CDiscord.OverwritePermissions%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
@@ -893,7 +936,8 @@
   </span>
   <a id="Discord_Rest_RestGuildChannel_Discord_IGuildChannel_AddPermissionOverwriteAsync_" data-uid="Discord.Rest.RestGuildChannel.Discord#IGuildChannel#AddPermissionOverwriteAsync*"></a>
   <h4 id="Discord_Rest_RestGuildChannel_Discord_IGuildChannel_AddPermissionOverwriteAsync_Discord_IRole_Discord_OverwritePermissions_Discord_RequestOptions_" data-uid="Discord.Rest.RestGuildChannel.Discord#IGuildChannel#AddPermissionOverwriteAsync(Discord.IRole,Discord.OverwritePermissions,Discord.RequestOptions)">IGuildChannel.AddPermissionOverwriteAsync(IRole, OverwritePermissions, RequestOptions)</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Adds or updates the permission overwrite for the given role.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -912,17 +956,20 @@
       <tr>
         <td><a class="xref" href="Discord.IRole.html">IRole</a></td>
         <td><span class="parametername">role</span></td>
-        <td></td>
+        <td><p>The role to add the overwrite to.</p>
+</td>
       </tr>
       <tr>
         <td><a class="xref" href="Discord.OverwritePermissions.html">OverwritePermissions</a></td>
         <td><span class="parametername">permissions</span></td>
-        <td></td>
+        <td><p>The overwrite to add to the role.</p>
+</td>
       </tr>
       <tr>
         <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
         <td><span class="parametername">options</span></td>
-        <td></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -937,7 +984,9 @@
     <tbody>
       <tr>
         <td><span class="xref">System.Threading.Tasks.Task</span></td>
-        <td></td>
+        <td><p>A task representing the asynchronous permission operation for adding the specified permissions to the
+channel.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -950,7 +999,8 @@
   </span>
   <a id="Discord_Rest_RestGuildChannel_Discord_IGuildChannel_AddPermissionOverwriteAsync_" data-uid="Discord.Rest.RestGuildChannel.Discord#IGuildChannel#AddPermissionOverwriteAsync*"></a>
   <h4 id="Discord_Rest_RestGuildChannel_Discord_IGuildChannel_AddPermissionOverwriteAsync_Discord_IUser_Discord_OverwritePermissions_Discord_RequestOptions_" data-uid="Discord.Rest.RestGuildChannel.Discord#IGuildChannel#AddPermissionOverwriteAsync(Discord.IUser,Discord.OverwritePermissions,Discord.RequestOptions)">IGuildChannel.AddPermissionOverwriteAsync(IUser, OverwritePermissions, RequestOptions)</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Adds or updates the permission overwrite for the given user.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -969,17 +1019,20 @@
       <tr>
         <td><a class="xref" href="Discord.IUser.html">IUser</a></td>
         <td><span class="parametername">user</span></td>
-        <td></td>
+        <td><p>The user to add the overwrite to.</p>
+</td>
       </tr>
       <tr>
         <td><a class="xref" href="Discord.OverwritePermissions.html">OverwritePermissions</a></td>
         <td><span class="parametername">permissions</span></td>
-        <td></td>
+        <td><p>The overwrite to add to the user.</p>
+</td>
       </tr>
       <tr>
         <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
         <td><span class="parametername">options</span></td>
-        <td></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -994,7 +1047,8 @@
     <tbody>
       <tr>
         <td><span class="xref">System.Threading.Tasks.Task</span></td>
-        <td></td>
+        <td><p>A task representing the asynchronous permission operation for adding the specified permissions to the channel.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -1007,7 +1061,8 @@
   </span>
   <a id="Discord_Rest_RestGuildChannel_Discord_IGuildChannel_GetPermissionOverwrite_" data-uid="Discord.Rest.RestGuildChannel.Discord#IGuildChannel#GetPermissionOverwrite*"></a>
   <h4 id="Discord_Rest_RestGuildChannel_Discord_IGuildChannel_GetPermissionOverwrite_Discord_IRole_" data-uid="Discord.Rest.RestGuildChannel.Discord#IGuildChannel#GetPermissionOverwrite(Discord.IRole)">IGuildChannel.GetPermissionOverwrite(IRole)</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Gets the permission overwrite for a specific role.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -1026,7 +1081,8 @@
       <tr>
         <td><a class="xref" href="Discord.IRole.html">IRole</a></td>
         <td><span class="parametername">role</span></td>
-        <td></td>
+        <td><p>The role to get the overwrite from.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -1041,7 +1097,8 @@
     <tbody>
       <tr>
         <td><span class="xref">System.Nullable</span>&lt;<a class="xref" href="Discord.OverwritePermissions.html">OverwritePermissions</a>&gt;</td>
-        <td></td>
+        <td><p>An overwrite object for the targeted role; <code>null</code> if none is set.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -1054,7 +1111,8 @@
   </span>
   <a id="Discord_Rest_RestGuildChannel_Discord_IGuildChannel_GetPermissionOverwrite_" data-uid="Discord.Rest.RestGuildChannel.Discord#IGuildChannel#GetPermissionOverwrite*"></a>
   <h4 id="Discord_Rest_RestGuildChannel_Discord_IGuildChannel_GetPermissionOverwrite_Discord_IUser_" data-uid="Discord.Rest.RestGuildChannel.Discord#IGuildChannel#GetPermissionOverwrite(Discord.IUser)">IGuildChannel.GetPermissionOverwrite(IUser)</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Gets the permission overwrite for a specific user.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -1073,7 +1131,8 @@
       <tr>
         <td><a class="xref" href="Discord.IUser.html">IUser</a></td>
         <td><span class="parametername">user</span></td>
-        <td></td>
+        <td><p>The user to get the overwrite from.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -1088,7 +1147,8 @@
     <tbody>
       <tr>
         <td><span class="xref">System.Nullable</span>&lt;<a class="xref" href="Discord.OverwritePermissions.html">OverwritePermissions</a>&gt;</td>
-        <td></td>
+        <td><p>An overwrite object for the targeted user; <code>null</code> if none is set.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -1101,7 +1161,8 @@
   </span>
   <a id="Discord_Rest_RestGuildChannel_Discord_IGuildChannel_GetUserAsync_" data-uid="Discord.Rest.RestGuildChannel.Discord#IGuildChannel#GetUserAsync*"></a>
   <h4 id="Discord_Rest_RestGuildChannel_Discord_IGuildChannel_GetUserAsync_System_UInt64_Discord_CacheMode_Discord_RequestOptions_" data-uid="Discord.Rest.RestGuildChannel.Discord#IGuildChannel#GetUserAsync(System.UInt64,Discord.CacheMode,Discord.RequestOptions)">IGuildChannel.GetUserAsync(UInt64, CacheMode, RequestOptions)</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Gets a user in this channel.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -1120,17 +1181,20 @@
       <tr>
         <td><span class="xref">System.UInt64</span></td>
         <td><span class="parametername">id</span></td>
-        <td></td>
+        <td><p>The snowflake identifier of the user.</p>
+</td>
       </tr>
       <tr>
         <td><a class="xref" href="Discord.CacheMode.html">CacheMode</a></td>
         <td><span class="parametername">mode</span></td>
-        <td></td>
+        <td><p>The <a class="xref" href="Discord.CacheMode.html">CacheMode</a> that determines whether the object should be fetched from cache.</p>
+</td>
       </tr>
       <tr>
         <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
         <td><span class="parametername">options</span></td>
-        <td></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -1145,7 +1209,9 @@
     <tbody>
       <tr>
         <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<a class="xref" href="Discord.IGuildUser.html">IGuildUser</a>&gt;</td>
-        <td></td>
+        <td><p>A task representing the asynchronous get operation. The task result contains a guild user object that
+represents the user; <code>null</code> if none is found.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -1158,7 +1224,8 @@
   </span>
   <a id="Discord_Rest_RestGuildChannel_Discord_IGuildChannel_GetUsersAsync_" data-uid="Discord.Rest.RestGuildChannel.Discord#IGuildChannel#GetUsersAsync*"></a>
   <h4 id="Discord_Rest_RestGuildChannel_Discord_IGuildChannel_GetUsersAsync_Discord_CacheMode_Discord_RequestOptions_" data-uid="Discord.Rest.RestGuildChannel.Discord#IGuildChannel#GetUsersAsync(Discord.CacheMode,Discord.RequestOptions)">IGuildChannel.GetUsersAsync(CacheMode, RequestOptions)</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Gets a collection of users that are able to view the channel or are currently in this channel.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -1177,12 +1244,14 @@
       <tr>
         <td><a class="xref" href="Discord.CacheMode.html">CacheMode</a></td>
         <td><span class="parametername">mode</span></td>
-        <td></td>
+        <td><p>The <a class="xref" href="Discord.CacheMode.html">CacheMode</a> that determines whether the object should be fetched from cache.</p>
+</td>
       </tr>
       <tr>
         <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
         <td><span class="parametername">options</span></td>
-        <td></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -1197,10 +1266,15 @@
     <tbody>
       <tr>
         <td><span class="xref">System.Collections.Generic.IAsyncEnumerable</span>&lt;<span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<a class="xref" href="Discord.IGuildUser.html">IGuildUser</a>&gt;&gt;</td>
-        <td></td>
+        <td><p>Paged collection of users.</p>
+</td>
       </tr>
     </tbody>
   </table>
+  <h5 id="Discord_Rest_RestGuildChannel_Discord_IGuildChannel_GetUsersAsync_Discord_CacheMode_Discord_RequestOptions__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method follows the same behavior as described in <a class="xref" href="Discord.IChannel.html#Discord_IChannel_GetUsersAsync_Discord_CacheMode_Discord_RequestOptions_">GetUsersAsync(CacheMode, RequestOptions)</a>.
+Please visit its documentation for more details on this method.</p>
+</div>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
     <a href="https://github.com/goaaats/Discord.Net/new/dev/apiSpec/new?filename=Discord_Rest_RestGuildChannel_Discord_IGuildChannel_Guild.md&amp;value=---%0Auid%3A%20Discord.Rest.RestGuildChannel.Discord%23IGuildChannel%23Guild%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
@@ -1210,7 +1284,8 @@
   </span>
   <a id="Discord_Rest_RestGuildChannel_Discord_IGuildChannel_Guild_" data-uid="Discord.Rest.RestGuildChannel.Discord#IGuildChannel#Guild*"></a>
   <h4 id="Discord_Rest_RestGuildChannel_Discord_IGuildChannel_Guild" data-uid="Discord.Rest.RestGuildChannel.Discord#IGuildChannel#Guild">IGuildChannel.Guild</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Gets the guild associated with this channel.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -1227,7 +1302,8 @@
     <tbody>
       <tr>
         <td><a class="xref" href="Discord.IGuild.html">IGuild</a></td>
-        <td></td>
+        <td><p>A guild object that this channel belongs to.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -1240,7 +1316,8 @@
   </span>
   <a id="Discord_Rest_RestGuildChannel_Discord_IGuildChannel_RemovePermissionOverwriteAsync_" data-uid="Discord.Rest.RestGuildChannel.Discord#IGuildChannel#RemovePermissionOverwriteAsync*"></a>
   <h4 id="Discord_Rest_RestGuildChannel_Discord_IGuildChannel_RemovePermissionOverwriteAsync_Discord_IRole_Discord_RequestOptions_" data-uid="Discord.Rest.RestGuildChannel.Discord#IGuildChannel#RemovePermissionOverwriteAsync(Discord.IRole,Discord.RequestOptions)">IGuildChannel.RemovePermissionOverwriteAsync(IRole, RequestOptions)</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Removes the permission overwrite for the given role, if one exists.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -1259,12 +1336,14 @@
       <tr>
         <td><a class="xref" href="Discord.IRole.html">IRole</a></td>
         <td><span class="parametername">role</span></td>
-        <td></td>
+        <td><p>The role to remove the overwrite from.</p>
+</td>
       </tr>
       <tr>
         <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
         <td><span class="parametername">options</span></td>
-        <td></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -1279,7 +1358,8 @@
     <tbody>
       <tr>
         <td><span class="xref">System.Threading.Tasks.Task</span></td>
-        <td></td>
+        <td><p>A task representing the asynchronous operation for removing the specified permissions from the channel.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -1292,7 +1372,8 @@
   </span>
   <a id="Discord_Rest_RestGuildChannel_Discord_IGuildChannel_RemovePermissionOverwriteAsync_" data-uid="Discord.Rest.RestGuildChannel.Discord#IGuildChannel#RemovePermissionOverwriteAsync*"></a>
   <h4 id="Discord_Rest_RestGuildChannel_Discord_IGuildChannel_RemovePermissionOverwriteAsync_Discord_IUser_Discord_RequestOptions_" data-uid="Discord.Rest.RestGuildChannel.Discord#IGuildChannel#RemovePermissionOverwriteAsync(Discord.IUser,Discord.RequestOptions)">IGuildChannel.RemovePermissionOverwriteAsync(IUser, RequestOptions)</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Removes the permission overwrite for the given user, if one exists.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -1311,12 +1392,14 @@
       <tr>
         <td><a class="xref" href="Discord.IUser.html">IUser</a></td>
         <td><span class="parametername">user</span></td>
-        <td></td>
+        <td><p>The user to remove the overwrite from.</p>
+</td>
       </tr>
       <tr>
         <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
         <td><span class="parametername">options</span></td>
-        <td></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -1331,7 +1414,8 @@
     <tbody>
       <tr>
         <td><span class="xref">System.Threading.Tasks.Task</span></td>
-        <td></td>
+        <td><p>A task representing the asynchronous operation for removing the specified permissions from the channel.</p>
+</td>
       </tr>
     </tbody>
   </table>

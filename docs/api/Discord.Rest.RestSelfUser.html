@@ -182,7 +182,8 @@
   </span>
   <a id="Discord_Rest_RestSelfUser_Email_" data-uid="Discord.Rest.RestSelfUser.Email*"></a>
   <h4 id="Discord_Rest_RestSelfUser_Email" data-uid="Discord.Rest.RestSelfUser.Email">Email</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Gets the email associated with this user.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -212,7 +213,8 @@
   </span>
   <a id="Discord_Rest_RestSelfUser_Flags_" data-uid="Discord.Rest.RestSelfUser.Flags*"></a>
   <h4 id="Discord_Rest_RestSelfUser_Flags" data-uid="Discord.Rest.RestSelfUser.Flags">Flags</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Gets the flags that are applied to a user's account.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -229,10 +231,14 @@
     <tbody>
       <tr>
         <td><a class="xref" href="Discord.UserProperties.html">UserProperties</a></td>
-        <td></td>
+        <td><p>The value of flags for this user.</p>
+</td>
       </tr>
     </tbody>
   </table>
+  <h5 id="Discord_Rest_RestSelfUser_Flags_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This value is determined by bitwise OR-ing <a class="xref" href="Discord.UserProperties.html">UserProperties</a> values together.</p>
+</div>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
     <a href="https://github.com/goaaats/Discord.Net/new/dev/apiSpec/new?filename=Discord_Rest_RestSelfUser_IsMfaEnabled.md&amp;value=---%0Auid%3A%20Discord.Rest.RestSelfUser.IsMfaEnabled%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
@@ -242,7 +248,8 @@
   </span>
   <a id="Discord_Rest_RestSelfUser_IsMfaEnabled_" data-uid="Discord.Rest.RestSelfUser.IsMfaEnabled*"></a>
   <h4 id="Discord_Rest_RestSelfUser_IsMfaEnabled" data-uid="Discord.Rest.RestSelfUser.IsMfaEnabled">IsMfaEnabled</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Indicates whether or not this user has MFA enabled on their account.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -259,7 +266,8 @@
     <tbody>
       <tr>
         <td><span class="xref">System.Boolean</span></td>
-        <td></td>
+        <td><p><code>true</code> if this user has enabled multi-factor authentication on their account; <code>false</code> if not.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -272,7 +280,8 @@
   </span>
   <a id="Discord_Rest_RestSelfUser_IsVerified_" data-uid="Discord.Rest.RestSelfUser.IsVerified*"></a>
   <h4 id="Discord_Rest_RestSelfUser_IsVerified" data-uid="Discord.Rest.RestSelfUser.IsVerified">IsVerified</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Indicates whether or not this user has their email verified.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -289,7 +298,8 @@
     <tbody>
       <tr>
         <td><span class="xref">System.Boolean</span></td>
-        <td></td>
+        <td><p><code>true</code> if this user's email has been verified; <code>false</code> if not.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -302,7 +312,8 @@
   </span>
   <a id="Discord_Rest_RestSelfUser_Locale_" data-uid="Discord.Rest.RestSelfUser.Locale*"></a>
   <h4 id="Discord_Rest_RestSelfUser_Locale" data-uid="Discord.Rest.RestSelfUser.Locale">Locale</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Gets the user's chosen language option.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -319,7 +330,9 @@
     <tbody>
       <tr>
         <td><span class="xref">System.String</span></td>
-        <td></td>
+        <td><p>The IETF language tag of the user's chosen region, if provided.
+For example, a locale of &quot;English, US&quot; is &quot;en-US&quot;, &quot;Chinese (Taiwan)&quot; is &quot;zh-TW&quot;, etc.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -332,7 +345,8 @@
   </span>
   <a id="Discord_Rest_RestSelfUser_PremiumType_" data-uid="Discord.Rest.RestSelfUser.PremiumType*"></a>
   <h4 id="Discord_Rest_RestSelfUser_PremiumType" data-uid="Discord.Rest.RestSelfUser.PremiumType">PremiumType</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Gets the type of Nitro subscription that is active on this user's account.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -349,10 +363,14 @@
     <tbody>
       <tr>
         <td><a class="xref" href="Discord.PremiumType.html">PremiumType</a></td>
-        <td></td>
+        <td><p>The type of Nitro subscription the user subscribes to, if any.</p>
+</td>
       </tr>
     </tbody>
   </table>
+  <h5 id="Discord_Rest_RestSelfUser_PremiumType_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This information may only be available with the identify OAuth scope.</p>
+</div>
   <h3 id="methods">Methods
   </h3>
   <span class="small pull-right mobile-hide">
@@ -364,7 +382,8 @@
   </span>
   <a id="Discord_Rest_RestSelfUser_ModifyAsync_" data-uid="Discord.Rest.RestSelfUser.ModifyAsync*"></a>
   <h4 id="Discord_Rest_RestSelfUser_ModifyAsync_System_Action_Discord_SelfUserProperties__Discord_RequestOptions_" data-uid="Discord.Rest.RestSelfUser.ModifyAsync(System.Action{Discord.SelfUserProperties},Discord.RequestOptions)">ModifyAsync(Action&lt;SelfUserProperties&gt;, RequestOptions)</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Modifies the user's properties.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -432,7 +451,8 @@
   </span>
   <a id="Discord_Rest_RestSelfUser_UpdateAsync_" data-uid="Discord.Rest.RestSelfUser.UpdateAsync*"></a>
   <h4 id="Discord_Rest_RestSelfUser_UpdateAsync_Discord_RequestOptions_" data-uid="Discord.Rest.RestSelfUser.UpdateAsync(Discord.RequestOptions)">UpdateAsync(RequestOptions)</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Updates this object's properties with its current state.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">

@@ -210,7 +210,8 @@
   </span>
   <a id="Discord_Rest_RestCategoryChannel_Discord_IChannel_GetUserAsync_" data-uid="Discord.Rest.RestCategoryChannel.Discord#IChannel#GetUserAsync*"></a>
   <h4 id="Discord_Rest_RestCategoryChannel_Discord_IChannel_GetUserAsync_System_UInt64_Discord_CacheMode_Discord_RequestOptions_" data-uid="Discord.Rest.RestCategoryChannel.Discord#IChannel#GetUserAsync(System.UInt64,Discord.CacheMode,Discord.RequestOptions)">IChannel.GetUserAsync(UInt64, CacheMode, RequestOptions)</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Gets a user in this channel.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -229,17 +230,20 @@
       <tr>
         <td><span class="xref">System.UInt64</span></td>
         <td><span class="parametername">id</span></td>
-        <td></td>
+        <td><p>The snowflake identifier of the user (e.g. <code>168693960628371456</code>).</p>
+</td>
       </tr>
       <tr>
         <td><a class="xref" href="Discord.CacheMode.html">CacheMode</a></td>
         <td><span class="parametername">mode</span></td>
-        <td></td>
+        <td><p>The <a class="xref" href="Discord.CacheMode.html">CacheMode</a> that determines whether the object should be fetched from cache.</p>
+</td>
       </tr>
       <tr>
         <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
         <td><span class="parametername">options</span></td>
-        <td></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -254,7 +258,9 @@
     <tbody>
       <tr>
         <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<a class="xref" href="Discord.IUser.html">IUser</a>&gt;</td>
-        <td></td>
+        <td><p>A task that represents the asynchronous get operation. The task result contains a user object that
+represents the found user; <code>null</code> if none is found.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -283,7 +289,8 @@
   </span>
   <a id="Discord_Rest_RestCategoryChannel_Discord_IChannel_GetUsersAsync_" data-uid="Discord.Rest.RestCategoryChannel.Discord#IChannel#GetUsersAsync*"></a>
   <h4 id="Discord_Rest_RestCategoryChannel_Discord_IChannel_GetUsersAsync_Discord_CacheMode_Discord_RequestOptions_" data-uid="Discord.Rest.RestCategoryChannel.Discord#IChannel#GetUsersAsync(Discord.CacheMode,Discord.RequestOptions)">IChannel.GetUsersAsync(CacheMode, RequestOptions)</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Gets a collection of users that are able to view the channel or are currently in this channel.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -302,12 +309,14 @@
       <tr>
         <td><a class="xref" href="Discord.CacheMode.html">CacheMode</a></td>
         <td><span class="parametername">mode</span></td>
-        <td></td>
+        <td><p>The <a class="xref" href="Discord.CacheMode.html">CacheMode</a> that determines whether the object should be fetched from cache.</p>
+</td>
       </tr>
       <tr>
         <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
         <td><span class="parametername">options</span></td>
-        <td></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -322,10 +331,23 @@
     <tbody>
       <tr>
         <td><span class="xref">System.Collections.Generic.IAsyncEnumerable</span>&lt;<span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<a class="xref" href="Discord.IUser.html">IUser</a>&gt;&gt;</td>
-        <td></td>
+        <td><p>Paged collection of users.</p>
+</td>
       </tr>
     </tbody>
   </table>
+  <h5 id="Discord_Rest_RestCategoryChannel_Discord_IChannel_GetUsersAsync_Discord_CacheMode_Discord_RequestOptions__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><div class="IMPORTANT"><h5>important</h5><p>
+    The returned collection is an asynchronous enumerable object; one must call 
+<a class="xref" href="Discord.AsyncEnumerableExtensions.html#Discord_AsyncEnumerableExtensions_FlattenAsync__1_System_Collections_Generic_IAsyncEnumerable_System_Collections_Generic_IEnumerable___0___">FlattenAsync&lt;T&gt;(IAsyncEnumerable&lt;IEnumerable&lt;T&gt;&gt;)</a> to access the individual messages as a
+collection.
+</p></div>
+This method will attempt to fetch all users that is able to view this channel or is currently in this channel.
+The library will attempt to split up the requests according to and <a class="xref" href="Discord.DiscordConfig.html#Discord_DiscordConfig_MaxUsersPerBatch">MaxUsersPerBatch</a>.
+In other words, if there are 3000 users, and the <a class="xref" href="Discord.DiscordConfig.html#Discord_DiscordConfig_MaxUsersPerBatch">MaxUsersPerBatch</a> constant
+is <code>1000</code>, the request will be split into 3 individual requests; thus returning 53individual asynchronous
+responses, hence the need of flattening.
+</div>
   <h5 class="exceptions">Exceptions</h5>
   <table class="table table-bordered table-striped table-condensed">
     <thead>

@@ -213,7 +213,8 @@
   </span>
   <a id="Discord_Rest_RestVoiceChannel_Bitrate_" data-uid="Discord.Rest.RestVoiceChannel.Bitrate*"></a>
   <h4 id="Discord_Rest_RestVoiceChannel_Bitrate" data-uid="Discord.Rest.RestVoiceChannel.Bitrate">Bitrate</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Gets the bit-rate that the clients in this voice channel are requested to use.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -230,7 +231,9 @@
     <tbody>
       <tr>
         <td><span class="xref">System.Int32</span></td>
-        <td></td>
+        <td><p>An <span class="xref">System.Int32</span> representing the bit-rate (bps) that this voice channel defines and requests the
+client(s) to use.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -243,7 +246,8 @@
   </span>
   <a id="Discord_Rest_RestVoiceChannel_CategoryId_" data-uid="Discord.Rest.RestVoiceChannel.CategoryId*"></a>
   <h4 id="Discord_Rest_RestVoiceChannel_CategoryId" data-uid="Discord.Rest.RestVoiceChannel.CategoryId">CategoryId</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Gets the parent (category) ID of this channel in the guild's channel list.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -260,7 +264,9 @@
     <tbody>
       <tr>
         <td><span class="xref">System.Nullable</span>&lt;<span class="xref">System.UInt64</span>&gt;</td>
-        <td></td>
+        <td><p>A <span class="xref">System.UInt64</span> representing the snowflake identifier of the parent of this channel;
+<code>null</code> if none is set.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -273,7 +279,8 @@
   </span>
   <a id="Discord_Rest_RestVoiceChannel_UserLimit_" data-uid="Discord.Rest.RestVoiceChannel.UserLimit*"></a>
   <h4 id="Discord_Rest_RestVoiceChannel_UserLimit" data-uid="Discord.Rest.RestVoiceChannel.UserLimit">UserLimit</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Gets the max number of users allowed to be connected to this channel at once.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -290,7 +297,9 @@
     <tbody>
       <tr>
         <td><span class="xref">System.Nullable</span>&lt;<span class="xref">System.Int32</span>&gt;</td>
-        <td></td>
+        <td><p>An <span class="xref">System.Int32</span> representing the maximum number of users that are allowed to be connected to this
+channel at once; <code>null</code> if a limit is not set.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -305,7 +314,8 @@
   </span>
   <a id="Discord_Rest_RestVoiceChannel_CreateInviteAsync_" data-uid="Discord.Rest.RestVoiceChannel.CreateInviteAsync*"></a>
   <h4 id="Discord_Rest_RestVoiceChannel_CreateInviteAsync_System_Nullable_System_Int32__System_Nullable_System_Int32__System_Boolean_System_Boolean_Discord_RequestOptions_" data-uid="Discord.Rest.RestVoiceChannel.CreateInviteAsync(System.Nullable{System.Int32},System.Nullable{System.Int32},System.Boolean,System.Boolean,Discord.RequestOptions)">CreateInviteAsync(Nullable&lt;Int32&gt;, Nullable&lt;Int32&gt;, Boolean, Boolean, RequestOptions)</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Creates a new invite to this channel.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -324,27 +334,32 @@
       <tr>
         <td><span class="xref">System.Nullable</span>&lt;<span class="xref">System.Int32</span>&gt;</td>
         <td><span class="parametername">maxAge</span></td>
-        <td></td>
+        <td><p>The time (in seconds) until the invite expires. Set to <code>null</code> to never expire.</p>
+</td>
       </tr>
       <tr>
         <td><span class="xref">System.Nullable</span>&lt;<span class="xref">System.Int32</span>&gt;</td>
         <td><span class="parametername">maxUses</span></td>
-        <td></td>
+        <td><p>The max amount of times this invite may be used. Set to <code>null</code> to have unlimited uses.</p>
+</td>
       </tr>
       <tr>
         <td><span class="xref">System.Boolean</span></td>
         <td><span class="parametername">isTemporary</span></td>
-        <td></td>
+        <td><p>If <code>true</code>, the user accepting this invite will be kicked from the guild after closing their client.</p>
+</td>
       </tr>
       <tr>
         <td><span class="xref">System.Boolean</span></td>
         <td><span class="parametername">isUnique</span></td>
-        <td></td>
+        <td><p>If <code>true</code>, don't try to reuse a similar invite (useful for creating many unique one time use invites).</p>
+</td>
       </tr>
       <tr>
         <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
         <td><span class="parametername">options</span></td>
-        <td></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -359,7 +374,9 @@
     <tbody>
       <tr>
         <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<a class="xref" href="Discord.IInviteMetadata.html">IInviteMetadata</a>&gt;</td>
-        <td></td>
+        <td><p>A task that represents the asynchronous invite creation operation. The task result contains an invite
+metadata object containing information for the created invite.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -423,7 +440,8 @@ representing the parent of this channel; <code>null</code> if none is set.</p>
   </span>
   <a id="Discord_Rest_RestVoiceChannel_GetInvitesAsync_" data-uid="Discord.Rest.RestVoiceChannel.GetInvitesAsync*"></a>
   <h4 id="Discord_Rest_RestVoiceChannel_GetInvitesAsync_Discord_RequestOptions_" data-uid="Discord.Rest.RestVoiceChannel.GetInvitesAsync(Discord.RequestOptions)">GetInvitesAsync(RequestOptions)</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Gets a collection of all invites to this channel.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -442,7 +460,8 @@ representing the parent of this channel; <code>null</code> if none is set.</p>
       <tr>
         <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
         <td><span class="parametername">options</span></td>
-        <td></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -457,7 +476,9 @@ representing the parent of this channel; <code>null</code> if none is set.</p>
     <tbody>
       <tr>
         <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<a class="xref" href="Discord.IInviteMetadata.html">IInviteMetadata</a>&gt;&gt;</td>
-        <td></td>
+        <td><p>A task that represents the asynchronous get operation. The task result contains a read-only collection
+of invite metadata that are created for this channel.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -470,7 +491,8 @@ representing the parent of this channel; <code>null</code> if none is set.</p>
   </span>
   <a id="Discord_Rest_RestVoiceChannel_ModifyAsync_" data-uid="Discord.Rest.RestVoiceChannel.ModifyAsync*"></a>
   <h4 id="Discord_Rest_RestVoiceChannel_ModifyAsync_System_Action_Discord_VoiceChannelProperties__Discord_RequestOptions_" data-uid="Discord.Rest.RestVoiceChannel.ModifyAsync(System.Action{Discord.VoiceChannelProperties},Discord.RequestOptions)">ModifyAsync(Action&lt;VoiceChannelProperties&gt;, RequestOptions)</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Modifies this voice channel.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -489,12 +511,14 @@ representing the parent of this channel; <code>null</code> if none is set.</p>
       <tr>
         <td><span class="xref">System.Action</span>&lt;<a class="xref" href="Discord.VoiceChannelProperties.html">VoiceChannelProperties</a>&gt;</td>
         <td><span class="parametername">func</span></td>
-        <td></td>
+        <td><p>The properties to modify the channel with.</p>
+</td>
       </tr>
       <tr>
         <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
         <td><span class="parametername">options</span></td>
-        <td></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -509,10 +533,15 @@ representing the parent of this channel; <code>null</code> if none is set.</p>
     <tbody>
       <tr>
         <td><span class="xref">System.Threading.Tasks.Task</span></td>
-        <td></td>
+        <td><p>A task that represents the asynchronous modification operation.</p>
+</td>
       </tr>
     </tbody>
   </table>
+  <h5 id="Discord_Rest_RestVoiceChannel_ModifyAsync_System_Action_Discord_VoiceChannelProperties__Discord_RequestOptions__seealso">See Also</h5>
+  <div class="seealso">
+      <div><a class="xref" href="Discord.VoiceChannelProperties.html">VoiceChannelProperties</a></div>
+  </div>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
     <a href="https://github.com/goaaats/Discord.Net/new/dev/apiSpec/new?filename=Discord_Rest_RestVoiceChannel_SyncPermissionsAsync_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.Rest.RestVoiceChannel.SyncPermissionsAsync(Discord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
@@ -522,7 +551,8 @@ representing the parent of this channel; <code>null</code> if none is set.</p>
   </span>
   <a id="Discord_Rest_RestVoiceChannel_SyncPermissionsAsync_" data-uid="Discord.Rest.RestVoiceChannel.SyncPermissionsAsync*"></a>
   <h4 id="Discord_Rest_RestVoiceChannel_SyncPermissionsAsync_Discord_RequestOptions_" data-uid="Discord.Rest.RestVoiceChannel.SyncPermissionsAsync(Discord.RequestOptions)">SyncPermissionsAsync(RequestOptions)</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Syncs the permissions of this nested channel with its parent's.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -541,7 +571,8 @@ representing the parent of this channel; <code>null</code> if none is set.</p>
       <tr>
         <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
         <td><span class="parametername">options</span></td>
-        <td></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -556,7 +587,8 @@ representing the parent of this channel; <code>null</code> if none is set.</p>
     <tbody>
       <tr>
         <td><span class="xref">System.Threading.Tasks.Task</span></td>
-        <td></td>
+        <td><p>A task that represents the asynchronous operation for syncing channel permissions with its parent's.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -571,7 +603,8 @@ representing the parent of this channel; <code>null</code> if none is set.</p>
   </span>
   <a id="Discord_Rest_RestVoiceChannel_Discord_IAudioChannel_ConnectAsync_" data-uid="Discord.Rest.RestVoiceChannel.Discord#IAudioChannel#ConnectAsync*"></a>
   <h4 id="Discord_Rest_RestVoiceChannel_Discord_IAudioChannel_ConnectAsync_System_Boolean_System_Boolean_System_Boolean_" data-uid="Discord.Rest.RestVoiceChannel.Discord#IAudioChannel#ConnectAsync(System.Boolean,System.Boolean,System.Boolean)">IAudioChannel.ConnectAsync(Boolean, Boolean, Boolean)</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Connects to this audio channel.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -590,17 +623,20 @@ representing the parent of this channel; <code>null</code> if none is set.</p>
       <tr>
         <td><span class="xref">System.Boolean</span></td>
         <td><span class="parametername">selfDeaf</span></td>
-        <td></td>
+        <td><p>Determines whether the client should deaf itself upon connection.</p>
+</td>
       </tr>
       <tr>
         <td><span class="xref">System.Boolean</span></td>
         <td><span class="parametername">selfMute</span></td>
-        <td></td>
+        <td><p>Determines whether the client should mute itself upon connection.</p>
+</td>
       </tr>
       <tr>
         <td><span class="xref">System.Boolean</span></td>
         <td><span class="parametername">external</span></td>
-        <td></td>
+        <td><p>Determines whether the audio client is an external one or not.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -615,7 +651,9 @@ representing the parent of this channel; <code>null</code> if none is set.</p>
     <tbody>
       <tr>
         <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<a class="xref" href="Discord.Audio.IAudioClient.html">IAudioClient</a>&gt;</td>
-        <td></td>
+        <td><p>A task representing the asynchronous connection operation. The task result contains the
+<a class="xref" href="Discord.Audio.IAudioClient.html">IAudioClient</a> responsible for the connection.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -674,7 +712,8 @@ representing the parent of this channel; <code>null</code> if none is set.</p>
   </span>
   <a id="Discord_Rest_RestVoiceChannel_Discord_IGuildChannel_GetUserAsync_" data-uid="Discord.Rest.RestVoiceChannel.Discord#IGuildChannel#GetUserAsync*"></a>
   <h4 id="Discord_Rest_RestVoiceChannel_Discord_IGuildChannel_GetUserAsync_System_UInt64_Discord_CacheMode_Discord_RequestOptions_" data-uid="Discord.Rest.RestVoiceChannel.Discord#IGuildChannel#GetUserAsync(System.UInt64,Discord.CacheMode,Discord.RequestOptions)">IGuildChannel.GetUserAsync(UInt64, CacheMode, RequestOptions)</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Gets a user in this channel.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -693,17 +732,20 @@ representing the parent of this channel; <code>null</code> if none is set.</p>
       <tr>
         <td><span class="xref">System.UInt64</span></td>
         <td><span class="parametername">id</span></td>
-        <td></td>
+        <td><p>The snowflake identifier of the user.</p>
+</td>
       </tr>
       <tr>
         <td><a class="xref" href="Discord.CacheMode.html">CacheMode</a></td>
         <td><span class="parametername">mode</span></td>
-        <td></td>
+        <td><p>The <a class="xref" href="Discord.CacheMode.html">CacheMode</a> that determines whether the object should be fetched from cache.</p>
+</td>
       </tr>
       <tr>
         <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
         <td><span class="parametername">options</span></td>
-        <td></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -718,7 +760,9 @@ representing the parent of this channel; <code>null</code> if none is set.</p>
     <tbody>
       <tr>
         <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<a class="xref" href="Discord.IGuildUser.html">IGuildUser</a>&gt;</td>
-        <td></td>
+        <td><p>A task representing the asynchronous get operation. The task result contains a guild user object that
+represents the user; <code>null</code> if none is found.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -731,7 +775,8 @@ representing the parent of this channel; <code>null</code> if none is set.</p>
   </span>
   <a id="Discord_Rest_RestVoiceChannel_Discord_IGuildChannel_GetUsersAsync_" data-uid="Discord.Rest.RestVoiceChannel.Discord#IGuildChannel#GetUsersAsync*"></a>
   <h4 id="Discord_Rest_RestVoiceChannel_Discord_IGuildChannel_GetUsersAsync_Discord_CacheMode_Discord_RequestOptions_" data-uid="Discord.Rest.RestVoiceChannel.Discord#IGuildChannel#GetUsersAsync(Discord.CacheMode,Discord.RequestOptions)">IGuildChannel.GetUsersAsync(CacheMode, RequestOptions)</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Gets a collection of users that are able to view the channel or are currently in this channel.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -750,12 +795,14 @@ representing the parent of this channel; <code>null</code> if none is set.</p>
       <tr>
         <td><a class="xref" href="Discord.CacheMode.html">CacheMode</a></td>
         <td><span class="parametername">mode</span></td>
-        <td></td>
+        <td><p>The <a class="xref" href="Discord.CacheMode.html">CacheMode</a> that determines whether the object should be fetched from cache.</p>
+</td>
       </tr>
       <tr>
         <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
         <td><span class="parametername">options</span></td>
-        <td></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -770,10 +817,15 @@ representing the parent of this channel; <code>null</code> if none is set.</p>
     <tbody>
       <tr>
         <td><span class="xref">System.Collections.Generic.IAsyncEnumerable</span>&lt;<span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<a class="xref" href="Discord.IGuildUser.html">IGuildUser</a>&gt;&gt;</td>
-        <td></td>
+        <td><p>Paged collection of users.</p>
+</td>
       </tr>
     </tbody>
   </table>
+  <h5 id="Discord_Rest_RestVoiceChannel_Discord_IGuildChannel_GetUsersAsync_Discord_CacheMode_Discord_RequestOptions__remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This method follows the same behavior as described in <a class="xref" href="Discord.IChannel.html#Discord_IChannel_GetUsersAsync_Discord_CacheMode_Discord_RequestOptions_">GetUsersAsync(CacheMode, RequestOptions)</a>.
+Please visit its documentation for more details on this method.</p>
+</div>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
     <a href="https://github.com/goaaats/Discord.Net/new/dev/apiSpec/new?filename=Discord_Rest_RestVoiceChannel_Discord_INestedChannel_GetCategoryAsync_Discord_CacheMode_Discord_RequestOptions_.md&amp;value=---%0Auid%3A%20Discord.Rest.RestVoiceChannel.Discord%23INestedChannel%23GetCategoryAsync(Discord.CacheMode%2CDiscord.RequestOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
@@ -783,7 +835,8 @@ representing the parent of this channel; <code>null</code> if none is set.</p>
   </span>
   <a id="Discord_Rest_RestVoiceChannel_Discord_INestedChannel_GetCategoryAsync_" data-uid="Discord.Rest.RestVoiceChannel.Discord#INestedChannel#GetCategoryAsync*"></a>
   <h4 id="Discord_Rest_RestVoiceChannel_Discord_INestedChannel_GetCategoryAsync_Discord_CacheMode_Discord_RequestOptions_" data-uid="Discord.Rest.RestVoiceChannel.Discord#INestedChannel#GetCategoryAsync(Discord.CacheMode,Discord.RequestOptions)">INestedChannel.GetCategoryAsync(CacheMode, RequestOptions)</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Gets the parent (category) channel of this channel.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -802,12 +855,14 @@ representing the parent of this channel; <code>null</code> if none is set.</p>
       <tr>
         <td><a class="xref" href="Discord.CacheMode.html">CacheMode</a></td>
         <td><span class="parametername">mode</span></td>
-        <td></td>
+        <td><p>The <a class="xref" href="Discord.CacheMode.html">CacheMode</a> that determines whether the object should be fetched from cache.</p>
+</td>
       </tr>
       <tr>
         <td><a class="xref" href="Discord.RequestOptions.html">RequestOptions</a></td>
         <td><span class="parametername">options</span></td>
-        <td></td>
+        <td><p>The options to be used when sending the request.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -822,7 +877,9 @@ representing the parent of this channel; <code>null</code> if none is set.</p>
     <tbody>
       <tr>
         <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<a class="xref" href="Discord.ICategoryChannel.html">ICategoryChannel</a>&gt;</td>
-        <td></td>
+        <td><p>A task that represents the asynchronous get operation. The task result contains the category channel
+representing the parent of this channel; <code>null</code> if none is set.</p>
+</td>
       </tr>
     </tbody>
   </table>
