@@ -67,7 +67,7 @@ Join us at: https://discord.gg/3NMcUV5
 
 
 Licensed under AGPL
-Contribute at: https://github.com/goaaats/Dalamud
+Contribute at: https://github.com/goatsoft/Dalamud
 
 
 Thank you for using XIVLauncher and Dalamud!
