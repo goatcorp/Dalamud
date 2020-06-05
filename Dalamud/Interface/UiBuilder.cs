@@ -32,6 +32,15 @@ namespace Dalamud.Interface
         public event RawDX11Scene.BuildUIDelegate OnBuildUi;
 
         private readonly InterfaceManager interfaceManager;
+        #if DEBUG
+        internal static bool DoStats { get; set; } = true;
+        #else
+        internal static bool DoStats { get; set; } = false;
+        #endif
+        private System.Diagnostics.Stopwatch stopwatch;
+        internal long lastDrawTime = -1;
+        internal long maxDrawTime = -1;
+        internal List<long> drawTimeHistory = new List<long>();
 
         /// <summary>
         /// Create a new UiBuilder and register it. You do not have to call this manually.
@@ -43,6 +52,7 @@ namespace Dalamud.Interface
 
             this.interfaceManager = interfaceManager;
             this.interfaceManager.OnDraw += OnDraw;
+            this.stopwatch = new System.Diagnostics.Stopwatch();
         }
 
         /// <summary>
@@ -109,6 +119,9 @@ namespace Dalamud.Interface
 
         private void OnDraw() {
             ImGui.PushID(this.namespaceName);
+            if (DoStats) {
+                this.stopwatch.Restart();
+            }
 
             if (this.hasErrorWindow && ImGui.Begin(string.Format("{0} Error", this.namespaceName), ref this.hasErrorWindow,
                                              ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize)) {
@@ -132,6 +145,13 @@ namespace Dalamud.Interface
                 this.hasErrorWindow = true;
             }
             
+            if (DoStats) {
+                this.stopwatch.Stop();
+                this.lastDrawTime = this.stopwatch.ElapsedTicks;
+                this.maxDrawTime = Math.Max(this.lastDrawTime, this.maxDrawTime);
+                this.drawTimeHistory.Add(lastDrawTime);
+                while (drawTimeHistory.Count > 100) drawTimeHistory.RemoveAt(0);
+            }
             ImGui.PopID();
         }
     }
