@@ -85,34 +85,12 @@ namespace Dalamud.Game.ClientState.Actors {
             }
         }
 
-        private class ActorTableEnumerator : IEnumerator<Actor> {
-            private readonly ActorTable table;
-
-            private int currentIndex;
-
-            public ActorTableEnumerator(ActorTable table) {
-                this.table = table;
-            }
-
-            public bool MoveNext() {
-                this.currentIndex++;
-                return this.currentIndex != this.table.Length;
-            }
-
-            public void Reset() {
-                this.currentIndex = 0;
-            }
-
-            public Actor Current => this.table[this.currentIndex];
-
-            object IEnumerator.Current => Current;
-
-            // Required by IEnumerator<T> even though we have nothing we want to dispose here.
-            public void Dispose() {}
-        }
-
         public IEnumerator<Actor> GetEnumerator() {
-            return new ActorTableEnumerator(this);
+            for (int i=0;i<Length;i++){
+                if (this[i] != null) {
+                    yield return this[i];
+                }
+            }
         }
 
         IEnumerator IEnumerable.GetEnumerator() {
