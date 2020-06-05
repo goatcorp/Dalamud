@@ -17,7 +17,7 @@ namespace Dalamud.Interface
 
         public static SerilogEventSink Instance;
 
-        public event EventHandler<(string line, Vector4 color)> OnLogLine;
+        public event EventHandler<(string line, LogEventLevel level)> OnLogLine;
 
         public SerilogEventSink(IFormatProvider formatProvider)
         {
@@ -33,11 +33,7 @@ namespace Dalamud.Interface
             if (logEvent.Exception != null)
                 message += "\n" + logEvent.Exception;
 
-            var color = logEvent.Level switch {
-                LogEventLevel.Error => Vector4.One
-            };
-
-            OnLogLine?.Invoke(this, (message, ));
+            OnLogLine?.Invoke(this, (message, logEvent.Level));
         }
     }
 

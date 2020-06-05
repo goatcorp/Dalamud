@@ -7,13 +7,14 @@ using System.Threading.Tasks;
 using Dalamud.Game.Command;
 using ImGuiNET;
 using Serilog;
+using Serilog.Events;
 
 namespace Dalamud.Interface
 {
     class DalamudLogWindow : IDisposable {
         private readonly CommandManager commandManager;
         private bool autoScroll = true;
-        private string logText = string.Empty;
+        private List<(string line, Vector4 color)> logText = new List<(string line, Vector4 color)>();
 
         private string commandText = string.Empty;
 
@@ -26,17 +27,28 @@ namespace Dalamud.Interface
             SerilogEventSink.Instance.OnLogLine -= Serilog_OnLogLine;
         }
 
-        private void Serilog_OnLogLine(object sender, string e)
+        private void Serilog_OnLogLine(object sender, (string line, LogEventLevel level) logEvent)
         {
-            AddLog(e + "\n");
+            var color = logEvent.level switch
+            {
+                LogEventLevel.Error => new Vector4(1f, 0f, 0f, 1f),
+                LogEventLevel.Verbose => new Vector4(1f, 1f, 1f, 1f),
+                LogEventLevel.Debug => new Vector4(0.878f, 0.878f, 0.878f, 1f),
+                LogEventLevel.Information => new Vector4(1f, 1f, 1f, 1f),
+                LogEventLevel.Warning => new Vector4(1f, 0.709f, 0f, 1f),
+                LogEventLevel.Fatal => new Vector4(1f, 0f, 0f, 1f),
+                _ => throw new ArgumentOutOfRangeException()
+            };
+
+            AddLog(logEvent.line, color);
         }
 
         public void Clear() {
-            this.logText = string.Empty;
+            this.logText.Clear();
         }
 
-        public void AddLog(string line) {
-            this.logText += line;
+        public void AddLog(string line, Vector4 color) {
+            this.logText.Add((line, color));
         }
 
         public bool Draw() {
@@ -86,7 +98,9 @@ namespace Dalamud.Interface
 
             ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(0, 0));
 
-            ImGui.TextUnformatted(this.logText);
+            foreach (var valueTuple in this.logText) {
+                ImGui.TextColored(valueTuple.color, valueTuple.line);
+            }
 
             ImGui.PopStyleVar();
 
