@@ -23,6 +23,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Discord.Net.Core", "lib\Dis
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Discord.Net.WebSocket", "lib\Discord.Net\src\Discord.Net.WebSocket\Discord.Net.WebSocket.csproj", "{AACDC15A-56F8-458F-9C73-DE89F60466AE}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DalamudDebugStub", "DalamudDebugStub\DalamudDebugStub.vcxproj", "{9FDA9A5C-50C6-4333-8DCE-DFEB89363F2A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -129,6 +131,17 @@ Global
 		{AACDC15A-56F8-458F-9C73-DE89F60466AE}.Release|x64.Build.0 = Release|Any CPU
 		{AACDC15A-56F8-458F-9C73-DE89F60466AE}.Release|x86.ActiveCfg = Release|Any CPU
 		{AACDC15A-56F8-458F-9C73-DE89F60466AE}.Release|x86.Build.0 = Release|Any CPU
+		{9FDA9A5C-50C6-4333-8DCE-DFEB89363F2A}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{9FDA9A5C-50C6-4333-8DCE-DFEB89363F2A}.Debug|Any CPU.Build.0 = Debug|x64
+		{9FDA9A5C-50C6-4333-8DCE-DFEB89363F2A}.Debug|x64.ActiveCfg = Debug|x64
+		{9FDA9A5C-50C6-4333-8DCE-DFEB89363F2A}.Debug|x64.Build.0 = Debug|x64
+		{9FDA9A5C-50C6-4333-8DCE-DFEB89363F2A}.Debug|x86.ActiveCfg = Debug|Win32
+		{9FDA9A5C-50C6-4333-8DCE-DFEB89363F2A}.Debug|x86.Build.0 = Debug|Win32
+		{9FDA9A5C-50C6-4333-8DCE-DFEB89363F2A}.Release|Any CPU.ActiveCfg = Release|Win32
+		{9FDA9A5C-50C6-4333-8DCE-DFEB89363F2A}.Release|x64.ActiveCfg = Release|x64
+		{9FDA9A5C-50C6-4333-8DCE-DFEB89363F2A}.Release|x64.Build.0 = Release|x64
+		{9FDA9A5C-50C6-4333-8DCE-DFEB89363F2A}.Release|x86.ActiveCfg = Release|Win32
+		{9FDA9A5C-50C6-4333-8DCE-DFEB89363F2A}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
