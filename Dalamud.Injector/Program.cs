@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
@@ -29,7 +32,7 @@ namespace Dalamud.Injector {
             };
 
 
-                var pid = -1;
+            var pid = -1;
             if (args.Length == 1) {
                 pid = int.Parse(args[0]);
             }
@@ -69,6 +72,9 @@ namespace Dalamud.Injector {
 
             // Inject to process
             Inject(process, startInfo);
+
+            // Inject exception handler
+            NativeInject(process);
         }
 
         private static void Inject(Process process, DalamudStartInfo info) {
@@ -84,6 +90,63 @@ namespace Dalamud.Injector {
             RemoteHooking.Inject(process.Id, InjectionOptions.DoNotRequireStrongName, libPath, libPath, info);
 
             Console.WriteLine("Injected");
+        }
+
+        private static void NativeInject(Process process) {
+            var libPath = Path.GetFullPath("DalamudDebugStub.dll");
+
+            var handle = NativeFunctions.OpenProcess(
+                NativeFunctions.ProcessAccessFlags.All,
+                false,
+                process.Id);
+
+            if (handle == IntPtr.Zero)
+                throw new Win32Exception(Marshal.GetLastWin32Error(), "Could not OpenProcess");
+
+            var dllMem = NativeFunctions.VirtualAllocEx(
+                handle,
+                IntPtr.Zero,
+                libPath.Length,
+                NativeFunctions.AllocationType.Reserve | NativeFunctions.AllocationType.Commit,
+                NativeFunctions.MemoryProtection.ExecuteReadWrite);
+
+            if (dllMem == IntPtr.Zero)
+                throw new Win32Exception(Marshal.GetLastWin32Error(), "Could not alloc memory");
+
+            var pathBytes = Encoding.ASCII.GetBytes(libPath);
+            if (!NativeFunctions.WriteProcessMemory(
+                    handle,
+                    dllMem,
+                    pathBytes,
+                    pathBytes.Length,
+                    out var bytesread
+                ))
+                throw new Win32Exception(Marshal.GetLastWin32Error(), "Could not write DLL");
+
+            var kernel32 = NativeFunctions.GetModuleHandle("Kernel32.dll");
+            var loadLibA = NativeFunctions.GetProcAddress(kernel32, "LoadLibraryA");
+
+            var remoteThread = NativeFunctions.CreateRemoteThread(
+                handle,
+                IntPtr.Zero,
+                0,
+                loadLibA,
+                dllMem,
+                0,
+                IntPtr.Zero
+            );
+
+            if (remoteThread == IntPtr.Zero)
+                throw new Win32Exception(Marshal.GetLastWin32Error(), "Could not alloc memory");
+
+            NativeFunctions.VirtualFreeEx(
+                handle,
+                dllMem,
+                0,
+                NativeFunctions.AllocationType.Release);
+
+            NativeFunctions.CloseHandle(remoteThread);
+            NativeFunctions.CloseHandle(handle);
         }
 
         private static DalamudStartInfo GetDefaultStartInfo() {
