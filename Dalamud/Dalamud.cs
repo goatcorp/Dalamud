@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -154,6 +155,10 @@ namespace Dalamud {
         }
 
         public void Start() {
+#if DEBUG
+            ReplaceExceptionHandler();
+#endif
+
             this.Framework.Enable();
             this.ClientState.Enable();
         }
@@ -194,7 +199,7 @@ namespace Dalamud {
             this.SigScanner.Dispose();
         }
 
-        #region Interface
+#region Interface
 
         private bool isImguiDrawDemoWindow = false;
 
@@ -269,9 +274,20 @@ namespace Dalamud {
                         {
                             Process.GetCurrentProcess().Kill();
                         }
+                        if (ImGui.MenuItem("Cause AccessViolation")) {
+                            var a = Marshal.ReadByte(IntPtr.Zero);
+                        }
                         ImGui.Separator();
                         ImGui.MenuItem(this.assemblyVersion, false);
                         ImGui.MenuItem(this.StartInfo.GameVersion, false);
+
+                        ImGui.EndMenu();
+                    }
+
+                    if (ImGui.BeginMenu("Game")) {
+                        if (ImGui.MenuItem("Replace ExceptionHandler")) {
+                            ReplaceExceptionHandler();
+                        }
 
                         ImGui.EndMenu();
                     }
@@ -396,7 +412,16 @@ namespace Dalamud {
             }
         }
 
-        #endregion
+        private void ReplaceExceptionHandler() {
+            var semd = this.SigScanner.ScanText(
+                "40 55 53 56 48 8D AC 24 ?? ?? ?? ?? B8 ?? ?? ?? ?? E8 ?? ?? ?? ?? 48 2B E0 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 85 ?? ?? ?? ?? 48 83 3D ?? ?? ?? ?? ??");
+            Log.Debug($"SE debug filter at {semd.ToInt64():X}");
+
+            var oldFilter = NativeFunctions.SetUnhandledExceptionFilter(semd);
+            Log.Debug("Reset ExceptionFilter, old: {0}", oldFilter);
+        }
+
+#endregion
 
         private void SetupCommands() {
             CommandManager.AddHandler("/xldclose", new CommandInfo(OnUnloadCommand) {
