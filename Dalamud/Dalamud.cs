@@ -138,12 +138,15 @@ namespace Dalamud {
                 this.BotManager = new DiscordBotManager(this, this.Configuration.DiscordFeatureConfig);
                 this.BotManager.Start();
 
-                try
-                {
-                    this.PluginManager = new PluginManager(this, this.StartInfo.PluginDirectory, this.StartInfo.DefaultPluginDirectory);
+                try {
+                    var pluginDir = this.StartInfo.PluginDirectory;
+                    if (this.Configuration.DoPluginTest)
+                        pluginDir = Path.Combine(pluginDir, "..", "testPlugins");
+
+                    this.PluginManager = new PluginManager(this, pluginDir, this.StartInfo.DefaultPluginDirectory);
                     this.PluginManager.LoadPlugins();
 
-                    this.PluginRepository = new PluginRepository(this, this.StartInfo.PluginDirectory, this.StartInfo.GameVersion);
+                    this.PluginRepository = new PluginRepository(this, pluginDir, this.StartInfo.GameVersion);
                 }
                 catch (Exception ex)
                 {

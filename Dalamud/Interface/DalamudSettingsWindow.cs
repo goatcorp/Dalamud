@@ -58,7 +58,7 @@ namespace Dalamud.Interface
 
             var isOpen = true;
 
-            if (!ImGui.Begin("Dalamud Settings", ref isOpen, ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize)) {
+            if (!ImGui.Begin(Loc.Localize("DalamudSettingsHeader", "Dalamud Settings") + "###XlSettings", ref isOpen, ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize)) {
                 ImGui.End();
                 return false;
             }
@@ -66,38 +66,38 @@ namespace Dalamud.Interface
             ImGui.BeginChild("scrolling", new Vector2(499, 430), false, ImGuiWindowFlags.HorizontalScrollbar);
 
             if (ImGui.BeginTabBar("SetTabBar")) {
-                if (ImGui.BeginTabItem("General")) {
-                    ImGui.Text("Language");
+                if (ImGui.BeginTabItem(Loc.Localize("DalamudSettingsGeneral", "General"))) {
+                    ImGui.Text(Loc.Localize("DalamudSettingsLanguage","Language"));
                     ImGui.Combo("##XlLangCombo", ref this.langIndex, this.languages,
                                 this.languages.Length);
-                    ImGui.TextColored(this.hintTextColor, "Select the language Dalamud will be displayed in.");
+                    ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingsLanguageHint", "Select the language Dalamud will be displayed in."));
 
                     ImGui.Dummy(new Vector2(5f, 5f));
 
-                    ImGui.Text("General Chat Channel");
+                    ImGui.Text(Loc.Localize("DalamudSettingsChannel", "General Chat Channel"));
                     ImGui.Combo("##XlChatTypeCombo", ref this.dalamudMessagesChatType, this.chatTypes,
                                 this.chatTypes.Length);
-                    ImGui.TextColored(this.hintTextColor, "Select the chat channel that is to be used for general XIVLauncher messages.");
+                    ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingsChannelHint", "Select the chat channel that is to be used for general XIVLauncher messages."));
 
                     ImGui.Dummy(new Vector2(5f, 5f));
 
-                    ImGui.Checkbox("Flash FFXIV window on duty pop", ref this.doCfTaskBarFlash);
-                    ImGui.TextColored(this.hintTextColor, "Select, if the FFXIV window should be flashed in your task bar when a duty is ready.");
+                    ImGui.Checkbox(Loc.Localize("DalamudSettingsFlash", "Flash FFXIV window on duty pop"), ref this.doCfTaskBarFlash);
+                    ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingsFlashHint", "Select, if the FFXIV window should be flashed in your task bar when a duty is ready."));
 
                     ImGui.EndTabItem();
                 }
 
-                if (ImGui.BeginTabItem("Experimental"))
+                if (ImGui.BeginTabItem(Loc.Localize("DalamudSettingsExperimental", "Experimental")))
                 {
-                    ImGui.Text("All of these settings require a restart of the game to take effect.");
+                    ImGui.Text(Loc.Localize("DalamudSettingsRestartHint", "You need to restart your game after changing these settings."));
 
                     ImGui.Dummy(new Vector2(10f, 10f));
 
-                    ImGui.Checkbox("Get plugin testing builds", ref this.doPluginTest);
-                    ImGui.TextColored(this.hintTextColor, "Check this box to receive testing prereleases for plugins.");
+                    ImGui.Checkbox(Loc.Localize("DalamudSettingsPluginTest", "Get plugin testing builds"), ref this.doPluginTest);
+                    ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingsPluginTestHint", "Check this box to receive testing prereleases for plugins."));
 
-                    ImGui.Checkbox("Get Dalamud testing builds", ref this.doDalamudTest);
-                    ImGui.TextColored(this.hintTextColor, "Check this box to receive testing prereleases for Dalamud.");
+                    ImGui.Checkbox(Loc.Localize("DalamudSettingDalamudTest", "Get Dalamud testing builds"), ref this.doDalamudTest);
+                    ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingDalamudTestHint", "Check this box to receive testing prereleases for Dalamud."));
 
                     ImGui.EndTabItem();
                 }
@@ -108,11 +108,11 @@ namespace Dalamud.Interface
             ImGui.EndChild();
 
             
-            if (ImGui.Button("Save")) {
+            if (ImGui.Button(Loc.Localize("Save", "Save"))) {
                 Save();
             }
             ImGui.SameLine();
-            if (ImGui.Button("Save and Close")) {
+            if (ImGui.Button(Loc.Localize("SaveAndClose", "Save and Close"))) {
                 Save();
                 isOpen = false;
             }
