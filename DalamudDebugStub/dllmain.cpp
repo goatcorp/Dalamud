@@ -47,10 +47,10 @@ VectoredHandler(
             GetSystemTime(&t);
             _stprintf_s(fileName, _T("MD-%d-%d-%d-%d-%d-%d.dmp"), t.wYear, t.wMonth, t.wDay, t.wHour, t.wMinute, t.wSecond);
 
-            _tcscat_s(fullPath, 2048, TEXT("XIVLauncher\\"));
+            _tcscat_s(fullPath, 2048, TEXT("\\XIVLauncher\\"));
             _tcscat_s(fullPath, 2048, fileName);
 
-            HANDLE hFile = CreateFile(fullPath, GENERIC_READ | GENERIC_WRITE,
+            HANDLE hFile = CreateFileW(fullPath, GENERIC_READ | GENERIC_WRITE,
                 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
             if ((hFile != NULL) && (hFile != INVALID_HANDLE_VALUE))
