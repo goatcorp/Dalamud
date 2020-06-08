@@ -73,6 +73,8 @@ namespace Dalamud.Injector {
             // Inject to process
             Inject(process, startInfo);
 
+            Thread.Sleep(1000);
+
             // Inject exception handler
             NativeInject(process);
         }
@@ -92,8 +94,14 @@ namespace Dalamud.Injector {
             Console.WriteLine("Injected");
         }
 
-        private static void NativeInject(Process process) {
+        private static void NativeInject(Process process)
+        {
             var libPath = Path.GetFullPath("DalamudDebugStub.dll");
+
+            var pathBytes = Encoding.Unicode.GetBytes(libPath);
+            var len = pathBytes.Length + 1;
+
+            Console.WriteLine($"Injecting {libPath}...");
 
             var handle = NativeFunctions.OpenProcess(
                 NativeFunctions.ProcessAccessFlags.All,
@@ -106,25 +114,28 @@ namespace Dalamud.Injector {
             var dllMem = NativeFunctions.VirtualAllocEx(
                 handle,
                 IntPtr.Zero,
-                libPath.Length,
-                NativeFunctions.AllocationType.Reserve | NativeFunctions.AllocationType.Commit,
-                NativeFunctions.MemoryProtection.ExecuteReadWrite);
+                len,
+                NativeFunctions.AllocationType.Commit,
+                NativeFunctions.MemoryProtection.ReadWrite);
 
             if (dllMem == IntPtr.Zero)
-                throw new Win32Exception(Marshal.GetLastWin32Error(), "Could not alloc memory");
+                throw new Win32Exception(Marshal.GetLastWin32Error(), $"Could not alloc memory {Marshal.GetLastWin32Error():X}");
 
-            var pathBytes = Encoding.ASCII.GetBytes(libPath);
+            Console.WriteLine($"dll path at {dllMem.ToInt64():X}");
+
             if (!NativeFunctions.WriteProcessMemory(
                     handle,
                     dllMem,
                     pathBytes,
-                    pathBytes.Length,
-                    out var bytesread
+                    len,
+                    out var bytesWritten
                 ))
                 throw new Win32Exception(Marshal.GetLastWin32Error(), "Could not write DLL");
 
+            Console.WriteLine($"Wrote {bytesWritten}");
+
             var kernel32 = NativeFunctions.GetModuleHandle("Kernel32.dll");
-            var loadLibA = NativeFunctions.GetProcAddress(kernel32, "LoadLibraryA");
+            var loadLibA = NativeFunctions.GetProcAddress(kernel32, "LoadLibraryW");
 
             var remoteThread = NativeFunctions.CreateRemoteThread(
                 handle,
@@ -137,13 +148,16 @@ namespace Dalamud.Injector {
             );
 
             if (remoteThread == IntPtr.Zero)
-                throw new Win32Exception(Marshal.GetLastWin32Error(), "Could not alloc memory");
+                throw new Win32Exception(Marshal.GetLastWin32Error(), $"Could not CreateRemoteThread");
 
-            NativeFunctions.VirtualFreeEx(
+            /*
+            TODO kill myself
+            VirtualFreeEx(
                 handle,
                 dllMem,
                 0,
-                NativeFunctions.AllocationType.Release);
+                AllocationType.Release);
+            */
 
             NativeFunctions.CloseHandle(remoteThread);
             NativeFunctions.CloseHandle(handle);

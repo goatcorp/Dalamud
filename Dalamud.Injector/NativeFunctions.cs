@@ -12,7 +12,6 @@ namespace Dalamud.Injector
 {
     static class NativeFunctions
     {
-        // OpenProcess signture https://www.pinvoke.net/default.aspx/kernel32.openprocess
         [Flags]
         public enum ProcessAccessFlags : uint
         {
@@ -41,7 +40,6 @@ namespace Dalamud.Injector
             return OpenProcess(flags, false, proc.Id);
         }
 
-        // VirtualAllocEx signture https://www.pinvoke.net/default.aspx/kernel32.virtualallocex
         [Flags]
         public enum AllocationType
         {
@@ -56,7 +54,6 @@ namespace Dalamud.Injector
             LargePages = 0x20000000
         }
 
-        // VirtualFreeEx signture  https://www.pinvoke.net/default.aspx/kernel32.virtualfreeex
         [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
         public static extern bool VirtualFreeEx(IntPtr hProcess, IntPtr lpAddress,
         int dwSize, AllocationType dwFreeType);
@@ -85,24 +82,20 @@ namespace Dalamud.Injector
             AllocationType flAllocationType,
             MemoryProtection flProtect);
 
-        // WriteProcessMemory signture https://www.pinvoke.net/default.aspx/kernel32/WriteProcessMemory.html
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern bool WriteProcessMemory(
         IntPtr hProcess,
         IntPtr lpBaseAddress,
-        [MarshalAs(UnmanagedType.AsAny)] object lpBuffer,
+        byte[] lpBuffer,
         int dwSize,
         out IntPtr lpNumberOfBytesWritten);
 
-        // GetProcAddress signture https://www.pinvoke.net/default.aspx/kernel32.getprocaddress
         [DllImport("kernel32", CharSet = CharSet.Ansi, ExactSpelling = true, SetLastError = true)]
         public static extern IntPtr GetProcAddress(IntPtr hModule, string procName);
 
-        // GetModuleHandle signture http://pinvoke.net/default.aspx/kernel32.GetModuleHandle
         [DllImport("kernel32.dll", CharSet = CharSet.Auto)]
         public static extern IntPtr GetModuleHandle(string lpModuleName);
 
-        // CreateRemoteThread signture https://www.pinvoke.net/default.aspx/kernel32.createremotethread
         [DllImport("kernel32.dll")]
         public static extern IntPtr CreateRemoteThread(
         IntPtr hProcess,
@@ -113,7 +106,6 @@ namespace Dalamud.Injector
         uint dwCreationFlags,
         IntPtr lpThreadId);
 
-        // CloseHandle signture https://www.pinvoke.net/default.aspx/kernel32.closehandle
         [DllImport("kernel32.dll", SetLastError = true)]
         [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
         [SuppressUnmanagedCodeSecurity]
