@@ -9,7 +9,7 @@
 bool isExcept = false;
 
 LONG WINAPI
-VectoredHandlerSkip1(
+VectoredHandler(
     struct _EXCEPTION_POINTERS* ExceptionInfo
 )
 {
@@ -31,14 +31,26 @@ VectoredHandlerSkip1(
 
         if (res == IDYES)
         {
-
             TCHAR fileName[255] = { 0 };
+
+            char* pValue;
+            size_t len;
+            errno_t err = _dupenv_s(&pValue, &len, "APPDATA");
+
+            wchar_t* fullPath = new wchar_t[2048];
+
+            // Convert char* string to a wchar_t* string.
+            size_t convertedChars = 0;
+            mbstowcs_s(&convertedChars, fullPath, strlen(pValue) + 1, pValue, _TRUNCATE);
 
             SYSTEMTIME t;
             GetSystemTime(&t);
             _stprintf_s(fileName, _T("MD-%d-%d-%d-%d-%d-%d.dmp"), t.wYear, t.wMonth, t.wDay, t.wHour, t.wMinute, t.wSecond);
 
-            HANDLE hFile = CreateFile(fileName, GENERIC_READ | GENERIC_WRITE,
+            _tcscat_s(fullPath, 2048, TEXT("XIVLauncher\\"));
+            _tcscat_s(fullPath, 2048, fileName);
+
+            HANDLE hFile = CreateFile(fullPath, GENERIC_READ | GENERIC_WRITE,
                 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
             if ((hFile != NULL) && (hFile != INVALID_HANDLE_VALUE))
@@ -90,14 +102,11 @@ BOOL APIENTRY DllMain( HMODULE hModule,
                        LPVOID lpReserved
 )
 {
-    TCHAR pszMessage[1024] = { 0 };
-
     switch (ul_reason_for_call)
     {
     case DLL_PROCESS_ATTACH:
-        _stprintf_s(pszMessage, _T("GetCurrentProcessId() %d, hModule 0x%p, nReason %d\r\n"), GetCurrentProcessId(), hModule, ul_reason_for_call);
-        OutputDebugString(pszMessage);
-        AddVectoredExceptionHandler(99, VectoredHandlerSkip1);
+
+        AddVectoredExceptionHandler(99, VectoredHandler);
         break;
     case DLL_THREAD_ATTACH:
     case DLL_THREAD_DETACH:
