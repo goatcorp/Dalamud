@@ -11,7 +11,7 @@ using Serilog;
 
 namespace Dalamud.Plugin
 {
-    public class PluginManager {
+    internal class PluginManager {
         private readonly Dalamud dalamud;
         private readonly string pluginDirectory;
         private readonly string devPluginDirectory;
