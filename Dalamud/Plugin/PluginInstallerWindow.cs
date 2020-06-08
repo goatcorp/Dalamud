@@ -19,10 +19,7 @@ using Serilog;
 namespace Dalamud.Plugin
 {
     internal class PluginInstallerWindow {
-        private const string PluginRepoBaseUrl = "https://goaaats.github.io/DalamudPlugins/";
-
-        private PluginManager manager;
-        private PluginRepository repository;
+        private readonly Dalamud dalamud;
         private string gameVersion;
 
         private bool errorModalDrawing = true;
@@ -41,10 +38,11 @@ namespace Dalamud.Plugin
 
         private PluginInstallStatus installStatus = PluginInstallStatus.None;
 
-        public PluginInstallerWindow(PluginManager manager, PluginRepository repository, string gameVersion) {
-            this.manager = manager;
-            this.repository = repository;
+        public PluginInstallerWindow(Dalamud dalamud, string gameVersion) {
+            this.dalamud = dalamud;
             this.gameVersion = gameVersion;
+
+            this.dalamud.PluginRepository.ReloadPluginMaster();
         }
 
         public bool Draw() {
@@ -52,7 +50,7 @@ namespace Dalamud.Plugin
 
             ImGui.SetNextWindowSize(new Vector2(750, 520));
 
-            ImGui.Begin(Loc.Localize("InstallerHeader", "Plugin Installer"), ref windowOpen,
+            ImGui.Begin(Loc.Localize("InstallerHeader", "Plugin Installer") + (this.dalamud.Configuration.DoPluginTest ? " (TESTING)" : string.Empty) + "###XlPluginInstaller", ref windowOpen,
                 ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar);
 
             ImGui.Text(Loc.Localize("InstallerHint", "This window allows you install and remove in-game plugins.\nThey are made by third-party developers."));
@@ -62,14 +60,14 @@ namespace Dalamud.Plugin
 
             ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(1, 3));
 
-            if (this.repository.State == PluginRepository.InitializationState.InProgress) {
+            if (this.dalamud.PluginRepository.State == PluginRepository.InitializationState.InProgress) {
                 ImGui.Text(Loc.Localize("InstallerLoading", "Loading plugins..."));
-            } else if (this.repository.State == PluginRepository.InitializationState.Fail) {
+            } else if (this.dalamud.PluginRepository.State == PluginRepository.InitializationState.Fail) {
                 ImGui.Text(Loc.Localize("InstallerDownloadFailed", "Download failed."));
             }
             else
             {
-                foreach (var pluginDefinition in this.repository.PluginMaster) {
+                foreach (var pluginDefinition in this.dalamud.PluginRepository.PluginMaster) {
                     if (pluginDefinition.ApplicableVersion != this.gameVersion &&
                         pluginDefinition.ApplicableVersion != "any")
                         continue;
@@ -79,7 +77,7 @@ namespace Dalamud.Plugin
 
                     ImGui.PushID(pluginDefinition.InternalName + pluginDefinition.AssemblyVersion);
 
-                    var isInstalled = this.manager.Plugins.Where(x => x.Definition != null).Any(
+                    var isInstalled = this.dalamud.PluginManager.Plugins.Where(x => x.Definition != null).Any(
                         x => x.Definition.InternalName == pluginDefinition.InternalName);
 
                     var label = isInstalled ? Loc.Localize("InstallerInstalled", " (installed)") : string.Empty;
@@ -109,7 +107,7 @@ namespace Dalamud.Plugin
                                 if (ImGui.Button($"Install v{pluginDefinition.AssemblyVersion}")) {
                                     this.installStatus = PluginInstallStatus.InProgress;
 
-                                    Task.Run(() => this.repository.InstallPlugin(pluginDefinition)).ContinueWith(t => {
+                                    Task.Run(() => this.dalamud.PluginRepository.InstallPlugin(pluginDefinition)).ContinueWith(t => {
                                         this.installStatus =
                                             t.Result ? PluginInstallStatus.Success : PluginInstallStatus.Fail;
                                         this.installStatus =
@@ -121,13 +119,13 @@ namespace Dalamud.Plugin
                                 }
                             }
                         } else {
-                            var installedPlugin = this.manager.Plugins.Where(x => x.Definition != null).First(
+                            var installedPlugin = this.dalamud.PluginManager.Plugins.Where(x => x.Definition != null).First(
                                 x => x.Definition.InternalName ==
                                      pluginDefinition.InternalName);
 
                             if (ImGui.Button(Loc.Localize("InstallerDisable", "Disable")))
                                 try {
-                                    this.manager.DisablePlugin(installedPlugin.Definition);
+                                    this.dalamud.PluginManager.DisablePlugin(installedPlugin.Definition);
                                 } catch (Exception exception) {
                                     Log.Error(exception, "Could not disable plugin.");
                                     this.errorModalDrawing = true;
@@ -180,7 +178,7 @@ namespace Dalamud.Plugin
                     {
                         this.installStatus = PluginInstallStatus.InProgress;
 
-                        Task.Run(() => this.repository.UpdatePlugins()).ContinueWith(t => {
+                        Task.Run(() => this.dalamud.PluginRepository.UpdatePlugins()).ContinueWith(t => {
                             this.installStatus =
                                 t.Result.Success ? PluginInstallStatus.Success : PluginInstallStatus.Fail;
                             this.installStatus =

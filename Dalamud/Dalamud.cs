@@ -143,7 +143,7 @@ namespace Dalamud {
                     this.PluginManager = new PluginManager(this, this.StartInfo.PluginDirectory, this.StartInfo.DefaultPluginDirectory);
                     this.PluginManager.LoadPlugins();
 
-                    this.PluginRepository = new PluginRepository(PluginManager, this.StartInfo.PluginDirectory, this.StartInfo.GameVersion);
+                    this.PluginRepository = new PluginRepository(this, this.StartInfo.PluginDirectory, this.StartInfo.GameVersion);
                 }
                 catch (Exception ex)
                 {
@@ -296,7 +296,7 @@ namespace Dalamud {
                     {
                         if (ImGui.MenuItem("Open Plugin installer"))
                         {
-                            this.pluginWindow = new PluginInstallerWindow(this.PluginManager, this.PluginRepository, this.StartInfo.GameVersion);
+                            this.pluginWindow = new PluginInstallerWindow(this, this.StartInfo.GameVersion);
                             this.isImguiDrawPluginWindow = true;
                         }
                         if (ImGui.MenuItem("Open Plugin Stats")) {
@@ -725,7 +725,7 @@ namespace Dalamud {
         }
 
         private void OnOpenInstallerCommand(string command, string arguments) {
-            this.pluginWindow = new PluginInstallerWindow(this.PluginManager, PluginRepository, this.StartInfo.GameVersion);
+            this.pluginWindow = new PluginInstallerWindow(this, this.StartInfo.GameVersion);
             this.isImguiDrawPluginWindow = true;
         }
 

@@ -14,9 +14,9 @@ namespace Dalamud.Plugin
 {
     internal class PluginRepository
     {
-        private const string PluginRepoBaseUrl = "https://goatcorp.github.io/DalamudPlugins/";
+        private const string PluginRepoBaseUrl = "https://raw.githubusercontent.com/goatcorp/DalamudPlugins/";
 
-        private PluginManager manager;
+        private readonly Dalamud dalamud;
         private string pluginDirectory;
         public ReadOnlyCollection<PluginDefinition> PluginMaster;
 
@@ -29,31 +29,32 @@ namespace Dalamud.Plugin
 
         public InitializationState State { get; private set; }
 
-        public PluginRepository(PluginManager manager, string pluginDirectory, string gameVersion)
+        public PluginRepository(Dalamud dalamud, string pluginDirectory, string gameVersion)
         {
-            this.manager = manager;
+            this.dalamud = dalamud;
             this.pluginDirectory = pluginDirectory;
 
             State = InitializationState.InProgress;
-            Task.Run(CachePluginMaster).ContinueWith(t => {
+            Task.Run(ReloadPluginMaster).ContinueWith(t => {
                 if (t.IsFaulted)
                     State = InitializationState.Fail;
             });
         }
 
-        private void CachePluginMaster()
+        public void ReloadPluginMaster()
         {
             try
             {
                 using var client = new WebClient();
 
-                var data = client.DownloadString(PluginRepoBaseUrl + "pluginmaster.json");
+                var data = client.DownloadString(PluginRepoBaseUrl + (this.dalamud.Configuration.DoPluginTest ? "testing/" : "master/") + "pluginmaster.json");
 
                 this.PluginMaster = JsonConvert.DeserializeObject<ReadOnlyCollection<PluginDefinition>>(data);
 
                 State = InitializationState.Success;
             }
-            catch {
+            catch(Exception ex) {
+                Log.Error(ex, "Could not download PluginMaster");
                 State = InitializationState.Fail;
             }
         }
@@ -71,7 +72,7 @@ namespace Dalamud.Plugin
                     if (disabledFile.Exists)
                         disabledFile.Delete();
 
-                    return this.manager.LoadPluginFromAssembly(dllFile, false);
+                    return this.dalamud.PluginManager.LoadPluginFromAssembly(dllFile, false);
                 }
 
                 if (dllFile.Exists && !enableAfterInstall) {
@@ -100,7 +101,7 @@ namespace Dalamud.Plugin
                     return true;
                 }
 
-                return this.manager.LoadPluginFromAssembly(dllFile, false);
+                return this.dalamud.PluginManager.LoadPluginFromAssembly(dllFile, false);
             }
             catch (Exception e)
             {
@@ -165,7 +166,7 @@ namespace Dalamud.Plugin
                         if (!dryRun)
                         {
                             var wasEnabled =
-                                this.manager.Plugins.Where(x => x.Definition != null).Any(
+                                this.dalamud.PluginManager.Plugins.Where(x => x.Definition != null).Any(
                                     x => x.Definition.InternalName == info.InternalName); ;
 
                             Log.Verbose("wasEnabled: {0}", wasEnabled);
@@ -173,7 +174,7 @@ namespace Dalamud.Plugin
                             // Try to disable plugin if it is loaded
                             try
                             {
-                                this.manager.DisablePlugin(info);
+                                this.dalamud.PluginManager.DisablePlugin(info);
                             }
                             catch (Exception ex)
                             {
