@@ -107,6 +107,12 @@ namespace Dalamud {
                     this.LocalizationManager.SetupWithUiCulture();
                 }
 
+                var pluginDir = this.StartInfo.PluginDirectory;
+                if (this.Configuration.DoPluginTest)
+                    pluginDir = Path.Combine(pluginDir, "..", "testPlugins");
+
+                this.PluginRepository = new PluginRepository(this, pluginDir, this.StartInfo.GameVersion);
+
                 if (Environment.GetEnvironmentVariable("DALAMUD_NOT_HAVE_INTERFACE") != "True") {
                     try
                     {
@@ -139,14 +145,8 @@ namespace Dalamud {
                 this.BotManager.Start();
 
                 try {
-                    var pluginDir = this.StartInfo.PluginDirectory;
-                    if (this.Configuration.DoPluginTest)
-                        pluginDir = Path.Combine(pluginDir, "..", "testPlugins");
-
                     this.PluginManager = new PluginManager(this, pluginDir, this.StartInfo.DefaultPluginDirectory);
                     this.PluginManager.LoadPlugins();
-
-                    this.PluginRepository = new PluginRepository(this, pluginDir, this.StartInfo.GameVersion);
                 }
                 catch (Exception ex)
                 {

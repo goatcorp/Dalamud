@@ -27,7 +27,7 @@ namespace Dalamud.Plugin
 
         private bool updateComplete = false;
         private int updatePluginCount = 0;
-        private PluginRepository.PluginUpdateStatus[] updatedInternalName;
+        private List<PluginRepository.PluginUpdateStatus> updatedPlugins;
 
         private enum PluginInstallStatus {
             None,
@@ -82,13 +82,13 @@ namespace Dalamud.Plugin
                         x => x.Definition.InternalName == pluginDefinition.InternalName);
 
                     var label = isInstalled ? Loc.Localize("InstallerInstalled", " (installed)") : string.Empty;
-                    label = this.updatedInternalName != null &&
-                            this.updatedInternalName.Any(x => x.InternalName == pluginDefinition.InternalName && x.WasUpdated)
+                    label = this.updatedPlugins != null &&
+                            this.updatedPlugins.Any(x => x.InternalName == pluginDefinition.InternalName && x.WasUpdated)
                                 ? Loc.Localize("InstallerUpdated", " (updated)")
                                 : label;
 
-                    label = this.updatedInternalName != null &&
-                            this.updatedInternalName.Any(x => x.InternalName == pluginDefinition.InternalName && x.WasUpdated == false)
+                    label = this.updatedPlugins != null &&
+                            this.updatedPlugins.Any(x => x.InternalName == pluginDefinition.InternalName && x.WasUpdated == false)
                                 ? Loc.Localize("InstallerUpdateFailed", " (update failed)")
                                 : label;
 
@@ -190,8 +190,8 @@ namespace Dalamud.Plugin
                             }
 
                             if (t.Result.UpdatedPlugins != null) {
-                                this.updatePluginCount = t.Result.UpdatedPlugins.Length;
-                                this.updatedInternalName = t.Result.UpdatedPlugins;
+                                this.updatePluginCount = t.Result.UpdatedPlugins.Count;
+                                this.updatedPlugins = t.Result.UpdatedPlugins;
                             }
 
                             this.errorModalDrawing = this.installStatus == PluginInstallStatus.Fail;
@@ -215,11 +215,19 @@ namespace Dalamud.Plugin
                 var message = Loc.Localize("InstallerErrorHint",
                                            "The plugin installer ran into an issue or the plugin is incompatible.\nPlease restart the game and report this error on our discord.");
 
-                if (this.updatedInternalName != null) {
-                    var extraInfoMessage = Loc.Localize("InstallerErrorPluginInfo", "\n\nThe following plugins caused these issues:\n\n{0}\nYou may try removing these plugins manually and reinstalling them.");
-                    var insert = this.updatedInternalName.Where(x => x.WasUpdated == false).Aggregate(string.Empty, (current, pluginUpdateStatus) => current + $"* {pluginUpdateStatus.InternalName}\n");
-                    extraInfoMessage = string.Format(extraInfoMessage, insert);
-                    message += extraInfoMessage;
+                if (this.updatedPlugins != null) {
+                    if (this.updatedPlugins.Any(x => x.WasUpdated == false))
+                    {
+                        var extraInfoMessage = Loc.Localize("InstallerErrorPluginInfo",
+                                                            "\n\nThe following plugins caused these issues:\n\n{0}\nYou may try removing these plugins manually and reinstalling them.");
+
+                        var insert = this.updatedPlugins.Where(x => x.WasUpdated == false)
+                                         .Aggregate(string.Empty,
+                                                    (current, pluginUpdateStatus) =>
+                                                        current + $"* {pluginUpdateStatus.InternalName}\n");
+                        extraInfoMessage = string.Format(extraInfoMessage, insert);
+                        message += extraInfoMessage;
+                    }
                 }
 
                 ImGui.Text(message);

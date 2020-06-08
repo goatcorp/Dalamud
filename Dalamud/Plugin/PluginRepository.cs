@@ -119,7 +119,7 @@ namespace Dalamud.Plugin
             public bool WasUpdated { get; set; }
         }
 
-        public (bool Success, PluginUpdateStatus[] UpdatedPlugins) UpdatePlugins(bool dryRun = false)
+        public (bool Success, List<PluginUpdateStatus> UpdatedPlugins) UpdatePlugins(bool dryRun = false)
         {
             Log.Information("Starting plugin update... dry:{0}", dryRun);
 
@@ -233,7 +233,7 @@ namespace Dalamud.Plugin
 
             Log.Information("Plugin update OK.");
 
-            return (!hasError, updatedList.ToArray());
+            return (!hasError, updatedList);
         }
     }
 }
