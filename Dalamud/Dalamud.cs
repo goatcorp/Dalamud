@@ -51,8 +51,8 @@ namespace Dalamud {
 
         public DiscordBotManager BotManager { get; private set; }
 
-        public PluginManager PluginManager { get; private set; }
-        public PluginRepository PluginRepository { get; private set; }
+        internal PluginManager PluginManager { get; private set; }
+        internal PluginRepository PluginRepository { get; private set; }
 
         public readonly ClientState ClientState;
 

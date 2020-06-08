@@ -36,15 +36,21 @@ namespace Dalamud.Plugin
             // This handler should only be invoked on things that fail regular lookups, but it *is* global to this appdomain
             AppDomain.CurrentDomain.AssemblyResolve += (object source, ResolveEventArgs e) =>
             {
-                Log.Debug($"Resolving missing assembly {e.Name}");
-                // This looks weird but I'm pretty sure it's actually correct.  Pretty sure.  Probably.
-                var assemblyPath = Path.Combine(Path.GetDirectoryName(e.RequestingAssembly.Location), new AssemblyName(e.Name).Name + ".dll");
-                if (!File.Exists(assemblyPath))
-                {
-                    Log.Error($"Assembly not found at {assemblyPath}");
+                try {
+                    Log.Debug($"Resolving missing assembly {e.Name}");
+                    // This looks weird but I'm pretty sure it's actually correct.  Pretty sure.  Probably.
+                    var assemblyPath = Path.Combine(Path.GetDirectoryName(e.RequestingAssembly.Location),
+                                                    new AssemblyName(e.Name).Name + ".dll");
+                    if (!File.Exists(assemblyPath)) {
+                        Log.Error($"Assembly not found at {assemblyPath}");
+                        return null;
+                    }
+
+                    return Assembly.LoadFrom(assemblyPath);
+                } catch(Exception ex) {
+                    Log.Error(ex, "Could not load assembly " + e.Name);
                     return null;
                 }
-                return Assembly.LoadFrom(assemblyPath);
             };
         }
 

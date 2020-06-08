@@ -227,7 +227,7 @@ namespace Dalamud.Game {
 
             try
             {
-                var hasNeedsUpdate = this.dalamud.PluginRepository.UpdatePlugins(true).UpdatedCount != 0;
+                var hasNeedsUpdate = this.dalamud.PluginRepository.UpdatePlugins(true).UpdatedPlugins.Length != 0;
 
                 if (hasNeedsUpdate)
                 {

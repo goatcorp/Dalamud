@@ -18,7 +18,7 @@ using Serilog;
 
 namespace Dalamud.Plugin
 {
-    class PluginInstallerWindow {
+    internal class PluginInstallerWindow {
         private const string PluginRepoBaseUrl = "https://goaaats.github.io/DalamudPlugins/";
 
         private PluginManager manager;
@@ -30,6 +30,7 @@ namespace Dalamud.Plugin
 
         private bool updateComplete = false;
         private int updatePluginCount = 0;
+        private PluginRepository.PluginUpdateStatus[] updatedInternalName;
 
         private enum PluginInstallStatus {
             None,
@@ -81,7 +82,18 @@ namespace Dalamud.Plugin
                     var isInstalled = this.manager.Plugins.Where(x => x.Definition != null).Any(
                         x => x.Definition.InternalName == pluginDefinition.InternalName);
 
-                    if (ImGui.CollapsingHeader(pluginDefinition.Name + (isInstalled ? Loc.Localize("InstallerInstalled", " (installed)") : string.Empty) + "###Header" + pluginDefinition.InternalName)) {
+                    var label = isInstalled ? Loc.Localize("InstallerInstalled", " (installed)") : string.Empty;
+                    label = this.updatedInternalName != null &&
+                            this.updatedInternalName.Any(x => x.InternalName == pluginDefinition.InternalName && x.WasUpdated)
+                                ? Loc.Localize("InstallerUpdated", " (updated)")
+                                : label;
+
+                    label = this.updatedInternalName != null &&
+                            this.updatedInternalName.Any(x => x.InternalName == pluginDefinition.InternalName && x.WasUpdated == false)
+                                ? Loc.Localize("InstallerUpdateFailed", " (update failed)")
+                                : label;
+
+                    if (ImGui.CollapsingHeader(pluginDefinition.Name + label + "###Header" + pluginDefinition.InternalName)) {
                         ImGui.Indent();
 
                         ImGui.Text(pluginDefinition.Name);
@@ -176,7 +188,8 @@ namespace Dalamud.Plugin
 
                             if (this.installStatus == PluginInstallStatus.Success) {
                                 this.updateComplete = true;
-                                this.updatePluginCount = t.Result.UpdatedCount;
+                                this.updatePluginCount = t.Result.UpdatedPlugins.Length;
+                                this.updatedInternalName = t.Result.UpdatedPlugins;
                             }
 
                             this.errorModalDrawing = this.installStatus == PluginInstallStatus.Fail;

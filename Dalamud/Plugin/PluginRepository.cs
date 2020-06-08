@@ -12,7 +12,7 @@ using Serilog;
 
 namespace Dalamud.Plugin
 {
-    public class PluginRepository
+    internal class PluginRepository
     {
         private const string PluginRepoBaseUrl = "https://goatcorp.github.io/DalamudPlugins/";
 
@@ -109,11 +109,16 @@ namespace Dalamud.Plugin
             }
         }
 
-        public (bool Success, int UpdatedCount) UpdatePlugins(bool dryRun = false)
+        internal class PluginUpdateStatus {
+            public string InternalName { get; set; }
+            public bool WasUpdated { get; set; }
+        }
+
+        public (bool Success, PluginUpdateStatus[] UpdatedPlugins) UpdatePlugins(bool dryRun = false)
         {
             Log.Information("Starting plugin update... dry:{0}", dryRun);
 
-            var updatedCount = 0;
+            var updatedList = new List<PluginUpdateStatus>();
             var hasError = false;
 
             try
@@ -190,18 +195,23 @@ namespace Dalamud.Plugin
 
                             var installSuccess = InstallPlugin(remoteInfo, wasEnabled);
 
-                            if (installSuccess)
-                            {
-                                updatedCount++;
-                            }
-                            else
+                            if (!installSuccess)
                             {
                                 Log.Error("InstallPlugin failed.");
                                 hasError = true;
                             }
+
+                            updatedList.Add(new PluginUpdateStatus {
+                                InternalName = remoteInfo.InternalName,
+                                WasUpdated = installSuccess
+                            });
                         }
                         else {
-                            updatedCount++;
+                            updatedList.Add(new PluginUpdateStatus
+                            {
+                                InternalName = remoteInfo.InternalName,
+                                WasUpdated = true
+                            });
                         }
                     }
                     else
@@ -218,7 +228,7 @@ namespace Dalamud.Plugin
 
             Log.Information("Plugin update OK.");
 
-            return (!hasError, updatedCount);
+            return (!hasError, updatedList.ToArray());
         }
     }
 }
