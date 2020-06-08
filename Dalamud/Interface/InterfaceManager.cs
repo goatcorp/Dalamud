@@ -28,7 +28,7 @@ using Serilog;
 
 namespace Dalamud.Interface
 {
-    public class InterfaceManager : IDisposable
+    internal class InterfaceManager : IDisposable
     {
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         private delegate IntPtr PresentDelegate(IntPtr swapChain, uint syncInterval, uint presentFlags);

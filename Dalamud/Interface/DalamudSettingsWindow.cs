@@ -25,6 +25,11 @@ namespace Dalamud.Interface
 
             this.chatTypes = Enum.GetValues(typeof(XivChatType)).Cast<XivChatType>().Select(x => x.ToString()).ToArray();
             this.dalamudMessagesChatType = (int) this.dalamud.Configuration.GeneralChatType;
+
+            this.doCfTaskBarFlash = this.dalamud.Configuration.DutyFinderTaskbarFlash;
+
+            this.doPluginTest = this.dalamud.Configuration.DoPluginTest;
+            this.doDalamudTest = this.dalamud.Configuration.DoDalamudTest;
         }
 
         private string[] chatTypes;
@@ -32,6 +37,15 @@ namespace Dalamud.Interface
         private Vector4 hintTextColor = new Vector4(0.70f, 0.70f, 0.70f, 1.00f);
 
         private int dalamudMessagesChatType;
+
+        private bool doCfTaskBarFlash;
+
+        #region Experimental
+
+        private bool doPluginTest;
+        private bool doDalamudTest;
+
+        #endregion
 
         public bool Draw() {
             ImGui.SetNextWindowSize(new Vector2(500, 500), ImGuiCond.Always);
@@ -51,7 +65,31 @@ namespace Dalamud.Interface
                     ImGui.Combo("##XlChatTypeCombo", ref this.dalamudMessagesChatType, this.chatTypes,
                                 this.chatTypes.Length);
                     ImGui.TextColored(this.hintTextColor, "Select the chat channel that is to be used for general XIVLauncher messages.");
+
+                    ImGui.Dummy(new Vector2(5f, 5f));
+
+                    ImGui.Checkbox("Flash FFXIV window on duty pop", ref this.doCfTaskBarFlash);
+                    ImGui.TextColored(this.hintTextColor, "Select, if the FFXIV window should be flashed in your task bar when a duty is ready.");
+
+                    ImGui.EndTabItem();
                 }
+
+                if (ImGui.BeginTabItem("Experimental"))
+                {
+                    ImGui.Text("All of these settings require a restart of the game to take effect.");
+
+                    ImGui.Dummy(new Vector2(10f, 10f));
+
+                    ImGui.Checkbox("Get plugin testing builds", ref this.doPluginTest);
+                    ImGui.TextColored(this.hintTextColor, "Check this box to receive testing prereleases for plugins.");
+
+                    ImGui.Checkbox("Get Dalamud testing builds", ref this.doDalamudTest);
+                    ImGui.TextColored(this.hintTextColor, "Check this box to receive testing prereleases for Dalamud.");
+
+                    ImGui.EndTabItem();
+                }
+
+                ImGui.EndTabBar();
             }
 
             ImGui.EndChild();
@@ -73,6 +111,12 @@ namespace Dalamud.Interface
 
         private void Save() {
             this.dalamud.Configuration.GeneralChatType = (XivChatType) this.dalamudMessagesChatType;
+
+            this.dalamud.Configuration.DutyFinderTaskbarFlash = this.doCfTaskBarFlash;
+
+            this.dalamud.Configuration.DoPluginTest = this.doPluginTest;
+            this.dalamud.Configuration.DoDalamudTest = this.doDalamudTest;
+
             this.dalamud.Configuration.Save();
         }
     }

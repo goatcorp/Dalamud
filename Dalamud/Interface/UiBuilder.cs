@@ -47,7 +47,7 @@ namespace Dalamud.Interface
         /// </summary>
         /// <param name="interfaceManager">The interface manager to register on.</param>
         /// <param name="namespaceName">The plugin namespace.</param>
-        public UiBuilder(InterfaceManager interfaceManager, string namespaceName) {
+        internal UiBuilder(InterfaceManager interfaceManager, string namespaceName) {
             this.namespaceName = namespaceName;
 
             this.interfaceManager = interfaceManager;

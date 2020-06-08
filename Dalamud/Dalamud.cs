@@ -59,11 +59,11 @@ namespace Dalamud {
         public readonly DalamudStartInfo StartInfo;
         private readonly LoggingLevelSwitch loggingLevelSwitch;
 
-        public readonly DalamudConfiguration Configuration;
+        internal readonly DalamudConfiguration Configuration;
 
         private readonly WinSockHandlers WinSock2;
 
-        public InterfaceManager InterfaceManager { get; private set; }
+        internal InterfaceManager InterfaceManager { get; private set; }
 
         public DataManager Data { get; private set; }
 
@@ -507,14 +507,13 @@ namespace Dalamud {
 
             this.CommandManager.AddHandler("/xlsettings", new CommandInfo(OnOpenSettingsCommand)
             {
-                HelpMessage = Loc.Localize("DalamudSettingsHelp", "Change various In-Game-Addon settings like chat channels and the discord bot setup."),
-                ShowInHelp = false // Not quite ready yet
+                HelpMessage = Loc.Localize("DalamudSettingsHelp", "Change various In-Game-Addon settings like chat channels and the discord bot setup.")
             });
 
             this.CommandManager.AddHandler("/xlbugreport", new CommandInfo(OnBugReportCommand)
             {
                 HelpMessage = Loc.Localize("DalamudBugReport", "Upload a log to be analyzed by our professional development team."),
-                ShowInHelp = false // Not quite ready yet
+                ShowInHelp = false
             });
 
 

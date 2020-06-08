@@ -9,7 +9,7 @@ using Newtonsoft.Json;
 namespace Dalamud
 {
     [Serializable]
-    public class DalamudConfiguration
+    internal class DalamudConfiguration
     {
         public DiscordFeatureConfiguration DiscordFeatureConfig { get; set; }
 
@@ -35,6 +35,9 @@ namespace Dalamud
         public string LastVersion { get; set; }
 
         public XivChatType GeneralChatType { get; set; } = XivChatType.Debug;
+
+        public bool DoPluginTest { get; set; } = false;
+        public bool DoDalamudTest { get; set; } = false;
 
         [JsonIgnore]
         public string ConfigPath;

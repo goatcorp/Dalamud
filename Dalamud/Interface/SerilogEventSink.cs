@@ -11,7 +11,7 @@ using Serilog.Events;
 
 namespace Dalamud.Interface
 {
-    public class SerilogEventSink : ILogEventSink
+    internal class SerilogEventSink : ILogEventSink
     {
         private readonly IFormatProvider _formatProvider;
 
