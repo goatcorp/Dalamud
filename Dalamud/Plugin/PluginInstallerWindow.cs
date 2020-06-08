@@ -186,6 +186,9 @@ namespace Dalamud.Plugin
 
                             if (this.installStatus == PluginInstallStatus.Success) {
                                 this.updateComplete = true;
+                            }
+
+                            if (t.Result.UpdatedPlugins != null) {
                                 this.updatePluginCount = t.Result.UpdatedPlugins.Length;
                                 this.updatedInternalName = t.Result.UpdatedPlugins;
                             }
@@ -207,9 +210,18 @@ namespace Dalamud.Plugin
 
             ImGui.Spacing();
 
-            if (ImGui.BeginPopupModal(Loc.Localize("InstallerError","Installer failed"), ref this.errorModalDrawing, ImGuiWindowFlags.AlwaysAutoResize))
-            {
-                ImGui.Text(Loc.Localize("InstallerErrorHint", "The plugin installer ran into an issue or the plugin is incompatible.\nPlease restart the game and report this error on our discord."));
+            if (ImGui.BeginPopupModal(Loc.Localize("InstallerError","Installer failed"), ref this.errorModalDrawing, ImGuiWindowFlags.AlwaysAutoResize)) {
+                var message = Loc.Localize("InstallerErrorHint",
+                                           "The plugin installer ran into an issue or the plugin is incompatible.\nPlease restart the game and report this error on our discord.");
+
+                if (this.updatedInternalName != null) {
+                    var extraInfoMessage = Loc.Localize("InstallerErrorPluginInfo", "\n\nThe following plugins caused these issues:\n\n{0}\nYou may try removing these plugins manually and reinstalling them.");
+                    var insert = this.updatedInternalName.Where(x => x.WasUpdated == false).Aggregate(string.Empty, (current, pluginUpdateStatus) => current + $"* {pluginUpdateStatus.InternalName}\n");
+                    extraInfoMessage = string.Format(extraInfoMessage, insert);
+                    message += extraInfoMessage;
+                }
+
+                ImGui.Text(message);
 
                 ImGui.Spacing();
 

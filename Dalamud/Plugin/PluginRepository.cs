@@ -14,7 +14,7 @@ namespace Dalamud.Plugin
 {
     internal class PluginRepository
     {
-        private const string PluginRepoBaseUrl = "https://raw.githubusercontent.com/goatcorp/DalamudPlugins/";
+        private string PluginRepoBaseUrl => "https://raw.githubusercontent.com/goatcorp/DalamudPlugins/" + (this.dalamud.Configuration.DoPluginTest ? "testing/" : "master/");
 
         private readonly Dalamud dalamud;
         private string pluginDirectory;
@@ -47,7 +47,7 @@ namespace Dalamud.Plugin
             {
                 using var client = new WebClient();
 
-                var data = client.DownloadString(PluginRepoBaseUrl + (this.dalamud.Configuration.DoPluginTest ? "testing/" : "master/") + "pluginmaster.json");
+                var data = client.DownloadString(PluginRepoBaseUrl + "pluginmaster.json");
 
                 this.PluginMaster = JsonConvert.DeserializeObject<ReadOnlyCollection<PluginDefinition>>(data);
 
