@@ -77,7 +77,7 @@ namespace Dalamud.Injector {
 
 #if !DEBUG
             // Inject exception handler
-            NativeInject(process);
+            //NativeInject(process);
 #endif
         }
 
