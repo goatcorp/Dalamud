@@ -42,7 +42,8 @@ namespace Dalamud.Plugin
             this.dalamud = dalamud;
             this.gameVersion = gameVersion;
 
-            this.dalamud.PluginRepository.ReloadPluginMaster();
+            if (this.dalamud.PluginRepository.State != PluginRepository.InitializationState.InProgress)
+                this.dalamud.PluginRepository.ReloadPluginMasterAsync();
         }
 
         public bool Draw() {

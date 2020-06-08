@@ -34,29 +34,33 @@ namespace Dalamud.Plugin
             this.dalamud = dalamud;
             this.pluginDirectory = pluginDirectory;
 
-            State = InitializationState.InProgress;
-            Task.Run(ReloadPluginMaster).ContinueWith(t => {
+            ReloadPluginMasterAsync();
+        }
+
+        public void ReloadPluginMasterAsync()
+        {
+            Task.Run(() => {
+                State = InitializationState.InProgress;
+
+                try
+                {
+                    using var client = new WebClient();
+
+                    var data = client.DownloadString(PluginRepoBaseUrl + "pluginmaster.json");
+
+                    this.PluginMaster = JsonConvert.DeserializeObject<ReadOnlyCollection<PluginDefinition>>(data);
+
+                    State = InitializationState.Success;
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Could not download PluginMaster");
+                    State = InitializationState.Fail;
+                }
+            }).ContinueWith(t => {
                 if (t.IsFaulted)
                     State = InitializationState.Fail;
             });
-        }
-
-        public void ReloadPluginMaster()
-        {
-            try
-            {
-                using var client = new WebClient();
-
-                var data = client.DownloadString(PluginRepoBaseUrl + "pluginmaster.json");
-
-                this.PluginMaster = JsonConvert.DeserializeObject<ReadOnlyCollection<PluginDefinition>>(data);
-
-                State = InitializationState.Success;
-            }
-            catch(Exception ex) {
-                Log.Error(ex, "Could not download PluginMaster");
-                State = InitializationState.Fail;
-            }
         }
 
         public bool InstallPlugin(PluginDefinition definition, bool enableAfterInstall = true) {

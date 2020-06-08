@@ -77,7 +77,7 @@ namespace Dalamud.Interface
                     ImGui.Text(Loc.Localize("DalamudSettingsChannel", "General Chat Channel"));
                     ImGui.Combo("##XlChatTypeCombo", ref this.dalamudMessagesChatType, this.chatTypes,
                                 this.chatTypes.Length);
-                    ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingsChannelHint", "Select the chat channel that is to be used for general XIVLauncher messages."));
+                    ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingsChannelHint", "Select the chat channel that is to be used for general Dalamud messages."));
 
                     ImGui.Dummy(new Vector2(5f, 5f));
 
