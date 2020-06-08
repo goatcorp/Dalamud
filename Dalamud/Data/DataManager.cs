@@ -116,6 +116,23 @@ namespace Dalamud.Data
         }
 
         /// <summary>
+        /// Get an <see cref="ExcelSheet{T}"/> with the given Excel sheet row type with a specified language.
+        /// </summary>
+        /// <param name="language">Language of the sheet to get.</param>
+        /// <typeparam name="T">The excel sheet type to get.</typeparam>
+        /// <returns>The <see cref="ExcelSheet{T}"/>, giving access to game rows.</returns>
+        public ExcelSheet<T> GetExcelSheet<T>(ClientLanguage language) where T : IExcelRow {
+            var lang = language switch {
+                ClientLanguage.Japanese => Language.Japanese,
+                ClientLanguage.English => Language.English,
+                ClientLanguage.German => Language.German,
+                ClientLanguage.French => Language.French,
+                _ => throw new ArgumentOutOfRangeException(nameof(this.language), "Unknown Language: " + this.language)
+            };
+            return this.Excel.GetSheet<T>(lang);
+        }
+
+        /// <summary>
         /// Get a <see cref="FileResource"/> with the given path.
         /// </summary>
         /// <param name="path">The path inside of the game files.</param>
