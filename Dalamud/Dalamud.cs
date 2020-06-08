@@ -68,7 +68,7 @@ namespace Dalamud {
         public DataManager Data { get; private set; }
 
 
-        private Localization localizationMgr;
+        internal Localization LocalizationManager;
 
         public bool IsReady { get; private set; }
 
@@ -100,11 +100,11 @@ namespace Dalamud {
                     throw new Exception("Could not ensure assets.", task.Exception);
                 }
 
-                this.localizationMgr = new Localization(this.StartInfo.WorkingDirectory);
+                this.LocalizationManager = new Localization(this.StartInfo.WorkingDirectory);
                 if (!string.IsNullOrEmpty(this.Configuration.LanguageOverride)) {
-                    this.localizationMgr.SetupWithLangCode(this.Configuration.LanguageOverride);
+                    this.LocalizationManager.SetupWithLangCode(this.Configuration.LanguageOverride);
                 } else {
-                    this.localizationMgr.SetupWithUiCulture();
+                    this.LocalizationManager.SetupWithUiCulture();
                 }
 
                 if (Environment.GetEnvironmentVariable("DALAMUD_NOT_HAVE_INTERFACE") != "True") {
@@ -333,13 +333,13 @@ namespace Dalamud {
                             }
 
                             if (ImGui.MenuItem("From UICulture")) {
-                                this.localizationMgr.SetupWithUiCulture();
+                                this.LocalizationManager.SetupWithUiCulture();
                             }
 
                             foreach (var applicableLangCode in Localization.ApplicableLangCodes) {
                                 if (ImGui.MenuItem($"Applicable: {applicableLangCode}"))
                                 {
-                                    this.localizationMgr.SetupWithLangCode(applicableLangCode);
+                                    this.LocalizationManager.SetupWithLangCode(applicableLangCode);
                                 }
                             }
 
@@ -741,12 +741,12 @@ namespace Dalamud {
         private void OnSetLanguageCommand(string command, string arguments)
         {
             if (Localization.ApplicableLangCodes.Contains(arguments.ToLower())) {
-                this.localizationMgr.SetupWithLangCode(arguments.ToLower());
+                this.LocalizationManager.SetupWithLangCode(arguments.ToLower());
                 this.Configuration.LanguageOverride = arguments.ToLower();
 
                 this.Framework.Gui.Chat.Print(string.Format(Loc.Localize("DalamudLanguageSetTo", "Language set to {0}"), arguments));
             } else {
-                this.localizationMgr.SetupWithUiCulture();
+                this.LocalizationManager.SetupWithUiCulture();
                 this.Configuration.LanguageOverride = null;
 
                 this.Framework.Gui.Chat.Print(string.Format(Loc.Localize("DalamudLanguageSetTo", "Language set to {0}"), "default"));

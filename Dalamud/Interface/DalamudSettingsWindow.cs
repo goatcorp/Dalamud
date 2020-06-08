@@ -30,7 +30,13 @@ namespace Dalamud.Interface
 
             this.doPluginTest = this.dalamud.Configuration.DoPluginTest;
             this.doDalamudTest = this.dalamud.Configuration.DoDalamudTest;
+
+            this.languages = Localization.ApplicableLangCodes.Prepend("en").ToArray();
+            this.langIndex = string.IsNullOrEmpty(this.dalamud.Configuration.LanguageOverride) ? 0 : Array.IndexOf(this.languages, this.dalamud.Configuration.LanguageOverride);
         }
+
+        private string[] languages;
+        private int langIndex;
 
         private string[] chatTypes;
 
@@ -52,7 +58,7 @@ namespace Dalamud.Interface
 
             var isOpen = true;
 
-            if (!ImGui.Begin("XIVLauncher Settings", ref isOpen, ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize)) {
+            if (!ImGui.Begin("Dalamud Settings", ref isOpen, ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize)) {
                 ImGui.End();
                 return false;
             }
@@ -61,6 +67,13 @@ namespace Dalamud.Interface
 
             if (ImGui.BeginTabBar("SetTabBar")) {
                 if (ImGui.BeginTabItem("General")) {
+                    ImGui.Text("Language");
+                    ImGui.Combo("##XlLangCombo", ref this.langIndex, this.languages,
+                                this.languages.Length);
+                    ImGui.TextColored(this.hintTextColor, "Select the language Dalamud will be displayed in.");
+
+                    ImGui.Dummy(new Vector2(5f, 5f));
+
                     ImGui.Text("General Chat Channel");
                     ImGui.Combo("##XlChatTypeCombo", ref this.dalamudMessagesChatType, this.chatTypes,
                                 this.chatTypes.Length);
@@ -110,6 +123,9 @@ namespace Dalamud.Interface
         }
 
         private void Save() {
+            this.dalamud.LocalizationManager.SetupWithLangCode(this.languages[this.langIndex]);
+            this.dalamud.Configuration.LanguageOverride = this.languages[this.langIndex];
+
             this.dalamud.Configuration.GeneralChatType = (XivChatType) this.dalamudMessagesChatType;
 
             this.dalamud.Configuration.DutyFinderTaskbarFlash = this.doCfTaskBarFlash;
