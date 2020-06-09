@@ -22,7 +22,7 @@ namespace Dalamud.Game.Chat.SeStringHandling
         /// <returns>An SeString containing all the payloads necessary to display an item link in the chat log.</returns>
         public static SeString CreateItemLink(uint itemId, bool isHQ, string displayNameOverride = null)
         {
-            string displayName = displayNameOverride ?? SeString.Dalamud.Data.GetExcelSheet<DalamudItem>().GetRow((int)itemId).Name;
+            string displayName = displayNameOverride ?? SeString.Dalamud.Data.GetExcelSheet<DalamudItem>().GetRow(itemId).Name;
             if (isHQ)
             {
                 displayName += $" {(char)SeIconChar.HighQuality}";
@@ -118,10 +118,10 @@ namespace Dalamud.Game.Chat.SeStringHandling
 
             foreach (var place in matches)
             {
-                var map = mapSheet.GetRows().FirstOrDefault(row => row.PlaceName == place.RowId);
+                var map = mapSheet.GetRows().FirstOrDefault(row => row.PlaceName.Row == place.RowId);
                 if (map != null)
                 {
-                    return CreateMapLink(map.TerritoryType, (uint)map.RowId, xCoord, yCoord);
+                    return CreateMapLink(map.TerritoryType.Row, (uint)map.RowId, xCoord, yCoord);
                 }
             }
 

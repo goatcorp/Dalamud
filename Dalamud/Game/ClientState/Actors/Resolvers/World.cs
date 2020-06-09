@@ -13,7 +13,7 @@ namespace Dalamud.Game.ClientState.Actors.Resolvers
         /// <summary>
         /// ID of the world.
         /// </summary>
-        public readonly int Id;
+        public readonly uint Id;
 
         /// <summary>
         /// GameData linked to this world.

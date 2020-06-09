@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using Dalamud.Data.LuminaExtensions;
 using Lumina.Data;
@@ -21,7 +22,7 @@ namespace Dalamud.Data
     /// <summary>
     /// This class provides data for Dalamud-internal features, but can also be used by plugins if needed.
     /// </summary>
-    public class DataManager {
+    public class DataManager : IDisposable {
         /// <summary>
         /// OpCodes sent by the server to the client.
         /// </summary>
@@ -49,6 +50,8 @@ namespace Dalamud.Data
         private ClientLanguage language;
 
         private const string IconFileFormat = "ui/icon/{0:D3}000/{1}{2:D6}.tex";
+
+        private Thread luminaResourceThread;
 
         public DataManager(ClientLanguage language)
         {
@@ -96,6 +99,17 @@ namespace Dalamud.Data
                 Log.Information("Lumina is ready: {0}", gameData.DataPath);
 
                 IsDataReady = true;
+                
+                this.luminaResourceThread = new Thread( () =>
+                {
+                    while( true )
+                    {
+                        gameData.ProcessFileHandleQueue();
+                        Thread.Yield();
+                    }
+                    // ReSharper disable once FunctionNeverReturns
+                });
+                this.luminaResourceThread.Start();
             }
             catch (Exception ex)
             {
@@ -211,5 +225,10 @@ namespace Dalamud.Data
         }
 
         #endregion
+
+        public void Dispose()
+        {
+            this.luminaResourceThread.Abort();
+        }
     }
 }

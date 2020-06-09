@@ -197,6 +197,8 @@ namespace Dalamud {
             this.WinSock2.Dispose();
 
             this.SigScanner.Dispose();
+            
+            this.Data.Dispose();
         }
 
 #region Interface
