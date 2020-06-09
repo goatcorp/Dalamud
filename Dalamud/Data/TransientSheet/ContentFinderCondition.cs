@@ -592,8 +592,8 @@ namespace Dalamud.Data.TransientSheet
         public bool unknown62_40 => (packed62 & 0x40) == 0x40;
 
 
-        public int RowId { get; set; }
-        public int SubRowId { get; set; }
+        public uint RowId { get; set; }
+        public uint SubRowId { get; set; }
 
         public void PopulateData(RowParser parser, Lumina.Lumina lumina)
         {

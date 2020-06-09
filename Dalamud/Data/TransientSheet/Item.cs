@@ -239,8 +239,8 @@ namespace Dalamud.Data.TransientSheet
         public bool AlwaysCollectable => (packeda0 & 0x1) == 0x1;
 
 
-        public int RowId { get; set; }
-        public int SubRowId { get; set; }
+        public uint RowId { get; set; }
+        public uint SubRowId { get; set; }
 
         public void PopulateData(RowParser parser, global::Lumina.Lumina lumina)
         {

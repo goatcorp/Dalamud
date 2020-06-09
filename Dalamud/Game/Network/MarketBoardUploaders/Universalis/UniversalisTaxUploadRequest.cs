@@ -13,7 +13,7 @@ namespace Dalamud.Game.Network.MarketBoardUploaders.Universalis
         public ulong UploaderId { get; set; }
 
         [JsonProperty("worldID")]
-        public int WorldId { get; set; }
+        public uint WorldId { get; set; }
 
         [JsonProperty("marketTaxRates")]
         public UniversalisTaxData TaxData { get; set; }

@@ -23,7 +23,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         {
             get
             {
-                this.map ??= this.dataResolver.GetExcelSheet<Map>().GetRow((int)this.mapId);
+                this.map ??= this.dataResolver.GetExcelSheet<Map>().GetRow(this.mapId);
                 return this.map;
             }
         }
@@ -39,7 +39,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         {
             get
             {
-                this.territoryType ??= this.dataResolver.GetExcelSheet<TerritoryType>().GetRow((int)this.territoryTypeId);
+                this.territoryType ??= this.dataResolver.GetExcelSheet<TerritoryType>().GetRow(this.territoryTypeId);
                 return this.territoryType;
             }
         }
@@ -105,7 +105,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         {
             get
             {
-                this.placeNameRegion ??= this.dataResolver.GetExcelSheet<PlaceName>().GetRow(TerritoryType.PlaceNameRegion).Name;
+                this.placeNameRegion ??= TerritoryType.PlaceNameRegion.Value?.Name;
                 return this.placeNameRegion;
             }
         }
@@ -118,7 +118,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         {
             get
             {
-                this.placeName ??= this.dataResolver.GetExcelSheet<PlaceName>().GetRow(TerritoryType.PlaceName).Name;
+                this.placeName ??= TerritoryType.PlaceName.Value?.Name;
                 return this.placeName;
             }
         }

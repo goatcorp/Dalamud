@@ -28,7 +28,7 @@ namespace Dalamud.Game.Network.Universalis.MarketBoardUploaders {
                 var uploader = this.dalamud.ClientState.LocalContentId;
 
                 var listingsRequestObject = new UniversalisItemListingsUploadRequest();
-                listingsRequestObject.WorldId = this.dalamud.ClientState.LocalPlayer.CurrentWorld.Id;
+                listingsRequestObject.WorldId = this.dalamud.ClientState.LocalPlayer?.CurrentWorld.Id ?? 0;
                 listingsRequestObject.UploaderId = uploader;
                 listingsRequestObject.ItemId = request.CatalogId;
 
@@ -63,7 +63,7 @@ namespace Dalamud.Game.Network.Universalis.MarketBoardUploaders {
                 Log.Verbose(upload);
 
                 var historyRequestObject = new UniversalisHistoryUploadRequest();
-                historyRequestObject.WorldId = this.dalamud.ClientState.LocalPlayer.CurrentWorld.Id;
+                historyRequestObject.WorldId = this.dalamud.ClientState.LocalPlayer?.CurrentWorld.Id ?? 0;
                 historyRequestObject.UploaderId = uploader;
                 historyRequestObject.ItemId = request.CatalogId;
 
@@ -92,7 +92,7 @@ namespace Dalamud.Game.Network.Universalis.MarketBoardUploaders {
             using (var client = new WebClient())
             {
                 var taxRatesRequest = new UniversalisTaxUploadRequest();
-                taxRatesRequest.WorldId = this.dalamud.ClientState.LocalPlayer.CurrentWorld.Id;
+                taxRatesRequest.WorldId = this.dalamud.ClientState.LocalPlayer?.CurrentWorld.Id ?? 0;
                 taxRatesRequest.UploaderId = this.dalamud.ClientState.LocalContentId;
 
                 taxRatesRequest.TaxData = new UniversalisTaxData {

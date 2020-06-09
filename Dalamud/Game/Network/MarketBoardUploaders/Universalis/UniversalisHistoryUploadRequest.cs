@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 namespace Dalamud.Game.Network.MarketBoardUploaders.Universalis {
     internal class UniversalisHistoryUploadRequest {
         [JsonProperty("worldID")]
-        public int WorldId { get; set; }
+        public uint WorldId { get; set; }
 
         [JsonProperty("itemID")]
         public uint ItemId { get; set; }
