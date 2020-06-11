@@ -143,6 +143,12 @@ namespace Dalamud.Plugin
                     Log.Information($"Found banned v{ver} ChatExtender, skipping...");
                     return false;
                 }
+
+                if (dllFile.Name.Contains("XIVStats") && ver <= 1100)
+                {
+                    Log.Information($"Found banned v{ver} XIVStats, skipping...");
+                    return false;
+                }
             }
             catch (Exception)
             {
