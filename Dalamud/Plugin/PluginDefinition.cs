@@ -16,5 +16,6 @@ namespace Dalamud.Plugin
         public string ApplicableVersion { get; set; }
         public string RepoUrl { get; set; }
         public bool IsHide { get; set; }
+        public int DalamudApiLevel { get; set; }
     }
 }

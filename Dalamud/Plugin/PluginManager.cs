@@ -12,6 +12,8 @@ using Serilog;
 namespace Dalamud.Plugin
 {
     internal class PluginManager {
+        public const int DALAMUD_API_LEVEL = 1;
+
         private readonly Dalamud dalamud;
         private readonly string pluginDirectory;
         private readonly string devPluginDirectory;
@@ -132,65 +134,49 @@ namespace Dalamud.Plugin
             // Assembly.Load() by name here will not load multiple versions with the same name, in the case of updates
             var pluginAssembly = Assembly.LoadFile(dllFile.FullName);
 
-            // Don't wanna fuck this up
-            // This is a fix for earlier Chat Extender versions, since they break command handlers
-            try
+            Log.Information("Loading types for {0}", pluginAssembly.FullName);
+            var types = pluginAssembly.GetTypes();
+            foreach (var type in types)
             {
-                var ver = int.Parse(pluginAssembly.GetName().Version.ToString().Replace(".", ""));
-                if (dllFile.Name.Contains("ChatExtender") &&
-                    ver < 1410)
+                if (type.IsInterface || type.IsAbstract)
                 {
-                    Log.Information($"Found banned v{ver} ChatExtender, skipping...");
-                    return false;
+                    continue;
                 }
-            }
-            catch (Exception)
-            {
-                // ignored
-            }
 
-            if (pluginAssembly != null)
-            {
-                Log.Information("Loading types for {0}", pluginAssembly.FullName);
-                var types = pluginAssembly.GetTypes();
-                foreach (var type in types)
+                if (type.GetInterface(interfaceType.FullName) != null)
                 {
-                    if (type.IsInterface || type.IsAbstract)
+                    if (this.Plugins.Any(x => x.Plugin.GetType().Assembly.GetName().Name == type.Assembly.GetName().Name))
                     {
-                        continue;
+                        Log.Error("Duplicate plugin found: {0}", dllFile.FullName);
+                        return false;
                     }
 
-                    if (type.GetInterface(interfaceType.FullName) != null)
-                    {
-                        if (this.Plugins.Any(x => x.Plugin.GetType().Assembly.GetName().Name == type.Assembly.GetName().Name)) {
-                            Log.Error("Duplicate plugin found: {0}", dllFile.FullName);
-                            return false;
-                        }
+                    var plugin = (IDalamudPlugin)Activator.CreateInstance(type);
 
-                        var plugin = (IDalamudPlugin)Activator.CreateInstance(type);
+                    // this happens for raw plugins that don't specify a PluginDefinition - just generate a dummy one to avoid crashes anywhere
+                    pluginDef ??= new PluginDefinition{
+                        Author = "developer",
+                        Name = plugin.Name,
+                        InternalName = Path.GetFileNameWithoutExtension(dllFile.Name),
+                        AssemblyVersion = plugin.GetType().Assembly.GetName().Version.ToString(),
+                        Description = "",
+                        ApplicableVersion = "any",
+                        IsHide = false,
+                        DalamudApiLevel = DALAMUD_API_LEVEL
+                    };
 
-                        // this happens for raw plugins that don't specify a PluginDefinition - just generate a dummy one to avoid crashes anywhere
-                        if (pluginDef == null)
-                        {
-                            pluginDef = new PluginDefinition
-                            {
-                                Author = "developer",
-                                Name = plugin.Name,
-                                InternalName = Path.GetFileNameWithoutExtension(dllFile.Name),
-                                AssemblyVersion = plugin.GetType().Assembly.GetName().Version.ToString(),
-                                Description = "",
-                                ApplicableVersion = "any",
-                                IsHide = false
-                            };
-                        }
-
-                        var dalamudInterface = new DalamudPluginInterface(this.dalamud, type.Assembly.GetName().Name, this.pluginConfigs);
-                        plugin.Initialize(dalamudInterface);
-                        Log.Information("Loaded plugin: {0}", plugin.Name);
-                        this.Plugins.Add((plugin, pluginDef, dalamudInterface));
-
-                        return true;
+                    if (pluginDef.DalamudApiLevel != DALAMUD_API_LEVEL) {
+                        Log.Error("Incompatible API level: {0}", dllFile.FullName);
+                        return false;
                     }
+
+                    var dalamudInterface = new DalamudPluginInterface(this.dalamud, type.Assembly.GetName().Name, this.pluginConfigs);
+                    plugin.Initialize(dalamudInterface);
+
+                    Log.Information("Loaded plugin: {0}", plugin.Name);
+                    this.Plugins.Add((plugin, pluginDef, dalamudInterface));
+
+                    return true;
                 }
             }
 

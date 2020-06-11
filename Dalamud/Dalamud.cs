@@ -318,8 +318,12 @@ namespace Dalamud {
                         {
                             OnPluginReloadCommand(string.Empty, string.Empty);
                         }
+
+                        ImGui.Separator();
+                        ImGui.MenuItem("API Level:" + PluginManager.DALAMUD_API_LEVEL, false);
+                        ImGui.MenuItem("Loaded plugins:" + PluginManager?.Plugins.Count, false);
                         ImGui.EndMenu();
-                    }
+                    } 
 
                     if (ImGui.BeginMenu("Localization"))
                     {

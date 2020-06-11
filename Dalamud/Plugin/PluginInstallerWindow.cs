@@ -66,8 +66,9 @@ namespace Dalamud.Plugin
             } else if (this.dalamud.PluginRepository.State == PluginRepository.InitializationState.Fail) {
                 ImGui.Text(Loc.Localize("InstallerDownloadFailed", "Download failed."));
             }
-            else
-            {
+            else {
+                var didAny = false;
+
                 foreach (var pluginDefinition in this.dalamud.PluginRepository.PluginMaster) {
                     if (pluginDefinition.ApplicableVersion != this.gameVersion &&
                         pluginDefinition.ApplicableVersion != "any")
@@ -75,6 +76,11 @@ namespace Dalamud.Plugin
 
                     if (pluginDefinition.IsHide)
                         continue;
+
+                    if (pluginDefinition.DalamudApiLevel != PluginManager.DALAMUD_API_LEVEL)
+                        continue;
+
+                    didAny = true;
 
                     ImGui.PushID(pluginDefinition.InternalName + pluginDefinition.AssemblyVersion);
 
@@ -159,6 +165,9 @@ namespace Dalamud.Plugin
 
                     ImGui.PopID();
                 }
+
+                if (!didAny)
+                    ImGui.TextColored(new Vector4(0.70f, 0.70f, 0.70f, 1.00f), Loc.Localize("InstallerNoCompatible", "No compatible plugins were found :( Please restart your game and try again."));
             }
 
             ImGui.PopStyleVar();

@@ -160,6 +160,12 @@ namespace Dalamud.Plugin
                         continue;
                     }
 
+                    if (remoteInfo.DalamudApiLevel != PluginManager.DALAMUD_API_LEVEL)
+                    {
+                        Log.Information("Has not applicable API level: {0}", info.Name);
+                        continue;
+                    }
+
                     if (remoteInfo.AssemblyVersion != info.AssemblyVersion)
                     {
                         Log.Information("Eligible for update: {0}", remoteInfo.InternalName);
