@@ -72,8 +72,6 @@ namespace Dalamud {
 
         public bool IsReady { get; private set; }
 
-        private readonly string assemblyVersion = Assembly.GetAssembly(typeof(ChatHandlers)).GetName().Version.ToString();
-
         public Dalamud(DalamudStartInfo info, LoggingLevelSwitch loggingLevelSwitch) {
             this.StartInfo = info;
             this.loggingLevelSwitch = loggingLevelSwitch;
@@ -283,7 +281,7 @@ namespace Dalamud {
                             var a = Marshal.ReadByte(IntPtr.Zero);
                         }
                         ImGui.Separator();
-                        ImGui.MenuItem(this.assemblyVersion, false);
+                        ImGui.MenuItem(Util.AssemblyVersion, false);
                         ImGui.MenuItem(this.StartInfo.GameVersion, false);
 
                         ImGui.EndMenu();
