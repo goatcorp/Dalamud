@@ -166,7 +166,7 @@ namespace Dalamud.Game {
                     if (!valueInfo.Success || !int.TryParse(valueInfo.Value.Replace(",", "").Replace(".", ""), out var itemValue))
                         continue;
 
-                    Task.Run(() => this.dalamud.BotManager.ProcessRetainerSale((int)itemLink.Item.RowId, itemValue, itemLink.IsHQ));
+                    Task.Run(() => this.dalamud.BotManager.ProcessRetainerSale(itemLink.Item.RowId, itemValue, itemLink.IsHQ));
                     break;
                 }
             }

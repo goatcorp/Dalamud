@@ -4,12 +4,12 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using Dalamud.Data.TransientSheet;
 using Dalamud.Game.Internal.Network;
 using Dalamud.Game.Network.MarketBoardUploaders;
 using Dalamud.Game.Network.Structures;
 using Dalamud.Game.Network.Universalis.MarketBoardUploaders;
 using Lumina.Excel;
+using Lumina.Excel.GeneratedSheets;
 using Newtonsoft.Json.Linq;
 using Serilog;
 
