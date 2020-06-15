@@ -1,10 +1,10 @@
-using Dalamud.Data.TransientSheet;
 using Lumina.Excel.GeneratedSheets;
 using Serilog;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Dalamud.Data.TransientSheet;
 
 namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 {

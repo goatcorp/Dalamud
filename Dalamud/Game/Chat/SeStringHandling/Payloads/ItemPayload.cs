@@ -1,9 +1,9 @@
-using Dalamud.Data.TransientSheet;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Lumina.Excel.GeneratedSheets;
 
 namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 {

@@ -6,13 +6,13 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Dalamud.Data.TransientSheet;
 using Dalamud.Game.Chat;
 using Dalamud.Game.Chat.SeStringHandling;
 using Dalamud.Game.Chat.SeStringHandling.Payloads;
 using Dalamud.Game.Internal.Libc;
 using Discord;
 using Discord.WebSocket;
+using Lumina.Excel.GeneratedSheets;
 using Newtonsoft.Json.Linq;
 using Serilog;
 
@@ -135,7 +135,7 @@ namespace Dalamud.DiscordBot {
             await channel.SendMessageAsync(embed: embedBuilder.Build());
         }
 
-        public async Task ProcessRetainerSale(int itemId, int amount, bool isHq) {
+        public async Task ProcessRetainerSale(uint itemId, int amount, bool isHq) {
             if (this.config.RetainerNotificationChannel == null)
                 return;
             

@@ -4,8 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using DalamudItem = Dalamud.Data.TransientSheet.Item;
-
 namespace Dalamud.Game.Chat.SeStringHandling
 {
     /// <summary>
@@ -22,7 +20,7 @@ namespace Dalamud.Game.Chat.SeStringHandling
         /// <returns>An SeString containing all the payloads necessary to display an item link in the chat log.</returns>
         public static SeString CreateItemLink(uint itemId, bool isHQ, string displayNameOverride = null)
         {
-            string displayName = displayNameOverride ?? SeString.Dalamud.Data.GetExcelSheet<DalamudItem>().GetRow(itemId).Name;
+            string displayName = displayNameOverride ?? SeString.Dalamud.Data.GetExcelSheet<Item>().GetRow(itemId).Name;
             if (isHQ)
             {
                 displayName += $" {(char)SeIconChar.HighQuality}";
@@ -52,7 +50,7 @@ namespace Dalamud.Game.Chat.SeStringHandling
         /// <param name="isHQ">Whether to link the high-quality variant of the item.</param>
         /// <param name="displayNameOverride">An optional name override to display, instead of the actual item name.</param>
         /// <returns>An SeString containing all the payloads necessary to display an item link in the chat log.</returns>
-        public static SeString CreateItemLink(DalamudItem item, bool isHQ, string displayNameOverride = null)
+        public static SeString CreateItemLink(Item item, bool isHQ, string displayNameOverride = null)
         {
             return CreateItemLink((uint)item.RowId, isHQ, displayNameOverride ?? item.Name);
         }
