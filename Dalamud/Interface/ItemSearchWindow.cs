@@ -16,7 +16,6 @@ using ImGuiNET;
 using ImGuiScene;
 using Lumina.Excel.GeneratedSheets;
 using Serilog;
-using Item = Dalamud.Data.TransientSheet.Item;
 
 namespace Dalamud.Interface
 {
@@ -126,7 +125,7 @@ namespace Dalamud.Interface
                         if (this.currentKind != 0)
                         {
                             Log.Debug("Searching for C" + this.currentKind);
-                            asyncEnum = asyncEnum.Where(x => x.ItemUICategory == this.currentKind);
+                            asyncEnum = asyncEnum.Where(x => x.ItemUICategory.Row == this.currentKind);
                         }
 
                         this.selectedItemIndex = -1;
