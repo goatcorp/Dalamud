@@ -245,10 +245,17 @@ namespace Dalamud.Game.Chat.SeStringHandling
             Byte = 0xF0,
             ByteTimes256 = 0xF1,
             Int16 = 0xF2,
+            ByteSHL16 = 0xF3,
             Int16Packed = 0xF4,         // seen in map links, seemingly 2 8-bit values packed into 2 bytes with only one marker
+            Int16SHL8 = 0xF5,
             Int24Special = 0xF6,        // unsure how different form Int24 - used for hq items that add 1 million, also used for normal 24-bit values in map links
+            Int8SHL24 = 0xF7,
+            Int8SHL8Int8 = 0xF8,
+            Int8SHL8Int8SHL8 = 0xF9,
             Int24 = 0xFA,
+            Int16SHL16 = 0xFB,
             Int24Packed = 0xFC,         // used in map links- sometimes short+byte, sometimes... not??
+            Int16Int8SHL8 = 0xFD,
             Int32 = 0xFE
         }
 
@@ -276,6 +283,25 @@ namespace Dalamud.Game.Chat.SeStringHandling
 
                 case IntegerType.ByteTimes256:
                     return input.ReadByte() * (uint)256;
+                case IntegerType.ByteSHL16:
+                    return (uint)(input.ReadByte() << 16);
+                case IntegerType.Int8SHL24:
+                    return (uint)(input.ReadByte() << 24);
+                case IntegerType.Int8SHL8Int8:
+                    {
+                        var v = 0;
+                        v |= input.ReadByte() << 24;
+                        v |= input.ReadByte();
+                        return (uint)v;
+                    }
+                case IntegerType.Int8SHL8Int8SHL8:
+                    {
+                        var v = 0;
+                        v |= input.ReadByte() << 24;
+                        v |= input.ReadByte() << 8;
+                        return (uint)v;
+                    }
+
 
                 case IntegerType.Int16:
                     // fallthrough - same logic
@@ -284,6 +310,20 @@ namespace Dalamud.Game.Chat.SeStringHandling
                         var v = 0;
                         v |= input.ReadByte() << 8;
                         v |= input.ReadByte();
+                        return (uint)v;
+                    }
+                case IntegerType.Int16SHL8:
+                    {
+                        var v = 0;
+                        v |= input.ReadByte() << 16;
+                        v |= input.ReadByte() << 8;
+                        return (uint)v;
+                    }
+                case IntegerType.Int16SHL16:
+                    {
+                        var v = 0;
+                        v |= input.ReadByte() << 24;
+                        v |= input.ReadByte() << 16;
                         return (uint)v;
                     }
 
@@ -299,7 +339,14 @@ namespace Dalamud.Game.Chat.SeStringHandling
                         v |= input.ReadByte();
                         return (uint)v;
                     }
-
+                case IntegerType.Int16Int8SHL8:
+                    {
+                        var v = 0;
+                        v |= input.ReadByte() << 24;
+                        v |= input.ReadByte() << 16;
+                        v |= input.ReadByte() << 8;
+                        return (uint)v;
+                    }
                 case IntegerType.Int32:
                     {
                         var v = 0;
