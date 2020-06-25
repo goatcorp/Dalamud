@@ -125,6 +125,17 @@ namespace Dalamud.Plugin
                                     });
                                 }
                             }
+                            if (!string.IsNullOrEmpty(pluginDefinition.RepoUrl))
+                            {
+                                ImGui.PushFont(InterfaceManager.IconFont);
+
+                                ImGui.SameLine();
+                                if (ImGui.Button(FontAwesomeIcon.Globe.ToIconString()) &&
+                                    pluginDefinition.RepoUrl.StartsWith("https://"))
+                                    Process.Start(pluginDefinition.Definition.RepoUrl);
+
+                                ImGui.PopFont();
+                            }
                         } else {
                             var installedPlugin = this.dalamud.PluginManager.Plugins.Where(x => x.Definition != null).First(
                                 x => x.Definition.InternalName ==
