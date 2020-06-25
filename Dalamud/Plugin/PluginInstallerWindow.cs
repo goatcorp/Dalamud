@@ -132,7 +132,7 @@ namespace Dalamud.Plugin
                                 ImGui.SameLine();
                                 if (ImGui.Button(FontAwesomeIcon.Globe.ToIconString()) &&
                                     pluginDefinition.RepoUrl.StartsWith("https://"))
-                                    Process.Start(pluginDefinition.Definition.RepoUrl);
+                                    Process.Start(pluginDefinition.RepoUrl);
 
                                 ImGui.PopFont();
                             }
