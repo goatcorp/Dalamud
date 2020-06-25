@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -16,17 +15,12 @@ using Dalamud.Game;
 using Dalamud.Game.Chat;
 using Dalamud.Game.Chat.SeStringHandling;
 using Dalamud.Game.ClientState;
-using Dalamud.Game.ClientState.Actors.Types;
-using Dalamud.Game.ClientState.Actors.Types.NonPlayer;
 using Dalamud.Game.Command;
 using Dalamud.Game.Internal;
-using Dalamud.Game.Internal.Gui;
 using Dalamud.Game.Network;
 using Dalamud.Interface;
 using Dalamud.Plugin;
 using ImGuiNET;
-using Lumina.Excel.GeneratedSheets;
-using Newtonsoft.Json;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
@@ -380,17 +374,6 @@ namespace Dalamud {
                 this.isImguiDrawPluginWindow = this.pluginWindow != null && this.pluginWindow.Draw();
             }
 
-            if (this.isImguiDrawItemSearchWindow)
-            {
-                this.isImguiDrawItemSearchWindow = this.itemSearchCommandWindow != null && this.itemSearchCommandWindow.Draw();
-
-                if (this.isImguiDrawItemSearchWindow == false)
-                {
-                    this.itemSearchCommandWindow?.Dispose();
-                    this.itemSearchCommandWindow = null;
-                }
-            }
-
             if (this.isImguiDrawCreditsWindow)
             {
                 this.isImguiDrawCreditsWindow = this.creditsWindow != null && this.creditsWindow.Draw();
@@ -473,11 +456,6 @@ namespace Dalamud {
             CommandManager.AddHandler("/xlbgmset", new CommandInfo(OnBgmSetCommand)
             {
                 HelpMessage = Loc.Localize("DalamudBgmSetHelp", "Set the Game background music. Usage: /xlbgmset <BGM ID>")
-            });
-
-            CommandManager.AddHandler("/xlitem", new CommandInfo(OnItemLinkCommand)
-            {
-                HelpMessage = Loc.Localize("DalamudItemLinkHelp", "Open a window you can use to link any specific item to chat.")
             });
 
 #if DEBUG
@@ -638,22 +616,6 @@ namespace Dalamud {
         private void OnBgmSetCommand(string command, string arguments)
         {
             Framework.Gui.SetBgm(ushort.Parse(arguments));
-        }
-
-        private ItemSearchWindow itemSearchCommandWindow;
-        private bool isImguiDrawItemSearchWindow;
-
-        private void OnItemLinkCommand(string command, string arguments)
-        {
-            this.itemSearchCommandWindow = new ItemSearchWindow(this.Data, new UiBuilder(this.InterfaceManager, "ItemSearcher"), false, arguments);
-            this.itemSearchCommandWindow.OnItemChosen += (sender, item) =>
-            {
-                this.Framework.Gui.Chat.PrintChat(new XivChatEntry
-                {
-                    MessageBytes = SeStringUtils.CreateItemLink(item, false).Encode()
-                });
-            };
-            this.isImguiDrawItemSearchWindow = true;
         }
 
 #if DEBUG

@@ -70,7 +70,7 @@ namespace Dalamud
             return await Get($"market/item/{itemId}?dc={dcName}", true);
         }
 
-        public static async Task<JObject> GetItem(int itemId) {
+        public static async Task<JObject> GetItem(uint itemId) {
             return await Get($"Item/{itemId}", true);
         }
 
