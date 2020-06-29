@@ -81,6 +81,10 @@
     <div class="level0"><span class="xref">System.Object</span></div>
     <div class="level1"><span class="xref">DataManager</span></div>
   </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><span class="xref">System.IDisposable</span></div>
+  </div>
   <div class="inheritedMembers">
     <h5>Inherited Members</h5>
     <div>
@@ -109,7 +113,7 @@
   <h6><strong>Assembly</strong>: Dalamud.dll</h6>
   <h5 id="Dalamud_Data_DataManager_syntax">Syntax</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public class DataManager</code></pre>
+    <pre><code class="lang-csharp hljs">public class DataManager : IDisposable</code></pre>
   </div>
   <h3 id="constructors">Constructors
   </h3>
@@ -118,7 +122,7 @@
     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Data_DataManager__ctor_Dalamud_ClientLanguage_.md&amp;value=---%0Auid%3A%20Dalamud.Data.DataManager.%23ctor(Dalamud.ClientLanguage)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L53">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L56">View Source</a>
   </span>
   <a id="Dalamud_Data_DataManager__ctor_" data-uid="Dalamud.Data.DataManager.#ctor*"></a>
   <h4 id="Dalamud_Data_DataManager__ctor_Dalamud_ClientLanguage_" data-uid="Dalamud.Data.DataManager.#ctor(Dalamud.ClientLanguage)">DataManager(ClientLanguage)</h4>
@@ -152,7 +156,7 @@
     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Data_DataManager_ClientOpCodes.md&amp;value=---%0Auid%3A%20Dalamud.Data.DataManager.ClientOpCodes%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L32">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L33">View Source</a>
   </span>
   <a id="Dalamud_Data_DataManager_ClientOpCodes_" data-uid="Dalamud.Data.DataManager.ClientOpCodes*"></a>
   <h4 id="Dalamud_Data_DataManager_ClientOpCodes" data-uid="Dalamud.Data.DataManager.ClientOpCodes">ClientOpCodes</h4>
@@ -183,7 +187,7 @@
     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Data_DataManager_Excel.md&amp;value=---%0Auid%3A%20Dalamud.Data.DataManager.Excel%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L37">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L38">View Source</a>
   </span>
   <a id="Dalamud_Data_DataManager_Excel_" data-uid="Dalamud.Data.DataManager.Excel*"></a>
   <h4 id="Dalamud_Data_DataManager_Excel" data-uid="Dalamud.Data.DataManager.Excel">Excel</h4>
@@ -214,7 +218,7 @@
     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Data_DataManager_IsDataReady.md&amp;value=---%0Auid%3A%20Dalamud.Data.DataManager.IsDataReady%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L42">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L43">View Source</a>
   </span>
   <a id="Dalamud_Data_DataManager_IsDataReady_" data-uid="Dalamud.Data.DataManager.IsDataReady*"></a>
   <h4 id="Dalamud_Data_DataManager_IsDataReady" data-uid="Dalamud.Data.DataManager.IsDataReady">IsDataReady</h4>
@@ -245,7 +249,7 @@
     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Data_DataManager_ServerOpCodes.md&amp;value=---%0Auid%3A%20Dalamud.Data.DataManager.ServerOpCodes%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L28">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L29">View Source</a>
   </span>
   <a id="Dalamud_Data_DataManager_ServerOpCodes_" data-uid="Dalamud.Data.DataManager.ServerOpCodes*"></a>
   <h4 id="Dalamud_Data_DataManager_ServerOpCodes" data-uid="Dalamud.Data.DataManager.ServerOpCodes">ServerOpCodes</h4>
@@ -275,10 +279,25 @@
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Data_DataManager_Dispose.md&amp;value=---%0Auid%3A%20Dalamud.Data.DataManager.Dispose%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L229">View Source</a>
+  </span>
+  <a id="Dalamud_Data_DataManager_Dispose_" data-uid="Dalamud.Data.DataManager.Dispose*"></a>
+  <h4 id="Dalamud_Data_DataManager_Dispose" data-uid="Dalamud.Data.DataManager.Dispose">Dispose()</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Dispose()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Data_DataManager_GetExcelSheet__1.md&amp;value=---%0Auid%3A%20Dalamud.Data.DataManager.GetExcelSheet%60%601%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L113">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L127">View Source</a>
   </span>
   <a id="Dalamud_Data_DataManager_GetExcelSheet_" data-uid="Dalamud.Data.DataManager.GetExcelSheet*"></a>
   <h4 id="Dalamud_Data_DataManager_GetExcelSheet__1" data-uid="Dalamud.Data.DataManager.GetExcelSheet``1">GetExcelSheet&lt;T&gt;()</h4>
@@ -324,10 +343,77 @@
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Data_DataManager_GetExcelSheet__1_Dalamud_ClientLanguage_.md&amp;value=---%0Auid%3A%20Dalamud.Data.DataManager.GetExcelSheet%60%601(Dalamud.ClientLanguage)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L138">View Source</a>
+  </span>
+  <a id="Dalamud_Data_DataManager_GetExcelSheet_" data-uid="Dalamud.Data.DataManager.GetExcelSheet*"></a>
+  <h4 id="Dalamud_Data_DataManager_GetExcelSheet__1_Dalamud_ClientLanguage_" data-uid="Dalamud.Data.DataManager.GetExcelSheet``1(Dalamud.ClientLanguage)">GetExcelSheet&lt;T&gt;(ClientLanguage)</h4>
+  <div class="markdown level1 summary"><p>Get an <span class="xref">Lumina.Excel.ExcelSheet&lt;T&gt;</span> with the given Excel sheet row type with a specified language.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ExcelSheet&lt;T&gt; GetExcelSheet&lt;T&gt;(ClientLanguage language)
+    where T : IExcelRow</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Dalamud.ClientLanguage</span></td>
+        <td><span class="parametername">language</span></td>
+        <td><p>Language of the sheet to get.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Lumina.Excel.ExcelSheet</span>&lt;T&gt;</td>
+        <td><p>The <span class="xref">Lumina.Excel.ExcelSheet&lt;T&gt;</span>, giving access to game rows.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="typeParameters">Type Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="parametername">T</span></td>
+        <td><p>The excel sheet type to get.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Data_DataManager_GetFile_System_String_.md&amp;value=---%0Auid%3A%20Dalamud.Data.DataManager.GetFile(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L123">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L154">View Source</a>
   </span>
   <a id="Dalamud_Data_DataManager_GetFile_" data-uid="Dalamud.Data.DataManager.GetFile*"></a>
   <h4 id="Dalamud_Data_DataManager_GetFile_System_String_" data-uid="Dalamud.Data.DataManager.GetFile(System.String)">GetFile(String)</h4>
@@ -377,7 +463,7 @@
     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Data_DataManager_GetFile__1_System_String_.md&amp;value=---%0Auid%3A%20Dalamud.Data.DataManager.GetFile%60%601(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L134">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L165">View Source</a>
   </span>
   <a id="Dalamud_Data_DataManager_GetFile_" data-uid="Dalamud.Data.DataManager.GetFile*"></a>
   <h4 id="Dalamud_Data_DataManager_GetFile__1_System_String_" data-uid="Dalamud.Data.DataManager.GetFile``1(System.String)">GetFile&lt;T&gt;(String)</h4>
@@ -444,7 +530,7 @@
     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Data_DataManager_GetIcon_Dalamud_ClientLanguage_System_Int32_.md&amp;value=---%0Auid%3A%20Dalamud.Data.DataManager.GetIcon(Dalamud.ClientLanguage%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L159">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L190">View Source</a>
   </span>
   <a id="Dalamud_Data_DataManager_GetIcon_" data-uid="Dalamud.Data.DataManager.GetIcon*"></a>
   <h4 id="Dalamud_Data_DataManager_GetIcon_Dalamud_ClientLanguage_System_Int32_" data-uid="Dalamud.Data.DataManager.GetIcon(Dalamud.ClientLanguage,System.Int32)">GetIcon(ClientLanguage, Int32)</h4>
@@ -500,7 +586,7 @@
     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Data_DataManager_GetIcon_System_Int32_.md&amp;value=---%0Auid%3A%20Dalamud.Data.DataManager.GetIcon(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L148">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L179">View Source</a>
   </span>
   <a id="Dalamud_Data_DataManager_GetIcon_" data-uid="Dalamud.Data.DataManager.GetIcon*"></a>
   <h4 id="Dalamud_Data_DataManager_GetIcon_System_Int32_" data-uid="Dalamud.Data.DataManager.GetIcon(System.Int32)">GetIcon(Int32)</h4>
@@ -550,7 +636,7 @@
     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Data_DataManager_GetIcon_System_String_System_Int32_.md&amp;value=---%0Auid%3A%20Dalamud.Data.DataManager.GetIcon(System.String%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L179">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L210">View Source</a>
   </span>
   <a id="Dalamud_Data_DataManager_GetIcon_" data-uid="Dalamud.Data.DataManager.GetIcon*"></a>
   <h4 id="Dalamud_Data_DataManager_GetIcon_System_String_System_Int32_" data-uid="Dalamud.Data.DataManager.GetIcon(System.String,System.Int32)">GetIcon(String, Int32)</h4>
@@ -606,7 +692,7 @@
     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Data_DataManager_Initialize_System_String_.md&amp;value=---%0Auid%3A%20Dalamud.Data.DataManager.Initialize(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L61">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L64">View Source</a>
   </span>
   <a id="Dalamud_Data_DataManager_Initialize_" data-uid="Dalamud.Data.DataManager.Initialize*"></a>
   <h4 id="Dalamud_Data_DataManager_Initialize_System_String_" data-uid="Dalamud.Data.DataManager.Initialize(System.String)">Initialize(String)</h4>
@@ -648,6 +734,10 @@
       </tr>
     </tbody>
   </table>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <span class="xref">System.IDisposable</span>
+  </div>
 </article>
           </div>
           
@@ -659,7 +749,7 @@
                     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Data_DataManager.md&amp;value=---%0Auid%3A%20Dalamud.Data.DataManager%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
                   </li>
                   <li>
-                    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L24" class="contribution-link">View Source</a>
+                    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L25" class="contribution-link">View Source</a>
                   </li>
                 </ul>
               </div>

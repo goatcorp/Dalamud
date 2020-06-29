@@ -57,7 +57,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Data.DataManager.html",
-          "hash": "PFLedPNyoK+45na9BoTxHw=="
+          "hash": "6D49j0C9/AfusuTx5I4EGQ=="
         }
       },
       "is_incremental": false,
@@ -93,31 +93,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Data.TransientSheet.Completion.html",
-          "hash": "RfXFSxHzCWFsmzQSCvAsvg=="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Dalamud.Data.TransientSheet.ContentFinderCondition.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Dalamud.Data.TransientSheet.ContentFinderCondition.html",
-          "hash": "OpvxJvdThkatyvcINpn7kw=="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Dalamud.Data.TransientSheet.Item.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Dalamud.Data.TransientSheet.Item.html",
-          "hash": "bbaTSCvVF5GdYhHeBVb0vg=="
+          "hash": "PZf5DRtAqHmUHeJcqxfePw=="
         }
       },
       "is_incremental": false,
@@ -129,7 +105,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Data.TransientSheet.PetMirage.html",
-          "hash": "xO8ByaFzwoFhZZjiVcQIrA=="
+          "hash": "1MF8QZPYNqFKgpf8oMWI5w=="
         }
       },
       "is_incremental": false,
@@ -141,7 +117,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Data.TransientSheet.html",
-          "hash": "nEFaGAJ4b+VK66JWPFYgbg=="
+          "hash": "/KS11p9aSaEQP+ia+MpY1w=="
         }
       },
       "is_incremental": false,
@@ -189,7 +165,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payload.EmbeddedInfoType.html",
-          "hash": "78w5C9TIh6yPJT4sX1lpPQ=="
+          "hash": "jWe7f+5U7h0WDMhNncchLQ=="
         }
       },
       "is_incremental": false,
@@ -201,7 +177,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payload.IntegerType.html",
-          "hash": "8WnW22cnFZJMXndVXxL9kg=="
+          "hash": "0SI4HMsk9xJM8Z5qgD5N0g=="
         }
       },
       "is_incremental": false,
@@ -213,7 +189,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payload.SeStringChunkType.html",
-          "hash": "HXZQtAmi2TuQc/hkLKNzYg=="
+          "hash": "rQ2+5VU6GxHHT1wTmOxbBg=="
         }
       },
       "is_incremental": false,
@@ -225,7 +201,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payload.html",
-          "hash": "lyRjKY4JgXot5cwm+CWDEA=="
+          "hash": "Os4Tj9BF2Pk6CzWTp1q0/Q=="
         }
       },
       "is_incremental": false,
@@ -249,7 +225,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payloads.AutoTranslatePayload.html",
-          "hash": "g847jLfWpMC8urm7zvqRWw=="
+          "hash": "28tiWMd7IS1p0Snjikjy1Q=="
         }
       },
       "is_incremental": false,
@@ -261,7 +237,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payloads.EmphasisItalicPayload.html",
-          "hash": "mlLBqcDKbHF4csnJIHCABQ=="
+          "hash": "0rcbV3vbntJ9+60iyhJfCg=="
         }
       },
       "is_incremental": false,
@@ -273,7 +249,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.html",
-          "hash": "zEHZgi+hYsWdza85AyuByA=="
+          "hash": "c1Tt4SE+xAPJE3solf3Yhw=="
         }
       },
       "is_incremental": false,
@@ -285,7 +261,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.html",
-          "hash": "rnoyemuG1GN1Uv1MXE/8+A=="
+          "hash": "Zxlvbp0D1sQEs2f2sBYDdg=="
         }
       },
       "is_incremental": false,
@@ -297,7 +273,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payloads.PlayerPayload.html",
-          "hash": "xT9+X0VcsPYhdSzeJmegdg=="
+          "hash": "fU1OL9CsDykPeIVE/o8fhw=="
         }
       },
       "is_incremental": false,
@@ -309,7 +285,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payloads.RawPayload.html",
-          "hash": "cxeizxz073Y4/lH79vxBkA=="
+          "hash": "BDhr5+16zOQ0k/bmHLPvHQ=="
         }
       },
       "is_incremental": false,
@@ -321,7 +297,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payloads.StatusPayload.html",
-          "hash": "gvdrq9TtUkFvw+6DKfAZVQ=="
+          "hash": "sbCRgXjtKB4JEOe5lC6tTg=="
         }
       },
       "is_incremental": false,
@@ -333,7 +309,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payloads.TextPayload.html",
-          "hash": "JRIyKE+quF8pv2ZDnx2TrA=="
+          "hash": "eN1JQ/7Bhj+h6fXxooC0Ng=="
         }
       },
       "is_incremental": false,
@@ -345,7 +321,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payloads.UIForegroundPayload.html",
-          "hash": "qnZmKj8CJJfAVb2Sbop5KQ=="
+          "hash": "uQqqDvt4o0/G5W/xe/LSdQ=="
         }
       },
       "is_incremental": false,
@@ -357,7 +333,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payloads.UIGlowPayload.html",
-          "hash": "1y9C/3tcaWj0Ac7+wRbWJg=="
+          "hash": "oaneb/I8olEAYMrYVnaBIA=="
         }
       },
       "is_incremental": false,
@@ -381,19 +357,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.SeString.html",
-          "hash": "qkURtV9APX+oIQMtvr0jBQ=="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Dalamud.Game.Chat.SeStringHandling.SeStringUtils.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.SeStringUtils.html",
-          "hash": "/UaTvvBI3/Y9v6D72NaAsQ=="
+          "hash": "vb2lQObm5P5Rd4hAHBxkhg=="
         }
       },
       "is_incremental": false,
@@ -405,7 +369,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.html",
-          "hash": "aOhsVjcwda0uqiHNNPc9xw=="
+          "hash": "2SZCPIorLO+gADvmE7ujbw=="
         }
       },
       "is_incremental": false,
@@ -549,7 +513,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.ClientState.Actors.Resolvers.ClassJob.html",
-          "hash": "2oelvBlPIkr1HK+LQ8MOEg=="
+          "hash": "FAcQHqAjriDTEAWItgwC9A=="
         }
       },
       "is_incremental": false,
@@ -561,7 +525,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.ClientState.Actors.Resolvers.World.html",
-          "hash": "WnC71kxHWBPJEzX5H0vO1g=="
+          "hash": "aHF5ua7k/SqBb8uRPV+w5w=="
         }
       },
       "is_incremental": false,
@@ -1497,7 +1461,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Network.NetworkHandlers.CfPop.html",
-          "hash": "R8pOJzghDB7JyaJcyTHrMw=="
+          "hash": "m241mNDpxsCjp/3bI+/CWg=="
         }
       },
       "is_incremental": false,
@@ -1661,18 +1625,6 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/Dalamud.Interface.InterfaceManager.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Dalamud.Interface.InterfaceManager.html",
-          "hash": "RH70RL/tuRjUwwqKLfQQlw=="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
       "source_relative_path": "api/Dalamud.Interface.MySinkExtensions.yml",
       "output": {
         ".html": {
@@ -1685,23 +1637,11 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/Dalamud.Interface.SerilogEventSink.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Dalamud.Interface.SerilogEventSink.html",
-          "hash": "AczZQD7hVDcVLTB+1pAKMQ=="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
       "source_relative_path": "api/Dalamud.Interface.UiBuilder.yml",
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Interface.UiBuilder.html",
-          "hash": "ayRJt0bd/OIK5J+Zuv6ajg=="
+          "hash": "AJLW5BsJjRS8LC8r0bCnOg=="
         }
       },
       "is_incremental": false,
@@ -1713,7 +1653,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Interface.html",
-          "hash": "1+IkcM85h2stuonXW/X/cQ=="
+          "hash": "oQTIHwPgefHDKmi080oduQ=="
         }
       },
       "is_incremental": false,
@@ -1749,7 +1689,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Plugin.PluginDefinition.html",
-          "hash": "XjCrKSwjPi9wUtDlN8rEoQ=="
+          "hash": "VnC8m/jMovHbGBYhvnmtpg=="
         }
       },
       "is_incremental": false,
@@ -1769,35 +1709,11 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/Dalamud.Plugin.PluginRepository.InitializationState.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Dalamud.Plugin.PluginRepository.InitializationState.html",
-          "hash": "Ouhfrt7/n+O3+W1aQTIBaA=="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Dalamud.Plugin.PluginRepository.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Dalamud.Plugin.PluginRepository.html",
-          "hash": "LKHAm/izB1DlrMEvahqzQw=="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
       "source_relative_path": "api/Dalamud.Plugin.yml",
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Plugin.html",
-          "hash": "dGrjco+qFZzvd5S4g0KWhQ=="
+          "hash": "2pIoniNkNRpcmnP4Q1B7fg=="
         }
       },
       "is_incremental": false,
@@ -8241,7 +8157,7 @@
       "output": {
         ".html": {
           "relative_path": "api/toc.html",
-          "hash": "meXK2B4dR8OJm9z4oRN6Pg=="
+          "hash": "nLimApgKBH1zgOdiwxXQOA=="
         }
       },
       "is_incremental": false,
@@ -8276,17 +8192,17 @@
           "total_file_count": 0,
           "skipped_file_count": 0
         },
-        "ManagedReferenceDocumentProcessor": {
-          "can_incremental": true,
-          "incrementalPhase": "build",
-          "total_file_count": 684,
-          "skipped_file_count": 497
-        },
         "ConceptualDocumentProcessor": {
           "can_incremental": true,
           "incrementalPhase": "build",
           "total_file_count": 3,
           "skipped_file_count": 3
+        },
+        "ManagedReferenceDocumentProcessor": {
+          "can_incremental": true,
+          "incrementalPhase": "build",
+          "total_file_count": 677,
+          "skipped_file_count": 650
         }
       }
     },
