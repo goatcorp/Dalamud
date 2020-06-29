@@ -25,7 +25,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         {
             get
             {
-                this.item ??= this.dataResolver.GetExcelSheet<Item>().GetRow(this.itemId);
+                this.item ??= this.DataResolver.GetExcelSheet<Item>().GetRow(this.itemId);
                 return this.item;
             }
         }

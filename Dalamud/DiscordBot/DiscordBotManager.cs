@@ -162,7 +162,10 @@ namespace Dalamud.DiscordBot {
             await channel.SendMessageAsync(embed: embedBuilder.Build());
         }
 
-        public async Task ProcessChatMessage(XivChatType type, StdString message, StdString sender) {
+        public async Task ProcessChatMessage(XivChatType type, SeString message, SeString sender) {
+            if (this.dalamud.SeStringManager == null)
+                return;
+
             // Special case for outgoing tells, these should be sent under Incoming tells
             var wasOutgoingTell = false;
             if (type == XivChatType.TellOutgoing) {
@@ -180,8 +183,7 @@ namespace Dalamud.DiscordBot {
             var channels = chatTypeConfigs.Select(c => GetChannel(c.Channel).GetAwaiter().GetResult());
 
 
-            var parsedSender = SeString.Parse(sender.RawData);
-            var playerLink = parsedSender.Payloads.FirstOrDefault(x => x.Type == PayloadType.Player) as PlayerPayload;
+            var playerLink = sender.Payloads.FirstOrDefault(x => x.Type == PayloadType.Player) as PlayerPayload;
 
             string senderName;
             string senderWorld;
@@ -192,15 +194,15 @@ namespace Dalamud.DiscordBot {
 
                 // Special case 2 - When the local player talks in party/alliance, the name comes through as raw text,
                 // but prefixed by their position number in the party (which for local player may always be 1)
-                if (parsedSender.TextValue.EndsWith(this.dalamud.ClientState.LocalPlayer.Name))
+                if (sender.TextValue.EndsWith(this.dalamud.ClientState.LocalPlayer.Name))
                 {
                     senderName = this.dalamud.ClientState.LocalPlayer.Name;
                 }
                 else
                 {
-                    Log.Error("playerLink was null. Sender: {0}", BitConverter.ToString(sender.RawData));
+                    Log.Error("playerLink was null. Sender: {0}", BitConverter.ToString(sender.Encode()));
 
-                    senderName = wasOutgoingTell ? this.dalamud.ClientState.LocalPlayer.Name : parsedSender.TextValue;
+                    senderName = wasOutgoingTell ? this.dalamud.ClientState.LocalPlayer.Name : sender.TextValue;
                 }
 
                 senderWorld = this.dalamud.ClientState.LocalPlayer.HomeWorld.GameData.Name;
@@ -209,7 +211,7 @@ namespace Dalamud.DiscordBot {
                 senderWorld = playerLink.World.Name;
             }
 
-            var rawMessage = SeString.Parse(message.RawData).TextValue;
+            var rawMessage = message.TextValue;
 
             var avatarUrl = string.Empty;
             var lodestoneId = string.Empty;

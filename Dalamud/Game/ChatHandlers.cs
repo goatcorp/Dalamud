@@ -93,7 +93,7 @@ namespace Dalamud.Game {
             this.dalamud = dalamud;
             
             dalamud.Framework.Gui.Chat.OnCheckMessageHandled += OnCheckMessageHandled;
-            dalamud.Framework.Gui.Chat.OnChatMessageRaw += OnChatMessage;
+            dalamud.Framework.Gui.Chat.OnChatMessage += OnChatMessage;
         }
 
         private void OnCheckMessageHandled(XivChatType type, uint senderid, ref SeString sender, ref SeString message, ref bool isHandled) {
@@ -121,8 +121,8 @@ namespace Dalamud.Game {
 
         public string LastLink { get; private set; }
 
-        private void OnChatMessage(XivChatType type, uint senderId, ref StdString sender, 
-            ref StdString message, ref bool isHandled) {
+        private void OnChatMessage(XivChatType type, uint senderId, ref SeString sender, 
+            ref SeString message, ref bool isHandled) {
 
             if (type == XivChatType.Notice && !this.hasSeenLoadingMsg) 
                 PrintWelcomeMessage();
@@ -136,14 +136,11 @@ namespace Dalamud.Game {
                 return;
 #endif
 
-            var messageVal = message.Value;
-            var senderVal = sender.Value;
-
             if (type == XivChatType.RetainerSale)
             {
                 foreach (var regex in retainerSaleRegexes[dalamud.StartInfo.Language])
                 {
-                    var matchInfo = regex.Match(message.Value);
+                    var matchInfo = regex.Match(message.TextValue);
 
                     // we no longer really need to do/validate the item matching since we read the id from the byte array
                     // but we'd be checking the main match anyway
@@ -152,10 +149,10 @@ namespace Dalamud.Game {
                         continue;
 
                     var itemLink =
-                        SeString.Parse(message.RawData).Payloads.First(x => x.Type == PayloadType.Item) as ItemPayload;
+                        message.Payloads.First(x => x.Type == PayloadType.Item) as ItemPayload;
 
                     if (itemLink == null) {
-                        Log.Error("itemLink was null. Msg: {0}", BitConverter.ToString(message.RawData));
+                        Log.Error("itemLink was null. Msg: {0}", BitConverter.ToString(message.Encode()));
                         break;
                     }
 
@@ -176,12 +173,13 @@ namespace Dalamud.Game {
             Task.Run(() => this.dalamud.BotManager.ProcessChatMessage(type, messageCopy, senderCopy));
 
             // Handle all of this with SeString some day
+            /*
             if ((this.HandledChatTypeColors.ContainsKey(type) || type == XivChatType.Say || type == XivChatType.Shout ||
-                type == XivChatType.Alliance || type == XivChatType.TellOutgoing || type == XivChatType.Yell) && !message.Value.Contains((char)0x02)) {
-                var italicsStart = message.Value.IndexOf("*");
-                var italicsEnd = message.Value.IndexOf("*", italicsStart + 1);
+                type == XivChatType.Alliance || type == XivChatType.TellOutgoing || type == XivChatType.Yell)) {
+                var italicsStart = message.TextValue.IndexOf("*", StringComparison.InvariantCulture);
+                var italicsEnd = message.TextValue.IndexOf("*", italicsStart + 1, StringComparison.InvariantCulture);
 
-                var messageString = message.Value;
+                var messageString = message.TextValue;
 
                 while (italicsEnd != -1) {
                     var it = MakeItalics(
@@ -194,9 +192,9 @@ namespace Dalamud.Game {
 
                 message.RawData = Encoding.UTF8.GetBytes(messageString);
             }
+            */
 
-
-            var linkMatch = this.urlRegex.Match(message.Value);
+            var linkMatch = this.urlRegex.Match(message.TextValue);
             if (linkMatch.Value.Length > 0)
                 LastLink = linkMatch.Value;
         }
@@ -244,7 +242,7 @@ namespace Dalamud.Game {
             }
         }
 
-        private static string MakeItalics(string text) {
+        private static SeString MakeItalics(string text) {
             // TODO: when the above code is switched to SeString, this can be a straight insertion of the
             // italics payloads only, and be a lot cleaner
             var italicString = new SeString(new List<Payload>(new Payload[]
@@ -254,7 +252,7 @@ namespace Dalamud.Game {
                 EmphasisItalicPayload.ItalicsOff
             }));
 
-            return Encoding.UTF8.GetString(italicString.Encode());
+            return italicString;
         }
     }
 }

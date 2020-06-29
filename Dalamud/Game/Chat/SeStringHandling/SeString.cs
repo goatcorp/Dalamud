@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Dalamud.Game.Chat.SeStringHandling.Payloads;
 
 namespace Dalamud.Game.Chat.SeStringHandling
 {
@@ -11,9 +12,6 @@ namespace Dalamud.Game.Chat.SeStringHandling
     /// </summary>
     public class SeString
     {
-        // TODO: probably change how this is done/where it comes from
-        internal static Dalamud Dalamud { get; set; }
-
         /// <summary>
         /// The ordered list of payloads included in this SeString.
         /// </summary>
@@ -34,29 +32,6 @@ namespace Dalamud.Game.Chat.SeStringHandling
                     .Cast<ITextProvider>()
                     .Aggregate(new StringBuilder(), (sb, tp) => sb.Append(tp.Text), sb => sb.ToString());
             }
-        }
-
-        /// <summary>
-        /// Parse a binary game message into an SeString.
-        /// </summary>
-        /// <param name="bytes">Binary message payload data in SE's internal format.</param>
-        /// <returns>An SeString containing parsed Payload objects for each payload in the data.</returns>
-        public static SeString Parse(byte[] bytes)
-        {
-            var payloads = new List<Payload>();
-
-            using (var stream = new MemoryStream(bytes))
-            using (var reader = new BinaryReader(stream))
-            {
-                while (stream.Position < bytes.Length)
-                {
-                    var payload = Payload.Decode(reader);
-                    if (payload != null)
-                        payloads.Add(payload);
-                }
-            }
-
-            return new SeString(payloads);
         }
 
         /// <summary>

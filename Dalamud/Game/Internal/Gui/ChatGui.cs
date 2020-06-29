@@ -116,8 +116,8 @@ namespace Dalamud.Game.Internal.Gui {
                 var sender = StdString.ReadFromPointer(pSenderName);
                 var message = StdString.ReadFromPointer(pMessage);
 
-                var parsedSender = SeString.Parse(sender.RawData);
-                var parsedMessage = SeString.Parse(message.RawData);
+                var parsedSender = this.dalamud.SeStringManager.Parse(sender.RawData);
+                var parsedMessage = this.dalamud.SeStringManager.Parse(message.RawData);
 
                 Log.Verbose("[CHATGUI][{0}][{1}]", parsedSender.TextValue, parsedMessage.TextValue);
 

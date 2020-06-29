@@ -33,7 +33,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         {
             get
             {
-                this.color ??= this.dataResolver.GetExcelSheet<UIColor>().GetRow(this.colorKey);
+                this.color ??= this.DataResolver.GetExcelSheet<UIColor>().GetRow(this.colorKey);
                 return this.color;
             }
         }

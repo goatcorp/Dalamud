@@ -23,7 +23,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         {
             get
             {
-                this.map ??= this.dataResolver.GetExcelSheet<Map>().GetRow(this.mapId);
+                this.map ??= this.DataResolver.GetExcelSheet<Map>().GetRow(this.mapId);
                 return this.map;
             }
         }
@@ -39,7 +39,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         {
             get
             {
-                this.territoryType ??= this.dataResolver.GetExcelSheet<TerritoryType>().GetRow(this.territoryTypeId);
+                this.territoryType ??= this.DataResolver.GetExcelSheet<TerritoryType>().GetRow(this.territoryTypeId);
                 return this.territoryType;
             }
         }

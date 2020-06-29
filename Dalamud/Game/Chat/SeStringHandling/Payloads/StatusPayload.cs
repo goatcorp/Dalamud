@@ -23,7 +23,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         {
             get
             {
-                status ??= this.dataResolver.GetExcelSheet<Status>().GetRow(this.statusId);
+                status ??= this.DataResolver.GetExcelSheet<Status>().GetRow(this.statusId);
                 return status;
             }
         }

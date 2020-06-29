@@ -90,7 +90,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         {
             string value = null;
 
-            var sheet = this.dataResolver.GetExcelSheet<Completion>();
+            var sheet = this.DataResolver.GetExcelSheet<Completion>();
 
             Completion row = null;
             try
@@ -119,24 +119,24 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 
                     var name = actualTableName switch
                     {
-                        "Action" => this.dataResolver.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>().GetRow(this.key).Name,
-                        "ActionComboRoute" => this.dataResolver.GetExcelSheet<ActionComboRoute>().GetRow(this.key).Name,
-                        "BuddyAction" => this.dataResolver.GetExcelSheet<BuddyAction>().GetRow(this.key).Name,
-                        "ClassJob" => this.dataResolver.GetExcelSheet<ClassJob>().GetRow(this.key).Name,
-                        "Companion" => this.dataResolver.GetExcelSheet<Companion>().GetRow(this.key).Singular,
-                        "CraftAction" => this.dataResolver.GetExcelSheet<CraftAction>().GetRow(this.key).Name,
-                        "GeneralAction" => this.dataResolver.GetExcelSheet<GeneralAction>().GetRow(this.key).Name,
-                        "GuardianDeity" => this.dataResolver.GetExcelSheet<GuardianDeity>().GetRow(this.key).Name,
-                        "MainCommand" => this.dataResolver.GetExcelSheet<MainCommand>().GetRow(this.key).Name,
-                        "Mount" => this.dataResolver.GetExcelSheet<Mount>().GetRow(this.key).Singular,
-                        "Pet" => this.dataResolver.GetExcelSheet<Pet>().GetRow(this.key).Name,
-                        "PetAction" => this.dataResolver.GetExcelSheet<PetAction>().GetRow(this.key).Name,
-                        "PetMirage" => this.dataResolver.GetExcelSheet<PetMirage>().GetRow(this.key).Name,
-                        "PlaceName" => this.dataResolver.GetExcelSheet<PlaceName>().GetRow(this.key).Name,
-                        "Race" => this.dataResolver.GetExcelSheet<Race>().GetRow(this.key).Masculine,
-                        "TextCommand" => this.dataResolver.GetExcelSheet<TextCommand>().GetRow(this.key).Command,
-                        "Tribe" => this.dataResolver.GetExcelSheet<Tribe>().GetRow(this.key).Masculine,
-                        "Weather" => this.dataResolver.GetExcelSheet<Weather>().GetRow(this.key).Name,
+                        "Action" => this.DataResolver.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>().GetRow(this.key).Name,
+                        "ActionComboRoute" => this.DataResolver.GetExcelSheet<ActionComboRoute>().GetRow(this.key).Name,
+                        "BuddyAction" => this.DataResolver.GetExcelSheet<BuddyAction>().GetRow(this.key).Name,
+                        "ClassJob" => this.DataResolver.GetExcelSheet<ClassJob>().GetRow(this.key).Name,
+                        "Companion" => this.DataResolver.GetExcelSheet<Companion>().GetRow(this.key).Singular,
+                        "CraftAction" => this.DataResolver.GetExcelSheet<CraftAction>().GetRow(this.key).Name,
+                        "GeneralAction" => this.DataResolver.GetExcelSheet<GeneralAction>().GetRow(this.key).Name,
+                        "GuardianDeity" => this.DataResolver.GetExcelSheet<GuardianDeity>().GetRow(this.key).Name,
+                        "MainCommand" => this.DataResolver.GetExcelSheet<MainCommand>().GetRow(this.key).Name,
+                        "Mount" => this.DataResolver.GetExcelSheet<Mount>().GetRow(this.key).Singular,
+                        "Pet" => this.DataResolver.GetExcelSheet<Pet>().GetRow(this.key).Name,
+                        "PetAction" => this.DataResolver.GetExcelSheet<PetAction>().GetRow(this.key).Name,
+                        "PetMirage" => this.DataResolver.GetExcelSheet<PetMirage>().GetRow(this.key).Name,
+                        "PlaceName" => this.DataResolver.GetExcelSheet<PlaceName>().GetRow(this.key).Name,
+                        "Race" => this.DataResolver.GetExcelSheet<Race>().GetRow(this.key).Masculine,
+                        "TextCommand" => this.DataResolver.GetExcelSheet<TextCommand>().GetRow(this.key).Command,
+                        "Tribe" => this.DataResolver.GetExcelSheet<Tribe>().GetRow(this.key).Masculine,
+                        "Weather" => this.DataResolver.GetExcelSheet<Weather>().GetRow(this.key).Name,
                         _ => throw new Exception(actualTableName)
                     };
 

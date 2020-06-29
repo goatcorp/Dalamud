@@ -51,21 +51,11 @@ namespace Dalamud.Game.Chat.SeStringHandling
         /// <summary>
         /// The Lumina instance to use for any necessary data lookups.
         /// </summary>
-        protected DataManager dataResolver;
+        protected DataManager DataResolver;
 
         // private for now, since subclasses shouldn't interact with this
         // To force-invalidate it, Dirty can be set to true
         private byte[] encodedData;
-
-        protected Payload()
-        {
-            // this is not a good way to do this, but I don't want to have to include a dalamud
-            // reference on multiple methods in every payload class
-            // We could also just directly reference this static where we use it, but this at least
-            // allows for more easily changing how this is injected later, without affecting code
-            // that makes use of it
-            this.dataResolver = SeString.Dalamud.Data;
-        }
 
         /// <summary>
         /// Encode this payload object into a byte[] useable in-game for things like the chat log.
@@ -88,7 +78,7 @@ namespace Dalamud.Game.Chat.SeStringHandling
         /// </summary>
         /// <param name="reader">A reader positioned at the start of the payload, and containing at least one entire payload.</param>
         /// <returns>The constructed Payload-derived object that was decoded from the binary data.</returns>
-        public static Payload Decode(BinaryReader reader)
+        public static Payload Decode(BinaryReader reader, DataManager data)
         {
             var payloadStartPos = reader.BaseStream.Position;
 
@@ -104,6 +94,8 @@ namespace Dalamud.Game.Chat.SeStringHandling
             {
                 payload = DecodeChunk(reader);
             }
+
+            payload.DataResolver = data;
 
             // for now, cache off the actual binary data for this payload, so we don't have to
             // regenerate it if the payload isn't modified

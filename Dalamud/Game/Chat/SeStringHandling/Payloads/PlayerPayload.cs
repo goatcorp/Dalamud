@@ -38,7 +38,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         {
             get
             {
-                this.world ??= this.dataResolver.GetExcelSheet<World>().GetRow(this.serverId);
+                this.world ??= this.DataResolver.GetExcelSheet<World>().GetRow(this.serverId);
                 return this.world;
             }
         }

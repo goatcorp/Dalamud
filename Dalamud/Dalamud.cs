@@ -61,6 +61,8 @@ namespace Dalamud {
 
         public DataManager Data { get; private set; }
 
+        internal SeStringManager SeStringManager { get; private set; }
+
 
         internal Localization LocalizationManager;
 
@@ -122,8 +124,7 @@ namespace Dalamud {
                 this.Data = new DataManager(this.StartInfo.Language);
                 await this.Data.Initialize(this.baseDirectory);
 
-				// TODO: better way to do this?  basically for lumina injection
-            	SeString.Dalamud = this;
+				SeStringManager = new SeStringManager(Data);
 
                 this.NetworkHandlers = new NetworkHandlers(this, this.Configuration.OptOutMbCollection);
 
@@ -145,6 +146,9 @@ namespace Dalamud {
                     Log.Error(ex, "Plugin load failed.");
                 }
 
+                this.Framework.Enable();
+                this.ClientState.Enable();
+
                 IsReady = true;
             });
         }
@@ -153,9 +157,6 @@ namespace Dalamud {
 #if DEBUG
             ReplaceExceptionHandler();
 #endif
-
-            this.Framework.Enable();
-            this.ClientState.Enable();
         }
 
         public void Unload() {

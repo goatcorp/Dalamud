@@ -1,16 +1,47 @@
-using Dalamud.Game.Chat.SeStringHandling.Payloads;
-using Lumina.Excel.GeneratedSheets;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Text;
+using System.Threading.Tasks;
+using Dalamud.Data;
+using Dalamud.Game.Chat.SeStringHandling.Payloads;
+using Lumina.Excel.GeneratedSheets;
 
 namespace Dalamud.Game.Chat.SeStringHandling
 {
-    /// <summary>
-    /// A utility class for working with common SeString variants.
-    /// </summary>
-    public static class SeStringUtils
+    class SeStringManager
     {
+        private readonly DataManager data;
+
+        public SeStringManager(DataManager Data) {
+            this.data = Data;
+        }
+
+        /// <summary>
+        /// Parse a binary game message into an SeString.
+        /// </summary>
+        /// <param name="bytes">Binary message payload data in SE's internal format.</param>
+        /// <returns>An SeString containing parsed Payload objects for each payload in the data.</returns>
+        public SeString Parse(byte[] bytes)
+        {
+            var payloads = new List<Payload>();
+
+            using (var stream = new MemoryStream(bytes))
+            using (var reader = new BinaryReader(stream))
+            {
+                while (stream.Position < bytes.Length)
+                {
+                    var payload = Payload.Decode(reader, this.data);
+                    if (payload != null)
+                        payloads.Add(payload);
+                }
+            }
+
+            return new SeString(payloads);
+        }
+
         /// <summary>
         /// Creates an SeString representing an entire Payload chain that can be used to link an item in the chat log.
         /// </summary>
@@ -18,9 +49,9 @@ namespace Dalamud.Game.Chat.SeStringHandling
         /// <param name="isHQ">Whether to link the high-quality variant of the item.</param>
         /// <param name="displayNameOverride">An optional name override to display, instead of the actual item name.</param>
         /// <returns>An SeString containing all the payloads necessary to display an item link in the chat log.</returns>
-        public static SeString CreateItemLink(uint itemId, bool isHQ, string displayNameOverride = null)
+        public SeString CreateItemLink(uint itemId, bool isHQ, string displayNameOverride = null)
         {
-            string displayName = displayNameOverride ?? SeString.Dalamud.Data.GetExcelSheet<Item>().GetRow(itemId).Name;
+            string displayName = displayNameOverride ?? this.data.GetExcelSheet<Item>().GetRow(itemId).Name;
             if (isHQ)
             {
                 displayName += $" {(char)SeIconChar.HighQuality}";
@@ -50,12 +81,12 @@ namespace Dalamud.Game.Chat.SeStringHandling
         /// <param name="isHQ">Whether to link the high-quality variant of the item.</param>
         /// <param name="displayNameOverride">An optional name override to display, instead of the actual item name.</param>
         /// <returns>An SeString containing all the payloads necessary to display an item link in the chat log.</returns>
-        public static SeString CreateItemLink(Item item, bool isHQ, string displayNameOverride = null)
+        public SeString CreateItemLink(Item item, bool isHQ, string displayNameOverride = null)
         {
             return CreateItemLink((uint)item.RowId, isHQ, displayNameOverride ?? item.Name);
         }
 
-        public static SeString CreateMapLink(uint territoryId, uint mapId, int rawX, int rawY)
+        public SeString CreateMapLink(uint territoryId, uint mapId, int rawX, int rawY)
         {
             var mapPayload = new MapLinkPayload(territoryId, mapId, rawX, rawY);
             var nameString = $"{mapPayload.PlaceName} {mapPayload.CoordinateString}";
@@ -81,7 +112,7 @@ namespace Dalamud.Game.Chat.SeStringHandling
         /// <param name="yCoord">The human-readable y-coordinate for this link.</param>
         /// <param name="fudgeFactor">An optional offset to account for rounding and truncation errors; it is best to leave this untouched in most cases.</param>
         /// <returns>An SeString containing all of the payloads necessary to display a map link in the chat log.</returns>
-        public static SeString CreateMapLink(uint territoryId, uint mapId, float xCoord, float yCoord, float fudgeFactor = 0.05f)
+        public SeString CreateMapLink(uint territoryId, uint mapId, float xCoord, float yCoord, float fudgeFactor = 0.05f)
         {
             var mapPayload = new MapLinkPayload(territoryId, mapId, xCoord, yCoord, fudgeFactor);
             var nameString = $"{mapPayload.PlaceName} {mapPayload.CoordinateString}";
@@ -106,13 +137,13 @@ namespace Dalamud.Game.Chat.SeStringHandling
         /// <param name="yCoord">The human-readable y-coordinate for this link.</param>
         /// <param name="fudgeFactor">An optional offset to account for rounding and truncation errors; it is best to leave this untouched in most cases.</param>
         /// <returns>An SeString containing all of the payloads necessary to display a map link in the chat log.</returns>
-        public static SeString CreateMapLink(string placeName, float xCoord, float yCoord, float fudgeFactor = 0.05f)
+        public SeString CreateMapLink(string placeName, float xCoord, float yCoord, float fudgeFactor = 0.05f)
         {
-            var mapSheet = SeString.Dalamud.Data.GetExcelSheet<Map>();
+            var mapSheet = this.data.GetExcelSheet<Map>();
 
-            var matches = SeString.Dalamud.Data.GetExcelSheet<PlaceName>().GetRows()
-                .Where(row => row.Name.ToLowerInvariant() == placeName.ToLowerInvariant())
-                .ToArray();
+            var matches = this.data.GetExcelSheet<PlaceName>().GetRows()
+                              .Where(row => row.Name.ToLowerInvariant() == placeName.ToLowerInvariant())
+                              .ToArray();
 
             foreach (var place in matches)
             {
