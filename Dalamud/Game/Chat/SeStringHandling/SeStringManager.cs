@@ -11,7 +11,7 @@ using Lumina.Excel.GeneratedSheets;
 
 namespace Dalamud.Game.Chat.SeStringHandling
 {
-    class SeStringManager
+    public class SeStringManager
     {
         private readonly DataManager data;
 

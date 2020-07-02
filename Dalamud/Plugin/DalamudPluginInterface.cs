@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Dalamud.Configuration;
 using Dalamud.Data;
 using Dalamud.Game;
+using Dalamud.Game.Chat.SeStringHandling;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.Command;
 using Dalamud.Game.Internal;
@@ -51,6 +52,11 @@ namespace Dalamud.Plugin
         /// </summary>
         public readonly DataManager Data;
 
+        /// <summary>
+        /// A <see cref="SeStringManager">SeStringManager</see> instance which allows creating and parsing SeString payloads.
+        /// </summary>
+        public readonly SeStringManager SeStringManager;
+        
         private readonly Dalamud dalamud;
         private readonly string pluginName;
         private readonly PluginConfigurations configs;
@@ -66,6 +72,7 @@ namespace Dalamud.Plugin
             this.UiBuilder = new UiBuilder(dalamud.InterfaceManager, pluginName);
             this.TargetModuleScanner = dalamud.SigScanner;
             this.Data = dalamud.Data;
+            this.SeStringManager = dalamud.SeStringManager;
 
             this.dalamud = dalamud;
             this.pluginName = pluginName;
