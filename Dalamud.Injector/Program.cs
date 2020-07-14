@@ -33,7 +33,7 @@ namespace Dalamud.Injector {
 
 
             var pid = -1;
-            if (args.Length == 1) {
+            if (args.Length >= 1) {
                 pid = int.Parse(args[0]);
             }
 
