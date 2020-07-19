@@ -23,7 +23,6 @@ namespace Dalamud.Game.Internal {
         public event OnUpdateDelegate OnUpdateEvent;
         
         private Hook<OnUpdateDetour> updateHook;
-        private Dalamud dalamud;
         
         
         /// <summary>
@@ -50,8 +49,6 @@ namespace Dalamud.Game.Internal {
         #endregion
         
         public Framework(SigScanner scanner, Dalamud dalamud) {
-            this.dalamud = dalamud;
-
             Address = new FrameworkAddressResolver();
             Address.Setup(scanner);
             
