@@ -57,7 +57,13 @@ namespace Dalamud.Game.ClientState.Actors {
             Address = addressResolver;
             this.dalamud = dalamud;
 
+            dalamud.Framework.OnUpdateEvent += Framework_OnUpdateEvent;
+
             Log.Verbose("Actor table address {ActorTable}", Address.ActorTable);
+        }
+
+        private void Framework_OnUpdateEvent(Internal.Framework framework) {
+            this.ResetCache();
         }
 
         /// <summary>
@@ -140,6 +146,7 @@ namespace Dalamud.Game.ClientState.Actors {
         private void Dispose(bool disposing)
         {
             if (disposed) return;
+            this.dalamud.Framework.OnUpdateEvent -= Framework_OnUpdateEvent;
             Marshal.FreeHGlobal(actorMem);
             disposed = true;
         }
