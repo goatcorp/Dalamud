@@ -138,6 +138,7 @@ namespace Dalamud.Game.ClientState
         public void Dispose() {
             this.PartyList.Dispose();
             this.setupTerritoryTypeHook.Dispose();
+            this.Actors.Dispose();
         }
 
         private void FrameworkOnOnUpdateEvent(Framework framework) {
