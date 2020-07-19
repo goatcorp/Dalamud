@@ -30,24 +30,8 @@ namespace Dalamud.Game.ClientState.Actors {
         internal void ResetCache() => actorsCache = null;
         #endregion
 
-
-        #region temporary imports for crash workaround
-
-        [DllImport("kernel32.dll", SetLastError = true)]
-        static extern bool ReadProcessMemory(
-            IntPtr hProcess,
-            IntPtr lpBaseAddress,
-            IntPtr lpBuffer,
-            int dwSize,
-            out IntPtr lpNumberOfBytesRead);
-
-        #endregion
-
         private ClientStateAddressResolver Address { get; }
         private Dalamud dalamud;
-
-        private static int actorMemSize = Marshal.SizeOf(typeof(Structs.Actor));
-        private IntPtr actorMem { get; set; } = Marshal.AllocHGlobal(actorMemSize);
 
         /// <summary>
         ///     Set up the actor table collection.
@@ -147,7 +131,6 @@ namespace Dalamud.Game.ClientState.Actors {
         {
             if (disposed) return;
             this.dalamud.Framework.OnUpdateEvent -= Framework_OnUpdateEvent;
-            Marshal.FreeHGlobal(actorMem);
             disposed = true;
         }
 
