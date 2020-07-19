@@ -73,14 +73,7 @@ namespace Dalamud.Game.ClientState.Actors {
         private Actor ReadActorFromMemory(IntPtr offset)
         {
             try {
-                // FIXME: hack workaround for trying to access the player on logout, after the main object has been deleted
-                if (!ReadProcessMemory(Process.GetCurrentProcess().Handle, offset, actorMem, actorMemSize, out _))
-                {
-                    Log.Debug("ActorTable - ReadProcessMemory failed: likely player deletion during logout");
-                    return null;
-                }
-
-                var actorStruct = Marshal.PtrToStructure<Structs.Actor>(actorMem);
+                var actorStruct = Marshal.PtrToStructure<Structs.Actor>(offset);
 
                 switch (actorStruct.ObjectKind) {
                     case ObjectKind.Player: return new PlayerCharacter(offset, actorStruct, this.dalamud);
