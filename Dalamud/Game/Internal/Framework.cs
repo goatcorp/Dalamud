@@ -104,7 +104,6 @@ namespace Dalamud.Game.Internal {
 
         private bool HandleFrameworkUpdate(IntPtr framework) {
             try {
-                dalamud.ClientState.Actors.ResetCache();
                 Gui.Chat.UpdateQueue(this);
                 Network.UpdateQueue(this);
             } catch (Exception ex) {
