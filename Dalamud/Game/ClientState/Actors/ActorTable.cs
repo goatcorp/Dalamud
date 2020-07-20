@@ -1,12 +1,10 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Dalamud.Game.ClientState.Actors.Types;
 using Dalamud.Game.ClientState.Actors.Types.NonPlayer;
-using Dalamud.Hooking;
 using JetBrains.Annotations;
 using Serilog;
 
@@ -20,14 +18,16 @@ namespace Dalamud.Game.ClientState.Actors {
 
         #region Actor Table Cache
         private List<Actor> actorsCache;
+
         private List<Actor> ActorsCache {
             get {
-                if (actorsCache != null) return actorsCache;
-                actorsCache = GetActorTable();
-                return actorsCache;
+                if (this.actorsCache != null) return this.actorsCache;
+                this.actorsCache = GetActorTable();
+                return this.actorsCache;
             }
         }
-        internal void ResetCache() => actorsCache = null;
+
+        private void ResetCache() => actorsCache = null;
         #endregion
 
         private ClientStateAddressResolver Address { get; }
@@ -65,11 +65,11 @@ namespace Dalamud.Game.ClientState.Actors {
             try {
                 var actorStruct = Marshal.PtrToStructure<Structs.Actor>(offset);
 
-                switch (actorStruct.ObjectKind) {
-                    case ObjectKind.Player: return new PlayerCharacter(offset, actorStruct, this.dalamud);
-                    case ObjectKind.BattleNpc: return new BattleNpc(offset, actorStruct, this.dalamud);
-                    default: return new Actor(offset, actorStruct, this.dalamud);
-                }
+                return actorStruct.ObjectKind switch {
+                    ObjectKind.Player => new PlayerCharacter(offset, actorStruct, this.dalamud),
+                    ObjectKind.BattleNpc => new BattleNpc(offset, actorStruct, this.dalamud),
+                    _ => new Actor(offset, actorStruct, this.dalamud)
+                };
             }
             catch (Exception e) {
                 Log.Information($"{e}");
@@ -78,7 +78,7 @@ namespace Dalamud.Game.ClientState.Actors {
         }
 
         private IntPtr[] GetPointerTable() {
-            IntPtr[] ret = new IntPtr[ActorTableLength];
+            var ret = new IntPtr[ActorTableLength];
             Marshal.Copy(Address.ActorTable, ret, 0, ActorTableLength);
             return ret;
         }
@@ -86,12 +86,8 @@ namespace Dalamud.Game.ClientState.Actors {
         private List<Actor> GetActorTable() {
             var actors = new List<Actor>();
             var ptrTable = GetPointerTable();
-            for (int i = 0; i < ActorTableLength; i++) {
-                if (ptrTable[i] != IntPtr.Zero) {
-                    actors.Add(ReadActorFromMemory(ptrTable[i]));
-                } else {
-                    actors.Add(null);
-                }
+            for (var i = 0; i < ActorTableLength; i++) {
+                actors.Add(ptrTable[i] != IntPtr.Zero ? ReadActorFromMemory(ptrTable[i]) : null);
             }
             return actors;
         }
@@ -129,9 +125,9 @@ namespace Dalamud.Game.ClientState.Actors {
 
         private void Dispose(bool disposing)
         {
-            if (disposed) return;
+            if (this.disposed) return;
             this.dalamud.Framework.OnUpdateEvent -= Framework_OnUpdateEvent;
-            disposed = true;
+            this.disposed = true;
         }
 
         public void Dispose() {
