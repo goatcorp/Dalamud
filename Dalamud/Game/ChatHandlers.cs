@@ -170,13 +170,7 @@ namespace Dalamud.Game {
 
             var messageCopy = message;
             var senderCopy = sender;
-            Task.Run(async () => {
-                try {
-                    await this.dalamud.BotManager.ProcessChatMessage(type, messageCopy, senderCopy);
-                } catch (Exception ex) {
-                    Log.Error(ex, "Could not process discord bot message.");
-                }
-            });
+            Task.Run(() => this.dalamud.BotManager.ProcessChatMessage(type, messageCopy, senderCopy));
 
             // Handle all of this with SeString some day
             /*

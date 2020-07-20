@@ -188,35 +188,27 @@ namespace Dalamud.DiscordBot {
             string senderName;
             string senderWorld;
 
-            if (this.dalamud.ClientState.LocalPlayer != null) {
-                if (playerLink == null)
+            if (playerLink == null) {
+                // chat messages from the local player do not include a player link, and are just the raw name
+                // but we should still track other instances to know if this is ever an issue otherwise
+
+                // Special case 2 - When the local player talks in party/alliance, the name comes through as raw text,
+                // but prefixed by their position number in the party (which for local player may always be 1)
+                if (sender.TextValue.EndsWith(this.dalamud.ClientState.LocalPlayer.Name))
                 {
-                    // chat messages from the local player do not include a player link, and are just the raw name
-                    // but we should still track other instances to know if this is ever an issue otherwise
-
-                    // Special case 2 - When the local player talks in party/alliance, the name comes through as raw text,
-                    // but prefixed by their position number in the party (which for local player may always be 1)
-                    if (sender.TextValue.EndsWith(this.dalamud.ClientState.LocalPlayer.Name))
-                    {
-                        senderName = this.dalamud.ClientState.LocalPlayer.Name;
-                    }
-                    else
-                    {
-                        Log.Error("playerLink was null. Sender: {0}", BitConverter.ToString(sender.Encode()));
-
-                        senderName = wasOutgoingTell ? this.dalamud.ClientState.LocalPlayer.Name : sender.TextValue;
-                    }
-
-                    senderWorld = this.dalamud.ClientState.LocalPlayer.HomeWorld.GameData.Name;
+                    senderName = this.dalamud.ClientState.LocalPlayer.Name;
                 }
                 else
                 {
-                    senderName = wasOutgoingTell ? this.dalamud.ClientState.LocalPlayer.Name : playerLink.PlayerName;
-                    senderWorld = playerLink.World.Name;
+                    Log.Error("playerLink was null. Sender: {0}", BitConverter.ToString(sender.Encode()));
+
+                    senderName = wasOutgoingTell ? this.dalamud.ClientState.LocalPlayer.Name : sender.TextValue;
                 }
+
+                senderWorld = this.dalamud.ClientState.LocalPlayer.HomeWorld.GameData.Name;
             } else {
-                senderName = string.Empty;
-                senderWorld = string.Empty;
+                senderName = wasOutgoingTell ? this.dalamud.ClientState.LocalPlayer.Name : playerLink.PlayerName;
+                senderWorld = playerLink.World.Name;
             }
 
             var rawMessage = message.TextValue;
