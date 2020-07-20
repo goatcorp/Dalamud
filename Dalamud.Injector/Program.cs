@@ -75,7 +75,7 @@ namespace Dalamud.Injector {
 
             Thread.Sleep(1000);
 
-#if DEBUG || RELEASE
+#if DEBUG
             // Inject exception handler
             NativeInject(process);
 #endif
