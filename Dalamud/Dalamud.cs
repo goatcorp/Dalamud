@@ -90,30 +90,27 @@ namespace Dalamud {
             this.WinSock2 = new WinSockHandlers();
 
             AssetManager.EnsureAssets(this.baseDirectory).ContinueWith(async task => {
-                if (task.IsCanceled || task.IsFaulted) {
-                    throw new Exception("Could not ensure assets.", task.Exception);
-                }
+                if (task.IsCanceled || task.IsFaulted) throw new Exception("Could not ensure assets.", task.Exception);
 
                 this.LocalizationManager = new Localization(this.StartInfo.WorkingDirectory);
-                if (!string.IsNullOrEmpty(this.Configuration.LanguageOverride)) {
+                if (!string.IsNullOrEmpty(this.Configuration.LanguageOverride))
                     this.LocalizationManager.SetupWithLangCode(this.Configuration.LanguageOverride);
-                } else {
+                else
                     this.LocalizationManager.SetupWithUiCulture();
-                }
 
                 var pluginDir = this.StartInfo.PluginDirectory;
                 if (this.Configuration.DoPluginTest)
                     pluginDir = Path.Combine(pluginDir, "..", "testPlugins");
 
-                this.PluginRepository = new PluginRepository(this, pluginDir, this.StartInfo.GameVersion);
+                PluginRepository = new PluginRepository(this, pluginDir, this.StartInfo.GameVersion);
 
-                if (Environment.GetEnvironmentVariable("DALAMUD_NOT_HAVE_INTERFACE") != "True") {
+                if (!bool.Parse(Environment.GetEnvironmentVariable("DALAMUD_NOT_HAVE_INTERFACE") ?? "false")) {
                     try
                     {
-                        this.InterfaceManager = new InterfaceManager(this, this.SigScanner);
-                        this.InterfaceManager.OnDraw += BuildDalamudUi;
+                        InterfaceManager = new InterfaceManager(this, this.SigScanner);
+                        InterfaceManager.OnDraw += BuildDalamudUi;
 
-                        this.InterfaceManager.Enable();
+                        InterfaceManager.Enable();
                     }
                     catch (Exception e)
                     {
@@ -121,29 +118,34 @@ namespace Dalamud {
                     }
                 }
 
-                this.Data = new DataManager(this.StartInfo.Language);
-                await this.Data.Initialize(this.baseDirectory);
+                Data = new DataManager(this.StartInfo.Language);
+                await Data.Initialize(this.baseDirectory);
 
-				SeStringManager = new SeStringManager(Data);
+                SeStringManager = new SeStringManager(Data);
 
-                this.NetworkHandlers = new NetworkHandlers(this, this.Configuration.OptOutMbCollection);
+                NetworkHandlers = new NetworkHandlers(this, this.Configuration.OptOutMbCollection);
 
                 // Initialize managers. Basically handlers for the logic
-                this.CommandManager = new CommandManager(this, info.Language);
+                CommandManager = new CommandManager(this, info.Language);
                 SetupCommands();
 
-                this.ChatHandlers = new ChatHandlers(this);
+                ChatHandlers = new ChatHandlers(this);
                 // Discord Bot Manager
-                this.BotManager = new DiscordBotManager(this, this.Configuration.DiscordFeatureConfig);
-                this.BotManager.Start();
+                BotManager = new DiscordBotManager(this, this.Configuration.DiscordFeatureConfig);
+                BotManager.Start();
 
-                try {
-                    this.PluginManager = new PluginManager(this, pluginDir, this.StartInfo.DefaultPluginDirectory);
-                    this.PluginManager.LoadPlugins();
-                }
-                catch (Exception ex)
-                {
-                    Log.Error(ex, "Plugin load failed.");
+                if (!bool.Parse(Environment.GetEnvironmentVariable("DALAMUD_NOT_HAVE_PLUGINS") ?? "false")) {
+                    try
+                    {
+                        PluginRepository.CleanupPlugins();
+
+                        PluginManager = new PluginManager(this, pluginDir, this.StartInfo.DefaultPluginDirectory);
+                        PluginManager.LoadPlugins();
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, "Plugin load failed.");
+                    }
                 }
 
                 this.Framework.Enable();
