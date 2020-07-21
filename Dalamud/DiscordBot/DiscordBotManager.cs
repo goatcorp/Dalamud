@@ -90,76 +90,97 @@ namespace Dalamud.DiscordBot {
             if (!this.IsConnected)
                 return;
 
-            var contentName = cfc.Name;
-                
-            if (this.config.CfNotificationChannel == null)
-                return;
+            try {
+                var contentName = cfc.Name;
 
-            var channel = await GetChannel(this.config.CfNotificationChannel);
+                if (this.config.CfNotificationChannel == null)
+                    return;
 
-            var iconFolder = (cfc.Image / 1000) * 1000;
+                var channel = await GetChannel(this.config.CfNotificationChannel);
 
-            var embedBuilder = new EmbedBuilder {
-                Title = "Duty is ready: " + contentName,
-                Timestamp = DateTimeOffset.Now,
-                Color = new Color(0x297c00),
-                ImageUrl = "https://xivapi.com" + $"/i/{iconFolder}/{cfc.Image}.png"
-            };
+                var iconFolder = (cfc.Image / 1000) * 1000;
 
-            await channel.SendMessageAsync(embed: embedBuilder.Build());
+                var embedBuilder = new EmbedBuilder {
+                    Title = "Duty is ready: " + contentName,
+                    Timestamp = DateTimeOffset.Now,
+                    Color = new Color(0x297c00),
+                    ImageUrl = "https://xivapi.com" + $"/i/{iconFolder}/{cfc.Image}.png"
+                };
+
+                await channel.SendMessageAsync(embed: embedBuilder.Build());
+            } catch (Exception ex) {
+                Log.Error(ex, "Could not process CF pop.");
+            }
         }
 
         public async Task ProcessCfPreferredRoleChange(string rouletteName, string prevRoleName, string currentRoleName)
         {
-            if (this.config.CfPreferredRoleChannel == null)
+            if (!this.IsConnected)
                 return;
 
-            var channel = await GetChannel(this.config.CfPreferredRoleChannel);
+            try {
+                if (this.config.CfPreferredRoleChannel == null)
+                    return;
 
-            var world = string.Empty;
+                var channel = await GetChannel(this.config.CfPreferredRoleChannel);
 
-            if (this.dalamud.ClientState.Actors.Length > 0)
-                world = this.dalamud.ClientState.LocalPlayer.CurrentWorld.GameData.Name;
+                var world = string.Empty;
 
-            var embedBuilder = new EmbedBuilder
-            {
-                Title = "Roulette bonus changed: " + rouletteName,
-                Description = $"From {prevRoleName} to {currentRoleName}",
-                Footer = new EmbedFooterBuilder {
-                    Text = $"On {world} | XIVLauncher"
-                },
-                Timestamp = DateTimeOffset.Now,
-                Color = new Color(0xf5aa42),
-            };
+                if (this.dalamud.ClientState.Actors.Length > 0)
+                    world = this.dalamud.ClientState.LocalPlayer.CurrentWorld.GameData.Name;
 
-            await channel.SendMessageAsync(embed: embedBuilder.Build());
+                var embedBuilder = new EmbedBuilder
+                {
+                    Title = "Roulette bonus changed: " + rouletteName,
+                    Description = $"From {prevRoleName} to {currentRoleName}",
+                    Footer = new EmbedFooterBuilder
+                    {
+                        Text = $"On {world} | XIVLauncher"
+                    },
+                    Timestamp = DateTimeOffset.Now,
+                    Color = new Color(0xf5aa42),
+                };
+
+                await channel.SendMessageAsync(embed: embedBuilder.Build());
+            } catch (Exception ex) {
+                Log.Error(ex, "Could not process preferred role.");
+            }
         }
 
         public async Task ProcessRetainerSale(uint itemId, int amount, bool isHq) {
-            if (this.config.RetainerNotificationChannel == null)
+            if (!IsConnected)
                 return;
-            
-            var channel = await GetChannel(this.config.RetainerNotificationChannel);
 
-            dynamic item = XivApi.GetItem(itemId).GetAwaiter().GetResult();
+            try {
+                if (this.config.RetainerNotificationChannel == null)
+                    return;
 
-            var character = this.dalamud.ClientState.LocalPlayer;
-            var characterInfo = await GetCharacterInfo(character.Name, character.HomeWorld.GameData.Name);
+                var channel = await GetChannel(this.config.RetainerNotificationChannel);
 
-            var embedBuilder = new EmbedBuilder {
-                Title = (isHq ? "<:hq:593406013651156994> " : "") + item.Name,
-                Url = "https://www.garlandtools.org/db/#item/" + itemId,
-                Description = "Sold " + amount,
-                Timestamp = DateTimeOffset.Now,
-                Color = new Color(0xd89b0d),
-                ThumbnailUrl = "https://xivapi.com" + item.Icon,
-                Footer = new EmbedFooterBuilder {
-                    Text = $"XIVLauncher | {character.Name}",
-                    IconUrl = characterInfo.AvatarUrl
-                }
-            };
+                dynamic item = XivApi.GetItem(itemId).GetAwaiter().GetResult();
 
-            await channel.SendMessageAsync(embed: embedBuilder.Build());
+                var character = this.dalamud.ClientState.LocalPlayer;
+                var characterInfo = await GetCharacterInfo(character.Name, character.HomeWorld.GameData.Name);
+
+                var embedBuilder = new EmbedBuilder
+                {
+                    Title = (isHq ? "<:hq:593406013651156994> " : "") + item.Name,
+                    Url = "https://www.garlandtools.org/db/#item/" + itemId,
+                    Description = "Sold " + amount,
+                    Timestamp = DateTimeOffset.Now,
+                    Color = new Color(0xd89b0d),
+                    ThumbnailUrl = "https://xivapi.com" + item.Icon,
+                    Footer = new EmbedFooterBuilder
+                    {
+                        Text = $"XIVLauncher | {character.Name}",
+                        IconUrl = characterInfo.AvatarUrl
+                    }
+                };
+
+                await channel.SendMessageAsync(embed: embedBuilder.Build());
+            } catch (Exception ex) {
+                Log.Error(ex, "Could not process retainer msg.");
+            }
         }
 
         public async Task ProcessChatMessage(XivChatType type, SeString message, SeString sender) {
