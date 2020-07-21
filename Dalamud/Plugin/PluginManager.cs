@@ -88,7 +88,7 @@ namespace Dalamud.Plugin
             this.Plugins.Remove(thisPlugin);
         }
 
-        public bool LoadPluginFromAssembly(FileInfo dllFile, bool raw) {
+        public bool LoadPluginFromAssembly(FileInfo dllFile, bool raw, PluginLoadReason reason) {
             Log.Information("Loading plugin at {0}", dllFile.Directory.FullName);
 
             // If this entire folder has been marked as a disabled plugin, don't even try to load anything
@@ -170,7 +170,7 @@ namespace Dalamud.Plugin
                         return false;
                     }
 
-                    var dalamudInterface = new DalamudPluginInterface(this.dalamud, type.Assembly.GetName().Name, this.pluginConfigs);
+                    var dalamudInterface = new DalamudPluginInterface(this.dalamud, type.Assembly.GetName().Name, this.pluginConfigs, reason);
                     plugin.Initialize(dalamudInterface);
 
                     Log.Information("Loaded plugin: {0}", plugin.Name);
@@ -194,7 +194,7 @@ namespace Dalamud.Plugin
 
                 foreach (var dllFile in pluginDlls) {
                     try {
-                        LoadPluginFromAssembly(dllFile, raw);
+                        LoadPluginFromAssembly(dllFile, raw, PluginLoadReason.Boot);
                     } catch (Exception ex) {
                         Log.Error(ex, $"Plugin load for {dllFile.FullName} failed.");
                     }

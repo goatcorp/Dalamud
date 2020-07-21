@@ -23,6 +23,11 @@ namespace Dalamud.Plugin
     /// </summary>
     public class DalamudPluginInterface : IDisposable {
         /// <summary>
+        /// The reason this plugin was loaded.
+        /// </summary>
+        public PluginLoadReason Reason { get; }
+
+        /// <summary>
         /// The CommandManager object that allows you to add and remove custom chat commands.
         /// </summary>
         public readonly CommandManager CommandManager;
@@ -65,7 +70,8 @@ namespace Dalamud.Plugin
         /// Set up the interface and populate all fields needed.
         /// </summary>
         /// <param name="dalamud"></param>
-        public DalamudPluginInterface(Dalamud dalamud, string pluginName, PluginConfigurations configs) {
+        internal DalamudPluginInterface(Dalamud dalamud, string pluginName, PluginConfigurations configs, PluginLoadReason reason) {
+            Reason = reason;
             this.CommandManager = dalamud.CommandManager;
             this.Framework = dalamud.Framework;
             this.ClientState = dalamud.ClientState;

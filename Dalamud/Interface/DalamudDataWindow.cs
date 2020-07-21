@@ -182,8 +182,8 @@ namespace Dalamud.Interface
 
                     // Subscriptions
                     case 5:
-                        var i1 = new DalamudPluginInterface(this.dalamud, "DalamudTestSub", null);
-                        var i2 = new DalamudPluginInterface(this.dalamud, "DalamudTestPub", null);
+                        var i1 = new DalamudPluginInterface(this.dalamud, "DalamudTestSub", null, PluginLoadReason.Boot);
+                        var i2 = new DalamudPluginInterface(this.dalamud, "DalamudTestPub", null, PluginLoadReason.Boot);
 
                         if (ImGui.Button("Add test sub")) i1.Subscribe("DalamudTestPub", o => {
                             dynamic msg = o;

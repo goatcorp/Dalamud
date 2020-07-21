@@ -76,7 +76,7 @@ namespace Dalamud.Plugin
                     if (disabledFile.Exists)
                         disabledFile.Delete();
 
-                    return this.dalamud.PluginManager.LoadPluginFromAssembly(dllFile, false);
+                    return this.dalamud.PluginManager.LoadPluginFromAssembly(dllFile, false, PluginLoadReason.Installer);
                 }
 
                 if (dllFile.Exists && !enableAfterInstall) {
@@ -105,7 +105,7 @@ namespace Dalamud.Plugin
                     return true;
                 }
 
-                return this.dalamud.PluginManager.LoadPluginFromAssembly(dllFile, false);
+                return this.dalamud.PluginManager.LoadPluginFromAssembly(dllFile, false, PluginLoadReason.Installer);
             }
             catch (Exception e)
             {
