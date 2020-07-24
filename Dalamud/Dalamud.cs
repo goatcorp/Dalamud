@@ -662,7 +662,7 @@ namespace Dalamud {
         }
 
         private void OnDebugDrawDevMenu(string command, string arguments) {
-            this.isImguiDrawDevMenu = true;
+            this.isImguiDrawDevMenu = !this.isImguiDrawDevMenu;
         }
 
         private void OnDebugImInfoCommand(string command, string arguments) {
