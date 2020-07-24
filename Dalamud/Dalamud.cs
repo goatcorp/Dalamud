@@ -424,12 +424,12 @@ namespace Dalamud {
 
             CommandManager.AddHandler("/xldreloadplugins", new CommandInfo(OnPluginReloadCommand) {
                 HelpMessage = Loc.Localize("DalamudPluginReloadHelp", "Reloads all plugins."),
-                                           ShowInHelp = false
+                ShowInHelp = false
             });
 
             CommandManager.AddHandler("/xldsay", new CommandInfo(OnCommandDebugSay) {
                 HelpMessage = Loc.Localize("DalamudPrintChatHelp", "Print to chat."),
-                                           ShowInHelp = false
+                ShowInHelp = false
             });
 
             CommandManager.AddHandler("/xlhelp", new CommandInfo(OnHelpCommand) {
@@ -456,57 +456,48 @@ namespace Dalamud {
                 HelpMessage = Loc.Localize("DalamudBotJoinHelp", "Add the XIVLauncher discord bot you set up to your server.")
             });
 
-            CommandManager.AddHandler("/xlbgmset", new CommandInfo(OnBgmSetCommand)
-            {
+            CommandManager.AddHandler("/xlbgmset", new CommandInfo(OnBgmSetCommand) {
                 HelpMessage = Loc.Localize("DalamudBgmSetHelp", "Set the Game background music. Usage: /xlbgmset <BGM ID>")
             });
 
 #if DEBUG
-            CommandManager.AddHandler("/xldzpi", new CommandInfo(OnDebugZoneDownInjectCommand)
-            {
+            CommandManager.AddHandler("/xldzpi", new CommandInfo(OnDebugZoneDownInjectCommand) {
                 HelpMessage = "Inject zone down channel",
                 ShowInHelp = false
             });
 #endif
 
-            CommandManager.AddHandler("/xlbonus", new CommandInfo(OnRouletteBonusNotifyCommand)
-            {
+            CommandManager.AddHandler("/xlbonus", new CommandInfo(OnRouletteBonusNotifyCommand) {
                 HelpMessage = Loc.Localize("DalamudBonusHelp", "Notify when a roulette has a bonus you specified. Run without parameters for more info. Usage: /xlbonus <roulette name> <role name>")
             });
 
             CommandManager.AddHandler("/xldev", new CommandInfo(OnDebugDrawDevMenu) {
                 HelpMessage = Loc.Localize("DalamudDevMenuHelp", "Draw dev menu DEBUG"),
-                                           ShowInHelp = false
+                ShowInHelp = false
             });
 
-            CommandManager.AddHandler("/xlplugins", new CommandInfo(OnOpenInstallerCommand)
-            {
+            CommandManager.AddHandler("/xlplugins", new CommandInfo(OnOpenInstallerCommand) {
                 HelpMessage = Loc.Localize("DalamudInstallerHelp", "Open the plugin installer")
             });
 
-            this.CommandManager.AddHandler("/xlcredits", new CommandInfo(OnOpenCreditsCommand) {
+            CommandManager.AddHandler("/xlcredits", new CommandInfo(OnOpenCreditsCommand) {
                 HelpMessage = Loc.Localize("DalamudCreditsHelp", "Opens the credits for dalamud.")
             });
 
-            this.CommandManager.AddHandler("/xllanguage", new CommandInfo(OnSetLanguageCommand)
-            {
+            CommandManager.AddHandler("/xllanguage", new CommandInfo(OnSetLanguageCommand) {
                 HelpMessage = Loc.Localize("DalamudLanguageHelp", "Set the language for the in-game addon and plugins that support it. Available languages: ") + Localization.ApplicableLangCodes.Aggregate("en", (current, code) => current + ", " + code)
             });
 
-            this.CommandManager.AddHandler("/xlsettings", new CommandInfo(OnOpenSettingsCommand)
-            {
+            CommandManager.AddHandler("/xlsettings", new CommandInfo(OnOpenSettingsCommand) {
                 HelpMessage = Loc.Localize("DalamudSettingsHelp", "Change various In-Game-Addon settings like chat channels and the discord bot setup.")
             });
 
-            this.CommandManager.AddHandler("/xlbugreport", new CommandInfo(OnBugReportCommand)
-            {
+            CommandManager.AddHandler("/xlbugreport", new CommandInfo(OnBugReportCommand) {
                 HelpMessage = Loc.Localize("DalamudBugReport", "Upload a log to be analyzed by our professional development team."),
                 ShowInHelp = false
             });
 
-
-            this.CommandManager.AddHandler("/imdebug", new CommandInfo(OnDebugImInfoCommand)
-            {
+            CommandManager.AddHandler("/imdebug", new CommandInfo(OnDebugImInfoCommand) {
                 HelpMessage = "ImGui DEBUG",
                 ShowInHelp = false
             });
