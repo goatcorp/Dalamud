@@ -77,7 +77,7 @@ namespace Dalamud.Game.Chat
         [XivChatTypeInfo("PvP Team", "pvpt", 0xFFF4A460)]
         PvPTeam = 36,
 
-        [XivChatTypeInfo("Crossworld Linkshell 1", "cw1", 0xFF1E90FF)]
+        [XivChatTypeInfo("Crossworld Linkshell 1", "cwls1", 0xFF1E90FF)]
         CrossLinkShell1 = 37,
 
         [XivChatTypeInfo("Echo", "echo", 0xFF808080)]
@@ -90,25 +90,25 @@ namespace Dalamud.Game.Chat
         // not sure if this is used for anything else
         RetainerSale = 71,
 
-        [XivChatTypeInfo("Crossworld Linkshell 2", "cw2", 0xFF1E90FF)]
+        [XivChatTypeInfo("Crossworld Linkshell 2", "cwls2", 0xFF1E90FF)]
         CrossLinkShell2 = 101,
 
-        [XivChatTypeInfo("Crossworld Linkshell 3", "cw3", 0xFF1E90FF)]
+        [XivChatTypeInfo("Crossworld Linkshell 3", "cwls3", 0xFF1E90FF)]
         CrossLinkShell3 = 102,
 
-        [XivChatTypeInfo("Crossworld Linkshell 4", "cw4", 0xFF1E90FF)]
+        [XivChatTypeInfo("Crossworld Linkshell 4", "cwls4", 0xFF1E90FF)]
         CrossLinkShell4 = 103,
 
-        [XivChatTypeInfo("Crossworld Linkshell 5", "cw5", 0xFF1E90FF)]
+        [XivChatTypeInfo("Crossworld Linkshell 5", "cwls5", 0xFF1E90FF)]
         CrossLinkShell5 = 104,
 
-        [XivChatTypeInfo("Crossworld Linkshell 6", "cw6", 0xFF1E90FF)]
+        [XivChatTypeInfo("Crossworld Linkshell 6", "cwls6", 0xFF1E90FF)]
         CrossLinkShell6 = 105,
 
-        [XivChatTypeInfo("Crossworld Linkshell 7", "cw7", 0xFF1E90FF)]
+        [XivChatTypeInfo("Crossworld Linkshell 7", "cwls7", 0xFF1E90FF)]
         CrossLinkShell7 = 106,
 
-        [XivChatTypeInfo("Crossworld Linkshell 8", "cw8", 0xFF1E90FF)]
+        [XivChatTypeInfo("Crossworld Linkshell 8", "cwls8", 0xFF1E90FF)]
         CrossLinkShell8 = 107
     }
 
