@@ -2,6 +2,7 @@ using Lumina.Excel.GeneratedSheets;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Dalamud.Data;
 
 namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 {
@@ -13,7 +14,8 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         /// <summary>
         /// Payload representing disabling glow color on following text.
         /// </summary>
-        public static UIGlowPayload UIGlowOff => new UIGlowPayload(0);
+        // TODO Make this work with DI
+        public static UIGlowPayload UIGlowOff => new UIGlowPayload(null, 0);
 
         public override PayloadType Type => PayloadType.UIGlow;
 
@@ -70,9 +72,10 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         /// <summary>
         /// Creates a new UIForegroundPayload for the given UIColor key.
         /// </summary>
+        /// <param name="data">DataManager instance needed to resolve game data.</param>
         /// <param name="colorKey"></param>
-        public UIGlowPayload(ushort colorKey)
-        {
+        public UIGlowPayload(DataManager data, ushort colorKey) {
+            this.DataResolver = data;
             this.colorKey = colorKey;
         }
 
