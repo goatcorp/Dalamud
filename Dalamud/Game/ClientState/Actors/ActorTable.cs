@@ -60,7 +60,7 @@ namespace Dalamud.Game.ClientState.Actors {
             get => ActorsCache[index];
         }
 
-        private Actor ReadActorFromMemory(IntPtr offset)
+        internal Actor ReadActorFromMemory(IntPtr offset)
         {
             try {
                 var actorStruct = Marshal.PtrToStructure<Structs.Actor>(offset);
