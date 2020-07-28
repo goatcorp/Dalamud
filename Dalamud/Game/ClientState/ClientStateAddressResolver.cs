@@ -10,6 +10,7 @@ namespace Dalamud.Game.ClientState
         public IntPtr LocalContentId { get; private set; }
         public IntPtr JobGaugeData { get; private set; }
         public IntPtr KeyboardState { get; private set; }
+        public IntPtr TargetManager { get; private set; }
 
         // Functions
         public IntPtr SetupTerritoryType { get; private set; }
@@ -35,6 +36,8 @@ namespace Dalamud.Game.ClientState
             PartyListUpdate = sig.ScanText("E8 ?? ?? ?? ?? 49 8B D4 4C 8D 87 ?? ?? ?? ??");
 
             ConditionFlags = sig.GetStaticAddressFromSig("48 8D 0D ?? ?? ?? ?? BA ?? ?? ?? ?? 45 33 C0");
+
+            TargetManager = sig.GetStaticAddressFromSig("48 8B 05 ?? ?? ?? ?? 48 8D 0D ?? ?? ?? ?? FF 50 ?? 48 85 DB", 3);
         }
     }
 }
