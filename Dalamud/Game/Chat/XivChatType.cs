@@ -1,6 +1,9 @@
 using System;
 using System.Linq;
 
+// disable missing xmldoc for pub type
+#pragma warning disable 1591
+
 namespace Dalamud.Game.Chat
 {
     /// <summary>
