@@ -1,6 +1,6 @@
 [submodule "lib/ImGuiScene"]
 	path = lib/ImGuiScene
-	url = https://github.com/ff-meli/ImGuiScene
+	url = https://github.com/goatcorp/ImGuiScene
 [submodule "lib/Discord.Net"]
 	path = lib/Discord.Net
 	url = https://github.com/goaaats/Discord.Net.git
