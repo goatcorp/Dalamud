@@ -28,6 +28,8 @@ namespace Dalamud.Interface
 
             this.doCfTaskBarFlash = this.dalamud.Configuration.DutyFinderTaskbarFlash;
 
+            this.globalUiScale = this.dalamud.Configuration.GlobalUiScale;
+
             this.doPluginTest = this.dalamud.Configuration.DoPluginTest;
             this.doDalamudTest = this.dalamud.Configuration.DoDalamudTest;
 
@@ -45,6 +47,10 @@ namespace Dalamud.Interface
         private int dalamudMessagesChatType;
 
         private bool doCfTaskBarFlash;
+
+        private const float MinScale = 0.3f;
+        private const float MaxScale = 2.0f;
+        private float globalUiScale;
 
         #region Experimental
 
@@ -87,6 +93,15 @@ namespace Dalamud.Interface
                     ImGui.EndTabItem();
                 }
 
+                if (ImGui.BeginTabItem(Loc.Localize("DalamudSettingsVisual", "Look & Feel"))) {
+                    if (ImGui.DragFloat(Loc.Localize("DalamudSettingsGlobalUiScale", "Global UI scale"), ref this.globalUiScale, 0.005f, MinScale, MaxScale, "%.2f"))
+                        ImGui.GetIO().FontGlobalScale = this.globalUiScale;
+
+                    ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingsGlobalUiScaleHint", "Scale all XIVLauncher UI elements - useful for 4K displays."));
+
+                    ImGui.EndTabItem();
+                }
+
                 if (ImGui.BeginTabItem(Loc.Localize("DalamudSettingsExperimental", "Experimental")))
                 {
                     ImGui.Text(Loc.Localize("DalamudSettingsRestartHint", "You need to restart your game after changing these settings."));
@@ -107,7 +122,6 @@ namespace Dalamud.Interface
 
             ImGui.EndChild();
 
-            
             if (ImGui.Button(Loc.Localize("Save", "Save"))) {
                 Save();
             }
@@ -129,6 +143,8 @@ namespace Dalamud.Interface
             this.dalamud.Configuration.GeneralChatType = (XivChatType) this.dalamudMessagesChatType;
 
             this.dalamud.Configuration.DutyFinderTaskbarFlash = this.doCfTaskBarFlash;
+
+            this.dalamud.Configuration.GlobalUiScale = this.globalUiScale;
 
             this.dalamud.Configuration.DoPluginTest = this.doPluginTest;
             this.dalamud.Configuration.DoDalamudTest = this.doDalamudTest;

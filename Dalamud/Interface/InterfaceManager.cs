@@ -253,6 +253,8 @@ namespace Dalamud.Interface
                 ImGui.GetStyle().Colors[(int) ImGuiCol.Tab] = new Vector4(0.23f, 0.23f, 0.23f, 0.86f);
                 ImGui.GetStyle().Colors[(int) ImGuiCol.TabHovered] = new Vector4(0.71f, 0.71f, 0.71f, 0.80f);
                 ImGui.GetStyle().Colors[(int) ImGuiCol.TabActive] = new Vector4(0.36f, 0.36f, 0.36f, 1.00f);
+
+                ImGui.GetIO().FontGlobalScale = this.dalamud.Configuration.GlobalUiScale;
             }
 
             this.scene.Render();

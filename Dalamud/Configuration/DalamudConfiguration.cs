@@ -40,6 +40,8 @@ namespace Dalamud
         public bool DoPluginTest { get; set; } = false;
         public bool DoDalamudTest { get; set; } = false;
 
+        public float GlobalUiScale { get; set; } = 1.0f;
+
         [JsonIgnore]
         public string ConfigPath;
 
