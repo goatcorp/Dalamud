@@ -5,6 +5,7 @@ using Dalamud.Configuration;
 using Dalamud.DiscordBot;
 using Dalamud.Game.Chat;
 using Newtonsoft.Json;
+using Serilog;
 
 namespace Dalamud
 {
@@ -43,7 +44,17 @@ namespace Dalamud
         public string ConfigPath;
 
         public static DalamudConfiguration Load(string path) {
-            var deserialized = JsonConvert.DeserializeObject<DalamudConfiguration>(File.ReadAllText(path));
+            DalamudConfiguration deserialized;
+            try
+            {
+                deserialized = JsonConvert.DeserializeObject<DalamudConfiguration>(File.ReadAllText(path));
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Failed to load DalamudConfiguration at {0}", path);
+                deserialized = new DalamudConfiguration();
+            }
+
             deserialized.ConfigPath = path;
 
             return deserialized;

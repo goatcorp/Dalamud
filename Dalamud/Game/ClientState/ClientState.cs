@@ -98,6 +98,11 @@ namespace Dalamud.Game.ClientState
         public Condition Condition;
 
         /// <summary>
+        /// The class facilitating target data access
+        /// </summary>
+        public Targets Targets;
+
+        /// <summary>
         /// Set up client state access.
         /// </summary>
         /// <param name="dalamud">Dalamud instance</param>
@@ -120,6 +125,8 @@ namespace Dalamud.Game.ClientState
             this.KeyState = new KeyState(Address, scanner.Module.BaseAddress);
 
             this.Condition = new Condition( Address );
+
+            this.Targets = new Targets(dalamud, Address);
 
             Log.Verbose("SetupTerritoryType address {SetupTerritoryType}", Address.SetupTerritoryType);
 

@@ -77,7 +77,7 @@ namespace Dalamud.Game.ClientState.Actors {
             get => ActorsCache[index];
         }
 
-        private Actor ReadActorFromMemory(IntPtr offset)
+        internal Actor ReadActorFromMemory(IntPtr offset)
         {
             try {
                 // FIXME: hack workaround for trying to access the player on logout, after the main object has been deleted
