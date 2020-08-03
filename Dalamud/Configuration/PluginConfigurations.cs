@@ -20,12 +20,25 @@ namespace Dalamud.Configuration
         // and not requiring or using it.  It might be worth removing the Type info from Save, to strip it from
         // all future saved configs, and then Load() can probably be removed entirey.
 
-        public void Save(IPluginConfiguration config, string pluginName) {
-            File.WriteAllText(GetPath(pluginName).FullName, JsonConvert.SerializeObject(config, Formatting.Indented, new JsonSerializerSettings
-            {
-                TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple,
-                TypeNameHandling = TypeNameHandling.Objects
-            }));
+        public void Save( IPluginConfiguration config, string pluginName )
+        {
+            // todo: i left this in because I'm not sure if .net is smart enough not to break if you just have a templated variant instead...
+            Save< IPluginConfiguration >( config, pluginName );
+        }
+
+        public void Save< T >( T obj, string pluginName )
+        {
+            var json = JsonConvert.SerializeObject(
+                obj,
+                Formatting.Indented,
+                new JsonSerializerSettings
+                {
+                    TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple,
+                    TypeNameHandling = TypeNameHandling.Objects
+                }
+            );
+
+            File.WriteAllText( GetPath( pluginName ).FullName, json );
         }
 
         public IPluginConfiguration Load(string pluginName) {
@@ -46,16 +59,16 @@ namespace Dalamud.Configuration
         // Currently this is called via reflection from DalamudPluginInterface.GetPluginConfig()
         // Eventually there may be an additional pluginInterface method that can call this directly
         // without reflection - for now this is in support of the existing plugin api
-        public T LoadForType<T>(string pluginName) where T : IPluginConfiguration
+        public T LoadForType< T >( string pluginName )
         {
-            var path = GetPath(pluginName);
+            var path = GetPath( pluginName );
 
-            if (!path.Exists)
-                return default(T);
+            if( !path.Exists )
+                return default;
 
             // intentionally no type handling - it will break when updating a plugin at runtime
             // and turns out to be unnecessary when we fully qualify the object type
-            return JsonConvert.DeserializeObject<T>(File.ReadAllText(path.FullName));
+            return JsonConvert.DeserializeObject< T >( File.ReadAllText( path.FullName ) );
         }
 
         private FileInfo GetPath(string pluginName) => new FileInfo(Path.Combine(this.configDirectory.FullName, $"{pluginName}.json"));

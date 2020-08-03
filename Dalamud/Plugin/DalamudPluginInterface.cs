@@ -96,11 +96,22 @@ namespace Dalamud.Plugin
         /// Save a plugin configuration(inheriting IPluginConfiguration).
         /// </summary>
         /// <param name="currentConfig">The current configuration.</param>
-        public void SavePluginConfig(IPluginConfiguration currentConfig) {
-            if (currentConfig == null)
+        public void SavePluginConfig(IPluginConfiguration currentConfig)
+        {
+            SavePluginConfig< IPluginConfiguration >( currentConfig );
+        }
+
+        /// <summary>
+        /// Save a plugin configuration(inheriting IPluginConfiguration).
+        /// </summary>
+        /// <param name="currentConfig">The current configuration object</param>
+        /// <typeparam name="T">The type of the config object to save</typeparam>
+        public void SavePluginConfig< T >( T currentConfig )
+        {
+            if( currentConfig == null )
                 return;
 
-            this.configs.Save(currentConfig, this.pluginName);
+            this.configs.Save( currentConfig, this.pluginName );
         }
 
         /// <summary>
@@ -127,6 +138,16 @@ namespace Dalamud.Plugin
 
             // this shouldn't be a thing, I think, but just in case
             return this.configs.Load(this.pluginName);
+        }
+
+        /// <summary>
+        /// Get a previously saved plugin configuration or default if none was saved before
+        /// </summary>
+        /// <typeparam name="T">The type of configuration to fetch</typeparam>
+        /// <returns>A previously saved config of the provided type, or a default(T) if none was saved</returns>
+        public T GetPluginConfig< T >()
+        {
+            return this.configs.LoadForType< T >( this.pluginName );
         }
 
         #region IPC
