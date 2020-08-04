@@ -131,6 +131,20 @@ namespace Dalamud.Plugin
 
         #region IPC
 
+        internal Action<string, ExpandoObject> anyPluginIpcAction;
+
+        /// <summary>
+        /// Subscribe to an IPC message by any plugin.
+        /// </summary>
+        /// <param name="action">The action to take when a message was received.</param>
+        public void SubscribeAny(Action<string, ExpandoObject> action)
+        {
+            if (this.anyPluginIpcAction != null)
+                throw new InvalidOperationException("Can't subscribe multiple times.");
+
+            this.anyPluginIpcAction = action;
+        }
+
         /// <summary>
         /// Subscribe to an IPC message by a plugin.
         /// </summary>
@@ -141,6 +155,17 @@ namespace Dalamud.Plugin
                 throw new InvalidOperationException("Can't add multiple subscriptions for the same plugin.");
 
             this.dalamud.PluginManager.IpcSubscriptions.Add((this.pluginName, pluginName, action));
+        }
+
+        /// <summary>
+        /// Unsubscribe from messages from any plugin.
+        /// </summary>
+        public void UnsubscribeAny()
+        {
+            if (this.anyPluginIpcAction == null)
+                throw new InvalidOperationException("Wasn't subscribed to this plugin.");
+
+            this.anyPluginIpcAction = null;
         }
 
         /// <summary>
@@ -164,6 +189,23 @@ namespace Dalamud.Plugin
             foreach (var sub in subs.Select(x => x.SubAction)) {
                 sub.Invoke(message);
             }
+        }
+
+        /// <summary>
+        /// Send a message to a specific plugin.
+        /// </summary>
+        /// <param name="pluginName">The InternalName of the plugin to send the message to.</param>
+        /// <param name="message">The message to send.</param>
+        /// <returns>True if the corresponding plugin was present and received the message.</returns>
+        public bool SendMessage(string pluginName, ExpandoObject message)
+        {
+            var (_, _, pluginInterface) = this.dalamud.PluginManager.Plugins.FirstOrDefault(x => x.Definition.InternalName == this.pluginName);
+
+            if (pluginInterface?.anyPluginIpcAction == null)
+                return false;
+
+            pluginInterface.anyPluginIpcAction.Invoke(this.pluginName, message);
+            return true;
         }
 
         #endregion

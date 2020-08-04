@@ -190,12 +190,27 @@ namespace Dalamud.Interface
                             Log.Debug(msg.Expand);
                         });
 
+                        if (ImGui.Button("Add test sub any")) i1.SubscribeAny((o, a) => {
+                            dynamic msg = a;
+                            Log.Debug($"From {o}: {msg.Expand}");
+                        });
+
                         if (ImGui.Button("Remove test sub")) i1.Unsubscribe("DalamudTestPub");
+
+                        if (ImGui.Button("Remove test sub any")) i1.UnsubscribeAny();
 
                         if (ImGui.Button("Send test message")) {
                             dynamic testMsg = new ExpandoObject();
                             testMsg.Expand = "dong";
                             i2.SendMessage(testMsg);
+                        }
+
+                        // This doesn't actually work, so don't mind it - impl relies on plugins being registered in PluginManager
+                        if (ImGui.Button("Send test message any"))
+                        {
+                            dynamic testMsg = new ExpandoObject();
+                            testMsg.Expand = "dong";
+                            i2.SendMessage("DalamudTestSub", testMsg);
                         }
 
                         foreach (var sub in this.dalamud.PluginManager.IpcSubscriptions) {
