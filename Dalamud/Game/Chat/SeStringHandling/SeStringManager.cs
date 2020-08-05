@@ -60,9 +60,9 @@ namespace Dalamud.Game.Chat.SeStringHandling
             // TODO: probably a cleaner way to build these than doing the bulk+insert
             var payloads = new List<Payload>(new Payload[]
             {
-                new UIForegroundPayload(0x0225),
-                new UIGlowPayload(0x0226),
-                new ItemPayload(itemId, isHQ),
+                new UIForegroundPayload(this.data, 0x0225),
+                new UIGlowPayload(this.data, 0x0226),
+                new ItemPayload(this.data, itemId, isHQ),
                 // arrow goes here
                 new TextPayload(displayName),
                 RawPayload.LinkTerminator
@@ -88,7 +88,7 @@ namespace Dalamud.Game.Chat.SeStringHandling
 
         public SeString CreateMapLink(uint territoryId, uint mapId, int rawX, int rawY)
         {
-            var mapPayload = new MapLinkPayload(territoryId, mapId, rawX, rawY);
+            var mapPayload = new MapLinkPayload(this.data, territoryId, mapId, rawX, rawY);
             var nameString = $"{mapPayload.PlaceName} {mapPayload.CoordinateString}";
 
             var payloads = new List<Payload>(new Payload[]
@@ -114,7 +114,7 @@ namespace Dalamud.Game.Chat.SeStringHandling
         /// <returns>An SeString containing all of the payloads necessary to display a map link in the chat log.</returns>
         public SeString CreateMapLink(uint territoryId, uint mapId, float xCoord, float yCoord, float fudgeFactor = 0.05f)
         {
-            var mapPayload = new MapLinkPayload(territoryId, mapId, xCoord, yCoord, fudgeFactor);
+            var mapPayload = new MapLinkPayload(this.data, territoryId, mapId, xCoord, yCoord, fudgeFactor);
             var nameString = $"{mapPayload.PlaceName} {mapPayload.CoordinateString}";
 
             var payloads = new List<Payload>(new Payload[]
@@ -163,12 +163,12 @@ namespace Dalamud.Game.Chat.SeStringHandling
         /// with the appropriate glow and coloring.
         /// </summary>
         /// <returns>A list of all the payloads required to insert the link marker.</returns>
-        public static List<Payload> TextArrowPayloads()
+        public List<Payload> TextArrowPayloads()
         {
             return new List<Payload>(new Payload[]
             {
-                new UIForegroundPayload(0x01F4),
-                new UIGlowPayload(0x01F5),
+                new UIForegroundPayload(this.data, 0x01F4),
+                new UIGlowPayload(this.data, 0x01F5),
                 new TextPayload($"{(char)SeIconChar.LinkMarker}"),
                 UIGlowPayload.UIGlowOff,
                 UIForegroundPayload.UIForegroundOff

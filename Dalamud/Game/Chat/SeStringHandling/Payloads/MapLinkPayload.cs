@@ -2,6 +2,7 @@ using Lumina.Excel.GeneratedSheets;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Dalamud.Data;
 
 namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 {
@@ -137,13 +138,14 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         /// <summary>
         /// Creates an interactable MapLinkPayload from a human-readable position.
         /// </summary>
+        /// <param name="data">DataManager instance needed to resolve game data.</param>
         /// <param name="territoryTypeId">The id of the TerritoryType entry for this link.</param>
         /// <param name="mapId">The id of the Map entry for this link.</param>
         /// <param name="niceXCoord">The human-readable x-coordinate for this link.</param>
         /// <param name="niceYCoord">The human-readable y-coordinate for this link.</param>
         /// <param name="fudgeFactor">An optional offset to account for rounding and truncation errors; it is best to leave this untouched in most cases.</param>
-        public MapLinkPayload(uint territoryTypeId, uint mapId, float niceXCoord, float niceYCoord, float fudgeFactor = 0.05f)
-        {
+        public MapLinkPayload(DataManager data, uint territoryTypeId, uint mapId, float niceXCoord, float niceYCoord, float fudgeFactor = 0.05f) {
+            this.DataResolver = data;
             this.territoryTypeId = territoryTypeId;
             this.mapId = mapId;
             // this fudge is necessary basically to ensure we don't shift down a full tenth
@@ -156,12 +158,14 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         /// <summary>
         /// Creates an interactable MapLinkPayload from a raw position.
         /// </summary>
+        /// <param name="data">DataManager instance needed to resolve game data.</param>
         /// <param name="territoryTypeId">The id of the TerritoryType entry for this link.</param>
         /// <param name="mapId">The id of the Map entry for this link.</param>
         /// <param name="rawX">The internal raw x-coordinate for this link.</param>
         /// <param name="rawY">The internal raw y-coordinate for this link.</param>
-        public MapLinkPayload(uint territoryTypeId, uint mapId, int rawX, int rawY)
+        public MapLinkPayload(DataManager data, uint territoryTypeId, uint mapId, int rawX, int rawY)
         {
+            this.DataResolver = data;
             this.territoryTypeId = territoryTypeId;
             this.mapId = mapId;
             RawX = rawX;

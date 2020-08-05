@@ -2,6 +2,7 @@ using Lumina.Excel.GeneratedSheets;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Dalamud.Data;
 
 namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 {
@@ -35,9 +36,10 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         /// <summary>
         /// Creates a new StatusPayload for the given status id.
         /// </summary>
+        /// <param name="data">DataManager instance needed to resolve game data.</param>
         /// <param name="statusId">The id of the Status for this link.</param>
-        public StatusPayload(uint statusId)
-        {
+        public StatusPayload(DataManager data, uint statusId) {
+            this.DataResolver = data;
             this.statusId = statusId;
         }
 

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Dalamud.Game.ClientState.Actors.Types;
@@ -28,6 +29,22 @@ namespace Dalamud.Game.ClientState.Actors {
         }
 
         private void ResetCache() => actorsCache = null;
+        #endregion
+
+        #region ReadProcessMemory Hack
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        static extern bool ReadProcessMemory(
+            IntPtr hProcess,
+            IntPtr lpBaseAddress,
+            IntPtr lpBuffer,
+            int dwSize,
+            out IntPtr lpNumberOfBytesRead);
+
+        private static readonly int ActorMemSize = Marshal.SizeOf(typeof(Structs.Actor));
+        private IntPtr actorMem = Marshal.AllocHGlobal(ActorMemSize);
+        private Process currentProcess = Process.GetCurrentProcess();
+
         #endregion
 
         private ClientStateAddressResolver Address { get; }
@@ -60,10 +77,17 @@ namespace Dalamud.Game.ClientState.Actors {
             get => ActorsCache[index];
         }
 
-        private Actor ReadActorFromMemory(IntPtr offset)
+        internal Actor ReadActorFromMemory(IntPtr offset)
         {
             try {
-                var actorStruct = Marshal.PtrToStructure<Structs.Actor>(offset);
+                // FIXME: hack workaround for trying to access the player on logout, after the main object has been deleted
+                if (!ReadProcessMemory(this.currentProcess.Handle, offset, this.actorMem, ActorMemSize, out _))
+                {
+                    Log.Debug("ActorTable - ReadProcessMemory failed: likely player deletion during logout");
+                    return null;
+                }
+
+                var actorStruct = Marshal.PtrToStructure<Structs.Actor>(this.actorMem);
 
                 return actorStruct.ObjectKind switch {
                     ObjectKind.Player => new PlayerCharacter(offset, actorStruct, this.dalamud),
@@ -127,6 +151,7 @@ namespace Dalamud.Game.ClientState.Actors {
         {
             if (this.disposed) return;
             this.dalamud.Framework.OnUpdateEvent -= Framework_OnUpdateEvent;
+            Marshal.FreeHGlobal(this.actorMem);
             this.disposed = true;
         }
 

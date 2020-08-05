@@ -75,9 +75,9 @@ namespace Dalamud.Injector {
 
             Thread.Sleep(1000);
 
-#if NO
+#if DEBUG
             // Inject exception handler
-            NativeInject(process);
+            //NativeInject(process);
 #endif
         }
 
@@ -169,12 +169,9 @@ namespace Dalamud.Injector {
             var ffxivDir = Path.GetDirectoryName(process.MainModule.FileName);
             var startInfo = new DalamudStartInfo {
                 WorkingDirectory = null,
-                ConfigurationPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) +
-                                    @"\XIVLauncher\dalamudConfig.json",
-                PluginDirectory = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) +
-                                  @"\XIVLauncher\installedPlugins",
-                DefaultPluginDirectory = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) +
-                                         @"\XIVLauncher\devPlugins",
+                ConfigurationPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "XIVLauncher", "dalamudConfig.json"),
+                PluginDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "XIVLauncher", "installedPlugins"),
+                DefaultPluginDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "XIVLauncher", "devPlugins"),
 
                 GameVersion = File.ReadAllText(Path.Combine(ffxivDir, "ffxivgame.ver")),
                 Language = ClientLanguage.English
