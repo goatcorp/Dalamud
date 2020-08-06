@@ -4,7 +4,7 @@ namespace Dalamud.Game.ClientState.Actors.Types {
     /// <summary>
     ///     This class represents a basic FFXIV actor.
     /// </summary>
-    public class Actor {
+    public class Actor : IEquatable<Actor> {
         /// <summary>
         ///     The memory representation of the base actor.
         /// </summary>
@@ -70,5 +70,7 @@ namespace Dalamud.Game.ClientState.Actors.Types {
         /// The target of the actor
         /// </summary>
         public virtual int TargetActorID => 0;
+
+        bool IEquatable<Actor>.Equals(Actor other) => this.ActorId == other.ActorId;
     }
 }
