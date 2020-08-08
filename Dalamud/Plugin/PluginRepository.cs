@@ -131,109 +131,101 @@ namespace Dalamud.Plugin
                 var pluginsDirectory = new DirectoryInfo(this.pluginDirectory);
                 foreach (var installed in pluginsDirectory.GetDirectories())
                 {
-                    var versions = installed.GetDirectories();
+                    try {
+                        var versions = installed.GetDirectories();
 
-                    if (versions.Length == 0)
-                    {
-                        Log.Information("Has no versions: {0}", installed.FullName);
-                        continue;
-                    }
+                        if (versions.Length == 0) {
+                            Log.Information("Has no versions: {0}", installed.FullName);
+                            continue;
+                        }
 
-                    var sortedVersions = versions.OrderBy(x => int.Parse(x.Name.Replace(".", "")));
-                    var latest = sortedVersions.Last();
+                        var sortedVersions = versions.OrderBy(x => int.Parse(x.Name.Replace(".", "")));
+                        var latest = sortedVersions.Last();
 
-                    var localInfoFile = new FileInfo(Path.Combine(latest.FullName, $"{installed.Name}.json"));
+                        var localInfoFile = new FileInfo(Path.Combine(latest.FullName, $"{installed.Name}.json"));
 
-                    if (!localInfoFile.Exists)
-                    {
-                        Log.Information("Has no definition: {0}", localInfoFile.FullName);
-                        continue;
-                    }
+                        if (!localInfoFile.Exists) {
+                            Log.Information("Has no definition: {0}", localInfoFile.FullName);
+                            continue;
+                        }
 
-                    var info = JsonConvert.DeserializeObject<PluginDefinition>(File.ReadAllText(localInfoFile.FullName));
+                        var info = JsonConvert.DeserializeObject<PluginDefinition>(
+                            File.ReadAllText(localInfoFile.FullName));
 
-                    var remoteInfo = this.PluginMaster.FirstOrDefault(x => x.Name == info.Name);
+                        var remoteInfo = this.PluginMaster.FirstOrDefault(x => x.Name == info.Name);
 
-                    if (remoteInfo == null)
-                    {
-                        Log.Information("Is not in pluginmaster: {0}", info.Name);
-                        continue;
-                    }
+                        if (remoteInfo == null) {
+                            Log.Information("Is not in pluginmaster: {0}", info.Name);
+                            continue;
+                        }
 
-                    if (remoteInfo.DalamudApiLevel != PluginManager.DALAMUD_API_LEVEL)
-                    {
-                        Log.Information("Has not applicable API level: {0}", info.Name);
-                        continue;
-                    }
+                        if (remoteInfo.DalamudApiLevel != PluginManager.DALAMUD_API_LEVEL) {
+                            Log.Information("Has not applicable API level: {0}", info.Name);
+                            continue;
+                        }
 
-                    if (remoteInfo.AssemblyVersion != info.AssemblyVersion)
-                    {
-                        Log.Information("Eligible for update: {0}", remoteInfo.InternalName);
+                        if (remoteInfo.AssemblyVersion != info.AssemblyVersion) {
+                            Log.Information("Eligible for update: {0}", remoteInfo.InternalName);
 
-                        // DisablePlugin() below immediately creates a .disabled file anyway, but will fail
-                        // with an exception if we try to do it twice in row like this
+                            // DisablePlugin() below immediately creates a .disabled file anyway, but will fail
+                            // with an exception if we try to do it twice in row like this
 
-                        if (!dryRun)
-                        {
-                            var wasEnabled =
-                                this.dalamud.PluginManager.Plugins.Where(x => x.Definition != null).Any(
-                                    x => x.Definition.InternalName == info.InternalName); ;
+                            if (!dryRun) {
+                                var wasEnabled =
+                                    this.dalamud.PluginManager.Plugins.Where(x => x.Definition != null).Any(
+                                        x => x.Definition.InternalName == info.InternalName);
+                                ;
 
-                            Log.Verbose("wasEnabled: {0}", wasEnabled);
+                                Log.Verbose("wasEnabled: {0}", wasEnabled);
 
-                            // Try to disable plugin if it is loaded
-                            try
-                            {
-                                this.dalamud.PluginManager.DisablePlugin(info);
-                            }
-                            catch (Exception ex)
-                            {
-                                Log.Error(ex, "Plugin disable failed");
-                                //hasError = true;
-                            }
-
-                            try {
-                                // Just to be safe
-                                foreach (var sortedVersion in sortedVersions)
-                                {
-                                    var disabledFile = new FileInfo(Path.Combine(sortedVersion.FullName, ".disabled"));
-                                    if (!disabledFile.Exists)
-                                        disabledFile.Create();
+                                // Try to disable plugin if it is loaded
+                                try {
+                                    this.dalamud.PluginManager.DisablePlugin(info);
+                                } catch (Exception ex) {
+                                    Log.Error(ex, "Plugin disable failed");
+                                    //hasError = true;
                                 }
-                            } catch (Exception ex) {
-                                Log.Error(ex, "Plugin disable old versions failed");
+
+                                try {
+                                    // Just to be safe
+                                    foreach (var sortedVersion in sortedVersions) {
+                                        var disabledFile =
+                                            new FileInfo(Path.Combine(sortedVersion.FullName, ".disabled"));
+                                        if (!disabledFile.Exists)
+                                            disabledFile.Create();
+                                    }
+                                } catch (Exception ex) {
+                                    Log.Error(ex, "Plugin disable old versions failed");
+                                }
+
+                                var installSuccess = InstallPlugin(remoteInfo, wasEnabled);
+
+                                if (!installSuccess) {
+                                    Log.Error("InstallPlugin failed.");
+                                    hasError = true;
+                                }
+
+                                updatedList.Add(new PluginUpdateStatus {
+                                    InternalName = remoteInfo.InternalName,
+                                    WasUpdated = installSuccess
+                                });
+                            } else {
+                                updatedList.Add(new PluginUpdateStatus {
+                                    InternalName = remoteInfo.InternalName,
+                                    WasUpdated = true
+                                });
                             }
-
-                            var installSuccess = InstallPlugin(remoteInfo, wasEnabled);
-
-                            if (!installSuccess)
-                            {
-                                Log.Error("InstallPlugin failed.");
-                                hasError = true;
-                            }
-
-                            updatedList.Add(new PluginUpdateStatus {
-                                InternalName = remoteInfo.InternalName,
-                                WasUpdated = installSuccess
-                            });
+                        } else {
+                            Log.Information("Up to date: {0}", remoteInfo.InternalName);
                         }
-                        else {
-                            updatedList.Add(new PluginUpdateStatus
-                            {
-                                InternalName = remoteInfo.InternalName,
-                                WasUpdated = true
-                            });
-                        }
-                    }
-                    else
-                    {
-                        Log.Information("Up to date: {0}", remoteInfo.InternalName);
+                    } catch (Exception ex) {
+                        Log.Error(ex, "Could not update plugin: {0}", installed.FullName);
                     }
                 }
             }
             catch (Exception e)
             {
-                Log.Error(e, "Plugin update failed hard.");
+                Log.Error(e, "Plugin update failed.");
                 hasError = true;
             }
 
