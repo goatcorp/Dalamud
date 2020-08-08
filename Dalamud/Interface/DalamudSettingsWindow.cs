@@ -27,6 +27,7 @@ namespace Dalamud.Interface
             this.dalamudMessagesChatType = (int) this.dalamud.Configuration.GeneralChatType;
 
             this.doCfTaskBarFlash = this.dalamud.Configuration.DutyFinderTaskbarFlash;
+            this.doCfChatMessage = this.dalamud.Configuration.DutyFinderChatMessage;
 
             this.globalUiScale = this.dalamud.Configuration.GlobalUiScale;
 
@@ -47,6 +48,7 @@ namespace Dalamud.Interface
         private int dalamudMessagesChatType;
 
         private bool doCfTaskBarFlash;
+        private bool doCfChatMessage;
 
         private const float MinScale = 0.3f;
         private const float MaxScale = 2.0f;
@@ -89,6 +91,10 @@ namespace Dalamud.Interface
 
                     ImGui.Checkbox(Loc.Localize("DalamudSettingsFlash", "Flash FFXIV window on duty pop"), ref this.doCfTaskBarFlash);
                     ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingsFlashHint", "Select, if the FFXIV window should be flashed in your task bar when a duty is ready."));
+
+                    ImGui.Checkbox(Loc.Localize("DalamudSettingsDutyFinderMessage", "Chatlog message on duty pop"), ref this.doCfChatMessage);
+                    ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingsDutyFinderMessageHint", "Select, if a message should be sent in the FFXIV chat when a duty is ready."));
+
 
                     ImGui.EndTabItem();
                 }
@@ -143,6 +149,7 @@ namespace Dalamud.Interface
             this.dalamud.Configuration.GeneralChatType = (XivChatType) this.dalamudMessagesChatType;
 
             this.dalamud.Configuration.DutyFinderTaskbarFlash = this.doCfTaskBarFlash;
+            this.dalamud.Configuration.DutyFinderChatMessage = this.doCfChatMessage;
 
             this.dalamud.Configuration.GlobalUiScale = this.globalUiScale;
 
