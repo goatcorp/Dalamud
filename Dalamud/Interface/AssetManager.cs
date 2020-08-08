@@ -27,7 +27,7 @@ namespace Dalamud.Interface
             {"https://img.finalfantasyxiv.com/lds/pc/global/fonts/FFXIV_Lodestone_SSF.ttf", "UIRes/gamesym.ttf" }
         };
 
-        public static async Task EnsureAssets(string baseDir) {
+        public static async Task<bool> EnsureAssets(string baseDir) {
             using var client = new WebClient();
 
             Log.Verbose("Starting asset download");
@@ -42,11 +42,13 @@ namespace Dalamud.Interface
                     try {
                         File.WriteAllBytes(filePath, client.DownloadData(entry.Key));
                     } catch (Exception ex) {
-                        // If another game is running, we don't want to just fail in here
                         Log.Error(ex, "Could not download asset.");
+                        return false;
                     }
                 }
             }
+
+            return true;
         }
     }
 }

@@ -91,9 +91,15 @@ namespace Dalamud {
 
             Task.Run(async () => {
                 try {
-                    await AssetManager.EnsureAssets(this.baseDirectory);
+                    var res = await AssetManager.EnsureAssets(this.baseDirectory);
+
+                    if (!res) {
+                        Log.Error("One or more assets failed to download.");
+                        Unload();
+                        return;
+                    }
                 } catch (Exception e) {
-                    Log.Error(e, "Could not ensure assets.");
+                    Log.Error(e, "Error in asset task.");
                     Unload();
                     return;
                 }
