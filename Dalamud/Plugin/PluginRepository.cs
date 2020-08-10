@@ -139,7 +139,12 @@ namespace Dalamud.Plugin
                             continue;
                         }
 
-                        var sortedVersions = versions.OrderBy(x => int.Parse(x.Name.Replace(".", "")));
+                        var sortedVersions = versions.OrderBy(dirInfo =>
+                        {
+                            var success = Version.TryParse(dirInfo.Name, out Version version);
+                            if (!success) { Log.Debug("Unparseable version: {0}", dirInfo.Name); }
+                            return version;
+                        });
                         var latest = sortedVersions.Last();
 
                         var localInfoFile = new FileInfo(Path.Combine(latest.FullName, $"{installed.Name}.json"));
