@@ -170,6 +170,8 @@ namespace Dalamud {
                 this.ClientState.Enable();
 
                 IsReady = true;
+
+                Troubleshooting.LogTroubleshooting(this);
             });
         }
 
