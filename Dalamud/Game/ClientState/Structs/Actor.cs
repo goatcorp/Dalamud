@@ -68,8 +68,8 @@ namespace Dalamud.Game.ClientState.Structs
         public byte[] CompanyTag;
 
         [FieldOffset(ActorOffsets.NameId)] public int NameId;
-        [FieldOffset(ActorOffsets.CurrentWorld)] public byte CurrentWorld;
-        [FieldOffset(ActorOffsets.HomeWorld)] public byte HomeWorld;
+        [FieldOffset(ActorOffsets.CurrentWorld)] public ushort CurrentWorld;
+        [FieldOffset(ActorOffsets.HomeWorld)] public ushort HomeWorld;
         [FieldOffset(ActorOffsets.CurrentHp)] public int CurrentHp;
         [FieldOffset(ActorOffsets.MaxHp)] public int MaxHp;
         [FieldOffset(ActorOffsets.CurrentMp)] public int CurrentMp;
