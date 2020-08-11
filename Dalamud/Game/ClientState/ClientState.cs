@@ -148,8 +148,30 @@ namespace Dalamud.Game.ClientState
             this.Actors.Dispose();
         }
 
+        private bool lastConditionNone = true;
+
+        /// <summary>
+        /// Event that fires when a character is logging in.
+        /// </summary>
+        public event EventHandler OnLogin;
+
+        /// <summary>
+        /// Event that fires when a character is logging out.
+        /// </summary>
+        public event EventHandler OnLogout;
+
         private void FrameworkOnOnUpdateEvent(Framework framework) {
-            // ignored
+            if (this.Condition.Any() && this.lastConditionNone == true) {
+                Log.Debug("Is login");
+                this.lastConditionNone = false;
+                OnLogin?.Invoke(this, null);
+            }
+                
+            if (!this.Condition.Any() && this.lastConditionNone == false) {
+                Log.Debug("Is logout");
+                this.lastConditionNone = true;
+                OnLogout?.Invoke(this, null);
+            }
         }
     }
 }
