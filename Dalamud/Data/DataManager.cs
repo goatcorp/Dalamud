@@ -80,21 +80,26 @@ namespace Dalamud.Data
                 Log.Verbose("Loaded {0} ClientOpCodes.", clientOpCodeDict.Count);
 
 
-                var luminaOptions = new LuminaOptions
-                {
-                    CacheFileResources = true
+                var luminaOptions = new LuminaOptions {
+                    CacheFileResources = true,
+
+#if DEBUG
+                    PanicOnSheetChecksumMismatch = true,
+#else
+                    PanicOnSheetChecksumMismatch = false,
+#endif
+
+                    DefaultExcelLanguage = this.language switch {
+                        ClientLanguage.Japanese => Language.Japanese,
+                        ClientLanguage.English => Language.English,
+                        ClientLanguage.German => Language.German,
+                        ClientLanguage.French => Language.French,
+                        _ => throw new ArgumentOutOfRangeException(nameof(this.language),
+                                                                   "Unknown Language: " + this.language)
+                    }
                 };
 
-                luminaOptions.DefaultExcelLanguage = this.language switch {
-                    ClientLanguage.Japanese => Language.Japanese,
-                    ClientLanguage.English => Language.English,
-                    ClientLanguage.German => Language.German,
-                    ClientLanguage.French => Language.French,
-                    _ => throw new ArgumentOutOfRangeException(nameof(this.language),
-                                                               "Unknown Language: " + this.language)
-                };
-
-                gameData = new Lumina.Lumina(Path.Combine(Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName), "sqpack"), luminaOptions);
+                this.gameData = new Lumina.Lumina(Path.Combine(Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName), "sqpack"), luminaOptions);
 
                 Log.Information("Lumina is ready: {0}", gameData.DataPath);
 
@@ -104,7 +109,7 @@ namespace Dalamud.Data
                 {
                     while( true )
                     {
-                        gameData.ProcessFileHandleQueue();
+                        this.gameData.ProcessFileHandleQueue();
                         Thread.Yield();
                     }
                     // ReSharper disable once FunctionNeverReturns

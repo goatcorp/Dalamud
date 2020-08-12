@@ -31,7 +31,8 @@ namespace Dalamud.Game.ClientState
 
         public void Enable()
         {
-            this.partyListUpdateHook.Enable();
+            // TODO Fix for 5.3
+            //this.partyListUpdateHook.Enable();
         }
 
         public void Dispose()
@@ -52,8 +53,7 @@ namespace Dalamud.Game.ClientState
 
         public PartyMember this[int index]
         {
-            get
-            {
+            get {
                 if (!this.isReady)
                     return null;
                 if (index >= Length)

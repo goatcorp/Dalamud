@@ -30,6 +30,7 @@ namespace Dalamud
         public Dictionary<int, PreferredRole> PreferredRoleReminders { get; set; }
 
         public bool DutyFinderTaskbarFlash { get; set; } = true;
+        public bool DutyFinderChatMessage { get; set; } = true;
 
         public string LanguageOverride { get; set; }
 

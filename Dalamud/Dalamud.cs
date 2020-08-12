@@ -89,8 +89,20 @@ namespace Dalamud {
 
             this.WinSock2 = new WinSockHandlers();
 
-            AssetManager.EnsureAssets(this.baseDirectory).ContinueWith(async task => {
-                if (task.IsCanceled || task.IsFaulted) throw new Exception("Could not ensure assets.", task.Exception);
+            Task.Run(async () => {
+                try {
+                    var res = await AssetManager.EnsureAssets(this.baseDirectory);
+
+                    if (!res) {
+                        Log.Error("One or more assets failed to download.");
+                        Unload();
+                        return;
+                    }
+                } catch (Exception e) {
+                    Log.Error(e, "Error in asset task.");
+                    Unload();
+                    return;
+                }
 
                 this.LocalizationManager = new Localization(this.StartInfo.WorkingDirectory);
                 if (!string.IsNullOrEmpty(this.Configuration.LanguageOverride))
@@ -119,7 +131,13 @@ namespace Dalamud {
                 }
 
                 Data = new DataManager(this.StartInfo.Language);
-                await Data.Initialize(this.baseDirectory);
+                try {
+                    await Data.Initialize(this.baseDirectory);
+                } catch (Exception e) {
+                    Log.Error(e, "Could not initialize DataManager.");
+                    Unload();
+                    return;
+                }
 
                 SeStringManager = new SeStringManager(Data);
 
@@ -152,6 +170,8 @@ namespace Dalamud {
                 this.ClientState.Enable();
 
                 IsReady = true;
+
+                Troubleshooting.LogTroubleshooting(this);
             });
         }
 

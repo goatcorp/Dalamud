@@ -38,5 +38,24 @@ namespace Dalamud.Game.ClientState
                 return *( bool* )( this.conditionArrayBase + idx );
             }
         }
+
+        public bool Any() {
+            var didAny = false;
+
+            for (var i = 0; i < MaxConditionEntries; i++)
+            {
+                var typedCondition = (ConditionFlag)i;
+                var cond = this[typedCondition];
+
+                if (!cond)
+                {
+                    continue;
+                }
+
+                didAny = true;
+            }
+
+            return didAny;
+        }
     }
 }

@@ -20,4 +20,4 @@ Thanks to Mino, whose work has made this possible!
 
 <br>
 
-Final Fantasy XIV © 2010-2018 SQUARE ENIX CO., LTD. All Rights Reserved. We are not affiliated with SQUARE ENIX CO., LTD. in any way.
+##### Final Fantasy XIV © 2010-2020 SQUARE ENIX CO., LTD. All Rights Reserved. We are not affiliated with SQUARE ENIX CO., LTD. in any way.
