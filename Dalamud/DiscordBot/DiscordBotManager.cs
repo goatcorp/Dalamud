@@ -31,6 +31,8 @@ namespace Dalamud.DiscordBot
 
         private readonly List<SocketMessage> recentMessages = new List<SocketMessage>();
 
+        private Dictionary<string, string> ffxivSpecialChars;
+
         /// <summary>
         ///     The FFXIV payload sequence to represent the name/world separator
         /// </summary>
@@ -85,6 +87,7 @@ namespace Dalamud.DiscordBot
                 this.dalamud.Framework.Gui.Chat.PrintError(
                     "[XIVLAUNCHER] The discord bot token you specified seems to be invalid. Please check the guide linked on the settings page for more details.");
             }
+            this.ffxivSpecialChars = this.ffxivSpecialCharsBuilder();
         }
 
         private Task SocketClientOnReady()
@@ -359,7 +362,7 @@ namespace Dalamud.DiscordBot
             }
         }
 
-        private string ffxivChars( string ffxivString )
+        private Dictionary<string, string> ffxivSpecialCharsBuilder()
         {
             var AtlSymbol = this.config.AtlEmoji ?? "🟩";
             var AtrSymbol = this.config.AtrEmoji ?? "🟥";
@@ -483,7 +486,7 @@ namespace Dalamud.DiscordBot
                 {"\uE0DB", "艾" }, //EorzeaTimeJa   
             };
             // Transform the block letters into regional indicator letters. Will combine with flags if they are together in the right combo, so also adding a zero-width space
-            for( var i = 0; i < 26; i++ )
+            for (var i = 0; i < 26; i++)
             {
                 char xivchar = (char)(0xe071 + i);
                 string unichar = char.ConvertFromUtf32('A' + 0x1f1a5 + i);
@@ -491,21 +494,21 @@ namespace Dalamud.DiscordBot
 
                 ffxivSpecialCharacters.Add(xivchar.ToString(), unichar + zerowidth);
             }
-            
+
             // Number squares changed to enclosed number unicode. ⓪ is special, then ①-⑳ are one sequence then ㉑-㊿ are yet another, however xiv only goes to 31
-            for ( var i = 0; i <= 31; i++ )
+            for (var i = 0; i <= 31; i++)
             {
                 char xivchar = (char)(0xe08f + i);
                 string unichar = "";
-                if( i == 0 )
+                if (i == 0)
                 {
                     unichar = char.ConvertFromUtf32('⓪' + i);
                 }
-                if( i > 0 && i <= 19 )
+                if (i > 0 && i <= 19)
                 {
                     unichar = char.ConvertFromUtf32('①' + i - 1);
                 }
-                if( i >= 21 )
+                if (i >= 21)
                 {
                     unichar = char.ConvertFromUtf32('㉑' + i - 21);
                 }
@@ -513,18 +516,20 @@ namespace Dalamud.DiscordBot
                 ffxivSpecialCharacters.Add(xivchar.ToString(), unichar);
             }
 
-            string returnString = "";
+            return ffxivSpecialCharacters;
+        }
+
+        private string ffxivChars( string ffxivString )
+        {
+            StringBuilder returnString = new StringBuilder(ffxivString);
             foreach (char c in ffxivString)
             {
-                if ( ffxivSpecialCharacters.ContainsKey(c.ToString()) )
+                if (this.ffxivSpecialChars.ContainsKey(c.ToString()))
                 {
-                    returnString += ffxivSpecialCharacters[c.ToString()];
-                } else
-                {
-                    returnString += c;
+                    returnString.Replace(c.ToString(), this.ffxivSpecialChars[c.ToString()]);
                 }
             }
-            return returnString;
+            return returnString.ToString();
         }
 
         private async Task<(string LodestoneId, string AvatarUrl)> GetCharacterInfo(string name, string worldName)
