@@ -33,8 +33,8 @@ namespace Dalamud.Game.ClientState.Structs
         public const int MaxHp = 0x189C;
         public const int CurrentMp = 0x18A0;
         public const int MaxMp = 0x18AA;
-        public const int ClassJob = 6358;
-        public const int Level = 6360;
+        public const int ClassJob = 0x18DA;
+        public const int Level = 0x18DC;
         public const int UIStatusEffects = 0x1958;
     }
 
