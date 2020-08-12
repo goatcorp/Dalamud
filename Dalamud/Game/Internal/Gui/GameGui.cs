@@ -104,7 +104,7 @@ namespace Dalamud.Game.Internal.Gui {
             var retVal = this.handleItemHoverHook.Original(hoverState, a2, a3, a4);
 
             if (retVal.ToInt64() == 22) {
-                var itemId = (ulong)Marshal.ReadInt32(hoverState, 0x130);
+                var itemId = (ulong)Marshal.ReadInt32(hoverState, 0x138);
                 this.HoveredItem = itemId;
 
                 try {
@@ -113,7 +113,7 @@ namespace Dalamud.Game.Internal.Gui {
                     Log.Error(e, "Could not dispatch HoveredItemChanged event.");
                 }
 
-                Log.Verbose("HoverItemId: {0}", itemId);
+                Log.Verbose("HoverItemId:{0} this:{1}", itemId, hoverState.ToInt64().ToString("X"));
             }
 
             return retVal;
@@ -147,29 +147,26 @@ namespace Dalamud.Game.Internal.Gui {
         /// </summary>
         /// <param name="mapLink">Link to the map to be opened</param>
         /// <returns>True if there were no errors and it could open the map</returns>
-        public bool OpenMapWithMapLink(MapLinkPayload mapLink)
-        {
-            var uiObjectPtr = getUIObject();
+        public bool OpenMapWithMapLink(MapLinkPayload mapLink) {
+            var uiObjectPtr = this.getUIObject();
 
-            if (uiObjectPtr.Equals(IntPtr.Zero))
-            {
+            if (uiObjectPtr.Equals(IntPtr.Zero)) {
                 Log.Error("OpenMapWithMapLink: Null pointer returned from getUIObject()");
                 return false;
             }
 
-            getUIMapObject =
+            this.getUIMapObject =
                 Address.GetVirtualFunction<GetUIMapObjectDelegate>(uiObjectPtr, 0, 8);
 
 
             var uiMapObjectPtr = this.getUIMapObject(uiObjectPtr);
 
-            if (uiMapObjectPtr.Equals(IntPtr.Zero))
-            {
+            if (uiMapObjectPtr.Equals(IntPtr.Zero)) {
                 Log.Error("OpenMapWithMapLink: Null pointer returned from GetUIMapObject()");
                 return false;
             }
 
-            openMapWithFlag =
+            this.openMapWithFlag =
                 Address.GetVirtualFunction<OpenMapWithFlagDelegate>(uiMapObjectPtr, 0, 63);
 
             var mapLinkString = mapLink.DataString;
