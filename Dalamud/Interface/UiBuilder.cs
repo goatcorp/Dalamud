@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Dalamud.Game.Internal.Gui;
 using ImGuiNET;
 using ImGuiScene;
 using Serilog;
+using SharpDX.Direct3D11;
 
 namespace Dalamud.Interface
 {
@@ -31,8 +33,14 @@ namespace Dalamud.Interface
         /// </summary>
         public event RawDX11Scene.BuildUIDelegate OnBuildUi;
 
+        /// <summary>
+        /// Choose if this plugin should hide its UI automatically when the whole game hides its UI.
+        /// </summary>
+        public bool DisableAutomaticUiHide { get; set; } = false;
+
         private readonly InterfaceManager interfaceManager;
-        #if DEBUG
+        private readonly GameGui gameGui;
+#if DEBUG
         internal static bool DoStats { get; set; } = true;
         #else
         internal static bool DoStats { get; set; } = false;
@@ -47,10 +55,11 @@ namespace Dalamud.Interface
         /// </summary>
         /// <param name="interfaceManager">The interface manager to register on.</param>
         /// <param name="namespaceName">The plugin namespace.</param>
-        internal UiBuilder(InterfaceManager interfaceManager, string namespaceName) {
+        internal UiBuilder(InterfaceManager interfaceManager, GameGui gameGui, string namespaceName) {
             this.namespaceName = namespaceName;
 
             this.interfaceManager = interfaceManager;
+            this.gameGui = gameGui;
             this.interfaceManager.OnDraw += OnDraw;
             this.stopwatch = new System.Diagnostics.Stopwatch();
         }
@@ -118,6 +127,10 @@ namespace Dalamud.Interface
         private bool hasErrorWindow;
 
         private void OnDraw() {
+
+            if (this.gameGui.GameUiHidden && !DisableAutomaticUiHide)
+                return;
+
             ImGui.PushID(this.namespaceName);
             if (DoStats) {
                 this.stopwatch.Restart();

@@ -378,6 +378,9 @@ namespace Dalamud {
                 }
             }
 
+            if (this.Framework.Gui.GameUiHidden)
+                return;
+
             if (this.isImguiDrawLogWindow)
             {
                 this.isImguiDrawLogWindow = this.logWindow != null && this.logWindow.Draw();
