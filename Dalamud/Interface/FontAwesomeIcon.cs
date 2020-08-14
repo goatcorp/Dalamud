@@ -1,5 +1,6 @@
 //Font-Awesome - Version 5.0.9
 using System.Collections.Generic;
+#pragma warning disable 1591
 
 namespace Dalamud.Interface
 {
