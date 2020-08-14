@@ -374,6 +374,9 @@ namespace Dalamud {
                         ImGui.EndMenu();
                     }
 
+                    if (this.Framework.Gui.GameUiHidden)
+                        ImGui.BeginMenu("UI is hidden...", false);
+
                     ImGui.EndMainMenuBar();
                 }
             }

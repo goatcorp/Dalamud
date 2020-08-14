@@ -42,6 +42,7 @@ namespace Dalamud
         public bool DoDalamudTest { get; set; } = false;
 
         public float GlobalUiScale { get; set; } = 1.0f;
+        public bool ToggleUiHide { get; set; } = true;
 
         [JsonIgnore]
         public string ConfigPath;

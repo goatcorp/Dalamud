@@ -40,6 +40,7 @@ namespace Dalamud.Interface
 
         private readonly InterfaceManager interfaceManager;
         private readonly GameGui gameGui;
+        private readonly DalamudConfiguration config;
 #if DEBUG
         internal static bool DoStats { get; set; } = true;
         #else
@@ -55,11 +56,12 @@ namespace Dalamud.Interface
         /// </summary>
         /// <param name="interfaceManager">The interface manager to register on.</param>
         /// <param name="namespaceName">The plugin namespace.</param>
-        internal UiBuilder(InterfaceManager interfaceManager, GameGui gameGui, string namespaceName) {
+        internal UiBuilder(InterfaceManager interfaceManager, GameGui gameGui, DalamudConfiguration config, string namespaceName) {
             this.namespaceName = namespaceName;
 
             this.interfaceManager = interfaceManager;
             this.gameGui = gameGui;
+            this.config = config;
             this.interfaceManager.OnDraw += OnDraw;
             this.stopwatch = new System.Diagnostics.Stopwatch();
         }
@@ -128,7 +130,7 @@ namespace Dalamud.Interface
 
         private void OnDraw() {
 
-            if (this.gameGui.GameUiHidden && !DisableAutomaticUiHide)
+            if (this.gameGui.GameUiHidden && this.config.ToggleUiHide && !DisableAutomaticUiHide)
                 return;
 
             ImGui.PushID(this.namespaceName);
