@@ -1,5 +1,5 @@
 using System;
-using Dalamud.DiscordBot;
+#pragma warning disable 1591
 
 namespace Dalamud {
     [Serializable]
@@ -15,6 +15,9 @@ namespace Dalamud {
         public string GameVersion;
     }
 
+    /// <summary>
+    /// Enum describing the language the game loads in.
+    /// </summary>
     public enum ClientLanguage
     {
         Japanese,

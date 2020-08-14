@@ -59,8 +59,8 @@ namespace Dalamud.Interface
             ImGui.SameLine();
             var copy = ImGui.Button("Copy all");
             ImGui.SameLine();
-            ImGui.Combo("Data kind", ref this.currentKind, new[] {"ServerOpCode", "ContentFinderCondition", "Actor Table", "Font Test", "Party List", "Plugin IPC", "Condition", "Gauge"},
-                        8);
+            ImGui.Combo("Data kind", ref this.currentKind, new[] {"ServerOpCode", "ContentFinderCondition", "Actor Table", "Font Test", "Party List", "Plugin IPC", "Condition", "Gauge", "Command"},
+                        9);
 
             ImGui.BeginChild("scrolling", new Vector2(0, 0), false, ImGuiWindowFlags.HorizontalScrollbar);
 
@@ -255,6 +255,13 @@ namespace Dalamud.Interface
                     case 7:
                         var gauge = this.dalamud.ClientState.JobGauges.Get<ASTGauge>();
                         ImGui.Text($"Moon: {gauge.ContainsSeal(SealType.MOON)} Drawn: {gauge.DrawnCard()}");
+
+                        break;
+
+                    case 8:
+                        foreach (var command in this.dalamud.CommandManager.Commands) {
+                            ImGui.Text($"{command.Key}\n    -> {command.Value.HelpMessage}\n    -> In help: {command.Value.ShowInHelp}\n\n");
+                        }
 
                         break;
                 }

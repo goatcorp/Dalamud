@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Dalamud.Game.ClientState.Actors;
+#pragma warning disable 1591
 
 namespace Dalamud.Game.ClientState.Structs
 {

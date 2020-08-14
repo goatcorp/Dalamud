@@ -16,9 +16,10 @@ namespace Dalamud
             public string Language { get; set; }
             public bool DoDalamudTest { get; set; }
             public bool DoPluginTest { get; set; }
+            public bool InterfaceLoaded { get; set; }
         }
 
-        public static void LogTroubleshooting(Dalamud dalamud) {
+        public static void LogTroubleshooting(Dalamud dalamud, bool isInterfaceLoaded) {
             try {
                 var payload = new TroubleshootingPayload {
                     LoadedPlugins = dalamud.PluginManager.Plugins.Select(x => x.Definition).ToArray(),
@@ -26,7 +27,8 @@ namespace Dalamud
                     GameVersion = dalamud.StartInfo.GameVersion,
                     Language = dalamud.StartInfo.Language.ToString(),
                     DoDalamudTest = dalamud.Configuration.DoDalamudTest,
-                    DoPluginTest = dalamud.Configuration.DoPluginTest
+                    DoPluginTest = dalamud.Configuration.DoPluginTest,
+                    InterfaceLoaded = isInterfaceLoaded
                 };
 
 

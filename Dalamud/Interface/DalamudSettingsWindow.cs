@@ -1,23 +1,13 @@
 using System;
-using System.Collections.Generic;
-using System.Dynamic;
 using System.Linq;
-using System.Net.Mime;
 using System.Numerics;
 using CheapLoc;
 using Dalamud.Game.Chat;
-using Dalamud.Game.ClientState.Actors.Types;
-using Dalamud.Game.ClientState.Actors.Types.NonPlayer;
-using Dalamud.Plugin;
 using ImGuiNET;
-using JetBrains.Annotations;
-using Newtonsoft.Json;
-using Serilog;
-using SharpDX.Direct3D11;
 
 namespace Dalamud.Interface
 {
-    class DalamudSettingsWindow {
+    internal class DalamudSettingsWindow {
         private readonly Dalamud dalamud;
 
         public DalamudSettingsWindow(Dalamud dalamud) {
@@ -30,6 +20,7 @@ namespace Dalamud.Interface
             this.doCfChatMessage = this.dalamud.Configuration.DutyFinderChatMessage;
 
             this.globalUiScale = this.dalamud.Configuration.GlobalUiScale;
+            this.doToggleUiHide = this.dalamud.Configuration.ToggleUiHide;
 
             this.doPluginTest = this.dalamud.Configuration.DoPluginTest;
             this.doDalamudTest = this.dalamud.Configuration.DoDalamudTest;
@@ -53,6 +44,7 @@ namespace Dalamud.Interface
         private const float MinScale = 0.3f;
         private const float MaxScale = 2.0f;
         private float globalUiScale;
+        private bool doToggleUiHide;
 
         #region Experimental
 
@@ -105,6 +97,11 @@ namespace Dalamud.Interface
 
                     ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingsGlobalUiScaleHint", "Scale all XIVLauncher UI elements - useful for 4K displays."));
 
+                    ImGui.Dummy(new Vector2(10f, 10f));
+
+                    ImGui.Checkbox(Loc.Localize("DalamudSettingToggleUiHide", "Hide plugin UI when the game UI is hidden"), ref this.doToggleUiHide);
+                    ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingToggleUiHideHint", "Check this box to hide any open windows by plugins when toggling the game overlay."));
+
                     ImGui.EndTabItem();
                 }
 
@@ -152,6 +149,7 @@ namespace Dalamud.Interface
             this.dalamud.Configuration.DutyFinderChatMessage = this.doCfChatMessage;
 
             this.dalamud.Configuration.GlobalUiScale = this.globalUiScale;
+            this.dalamud.Configuration.ToggleUiHide = this.doToggleUiHide;
 
             this.dalamud.Configuration.DoPluginTest = this.doPluginTest;
             this.dalamud.Configuration.DoDalamudTest = this.doDalamudTest;

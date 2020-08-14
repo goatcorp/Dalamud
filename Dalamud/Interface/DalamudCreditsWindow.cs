@@ -11,7 +11,7 @@ namespace Dalamud.Interface
         private const string CreditsTextTempl = @"
 Dalamud
 A FFXIV Hooking Framework
-Version {0}
+Version D{0}
 
 
 created by:

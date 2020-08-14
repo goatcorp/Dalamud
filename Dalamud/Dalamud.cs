@@ -116,6 +116,7 @@ namespace Dalamud {
 
                 PluginRepository = new PluginRepository(this, pluginDir, this.StartInfo.GameVersion);
 
+                var isInterfaceLoaded = false;
                 if (!bool.Parse(Environment.GetEnvironmentVariable("DALAMUD_NOT_HAVE_INTERFACE") ?? "false")) {
                     try
                     {
@@ -123,6 +124,7 @@ namespace Dalamud {
                         InterfaceManager.OnDraw += BuildDalamudUi;
 
                         InterfaceManager.Enable();
+                        isInterfaceLoaded = true;
                     }
                     catch (Exception e)
                     {
@@ -171,7 +173,7 @@ namespace Dalamud {
 
                 IsReady = true;
 
-                Troubleshooting.LogTroubleshooting(this);
+                Troubleshooting.LogTroubleshooting(this, isInterfaceLoaded);
             });
         }
 
@@ -372,9 +374,15 @@ namespace Dalamud {
                         ImGui.EndMenu();
                     }
 
+                    if (this.Framework.Gui.GameUiHidden)
+                        ImGui.BeginMenu("UI is hidden...", false);
+
                     ImGui.EndMainMenuBar();
                 }
             }
+
+            if (this.Framework.Gui.GameUiHidden)
+                return;
 
             if (this.isImguiDrawLogWindow)
             {

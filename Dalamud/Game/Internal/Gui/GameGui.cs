@@ -44,6 +44,17 @@ namespace Dalamud.Game.Internal.Gui {
             float *camPos, float *clipPos, float rayDistance, float *worldPos, int *unknown);
         private readonly ScreenToWorldNativeDelegate screenToWorldNative;
 
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        private delegate IntPtr ToggleUiHideDelegate(IntPtr thisPtr, byte unknownByte);
+        private readonly Hook<ToggleUiHideDelegate> toggleUiHideHook;
+
+        public bool GameUiHidden { get; private set; }
+
+        /// <summary>
+        /// Event which is fired when the game UI hiding is toggled.
+        /// </summary>
+        public event EventHandler<bool> OnUiHideToggled; 
+
         /// <summary>
         /// The item ID that is currently hovered by the player. 0 when no item is hovered.
         /// If > 1.000.000, subtract 1.000.000 and treat it as HQ
@@ -90,6 +101,8 @@ namespace Dalamud.Game.Internal.Gui {
 
             this.screenToWorldNative =
                 Marshal.GetDelegateForFunctionPointer<ScreenToWorldNativeDelegate>(Address.ScreenToWorld);
+
+            this.toggleUiHideHook = new Hook<ToggleUiHideDelegate>(Address.ToggleUiHide, new ToggleUiHideDelegate(ToggleUiHideDetour), this);
         }
 
         private IntPtr HandleSetGlobalBgmDetour(UInt16 bgmKey, byte a2, UInt32 a3, UInt32 a4, UInt32 a5, byte a6) {
@@ -279,6 +292,20 @@ namespace Dalamud.Game.Internal.Gui {
             return isSuccess;
         }
 
+        private IntPtr ToggleUiHideDetour(IntPtr thisPtr, byte unknownByte) {
+            GameUiHidden = !GameUiHidden;
+
+            try {
+                OnUiHideToggled?.Invoke(this, GameUiHidden);
+            } catch (Exception ex) {
+                Log.Error(ex, "Error on OnUiHideToggled event dispatch");
+            }
+            
+            Log.Debug("UiHide toggled: {0}", GameUiHidden);
+
+            return this.toggleUiHideHook.Original(thisPtr, unknownByte);
+        }
+
         public void SetBgm(ushort bgmKey) => this.setGlobalBgmHook.Original(bgmKey, 0, 0, 0, 0, 0); 
 
         public void Enable() {
@@ -286,6 +313,7 @@ namespace Dalamud.Game.Internal.Gui {
             this.setGlobalBgmHook.Enable();
             this.handleItemHoverHook.Enable();
             this.handleItemOutHook.Enable();
+            this.toggleUiHideHook.Enable();
         }
 
         public void Dispose() {
@@ -293,6 +321,7 @@ namespace Dalamud.Game.Internal.Gui {
             this.setGlobalBgmHook.Dispose();
             this.handleItemHoverHook.Dispose();
             this.handleItemOutHook.Dispose();
+            this.toggleUiHideHook.Dispose();
         }
     }
 }
