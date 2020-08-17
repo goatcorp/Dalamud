@@ -1,5 +1,6 @@
 using Dalamud.Game.ClientState.Structs;
 using System;
+using System.Threading.Tasks;
 
 namespace Dalamud.Game.ClientState.Actors.Types {
     /// <summary>
