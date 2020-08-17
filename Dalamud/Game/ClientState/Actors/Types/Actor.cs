@@ -86,16 +86,14 @@ namespace Dalamud.Game.ClientState.Actors.Types {
 
             unsafe
             {
-                ObjectKind* kind = (ObjectKind*)(Address + ActorOffsets.ObjectKind);
-                ObjectVisibility* vis = (ObjectVisibility*)(Address + ActorOffsets.ObjectVisibility);
+                var kind = (ObjectKind*)(Address + ActorOffsets.ObjectKind);
+                var vis = (ObjectVisibility*)(Address + ActorOffsets.ObjectVisibility);
+                if (player)
                 {
-                    if (player)
-                    {
-                        *kind = ObjectKind.BattleNpc;
-                    }
-
-                    *vis = ObjectVisibility.Invisible;
+                    *kind = ObjectKind.BattleNpc;
                 }
+
+                *vis = ObjectVisibility.Invisible;
             }
 
             if (player)
@@ -103,10 +101,8 @@ namespace Dalamud.Game.ClientState.Actors.Types {
                 await Task.Delay(100);
                 unsafe
                 {
-                    ObjectKind* kind = (ObjectKind*)(Address + ActorOffsets.ObjectKind);
-                    {
-                        *kind = ObjectKind.Player;
-                    }
+                    var kind = (ObjectKind*)(Address + ActorOffsets.ObjectKind);
+                    *kind = ObjectKind.Player;
                 }
             }
         }
@@ -120,26 +116,21 @@ namespace Dalamud.Game.ClientState.Actors.Types {
 
             unsafe
             {
-                ObjectKind* kind = (ObjectKind*)(Address + ActorOffsets.ObjectKind);
-                ObjectVisibility* vis = (ObjectVisibility*)(Address + ActorOffsets.ObjectVisibility);
+                var kind = (ObjectKind*)(Address + ActorOffsets.ObjectKind);
+                var vis = (ObjectVisibility*)(Address + ActorOffsets.ObjectVisibility);
+                if (player)
                 {
-                    if (player)
-                    {
-                        *kind = ObjectKind.BattleNpc;
-                    }
-                    
-                    *vis = ObjectVisibility.Invisible;
+                    *kind = ObjectKind.BattleNpc;
                 }
+                    
+                *vis = ObjectVisibility.Invisible;
             }
 
             await Task.Delay(100);
             unsafe
             {
-                ObjectKind* kind = (ObjectKind*)(Address + ActorOffsets.ObjectKind);
-                ObjectVisibility* vis = (ObjectVisibility*)(Address + ActorOffsets.ObjectVisibility);
-                {
-                    *vis = ObjectVisibility.Visible;
-                }
+                var vis = (ObjectVisibility*)(Address + ActorOffsets.ObjectVisibility);
+                *vis = ObjectVisibility.Visible;
             }
 
             if (player)
@@ -147,10 +138,8 @@ namespace Dalamud.Game.ClientState.Actors.Types {
                 await Task.Delay(100);
                 unsafe
                 {
-                    ObjectKind* kind = (ObjectKind*)(Address + ActorOffsets.ObjectKind);
-                    {
-                        *kind = ObjectKind.Player;
-                    }
+                    var kind = (ObjectKind*)(Address + ActorOffsets.ObjectKind);
+                    *kind = ObjectKind.Player;
                 }
             }
         }
