@@ -71,6 +71,24 @@ namespace Dalamud.Game.ClientState.Actors.Types {
         /// </summary>
         public virtual int TargetActorID => 0;
 
+        public ObjectVisibility ObjectVisibility => this.actorStruct.ObjectVisibility;
+
         bool IEquatable<Actor>.Equals(Actor other) => this.ActorId == other.ActorId;
+
+        /// <summary>
+        /// Hides the actor
+        /// </summary>
+        public unsafe void Hide()
+        {
+
+        }
+
+        /// <summary>
+        /// Re-renders the actor
+        /// </summary>
+        public unsafe void ReRender()
+        {
+
+        }
     }
 }
