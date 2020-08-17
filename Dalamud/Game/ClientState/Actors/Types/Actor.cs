@@ -1,3 +1,4 @@
+using Dalamud.Game.ClientState.Structs;
 using System;
 
 namespace Dalamud.Game.ClientState.Actors.Types {
@@ -78,17 +79,79 @@ namespace Dalamud.Game.ClientState.Actors.Types {
         /// <summary>
         /// Hides the actor
         /// </summary>
-        public unsafe void Hide()
+        public async void Hide()
         {
+            var player = ObjectKind == ObjectKind.Player;
 
+            unsafe
+            {
+                ObjectKind* kind = (ObjectKind*)(Address + ActorOffsets.ObjectKind);
+                ObjectVisibility* vis = (ObjectVisibility*)(Address + ActorOffsets.ObjectVisibility);
+                {
+                    if (player)
+                    {
+                        *kind = ObjectKind.BattleNpc;
+                    }
+
+                    *vis = ObjectVisibility.Invisible;
+                }
+            }
+
+            if (player)
+            {
+                await Task.Delay(100);
+                unsafe
+                {
+                    ObjectKind* kind = (ObjectKind*)(Address + ActorOffsets.ObjectKind);
+                    {
+                        *kind = ObjectKind.Player;
+                    }
+                }
+            }
         }
 
         /// <summary>
         /// Re-renders the actor
         /// </summary>
-        public unsafe void ReRender()
+        public async void ReRender()
         {
+            var player = ObjectKind == ObjectKind.Player;
 
+            unsafe
+            {
+                ObjectKind* kind = (ObjectKind*)(Address + ActorOffsets.ObjectKind);
+                ObjectVisibility* vis = (ObjectVisibility*)(Address + ActorOffsets.ObjectVisibility);
+                {
+                    if (player)
+                    {
+                        *kind = ObjectKind.BattleNpc;
+                    }
+                    
+                    *vis = ObjectVisibility.Invisible;
+                }
+            }
+
+            await Task.Delay(100);
+            unsafe
+            {
+                ObjectKind* kind = (ObjectKind*)(Address + ActorOffsets.ObjectKind);
+                ObjectVisibility* vis = (ObjectVisibility*)(Address + ActorOffsets.ObjectVisibility);
+                {
+                    *vis = ObjectVisibility.Visible;
+                }
+            }
+
+            if (player)
+            {
+                await Task.Delay(100);
+                unsafe
+                {
+                    ObjectKind* kind = (ObjectKind*)(Address + ActorOffsets.ObjectKind);
+                    {
+                        *kind = ObjectKind.Player;
+                    }
+                }
+            }
         }
     }
 }
