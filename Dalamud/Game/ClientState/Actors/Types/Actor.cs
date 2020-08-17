@@ -1,5 +1,6 @@
 using Dalamud.Game.ClientState.Structs;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Dalamud.Game.ClientState.Actors.Types {
@@ -80,68 +81,56 @@ namespace Dalamud.Game.ClientState.Actors.Types {
         /// <summary>
         /// Hides the actor
         /// </summary>
-        public async void Hide()
+        public unsafe void Hide()
         {
-            var player = ObjectKind == ObjectKind.Player;
-
-            unsafe
+            Task.Run(() => 
             {
+                var player = ObjectKind == ObjectKind.Player;
                 var kind = (ObjectKind*)(Address + ActorOffsets.ObjectKind);
                 var vis = (ObjectVisibility*)(Address + ActorOffsets.ObjectVisibility);
+
                 if (player)
                 {
                     *kind = ObjectKind.BattleNpc;
                 }
 
                 *vis = ObjectVisibility.Invisible;
-            }
 
-            if (player)
-            {
-                await Task.Delay(100);
-                unsafe
+                if (player)
                 {
-                    var kind = (ObjectKind*)(Address + ActorOffsets.ObjectKind);
+                    Thread.Sleep(100);
                     *kind = ObjectKind.Player;
                 }
-            }
+            });
         }
 
         /// <summary>
         /// Re-renders the actor
         /// </summary>
-        public async void ReRender()
+        public unsafe void ReRender()
         {
-            var player = ObjectKind == ObjectKind.Player;
-
-            unsafe
+            Task.Run(() =>
             {
+                var player = ObjectKind == ObjectKind.Player;
                 var kind = (ObjectKind*)(Address + ActorOffsets.ObjectKind);
                 var vis = (ObjectVisibility*)(Address + ActorOffsets.ObjectVisibility);
+
                 if (player)
                 {
                     *kind = ObjectKind.BattleNpc;
                 }
-                    
+
                 *vis = ObjectVisibility.Invisible;
-            }
 
-            await Task.Delay(100);
-            unsafe
-            {
-                var vis = (ObjectVisibility*)(Address + ActorOffsets.ObjectVisibility);
+                Thread.Sleep(100);
                 *vis = ObjectVisibility.Visible;
-            }
 
-            if (player)
-            {
-                await Task.Delay(100);
-                unsafe
+                if (player)
                 {
-                    var kind = (ObjectKind*)(Address + ActorOffsets.ObjectKind);
+                    Thread.Sleep(100);
                     *kind = ObjectKind.Player;
                 }
-            }
+            });
         }
     }
 }
