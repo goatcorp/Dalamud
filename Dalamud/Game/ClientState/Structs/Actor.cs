@@ -12,17 +12,17 @@ namespace Dalamud.Game.ClientState.Structs
     public class ActorOffsets
     {
         public const int Name = 0x30;
-        public const int ActorId = 116;
-        public const int DataId = 128;
-        public const int OwnerId = 132;
-        public const int ObjectKind = 140;
-        public const int SubKind = 141;
-        public const int IsFriendly = 142;
-        public const int YalmDistanceFromPlayerX = 144;
-        public const int PlayerTargetStatus = 145;
-        public const int YalmDistanceFromPlayerY = 146;
-        public const int Position = 160;
-        public const int Rotation = 176;
+        public const int ActorId = 0x74;
+        public const int DataId = 0x80;
+        public const int OwnerId = 0x84;
+        public const int ObjectKind = 0x8C;
+        public const int SubKind = 0x8D;
+        public const int IsFriendly = 0x8E;
+        public const int YalmDistanceFromPlayerX = 0x90;
+        public const int PlayerTargetStatus = 0x91;
+        public const int YalmDistanceFromPlayerY = 0x92;
+        public const int Position = 0xA0;
+        public const int Rotation = 0xB0;
         public const int Customize = 0x17B8;
         public const int PlayerCharacterTargetActorId = 0x1F0;
         public const int BattleNpcTargetActorId = 0x17F8;
