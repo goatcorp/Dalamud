@@ -9,7 +9,6 @@ using Dalamud.Game.ClientState.Actors;
 
 namespace Dalamud.Game.ClientState.Structs
 {
-    // May be a good idea to move this to a per-version JSON file in the future?
     public class ActorOffsets
     {
         public const int Name = 0x30;
@@ -24,7 +23,7 @@ namespace Dalamud.Game.ClientState.Structs
         public const int YalmDistanceFromPlayerY = 0x92;
         public const int Position = 0xA0;
         public const int Rotation = 0xB0;
-        public const int ObjectVisibility = 0x104;
+        public const int RenderMode = 0x104;
         public const int Customize = 0x17B8;
         public const int PlayerCharacterTargetActorId = 0x1F0;
         public const int BattleNpcTargetActorId = 0x17F8;
@@ -60,7 +59,7 @@ namespace Dalamud.Game.ClientState.Structs
         [FieldOffset(ActorOffsets.YalmDistanceFromPlayerY)] public byte YalmDistanceFromPlayerY; // and the other is z distance
         [FieldOffset(ActorOffsets.Position)] public Position3 Position;
         [FieldOffset(ActorOffsets.Rotation)] public float Rotation; // Rotation around the vertical axis (yaw), from -pi to pi radians     
-        [FieldOffset(ActorOffsets.ObjectVisibility)] public ObjectVisibility ObjectVisibility;
+        [FieldOffset(ActorOffsets.RenderMode)] public RenderMode RenderMode;
 
         [FieldOffset(ActorOffsets.Customize)] [MarshalAs(UnmanagedType.ByValArray, SizeConst = 28)] public byte[] Customize;
 

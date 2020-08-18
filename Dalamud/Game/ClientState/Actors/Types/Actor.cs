@@ -74,7 +74,10 @@ namespace Dalamud.Game.ClientState.Actors.Types {
         /// </summary>
         public virtual int TargetActorID => 0;
 
-        public ObjectVisibility ObjectVisibility => this.actorStruct.ObjectVisibility;
+        /// <summary>
+        /// Actor render mode
+        /// </summary>
+        public RenderMode RenderMode => this.actorStruct.RenderMode;
 
         bool IEquatable<Actor>.Equals(Actor other) => this.ActorId == other.ActorId;
 
@@ -87,14 +90,14 @@ namespace Dalamud.Game.ClientState.Actors.Types {
             {
                 var player = ObjectKind == ObjectKind.Player;
                 var kind = (ObjectKind*)(Address + ActorOffsets.ObjectKind);
-                var vis = (ObjectVisibility*)(Address + ActorOffsets.ObjectVisibility);
+                var render = (RenderMode*)(Address + ActorOffsets.RenderMode);
 
                 if (player)
                 {
                     *kind = ObjectKind.BattleNpc;
                 }
 
-                *vis = ObjectVisibility.Invisible;
+                *render = RenderMode.Invisible;
 
                 if (player)
                 {
@@ -105,7 +108,7 @@ namespace Dalamud.Game.ClientState.Actors.Types {
         }
 
         /// <summary>
-        /// Re-renders the actor
+        /// "Re-Renders" the actor
         /// </summary>
         public unsafe void ReRender()
         {
@@ -113,17 +116,16 @@ namespace Dalamud.Game.ClientState.Actors.Types {
             {
                 var player = ObjectKind == ObjectKind.Player;
                 var kind = (ObjectKind*)(Address + ActorOffsets.ObjectKind);
-                var vis = (ObjectVisibility*)(Address + ActorOffsets.ObjectVisibility);
+                var render = (RenderMode*)(Address + ActorOffsets.RenderMode);
 
                 if (player)
                 {
                     *kind = ObjectKind.BattleNpc;
                 }
 
-                *vis = ObjectVisibility.Invisible;
-
+                *render = RenderMode.Invisible;
                 Thread.Sleep(100);
-                *vis = ObjectVisibility.Visible;
+                *render = RenderMode.None;
 
                 if (player)
                 {
