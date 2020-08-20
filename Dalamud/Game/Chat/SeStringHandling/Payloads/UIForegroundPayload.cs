@@ -1,22 +1,92 @@
+using Lumina.Excel.GeneratedSheets;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Dalamud.Data;
 
 namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 {
+    /// <summary>
+    /// An SeString Payload representing a UI foreground color applied to following text payloads.
+    /// </summary>
     public class UIForegroundPayload : Payload
     {
+        /// <summary>
+        /// Payload representing disabling foreground color on following text.
+        /// </summary>
+        // TODO Make this work with DI
+        public static UIForegroundPayload UIForegroundOff => new UIForegroundPayload(null, 0);
+
         public override PayloadType Type => PayloadType.UIForeground;
 
-        public ushort RawColor { get; private set; }
+        /// <summary>
+        /// Whether or not this payload represents applying a foreground color, or disabling one.
+        /// </summary>
+        public bool IsEnabled => ColorKey != 0;
 
-        //public int Red { get; private set; }
-        //public int Green { get; private set; }
-        //public int Blue { get; private set; }
-
-        public override byte[] Encode()
+        private UIColor color;
+        /// <summary>
+        /// A Lumina UIColor object representing this payload.  The actual color data is at UIColor.UIForeground
+        /// </summary>
+        /// <remarks>
+        /// Value is evaluated lazily and cached.
+        /// </remarks>
+        public UIColor UIColor
         {
-            var colorBytes = MakeInteger(RawColor);
+            get
+            {
+                this.color ??= this.DataResolver.GetExcelSheet<UIColor>().GetRow(this.colorKey);
+                return this.color;
+            }
+        }
+
+        /// <summary>
+        /// The color key used as a lookup in the UIColor table for this foreground color.
+        /// </summary>
+        public ushort ColorKey
+        {
+            get { return this.colorKey; }
+            set
+            {
+                this.colorKey = value;
+                this.color = null;
+                Dirty = true;
+            }
+        }
+
+        /// <summary>
+        /// The Red/Green/Blue values for this foreground color, encoded as a typical hex color.
+        /// </summary>
+        public uint RGB
+        {
+            get
+            {
+                return (UIColor.UIForeground & 0xFFFFFF);
+            }
+        }
+
+        private ushort colorKey;
+
+        internal UIForegroundPayload() { }
+
+        /// <summary>
+        /// Creates a new UIForegroundPayload for the given UIColor key.
+        /// </summary>
+        /// <param name="data">DataManager instance needed to resolve game data.</param>
+        /// <param name="colorKey"></param>
+        public UIForegroundPayload(DataManager data, ushort colorKey) {
+            this.DataResolver = data;
+            this.colorKey = colorKey;
+        }
+
+        public override string ToString()
+        {
+            return $"{Type} - UIColor: {colorKey} color: {(IsEnabled ? RGB : 0)}";
+        }
+
+        protected override byte[] EncodeImpl()
+        {
+            var colorBytes = MakeInteger(this.colorKey);
             var chunkLen = colorBytes.Length + 1;
 
             var bytes = new List<byte>(new byte[]
@@ -30,19 +100,9 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             return bytes.ToArray();
         }
 
-        public override void Resolve()
+        protected override void DecodeImpl(BinaryReader reader, long endOfStream)
         {
-            // TODO: resolve color keys to hex colors via UIColor table
-        }
-
-        public override string ToString()
-        {
-            return $"{Type} - RawColor: {RawColor}";
-        }
-
-        protected override void ProcessChunkImpl(BinaryReader reader, long endOfStream)
-        {
-            RawColor = (ushort)GetInteger(reader);
+            this.colorKey = (ushort)GetInteger(reader);
         }
 
         protected override byte GetMarkerForIntegerBytes(byte[] bytes)

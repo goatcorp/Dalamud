@@ -116,8 +116,8 @@ namespace Dalamud.Game.Internal.Gui {
                 var sender = StdString.ReadFromPointer(pSenderName);
                 var message = StdString.ReadFromPointer(pMessage);
 
-                var parsedSender = SeString.Parse(sender.RawData);
-                var parsedMessage = SeString.Parse(message.RawData);
+                var parsedSender = this.dalamud.SeStringManager.Parse(sender.RawData);
+                var parsedMessage = this.dalamud.SeStringManager.Parse(message.RawData);
 
                 Log.Verbose("[CHATGUI][{0}][{1}]", parsedSender.TextValue, parsedMessage.TextValue);
 
@@ -138,8 +138,8 @@ namespace Dalamud.Game.Internal.Gui {
                 if (!FastByteArrayCompare(oldEdited, newEdited)) {
                     Log.Verbose("SeString was edited, taking precedence over StdString edit.");
                     message.RawData = newEdited;
-                }
-                //Log.Debug($"\nOLD: {BitConverter.ToString(originalMessageData)}\nNEW: {BitConverter.ToString(newEdited)}");
+                    Log.Debug($"\nOLD: {BitConverter.ToString(originalMessageData)}\nNEW: {BitConverter.ToString(newEdited)}");
+                } 
 
                 var messagePtr = pMessage;
                 OwnedStdString allocatedString = null;
@@ -201,7 +201,8 @@ namespace Dalamud.Game.Internal.Gui {
         public void Print(string message) {
             Log.Verbose("[CHATGUI PRINT]{0}", message);
             PrintChat(new XivChatEntry {
-                MessageBytes = Encoding.UTF8.GetBytes(message)
+                MessageBytes = Encoding.UTF8.GetBytes(message),
+                Type = this.dalamud.Configuration.GeneralChatType
             });
         }
 

@@ -2,15 +2,17 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Dalamud.Data;
 using Dalamud.Game.Chat.SeStringHandling.Payloads;
 using Serilog;
 
 // TODOs:
 //   - refactor integer handling now that we have multiple packed types
-//   - common construction/property design for subclasses
-//   - lumina DI
-//   - design for handling raw values vs resolved values, both for input and output
-//   - wrapper class(es) for handling of composite links in chat (item, map etc) and formatting operations
+// Maybes:
+//   - convert parsing to custom structs for each payload?  would make some code prettier and easier to work with
+//     but also wouldn't work out as well for things that are dynamically-sized
+//   - [SeString] some way to add surrounding formatting information as flags/data to text (or other?) payloads?
+//     eg, if a text payload is surrounded by italics payloads, strip them out and mark the text payload as italicized
 
 namespace Dalamud.Game.Chat.SeStringHandling
 {
@@ -19,33 +21,99 @@ namespace Dalamud.Game.Chat.SeStringHandling
     /// </summary>
     public abstract class Payload
     {
+        /// <summary>
+        /// The type of this payload.
+        /// </summary>
         public abstract PayloadType Type { get; }
 
-        public abstract void Resolve();
+        /// <summary>
+        /// Whether this payload has been modified since the last Encode().
+        /// </summary>
+        public bool Dirty { get; protected set; } = true;
 
-        public abstract byte[] Encode();
+        /// <summary>
+        /// Encodes the internal state of this payload into a byte[] suitable for sending to in-game
+        /// handlers such as the chat log.
+        /// </summary>
+        /// <returns>Encoded binary payload data suitable for use with in-game handlers.</returns>
+        protected abstract byte[] EncodeImpl();
 
-        protected abstract void ProcessChunkImpl(BinaryReader reader, long endOfStream);
+        // TODO: endOfStream is somewhat legacy now that payload length is always handled correctly.
+        // This could be changed to just take a straight byte[], but that would complicate reading
+        // but we could probably at least remove the end param
+        /// <summary>
+        /// Decodes a byte stream from the game into a payload object.
+        /// </summary>
+        /// <param name="reader">A BinaryReader containing at least all the data for this payload.</param>
+        /// <param name="endOfStream">The location holding the end of the data for this payload.</param>
+        protected abstract void DecodeImpl(BinaryReader reader, long endOfStream);
 
-        public static Payload Process(BinaryReader reader)
+        /// <summary>
+        /// The Lumina instance to use for any necessary data lookups.
+        /// </summary>
+        protected DataManager DataResolver;
+
+        // private for now, since subclasses shouldn't interact with this
+        // To force-invalidate it, Dirty can be set to true
+        private byte[] encodedData;
+
+        /// <summary>
+        /// Encode this payload object into a byte[] useable in-game for things like the chat log.
+        /// </summary>
+        /// <param name="force">If true, ignores any cached value and forcibly reencodes the payload from its internal representation.</param>
+        /// <returns>A byte[] suitable for use with in-game handlers such as the chat log.</returns>
+        public byte[] Encode(bool force = false)
         {
+            if (Dirty || force)
+            {
+                this.encodedData = EncodeImpl();
+                Dirty = false;
+            }
+
+            return this.encodedData;
+        }
+
+        /// <summary>
+        /// Decodes a binary representation of a payload into its corresponding nice object payload.
+        /// </summary>
+        /// <param name="reader">A reader positioned at the start of the payload, and containing at least one entire payload.</param>
+        /// <returns>The constructed Payload-derived object that was decoded from the binary data.</returns>
+        public static Payload Decode(BinaryReader reader, DataManager data)
+        {
+            var payloadStartPos = reader.BaseStream.Position;
+
             Payload payload = null;
 
             var initialByte = reader.ReadByte();
             reader.BaseStream.Position--;
             if (initialByte != START_BYTE)
             {
-                payload = ProcessText(reader);
+                payload = DecodeText(reader);
             }
             else
             {
-                payload = ProcessChunk(reader);
+                payload = DecodeChunk(reader);
             }
+
+            payload.DataResolver = data;
+
+            // for now, cache off the actual binary data for this payload, so we don't have to
+            // regenerate it if the payload isn't modified
+            // TODO: probably better ways to handle this
+            var payloadEndPos = reader.BaseStream.Position;
+
+            reader.BaseStream.Position = payloadStartPos;
+            payload.encodedData = reader.ReadBytes((int)(payloadEndPos - payloadStartPos));
+            payload.Dirty = false;
+
+            // Log.Verbose($"got payload bytes {BitConverter.ToString(payload.encodedData).Replace("-", " ")}");
+
+            reader.BaseStream.Position = payloadEndPos;
 
             return payload;
         }
 
-        private static Payload ProcessChunk(BinaryReader reader)
+        private static Payload DecodeChunk(BinaryReader reader)
         {
             Payload payload = null;
 
@@ -55,8 +123,13 @@ namespace Dalamud.Game.Chat.SeStringHandling
 
             var packetStart = reader.BaseStream.Position;
 
+            // any unhandled payload types will be turned into a RawPayload with the exact same binary data
             switch (chunkType)
             {
+                case SeStringChunkType.EmphasisItalic:
+                    payload = new EmphasisItalicPayload();
+                    break;
+
                 case SeStringChunkType.Interactable:
                     {
                         var subType = (EmbeddedInfoType)reader.ReadByte();
@@ -81,10 +154,13 @@ namespace Dalamud.Game.Chat.SeStringHandling
                             case EmbeddedInfoType.LinkTerminator:
                                 // this has no custom handling and so needs to fallthrough to ensure it is captured
                             default:
-                                Log.Verbose("Unhandled EmbeddedInfoType: {0}", subType);
+                                // but I'm also tired of this log
+                                if (subType != EmbeddedInfoType.LinkTerminator)
+                                {
+                                    Log.Verbose("Unhandled EmbeddedInfoType: {0}", subType);
+                                }
                                 // rewind so we capture the Interactable byte in the raw data
                                 reader.BaseStream.Seek(-1, SeekOrigin.Current);
-                                payload = new RawPayload((byte)chunkType);
                                 break;
                         }
                     }
@@ -104,11 +180,11 @@ namespace Dalamud.Game.Chat.SeStringHandling
 
                 default:
                     Log.Verbose("Unhandled SeStringChunkType: {0}", chunkType);
-                    payload = new RawPayload((byte)chunkType);
                     break;
             }
 
-            payload?.ProcessChunkImpl(reader, reader.BaseStream.Position + chunkLen - 1);
+            payload ??= new RawPayload((byte)chunkType);
+            payload.DecodeImpl(reader, reader.BaseStream.Position + chunkLen - 1);
 
             // read through the rest of the packet
             var readBytes = (uint)(reader.BaseStream.Position - packetStart);
@@ -117,10 +193,10 @@ namespace Dalamud.Game.Chat.SeStringHandling
             return payload;
         }
 
-        private static Payload ProcessText(BinaryReader reader)
+        private static Payload DecodeText(BinaryReader reader)
         {
             var payload = new TextPayload();
-            payload.ProcessChunkImpl(reader, reader.BaseStream.Length);
+            payload.DecodeImpl(reader, reader.BaseStream.Length);
 
             return payload;
         }
@@ -132,6 +208,7 @@ namespace Dalamud.Game.Chat.SeStringHandling
 
         protected enum SeStringChunkType
         {
+            EmphasisItalic = 0x1A,
             Interactable = 0x27,
             AutoTranslateKey = 0x2E,
             UIForeground = 0x48,
@@ -148,6 +225,10 @@ namespace Dalamud.Game.Chat.SeStringHandling
             LinkTerminator = 0xCF // not clear but seems to always follow a link
         }
 
+
+        // TODO - everything below needs to be completely refactored, now that we have run into
+        // a lot more cases than were originally handled.
+
         protected enum IntegerType
         {
             // used as an internal marker; sometimes single bytes are bare with no marker at all
@@ -156,10 +237,17 @@ namespace Dalamud.Game.Chat.SeStringHandling
             Byte = 0xF0,
             ByteTimes256 = 0xF1,
             Int16 = 0xF2,
+            ByteSHL16 = 0xF3,
             Int16Packed = 0xF4,         // seen in map links, seemingly 2 8-bit values packed into 2 bytes with only one marker
+            Int16SHL8 = 0xF5,
             Int24Special = 0xF6,        // unsure how different form Int24 - used for hq items that add 1 million, also used for normal 24-bit values in map links
-            Int24Packed = 0xFC,         // used in map links- sometimes short+byte, sometimes... not??
+            Int8SHL24 = 0xF7,
+            Int8SHL8Int8 = 0xF8,
+            Int8SHL8Int8SHL8 = 0xF9,
             Int24 = 0xFA,
+            Int16SHL16 = 0xFB,
+            Int24Packed = 0xFC,         // used in map links- sometimes short+byte, sometimes... not??
+            Int16Int8SHL8 = 0xFD,
             Int32 = 0xFE
         }
 
@@ -187,6 +275,25 @@ namespace Dalamud.Game.Chat.SeStringHandling
 
                 case IntegerType.ByteTimes256:
                     return input.ReadByte() * (uint)256;
+                case IntegerType.ByteSHL16:
+                    return (uint)(input.ReadByte() << 16);
+                case IntegerType.Int8SHL24:
+                    return (uint)(input.ReadByte() << 24);
+                case IntegerType.Int8SHL8Int8:
+                    {
+                        var v = 0;
+                        v |= input.ReadByte() << 24;
+                        v |= input.ReadByte();
+                        return (uint)v;
+                    }
+                case IntegerType.Int8SHL8Int8SHL8:
+                    {
+                        var v = 0;
+                        v |= input.ReadByte() << 24;
+                        v |= input.ReadByte() << 8;
+                        return (uint)v;
+                    }
+
 
                 case IntegerType.Int16:
                     // fallthrough - same logic
@@ -195,6 +302,20 @@ namespace Dalamud.Game.Chat.SeStringHandling
                         var v = 0;
                         v |= input.ReadByte() << 8;
                         v |= input.ReadByte();
+                        return (uint)v;
+                    }
+                case IntegerType.Int16SHL8:
+                    {
+                        var v = 0;
+                        v |= input.ReadByte() << 16;
+                        v |= input.ReadByte() << 8;
+                        return (uint)v;
+                    }
+                case IntegerType.Int16SHL16:
+                    {
+                        var v = 0;
+                        v |= input.ReadByte() << 24;
+                        v |= input.ReadByte() << 16;
                         return (uint)v;
                     }
 
@@ -210,7 +331,14 @@ namespace Dalamud.Game.Chat.SeStringHandling
                         v |= input.ReadByte();
                         return (uint)v;
                     }
-
+                case IntegerType.Int16Int8SHL8:
+                    {
+                        var v = 0;
+                        v |= input.ReadByte() << 24;
+                        v |= input.ReadByte() << 16;
+                        v |= input.ReadByte() << 8;
+                        return (uint)v;
+                    }
                 case IntegerType.Int32:
                     {
                         var v = 0;

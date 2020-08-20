@@ -28,7 +28,7 @@ using Serilog;
 
 namespace Dalamud.Interface
 {
-    public class InterfaceManager : IDisposable
+    internal class InterfaceManager : IDisposable
     {
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         private delegate IntPtr PresentDelegate(IntPtr swapChain, uint syncInterval, uint presentFlags);
@@ -253,12 +253,17 @@ namespace Dalamud.Interface
                 ImGui.GetStyle().Colors[(int) ImGuiCol.Tab] = new Vector4(0.23f, 0.23f, 0.23f, 0.86f);
                 ImGui.GetStyle().Colors[(int) ImGuiCol.TabHovered] = new Vector4(0.71f, 0.71f, 0.71f, 0.80f);
                 ImGui.GetStyle().Colors[(int) ImGuiCol.TabActive] = new Vector4(0.36f, 0.36f, 0.36f, 1.00f);
+
+                ImGui.GetIO().FontGlobalScale = this.dalamud.Configuration.GlobalUiScale;
             }
 
             this.scene.Render();
 
             return this.presentHook.Original(swapChain, syncInterval, presentFlags);
         }
+
+        public static ImFontPtr DefaultFont { get; private set; }
+        public static ImFontPtr IconFont { get; private set; }
 
         private unsafe void SetupFonts()
         {
@@ -269,27 +274,40 @@ namespace Dalamud.Interface
             fontConfig.PixelSnapH = true;
 
             var fontPathJp = Path.Combine(this.dalamud.StartInfo.WorkingDirectory, "UIRes", "NotoSansCJKjp-Medium.otf");
-            ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPathJp, 17.0f, null, ImGui.GetIO().Fonts.GetGlyphRangesJapanese());
+
+            var japaneseRangeHandle = GCHandle.Alloc(GlyphRangesJapanese.GlyphRanges, GCHandleType.Pinned);
+
+            DefaultFont = ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPathJp, 17.0f, null, japaneseRangeHandle.AddrOfPinnedObject());
 
             var fontPathGame = Path.Combine(this.dalamud.StartInfo.WorkingDirectory, "UIRes", "gamesym.ttf");
-            Log.Verbose(fontPathGame);
 
-            var rangeHandle = GCHandle.Alloc(new ushort[]
+            var gameRangeHandle = GCHandle.Alloc(new ushort[]
             {
                 0xE020,
                 0xE0DB,
                 0
             }, GCHandleType.Pinned);
 
+            ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPathGame, 17.0f, fontConfig, gameRangeHandle.AddrOfPinnedObject());
 
-            ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPathGame, 17.0f, fontConfig, rangeHandle.AddrOfPinnedObject());
+            var fontPathIcon = Path.Combine(this.dalamud.StartInfo.WorkingDirectory, "UIRes", "FontAwesome5FreeSolid.otf");
 
-            OnBuildFonts?.Invoke();
+            var iconRangeHandle = GCHandle.Alloc(new ushort[]
+            {
+                0xE000,
+                0xF8FF,
+                0
+            }, GCHandleType.Pinned);
+            IconFont = ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPathIcon, 17.0f, null, iconRangeHandle.AddrOfPinnedObject());
+
+            this.OnBuildFonts?.Invoke();
 
             ImGui.GetIO().Fonts.Build();
 
             fontConfig.Destroy();
-            rangeHandle.Free();
+            japaneseRangeHandle.Free();
+            gameRangeHandle.Free();
+            iconRangeHandle.Free();
         }
 
         // This is intended to only be called as a handler attached to scene.OnNewRenderFrame

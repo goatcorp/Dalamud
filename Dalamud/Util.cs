@@ -1,9 +1,8 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
+using Dalamud.Game;
 using Serilog;
 
 namespace Dalamud {
@@ -66,5 +65,7 @@ namespace Dalamud {
 
             return sb.ToString().TrimEnd(Environment.NewLine.ToCharArray());
         }
+
+        public static string AssemblyVersion { get; } = Assembly.GetAssembly(typeof(ChatHandlers)).GetName().Version.ToString();
     }
 }

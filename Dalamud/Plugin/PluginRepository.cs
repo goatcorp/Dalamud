@@ -12,11 +12,11 @@ using Serilog;
 
 namespace Dalamud.Plugin
 {
-    public class PluginRepository
+    internal class PluginRepository
     {
-        private const string PluginRepoBaseUrl = "https://goatcorp.github.io/DalamudPlugins/";
+        private string PluginRepoBaseUrl => "https://raw.githubusercontent.com/goatcorp/DalamudPlugins/" + (this.dalamud.Configuration.DoPluginTest ? "testing/" : "master/");
 
-        private PluginManager manager;
+        private readonly Dalamud dalamud;
         private string pluginDirectory;
         public ReadOnlyCollection<PluginDefinition> PluginMaster;
 
@@ -29,33 +29,38 @@ namespace Dalamud.Plugin
 
         public InitializationState State { get; private set; }
 
-        public PluginRepository(PluginManager manager, string pluginDirectory, string gameVersion)
+        public PluginRepository(Dalamud dalamud, string pluginDirectory, string gameVersion)
         {
-            this.manager = manager;
+            this.dalamud = dalamud;
             this.pluginDirectory = pluginDirectory;
 
-            State = InitializationState.InProgress;
-            Task.Run(CachePluginMaster).ContinueWith(t => {
+            ReloadPluginMasterAsync();
+        }
+
+        public void ReloadPluginMasterAsync()
+        {
+            Task.Run(() => {
+                State = InitializationState.InProgress;
+
+                try
+                {
+                    using var client = new WebClient();
+
+                    var data = client.DownloadString(PluginRepoBaseUrl + "pluginmaster.json");
+
+                    this.PluginMaster = JsonConvert.DeserializeObject<ReadOnlyCollection<PluginDefinition>>(data);
+
+                    State = InitializationState.Success;
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Could not download PluginMaster");
+                    State = InitializationState.Fail;
+                }
+            }).ContinueWith(t => {
                 if (t.IsFaulted)
                     State = InitializationState.Fail;
             });
-        }
-
-        private void CachePluginMaster()
-        {
-            try
-            {
-                using var client = new WebClient();
-
-                var data = client.DownloadString(PluginRepoBaseUrl + "pluginmaster.json");
-
-                this.PluginMaster = JsonConvert.DeserializeObject<ReadOnlyCollection<PluginDefinition>>(data);
-
-                State = InitializationState.Success;
-            }
-            catch {
-                State = InitializationState.Fail;
-            }
         }
 
         public bool InstallPlugin(PluginDefinition definition, bool enableAfterInstall = true) {
@@ -71,7 +76,7 @@ namespace Dalamud.Plugin
                     if (disabledFile.Exists)
                         disabledFile.Delete();
 
-                    return this.manager.LoadPluginFromAssembly(dllFile, false);
+                    return this.dalamud.PluginManager.LoadPluginFromAssembly(dllFile, false, PluginLoadReason.Installer);
                 }
 
                 if (dllFile.Exists && !enableAfterInstall) {
@@ -100,7 +105,7 @@ namespace Dalamud.Plugin
                     return true;
                 }
 
-                return this.manager.LoadPluginFromAssembly(dllFile, false);
+                return this.dalamud.PluginManager.LoadPluginFromAssembly(dllFile, false, PluginLoadReason.Installer);
             }
             catch (Exception e)
             {
@@ -109,13 +114,132 @@ namespace Dalamud.Plugin
             }
         }
 
-        public (bool Success, int UpdatedCount) UpdatePlugins(bool dryRun = false)
+        internal class PluginUpdateStatus {
+            public string InternalName { get; set; }
+            public bool WasUpdated { get; set; }
+        }
+
+        public (bool Success, List<PluginUpdateStatus> UpdatedPlugins) UpdatePlugins(bool dryRun = false)
         {
             Log.Information("Starting plugin update... dry:{0}", dryRun);
 
-            var updatedCount = 0;
+            var updatedList = new List<PluginUpdateStatus>();
             var hasError = false;
 
+            try
+            {
+                var pluginsDirectory = new DirectoryInfo(this.pluginDirectory);
+                foreach (var installed in pluginsDirectory.GetDirectories())
+                {
+                    try {
+                        var versions = installed.GetDirectories();
+
+                        if (versions.Length == 0) {
+                            Log.Information("Has no versions: {0}", installed.FullName);
+                            continue;
+                        }
+
+                        var sortedVersions = versions.OrderBy(dirInfo =>
+                        {
+                            var success = Version.TryParse(dirInfo.Name, out Version version);
+                            if (!success) { Log.Debug("Unparseable version: {0}", dirInfo.Name); }
+                            return version;
+                        });
+                        var latest = sortedVersions.Last();
+
+                        var localInfoFile = new FileInfo(Path.Combine(latest.FullName, $"{installed.Name}.json"));
+
+                        if (!localInfoFile.Exists) {
+                            Log.Information("Has no definition: {0}", localInfoFile.FullName);
+                            continue;
+                        }
+
+                        var info = JsonConvert.DeserializeObject<PluginDefinition>(
+                            File.ReadAllText(localInfoFile.FullName));
+
+                        var remoteInfo = this.PluginMaster.FirstOrDefault(x => x.Name == info.Name);
+
+                        if (remoteInfo == null) {
+                            Log.Information("Is not in pluginmaster: {0}", info.Name);
+                            continue;
+                        }
+
+                        if (remoteInfo.DalamudApiLevel != PluginManager.DALAMUD_API_LEVEL) {
+                            Log.Information("Has not applicable API level: {0}", info.Name);
+                            continue;
+                        }
+
+                        if (remoteInfo.AssemblyVersion != info.AssemblyVersion) {
+                            Log.Information("Eligible for update: {0}", remoteInfo.InternalName);
+
+                            // DisablePlugin() below immediately creates a .disabled file anyway, but will fail
+                            // with an exception if we try to do it twice in row like this
+
+                            if (!dryRun) {
+                                var wasEnabled =
+                                    this.dalamud.PluginManager.Plugins.Where(x => x.Definition != null).Any(
+                                        x => x.Definition.InternalName == info.InternalName);
+                                ;
+
+                                Log.Verbose("wasEnabled: {0}", wasEnabled);
+
+                                // Try to disable plugin if it is loaded
+                                try {
+                                    this.dalamud.PluginManager.DisablePlugin(info);
+                                } catch (Exception ex) {
+                                    Log.Error(ex, "Plugin disable failed");
+                                    //hasError = true;
+                                }
+
+                                try {
+                                    // Just to be safe
+                                    foreach (var sortedVersion in sortedVersions) {
+                                        var disabledFile =
+                                            new FileInfo(Path.Combine(sortedVersion.FullName, ".disabled"));
+                                        if (!disabledFile.Exists)
+                                            disabledFile.Create();
+                                    }
+                                } catch (Exception ex) {
+                                    Log.Error(ex, "Plugin disable old versions failed");
+                                }
+
+                                var installSuccess = InstallPlugin(remoteInfo, wasEnabled);
+
+                                if (!installSuccess) {
+                                    Log.Error("InstallPlugin failed.");
+                                    hasError = true;
+                                }
+
+                                updatedList.Add(new PluginUpdateStatus {
+                                    InternalName = remoteInfo.InternalName,
+                                    WasUpdated = installSuccess
+                                });
+                            } else {
+                                updatedList.Add(new PluginUpdateStatus {
+                                    InternalName = remoteInfo.InternalName,
+                                    WasUpdated = true
+                                });
+                            }
+                        } else {
+                            Log.Information("Up to date: {0}", remoteInfo.InternalName);
+                        }
+                    } catch (Exception ex) {
+                        Log.Error(ex, "Could not update plugin: {0}", installed.FullName);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "Plugin update failed.");
+                hasError = true;
+            }
+
+            Log.Information("Plugin update OK.");
+
+            return (!hasError, updatedList);
+        }
+
+        public void CleanupPlugins() {
             try
             {
                 var pluginsDirectory = new DirectoryInfo(this.pluginDirectory);
@@ -125,100 +249,25 @@ namespace Dalamud.Plugin
 
                     if (versions.Length == 0)
                     {
-                        Log.Information("Has no versions: {0}", installed.FullName);
+                        Log.Information("[PLUGINR] Has no versions: {0}", installed.FullName);
                         continue;
                     }
 
-                    var sortedVersions = versions.OrderBy(x => int.Parse(x.Name.Replace(".", "")));
-                    var latest = sortedVersions.Last();
-
-                    var localInfoFile = new FileInfo(Path.Combine(latest.FullName, $"{installed.Name}.json"));
-
-                    if (!localInfoFile.Exists)
-                    {
-                        Log.Information("Has no definition: {0}", localInfoFile.FullName);
-                        continue;
-                    }
-
-                    var info = JsonConvert.DeserializeObject<PluginDefinition>(File.ReadAllText(localInfoFile.FullName));
-
-                    var remoteInfo = this.PluginMaster.FirstOrDefault(x => x.Name == info.Name);
-
-                    if (remoteInfo == null)
-                    {
-                        Log.Information("Is not in pluginmaster: {0}", info.Name);
-                        continue;
-                    }
-
-                    if (remoteInfo.AssemblyVersion != info.AssemblyVersion)
-                    {
-                        Log.Information("Eligible for update: {0}", remoteInfo.InternalName);
-
-                        // DisablePlugin() below immediately creates a .disabled file anyway, but will fail
-                        // with an exception if we try to do it twice in row like this
-
-                        if (!dryRun)
-                        {
-                            var wasEnabled =
-                                this.manager.Plugins.Where(x => x.Definition != null).Any(
-                                    x => x.Definition.InternalName == info.InternalName); ;
-
-                            Log.Verbose("wasEnabled: {0}", wasEnabled);
-
-                            // Try to disable plugin if it is loaded
-                            try
-                            {
-                                this.manager.DisablePlugin(info);
-                            }
-                            catch (Exception ex)
-                            {
-                                Log.Error(ex, "Plugin disable failed");
-                                //hasError = true;
-                            }
-
-                            try {
-                                // Just to be safe
-                                foreach (var sortedVersion in sortedVersions)
-                                {
-                                    var disabledFile = new FileInfo(Path.Combine(sortedVersion.FullName, ".disabled"));
-                                    if (!disabledFile.Exists)
-                                        disabledFile.Create();
-                                }
-                            } catch (Exception ex) {
-                                Log.Error(ex, "Plugin disable old versions failed");
-                            }
-
-                            var installSuccess = InstallPlugin(remoteInfo, wasEnabled);
-
-                            if (installSuccess)
-                            {
-                                updatedCount++;
-                            }
-                            else
-                            {
-                                Log.Error("InstallPlugin failed.");
-                                hasError = true;
-                            }
+                    var sortedVersions = versions.OrderBy(x => int.Parse(x.Name.Replace(".", ""))).ToArray();
+                    for (var i = 0; i < sortedVersions.Length - 1; i++) {
+                        Log.Information("[PLUGINR] Trying to delete old {0} at ", installed.Name, sortedVersions[i].FullName);
+                        try {
+                            sortedVersions[i].Delete(true);
+                        } catch (Exception ex) {
+                            Log.Error(ex, "[PLUGINR] Could not delete old version");
                         }
-                        else {
-                            updatedCount++;
-                        }
-                    }
-                    else
-                    {
-                        Log.Information("Up to date: {0}", remoteInfo.InternalName);
                     }
                 }
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Log.Error(e, "Plugin update failed hard.");
-                hasError = true;
+                Log.Error(ex, "[PLUGINR] Plugin cleanup failed.");
             }
-
-            Log.Information("Plugin update OK.");
-
-            return (!hasError, updatedCount);
         }
     }
 }

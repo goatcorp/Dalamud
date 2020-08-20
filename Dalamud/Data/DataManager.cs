@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using Dalamud.Data.LuminaExtensions;
 using Lumina.Data;
@@ -21,7 +22,7 @@ namespace Dalamud.Data
     /// <summary>
     /// This class provides data for Dalamud-internal features, but can also be used by plugins if needed.
     /// </summary>
-    public class DataManager {
+    public class DataManager : IDisposable {
         /// <summary>
         /// OpCodes sent by the server to the client.
         /// </summary>
@@ -50,6 +51,8 @@ namespace Dalamud.Data
 
         private const string IconFileFormat = "ui/icon/{0:D3}000/{1}{2:D6}.tex";
 
+        private Thread luminaResourceThread;
+
         public DataManager(ClientLanguage language)
         {
             // Set up default values so plugins do not null-reference when data is being loaded.
@@ -77,25 +80,41 @@ namespace Dalamud.Data
                 Log.Verbose("Loaded {0} ClientOpCodes.", clientOpCodeDict.Count);
 
 
-                var luminaOptions = new LuminaOptions
-                {
-                    CacheFileResources = true
+                var luminaOptions = new LuminaOptions {
+                    CacheFileResources = true,
+
+#if DEBUG
+                    PanicOnSheetChecksumMismatch = true,
+#else
+                    PanicOnSheetChecksumMismatch = false,
+#endif
+
+                    DefaultExcelLanguage = this.language switch {
+                        ClientLanguage.Japanese => Language.Japanese,
+                        ClientLanguage.English => Language.English,
+                        ClientLanguage.German => Language.German,
+                        ClientLanguage.French => Language.French,
+                        _ => throw new ArgumentOutOfRangeException(nameof(this.language),
+                                                                   "Unknown Language: " + this.language)
+                    }
                 };
 
-                luminaOptions.DefaultExcelLanguage = this.language switch {
-                    ClientLanguage.Japanese => Language.Japanese,
-                    ClientLanguage.English => Language.English,
-                    ClientLanguage.German => Language.German,
-                    ClientLanguage.French => Language.French,
-                    _ => throw new ArgumentOutOfRangeException(nameof(this.language),
-                                                               "Unknown Language: " + this.language)
-                };
-
-                gameData = new Lumina.Lumina(Path.Combine(Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName), "sqpack"), luminaOptions);
+                this.gameData = new Lumina.Lumina(Path.Combine(Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName), "sqpack"), luminaOptions);
 
                 Log.Information("Lumina is ready: {0}", gameData.DataPath);
 
                 IsDataReady = true;
+                
+                this.luminaResourceThread = new Thread( () =>
+                {
+                    while( true )
+                    {
+                        this.gameData.ProcessFileHandleQueue();
+                        Thread.Yield();
+                    }
+                    // ReSharper disable once FunctionNeverReturns
+                });
+                this.luminaResourceThread.Start();
             }
             catch (Exception ex)
             {
@@ -110,9 +129,26 @@ namespace Dalamud.Data
         /// </summary>
         /// <typeparam name="T">The excel sheet type to get.</typeparam>
         /// <returns>The <see cref="ExcelSheet{T}"/>, giving access to game rows.</returns>
-        public ExcelSheet<T> GetExcelSheet<T>() where T : IExcelRow
+        public ExcelSheet<T> GetExcelSheet<T>() where T : class, IExcelRow
         {
             return this.Excel.GetSheet<T>();
+        }
+
+        /// <summary>
+        /// Get an <see cref="ExcelSheet{T}"/> with the given Excel sheet row type with a specified language.
+        /// </summary>
+        /// <param name="language">Language of the sheet to get.</param>
+        /// <typeparam name="T">The excel sheet type to get.</typeparam>
+        /// <returns>The <see cref="ExcelSheet{T}"/>, giving access to game rows.</returns>
+        public ExcelSheet<T> GetExcelSheet<T>(ClientLanguage language) where T : class, IExcelRow {
+            var lang = language switch {
+                ClientLanguage.Japanese => Language.Japanese,
+                ClientLanguage.English => Language.English,
+                ClientLanguage.German => Language.German,
+                ClientLanguage.French => Language.French,
+                _ => throw new ArgumentOutOfRangeException(nameof(this.language), "Unknown Language: " + this.language)
+            };
+            return this.Excel.GetSheet<T>(lang);
         }
 
         /// <summary>
@@ -194,5 +230,10 @@ namespace Dalamud.Data
         }
 
         #endregion
+
+        public void Dispose()
+        {
+            this.luminaResourceThread.Abort();
+        }
     }
 }

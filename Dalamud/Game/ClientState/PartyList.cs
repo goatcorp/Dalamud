@@ -31,7 +31,8 @@ namespace Dalamud.Game.ClientState
 
         public void Enable()
         {
-            this.partyListUpdateHook.Enable();
+            // TODO Fix for 5.3
+            //this.partyListUpdateHook.Enable();
         }
 
         public void Dispose()
@@ -52,8 +53,7 @@ namespace Dalamud.Game.ClientState
 
         public PartyMember this[int index]
         {
-            get
-            {
+            get {
                 if (!this.isReady)
                     return null;
                 if (index >= Length)
@@ -73,36 +73,13 @@ namespace Dalamud.Game.ClientState
             }
         }
 
-        private class PartyListEnumerator : IEnumerator<PartyMember>
-        {
-            private readonly PartyList party;
-            private int currentIndex;
-
-            public PartyListEnumerator(PartyList list)
-            {
-                this.party = list;
+        public IEnumerator<PartyMember> GetEnumerator() {
+            for (var i = 0; i < Length; i++) {
+                if (this[i] != null) {
+                    yield return this[i];
+                }
             }
-
-            public bool MoveNext()
-            {
-                this.currentIndex++;
-                return this.currentIndex != this.party.Length;
-            }
-
-            public void Reset()
-            {
-                this.currentIndex = 0;
-            }
-
-            public PartyMember Current => this.party[this.currentIndex];
-
-            object IEnumerator.Current => Current;
-
-            // Required by IEnumerator<T> even though we have nothing we want to dispose here.
-            public void Dispose() {}
         }
-
-        public IEnumerator<PartyMember> GetEnumerator() => new PartyListEnumerator(this);
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 

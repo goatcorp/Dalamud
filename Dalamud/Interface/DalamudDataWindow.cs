@@ -1,11 +1,19 @@
 using System;
+using System.Dynamic;
 using System.Linq;
+using System.Net.Mime;
 using System.Numerics;
 using Dalamud.Game.Chat;
+using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Actors.Types;
 using Dalamud.Game.ClientState.Actors.Types.NonPlayer;
+using Dalamud.Game.ClientState.Structs.JobGauge;
+using Dalamud.Plugin;
 using ImGuiNET;
+using JetBrains.Annotations;
 using Newtonsoft.Json;
+using Serilog;
+using SharpDX.Direct3D11;
 
 namespace Dalamud.Interface
 {
@@ -51,8 +59,8 @@ namespace Dalamud.Interface
             ImGui.SameLine();
             var copy = ImGui.Button("Copy all");
             ImGui.SameLine();
-            ImGui.Combo("Data kind", ref this.currentKind, new[] {"ServerOpCode", "ContentFinderCondition", "Actor Table", "Font Test", "Party List"},
-                        5);
+            ImGui.Combo("Data kind", ref this.currentKind, new[] {"ServerOpCode", "ContentFinderCondition", "Actor Table", "Font Test", "Party List", "Plugin IPC", "Condition", "Gauge", "Command"},
+                        9);
 
             ImGui.BeginChild("scrolling", new Vector2(0, 0), false, ImGuiWindowFlags.HorizontalScrollbar);
 
@@ -69,6 +77,8 @@ namespace Dalamud.Interface
                     case 1:
                         ImGui.TextUnformatted(this.cfcString);
                         break;
+
+                    // AT
                     case 2: {
                         var stateString = string.Empty;
                         // LocalPlayer is null in a number of situations (at least with the current visible-actors list)
@@ -98,7 +108,7 @@ namespace Dalamud.Interface
                                     continue;
 
                                 stateString +=
-                                    $"{actor.Address.ToInt64():X}:{actor.ActorId:X}[{i}] - {actor.ObjectKind} - {actor.Name} - X{actor.Position.X} Y{actor.Position.Y} Z{actor.Position.Z} D{actor.YalmDistanceX} R{actor.Rotation}\n";
+                                    $"{actor.Address.ToInt64():X}:{actor.ActorId:X}[{i}] - {actor.ObjectKind} - {actor.Name} - X{actor.Position.X} Y{actor.Position.Y} Z{actor.Position.Z} D{actor.YalmDistanceX} R{actor.Rotation} - Target: {actor.TargetActorID:X}\n";
 
                                 if (actor is Npc npc)
                                     stateString += $"       DataId: {npc.DataId}  NameId:{npc.NameId}\n";
@@ -134,6 +144,8 @@ namespace Dalamud.Interface
                         ImGui.TextUnformatted(stateString);
                     }
                         break;
+
+                    // Font
                     case 3:
                         var specialChars = string.Empty;
                         for (var i = 0xE020; i <= 0xE0DB; i++) {
@@ -141,7 +153,18 @@ namespace Dalamud.Interface
                         }
 
                         ImGui.TextUnformatted(specialChars);
+
+                        foreach (var fontAwesomeIcon in Enum.GetValues(typeof(FontAwesomeIcon)).Cast<FontAwesomeIcon>()) {
+                            ImGui.Text(((int) fontAwesomeIcon.ToIconChar()).ToString("X") + " - ");
+                            ImGui.SameLine();
+
+                            ImGui.PushFont(InterfaceManager.IconFont);
+                            ImGui.Text(fontAwesomeIcon.ToIconString());
+                            ImGui.PopFont();
+                        }
                         break;
+
+                    // Party
                     case 4:
                         var partyString = string.Empty;
 
@@ -163,6 +186,90 @@ namespace Dalamud.Interface
                             }
 
                             ImGui.TextUnformatted(partyString);
+                        }
+
+                        break;
+
+                    // Subscriptions
+                    case 5:
+                        var i1 = new DalamudPluginInterface(this.dalamud, "DalamudTestSub", null, PluginLoadReason.Boot);
+                        var i2 = new DalamudPluginInterface(this.dalamud, "DalamudTestPub", null, PluginLoadReason.Boot);
+
+                        if (ImGui.Button("Add test sub")) i1.Subscribe("DalamudTestPub", o => {
+                            dynamic msg = o;
+                            Log.Debug(msg.Expand);
+                        });
+
+                        if (ImGui.Button("Add test sub any")) i1.SubscribeAny((o, a) => {
+                            dynamic msg = a;
+                            Log.Debug($"From {o}: {msg.Expand}");
+                        });
+
+                        if (ImGui.Button("Remove test sub")) i1.Unsubscribe("DalamudTestPub");
+
+                        if (ImGui.Button("Remove test sub any")) i1.UnsubscribeAny();
+
+                        if (ImGui.Button("Send test message")) {
+                            dynamic testMsg = new ExpandoObject();
+                            testMsg.Expand = "dong";
+                            i2.SendMessage(testMsg);
+                        }
+
+                        // This doesn't actually work, so don't mind it - impl relies on plugins being registered in PluginManager
+                        if (ImGui.Button("Send test message any"))
+                        {
+                            dynamic testMsg = new ExpandoObject();
+                            testMsg.Expand = "dong";
+                            i2.SendMessage("DalamudTestSub", testMsg);
+                        }
+
+                        foreach (var sub in this.dalamud.PluginManager.IpcSubscriptions) {
+                            ImGui.Text($"Source:{sub.SourcePluginName} Sub:{sub.SubPluginName}");
+                        }
+                        break;
+
+                    // Condition
+                    case 6:
+#if DEBUG
+                        ImGui.Text($"ptr: {this.dalamud.ClientState.Condition.conditionArrayBase.ToString("X16")}");
+#endif
+
+                        ImGui.Text("Current Conditions:");
+                        ImGui.Separator();
+
+                        var didAny = false;
+
+                        for (var i = 0; i < Condition.MaxConditionEntries; i++)
+                        {
+                            var typedCondition = (ConditionFlag)i;
+                            var cond = this.dalamud.ClientState.Condition[typedCondition];
+
+                            if (!cond)
+                            {
+                                continue;
+                            }
+
+                            didAny = true;
+
+                            ImGui.Text($"ID: {i} Enum: {typedCondition}");
+                        }
+
+                        if (!didAny)
+                        {
+                            ImGui.Text("None. Talk to a shop NPC or visit a market board to find out more!!!!!!!");
+                        }
+
+                        break;
+
+                    case 7:
+                        var gauge = this.dalamud.ClientState.JobGauges.Get<ASTGauge>();
+                        ImGui.Text($"Moon: {gauge.ContainsSeal(SealType.MOON)} Drawn: {gauge.DrawnCard()}");
+
+                        break;
+
+                    case 8:
+                        foreach (var command in this.dalamud.CommandManager.Commands) {
+                            ImGui.Text($"{command.Key}\n    -> {command.Value.HelpMessage}\n    -> In help: {command.Value.ShowInHelp}\n\n");
                         }
 
                         break;

@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
@@ -29,8 +32,8 @@ namespace Dalamud.Injector {
             };
 
 
-                var pid = -1;
-            if (args.Length == 1) {
+            var pid = -1;
+            if (args.Length >= 1) {
                 pid = int.Parse(args[0]);
             }
 
@@ -69,6 +72,13 @@ namespace Dalamud.Injector {
 
             // Inject to process
             Inject(process, startInfo);
+
+            Thread.Sleep(1000);
+
+#if DEBUG
+            // Inject exception handler
+            //NativeInject(process);
+#endif
         }
 
         private static void Inject(Process process, DalamudStartInfo info) {
@@ -86,16 +96,82 @@ namespace Dalamud.Injector {
             Console.WriteLine("Injected");
         }
 
+        private static void NativeInject(Process process)
+        {
+            var libPath = Path.GetFullPath("DalamudDebugStub.dll");
+
+            var pathBytes = Encoding.Unicode.GetBytes(libPath);
+            var len = pathBytes.Length + 1;
+
+            Console.WriteLine($"Injecting {libPath}...");
+
+            var handle = NativeFunctions.OpenProcess(
+                NativeFunctions.ProcessAccessFlags.All,
+                false,
+                process.Id);
+
+            if (handle == IntPtr.Zero)
+                throw new Win32Exception(Marshal.GetLastWin32Error(), "Could not OpenProcess");
+
+            var dllMem = NativeFunctions.VirtualAllocEx(
+                handle,
+                IntPtr.Zero,
+                len,
+                NativeFunctions.AllocationType.Commit,
+                NativeFunctions.MemoryProtection.ReadWrite);
+
+            if (dllMem == IntPtr.Zero)
+                throw new Win32Exception(Marshal.GetLastWin32Error(), $"Could not alloc memory {Marshal.GetLastWin32Error():X}");
+
+            Console.WriteLine($"dll path at {dllMem.ToInt64():X}");
+
+            if (!NativeFunctions.WriteProcessMemory(
+                    handle,
+                    dllMem,
+                    pathBytes,
+                    len,
+                    out var bytesWritten
+                ))
+                throw new Win32Exception(Marshal.GetLastWin32Error(), "Could not write DLL");
+
+            Console.WriteLine($"Wrote {bytesWritten}");
+
+            var kernel32 = NativeFunctions.GetModuleHandle("Kernel32.dll");
+            var loadLibA = NativeFunctions.GetProcAddress(kernel32, "LoadLibraryW");
+
+            var remoteThread = NativeFunctions.CreateRemoteThread(
+                handle,
+                IntPtr.Zero,
+                0,
+                loadLibA,
+                dllMem,
+                0,
+                IntPtr.Zero
+            );
+
+            if (remoteThread == IntPtr.Zero)
+                throw new Win32Exception(Marshal.GetLastWin32Error(), $"Could not CreateRemoteThread");
+
+            /*
+            TODO kill myself
+            VirtualFreeEx(
+                handle,
+                dllMem,
+                0,
+                AllocationType.Release);
+            */
+
+            NativeFunctions.CloseHandle(remoteThread);
+            NativeFunctions.CloseHandle(handle);
+        }
+
         private static DalamudStartInfo GetDefaultStartInfo() {
             var ffxivDir = Path.GetDirectoryName(process.MainModule.FileName);
             var startInfo = new DalamudStartInfo {
                 WorkingDirectory = null,
-                ConfigurationPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) +
-                                    @"\XIVLauncher\dalamudConfig.json",
-                PluginDirectory = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) +
-                                  @"\XIVLauncher\installedPlugins",
-                DefaultPluginDirectory = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) +
-                                         @"\XIVLauncher\devPlugins",
+                ConfigurationPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "XIVLauncher", "dalamudConfig.json"),
+                PluginDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "XIVLauncher", "installedPlugins"),
+                DefaultPluginDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "XIVLauncher", "devPlugins"),
 
                 GameVersion = File.ReadAllText(Path.Combine(ffxivDir, "ffxivgame.ver")),
                 Language = ClientLanguage.English

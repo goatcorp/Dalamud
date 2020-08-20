@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -9,7 +11,9 @@ using Serilog;
 
 namespace Dalamud.Plugin
 {
-    public class PluginManager {
+    internal class PluginManager {
+        public static int DALAMUD_API_LEVEL = 1;
+
         private readonly Dalamud dalamud;
         private readonly string pluginDirectory;
         private readonly string devPluginDirectory;
@@ -19,6 +23,8 @@ namespace Dalamud.Plugin
         private readonly Type interfaceType = typeof(IDalamudPlugin);
 
         public readonly List<(IDalamudPlugin Plugin, PluginDefinition Definition, DalamudPluginInterface PluginInterface)> Plugins = new List<(IDalamudPlugin plugin, PluginDefinition def, DalamudPluginInterface PluginInterface)>();
+
+        public List<(string SourcePluginName, string SubPluginName, Action<ExpandoObject> SubAction)> IpcSubscriptions = new List<(string SourcePluginName, string SubPluginName, Action<ExpandoObject> SubAction)>();
 
         public PluginManager(Dalamud dalamud, string pluginDirectory, string devPluginDirectory) {
             this.dalamud = dalamud;
@@ -32,15 +38,21 @@ namespace Dalamud.Plugin
             // This handler should only be invoked on things that fail regular lookups, but it *is* global to this appdomain
             AppDomain.CurrentDomain.AssemblyResolve += (object source, ResolveEventArgs e) =>
             {
-                Log.Debug($"Resolving missing assembly {e.Name}");
-                // This looks weird but I'm pretty sure it's actually correct.  Pretty sure.  Probably.
-                var assemblyPath = Path.Combine(Path.GetDirectoryName(e.RequestingAssembly.Location), new AssemblyName(e.Name).Name + ".dll");
-                if (!File.Exists(assemblyPath))
-                {
-                    Log.Error($"Assembly not found at {assemblyPath}");
+                try {
+                    Log.Debug($"Resolving missing assembly {e.Name}");
+                    // This looks weird but I'm pretty sure it's actually correct.  Pretty sure.  Probably.
+                    var assemblyPath = Path.Combine(Path.GetDirectoryName(e.RequestingAssembly.Location),
+                                                    new AssemblyName(e.Name).Name + ".dll");
+                    if (!File.Exists(assemblyPath)) {
+                        Log.Error($"Assembly not found at {assemblyPath}");
+                        return null;
+                    }
+
+                    return Assembly.LoadFrom(assemblyPath);
+                } catch(Exception ex) {
+                    Log.Error(ex, "Could not load assembly " + e.Name);
                     return null;
                 }
-                return Assembly.LoadFrom(assemblyPath);
             };
         }
 
@@ -76,7 +88,7 @@ namespace Dalamud.Plugin
             this.Plugins.Remove(thisPlugin);
         }
 
-        public bool LoadPluginFromAssembly(FileInfo dllFile, bool raw) {
+        public bool LoadPluginFromAssembly(FileInfo dllFile, bool raw, PluginLoadReason reason) {
             Log.Information("Loading plugin at {0}", dllFile.Directory.FullName);
 
             // If this entire folder has been marked as a disabled plugin, don't even try to load anything
@@ -122,65 +134,49 @@ namespace Dalamud.Plugin
             // Assembly.Load() by name here will not load multiple versions with the same name, in the case of updates
             var pluginAssembly = Assembly.LoadFile(dllFile.FullName);
 
-            // Don't wanna fuck this up
-            // This is a fix for earlier Chat Extender versions, since they break command handlers
-            try
+            Log.Information("Loading types for {0}", pluginAssembly.FullName);
+            var types = pluginAssembly.GetTypes();
+            foreach (var type in types)
             {
-                var ver = int.Parse(pluginAssembly.GetName().Version.ToString().Replace(".", ""));
-                if (dllFile.Name.Contains("ChatExtender") &&
-                    ver < 1410)
+                if (type.IsInterface || type.IsAbstract)
                 {
-                    Log.Information($"Found banned v{ver} ChatExtender, skipping...");
-                    return false;
+                    continue;
                 }
-            }
-            catch (Exception)
-            {
-                // ignored
-            }
 
-            if (pluginAssembly != null)
-            {
-                Log.Information("Loading types for {0}", pluginAssembly.FullName);
-                var types = pluginAssembly.GetTypes();
-                foreach (var type in types)
+                if (type.GetInterface(interfaceType.FullName) != null)
                 {
-                    if (type.IsInterface || type.IsAbstract)
+                    if (this.Plugins.Any(x => x.Plugin.GetType().Assembly.GetName().Name == type.Assembly.GetName().Name))
                     {
-                        continue;
+                        Log.Error("Duplicate plugin found: {0}", dllFile.FullName);
+                        return false;
                     }
 
-                    if (type.GetInterface(interfaceType.FullName) != null)
-                    {
-                        if (this.Plugins.Any(x => x.Plugin.GetType().Assembly.GetName().Name == type.Assembly.GetName().Name)) {
-                            Log.Error("Duplicate plugin found: {0}", dllFile.FullName);
-                            return false;
-                        }
+                    var plugin = (IDalamudPlugin)Activator.CreateInstance(type);
 
-                        var plugin = (IDalamudPlugin)Activator.CreateInstance(type);
+                    // this happens for raw plugins that don't specify a PluginDefinition - just generate a dummy one to avoid crashes anywhere
+                    pluginDef ??= new PluginDefinition{
+                        Author = "developer",
+                        Name = plugin.Name,
+                        InternalName = Path.GetFileNameWithoutExtension(dllFile.Name),
+                        AssemblyVersion = plugin.GetType().Assembly.GetName().Version.ToString(),
+                        Description = "",
+                        ApplicableVersion = "any",
+                        IsHide = false,
+                        DalamudApiLevel = DALAMUD_API_LEVEL
+                    };
 
-                        // this happens for raw plugins that don't specify a PluginDefinition - just generate a dummy one to avoid crashes anywhere
-                        if (pluginDef == null)
-                        {
-                            pluginDef = new PluginDefinition
-                            {
-                                Author = "developer",
-                                Name = plugin.Name,
-                                InternalName = Path.GetFileNameWithoutExtension(dllFile.Name),
-                                AssemblyVersion = plugin.GetType().Assembly.GetName().Version.ToString(),
-                                Description = "",
-                                ApplicableVersion = "any",
-                                IsHide = false
-                            };
-                        }
-
-                        var dalamudInterface = new DalamudPluginInterface(this.dalamud, type.Assembly.GetName().Name, this.pluginConfigs);
-                        plugin.Initialize(dalamudInterface);
-                        Log.Information("Loaded plugin: {0}", plugin.Name);
-                        this.Plugins.Add((plugin, pluginDef, dalamudInterface));
-
-                        return true;
+                    if (pluginDef.DalamudApiLevel != DALAMUD_API_LEVEL) {
+                        Log.Error("Incompatible API level: {0}", dllFile.FullName);
+                        return false;
                     }
+
+                    var dalamudInterface = new DalamudPluginInterface(this.dalamud, type.Assembly.GetName().Name, this.pluginConfigs, reason);
+                    plugin.Initialize(dalamudInterface);
+
+                    Log.Information("Loaded plugin: {0}", plugin.Name);
+                    this.Plugins.Add((plugin, pluginDef, dalamudInterface));
+
+                    return true;
                 }
             }
 
@@ -198,7 +194,7 @@ namespace Dalamud.Plugin
 
                 foreach (var dllFile in pluginDlls) {
                     try {
-                        LoadPluginFromAssembly(dllFile, raw);
+                        LoadPluginFromAssembly(dllFile, raw, PluginLoadReason.Boot);
                     } catch (Exception ex) {
                         Log.Error(ex, $"Plugin load for {dllFile.FullName} failed.");
                     }

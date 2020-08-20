@@ -6,13 +6,13 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Dalamud.Data.TransientSheet;
 using Dalamud.Game.Chat;
 using Dalamud.Game.Chat.SeStringHandling;
 using Dalamud.Game.Chat.SeStringHandling.Payloads;
 using Dalamud.Game.Internal.Libc;
 using Discord;
 using Discord.WebSocket;
+using Lumina.Excel.GeneratedSheets;
 using Newtonsoft.Json.Linq;
 using Serilog;
 
@@ -90,79 +90,103 @@ namespace Dalamud.DiscordBot {
             if (!this.IsConnected)
                 return;
 
-            var contentName = cfc.Name;
-                
-            if (this.config.CfNotificationChannel == null)
-                return;
+            try {
+                var contentName = cfc.Name;
 
-            var channel = await GetChannel(this.config.CfNotificationChannel);
+                if (this.config.CfNotificationChannel == null)
+                    return;
 
-            var iconFolder = (cfc.Image / 1000) * 1000;
+                var channel = await GetChannel(this.config.CfNotificationChannel);
 
-            var embedBuilder = new EmbedBuilder {
-                Title = "Duty is ready: " + contentName,
-                Timestamp = DateTimeOffset.Now,
-                Color = new Color(0x297c00),
-                ImageUrl = "https://xivapi.com" + $"/i/{iconFolder}/{cfc.Image}.png"
-            };
+                var iconFolder = (cfc.Image / 1000) * 1000;
 
-            await channel.SendMessageAsync(embed: embedBuilder.Build());
+                var embedBuilder = new EmbedBuilder {
+                    Title = "Duty is ready: " + contentName,
+                    Timestamp = DateTimeOffset.Now,
+                    Color = new Color(0x297c00),
+                    ImageUrl = "https://xivapi.com" + $"/i/{iconFolder}/{cfc.Image}.png"
+                };
+
+                await channel.SendMessageAsync(embed: embedBuilder.Build());
+            } catch (Exception ex) {
+                Log.Error(ex, "Could not process CF pop.");
+            }
         }
 
         public async Task ProcessCfPreferredRoleChange(string rouletteName, string prevRoleName, string currentRoleName)
         {
-            if (this.config.CfPreferredRoleChannel == null)
+            if (!this.IsConnected)
                 return;
 
-            var channel = await GetChannel(this.config.CfPreferredRoleChannel);
+            try {
+                if (this.config.CfPreferredRoleChannel == null)
+                    return;
 
-            var world = string.Empty;
+                var channel = await GetChannel(this.config.CfPreferredRoleChannel);
 
-            if (this.dalamud.ClientState.Actors.Length > 0)
-                world = this.dalamud.ClientState.LocalPlayer.CurrentWorld.GameData.Name;
+                var world = string.Empty;
 
-            var embedBuilder = new EmbedBuilder
-            {
-                Title = "Roulette bonus changed: " + rouletteName,
-                Description = $"From {prevRoleName} to {currentRoleName}",
-                Footer = new EmbedFooterBuilder {
-                    Text = $"On {world} | XIVLauncher"
-                },
-                Timestamp = DateTimeOffset.Now,
-                Color = new Color(0xf5aa42),
-            };
+                if (this.dalamud.ClientState.Actors.Length > 0)
+                    world = this.dalamud.ClientState.LocalPlayer.CurrentWorld.GameData.Name;
 
-            await channel.SendMessageAsync(embed: embedBuilder.Build());
+                var embedBuilder = new EmbedBuilder
+                {
+                    Title = "Roulette bonus changed: " + rouletteName,
+                    Description = $"From {prevRoleName} to {currentRoleName}",
+                    Footer = new EmbedFooterBuilder
+                    {
+                        Text = $"On {world} | XIVLauncher"
+                    },
+                    Timestamp = DateTimeOffset.Now,
+                    Color = new Color(0xf5aa42),
+                };
+
+                await channel.SendMessageAsync(embed: embedBuilder.Build());
+            } catch (Exception ex) {
+                Log.Error(ex, "Could not process preferred role.");
+            }
         }
 
-        public async Task ProcessRetainerSale(int itemId, int amount, bool isHq) {
-            if (this.config.RetainerNotificationChannel == null)
+        public async Task ProcessRetainerSale(uint itemId, int amount, bool isHq) {
+            if (!IsConnected)
                 return;
-            
-            var channel = await GetChannel(this.config.RetainerNotificationChannel);
 
-            dynamic item = XivApi.GetItem(itemId).GetAwaiter().GetResult();
+            try {
+                if (this.config.RetainerNotificationChannel == null)
+                    return;
 
-            var character = this.dalamud.ClientState.LocalPlayer;
-            var characterInfo = await GetCharacterInfo(character.Name, character.HomeWorld.GameData.Name);
+                var channel = await GetChannel(this.config.RetainerNotificationChannel);
 
-            var embedBuilder = new EmbedBuilder {
-                Title = (isHq ? "<:hq:593406013651156994> " : "") + item.Name,
-                Url = "https://www.garlandtools.org/db/#item/" + itemId,
-                Description = "Sold " + amount,
-                Timestamp = DateTimeOffset.Now,
-                Color = new Color(0xd89b0d),
-                ThumbnailUrl = "https://xivapi.com" + item.Icon,
-                Footer = new EmbedFooterBuilder {
-                    Text = $"XIVLauncher | {character.Name}",
-                    IconUrl = characterInfo.AvatarUrl
-                }
-            };
+                dynamic item = XivApi.GetItem(itemId).GetAwaiter().GetResult();
 
-            await channel.SendMessageAsync(embed: embedBuilder.Build());
+                var character = this.dalamud.ClientState.LocalPlayer;
+                var characterInfo = await GetCharacterInfo(character.Name, character.HomeWorld.GameData.Name);
+
+                var embedBuilder = new EmbedBuilder
+                {
+                    Title = (isHq ? "<:hq:593406013651156994> " : "") + item.Name,
+                    Url = "https://www.garlandtools.org/db/#item/" + itemId,
+                    Description = "Sold " + amount,
+                    Timestamp = DateTimeOffset.Now,
+                    Color = new Color(0xd89b0d),
+                    ThumbnailUrl = "https://xivapi.com" + item.Icon,
+                    Footer = new EmbedFooterBuilder
+                    {
+                        Text = $"XIVLauncher | {character.Name}",
+                        IconUrl = characterInfo.AvatarUrl
+                    }
+                };
+
+                await channel.SendMessageAsync(embed: embedBuilder.Build());
+            } catch (Exception ex) {
+                Log.Error(ex, "Could not process retainer msg.");
+            }
         }
 
-        public async Task ProcessChatMessage(XivChatType type, StdString message, StdString sender) {
+        public async Task ProcessChatMessage(XivChatType type, SeString message, SeString sender) {
+            if (this.dalamud.SeStringManager == null)
+                return;
+
             // Special case for outgoing tells, these should be sent under Incoming tells
             var wasOutgoingTell = false;
             if (type == XivChatType.TellOutgoing) {
@@ -180,38 +204,43 @@ namespace Dalamud.DiscordBot {
             var channels = chatTypeConfigs.Select(c => GetChannel(c.Channel).GetAwaiter().GetResult());
 
 
-            var parsedSender = SeString.Parse(sender.RawData);
-            var playerLink = parsedSender.Payloads.FirstOrDefault(x => x.Type == PayloadType.Player) as PlayerPayload;
+            var playerLink = sender.Payloads.FirstOrDefault(x => x.Type == PayloadType.Player) as PlayerPayload;
 
             string senderName;
             string senderWorld;
 
-            if (playerLink == null) {
-                // chat messages from the local player do not include a player link, and are just the raw name
-                // but we should still track other instances to know if this is ever an issue otherwise
-
-                // Special case 2 - When the local player talks in party/alliance, the name comes through as raw text,
-                // but prefixed by their position number in the party (which for local player may always be 1)
-                if (parsedSender.TextValue.EndsWith(this.dalamud.ClientState.LocalPlayer.Name))
+            if (this.dalamud.ClientState.LocalPlayer != null) {
+                if (playerLink == null)
                 {
-                    senderName = this.dalamud.ClientState.LocalPlayer.Name;
+                    // chat messages from the local player do not include a player link, and are just the raw name
+                    // but we should still track other instances to know if this is ever an issue otherwise
+
+                    // Special case 2 - When the local player talks in party/alliance, the name comes through as raw text,
+                    // but prefixed by their position number in the party (which for local player may always be 1)
+                    if (sender.TextValue.EndsWith(this.dalamud.ClientState.LocalPlayer.Name))
+                    {
+                        senderName = this.dalamud.ClientState.LocalPlayer.Name;
+                    }
+                    else
+                    {
+                        Log.Error("playerLink was null. Sender: {0}", BitConverter.ToString(sender.Encode()));
+
+                        senderName = wasOutgoingTell ? this.dalamud.ClientState.LocalPlayer.Name : sender.TextValue;
+                    }
+
+                    senderWorld = this.dalamud.ClientState.LocalPlayer.HomeWorld.GameData.Name;
                 }
                 else
                 {
-                    Log.Error("playerLink was null. Sender: {0}", BitConverter.ToString(sender.RawData));
-
-                    senderName = wasOutgoingTell ? this.dalamud.ClientState.LocalPlayer.Name : parsedSender.TextValue;
+                    senderName = wasOutgoingTell ? this.dalamud.ClientState.LocalPlayer.Name : playerLink.PlayerName;
+                    senderWorld = playerLink.World.Name;
                 }
-
-                senderWorld = this.dalamud.ClientState.LocalPlayer.HomeWorld.GameData.Name;
             } else {
-                playerLink.Resolve();
-
-                senderName = wasOutgoingTell ? this.dalamud.ClientState.LocalPlayer.Name : playerLink.PlayerName;
-                senderWorld = playerLink.ServerName;
+                senderName = string.Empty;
+                senderWorld = string.Empty;
             }
 
-            var rawMessage = SeString.Parse(message.RawData).TextValue;
+            var rawMessage = message.TextValue;
 
             var avatarUrl = string.Empty;
             var lodestoneId = string.Empty;

@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.IO;
 using Dalamud.Configuration;
 using Dalamud.DiscordBot;
+using Dalamud.Game.Chat;
 using Newtonsoft.Json;
+using Serilog;
 
 namespace Dalamud
 {
     [Serializable]
-    public class DalamudConfiguration
+    internal class DalamudConfiguration
     {
         public DiscordFeatureConfiguration DiscordFeatureConfig { get; set; }
 
@@ -27,15 +29,36 @@ namespace Dalamud
 
         public Dictionary<int, PreferredRole> PreferredRoleReminders { get; set; }
 
+        public bool DutyFinderTaskbarFlash { get; set; } = true;
+        public bool DutyFinderChatMessage { get; set; } = true;
+
         public string LanguageOverride { get; set; }
 
         public string LastVersion { get; set; }
+
+        public XivChatType GeneralChatType { get; set; } = XivChatType.Debug;
+
+        public bool DoPluginTest { get; set; } = false;
+        public bool DoDalamudTest { get; set; } = false;
+
+        public float GlobalUiScale { get; set; } = 1.0f;
+        public bool ToggleUiHide { get; set; } = true;
 
         [JsonIgnore]
         public string ConfigPath;
 
         public static DalamudConfiguration Load(string path) {
-            var deserialized = JsonConvert.DeserializeObject<DalamudConfiguration>(File.ReadAllText(path));
+            DalamudConfiguration deserialized;
+            try
+            {
+                deserialized = JsonConvert.DeserializeObject<DalamudConfiguration>(File.ReadAllText(path));
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Failed to load DalamudConfiguration at {0}", path);
+                deserialized = new DalamudConfiguration();
+            }
+
             deserialized.ConfigPath = path;
 
             return deserialized;

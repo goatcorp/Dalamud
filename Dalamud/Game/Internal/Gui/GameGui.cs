@@ -44,6 +44,17 @@ namespace Dalamud.Game.Internal.Gui {
             float *camPos, float *clipPos, float rayDistance, float *worldPos, int *unknown);
         private readonly ScreenToWorldNativeDelegate screenToWorldNative;
 
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        private delegate IntPtr ToggleUiHideDelegate(IntPtr thisPtr, byte unknownByte);
+        private readonly Hook<ToggleUiHideDelegate> toggleUiHideHook;
+
+        public bool GameUiHidden { get; private set; }
+
+        /// <summary>
+        /// Event which is fired when the game UI hiding is toggled.
+        /// </summary>
+        public event EventHandler<bool> OnUiHideToggled; 
+
         /// <summary>
         /// The item ID that is currently hovered by the player. 0 when no item is hovered.
         /// If > 1.000.000, subtract 1.000.000 and treat it as HQ
@@ -90,6 +101,8 @@ namespace Dalamud.Game.Internal.Gui {
 
             this.screenToWorldNative =
                 Marshal.GetDelegateForFunctionPointer<ScreenToWorldNativeDelegate>(Address.ScreenToWorld);
+
+            this.toggleUiHideHook = new Hook<ToggleUiHideDelegate>(Address.ToggleUiHide, new ToggleUiHideDelegate(ToggleUiHideDetour), this);
         }
 
         private IntPtr HandleSetGlobalBgmDetour(UInt16 bgmKey, byte a2, UInt32 a3, UInt32 a4, UInt32 a5, byte a6) {
@@ -104,7 +117,7 @@ namespace Dalamud.Game.Internal.Gui {
             var retVal = this.handleItemHoverHook.Original(hoverState, a2, a3, a4);
 
             if (retVal.ToInt64() == 22) {
-                var itemId = (ulong)Marshal.ReadInt32(hoverState, 0x130);
+                var itemId = (ulong)Marshal.ReadInt32(hoverState, 0x138);
                 this.HoveredItem = itemId;
 
                 try {
@@ -113,7 +126,7 @@ namespace Dalamud.Game.Internal.Gui {
                     Log.Error(e, "Could not dispatch HoveredItemChanged event.");
                 }
 
-                Log.Verbose("HoverItemId: {0}", itemId);
+                Log.Verbose("HoverItemId:{0} this:{1}", itemId, hoverState.ToInt64().ToString("X"));
             }
 
             return retVal;
@@ -147,33 +160,29 @@ namespace Dalamud.Game.Internal.Gui {
         /// </summary>
         /// <param name="mapLink">Link to the map to be opened</param>
         /// <returns>True if there were no errors and it could open the map</returns>
-        public bool OpenMapWithMapLink(MapLinkPayload mapLink)
-        {
-            var uiObjectPtr = getUIObject();
+        public bool OpenMapWithMapLink(MapLinkPayload mapLink) {
+            var uiObjectPtr = this.getUIObject();
 
-            if (uiObjectPtr.Equals(IntPtr.Zero))
-            {
+            if (uiObjectPtr.Equals(IntPtr.Zero)) {
                 Log.Error("OpenMapWithMapLink: Null pointer returned from getUIObject()");
                 return false;
             }
 
-            getUIMapObject =
+            this.getUIMapObject =
                 Address.GetVirtualFunction<GetUIMapObjectDelegate>(uiObjectPtr, 0, 8);
 
 
             var uiMapObjectPtr = this.getUIMapObject(uiObjectPtr);
 
-            if (uiMapObjectPtr.Equals(IntPtr.Zero))
-            {
+            if (uiMapObjectPtr.Equals(IntPtr.Zero)) {
                 Log.Error("OpenMapWithMapLink: Null pointer returned from GetUIMapObject()");
                 return false;
             }
 
-            openMapWithFlag =
+            this.openMapWithFlag =
                 Address.GetVirtualFunction<OpenMapWithFlagDelegate>(uiMapObjectPtr, 0, 63);
 
-            var mapLinkString =
-                $"m:{mapLink.TerritoryTypeId},{mapLink.MapId},{unchecked((int)mapLink.RawX)},{unchecked((int)mapLink.RawY)}";
+            var mapLinkString = mapLink.DataString;
 
             Log.Debug($"OpenMapWithMapLink: Opening Map Link: {mapLinkString}");
 
@@ -283,6 +292,20 @@ namespace Dalamud.Game.Internal.Gui {
             return isSuccess;
         }
 
+        private IntPtr ToggleUiHideDetour(IntPtr thisPtr, byte unknownByte) {
+            GameUiHidden = !GameUiHidden;
+
+            try {
+                OnUiHideToggled?.Invoke(this, GameUiHidden);
+            } catch (Exception ex) {
+                Log.Error(ex, "Error on OnUiHideToggled event dispatch");
+            }
+            
+            Log.Debug("UiHide toggled: {0}", GameUiHidden);
+
+            return this.toggleUiHideHook.Original(thisPtr, unknownByte);
+        }
+
         public void SetBgm(ushort bgmKey) => this.setGlobalBgmHook.Original(bgmKey, 0, 0, 0, 0, 0); 
 
         public void Enable() {
@@ -290,6 +313,7 @@ namespace Dalamud.Game.Internal.Gui {
             this.setGlobalBgmHook.Enable();
             this.handleItemHoverHook.Enable();
             this.handleItemOutHook.Enable();
+            this.toggleUiHideHook.Enable();
         }
 
         public void Dispose() {
@@ -297,6 +321,7 @@ namespace Dalamud.Game.Internal.Gui {
             this.setGlobalBgmHook.Dispose();
             this.handleItemHoverHook.Dispose();
             this.handleItemOutHook.Dispose();
+            this.toggleUiHideHook.Dispose();
         }
     }
 }

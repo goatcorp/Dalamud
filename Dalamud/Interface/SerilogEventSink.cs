@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using Serilog;
@@ -10,13 +11,13 @@ using Serilog.Events;
 
 namespace Dalamud.Interface
 {
-    public class SerilogEventSink : ILogEventSink
+    internal class SerilogEventSink : ILogEventSink
     {
         private readonly IFormatProvider _formatProvider;
 
         public static SerilogEventSink Instance;
 
-        public event EventHandler<string> OnLogLine;
+        public event EventHandler<(string line, LogEventLevel level)> OnLogLine;
 
         public SerilogEventSink(IFormatProvider formatProvider)
         {
@@ -32,7 +33,7 @@ namespace Dalamud.Interface
             if (logEvent.Exception != null)
                 message += "\n" + logEvent.Exception;
 
-            OnLogLine?.Invoke(this, message);
+            OnLogLine?.Invoke(this, (message, logEvent.Level));
         }
     }
 

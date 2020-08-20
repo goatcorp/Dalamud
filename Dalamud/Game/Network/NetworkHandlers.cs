@@ -4,12 +4,12 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using Dalamud.Data.TransientSheet;
 using Dalamud.Game.Internal.Network;
 using Dalamud.Game.Network.MarketBoardUploaders;
 using Dalamud.Game.Network.Structures;
 using Dalamud.Game.Network.Universalis.MarketBoardUploaders;
 using Lumina.Excel;
+using Lumina.Excel.GeneratedSheets;
 using Newtonsoft.Json.Linq;
 using Serilog;
 
@@ -67,19 +67,22 @@ namespace Dalamud.Game.Network {
                     contentFinderCondition.Image = 112324;
                 }
 
-                if (!NativeFunctions.ApplicationIsActivated()) {
-                    var flashInfo = new NativeFunctions.FLASHWINFO();
-                    flashInfo.cbSize = (uint)Marshal.SizeOf<NativeFunctions.FLASHWINFO>();
-                    flashInfo.uCount = uint.MaxValue;
-                    flashInfo.dwTimeout = 0;
-                    flashInfo.dwFlags = NativeFunctions.FlashWindow.FLASHW_ALL |
-                                        NativeFunctions.FlashWindow.FLASHW_TIMERNOFG;
-                    flashInfo.hwnd = Process.GetCurrentProcess().MainWindowHandle;
+                if (this.dalamud.Configuration.DutyFinderTaskbarFlash && !NativeFunctions.ApplicationIsActivated()) {
+                    var flashInfo = new NativeFunctions.FLASHWINFO
+                    {
+                        cbSize = (uint)Marshal.SizeOf<NativeFunctions.FLASHWINFO>(),
+                        uCount = uint.MaxValue,
+                        dwTimeout = 0,
+                        dwFlags = NativeFunctions.FlashWindow.FLASHW_ALL |
+                                        NativeFunctions.FlashWindow.FLASHW_TIMERNOFG,
+                        hwnd = Process.GetCurrentProcess().MainWindowHandle
+                    };
                     NativeFunctions.FlashWindowEx(ref flashInfo);
                 }
 
                 Task.Run(async () => {
-                    this.dalamud.Framework.Gui.Chat.Print("Duty pop: " + contentFinderCondition.Name);
+                    if(this.dalamud.Configuration.DutyFinderChatMessage)
+                        this.dalamud.Framework.Gui.Chat.Print("Duty pop: " + contentFinderCondition.Name);
 
                     await this.ProcessCfPop?.Invoke(contentFinderCondition);
                 });

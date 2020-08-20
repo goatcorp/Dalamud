@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Dalamud.Game.Internal.Gui;
 using ImGuiNET;
 using ImGuiScene;
 using Serilog;
+using SharpDX.Direct3D11;
 
 namespace Dalamud.Interface
 {
@@ -17,23 +19,51 @@ namespace Dalamud.Interface
         private readonly string namespaceName;
 
         /// <summary>
+        /// The default Dalamud font based on Noto Sans CJK Medium in 17pt - supporting all game languages and icons.
+        /// </summary>
+        public static ImFontPtr DefaultFont => InterfaceManager.DefaultFont;
+        /// <summary>
+        /// The default Dalamud icon font based on FontAwesome 5 Free solid in 17pt.
+        /// </summary>
+        public static ImFontPtr IconFont => InterfaceManager.IconFont;
+
+        /// <summary>
         /// The delegate that gets called when Dalamud is ready to draw your windows or overlays.
         /// When it is called, you can use static ImGui calls.
         /// </summary>
         public event RawDX11Scene.BuildUIDelegate OnBuildUi;
 
+        /// <summary>
+        /// Choose if this plugin should hide its UI automatically when the whole game hides its UI.
+        /// </summary>
+        public bool DisableAutomaticUiHide { get; set; } = false;
+
         private readonly InterfaceManager interfaceManager;
+        private readonly GameGui gameGui;
+        private readonly DalamudConfiguration config;
+#if DEBUG
+        internal static bool DoStats { get; set; } = true;
+        #else
+        internal static bool DoStats { get; set; } = false;
+        #endif
+        private System.Diagnostics.Stopwatch stopwatch;
+        internal long lastDrawTime = -1;
+        internal long maxDrawTime = -1;
+        internal List<long> drawTimeHistory = new List<long>();
 
         /// <summary>
         /// Create a new UiBuilder and register it. You do not have to call this manually.
         /// </summary>
         /// <param name="interfaceManager">The interface manager to register on.</param>
         /// <param name="namespaceName">The plugin namespace.</param>
-        public UiBuilder(InterfaceManager interfaceManager, string namespaceName) {
+        internal UiBuilder(InterfaceManager interfaceManager, GameGui gameGui, DalamudConfiguration config, string namespaceName) {
             this.namespaceName = namespaceName;
 
             this.interfaceManager = interfaceManager;
+            this.gameGui = gameGui;
+            this.config = config;
             this.interfaceManager.OnDraw += OnDraw;
+            this.stopwatch = new System.Diagnostics.Stopwatch();
         }
 
         /// <summary>
@@ -99,7 +129,14 @@ namespace Dalamud.Interface
         private bool hasErrorWindow;
 
         private void OnDraw() {
+
+            if (this.gameGui.GameUiHidden && this.config.ToggleUiHide && !DisableAutomaticUiHide)
+                return;
+
             ImGui.PushID(this.namespaceName);
+            if (DoStats) {
+                this.stopwatch.Restart();
+            }
 
             if (this.hasErrorWindow && ImGui.Begin(string.Format("{0} Error", this.namespaceName), ref this.hasErrorWindow,
                                              ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize)) {
@@ -123,6 +160,13 @@ namespace Dalamud.Interface
                 this.hasErrorWindow = true;
             }
             
+            if (DoStats) {
+                this.stopwatch.Stop();
+                this.lastDrawTime = this.stopwatch.ElapsedTicks;
+                this.maxDrawTime = Math.Max(this.lastDrawTime, this.maxDrawTime);
+                this.drawTimeHistory.Add(lastDrawTime);
+                while (drawTimeHistory.Count > 100) drawTimeHistory.RemoveAt(0);
+            }
             ImGui.PopID();
         }
     }

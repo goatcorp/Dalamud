@@ -73,7 +73,8 @@
   
   <h1 id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload" class="text-break">Class MapLinkPayload
   </h1>
-  <div class="markdown level0 summary"></div>
+  <div class="markdown level0 summary"><p>An SeString Payload representing an interactable map position link.</p>
+</div>
   <div class="markdown level0 conceptual"></div>
   <div class="inheritance">
     <h5>Inheritance</h5>
@@ -84,7 +85,16 @@
   <div class="inheritedMembers">
     <h5>Inherited Members</h5>
     <div>
-      <a class="xref" href="Dalamud.Game.Chat.SeStringHandling.Payload.html#Dalamud_Game_Chat_SeStringHandling_Payload_Process_System_IO_BinaryReader_">Payload.Process(BinaryReader)</a>
+      <a class="xref" href="Dalamud.Game.Chat.SeStringHandling.Payload.html#Dalamud_Game_Chat_SeStringHandling_Payload_Dirty">Payload.Dirty</a>
+    </div>
+    <div>
+      <a class="xref" href="Dalamud.Game.Chat.SeStringHandling.Payload.html#Dalamud_Game_Chat_SeStringHandling_Payload_DataResolver">Payload.DataResolver</a>
+    </div>
+    <div>
+      <a class="xref" href="Dalamud.Game.Chat.SeStringHandling.Payload.html#Dalamud_Game_Chat_SeStringHandling_Payload_Encode_System_Boolean_">Payload.Encode(Boolean)</a>
+    </div>
+    <div>
+      <a class="xref" href="Dalamud.Game.Chat.SeStringHandling.Payload.html#Dalamud_Game_Chat_SeStringHandling_Payload_Decode_System_IO_BinaryReader_Dalamud_Data_DataManager_">Payload.Decode(BinaryReader, DataManager)</a>
     </div>
     <div>
       <a class="xref" href="Dalamud.Game.Chat.SeStringHandling.Payload.html#Dalamud_Game_Chat_SeStringHandling_Payload_START_BYTE">Payload.START_BYTE</a>
@@ -132,112 +142,136 @@
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public class MapLinkPayload : Payload</code></pre>
   </div>
+  <h3 id="constructors">Constructors
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload__ctor_System_UInt32_System_UInt32_System_Int32_System_Int32_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.%23ctor(System.UInt32%2CSystem.UInt32%2CSystem.Int32%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/MapLinkPayload.cs/#L163">View Source</a>
+  </span>
+  <a id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload__ctor_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.#ctor*"></a>
+  <h4 id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload__ctor_System_UInt32_System_UInt32_System_Int32_System_Int32_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.#ctor(System.UInt32,System.UInt32,System.Int32,System.Int32)">MapLinkPayload(UInt32, UInt32, Int32, Int32)</h4>
+  <div class="markdown level1 summary"><p>Creates an interactable MapLinkPayload from a raw position.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public MapLinkPayload(uint territoryTypeId, uint mapId, int rawX, int rawY)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt32</span></td>
+        <td><span class="parametername">territoryTypeId</span></td>
+        <td><p>The id of the TerritoryType entry for this link.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.UInt32</span></td>
+        <td><span class="parametername">mapId</span></td>
+        <td><p>The id of the Map entry for this link.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">rawX</span></td>
+        <td><p>The internal raw x-coordinate for this link.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">rawY</span></td>
+        <td><p>The internal raw y-coordinate for this link.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload__ctor_System_UInt32_System_UInt32_System_Single_System_Single_System_Single_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.%23ctor(System.UInt32%2CSystem.UInt32%2CSystem.Single%2CSystem.Single%2CSystem.Single)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/MapLinkPayload.cs/#L145">View Source</a>
+  </span>
+  <a id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload__ctor_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.#ctor*"></a>
+  <h4 id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload__ctor_System_UInt32_System_UInt32_System_Single_System_Single_System_Single_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.#ctor(System.UInt32,System.UInt32,System.Single,System.Single,System.Single)">MapLinkPayload(UInt32, UInt32, Single, Single, Single)</h4>
+  <div class="markdown level1 summary"><p>Creates an interactable MapLinkPayload from a human-readable position.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public MapLinkPayload(uint territoryTypeId, uint mapId, float niceXCoord, float niceYCoord, float fudgeFactor = 0.05F)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt32</span></td>
+        <td><span class="parametername">territoryTypeId</span></td>
+        <td><p>The id of the TerritoryType entry for this link.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.UInt32</span></td>
+        <td><span class="parametername">mapId</span></td>
+        <td><p>The id of the Map entry for this link.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Single</span></td>
+        <td><span class="parametername">niceXCoord</span></td>
+        <td><p>The human-readable x-coordinate for this link.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Single</span></td>
+        <td><span class="parametername">niceYCoord</span></td>
+        <td><p>The human-readable y-coordinate for this link.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Single</span></td>
+        <td><span class="parametername">fudgeFactor</span></td>
+        <td><p>An optional offset to account for rounding and truncation errors; it is best to leave this untouched in most cases.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
   <h3 id="properties">Properties
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_MapId.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.MapId%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_CoordinateString.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.CoordinateString%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/MapLinkPayload.cs/#L14">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/MapLinkPayload.cs/#L84">View Source</a>
   </span>
-  <a id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_MapId_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.MapId*"></a>
-  <h4 id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_MapId" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.MapId">MapId</h4>
-  <div class="markdown level1 summary"></div>
+  <a id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_CoordinateString_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.CoordinateString*"></a>
+  <h4 id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_CoordinateString" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.CoordinateString">CoordinateString</h4>
+  <div class="markdown level1 summary"><p>The printable map coordinates for this link.  This value tries to match the in-game printable text as closely as possible
+but is an approximation and may be slightly off for some positions.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public uint MapId { get; set; }</code></pre>
-  </div>
-  <h5 class="propertyValue">Property Value</h5>
-  <table class="table table-bordered table-striped table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><span class="xref">System.UInt32</span></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_RawX.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.RawX%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/MapLinkPayload.cs/#L15">View Source</a>
-  </span>
-  <a id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_RawX_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.RawX*"></a>
-  <h4 id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_RawX" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.RawX">RawX</h4>
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-  <h5 class="decalaration">Declaration</h5>
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public uint RawX { get; set; }</code></pre>
-  </div>
-  <h5 class="propertyValue">Property Value</h5>
-  <table class="table table-bordered table-striped table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><span class="xref">System.UInt32</span></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_RawY.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.RawY%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/MapLinkPayload.cs/#L16">View Source</a>
-  </span>
-  <a id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_RawY_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.RawY*"></a>
-  <h4 id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_RawY" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.RawY">RawY</h4>
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-  <h5 class="decalaration">Declaration</h5>
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public uint RawY { get; set; }</code></pre>
-  </div>
-  <h5 class="propertyValue">Property Value</h5>
-  <table class="table table-bordered table-striped table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><span class="xref">System.UInt32</span></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_Territory.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.Territory%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/MapLinkPayload.cs/#L20">View Source</a>
-  </span>
-  <a id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_Territory_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.Territory*"></a>
-  <h4 id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_Territory" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.Territory">Territory</h4>
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-  <h5 class="decalaration">Declaration</h5>
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public string Territory { get; }</code></pre>
+    <pre><code class="lang-csharp hljs">public string CoordinateString { get; }</code></pre>
   </div>
   <h5 class="propertyValue">Property Value</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -256,18 +290,19 @@
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_TerritoryTypeId.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.TerritoryTypeId%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_DataString.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.DataString%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/MapLinkPayload.cs/#L13">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/MapLinkPayload.cs/#L129">View Source</a>
   </span>
-  <a id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_TerritoryTypeId_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.TerritoryTypeId*"></a>
-  <h4 id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_TerritoryTypeId" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.TerritoryTypeId">TerritoryTypeId</h4>
-  <div class="markdown level1 summary"></div>
+  <a id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_DataString_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.DataString*"></a>
+  <h4 id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_DataString" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.DataString">DataString</h4>
+  <div class="markdown level1 summary"><p>The data string for this map link, for use by internal game functions that take a string variant and not a binary payload.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public uint TerritoryTypeId { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">public string DataString { get; }</code></pre>
   </div>
   <h5 class="propertyValue">Property Value</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -279,17 +314,209 @@
     </thead>
     <tbody>
       <tr>
-        <td><span class="xref">System.UInt32</span></td>
+        <td><span class="xref">System.String</span></td>
         <td></td>
       </tr>
     </tbody>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_Map.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.Map%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/MapLinkPayload.cs/#L22">View Source</a>
+  </span>
+  <a id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_Map_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.Map*"></a>
+  <h4 id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_Map" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.Map">Map</h4>
+  <div class="markdown level1 summary"><p>The Map specified for this map link.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Map Map { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Lumina.Excel.GeneratedSheets.Map</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_Map_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Value is evaluated lazily and cached.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_PlaceName.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.PlaceName%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/MapLinkPayload.cs/#L117">View Source</a>
+  </span>
+  <a id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_PlaceName_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.PlaceName*"></a>
+  <h4 id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_PlaceName" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.PlaceName">PlaceName</h4>
+  <div class="markdown level1 summary"><p>The place name for this map link.  This corresponds to the lower zone name found in the actual in-game map UI.  eg, &quot;Limsa Lominsa Upper Decks&quot;</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public string PlaceName { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_PlaceNameRegion.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.PlaceNameRegion%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/MapLinkPayload.cs/#L104">View Source</a>
+  </span>
+  <a id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_PlaceNameRegion_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.PlaceNameRegion*"></a>
+  <h4 id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_PlaceNameRegion" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.PlaceNameRegion">PlaceNameRegion</h4>
+  <div class="markdown level1 summary"><p>The region name for this map link.  This corresponds to the upper zone name found in the actual in-game map UI.  eg, &quot;La Noscea&quot;</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public string PlaceNameRegion { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_RawX.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.RawX%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/MapLinkPayload.cs/#L50">View Source</a>
+  </span>
+  <a id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_RawX_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.RawX*"></a>
+  <h4 id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_RawX" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.RawX">RawX</h4>
+  <div class="markdown level1 summary"><p>The internal x-coordinate for this map position.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int RawX { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_RawY.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.RawY%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/MapLinkPayload.cs/#L55">View Source</a>
+  </span>
+  <a id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_RawY_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.RawY*"></a>
+  <h4 id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_RawY" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.RawY">RawY</h4>
+  <div class="markdown level1 summary"><p>The internal y-coordinate for this map position.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int RawY { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_TerritoryType.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.TerritoryType%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/MapLinkPayload.cs/#L38">View Source</a>
+  </span>
+  <a id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_TerritoryType_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.TerritoryType*"></a>
+  <h4 id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_TerritoryType" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.TerritoryType">TerritoryType</h4>
+  <div class="markdown level1 summary"><p>The TerritoryType specified for this map link.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public TerritoryType TerritoryType { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Lumina.Excel.GeneratedSheets.TerritoryType</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_TerritoryType_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>Value is evaluated lazily and cached.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_Type.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.Type%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/MapLinkPayload.cs/#L10">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/MapLinkPayload.cs/#L13">View Source</a>
   </span>
   <a id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_Type_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.Type*"></a>
   <h4 id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_Type" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.Type">Type</h4>
@@ -321,11 +548,12 @@
     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_XCoord.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.XCoord%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/MapLinkPayload.cs/#L22">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/MapLinkPayload.cs/#L61">View Source</a>
   </span>
   <a id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_XCoord_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.XCoord*"></a>
   <h4 id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_XCoord" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.XCoord">XCoord</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>The readable x-coordinate position for this map link.  This value is approximate and unrounded.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -351,11 +579,12 @@
     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_YCoord.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.YCoord%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/MapLinkPayload.cs/#L23">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/MapLinkPayload.cs/#L72">View Source</a>
   </span>
   <a id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_YCoord_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.YCoord*"></a>
   <h4 id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_YCoord" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.YCoord">YCoord</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>The readable y-coordinate position for this map link.  This value is approximate and unrounded.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -376,52 +605,61 @@
       </tr>
     </tbody>
   </table>
+  <h3 id="methods">Methods
+  </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_Zone.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.Zone%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_DecodeImpl_System_IO_BinaryReader_System_Int64_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.DecodeImpl(System.IO.BinaryReader%2CSystem.Int64)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/MapLinkPayload.cs/#L21">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/MapLinkPayload.cs/#L200">View Source</a>
   </span>
-  <a id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_Zone_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.Zone*"></a>
-  <h4 id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_Zone" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.Zone">Zone</h4>
+  <a id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_DecodeImpl_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.DecodeImpl*"></a>
+  <h4 id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_DecodeImpl_System_IO_BinaryReader_System_Int64_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.DecodeImpl(System.IO.BinaryReader,System.Int64)">DecodeImpl(BinaryReader, Int64)</h4>
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public string Zone { get; }</code></pre>
+    <pre><code class="lang-csharp hljs">protected override void DecodeImpl(BinaryReader reader, long endOfStream)</code></pre>
   </div>
-  <h5 class="propertyValue">Property Value</h5>
+  <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
     <thead>
       <tr>
         <th>Type</th>
+        <th>Name</th>
         <th>Description</th>
       </tr>
     </thead>
     <tbody>
       <tr>
-        <td><span class="xref">System.String</span></td>
+        <td><span class="xref">System.IO.BinaryReader</span></td>
+        <td><span class="parametername">reader</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int64</span></td>
+        <td><span class="parametername">endOfStream</span></td>
         <td></td>
       </tr>
     </tbody>
   </table>
-  <h3 id="methods">Methods
-  </h3>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Dalamud.Game.Chat.SeStringHandling.Payload.html#Dalamud_Game_Chat_SeStringHandling_Payload_DecodeImpl_System_IO_BinaryReader_System_Int64_">Payload.DecodeImpl(BinaryReader, Int64)</a></div>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_Encode.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.Encode%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_EncodeImpl.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.EncodeImpl%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/MapLinkPayload.cs/#L26">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/MapLinkPayload.cs/#L176">View Source</a>
   </span>
-  <a id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_Encode_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.Encode*"></a>
-  <h4 id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_Encode" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.Encode">Encode()</h4>
+  <a id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_EncodeImpl_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.EncodeImpl*"></a>
+  <h4 id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_EncodeImpl" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.EncodeImpl">EncodeImpl()</h4>
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public override byte[] Encode()</code></pre>
+    <pre><code class="lang-csharp hljs">protected override byte[] EncodeImpl()</code></pre>
   </div>
   <h5 class="returns">Returns</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -439,13 +677,13 @@
     </tbody>
   </table>
   <h5 class="overrides">Overrides</h5>
-  <div><a class="xref" href="Dalamud.Game.Chat.SeStringHandling.Payload.html#Dalamud_Game_Chat_SeStringHandling_Payload_Encode">Payload.Encode()</a></div>
+  <div><a class="xref" href="Dalamud.Game.Chat.SeStringHandling.Payload.html#Dalamud_Game_Chat_SeStringHandling_Payload_EncodeImpl">Payload.EncodeImpl()</a></div>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_GetMarkerForIntegerBytes_System_Byte___.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.GetMarkerForIntegerBytes(System.Byte%5B%5D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/MapLinkPayload.cs/#L121">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/MapLinkPayload.cs/#L248">View Source</a>
   </span>
   <a id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_GetMarkerForIntegerBytes_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.GetMarkerForIntegerBytes*"></a>
   <h4 id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_GetMarkerForIntegerBytes_System_Byte___" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.GetMarkerForIntegerBytes(System.Byte[])">GetMarkerForIntegerBytes(Byte[])</h4>
@@ -491,66 +729,10 @@
   <div><a class="xref" href="Dalamud.Game.Chat.SeStringHandling.Payload.html#Dalamud_Game_Chat_SeStringHandling_Payload_GetMarkerForIntegerBytes_System_Byte___">Payload.GetMarkerForIntegerBytes(Byte[])</a></div>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_ProcessChunkImpl_System_IO_BinaryReader_System_Int64_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.ProcessChunkImpl(System.IO.BinaryReader%2CSystem.Int64)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/MapLinkPayload.cs/#L73">View Source</a>
-  </span>
-  <a id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_ProcessChunkImpl_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.ProcessChunkImpl*"></a>
-  <h4 id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_ProcessChunkImpl_System_IO_BinaryReader_System_Int64_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.ProcessChunkImpl(System.IO.BinaryReader,System.Int64)">ProcessChunkImpl(BinaryReader, Int64)</h4>
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-  <h5 class="decalaration">Declaration</h5>
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">protected override void ProcessChunkImpl(BinaryReader reader, long endOfStream)</code></pre>
-  </div>
-  <h5 class="parameters">Parameters</h5>
-  <table class="table table-bordered table-striped table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Name</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><span class="xref">System.IO.BinaryReader</span></td>
-        <td><span class="parametername">reader</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><span class="xref">System.Int64</span></td>
-        <td><span class="parametername">endOfStream</span></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <h5 class="overrides">Overrides</h5>
-  <div><a class="xref" href="Dalamud.Game.Chat.SeStringHandling.Payload.html#Dalamud_Game_Chat_SeStringHandling_Payload_ProcessChunkImpl_System_IO_BinaryReader_System_Int64_">Payload.ProcessChunkImpl(BinaryReader, Int64)</a></div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_Resolve.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.Resolve%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/MapLinkPayload.cs/#L53">View Source</a>
-  </span>
-  <a id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_Resolve_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.Resolve*"></a>
-  <h4 id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_Resolve" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.Resolve">Resolve()</h4>
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-  <h5 class="decalaration">Declaration</h5>
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public override void Resolve()</code></pre>
-  </div>
-  <h5 class="overrides">Overrides</h5>
-  <div><a class="xref" href="Dalamud.Game.Chat.SeStringHandling.Payload.html#Dalamud_Game_Chat_SeStringHandling_Payload_Resolve">Payload.Resolve()</a></div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_ToString.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.ToString%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/MapLinkPayload.cs/#L68">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/MapLinkPayload.cs/#L171">View Source</a>
   </span>
   <a id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_ToString_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.ToString*"></a>
   <h4 id="Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload_ToString" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.ToString">ToString()</h4>
@@ -588,7 +770,7 @@
                     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_MapLinkPayload.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
                   </li>
                   <li>
-                    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/MapLinkPayload.cs/#L8" class="contribution-link">View Source</a>
+                    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/MapLinkPayload.cs/#L11" class="contribution-link">View Source</a>
                   </li>
                 </ul>
               </div>

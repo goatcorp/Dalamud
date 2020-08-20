@@ -13,7 +13,7 @@ namespace Dalamud.Game.ClientState.Actors.Resolvers
         /// <summary>
         /// ID of the world.
         /// </summary>
-        public readonly int Id;
+        public readonly uint Id;
 
         /// <summary>
         /// GameData linked to this world.
@@ -25,7 +25,7 @@ namespace Dalamud.Game.ClientState.Actors.Resolvers
         /// Set up the world resolver with the provided ID.
         /// </summary>
         /// <param name="id">The ID of the world.</param>
-        public World(byte id, Dalamud dalamud) : base(dalamud) {
+        public World(ushort id, Dalamud dalamud) : base(dalamud) {
             this.Id = id;
         }
     }

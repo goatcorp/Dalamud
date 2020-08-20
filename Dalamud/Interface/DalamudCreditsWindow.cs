@@ -11,7 +11,7 @@ namespace Dalamud.Interface
         private const string CreditsTextTempl = @"
 Dalamud
 A FFXIV Hooking Framework
-Version {0}
+Version D{0}
 
 
 created by:
@@ -24,6 +24,11 @@ Aida-Enna
 perchbird
 Wintermute
 fmauNeko
+Caraxi
+Adam
+nibs/Poliwrath
+karashiiro
+Pohky
 
 
 
@@ -57,6 +62,7 @@ karashiiro
 Kubera
 Truci
 Haplo
+Franz
 
 Everyone in the XIVLauncher Discord server
 Join us at: https://discord.gg/3NMcUV5
@@ -64,10 +70,10 @@ Join us at: https://discord.gg/3NMcUV5
 
 
 Licensed under AGPL
-Contribute at: https://github.com/goaaats/Dalamud
+Contribute at: https://github.com/goatsoft/Dalamud
 
 
-Thank you for using XIVLauncher!
+Thank you for using XIVLauncher and Dalamud!
 ";
 
         private readonly Dalamud dalamud;
