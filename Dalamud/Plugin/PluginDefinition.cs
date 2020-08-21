@@ -44,6 +44,11 @@ namespace Dalamud.Plugin
         public string RepoUrl { get; set; }
 
         /// <summary>
+        /// List of tanks defined on the plugin.
+        /// </summary>
+        public List<string> Tags { get; set; }
+
+        /// <summary>
         /// Whether or not the plugin is hidden in the plugin installer.
         /// </summary>
         public bool IsHide { get; set; }

@@ -72,6 +72,7 @@ namespace Dalamud.Plugin
             }
             else {
                 var didAny = false;
+                var didAnyWithSearch = false;
                 var hasSearchString = !string.IsNullOrWhiteSpace(this.searchText);
 
                 foreach (var pluginDefinition in this.dalamud.PluginRepository.PluginMaster) {
@@ -85,13 +86,18 @@ namespace Dalamud.Plugin
                     if (pluginDefinition.DalamudApiLevel != PluginManager.DALAMUD_API_LEVEL)
                         continue;
 
+                    didAny = true;
+
                     if (hasSearchString && 
                         !(pluginDefinition.Name.ToLowerInvariant().Contains(this.searchText.ToLowerInvariant()) ||
-                          string.Equals(pluginDefinition.Author, this.searchText, StringComparison.InvariantCultureIgnoreCase))) {
+                          string.Equals(pluginDefinition.Author, this.searchText, StringComparison.InvariantCultureIgnoreCase) ||
+                          pluginDefinition.Tags != null &&
+                          pluginDefinition.Tags.Contains(this.searchText.ToLowerInvariant(), StringComparer.InvariantCultureIgnoreCase)
+                        )) {
                         continue;
                     }
 
-                    didAny = true;
+                    didAnyWithSearch = true;
 
                     ImGui.PushID(pluginDefinition.InternalName + pluginDefinition.AssemblyVersion);
 
@@ -190,6 +196,8 @@ namespace Dalamud.Plugin
 
                 if (!didAny)
                     ImGui.TextColored(new Vector4(0.70f, 0.70f, 0.70f, 1.00f), Loc.Localize("InstallerNoCompatible", "No compatible plugins were found :( Please restart your game and try again."));
+                else if (!didAnyWithSearch)
+                    ImGui.TextColored(new Vector4(0.7f, 0.7f, 0.7f, 1.0f), Loc.Localize("InstallNoMatching", "No plugins were found matching your search."));
             }
 
             ImGui.PopStyleVar();
