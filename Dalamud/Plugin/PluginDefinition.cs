@@ -44,7 +44,7 @@ namespace Dalamud.Plugin
         public string RepoUrl { get; set; }
 
         /// <summary>
-        /// List of tanks defined on the plugin.
+        /// List of tags defined on the plugin.
         /// </summary>
         public List<string> Tags { get; set; }
 
