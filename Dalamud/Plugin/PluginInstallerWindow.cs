@@ -120,7 +120,7 @@ namespace Dalamud.Plugin
 
                         ImGui.Text(pluginDefinition.Name);
                         ImGui.SameLine();
-                        ImGui.TextColored(new Vector4(0.5f, 0.5f, 0.5f, 1.0f), $" by {pluginDefinition.Author}");
+                        ImGui.TextColored(new Vector4(0.5f, 0.5f, 0.5f, 1.0f), $" by {pluginDefinition.Author}, {pluginDefinition.DownloadCount} downloads");
 
                         ImGui.Text(pluginDefinition.Description);
 

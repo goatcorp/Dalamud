@@ -57,5 +57,10 @@ namespace Dalamud.Plugin
         /// The API level of this plugin. For the current API level, please see <see cref="PluginManager.DALAMUD_API_LEVEL"/> for the currently used API level.
         /// </summary>
         public int DalamudApiLevel { get; set; }
+
+        /// <summary>
+        /// The number of downloads this plugin has.
+        /// </summary>
+        public long DownloadCount { get; set; }
     }
 }
