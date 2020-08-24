@@ -107,10 +107,16 @@ namespace Dalamud.Data
                 
                 this.luminaResourceThread = new Thread( () =>
                 {
-                    while( true )
+                    while (true)
                     {
-                        this.gameData.ProcessFileHandleQueue();
-                        Thread.Yield();
+                        if (gameData.FileHandleManager.HasPendingFileLoads)
+                        {
+                            gameData.ProcessFileHandleQueue();
+                        }
+                        else
+                        {
+                            Thread.Sleep(5);
+                        }
                     }
                     // ReSharper disable once FunctionNeverReturns
                 });
