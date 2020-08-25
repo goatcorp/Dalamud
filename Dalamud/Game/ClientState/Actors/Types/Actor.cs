@@ -1,3 +1,4 @@
+using Dalamud.Game.ClientState.Structs;
 using System;
 
 namespace Dalamud.Game.ClientState.Actors.Types {
@@ -70,6 +71,11 @@ namespace Dalamud.Game.ClientState.Actors.Types {
         /// The target of the actor
         /// </summary>
         public virtual int TargetActorID => 0;
+
+        /// <summary>
+        ///  Status Effects
+        /// </summary>
+        public StatusEffect[] statusEffects => this.actorStruct.UIStatusEffects;
 
         bool IEquatable<Actor>.Equals(Actor other) => this.ActorId == other.ActorId;
     }
