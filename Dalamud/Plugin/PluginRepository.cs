@@ -14,7 +14,10 @@ namespace Dalamud.Plugin
 {
     internal class PluginRepository
     {
-        private string PluginRepoBaseUrl => "https://raw.githubusercontent.com/goatcorp/DalamudPlugins/" + (this.dalamud.Configuration.DoPluginTest ? "testing/" : "master/");
+        private string PluginRepoBaseUrl => "https://raw.githubusercontent.com/goatcorp/DalamudPlugins/testing/plugins/{0}/latest.zip";
+        private string PluginFunctionBaseUrl => "https://us-central1-xl-functions.cloudfunctions.net/download-plugin/?plugin={0}";
+        private string PluginMasterUrl => "https://raw.githubusercontent.com/goatcorp/DalamudPlugins/" + (this.dalamud.Configuration.DoPluginTest ? "testing/" : "master/") + "pluginmaster.json";
+
 
         private readonly Dalamud dalamud;
         private string pluginDirectory;
@@ -46,7 +49,7 @@ namespace Dalamud.Plugin
                 {
                     using var client = new WebClient();
 
-                    var data = client.DownloadString(PluginRepoBaseUrl + "pluginmaster.json");
+                    var data = client.DownloadString(PluginMasterUrl);
 
                     this.PluginMaster = JsonConvert.DeserializeObject<ReadOnlyCollection<PluginDefinition>>(data);
 
@@ -92,9 +95,14 @@ namespace Dalamud.Plugin
                 }
 
                 var path = Path.GetTempFileName();
-                Log.Information("Downloading plugin to {0}", path);
+                
                 using var client = new WebClient();
-                client.DownloadFile(PluginRepoBaseUrl + $"/plugins/{definition.InternalName}/latest.zip", path);
+
+                var url = this.dalamud.Configuration.DoPluginTest ? PluginRepoBaseUrl : PluginFunctionBaseUrl;
+                url = string.Format(url, definition.InternalName);
+                Log.Information("Downloading plugin to {0} from {1}", path, url);
+
+                client.DownloadFile(url, path);
 
                 Log.Information("Extracting to {0}", outputDir);
 

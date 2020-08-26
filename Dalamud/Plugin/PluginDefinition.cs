@@ -44,6 +44,11 @@ namespace Dalamud.Plugin
         public string RepoUrl { get; set; }
 
         /// <summary>
+        /// List of tags defined on the plugin.
+        /// </summary>
+        public List<string> Tags { get; set; }
+
+        /// <summary>
         /// Whether or not the plugin is hidden in the plugin installer.
         /// </summary>
         public bool IsHide { get; set; }
@@ -52,5 +57,10 @@ namespace Dalamud.Plugin
         /// The API level of this plugin. For the current API level, please see <see cref="PluginManager.DALAMUD_API_LEVEL"/> for the currently used API level.
         /// </summary>
         public int DalamudApiLevel { get; set; }
+
+        /// <summary>
+        /// The number of downloads this plugin has.
+        /// </summary>
+        public long DownloadCount { get; set; }
     }
 }

@@ -237,6 +237,7 @@ namespace Dalamud {
         private bool isImguiDrawCreditsWindow = false;
         private bool isImguiDrawSettingsWindow = false;
         private bool isImguiDrawPluginStatWindow = false;
+        private bool isImguiDrawChangelogWindow = false;
 
         private DalamudLogWindow logWindow;
         private DalamudDataWindow dataWindow;
@@ -244,6 +245,7 @@ namespace Dalamud {
         private DalamudSettingsWindow settingsWindow;
         private PluginInstallerWindow pluginWindow;
         private DalamudPluginStatWindow pluginStatWindow;
+        private DalamudChangelogWindow changelogWindow;
 
         private void BuildDalamudUi()
         {
@@ -283,6 +285,10 @@ namespace Dalamud {
                         if (ImGui.MenuItem("Open Settings window"))
                         {
                             OnOpenSettingsCommand(null, null);
+                        }
+                        if (ImGui.MenuItem("Open Changelog window"))
+                        {
+                            OpenChangelog();
                         }
                         ImGui.MenuItem("Draw ImGui demo", "", ref this.isImguiDrawDemoWindow);
                         if (ImGui.MenuItem("Dump ImGui info"))
@@ -431,6 +437,20 @@ namespace Dalamud {
                     this.pluginStatWindow = null;
                 }
             }
+
+            if (this.isImguiDrawChangelogWindow)
+            {
+                this.isImguiDrawChangelogWindow = this.changelogWindow != null && this.changelogWindow.Draw();
+            }
+        }
+        internal void OpenPluginInstaller() {
+            this.pluginWindow = new PluginInstallerWindow(this, this.StartInfo.GameVersion);
+            this.isImguiDrawPluginWindow = true;
+        }
+
+        internal void OpenChangelog() {
+            this.changelogWindow = new DalamudChangelogWindow(this);
+            this.isImguiDrawChangelogWindow = true;
         }
 
         private void ReplaceExceptionHandler() {
@@ -442,7 +462,7 @@ namespace Dalamud {
             Log.Debug("Reset ExceptionFilter, old: {0}", oldFilter);
         }
 
-#endregion
+        #endregion
 
         private void SetupCommands() {
             CommandManager.AddHandler("/xldclose", new CommandInfo(OnUnloadCommand) {
@@ -716,8 +736,7 @@ namespace Dalamud {
         }
 
         private void OnOpenInstallerCommand(string command, string arguments) {
-            this.pluginWindow = new PluginInstallerWindow(this, this.StartInfo.GameVersion);
-            this.isImguiDrawPluginWindow = true;
+            OpenPluginInstaller();
         }
 
         private void OnOpenCreditsCommand(string command, string arguments)

@@ -29,6 +29,8 @@ namespace Dalamud.Plugin
         private int updatePluginCount = 0;
         private List<PluginRepository.PluginUpdateStatus> updatedPlugins;
 
+        private string searchText = "";
+
         private enum PluginInstallStatus {
             None,
             InProgress,
@@ -55,6 +57,8 @@ namespace Dalamud.Plugin
                 ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar);
 
             ImGui.Text(Loc.Localize("InstallerHint", "This window allows you install and remove in-game plugins.\nThey are made by third-party developers."));
+            ImGui.SameLine();
+            ImGui.InputTextWithHint("###XPlPluginInstaller_Search", Loc.Localize("InstallerSearch", "Search"), ref this.searchText, 100);
             ImGui.Separator();
 
             ImGui.BeginChild("scrolling", new Vector2(0, 400), true, ImGuiWindowFlags.HorizontalScrollbar);
@@ -68,6 +72,8 @@ namespace Dalamud.Plugin
             }
             else {
                 var didAny = false;
+                var didAnyWithSearch = false;
+                var hasSearchString = !string.IsNullOrWhiteSpace(this.searchText);
 
                 foreach (var pluginDefinition in this.dalamud.PluginRepository.PluginMaster) {
                     if (pluginDefinition.ApplicableVersion != this.gameVersion &&
@@ -81,6 +87,17 @@ namespace Dalamud.Plugin
                         continue;
 
                     didAny = true;
+
+                    if (hasSearchString && 
+                        !(pluginDefinition.Name.ToLowerInvariant().Contains(this.searchText.ToLowerInvariant()) ||
+                          string.Equals(pluginDefinition.Author, this.searchText, StringComparison.InvariantCultureIgnoreCase) ||
+                          pluginDefinition.Tags != null &&
+                          pluginDefinition.Tags.Contains(this.searchText.ToLowerInvariant(), StringComparer.InvariantCultureIgnoreCase)
+                        )) {
+                        continue;
+                    }
+
+                    didAnyWithSearch = true;
 
                     ImGui.PushID(pluginDefinition.InternalName + pluginDefinition.AssemblyVersion);
 
@@ -103,7 +120,7 @@ namespace Dalamud.Plugin
 
                         ImGui.Text(pluginDefinition.Name);
                         ImGui.SameLine();
-                        ImGui.TextColored(new Vector4(0.5f, 0.5f, 0.5f, 1.0f), $" by {pluginDefinition.Author}");
+                        ImGui.TextColored(new Vector4(0.5f, 0.5f, 0.5f, 1.0f), $" by {pluginDefinition.Author}, {pluginDefinition.DownloadCount} downloads");
 
                         ImGui.Text(pluginDefinition.Description);
 
@@ -179,6 +196,8 @@ namespace Dalamud.Plugin
 
                 if (!didAny)
                     ImGui.TextColored(new Vector4(0.70f, 0.70f, 0.70f, 1.00f), Loc.Localize("InstallerNoCompatible", "No compatible plugins were found :( Please restart your game and try again."));
+                else if (!didAnyWithSearch)
+                    ImGui.TextColored(new Vector4(0.7f, 0.7f, 0.7f, 1.0f), Loc.Localize("InstallNoMatching", "No plugins were found matching your search."));
             }
 
             ImGui.PopStyleVar();

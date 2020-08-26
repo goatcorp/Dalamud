@@ -153,6 +153,15 @@ namespace Dalamud.Interface
                         }
 
                         ImGui.TextUnformatted(specialChars);
+
+                        foreach (var fontAwesomeIcon in Enum.GetValues(typeof(FontAwesomeIcon)).Cast<FontAwesomeIcon>()) {
+                            ImGui.Text(((int) fontAwesomeIcon.ToIconChar()).ToString("X") + " - ");
+                            ImGui.SameLine();
+
+                            ImGui.PushFont(InterfaceManager.IconFont);
+                            ImGui.Text(fontAwesomeIcon.ToIconString());
+                            ImGui.PopFont();
+                        }
                         break;
 
                     // Party
