@@ -21,7 +21,6 @@ namespace Dalamud.Game.ClientState
         private ResolvePlaceholderActor PlaceholderResolver;
         private IntPtr PlaceholderResolverObject;
         private bool isReady = false;
-        private Task ResolveTask;
 
         public PartyList(Dalamud dalamud, ClientStateAddressResolver addressResolver)
         {
