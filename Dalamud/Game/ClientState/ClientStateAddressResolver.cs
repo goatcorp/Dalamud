@@ -18,6 +18,8 @@ namespace Dalamud.Game.ClientState
         public IntPtr PartyListUpdate { get; private set; }
         
         public IntPtr ConditionFlags { get; private set; }
+        public IntPtr ResolvePlaceholderText { get; private set; }
+        public IntPtr PlaceholderResolverObject { get; private set; }
 
         protected override void Setup64Bit(SigScanner sig) {
             // We don't need those anymore, but maybe someone else will - let's leave them here for good measure
@@ -38,6 +40,10 @@ namespace Dalamud.Game.ClientState
             ConditionFlags = sig.GetStaticAddressFromSig("48 8D 0D ?? ?? ?? ?? BA ?? ?? ?? ?? E8 ?? ?? ?? ?? B0 01 48 83 C4 30");
 
             TargetManager = sig.GetStaticAddressFromSig("48 8B 05 ?? ?? ?? ?? 48 8D 0D ?? ?? ?? ?? FF 50 ?? 48 85 DB", 3);
+            
+            ResolvePlaceholderText = sig.ScanText("E8 ?? ?? ?? ?? 48 8B 5C 24 ?? EB 0C");
+
+            PlaceholderResolverObject = sig.GetStaticAddressFromSig("48 8B 0D ?? ?? ?? ?? 48 8D 05 ?? ?? ?? ?? 48 89 05 ?? ?? ?? ?? 48 85 C9 74 0C", 0);
         }
     }
 }

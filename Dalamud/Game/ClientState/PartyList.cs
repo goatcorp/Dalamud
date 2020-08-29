@@ -1,6 +1,7 @@
 using Dalamud.Game.ClientState.Actors.Types;
 using Dalamud.Hooking;
 using Dalamud.Plugin;
+using Serilog;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -16,50 +17,44 @@ namespace Dalamud.Game.ClientState
         private ClientStateAddressResolver Address { get; }
         private Dalamud dalamud;
 
-        private delegate long PartyListUpdateDelegate(IntPtr structBegin, long param2, char param3);
-
-        private Hook<PartyListUpdateDelegate> partyListUpdateHook;
-        private IntPtr partyListBegin;
+        private delegate IntPtr ResolvePlaceholderActor(IntPtr param1, string PlaceholderText, byte param3, byte param4);
+        private ResolvePlaceholderActor PlaceholderResolver;
+        private IntPtr PlaceholderResolverObject;
         private bool isReady = false;
+        private Task ResolveTask;
 
         public PartyList(Dalamud dalamud, ClientStateAddressResolver addressResolver)
         {
             Address = addressResolver;
             this.dalamud = dalamud;
-            this.partyListUpdateHook = new Hook<PartyListUpdateDelegate>(Address.PartyListUpdate, new PartyListUpdateDelegate(PartyListUpdateDetour), this);
+            PlaceholderResolver = Marshal.GetDelegateForFunctionPointer<ResolvePlaceholderActor>(Address.ResolvePlaceholderText);
+            PlaceholderResolverObject = IntPtr.Zero;
+            ResolveTask = new Task( () => { SetupPlaceholderResolver(); } );
+            ResolveTask.Start();
         }
 
         public void Enable()
         {
             // TODO Fix for 5.3
-            //this.partyListUpdateHook.Enable();
+            // I don't think anything needs to be done here anymore?
         }
 
         public void Dispose()
         {
-            if (!this.isReady)
-                this.partyListUpdateHook.Dispose();
-            this.isReady = false;
-        }
-
-        private long PartyListUpdateDetour(IntPtr structBegin, long param2, char param3)
-        {
-            var result = this.partyListUpdateHook.Original(structBegin, param2, param3);
-            this.partyListBegin = structBegin + 0xB48;
-            this.partyListUpdateHook.Dispose();
-            this.isReady = true;
-            return result;
+            isReady = false;
         }
 
         public PartyMember this[int index]
         {
             get {
-                if (!this.isReady)
+                if (!isReady)
                     return null;
                 if (index >= Length)
                     return null;
-                var tblIndex = partyListBegin + index * 24;
-                var memberStruct = Marshal.PtrToStructure<Structs.PartyMember>(tblIndex);
+                IntPtr actorptr = GetActorFromPlaceholder("<"+(index + 1)+">");
+                if (actorptr == IntPtr.Zero)
+                    return null;
+                var memberStruct = Marshal.PtrToStructure<Structs.PartyMember>(actorptr);
                 return new PartyMember(this.dalamud.ClientState.Actors, memberStruct);
             }
         }
@@ -81,9 +76,34 @@ namespace Dalamud.Game.ClientState
             }
         }
 
+        private async void SetupPlaceholderResolver()
+        {
+            while (PlaceholderResolverObject == IntPtr.Zero)
+            {
+                try
+                {
+                    IntPtr step2 = Marshal.ReadIntPtr(Address.PlaceholderResolverObject) + 8;
+                    PlaceholderResolverObject = Marshal.ReadIntPtr(step2) + 0xE7D0;
+                    isReady = true;
+                }
+                catch (Exception)
+                {
+                    PlaceholderResolverObject = IntPtr.Zero;
+                    await Task.Delay(1000);
+                    continue;
+                }
+            }
+        }
+
+        private IntPtr GetActorFromPlaceholder(string placeholder)
+        {
+            return PlaceholderResolver(PlaceholderResolverObject, placeholder, 1, 0);
+        }
+
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        public int Length => !this.isReady ? 0 : Marshal.ReadByte(partyListBegin + 0xF0);
+        /* Temporarily 0 or 8, until we can find a better way to get the exact number */
+        public int Length => !isReady ? 0 : 8;
 
         int IReadOnlyCollection<PartyMember>.Count => Length;
 
