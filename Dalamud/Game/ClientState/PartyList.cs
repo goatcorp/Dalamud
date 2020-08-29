@@ -29,8 +29,7 @@ namespace Dalamud.Game.ClientState
             this.dalamud = dalamud;
             PlaceholderResolver = Marshal.GetDelegateForFunctionPointer<ResolvePlaceholderActor>(Address.ResolvePlaceholderText);
             PlaceholderResolverObject = IntPtr.Zero;
-            ResolveTask = new Task( () => { SetupPlaceholderResolver(); } );
-            ResolveTask.Start();
+            new Task(() => { SetupPlaceholderResolver(); }).Start();
         }
 
         public void Enable()
