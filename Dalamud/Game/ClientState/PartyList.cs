@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Dalamud.Game.ClientState
 {
-    public class PartyList : IReadOnlyCollection<PartyMember>, ICollection, IDisposable
+    public class PartyList : IReadOnlyCollection<Actor>, ICollection, IDisposable
     {
         private ClientStateAddressResolver Address { get; }
         private Dalamud dalamud;
@@ -44,7 +44,7 @@ namespace Dalamud.Game.ClientState
             isReady = false;
         }
 
-        public PartyMember this[int index]
+        public Actor this[int index]
         {
             get {
                 if (!isReady)
@@ -54,8 +54,8 @@ namespace Dalamud.Game.ClientState
                 IntPtr actorptr = GetActorFromPlaceholder("<"+(index + 1)+">");
                 if (actorptr == IntPtr.Zero)
                     return null;
-                var memberStruct = Marshal.PtrToStructure<Structs.PartyMember>(actorptr);
-                return new PartyMember(this.dalamud.ClientState.Actors, memberStruct);
+                var memberStruct = Marshal.PtrToStructure<Structs.Actor>(actorptr);
+                return new Actor(actorptr, memberStruct, dalamud);
             }
         }
 
@@ -68,7 +68,7 @@ namespace Dalamud.Game.ClientState
             }
         }
 
-        public IEnumerator<PartyMember> GetEnumerator() {
+        public IEnumerator<Actor> GetEnumerator() {
             for (var i = 0; i < Length; i++) {
                 if (this[i] != null) {
                     yield return this[i];
@@ -105,7 +105,7 @@ namespace Dalamud.Game.ClientState
         /* Temporarily 0 or 8, until we can find a better way to get the exact number */
         public int Length => !isReady ? 0 : 8;
 
-        int IReadOnlyCollection<PartyMember>.Count => Length;
+        int IReadOnlyCollection<Actor>.Count => Length;
 
         public int Count => Length;
 
