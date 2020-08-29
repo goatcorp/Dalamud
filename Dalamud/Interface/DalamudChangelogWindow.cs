@@ -11,7 +11,7 @@ namespace Dalamud.Interface {
         private readonly Dalamud dalamud;
         private string assemblyVersion = Util.AssemblyVersion;
 
-        private const bool WarrantsChangelog = true;
+        private const bool WarrantsChangelog = false;
         private const string ChangeLog =
             @"* All plugin windows now hide together with the in-game UI when you toggle it.
 You can change this behaviour with /xlsettings under the ""Look&Feel"" tab.
