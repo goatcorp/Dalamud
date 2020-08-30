@@ -57,7 +57,8 @@ namespace Dalamud.Plugin
                 ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar);
 
             ImGui.Text(Loc.Localize("InstallerHint", "This window allows you install and remove in-game plugins.\nThey are made by third-party developers."));
-            ImGui.SameLine();
+            ImGui.SameLine(ImGui.GetWindowWidth() - 250);
+            ImGui.SetNextItemWidth(240);
             ImGui.InputTextWithHint("###XPlPluginInstaller_Search", Loc.Localize("InstallerSearch", "Search"), ref this.searchText, 100);
             ImGui.Separator();
 
