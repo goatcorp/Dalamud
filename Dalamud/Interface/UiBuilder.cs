@@ -39,9 +39,9 @@ namespace Dalamud.Interface
         /// </summary>
         public bool DisableAutomaticUiHide { get; set; } = false;
 
-        private bool CutsceneActive => this.clientState.Condition[ConditionFlag.OccupiedInCutSceneEvent] ||
-                                       this.clientState.Condition[ConditionFlag.WatchingCutscene] ||
-                                       this.clientState.Condition[ConditionFlag.WatchingCutscene78];
+        private bool CutsceneOrGposeActive => this.clientState.Condition[ConditionFlag.OccupiedInCutSceneEvent] ||
+                                              this.clientState.Condition[ConditionFlag.WatchingCutscene] ||
+                                              this.clientState.Condition[ConditionFlag.WatchingCutscene78];
 
         private readonly ClientState clientState;
         private readonly InterfaceManager interfaceManager;
@@ -136,7 +136,7 @@ namespace Dalamud.Interface
 
         private void OnDraw() {
 
-            if ((this.gameGui.GameUiHidden || CutsceneActive) && this.config.ToggleUiHide && !DisableAutomaticUiHide)
+            if ((this.gameGui.GameUiHidden || CutsceneOrGposeActive) && this.config.ToggleUiHide && !DisableAutomaticUiHide)
                 return;
 
             ImGui.PushID(this.namespaceName);
