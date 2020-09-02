@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -249,6 +250,31 @@ namespace Dalamud {
 
         private void BuildDalamudUi()
         {
+            if (!this.isImguiDrawDevMenu && !ClientState.Condition.Any())
+            {
+                ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0, 0, 0, 0));
+                ImGui.PushStyleColor(ImGuiCol.ButtonActive, new Vector4(0, 0, 0, 0));
+                ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Vector4(0, 0, 0, 0));
+                ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0, 0, 0, 1));
+                ImGui.PushStyleColor(ImGuiCol.TextSelectedBg, new Vector4(0, 0, 0, 1));
+                ImGui.PushStyleColor(ImGuiCol.Border, new Vector4(0, 0, 0, 1));
+                ImGui.PushStyleColor(ImGuiCol.BorderShadow, new Vector4(0, 0, 0, 1));
+                ImGui.PushStyleColor(ImGuiCol.WindowBg, new Vector4(0, 0, 0, 1));
+
+                ImGui.SetNextWindowPos(new Vector2(0, 0), ImGuiCond.Always);
+                ImGui.SetNextWindowBgAlpha(1);
+
+                if (ImGui.Begin("DevMenu Opener", ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoSavedSettings))
+                {
+                    if (ImGui.Button("###devMenuOpener", new Vector2(40, 25)))
+                        this.isImguiDrawDevMenu = true;
+
+                    ImGui.End();
+                }
+
+                ImGui.PopStyleColor(5);
+            }
+
             if (this.isImguiDrawDevMenu)
             {
                 if (ImGui.BeginMainMenuBar())
