@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Dalamud.Game.ClientState;
 using Dalamud.Game.Internal.Gui;
 using ImGuiNET;
 using ImGuiScene;
@@ -38,6 +39,11 @@ namespace Dalamud.Interface
         /// </summary>
         public bool DisableAutomaticUiHide { get; set; } = false;
 
+        private bool CutsceneOrGposeActive => this.clientState.Condition[ConditionFlag.OccupiedInCutSceneEvent] ||
+                                              this.clientState.Condition[ConditionFlag.WatchingCutscene] ||
+                                              this.clientState.Condition[ConditionFlag.WatchingCutscene78];
+
+        private readonly ClientState clientState;
         private readonly InterfaceManager interfaceManager;
         private readonly GameGui gameGui;
         private readonly DalamudConfiguration config;
@@ -56,7 +62,7 @@ namespace Dalamud.Interface
         /// </summary>
         /// <param name="interfaceManager">The interface manager to register on.</param>
         /// <param name="namespaceName">The plugin namespace.</param>
-        internal UiBuilder(InterfaceManager interfaceManager, GameGui gameGui, DalamudConfiguration config, string namespaceName) {
+        internal UiBuilder(InterfaceManager interfaceManager, GameGui gameGui, DalamudConfiguration config, ClientState clientState, string namespaceName) {
             this.namespaceName = namespaceName;
 
             this.interfaceManager = interfaceManager;
@@ -130,7 +136,7 @@ namespace Dalamud.Interface
 
         private void OnDraw() {
 
-            if (this.gameGui.GameUiHidden && this.config.ToggleUiHide && !DisableAutomaticUiHide)
+            if ((this.gameGui.GameUiHidden || CutsceneOrGposeActive) && this.config.ToggleUiHide && !DisableAutomaticUiHide)
                 return;
 
             ImGui.PushID(this.namespaceName);
