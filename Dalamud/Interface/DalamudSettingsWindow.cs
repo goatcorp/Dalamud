@@ -99,8 +99,8 @@ namespace Dalamud.Interface
 
                     ImGui.Dummy(new Vector2(10f, 10f));
 
-                    ImGui.Checkbox(Loc.Localize("DalamudSettingToggleUiHide", "Hide plugin UI when the game UI is hidden"), ref this.doToggleUiHide);
-                    ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingToggleUiHideHint", "Check this box to hide any open windows by plugins when toggling the game overlay."));
+                    ImGui.Checkbox(Loc.Localize("DalamudSettingToggleUiHide", "Hide plugin UI when the game UI is hidden and during cutscenes and gpose"), ref this.doToggleUiHide);
+                    ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingToggleUiHideHint", "Check this box to hide any open windows by plugins when toggling the game overlay, or upon entering gpose or a cutscene."));
 
                     ImGui.EndTabItem();
                 }
