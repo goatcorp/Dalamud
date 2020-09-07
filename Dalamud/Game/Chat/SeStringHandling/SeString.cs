@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Dalamud.Game.Chat.SeStringHandling.Payloads;
+using Newtonsoft.Json;
 
 namespace Dalamud.Game.Chat.SeStringHandling
 {
@@ -38,6 +39,7 @@ namespace Dalamud.Game.Chat.SeStringHandling
         /// Creates a new SeString from an ordered list of payloads.
         /// </summary>
         /// <param name="payloads">The Payload objects to make up this string.</param>
+        [JsonConstructor]
         public SeString(List<Payload> payloads)
         {
             Payloads = payloads;

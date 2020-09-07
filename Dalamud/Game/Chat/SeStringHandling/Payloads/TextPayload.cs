@@ -1,3 +1,4 @@
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -13,11 +14,13 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         public override PayloadType Type => PayloadType.RawText;
 
         // allow modifying the text of existing payloads on the fly
+        [JsonProperty]
         private string text;
         /// <summary>
         /// The text contained in this payload.
         /// This may contain SE's special unicode characters.
         /// </summary>
+        [JsonIgnore]
         public string Text
         {
             get { return this.text; }
