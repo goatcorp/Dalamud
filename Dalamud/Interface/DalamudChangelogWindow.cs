@@ -15,7 +15,8 @@ namespace Dalamud.Interface {
         private const string ChangeLog =
             @"* The /xlbonus command was removed - it has been remade as the ""Adventurer in Need"" plugin by Caraxi and is way better now. Please check it out!
 * Plugin UI is now also hidden when in GPose or in a cutscene. You can disable this in the /xlsettings window.
-* Updated the localization files";
+* Updated the localization files
+* Added Norwegian, Korean and Russian localization - thanks a lot to all of our translators! If you wish to join the effort, please check our #translations channel.";
 
         public DalamudChangelogWindow(Dalamud dalamud) {
             this.dalamud = dalamud;
