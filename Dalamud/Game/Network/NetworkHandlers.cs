@@ -179,6 +179,19 @@ namespace Dalamud.Game.Network {
                     request.History.AddRange(listing.HistoryListings);
 
                     Log.Verbose("Added history for item#{0}", listing.CatalogId);
+
+                    if (request.AmountToArrive == 0) {
+                        Log.Verbose("Request had 0 amount, uploading now");
+
+                        try
+                        {
+                            Task.Run(() => this.uploader.Upload(request));
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error(ex, "Market Board data upload failed.");
+                        }
+                    }
                 }
 
                 if (opCode == this.dalamud.Data.ServerOpCodes["MarketTaxRates"])

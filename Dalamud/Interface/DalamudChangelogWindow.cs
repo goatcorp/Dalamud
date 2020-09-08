@@ -15,6 +15,7 @@ namespace Dalamud.Interface {
         private const string ChangeLog =
             @"* The /xlbonus command was removed - it has been remade as the ""Adventurer in Need"" plugin by Caraxi and is way better now. Please check it out!
 * Plugin UI is now also hidden when in GPose or in a cutscene. You can disable this in the /xlsettings window.
+* Universalis will now be updated when a shown item has no listings.
 * Updated the localization files
 * Added Norwegian, Korean and Russian localization - thanks a lot to all of our translators, especially Ridge, Hibiya and xDarkOne! If you wish to join the effort, please check our #translations channel.";
 
