@@ -220,6 +220,8 @@ namespace Dalamud {
             this.SigScanner.Dispose();
             
             this.Data.Dispose();
+
+            this.NetworkHandlers.Dispose();
         }
 
 #region Interface
