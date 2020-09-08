@@ -11,13 +11,11 @@ namespace Dalamud.Interface {
         private readonly Dalamud dalamud;
         private string assemblyVersion = Util.AssemblyVersion;
 
-        private const bool WarrantsChangelog = false;
+        private const bool WarrantsChangelog = true;
         private const string ChangeLog =
-            @"* All plugin windows now hide together with the in-game UI when you toggle it.
-You can change this behaviour with /xlsettings under the ""Look&Feel"" tab.
-* The ""Item hovering"" feature, which was previously broken due to patch 5.3 is now working again.
-* Added some extra infos about the state of the addon to the log, so we can help you better in case you encounter crashes.
-* Added this changelog window.";
+            @"* The /xlbonus command was removed - it has been remade as the ""Adventurer in Need"" plugin by Caraxi and is way better now. Please check it out!
+* Plugin UI is now also hidden when in GPose or in a cutscene. You can disable this in the /xlsettings window.
+* Updated the localization files";
 
         public DalamudChangelogWindow(Dalamud dalamud) {
             this.dalamud = dalamud;
