@@ -180,7 +180,7 @@ namespace Dalamud {
 
         public void Start() {
 #if DEBUG
-            ReplaceExceptionHandler();
+            //ReplaceExceptionHandler();
 #endif
         }
 
