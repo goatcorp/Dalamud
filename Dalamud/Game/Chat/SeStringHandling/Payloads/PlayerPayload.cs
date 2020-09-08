@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Dalamud.Data;
+using Newtonsoft.Json;
 
 namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 {
@@ -14,10 +15,12 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
     {
         public override PayloadType Type => PayloadType.Player;
 
+        [JsonProperty]
         private string playerName;
         /// <summary>
         /// The player's displayed name.  This does not contain the server name.
         /// </summary>
+        [JsonIgnore]
         public string PlayerName
         {
             get { return this.playerName; }
@@ -35,6 +38,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         /// <remarks>
         /// Value is evaluated lazily and cached.
         /// </remarks>
+        [JsonIgnore]
         public World World
         {
             get
@@ -48,8 +52,10 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         /// A text representation of this player link matching how it might appear in-game.
         /// The world name will always be present.
         /// </summary>
+        [JsonIgnore]
         public string DisplayedName => $"{PlayerName}{(char)SeIconChar.CrossWorld}{World.Name}";
 
+        [JsonProperty]
         private uint serverId;
 
         internal PlayerPayload() { }
