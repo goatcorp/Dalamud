@@ -6,6 +6,7 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using CheapLoc;
 using Dalamud.Game;
 using Dalamud.Game.Internal.DXGI;
@@ -207,9 +208,13 @@ namespace Dalamud.Interface
         // Sets up a deferred invocation of font rebuilding, before the next render frame
         public void RebuildFonts()
         {
+            Log.Verbose("[FONT] RebuildFonts() called");
+
             // don't invoke this multiple times per frame, in case multiple plugins call it
             if (!this.isRebuildingFonts)
             {
+                Log.Verbose("[FONT] RebuildFonts() trigger");
+
                 this.isRebuildingFonts = true;
                 this.scene.OnNewRenderFrame += RebuildFontsInternal;
             }
@@ -300,9 +305,17 @@ namespace Dalamud.Interface
             }, GCHandleType.Pinned);
             IconFont = ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPathIcon, 17.0f, null, iconRangeHandle.AddrOfPinnedObject());
 
+            Log.Verbose("[FONT] Invoke OnBuildFonts");
             this.OnBuildFonts?.Invoke();
+            Log.Verbose("[FONT] OnBuildFonts OK!");
+
+            for (var i = 0; i < ImGui.GetIO().Fonts.Fonts.Size; i++) {
+                Log.Verbose("{0} - {1}", i, ImGui.GetIO().Fonts.Fonts[i].GetDebugName());
+            }
 
             ImGui.GetIO().Fonts.Build();
+
+            Log.Verbose("[FONT] Fonts built!");
 
             fontConfig.Destroy();
             japaneseRangeHandle.Free();
@@ -313,10 +326,14 @@ namespace Dalamud.Interface
         // This is intended to only be called as a handler attached to scene.OnNewRenderFrame
         private void RebuildFontsInternal()
         {
+            Log.Verbose("[FONT] RebuildFontsInternal() called");
             SetupFonts();
 
+            Log.Verbose("[FONT] RebuildFontsInternal() detaching");
             this.scene.OnNewRenderFrame -= RebuildFontsInternal;
             this.scene.InvalidateFonts();
+
+            Log.Verbose("[FONT] Font Rebuild OK!");
 
             this.isRebuildingFonts = false;
         }

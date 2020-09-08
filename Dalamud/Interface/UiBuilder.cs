@@ -120,8 +120,11 @@ namespace Dalamud.Interface
         /// This will invoke any <see cref="OnBuildFonts"/> handlers and ensure that any loaded fonts are
         /// ready to be used on the next UI frame.
         /// </summary>
-        public void RebuildFonts() =>
+        public void RebuildFonts()
+        {
+            Log.Verbose("[FONT] {0} plugin is initiating FONT REBUILD", this.namespaceName);
             this.dalamud.InterfaceManager.RebuildFonts();
+        }
 
         /// <summary>
         /// Event that is fired when the plugin should open its configuration interface.
