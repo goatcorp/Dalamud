@@ -92,6 +92,7 @@ namespace Dalamud.Game.ClientState.Actors {
                 return actorStruct.ObjectKind switch {
                     ObjectKind.Player => new PlayerCharacter(offset, actorStruct, this.dalamud),
                     ObjectKind.BattleNpc => new BattleNpc(offset, actorStruct, this.dalamud),
+                    ObjectKind.EventObj => new EventObj(offset, actorStruct, this.dalamud),
                     _ => new Actor(offset, actorStruct, this.dalamud)
                 };
             }
