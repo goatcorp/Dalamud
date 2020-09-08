@@ -13,7 +13,7 @@ namespace Dalamud
     class Localization {
         private readonly string workingDirectory;
 
-        public static readonly string[] ApplicableLangCodes = { "de", "ja", "fr", "it", "es" };
+        public static readonly string[] ApplicableLangCodes = { "de", "ja", "fr", "it", "es", "ko", "no", "ru" };
 
         public Localization(string workingDirectory) {
             this.workingDirectory = workingDirectory;
