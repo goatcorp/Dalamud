@@ -22,8 +22,6 @@ namespace Dalamud.Game.Network {
         private readonly bool optOutMbUploads;
         private readonly IMarketBoardUploader uploader;
 
-        private byte[] lastPreferredRole;
-
         public delegate Task CfPop(ContentFinderCondition cfc);
         public event CfPop ProcessCfPop;
 
