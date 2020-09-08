@@ -34,13 +34,29 @@ Pohky
 
 Localization by:
 
-Truci
-fmauNeko
-Roy
-karashiiro
+Airiel
+Akira
+area402
+Ridge
+availuzje
+CBMaca
+Delaene
+fang2hou
 Miu
+fmauNeko
 qtBxi
-N30n014
+JasonLucas
+karashiiro
+hibiya
+sayumizumi
+N30N014
+Neocrow
+OhagiYamada
+xDarkOne
+Truci
+Roy
+xenris
+Xorus
 
 
 
