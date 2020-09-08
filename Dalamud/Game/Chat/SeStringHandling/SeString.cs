@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Dalamud.Data;
 using Dalamud.Game.Chat.SeStringHandling.Payloads;
 using Newtonsoft.Json;
 
@@ -101,6 +102,44 @@ namespace Dalamud.Game.Chat.SeStringHandling
             }
 
             return messageBytes.ToArray();
+        }
+
+        /// <summary>
+        /// Serializes the SeString to json
+        /// </summary>
+        /// <returns>An json representation of this object</returns>
+        public string ToJson()
+        {
+            return JsonConvert.SerializeObject(this, Formatting.Indented, new JsonSerializerSettings()
+            {
+                PreserveReferencesHandling = PreserveReferencesHandling.Objects,
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+                TypeNameHandling = TypeNameHandling.Auto
+            });
+        }
+
+        /// <summary>
+        /// Creates a SeString from a json. (For testing - not recommended for production use.)
+        /// </summary>
+        /// <param name="json">A serialized SeString produced by ToJson() <see cref="ToJson"/></param>
+        /// <param name="dataManager">An initialized instance of DataManager for Lumina queries.</param>
+        /// <returns>A SeString initialized with values from the json</returns>
+        public static SeString FromJson(string json, DataManager dataManager)
+        {
+            var s = JsonConvert.DeserializeObject<SeString>(json, new JsonSerializerSettings
+            {
+                PreserveReferencesHandling = PreserveReferencesHandling.Objects,
+                TypeNameHandling = TypeNameHandling.Auto,
+                ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor
+            });
+
+            foreach(var payload in s.Payloads)
+            {
+                var dataResolver = payload.GetType().GetField("DataResolver", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                dataResolver.SetValue(payload, dataManager);
+            }
+
+            return s;
         }
     }
 }
