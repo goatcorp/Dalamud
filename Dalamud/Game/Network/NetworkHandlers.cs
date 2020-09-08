@@ -90,60 +90,6 @@ namespace Dalamud.Game.Network {
                 return;
             }
 
-            if (opCode == this.dalamud.Data.ServerOpCodes["CfPreferredRole"]) {
-                if (this.dalamud.Configuration.PreferredRoleReminders == null)
-                    return;
-
-                var data = new byte[64];
-                Marshal.Copy(dataPtr, data, 0, 32);
-
-                if (this.lastPreferredRole == null) {
-                    this.lastPreferredRole = data;
-                    return;
-                }
-
-                Task.Run(async () => {
-                    for (var rouletteIndex = 1; rouletteIndex < 11; rouletteIndex++) {
-                        var currentRoleKey = data[rouletteIndex];
-                        var prevRoleKey = this.lastPreferredRole[rouletteIndex];
-
-                        Log.Verbose("CfPreferredRole: {0} - {1} => {2}", rouletteIndex, prevRoleKey, currentRoleKey);
-
-                        if (currentRoleKey != prevRoleKey) {
-                            var rouletteName = rouletteIndex switch {
-                                1 => "Duty Roulette: Leveling",
-                                2 => "Duty Roulette: Level 50/60/70 Dungeons",
-                                3 => "Duty Roulette: Main Scenario",
-                                4 => "Duty Roulette: Guildhests",
-                                5 => "Duty Roulette: Expert",
-                                6 => "Duty Roulette: Trials",
-                                8 => "Duty Roulette: Mentor",
-                                9 => "Duty Roulette: Alliance Raids",
-                                10 => "Duty Roulette: Normal Raids",
-                                _ => "Unknown ContentRoulette"
-                            };
-
-                            var prevRoleName = RoleKeyToPreferredRole(prevRoleKey);
-                            var currentRoleName = RoleKeyToPreferredRole(currentRoleKey);
-
-                            if (!this.dalamud.Configuration.PreferredRoleReminders.TryGetValue(rouletteIndex, out var roleToCheck))
-                                return;
-
-                            if (roleToCheck == DalamudConfiguration.PreferredRole.All || currentRoleName != roleToCheck)
-                                return;
-
-                            this.dalamud.Framework.Gui.Chat.Print($"Roulette bonus for {rouletteName} changed: {prevRoleName} => {currentRoleName}");
-
-                            if (this.dalamud.BotManager.IsConnected)
-                                await this.dalamud.BotManager.ProcessCfPreferredRoleChange(rouletteName, prevRoleName.ToString(), currentRoleName.ToString());
-                        }
-                    }
-
-                    this.lastPreferredRole = data;
-                });
-                return;
-            }
-
             if (!this.optOutMbUploads) {
                 if (opCode == this.dalamud.Data.ServerOpCodes["MarketBoardItemRequestStart"]) {
                     var catalogId = (uint) Marshal.ReadInt32(dataPtr);
@@ -254,14 +200,5 @@ namespace Dalamud.Game.Network {
                 }
             }
         }
-
-        private DalamudConfiguration.PreferredRole RoleKeyToPreferredRole(int key) => key switch
-        {
-            1 => DalamudConfiguration.PreferredRole.Tank,
-            2 => DalamudConfiguration.PreferredRole.Dps,
-            3 => DalamudConfiguration.PreferredRole.Dps,
-            4 => DalamudConfiguration.PreferredRole.Healer,
-            _ => DalamudConfiguration.PreferredRole.None
-        };
     }
 }
