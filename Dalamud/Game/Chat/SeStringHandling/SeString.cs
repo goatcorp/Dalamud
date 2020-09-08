@@ -135,8 +135,7 @@ namespace Dalamud.Game.Chat.SeStringHandling
 
             foreach(var payload in s.Payloads)
             {
-                var dataResolver = payload.GetType().GetField("DataResolver", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                dataResolver.SetValue(payload, dataManager);
+                payload.DataResolver = dataManager;
             }
 
             return s;
