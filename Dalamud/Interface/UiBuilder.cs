@@ -35,13 +35,26 @@ namespace Dalamud.Interface
         public event RawDX11Scene.BuildUIDelegate OnBuildUi;
 
         /// <summary>
-        /// Choose if this plugin should hide its UI automatically when the whole game hides its UI.
+        /// Choose if this plugin should hide its UI automatically when the whole game hides its UI (e.g. with Scroll Lock).
         /// </summary>
         public bool DisableAutomaticUiHide { get; set; } = false;
 
-        private bool CutsceneOrGposeActive => this.dalamud.ClientState != null && this.dalamud.ClientState.Condition[ConditionFlag.OccupiedInCutSceneEvent] ||
-                                              this.dalamud.ClientState.Condition[ConditionFlag.WatchingCutscene] ||
-                                              this.dalamud.ClientState.Condition[ConditionFlag.WatchingCutscene78];
+        /// <summary>
+        /// Choose if this plugin should hide its UI automatically during cutscenes.
+        /// </summary>
+        public bool DisableCutsceneUiHide { get; set; } = false;
+
+        /// <summary>
+        /// Choose if this plugin should hide its UI automatically while gpose is active.
+        /// </summary>
+        public bool DisableGposeUiHide { get; set; } = false;
+
+        private bool CutsceneActive => this.dalamud.ClientState != null &&
+                                       this.dalamud.ClientState.Condition[ConditionFlag.OccupiedInCutSceneEvent] ||
+                                       this.dalamud.ClientState.Condition[ConditionFlag.WatchingCutscene78];
+
+        private bool GposeActive => this.dalamud.ClientState != null &&
+                                    this.dalamud.ClientState.Condition[ConditionFlag.WatchingCutscene];
 
         private Dalamud dalamud;
 
@@ -135,7 +148,9 @@ namespace Dalamud.Interface
 
         private void OnDraw() {
 
-            if ((this.dalamud.Framework.Gui.GameUiHidden || CutsceneOrGposeActive) && this.dalamud.Configuration.ToggleUiHide && !DisableAutomaticUiHide)
+            if (this.dalamud.Framework.Gui.GameUiHidden && this.dalamud.Configuration.ToggleUiHide && !DisableAutomaticUiHide ||
+                CutsceneActive && this.dalamud.Configuration.ToggleUiHideDuringCutscenes && !DisableCutsceneUiHide ||
+                GposeActive && this.dalamud.Configuration.ToggleUiHideDuringGpose && !DisableGposeUiHide)
                 return;
 
             ImGui.PushID(this.namespaceName);
