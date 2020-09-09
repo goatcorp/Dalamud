@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using Dalamud.Data;
 using Lumina.Excel.GeneratedSheets;
+using Newtonsoft.Json;
 
 namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 {
@@ -22,6 +23,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         /// <remarks>
         /// Value is evaluated lazily and cached.
         /// </remarks>
+        [JsonIgnore]
         public Item Item
         {
             get
@@ -57,8 +59,10 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         /// <summary>
         /// Whether or not this item link is for a high-quality version of the item.
         /// </summary>
+        [JsonProperty]
         public bool IsHQ { get; private set; } = false;
 
+        [JsonProperty]
         private uint itemId;
 
         internal ItemPayload() { }

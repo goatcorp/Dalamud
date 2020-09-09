@@ -51,7 +51,7 @@ namespace Dalamud.Game.Chat.SeStringHandling
         /// <summary>
         /// The Lumina instance to use for any necessary data lookups.
         /// </summary>
-        protected DataManager DataResolver;
+        public DataManager DataResolver;
 
         // private for now, since subclasses shouldn't interact with this
         // To force-invalidate it, Dirty can be set to true
