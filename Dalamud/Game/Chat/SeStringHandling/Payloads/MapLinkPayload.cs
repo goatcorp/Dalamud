@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Dalamud.Data;
+using Newtonsoft.Json;
 
 namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 {
@@ -20,6 +21,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         /// <remarks>
         /// Value is evaluated lazily and cached.
         /// </remarks>
+        [JsonIgnore]
         public Map Map
         {
             get
@@ -36,6 +38,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         /// <remarks>
         /// Value is evaluated lazily and cached.
         /// </remarks>
+        [JsonIgnore]
         public TerritoryType TerritoryType
         {
             get
@@ -70,6 +73,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         /// <summary>
         /// The readable y-coordinate position for this map link.  This value is approximate and unrounded.
         /// </summary>
+        [JsonIgnore]
         public float YCoord
         {
             get
@@ -82,6 +86,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         /// The printable map coordinates for this link.  This value tries to match the in-game printable text as closely as possible
         /// but is an approximation and may be slightly off for some positions.
         /// </summary>
+        [JsonIgnore]
         public string CoordinateString
         {
             get
@@ -102,6 +107,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         /// <summary>
         /// The region name for this map link.  This corresponds to the upper zone name found in the actual in-game map UI.  eg, "La Noscea"
         /// </summary>
+        [JsonIgnore]
         public string PlaceNameRegion
         {
             get
@@ -115,6 +121,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         /// <summary>
         /// The place name for this map link.  This corresponds to the lower zone name found in the actual in-game map UI.  eg, "Limsa Lominsa Upper Decks"
         /// </summary>
+        [JsonIgnore]
         public string PlaceName
         {
             get
@@ -129,7 +136,10 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         /// </summary>
         public string DataString => $"m:{TerritoryType.RowId},{Map.RowId},{RawX},{RawY}";
 
+        [JsonProperty]
         private uint territoryTypeId;
+
+        [JsonProperty]
         private uint mapId;
         // there is no Z; it's purely in the text payload where applicable
 

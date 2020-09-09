@@ -1,3 +1,4 @@
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -20,6 +21,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 
         public override PayloadType Type => PayloadType.Unknown;
 
+        [JsonProperty]
         private byte[] data;
         // this is a bit different from the underlying data
         // We need to store just the chunk data for decode to behave nicely, but when reading data out
@@ -28,6 +30,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         /// The entire payload byte sequence for this payload.
         /// The returned data is a clone and modifications will not be persisted.
         /// </summary>
+        [JsonIgnore]
         public byte[] Data
         {
             get
@@ -38,8 +41,10 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             }
         }
 
+        [JsonProperty]
         private byte chunkType;
 
+        [JsonConstructor]
         internal RawPayload(byte chunkType)
         {
             this.chunkType = chunkType;

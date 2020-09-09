@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -179,7 +180,7 @@ namespace Dalamud {
 
         public void Start() {
 #if DEBUG
-            ReplaceExceptionHandler();
+            //ReplaceExceptionHandler();
 #endif
         }
 
@@ -249,6 +250,31 @@ namespace Dalamud {
 
         private void BuildDalamudUi()
         {
+            if (!this.isImguiDrawDevMenu && !ClientState.Condition.Any())
+            {
+                ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0, 0, 0, 0));
+                ImGui.PushStyleColor(ImGuiCol.ButtonActive, new Vector4(0, 0, 0, 0));
+                ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Vector4(0, 0, 0, 0));
+                ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0, 0, 0, 1));
+                ImGui.PushStyleColor(ImGuiCol.TextSelectedBg, new Vector4(0, 0, 0, 1));
+                ImGui.PushStyleColor(ImGuiCol.Border, new Vector4(0, 0, 0, 1));
+                ImGui.PushStyleColor(ImGuiCol.BorderShadow, new Vector4(0, 0, 0, 1));
+                ImGui.PushStyleColor(ImGuiCol.WindowBg, new Vector4(0, 0, 0, 1));
+
+                ImGui.SetNextWindowPos(new Vector2(0, 0), ImGuiCond.Always);
+                ImGui.SetNextWindowBgAlpha(1);
+
+                if (ImGui.Begin("DevMenu Opener", ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoSavedSettings))
+                {
+                    if (ImGui.Button("###devMenuOpener", new Vector2(40, 25)))
+                        this.isImguiDrawDevMenu = true;
+
+                    ImGui.End();
+                }
+
+                ImGui.PopStyleColor(5);
+            }
+
             if (this.isImguiDrawDevMenu)
             {
                 if (ImGui.BeginMainMenuBar())
@@ -515,10 +541,6 @@ namespace Dalamud {
             });
 #endif
 
-            CommandManager.AddHandler("/xlbonus", new CommandInfo(OnRouletteBonusNotifyCommand) {
-                HelpMessage = Loc.Localize("DalamudBonusHelp", "Notify when a roulette has a bonus you specified. Run without parameters for more info. Usage: /xlbonus <roulette name> <role name>")
-            });
-
             CommandManager.AddHandler("/xldev", new CommandInfo(OnDebugDrawDevMenu) {
                 HelpMessage = Loc.Localize("DalamudDevMenuHelp", "Draw dev menu DEBUG"),
                 ShowInHelp = false
@@ -669,46 +691,6 @@ namespace Dalamud {
         }
 #endif
 
-        private void OnRouletteBonusNotifyCommand(string command, string arguments)
-        {
-            if (this.Configuration.DiscordFeatureConfig.CfPreferredRoleChannel == null)
-                Framework.Gui.Chat.PrintError(Loc.Localize("DalamudChannelNotSetup", "You have not set up a discord channel for these notifications - you will only receive them in chat. To do this, please use the XIVLauncher in-game settings."));
-
-            if (string.IsNullOrEmpty(arguments))
-                goto InvalidArgs;
-
-            var argParts = arguments.Split();
-            if (argParts.Length < 2)
-                goto InvalidArgs;
-
-
-            if (this.Configuration.PreferredRoleReminders == null)
-                this.Configuration.PreferredRoleReminders = new Dictionary<int, DalamudConfiguration.PreferredRole>();
-
-            var rouletteIndex = RouletteSlugToKey(argParts[0]);
-
-            if (rouletteIndex == 0)
-                goto InvalidArgs;
-
-            if (!Enum.TryParse(argParts[1].First().ToString().ToUpper() + argParts[1].ToLower().Substring(1), out DalamudConfiguration.PreferredRole role))
-                goto InvalidArgs;
-
-            if (this.Configuration.PreferredRoleReminders.ContainsKey(rouletteIndex))
-                this.Configuration.PreferredRoleReminders[rouletteIndex] = role;
-            else
-                this.Configuration.PreferredRoleReminders.Add(rouletteIndex, role);
-
-            this.Framework.Gui.Chat.Print($"Set bonus notifications for {argParts[0]}({rouletteIndex}) to {role}");
-            this.Framework.Gui.Chat.Print(string.Format(Loc.Localize("DalamudBonusSet", "Set bonus notifications for {0}({1}) to {2}"), argParts[0], rouletteIndex, role));
-            this.Configuration.Save();
-
-            return;
-
-            InvalidArgs:
-            this.Framework.Gui.Chat.PrintError(Loc.Localize("DalamudInvalidArguments", "Unrecognized arguments."));
-            this.Framework.Gui.Chat.Print(Loc.Localize("DalamudBonusPossibleValues", "Possible values for roulette: leveling, 506070, msq, guildhests, expert, trials, mentor, alliance, normal\nPossible values for role: tank, dps, healer, all, none/reset"));
-        }
-
         private void OnDebugDrawDevMenu(string command, string arguments) {
             this.isImguiDrawDevMenu = !this.isImguiDrawDevMenu;
         }
@@ -789,27 +771,5 @@ namespace Dalamud {
                 }
             });
         }
-
-        private int RouletteSlugToKey(string slug) => slug.ToLower() switch {
-            "leveling" => 1,
-            "506070" => 2,
-            "msq" => 3,
-            "guildhests" => 4,
-            "expert" => 5,
-            "trials" => 6,
-            "mentor" => 8,
-            "alliance" => 9,
-            "normal" => 10,
-            _ => 0
-        };
-
-        private DalamudConfiguration.PreferredRole RoleNameToPreferredRole(string name) => name.ToLower() switch
-        {
-            "Tank" => DalamudConfiguration.PreferredRole.Tank,
-            "Healer" => DalamudConfiguration.PreferredRole.Healer,
-            "Dps" => DalamudConfiguration.PreferredRole.Dps,
-            "All" => DalamudConfiguration.PreferredRole.All,
-            _ => DalamudConfiguration.PreferredRole.None
-        };
     }
 }

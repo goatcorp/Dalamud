@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using Dalamud.Data;
 using Dalamud.Data.TransientSheet;
+using Newtonsoft.Json;
 
 namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 {
@@ -34,7 +35,10 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             }
         }
 
+        [JsonProperty]
         private uint group;
+
+        [JsonProperty]
         private uint key;
 
         internal AutoTranslatePayload() { }

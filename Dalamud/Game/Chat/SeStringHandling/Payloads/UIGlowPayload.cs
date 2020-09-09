@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Dalamud.Data;
+using Newtonsoft.Json;
 
 namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 {
@@ -31,6 +32,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         /// <remarks>
         /// Value is evaluated lazily and cached.
         /// </remarks>
+        [JsonIgnore]
         public UIColor UIColor
         {
             get
@@ -43,6 +45,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         /// <summary>
         /// The color key used as a lookup in the UIColor table for this glow color.
         /// </summary>
+        [JsonIgnore]
         public ushort ColorKey
         {
             get { return this.colorKey; }
@@ -57,6 +60,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         /// <summary>
         /// The Red/Green/Blue values for this glow color, encoded as a typical hex color.
         /// </summary>
+        [JsonIgnore]
         public uint RGB
         {
             get
@@ -65,6 +69,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             }
         }
 
+        [JsonProperty]
         private ushort colorKey;
 
         internal UIGlowPayload() { }

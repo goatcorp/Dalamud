@@ -18,17 +18,6 @@ namespace Dalamud
 
         public List<string> BadWords { get; set; }
 
-        public enum PreferredRole
-        {
-            None,
-            All,
-            Tank,
-            Dps,
-            Healer
-        }
-
-        public Dictionary<int, PreferredRole> PreferredRoleReminders { get; set; }
-
         public bool DutyFinderTaskbarFlash { get; set; } = true;
         public bool DutyFinderChatMessage { get; set; } = true;
 

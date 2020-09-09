@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Dalamud.Data;
+using Newtonsoft.Json;
 
 namespace Dalamud.Game.Chat.SeStringHandling.Payloads
 {
@@ -20,6 +21,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
         /// <remarks>
         /// Value is evaluated lazily and cached.
         /// </remarks>
+        [JsonIgnore]
         public Status Status
         {
             get
@@ -29,6 +31,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             }
         }
 
+        [JsonProperty]
         private uint statusId;
 
         internal StatusPayload() { }

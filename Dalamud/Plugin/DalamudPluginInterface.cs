@@ -75,7 +75,7 @@ namespace Dalamud.Plugin
             this.CommandManager = dalamud.CommandManager;
             this.Framework = dalamud.Framework;
             this.ClientState = dalamud.ClientState;
-            this.UiBuilder = new UiBuilder(dalamud.InterfaceManager, dalamud.Framework.Gui, dalamud.Configuration, pluginName);
+            this.UiBuilder = new UiBuilder(dalamud, pluginName);
             this.TargetModuleScanner = dalamud.SigScanner;
             this.Data = dalamud.Data;
             this.SeStringManager = dalamud.SeStringManager;
