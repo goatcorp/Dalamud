@@ -15,7 +15,7 @@ namespace Dalamud.Plugin
     internal class PluginRepository
     {
         private string PluginRepoBaseUrl => "https://raw.githubusercontent.com/goatcorp/DalamudPlugins/testing/plugins/{0}/latest.zip";
-        private string PluginFunctionBaseUrl => "https://us-central1-xl-functions.cloudfunctions.net/download-plugin/?plugin={0}";
+        private string PluginFunctionBaseUrl => "https://us-central1-xl-functions.cloudfunctions.net/download-plugin/?plugin={0}&isUpdate={1}";
         private string PluginMasterUrl => "https://raw.githubusercontent.com/goatcorp/DalamudPlugins/" + (this.dalamud.Configuration.DoPluginTest ? "testing/" : "master/") + "pluginmaster.json";
 
 
@@ -66,7 +66,7 @@ namespace Dalamud.Plugin
             });
         }
 
-        public bool InstallPlugin(PluginDefinition definition, bool enableAfterInstall = true) {
+        public bool InstallPlugin(PluginDefinition definition, bool enableAfterInstall = true, bool isUpdate = false) {
             try
             {
                 var outputDir = new DirectoryInfo(Path.Combine(this.pluginDirectory, definition.InternalName, definition.AssemblyVersion));
@@ -99,7 +99,7 @@ namespace Dalamud.Plugin
                 using var client = new WebClient();
 
                 var url = this.dalamud.Configuration.DoPluginTest ? PluginRepoBaseUrl : PluginFunctionBaseUrl;
-                url = string.Format(url, definition.InternalName);
+                url = string.Format(url, definition.InternalName, isUpdate);
                 Log.Information("Downloading plugin to {0} from {1}", path, url);
 
                 client.DownloadFile(url, path);
@@ -211,7 +211,7 @@ namespace Dalamud.Plugin
                                     Log.Error(ex, "Plugin disable old versions failed");
                                 }
 
-                                var installSuccess = InstallPlugin(remoteInfo, wasEnabled);
+                                var installSuccess = InstallPlugin(remoteInfo, wasEnabled, true);
 
                                 if (!installSuccess) {
                                     Log.Error("InstallPlugin failed.");
