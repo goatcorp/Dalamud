@@ -35,13 +35,31 @@ namespace Dalamud.Interface
         public event RawDX11Scene.BuildUIDelegate OnBuildUi;
 
         /// <summary>
-        /// Choose if this plugin should hide its UI automatically when the whole game hides its UI.
+        /// Choose if this plugin should hide its UI automatically when the game's UI is hidden.
         /// </summary>
         public bool DisableAutomaticUiHide { get; set; } = false;
 
-        private bool CutsceneOrGposeActive => this.dalamud.ClientState != null && this.dalamud.ClientState.Condition[ConditionFlag.OccupiedInCutSceneEvent] ||
-                                              this.dalamud.ClientState.Condition[ConditionFlag.WatchingCutscene] ||
-                                              this.dalamud.ClientState.Condition[ConditionFlag.WatchingCutscene78];
+        /// <summary>
+        /// Choose if this plugin should hide its UI automatically when the user toggles the UI.
+        /// </summary>
+        public bool DisableUserUiHide { get; set; } = false;
+
+        /// <summary>
+        /// Choose if this plugin should hide its UI automatically during cutscenes.
+        /// </summary>
+        public bool DisableCutsceneUiHide { get; set; } = false;
+
+        /// <summary>
+        /// Choose if this plugin should hide its UI automatically while gpose is active.
+        /// </summary>
+        public bool DisableGposeUiHide { get; set; } = false;
+
+        private bool CutsceneActive => this.dalamud.ClientState != null &&
+                                       this.dalamud.ClientState.Condition[ConditionFlag.OccupiedInCutSceneEvent] ||
+                                       this.dalamud.ClientState.Condition[ConditionFlag.WatchingCutscene78];
+
+        private bool GposeActive => this.dalamud.ClientState != null &&
+                                    this.dalamud.ClientState.Condition[ConditionFlag.WatchingCutscene];
 
         private Dalamud dalamud;
 
@@ -107,7 +125,7 @@ namespace Dalamud.Interface
         /// Any ImFontPtr objects that you store <strong>can be invalidated</strong> when fonts are rebuilt
         /// (at any time), so you should both reload your custom fonts and restore those
         /// pointers inside this handler.<br/>
-        /// <strong>PLEASE remove this handler inside Dipose, or when you no longer need your fonts!</strong>
+        /// <strong>PLEASE remove this handler inside Dispose, or when you no longer need your fonts!</strong>
         /// </summary>
         public Action OnBuildFonts
         {
@@ -135,7 +153,9 @@ namespace Dalamud.Interface
 
         private void OnDraw() {
 
-            if ((this.dalamud.Framework.Gui.GameUiHidden || CutsceneOrGposeActive) && this.dalamud.Configuration.ToggleUiHide && !DisableAutomaticUiHide)
+            if (this.dalamud.Framework.Gui.GameUiHidden && this.dalamud.Configuration.ToggleUiHide && !(DisableUserUiHide || DisableAutomaticUiHide) ||
+                CutsceneActive && this.dalamud.Configuration.ToggleUiHideDuringCutscenes && !(DisableCutsceneUiHide || DisableAutomaticUiHide) ||
+                GposeActive && this.dalamud.Configuration.ToggleUiHideDuringGpose && !(DisableGposeUiHide || DisableAutomaticUiHide))
                 return;
 
             ImGui.PushID(this.namespaceName);

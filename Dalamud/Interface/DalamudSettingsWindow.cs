@@ -21,6 +21,8 @@ namespace Dalamud.Interface
 
             this.globalUiScale = this.dalamud.Configuration.GlobalUiScale;
             this.doToggleUiHide = this.dalamud.Configuration.ToggleUiHide;
+            this.doToggleUiHideDuringCutscenes = this.dalamud.Configuration.ToggleUiHideDuringCutscenes;
+            this.doToggleUiHideDuringGpose = this.dalamud.Configuration.ToggleUiHideDuringGpose;
 
             this.doPluginTest = this.dalamud.Configuration.DoPluginTest;
             this.doDalamudTest = this.dalamud.Configuration.DoDalamudTest;
@@ -45,6 +47,8 @@ namespace Dalamud.Interface
         private const float MaxScale = 2.0f;
         private float globalUiScale;
         private bool doToggleUiHide;
+        private bool doToggleUiHideDuringCutscenes;
+        private bool doToggleUiHideDuringGpose;
 
         #region Experimental
 
@@ -97,10 +101,18 @@ namespace Dalamud.Interface
 
                     ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingsGlobalUiScaleHint", "Scale all XIVLauncher UI elements - useful for 4K displays."));
 
-                    ImGui.Dummy(new Vector2(10f, 10f));
+                    ImGui.Dummy(new Vector2(10f, 16f));
 
-                    ImGui.Checkbox(Loc.Localize("DalamudSettingToggleUiHide", "Hide plugin UI when the game UI is hidden and during cutscenes and gpose"), ref this.doToggleUiHide);
-                    ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingToggleUiHideHint", "Check this box to hide any open windows by plugins when toggling the game overlay, or upon entering gpose or a cutscene."));
+                    ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingToggleUiHideOptOutNote", "Plugins may independently opt out of the settings below."));
+
+                    ImGui.Checkbox(Loc.Localize("DalamudSettingToggleUiHide", "Hide plugin UI when the game UI is toggled off."), ref this.doToggleUiHide);
+                    ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingToggleUiHideHint", "Check this box to hide any open windows by plugins when toggling the game overlay."));
+
+                    ImGui.Checkbox(Loc.Localize("DalamudSettingToggleUiHideDuringCutscenes", "Hide plugin UI during cutscenes."), ref this.doToggleUiHideDuringCutscenes);
+                    ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingToggleUiHideDuringCutscenesHint", "Check this box to hide any open windows by plugins during cutscenes."));
+
+                    ImGui.Checkbox(Loc.Localize("DalamudSettingToggleUiHideDuringGpose", "Hide plugin UI while gpose is active."), ref this.doToggleUiHideDuringGpose);
+                    ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingToggleUiHideDuringGposeHint", "Check this box to hide any open windows by plugins while gpose is active."));
 
                     ImGui.EndTabItem();
                 }
@@ -150,6 +162,8 @@ namespace Dalamud.Interface
 
             this.dalamud.Configuration.GlobalUiScale = this.globalUiScale;
             this.dalamud.Configuration.ToggleUiHide = this.doToggleUiHide;
+            this.dalamud.Configuration.ToggleUiHideDuringCutscenes = this.doToggleUiHideDuringCutscenes;
+            this.dalamud.Configuration.ToggleUiHideDuringGpose = this.doToggleUiHideDuringGpose;
 
             this.dalamud.Configuration.DoPluginTest = this.doPluginTest;
             this.dalamud.Configuration.DoDalamudTest = this.doDalamudTest;

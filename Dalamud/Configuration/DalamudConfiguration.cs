@@ -32,6 +32,8 @@ namespace Dalamud
 
         public float GlobalUiScale { get; set; } = 1.0f;
         public bool ToggleUiHide { get; set; } = true;
+        public bool ToggleUiHideDuringCutscenes { get; set; } = true;
+        public bool ToggleUiHideDuringGpose { get; set; } = true;
 
         [JsonIgnore]
         public string ConfigPath;
