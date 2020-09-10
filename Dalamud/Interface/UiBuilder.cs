@@ -35,9 +35,14 @@ namespace Dalamud.Interface
         public event RawDX11Scene.BuildUIDelegate OnBuildUi;
 
         /// <summary>
-        /// Choose if this plugin should hide its UI automatically when the whole game hides its UI (e.g. with Scroll Lock).
+        /// Choose if this plugin should hide its UI automatically when the game's UI is hidden.
         /// </summary>
         public bool DisableAutomaticUiHide { get; set; } = false;
+
+        /// <summary>
+        /// Choose if this plugin should hide its UI automatically when the user toggles the UI.
+        /// </summary>
+        public bool DisableUserUiHide { get; set; } = false;
 
         /// <summary>
         /// Choose if this plugin should hide its UI automatically during cutscenes.
@@ -120,7 +125,7 @@ namespace Dalamud.Interface
         /// Any ImFontPtr objects that you store <strong>can be invalidated</strong> when fonts are rebuilt
         /// (at any time), so you should both reload your custom fonts and restore those
         /// pointers inside this handler.<br/>
-        /// <strong>PLEASE remove this handler inside Dipose, or when you no longer need your fonts!</strong>
+        /// <strong>PLEASE remove this handler inside Dispose, or when you no longer need your fonts!</strong>
         /// </summary>
         public Action OnBuildFonts
         {
@@ -148,9 +153,9 @@ namespace Dalamud.Interface
 
         private void OnDraw() {
 
-            if (this.dalamud.Framework.Gui.GameUiHidden && this.dalamud.Configuration.ToggleUiHide && !DisableAutomaticUiHide ||
-                CutsceneActive && this.dalamud.Configuration.ToggleUiHideDuringCutscenes && !DisableCutsceneUiHide ||
-                GposeActive && this.dalamud.Configuration.ToggleUiHideDuringGpose && !DisableGposeUiHide)
+            if (this.dalamud.Framework.Gui.GameUiHidden && this.dalamud.Configuration.ToggleUiHide && !(DisableUserUiHide || DisableAutomaticUiHide) ||
+                CutsceneActive && this.dalamud.Configuration.ToggleUiHideDuringCutscenes && !(DisableCutsceneUiHide || DisableAutomaticUiHide) ||
+                GposeActive && this.dalamud.Configuration.ToggleUiHideDuringGpose && !(DisableGposeUiHide || DisableAutomaticUiHide))
                 return;
 
             ImGui.PushID(this.namespaceName);

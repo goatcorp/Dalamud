@@ -1,13 +1,9 @@
 using System;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading;
-using CheapLoc;
 using Dalamud.Game;
 using Dalamud.Game.Internal.DXGI;
 using Dalamud.Hooking;
