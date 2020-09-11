@@ -75,7 +75,7 @@ namespace Dalamud.Game.ClientState.Actors.Types {
         /// <summary>
         ///  Status Effects
         /// </summary>
-        public StatusEffect[] statusEffects => this.actorStruct.UIStatusEffects;
+        public StatusEffect[] StatusEffects => this.actorStruct.UIStatusEffects;
 
         bool IEquatable<Actor>.Equals(Actor other) => this.ActorId == other.ActorId;
     }
