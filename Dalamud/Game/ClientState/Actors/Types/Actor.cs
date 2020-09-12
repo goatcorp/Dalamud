@@ -1,4 +1,7 @@
+using Dalamud.Game.ClientState.Structs;
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Dalamud.Game.ClientState.Actors.Types {
     /// <summary>
@@ -71,6 +74,65 @@ namespace Dalamud.Game.ClientState.Actors.Types {
         /// </summary>
         public virtual int TargetActorID => 0;
 
+        /// <summary>
+        /// Actor render mode
+        /// </summary>
+        public RenderMode RenderMode => this.actorStruct.RenderMode;
+
         bool IEquatable<Actor>.Equals(Actor other) => this.ActorId == other.ActorId;
+
+        /// <summary>
+        /// Hides the actor
+        /// </summary>
+        public unsafe void Hide()
+        {
+            Task.Run(() => 
+            {
+                var player = ObjectKind == ObjectKind.Player;
+                var kind = (ObjectKind*)(Address + ActorOffsets.ObjectKind);
+                var render = (RenderMode*)(Address + ActorOffsets.RenderMode);
+
+                if (player)
+                {
+                    *kind = ObjectKind.BattleNpc;
+                }
+
+                *render = RenderMode.Invisible;
+
+                if (player)
+                {
+                    Thread.Sleep(100);
+                    *kind = ObjectKind.Player;
+                }
+            });
+        }
+
+        /// <summary>
+        /// "Re-Renders" the actor
+        /// </summary>
+        public unsafe void ReRender()
+        {
+            Task.Run(() =>
+            {
+                var player = ObjectKind == ObjectKind.Player;
+                var kind = (ObjectKind*)(Address + ActorOffsets.ObjectKind);
+                var render = (RenderMode*)(Address + ActorOffsets.RenderMode);
+
+                if (player)
+                {
+                    *kind = ObjectKind.BattleNpc;
+                }
+
+                *render = RenderMode.Invisible;
+                Thread.Sleep(100);
+                *render = RenderMode.None;
+
+                if (player)
+                {
+                    Thread.Sleep(100);
+                    *kind = ObjectKind.Player;
+                }
+            });
+        }
     }
 }
