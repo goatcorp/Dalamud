@@ -11,7 +11,7 @@ namespace Dalamud.Interface {
         private readonly Dalamud dalamud;
         private string assemblyVersion = Util.AssemblyVersion;
 
-        private const bool WarrantsChangelog = true;
+        private const bool WarrantsChangelog = false;
         private const string ChangeLog =
             @"* The /xlbonus command was removed - it has been remade as the ""Adventurer in Need"" plugin by Caraxi and is way better now. Please check it out!
 * Plugin UI is now also hidden when in GPose or in a cutscene. You can disable this in the /xlsettings window.
