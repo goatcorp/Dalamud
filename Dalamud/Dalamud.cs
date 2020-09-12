@@ -546,6 +546,11 @@ namespace Dalamud {
                 ShowInHelp = false
             });
 
+            CommandManager.AddHandler("/xllog", new CommandInfo(OnOpenLog) {
+                HelpMessage = Loc.Localize("DalamudDevLogHelp", "Open dev log DEBUG"),
+                ShowInHelp = false
+            });
+
             CommandManager.AddHandler("/xlplugins", new CommandInfo(OnOpenInstallerCommand) {
                 HelpMessage = Loc.Localize("DalamudInstallerHelp", "Open the plugin installer")
             });
@@ -693,6 +698,11 @@ namespace Dalamud {
 
         private void OnDebugDrawDevMenu(string command, string arguments) {
             this.isImguiDrawDevMenu = !this.isImguiDrawDevMenu;
+        }
+
+        private void OnOpenLog(string command, string arguments) {
+            this.logWindow = new DalamudLogWindow(CommandManager);
+            this.isImguiDrawLogWindow = true;
         }
 
         private void OnDebugImInfoCommand(string command, string arguments) {
