@@ -469,20 +469,13 @@ namespace Dalamud {
                 this.isImguiDrawChangelogWindow = this.changelogWindow != null && this.changelogWindow.Draw();
             }
         }
-        internal void OpenPluginInstaller(bool toggle = false) {
-            if (!toggle)
+        internal void OpenPluginInstaller()
+        {
+            if (this.pluginWindow == null)
             {
                 this.pluginWindow = new PluginInstallerWindow(this, this.StartInfo.GameVersion);
-                this.isImguiDrawPluginWindow = true;
             }
-            else
-            {
-                if (this.pluginWindow == null)
-                {
-                    this.pluginWindow = new PluginInstallerWindow(this, this.StartInfo.GameVersion);
-                }
-                this.isImguiDrawPluginWindow ^= true;
-            }
+            this.isImguiDrawPluginWindow ^= true;
         }
 
         internal void OpenChangelog() {
@@ -728,15 +721,9 @@ namespace Dalamud {
             Log.Information(info);
         }
 
-        private void OnOpenInstallerCommand(string command, string arguments) {
-            if (arguments == "toggle" || arguments == "t")
-            {
-                OpenPluginInstaller(toggle: true);
-            }
-            else
-            {
-                OpenPluginInstaller();
-            }
+        private void OnOpenInstallerCommand(string command, string arguments)
+        {
+            OpenPluginInstaller();
         }
 
         private void OnOpenCreditsCommand(string command, string arguments)
