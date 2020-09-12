@@ -272,7 +272,7 @@ namespace Dalamud {
                     ImGui.End();
                 }
 
-                ImGui.PopStyleColor(7);
+                ImGui.PopStyleColor(8);
             }
 
             if (this.isImguiDrawDevMenu)
