@@ -221,17 +221,17 @@ namespace Dalamud.Game.Internal.Gui {
             while (this.chatQueue.Count > 0) {
                 var chat = this.chatQueue.Dequeue();
 
-                var sender = chat.Name ?? "";
-                var message = chat.MessageBytes ?? new byte[0];
+                if (this.baseAddress == IntPtr.Zero) {
+                    continue;
+                }
 
-                if (this.baseAddress != IntPtr.Zero)
-                    using (var senderVec = framework.Libc.NewString(Encoding.UTF8.GetBytes(sender)))
-                    using (var messageVec = framework.Libc.NewString(message))
-                    {
-                        Log.Verbose($"String allocated to {messageVec.Address.ToInt64():X}");
-                        this.printMessageHook.Original(this.baseAddress, chat.Type, senderVec.Address,
-                                                       messageVec.Address, chat.SenderId, chat.Parameters);
-                    }
+                var senderRaw = Encoding.UTF8.GetBytes(chat.Name ?? "");
+                using var senderOwned = framework.Libc.NewString(senderRaw);
+
+                var messageRaw = chat.MessageBytes ?? new byte[0];
+                using var messageOwned = framework.Libc.NewString(messageRaw);
+
+                this.HandlePrintMessageDetour(this.baseAddress, chat.Type, senderOwned.Address, messageOwned.Address, chat.SenderId, chat.Parameters);
             }
         }
     }
