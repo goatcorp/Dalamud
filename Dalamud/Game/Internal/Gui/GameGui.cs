@@ -48,6 +48,14 @@ namespace Dalamud.Game.Internal.Gui {
         private delegate IntPtr ToggleUiHideDelegate(IntPtr thisPtr, byte unknownByte);
         private readonly Hook<ToggleUiHideDelegate> toggleUiHideHook;
 
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate IntPtr GetBaseUIObjectDelegate();
+        private readonly GetBaseUIObjectDelegate getBaseUIObject;
+
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall, CharSet = CharSet.Ansi)]
+        private delegate IntPtr GetUIObjectByNameDelegate(IntPtr thisPtr, string uiName, int index);
+        private readonly GetUIObjectByNameDelegate getUIObjectByName;
+
         public bool GameUiHidden { get; private set; }
 
         /// <summary>
@@ -103,6 +111,9 @@ namespace Dalamud.Game.Internal.Gui {
                 Marshal.GetDelegateForFunctionPointer<ScreenToWorldNativeDelegate>(Address.ScreenToWorld);
 
             this.toggleUiHideHook = new Hook<ToggleUiHideDelegate>(Address.ToggleUiHide, new ToggleUiHideDelegate(ToggleUiHideDetour), this);
+
+            this.getBaseUIObject = Marshal.GetDelegateForFunctionPointer<GetBaseUIObjectDelegate>(Address.GetBaseUIObject);
+            this.getUIObjectByName = Marshal.GetDelegateForFunctionPointer<GetUIObjectByNameDelegate>(Address.GetUIObjectByName);
         }
 
         private IntPtr HandleSetGlobalBgmDetour(UInt16 bgmKey, byte a2, UInt32 a3, UInt32 a4, UInt32 a5, byte a6) {
@@ -304,6 +315,27 @@ namespace Dalamud.Game.Internal.Gui {
             Log.Debug("UiHide toggled: {0}", GameUiHidden);
 
             return this.toggleUiHideHook.Original(thisPtr, unknownByte);
+        }
+
+        /// <summary>
+        /// Gets the pointer to the UI Object with the given name and index.
+        /// </summary>
+        /// <param name="name">Name of UI to find</param>
+        /// <param name="index">Index of UI to find (1-indexed)</param>
+        /// <returns>IntPtr.Zero if unable to find UI, otherwise IntPtr pointing to the start of the UI Object</returns>
+        public IntPtr GetUiObjectByName(string name, int index) {
+            var baseUi = this.getBaseUIObject();
+            if (baseUi == IntPtr.Zero) return IntPtr.Zero;
+            var baseUiProperties = Marshal.ReadIntPtr(baseUi, 0x20);
+            if (baseUiProperties == IntPtr.Zero) return IntPtr.Zero;
+            return this.getUIObjectByName(baseUiProperties, name, index);
+        }
+
+        public Addon.Addon GetAddonByName(string name, int index) {
+            var addonMem = GetUiObjectByName(name, index);
+            if (addonMem == IntPtr.Zero) return null;
+            var addonStruct = Marshal.PtrToStructure<Structs.Addon>(addonMem);
+            return new Addon.Addon(addonMem, addonStruct);
         }
 
         public void SetBgm(ushort bgmKey) => this.setGlobalBgmHook.Original(bgmKey, 0, 0, 0, 0, 0); 
