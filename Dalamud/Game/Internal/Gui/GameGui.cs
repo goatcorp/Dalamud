@@ -331,6 +331,13 @@ namespace Dalamud.Game.Internal.Gui {
             return this.getUIObjectByName(baseUiProperties, name, index);
         }
 
+        public Addon.Addon GetAddonByName(string name, int index) {
+            var addonMem = GetUiObjectByName(name, index);
+            if (addonMem == IntPtr.Zero) return null;
+            var addonStruct = Marshal.PtrToStructure<Structs.Addon>(addonMem);
+            return new Addon.Addon(addonMem, addonStruct);
+        }
+
         public void SetBgm(ushort bgmKey) => this.setGlobalBgmHook.Original(bgmKey, 0, 0, 0, 0, 0); 
 
         public void Enable() {
