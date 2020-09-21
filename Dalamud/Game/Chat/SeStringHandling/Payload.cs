@@ -178,6 +178,10 @@ namespace Dalamud.Game.Chat.SeStringHandling
                     payload = new UIGlowPayload();
                     break;
 
+                case SeStringChunkType.Icon:
+                    payload = new IconPayload();
+                    break;
+
                 default:
                     Log.Verbose("Unhandled SeStringChunkType: {0}", chunkType);
                     break;
@@ -208,6 +212,7 @@ namespace Dalamud.Game.Chat.SeStringHandling
 
         protected enum SeStringChunkType
         {
+            Icon = 0x12,
             EmphasisItalic = 0x1A,
             Interactable = 0x27,
             AutoTranslateKey = 0x2E,

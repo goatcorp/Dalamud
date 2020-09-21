@@ -43,6 +43,10 @@ namespace Dalamud.Game.Chat.SeStringHandling
         /// </summary>
         EmphasisItalic,
         /// <summary>
+        /// An SeString payload representing a bitmap icon.
+        /// </summary>
+        Icon,
+        /// <summary>
         /// An SeString payload representing any data we don't handle.
         /// </summary>
         Unknown
