@@ -111,11 +111,7 @@ namespace Dalamud {
                 else
                     this.LocalizationManager.SetupWithUiCulture();
 
-                var pluginDir = this.StartInfo.PluginDirectory;
-                if (this.Configuration.DoPluginTest)
-                    pluginDir = Path.Combine(pluginDir, "..", "testPlugins");
-
-                PluginRepository = new PluginRepository(this, pluginDir, this.StartInfo.GameVersion);
+                PluginRepository = new PluginRepository(this, this.StartInfo.PluginDirectory, this.StartInfo.GameVersion);
 
                 var isInterfaceLoaded = false;
                 if (!bool.Parse(Environment.GetEnvironmentVariable("DALAMUD_NOT_HAVE_INTERFACE") ?? "false")) {
