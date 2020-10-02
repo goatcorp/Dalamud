@@ -100,8 +100,6 @@ namespace Dalamud.Plugin
 
                     didAnyWithSearch = true;
 
-                    ImGui.PushID(pluginDefinition.InternalName + pluginDefinition.AssemblyVersion);
-
                     var isInstalled = this.dalamud.PluginManager.Plugins.Where(x => x.Definition != null).Any(
                         x => x.Definition.InternalName == pluginDefinition.InternalName);
 
@@ -116,6 +114,20 @@ namespace Dalamud.Plugin
                                 ? Loc.Localize("InstallerUpdateFailed", " (update failed)")
                                 : label;
 
+                    var isTestingAvailable = false;
+                    if (Version.TryParse(pluginDefinition.AssemblyVersion, out var assemblyVersion) && Version.TryParse(pluginDefinition.TestingAssemblyVersion, out var testingAssemblyVersion))
+                        isTestingAvailable = this.dalamud.Configuration.DoPluginTest && testingAssemblyVersion > assemblyVersion;
+
+                    if (this.dalamud.Configuration.DoPluginTest && pluginDefinition.IsTestingExclusive) {
+                        isTestingAvailable = true;
+                    } else if (!this.dalamud.Configuration.DoPluginTest && pluginDefinition.IsTestingExclusive) {
+                        continue;
+                    }
+
+                    label += isTestingAvailable ? " (Testing version)" : string.Empty;
+
+                    ImGui.PushID(pluginDefinition.InternalName + pluginDefinition.AssemblyVersion);
+
                     if (ImGui.CollapsingHeader(pluginDefinition.Name + label + "###Header" + pluginDefinition.InternalName)) {
                         ImGui.Indent();
 
@@ -129,10 +141,12 @@ namespace Dalamud.Plugin
                             if (this.installStatus == PluginInstallStatus.InProgress) {
                                 ImGui.Button(Loc.Localize("InstallerInProgress", "Install in progress..."));
                             } else {
-                                if (ImGui.Button($"Install v{pluginDefinition.AssemblyVersion}")) {
+                                var versionString = isTestingAvailable ? (pluginDefinition.TestingAssemblyVersion + " (Testing version)") : pluginDefinition.AssemblyVersion;
+
+                                if (ImGui.Button($"Install v{versionString}")) {
                                     this.installStatus = PluginInstallStatus.InProgress;
 
-                                    Task.Run(() => this.dalamud.PluginRepository.InstallPlugin(pluginDefinition)).ContinueWith(t => {
+                                    Task.Run(() => this.dalamud.PluginRepository.InstallPlugin(pluginDefinition, true, false, isTestingAvailable)).ContinueWith(t => {
                                         this.installStatus =
                                             t.Result ? PluginInstallStatus.Success : PluginInstallStatus.Fail;
                                         this.installStatus =
