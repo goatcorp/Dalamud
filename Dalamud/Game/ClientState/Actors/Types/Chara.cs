@@ -42,7 +42,27 @@ namespace Dalamud.Game.ClientState.Actors.Types {
         /// <summary>
         ///     The maximum MP of this Chara.
         /// </summary>
-        public int MaxMp => 10000;  // Currently hardcoded because the value in actorStruct is very questionable.
+        public int MaxMp => this.actorStruct.MaxMp;
+
+        /// <summary>
+        ///     The current GP of this Chara.
+        /// </summary>
+        public int CurrentGp => this.actorStruct.CurrentGp;
+
+        /// <summary>
+        ///     The maximum GP of this Chara.
+        /// </summary>
+        public int MaxGp => this.actorStruct.MaxGp;
+
+        /// <summary>
+        ///     The current CP of this Chara.
+        /// </summary>
+        public int CurrentCp => this.actorStruct.CurrentCp;
+
+        /// <summary>
+        ///     The maximum CP of this Chara.
+        /// </summary>
+        public int MaxCp => this.actorStruct.MaxCp;
 
         /// <summary>
         /// Byte array describing the visual appearance of this Chara. Indexed by <see cref="CustomizeIndex"/>.
