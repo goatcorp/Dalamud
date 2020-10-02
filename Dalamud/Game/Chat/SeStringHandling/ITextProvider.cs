@@ -2,7 +2,7 @@ using System;
 
 namespace Dalamud.Game.Chat.SeStringHandling
 {
-    interface ITextProvider
+    public interface ITextProvider
     {
         string Text { get; }
     }
