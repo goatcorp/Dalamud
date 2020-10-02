@@ -100,7 +100,7 @@ namespace Dalamud.Plugin
                 var doTestingDownload = fromTesting && Version.Parse(definition.TestingAssemblyVersion) > Version.Parse(definition.AssemblyVersion) || fromTesting && definition.IsTestingExclusive;
                 var url = string.Format(PluginFunctionBaseUrl, definition.InternalName, isUpdate, doTestingDownload);
 
-                Log.Information("Downloading plugin to {0} from {1} doTestingDownload: {2} isTestingExclusive:", path, url, doTestingDownload, definition.IsTestingExclusive);
+                Log.Information("Downloading plugin to {0} from {1} doTestingDownload:{2} isTestingExclusive:{3}", path, url, doTestingDownload, definition.IsTestingExclusive);
 
                 client.DownloadFile(url, path);
 
