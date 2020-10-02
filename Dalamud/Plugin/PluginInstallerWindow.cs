@@ -116,6 +116,12 @@ namespace Dalamud.Plugin
                                 ? Loc.Localize("InstallerUpdateFailed", " (update failed)")
                                 : label;
 
+                    var isTestingAvailable = false;
+                    if (Version.TryParse(pluginDefinition.AssemblyVersion, out var assemblyVersion) && Version.TryParse(pluginDefinition.TestingAssemblyVersion, out var testingAssemblyVersion))
+                        isTestingAvailable = this.dalamud.Configuration.DoPluginTest && testingAssemblyVersion > assemblyVersion;
+
+                    label += isTestingAvailable ? " (Testing version)" : string.Empty;
+
                     if (ImGui.CollapsingHeader(pluginDefinition.Name + label + "###Header" + pluginDefinition.InternalName)) {
                         ImGui.Indent();
 
@@ -129,10 +135,12 @@ namespace Dalamud.Plugin
                             if (this.installStatus == PluginInstallStatus.InProgress) {
                                 ImGui.Button(Loc.Localize("InstallerInProgress", "Install in progress..."));
                             } else {
-                                if (ImGui.Button($"Install v{pluginDefinition.AssemblyVersion}")) {
+                                var versionString = isTestingAvailable ? (pluginDefinition.TestingAssemblyVersion + " (Testing version)") : pluginDefinition.AssemblyVersion;
+
+                                if (ImGui.Button($"Install v{versionString}")) {
                                     this.installStatus = PluginInstallStatus.InProgress;
 
-                                    Task.Run(() => this.dalamud.PluginRepository.InstallPlugin(pluginDefinition)).ContinueWith(t => {
+                                    Task.Run(() => this.dalamud.PluginRepository.InstallPlugin(pluginDefinition, true, false, isTestingAvailable)).ContinueWith(t => {
                                         this.installStatus =
                                             t.Result ? PluginInstallStatus.Success : PluginInstallStatus.Fail;
                                         this.installStatus =

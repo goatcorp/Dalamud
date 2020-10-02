@@ -156,7 +156,7 @@ namespace Dalamud {
                     {
                         PluginRepository.CleanupPlugins();
 
-                        PluginManager = new PluginManager(this, pluginDir, this.StartInfo.DefaultPluginDirectory);
+                        PluginManager = new PluginManager(this, this.StartInfo.PluginDirectory, this.StartInfo.DefaultPluginDirectory);
                         PluginManager.LoadPlugins();
                     }
                     catch (Exception ex)

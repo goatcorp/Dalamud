@@ -14,9 +14,8 @@ namespace Dalamud.Plugin
 {
     internal class PluginRepository
     {
-        private string PluginRepoBaseUrl => "https://raw.githubusercontent.com/goatcorp/DalamudPlugins/testing/plugins/{0}/latest.zip";
-        private string PluginFunctionBaseUrl => "https://us-central1-xl-functions.cloudfunctions.net/download-plugin/?plugin={0}&isUpdate={1}";
-        private string PluginMasterUrl => "https://raw.githubusercontent.com/goatcorp/DalamudPlugins/" + (this.dalamud.Configuration.DoPluginTest ? "testing/" : "master/") + "pluginmaster.json";
+        private string PluginFunctionBaseUrl => "https://us-central1-xl-functions.cloudfunctions.net/download-plugin/?plugin={0}&isUpdate={1}&isTesting={2}";
+        private string PluginMasterUrl => "https://raw.githubusercontent.com/goatcorp/DalamudPlugins/master/pluginmaster.json";
 
 
         private readonly Dalamud dalamud;
@@ -66,7 +65,7 @@ namespace Dalamud.Plugin
             });
         }
 
-        public bool InstallPlugin(PluginDefinition definition, bool enableAfterInstall = true, bool isUpdate = false) {
+        public bool InstallPlugin(PluginDefinition definition, bool enableAfterInstall = true, bool isUpdate = false, bool fromTesting = false) {
             try
             {
                 var outputDir = new DirectoryInfo(Path.Combine(this.pluginDirectory, definition.InternalName, definition.AssemblyVersion));
@@ -98,9 +97,10 @@ namespace Dalamud.Plugin
                 
                 using var client = new WebClient();
 
-                var url = this.dalamud.Configuration.DoPluginTest ? PluginRepoBaseUrl : PluginFunctionBaseUrl;
-                url = string.Format(url, definition.InternalName, isUpdate);
-                Log.Information("Downloading plugin to {0} from {1}", path, url);
+                var doTestingDownload = fromTesting && Version.Parse(definition.TestingAssemblyVersion) > Version.Parse(definition.AssemblyVersion);
+                var url = string.Format(PluginFunctionBaseUrl, definition.InternalName, isUpdate, doTestingDownload);
+
+                Log.Information("Downloading plugin to {0} from {1} doTestingDownload: {2}", path, url, doTestingDownload);
 
                 client.DownloadFile(url, path);
 
@@ -177,7 +177,16 @@ namespace Dalamud.Plugin
                             continue;
                         }
 
-                        if (remoteInfo.AssemblyVersion != info.AssemblyVersion) {
+                        Version.TryParse(remoteInfo.AssemblyVersion, out Version remoteAssemblyVer);
+                        Version.TryParse(info.AssemblyVersion, out Version localAssemblyVer);
+
+                        var testingAvailable = false;
+                        if (!string.IsNullOrEmpty(remoteInfo.TestingAssemblyVersion)) {
+                            Version.TryParse(remoteInfo.TestingAssemblyVersion, out var testingAssemblyVer);
+                            testingAvailable = testingAssemblyVer > localAssemblyVer && this.dalamud.Configuration.DoPluginTest;
+                        }
+                        
+                        if (remoteAssemblyVer > localAssemblyVer || testingAvailable) {
                             Log.Information("Eligible for update: {0}", remoteInfo.InternalName);
 
                             // DisablePlugin() below immediately creates a .disabled file anyway, but will fail
@@ -211,7 +220,7 @@ namespace Dalamud.Plugin
                                     Log.Error(ex, "Plugin disable old versions failed");
                                 }
 
-                                var installSuccess = InstallPlugin(remoteInfo, wasEnabled, true);
+                                var installSuccess = InstallPlugin(remoteInfo, wasEnabled, true, testingAvailable);
 
                                 if (!installSuccess) {
                                     Log.Error("InstallPlugin failed.");

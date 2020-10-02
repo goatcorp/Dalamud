@@ -29,6 +29,11 @@ namespace Dalamud.Plugin
         public string AssemblyVersion { get; set; }
 
         /// <summary>
+        /// The current testing assembly version of the plugin.
+        /// </summary>
+        public string TestingAssemblyVersion { get; set; }
+
+        /// <summary>
         /// A description of the plugins functions.
         /// </summary>
         public string Description { get; set; }
