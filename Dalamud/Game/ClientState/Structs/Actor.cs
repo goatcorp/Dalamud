@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using Dalamud.Game.ClientState.Actors;
 #pragma warning disable 1591
 
@@ -75,8 +70,7 @@ namespace Dalamud.Game.ClientState.Structs
     [StructLayout(LayoutKind.Explicit)]
     public struct Actor
     {
-        [FieldOffset(ActorOffsets.Name)] [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 30)] 
-        public string Name;
+        [FieldOffset(ActorOffsets.Name)] [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 30)] public string Name;
 
         [FieldOffset(ActorOffsets.ActorId)] public int ActorId;
         [FieldOffset(ActorOffsets.DataId)] public int DataId;
@@ -96,8 +90,7 @@ namespace Dalamud.Game.ClientState.Structs
         [FieldOffset(ActorOffsets.BattleNpcTargetActorId)] public int BattleNpcTargetActorId;
 
         // This field can't be correctly aligned, so we have to cut it manually.
-        [FieldOffset(ActorOffsets.CompanyTag)] [MarshalAs(UnmanagedType.ByValArray, SizeConst = 7)]
-        public byte[] CompanyTag;
+        [FieldOffset(ActorOffsets.CompanyTag)] [MarshalAs(UnmanagedType.ByValArray, SizeConst = 7)] public byte[] CompanyTag;
 
         [FieldOffset(ActorOffsets.NameId)] public int NameId;
         [FieldOffset(ActorOffsets.CurrentWorld)] public ushort CurrentWorld;
