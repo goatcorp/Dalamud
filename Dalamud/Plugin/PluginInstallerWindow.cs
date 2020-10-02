@@ -120,7 +120,7 @@ namespace Dalamud.Plugin
 
                     if (this.dalamud.Configuration.DoPluginTest && pluginDefinition.IsTestingExclusive) {
                         isTestingAvailable = true;
-                    } else {
+                    } else if (!this.dalamud.Configuration.DoPluginTest && pluginDefinition.IsTestingExclusive) {
                         continue;
                     }
 
