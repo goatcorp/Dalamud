@@ -97,7 +97,12 @@ namespace Dalamud.Plugin
                 
                 using var client = new WebClient();
 
-                var doTestingDownload = fromTesting && Version.Parse(definition.TestingAssemblyVersion) > Version.Parse(definition.AssemblyVersion) || fromTesting && definition.IsTestingExclusive;
+                var doTestingDownload = false;
+                if ((Version.TryParse(definition.TestingAssemblyVersion, out var testingAssemblyVer) || definition.IsTestingExclusive)
+                    && fromTesting) {
+                    doTestingDownload = testingAssemblyVer > Version.Parse(definition.AssemblyVersion) || definition.IsTestingExclusive;
+                }
+                
                 var url = string.Format(PluginFunctionBaseUrl, definition.InternalName, isUpdate, doTestingDownload);
 
                 Log.Information("Downloading plugin to {0} from {1} doTestingDownload:{2} isTestingExclusive:{3}", path, url, doTestingDownload, definition.IsTestingExclusive);
