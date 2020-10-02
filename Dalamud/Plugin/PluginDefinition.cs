@@ -34,6 +34,11 @@ namespace Dalamud.Plugin
         public string TestingAssemblyVersion { get; set; }
 
         /// <summary>
+        /// Defines if the plugin is only available for testing.
+        /// </summary>
+        public bool IsTestingExclusive { get; set; }
+
+        /// <summary>
         /// A description of the plugins functions.
         /// </summary>
         public string Description { get; set; }

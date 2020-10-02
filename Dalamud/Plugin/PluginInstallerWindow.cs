@@ -100,8 +100,6 @@ namespace Dalamud.Plugin
 
                     didAnyWithSearch = true;
 
-                    ImGui.PushID(pluginDefinition.InternalName + pluginDefinition.AssemblyVersion);
-
                     var isInstalled = this.dalamud.PluginManager.Plugins.Where(x => x.Definition != null).Any(
                         x => x.Definition.InternalName == pluginDefinition.InternalName);
 
@@ -120,7 +118,15 @@ namespace Dalamud.Plugin
                     if (Version.TryParse(pluginDefinition.AssemblyVersion, out var assemblyVersion) && Version.TryParse(pluginDefinition.TestingAssemblyVersion, out var testingAssemblyVersion))
                         isTestingAvailable = this.dalamud.Configuration.DoPluginTest && testingAssemblyVersion > assemblyVersion;
 
+                    if (this.dalamud.Configuration.DoPluginTest && pluginDefinition.IsTestingExclusive) {
+                        isTestingAvailable = true;
+                    } else {
+                        continue;
+                    }
+
                     label += isTestingAvailable ? " (Testing version)" : string.Empty;
+
+                    ImGui.PushID(pluginDefinition.InternalName + pluginDefinition.AssemblyVersion);
 
                     if (ImGui.CollapsingHeader(pluginDefinition.Name + label + "###Header" + pluginDefinition.InternalName)) {
                         ImGui.Indent();
