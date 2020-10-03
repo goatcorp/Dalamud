@@ -1,7 +1,8 @@
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using EasyHook;
+using Reloaded.Hooks.Definitions;
+using Reloaded.Hooks.Definitions.X64;
 
 namespace Dalamud.Hooking {
     /// <summary>
@@ -14,9 +15,7 @@ namespace Dalamud.Hooking {
 
         private readonly IntPtr address;
 
-        private readonly T original;
-        
-        private readonly LocalHook hookInfo;
+        private readonly IHook< T > hookInfo;
 
         /// <summary>
         /// A memory address of the target function. 
@@ -39,7 +38,7 @@ namespace Dalamud.Hooking {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get {
                 CheckDisposed();
-                return this.original;
+                return this.hookInfo.OriginalFunction;
             }
         }
 
@@ -54,21 +53,41 @@ namespace Dalamud.Hooking {
         /// <returns></returns>
         public static Hook<T> FromSymbol(string moduleName, string exportName, Delegate detour, object callbackParam = null) {
             // Get a function address from the symbol name.
-            var address = LocalHook.GetProcAddress(moduleName, exportName);
             
-            return new Hook<T>(address, detour, callbackParam);
+            var moduleHandle = Util.GetModuleHandle(moduleName);
+            if( moduleHandle == IntPtr.Zero )
+            {
+                throw new DllNotFoundException("The given library is not loaded into the current process.");
+            }
+
+            var address = Util.GetProcAddress( moduleHandle, exportName );
+            if( address == IntPtr.Zero )
+            {
+                throw new MissingMethodException("The given method does not exist.");
+            }
+            
+            return new Hook<T>(address, detour);
         }
         
         /// <summary>
-        /// Createss a hook. Hook is not activated until Enable() method is called.
+        /// Creates a hook. Hook is not activated until Enable() method is called.
         /// </summary>
         /// <param name="address">A memory address to install a hook.</param>
         /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
         /// <param name="callbackParam">A callback object which can be accessed within the detour.</param>
-        public Hook(IntPtr address, Delegate detour, object callbackParam = null) {
-            this.hookInfo = LocalHook.Create(address, detour, callbackParam); // Installs a hook here
+        [Obsolete]
+        public Hook(IntPtr address, Delegate detour, object callbackParam = null) : this(address, detour)
+        {
+        }
+        
+        /// <summary>
+        /// Creates a hook. Hook is not activated until Enable() method is called.
+        /// </summary>
+        /// <param name="address">A memory address to install a hook.</param>
+        /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
+        public Hook(IntPtr address, Delegate detour) {
+            this.hookInfo = new Reloaded.Hooks.Hook< T >( (T)detour, (long)address ).Activate();
             this.address  = address;
-            this.original = Marshal.GetDelegateForFunctionPointer<T>(this.hookInfo.HookBypassAddress);
         }
 
         /// <summary>
@@ -79,7 +98,7 @@ namespace Dalamud.Hooking {
                 return;
             }
             
-            this.hookInfo.Dispose();
+            this.hookInfo.Disable();
             
             this.isDisposed = true;
         }
@@ -90,7 +109,7 @@ namespace Dalamud.Hooking {
         public void Enable() {
             CheckDisposed();
             
-            this.hookInfo.ThreadACL.SetExclusiveACL(null);
+            this.hookInfo.Enable();
         }
 
         /// <summary>
@@ -99,7 +118,7 @@ namespace Dalamud.Hooking {
         public void Disable() {
             CheckDisposed();
             
-            this.hookInfo.ThreadACL.SetInclusiveACL(null);
+            this.hookInfo.Disable();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
