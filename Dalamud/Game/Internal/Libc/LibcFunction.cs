@@ -31,8 +31,8 @@ namespace Dalamud.Game.Internal.Libc {
             var pString = Marshal.AllocHGlobal(256);
             
             // Initialize a string
-            var npos = new IntPtr(0xFFFFFFFF); // assumed to be -1 (0xFFFFFFFF in x86, 0xFFFFFFFF_FFFFFFFF in amd64)
-            var pReallocString = this.stdStringCtorCString(pString, content, npos);
+            var size = new IntPtr(content.Length);
+            var pReallocString = this.stdStringCtorCString(pString, content, size);
             
             //Log.Verbose("Prev: {Prev} Now: {Now}", pString, pReallocString);
             
