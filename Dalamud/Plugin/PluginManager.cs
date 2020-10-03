@@ -100,7 +100,7 @@ namespace Dalamud.Plugin
             }
 
             var testingFile = new FileInfo(Path.Combine(dllFile.Directory.FullName, ".testing"));
-            if (testingFile.Exists && this.dalamud.Configuration.DoPluginTest) {
+            if (testingFile.Exists && !this.dalamud.Configuration.DoPluginTest) {
                 Log.Information("Plugin {0} was testing, but testing is disabled.", dllFile.FullName);
                 return false;
             }
