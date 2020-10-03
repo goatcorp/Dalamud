@@ -93,9 +93,15 @@ namespace Dalamud.Plugin
 
             // If this entire folder has been marked as a disabled plugin, don't even try to load anything
             var disabledFile = new FileInfo(Path.Combine(dllFile.Directory.FullName, ".disabled"));
-            if (disabledFile.Exists && !raw)    // should raw/dev plugins really not respect this?
+            if (disabledFile.Exists && !raw) // should raw/dev plugins really not respect this?
             {
                 Log.Information("Plugin {0} is disabled.", dllFile.FullName);
+                return false;
+            }
+
+            var testingFile = new FileInfo(Path.Combine(dllFile.Directory.FullName, ".testing"));
+            if (testingFile.Exists && !this.dalamud.Configuration.DoPluginTest) {
+                Log.Information("Plugin {0} was testing, but testing is disabled.", dllFile.FullName);
                 return false;
             }
 

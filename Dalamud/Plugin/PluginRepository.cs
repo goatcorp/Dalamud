@@ -71,6 +71,7 @@ namespace Dalamud.Plugin
                 var outputDir = new DirectoryInfo(Path.Combine(this.pluginDirectory, definition.InternalName, definition.AssemblyVersion));
                 var dllFile = new FileInfo(Path.Combine(outputDir.FullName, $"{definition.InternalName}.dll"));
                 var disabledFile = new FileInfo(Path.Combine(outputDir.FullName, ".disabled"));
+                var testingFile = new FileInfo(Path.Combine(outputDir.FullName, ".testing"));
                 var wasDisabled = disabledFile.Exists;
 
                 if (dllFile.Exists && enableAfterInstall)
@@ -116,6 +117,13 @@ namespace Dalamud.Plugin
                 if (wasDisabled || !enableAfterInstall) {
                     disabledFile.Create();
                     return true;
+                }
+
+                if (doTestingDownload) {
+                    testingFile.Create();
+                } else {
+                    if (testingFile.Exists)
+                        testingFile.Delete();
                 }
 
                 return this.dalamud.PluginManager.LoadPluginFromAssembly(dllFile, false, PluginLoadReason.Installer);
