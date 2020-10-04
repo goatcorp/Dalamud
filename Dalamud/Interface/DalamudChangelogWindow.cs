@@ -11,13 +11,11 @@ namespace Dalamud.Interface {
         private readonly Dalamud dalamud;
         private string assemblyVersion = Util.AssemblyVersion;
 
-        private const bool WarrantsChangelog = false;
+        private const bool WarrantsChangelog = true;
         private const string ChangeLog =
-            @"* The /xlbonus command was removed - it has been remade as the ""Adventurer in Need"" plugin by Caraxi and is way better now. Please check it out!
-* Plugin UI is now also hidden when in GPose or in a cutscene. You can disable this in the /xlsettings window.
-* Universalis will now be updated when a shown item has no listings.
-* Updated the localization files
-* Added Norwegian, Korean and Russian localization - thanks a lot to all of our translators, especially Ridge, Hibiya and xDarkOne! If you wish to join the effort, please check our #translations channel.";
+            @"* Various backend changes that will allow for more involved plugins
+* Fixed an issue wherein, in particular cases, chat messages from plugins would be incorrectly allocated
+* Beta/Testing plugins can now be used in conjunction with regular plugins. Join our discord to check out plugins for testing!";
 
         public DalamudChangelogWindow(Dalamud dalamud) {
             this.dalamud = dalamud;
