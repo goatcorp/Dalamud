@@ -16,8 +16,6 @@ namespace Dalamud
 
         public bool OptOutMbCollection { get; set; } = false;
 
-        public List<string> BadWords { get; set; }
-
         public bool DutyFinderTaskbarFlash { get; set; } = true;
         public bool DutyFinderChatMessage { get; set; } = true;
 

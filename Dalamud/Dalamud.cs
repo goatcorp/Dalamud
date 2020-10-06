@@ -510,18 +510,6 @@ namespace Dalamud {
                 HelpMessage = Loc.Localize("DalamudCmdInfoHelp", "Shows list of commands available.")
             });
 
-            CommandManager.AddHandler("/xlmute", new CommandInfo(OnBadWordsAddCommand) {
-                HelpMessage = Loc.Localize("DalamudMuteHelp", "Mute a word or sentence from appearing in chat. Usage: /xlmute <word or sentence>")
-            });
-
-            CommandManager.AddHandler("/xlmutelist", new CommandInfo(OnBadWordsListCommand) {
-                HelpMessage = Loc.Localize("DalamudMuteListHelp", "List muted words or sentences.")
-            });
-
-            CommandManager.AddHandler("/xlunmute", new CommandInfo(OnBadWordsRemoveCommand) {
-                HelpMessage = Loc.Localize("DalamudUnmuteHelp", "Unmute a word or sentence. Usage: /xlunmute <word or sentence>")
-            });
-
             CommandManager.AddHandler("/ll", new CommandInfo(OnLastLinkCommand) {
                 HelpMessage = Loc.Localize("DalamudLastLinkHelp", "Open the last posted link in your default browser.")
             });
@@ -620,47 +608,6 @@ namespace Dalamud {
                 Framework.Gui.Chat.PrintError("Reload failed.");
                 Log.Error(ex, "Plugin reload failed.");
             }
-        }
-
-        private void OnBadWordsAddCommand(string command, string arguments) {
-            if (this.Configuration.BadWords == null)
-                this.Configuration.BadWords = new List<string>();
-
-            if (string.IsNullOrEmpty(arguments)) {
-                Framework.Gui.Chat.Print(Loc.Localize("DalamudMuteNoArgs", "Please provide a word to mute."));
-                return;
-            }
-
-            this.Configuration.BadWords.Add(arguments);
-
-            this.Configuration.Save();
-
-            Framework.Gui.Chat.Print(string.Format(Loc.Localize("DalamudMuted", "Muted \"{0}\"."), arguments));
-        }
-
-        private void OnBadWordsListCommand(string command, string arguments) {
-            if (this.Configuration.BadWords == null)
-                this.Configuration.BadWords = new List<string>();
-
-            if (this.Configuration.BadWords.Count == 0) {
-                Framework.Gui.Chat.Print(Loc.Localize("DalamudNoneMuted", "No muted words or sentences."));
-                return;
-            }
-
-            this.Configuration.Save();
-
-            foreach (var word in this.Configuration.BadWords) Framework.Gui.Chat.Print($"\"{word}\"");
-        }
-
-        private void OnBadWordsRemoveCommand(string command, string arguments) {
-            if (this.Configuration.BadWords == null)
-                this.Configuration.BadWords = new List<string>();
-
-            this.Configuration.BadWords.RemoveAll(x => x == arguments);
-
-            this.Configuration.Save();
-
-            Framework.Gui.Chat.Print(string.Format(Loc.Localize("DalamudUnmuted", "Unmuted \"{0}\"."), arguments));
         }
 
         private void OnLastLinkCommand(string command, string arguments) {
