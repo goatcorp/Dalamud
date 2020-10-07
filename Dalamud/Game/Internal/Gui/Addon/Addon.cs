@@ -20,6 +20,6 @@ namespace Dalamud.Game.Internal.Gui.Addon {
         public short Y => this.addonStruct.Y;
         public float Scale => this.addonStruct.Scale;
 
-        public bool Visible => (this.addonStruct.Flags & 0x20) == 1;
+        public bool Visible => (this.addonStruct.Flags & 0x20) == 0x20;
     }
 }
