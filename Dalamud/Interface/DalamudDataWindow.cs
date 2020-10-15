@@ -8,6 +8,7 @@ using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Actors.Types;
 using Dalamud.Game.ClientState.Actors.Types.NonPlayer;
 using Dalamud.Game.ClientState.Structs.JobGauge;
+using Dalamud.Game.Internal;
 using Dalamud.Plugin;
 using ImGuiNET;
 using JetBrains.Annotations;
@@ -22,7 +23,6 @@ namespace Dalamud.Interface
 
         private bool wasReady;
         private string serverOpString;
-        private string cfcString = "N/A";
 
         private int currentKind;
 
@@ -59,7 +59,7 @@ namespace Dalamud.Interface
             ImGui.SameLine();
             var copy = ImGui.Button("Copy all");
             ImGui.SameLine();
-            ImGui.Combo("Data kind", ref this.currentKind, new[] {"ServerOpCode", "ContentFinderCondition", "Actor Table", "Font Test", "Party List", "Plugin IPC", "Condition", "Gauge", "Command"},
+            ImGui.Combo("Data kind", ref this.currentKind, new[] {"ServerOpCode", "Address", "Actor Table", "Font Test", "Party List", "Plugin IPC", "Condition", "Gauge", "Command"},
                         9);
 
             ImGui.BeginChild("scrolling", new Vector2(0, 0), false, ImGuiWindowFlags.HorizontalScrollbar);
@@ -75,7 +75,19 @@ namespace Dalamud.Interface
                         ImGui.TextUnformatted(this.serverOpString);
                         break;
                     case 1:
-                        ImGui.TextUnformatted(this.cfcString);
+
+                        foreach (var debugScannedValue in BaseAddressResolver.DebugScannedValues) {
+                            ImGui.TextUnformatted($"{debugScannedValue.Key}");
+                            foreach (var valueTuple in debugScannedValue.Value) {
+                                ImGui.TextUnformatted($"      {valueTuple.Item1} - 0x{valueTuple.Item2.ToInt64():x}");
+                                ImGui.SameLine();
+
+                                if (ImGui.Button("C")) {
+                                    ImGui.SetClipboardText(valueTuple.Item2.ToInt64().ToString("x"));
+                                }
+                            }
+                        }
+
                         break;
 
                     // AT

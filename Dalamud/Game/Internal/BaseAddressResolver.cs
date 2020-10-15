@@ -1,9 +1,13 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 namespace Dalamud.Game.Internal {
     public abstract class BaseAddressResolver {
         protected bool IsResolved { get; set; }
+
+        public static Dictionary<string, List<(string, IntPtr)>> DebugScannedValues = new Dictionary<string, List<(string, IntPtr)>>();
         
         public void Setup(SigScanner scanner) {
             // Because C# don't allow to call virtual function while in ctor
@@ -19,7 +23,14 @@ namespace Dalamud.Game.Internal {
                 Setup64Bit(scanner);
             }
             SetupInternal(scanner);
-            
+
+            var className = GetType().Name;
+            DebugScannedValues[className] = new List<(string, IntPtr)>();
+
+            foreach (var property in GetType().GetProperties().Where(x => x.PropertyType == typeof(IntPtr))) {
+                DebugScannedValues[className].Add((property.Name, (IntPtr) property.GetValue(this)));
+            }
+
             IsResolved = true;
         }
         
