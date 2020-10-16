@@ -9,6 +9,7 @@ using Dalamud.Game.ClientState.Actors.Types;
 using Dalamud.Game.ClientState.Actors.Types.NonPlayer;
 using Dalamud.Game.ClientState.Structs.JobGauge;
 using Dalamud.Game.Internal;
+using Dalamud.Game.Internal.Gui.Addon;
 using Dalamud.Plugin;
 using ImGuiNET;
 using JetBrains.Annotations;
@@ -28,6 +29,10 @@ namespace Dalamud.Interface
 
         private bool drawActors = false;
         private float maxActorDrawDistance = 20;
+
+        private string inputAddonName = string.Empty;
+        private int inputAddonIndex;
+        private Addon resultAddon;
 
         public DalamudDataWindow(Dalamud dalamud) {
             this.dalamud = dalamud;
@@ -59,8 +64,8 @@ namespace Dalamud.Interface
             ImGui.SameLine();
             var copy = ImGui.Button("Copy all");
             ImGui.SameLine();
-            ImGui.Combo("Data kind", ref this.currentKind, new[] {"ServerOpCode", "Address", "Actor Table", "Font Test", "Party List", "Plugin IPC", "Condition", "Gauge", "Command"},
-                        9);
+            ImGui.Combo("Data kind", ref this.currentKind, new[] {"ServerOpCode", "Address", "Actor Table", "Font Test", "Party List", "Plugin IPC", "Condition", "Gauge", "Command", "Client UI"},
+                        10);
 
             ImGui.BeginChild("scrolling", new Vector2(0, 0), false, ImGuiWindowFlags.HorizontalScrollbar);
 
@@ -282,6 +287,27 @@ namespace Dalamud.Interface
                     case 8:
                         foreach (var command in this.dalamud.CommandManager.Commands) {
                             ImGui.Text($"{command.Key}\n    -> {command.Value.HelpMessage}\n    -> In help: {command.Value.ShowInHelp}\n\n");
+                        }
+
+                        break;
+
+                    case 9:
+                        ImGui.InputText("Addon name", ref this.inputAddonName, 256);
+                        ImGui.InputInt("Addon Index", ref this.inputAddonIndex);
+
+                        if (ImGui.Button("Get Addon")) {
+                            this.resultAddon =
+                                this.dalamud.Framework.Gui.GetAddonByName(this.inputAddonName, this.inputAddonIndex);
+                        }
+
+                        if (this.resultAddon != null) {
+                            ImGui.TextUnformatted($"{this.resultAddon.Name} - 0x{this.resultAddon.Address.ToInt64():x}\n    v:{this.resultAddon.Visible} x:{this.resultAddon.X} y:{this.resultAddon.Y} s:{this.resultAddon.Scale}");
+                        }
+
+                        if (ImGui.Button("Get Base UI object")) {
+                            var addr = this.dalamud.Framework.Gui.GetBaseUIObject().ToInt64().ToString("x");
+                            Log.Information("{0}", addr);
+                            ImGui.SetClipboardText(addr);
                         }
 
                         break;

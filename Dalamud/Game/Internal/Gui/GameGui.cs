@@ -48,9 +48,10 @@ namespace Dalamud.Game.Internal.Gui {
         private delegate IntPtr ToggleUiHideDelegate(IntPtr thisPtr, byte unknownByte);
         private readonly Hook<ToggleUiHideDelegate> toggleUiHideHook;
 
+        // Return a Client::UI::UIModule
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate IntPtr GetBaseUIObjectDelegate();
-        private readonly GetBaseUIObjectDelegate getBaseUIObject;
+        public delegate IntPtr GetBaseUIObjectDelegate();
+        public readonly GetBaseUIObjectDelegate GetBaseUIObject;
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall, CharSet = CharSet.Ansi)]
         private delegate IntPtr GetUIObjectByNameDelegate(IntPtr thisPtr, string uiName, int index);
@@ -112,7 +113,7 @@ namespace Dalamud.Game.Internal.Gui {
 
             this.toggleUiHideHook = new Hook<ToggleUiHideDelegate>(Address.ToggleUiHide, new ToggleUiHideDelegate(ToggleUiHideDetour), this);
 
-            this.getBaseUIObject = Marshal.GetDelegateForFunctionPointer<GetBaseUIObjectDelegate>(Address.GetBaseUIObject);
+            this.GetBaseUIObject = Marshal.GetDelegateForFunctionPointer<GetBaseUIObjectDelegate>(Address.GetBaseUIObject);
             this.getUIObjectByName = Marshal.GetDelegateForFunctionPointer<GetUIObjectByNameDelegate>(Address.GetUIObjectByName);
         }
 
@@ -324,7 +325,7 @@ namespace Dalamud.Game.Internal.Gui {
         /// <param name="index">Index of UI to find (1-indexed)</param>
         /// <returns>IntPtr.Zero if unable to find UI, otherwise IntPtr pointing to the start of the UI Object</returns>
         public IntPtr GetUiObjectByName(string name, int index) {
-            var baseUi = this.getBaseUIObject();
+            var baseUi = this.GetBaseUIObject();
             if (baseUi == IntPtr.Zero) return IntPtr.Zero;
             var baseUiProperties = Marshal.ReadIntPtr(baseUi, 0x20);
             if (baseUiProperties == IntPtr.Zero) return IntPtr.Zero;
