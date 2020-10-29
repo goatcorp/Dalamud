@@ -33,25 +33,71 @@ namespace Dalamud.Interface
         public static async Task<bool> EnsureAssets(string baseDir) {
             using var client = new WebClient();
 
-            Log.Verbose("Starting asset download");
+            Log.Verbose("[ASSET] Starting asset download");
+
+            var versionRes = CheckAssetRefreshNeeded(baseDir);
 
             foreach (var entry in AssetDictionary) {
                 var filePath = Path.Combine(baseDir, entry.Value);
 
                 Directory.CreateDirectory(Path.GetDirectoryName(filePath));
 
-                if (!File.Exists(filePath)) {
-                    Log.Verbose("Downloading {0} to {1}...", entry.Key, entry.Value);
+                if (!File.Exists(filePath) || versionRes.isRefreshNeeded) {
+                    Log.Verbose("[ASSET] Downloading {0} to {1}...", entry.Key, entry.Value);
                     try {
                         File.WriteAllBytes(filePath, client.DownloadData(entry.Key));
                     } catch (Exception ex) {
-                        Log.Error(ex, "Could not download asset.");
+                        Log.Error(ex, "[ASSET] Could not download asset.");
                         return false;
                     }
                 }
             }
 
+            if (versionRes.isRefreshNeeded)
+                SetLocalAssetVer(baseDir, versionRes.version);
+
+            Log.Verbose("[ASSET] Assets OK");
+
             return true;
+        }
+
+        private static string GetAssetVerPath(string baseDir) => Path.Combine(baseDir, "asset.ver");
+
+
+        /// <summary>
+        /// Check if an asset update is needed. When this fails, just return false - the route to github
+        /// might be bad, don't wanna just bail out in that case
+        /// </summary>
+        /// <param name="baseDir">Base directory for assets</param>
+        /// <returns>Update state</returns>
+        private static (bool isRefreshNeeded, int version) CheckAssetRefreshNeeded(string baseDir) {
+            using var client = new WebClient();
+
+            try {
+                var localVerFile = GetAssetVerPath(baseDir);
+                var localVer = 0;
+
+                if (File.Exists(localVerFile))
+                    localVer = int.Parse(File.ReadAllText(localVerFile));
+
+                var remoteVer = int.Parse(client.DownloadString(AssetStoreUrl + "asset.ver"));
+
+                Log.Verbose("[ASSET] Ver check - local:{0} remote:{1}", localVer, remoteVer);
+
+                return remoteVer > localVer ? (true, remoteVer) : (false, localVer);
+            } catch (Exception e) {
+                Log.Error(e, "[ASSET] Could not check asset version");
+                return (false, 0);
+            }
+        }
+
+        private static void SetLocalAssetVer(string baseDir, int version) {
+            try {
+                var localVerFile = GetAssetVerPath(baseDir);
+                File.WriteAllText(localVerFile, version.ToString());
+            } catch (Exception e) {
+                Log.Error(e, "[ASSET] Could not write local asset version");
+            }
         }
     }
 }
