@@ -11,7 +11,7 @@ namespace Dalamud.Interface {
         private readonly Dalamud dalamud;
         private string assemblyVersion = Util.AssemblyVersion;
 
-        private const bool WarrantsChangelog = true;
+        private const bool WarrantsChangelog = false;
         private const string ChangeLog =
             @"* Various backend changes that will allow for more involved plugins
 * Fixed an issue wherein, in particular cases, chat messages from plugins would be incorrectly allocated
