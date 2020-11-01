@@ -50,7 +50,9 @@ namespace Dalamud.Plugin
 
                     var data = client.DownloadString(PluginMasterUrl);
 
-                    this.PluginMaster = JsonConvert.DeserializeObject<ReadOnlyCollection<PluginDefinition>>(data);
+                    var unsortedPluginMaster = JsonConvert.DeserializeObject<List<PluginDefinition>>(data);
+                    unsortedPluginMaster.Sort((a, b) => a.Name.CompareTo(b.Name));
+                    this.PluginMaster = unsortedPluginMaster.AsReadOnly();
 
                     State = InitializationState.Success;
                 }
