@@ -200,7 +200,7 @@ namespace Dalamud.Plugin
 
                 foreach (var dllFile in pluginDlls) {
                     try {
-                        LoadPluginFromAssembly(dllFile, raw, PluginLoadReason.Boot);
+                        LoadPluginFromAssembly(dllFile, raw, PluginLoadReason.Boot | (raw ? PluginLoadReason.Dev : PluginLoadReason.Installed));
                     } catch (Exception ex) {
                         Log.Error(ex, $"Plugin load for {dllFile.FullName} failed.");
                     }

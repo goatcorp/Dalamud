@@ -99,9 +99,16 @@ namespace Dalamud.Plugin
                     }
 
                     didAnyWithSearch = true;
-
-                    var isInstalled = this.dalamud.PluginManager.Plugins.Where(x => x.Definition != null).Any(
+                    var installedPlugin = this.dalamud.PluginManager.Plugins.Where(x => x.Definition != null).FirstOrDefault(
                         x => x.Definition.InternalName == pluginDefinition.InternalName);
+                    var isInstalled = installedPlugin.Definition != null;
+
+                    var isRaw = false;
+                    if (isInstalled) {
+                        if (installedPlugin.PluginInterface.Reason.HasFlag(PluginLoadReason.Dev)) {
+                            isRaw = true;
+                        }
+                    }
 
                     var label = isInstalled ? Loc.Localize("InstallerInstalled", " (installed)") : string.Empty;
                     label = this.updatedPlugins != null &&
@@ -114,6 +121,8 @@ namespace Dalamud.Plugin
                                 ? Loc.Localize("InstallerUpdateFailed", " (update failed)")
                                 : label;
 
+                    label = isRaw ? " (dev)" : label;
+
                     var isTestingAvailable = false;
                     if (Version.TryParse(pluginDefinition.AssemblyVersion, out var assemblyVersion) && Version.TryParse(pluginDefinition.TestingAssemblyVersion, out var testingAssemblyVersion))
                         isTestingAvailable = this.dalamud.Configuration.DoPluginTest && testingAssemblyVersion > assemblyVersion;
@@ -124,7 +133,7 @@ namespace Dalamud.Plugin
                         continue;
                     }
 
-                    label += isTestingAvailable ? " (Testing version)" : string.Empty;
+                    label += (isTestingAvailable && !isRaw) ? " (testing version)" : string.Empty;
 
                     ImGui.PushID(pluginDefinition.InternalName + pluginDefinition.AssemblyVersion);
 
@@ -157,8 +166,7 @@ namespace Dalamud.Plugin
                                     });
                                 }
                             }
-                            if (!string.IsNullOrEmpty(pluginDefinition.RepoUrl))
-                            {
+                            if (!string.IsNullOrEmpty(pluginDefinition.RepoUrl)) {
                                 ImGui.PushFont(InterfaceManager.IconFont);
 
                                 ImGui.SameLine();
@@ -169,18 +177,18 @@ namespace Dalamud.Plugin
                                 ImGui.PopFont();
                             }
                         } else {
-                            var installedPlugin = this.dalamud.PluginManager.Plugins.Where(x => x.Definition != null).First(
-                                x => x.Definition.InternalName ==
-                                     pluginDefinition.InternalName);
-
-                            if (ImGui.Button(Loc.Localize("InstallerDisable", "Disable")))
-                                try {
-                                    this.dalamud.PluginManager.DisablePlugin(installedPlugin.Definition);
-                                } catch (Exception exception) {
-                                    Log.Error(exception, "Could not disable plugin.");
-                                    this.errorModalDrawing = true;
-                                    this.errorModalOnNextFrame = true;
-                                }
+                            if (!isRaw) {
+                                if (ImGui.Button(Loc.Localize("InstallerDisable", "Disable")))
+                                    try {
+                                        this.dalamud.PluginManager.DisablePlugin(installedPlugin.Definition);
+                                    } catch (Exception exception) {
+                                        Log.Error(exception, "Could not disable plugin.");
+                                        this.errorModalDrawing = true;
+                                        this.errorModalOnNextFrame = true;
+                                    }
+                            } else {
+                                ImGui.NewLine();
+                            }
 
                             if (installedPlugin.PluginInterface.UiBuilder.OnOpenConfigUi != null) {
                                 ImGui.SameLine();
@@ -201,6 +209,11 @@ namespace Dalamud.Plugin
 
                             ImGui.SameLine();
                             ImGui.TextColored(new Vector4(0.5f, 0.5f, 0.5f, 1.0f), $" v{pluginDefinition.AssemblyVersion}");
+
+                            if(isRaw) {
+                                ImGui.SameLine();
+                                ImGui.TextColored(new Vector4(1.0f, 0.0f, 0.0f, 1.0f), " To update or disable this plugin, please remove it from the devPlugins folder.");
+                            }
                         }
 
                         ImGui.Unindent();
