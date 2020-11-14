@@ -51,20 +51,20 @@ namespace Dalamud.Plugin
         public bool Draw() {
             var windowOpen = true;
 
-            ImGui.SetNextWindowSize(new Vector2(750, 520));
+            ImGui.SetNextWindowSize(new Vector2(750, 520) * ImGui.GetIO().FontGlobalScale);
 
             ImGui.Begin(Loc.Localize("InstallerHeader", "Plugin Installer") + (this.dalamud.Configuration.DoPluginTest ? " (TESTING)" : string.Empty) + "###XlPluginInstaller", ref windowOpen,
                 ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar);
 
             ImGui.Text(Loc.Localize("InstallerHint", "This window allows you install and remove in-game plugins.\nThey are made by third-party developers."));
-            ImGui.SameLine(ImGui.GetWindowWidth() - 250);
-            ImGui.SetNextItemWidth(240);
+            ImGui.SameLine(ImGui.GetWindowWidth() - 250 * ImGui.GetIO().FontGlobalScale);
+            ImGui.SetNextItemWidth(240 * ImGui.GetIO().FontGlobalScale);
             ImGui.InputTextWithHint("###XPlPluginInstaller_Search", Loc.Localize("InstallerSearch", "Search"), ref this.searchText, 100);
             ImGui.Separator();
 
-            ImGui.BeginChild("scrolling", new Vector2(0, 400), true, ImGuiWindowFlags.HorizontalScrollbar);
+            ImGui.BeginChild("scrolling", new Vector2(0, 400 * ImGui.GetIO().FontGlobalScale), true, ImGuiWindowFlags.HorizontalScrollbar);
 
-            ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(1, 3));
+            ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(1, 3) * ImGui.GetIO().FontGlobalScale);
 
             if (this.dalamud.PluginRepository.State == PluginRepository.InitializationState.InProgress) {
                 ImGui.Text(Loc.Localize("InstallerLoading", "Loading plugins..."));
