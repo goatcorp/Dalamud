@@ -58,7 +58,7 @@ namespace Dalamud.Interface
         #endregion
 
         public bool Draw() {
-            ImGui.SetNextWindowSize(new Vector2(500, 500), ImGuiCond.Always);
+            ImGui.SetNextWindowSize(new Vector2(500, 500) * ImGui.GetIO().FontGlobalScale, ImGuiCond.Always);
 
             var isOpen = true;
 
@@ -67,7 +67,7 @@ namespace Dalamud.Interface
                 return false;
             }
 
-            ImGui.BeginChild("scrolling", new Vector2(499, 430), false, ImGuiWindowFlags.HorizontalScrollbar);
+            ImGui.BeginChild("scrolling", new Vector2(499, 430) * ImGui.GetIO().FontGlobalScale, false, ImGuiWindowFlags.HorizontalScrollbar);
 
             if (ImGui.BeginTabBar("SetTabBar")) {
                 if (ImGui.BeginTabItem(Loc.Localize("DalamudSettingsGeneral", "General"))) {
@@ -76,14 +76,14 @@ namespace Dalamud.Interface
                                 this.languages.Length);
                     ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingsLanguageHint", "Select the language Dalamud will be displayed in."));
 
-                    ImGui.Dummy(new Vector2(5f, 5f));
+                    ImGui.Dummy(new Vector2(5f, 5f) * ImGui.GetIO().FontGlobalScale);
 
                     ImGui.Text(Loc.Localize("DalamudSettingsChannel", "General Chat Channel"));
                     ImGui.Combo("##XlChatTypeCombo", ref this.dalamudMessagesChatType, this.chatTypes,
                                 this.chatTypes.Length);
                     ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingsChannelHint", "Select the chat channel that is to be used for general Dalamud messages."));
 
-                    ImGui.Dummy(new Vector2(5f, 5f));
+                    ImGui.Dummy(new Vector2(5f, 5f) * ImGui.GetIO().FontGlobalScale);
 
                     ImGui.Checkbox(Loc.Localize("DalamudSettingsFlash", "Flash FFXIV window on duty pop"), ref this.doCfTaskBarFlash);
                     ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingsFlashHint", "Select, if the FFXIV window should be flashed in your task bar when a duty is ready."));
@@ -101,7 +101,7 @@ namespace Dalamud.Interface
 
                     ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingsGlobalUiScaleHint", "Scale all XIVLauncher UI elements - useful for 4K displays."));
 
-                    ImGui.Dummy(new Vector2(10f, 16f));
+                    ImGui.Dummy(new Vector2(10f, 16f) * ImGui.GetIO().FontGlobalScale);
 
                     ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingToggleUiHideOptOutNote", "Plugins may independently opt out of the settings below."));
 
@@ -121,7 +121,7 @@ namespace Dalamud.Interface
                 {
                     ImGui.Text(Loc.Localize("DalamudSettingsRestartHint", "You need to restart your game after changing these settings."));
 
-                    ImGui.Dummy(new Vector2(10f, 10f));
+                    ImGui.Dummy(new Vector2(10f, 10f) * ImGui.GetIO().FontGlobalScale);
 
                     ImGui.Checkbox(Loc.Localize("DalamudSettingsPluginTest", "Get plugin testing builds"), ref this.doPluginTest);
                     ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingsPluginTestHint", "Check this box to receive testing prereleases for plugins."));

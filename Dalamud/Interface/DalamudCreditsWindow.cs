@@ -117,7 +117,7 @@ Thank you for using XIVLauncher and Dalamud!
         }
 
         public bool Draw() {
-            var windowSize = new Vector2(500, 400);
+            var windowSize = new Vector2(500, 400) * ImGui.GetIO().FontGlobalScale;
             ImGui.SetNextWindowSize(windowSize, ImGuiCond.Always);
             
             var screenSize = ImGui.GetIO().DisplaySize;
@@ -137,13 +137,13 @@ Thank you for using XIVLauncher and Dalamud!
 
             ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(0, 0));
 
-            ImGui.Dummy(new Vector2(0, 340f));
+            ImGui.Dummy(new Vector2(0, 340f) * ImGui.GetIO().FontGlobalScale);
             ImGui.Text("");
 
             ImGui.SameLine(150f);
-            ImGui.Image(this.logoTexture.ImGuiHandle, new Vector2(190f, 190f));
+            ImGui.Image(this.logoTexture.ImGuiHandle, new Vector2(190f, 190f) * ImGui.GetIO().FontGlobalScale);
 
-            ImGui.Dummy(new Vector2(0, 20f));
+            ImGui.Dummy(new Vector2(0, 20f) * ImGui.GetIO().FontGlobalScale);
 
             var windowX = ImGui.GetWindowSize().X;
 
