@@ -287,7 +287,7 @@ namespace Dalamud.Plugin
 
                     var sortedVersions = versions.OrderBy(x => int.Parse(x.Name.Replace(".", ""))).ToArray();
                     for (var i = 0; i < sortedVersions.Length - 1; i++) {
-                        Log.Information("[PLUGINR] Trying to delete old {0} at ", installed.Name, sortedVersions[i].FullName);
+                        Log.Information("[PLUGINR] Trying to delete old {0} at {1}", installed.Name, sortedVersions[i].FullName);
                         try {
                             sortedVersions[i].Delete(true);
                         } catch (Exception ex) {
