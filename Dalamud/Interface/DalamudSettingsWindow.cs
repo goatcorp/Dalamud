@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Linq;
 using System.Numerics;
 using CheapLoc;
@@ -28,7 +29,22 @@ namespace Dalamud.Interface
             this.doDalamudTest = this.dalamud.Configuration.DoDalamudTest;
 
             this.languages = Localization.ApplicableLangCodes.Prepend("en").ToArray();
-            this.langIndex = string.IsNullOrEmpty(this.dalamud.Configuration.LanguageOverride) ? 0 : Array.IndexOf(this.languages, this.dalamud.Configuration.LanguageOverride);
+            try {
+                if (string.IsNullOrEmpty(this.dalamud.Configuration.LanguageOverride)) {
+                    var currentUiLang = CultureInfo.CurrentUICulture;
+
+                    if (Localization.ApplicableLangCodes.Any(x => currentUiLang.TwoLetterISOLanguageName == x))
+                        this.langIndex = Array.IndexOf(this.languages, currentUiLang.TwoLetterISOLanguageName);
+                    else
+                        this.langIndex = 0;
+                }
+                else {
+                    this.langIndex = Array.IndexOf(this.languages, this.dalamud.Configuration.LanguageOverride);
+                }
+            }
+            catch (Exception) {
+                this.langIndex = 0;
+            }
         }
 
         private string[] languages;
