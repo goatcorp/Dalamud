@@ -124,7 +124,7 @@ namespace Dalamud.Plugin
                         continue;
                     }
 
-                    label += isTestingAvailable ? " (Testing version)" : string.Empty;
+                    label += isTestingAvailable ? " (testing version)" : string.Empty;
 
                     ImGui.PushID(pluginDefinition.InternalName + pluginDefinition.AssemblyVersion);
 
@@ -141,7 +141,7 @@ namespace Dalamud.Plugin
                             if (this.installStatus == PluginInstallStatus.InProgress) {
                                 ImGui.Button(Loc.Localize("InstallerInProgress", "Install in progress..."));
                             } else {
-                                var versionString = isTestingAvailable ? (pluginDefinition.TestingAssemblyVersion + " (Testing version)") : pluginDefinition.AssemblyVersion;
+                                var versionString = isTestingAvailable ? (pluginDefinition.TestingAssemblyVersion + " (testing version)") : pluginDefinition.AssemblyVersion;
 
                                 if (ImGui.Button($"Install v{versionString}")) {
                                     this.installStatus = PluginInstallStatus.InProgress;
