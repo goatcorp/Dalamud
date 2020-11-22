@@ -743,7 +743,7 @@ namespace Dalamud {
 
         private void OnSetLanguageCommand(string command, string arguments)
         {
-            if (Localization.ApplicableLangCodes.Contains(arguments.ToLower())) {
+            if (Localization.ApplicableLangCodes.Contains(arguments.ToLower()) || arguments.ToLower() == "en") {
                 this.LocalizationManager.SetupWithLangCode(arguments.ToLower());
                 this.Configuration.LanguageOverride = arguments.ToLower();
 
