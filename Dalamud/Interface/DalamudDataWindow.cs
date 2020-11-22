@@ -301,7 +301,7 @@ namespace Dalamud.Interface
                         }
 
                         if (this.resultAddon != null) {
-                            ImGui.TextUnformatted($"{this.resultAddon.Name} - 0x{this.resultAddon.Address.ToInt64():x}\n    v:{this.resultAddon.Visible} x:{this.resultAddon.X} y:{this.resultAddon.Y} s:{this.resultAddon.Scale}");
+                            ImGui.TextUnformatted($"{this.resultAddon.Name} - 0x{this.resultAddon.Address.ToInt64():x}\n    v:{this.resultAddon.Visible} x:{this.resultAddon.X} y:{this.resultAddon.Y} s:{this.resultAddon.Scale}, w:{this.resultAddon.Width}, h:{this.resultAddon.Height}");
                         }
 
                         if (ImGui.Button("Get Base UI object")) {
