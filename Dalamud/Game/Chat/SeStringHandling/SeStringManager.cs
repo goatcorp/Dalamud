@@ -142,7 +142,7 @@ namespace Dalamud.Game.Chat.SeStringHandling
             var mapSheet = this.data.GetExcelSheet<Map>();
 
             var matches = this.data.GetExcelSheet<PlaceName>().GetRows()
-                              .Where(row => row.Name.ToLowerInvariant() == placeName.ToLowerInvariant())
+                              .Where(row => row.Name.ToString().ToLowerInvariant() == placeName.ToLowerInvariant())
                               .ToArray();
 
             foreach (var place in matches)

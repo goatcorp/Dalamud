@@ -60,8 +60,9 @@ namespace Dalamud.Game.Network {
                     return;
                 }
 
+                var cfcName = contentFinderCondition.Name.ToString();
                 if (string.IsNullOrEmpty(contentFinderCondition.Name)) {
-                    contentFinderCondition.Name = "Duty Roulette";
+                    cfcName = "Duty Roulette";
                     contentFinderCondition.Image = 112324;
                 }
 
@@ -80,7 +81,7 @@ namespace Dalamud.Game.Network {
 
                 Task.Run(async () => {
                     if(this.dalamud.Configuration.DutyFinderChatMessage)
-                        this.dalamud.Framework.Gui.Chat.Print("Duty pop: " + contentFinderCondition.Name);
+                        this.dalamud.Framework.Gui.Chat.Print("Duty pop: " + cfcName);
 
                     await this.ProcessCfPop?.Invoke(contentFinderCondition);
                 });
