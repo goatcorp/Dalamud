@@ -51,11 +51,6 @@ namespace Dalamud.Game {
             {XivChatType.Echo, Color.Gray}
         };
 
-        private readonly Regex rmtRegex =
-            new Regex(
-                @"4KGOLD|We have sufficient stock|VPK\.OM|Gil for free|www\.so9\.com|Fast & Convenient|Cheap & Safety Guarantee|【Code|A O A U E|igfans|4KGOLD\.COM|Cheapest Gil with|pvp and bank on google|Selling Cheap GIL|ff14mogstation\.com|Cheap Gil 1000k|gilsforyou|server 1000K =|gils_selling|E A S Y\.C O M|bonus code|mins delivery guarantee|Sell cheap|Salegm\.com|cheap Mog|Off Code:|FF14Mog.com|使用する5％オ|Off Code( *):|offers Fantasia",
-                RegexOptions.Compiled);
-
         private readonly Regex urlRegex =
             new Regex(@"(http|ftp|https)://([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?",
                       RegexOptions.Compiled);
@@ -93,31 +88,7 @@ namespace Dalamud.Game {
         public ChatHandlers(Dalamud dalamud) {
             this.dalamud = dalamud;
             
-            dalamud.Framework.Gui.Chat.OnCheckMessageHandled += OnCheckMessageHandled;
             dalamud.Framework.Gui.Chat.OnChatMessage += OnChatMessage;
-        }
-
-        private void OnCheckMessageHandled(XivChatType type, uint senderid, ref SeString sender, ref SeString message, ref bool isHandled) {
-            var textVal = message.TextValue;
-
-            var matched = this.rmtRegex.IsMatch(textVal);
-            if (matched)
-            {
-                // This seems to be a RMT ad - let's not show it
-                Log.Debug("Handled RMT ad: " + message.TextValue);
-                isHandled = true;
-                return;
-            }
-
-
-            if (this.dalamud.Configuration.BadWords != null &&
-                this.dalamud.Configuration.BadWords.Any(x => !string.IsNullOrEmpty(x) && textVal.Contains(x)))
-            {
-                // This seems to be in the user block list - let's not show it
-                Log.Debug("Blocklist triggered");
-                isHandled = true;
-                return;
-            }
         }
 
         public string LastLink { get; private set; }
