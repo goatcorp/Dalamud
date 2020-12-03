@@ -211,12 +211,13 @@ namespace Dalamud.Game {
 
             this.dalamud.Framework.Gui.Chat.Print(string.Format(Loc.Localize("DalamudWelcome", "Dalamud vD{0} loaded."), assemblyVersion));
 
-            foreach (var plugin in this.dalamud.PluginManager.Plugins)
+            if (this.dalamud.Configuration.PrintPluginsWelcomeMsg)
             {
-                this.dalamud.Framework.Gui.Chat.Print(string.Format(Loc.Localize("DalamudPluginLoaded", "    》 {0} v{1} loaded."), plugin.Plugin.Name, plugin.Plugin.GetType().Assembly.GetName().Version));
+                foreach (var plugin in this.dalamud.PluginManager.Plugins)
+                {
+                    this.dalamud.Framework.Gui.Chat.Print(string.Format(Loc.Localize("DalamudPluginLoaded", "    》 {0} v{1} loaded."), plugin.Plugin.Name, plugin.Plugin.GetType().Assembly.GetName().Version));
+                }
             }
-
-            this.hasSeenLoadingMsg = true;
 
             if (string.IsNullOrEmpty(this.dalamud.Configuration.LastVersion) || !assemblyVersion.StartsWith(this.dalamud.Configuration.LastVersion))
             {
@@ -249,6 +250,8 @@ namespace Dalamud.Game {
             {
                 Log.Error(e, Loc.Localize("DalamudPluginUpdateCheckFail", "Could not check for plugin updates."));
             }
+
+            this.hasSeenLoadingMsg = true;
         }
 
         private static SeString MakeItalics(string text) {

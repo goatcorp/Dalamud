@@ -35,6 +35,8 @@ namespace Dalamud
         public bool ToggleUiHideDuringCutscenes { get; set; } = true;
         public bool ToggleUiHideDuringGpose { get; set; } = true;
 
+        public bool PrintPluginsWelcomeMsg { get; set; } = true;
+
         [JsonIgnore]
         public string ConfigPath;
 
