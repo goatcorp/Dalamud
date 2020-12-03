@@ -14,8 +14,8 @@
     </PropertyGroup>
     <PropertyGroup Label="Feature">
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <AssemblyVersion>5.1.1.1</AssemblyVersion>
-        <FileVersion>5.1.1.1</FileVersion>
+        <AssemblyVersion>5.1.1.2</AssemblyVersion>
+        <FileVersion>5.1.1.2</FileVersion>
         <Description>XIVLauncher addon injection</Description>
         <Version>5.1.1.1</Version>
     </PropertyGroup>
