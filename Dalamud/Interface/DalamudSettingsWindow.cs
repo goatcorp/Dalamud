@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Numerics;
@@ -41,13 +42,30 @@ namespace Dalamud.Interface
                 else {
                     this.langIndex = Array.IndexOf(this.languages, this.dalamud.Configuration.LanguageOverride);
                 }
+            } catch (Exception) {
+                this.langIndex = 0;
+            }
+
+            try {
+                List<string> locLanguagesList = new List<string>();
+                string locLanguage;
+                foreach (var language in this.languages) {
+                    if (language != "ko") {
+                        locLanguage = CultureInfo.GetCultureInfo(language).NativeName;
+                        locLanguagesList.Add(char.ToUpper(locLanguage[0]) + locLanguage.Substring(1));
+                    } else {
+                        locLanguagesList.Add("Korean");
+                    }
+                }
+                this.locLanguages = locLanguagesList.ToArray();
             }
             catch (Exception) {
-                this.langIndex = 0;
+                this.locLanguages = this.languages; // Languages not localized, only codes.
             }
         }
 
         private string[] languages;
+        private string[] locLanguages;
         private int langIndex;
 
         private string[] chatTypes;
@@ -88,8 +106,8 @@ namespace Dalamud.Interface
             if (ImGui.BeginTabBar("SetTabBar")) {
                 if (ImGui.BeginTabItem(Loc.Localize("DalamudSettingsGeneral", "General"))) {
                     ImGui.Text(Loc.Localize("DalamudSettingsLanguage","Language"));
-                    ImGui.Combo("##XlLangCombo", ref this.langIndex, this.languages,
-                                this.languages.Length);
+                    ImGui.Combo("##XlLangCombo", ref this.langIndex, this.locLanguages,
+                                this.locLanguages.Length);
                     ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingsLanguageHint", "Select the language Dalamud will be displayed in."));
 
                     ImGui.Dummy(new Vector2(5f, 5f) * ImGui.GetIO().FontGlobalScale);
