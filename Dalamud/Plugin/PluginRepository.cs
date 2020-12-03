@@ -216,11 +216,14 @@ namespace Dalamud.Plugin
                                 Log.Verbose("wasEnabled: {0}", wasEnabled);
 
                                 // Try to disable plugin if it is loaded
-                                try {
-                                    this.dalamud.PluginManager.DisablePlugin(info);
-                                } catch (Exception ex) {
-                                    Log.Error(ex, "Plugin disable failed");
-                                    //hasError = true;
+                                if (wasEnabled) {
+                                    try {
+                                        this.dalamud.PluginManager.DisablePlugin(info);
+                                    }
+                                    catch (Exception ex) {
+                                        Log.Error(ex, "Plugin disable failed");
+                                        //hasError = true;
+                                    }
                                 }
 
                                 try {
