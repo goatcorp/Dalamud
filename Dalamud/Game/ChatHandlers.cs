@@ -60,29 +60,21 @@ namespace Dalamud.Game {
             new Regex(@"(http|ftp|https)://([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?",
                       RegexOptions.Compiled);
 
-        private readonly Dictionary<ClientLanguage, Regex[]> retainerSaleRegexes = new Dictionary<ClientLanguage, Regex[]>() {
-            {
+        private readonly Dictionary<ClientLanguage, Regex[]> retainerSaleRegexes = new Dictionary<ClientLanguage, Regex[]>() { {
                 ClientLanguage.Japanese, new Regex[] {
                     new Regex(@"^(?:.+)マーケットに(?<origValue>[\d,.]+)ギルで出品した(?<item>.*)×(?<count>[\d,.]+)が売れ、(?<value>[\d,.]+)ギルを入手しました。$", RegexOptions.Compiled),
-                    new Regex(@"^(?:.+)マーケットに(?<origValue>[\d,.]+)ギルで出品した(?<item>.*)が売れ、(?<value>[\d,.]+)ギルを入手しました。$", RegexOptions.Compiled)
-                }
-            },
-            {
-                ClientLanguage.English, new Regex[]
-                {
+                    new Regex(@"^(?:.+)マーケットに(?<origValue>[\d,.]+)ギルで出品した(?<item>.*)が売れ、(?<value>[\d,.]+)ギルを入手しました。$", RegexOptions.Compiled) }
+            }, {
+                ClientLanguage.English, new Regex[] {
                     new Regex(@"^(?<item>.+) you put up for sale in the (?:.+) markets (?:have|has) sold for (?<value>[\d,.]+) gil \(after fees\)\.$", RegexOptions.Compiled)
                 }
-            },
-            {
-                ClientLanguage.German, new Regex[]
-                {
+            }, {
+                ClientLanguage.German, new Regex[] {
                     new Regex(@"^Dein Gehilfe hat (?<item>.+) auf dem Markt von (?:.+) für (?<value>[\d,.]+) Gil verkauft\.$", RegexOptions.Compiled),
                     new Regex(@"^Dein Gehilfe hat (?<item>.+) auf dem Markt von (?:.+) verkauft und (?<value>[\d,.]+) Gil erhalten\.$", RegexOptions.Compiled)
                 }
-            },
-            {
-                ClientLanguage.French, new Regex[]
-                {
+            }, {
+                ClientLanguage.French, new Regex[] {
                     new Regex(@"^Un servant a vendu (?<item>.+) pour (?<value>[\d,.]+) gil à (?:.+)\.$", RegexOptions.Compiled)
                 }
             }
@@ -101,8 +93,7 @@ namespace Dalamud.Game {
             var textVal = message.TextValue;
 
             var matched = this.rmtRegex.IsMatch(textVal);
-            if (matched)
-            {
+            if (matched) {
                 // This seems to be a RMT ad - let's not show it
                 Log.Debug("Handled RMT ad: " + message.TextValue);
                 isHandled = true;
@@ -111,8 +102,7 @@ namespace Dalamud.Game {
 
 
             if (this.dalamud.Configuration.BadWords != null &&
-                this.dalamud.Configuration.BadWords.Any(x => !string.IsNullOrEmpty(x) && textVal.Contains(x)))
-            {
+                this.dalamud.Configuration.BadWords.Any(x => !string.IsNullOrEmpty(x) && textVal.Contains(x))) {
                 // This seems to be in the user block list - let's not show it
                 Log.Debug("Blocklist triggered");
                 isHandled = true;
@@ -137,10 +127,8 @@ namespace Dalamud.Game {
                 return;
 #endif
 
-            if (type == XivChatType.RetainerSale)
-            {
-                foreach (var regex in retainerSaleRegexes[dalamud.StartInfo.Language])
-                {
+            if (type == XivChatType.RetainerSale) {
+                foreach (var regex in retainerSaleRegexes[dalamud.StartInfo.Language]) {
                     var matchInfo = regex.Match(message.TextValue);
 
                     // we no longer really need to do/validate the item matching since we read the id from the byte array
@@ -209,20 +197,17 @@ namespace Dalamud.Game {
         private void PrintWelcomeMessage() {
             var assemblyVersion = Assembly.GetAssembly(typeof(ChatHandlers)).GetName().Version.ToString();
 
-            this.dalamud.Framework.Gui.Chat.Print(string.Format(Loc.Localize("DalamudWelcome", "Dalamud vD{0} loaded."), assemblyVersion));
+            this.dalamud.Framework.Gui.Chat.Print(string.Format(Loc.Localize("DalamudWelcome", "Dalamud vD{0} loaded."), assemblyVersion)
+                                                + string.Format(Loc.Localize("PluginsWelcome", " {0} plugin(s) loaded."), this.dalamud.PluginManager.Plugins.Count));
 
-            if (this.dalamud.Configuration.PrintPluginsWelcomeMsg)
-            {
-                foreach (var plugin in this.dalamud.PluginManager.Plugins)
-                {
+            if (this.dalamud.Configuration.PrintPluginsWelcomeMsg) {
+                foreach (var plugin in this.dalamud.PluginManager.Plugins) {
                     this.dalamud.Framework.Gui.Chat.Print(string.Format(Loc.Localize("DalamudPluginLoaded", "    》 {0} v{1} loaded."), plugin.Plugin.Name, plugin.Plugin.GetType().Assembly.GetName().Version));
                 }
             }
 
-            if (string.IsNullOrEmpty(this.dalamud.Configuration.LastVersion) || !assemblyVersion.StartsWith(this.dalamud.Configuration.LastVersion))
-            {
-                this.dalamud.Framework.Gui.Chat.PrintChat(new XivChatEntry
-                {
+            if (string.IsNullOrEmpty(this.dalamud.Configuration.LastVersion) || !assemblyVersion.StartsWith(this.dalamud.Configuration.LastVersion)) {
+                this.dalamud.Framework.Gui.Chat.PrintChat(new XivChatEntry {
                     MessageBytes = Encoding.UTF8.GetBytes(Loc.Localize("DalamudUpdated", "The In-Game addon has been updated or was reinstalled successfully! Please check the discord for a full changelog.")),
                     Type = XivChatType.Notice
                 });
@@ -233,12 +218,10 @@ namespace Dalamud.Game {
                 this.dalamud.Configuration.Save();
             }
 
-            try
-            {
+            try {
                 var hasNeedsUpdate = this.dalamud.PluginRepository.UpdatePlugins(true).UpdatedPlugins.Count != 0;
 
-                if (hasNeedsUpdate)
-                {
+                if (hasNeedsUpdate) {
                     this.dalamud.Framework.Gui.Chat.PrintChat(new XivChatEntry
                     {
                         MessageBytes = Encoding.UTF8.GetBytes(Loc.Localize("DalamudPluginUpdateRequired", "One or more of your plugins needs to be updated. Please use the /xlplugins command in-game to update them!")),
@@ -246,8 +229,7 @@ namespace Dalamud.Game {
                     });
                 }
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 Log.Error(e, Loc.Localize("DalamudPluginUpdateCheckFail", "Could not check for plugin updates."));
             }
 
@@ -257,8 +239,7 @@ namespace Dalamud.Game {
         private static SeString MakeItalics(string text) {
             // TODO: when the above code is switched to SeString, this can be a straight insertion of the
             // italics payloads only, and be a lot cleaner
-            var italicString = new SeString(new List<Payload>(new Payload[]
-            {
+            var italicString = new SeString(new List<Payload>(new Payload[] {
                 EmphasisItalicPayload.ItalicsOn,
                 new TextPayload(text),
                 EmphasisItalicPayload.ItalicsOff
