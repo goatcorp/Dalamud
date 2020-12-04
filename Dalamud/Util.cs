@@ -7,6 +7,12 @@ using Serilog;
 
 namespace Dalamud {
     internal static class Util {
+        [DllImport( "kernel32.dll", CharSet = CharSet.Ansi )]
+        public static extern IntPtr GetProcAddress( IntPtr InModule, string InProcName );
+
+        [DllImport( "kernel32.dll", CharSet = CharSet.Unicode )]
+        public static extern IntPtr GetModuleHandle( string InPath );
+
         public static void DumpMemory(IntPtr offset, int len = 512) {
             var data = new byte[len];
             Marshal.Copy(offset, data, 0, len);
