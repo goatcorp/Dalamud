@@ -6,7 +6,6 @@ using Dalamud.Game.Chat;
 using Dalamud.Game.Chat.SeStringHandling;
 using Dalamud.Game.Internal.Libc;
 using Dalamud.Hooking;
-using Discord.Rest;
 using Serilog;
 
 namespace Dalamud.Game.Internal.Gui {
