@@ -14,7 +14,9 @@ namespace Dalamud.Interface
     class DalamudLogWindow : IDisposable {
         private readonly CommandManager commandManager;
         private bool autoScroll = true;
-        private List<(string line, Vector4 color)> logText = new List<(string line, Vector4 color)>();
+        private readonly List<(string line, Vector4 color)> logText = new List<(string line, Vector4 color)>();
+        
+        private readonly object renderLock = new object();
 
         private string commandText = string.Empty;
 
@@ -44,11 +46,15 @@ namespace Dalamud.Interface
         }
 
         public void Clear() {
-            this.logText.Clear();
+            lock (this.renderLock) {
+                this.logText.Clear();
+            }
         }
 
         public void AddLog(string line, Vector4 color) {
-            this.logText.Add((line, color));
+            lock (this.renderLock) {
+                this.logText.Add((line, color));
+            }
         }
 
         public bool Draw() {
@@ -98,8 +104,10 @@ namespace Dalamud.Interface
 
             ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(0, 0));
 
-            foreach (var valueTuple in this.logText) {
-                ImGui.TextColored(valueTuple.color, valueTuple.line);
+            lock (this.renderLock) {
+                foreach (var (line, color) in this.logText) {
+                    ImGui.TextColored(color, line);
+                }
             }
 
             ImGui.PopStyleVar();
