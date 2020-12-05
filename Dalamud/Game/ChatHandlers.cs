@@ -152,20 +152,14 @@ namespace Dalamud.Game {
                     if (!valueInfo.Success || !int.TryParse(valueInfo.Value.Replace(",", "").Replace(".", ""), out var itemValue))
                         continue;
 
-                    Task.Run(() => this.dalamud.BotManager.ProcessRetainerSale(itemLink.Item.RowId, itemValue, itemLink.IsHQ));
+                    //Task.Run(() => this.dalamud.BotManager.ProcessRetainerSale(itemLink.Item.RowId, itemValue, itemLink.IsHQ));
                     break;
                 }
             }
 
             var messageCopy = message;
             var senderCopy = sender;
-            Task.Run(async () => {
-                try {
-                    await this.dalamud.BotManager.ProcessChatMessage(type, messageCopy, senderCopy);
-                } catch (Exception ex) {
-                    Log.Error(ex, "Could not process discord bot message.");
-                }
-            });
+
 
             // Handle all of this with SeString some day
             /*
