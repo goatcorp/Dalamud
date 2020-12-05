@@ -11,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using CheapLoc;
 using Dalamud.Data;
-using Dalamud.DiscordBot;
 using Dalamud.Game;
 using Dalamud.Game.Chat;
 using Dalamud.Game.Chat.SeStringHandling;
@@ -44,7 +43,7 @@ namespace Dalamud {
 
         public NetworkHandlers NetworkHandlers { get; private set; }
 
-        public DiscordBotManager BotManager { get; private set; }
+        public AntiDebug AntiDebug { get; set; }
 
         internal PluginManager PluginManager { get; private set; }
         internal PluginRepository PluginRepository { get; private set; }
@@ -142,14 +141,16 @@ namespace Dalamud {
 
                 NetworkHandlers = new NetworkHandlers(this, this.Configuration.OptOutMbCollection);
 
+#if DEBUG
+                AntiDebug = new AntiDebug(this.SigScanner);
+                AntiDebug.Enable();
+#endif
+
                 // Initialize managers. Basically handlers for the logic
                 CommandManager = new CommandManager(this, info.Language);
                 SetupCommands();
 
                 ChatHandlers = new ChatHandlers(this);
-                // Discord Bot Manager
-                BotManager = new DiscordBotManager(this, this.Configuration.DiscordFeatureConfig);
-                BotManager.Start();
 
                 if (!bool.Parse(Environment.GetEnvironmentVariable("DALAMUD_NOT_HAVE_PLUGINS") ?? "false")) {
                     try
@@ -207,8 +208,6 @@ namespace Dalamud {
             this.Framework.Dispose();
             this.ClientState.Dispose();
 
-            this.BotManager.Dispose();
-
             this.unloadSignal.Dispose();
 
             this.WinSock2.Dispose();
@@ -216,6 +215,8 @@ namespace Dalamud {
             this.SigScanner.Dispose();
             
             this.Data.Dispose();
+
+            this.AntiDebug?.Dispose();
         }
 
 #region Interface
@@ -294,6 +295,10 @@ namespace Dalamud {
                             }
 
                             ImGui.EndMenu();
+                        }
+                        if (AntiDebug == null && ImGui.MenuItem("Enable AntiDebug")) {
+                            AntiDebug = new AntiDebug(this.SigScanner);
+                            AntiDebug.Enable();
                         }
                         ImGui.Separator();
                         if (ImGui.MenuItem("Open Data window"))
@@ -526,10 +531,6 @@ namespace Dalamud {
                 HelpMessage = Loc.Localize("DalamudLastLinkHelp", "Open the last posted link in your default browser.")
             });
 
-            CommandManager.AddHandler("/xlbotjoin", new CommandInfo(OnBotJoinCommand) {
-                HelpMessage = Loc.Localize("DalamudBotJoinHelp", "Add the XIVLauncher discord bot you set up to your server.")
-            });
-
             CommandManager.AddHandler("/xlbgmset", new CommandInfo(OnBgmSetCommand) {
                 HelpMessage = Loc.Localize("DalamudBgmSetHelp", "Set the Game background music. Usage: /xlbgmset <BGM ID>")
             });
@@ -671,15 +672,6 @@ namespace Dalamud {
 
             Framework.Gui.Chat.Print(string.Format(Loc.Localize("DalamudOpeningLink", "Opening {0}"), ChatHandlers.LastLink));
             Process.Start(ChatHandlers.LastLink);
-        }
-
-        private void OnBotJoinCommand(string command, string arguments) {
-            if (this.BotManager != null && this.BotManager.IsConnected)
-                Process.Start(
-                    $"https://discordapp.com/oauth2/authorize?client_id={this.BotManager.UserId}&scope=bot&permissions=117760");
-            else
-                Framework.Gui.Chat.Print(
-                    Loc.Localize("DalamudBotNotSetup", "The XIVLauncher discord bot was not set up correctly or could not connect to discord. Please check the settings and the FAQ."));
         }
 
         private void OnBgmSetCommand(string command, string arguments)
