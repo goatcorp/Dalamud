@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Dalamud.Configuration;
-using Dalamud.DiscordBot;
 using Dalamud.Game.Chat;
 using Newtonsoft.Json;
 using Serilog;
@@ -12,8 +10,6 @@ namespace Dalamud
     [Serializable]
     internal class DalamudConfiguration
     {
-        public DiscordFeatureConfiguration DiscordFeatureConfig { get; set; }
-
         public bool OptOutMbCollection { get; set; } = false;
 
         public List<string> BadWords { get; set; }
