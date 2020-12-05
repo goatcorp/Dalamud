@@ -78,10 +78,15 @@ namespace Dalamud.Game.Command {
             string command;
             string argument;
 
-            var speratorPosition = content.IndexOf(' ');
-            if (speratorPosition == -1 || speratorPosition + 1 >= content.Length) {
+            var separatorPosition = content.IndexOf(' ');
+            if (separatorPosition == -1 || separatorPosition + 1 >= content.Length) {
                 // If no space was found or ends with the space. Process them as a no argument
-                command = content;
+                if (separatorPosition + 1 >= content.Length) {
+                    // Remove the trailing space
+                    command = content.Substring(0, separatorPosition);
+                } else {
+                    command = content;
+                }
                 argument = string.Empty;
             } else {
                 // e.g.)
@@ -90,9 +95,9 @@ namespace Dalamud.Game.Command {
                 // => command: 0-12 (12 chars)
                 // => argument: 13-17 (4 chars)
                 // => content.IndexOf(' ') == 12
-                command = content.Substring(0, speratorPosition);
+                command = content.Substring(0, separatorPosition);
 
-                var argStart = speratorPosition + 1;
+                var argStart = separatorPosition + 1;
                 argument = content.Substring(argStart, content.Length - argStart);
             }
 
