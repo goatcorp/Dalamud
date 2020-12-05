@@ -63,8 +63,6 @@
         </EmbeddedResource>
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\lib\Discord.Net\src\Discord.Net.Rest\Discord.Net.Rest.csproj" />
-        <ProjectReference Include="..\lib\Discord.Net\src\Discord.Net.WebSocket\Discord.Net.WebSocket.csproj" />
         <ProjectReference Include="..\lib\ImGuiScene\deps\ImGui.NET\src\ImGui.NET-472\ImGui.NET-472.csproj" />
         <ProjectReference Include="..\lib\ImGuiScene\deps\SDL2-CS\SDL2-CS.csproj" />
         <ProjectReference Include="..\lib\ImGuiScene\ImGuiScene\ImGuiScene.csproj" />
