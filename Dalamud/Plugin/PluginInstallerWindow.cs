@@ -173,6 +173,15 @@ namespace Dalamud.Plugin
                                 x => x.Definition.InternalName ==
                                      pluginDefinition.InternalName);
 
+                            if (this.dalamud.CommandManager.Commands.Any(x => x.Value.LoaderAssemblyName == installedPlugin.Definition?.InternalName)) {
+                                ImGui.Dummy(new Vector2(10, 10) * ImGui.GetIO().FontGlobalScale);
+                                foreach (var command in this.dalamud.CommandManager.Commands) {
+                                    if (command.Value.LoaderAssemblyName == installedPlugin.Definition.InternalName && command.Value.ShowInHelp) {
+                                        ImGui.Text($"{command.Key} → {command.Value.HelpMessage}");
+                                    }
+                                }
+                            }
+
                             if (ImGui.Button(Loc.Localize("InstallerDisable", "Disable")))
                                 try {
                                     this.dalamud.PluginManager.DisablePlugin(installedPlugin.Definition);
