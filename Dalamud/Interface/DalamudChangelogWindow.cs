@@ -22,7 +22,7 @@ We have quite a few new interesting plugins though, so maybe you can take this c
 * Added filters to the plugin installer
 * Fixed the language settings inside of the in-game-addon
 * Various changes to the plugin APIs that should help with creating further plugins
-A lot of these changes were contributed by @Aireil#1944 and @Cara#1841xi, thank you very much.
+A lot of these changes were contributed by Aireil and Caraxi, thank you very much.
 
 As this is a major patch and we have made several backend changes, please keep in mind that it may take a little bit for all of your favorite plugins to be available again as a lot of the developers are also active players of the game.";
 
