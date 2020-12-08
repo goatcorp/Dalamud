@@ -1,5 +1,7 @@
 using System;
+using System.Runtime.InteropServices;
 using Dalamud.Game.ClientState.Actors.Resolvers;
+using Dalamud.Game.ClientState.Structs;
 using SharpDX.Text;
 
 namespace Dalamud.Game.ClientState.Actors.Types {
@@ -28,7 +30,14 @@ namespace Dalamud.Game.ClientState.Actors.Types {
         /// <summary>
         ///     The Free Company tag of this player.
         /// </summary>
-        public string CompanyTag => Encoding.UTF8.GetString(this.actorStruct.CompanyTag).Substring(2).Replace("\0", "");
+        public string CompanyTag {
+            get {
+                var bytes = new byte[6];
+                Marshal.Copy(this.Address + ActorOffsets.CompanyTag, bytes, 0, bytes.Length);
+
+                return Encoding.UTF8.GetString(bytes);
+            }
+        }
 
         /// <summary>
         /// Target of the PlayerCharacter

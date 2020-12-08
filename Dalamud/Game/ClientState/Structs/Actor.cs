@@ -33,7 +33,7 @@ namespace Dalamud.Game.ClientState.Structs
         public const int PlayerCharacterTargetActorId = 560; // 0x01F0 TargetID
         // public const int ??? = 5297;                      // 0x14B1 Status
         public const int Customize = 6264;                   // 0x17B8
-        public const int CompanyTag = 1892;                  // 0x17D0
+        public const int CompanyTag = 6290;                  // 0x17D0
         public const int BattleNpcTargetActorId = 6328;      // 0x17F8 ClaimedByID
         public const int NameId = 6432;                      // 0x1868 ModelID
         public const int CurrentWorld = 6460;                // 0x1884
@@ -88,9 +88,6 @@ namespace Dalamud.Game.ClientState.Structs
 
         [FieldOffset(ActorOffsets.PlayerCharacterTargetActorId)] public int PlayerCharacterTargetActorId;
         [FieldOffset(ActorOffsets.BattleNpcTargetActorId)] public int BattleNpcTargetActorId;
-
-        // This field can't be correctly aligned, so we have to cut it manually.
-        [FieldOffset(ActorOffsets.CompanyTag)] [MarshalAs(UnmanagedType.ByValArray, SizeConst = 7)] public byte[] CompanyTag;
 
         [FieldOffset(ActorOffsets.NameId)] public int NameId;
         [FieldOffset(ActorOffsets.CurrentWorld)] public ushort CurrentWorld;
