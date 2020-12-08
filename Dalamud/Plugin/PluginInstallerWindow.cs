@@ -40,6 +40,17 @@ namespace Dalamud.Plugin
 
         private PluginInstallStatus installStatus = PluginInstallStatus.None;
 
+        private enum PluginFilter {
+            None,
+            Installed,
+            NotInstalled,
+            Updated,
+            Testing
+        }
+
+        private PluginFilter filter = PluginFilter.None;
+        private string filterText = "None";
+
         public PluginInstallerWindow(Dalamud dalamud, string gameVersion) {
             this.dalamud = dalamud;
             this.gameVersion = gameVersion;
@@ -57,9 +68,43 @@ namespace Dalamud.Plugin
                 ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar);
 
             ImGui.Text(Loc.Localize("InstallerHint", "This window allows you install and remove in-game plugins.\nThey are made by third-party developers."));
-            ImGui.SameLine(ImGui.GetWindowWidth() - 250 * ImGui.GetIO().FontGlobalScale);
+
+            ImGui.SameLine(ImGui.GetWindowWidth() - ((250 + 90 + ImGui.CalcTextSize(Loc.Localize("PluginFilter", "Filter")).X) * ImGui.GetIO().FontGlobalScale));
+
             ImGui.SetNextItemWidth(240 * ImGui.GetIO().FontGlobalScale);
             ImGui.InputTextWithHint("###XPlPluginInstaller_Search", Loc.Localize("InstallerSearch", "Search"), ref this.searchText, 100);
+
+            ImGui.SameLine();
+            ImGui.SetNextItemWidth(80 * ImGui.GetIO().FontGlobalScale);
+            if (ImGui.BeginCombo(Loc.Localize("PluginFilter", "Filter"), this.filterText, ImGuiComboFlags.NoArrowButton)) {
+                if (ImGui.Selectable(Loc.Localize("FilterNone", "None"))) {
+                    this.filter = PluginFilter.None;
+                    this.filterText = Loc.Localize("FilterNone", "None");
+                }
+                    
+                if (ImGui.Selectable(Loc.Localize("FilterInstalled", "Installed"))) {
+                    this.filter = PluginFilter.Installed;
+                    this.filterText = Loc.Localize("FilterInstalled", "Installed");
+                }
+                    
+                if (ImGui.Selectable(Loc.Localize("FilterNotInstalled", "Not installed"))) {
+                    this.filter = PluginFilter.NotInstalled;
+                    this.filterText = Loc.Localize("FilterNotInstalled", "Not installed");
+                }
+                    
+                if (ImGui.Selectable(Loc.Localize("FilterUpdated", "Updated"))) {
+                    this.filter = PluginFilter.Updated;
+                    this.filterText = Loc.Localize("FilterUpdated", "Updated");
+                }
+                    
+                if (this.dalamud.Configuration.DoPluginTest && ImGui.Selectable(Loc.Localize("FilterTesting", "Testing"))) {
+                        this.filter = PluginFilter.Testing;
+                        this.filterText = Loc.Localize("FilterTesting", "Testing");
+                }
+
+                ImGui.EndCombo();
+            }
+
             ImGui.Separator();
 
             ImGui.BeginChild("scrolling", new Vector2(0, 400 * ImGui.GetIO().FontGlobalScale), true, ImGuiWindowFlags.HorizontalScrollbar);
@@ -103,17 +148,6 @@ namespace Dalamud.Plugin
                     var isInstalled = this.dalamud.PluginManager.Plugins.Where(x => x.Definition != null).Any(
                         x => x.Definition.InternalName == pluginDefinition.InternalName);
 
-                    var label = isInstalled ? Loc.Localize("InstallerInstalled", " (installed)") : string.Empty;
-                    label = this.updatedPlugins != null &&
-                            this.updatedPlugins.Any(x => x.InternalName == pluginDefinition.InternalName && x.WasUpdated)
-                                ? Loc.Localize("InstallerUpdated", " (updated)")
-                                : label;
-
-                    label = this.updatedPlugins != null &&
-                            this.updatedPlugins.Any(x => x.InternalName == pluginDefinition.InternalName && x.WasUpdated == false)
-                                ? Loc.Localize("InstallerUpdateFailed", " (update failed)")
-                                : label;
-
                     var isTestingAvailable = false;
                     if (Version.TryParse(pluginDefinition.AssemblyVersion, out var assemblyVersion) && Version.TryParse(pluginDefinition.TestingAssemblyVersion, out var testingAssemblyVersion))
                         isTestingAvailable = this.dalamud.Configuration.DoPluginTest && testingAssemblyVersion > assemblyVersion;
@@ -124,7 +158,29 @@ namespace Dalamud.Plugin
                         continue;
                     }
 
-                    label += isTestingAvailable ? " (testing version)" : string.Empty;
+                    var label = string.Empty;
+                    if (isInstalled) {
+                        label += Loc.Localize("InstallerInstalled", " (installed)");
+                        if (this.filter == PluginFilter.NotInstalled) {
+                            continue;
+                        }
+                    } else if (this.filter == PluginFilter.Installed) {
+                        continue;
+                    }
+
+                    if (this.updatedPlugins != null && this.updatedPlugins.Any(x => x.InternalName == pluginDefinition.InternalName && x.WasUpdated == true)) {
+                        label += Loc.Localize("InstallerUpdated", " (updated)");
+                    } else if (this.updatedPlugins != null && this.updatedPlugins.Any(x => x.InternalName == pluginDefinition.InternalName && x.WasUpdated == false)) {
+                        label += Loc.Localize("InstallerUpdateFailed", " (update failed)");
+                    } else if (this.filter == PluginFilter.Updated) {
+                        continue;
+                    }
+                        
+                    if (isTestingAvailable) {
+                        label += " (testing version)";
+                    } else if (this.filter == PluginFilter.Testing) {
+                        continue;
+                    }
 
                     ImGui.PushID(pluginDefinition.InternalName + pluginDefinition.AssemblyVersion);
 

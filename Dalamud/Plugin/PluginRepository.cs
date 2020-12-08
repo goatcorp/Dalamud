@@ -12,8 +12,7 @@ using Serilog;
 
 namespace Dalamud.Plugin
 {
-    internal class PluginRepository
-    {
+    internal class PluginRepository {
         private string PluginFunctionBaseUrl => "https://us-central1-xl-functions.cloudfunctions.net/download-plugin/?plugin={0}&isUpdate={1}&isTesting={2}";
         private string PluginMasterUrl => "https://raw.githubusercontent.com/goatcorp/DalamudPlugins/master/pluginmaster.json";
 
@@ -31,21 +30,18 @@ namespace Dalamud.Plugin
 
         public InitializationState State { get; private set; }
 
-        public PluginRepository(Dalamud dalamud, string pluginDirectory, string gameVersion)
-        {
+        public PluginRepository(Dalamud dalamud, string pluginDirectory, string gameVersion) {
             this.dalamud = dalamud;
             this.pluginDirectory = pluginDirectory;
 
             ReloadPluginMasterAsync();
         }
 
-        public void ReloadPluginMasterAsync()
-        {
+        public void ReloadPluginMasterAsync() {
             Task.Run(() => {
                 State = InitializationState.InProgress;
 
-                try
-                {
+                try {
                     using var client = new WebClient();
 
                     var data = client.DownloadString(PluginMasterUrl);
@@ -56,8 +52,7 @@ namespace Dalamud.Plugin
 
                     State = InitializationState.Success;
                 }
-                catch (Exception ex)
-                {
+                catch (Exception ex) {
                     Log.Error(ex, "Could not download PluginMaster");
                     State = InitializationState.Fail;
                 }
@@ -68,16 +63,14 @@ namespace Dalamud.Plugin
         }
 
         public bool InstallPlugin(PluginDefinition definition, bool enableAfterInstall = true, bool isUpdate = false, bool fromTesting = false) {
-            try
-            {
+            try {
                 var outputDir = new DirectoryInfo(Path.Combine(this.pluginDirectory, definition.InternalName, fromTesting ? definition.TestingAssemblyVersion : definition.AssemblyVersion));
                 var dllFile = new FileInfo(Path.Combine(outputDir.FullName, $"{definition.InternalName}.dll"));
                 var disabledFile = new FileInfo(Path.Combine(outputDir.FullName, ".disabled"));
                 var testingFile = new FileInfo(Path.Combine(outputDir.FullName, ".testing"));
                 var wasDisabled = disabledFile.Exists;
 
-                if (dllFile.Exists && enableAfterInstall)
-                {
+                if (dllFile.Exists && enableAfterInstall) {
                     if (disabledFile.Exists)
                         disabledFile.Delete();
 
@@ -130,8 +123,7 @@ namespace Dalamud.Plugin
 
                 return this.dalamud.PluginManager.LoadPluginFromAssembly(dllFile, false, PluginLoadReason.Installer);
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 Log.Error(e, "Plugin download failed hard.");
                 return false;
             }
@@ -142,18 +134,15 @@ namespace Dalamud.Plugin
             public bool WasUpdated { get; set; }
         }
 
-        public (bool Success, List<PluginUpdateStatus> UpdatedPlugins) UpdatePlugins(bool dryRun = false)
-        {
+        public (bool Success, List<PluginUpdateStatus> UpdatedPlugins) UpdatePlugins(bool dryRun = false) {
             Log.Information("Starting plugin update... dry:{0}", dryRun);
 
             var updatedList = new List<PluginUpdateStatus>();
             var hasError = false;
 
-            try
-            {
+            try {
                 var pluginsDirectory = new DirectoryInfo(this.pluginDirectory);
-                foreach (var installed in pluginsDirectory.GetDirectories())
-                {
+                foreach (var installed in pluginsDirectory.GetDirectories()) {
                     try {
                         var versions = installed.GetDirectories();
 
@@ -162,8 +151,7 @@ namespace Dalamud.Plugin
                             continue;
                         }
 
-                        var sortedVersions = versions.OrderBy(dirInfo =>
-                        {
+                        var sortedVersions = versions.OrderBy(dirInfo => {
                             var success = Version.TryParse(dirInfo.Name, out Version version);
                             if (!success) { Log.Debug("Unparseable version: {0}", dirInfo.Name); }
                             return version;
@@ -263,8 +251,7 @@ namespace Dalamud.Plugin
                     }
                 }
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 Log.Error(e, "Plugin update failed.");
                 hasError = true;
             }
@@ -275,32 +262,32 @@ namespace Dalamud.Plugin
         }
 
         public void CleanupPlugins() {
-            try
-            {
+            try {
                 var pluginsDirectory = new DirectoryInfo(this.pluginDirectory);
-                foreach (var installed in pluginsDirectory.GetDirectories())
-                {
+                foreach (var installed in pluginsDirectory.GetDirectories()) {
                     var versions = installed.GetDirectories();
 
-                    if (versions.Length == 0)
-                    {
+                    if (versions.Length == 0) {
                         Log.Information("[PLUGINR] Has no versions: {0}", installed.FullName);
                         continue;
                     }
 
                     var sortedVersions = versions.OrderBy(x => int.Parse(x.Name.Replace(".", ""))).ToArray();
                     for (var i = 0; i < sortedVersions.Length - 1; i++) {
-                        Log.Information("[PLUGINR] Trying to delete old {0} at {1}", installed.Name, sortedVersions[i].FullName);
-                        try {
-                            sortedVersions[i].Delete(true);
-                        } catch (Exception ex) {
-                            Log.Error(ex, "[PLUGINR] Could not delete old version");
+                        var disabledFile = new FileInfo(Path.Combine(sortedVersions[i].FullName, ".disabled"));
+                        if (disabledFile.Exists) {
+                            Log.Information("[PLUGINR] Trying to delete old {0} at {1}", installed.Name, sortedVersions[i].FullName);
+                            try {
+                                sortedVersions[i].Delete(true);
+                            }
+                            catch (Exception ex) {
+                                Log.Error(ex, "[PLUGINR] Could not delete old version");
+                            }
                         }
                     }
                 }
             }
-            catch (Exception ex)
-            {
+            catch (Exception ex) {
                 Log.Error(ex, "[PLUGINR] Plugin cleanup failed.");
             }
         }
