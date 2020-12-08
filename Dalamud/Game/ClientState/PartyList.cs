@@ -26,7 +26,7 @@ namespace Dalamud.Game.ClientState
         {
             Address = addressResolver;
             this.dalamud = dalamud;
-            this.partyListUpdateHook = new Hook<PartyListUpdateDelegate>(Address.PartyListUpdate, new PartyListUpdateDelegate(PartyListUpdateDetour), this);
+            //this.partyListUpdateHook = new Hook<PartyListUpdateDelegate>(Address.PartyListUpdate, new PartyListUpdateDelegate(PartyListUpdateDetour), this);
         }
 
         public void Enable()
