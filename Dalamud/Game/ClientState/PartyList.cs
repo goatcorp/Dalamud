@@ -37,8 +37,8 @@ namespace Dalamud.Game.ClientState
 
         public void Dispose()
         {
-            if (!this.isReady)
-                this.partyListUpdateHook.Dispose();
+            //if (!this.isReady)
+            //    this.partyListUpdateHook.Dispose();
             this.isReady = false;
         }
 
