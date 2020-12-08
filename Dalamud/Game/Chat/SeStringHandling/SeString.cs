@@ -105,6 +105,14 @@ namespace Dalamud.Game.Chat.SeStringHandling
         }
 
         /// <summary>
+        /// Get the text value of this SeString.
+        /// </summary>
+        /// <returns>The TextValue property</returns>
+        public override string ToString() {
+            return TextValue;
+        }
+
+        /// <summary>
         /// Serializes the SeString to json
         /// </summary>
         /// <returns>An json representation of this object</returns>
