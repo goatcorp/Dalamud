@@ -129,8 +129,10 @@ namespace Dalamud.Game.Internal.Gui {
                 var isHandled = false;
                 OnCheckMessageHandled?.Invoke(chattype, senderid, ref parsedSender, ref parsedMessage, ref isHandled);
 
-                OnChatMessage?.Invoke(chattype, senderid, ref parsedSender, ref parsedMessage, ref isHandled);
-                OnChatMessageRaw?.Invoke(chattype, senderid, ref sender, ref message, ref isHandled);
+                if (!isHandled) {
+                    OnChatMessage?.Invoke(chattype, senderid, ref parsedSender, ref parsedMessage, ref isHandled);
+                    OnChatMessageRaw?.Invoke(chattype, senderid, ref sender, ref message, ref isHandled);
+                }
 
                 var newEdited = parsedMessage.Encode();
 
