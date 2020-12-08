@@ -1,3 +1,5 @@
+using System.Reflection;
+
 namespace Dalamud.Game.Command {
     /// <summary>
     /// This class describes a registered command.
@@ -31,6 +33,9 @@ namespace Dalamud.Game.Command {
         /// <param name="handler"></param>
         public CommandInfo(HandlerDelegate handler) {
             Handler = handler;
+            LoaderAssemblyName = Assembly.GetCallingAssembly()?.GetName()?.Name;
         }
+
+        internal string LoaderAssemblyName { get; set; } = string.Empty;
     }
 }
