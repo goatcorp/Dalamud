@@ -12,7 +12,7 @@ using Serilog;
 namespace Dalamud.Plugin
 {
     internal class PluginManager {
-        public static int DALAMUD_API_LEVEL = 1;
+        public static int DALAMUD_API_LEVEL = 2;
 
         private readonly Dalamud dalamud;
         private readonly string pluginDirectory;
