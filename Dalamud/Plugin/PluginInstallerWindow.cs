@@ -229,12 +229,11 @@ namespace Dalamud.Plugin
                                 x => x.Definition.InternalName ==
                                      pluginDefinition.InternalName);
 
-                            if (this.dalamud.CommandManager.Commands.Any(x => x.Value.LoaderAssemblyName == installedPlugin.Definition?.InternalName)) {
+                            var commands = this.dalamud.CommandManager.Commands.Where(x => x.Value.LoaderAssemblyName == installedPlugin.Definition?.InternalName && x.Value.ShowInHelp);
+                            if (commands.Any()) {
                                 ImGui.Dummy(new Vector2(10, 10) * ImGui.GetIO().FontGlobalScale);
-                                foreach (var command in this.dalamud.CommandManager.Commands) {
-                                    if (command.Value.LoaderAssemblyName == installedPlugin.Definition.InternalName && command.Value.ShowInHelp) {
-                                        ImGui.Text($"{command.Key} → {command.Value.HelpMessage}");
-                                    }
+                                foreach (var command in commands) {
+                                    ImGui.Text($"{command.Key} → {command.Value.HelpMessage}");
                                 }
                             }
 
