@@ -85,9 +85,11 @@ namespace Dalamud {
             // Initialize game subsystem
             this.Framework = new Framework(this.SigScanner, this);
 
-            this.ClientState = new ClientState(this, info, this.SigScanner);
-
             this.WinSock2 = new WinSockHandlers();
+
+            NetworkHandlers = new NetworkHandlers(this, this.Configuration.OptOutMbCollection);
+
+            this.ClientState = new ClientState(this, info, this.SigScanner);
 
             Task.Run(async () => {
                 try {
@@ -138,8 +140,6 @@ namespace Dalamud {
                 }
 
                 SeStringManager = new SeStringManager(Data);
-
-                NetworkHandlers = new NetworkHandlers(this, this.Configuration.OptOutMbCollection);
 
 #if DEBUG
                 AntiDebug = new AntiDebug(this.SigScanner);

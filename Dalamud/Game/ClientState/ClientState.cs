@@ -16,6 +16,7 @@ namespace Dalamud.Game.ClientState
     /// This class represents the state of the game client at the time of access.
     /// </summary>
     public class ClientState : INotifyPropertyChanged, IDisposable {
+        private readonly Dalamud dalamud;
         public event PropertyChangedEventHandler PropertyChanged;
 
         private ClientStateAddressResolver Address { get; }
@@ -59,6 +60,11 @@ namespace Dalamud.Game.ClientState
         /// Event that gets fired when the current Territory changes.
         /// </summary>
         public EventHandler<ushort> TerritoryChanged;
+
+        /// <summary>
+        /// Event that gets fired when a duty is ready.
+        /// </summary>
+        public event EventHandler<ContentFinderCondition> CfPop;
 
         private IntPtr SetupTerritoryTypeDetour(IntPtr manager, ushort terriType)
         {
@@ -109,6 +115,7 @@ namespace Dalamud.Game.ClientState
         /// /// <param name="startInfo">StartInfo of the current Dalamud launch</param>
         /// <param name="scanner">Sig scanner</param>
         public ClientState(Dalamud dalamud, DalamudStartInfo startInfo, SigScanner scanner) {
+            this.dalamud = dalamud;
             Address = new ClientStateAddressResolver();
             Address.Setup(scanner);
 
@@ -135,6 +142,11 @@ namespace Dalamud.Game.ClientState
                                                                                this);
 
             dalamud.Framework.OnUpdateEvent += FrameworkOnOnUpdateEvent;
+            dalamud.NetworkHandlers.CfPop += NetworkHandlersOnCfPop;
+        }
+
+        private void NetworkHandlersOnCfPop(object sender, ContentFinderCondition e) {
+            CfPop?.Invoke(this, e);
         }
 
         public void Enable() {
@@ -146,6 +158,9 @@ namespace Dalamud.Game.ClientState
             this.PartyList.Dispose();
             this.setupTerritoryTypeHook.Dispose();
             this.Actors.Dispose();
+
+            this.dalamud.Framework.OnUpdateEvent -= FrameworkOnOnUpdateEvent;
+            this.dalamud.NetworkHandlers.CfPop += NetworkHandlersOnCfPop;
         }
 
         private bool lastConditionNone = true;

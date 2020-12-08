@@ -22,8 +22,10 @@ namespace Dalamud.Game.Network {
         private readonly bool optOutMbUploads;
         private readonly IMarketBoardUploader uploader;
 
-        public delegate Task CfPop(ContentFinderCondition cfc);
-        public event CfPop ProcessCfPop;
+        /// <summary>
+        /// Event which gets fired when a duty is ready.
+        /// </summary>
+        public event EventHandler<ContentFinderCondition> CfPop; 
 
         public NetworkHandlers(Dalamud dalamud, bool optOutMbUploads) {
             this.dalamud = dalamud;
@@ -79,11 +81,11 @@ namespace Dalamud.Game.Network {
                     NativeFunctions.FlashWindowEx(ref flashInfo);
                 }
 
-                Task.Run(async () => {
+                Task.Run(() => {
                     if(this.dalamud.Configuration.DutyFinderChatMessage)
                         this.dalamud.Framework.Gui.Chat.Print("Duty pop: " + cfcName);
 
-                    await this.ProcessCfPop?.Invoke(contentFinderCondition);
+                    CfPop?.Invoke(this, contentFinderCondition);
                 });
 
                 return;
