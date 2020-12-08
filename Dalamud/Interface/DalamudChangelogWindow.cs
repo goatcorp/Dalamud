@@ -11,11 +11,20 @@ namespace Dalamud.Interface {
         private readonly Dalamud dalamud;
         private string assemblyVersion = Util.AssemblyVersion;
 
-        private const bool WarrantsChangelog = false;
+        private const bool WarrantsChangelog = true;
         private const string ChangeLog =
-            @"* Various backend changes that will allow for more involved plugins
-* Fixed an issue wherein, in particular cases, chat messages from plugins would be incorrectly allocated
-* Beta/Testing plugins can now be used in conjunction with regular plugins. Join our discord to check out plugins for testing!";
+            @"Please note: Due to an internal change, you have to click ""install"" on all of your plugins again in the plugin installer(``/xlplugins``). All of your settings and saved data is still there, just needs to be turned on again!
+We have quite a few new interesting plugins though, so maybe you can take this chance to check out some of them.
+
+* Removed the *built-in* Discord functionality, but replaced it with a far better plugin-based version. Please refer to this guide to set it up, it's easy to get started and we will have a few new features coming soon: <https://github.com/goaaats/Dalamud.DiscordBridge/wiki/Setup-Guide>
+
+* Added the ability to hide the plugin information in the login message
+* Added filters to the plugin installer
+* Fixed the language settings inside of the in-game-addon
+* Various changes to the plugin APIs that should help with creating further plugins
+A lot of these changes were contributed by @Aireil#1944 and @Cara#1841xi, thank you very much.
+
+As this is a major patch and we have made several backend changes, please keep in mind that it may take a little bit for all of your favorite plugins to be available again as a lot of the developers are also active players of the game.";
 
         public DalamudChangelogWindow(Dalamud dalamud) {
             this.dalamud = dalamud;
