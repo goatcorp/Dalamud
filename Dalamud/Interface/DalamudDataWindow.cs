@@ -66,8 +66,8 @@ namespace Dalamud.Interface
             ImGui.SameLine();
             var copy = ImGui.Button("Copy all");
             ImGui.SameLine();
-            ImGui.Combo("Data kind", ref this.currentKind, new[] {"ServerOpCode", "Address", "Actor Table", "Font Test", "Party List", "Plugin IPC", "Condition", "Gauge", "Command", "Client UI"},
-                        10);
+            ImGui.Combo("Data kind", ref this.currentKind, new[] {"ServerOpCode", "Address", "Actor Table", "Font Test", "Party List", "Plugin IPC", "Condition", "Gauge", "Command", "Addon", "StartInfo"},
+                        11);
             ImGui.Checkbox("Resolve GameData", ref this.resolveGameData);
 
             ImGui.BeginChild("scrolling", new Vector2(0, 0), false, ImGuiWindowFlags.HorizontalScrollbar);
@@ -339,6 +339,10 @@ namespace Dalamud.Interface
                                 ImGui.SetClipboardText(addr);
                             }
 
+                            break;
+                        
+                        case 10:
+                            ImGui.Text(JsonConvert.SerializeObject(this.dalamud.StartInfo, Formatting.Indented));
                             break;
                     }
                 else
