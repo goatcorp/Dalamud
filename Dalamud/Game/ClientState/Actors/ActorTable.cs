@@ -93,11 +93,12 @@ namespace Dalamud.Game.ClientState.Actors {
                     ObjectKind.Player => new PlayerCharacter(offset, actorStruct, this.dalamud),
                     ObjectKind.BattleNpc => new BattleNpc(offset, actorStruct, this.dalamud),
                     ObjectKind.EventObj => new EventObj(offset, actorStruct, this.dalamud),
-                    _ => new Actor(offset, actorStruct, this.dalamud)
+                    ObjectKind.Companion => new Npc(offset, actorStruct, this.dalamud),
+                _ => new Actor(offset, actorStruct, this.dalamud)
                 };
             }
             catch (Exception e) {
-                Log.Information($"{e}");
+                Log.Error(e, "Could not read actor from memory.");
                 return null;
             }
         }
