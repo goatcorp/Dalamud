@@ -13,10 +13,12 @@ namespace Dalamud.Interface {
 
         private const bool WarrantsChangelog = true;
         private const string ChangeLog =
-            @"Please note: Due to an internal change, you have to click ""install"" on all of your plugins again in the plugin installer(``/xlplugins``). All of your settings and saved data is still there, just needs to be turned on again!
+            @"Please note: Due to an internal change, you have to click ""install"" on all of your plugins again in the plugin installer(/xlplugins). 
+All of your settings and saved data is still there, just needs to be turned on again!
 We have quite a few new interesting plugins though, so maybe you can take this chance to check out some of them.
 
-* Removed the *built-in* Discord functionality, but replaced it with a far better plugin-based version. Please refer to this guide to set it up, it's easy to get started and we will have a few new features coming soon: <https://github.com/goaaats/Dalamud.DiscordBridge/wiki/Setup-Guide>
+* Removed the *built-in* Discord functionality, but replaced it with a far better plugin-based version.
+  You can install it from the plugin installer.
 
 * Added the ability to hide the plugin information in the login message
 * Added filters to the plugin installer
@@ -24,7 +26,7 @@ We have quite a few new interesting plugins though, so maybe you can take this c
 * Various changes to the plugin APIs that should help with creating further plugins
 A lot of these changes were contributed by Aireil and Caraxi, thank you very much.
 
-As this is a major patch and we have made several backend changes, please keep in mind that it may take a little bit for all of your favorite plugins to be available again as a lot of the developers are also active players of the game.";
+As this is a major patch and we have made several backend changes, please keep in mind that it may take a little bit for all of your favorite plugins to be available again.";
 
         public DalamudChangelogWindow(Dalamud dalamud) {
             this.dalamud = dalamud;
