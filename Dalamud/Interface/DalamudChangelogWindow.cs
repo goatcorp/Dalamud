@@ -13,18 +13,11 @@ namespace Dalamud.Interface {
 
         private const bool WarrantsChangelog = true;
         private const string ChangeLog =
-            @"Please note: Due to an internal change, you have to click ""install"" on all of your plugins again in the plugin installer(/xlplugins). 
-All of your settings and saved data is still there, just needs to be turned on again!
-We have quite a few new interesting plugins though, so maybe you can take this chance to check out some of them.
+            @"* Fixed various bugs with plugins not installing correctly or causing crashes in certain situations
+* All installed plugins, regardless of their status in the repository, are now shown
+* Plugins are now grouped by installation state in the installer
 
-* Removed the *built-in* Discord functionality, but replaced it with a far better plugin-based version.
-  You can install it from the plugin installer.
-
-* Added the ability to hide the plugin information in the login message
-* Added filters to the plugin installer
-* Fixed the language settings inside of the in-game-addon
-* Various changes to the plugin APIs that should help with creating further plugins
-A lot of these changes were contributed by Aireil and Caraxi, thank you very much.
+If you have previously encoutered issues with plugins since 5.4, they should be resolved now for most of them.
 
 As this is a major patch and we have made several backend changes, please keep in mind that it may take a little bit for all of your favorite plugins to be available again.";
 
