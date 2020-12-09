@@ -272,7 +272,11 @@ namespace Dalamud.Plugin
                         continue;
                     }
 
-                    var sortedVersions = versions.OrderBy(x => int.Parse(x.Name.Replace(".", ""))).ToArray();
+                    var sortedVersions = versions.OrderBy(dirInfo => {
+                        var success = Version.TryParse(dirInfo.Name, out Version version);
+                        if (!success) { Log.Debug("Unparseable version: {0}", dirInfo.Name); }
+                        return version;
+                    }).ToArray();
                     for (var i = 0; i < sortedVersions.Length - 1; i++) {
                         var disabledFile = new FileInfo(Path.Combine(sortedVersions[i].FullName, ".disabled"));
                         if (disabledFile.Exists) {
