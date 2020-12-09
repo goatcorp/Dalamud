@@ -173,6 +173,7 @@ namespace Dalamud.Plugin
 
                     if (pluginDef.DalamudApiLevel < DALAMUD_API_LEVEL) {
                         Log.Error("Incompatible API level: {0}", dllFile.FullName);
+                        disabledFile.Create().Close();
                         return false;
                     }
 
