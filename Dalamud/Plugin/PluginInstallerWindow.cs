@@ -45,16 +45,14 @@ namespace Dalamud.Plugin
 
         private PluginInstallStatus installStatus = PluginInstallStatus.None;
 
-        private enum PluginFilter {
-            None,
-            Installed,
-            NotInstalled,
-            Updated,
-            Testing
+        private enum PluginSortKind {
+            Alphabetical,
+            DownloadCount,
+            LastUpdate
         }
 
-        private PluginFilter filter = PluginFilter.None;
-        private string filterText = "None";
+        private PluginSortKind sortKind = PluginSortKind.Alphabetical;
+        private string filterText = "Alphabetical";
 
         public PluginInstallerWindow(Dalamud dalamud, string gameVersion) {
             this.dalamud = dalamud;
@@ -64,47 +62,62 @@ namespace Dalamud.Plugin
                 this.dalamud.PluginRepository.ReloadPluginMasterAsync();
         }
 
+        private void ResortAvailable() {
+            var availableDefs = this.dalamud.PluginRepository.PluginMaster.Where(
+                x => this.pluginListInstalled.All(y => x.InternalName != y.InternalName)).ToList();
+
+            switch (this.sortKind) {
+                case PluginSortKind.Alphabetical:
+                    this.pluginListAvailable = availableDefs.OrderBy(x => x.InternalName).ToList();
+                    break;
+                case PluginSortKind.DownloadCount:
+                    this.pluginListAvailable = availableDefs.OrderByDescending(x => x.DownloadCount).ToList();
+                    break;
+                case PluginSortKind.LastUpdate:
+                    this.pluginListAvailable = availableDefs.OrderByDescending(x => x.LastUpdate).ToList();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
         public bool Draw() {
             var windowOpen = true;
 
-            ImGui.SetNextWindowSize(new Vector2(750, 520) * ImGui.GetIO().FontGlobalScale);
+            ImGui.SetNextWindowSize(new Vector2(810, 520) * ImGui.GetIO().FontGlobalScale);
 
             ImGui.Begin(Loc.Localize("InstallerHeader", "Plugin Installer") + (this.dalamud.Configuration.DoPluginTest ? " (TESTING)" : string.Empty) + "###XlPluginInstaller", ref windowOpen,
                 ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar);
 
             ImGui.Text(Loc.Localize("InstallerHint", "This window allows you install and remove in-game plugins.\nThey are made by third-party developers."));
 
-            ImGui.SameLine(ImGui.GetWindowWidth() - ((250 + 90 + ImGui.CalcTextSize(Loc.Localize("PluginFilter", "Filter")).X) * ImGui.GetIO().FontGlobalScale));
+            ImGui.SameLine(ImGui.GetWindowWidth() - ((250 + 90 + ImGui.CalcTextSize(Loc.Localize("PluginSort", "Sort By")).X) * ImGui.GetIO().FontGlobalScale));
 
             ImGui.SetNextItemWidth(240 * ImGui.GetIO().FontGlobalScale);
             ImGui.InputTextWithHint("###XPlPluginInstaller_Search", Loc.Localize("InstallerSearch", "Search"), ref this.searchText, 100);
 
             ImGui.SameLine();
             ImGui.SetNextItemWidth(80 * ImGui.GetIO().FontGlobalScale);
-            if (ImGui.BeginCombo(Loc.Localize("PluginFilter", "Filter"), this.filterText, ImGuiComboFlags.NoArrowButton)) {
-                if (ImGui.Selectable(Loc.Localize("FilterNone", "None"))) {
-                    this.filter = PluginFilter.None;
-                    this.filterText = Loc.Localize("FilterNone", "None");
+            if (ImGui.BeginCombo(Loc.Localize("PluginSort", "Sort By"), this.filterText, ImGuiComboFlags.NoArrowButton)) {
+                if (ImGui.Selectable(Loc.Localize("SortAlphabetical", "Alphabetical"))) {
+                    this.sortKind = PluginSortKind.Alphabetical;
+                    this.filterText = Loc.Localize("SortAlphabetical", "Alphabetical");
+
+                    ResortAvailable();
                 }
                     
-                if (ImGui.Selectable(Loc.Localize("FilterInstalled", "Installed"))) {
-                    this.filter = PluginFilter.Installed;
-                    this.filterText = Loc.Localize("FilterInstalled", "Installed");
+                if (ImGui.Selectable(Loc.Localize("SortDownloadCounts", "Download Count"))) {
+                    this.sortKind = PluginSortKind.DownloadCount;
+                    this.filterText = Loc.Localize("SortDownloadCounts", "Download Count");
+
+                    ResortAvailable();
                 }
                     
-                if (ImGui.Selectable(Loc.Localize("FilterNotInstalled", "Not installed"))) {
-                    this.filter = PluginFilter.NotInstalled;
-                    this.filterText = Loc.Localize("FilterNotInstalled", "Not installed");
-                }
-                    
-                if (ImGui.Selectable(Loc.Localize("FilterUpdated", "Updated"))) {
-                    this.filter = PluginFilter.Updated;
-                    this.filterText = Loc.Localize("FilterUpdated", "Updated");
-                }
-                    
-                if (this.dalamud.Configuration.DoPluginTest && ImGui.Selectable(Loc.Localize("FilterTesting", "Testing"))) {
-                        this.filter = PluginFilter.Testing;
-                        this.filterText = Loc.Localize("FilterTesting", "Testing");
+                if (ImGui.Selectable(Loc.Localize("SortLastUpdate", "Last Update"))) {
+                    this.sortKind = PluginSortKind.LastUpdate;
+                    this.filterText = Loc.Localize("SortLastUpdate", "Last Update");
+
+                    ResortAvailable();
                 }
 
                 ImGui.EndCombo();
@@ -132,8 +145,7 @@ namespace Dalamud.Plugin
                                                    .ToList();
                     this.pluginListInstalled.AddRange(hiddenPlugins);
 
-                    this.pluginListAvailable = this.dalamud.PluginRepository.PluginMaster.Where(
-                        x => this.pluginListInstalled.All(y => x.InternalName != y.InternalName)).ToList();
+                    ResortAvailable();
                 }
 
                 ImGui.TextColored(this.colorGrey,
@@ -286,9 +298,6 @@ namespace Dalamud.Plugin
                 var label = string.Empty;
                 if (isInstalled) {
                     label += Loc.Localize("InstallerInstalled", " (installed)");
-                    if (this.filter == PluginFilter.NotInstalled) continue;
-                } else if (this.filter == PluginFilter.Installed) {
-                    continue;
                 }
 
                 if (this.updatedPlugins != null &&
@@ -298,11 +307,9 @@ namespace Dalamud.Plugin
                          this.updatedPlugins.Any(x => x.InternalName == pluginDefinition.InternalName &&
                                                       x.WasUpdated == false))
                     label += Loc.Localize("InstallerUpdateFailed", " (update failed)");
-                else if (this.filter == PluginFilter.Updated) continue;
 
                 if (isTestingAvailable)
                     label += " (testing version)";
-                else if (this.filter == PluginFilter.Testing) continue;
 
                 ImGui.PushID(pluginDefinition.InternalName + pluginDefinition.AssemblyVersion);
 

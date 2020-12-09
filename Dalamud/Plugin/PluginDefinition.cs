@@ -72,5 +72,10 @@ namespace Dalamud.Plugin
         /// The number of downloads this plugin has.
         /// </summary>
         public long DownloadCount { get; set; }
+
+        /// <summary>
+        /// The last time this plugin was updated.
+        /// </summary>
+        public long LastUpdate { get; set; }
     }
 }
