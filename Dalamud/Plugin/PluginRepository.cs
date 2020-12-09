@@ -39,6 +39,8 @@ namespace Dalamud.Plugin
 
         public void ReloadPluginMasterAsync() {
             Task.Run(() => {
+                this.PluginMaster = null;
+
                 State = InitializationState.InProgress;
 
                 try {
