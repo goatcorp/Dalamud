@@ -22,7 +22,7 @@ namespace Dalamud.Plugin
 
         private readonly Type interfaceType = typeof(IDalamudPlugin);
 
-        public readonly List<(IDalamudPlugin Plugin, PluginDefinition Definition, DalamudPluginInterface PluginInterface)> Plugins = new List<(IDalamudPlugin plugin, PluginDefinition def, DalamudPluginInterface PluginInterface)>();
+        public readonly List<(IDalamudPlugin Plugin, PluginDefinition Definition, DalamudPluginInterface PluginInterface, bool IsRaw)> Plugins = new List<(IDalamudPlugin plugin, PluginDefinition def, DalamudPluginInterface PluginInterface, bool IsRaw)>();
 
         public List<(string SourcePluginName, string SubPluginName, Action<ExpandoObject> SubAction)> IpcSubscriptions = new List<(string SourcePluginName, string SubPluginName, Action<ExpandoObject> SubAction)>();
 
@@ -181,7 +181,7 @@ namespace Dalamud.Plugin
                     plugin.Initialize(dalamudInterface);
 
                     Log.Information("Loaded plugin: {0}", plugin.Name);
-                    this.Plugins.Add((plugin, pluginDef, dalamudInterface));
+                    this.Plugins.Add((plugin, pluginDef, dalamudInterface, raw));
 
                     return true;
                 }

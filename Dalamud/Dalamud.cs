@@ -354,6 +354,7 @@ namespace Dalamud {
                             this.pluginWindow = new PluginInstallerWindow(this, this.StartInfo.GameVersion);
                             this.isImguiDrawPluginWindow = true;
                         }
+                        ImGui.Separator();
                         if (ImGui.MenuItem("Open Plugin Stats")) {
                             if (!this.isImguiDrawPluginStatWindow) {
                                 this.pluginStatWindow = new DalamudPluginStatWindow(this.PluginManager);
@@ -436,6 +437,9 @@ namespace Dalamud {
             if (this.isImguiDrawPluginWindow)
             {
                 this.isImguiDrawPluginWindow = this.pluginWindow != null && this.pluginWindow.Draw();
+
+                if (!this.isImguiDrawPluginWindow)
+                    this.pluginWindow = null;
             }
 
             if (this.isImguiDrawCreditsWindow)
