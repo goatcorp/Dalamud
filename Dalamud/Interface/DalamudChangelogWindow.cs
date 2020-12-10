@@ -11,7 +11,7 @@ namespace Dalamud.Interface {
         private readonly Dalamud dalamud;
         private string assemblyVersion = Util.AssemblyVersion;
 
-        private const bool WarrantsChangelog = true;
+        private const bool WarrantsChangelog = false;
         private const string ChangeLog =
             @"* Fixed various bugs with plugins not installing correctly or causing crashes in certain situations
 * All installed plugins, regardless of their status in the repository, are now shown
