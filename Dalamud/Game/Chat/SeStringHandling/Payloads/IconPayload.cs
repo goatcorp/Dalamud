@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
-using Serilog;
+using System;
 
 namespace Dalamud.Game.Chat.SeStringHandling.Payloads {
 
@@ -12,7 +12,13 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads {
         /// <summary>
         /// Index of the icon
         /// </summary>
-        public uint IconIndex { get; private set; }
+        [Obsolete("Use IconPayload.Icon")]
+        public uint IconIndex => (uint) Icon;
+
+        /// <summary>
+        /// Icon the payload represents.
+        /// </summary>
+        public BitmapFontIcon Icon { get; set; } = BitmapFontIcon.None;
 
         internal IconPayload() { }
 
@@ -20,14 +26,23 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads {
         /// Create a Icon payload for the specified icon.
         /// </summary>
         /// <param name="iconIndex">Index of the icon</param>
-        public IconPayload(uint iconIndex) {
-            this.IconIndex = iconIndex;
+        [Obsolete("IconPayload(uint) is deprecated, please use IconPayload(BitmapFontIcon).")]
+        public IconPayload(uint iconIndex) : this((BitmapFontIcon) iconIndex) { }
+
+        /// <summary>
+        /// Create a Icon payload for the specified icon.
+        /// </summary>
+        /// <param name="icon">The Icon</param>
+        public IconPayload(BitmapFontIcon icon) {
+            Icon = icon;
         }
 
+        /// <inheritdoc />
         public override PayloadType Type => PayloadType.Icon;
 
+        /// <inheritdoc />
         protected override byte[] EncodeImpl() {
-            var indexBytes = MakeInteger(this.IconIndex);
+            var indexBytes = MakeInteger((uint) this.Icon);
             var chunkLen = indexBytes.Length + 1;
             var bytes = new List<byte>(new byte[] {
                 START_BYTE, (byte)SeStringChunkType.Icon, (byte)chunkLen
@@ -37,12 +52,14 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads {
             return bytes.ToArray();
         }
 
+        /// <inheritdoc />
         protected override void DecodeImpl(BinaryReader reader, long endOfStream) {
-            this.IconIndex = GetInteger(reader);
+            Icon = (BitmapFontIcon) GetInteger(reader);
         }
 
+        /// <inheritdoc />
         public override string ToString() {
-            return $"{Type} - IconIndex: {this.IconIndex}";
+            return $"{Type} - {Icon}";
         }
 
     }
