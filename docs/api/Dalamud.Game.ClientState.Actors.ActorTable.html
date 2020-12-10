@@ -87,6 +87,7 @@
     <div><span class="xref">System.Collections.Generic.IEnumerable</span>&lt;<a class="xref" href="Dalamud.Game.ClientState.Actors.Types.Actor.html">Actor</a>&gt;</div>
     <div><span class="xref">System.Collections.ICollection</span></div>
     <div><span class="xref">System.Collections.IEnumerable</span></div>
+    <div><span class="xref">System.IDisposable</span></div>
   </div>
   <div class="inheritedMembers">
     <h5>Inherited Members</h5>
@@ -116,16 +117,16 @@
   <h6><strong>Assembly</strong>: Dalamud.dll</h6>
   <h5 id="Dalamud_Game_ClientState_Actors_ActorTable_syntax">Syntax</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public class ActorTable : IReadOnlyCollection&lt;Actor&gt;, IEnumerable&lt;Actor&gt;, ICollection, IEnumerable</code></pre>
+    <pre><code class="lang-csharp hljs">public class ActorTable : IReadOnlyCollection&lt;Actor&gt;, IEnumerable&lt;Actor&gt;, ICollection, IEnumerable, IDisposable</code></pre>
   </div>
   <h3 id="constructors">Constructors
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Actors_ActorTable__ctor_Dalamud_Dalamud_Dalamud_Game_ClientState_ClientStateAddressResolver_.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Actors.ActorTable.%23ctor(Dalamud.Dalamud%2CDalamud.Game.ClientState.ClientStateAddressResolver)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Actors_ActorTable__ctor_Dalamud_Dalamud_Dalamud_Game_ClientState_ClientStateAddressResolver_.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Actors.ActorTable.%23ctor(Dalamud.Dalamud%2CDalamud.Game.ClientState.ClientStateAddressResolver)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/ActorTable.cs/#L39">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/ActorTable.cs/#L57">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_Actors_ActorTable__ctor_" data-uid="Dalamud.Game.ClientState.Actors.ActorTable.#ctor*"></a>
   <h4 id="Dalamud_Game_ClientState_Actors_ActorTable__ctor_Dalamud_Dalamud_Dalamud_Game_ClientState_ClientStateAddressResolver_" data-uid="Dalamud.Game.ClientState.Actors.ActorTable.#ctor(Dalamud.Dalamud,Dalamud.Game.ClientState.ClientStateAddressResolver)">ActorTable(Dalamud, ClientStateAddressResolver)</h4>
@@ -163,10 +164,10 @@
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Actors_ActorTable_Item_System_Int32_.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Actors.ActorTable.Item(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Actors_ActorTable_Item_System_Int32_.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Actors.ActorTable.Item(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/ActorTable.cs/#L51">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/ActorTable.cs/#L75">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_Actors_ActorTable_Item_" data-uid="Dalamud.Game.ClientState.Actors.ActorTable.Item*"></a>
   <h4 id="Dalamud_Game_ClientState_Actors_ActorTable_Item_System_Int32_" data-uid="Dalamud.Game.ClientState.Actors.ActorTable.Item(System.Int32)">Item[Int32]</h4>
@@ -214,10 +215,10 @@ public Actor this[int index] { get; }</code></pre>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Actors_ActorTable_Length.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Actors.ActorTable.Length%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Actors_ActorTable_Length.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Actors.ActorTable.Length%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/ActorTable.cs/#L103">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/ActorTable.cs/#L132">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_Actors_ActorTable_Length_" data-uid="Dalamud.Game.ClientState.Actors.ActorTable.Length*"></a>
   <h4 id="Dalamud_Game_ClientState_Actors_ActorTable_Length" data-uid="Dalamud.Game.ClientState.Actors.ActorTable.Length">Length</h4>
@@ -247,10 +248,40 @@ public Actor this[int index] { get; }</code></pre>
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Actors_ActorTable_GetEnumerator.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Actors.ActorTable.GetEnumerator%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Actors_ActorTable_Dispose.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Actors.ActorTable.Dispose%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/ActorTable.cs/#L88">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/ActorTable.cs/#L160">View Source</a>
+  </span>
+  <a id="Dalamud_Game_ClientState_Actors_ActorTable_Dispose_" data-uid="Dalamud.Game.ClientState.Actors.ActorTable.Dispose*"></a>
+  <h4 id="Dalamud_Game_ClientState_Actors_ActorTable_Dispose" data-uid="Dalamud.Game.ClientState.Actors.ActorTable.Dispose">Dispose()</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Dispose()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Actors_ActorTable_Finalize.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Actors.ActorTable.Finalize%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/ActorTable.cs/#L165">View Source</a>
+  </span>
+  <a id="Dalamud_Game_ClientState_Actors_ActorTable_Finalize_" data-uid="Dalamud.Game.ClientState.Actors.ActorTable.Finalize*"></a>
+  <h4 id="Dalamud_Game_ClientState_Actors_ActorTable_Finalize" data-uid="Dalamud.Game.ClientState.Actors.ActorTable.Finalize">Finalize()</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected void Finalize()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Actors_ActorTable_GetEnumerator.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Actors.ActorTable.GetEnumerator%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/ActorTable.cs/#L121">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_Actors_ActorTable_GetEnumerator_" data-uid="Dalamud.Game.ClientState.Actors.ActorTable.GetEnumerator*"></a>
   <h4 id="Dalamud_Game_ClientState_Actors_ActorTable_GetEnumerator" data-uid="Dalamud.Game.ClientState.Actors.ActorTable.GetEnumerator">GetEnumerator()</h4>
@@ -279,10 +310,10 @@ public Actor this[int index] { get; }</code></pre>
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Actors_ActorTable_System_Collections_Generic_IReadOnlyCollection_Dalamud_Game_ClientState_Actors_Types_Actor__Count.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Actors.ActorTable.System%23Collections%23Generic%23IReadOnlyCollection%7BDalamud%23Game%23ClientState%23Actors%23Types%23Actor%7D%23Count%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Actors_ActorTable_System_Collections_Generic_IReadOnlyCollection_Dalamud_Game_ClientState_Actors_Types_Actor__Count.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Actors.ActorTable.System%23Collections%23Generic%23IReadOnlyCollection%7BDalamud%23Game%23ClientState%23Actors%23Types%23Actor%7D%23Count%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/ActorTable.cs/#L105">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/ActorTable.cs/#L134">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_Actors_ActorTable_System_Collections_Generic_IReadOnlyCollection_Dalamud_Game_ClientState_Actors_Types_Actor__Count_" data-uid="Dalamud.Game.ClientState.Actors.ActorTable.System#Collections#Generic#IReadOnlyCollection{Dalamud#Game#ClientState#Actors#Types#Actor}#Count*"></a>
   <h4 id="Dalamud_Game_ClientState_Actors_ActorTable_System_Collections_Generic_IReadOnlyCollection_Dalamud_Game_ClientState_Actors_Types_Actor__Count" data-uid="Dalamud.Game.ClientState.Actors.ActorTable.System#Collections#Generic#IReadOnlyCollection{Dalamud#Game#ClientState#Actors#Types#Actor}#Count">IReadOnlyCollection&lt;Actor&gt;.Count</h4>
@@ -309,10 +340,10 @@ public Actor this[int index] { get; }</code></pre>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Actors_ActorTable_System_Collections_ICollection_CopyTo_System_Array_System_Int32_.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Actors.ActorTable.System%23Collections%23ICollection%23CopyTo(System.Array%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Actors_ActorTable_System_Collections_ICollection_CopyTo_System_Array_System_Int32_.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Actors.ActorTable.System%23Collections%23ICollection%23CopyTo(System.Array%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/ActorTable.cs/#L113">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/ActorTable.cs/#L142">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_Actors_ActorTable_System_Collections_ICollection_CopyTo_" data-uid="Dalamud.Game.ClientState.Actors.ActorTable.System#Collections#ICollection#CopyTo*"></a>
   <h4 id="Dalamud_Game_ClientState_Actors_ActorTable_System_Collections_ICollection_CopyTo_System_Array_System_Int32_" data-uid="Dalamud.Game.ClientState.Actors.ActorTable.System#Collections#ICollection#CopyTo(System.Array,System.Int32)">ICollection.CopyTo(Array, Int32)</h4>
@@ -346,10 +377,10 @@ public Actor this[int index] { get; }</code></pre>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Actors_ActorTable_System_Collections_ICollection_Count.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Actors.ActorTable.System%23Collections%23ICollection%23Count%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Actors_ActorTable_System_Collections_ICollection_Count.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Actors.ActorTable.System%23Collections%23ICollection%23Count%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/ActorTable.cs/#L107">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/ActorTable.cs/#L136">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_Actors_ActorTable_System_Collections_ICollection_Count_" data-uid="Dalamud.Game.ClientState.Actors.ActorTable.System#Collections#ICollection#Count*"></a>
   <h4 id="Dalamud_Game_ClientState_Actors_ActorTable_System_Collections_ICollection_Count" data-uid="Dalamud.Game.ClientState.Actors.ActorTable.System#Collections#ICollection#Count">ICollection.Count</h4>
@@ -376,10 +407,10 @@ public Actor this[int index] { get; }</code></pre>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Actors_ActorTable_System_Collections_ICollection_IsSynchronized.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Actors.ActorTable.System%23Collections%23ICollection%23IsSynchronized%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Actors_ActorTable_System_Collections_ICollection_IsSynchronized.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Actors.ActorTable.System%23Collections%23ICollection%23IsSynchronized%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/ActorTable.cs/#L109">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/ActorTable.cs/#L138">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_Actors_ActorTable_System_Collections_ICollection_IsSynchronized_" data-uid="Dalamud.Game.ClientState.Actors.ActorTable.System#Collections#ICollection#IsSynchronized*"></a>
   <h4 id="Dalamud_Game_ClientState_Actors_ActorTable_System_Collections_ICollection_IsSynchronized" data-uid="Dalamud.Game.ClientState.Actors.ActorTable.System#Collections#ICollection#IsSynchronized">ICollection.IsSynchronized</h4>
@@ -406,10 +437,10 @@ public Actor this[int index] { get; }</code></pre>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Actors_ActorTable_System_Collections_ICollection_SyncRoot.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Actors.ActorTable.System%23Collections%23ICollection%23SyncRoot%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Actors_ActorTable_System_Collections_ICollection_SyncRoot.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Actors.ActorTable.System%23Collections%23ICollection%23SyncRoot%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/ActorTable.cs/#L111">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/ActorTable.cs/#L140">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_Actors_ActorTable_System_Collections_ICollection_SyncRoot_" data-uid="Dalamud.Game.ClientState.Actors.ActorTable.System#Collections#ICollection#SyncRoot*"></a>
   <h4 id="Dalamud_Game_ClientState_Actors_ActorTable_System_Collections_ICollection_SyncRoot" data-uid="Dalamud.Game.ClientState.Actors.ActorTable.System#Collections#ICollection#SyncRoot">ICollection.SyncRoot</h4>
@@ -436,10 +467,10 @@ public Actor this[int index] { get; }</code></pre>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Actors_ActorTable_System_Collections_IEnumerable_GetEnumerator.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Actors.ActorTable.System%23Collections%23IEnumerable%23GetEnumerator%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Actors_ActorTable_System_Collections_IEnumerable_GetEnumerator.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Actors.ActorTable.System%23Collections%23IEnumerable%23GetEnumerator%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/ActorTable.cs/#L96">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/ActorTable.cs/#L125">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_Actors_ActorTable_System_Collections_IEnumerable_GetEnumerator_" data-uid="Dalamud.Game.ClientState.Actors.ActorTable.System#Collections#IEnumerable#GetEnumerator*"></a>
   <h4 id="Dalamud_Game_ClientState_Actors_ActorTable_System_Collections_IEnumerable_GetEnumerator" data-uid="Dalamud.Game.ClientState.Actors.ActorTable.System#Collections#IEnumerable#GetEnumerator">IEnumerable.GetEnumerator()</h4>
@@ -477,6 +508,9 @@ public Actor this[int index] { get; }</code></pre>
   <div>
       <span class="xref">System.Collections.IEnumerable</span>
   </div>
+  <div>
+      <span class="xref">System.IDisposable</span>
+  </div>
 </article>
           </div>
           
@@ -485,10 +519,10 @@ public Actor this[int index] { get; }</code></pre>
               <div class="contribution">
                 <ul class="nav">
                   <li>
-                    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Actors_ActorTable.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Actors.ActorTable%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Actors_ActorTable.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Actors.ActorTable%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
                   </li>
                   <li>
-                    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/ActorTable.cs/#L16" class="contribution-link">View Source</a>
+                    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Actors/ActorTable.cs/#L16" class="contribution-link">View Source</a>
                   </li>
                 </ul>
               </div>

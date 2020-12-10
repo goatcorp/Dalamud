@@ -120,10 +120,10 @@ It can be used to draw custom windows and overlays.</p>
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_UiBuilder_OnOpenConfigUi.md&amp;value=---%0Auid%3A%20Dalamud.Interface.UiBuilder.OnOpenConfigUi%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_UiBuilder_OnOpenConfigUi.md&amp;value=---%0Auid%3A%20Dalamud.Interface.UiBuilder.OnOpenConfigUi%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Interface/UiBuilder.cs/#L116">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/UiBuilder.cs/#L150">View Source</a>
   </span>
   <h4 id="Dalamud_Interface_UiBuilder_OnOpenConfigUi" data-uid="Dalamud.Interface.UiBuilder.OnOpenConfigUi">OnOpenConfigUi</h4>
   <div class="markdown level1 summary"><p>Event that is fired when the plugin should open its configuration interface.</p>
@@ -152,10 +152,10 @@ It can be used to draw custom windows and overlays.</p>
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_UiBuilder_DefaultFont.md&amp;value=---%0Auid%3A%20Dalamud.Interface.UiBuilder.DefaultFont%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_UiBuilder_DefaultFont.md&amp;value=---%0Auid%3A%20Dalamud.Interface.UiBuilder.DefaultFont%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Interface/UiBuilder.cs/#L22">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/UiBuilder.cs/#L25">View Source</a>
   </span>
   <a id="Dalamud_Interface_UiBuilder_DefaultFont_" data-uid="Dalamud.Interface.UiBuilder.DefaultFont*"></a>
   <h4 id="Dalamud_Interface_UiBuilder_DefaultFont" data-uid="Dalamud.Interface.UiBuilder.DefaultFont">DefaultFont</h4>
@@ -183,10 +183,134 @@ It can be used to draw custom windows and overlays.</p>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_UiBuilder_IconFont.md&amp;value=---%0Auid%3A%20Dalamud.Interface.UiBuilder.IconFont%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_UiBuilder_DisableAutomaticUiHide.md&amp;value=---%0Auid%3A%20Dalamud.Interface.UiBuilder.DisableAutomaticUiHide%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Interface/UiBuilder.cs/#L26">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/UiBuilder.cs/#L40">View Source</a>
+  </span>
+  <a id="Dalamud_Interface_UiBuilder_DisableAutomaticUiHide_" data-uid="Dalamud.Interface.UiBuilder.DisableAutomaticUiHide*"></a>
+  <h4 id="Dalamud_Interface_UiBuilder_DisableAutomaticUiHide" data-uid="Dalamud.Interface.UiBuilder.DisableAutomaticUiHide">DisableAutomaticUiHide</h4>
+  <div class="markdown level1 summary"><p>Choose if this plugin should hide its UI automatically when the game's UI is hidden.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool DisableAutomaticUiHide { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_UiBuilder_DisableCutsceneUiHide.md&amp;value=---%0Auid%3A%20Dalamud.Interface.UiBuilder.DisableCutsceneUiHide%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/UiBuilder.cs/#L50">View Source</a>
+  </span>
+  <a id="Dalamud_Interface_UiBuilder_DisableCutsceneUiHide_" data-uid="Dalamud.Interface.UiBuilder.DisableCutsceneUiHide*"></a>
+  <h4 id="Dalamud_Interface_UiBuilder_DisableCutsceneUiHide" data-uid="Dalamud.Interface.UiBuilder.DisableCutsceneUiHide">DisableCutsceneUiHide</h4>
+  <div class="markdown level1 summary"><p>Choose if this plugin should hide its UI automatically during cutscenes.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool DisableCutsceneUiHide { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_UiBuilder_DisableGposeUiHide.md&amp;value=---%0Auid%3A%20Dalamud.Interface.UiBuilder.DisableGposeUiHide%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/UiBuilder.cs/#L55">View Source</a>
+  </span>
+  <a id="Dalamud_Interface_UiBuilder_DisableGposeUiHide_" data-uid="Dalamud.Interface.UiBuilder.DisableGposeUiHide*"></a>
+  <h4 id="Dalamud_Interface_UiBuilder_DisableGposeUiHide" data-uid="Dalamud.Interface.UiBuilder.DisableGposeUiHide">DisableGposeUiHide</h4>
+  <div class="markdown level1 summary"><p>Choose if this plugin should hide its UI automatically while gpose is active.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool DisableGposeUiHide { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_UiBuilder_DisableUserUiHide.md&amp;value=---%0Auid%3A%20Dalamud.Interface.UiBuilder.DisableUserUiHide%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/UiBuilder.cs/#L45">View Source</a>
+  </span>
+  <a id="Dalamud_Interface_UiBuilder_DisableUserUiHide_" data-uid="Dalamud.Interface.UiBuilder.DisableUserUiHide*"></a>
+  <h4 id="Dalamud_Interface_UiBuilder_DisableUserUiHide" data-uid="Dalamud.Interface.UiBuilder.DisableUserUiHide">DisableUserUiHide</h4>
+  <div class="markdown level1 summary"><p>Choose if this plugin should hide its UI automatically when the user toggles the UI.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool DisableUserUiHide { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_UiBuilder_IconFont.md&amp;value=---%0Auid%3A%20Dalamud.Interface.UiBuilder.IconFont%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/UiBuilder.cs/#L29">View Source</a>
   </span>
   <a id="Dalamud_Interface_UiBuilder_IconFont_" data-uid="Dalamud.Interface.UiBuilder.IconFont*"></a>
   <h4 id="Dalamud_Interface_UiBuilder_IconFont" data-uid="Dalamud.Interface.UiBuilder.IconFont">IconFont</h4>
@@ -214,10 +338,10 @@ It can be used to draw custom windows and overlays.</p>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_UiBuilder_OnBuildFonts.md&amp;value=---%0Auid%3A%20Dalamud.Interface.UiBuilder.OnBuildFonts%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_UiBuilder_OnBuildFonts.md&amp;value=---%0Auid%3A%20Dalamud.Interface.UiBuilder.OnBuildFonts%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Interface/UiBuilder.cs/#L99">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/UiBuilder.cs/#L130">View Source</a>
   </span>
   <a id="Dalamud_Interface_UiBuilder_OnBuildFonts_" data-uid="Dalamud.Interface.UiBuilder.OnBuildFonts*"></a>
   <h4 id="Dalamud_Interface_UiBuilder_OnBuildFonts" data-uid="Dalamud.Interface.UiBuilder.OnBuildFonts">OnBuildFonts</h4>
@@ -225,7 +349,7 @@ It can be used to draw custom windows and overlays.</p>
 Any ImFontPtr objects that you store <strong>can be invalidated</strong> when fonts are rebuilt
 (at any time), so you should both reload your custom fonts and restore those
 pointers inside this handler.<br>
-<strong>PLEASE remove this handler inside Dipose, or when you no longer need your fonts!</strong></p>
+<strong>PLEASE remove this handler inside Dispose, or when you no longer need your fonts!</strong></p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
@@ -251,10 +375,10 @@ pointers inside this handler.<br>
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_UiBuilder_Dispose.md&amp;value=---%0Auid%3A%20Dalamud.Interface.UiBuilder.Dispose%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_UiBuilder_Dispose.md&amp;value=---%0Auid%3A%20Dalamud.Interface.UiBuilder.Dispose%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Interface/UiBuilder.cs/#L61">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/UiBuilder.cs/#L92">View Source</a>
   </span>
   <a id="Dalamud_Interface_UiBuilder_Dispose_" data-uid="Dalamud.Interface.UiBuilder.Dispose*"></a>
   <h4 id="Dalamud_Interface_UiBuilder_Dispose" data-uid="Dalamud.Interface.UiBuilder.Dispose">Dispose()</h4>
@@ -267,10 +391,10 @@ pointers inside this handler.<br>
   </div>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_UiBuilder_LoadImage_System_Byte___.md&amp;value=---%0Auid%3A%20Dalamud.Interface.UiBuilder.LoadImage(System.Byte%5B%5D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_UiBuilder_LoadImage_System_Byte___.md&amp;value=---%0Auid%3A%20Dalamud.Interface.UiBuilder.LoadImage(System.Byte%5B%5D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Interface/UiBuilder.cs/#L78">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/UiBuilder.cs/#L109">View Source</a>
   </span>
   <a id="Dalamud_Interface_UiBuilder_LoadImage_" data-uid="Dalamud.Interface.UiBuilder.LoadImage*"></a>
   <h4 id="Dalamud_Interface_UiBuilder_LoadImage_System_Byte___" data-uid="Dalamud.Interface.UiBuilder.LoadImage(System.Byte[])">LoadImage(Byte[])</h4>
@@ -317,10 +441,10 @@ pointers inside this handler.<br>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_UiBuilder_LoadImage_System_String_.md&amp;value=---%0Auid%3A%20Dalamud.Interface.UiBuilder.LoadImage(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_UiBuilder_LoadImage_System_String_.md&amp;value=---%0Auid%3A%20Dalamud.Interface.UiBuilder.LoadImage(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Interface/UiBuilder.cs/#L70">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/UiBuilder.cs/#L101">View Source</a>
   </span>
   <a id="Dalamud_Interface_UiBuilder_LoadImage_" data-uid="Dalamud.Interface.UiBuilder.LoadImage*"></a>
   <h4 id="Dalamud_Interface_UiBuilder_LoadImage_System_String_" data-uid="Dalamud.Interface.UiBuilder.LoadImage(System.String)">LoadImage(String)</h4>
@@ -367,10 +491,10 @@ pointers inside this handler.<br>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_UiBuilder_LoadImageRaw_System_Byte___System_Int32_System_Int32_System_Int32_.md&amp;value=---%0Auid%3A%20Dalamud.Interface.UiBuilder.LoadImageRaw(System.Byte%5B%5D%2CSystem.Int32%2CSystem.Int32%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_UiBuilder_LoadImageRaw_System_Byte___System_Int32_System_Int32_System_Int32_.md&amp;value=---%0Auid%3A%20Dalamud.Interface.UiBuilder.LoadImageRaw(System.Byte%5B%5D%2CSystem.Int32%2CSystem.Int32%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Interface/UiBuilder.cs/#L89">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/UiBuilder.cs/#L120">View Source</a>
   </span>
   <a id="Dalamud_Interface_UiBuilder_LoadImageRaw_" data-uid="Dalamud.Interface.UiBuilder.LoadImageRaw*"></a>
   <h4 id="Dalamud_Interface_UiBuilder_LoadImageRaw_System_Byte___System_Int32_System_Int32_System_Int32_" data-uid="Dalamud.Interface.UiBuilder.LoadImageRaw(System.Byte[],System.Int32,System.Int32,System.Int32)">LoadImageRaw(Byte[], Int32, Int32, Int32)</h4>
@@ -435,10 +559,10 @@ pointers inside this handler.<br>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_UiBuilder_RebuildFonts.md&amp;value=---%0Auid%3A%20Dalamud.Interface.UiBuilder.RebuildFonts%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_UiBuilder_RebuildFonts.md&amp;value=---%0Auid%3A%20Dalamud.Interface.UiBuilder.RebuildFonts%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Interface/UiBuilder.cs/#L110">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/UiBuilder.cs/#L141">View Source</a>
   </span>
   <a id="Dalamud_Interface_UiBuilder_RebuildFonts_" data-uid="Dalamud.Interface.UiBuilder.RebuildFonts*"></a>
   <h4 id="Dalamud_Interface_UiBuilder_RebuildFonts" data-uid="Dalamud.Interface.UiBuilder.RebuildFonts">RebuildFonts()</h4>
@@ -455,10 +579,10 @@ ready to be used on the next UI frame.</p>
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_UiBuilder_OnBuildUi.md&amp;value=---%0Auid%3A%20Dalamud.Interface.UiBuilder.OnBuildUi%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_UiBuilder_OnBuildUi.md&amp;value=---%0Auid%3A%20Dalamud.Interface.UiBuilder.OnBuildUi%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Interface/UiBuilder.cs/#L32">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/UiBuilder.cs/#L35">View Source</a>
   </span>
   <h4 id="Dalamud_Interface_UiBuilder_OnBuildUi" data-uid="Dalamud.Interface.UiBuilder.OnBuildUi">OnBuildUi</h4>
   <div class="markdown level1 summary"><p>The delegate that gets called when Dalamud is ready to draw your windows or overlays.
@@ -496,10 +620,10 @@ When it is called, you can use static ImGui calls.</p>
               <div class="contribution">
                 <ul class="nav">
                   <li>
-                    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_UiBuilder.md&amp;value=---%0Auid%3A%20Dalamud.Interface.UiBuilder%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_UiBuilder.md&amp;value=---%0Auid%3A%20Dalamud.Interface.UiBuilder%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
                   </li>
                   <li>
-                    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Interface/UiBuilder.cs/#L16" class="contribution-link">View Source</a>
+                    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/UiBuilder.cs/#L19" class="contribution-link">View Source</a>
                   </li>
                 </ul>
               </div>

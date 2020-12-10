@@ -149,19 +149,19 @@
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_StatusPayload__ctor_System_UInt32_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.StatusPayload.%23ctor(System.UInt32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_StatusPayload__ctor_Dalamud_Data_DataManager_System_UInt32_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.StatusPayload.%23ctor(Dalamud.Data.DataManager%2CSystem.UInt32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/StatusPayload.cs/#L39">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/StatusPayload.cs/#L44">View Source</a>
   </span>
   <a id="Dalamud_Game_Chat_SeStringHandling_Payloads_StatusPayload__ctor_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.StatusPayload.#ctor*"></a>
-  <h4 id="Dalamud_Game_Chat_SeStringHandling_Payloads_StatusPayload__ctor_System_UInt32_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.StatusPayload.#ctor(System.UInt32)">StatusPayload(UInt32)</h4>
+  <h4 id="Dalamud_Game_Chat_SeStringHandling_Payloads_StatusPayload__ctor_Dalamud_Data_DataManager_System_UInt32_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.StatusPayload.#ctor(Dalamud.Data.DataManager,System.UInt32)">StatusPayload(DataManager, UInt32)</h4>
   <div class="markdown level1 summary"><p>Creates a new StatusPayload for the given status id.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public StatusPayload(uint statusId)</code></pre>
+    <pre><code class="lang-csharp hljs">public StatusPayload(DataManager data, uint statusId)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -174,6 +174,12 @@
     </thead>
     <tbody>
       <tr>
+        <td><a class="xref" href="Dalamud.Data.DataManager.html">DataManager</a></td>
+        <td><span class="parametername">data</span></td>
+        <td><p>DataManager instance needed to resolve game data.</p>
+</td>
+      </tr>
+      <tr>
         <td><span class="xref">System.UInt32</span></td>
         <td><span class="parametername">statusId</span></td>
         <td><p>The id of the Status for this link.</p>
@@ -185,10 +191,10 @@
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_StatusPayload_Status.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.StatusPayload.Status%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_StatusPayload_Status.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.StatusPayload.Status%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/StatusPayload.cs/#L22">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/StatusPayload.cs/#L24">View Source</a>
   </span>
   <a id="Dalamud_Game_Chat_SeStringHandling_Payloads_StatusPayload_Status_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.StatusPayload.Status*"></a>
   <h4 id="Dalamud_Game_Chat_SeStringHandling_Payloads_StatusPayload_Status" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.StatusPayload.Status">Status</h4>
@@ -197,7 +203,8 @@
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public Status Status { get; }</code></pre>
+    <pre><code class="lang-csharp hljs">[JsonIgnore]
+public Status Status { get; }</code></pre>
   </div>
   <h5 class="propertyValue">Property Value</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -219,10 +226,10 @@
 </div>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_StatusPayload_Type.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.StatusPayload.Type%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_StatusPayload_Type.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.StatusPayload.Type%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/StatusPayload.cs/#L13">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/StatusPayload.cs/#L15">View Source</a>
   </span>
   <a id="Dalamud_Game_Chat_SeStringHandling_Payloads_StatusPayload_Type_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.StatusPayload.Type*"></a>
   <h4 id="Dalamud_Game_Chat_SeStringHandling_Payloads_StatusPayload_Type" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.StatusPayload.Type">Type</h4>
@@ -253,10 +260,10 @@
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_StatusPayload_DecodeImpl_System_IO_BinaryReader_System_Int64_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.StatusPayload.DecodeImpl(System.IO.BinaryReader%2CSystem.Int64)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_StatusPayload_DecodeImpl_System_IO_BinaryReader_System_Int64_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.StatusPayload.DecodeImpl(System.IO.BinaryReader%2CSystem.Int64)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/StatusPayload.cs/#L66">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/StatusPayload.cs/#L71">View Source</a>
   </span>
   <a id="Dalamud_Game_Chat_SeStringHandling_Payloads_StatusPayload_DecodeImpl_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.StatusPayload.DecodeImpl*"></a>
   <h4 id="Dalamud_Game_Chat_SeStringHandling_Payloads_StatusPayload_DecodeImpl_System_IO_BinaryReader_System_Int64_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.StatusPayload.DecodeImpl(System.IO.BinaryReader,System.Int64)">DecodeImpl(BinaryReader, Int64)</h4>
@@ -292,10 +299,10 @@
   <div><a class="xref" href="Dalamud.Game.Chat.SeStringHandling.Payload.html#Dalamud_Game_Chat_SeStringHandling_Payload_DecodeImpl_System_IO_BinaryReader_System_Int64_">Payload.DecodeImpl(BinaryReader, Int64)</a></div>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_StatusPayload_EncodeImpl.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.StatusPayload.EncodeImpl%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_StatusPayload_EncodeImpl.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.StatusPayload.EncodeImpl%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/StatusPayload.cs/#L49">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/StatusPayload.cs/#L54">View Source</a>
   </span>
   <a id="Dalamud_Game_Chat_SeStringHandling_Payloads_StatusPayload_EncodeImpl_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.StatusPayload.EncodeImpl*"></a>
   <h4 id="Dalamud_Game_Chat_SeStringHandling_Payloads_StatusPayload_EncodeImpl" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.StatusPayload.EncodeImpl">EncodeImpl()</h4>
@@ -324,10 +331,10 @@
   <div><a class="xref" href="Dalamud.Game.Chat.SeStringHandling.Payload.html#Dalamud_Game_Chat_SeStringHandling_Payload_EncodeImpl">Payload.EncodeImpl()</a></div>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_StatusPayload_ToString.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.StatusPayload.ToString%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_StatusPayload_ToString.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.StatusPayload.ToString%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/StatusPayload.cs/#L44">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/StatusPayload.cs/#L49">View Source</a>
   </span>
   <a id="Dalamud_Game_Chat_SeStringHandling_Payloads_StatusPayload_ToString_" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.StatusPayload.ToString*"></a>
   <h4 id="Dalamud_Game_Chat_SeStringHandling_Payloads_StatusPayload_ToString" data-uid="Dalamud.Game.Chat.SeStringHandling.Payloads.StatusPayload.ToString">ToString()</h4>
@@ -362,10 +369,10 @@
               <div class="contribution">
                 <ul class="nav">
                   <li>
-                    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_StatusPayload.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.StatusPayload%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Chat_SeStringHandling_Payloads_StatusPayload.md&amp;value=---%0Auid%3A%20Dalamud.Game.Chat.SeStringHandling.Payloads.StatusPayload%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
                   </li>
                   <li>
-                    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/StatusPayload.cs/#L11" class="contribution-link">View Source</a>
+                    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Chat/SeStringHandling/Payloads/StatusPayload.cs/#L13" class="contribution-link">View Source</a>
                   </li>
                 </ul>
               </div>
