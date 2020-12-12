@@ -70,10 +70,13 @@ namespace Dalamud.Plugin
             try {
                 using var client = new WebClient();
 
+                var isTestingExclusive = definition.IsTestingExclusive;
                 // We need to redownload the json, for the eventuality of the zip having changed after PM download
                 definition = JsonConvert.DeserializeObject<PluginDefinition>(
                     client.DownloadString(string.Format(this.PluginJsonUrl, fromTesting ? "testing" : "plugins",
                                                         definition.InternalName)));
+                definition.TestingAssemblyVersion = fromTesting ? definition.AssemblyVersion : "0.0.0.0";
+                definition.IsTestingExclusive = isTestingExclusive;
 
                 var outputDir = new DirectoryInfo(Path.Combine(this.pluginDirectory, definition.InternalName, fromTesting ? definition.TestingAssemblyVersion : definition.AssemblyVersion));
                 var dllFile = new FileInfo(Path.Combine(outputDir.FullName, $"{definition.InternalName}.dll"));
