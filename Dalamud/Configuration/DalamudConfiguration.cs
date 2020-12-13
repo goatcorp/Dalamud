@@ -34,6 +34,7 @@ namespace Dalamud
         public bool ToggleUiHideDuringGpose { get; set; } = true;
 
         public bool PrintPluginsWelcomeMsg { get; set; } = true;
+        public bool AutoUpdatePlugins { get; set; } = false;
 
         [JsonIgnore]
         public string ConfigPath;

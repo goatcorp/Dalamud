@@ -91,13 +91,13 @@ namespace Dalamud.Plugin
 
             ImGui.Text(Loc.Localize("InstallerHint", "This window allows you install and remove in-game plugins.\nThey are made by third-party developers."));
 
-            ImGui.SameLine(ImGui.GetWindowWidth() - ((250 + 90 + ImGui.CalcTextSize(Loc.Localize("PluginSort", "Sort By")).X) * ImGui.GetIO().FontGlobalScale));
+            ImGui.SameLine(ImGui.GetWindowWidth() - ((250 + 20 + ImGui.CalcTextSize(Loc.Localize("SortDownloadCounts", "Download Count")).X + ImGui.CalcTextSize(Loc.Localize("PluginSort", "Sort By")).X) * ImGui.GetIO().FontGlobalScale));
 
             ImGui.SetNextItemWidth(240 * ImGui.GetIO().FontGlobalScale);
             ImGui.InputTextWithHint("###XPlPluginInstaller_Search", Loc.Localize("InstallerSearch", "Search"), ref this.searchText, 100);
 
             ImGui.SameLine();
-            ImGui.SetNextItemWidth(80 * ImGui.GetIO().FontGlobalScale);
+            ImGui.SetNextItemWidth(10 + (ImGui.CalcTextSize(Loc.Localize("SortDownloadCounts", "Download Count")).X) * ImGui.GetIO().FontGlobalScale);
             if (ImGui.BeginCombo(Loc.Localize("PluginSort", "Sort By"), this.filterText, ImGuiComboFlags.NoArrowButton)) {
                 if (ImGui.Selectable(Loc.Localize("SortAlphabetical", "Alphabetical"))) {
                     this.sortKind = PluginSortKind.Alphabetical;
@@ -372,13 +372,19 @@ namespace Dalamud.Plugin
                                 ImGui.Text($"{command.Key} → {command.Value.HelpMessage}");
                         }
 
-                        if (!installedPlugin.IsRaw && ImGui.Button(Loc.Localize("InstallerDisable", "Disable"))) {
-                            try {
-                                this.dalamud.PluginManager.DisablePlugin(installedPlugin.Definition);
-                            } catch (Exception exception) {
-                                Log.Error(exception, "Could not disable plugin.");
-                                this.errorModalDrawing = true;
-                                this.errorModalOnNextFrame = true;
+                        ImGui.NewLine();
+
+                        if (!installedPlugin.IsRaw) {
+                            ImGui.SameLine();
+
+                            if (ImGui.Button(Loc.Localize("InstallerDisable", "Disable"))) {
+                                try {
+                                    this.dalamud.PluginManager.DisablePlugin(installedPlugin.Definition);
+                                } catch (Exception exception) {
+                                    Log.Error(exception, "Could not disable plugin.");
+                                    this.errorModalDrawing = true;
+                                    this.errorModalOnNextFrame = true;
+                                }
                             }
                         }
 
@@ -404,7 +410,8 @@ namespace Dalamud.Plugin
                         ImGui.TextColored(new Vector4(0.5f, 0.5f, 0.5f, 1.0f), $" v{pluginDefinition.AssemblyVersion}");
 
                         if(installedPlugin.IsRaw) {
-                            ImGui.TextColored(new Vector4(1.0f, 0.0f, 0.0f, 1.0f), "To update or disable this plugin, please remove it from the devPlugins folder.");
+                            ImGui.SameLine();
+                            ImGui.TextColored(new Vector4(1.0f, 0.0f, 0.0f, 1.0f), " To update or disable this plugin, please remove it from the devPlugins folder.");
                         }
                     }
 
