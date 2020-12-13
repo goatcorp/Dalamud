@@ -30,6 +30,7 @@ namespace Dalamud.Interface
             this.doDalamudTest = this.dalamud.Configuration.DoDalamudTest;
 
             this.printPluginsWelcomeMsg = this.dalamud.Configuration.PrintPluginsWelcomeMsg;
+            this.autoUpdatePlugins = this.dalamud.Configuration.AutoUpdatePlugins;
 
             this.languages = Localization.ApplicableLangCodes.Prepend("en").ToArray();
             try {
@@ -87,6 +88,7 @@ namespace Dalamud.Interface
         private bool doToggleUiHideDuringGpose;
 
         private bool printPluginsWelcomeMsg;
+        private bool autoUpdatePlugins;
 
         #region Experimental
 
@@ -131,6 +133,9 @@ namespace Dalamud.Interface
 
                     ImGui.Checkbox(Loc.Localize("DalamudSettingsPrintPluginsWelcomeMsg", "Display loaded plugins in the welcome message"), ref this.printPluginsWelcomeMsg);
                     ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingsPrintPluginsWelcomeMsgHint", "Display loaded plugins in FFXIV chat when logging in with a character."));
+
+                    ImGui.Checkbox(Loc.Localize("DalamudSettingsAutoUpdatePlugins", "Auto-update plugins"), ref this.autoUpdatePlugins);
+                    ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingsAutoUpdatePluginsMsgHint", "Automatically update plugins when logging in with a character."));
 
                     ImGui.EndTabItem();
                 }
@@ -218,6 +223,7 @@ namespace Dalamud.Interface
             this.dalamud.Configuration.DoDalamudTest = this.doDalamudTest;
 
             this.dalamud.Configuration.PrintPluginsWelcomeMsg = this.printPluginsWelcomeMsg;
+            this.dalamud.Configuration.AutoUpdatePlugins = this.autoUpdatePlugins;
 
             this.dalamud.Configuration.Save();
         }
