@@ -56,7 +56,7 @@ namespace Dalamud.Game.ClientState.Structs
         // public const int ??? = 6371;                      // 0x18E3 DifficultyRank
         // public const int ??? = 6385;                      // 0x18F1 AgroFlags
         // public const int ??? = 6406;                      // 0x1906 CombatFlags
-        public const int UIStatusEffects = 6488;             // 0x1958 DefaultStatusEffectOffset
+        public const int UIStatusEffects = 6616;             // 0x1958 DefaultStatusEffectOffset
         // public const int ??? = 6880;                      // 0x1AE0 IsCasting1
         // public const int ??? = 6882;                      // 0x1AE2 IsCasting2
         // public const int ??? = 6884;                      // 0x1AE4 CastingID
