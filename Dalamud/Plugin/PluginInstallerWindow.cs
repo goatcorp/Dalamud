@@ -372,13 +372,19 @@ namespace Dalamud.Plugin
                                 ImGui.Text($"{command.Key} → {command.Value.HelpMessage}");
                         }
 
-                        if (!installedPlugin.IsRaw && ImGui.Button(Loc.Localize("InstallerDisable", "Disable"))) {
-                            try {
-                                this.dalamud.PluginManager.DisablePlugin(installedPlugin.Definition);
-                            } catch (Exception exception) {
-                                Log.Error(exception, "Could not disable plugin.");
-                                this.errorModalDrawing = true;
-                                this.errorModalOnNextFrame = true;
+                        ImGui.NewLine();
+
+                        if (!installedPlugin.IsRaw) {
+                            ImGui.SameLine();
+
+                            if (ImGui.Button(Loc.Localize("InstallerDisable", "Disable"))) {
+                                try {
+                                    this.dalamud.PluginManager.DisablePlugin(installedPlugin.Definition);
+                                } catch (Exception exception) {
+                                    Log.Error(exception, "Could not disable plugin.");
+                                    this.errorModalDrawing = true;
+                                    this.errorModalOnNextFrame = true;
+                                }
                             }
                         }
 
@@ -404,7 +410,8 @@ namespace Dalamud.Plugin
                         ImGui.TextColored(new Vector4(0.5f, 0.5f, 0.5f, 1.0f), $" v{pluginDefinition.AssemblyVersion}");
 
                         if(installedPlugin.IsRaw) {
-                            ImGui.TextColored(new Vector4(1.0f, 0.0f, 0.0f, 1.0f), "To update or disable this plugin, please remove it from the devPlugins folder.");
+                            ImGui.SameLine();
+                            ImGui.TextColored(new Vector4(1.0f, 0.0f, 0.0f, 1.0f), " To update or disable this plugin, please remove it from the devPlugins folder.");
                         }
                     }
 
