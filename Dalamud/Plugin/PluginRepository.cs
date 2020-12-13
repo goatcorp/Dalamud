@@ -15,8 +15,6 @@ namespace Dalamud.Plugin
     internal class PluginRepository {
         private string PluginFunctionBaseUrl => "https://us-central1-xl-functions.cloudfunctions.net/download-plugin/?plugin={0}&isUpdate={1}&isTesting={2}";
         private string PluginMasterUrl => "https://raw.githubusercontent.com/goatcorp/DalamudPlugins/master/pluginmaster.json";
-        private string PluginJsonUrl =
-            "https://raw.githubusercontent.com/goatcorp/DalamudPlugins/master/{0}/{1}/{1}.json";
 
 
         private readonly Dalamud dalamud;
@@ -69,11 +67,6 @@ namespace Dalamud.Plugin
         public bool InstallPlugin(PluginDefinition definition, bool enableAfterInstall = true, bool isUpdate = false, bool fromTesting = false) {
             try {
                 using var client = new WebClient();
-
-                // We need to redownload the json, for the eventuality of the zip having changed after PM download
-                definition = JsonConvert.DeserializeObject<PluginDefinition>(
-                    client.DownloadString(string.Format(this.PluginJsonUrl, fromTesting ? "testing" : "plugins",
-                                                        definition.InternalName)));
 
                 var outputDir = new DirectoryInfo(Path.Combine(this.pluginDirectory, definition.InternalName, fromTesting ? definition.TestingAssemblyVersion : definition.AssemblyVersion));
                 var dllFile = new FileInfo(Path.Combine(outputDir.FullName, $"{definition.InternalName}.dll"));
