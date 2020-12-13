@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Dalamud.Configuration;
 using Dalamud.Game.Chat;
 using Newtonsoft.Json;
 using Serilog;
@@ -25,6 +26,7 @@ namespace Dalamud
 
         public bool DoPluginTest { get; set; } = false;
         public bool DoDalamudTest { get; set; } = false;
+        public List<ThirdRepoSetting> ThirdRepoList { get; set; }= new List<ThirdRepoSetting>();
 
         public float GlobalUiScale { get; set; } = 1.0f;
         public bool ToggleUiHide { get; set; } = true;
