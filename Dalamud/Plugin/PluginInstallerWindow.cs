@@ -91,13 +91,13 @@ namespace Dalamud.Plugin
 
             ImGui.Text(Loc.Localize("InstallerHint", "This window allows you install and remove in-game plugins.\nThey are made by third-party developers."));
 
-            ImGui.SameLine(ImGui.GetWindowWidth() - ((250 + 90 + ImGui.CalcTextSize(Loc.Localize("PluginSort", "Sort By")).X) * ImGui.GetIO().FontGlobalScale));
+            ImGui.SameLine(ImGui.GetWindowWidth() - ((250 + 20 + ImGui.CalcTextSize(Loc.Localize("SortDownloadCounts", "Download Count")).X + ImGui.CalcTextSize(Loc.Localize("PluginSort", "Sort By")).X) * ImGui.GetIO().FontGlobalScale));
 
             ImGui.SetNextItemWidth(240 * ImGui.GetIO().FontGlobalScale);
             ImGui.InputTextWithHint("###XPlPluginInstaller_Search", Loc.Localize("InstallerSearch", "Search"), ref this.searchText, 100);
 
             ImGui.SameLine();
-            ImGui.SetNextItemWidth(80 * ImGui.GetIO().FontGlobalScale);
+            ImGui.SetNextItemWidth(10 + (ImGui.CalcTextSize(Loc.Localize("SortDownloadCounts", "Download Count")).X) * ImGui.GetIO().FontGlobalScale);
             if (ImGui.BeginCombo(Loc.Localize("PluginSort", "Sort By"), this.filterText, ImGuiComboFlags.NoArrowButton)) {
                 if (ImGui.Selectable(Loc.Localize("SortAlphabetical", "Alphabetical"))) {
                     this.sortKind = PluginSortKind.Alphabetical;
