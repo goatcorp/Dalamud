@@ -140,6 +140,8 @@ namespace Dalamud.Plugin
 
         internal class PluginUpdateStatus {
             public string InternalName { get; set; }
+            public string Name { get; set; }
+            public string Version { get; set; }
             public bool WasUpdated { get; set; }
         }
 
@@ -244,11 +246,15 @@ namespace Dalamud.Plugin
 
                                 updatedList.Add(new PluginUpdateStatus {
                                     InternalName = remoteInfo.InternalName,
+                                    Name = remoteInfo.Name,
+                                    Version = testingAvailable ? remoteInfo.TestingAssemblyVersion : remoteInfo.AssemblyVersion,
                                     WasUpdated = installSuccess
                                 });
                             } else {
                                 updatedList.Add(new PluginUpdateStatus {
                                     InternalName = remoteInfo.InternalName,
+                                    Name = remoteInfo.Name,
+                                    Version = testingAvailable ? remoteInfo.TestingAssemblyVersion : remoteInfo.AssemblyVersion,
                                     WasUpdated = true
                                 });
                             }

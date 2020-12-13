@@ -212,20 +212,34 @@ namespace Dalamud.Game {
                 this.dalamud.Configuration.Save();
             }
 
-            try {
-                var hasNeedsUpdate = this.dalamud.PluginRepository.UpdatePlugins(true).UpdatedPlugins.Count != 0;
+            Task.Run(() => this.dalamud.PluginRepository.UpdatePlugins(!this.dalamud.Configuration.AutoUpdatePlugins)).ContinueWith(t => {
+                if (t.IsFaulted) {
+                    Log.Error(t.Exception, Loc.Localize("DalamudPluginUpdateCheckFail", "Could not check for plugin updates."));
+                } else {
+                    var updatedPlugins = t.Result.UpdatedPlugins;
 
-                if (hasNeedsUpdate) {
-                    this.dalamud.Framework.Gui.Chat.PrintChat(new XivChatEntry
-                    {
-                        MessageBytes = Encoding.UTF8.GetBytes(Loc.Localize("DalamudPluginUpdateRequired", "One or more of your plugins needs to be updated. Please use the /xlplugins command in-game to update them!")),
-                        Type = XivChatType.Urgent
-                    });
+                    if (updatedPlugins.Count != 0) {
+                        if (this.dalamud.Configuration.AutoUpdatePlugins) {
+                            this.dalamud.Framework.Gui.Chat.Print(string.Format(Loc.Localize("DalamudPluginUpdateSuccessful", "Auto-update:")));
+                            foreach (var plugin in updatedPlugins) {
+                                if (plugin.WasUpdated) {
+                                    this.dalamud.Framework.Gui.Chat.Print(string.Format(Loc.Localize("DalamudPluginUpdateSuccessful", "    》 {0} updated to v{1}."), plugin.Name, plugin.Version));
+                                } else {
+                                    this.dalamud.Framework.Gui.Chat.PrintChat(new XivChatEntry {
+                                        MessageBytes = Encoding.UTF8.GetBytes(string.Format(Loc.Localize("DalamudPluginUpdateFailed", "    》 {0} update to v{1} failed."), plugin.Name, plugin.Version)),
+                                        Type = XivChatType.Urgent
+                                    });
+                                }
+                            }
+                        } else {
+                            this.dalamud.Framework.Gui.Chat.PrintChat(new XivChatEntry {
+                                MessageBytes = Encoding.UTF8.GetBytes(Loc.Localize("DalamudPluginUpdateRequired", "One or more of your plugins needs to be updated. Please use the /xlplugins command in-game to update them!")),
+                                Type = XivChatType.Urgent
+                            });
+                        }
+                    }
                 }
-            }
-            catch (Exception e) {
-                Log.Error(e, Loc.Localize("DalamudPluginUpdateCheckFail", "Could not check for plugin updates."));
-            }
+            });
 
             this.hasSeenLoadingMsg = true;
         }
