@@ -323,7 +323,7 @@ namespace Dalamud.Plugin
                     ImGui.Text(pluginDefinition.Name);
                     ImGui.SameLine();
                     ImGui.TextColored(new Vector4(0.5f, 0.5f, 0.5f, 1.0f),
-                                      $" by {pluginDefinition.Author}, {pluginDefinition.DownloadCount} downloads");
+                                      $" by {pluginDefinition.Author}, {pluginDefinition.DownloadCount} downloads{(pluginDefinition.FromRepo != "goatcorp.github.io" ? $", from {pluginDefinition.FromRepo}" : string.Empty)}");
 
                     ImGui.Text(pluginDefinition.Description);
 

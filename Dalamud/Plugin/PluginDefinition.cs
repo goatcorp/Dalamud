@@ -77,5 +77,10 @@ namespace Dalamud.Plugin
         /// The last time this plugin was updated.
         /// </summary>
         public long LastUpdate { get; set; }
+
+        /// <summary>
+        /// Domain of the origin repo
+        /// </summary>
+        public string FromRepo { get; set; }
     }
 }

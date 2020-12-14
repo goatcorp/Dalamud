@@ -15,7 +15,7 @@ namespace Dalamud.Plugin
 {
     internal class PluginRepository {
         private string PluginFunctionBaseUrl => "https://us-central1-xl-functions.cloudfunctions.net/download-plugin/?plugin={0}&isUpdate={1}&isTesting={2}";
-        private string PluginMasterUrl => "https://raw.githubusercontent.com/goatcorp/DalamudPlugins/master/pluginmaster.json";
+        private string PluginMasterUrl => "https://goatcorp.github.io/DalamudPlugins/pluginmaster.json";
 
         private readonly Dalamud dalamud;
         private string pluginDirectory;
@@ -58,6 +58,12 @@ namespace Dalamud.Plugin
                         var data = client.DownloadString(repo);
 
                         var unsortedPluginMaster = JsonConvert.DeserializeObject<List<PluginDefinition>>(data);
+                        var host = new Uri(repo).Host;
+
+                        foreach (var pluginDefinition in unsortedPluginMaster) {
+                            pluginDefinition.FromRepo = host;
+                        }
+
                         allPlugins.AddRange(unsortedPluginMaster);
                     }
 
