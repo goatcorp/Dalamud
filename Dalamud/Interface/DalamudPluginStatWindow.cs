@@ -147,7 +147,6 @@ namespace Dalamud.Interface {
                 foreach (var trackedHook in HookInfo.TrackedHooks) {
                     try {
                         if (!this.showDalamudHooks && trackedHook.Assembly == Assembly.GetExecutingAssembly()) continue;
-                        
 
                         ImGui.Text($"{trackedHook.Delegate.Target} :: {trackedHook.Delegate.Method.Name}");
                         ImGui.TextDisabled(trackedHook.Assembly.FullName);
@@ -187,8 +186,6 @@ namespace Dalamud.Interface {
             if (ImGui.IsWindowAppearing()) {
                 HookInfo.TrackedHooks.RemoveAll(h => h.Hook.IsDisposed);
             }
-
-
 
             ImGui.EndTabBar();
 
