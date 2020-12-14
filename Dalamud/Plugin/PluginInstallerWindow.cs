@@ -321,11 +321,17 @@ namespace Dalamud.Plugin
                     ImGui.Indent();
 
                     ImGui.Text(pluginDefinition.Name);
-                    ImGui.SameLine();
-                    ImGui.TextColored(new Vector4(0.5f, 0.5f, 0.5f, 1.0f),
-                                      $" by {pluginDefinition.Author}, {pluginDefinition.DownloadCount} downloads{(pluginDefinition.FromRepo != "goatcorp.github.io" ? $", from {pluginDefinition.FromRepo}" : string.Empty)}");
 
-                    ImGui.Text(pluginDefinition.Description);
+                    ImGui.SameLine();
+
+                    var info = $" by {pluginDefinition.Author}";
+                    info += pluginDefinition.DownloadCount != 0 ? $", {pluginDefinition.DownloadCount} downloads" : ", download count unavailable";
+                    if (pluginDefinition.FromRepo != "goatcorp.github.io" && !string.IsNullOrWhiteSpace(pluginDefinition.FromRepo))
+                        info += $", from {pluginDefinition.FromRepo}";
+                    ImGui.TextColored(new Vector4(0.5f, 0.5f, 0.5f, 1.0f), info);
+
+                    if (!string.IsNullOrWhiteSpace(pluginDefinition.Description))
+                        ImGui.Text(pluginDefinition.Description);
 
                     if (!isInstalled) {
                         if (this.installStatus == PluginInstallStatus.InProgress) {
