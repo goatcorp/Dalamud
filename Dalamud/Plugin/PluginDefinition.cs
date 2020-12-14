@@ -82,5 +82,20 @@ namespace Dalamud.Plugin
         /// Domain of the origin repo
         /// </summary>
         public string FromRepo { get; set; }
+        
+        /// <summary>
+        /// Download link used to install the plugin.
+        /// </summary>
+        public string DownloadLinkInstall { get; set; }
+
+        /// <summary>
+        /// Download link used to update the plugin.
+        /// </summary>
+        public string DownloadLinkUpdate { get; set; }
+
+        /// <summary>
+        /// Download link used to get testing versions of the plugin.
+        /// </summary>
+        public string DownloadLinkTesting { get; set; }
     }
 }

@@ -13,8 +13,7 @@ using Serilog;
 
 namespace Dalamud.Plugin
 {
-    internal class PluginRepository {
-        private string PluginFunctionBaseUrl => "https://us-central1-xl-functions.cloudfunctions.net/download-plugin/?plugin={0}&isUpdate={1}&isTesting={2}";
+    internal class PluginRepository { 
         private string PluginMasterUrl => "https://goatcorp.github.io/DalamudPlugins/pluginmaster.json";
 
         private readonly Dalamud dalamud;
@@ -117,8 +116,12 @@ namespace Dalamud.Plugin
                     && fromTesting) {
                     doTestingDownload = testingAssemblyVer > Version.Parse(definition.AssemblyVersion) || definition.IsTestingExclusive;
                 }
-                
-                var url = string.Format(PluginFunctionBaseUrl, definition.InternalName, isUpdate, doTestingDownload);
+
+                var url = definition.DownloadLinkInstall;
+                if (doTestingDownload)
+                    url = definition.DownloadLinkTesting;
+                else if (isUpdate)
+                    url = definition.DownloadLinkUpdate;
 
                 Log.Information("Downloading plugin to {0} from {1} doTestingDownload:{2} isTestingExclusive:{3}", path, url, doTestingDownload, definition.IsTestingExclusive);
 
