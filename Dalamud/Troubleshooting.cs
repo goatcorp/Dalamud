@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using Dalamud.Configuration;
 using Dalamud.Plugin;
 using Newtonsoft.Json;
 using Serilog;
@@ -17,6 +19,7 @@ namespace Dalamud
             public bool DoDalamudTest { get; set; }
             public bool DoPluginTest { get; set; }
             public bool InterfaceLoaded { get; set; }
+            public List<ThirdRepoSetting> ThirdRepo { get; set; }
         }
 
         public static void LogTroubleshooting(Dalamud dalamud, bool isInterfaceLoaded) {
@@ -28,7 +31,8 @@ namespace Dalamud
                     Language = dalamud.StartInfo.Language.ToString(),
                     DoDalamudTest = dalamud.Configuration.DoDalamudTest,
                     DoPluginTest = dalamud.Configuration.DoPluginTest,
-                    InterfaceLoaded = isInterfaceLoaded
+                    InterfaceLoaded = isInterfaceLoaded,
+                    ThirdRepo = dalamud.Configuration.ThirdRepoList
                 };
 
 
