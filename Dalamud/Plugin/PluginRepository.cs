@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -16,7 +17,6 @@ namespace Dalamud.Plugin
         private string PluginFunctionBaseUrl => "https://us-central1-xl-functions.cloudfunctions.net/download-plugin/?plugin={0}&isUpdate={1}&isTesting={2}";
         private string PluginMasterUrl => "https://raw.githubusercontent.com/goatcorp/DalamudPlugins/master/pluginmaster.json";
 
-
         private readonly Dalamud dalamud;
         private string pluginDirectory;
         public ReadOnlyCollection<PluginDefinition> PluginMaster;
@@ -25,7 +25,8 @@ namespace Dalamud.Plugin
             Unknown,
             InProgress,
             Success,
-            Fail
+            Fail,
+            FailThirdRepo
         }
 
         public InitializationState State { get; private set; }
@@ -43,20 +44,30 @@ namespace Dalamud.Plugin
 
                 State = InitializationState.InProgress;
 
+                var allPlugins = new List<PluginDefinition>();
+
+                var repos = this.dalamud.Configuration.ThirdRepoList.Where(x => x.IsEnabled).Select(x => x.Url)
+                                .Prepend(PluginMasterUrl).ToArray();
+
                 try {
                     using var client = new WebClient();
 
-                    var data = client.DownloadString(PluginMasterUrl);
+                    foreach (var repo in repos) {
+                        Log.Information("[PLUGINR] Fetching repo: {0}", repo);
+                        
+                        var data = client.DownloadString(repo);
 
-                    var unsortedPluginMaster = JsonConvert.DeserializeObject<List<PluginDefinition>>(data);
-                    unsortedPluginMaster.Sort((a, b) => a.Name.CompareTo(b.Name));
-                    this.PluginMaster = unsortedPluginMaster.AsReadOnly();
+                        var unsortedPluginMaster = JsonConvert.DeserializeObject<List<PluginDefinition>>(data);
+                        allPlugins.AddRange(unsortedPluginMaster);
+                    }
 
+                    this.PluginMaster = allPlugins.AsReadOnly();
                     State = InitializationState.Success;
                 }
                 catch (Exception ex) {
                     Log.Error(ex, "Could not download PluginMaster");
-                    State = InitializationState.Fail;
+
+                    State = repos.Length > 1 ? InitializationState.FailThirdRepo : InitializationState.Fail;
                 }
             }).ContinueWith(t => {
                 if (t.IsFaulted)

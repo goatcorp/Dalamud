@@ -132,6 +132,9 @@ namespace Dalamud.Plugin
             } else if (this.dalamud.PluginRepository.State == PluginRepository.InitializationState.Fail) {
                 ImGui.Text(Loc.Localize("InstallerDownloadFailed", "Download failed."));
             }
+            else if (this.dalamud.PluginRepository.State == PluginRepository.InitializationState.FailThirdRepo) {
+                ImGui.Text(Loc.Localize("InstallerDownloadFailedThird", "One of your third party repos is unreachable or there is no internet connection."));
+            }
             else {
                 if (this.pluginListAvailable == null) {
                     var hiddenPlugins = this.dalamud.PluginManager.Plugins.Where(
