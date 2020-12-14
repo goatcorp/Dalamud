@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using EasyHook;
@@ -9,9 +10,7 @@ namespace Dalamud.Hooking {
     /// This class is basically a thin wrapper around the LocalHook type to provide helper functions.
     /// </summary>
     /// <typeparam name="T">Delegate type to represents a function prototype. This must be the same prototype as original function do.</typeparam>
-    public sealed class Hook<T> : IDisposable where T : Delegate {
-        private bool isDisposed;
-
+    public sealed class Hook<T> : IDisposable, IDalamudHook where T : Delegate {
         private readonly IntPtr address;
 
         private readonly T original;
@@ -69,19 +68,20 @@ namespace Dalamud.Hooking {
             this.hookInfo = LocalHook.Create(address, detour, callbackParam); // Installs a hook here
             this.address  = address;
             this.original = Marshal.GetDelegateForFunctionPointer<T>(this.hookInfo.HookBypassAddress);
+            HookInfo.TrackedHooks.Add(new HookInfo() { Delegate = detour, Hook = this, Assembly = Assembly.GetCallingAssembly()});
         }
 
         /// <summary>
         /// Remove a hook from the current process.
         /// </summary>
         public void Dispose() {
-            if (this.isDisposed) {
+            if (this.IsDisposed) {
                 return;
             }
             
             this.hookInfo.Dispose();
             
-            this.isDisposed = true;
+            this.IsDisposed = true;
         }
 
         /// <summary>
@@ -104,9 +104,24 @@ namespace Dalamud.Hooking {
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void CheckDisposed() {
-            if (this.isDisposed) {
+            if (this.IsDisposed) {
                 throw new ObjectDisposedException("Hook is already disposed.");
             }
         }
+
+        /// <summary>
+        /// Check if the hook is enabled.
+        /// </summary>
+        public bool IsEnabled {
+            get {
+                CheckDisposed();
+                return this.hookInfo.ThreadACL.IsExclusive;
+            }
+        }
+
+        /// <summary>
+        /// Check if the hook has been disposed
+        /// </summary>
+        public bool IsDisposed { get; private set; }
     }
 }
