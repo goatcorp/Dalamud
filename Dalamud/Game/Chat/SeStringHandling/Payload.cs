@@ -151,6 +151,10 @@ namespace Dalamud.Game.Chat.SeStringHandling
                                 payload = new StatusPayload();
                                 break;
 
+                            case EmbeddedInfoType.QuestLink:
+                                payload = new QuestPayload();
+                                break;
+
                             case EmbeddedInfoType.LinkTerminator:
                                 // this has no custom handling and so needs to fallthrough to ensure it is captured
                             default:
@@ -225,6 +229,7 @@ namespace Dalamud.Game.Chat.SeStringHandling
             PlayerName = 0x01,
             ItemLink = 0x03,
             MapPositionLink = 0x04,
+            QuestLink = 0x05,
             Status = 0x09,
 
             LinkTerminator = 0xCF // not clear but seems to always follow a link
