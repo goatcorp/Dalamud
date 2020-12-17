@@ -6,6 +6,7 @@ namespace Dalamud.Game.Internal.Gui {
         
         public IntPtr PrintMessage { get; private set; }
         public IntPtr PopulateItemLinkObject { get; private set; }
+        public IntPtr InteractableLinkClicked { get; private set; } 
 
         public ChatGuiAddressResolver(IntPtr baseAddres) {
             BaseAddress = baseAddres;
@@ -89,6 +90,8 @@ namespace Dalamud.Game.Internal.Gui {
 
             //PopulateItemLinkObject = sig.ScanText(      "48 89 5C 24 08 57 48 83  EC 20 80 7A 06 00 48 8B DA 48 8B F9 74 14 48 8B  CA E8 32 03 00 00 48 8B C8 E8 ?? ?? B0 FF 8B C8  EB 1D 0F B6 42 14 8B 4A"); 5.0
             PopulateItemLinkObject = sig.ScanText("48 89 5C 24 08 57 48 83  EC 20 80 7A 06 00 48 8B DA 48 8B F9 74 14 48 8B  CA E8 32 03 00 00 48 8B C8 E8 ?? ?? ?? FF 8B C8  EB 1D 0F B6 42 14 8B 4A");
+
+            InteractableLinkClicked = sig.ScanText("E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 80 BB ?? ?? ?? ?? ?? 0F 85 ?? ?? ?? ?? 80 BB") + 9;
         }
     }
 }
