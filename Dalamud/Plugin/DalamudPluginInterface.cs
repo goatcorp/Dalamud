@@ -139,7 +139,7 @@ namespace Dalamud.Plugin
         /// <param name="commandId"></param>
         /// <param name="commandAction"></param>
         /// <returns>Returns an SeString payload for the link.</returns>
-        public DalamudLinkPayload AddChatLinkHandler(uint commandId, Action<uint> commandAction) {
+        public DalamudLinkPayload AddChatLinkHandler(uint commandId, Action<uint, SeString> commandAction) {
             return this.Framework.Gui.Chat.AddChatLinkHandler(this.pluginName, commandId, commandAction);
         }
 

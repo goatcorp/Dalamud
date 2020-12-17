@@ -182,7 +182,7 @@ namespace Dalamud.Game.Internal.Gui {
             return retVal;
         }
 
-        private readonly Dictionary<(string pluginName, uint commandId), Action<uint>> dalamudLinkHandlers = new Dictionary<(string, uint), Action<uint>>();
+        private readonly Dictionary<(string pluginName, uint commandId), Action<uint, SeString>> dalamudLinkHandlers = new Dictionary<(string, uint), Action<uint, SeString>>();
 
         /// <summary>
         /// Create a link handler
@@ -191,7 +191,7 @@ namespace Dalamud.Game.Internal.Gui {
         /// <param name="commandId"></param>
         /// <param name="commandAction"></param>
         /// <returns></returns>
-        internal DalamudLinkPayload AddChatLinkHandler(string pluginName, uint commandId, Action<uint> commandAction) {
+        internal DalamudLinkPayload AddChatLinkHandler(string pluginName, uint commandId, Action<uint, SeString> commandAction) {
             var payload = new DalamudLinkPayload() {Plugin = pluginName, CommandId = commandId};
             this.dalamudLinkHandlers.Add((pluginName, commandId), commandAction);
             return payload;
@@ -230,17 +230,19 @@ namespace Dalamud.Game.Internal.Gui {
                 Log.Verbose($"InteractableLinkClicked: {Payload.EmbeddedInfoType.DalamudLink}");
 
                 var payloadPtr = Marshal.ReadIntPtr(messagePtr, 0x10);
-                var payloadSize = 3 + Marshal.ReadByte(payloadPtr, 2);
-                var payloadBytes = new byte[payloadSize];
-                Marshal.Copy(payloadPtr, payloadBytes, 0, payloadSize);
+                var messageSize = 0;
+                while (Marshal.ReadByte(payloadPtr, messageSize) != 0) messageSize++;
+                var payloadBytes = new byte[messageSize];
+                Marshal.Copy(payloadPtr, payloadBytes, 0, messageSize);
                 var seStr = this.dalamud.SeStringManager.Parse(payloadBytes);
-                if (seStr.Payloads.Count == 0) return;
-                var payload = seStr.Payloads[0];
-                
-                if (payload is DalamudLinkPayload link) {
+                var terminatorIndex = seStr.Payloads.IndexOf(RawPayload.LinkTerminator);
+                var payloads = terminatorIndex >= 0 ? seStr.Payloads.Take(terminatorIndex + 1).ToList() : seStr.Payloads;
+                if (payloads.Count == 0) return;
+                var linkPayload = payloads[0];
+                if (linkPayload is DalamudLinkPayload link) {
                     if (this.dalamudLinkHandlers.ContainsKey((link.Plugin, link.CommandId))) {
                         Log.Verbose($"Sending DalamudLink to {link.Plugin}: {link.CommandId}");
-                        this.dalamudLinkHandlers[(link.Plugin, link.CommandId)].Invoke(link.CommandId);
+                        this.dalamudLinkHandlers[(link.Plugin, link.CommandId)].Invoke(link.CommandId, new SeString(payloads));
                     } else {
                         Log.Debug($"No DalamudLink registered for {link.Plugin} with ID of {link.CommandId}");
                     }

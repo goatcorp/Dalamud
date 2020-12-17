@@ -90,7 +90,7 @@ namespace Dalamud.Game {
             dalamud.Framework.Gui.Chat.OnCheckMessageHandled += OnCheckMessageHandled;
             dalamud.Framework.Gui.Chat.OnChatMessage += OnChatMessage;
 
-            this.openInstallerWindowLink = this.dalamud.Framework.Gui.Chat.AddChatLinkHandler("Dalamud", 1001, (i) => {
+            this.openInstallerWindowLink = this.dalamud.Framework.Gui.Chat.AddChatLinkHandler("Dalamud", 1001, (i, m) => {
                 this.dalamud.OpenPluginInstaller();
             });
         }
