@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using Dalamud.Game.Chat;
 using Dalamud.Game.Chat.SeStringHandling;
+using Dalamud.Game.Chat.SeStringHandling.Payloads;
 using Dalamud.Game.Internal.Libc;
 using Dalamud.Hooking;
 using Serilog;
@@ -42,6 +44,8 @@ namespace Dalamud.Game.Internal.Gui {
 
         private readonly Hook<PopulateItemLinkDelegate> populateItemLinkHook;
 
+        private readonly Hook<InteractableLinkClickedDelegate> interactableLinkClickedHook;
+
         #endregion
 
         #region Delegates
@@ -54,6 +58,10 @@ namespace Dalamud.Game.Internal.Gui {
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         private delegate void PopulateItemLinkDelegate(IntPtr linkObjectPtr, IntPtr itemInfoPtr);
+
+
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        private delegate void InteractableLinkClickedDelegate(IntPtr managerPtr, IntPtr messagePtr);
 
         #endregion
 
@@ -81,16 +89,22 @@ namespace Dalamud.Game.Internal.Gui {
                 new Hook<PopulateItemLinkDelegate>(Address.PopulateItemLinkObject,
                                                    new PopulateItemLinkDelegate(HandlePopulateItemLinkDetour),
                                                    this);
+            this.interactableLinkClickedHook =
+                new Hook<InteractableLinkClickedDelegate>(Address.InteractableLinkClicked,
+                                                          new InteractableLinkClickedDelegate(InteractableLinkClickedDetour));
+
         }
 
         public void Enable() {
             this.printMessageHook.Enable();
             this.populateItemLinkHook.Enable();
+            this.interactableLinkClickedHook.Enable();
         }
 
         public void Dispose() {
             this.printMessageHook.Dispose();
             this.populateItemLinkHook.Dispose();
+            this.interactableLinkClickedHook.Dispose();
         }
 
         private void HandlePopulateItemLinkDetour(IntPtr linkObjectPtr, IntPtr itemInfoPtr) {
@@ -166,6 +180,76 @@ namespace Dalamud.Game.Internal.Gui {
             }
 
             return retVal;
+        }
+
+        private readonly Dictionary<(string pluginName, uint commandId), Action<uint, SeString>> dalamudLinkHandlers = new Dictionary<(string, uint), Action<uint, SeString>>();
+
+        /// <summary>
+        /// Create a link handler
+        /// </summary>
+        /// <param name="pluginName"></param>
+        /// <param name="commandId"></param>
+        /// <param name="commandAction"></param>
+        /// <returns></returns>
+        internal DalamudLinkPayload AddChatLinkHandler(string pluginName, uint commandId, Action<uint, SeString> commandAction) {
+            var payload = new DalamudLinkPayload() {Plugin = pluginName, CommandId = commandId};
+            this.dalamudLinkHandlers.Add((pluginName, commandId), commandAction);
+            return payload;
+        }
+
+        /// <summary>
+        /// Remove a registered link handler
+        /// </summary>
+        /// <param name="pluginName"></param>
+        /// <param name="commandId"></param>
+        internal void RemoveChatLinkHandler(string pluginName, uint commandId) {
+            if (this.dalamudLinkHandlers.ContainsKey((pluginName, commandId))) {
+                this.dalamudLinkHandlers.Remove((pluginName, commandId));
+            }
+        }
+
+        /// <summary>
+        /// Remove all handlers owned by a plugin.
+        /// </summary>
+        /// <param name="pluginName"></param>
+        internal void RemoveChatLinkHandler(string pluginName) {
+            foreach (var handler in this.dalamudLinkHandlers.Keys.ToList().Where(k => k.pluginName == pluginName)) {
+                this.dalamudLinkHandlers.Remove(handler);
+            }
+        }
+
+        private void InteractableLinkClickedDetour(IntPtr managerPtr, IntPtr messagePtr) {
+            try {
+                var interactableType = (Payload.EmbeddedInfoType)(Marshal.ReadByte(messagePtr, 0x1B) + 1);
+
+                if (interactableType != Payload.EmbeddedInfoType.DalamudLink) {
+                    this.interactableLinkClickedHook.Original(managerPtr, messagePtr);
+                    return;
+                }
+
+                Log.Verbose($"InteractableLinkClicked: {Payload.EmbeddedInfoType.DalamudLink}");
+
+                var payloadPtr = Marshal.ReadIntPtr(messagePtr, 0x10);
+                var messageSize = 0;
+                while (Marshal.ReadByte(payloadPtr, messageSize) != 0) messageSize++;
+                var payloadBytes = new byte[messageSize];
+                Marshal.Copy(payloadPtr, payloadBytes, 0, messageSize);
+                var seStr = this.dalamud.SeStringManager.Parse(payloadBytes);
+                var terminatorIndex = seStr.Payloads.IndexOf(RawPayload.LinkTerminator);
+                var payloads = terminatorIndex >= 0 ? seStr.Payloads.Take(terminatorIndex + 1).ToList() : seStr.Payloads;
+                if (payloads.Count == 0) return;
+                var linkPayload = payloads[0];
+                if (linkPayload is DalamudLinkPayload link) {
+                    if (this.dalamudLinkHandlers.ContainsKey((link.Plugin, link.CommandId))) {
+                        Log.Verbose($"Sending DalamudLink to {link.Plugin}: {link.CommandId}");
+                        this.dalamudLinkHandlers[(link.Plugin, link.CommandId)].Invoke(link.CommandId, new SeString(payloads));
+                    } else {
+                        Log.Debug($"No DalamudLink registered for {link.Plugin} with ID of {link.CommandId}");
+                    }
+                }
+            } catch (Exception ex) {
+                Log.Error(ex, "Exception on InteractableLinkClicked hook");
+            }
         }
 
         // Copyright (c) 2008-2013 Hafthor Stefansson

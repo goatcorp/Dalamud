@@ -24,6 +24,8 @@ namespace Dalamud.Game {
 
         private readonly Dalamud dalamud;
 
+        private DalamudLinkPayload openInstallerWindowLink;
+
         private readonly Dictionary<XivChatType, Color> HandledChatTypeColors = new Dictionary<XivChatType, Color> {
             {XivChatType.CrossParty, Color.DodgerBlue},
             {XivChatType.Party, Color.DodgerBlue},
@@ -87,6 +89,10 @@ namespace Dalamud.Game {
             
             dalamud.Framework.Gui.Chat.OnCheckMessageHandled += OnCheckMessageHandled;
             dalamud.Framework.Gui.Chat.OnChatMessage += OnChatMessage;
+
+            this.openInstallerWindowLink = this.dalamud.Framework.Gui.Chat.AddChatLinkHandler("Dalamud", 1001, (i, m) => {
+                this.dalamud.OpenPluginInstaller();
+            });
         }
 
         private void OnCheckMessageHandled(XivChatType type, uint senderid, ref SeString sender, ref SeString message, ref bool isHandled) {
@@ -233,7 +239,16 @@ namespace Dalamud.Game {
                             }
                         } else {
                             this.dalamud.Framework.Gui.Chat.PrintChat(new XivChatEntry {
-                                MessageBytes = Encoding.UTF8.GetBytes(Loc.Localize("DalamudPluginUpdateRequired", "One or more of your plugins needs to be updated. Please use the /xlplugins command in-game to update them!")),
+                                MessageBytes = new SeString(new List<Payload>() {
+                                    new TextPayload(Loc.Localize("DalamudPluginUpdateRequired", "One or more of your plugins needs to be updated. Please use the /xlplugins command in-game to update them!")),
+                                    new TextPayload("  ["),
+                                    new UIForegroundPayload(this.dalamud.Data, 500),
+                                    this.openInstallerWindowLink,
+                                    new TextPayload(Loc.Localize("DalamudInstallerHelp", "Open the plugin installer")),
+                                    RawPayload.LinkTerminator,
+                                    new UIForegroundPayload(this.dalamud.Data, 0),
+                                    new TextPayload("]"),
+                                }).Encode(),
                                 Type = XivChatType.Urgent
                             });
                         }

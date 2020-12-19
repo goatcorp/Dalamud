@@ -10,6 +10,7 @@ using Dalamud.Configuration;
 using Dalamud.Data;
 using Dalamud.Game;
 using Dalamud.Game.Chat.SeStringHandling;
+using Dalamud.Game.Chat.SeStringHandling.Payloads;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.Command;
 using Dalamud.Game.Internal;
@@ -90,6 +91,7 @@ namespace Dalamud.Plugin
         /// </summary>
         public void Dispose() {
             this.UiBuilder.Dispose();
+            this.Framework.Gui.Chat.RemoveChatLinkHandler(this.pluginName);
         }
 
         /// <summary>
@@ -128,6 +130,34 @@ namespace Dalamud.Plugin
             // this shouldn't be a thing, I think, but just in case
             return this.configs.Load(this.pluginName);
         }
+
+        #region Chat Links
+
+        /// <summary>
+        /// Register a chat link handler.
+        /// </summary>
+        /// <param name="commandId"></param>
+        /// <param name="commandAction"></param>
+        /// <returns>Returns an SeString payload for the link.</returns>
+        public DalamudLinkPayload AddChatLinkHandler(uint commandId, Action<uint, SeString> commandAction) {
+            return this.Framework.Gui.Chat.AddChatLinkHandler(this.pluginName, commandId, commandAction);
+        }
+
+        /// <summary>
+        /// Remove a chat link handler.
+        /// </summary>
+        /// <param name="commandId"></param>
+        public void RemoveChatLinkHandler(uint commandId) {
+            this.Framework.Gui.Chat.RemoveChatLinkHandler(this.pluginName, commandId);
+        }
+
+        /// <summary>
+        /// Removes all chat link handlers registered by the plugin.
+        /// </summary>
+        public void RemoveChatLinkHandler() {
+            this.Framework.Gui.Chat.RemoveChatLinkHandler(this.pluginName);
+        }
+        #endregion
 
         #region IPC
 

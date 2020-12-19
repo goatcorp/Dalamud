@@ -64,6 +64,14 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
             return $"{Type} - Data: {BitConverter.ToString(Data).Replace("-", " ")}";
         }
 
+        public override bool Equals(object obj) {
+            if (obj is RawPayload rp) {
+                if (rp.Data.Length != this.Data.Length) return false;
+                return !Data.Where((t, i) => rp.Data[i] != t).Any();
+            }
+            return false;
+        }
+
         protected override byte[] EncodeImpl()
         {
             var chunkLen = this.data.Length + 1;
