@@ -218,19 +218,9 @@ namespace Dalamud.Game {
                 } else {
                     var updatedPlugins = t.Result.UpdatedPlugins;
 
-                    if (updatedPlugins.Count != 0) {
+                    if (updatedPlugins != null && updatedPlugins.Any()) {
                         if (this.dalamud.Configuration.AutoUpdatePlugins) {
-                            this.dalamud.Framework.Gui.Chat.Print(string.Format(Loc.Localize("DalamudPluginUpdateSuccessful", "Auto-update:")));
-                            foreach (var plugin in updatedPlugins) {
-                                if (plugin.WasUpdated) {
-                                    this.dalamud.Framework.Gui.Chat.Print(string.Format(Loc.Localize("DalamudPluginUpdateSuccessful", "    》 {0} updated to v{1}."), plugin.Name, plugin.Version));
-                                } else {
-                                    this.dalamud.Framework.Gui.Chat.PrintChat(new XivChatEntry {
-                                        MessageBytes = Encoding.UTF8.GetBytes(string.Format(Loc.Localize("DalamudPluginUpdateFailed", "    》 {0} update to v{1} failed."), plugin.Name, plugin.Version)),
-                                        Type = XivChatType.Urgent
-                                    });
-                                }
-                            }
+                            this.dalamud.PluginRepository.PrintUpdatedPlugins(updatedPlugins, Loc.Localize("DalamudPluginAutoUpdate", "Auto-update:"));
                         } else {
                             this.dalamud.Framework.Gui.Chat.PrintChat(new XivChatEntry {
                                 MessageBytes = Encoding.UTF8.GetBytes(Loc.Localize("DalamudPluginUpdateRequired", "One or more of your plugins needs to be updated. Please use the /xlplugins command in-game to update them!")),
