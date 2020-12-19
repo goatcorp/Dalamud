@@ -73,7 +73,7 @@ namespace Dalamud.Interface
                 Address = sigResolver;
             } catch (Exception ex) {
                 // The SigScanner method fails on wine/proton since DXGI is not a real DLL. We fall back to vtable to detect our Present function address.
-                Log.Error(ex, "Could not get SwapChain address via sig method, falling back to vtable...");
+                Log.Debug(ex, "Could not get SwapChain address via sig method, falling back to vtable...");
 
                 var vtableResolver = new SwapChainVtableResolver();
                 vtableResolver.Setup(scanner);
