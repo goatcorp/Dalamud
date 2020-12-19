@@ -20,6 +20,7 @@ namespace Dalamud {
             Log.Logger = logger;
 
             try {
+                Log.Information(new string('-', 200));
                 Log.Information("Initializing a session..");
 
                 // This is due to GitHub not supporting TLS 1.0, so we enable all TLS versions globally
