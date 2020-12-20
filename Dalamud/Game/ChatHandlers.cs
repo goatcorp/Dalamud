@@ -205,6 +205,12 @@ namespace Dalamud.Game {
                     this.dalamud.Framework.Gui.Chat.Print(string.Format(Loc.Localize("DalamudPluginLoaded", "    》 {0} v{1} loaded."), plugin.Plugin.Name, plugin.Plugin.GetType().Assembly.GetName().Version));
                 }
             }
+            foreach (var (pluginName, cause) in this.dalamud.PluginManager.LoadFailedPlugins) {
+                this.dalamud.Framework.Gui.Chat.PrintChat(new XivChatEntry {
+                    MessageBytes = Encoding.UTF8.GetBytes(string.Format(Loc.Localize("DalamudPluginLoadFailed", "    》 {0} failed to load. {1}"), pluginName, cause)),
+                    Type = XivChatType.Urgent
+                });
+            }
 
             if (string.IsNullOrEmpty(this.dalamud.Configuration.LastVersion) || !assemblyVersion.StartsWith(this.dalamud.Configuration.LastVersion)) {
                 this.dalamud.Framework.Gui.Chat.PrintChat(new XivChatEntry {

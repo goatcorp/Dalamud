@@ -5,6 +5,7 @@ using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using CheapLoc;
 using Dalamud.Configuration;
 using Newtonsoft.Json;
 using Serilog;
@@ -25,6 +26,8 @@ namespace Dalamud.Plugin
         public readonly List<(IDalamudPlugin Plugin, PluginDefinition Definition, DalamudPluginInterface PluginInterface, bool IsRaw)> Plugins = new List<(IDalamudPlugin plugin, PluginDefinition def, DalamudPluginInterface PluginInterface, bool IsRaw)>();
 
         public List<(string SourcePluginName, string SubPluginName, Action<ExpandoObject> SubAction)> IpcSubscriptions = new List<(string SourcePluginName, string SubPluginName, Action<ExpandoObject> SubAction)>();
+
+        public List<(string pluginName, string cause)> LoadFailedPlugins = new List<(string pluginName, string cause)>();
 
         public PluginManager(Dalamud dalamud, string pluginDirectory, string devPluginDirectory) {
             this.dalamud = dalamud;
@@ -121,6 +124,8 @@ namespace Dalamud.Plugin
                 if (pluginDef.ApplicableVersion != this.dalamud.StartInfo.GameVersion && pluginDef.ApplicableVersion != "any")
                 {
                     Log.Information("Plugin {0} has not applicable version.", dllFile.FullName);
+                    this.LoadFailedPlugins.Add((Path.GetFileNameWithoutExtension(dllFile.Name), Loc.Localize("DalamudPluginImcompatibleAPILvl", "Incompatible with the current game version.")));
+                    disabledFile.Create().Close();
                     return false;
                 }
             }
@@ -173,6 +178,7 @@ namespace Dalamud.Plugin
 
                     if (pluginDef.DalamudApiLevel < DALAMUD_API_LEVEL) {
                         Log.Error("Incompatible API level: {0}", dllFile.FullName);
+                        this.LoadFailedPlugins.Add((Path.GetFileNameWithoutExtension(dllFile.Name), Loc.Localize("DalamudPluginIncompatibleGameVersion", "Incompatible with the current Dalamud version.")));
                         disabledFile.Create().Close();
                         return false;
                     }
@@ -204,6 +210,7 @@ namespace Dalamud.Plugin
                         LoadPluginFromAssembly(dllFile, raw, PluginLoadReason.Boot);
                     } catch (Exception ex) {
                         Log.Error(ex, $"Plugin load for {dllFile.FullName} failed.");
+                        this.LoadFailedPlugins.Add((Path.GetFileNameWithoutExtension(dllFile.Name), Loc.Localize("DalamudPluginLoadError", "The plugin has encountered an error.")));
                     }
                 }
             }
