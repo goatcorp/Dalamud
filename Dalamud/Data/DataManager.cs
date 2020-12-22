@@ -183,6 +183,16 @@ namespace Dalamud.Data
         }
 
         /// <summary>
+        /// Check if the file with the given path exists within the game's index files.
+        /// </summary>
+        /// <param name="path">The path inside of the game files.</param>
+        /// <returns>True if the file exists.</returns>
+        public bool FileExists(string path)
+        {
+            return this.gameData.FileExists(path);
+        }
+
+        /// <summary>
         /// Get a <see cref="TexFile"/> containing the icon with the given ID.
         /// </summary>
         /// <param name="iconId">The icon ID.</param>
