@@ -8,6 +8,8 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using CheapLoc;
+using Dalamud.Game.Chat;
 using Newtonsoft.Json;
 using Serilog;
 
@@ -287,6 +289,22 @@ namespace Dalamud.Plugin
             Log.Information("Plugin update OK.");
 
             return (!hasError, updatedList);
+        }
+
+        public void PrintUpdatedPlugins(List<PluginRepository.PluginUpdateStatus> updatedPlugins, string header) {
+            if (updatedPlugins != null && updatedPlugins.Any()) {
+                this.dalamud.Framework.Gui.Chat.Print(header);
+                foreach (var plugin in updatedPlugins) {
+                    if (plugin.WasUpdated) {
+                        this.dalamud.Framework.Gui.Chat.Print(string.Format(Loc.Localize("DalamudPluginUpdateSuccessful", "    》 {0} updated to v{1}."), plugin.Name, plugin.Version));
+                    } else {
+                        this.dalamud.Framework.Gui.Chat.PrintChat(new XivChatEntry {
+                            MessageBytes = Encoding.UTF8.GetBytes(string.Format(Loc.Localize("DalamudPluginUpdateFailed", "    》 {0} update to v{1} failed."), plugin.Name, plugin.Version)),
+                            Type = XivChatType.Urgent
+                        });
+                    }
+                }
+            }
         }
 
         public void CleanupPlugins() {
