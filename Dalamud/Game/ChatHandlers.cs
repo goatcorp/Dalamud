@@ -201,7 +201,7 @@ namespace Dalamud.Game {
                                                 + string.Format(Loc.Localize("PluginsWelcome", " {0} plugin(s) loaded."), this.dalamud.PluginManager.Plugins.Count));
 
             if (this.dalamud.Configuration.PrintPluginsWelcomeMsg) {
-                foreach (var plugin in this.dalamud.PluginManager.Plugins) {
+                foreach (var plugin in this.dalamud.PluginManager.Plugins.OrderBy(x => x.Plugin.Name)) {
                     this.dalamud.Framework.Gui.Chat.Print(string.Format(Loc.Localize("DalamudPluginLoaded", "    》 {0} v{1} loaded."), plugin.Plugin.Name, plugin.Plugin.GetType().Assembly.GetName().Version));
                 }
             }

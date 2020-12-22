@@ -68,7 +68,7 @@ namespace Dalamud.Plugin
 
             switch (this.sortKind) {
                 case PluginSortKind.Alphabetical:
-                    this.pluginListAvailable = availableDefs.OrderBy(x => x.InternalName).ToList();
+                    this.pluginListAvailable = availableDefs.OrderBy(x => x.Name).ToList();
                     break;
                 case PluginSortKind.DownloadCount:
                     this.pluginListAvailable = availableDefs.OrderByDescending(x => x.DownloadCount).ToList();
@@ -147,6 +147,7 @@ namespace Dalamud.Plugin
                                                    })
                                                    .ToList();
                     this.pluginListInstalled.AddRange(hiddenPlugins);
+                    this.pluginListInstalled.Sort((x, y) => x.Name.CompareTo(y.Name));
 
                     ResortAvailable();
                 }
