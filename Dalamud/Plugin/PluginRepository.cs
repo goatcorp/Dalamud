@@ -134,12 +134,12 @@ namespace Dalamud.Plugin
                 ZipFile.ExtractToDirectory(path, outputDir.FullName);
 
                 if (wasDisabled || !enableAfterInstall) {
-                    disabledFile.Create();
+                    disabledFile.Create().Close();
                     return true;
                 }
 
                 if (doTestingDownload) {
-                    testingFile.Create();
+                    testingFile.Create().Close();
                 } else {
                     if (testingFile.Exists)
                         testingFile.Delete();
@@ -246,7 +246,7 @@ namespace Dalamud.Plugin
                                         var disabledFile =
                                             new FileInfo(Path.Combine(sortedVersion.FullName, ".disabled"));
                                         if (!disabledFile.Exists)
-                                            disabledFile.Create();
+                                            disabledFile.Create().Close();
                                     }
                                 } catch (Exception ex) {
                                     Log.Error(ex, "Plugin disable old versions failed");
