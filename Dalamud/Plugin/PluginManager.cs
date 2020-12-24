@@ -210,7 +210,9 @@ namespace Dalamud.Plugin
                         LoadPluginFromAssembly(dllFile, raw, PluginLoadReason.Boot);
                     } catch (Exception ex) {
                         Log.Error(ex, $"Plugin load for {dllFile.FullName} failed.");
-                        this.LoadFailedPlugins.Add((Path.GetFileNameWithoutExtension(dllFile.Name), Loc.Localize("DalamudPluginLoadError", "The plugin has encountered an error.")));
+                        // Avoid errors from dll that should not be loaded by Dalamud
+                        if (!raw)
+                            this.LoadFailedPlugins.Add((Path.GetFileNameWithoutExtension(dllFile.Name), Loc.Localize("DalamudPluginLoadError", "The plugin has encountered an error.")));
                     }
                 }
             }
