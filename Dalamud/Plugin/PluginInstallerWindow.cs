@@ -419,7 +419,7 @@ namespace Dalamud.Plugin
                         }
 
                         ImGui.SameLine();
-                        ImGui.TextColored(new Vector4(0.5f, 0.5f, 0.5f, 1.0f), $" v{pluginDefinition.AssemblyVersion}");
+                        ImGui.TextColored(new Vector4(0.5f, 0.5f, 0.5f, 1.0f), $" v{installedPlugin.Definition.AssemblyVersion}");
 
                         if(installedPlugin.IsRaw) {
                             ImGui.SameLine();
