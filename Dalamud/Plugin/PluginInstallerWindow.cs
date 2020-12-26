@@ -263,7 +263,9 @@ namespace Dalamud.Plugin
             var didAnyWithSearch = false;
             var hasSearchString = !string.IsNullOrWhiteSpace(this.searchText);
 
-            foreach (var pluginDefinition in pluginDefinitions) {
+            for (var index = 0; index < pluginDefinitions.Count; index++) {
+                var pluginDefinition = pluginDefinitions[index];
+
                 if (pluginDefinition.ApplicableVersion != this.gameVersion &&
                     pluginDefinition.ApplicableVersion != "any")
                     continue;
@@ -317,7 +319,7 @@ namespace Dalamud.Plugin
                 if (isTestingAvailable)
                     label += " (testing version)";
 
-                ImGui.PushID(pluginDefinition.InternalName + pluginDefinition.AssemblyVersion);
+                ImGui.PushID(pluginDefinition.InternalName + pluginDefinition.AssemblyVersion + installed + index);
 
                 if (ImGui.CollapsingHeader(pluginDefinition.Name + label + "###Header" + pluginDefinition.InternalName)
                 ) {
@@ -328,8 +330,11 @@ namespace Dalamud.Plugin
                     ImGui.SameLine();
 
                     var info = $" by {pluginDefinition.Author}";
-                    info += pluginDefinition.DownloadCount != 0 ? $", {pluginDefinition.DownloadCount} downloads" : ", download count unavailable";
-                    if (pluginDefinition.FromRepo != "goatcorp.github.io" && !string.IsNullOrWhiteSpace(pluginDefinition.FromRepo))
+                    info += pluginDefinition.DownloadCount != 0
+                                ? $", {pluginDefinition.DownloadCount} downloads"
+                                : ", download count unavailable";
+                    if (pluginDefinition.FromRepo != "goatcorp.github.io" &&
+                        !string.IsNullOrWhiteSpace(pluginDefinition.FromRepo))
                         info += $", from {pluginDefinition.FromRepo}";
                     ImGui.TextColored(new Vector4(0.5f, 0.5f, 0.5f, 1.0f), info);
 
@@ -421,9 +426,10 @@ namespace Dalamud.Plugin
                         ImGui.SameLine();
                         ImGui.TextColored(new Vector4(0.5f, 0.5f, 0.5f, 1.0f), $" v{pluginDefinition.AssemblyVersion}");
 
-                        if(installedPlugin.IsRaw) {
+                        if (installedPlugin.IsRaw) {
                             ImGui.SameLine();
-                            ImGui.TextColored(new Vector4(1.0f, 0.0f, 0.0f, 1.0f), " To update or disable this plugin, please remove it from the devPlugins folder.");
+                            ImGui.TextColored(new Vector4(1.0f, 0.0f, 0.0f, 1.0f),
+                                              " To update or disable this plugin, please remove it from the devPlugins folder.");
                         }
                     }
 
