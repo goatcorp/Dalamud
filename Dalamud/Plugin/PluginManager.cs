@@ -80,8 +80,15 @@ namespace Dalamud.Plugin
 
             // Need to do it with Open so the file handle gets closed immediately
             // TODO: Don't use the ".disabled" crap, do it in a config
-            var disabledFile = File.Open(Path.Combine(outputDir.FullName, ".disabled"), FileMode.Create);
-            disabledFile.Close();
+            try {
+                File.Open(Path.Combine(outputDir.FullName, ".disabled"), FileMode.Create).Close();
+            } catch (Exception ex) {
+                Log.Error(ex, "Could not create the .disabled file, disabling all versions...");
+                foreach (var version in outputDir.Parent.GetDirectories()) {
+                    if (!File.Exists(Path.Combine(version.FullName, ".disabled")))
+                        File.Open(Path.Combine(version.FullName, ".disabled"), FileMode.Create).Close();
+                }
+            }
 
             thisPlugin.Plugin.Dispose();
 
