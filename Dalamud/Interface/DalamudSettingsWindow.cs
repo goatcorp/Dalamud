@@ -35,6 +35,8 @@ namespace Dalamud.Interface
             this.printPluginsWelcomeMsg = this.dalamud.Configuration.PrintPluginsWelcomeMsg;
             this.autoUpdatePlugins = this.dalamud.Configuration.AutoUpdatePlugins;
 
+            this.isInstalledFirstInstaller = this.dalamud.Configuration.IsInstalledFirstInstaller;
+
             this.languages = Localization.ApplicableLangCodes.Prepend("en").ToArray();
             try {
                 if (string.IsNullOrEmpty(this.dalamud.Configuration.LanguageOverride)) {
@@ -93,6 +95,8 @@ namespace Dalamud.Interface
 
         private bool printPluginsWelcomeMsg;
         private bool autoUpdatePlugins;
+
+        private bool isInstalledFirstInstaller;
 
         private string thirdRepoTempUrl = string.Empty;
 
@@ -172,6 +176,11 @@ namespace Dalamud.Interface
 
                     ImGui.Checkbox(Loc.Localize("DalamudSettingToggleUiHideDuringGpose", "Hide plugin UI while gpose is active"), ref this.doToggleUiHideDuringGpose);
                     ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingToggleUiHideDuringGposeHint", "Hide any open windows by plugins while gpose is active."));
+
+                    ImGui.Dummy(new Vector2(10f, 16f) * ImGui.GetIO().FontGlobalScale);
+
+                    ImGui.Checkbox(Loc.Localize("DalamudSettingInstalledFirstInstalled", "Display installed plugins first in the installer"), ref this.isInstalledFirstInstaller);
+                    ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingInstalledFirstInstalledHint", "Display installed plugins before available ones in the installer."));
 
                     ImGui.EndTabItem();
                 }
@@ -302,6 +311,8 @@ namespace Dalamud.Interface
 
             this.dalamud.Configuration.PrintPluginsWelcomeMsg = this.printPluginsWelcomeMsg;
             this.dalamud.Configuration.AutoUpdatePlugins = this.autoUpdatePlugins;
+
+            this.dalamud.Configuration.IsInstalledFirstInstaller = this.isInstalledFirstInstaller;
 
             this.dalamud.Configuration.Save();
         }

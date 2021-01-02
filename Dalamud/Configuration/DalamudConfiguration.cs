@@ -36,6 +36,8 @@ namespace Dalamud
         public bool PrintPluginsWelcomeMsg { get; set; } = true;
         public bool AutoUpdatePlugins { get; set; } = false;
 
+        public bool IsInstalledFirstInstaller { get; set; } = false;
+
         [JsonIgnore]
         public string ConfigPath;
 
