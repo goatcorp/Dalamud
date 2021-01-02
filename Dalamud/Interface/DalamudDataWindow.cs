@@ -66,8 +66,8 @@ namespace Dalamud.Interface
             ImGui.SameLine();
             var copy = ImGui.Button("Copy all");
             ImGui.SameLine();
-            ImGui.Combo("Data kind", ref this.currentKind, new[] {"ServerOpCode", "Address", "Actor Table", "Font Test", "Party List", "Plugin IPC", "Condition", "Gauge", "Command", "Addon", "StartInfo"},
-                        11);
+            ImGui.Combo("Data kind", ref this.currentKind, new[] {"ServerOpCode", "Address", "Actor Table", "Font Test", "Party List", "Plugin IPC", "Condition", "Gauge", "Command", "Addon", "StartInfo", "Target"},
+                        12);
             ImGui.Checkbox("Resolve GameData", ref this.resolveGameData);
 
             ImGui.BeginChild("scrolling", new Vector2(0, 0), false, ImGuiWindowFlags.HorizontalScrollbar);
@@ -135,26 +135,7 @@ namespace Dalamud.Interface
                                     if (actor == null)
                                         continue;
 
-                                    var actorString =
-                                        $"{actor.Address.ToInt64():X}:{actor.ActorId:X}[{i}] - {actor.ObjectKind} - {actor.Name} - X{actor.Position.X} Y{actor.Position.Y} Z{actor.Position.Z} D{actor.YalmDistanceX} R{actor.Rotation} - Target: {actor.TargetActorID:X}\n";
-
-                                    if (actor is Npc npc)
-                                        actorString += $"       DataId: {npc.DataId}  NameId:{npc.NameId}\n";
-
-                                    if (actor is Chara chara)
-                                        actorString +=
-                                            $"       Level: {chara.Level} ClassJob: {(this.resolveGameData ? chara.ClassJob.GameData.Name : chara.ClassJob.Id.ToString())} CHP: {chara.CurrentHp} MHP: {chara.MaxHp} CMP: {chara.CurrentMp} MMP: {chara.MaxMp}\n       Customize: {BitConverter.ToString(chara.Customize).Replace("-", " ")}\n";
-
-                                    if (actor is PlayerCharacter pc)
-                                        actorString +=
-                                            $"       HomeWorld: {(this.resolveGameData ? pc.HomeWorld.GameData.Name : pc.HomeWorld.Id.ToString())} CurrentWorld: {(this.resolveGameData ? pc.CurrentWorld.GameData.Name : pc.CurrentWorld.Id.ToString())} FC: {pc.CompanyTag}\n";
-
-
-                                    ImGui.TextUnformatted(actorString);
-                                    ImGui.SameLine();
-                                    if (ImGui.Button("C")) {
-                                        ImGui.SetClipboardText(actor.Address.ToInt64().ToString("X"));
-                                    }
+                                    PrintActor(actor, i.ToString());
 
                                     if (this.drawActors &&
                                         this.dalamud.Framework.Gui.WorldToScreen(actor.Position, out var screenCoords)
@@ -344,6 +325,42 @@ namespace Dalamud.Interface
                         case 10:
                             ImGui.Text(JsonConvert.SerializeObject(this.dalamud.StartInfo, Formatting.Indented));
                             break;
+
+                        case 11:
+                            var targetMgr = this.dalamud.ClientState.Targets;
+
+                            if (targetMgr.CurrentTarget != null)
+                                PrintActor(targetMgr.CurrentTarget, "CurrentTarget");
+
+                            if (targetMgr.FocusTarget != null)
+                                PrintActor(targetMgr.FocusTarget, "FocusTarget");
+
+                            if (targetMgr.MouseOverTarget != null)
+                                PrintActor(targetMgr.MouseOverTarget, "MouseOverTarget");
+
+                            if (targetMgr.PreviousTarget != null)
+                                PrintActor(targetMgr.PreviousTarget, "PreviousTarget");
+
+                            if (ImGui.Button("Clear CT"))
+                                targetMgr.ClearCurrentTarget();
+
+                            if (ImGui.Button("Clear FT"))
+                                targetMgr.ClearFocusTarget();
+
+                            var localPlayer = this.dalamud.ClientState.LocalPlayer;
+
+                            if (localPlayer != null)
+                            {
+                                if (ImGui.Button("Set CT"))
+                                    targetMgr.SetCurrentTarget(localPlayer);
+
+                                if (ImGui.Button("Set FT"))
+                                    targetMgr.SetFocusTarget(localPlayer);
+                            } else {
+                                ImGui.Text("LocalPlayer is null.");
+                            }
+
+                            break;
                     }
                 else
                     ImGui.TextUnformatted("Data not ready.");
@@ -357,6 +374,30 @@ namespace Dalamud.Interface
             ImGui.End();
 
             return isOpen;
+        }
+
+        private void PrintActor(Actor actor, string tag) {
+            var actorString =
+                $"{actor.Address.ToInt64():X}:{actor.ActorId:X}[{tag}] - {actor.ObjectKind} - {actor.Name} - X{actor.Position.X} Y{actor.Position.Y} Z{actor.Position.Z} D{actor.YalmDistanceX} R{actor.Rotation} - Target: {actor.TargetActorID:X}\n";
+
+            if (actor is Npc npc)
+                actorString += $"       DataId: {npc.DataId}  NameId:{npc.NameId}\n";
+
+            if (actor is Chara chara)
+                actorString +=
+                    $"       Level: {chara.Level} ClassJob: {(this.resolveGameData ? chara.ClassJob.GameData.Name : chara.ClassJob.Id.ToString())} CHP: {chara.CurrentHp} MHP: {chara.MaxHp} CMP: {chara.CurrentMp} MMP: {chara.MaxMp}\n       Customize: {BitConverter.ToString(chara.Customize).Replace("-", " ")}\n";
+
+            if (actor is PlayerCharacter pc)
+                actorString +=
+                    $"       HomeWorld: {(this.resolveGameData ? pc.HomeWorld.GameData.Name : pc.HomeWorld.Id.ToString())} CurrentWorld: {(this.resolveGameData ? pc.CurrentWorld.GameData.Name : pc.CurrentWorld.Id.ToString())} FC: {pc.CompanyTag}\n";
+
+
+            ImGui.TextUnformatted(actorString);
+            ImGui.SameLine();
+            if (ImGui.Button("C")) {
+                ImGui.SetClipboardText(actor.Address.ToInt64().ToString("X"));
+            }
+
         }
     }
 }
