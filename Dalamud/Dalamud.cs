@@ -488,6 +488,11 @@ namespace Dalamud {
             this.isImguiDrawChangelogWindow = true;
         }
 
+        internal void OpenSettings() {
+            this.settingsWindow = new DalamudSettingsWindow(this);
+            this.isImguiDrawSettingsWindow ^= true;
+        }
+
         private void ReplaceExceptionHandler() {
             var semd = this.SigScanner.ScanText(
                 "40 55 53 56 48 8D AC 24 ?? ?? ?? ?? B8 ?? ?? ?? ?? E8 ?? ?? ?? ?? 48 2B E0 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 85 ?? ?? ?? ?? 48 83 3D ?? ?? ?? ?? ??");
@@ -756,8 +761,7 @@ namespace Dalamud {
 
         private void OnOpenSettingsCommand(string command, string arguments)
         {
-            this.settingsWindow = new DalamudSettingsWindow(this);
-            this.isImguiDrawSettingsWindow = true;
+            OpenSettings();
         }
 
         private void OnBugReportCommand(string command, string arguments) {
