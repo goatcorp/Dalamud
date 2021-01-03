@@ -11,8 +11,6 @@ namespace Dalamud
     [Serializable]
     internal class DalamudConfiguration
     {
-        public bool OptOutMbCollection { get; set; } = false;
-
         public List<string> BadWords { get; set; }
 
         public bool DutyFinderTaskbarFlash { get; set; } = true;
