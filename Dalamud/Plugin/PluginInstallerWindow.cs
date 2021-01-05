@@ -62,19 +62,22 @@ namespace Dalamud.Plugin
                 this.dalamud.PluginRepository.ReloadPluginMasterAsync();
         }
 
-        private void ResortAvailable() {
+        private void ResortPlugins() {
             var availableDefs = this.dalamud.PluginRepository.PluginMaster.Where(
                 x => this.pluginListInstalled.All(y => x.InternalName != y.InternalName)).ToList();
 
             switch (this.sortKind) {
                 case PluginSortKind.Alphabetical:
                     this.pluginListAvailable = availableDefs.OrderBy(x => x.Name).ToList();
+                    this.pluginListInstalled.Sort((x, y) => x.Name.CompareTo(y.Name));
                     break;
                 case PluginSortKind.DownloadCount:
                     this.pluginListAvailable = availableDefs.OrderByDescending(x => x.DownloadCount).ToList();
+                    this.pluginListInstalled.Sort((x, y) => y.DownloadCount.CompareTo(x.DownloadCount));
                     break;
                 case PluginSortKind.LastUpdate:
                     this.pluginListAvailable = availableDefs.OrderByDescending(x => x.LastUpdate).ToList();
+                    this.pluginListInstalled.Sort((x, y) => y.LastUpdate.CompareTo(x.LastUpdate));
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -89,51 +92,55 @@ namespace Dalamud.Plugin
             ImGui.Begin(Loc.Localize("InstallerHeader", "Plugin Installer") + (this.dalamud.Configuration.DoPluginTest ? " (TESTING)" : string.Empty) + "###XlPluginInstaller", ref windowOpen,
                 ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar);
 
-            ImGui.Text(Loc.Localize("InstallerHint", "This window allows you install and remove in-game plugins.\nThey are made by third-party developers."));
+            ImGui.SetCursorPosY(ImGui.GetCursorPosY() - (5 * ImGui.GetIO().FontGlobalScale));
+            var descriptionText = Loc.Localize("InstallerHint", "This window allows you to install and remove in-game plugins.\nThey are made by third-party developers.");
+            ImGui.Text(descriptionText);
 
-            ImGui.SameLine(ImGui.GetWindowWidth() - ((250 + 20 + ImGui.CalcTextSize(Loc.Localize("SortDownloadCounts", "Download Count")).X + ImGui.CalcTextSize(Loc.Localize("PluginSort", "Sort By")).X) * ImGui.GetIO().FontGlobalScale));
+            var sortingTextSize = ImGui.CalcTextSize(Loc.Localize("SortDownloadCounts", "Download Count")) + ImGui.CalcTextSize(Loc.Localize("PluginSort", "Sort By"));
+            ImGui.SameLine(ImGui.GetWindowWidth() - sortingTextSize.X - ((250 + 20) * ImGui.GetIO().FontGlobalScale));
+            ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (ImGui.CalcTextSize(descriptionText).Y / 4) - 2);
+            ImGui.SetCursorPosX(ImGui.GetWindowWidth() - sortingTextSize.X - ((250 + 20) * ImGui.GetIO().FontGlobalScale));
 
             ImGui.SetNextItemWidth(240 * ImGui.GetIO().FontGlobalScale);
             ImGui.InputTextWithHint("###XPlPluginInstaller_Search", Loc.Localize("InstallerSearch", "Search"), ref this.searchText, 100);
 
             ImGui.SameLine();
-            ImGui.SetNextItemWidth(10 + (ImGui.CalcTextSize(Loc.Localize("SortDownloadCounts", "Download Count")).X) * ImGui.GetIO().FontGlobalScale);
+            ImGui.SetNextItemWidth((10 * ImGui.GetIO().FontGlobalScale) + ImGui.CalcTextSize(Loc.Localize("SortDownloadCounts", "Download Count")).X);
             if (ImGui.BeginCombo(Loc.Localize("PluginSort", "Sort By"), this.filterText, ImGuiComboFlags.NoArrowButton)) {
                 if (ImGui.Selectable(Loc.Localize("SortAlphabetical", "Alphabetical"))) {
                     this.sortKind = PluginSortKind.Alphabetical;
                     this.filterText = Loc.Localize("SortAlphabetical", "Alphabetical");
 
-                    ResortAvailable();
+                    ResortPlugins();
                 }
                     
                 if (ImGui.Selectable(Loc.Localize("SortDownloadCounts", "Download Count"))) {
                     this.sortKind = PluginSortKind.DownloadCount;
                     this.filterText = Loc.Localize("SortDownloadCounts", "Download Count");
 
-                    ResortAvailable();
+                    ResortPlugins();
                 }
                     
                 if (ImGui.Selectable(Loc.Localize("SortLastUpdate", "Last Update"))) {
                     this.sortKind = PluginSortKind.LastUpdate;
                     this.filterText = Loc.Localize("SortLastUpdate", "Last Update");
 
-                    ResortAvailable();
+                    ResortPlugins();
                 }
 
                 ImGui.EndCombo();
             }
 
-            ImGui.BeginChild("scrolling", new Vector2(0, 400 * ImGui.GetIO().FontGlobalScale), true, ImGuiWindowFlags.HorizontalScrollbar);
+            ImGui.SetCursorPosY(ImGui.GetCursorPosY() - (5 * ImGui.GetIO().FontGlobalScale));
 
-            ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(1, 3) * ImGui.GetIO().FontGlobalScale);
-
+            var initializationStatusText = String.Empty;
             if (this.dalamud.PluginRepository.State == PluginRepository.InitializationState.InProgress) {
-                ImGui.Text(Loc.Localize("InstallerLoading", "Loading plugins..."));
+                initializationStatusText = Loc.Localize("InstallerLoading", "Loading plugins...");
             } else if (this.dalamud.PluginRepository.State == PluginRepository.InitializationState.Fail) {
-                ImGui.Text(Loc.Localize("InstallerDownloadFailed", "Download failed."));
+                initializationStatusText = Loc.Localize("InstallerDownloadFailed", "Download failed.");
             }
             else if (this.dalamud.PluginRepository.State == PluginRepository.InitializationState.FailThirdRepo) {
-                ImGui.Text(Loc.Localize("InstallerDownloadFailedThird", "One of your third party repos is unreachable or there is no internet connection."));
+                initializationStatusText = Loc.Localize("InstallerDownloadFailedThird", "One of your third party repos is unreachable or there is no internet connection.");
             }
             else {
                 if (this.pluginListAvailable == null) {
@@ -149,29 +156,36 @@ namespace Dalamud.Plugin
                     this.pluginListInstalled.AddRange(hiddenPlugins);
                     this.pluginListInstalled.Sort((x, y) => x.Name.CompareTo(y.Name));
 
-                    ResortAvailable();
+                    ResortPlugins();
+                }
+            }
+
+            ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(1, 3) * ImGui.GetIO().FontGlobalScale);
+
+            if (ImGui.BeginTabBar("PluginsTabBar", ImGuiTabBarFlags.NoTooltip)) {
+                foreach (bool installed in new[] { true, false }) {
+                    if (ImGui.BeginTabItem(installed ? Loc.Localize("InstallerInstalledPluginList", "Installed Plugins")
+                                                     : Loc.Localize("InstallerAvailablePluginList", "Available Plugins"))) {
+                        ImGui.BeginChild("Scrolling" + (installed ? "Installed" : "Available"), 
+                                         new Vector2(0, 384 * ImGui.GetIO().FontGlobalScale), true, ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.NoBackground);
+                        ImGui.SetCursorPosY(ImGui.GetCursorPosY() - 5);
+                        if (String.IsNullOrEmpty(initializationStatusText)) {
+                            DrawPluginList(installed ? this.pluginListInstalled : this.pluginListAvailable, installed);
+                        } else {
+                            ImGui.Text(initializationStatusText);
+                        }
+                        ImGui.EndChild();
+                        ImGui.EndTabItem();
+                    }
                 }
 
-                ImGui.TextColored(this.colorGrey,
-                                  Loc.Localize("InstallerAvailablePluginList",
-                                               "Available Plugins:"));
-                DrawPluginList(this.pluginListAvailable, false);
-
-                ImGui.Dummy(new Vector2(5, 5));
+                ImGui.EndTabBar();
                 ImGui.Separator();
-                ImGui.Dummy(new Vector2(5, 5));
-
-                ImGui.TextColored(this.colorGrey,
-                                  Loc.Localize("InstallerInstalledPluginList",
-                                               "Installed Plugins:"));
-                DrawPluginList(this.pluginListInstalled, true);
             }
 
             ImGui.PopStyleVar();
 
-            ImGui.EndChild();
-
-            ImGui.Separator();
+            ImGui.Dummy(new Vector2(3f, 3f) * ImGui.GetIO().FontGlobalScale);
 
             if (this.installStatus == PluginInstallStatus.InProgress) {
                 ImGui.Button(Loc.Localize("InstallerUpdating", "Updating..."));
@@ -212,20 +226,21 @@ namespace Dalamud.Plugin
 
             ImGui.SameLine();
 
-            if (ImGui.Button(Loc.Localize("Close", "Close")))
-            {
+            if (ImGui.Button(Loc.Localize("Close", "Close"))) {
                 windowOpen = false;
             }
 
-            ImGui.Spacing();
+            ImGui.SameLine(ImGui.GetWindowWidth() - ImGui.CalcTextSize(Loc.Localize("SettingsInstaller", "Settings")).X - (16 * ImGui.GetIO().FontGlobalScale));
+            if (ImGui.Button(Loc.Localize("SettingsInstaller", "Settings"))) {
+                this.dalamud.OpenSettings();
+            }
 
             if (ImGui.BeginPopupModal(Loc.Localize("InstallerError","Installer failed"), ref this.errorModalDrawing, ImGuiWindowFlags.AlwaysAutoResize)) {
                 var message = Loc.Localize("InstallerErrorHint",
                                            "The plugin installer ran into an issue or the plugin is incompatible.\nPlease restart the game and report this error on our discord.");
 
                 if (this.updatedPlugins != null) {
-                    if (this.updatedPlugins.Any(x => x.WasUpdated == false))
-                    {
+                    if (this.updatedPlugins.Any(x => x.WasUpdated == false)) {
                         var extraInfoMessage = Loc.Localize("InstallerErrorPluginInfo",
                                                             "\n\nThe following plugins caused these issues:\n\n{0}\nYou may try removing these plugins manually and reinstalling them.");
 
@@ -278,7 +293,7 @@ namespace Dalamud.Plugin
 
                 didAny = true;
 
-                if (hasSearchString && !installed &&
+                if (hasSearchString &&
                     !(pluginDefinition.Name.ToLowerInvariant().Contains(this.searchText.ToLowerInvariant()) ||
                       string.Equals(pluginDefinition.Author, this.searchText,
                                     StringComparison.InvariantCultureIgnoreCase) ||
@@ -354,14 +369,14 @@ namespace Dalamud.Plugin
 
                                 Task.Run(() => this.dalamud.PluginRepository.InstallPlugin(
                                              pluginDefinition, true, false, isTestingAvailable)).ContinueWith(t => {
-                                    this.installStatus =
-                                        t.Result ? PluginInstallStatus.Success : PluginInstallStatus.Fail;
-                                    this.installStatus =
-                                        t.IsFaulted ? PluginInstallStatus.Fail : this.installStatus;
+                                                 this.installStatus =
+                                                 t.Result ? PluginInstallStatus.Success : PluginInstallStatus.Fail;
+                                                 this.installStatus =
+                                                 t.IsFaulted ? PluginInstallStatus.Fail : this.installStatus;
 
-                                    this.errorModalDrawing = this.installStatus == PluginInstallStatus.Fail;
-                                    this.errorModalOnNextFrame = this.installStatus == PluginInstallStatus.Fail;
-                                });
+                                                 this.errorModalDrawing = this.installStatus == PluginInstallStatus.Fail;
+                                                 this.errorModalOnNextFrame = this.installStatus == PluginInstallStatus.Fail;
+                                             });
                             }
                         }
 
@@ -384,7 +399,7 @@ namespace Dalamud.Plugin
                             x => x.Value.LoaderAssemblyName == installedPlugin.Definition?.InternalName &&
                                  x.Value.ShowInHelp);
                         if (commands.Any()) {
-                            ImGui.Dummy(new Vector2(10, 10) * ImGui.GetIO().FontGlobalScale);
+                            ImGui.Dummy(new Vector2(10f, 10f) * ImGui.GetIO().FontGlobalScale);
                             foreach (var command in commands)
                                 ImGui.Text($"{command.Key} → {command.Value.HelpMessage}");
                         }
@@ -449,8 +464,7 @@ namespace Dalamud.Plugin
                                       Loc.Localize("InstallerNoCompatible",
                                                    "No compatible plugins were found :( Please restart your game and try again."));
                 }
-            }
-            else if (!didAnyWithSearch && !installed)
+            } else if (!didAnyWithSearch && !installed)
                 ImGui.TextColored(new Vector4(0.7f, 0.7f, 0.7f, 1.0f),
                                   Loc.Localize("InstallNoMatching", "No plugins were found matching your search."));
         }
