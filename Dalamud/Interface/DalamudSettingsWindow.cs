@@ -256,7 +256,8 @@ namespace Dalamud.Interface
                     ImGui.PushFont(InterfaceManager.IconFont);
                     if (ImGui.Button(FontAwesomeIcon.Plus.ToIconString())) {
                         this.thirdRepoList.Add(new ThirdRepoSetting {
-                            Url = this.thirdRepoTempUrl
+                            Url = this.thirdRepoTempUrl,
+                            IsEnabled = true
                         });
 
                         this.thirdRepoTempUrl = string.Empty;
