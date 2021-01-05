@@ -291,6 +291,9 @@ namespace Dalamud.Plugin
                 if (pluginDefinition.DalamudApiLevel < PluginManager.DALAMUD_API_LEVEL)
                     continue;
 
+                if (this.dalamud.Configuration.HiddenPluginInternalName.Contains(pluginDefinition.InternalName))
+                    continue;
+
                 didAny = true;
 
                 if (hasSearchString &&
@@ -449,6 +452,13 @@ namespace Dalamud.Plugin
                     }
 
                     ImGui.Unindent();
+                }
+
+                if (ImGui.BeginPopupContextItem("item context menu"))
+                {
+                    if (ImGui.Selectable("Hide from installer"))
+                        this.dalamud.Configuration.HiddenPluginInternalName.Add(pluginDefinition.InternalName);
+                    ImGui.EndPopup();
                 }
 
                 ImGui.PopID();

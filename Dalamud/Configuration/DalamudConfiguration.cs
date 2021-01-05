@@ -26,7 +26,8 @@ namespace Dalamud
 
         public bool DoPluginTest { get; set; } = false;
         public bool DoDalamudTest { get; set; } = false;
-        public List<ThirdRepoSetting> ThirdRepoList { get; set; }= new List<ThirdRepoSetting>();
+        public List<ThirdRepoSetting> ThirdRepoList { get; set; } = new List<ThirdRepoSetting>();
+        public List<string> HiddenPluginInternalName { get; set; } = new List<string>();
 
         public float GlobalUiScale { get; set; } = 1.0f;
         public bool ToggleUiHide { get; set; } = true;

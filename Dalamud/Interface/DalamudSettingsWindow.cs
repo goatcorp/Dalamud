@@ -189,6 +189,14 @@ namespace Dalamud.Interface
 
                     ImGui.Dummy(new Vector2(12f, 12f) * ImGui.GetIO().FontGlobalScale);
 
+                    if (ImGui.Button(Loc.Localize("DalamudSettingsClearHidden", "Clear hidden plugins")))
+                        this.dalamud.Configuration.HiddenPluginInternalName.Clear();
+                    ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingsClearHiddenHint", "Restore plugins you have previously hidden from the plugin installer."));
+
+                    ImGui.Dummy(new Vector2(12f, 12f) * ImGui.GetIO().FontGlobalScale);
+
+                    ImGui.Dummy(new Vector2(12f, 12f) * ImGui.GetIO().FontGlobalScale);
+
                     ImGui.Text(Loc.Localize("DalamudSettingsCustomRepo", "Custom Plugin Repositories"));
                     ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingCustomRepoHint", "Add custom plugin repositories. Only change these settings if you know what you are doing."));
 
