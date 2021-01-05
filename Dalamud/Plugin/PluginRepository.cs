@@ -184,6 +184,10 @@ namespace Dalamud.Plugin
                         });
                         var latest = sortedVersions.Last();
 
+                        if (File.Exists(Path.Combine(latest.FullName, ".disabled")) && !File.Exists(Path.Combine(latest.FullName, ".testing"))) {
+                            continue;
+                        }
+
                         var localInfoFile = new FileInfo(Path.Combine(latest.FullName, $"{installed.Name}.json"));
 
                         if (!localInfoFile.Exists) {
