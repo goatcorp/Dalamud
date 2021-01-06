@@ -131,6 +131,12 @@ namespace Dalamud.Plugin
             return this.configs.Load(this.pluginName);
         }
 
+        /// <summary>
+        /// Get the config directory
+        /// </summary>
+        /// <returns>directory with path of AppData/XIVLauncher/pluginConfig/PluginInternalName </returns>
+        public string GetPluginConfigDirectory() => this.configs.GetDirectory(this.pluginName);
+
         #region Chat Links
 
         /// <summary>
