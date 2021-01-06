@@ -42,6 +42,18 @@ namespace Dalamud.Configuration
                                                                        });
         }
 
+        public string GetDirectory(string pluginName) {
+            try {
+                var path = GetDirectoryPath(pluginName);
+                if (!path.Exists) {
+                    path.Create();
+                }
+                return path.FullName;
+            } catch {
+                return string.Empty;
+            }
+        }
+
         // Parameterized deserialization
         // Currently this is called via reflection from DalamudPluginInterface.GetPluginConfig()
         // Eventually there may be an additional pluginInterface method that can call this directly
@@ -59,5 +71,7 @@ namespace Dalamud.Configuration
         }
 
         private FileInfo GetPath(string pluginName) => new FileInfo(Path.Combine(this.configDirectory.FullName, $"{pluginName}.json"));
+        private DirectoryInfo GetDirectoryPath(string pluginName) => new DirectoryInfo(Path.Combine(this.configDirectory.FullName, pluginName));
+
     }
 }
