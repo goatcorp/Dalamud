@@ -116,12 +116,14 @@ namespace Dalamud.Plugin
 
             // Preloaded
             if (preloaded) {
-                if (preloadedDef == null)
+                if (preloadedDef == null && !raw)
                 {
                     Log.Information("Plugin DLL {0} has no definition.", dllFile.FullName);
                     return false;
                 }
-                if (preloadedDef.ApplicableVersion != this.dalamud.StartInfo.GameVersion && preloadedDef.ApplicableVersion != "any")
+                if (preloadedDef != null && 
+                    preloadedDef.ApplicableVersion != this.dalamud.StartInfo.GameVersion && 
+                    preloadedDef.ApplicableVersion != "any")
                 {
                     Log.Information("Plugin {0} has not applicable version.", dllFile.FullName);
                     return false;
