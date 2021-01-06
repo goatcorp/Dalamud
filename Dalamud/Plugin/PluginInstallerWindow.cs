@@ -133,7 +133,7 @@ namespace Dalamud.Plugin
 
             ImGui.SetCursorPosY(ImGui.GetCursorPosY() - (5 * ImGui.GetIO().FontGlobalScale));
 
-            var initializationStatusText = String.Empty;
+            string initializationStatusText = null;
             if (this.dalamud.PluginRepository.State == PluginRepository.InitializationState.InProgress) {
                 initializationStatusText = Loc.Localize("InstallerLoading", "Loading plugins...");
             } else if (this.dalamud.PluginRepository.State == PluginRepository.InitializationState.Fail) {
@@ -162,22 +162,10 @@ namespace Dalamud.Plugin
 
             ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(1, 3) * ImGui.GetIO().FontGlobalScale);
 
-            if (ImGui.BeginTabBar("PluginsTabBar", ImGuiTabBarFlags.NoTooltip)) {
-                foreach (bool installed in new[] { true, false }) {
-                    if (ImGui.BeginTabItem(installed ? Loc.Localize("InstallerInstalledPluginList", "Installed Plugins")
-                                                     : Loc.Localize("InstallerAvailablePluginList", "Available Plugins"))) {
-                        ImGui.BeginChild("Scrolling" + (installed ? "Installed" : "Available"), 
-                                         new Vector2(0, 384 * ImGui.GetIO().FontGlobalScale), true, ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.NoBackground);
-                        ImGui.SetCursorPosY(ImGui.GetCursorPosY() - 5);
-                        if (String.IsNullOrEmpty(initializationStatusText)) {
-                            DrawPluginList(installed ? this.pluginListInstalled : this.pluginListAvailable, installed);
-                        } else {
-                            ImGui.Text(initializationStatusText);
-                        }
-                        ImGui.EndChild();
-                        ImGui.EndTabItem();
-                    }
-                }
+            if (ImGui.BeginTabBar("PluginsTabBar", ImGuiTabBarFlags.NoTooltip))
+            {
+                DrawTab(false, initializationStatusText);
+                DrawTab(true, initializationStatusText);
 
                 ImGui.EndTabBar();
                 ImGui.Separator();
@@ -271,6 +259,25 @@ namespace Dalamud.Plugin
             ImGui.End();
 
             return windowOpen;
+        }
+
+        private void DrawTab(bool installed, string statusText) {
+            if (ImGui.BeginTabItem(installed ? Loc.Localize("InstallerInstalledPluginList", "Installed Plugins")
+                                       : Loc.Localize("InstallerAvailablePluginList", "Available Plugins")))
+            {
+                ImGui.BeginChild("Scrolling" + (installed ? "Installed" : "Available"),
+                                 new Vector2(0, 384 * ImGui.GetIO().FontGlobalScale), true, ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.NoBackground);
+                ImGui.SetCursorPosY(ImGui.GetCursorPosY() - 5);
+
+                if (statusText != null) {
+                    ImGui.TextColored(this.colorGrey, statusText);
+                } else {
+                    DrawPluginList(installed ? this.pluginListInstalled : this.pluginListAvailable, installed);
+                }
+
+                ImGui.EndChild();
+                ImGui.EndTabItem();
+            }
         }
 
         private void DrawPluginList(List<PluginDefinition> pluginDefinitions, bool installed) {
