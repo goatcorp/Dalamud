@@ -52,7 +52,7 @@ namespace Dalamud.Plugin
         }
 
         private PluginSortKind sortKind = PluginSortKind.Alphabetical;
-        private string filterText = "Alphabetical";
+        private string filterText = Loc.Localize("SortAlphabetical", "Alphabetical");
 
         public PluginInstallerWindow(Dalamud dalamud, string gameVersion) {
             this.dalamud = dalamud;
@@ -162,8 +162,7 @@ namespace Dalamud.Plugin
 
             ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(1, 3) * ImGui.GetIO().FontGlobalScale);
 
-            if (ImGui.BeginTabBar("PluginsTabBar", ImGuiTabBarFlags.NoTooltip))
-            {
+            if (ImGui.BeginTabBar("PluginsTabBar", ImGuiTabBarFlags.NoTooltip)) {
                 DrawTab(false, initializationStatusText);
                 DrawTab(true, initializationStatusText);
 
@@ -183,8 +182,7 @@ namespace Dalamud.Plugin
                                      ? Loc.Localize("InstallerNoUpdates", "No updates found!")
                                      : string.Format(Loc.Localize("InstallerUpdateComplete", "{0} plugins updated!"), this.updatePluginCount));
                 } else {
-                    if (ImGui.Button(Loc.Localize("InstallerUpdatePlugins", "Update plugins")))
-                    {
+                    if (ImGui.Button(Loc.Localize("InstallerUpdatePlugins", "Update plugins"))) {
                         this.installStatus = PluginInstallStatus.InProgress;
 
                         Task.Run(() => this.dalamud.PluginRepository.UpdatePlugins()).ContinueWith(t => {
@@ -263,8 +261,7 @@ namespace Dalamud.Plugin
 
         private void DrawTab(bool installed, string statusText) {
             if (ImGui.BeginTabItem(installed ? Loc.Localize("InstallerInstalledPluginList", "Installed Plugins")
-                                       : Loc.Localize("InstallerAvailablePluginList", "Available Plugins")))
-            {
+                                       : Loc.Localize("InstallerAvailablePluginList", "Available Plugins"))) {
                 ImGui.BeginChild("Scrolling" + (installed ? "Installed" : "Available"),
                                  new Vector2(0, 384 * ImGui.GetIO().FontGlobalScale), true, ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.NoBackground);
                 ImGui.SetCursorPosY(ImGui.GetCursorPosY() - 5);
@@ -329,8 +326,10 @@ namespace Dalamud.Plugin
                 else if (!this.dalamud.Configuration.DoPluginTest && pluginDefinition.IsTestingExclusive) continue;
 
                 var label = string.Empty;
-                if (isInstalled) {
+                if (isInstalled && !installed) {
                     label += Loc.Localize("InstallerInstalled", " (installed)");
+                } else if (!isInstalled && installed) {
+                    label += Loc.Localize("InstallerDisabled", " (disabled)");
                 }
 
                 if (this.updatedPlugins != null &&
@@ -342,12 +341,11 @@ namespace Dalamud.Plugin
                     label += Loc.Localize("InstallerUpdateFailed", " (update failed)");
 
                 if (isTestingAvailable)
-                    label += " (testing version)";
+                    label += Loc.Localize("InstallerTestingVersion", " (testing version)");
 
                 ImGui.PushID(pluginDefinition.InternalName + pluginDefinition.AssemblyVersion + installed + index);
 
-                if (ImGui.CollapsingHeader(pluginDefinition.Name + label + "###Header" + pluginDefinition.InternalName)
-                ) {
+                if (ImGui.CollapsingHeader(pluginDefinition.Name + label + "###Header" + pluginDefinition.InternalName)) {
                     ImGui.Indent();
 
                     ImGui.Text(pluginDefinition.Name);
@@ -364,7 +362,7 @@ namespace Dalamud.Plugin
                     ImGui.TextColored(new Vector4(0.5f, 0.5f, 0.5f, 1.0f), info);
 
                     if (!string.IsNullOrWhiteSpace(pluginDefinition.Description))
-                        ImGui.Text(pluginDefinition.Description);
+                        ImGui.TextWrapped(pluginDefinition.Description);
 
                     if (!isInstalled) {
                         if (this.installStatus == PluginInstallStatus.InProgress) {
@@ -411,7 +409,7 @@ namespace Dalamud.Plugin
                         if (commands.Any()) {
                             ImGui.Dummy(new Vector2(10f, 10f) * ImGui.GetIO().FontGlobalScale);
                             foreach (var command in commands)
-                                ImGui.Text($"{command.Key} → {command.Value.HelpMessage}");
+                                ImGui.TextWrapped($"{command.Key} → {command.Value.HelpMessage}");
                         }
 
                         ImGui.NewLine();
@@ -461,8 +459,7 @@ namespace Dalamud.Plugin
                     ImGui.Unindent();
                 }
 
-                if (ImGui.BeginPopupContextItem("item context menu"))
-                {
+                if (ImGui.BeginPopupContextItem("item context menu")) {
                     if (ImGui.Selectable("Hide from installer"))
                         this.dalamud.Configuration.HiddenPluginInternalName.Add(pluginDefinition.InternalName);
                     ImGui.EndPopup();
@@ -475,13 +472,13 @@ namespace Dalamud.Plugin
                 if (installed) {
                     ImGui.TextColored(this.colorGrey,
                                       Loc.Localize("InstallerNoInstalled",
-                                                   "No plugins are currently installed. You can install them from above."));
+                                                   "No plugins are currently installed. You can install them from the Available Plugins tab."));
                 } else {
                     ImGui.TextColored(this.colorGrey,
                                       Loc.Localize("InstallerNoCompatible",
                                                    "No compatible plugins were found :( Please restart your game and try again."));
                 }
-            } else if (!didAnyWithSearch && !installed)
+            } else if (!didAnyWithSearch)
                 ImGui.TextColored(new Vector4(0.7f, 0.7f, 0.7f, 1.0f),
                                   Loc.Localize("InstallNoMatching", "No plugins were found matching your search."));
         }
