@@ -28,7 +28,7 @@ namespace Dalamud.Interface
 
         public void Emit(LogEvent logEvent)
         {
-            var message = $"[{DateTimeOffset.Now.ToString()}][{logEvent.Level}] {logEvent.RenderMessage(_formatProvider)}";
+            var message = $"[{DateTimeOffset.Now:HH:mm:ss.fff}][{logEvent.Level}] {logEvent.RenderMessage(_formatProvider)}";
 
             if (logEvent.Exception != null)
                 message += "\n" + logEvent.Exception;
