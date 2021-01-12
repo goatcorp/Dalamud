@@ -221,6 +221,7 @@ namespace Dalamud.Plugin
             ImGui.SameLine(ImGui.GetWindowWidth() - ImGui.CalcTextSize(closeText).X - (16 * ImGui.GetIO().FontGlobalScale));
             if (ImGui.Button(closeText)) {
                 windowOpen = false;
+                this.dalamud.Configuration.Save();
             }
 
 
