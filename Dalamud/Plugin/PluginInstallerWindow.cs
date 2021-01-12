@@ -212,14 +212,17 @@ namespace Dalamud.Plugin
 
             ImGui.SameLine();
 
-            if (ImGui.Button(Loc.Localize("Close", "Close"))) {
-                windowOpen = false;
-            }
-
-            ImGui.SameLine(ImGui.GetWindowWidth() - ImGui.CalcTextSize(Loc.Localize("SettingsInstaller", "Settings")).X - (16 * ImGui.GetIO().FontGlobalScale));
             if (ImGui.Button(Loc.Localize("SettingsInstaller", "Settings"))) {
                 this.dalamud.OpenSettings();
             }
+
+            var closeText = Loc.Localize("Close", "Close");
+
+            ImGui.SameLine(ImGui.GetWindowWidth() - ImGui.CalcTextSize(closeText).X - (16 * ImGui.GetIO().FontGlobalScale));
+            if (ImGui.Button(closeText)) {
+                windowOpen = false;
+            }
+
 
             if (ImGui.BeginPopupModal(Loc.Localize("InstallerError","Installer failed"), ref this.errorModalDrawing, ImGuiWindowFlags.AlwaysAutoResize)) {
                 var message = Loc.Localize("InstallerErrorHint",
