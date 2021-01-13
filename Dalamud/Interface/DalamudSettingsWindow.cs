@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Numerics;
+using System.Threading.Tasks;
 using System.Windows.Forms.VisualStyles;
 using CheapLoc;
 using Dalamud.Configuration;
@@ -95,6 +96,7 @@ namespace Dalamud.Interface
         private bool autoUpdatePlugins;
 
         private string thirdRepoTempUrl = string.Empty;
+        private string thirdRepoAddError = string.Empty;
 
         #region Experimental
 
@@ -205,7 +207,6 @@ namespace Dalamud.Interface
                     ImGui.Columns(3);
                     ImGui.SetColumnWidth(0, ImGui.GetWindowWidth() - 350);
                     ImGui.SetColumnWidth(1, 60);
-                    ImGui.SetColumnWidth(2, 60);
 
                     ImGui.Separator();
 
@@ -229,7 +230,7 @@ namespace Dalamud.Interface
                     foreach (var thirdRepoSetting in this.thirdRepoList) {
                         var isEnabled = thirdRepoSetting.IsEnabled;
 
-                        ImGui.PushID(thirdRepoSetting.Url);
+                        ImGui.PushID($"thirdRepo_{thirdRepoSetting.Url}");
 
                         ImGui.Text(thirdRepoSetting.Url);
                         ImGui.NextColumn();
@@ -250,20 +251,30 @@ namespace Dalamud.Interface
                         this.thirdRepoList.Remove(toRemove);
                     }
 
+                    ImGui.SetNextItemWidth(-1);
                     ImGui.InputText("##thirdRepoUrlInput", ref this.thirdRepoTempUrl, 300);
                     ImGui.NextColumn();
                     ImGui.NextColumn();
                     ImGui.PushFont(InterfaceManager.IconFont);
-                    if (ImGui.Button(FontAwesomeIcon.Plus.ToIconString())) {
-                        this.thirdRepoList.Add(new ThirdRepoSetting {
-                            Url = this.thirdRepoTempUrl,
-                            IsEnabled = true
-                        });
+                    if (!string.IsNullOrEmpty(this.thirdRepoTempUrl) && ImGui.Button(FontAwesomeIcon.Plus.ToIconString())) {
+                        if (this.thirdRepoList.Any(r => string.Equals(r.Url, this.thirdRepoTempUrl, StringComparison.InvariantCultureIgnoreCase))) {
+                            this.thirdRepoAddError = Loc.Localize("DalamudThirdRepoExists", "Repo already exists.");
+                            Task.Delay(5000).ContinueWith(t => this.thirdRepoAddError = string.Empty);
+                        } else {
+                            this.thirdRepoList.Add(new ThirdRepoSetting {
+                                Url = this.thirdRepoTempUrl,
+                                IsEnabled = true
+                            });
 
-                        this.thirdRepoTempUrl = string.Empty;
+                            this.thirdRepoTempUrl = string.Empty;
+                        }
                     }
                     ImGui.PopFont();
 
+                    if (!string.IsNullOrEmpty(this.thirdRepoAddError)) {
+                        ImGui.SameLine();
+                        ImGui.TextColored(new Vector4(1, 0, 0, 1), this.thirdRepoAddError);
+                    }
                     ImGui.Columns(1);
 
                     ImGui.EndTabItem();
