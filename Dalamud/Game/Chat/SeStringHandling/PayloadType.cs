@@ -57,6 +57,7 @@ namespace Dalamud.Game.Chat.SeStringHandling
         /// <summary>
         /// An SeString payload representing any data we don't handle.
         /// </summary>
-        Unknown
+        Unknown,
+        SeHyphen,
     }
 }
