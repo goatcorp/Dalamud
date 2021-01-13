@@ -130,6 +130,7 @@ namespace Dalamud.Game {
             Log.Verbose("module copy START");
             // .text
             this.moduleCopyPtr = Marshal.AllocHGlobal(Module.ModuleMemorySize);
+            Log.Verbose($"Alloc: {this.moduleCopyPtr.ToInt64():x}");
             Buffer.MemoryCopy(Module.BaseAddress.ToPointer(), this.moduleCopyPtr.ToPointer(), Module.ModuleMemorySize, Module.ModuleMemorySize);
             this.moduleCopyOffset = this.moduleCopyPtr.ToInt64() - Module.BaseAddress.ToInt64();
             Log.Verbose("copy OK!");
