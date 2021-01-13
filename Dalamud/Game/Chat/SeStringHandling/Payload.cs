@@ -130,6 +130,10 @@ namespace Dalamud.Game.Chat.SeStringHandling
                     payload = new EmphasisItalicPayload();
                     break;
 
+                case SeStringChunkType.SeHyphen:
+                    payload = SeHyphenPayload.Payload;
+                    break;
+
                 case SeStringChunkType.Interactable:
                     {
                         var subType = (EmbeddedInfoType)reader.ReadByte();
@@ -222,6 +226,7 @@ namespace Dalamud.Game.Chat.SeStringHandling
         {
             Icon = 0x12,
             EmphasisItalic = 0x1A,
+            SeHyphen = 0x1F,
             Interactable = 0x27,
             AutoTranslateKey = 0x2E,
             UIForeground = 0x48,
