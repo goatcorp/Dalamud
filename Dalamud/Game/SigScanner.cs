@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Serilog;
 
 namespace Dalamud.Game {
     /// <summary>
@@ -28,6 +29,8 @@ namespace Dalamud.Game {
 
             if (IsCopy)
                 SetupCopiedSegments();
+            Log.Verbose("Module base: {Address}", TextSectionBase);
+            Log.Verbose("Module size: {Size}", TextSectionSize);
         }
 
         /// <summary>
@@ -127,10 +130,12 @@ namespace Dalamud.Game {
         private long _moduleCopyOffset;
 
         private unsafe void SetupCopiedSegments() {
+            Log.Verbose("module copy START");
             // .text
             _moduleCopyPtr = Marshal.AllocHGlobal(Module.ModuleMemorySize);
             Buffer.MemoryCopy(Module.BaseAddress.ToPointer(), _moduleCopyPtr.ToPointer(), Module.ModuleMemorySize, Module.ModuleMemorySize);
             _moduleCopyOffset = _moduleCopyPtr.ToInt64() - Module.BaseAddress.ToInt64();
+            Log.Verbose("copy OK!");
         }
 
         /// <summary>
