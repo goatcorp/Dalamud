@@ -229,6 +229,12 @@ namespace Dalamud {
         private bool isImguiDrawDevMenu = false;
 #endif
 
+        public bool IsDevMenu
+        {
+            get => this.isImguiDrawDevMenu;
+            set => this.isImguiDrawDevMenu = value;
+        }
+
         private bool isImguiDrawLogWindow = false;
         private bool isImguiDrawDataWindow = false;
         private bool isImguiDrawPluginWindow = false;
@@ -247,7 +253,7 @@ namespace Dalamud {
 
         private void BuildDalamudUi()
         {
-            if (!this.isImguiDrawDevMenu && !ClientState.Condition.Any())
+            if (!this.IsDevMenu && !ClientState.Condition.Any())
             {
                 ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0, 0, 0, 0));
                 ImGui.PushStyleColor(ImGuiCol.ButtonActive, new Vector4(0, 0, 0, 0));
@@ -264,7 +270,7 @@ namespace Dalamud {
                 if (ImGui.Begin("DevMenu Opener", ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoSavedSettings))
                 {
                     if (ImGui.Button("###devMenuOpener", new Vector2(40, 25)))
-                        this.isImguiDrawDevMenu = true;
+                        this.IsDevMenu = true;
 
                     ImGui.End();
                 }
@@ -272,7 +278,7 @@ namespace Dalamud {
                 ImGui.PopStyleColor(8);
             }
 
-            if (this.isImguiDrawDevMenu)
+            if (this.IsDevMenu)
             {
                 if (ImGui.BeginMainMenuBar())
                 {
@@ -698,7 +704,7 @@ namespace Dalamud {
 #endif
 
         private void OnDebugDrawDevMenu(string command, string arguments) {
-            this.isImguiDrawDevMenu = !this.isImguiDrawDevMenu;
+            this.IsDevMenu = !this.IsDevMenu;
         }
 
         private void OnOpenLog(string command, string arguments) {

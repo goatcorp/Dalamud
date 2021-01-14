@@ -62,7 +62,16 @@ namespace Dalamud.Plugin
         /// A <see cref="SeStringManager">SeStringManager</see> instance which allows creating and parsing SeString payloads.
         /// </summary>
         public readonly SeStringManager SeStringManager;
-        
+
+        /// <summary>
+        /// Returns true if Dalamud is running in Debug mode or the /xldev menu is open. This can occur on release builds.
+        /// </summary>
+#if DEBUG
+        public bool IsDebugging => true;
+#else
+        public bool IsDebugging => this.dalamud.IsDevMenu;
+#endif
+
         private readonly Dalamud dalamud;
         private readonly string pluginName;
         private readonly PluginConfigurations configs;
