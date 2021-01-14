@@ -26,7 +26,6 @@ namespace Dalamud.Game {
 
             if (IsCopy)
                 SetupCopiedSegments();
-
             Log.Verbose("Module base: {Address}", TextSectionBase);
             Log.Verbose("Module size: {Size}", TextSectionSize);
         }
@@ -34,7 +33,7 @@ namespace Dalamud.Game {
         /// <summary>
         /// If the search on this module is performed on a copy.
         /// </summary>
-        public bool IsCopy { get; private set; }
+        public bool IsCopy { get; }
 
         /// <summary>
         /// If the ProcessModule is 32-bit.
@@ -50,10 +49,12 @@ namespace Dalamud.Game {
         /// The base address of the .text section search area.
         /// </summary>
         public IntPtr TextSectionBase => new IntPtr(SearchBase.ToInt64() + TextSectionOffset);
+
         /// <summary>
         /// The offset of the .text section from the base of the module.
         /// </summary>
         public long TextSectionOffset { get; private set; }
+
         /// <summary>
         /// The size of the text section.
         /// </summary>
@@ -63,10 +64,12 @@ namespace Dalamud.Game {
         /// The base address of the .data section search area.
         /// </summary>
         public IntPtr DataSectionBase => new IntPtr(SearchBase.ToInt64() + DataSectionOffset);
+
         /// <summary>
         /// The offset of the .data section from the base of the module.
         /// </summary>
         public long DataSectionOffset { get; private set; }
+
         /// <summary>
         /// The size of the .data section.
         /// </summary>
@@ -128,11 +131,8 @@ namespace Dalamud.Game {
             // .text
             this.moduleCopyPtr = Marshal.AllocHGlobal(Module.ModuleMemorySize);
             Log.Verbose($"Alloc: {this.moduleCopyPtr.ToInt64():x}");
-            Buffer.MemoryCopy(Module.BaseAddress.ToPointer(), this.moduleCopyPtr.ToPointer(), Module.ModuleMemorySize,
-                              Module.ModuleMemorySize);
-
+            Buffer.MemoryCopy(Module.BaseAddress.ToPointer(), this.moduleCopyPtr.ToPointer(), Module.ModuleMemorySize, Module.ModuleMemorySize);
             this.moduleCopyOffset = this.moduleCopyPtr.ToInt64() - Module.BaseAddress.ToInt64();
-
             Log.Verbose("copy OK!");
         }
 
@@ -143,6 +143,11 @@ namespace Dalamud.Game {
             Marshal.FreeHGlobal(this.moduleCopyPtr);
         }
 
+        public IntPtr ResolveRelativeAddress(IntPtr nextInstAddr, int relOffset) {
+            if (Is32BitProcess) throw new NotSupportedException("32 bit is not supported.");
+            return nextInstAddr + relOffset;
+        }
+
         /// <summary>
         /// Scan for a byte signature in the .text section.
         /// </summary>
@@ -150,28 +155,23 @@ namespace Dalamud.Game {
         /// <returns>The real offset of the found signature.</returns>
         public IntPtr ScanText(string signature) {
             var mBase = IsCopy ? this.moduleCopyPtr : TextSectionBase;
-
             var scanRet = Scan(mBase, TextSectionSize, signature);
-
             if (IsCopy)
                 scanRet = new IntPtr(scanRet.ToInt64() - this.moduleCopyOffset);
-            
-            if (Marshal.ReadByte(scanRet) == 0xE8)
+            var insnByte = Marshal.ReadByte(scanRet);
+            if (insnByte == 0xE8 || insnByte == 0xE9)
                 return ReadCallSig(scanRet);
-
             return scanRet;
         }
 
         /// <summary>
-        /// Helper for ScanText to get the correct address for 
-        /// IDA sigs that mark the first CALL location.
+        /// Helper for ScanText to get the correct address for IDA sigs that mark the first CALL location.
         /// </summary>
-        /// <param name="SigLocation">The address the CALL sig resolved to.</param>
+        /// <param name="sigLocation">The address the CALL sig resolved to.</param>
         /// <returns>The real offset of the signature.</returns>
-        private IntPtr ReadCallSig(IntPtr SigLocation)
-        {
-            int jumpOffset = Marshal.ReadInt32(IntPtr.Add(SigLocation, 1));
-            return IntPtr.Add(SigLocation, 5 + jumpOffset);
+        private static IntPtr ReadCallSig(IntPtr sigLocation) {
+            var jumpOffset = Marshal.ReadInt32(IntPtr.Add(sigLocation, 1));
+            return IntPtr.Add(sigLocation, 5 + jumpOffset);
         }
 
         /// <summary>
@@ -182,18 +182,16 @@ namespace Dalamud.Game {
         /// <param name="signature">The signature of the function using the data.</param>
         /// <param name="offset">The offset from function start of the instruction using the data.</param>
         /// <returns>An IntPtr to the static memory location.</returns>
-        public IntPtr GetStaticAddressFromSig(string signature, int offset = 0)
-        {
-            IntPtr instrAddr = ScanText(signature);
+        public IntPtr GetStaticAddressFromSig(string signature, int offset = 0) {
+            var instrAddr = ScanText(signature);
             instrAddr = IntPtr.Add(instrAddr, offset);
-            long bAddr = (long)Module.BaseAddress;
+            var bAddr = (long)Module.BaseAddress;
             long num;
-            do
-            {
+            do {
                 instrAddr = IntPtr.Add(instrAddr, 1);
                 num = Marshal.ReadInt32(instrAddr) + (long)instrAddr + 4 - bAddr;
-            }
-            while (!(num >= DataSectionOffset && num <= DataSectionOffset + DataSectionSize));
+            } while (!(num >= DataSectionOffset && num <= DataSectionOffset + DataSectionSize));
+
             return IntPtr.Add(instrAddr, Marshal.ReadInt32(instrAddr) + 4);
         }
 
@@ -204,10 +202,8 @@ namespace Dalamud.Game {
         /// <returns>The real offset of the found signature.</returns>
         public IntPtr ScanData(string signature) {
             var scanRet = Scan(DataSectionBase, DataSectionSize, signature);
-
             if (IsCopy)
                 scanRet = new IntPtr(scanRet.ToInt64() - this.moduleCopyOffset);
-
             return scanRet;
         }
 
@@ -218,72 +214,75 @@ namespace Dalamud.Game {
         /// <returns>The real offset of the found signature.</returns>
         public IntPtr ScanModule(string signature) {
             var scanRet = Scan(SearchBase, Module.ModuleMemorySize, signature);
-
             if (IsCopy)
                 scanRet = new IntPtr(scanRet.ToInt64() - this.moduleCopyOffset);
-
             return scanRet;
         }
 
         public IntPtr Scan(IntPtr baseAddress, int size, string signature) {
-            var needle = SigToNeedle(signature);
-
-            unsafe {
-                var pCursor = (byte*) baseAddress.ToPointer();
-                var pTop = (byte*) (baseAddress + size - needle.Length);
-                while (pCursor < pTop) {
-                    if (IsMatch(pCursor, needle)) return (IntPtr) pCursor;
-
-                    // Advance an offset
-                    pCursor += 1;
-                }
-            }
-
-            throw new KeyNotFoundException($"Can't find a signature of {signature}");
+            var (needle, mask) = ParseSignature(signature);
+            var index = IndexOf(baseAddress, size, needle, mask);
+            if (index < 0)
+                throw new KeyNotFoundException($"Can't find a signature of {signature}");
+            return baseAddress + index;
         }
 
-        public IntPtr ResolveRelativeAddress(IntPtr nextInstAddr, int relOffset) {
-            if (Is32BitProcess) throw new NotSupportedException("32 bit is not supported.");
-
-            return nextInstAddr + relOffset;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private unsafe bool IsMatch(byte* pCursor, byte?[] needle) {
-            for (var i = 0; i < needle.Length; i++) {
-                var expected = needle[i];
-                if (expected == null) continue;
-
-                var actual = *(pCursor + i);
-                if (expected != actual) return false;
-            }
-
-            return true;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private byte?[] SigToNeedle(string signature) {
-            // Strip all whitespaces
+        private static (byte[] needle, bool[] mask) ParseSignature(string signature) {
             signature = signature.Replace(" ", "");
-
             if (signature.Length % 2 != 0)
-                throw new ArgumentException("Signature without whitespaces must be divisible by two.",
-                                            nameof(signature));
-
+                throw new ArgumentException("Signature without whitespaces must be divisible by two.", nameof(signature));
             var needleLength = signature.Length / 2;
-            var needle = new byte?[needleLength];
-
+            var needle = new byte[needleLength];
+            var mask = new bool[needleLength];
             for (var i = 0; i < needleLength; i++) {
                 var hexString = signature.Substring(i * 2, 2);
                 if (hexString == "??" || hexString == "**") {
-                    needle[i] = null;
+                    needle[i] = 0;
+                    mask[i] = true;
                     continue;
                 }
 
                 needle[i] = byte.Parse(hexString, NumberStyles.AllowHexSpecifier);
+                mask[i] = false;
             }
 
-            return needle;
+            return (needle, mask);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static unsafe int IndexOf(IntPtr bufferPtr, int bufferLength, byte[] needle, bool[] mask) {
+            if (needle.Length > bufferLength) return -1;
+            var badShift = BuildBadCharTable(needle, mask);
+            var last = needle.Length - 1;
+            var offset = 0;
+            var maxoffset = bufferLength - needle.Length;
+            var buffer = (byte*)bufferPtr;
+            while (offset <= maxoffset) {
+                int position;
+                for (position = last; needle[position] == *(buffer + position + offset) || mask[position]; position--)
+                    if (position == 0)
+                        return offset;
+                offset += badShift[*(buffer + offset + last)];
+            }
+
+            return -1;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int[] BuildBadCharTable(byte[] needle, bool[] mask) {
+            int idx;
+            var last = needle.Length - 1;
+            var badShift = new int[256];
+            for (idx = last; idx > 0 && !mask[idx]; --idx) { }
+
+            var diff = last - idx;
+            if (diff == 0) diff = 1;
+
+            for (idx = 0; idx <= 255; ++idx)
+                badShift[idx] = diff;
+            for (idx = last - diff; idx < last; ++idx)
+                badShift[needle[idx]] = last - idx;
+            return badShift;
         }
     }
 }
