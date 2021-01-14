@@ -235,7 +235,7 @@ namespace Dalamud.Plugin
         /// <returns>True if the corresponding plugin was present and received the message.</returns>
         public bool SendMessage(string pluginName, ExpandoObject message)
         {
-            var (_, _, pluginInterface, _) = this.dalamud.PluginManager.Plugins.FirstOrDefault(x => x.Definition.InternalName == this.pluginName);
+            var (_, _, pluginInterface, _) = this.dalamud.PluginManager.Plugins.FirstOrDefault(x => x.Definition.InternalName == pluginName);
 
             if (pluginInterface?.anyPluginIpcAction == null)
                 return false;
