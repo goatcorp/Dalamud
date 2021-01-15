@@ -87,7 +87,7 @@ namespace Dalamud {
 
             this.WinSock2 = new WinSockHandlers();
 
-            NetworkHandlers = new NetworkHandlers(this, this.Configuration.OptOutMbCollection);
+            NetworkHandlers = new NetworkHandlers(this, info.OptOutMbCollection);
 
             this.ClientState = new ClientState(this, info, this.SigScanner);
 

@@ -180,7 +180,8 @@ namespace Dalamud.Injector {
                               $"PluginDirectory: {startInfo.PluginDirectory}\n" +
                               $"DefaultPluginDirectory: {startInfo.DefaultPluginDirectory}\n" +
                               $"Language: {startInfo.Language}\n" +
-                              $"GameVersion: {startInfo.GameVersion}");
+                              $"GameVersion: {startInfo.GameVersion}\n" +
+                              $"OptOutMbCollection: {startInfo.OptOutMbCollection}");
 
             return startInfo;
         }
