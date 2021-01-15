@@ -202,7 +202,7 @@ namespace Dalamud.Game {
 
             if (this.dalamud.Configuration.PrintPluginsWelcomeMsg) {
                 foreach (var plugin in this.dalamud.PluginManager.Plugins.OrderBy(x => x.Plugin.Name)) {
-                    this.dalamud.Framework.Gui.Chat.Print(string.Format(Loc.Localize("DalamudPluginLoaded", "    》 {0} v{1} loaded."), plugin.Plugin.Name, plugin.Plugin.GetType().Assembly.GetName().Version));
+                    this.dalamud.Framework.Gui.Chat.Print(string.Format(Loc.Localize("DalamudPluginLoaded", "    》 {0} v{1} loaded."), plugin.Plugin.Name, plugin.Definition.AssemblyVersion));
                 }
             }
 
