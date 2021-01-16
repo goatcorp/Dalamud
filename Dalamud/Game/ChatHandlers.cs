@@ -78,7 +78,13 @@ namespace Dalamud.Game {
             }
         };
 
+        private readonly Regex urlRegex =
+            new Regex(@"(http|ftp|https)://([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?",
+                      RegexOptions.Compiled);
+
         private bool hasSeenLoadingMsg;
+
+        public string LastLink { get; private set; }
 
         public ChatHandlers(Dalamud dalamud) {
             this.dalamud = dalamud;
@@ -160,6 +166,9 @@ namespace Dalamud.Game {
             var messageCopy = message;
             var senderCopy = sender;
 
+            var linkMatch = this.urlRegex.Match(message.TextValue);
+            if (linkMatch.Value.Length > 0)
+                LastLink = linkMatch.Value;
 
             // Handle all of this with SeString some day
             /*
