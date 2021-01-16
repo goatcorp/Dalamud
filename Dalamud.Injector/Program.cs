@@ -170,6 +170,7 @@ namespace Dalamud.Injector {
                 ConfigurationPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "XIVLauncher", "dalamudConfig.json"),
                 PluginDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "XIVLauncher", "installedPlugins"),
                 DefaultPluginDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "XIVLauncher", "devPlugins"),
+                AssetDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "XIVLauncher", "dalamudAssets"),
 
                 GameVersion = File.ReadAllText(Path.Combine(ffxivDir, "ffxivgame.ver")),
                 Language = ClientLanguage.English
@@ -181,7 +182,8 @@ namespace Dalamud.Injector {
                               $"DefaultPluginDirectory: {startInfo.DefaultPluginDirectory}\n" +
                               $"Language: {startInfo.Language}\n" +
                               $"GameVersion: {startInfo.GameVersion}\n" +
-                              $"OptOutMbCollection: {startInfo.OptOutMbCollection}");
+                              $"OptOutMbCollection: {startInfo.OptOutMbCollection}" +
+                              $"AssetDirectory: {startInfo.AssetDirectory}");
 
             return startInfo;
         }
