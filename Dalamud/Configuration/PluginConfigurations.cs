@@ -21,7 +21,7 @@ namespace Dalamud.Configuration
         // all future saved configs, and then Load() can probably be removed entirey.
 
         public void Save(IPluginConfiguration config, string pluginName) {
-            File.WriteAllText(GetPath(pluginName).FullName, JsonConvert.SerializeObject(config, Formatting.Indented, new JsonSerializerSettings
+            File.WriteAllText(GetConfigFile(pluginName).FullName, JsonConvert.SerializeObject(config, Formatting.Indented, new JsonSerializerSettings
             {
                 TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple,
                 TypeNameHandling = TypeNameHandling.Objects
@@ -29,7 +29,7 @@ namespace Dalamud.Configuration
         }
 
         public IPluginConfiguration Load(string pluginName) {
-            var path = GetPath(pluginName);
+            var path = GetConfigFile(pluginName);
 
             if (!path.Exists)
                 return null;
@@ -60,7 +60,7 @@ namespace Dalamud.Configuration
         // without reflection - for now this is in support of the existing plugin api
         public T LoadForType<T>(string pluginName) where T : IPluginConfiguration
         {
-            var path = GetPath(pluginName);
+            var path = GetConfigFile(pluginName);
 
             if (!path.Exists)
                 return default(T);
@@ -70,7 +70,13 @@ namespace Dalamud.Configuration
             return JsonConvert.DeserializeObject<T>(File.ReadAllText(path.FullName));
         }
 
-        private FileInfo GetPath(string pluginName) => new FileInfo(Path.Combine(this.configDirectory.FullName, $"{pluginName}.json"));
+        /// <summary>
+        /// Get FileInfo to plugin config file.
+        /// </summary>
+        /// <param name="pluginName">InternalName of the plugin.</param>
+        /// <returns>FileInfo of the config file</returns>
+        public FileInfo GetConfigFile(string pluginName) => new FileInfo(Path.Combine(this.configDirectory.FullName, $"{pluginName}.json"));
+
         private DirectoryInfo GetDirectoryPath(string pluginName) => new DirectoryInfo(Path.Combine(this.configDirectory.FullName, pluginName));
 
     }

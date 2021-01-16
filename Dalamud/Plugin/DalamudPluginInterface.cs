@@ -40,6 +40,11 @@ namespace Dalamud.Plugin
         public DirectoryInfo ConfigDirectory => new DirectoryInfo(GetPluginConfigDirectory());
 
         /// <summary>
+        /// Get the config file of your plugin.
+        /// </summary>
+        public FileInfo ConfigFile => this.configs.GetConfigFile(this.pluginName);
+
+        /// <summary>
         /// The CommandManager object that allows you to add and remove custom chat commands.
         /// </summary>
         public readonly CommandManager CommandManager;
