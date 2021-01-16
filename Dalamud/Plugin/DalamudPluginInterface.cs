@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Dynamic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -27,6 +28,16 @@ namespace Dalamud.Plugin
         /// The reason this plugin was loaded.
         /// </summary>
         public PluginLoadReason Reason { get; }
+
+        /// <summary>
+        /// Get the directory Dalamud assets are stored in.
+        /// </summary>
+        public DirectoryInfo DalamudAssetDirectory => this.dalamud.AssetDirectory;
+
+        /// <summary>
+        /// Get the directory your plugin configurations are stored in.
+        /// </summary>
+        public DirectoryInfo ConfigDirectory => new DirectoryInfo(GetPluginConfigDirectory());
 
         /// <summary>
         /// The CommandManager object that allows you to add and remove custom chat commands.

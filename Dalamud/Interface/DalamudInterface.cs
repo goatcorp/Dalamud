@@ -334,7 +334,7 @@ namespace Dalamud.Interface
         public void OpenCredits() {
             var logoGraphic =
                 this.dalamud.InterfaceManager.LoadImage(
-                    Path.Combine(this.dalamud.StartInfo.WorkingDirectory, "UIRes", "logo.png"));
+                    Path.Combine(this.dalamud.AssetDirectory.FullName, "UIRes", "logo.png"));
             this.creditsWindow = new DalamudCreditsWindow(this.dalamud, logoGraphic, this.dalamud.Framework);
             this.isImguiDrawCreditsWindow = true;
         }

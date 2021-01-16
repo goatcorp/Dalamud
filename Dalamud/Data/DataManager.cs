@@ -61,7 +61,7 @@ namespace Dalamud.Data
             this.language = language;
         }
 
-        public async Task Initialize(string baseDir)
+        public void Initialize(string baseDir)
         {
             try
             {

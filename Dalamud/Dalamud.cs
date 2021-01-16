@@ -71,6 +71,8 @@ namespace Dalamud {
 
         public bool IsReady { get; private set; }
 
+        public DirectoryInfo AssetDirectory => new DirectoryInfo(this.StartInfo.AssetDirectory);
+
         public Dalamud(DalamudStartInfo info, LoggingLevelSwitch loggingLevelSwitch) {
             this.StartInfo = info;
             this.LogLevelSwitch = loggingLevelSwitch;
@@ -94,90 +96,79 @@ namespace Dalamud {
 
             this.ClientState = new ClientState(this, info, this.SigScanner);
 
-            Task.Run(async () => {
-                try {
-                    var res = await AssetManager.EnsureAssets(this.baseDirectory);
+            this.LocalizationManager = new Localization(AssetDirectory.FullName);
+            if (!string.IsNullOrEmpty(this.Configuration.LanguageOverride))
+                this.LocalizationManager.SetupWithLangCode(this.Configuration.LanguageOverride);
+            else
+                this.LocalizationManager.SetupWithUiCulture();
 
-                    if (!res) {
-                        Log.Error("One or more assets failed to download.");
-                        Unload();
-                        return;
-                    }
-                } catch (Exception e) {
-                    Log.Error(e, "Error in asset task.");
-                    Unload();
-                    return;
+            PluginRepository = new PluginRepository(this, this.StartInfo.PluginDirectory, this.StartInfo.GameVersion);
+
+            DalamudUi = new DalamudInterface(this);
+
+            var isInterfaceLoaded = false;
+            if (!bool.Parse(Environment.GetEnvironmentVariable("DALAMUD_NOT_HAVE_INTERFACE") ?? "false"))
+            {
+                try
+                {
+                    InterfaceManager = new InterfaceManager(this, this.SigScanner);
+                    InterfaceManager.OnDraw += DalamudUi.Draw;
+
+                    InterfaceManager.Enable();
+                    isInterfaceLoaded = true;
                 }
-
-                this.LocalizationManager = new Localization(this.StartInfo.WorkingDirectory);
-                if (!string.IsNullOrEmpty(this.Configuration.LanguageOverride))
-                    this.LocalizationManager.SetupWithLangCode(this.Configuration.LanguageOverride);
-                else
-                    this.LocalizationManager.SetupWithUiCulture();
-
-                PluginRepository = new PluginRepository(this, this.StartInfo.PluginDirectory, this.StartInfo.GameVersion);
-
-                DalamudUi = new DalamudInterface(this);
-
-                var isInterfaceLoaded = false;
-                if (!bool.Parse(Environment.GetEnvironmentVariable("DALAMUD_NOT_HAVE_INTERFACE") ?? "false")) {
-                    try
-                    {
-                        InterfaceManager = new InterfaceManager(this, this.SigScanner);
-                        InterfaceManager.OnDraw += DalamudUi.Draw;
-
-                        InterfaceManager.Enable();
-                        isInterfaceLoaded = true;
-                    }
-                    catch (Exception e)
-                    {
-                        Log.Information(e, "Could not init interface.");
-                    }
+                catch (Exception e)
+                {
+                    Log.Information(e, "Could not init interface.");
                 }
+            }
 
-                Data = new DataManager(this.StartInfo.Language);
-                try {
-                    await Data.Initialize(this.baseDirectory);
-                } catch (Exception e) {
-                    Log.Error(e, "Could not initialize DataManager.");
-                    Unload();
-                    return;
-                }
+            Data = new DataManager(this.StartInfo.Language);
+            try
+            {
+                Data.Initialize(AssetDirectory.FullName);
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "Could not initialize DataManager.");
+                Unload();
+                return;
+            }
 
-                SeStringManager = new SeStringManager(Data);
+            SeStringManager = new SeStringManager(Data);
 
 #if DEBUG
-                AntiDebug = new AntiDebug(this.SigScanner);
+            AntiDebug = new AntiDebug(this.SigScanner);
 #endif
 
-                // Initialize managers. Basically handlers for the logic
-                CommandManager = new CommandManager(this, info.Language);
-                DalamudCommands = new DalamudCommands(this);
-                DalamudCommands.SetupCommands();
+            // Initialize managers. Basically handlers for the logic
+            CommandManager = new CommandManager(this, info.Language);
+            DalamudCommands = new DalamudCommands(this);
+            DalamudCommands.SetupCommands();
 
-                ChatHandlers = new ChatHandlers(this);
+            ChatHandlers = new ChatHandlers(this);
 
-                if (!bool.Parse(Environment.GetEnvironmentVariable("DALAMUD_NOT_HAVE_PLUGINS") ?? "false")) {
-                    try
-                    {
-                        PluginRepository.CleanupPlugins();
+            if (!bool.Parse(Environment.GetEnvironmentVariable("DALAMUD_NOT_HAVE_PLUGINS") ?? "false"))
+            {
+                try
+                {
+                    PluginRepository.CleanupPlugins();
 
-                        PluginManager = new PluginManager(this, this.StartInfo.PluginDirectory, this.StartInfo.DefaultPluginDirectory);
-                        PluginManager.LoadPlugins();
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Error(ex, "Plugin load failed.");
-                    }
+                    PluginManager = new PluginManager(this, this.StartInfo.PluginDirectory, this.StartInfo.DefaultPluginDirectory);
+                    PluginManager.LoadPlugins();
                 }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Plugin load failed.");
+                }
+            }
 
-                this.Framework.Enable();
-                this.ClientState.Enable();
+            this.Framework.Enable();
+            this.ClientState.Enable();
 
-                IsReady = true;
+            IsReady = true;
 
-                Troubleshooting.LogTroubleshooting(this, isInterfaceLoaded);
-            });
+            Troubleshooting.LogTroubleshooting(this, isInterfaceLoaded);
         }
 
         public void Start() {
