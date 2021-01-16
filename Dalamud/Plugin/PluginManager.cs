@@ -251,5 +251,10 @@ namespace Dalamud.Plugin
                 }
             }
         }
+
+        public void ReloadPlugins() {
+            UnloadPlugins();
+            LoadPlugins();
+        }
     }
 }

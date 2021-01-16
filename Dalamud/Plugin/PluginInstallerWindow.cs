@@ -213,7 +213,7 @@ namespace Dalamud.Plugin
             ImGui.SameLine();
 
             if (ImGui.Button(Loc.Localize("SettingsInstaller", "Settings"))) {
-                this.dalamud.OpenSettings();
+                this.dalamud.DalamudUi.OpenSettings();
             }
 
             var closeText = Loc.Localize("Close", "Close");

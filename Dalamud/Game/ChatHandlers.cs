@@ -91,7 +91,7 @@ namespace Dalamud.Game {
             dalamud.Framework.Gui.Chat.OnChatMessage += OnChatMessage;
 
             this.openInstallerWindowLink = this.dalamud.Framework.Gui.Chat.AddChatLinkHandler("Dalamud", 1001, (i, m) => {
-                this.dalamud.OpenPluginInstaller();
+                this.dalamud.DalamudUi.OpenPluginInstaller();
             });
         }
 
@@ -212,7 +212,7 @@ namespace Dalamud.Game {
                     Type = XivChatType.Notice
                 });
 
-                this.dalamud.OpenChangelog();
+                this.dalamud.DalamudUi.OpenChangelog();
 
                 this.dalamud.Configuration.LastVersion = assemblyVersion;
                 this.dalamud.Configuration.Save();

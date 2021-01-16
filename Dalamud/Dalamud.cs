@@ -51,13 +51,15 @@ namespace Dalamud {
         public readonly ClientState ClientState;
 
         public readonly DalamudStartInfo StartInfo;
-        private readonly LoggingLevelSwitch loggingLevelSwitch;
+        internal LoggingLevelSwitch LogLevelSwitch { get; }
 
         internal readonly DalamudConfiguration Configuration;
 
         private readonly WinSockHandlers WinSock2;
 
         internal InterfaceManager InterfaceManager { get; private set; }
+
+        internal DalamudInterface DalamudUi { get; private set; }
 
         public DataManager Data { get; private set; }
 
@@ -70,7 +72,7 @@ namespace Dalamud {
 
         public Dalamud(DalamudStartInfo info, LoggingLevelSwitch loggingLevelSwitch) {
             this.StartInfo = info;
-            this.loggingLevelSwitch = loggingLevelSwitch;
+            this.LogLevelSwitch = loggingLevelSwitch;
 
             this.Configuration = DalamudConfiguration.Load(info.ConfigurationPath);
 
@@ -114,12 +116,14 @@ namespace Dalamud {
 
                 PluginRepository = new PluginRepository(this, this.StartInfo.PluginDirectory, this.StartInfo.GameVersion);
 
+                DalamudUi = new DalamudInterface(this);
+
                 var isInterfaceLoaded = false;
                 if (!bool.Parse(Environment.GetEnvironmentVariable("DALAMUD_NOT_HAVE_INTERFACE") ?? "false")) {
                     try
                     {
                         InterfaceManager = new InterfaceManager(this, this.SigScanner);
-                        InterfaceManager.OnDraw += BuildDalamudUi;
+                        InterfaceManager.OnDraw += DalamudUi.Draw;
 
                         InterfaceManager.Enable();
                         isInterfaceLoaded = true;
@@ -219,287 +223,7 @@ namespace Dalamud {
             this.AntiDebug?.Dispose();
         }
 
-#region Interface
-
-        private bool isImguiDrawDemoWindow = false;
-
-#if DEBUG
-        private bool isImguiDrawDevMenu = true;
-#else
-        private bool isImguiDrawDevMenu = false;
-#endif
-
-        public bool IsDevMenu
-        {
-            get => this.isImguiDrawDevMenu;
-            set => this.isImguiDrawDevMenu = value;
-        }
-
-        private bool isImguiDrawLogWindow = false;
-        private bool isImguiDrawDataWindow = false;
-        private bool isImguiDrawPluginWindow = false;
-        private bool isImguiDrawCreditsWindow = false;
-        private bool isImguiDrawSettingsWindow = false;
-        private bool isImguiDrawPluginStatWindow = false;
-        private bool isImguiDrawChangelogWindow = false;
-
-        private DalamudLogWindow logWindow;
-        private DalamudDataWindow dataWindow;
-        private DalamudCreditsWindow creditsWindow;
-        private DalamudSettingsWindow settingsWindow;
-        private PluginInstallerWindow pluginWindow;
-        private DalamudPluginStatWindow pluginStatWindow;
-        private DalamudChangelogWindow changelogWindow;
-
-        private void BuildDalamudUi()
-        {
-            if (!this.IsDevMenu && !ClientState.Condition.Any())
-            {
-                ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0, 0, 0, 0));
-                ImGui.PushStyleColor(ImGuiCol.ButtonActive, new Vector4(0, 0, 0, 0));
-                ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Vector4(0, 0, 0, 0));
-                ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0, 0, 0, 1));
-                ImGui.PushStyleColor(ImGuiCol.TextSelectedBg, new Vector4(0, 0, 0, 1));
-                ImGui.PushStyleColor(ImGuiCol.Border, new Vector4(0, 0, 0, 1));
-                ImGui.PushStyleColor(ImGuiCol.BorderShadow, new Vector4(0, 0, 0, 1));
-                ImGui.PushStyleColor(ImGuiCol.WindowBg, new Vector4(0, 0, 0, 1));
-
-                ImGui.SetNextWindowPos(new Vector2(0, 0), ImGuiCond.Always);
-                ImGui.SetNextWindowBgAlpha(1);
-
-                if (ImGui.Begin("DevMenu Opener", ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoSavedSettings))
-                {
-                    if (ImGui.Button("###devMenuOpener", new Vector2(40, 25)))
-                        this.IsDevMenu = true;
-
-                    ImGui.End();
-                }
-
-                ImGui.PopStyleColor(8);
-            }
-
-            if (this.IsDevMenu)
-            {
-                if (ImGui.BeginMainMenuBar())
-                {
-                    if (ImGui.BeginMenu("Dalamud"))
-                    {
-                        ImGui.MenuItem("Draw Dalamud dev menu", "", ref this.isImguiDrawDevMenu);
-                        ImGui.Separator();
-                        if (ImGui.MenuItem("Open Log window"))
-                        {
-                            this.logWindow = new DalamudLogWindow(CommandManager);
-                            this.isImguiDrawLogWindow = true;
-                        }
-                        if (ImGui.BeginMenu("Set log level..."))
-                        {
-                            foreach (var logLevel in Enum.GetValues(typeof(LogEventLevel)).Cast<LogEventLevel>()) {
-                                if (ImGui.MenuItem(logLevel + "##logLevelSwitch", "", this.loggingLevelSwitch.MinimumLevel == logLevel))
-                                {
-                                    this.loggingLevelSwitch.MinimumLevel = logLevel;
-                                }
-                            }
-
-                            ImGui.EndMenu();
-                        }
-                        if (AntiDebug == null && ImGui.MenuItem("Enable AntiDebug")) {
-                            AntiDebug = new AntiDebug(this.SigScanner);
-                            AntiDebug.Enable();
-                        }
-                        ImGui.Separator();
-                        if (ImGui.MenuItem("Open Data window"))
-                        {
-                            this.dataWindow = new DalamudDataWindow(this);
-                            this.isImguiDrawDataWindow = true;
-                        }
-                        if (ImGui.MenuItem("Open Credits window")) {
-                            OnOpenCreditsCommand(null, null);
-                        }
-                        if (ImGui.MenuItem("Open Settings window"))
-                        {
-                            OnOpenSettingsCommand(null, null);
-                        }
-                        if (ImGui.MenuItem("Open Changelog window"))
-                        {
-                            OpenChangelog();
-                        }
-                        ImGui.MenuItem("Draw ImGui demo", "", ref this.isImguiDrawDemoWindow);
-                        if (ImGui.MenuItem("Dump ImGui info"))
-                            OnDebugImInfoCommand(null, null);
-                        ImGui.Separator();
-                        if (ImGui.MenuItem("Unload Dalamud"))
-                        {
-                            Unload();
-                        }
-                        if (ImGui.MenuItem("Kill game"))
-                        {
-                            Process.GetCurrentProcess().Kill();
-                        }
-                        if (ImGui.MenuItem("Cause AccessViolation")) {
-                            var a = Marshal.ReadByte(IntPtr.Zero);
-                        }
-                        ImGui.Separator();
-                        ImGui.MenuItem(Util.AssemblyVersion, false);
-                        ImGui.MenuItem(this.StartInfo.GameVersion, false);
-
-                        ImGui.EndMenu();
-                    }
-
-                    if (ImGui.BeginMenu("Game")) {
-                        if (ImGui.MenuItem("Replace ExceptionHandler")) {
-                            ReplaceExceptionHandler();
-                        }
-
-                        ImGui.EndMenu();
-                    }
-
-                    if (ImGui.BeginMenu("Plugins"))
-                    {
-                        if (ImGui.MenuItem("Open Plugin installer"))
-                        {
-                            this.pluginWindow = new PluginInstallerWindow(this, this.StartInfo.GameVersion);
-                            this.isImguiDrawPluginWindow = true;
-                        }
-                        ImGui.Separator();
-                        if (ImGui.MenuItem("Open Plugin Stats")) {
-                            if (!this.isImguiDrawPluginStatWindow) {
-                                this.pluginStatWindow = new DalamudPluginStatWindow(this.PluginManager);
-                                this.isImguiDrawPluginStatWindow = true;
-                            }
-                        }
-                        if (ImGui.MenuItem("Print plugin info")) {
-                            foreach (var plugin in this.PluginManager.Plugins) {
-                                // TODO: some more here, state maybe?
-                                Log.Information($"{plugin.Plugin.Name}");
-                            }
-                        }
-                        if (ImGui.MenuItem("Reload plugins"))
-                        {
-                            OnPluginReloadCommand(string.Empty, string.Empty);
-                        }
-
-                        ImGui.Separator();
-                        ImGui.MenuItem("API Level:" + PluginManager.DALAMUD_API_LEVEL, false);
-                        ImGui.MenuItem("Loaded plugins:" + PluginManager?.Plugins.Count, false);
-                        ImGui.EndMenu();
-                    } 
-
-                    if (ImGui.BeginMenu("Localization"))
-                    {
-                        if (ImGui.MenuItem("Export localizable"))
-                        {
-                            Loc.ExportLocalizable();
-                        }
-
-                        if (ImGui.BeginMenu("Load language..."))
-                        {
-                            if (ImGui.MenuItem("From Fallbacks"))
-                            {
-                                Loc.SetupWithFallbacks();
-                            }
-
-                            if (ImGui.MenuItem("From UICulture")) {
-                                this.LocalizationManager.SetupWithUiCulture();
-                            }
-
-                            foreach (var applicableLangCode in Localization.ApplicableLangCodes) {
-                                if (ImGui.MenuItem($"Applicable: {applicableLangCode}"))
-                                {
-                                    this.LocalizationManager.SetupWithLangCode(applicableLangCode);
-                                }
-                            }
-
-                            ImGui.EndMenu();
-                        }
-                        ImGui.EndMenu();
-                    }
-
-                    if (this.Framework.Gui.GameUiHidden)
-                        ImGui.BeginMenu("UI is hidden...", false);
-
-                    ImGui.EndMainMenuBar();
-                }
-            }
-
-            if (this.Framework.Gui.GameUiHidden)
-                return;
-
-            if (this.isImguiDrawLogWindow)
-            {
-                this.isImguiDrawLogWindow = this.logWindow != null && this.logWindow.Draw();
-
-                if (this.isImguiDrawLogWindow == false)
-                {
-                    this.logWindow?.Dispose();
-                    this.logWindow = null;
-                }
-            }
-
-            if (this.isImguiDrawDataWindow)
-            {
-                this.isImguiDrawDataWindow = this.dataWindow != null && this.dataWindow.Draw();
-            }
-
-            if (this.isImguiDrawPluginWindow)
-            {
-                this.isImguiDrawPluginWindow = this.pluginWindow != null && this.pluginWindow.Draw();
-
-                if (!this.isImguiDrawPluginWindow)
-                    this.pluginWindow = null;
-            }
-
-            if (this.isImguiDrawCreditsWindow)
-            {
-                this.isImguiDrawCreditsWindow = this.creditsWindow != null && this.creditsWindow.Draw();
-
-                if (this.isImguiDrawCreditsWindow == false)
-                {
-                    this.creditsWindow?.Dispose();
-                    this.creditsWindow = null;
-                }
-            }
-
-            if (this.isImguiDrawSettingsWindow)
-            {
-                this.isImguiDrawSettingsWindow = this.settingsWindow != null && this.settingsWindow.Draw();
-            }
-
-            if (this.isImguiDrawDemoWindow)
-                ImGui.ShowDemoWindow();
-
-            if (this.isImguiDrawPluginStatWindow) {
-                this.isImguiDrawPluginStatWindow = this.pluginStatWindow != null && this.pluginStatWindow.Draw();
-                if (!this.isImguiDrawPluginStatWindow) {
-                    this.pluginStatWindow?.Dispose();
-                    this.pluginStatWindow = null;
-                }
-            }
-
-            if (this.isImguiDrawChangelogWindow)
-            {
-                this.isImguiDrawChangelogWindow = this.changelogWindow != null && this.changelogWindow.Draw();
-            }
-        }
-        internal void OpenPluginInstaller()
-        {
-            if (this.pluginWindow == null)
-            {
-                this.pluginWindow = new PluginInstallerWindow(this, this.StartInfo.GameVersion);
-            }
-            this.isImguiDrawPluginWindow ^= true;
-        }
-
-        internal void OpenChangelog() {
-            this.changelogWindow = new DalamudChangelogWindow(this);
-            this.isImguiDrawChangelogWindow = true;
-        }
-
-        internal void OpenSettings() {
-            this.settingsWindow = new DalamudSettingsWindow(this);
-            this.isImguiDrawSettingsWindow ^= true;
-        }
-
-        private void ReplaceExceptionHandler() {
+        internal void ReplaceExceptionHandler() {
             var semd = this.SigScanner.ScanText(
                 "40 55 53 56 48 8D AC 24 ?? ?? ?? ?? B8 ?? ?? ?? ?? E8 ?? ?? ?? ?? 48 2B E0 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 85 ?? ?? ?? ?? 48 83 3D ?? ?? ?? ?? ??");
             Log.Debug($"SE debug filter at {semd.ToInt64():X}");
@@ -507,8 +231,6 @@ namespace Dalamud {
             var oldFilter = NativeFunctions.SetUnhandledExceptionFilter(semd);
             Log.Debug("Reset ExceptionFilter, old: {0}", oldFilter);
         }
-
-        #endregion
 
         private void SetupCommands() {
             CommandManager.AddHandler("/xldclose", new CommandInfo(OnUnloadCommand) {
@@ -583,11 +305,6 @@ namespace Dalamud {
                 HelpMessage = Loc.Localize("DalamudSettingsHelp", "Change various In-Game-Addon settings like chat channels and the discord bot setup.")
             });
 
-            CommandManager.AddHandler("/xlbugreport", new CommandInfo(OnBugReportCommand) {
-                HelpMessage = Loc.Localize("DalamudBugReport", "Upload a log to be analyzed by our professional development team."),
-                ShowInHelp = false
-            });
-
             CommandManager.AddHandler("/imdebug", new CommandInfo(OnDebugImInfoCommand) {
                 HelpMessage = "ImGui DEBUG",
                 ShowInHelp = false
@@ -628,8 +345,7 @@ namespace Dalamud {
             Framework.Gui.Chat.Print("Reloading...");
 
             try {
-                this.PluginManager.UnloadPlugins();
-                this.PluginManager.LoadPlugins();
+                PluginManager.ReloadPlugins();
 
                 Framework.Gui.Chat.Print("OK");
             } catch (Exception ex) {
@@ -704,12 +420,11 @@ namespace Dalamud {
 #endif
 
         private void OnDebugDrawDevMenu(string command, string arguments) {
-            this.IsDevMenu = !this.IsDevMenu;
+            this.DalamudUi.IsDevMenu = !this.DalamudUi.IsDevMenu;
         }
 
         private void OnOpenLog(string command, string arguments) {
-            this.logWindow = new DalamudLogWindow(CommandManager);
-            this.isImguiDrawLogWindow = true;
+            this.DalamudUi.OpenLog();
         }
 
         private void OnDebugImInfoCommand(string command, string arguments) {
@@ -736,16 +451,11 @@ namespace Dalamud {
 
         private void OnOpenInstallerCommand(string command, string arguments)
         {
-            OpenPluginInstaller();
+            this.DalamudUi.OpenPluginInstaller();
         }
 
-        private void OnOpenCreditsCommand(string command, string arguments)
-        {
-            var logoGraphic =
-                this.InterfaceManager.LoadImage(
-                    Path.Combine(this.StartInfo.WorkingDirectory, "UIRes", "logo.png"));
-            this.creditsWindow = new DalamudCreditsWindow(this, logoGraphic, this.Framework);
-            this.isImguiDrawCreditsWindow = true;
+        private void OnOpenCreditsCommand(string command, string arguments) {
+            DalamudUi.OpenCredits();
         }
 
         private void OnSetLanguageCommand(string command, string arguments)
@@ -767,26 +477,7 @@ namespace Dalamud {
 
         private void OnOpenSettingsCommand(string command, string arguments)
         {
-            OpenSettings();
-        }
-
-        private void OnBugReportCommand(string command, string arguments) {
-            Task.Run(() => {
-                try {
-                    using var file = new FileStream(Path.Combine(this.StartInfo.WorkingDirectory, "dalamud.txt"), FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-                    using var reader = new StreamReader(file, Encoding.UTF8);
-
-                    using var client = new WebClient();
-                    var response = client.UploadString("https://dalamud-bugbait.herokuapp.com/catch", reader.ReadToEnd());
-
-                    this.Framework.Gui.Chat.PrintError(
-                        "Your bug report was submitted. A certified technical support specialist will be with you shortly. Please tell them this number: " +
-                        response);
-                } catch (Exception ex) {
-                    Log.Error(ex, "Bug report failed.");
-                    this.Framework.Gui.Chat.PrintError("Could not submit bug report");
-                }
-            });
+            this.DalamudUi.OpenSettings();
         }
     }
 }

@@ -50,7 +50,7 @@ As this is a major patch and we have made several backend changes, please keep i
             ImGui.PushFont(InterfaceManager.IconFont);
 
             if (ImGui.Button(FontAwesomeIcon.Download.ToIconString())) 
-                this.dalamud.OpenPluginInstaller();
+                this.dalamud.DalamudUi.OpenPluginInstaller();
 
             if (ImGui.IsItemHovered()) {
                 ImGui.PopFont();

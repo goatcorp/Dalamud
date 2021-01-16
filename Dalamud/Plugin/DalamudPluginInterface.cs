@@ -69,7 +69,7 @@ namespace Dalamud.Plugin
 #if DEBUG
         public bool IsDebugging => true;
 #else
-        public bool IsDebugging => this.dalamud.IsDevMenu;
+        public bool IsDebugging => this.dalamud.DalamudUi.IsDevMenu;
 #endif
 
         private readonly Dalamud dalamud;
