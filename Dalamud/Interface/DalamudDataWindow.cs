@@ -36,6 +36,8 @@ namespace Dalamud.Interface
 
         private bool resolveGameData = false;
 
+        private UIDebug UIDebug = null;
+
         public DalamudDataWindow(Dalamud dalamud) {
             this.dalamud = dalamud;
 
@@ -66,8 +68,8 @@ namespace Dalamud.Interface
             ImGui.SameLine();
             var copy = ImGui.Button("Copy all");
             ImGui.SameLine();
-            ImGui.Combo("Data kind", ref this.currentKind, new[] {"ServerOpCode", "Address", "Actor Table", "Font Test", "Party List", "Plugin IPC", "Condition", "Gauge", "Command", "Addon", "StartInfo", "Target"},
-                        12);
+            ImGui.Combo("Data kind", ref this.currentKind, new[] {"ServerOpCode", "Address", "Actor Table", "Font Test", "Party List", "Plugin IPC", "Condition", "Gauge", "Command", "Addon", "StartInfo", "Target", "UI Debug"},
+                        13);
             ImGui.Checkbox("Resolve GameData", ref this.resolveGameData);
 
             ImGui.BeginChild("scrolling", new Vector2(0, 0), false, ImGuiWindowFlags.HorizontalScrollbar);
@@ -361,6 +363,11 @@ namespace Dalamud.Interface
                             }
 
                             break;
+                        case 12: {
+                            this.UIDebug ??= new UIDebug(this.dalamud);
+                            this.UIDebug.Draw();
+                            break;
+                        }
                     }
                 else
                     ImGui.TextUnformatted("Data not ready.");
