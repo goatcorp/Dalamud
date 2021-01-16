@@ -58,10 +58,6 @@ namespace Dalamud.Game {
                 @"4KGOLD|We have sufficient stock|VPK\.OM|Gil for free|www\.so9\.com|Fast & Convenient|Cheap & Safety Guarantee|【Code|A O A U E|igfans|4KGOLD\.COM|Cheapest Gil with|pvp and bank on google|Selling Cheap GIL|ff14mogstation\.com|Cheap Gil 1000k|gilsforyou|server 1000K =|gils_selling|E A S Y\.C O M|bonus code|mins delivery guarantee|Sell cheap|Salegm\.com|cheap Mog|Off Code:|FF14Mog.com|使用する5％オ|Off Code( *):|offers Fantasia",
                 RegexOptions.Compiled);
 
-        private readonly Regex urlRegex =
-            new Regex(@"(http|ftp|https)://([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?",
-                      RegexOptions.Compiled);
-
         private readonly Dictionary<ClientLanguage, Regex[]> retainerSaleRegexes = new Dictionary<ClientLanguage, Regex[]>() { {
                 ClientLanguage.Japanese, new Regex[] {
                     new Regex(@"^(?:.+)マーケットに(?<origValue>[\d,.]+)ギルで出品した(?<item>.*)×(?<count>[\d,.]+)が売れ、(?<value>[\d,.]+)ギルを入手しました。$", RegexOptions.Compiled),
@@ -115,8 +111,6 @@ namespace Dalamud.Game {
                 return;
             }
         }
-
-        public string LastLink { get; private set; }
 
         private void OnChatMessage(XivChatType type, uint senderId, ref SeString sender, 
             ref SeString message, ref bool isHandled) {
@@ -188,10 +182,6 @@ namespace Dalamud.Game {
                 message.RawData = Encoding.UTF8.GetBytes(messageString);
             }
             */
-
-            var linkMatch = this.urlRegex.Match(message.TextValue);
-            if (linkMatch.Value.Length > 0)
-                LastLink = linkMatch.Value;
         }
 
         private void PrintWelcomeMessage() {
