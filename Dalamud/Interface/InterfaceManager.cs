@@ -155,7 +155,7 @@ namespace Dalamud.Interface
             // calls to PresentDetour have finished (and Disable means no new ones will start), before we try to cleanup
             // So... not great, but much better than constantly crashing on unload
             this.Disable();
-            System.Threading.Thread.Sleep(100);
+            System.Threading.Thread.Sleep(500);
 
             this.scene?.Dispose();
             this.presentHook.Dispose();
