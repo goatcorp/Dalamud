@@ -34,12 +34,6 @@ namespace Dalamud
                 ShowInHelp = false
             });
 
-            this.dalamud.CommandManager.AddHandler("/xldsay", new CommandInfo(OnCommandDebugSay)
-            {
-                HelpMessage = Loc.Localize("DalamudPrintChatHelp", "Print to chat."),
-                ShowInHelp = false
-            });
-
             this.dalamud.CommandManager.AddHandler("/xlhelp", new CommandInfo(OnHelpCommand)
             {
                 HelpMessage = Loc.Localize("DalamudCmdInfoHelp", "Shows list of commands available.")
@@ -58,11 +52,6 @@ namespace Dalamud
             this.dalamud.CommandManager.AddHandler("/xlunmute", new CommandInfo(OnBadWordsRemoveCommand)
             {
                 HelpMessage = Loc.Localize("DalamudUnmuteHelp", "Unmute a word or sentence. Usage: /xlunmute <word or sentence>")
-            });
-
-            this.dalamud.CommandManager.AddHandler("/ll", new CommandInfo(OnLastLinkCommand)
-            {
-                HelpMessage = Loc.Localize("DalamudLastLinkHelp", "Open the last posted link in your default browser.")
             });
 
             this.dalamud.CommandManager.AddHandler("/xlbgmset", new CommandInfo(OnBgmSetCommand)
@@ -115,13 +104,11 @@ namespace Dalamud
             this.dalamud.Unload();
         }
 
-        private void OnHelpCommand(string command, string arguments)
-        {
+        private void OnHelpCommand(string command, string arguments) {
             var showDebug = arguments.Contains("debug");
 
             this.dalamud.Framework.Gui.Chat.Print(Loc.Localize("DalamudCmdHelpAvailable", "Available commands:"));
-            foreach (var cmd in this.dalamud.CommandManager.Commands)
-            {
+            foreach (var cmd in this.dalamud.CommandManager.Commands) {
                 if (!cmd.Value.ShowInHelp && !showDebug)
                     continue;
 
@@ -129,46 +116,25 @@ namespace Dalamud
             }
         }
 
-        private void OnCommandDebugSay(string command, string arguments)
-        {
-            var parts = arguments.Split();
-
-            var chatType = (XivChatType)int.Parse(parts[0]);
-            var msg = string.Join(" ", parts.Take(1).ToArray());
-
-            this.dalamud.Framework.Gui.Chat.PrintChat(new XivChatEntry
-            {
-                MessageBytes = Encoding.UTF8.GetBytes(msg),
-                Name = "Xiv Launcher",
-                Type = chatType
-            });
-        }
-
-        private void OnPluginReloadCommand(string command, string arguments)
-        {
+        private void OnPluginReloadCommand(string command, string arguments) {
             this.dalamud.Framework.Gui.Chat.Print("Reloading...");
 
-            try
-            {
+            try {
                 this.dalamud.PluginManager.ReloadPlugins();
 
                 this.dalamud.Framework.Gui.Chat.Print("OK");
-            }
-            catch (Exception ex)
-            {
+            } catch (Exception ex) {
                 this.dalamud.Framework.Gui.Chat.PrintError("Reload failed.");
                 Log.Error(ex, "Plugin reload failed.");
             }
         }
 
-        private void OnBadWordsAddCommand(string command, string arguments)
-        {
-            if (this.dalamud.Configuration.BadWords == null)
-                this.dalamud.Configuration.BadWords = new List<string>();
+        private void OnBadWordsAddCommand(string command, string arguments) {
+            this.dalamud.Configuration.BadWords ??= new List<string>();
 
-            if (string.IsNullOrEmpty(arguments))
-            {
-                this.dalamud.Framework.Gui.Chat.Print(Loc.Localize("DalamudMuteNoArgs", "Please provide a word to mute."));
+            if (string.IsNullOrEmpty(arguments)) {
+                this.dalamud.Framework.Gui.Chat.Print(
+                    Loc.Localize("DalamudMuteNoArgs", "Please provide a word to mute."));
                 return;
             }
 
@@ -176,71 +142,55 @@ namespace Dalamud
 
             this.dalamud.Configuration.Save();
 
-            this.dalamud.Framework.Gui.Chat.Print(string.Format(Loc.Localize("DalamudMuted", "Muted \"{0}\"."), arguments));
+            this.dalamud.Framework.Gui.Chat.Print(
+                string.Format(Loc.Localize("DalamudMuted", "Muted \"{0}\"."), arguments));
         }
 
-        private void OnBadWordsListCommand(string command, string arguments)
-        {
+        private void OnBadWordsListCommand(string command, string arguments) {
             this.dalamud.Configuration.BadWords ??= new List<string>();
 
-            if (this.dalamud.Configuration.BadWords.Count == 0)
-            {
+            if (this.dalamud.Configuration.BadWords.Count == 0) {
                 this.dalamud.Framework.Gui.Chat.Print(Loc.Localize("DalamudNoneMuted", "No muted words or sentences."));
                 return;
             }
 
             this.dalamud.Configuration.Save();
 
-            foreach (var word in this.dalamud.Configuration.BadWords) this.dalamud.Framework.Gui.Chat.Print($"\"{word}\"");
+            foreach (var word in this.dalamud.Configuration.BadWords)
+                this.dalamud.Framework.Gui.Chat.Print($"\"{word}\"");
         }
 
-        private void OnBadWordsRemoveCommand(string command, string arguments)
-        {
+        private void OnBadWordsRemoveCommand(string command, string arguments) {
             this.dalamud.Configuration.BadWords ??= new List<string>();
 
             this.dalamud.Configuration.BadWords.RemoveAll(x => x == arguments);
 
             this.dalamud.Configuration.Save();
 
-            this.dalamud.Framework.Gui.Chat.Print(string.Format(Loc.Localize("DalamudUnmuted", "Unmuted \"{0}\"."), arguments));
+            this.dalamud.Framework.Gui.Chat.Print(
+                string.Format(Loc.Localize("DalamudUnmuted", "Unmuted \"{0}\"."), arguments));
         }
 
-        private void OnLastLinkCommand(string command, string arguments)
-        {
-            if (string.IsNullOrEmpty(this.dalamud.ChatHandlers.LastLink))
-            {
-                this.dalamud.Framework.Gui.Chat.Print(Loc.Localize("DalamudNoLastLink", "No last link..."));
-                return;
-            }
-
-            this.dalamud.Framework.Gui.Chat.Print(string.Format(Loc.Localize("DalamudOpeningLink", "Opening {0}"), this.dalamud.ChatHandlers.LastLink));
-            Process.Start(this.dalamud.ChatHandlers.LastLink);
-        }
-
-        private void OnBgmSetCommand(string command, string arguments)
-        {
+        private void OnBgmSetCommand(string command, string arguments) {
             this.dalamud.Framework.Gui.SetBgm(ushort.Parse(arguments));
         }
 
-        private void OnDebugDrawDevMenu(string command, string arguments)
-        {
+        private void OnDebugDrawDevMenu(string command, string arguments) {
             this.dalamud.DalamudUi.IsDevMenu = !this.dalamud.DalamudUi.IsDevMenu;
         }
 
-        private void OnOpenLog(string command, string arguments)
-        {
+        private void OnOpenLog(string command, string arguments) {
             this.dalamud.DalamudUi.OpenLog();
         }
 
-        private void OnDebugImInfoCommand(string command, string arguments)
-        {
+        private void OnDebugImInfoCommand(string command, string arguments) {
             var io = this.dalamud.InterfaceManager.LastImGuiIoPtr;
             var info = $"WantCaptureKeyboard: {io.WantCaptureKeyboard}\n";
             info += $"WantCaptureMouse: {io.WantCaptureMouse}\n";
             info += $"WantSetMousePos: {io.WantSetMousePos}\n";
             info += $"WantTextInput: {io.WantTextInput}\n";
             info += $"WantSaveIniSettings: {io.WantSaveIniSettings}\n";
-            info += $"BackendFlags: {(int)io.BackendFlags}\n";
+            info += $"BackendFlags: {(int) io.BackendFlags}\n";
             info += $"DeltaTime: {io.DeltaTime}\n";
             info += $"DisplaySize: {io.DisplaySize.X} {io.DisplaySize.Y}\n";
             info += $"Framerate: {io.Framerate}\n";
@@ -255,38 +205,33 @@ namespace Dalamud
             Log.Information(info);
         }
 
-        private void OnOpenInstallerCommand(string command, string arguments)
-        {
+        private void OnOpenInstallerCommand(string command, string arguments) {
             this.dalamud.DalamudUi.OpenPluginInstaller();
         }
 
-        private void OnOpenCreditsCommand(string command, string arguments)
-        {
+        private void OnOpenCreditsCommand(string command, string arguments) {
             this.dalamud.DalamudUi.OpenCredits();
         }
 
-        private void OnSetLanguageCommand(string command, string arguments)
-        {
-            if (Localization.ApplicableLangCodes.Contains(arguments.ToLower()) || arguments.ToLower() == "en")
-            {
+        private void OnSetLanguageCommand(string command, string arguments) {
+            if (Localization.ApplicableLangCodes.Contains(arguments.ToLower()) || arguments.ToLower() == "en") {
                 this.dalamud.LocalizationManager.SetupWithLangCode(arguments.ToLower());
                 this.dalamud.Configuration.LanguageOverride = arguments.ToLower();
 
-                this.dalamud.Framework.Gui.Chat.Print(string.Format(Loc.Localize("DalamudLanguageSetTo", "Language set to {0}"), arguments));
-            }
-            else
-            {
+                this.dalamud.Framework.Gui.Chat.Print(
+                    string.Format(Loc.Localize("DalamudLanguageSetTo", "Language set to {0}"), arguments));
+            } else {
                 this.dalamud.LocalizationManager.SetupWithUiCulture();
                 this.dalamud.Configuration.LanguageOverride = null;
 
-                this.dalamud.Framework.Gui.Chat.Print(string.Format(Loc.Localize("DalamudLanguageSetTo", "Language set to {0}"), "default"));
+                this.dalamud.Framework.Gui.Chat.Print(
+                    string.Format(Loc.Localize("DalamudLanguageSetTo", "Language set to {0}"), "default"));
             }
 
             this.dalamud.Configuration.Save();
         }
 
-        private void OnOpenSettingsCommand(string command, string arguments)
-        {
+        private void OnOpenSettingsCommand(string command, string arguments) {
             this.dalamud.DalamudUi.OpenSettings();
         }
     }
