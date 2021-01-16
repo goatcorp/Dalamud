@@ -68,7 +68,7 @@ namespace Dalamud.Interface
             ImGui.SameLine();
             var copy = ImGui.Button("Copy all");
             ImGui.SameLine();
-            ImGui.Combo("Data kind", ref this.currentKind, new[] {"ServerOpCode", "Address", "Actor Table", "Font Test", "Party List", "Plugin IPC", "Condition", "Gauge", "Command", "Addon", "StartInfo", "Target", "UI Debug"},
+            ImGui.Combo("Data kind", ref this.currentKind, new[] {"ServerOpCode", "Address", "Actor Table", "Font Test", "Party List", "Plugin IPC", "Condition", "Gauge", "Command", "Addon", "Addon Inspector", "StartInfo", "Target" },
                         13);
             ImGui.Checkbox("Resolve GameData", ref this.resolveGameData);
 
@@ -287,12 +287,14 @@ namespace Dalamud.Interface
 
                             break;
 
+                        // Gauge
                         case 7:
                             var gauge = this.dalamud.ClientState.JobGauges.Get<ASTGauge>();
                             ImGui.Text($"Moon: {gauge.ContainsSeal(SealType.MOON)} Drawn: {gauge.DrawnCard()}");
 
                             break;
 
+                        // Command
                         case 8:
                             foreach (var command in this.dalamud.CommandManager.Commands) {
                                 ImGui.Text(
@@ -301,6 +303,7 @@ namespace Dalamud.Interface
 
                             break;
 
+                        // Addon
                         case 9:
                             ImGui.InputText("Addon name", ref this.inputAddonName, 256);
                             ImGui.InputInt("Addon Index", ref this.inputAddonIndex);
@@ -323,12 +326,22 @@ namespace Dalamud.Interface
                             }
 
                             break;
-                        
+
+                        // Addon Inspector
                         case 10:
+                        {
+                            this.UIDebug ??= new UIDebug(this.dalamud);
+                            this.UIDebug.Draw();
+                            break;
+                        }
+
+                        // StartInfo
+                        case 11:
                             ImGui.Text(JsonConvert.SerializeObject(this.dalamud.StartInfo, Formatting.Indented));
                             break;
 
-                        case 11:
+                        // Target
+                        case 12:
                             var targetMgr = this.dalamud.ClientState.Targets;
 
                             if (targetMgr.CurrentTarget != null)
@@ -363,11 +376,6 @@ namespace Dalamud.Interface
                             }
 
                             break;
-                        case 12: {
-                            this.UIDebug ??= new UIDebug(this.dalamud);
-                            this.UIDebug.Draw();
-                            break;
-                        }
                     }
                 else
                     ImGui.TextUnformatted("Data not ready.");
