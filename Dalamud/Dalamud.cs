@@ -143,6 +143,8 @@ namespace Dalamud {
 
         private readonly ManualResetEvent unloadSignal;
 
+        private readonly ManualResetEvent finishUnloadSignal;
+
         private readonly string baseDirectory;
 
         #endregion
@@ -162,13 +164,14 @@ namespace Dalamud {
         /// </summary>
         internal DirectoryInfo AssetDirectory => new DirectoryInfo(this.StartInfo.AssetDirectory);
 
-        public Dalamud(DalamudStartInfo info, LoggingLevelSwitch loggingLevelSwitch) {
+        public Dalamud(DalamudStartInfo info, LoggingLevelSwitch loggingLevelSwitch, ManualResetEvent finishSignal) {
             this.StartInfo = info;
             this.LogLevelSwitch = loggingLevelSwitch;
 
             this.baseDirectory = info.WorkingDirectory;
 
             this.unloadSignal = new ManualResetEvent(false);
+            this.finishUnloadSignal = finishSignal;
 
             this.Configuration = DalamudConfiguration.Load(info.ConfigurationPath);
 
@@ -277,6 +280,10 @@ namespace Dalamud {
             this.unloadSignal.WaitOne();
         }
 
+        public void WaitForUnloadFinish() {
+            this.finishUnloadSignal.WaitOne();
+        }
+
         public void Dispose() {
             // this must be done before unloading plugins, or it can cause a race condition
             // due to rendering happening on another thread, where a plugin might receive
@@ -305,6 +312,8 @@ namespace Dalamud {
             this.Data.Dispose();
 
             this.AntiDebug?.Dispose();
+
+            Log.Debug("Dalamud::Dispose OK!");
         }
 
         internal void ReplaceExceptionHandler() {

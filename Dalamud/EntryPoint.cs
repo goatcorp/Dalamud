@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using Dalamud.Interface;
 using EasyHook;
@@ -19,6 +20,8 @@ namespace Dalamud {
             var (logger, levelSwitch) = NewLogger(info.WorkingDirectory);
             Log.Logger = logger;
 
+            var finishSignal = new ManualResetEvent(false);
+
             try {
                 Log.Information(new string('-', 200));
                 Log.Information("Initializing a session..");
@@ -31,7 +34,7 @@ namespace Dalamud {
                 AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
                 TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
 
-                using var dalamud = new Dalamud(info, levelSwitch);
+                using var dalamud = new Dalamud(info, levelSwitch, finishSignal);
                 Log.Information("Starting a session..");
                     
                 // Run session
@@ -44,6 +47,8 @@ namespace Dalamud {
                 
                 Log.Information("Session has ended.");
                 Log.CloseAndFlush();
+
+                finishSignal.Set();
             }
         }
 

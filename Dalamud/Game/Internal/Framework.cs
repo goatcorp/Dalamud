@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
 using Dalamud.Game.Internal.Gui;
 using Dalamud.Game.Internal.Libc;
 using Dalamud.Game.Internal.Network;
@@ -14,10 +15,16 @@ namespace Dalamud.Game.Internal {
     /// This class represents the Framework of the native game client and grants access to various subsystems.
     /// </summary>
     public sealed class Framework : IDisposable {
+        private readonly Dalamud dalamud;
+
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         private delegate bool OnUpdateDetour(IntPtr framework);
 
+        private delegate IntPtr OnDestroyDetour();
+
         public delegate void OnUpdateDelegate(Framework framework);
+
+        public delegate IntPtr OnDestroyDelegate();
 
         /// <summary>
         /// Event that gets fired every time the game framework updates.
@@ -25,7 +32,8 @@ namespace Dalamud.Game.Internal {
         public event OnUpdateDelegate OnUpdateEvent;
         
         private Hook<OnUpdateDetour> updateHook;
-        
+
+        private Hook<OnDestroyDetour> destroyHook;
         
         /// <summary>
         /// A raw pointer to the instance of Client::Framework
@@ -56,6 +64,7 @@ namespace Dalamud.Game.Internal {
         #endregion
         
         public Framework(SigScanner scanner, Dalamud dalamud) {
+            this.dalamud = dalamud;
             Address = new FrameworkAddressResolver();
             Address.Setup(scanner);
             
@@ -74,7 +83,8 @@ namespace Dalamud.Game.Internal {
 
             Network = new GameNetwork(scanner);
 
-            //Resource = new ResourceManager(dalamud, scanner);
+            this.destroyHook =
+                new Hook<OnDestroyDetour>(Address.OnDestroy, new OnDestroyDelegate(HandleFrameworkDestroy), this);
         }
 
         private void HookVTable() {
@@ -93,9 +103,9 @@ namespace Dalamud.Game.Internal {
         public void Enable() {
             Gui.Enable();
             Network.Enable();
-            //Resource.Enable();
             
             this.updateHook.Enable();
+            this.destroyHook.Enable();
         }
         
         public void Dispose() {
@@ -149,6 +159,15 @@ namespace Dalamud.Game.Internal {
             }
 
             return this.updateHook.Original(framework);
+        }
+
+        private IntPtr HandleFrameworkDestroy() {
+            Log.Information("Framework::OnDestroy!");
+            this.dalamud.Unload();
+
+            this.dalamud.WaitForUnloadFinish();
+
+            return this.destroyHook.Original();
         }
     }
 }
