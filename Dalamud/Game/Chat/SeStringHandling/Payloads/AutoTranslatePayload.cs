@@ -119,7 +119,7 @@ namespace Dalamud.Game.Chat.SeStringHandling.Payloads
                 {
                     // we need to get the linked table and do the lookup there instead
                     // in this case, there will only be one entry for this group id
-                    row = sheet.GetRows().First(r => r.Group == this.group);
+                    row = sheet.First(r => r.Group == this.group);
                     // many of the names contain valid id ranges after the table name, but we don't need those
                     var actualTableName = row.LookupTable.Split('[')[0];
 

@@ -141,7 +141,7 @@ namespace Dalamud.Game.Chat.SeStringHandling
         {
             var mapSheet = this.data.GetExcelSheet<Map>();
 
-            var matches = this.data.GetExcelSheet<PlaceName>().GetRows()
+            var matches = this.data.GetExcelSheet<PlaceName>()
                               .Where(row => row.Name.ToString().ToLowerInvariant() == placeName.ToLowerInvariant())
                               .ToArray();
 
