@@ -110,7 +110,6 @@ namespace Dalamud.Interface
                         }
                         if (this.dalamud.AntiDebug == null && ImGui.MenuItem("Enable AntiDebug"))
                         {
-                            this.dalamud.AntiDebug = new AntiDebug(this.dalamud.SigScanner);
                             this.dalamud.AntiDebug.Enable();
                         }
                         ImGui.Separator();

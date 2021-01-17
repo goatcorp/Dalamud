@@ -30,8 +30,8 @@ namespace Dalamud.Game.Internal
         }
 
         public void Dispose() {
-            if (this.DebugCheckAddress != IntPtr.Zero && this.original != null) 
-                Marshal.Copy(this.original, 0, DebugCheckAddress, this.nop.Length);
+            //if (this.DebugCheckAddress != IntPtr.Zero && this.original != null) 
+            //    Marshal.Copy(this.original, 0, DebugCheckAddress, this.nop.Length);
         }
     }
 }

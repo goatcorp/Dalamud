@@ -27,72 +27,163 @@ using Serilog.Events;
 
 namespace Dalamud {
     public sealed class Dalamud : IDisposable {
-        private readonly string baseDirectory;
+
+        #region Native Game Subsystems
+
+        /// <summary>
+        /// Game framework subsystem
+        /// </summary>
+        internal readonly Framework Framework;
+
+        /// <summary>
+        /// Anti-Debug detection prevention system
+        /// </summary>
+        internal readonly AntiDebug AntiDebug;
+
+        /// <summary>
+        /// WinSock optimization subsystem
+        /// </summary>
+        internal readonly WinSockHandlers WinSock2;
+
+        /// <summary>
+        /// ImGui Interface subsystem
+        /// </summary>
+        internal readonly InterfaceManager InterfaceManager;
+
+        /// <summary>
+        /// ClientState subsystem
+        /// </summary>
+        public readonly ClientState ClientState;
+
+        #endregion
+
+        #region Dalamud Subsystems
+
+        /// <summary>
+        /// Plugin Manager subsystem
+        /// </summary>
+        internal readonly PluginManager PluginManager;
+
+        /// <summary>
+        /// Plugin Repository subsystem
+        /// </summary>
+        internal readonly PluginRepository PluginRepository;
+
+        /// <summary>
+        /// Data provider subsystem
+        /// </summary>
+        internal readonly DataManager Data;
+
+        /// <summary>
+        /// Command Manager subsystem
+        /// </summary>
+        internal readonly CommandManager CommandManager;
+
+        /// <summary>
+        /// Localization subsystem facilitating localization for Dalamud and plugins
+        /// </summary>
+        internal readonly Localization LocalizationManager;
+
+        #endregion
+
+        #region Helpers
+
+        /// <summary>
+        /// SeStringManager subsystem facilitating string parsing
+        /// </summary>
+        internal readonly SeStringManager SeStringManager;
+
+        /// <summary>
+        /// Copy-enabled SigScanner for target module
+        /// </summary>
+        internal readonly SigScanner SigScanner;
+
+        /// <summary>
+        /// LoggingLevelSwitch for Dalamud and Plugin logs
+        /// </summary>
+        internal readonly LoggingLevelSwitch LogLevelSwitch;
+
+        /// <summary>
+        /// StartInfo object passed from injector
+        /// </summary>
+        internal readonly DalamudStartInfo StartInfo;
+
+        /// <summary>
+        /// Configuration object facilitating save and load of Dalamud configuration
+        /// </summary>
+        internal readonly DalamudConfiguration Configuration;
+
+        #endregion
+
+        #region Dalamud Core functionality
+
+        /// <summary>
+        /// Dalamud base UI
+        /// </summary>
+        internal readonly DalamudInterface DalamudUi;
+
+        /// <summary>
+        /// Dalamud chat commands
+        /// </summary>
+        internal readonly DalamudCommands DalamudCommands;
+
+        /// <summary>
+        /// Dalamud chat-based features
+        /// </summary>
+        internal readonly ChatHandlers ChatHandlers;
+
+        /// <summary>
+        /// Dalamud network-based features
+        /// </summary>
+        internal readonly NetworkHandlers NetworkHandlers;
+
+        #endregion
+
+        #region Internals
 
         private readonly ManualResetEvent unloadSignal;
 
-        private readonly ProcessModule targetModule;
+        private readonly string baseDirectory;
 
-        public readonly SigScanner SigScanner;
+        #endregion
 
-        public readonly Framework Framework;
+        /// <summary>
+        /// Injected process module
+        /// </summary>
+        internal readonly ProcessModule TargetModule;
 
-        public CommandManager CommandManager { get; private set; }
-        private DalamudCommands DalamudCommands { get; set; }
+        /// <summary>
+        /// Value indicating if Dalamud was successfully loaded
+        /// </summary>
+        internal bool IsReady { get; private set; }
 
-        public ChatHandlers ChatHandlers { get; private set; }
-
-        public NetworkHandlers NetworkHandlers { get; private set; }
-
-        public AntiDebug AntiDebug { get; set; }
-
-        internal PluginManager PluginManager { get; private set; }
-        internal PluginRepository PluginRepository { get; private set; }
-
-        public readonly ClientState ClientState;
-
-        public readonly DalamudStartInfo StartInfo;
-        internal LoggingLevelSwitch LogLevelSwitch { get; }
-
-        internal readonly DalamudConfiguration Configuration;
-
-        private readonly WinSockHandlers WinSock2;
-
-        internal InterfaceManager InterfaceManager { get; private set; }
-
-        internal DalamudInterface DalamudUi { get; private set; }
-
-        public DataManager Data { get; private set; }
-
-        internal SeStringManager SeStringManager { get; private set; }
-
-
-        internal Localization LocalizationManager;
-
-        public bool IsReady { get; private set; }
-
-        public DirectoryInfo AssetDirectory => new DirectoryInfo(this.StartInfo.AssetDirectory);
+        /// <summary>
+        /// Location of stored assets
+        /// </summary>
+        internal DirectoryInfo AssetDirectory => new DirectoryInfo(this.StartInfo.AssetDirectory);
 
         public Dalamud(DalamudStartInfo info, LoggingLevelSwitch loggingLevelSwitch) {
             this.StartInfo = info;
             this.LogLevelSwitch = loggingLevelSwitch;
 
-            this.Configuration = DalamudConfiguration.Load(info.ConfigurationPath);
-
             this.baseDirectory = info.WorkingDirectory;
 
             this.unloadSignal = new ManualResetEvent(false);
 
+            this.Configuration = DalamudConfiguration.Load(info.ConfigurationPath);
+
             // Initialize the process information.
-            this.targetModule = Process.GetCurrentProcess().MainModule;
-            this.SigScanner = new SigScanner(this.targetModule, true);
+            this.TargetModule = Process.GetCurrentProcess().MainModule;
+            this.SigScanner = new SigScanner(this.TargetModule, true);
+
+            this.AntiDebug = new AntiDebug(this.SigScanner);
 
             // Initialize game subsystem
             this.Framework = new Framework(this.SigScanner, this);
 
             this.WinSock2 = new WinSockHandlers();
 
-            NetworkHandlers = new NetworkHandlers(this, info.OptOutMbCollection);
+            this.NetworkHandlers = new NetworkHandlers(this, info.OptOutMbCollection);
 
             this.ClientState = new ClientState(this, info, this.SigScanner);
 
@@ -102,19 +193,19 @@ namespace Dalamud {
             else
                 this.LocalizationManager.SetupWithUiCulture();
 
-            PluginRepository = new PluginRepository(this, this.StartInfo.PluginDirectory, this.StartInfo.GameVersion);
+            this.PluginRepository = new PluginRepository(this, this.StartInfo.PluginDirectory, this.StartInfo.GameVersion);
 
-            DalamudUi = new DalamudInterface(this);
+            this.DalamudUi = new DalamudInterface(this);
 
             var isInterfaceLoaded = false;
             if (!bool.Parse(Environment.GetEnvironmentVariable("DALAMUD_NOT_HAVE_INTERFACE") ?? "false"))
             {
                 try
                 {
-                    InterfaceManager = new InterfaceManager(this, this.SigScanner);
-                    InterfaceManager.OnDraw += DalamudUi.Draw;
+                    this.InterfaceManager = new InterfaceManager(this, this.SigScanner);
+                    this.InterfaceManager.OnDraw += this.DalamudUi.Draw;
 
-                    InterfaceManager.Enable();
+                    this.InterfaceManager.Enable();
                     isInterfaceLoaded = true;
                 }
                 catch (Exception e)
@@ -123,10 +214,10 @@ namespace Dalamud {
                 }
             }
 
-            Data = new DataManager(this.StartInfo.Language);
+            this.Data = new DataManager(this.StartInfo.Language);
             try
             {
-                Data.Initialize(AssetDirectory.FullName);
+                this.Data.Initialize(AssetDirectory.FullName);
             }
             catch (Exception e)
             {
@@ -135,18 +226,18 @@ namespace Dalamud {
                 return;
             }
 
-            SeStringManager = new SeStringManager(Data);
+            this.SeStringManager = new SeStringManager(this.Data);
 
 #if DEBUG
-            AntiDebug = new AntiDebug(this.SigScanner);
+            this.AntiDebug = new AntiDebug(this.SigScanner);
 #endif
 
             // Initialize managers. Basically handlers for the logic
-            CommandManager = new CommandManager(this, info.Language);
-            DalamudCommands = new DalamudCommands(this);
-            DalamudCommands.SetupCommands();
+            this.CommandManager = new CommandManager(this, info.Language);
+            this.DalamudCommands = new DalamudCommands(this);
+            this.DalamudCommands.SetupCommands();
 
-            ChatHandlers = new ChatHandlers(this);
+            this.ChatHandlers = new ChatHandlers(this);
 
             if (!bool.Parse(Environment.GetEnvironmentVariable("DALAMUD_NOT_HAVE_PLUGINS") ?? "false"))
             {
