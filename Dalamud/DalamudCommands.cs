@@ -54,6 +54,10 @@ namespace Dalamud
                 HelpMessage = Loc.Localize("DalamudUnmuteHelp", "Unmute a word or sentence. Usage: /xlunmute <word or sentence>")
             });
 
+            this.dalamud.CommandManager.AddHandler("/ll", new CommandInfo(OnLastLinkCommand) {
+                HelpMessage = Loc.Localize("DalamudLastLinkHelp", "Open the last posted link in your default browser.")
+            });
+
             this.dalamud.CommandManager.AddHandler("/xlbgmset", new CommandInfo(OnBgmSetCommand)
             {
                 HelpMessage = Loc.Localize("DalamudBgmSetHelp", "Set the Game background music. Usage: /xlbgmset <BGM ID>")
@@ -169,6 +173,16 @@ namespace Dalamud
 
             this.dalamud.Framework.Gui.Chat.Print(
                 string.Format(Loc.Localize("DalamudUnmuted", "Unmuted \"{0}\"."), arguments));
+        }
+
+        private void OnLastLinkCommand(string command, string arguments) {
+            if (string.IsNullOrEmpty(this.dalamud.ChatHandlers.LastLink)) {
+                this.dalamud.Framework.Gui.Chat.Print(Loc.Localize("DalamudNoLastLink", "No last link..."));
+                return;
+            }
+
+            this.dalamud.Framework.Gui.Chat.Print(string.Format(Loc.Localize("DalamudOpeningLink", "Opening {0}"), this.dalamud.ChatHandlers.LastLink));
+            Process.Start(this.dalamud.ChatHandlers.LastLink);
         }
 
         private void OnBgmSetCommand(string command, string arguments) {
