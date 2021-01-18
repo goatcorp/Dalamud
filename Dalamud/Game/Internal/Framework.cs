@@ -111,9 +111,9 @@ namespace Dalamud.Game.Internal {
         public void Dispose() {
             Gui.Dispose();
             Network.Dispose();
-            //Resource.Dispose();
-            
+
             this.updateHook.Dispose();
+            this.destroyHook.Dispose();
         }
 
         private bool HandleFrameworkUpdate(IntPtr framework) {
