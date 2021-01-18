@@ -82,9 +82,6 @@ namespace Dalamud.Game.Internal {
             Gui = new GameGui(Address.GuiManager, scanner, dalamud);
 
             Network = new GameNetwork(scanner);
-
-            this.destroyHook =
-                new Hook<OnDestroyDetour>(Address.OnDestroy, new OnDestroyDelegate(HandleFrameworkDestroy), this);
         }
 
         private void HookVTable() {
@@ -92,12 +89,16 @@ namespace Dalamud.Game.Internal {
             // Virtual function layout:
             // .rdata:00000001411F1FE0 dq offset Xiv__Framework___dtor
             // .rdata:00000001411F1FE8 dq offset Xiv__Framework__init
-            // .rdata:00000001411F1FF0 dq offset sub_1400936E0
-            // .rdata:00000001411F1FF8 dq offset sub_1400939E0
+            // .rdata:00000001411F1FF0 dq offset Xiv__Framework__destroy
+            // .rdata:00000001411F1FF8 dq offset Xiv__Framework__free
             // .rdata:00000001411F2000 dq offset Xiv__Framework__update
 
             var pUpdate = Marshal.ReadIntPtr(vtable, IntPtr.Size * 4);
             this.updateHook = new Hook<OnUpdateDetour>(pUpdate, new OnUpdateDetour(HandleFrameworkUpdate), this);
+
+            var pDestroy = Marshal.ReadIntPtr(vtable, IntPtr.Size * 3);
+            this.destroyHook =
+                new Hook<OnDestroyDetour>(pDestroy, new OnDestroyDelegate(HandleFrameworkDestroy), this);
         }
         
         public void Enable() {

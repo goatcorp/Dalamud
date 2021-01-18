@@ -9,9 +9,6 @@ namespace Dalamud.Game.Internal {
         
         public IntPtr ScriptManager { get; private set; }
 
-        public IntPtr OnDestroy { get; private set; }
-        
-        
         protected override void Setup64Bit(SigScanner sig) {
             SetupFramework(sig);
             
@@ -21,8 +18,6 @@ namespace Dalamud.Game.Internal {
 
             // Called from Framework::Init
             ScriptManager = BaseAddress + 0x2C68; // note that no deref here
-
-            OnDestroy = sig.ScanText("48 83 EC 48 48 8B 0D ?? ?? ?? ?? 48 85 C9");
         }
 
         private void SetupFramework(SigScanner scanner) {
