@@ -23,7 +23,7 @@ namespace Dalamud {
             var finishSignal = new ManualResetEvent(false);
 
             try {
-                Log.Information(new string('-', 200));
+                Log.Information(new string('-', 80));
                 Log.Information("Initializing a session..");
 
                 // This is due to GitHub not supporting TLS 1.0, so we enable all TLS versions globally
@@ -34,12 +34,14 @@ namespace Dalamud {
                 AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
                 TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
 
-                using var dalamud = new Dalamud(info, levelSwitch, finishSignal);
+                var dalamud = new Dalamud(info, levelSwitch, finishSignal);
                 Log.Information("Starting a session..");
                     
                 // Run session
                 dalamud.Start();
                 dalamud.WaitForUnload();
+
+                dalamud.Dispose();
             } catch (Exception ex) {
                 Log.Fatal(ex, "Unhandled exception on main thread.");
             } finally {

@@ -108,7 +108,7 @@ namespace Dalamud.Interface
 
                             ImGui.EndMenu();
                         }
-                        if (this.dalamud.AntiDebug == null && ImGui.MenuItem("Enable AntiDebug"))
+                        if (ImGui.MenuItem("Enable AntiDebug", null, this.dalamud.AntiDebug.IsEnabled))
                         {
                             this.dalamud.AntiDebug.Enable();
                         }

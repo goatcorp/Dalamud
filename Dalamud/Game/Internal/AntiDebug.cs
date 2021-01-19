@@ -11,6 +11,8 @@ namespace Dalamud.Game.Internal
     {
         private IntPtr DebugCheckAddress { get; set; }
 
+        public bool IsEnabled { get; private set; }
+
         public AntiDebug(SigScanner scanner) {
             DebugCheckAddress = scanner.ScanText("FF 15 ?? ?? ?? ?? 85 C0 74 11");
 
@@ -22,11 +24,13 @@ namespace Dalamud.Game.Internal
 
         public void Enable() {
             this.original = new byte[this.nop.Length];
-            if (DebugCheckAddress != IntPtr.Zero) {
+            if (DebugCheckAddress != IntPtr.Zero && !IsEnabled) {
                 Log.Information($"Overwriting Debug Check @ 0x{DebugCheckAddress.ToInt64():X}");
                 Marshal.Copy(DebugCheckAddress, this.original, 0, this.nop.Length);
                 Marshal.Copy(this.nop, 0, DebugCheckAddress, this.nop.Length);
             }
+
+            IsEnabled = true;
         }
 
         public void Dispose() {

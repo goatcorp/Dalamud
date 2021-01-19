@@ -33,27 +33,27 @@ namespace Dalamud {
         /// <summary>
         /// Game framework subsystem
         /// </summary>
-        internal readonly Framework Framework;
+        internal Framework Framework { get; private set; }
 
         /// <summary>
         /// Anti-Debug detection prevention system
         /// </summary>
-        internal readonly AntiDebug AntiDebug;
+        internal AntiDebug AntiDebug { get; private set; }
 
         /// <summary>
         /// WinSock optimization subsystem
         /// </summary>
-        internal readonly WinSockHandlers WinSock2;
+        internal WinSockHandlers WinSock2 { get; private set; }
 
         /// <summary>
         /// ImGui Interface subsystem
         /// </summary>
-        internal readonly InterfaceManager InterfaceManager;
+        internal InterfaceManager InterfaceManager { get; private set; }
 
         /// <summary>
         /// ClientState subsystem
         /// </summary>
-        public readonly ClientState ClientState;
+        public ClientState ClientState { get; private set; }
 
         #endregion
 
@@ -62,27 +62,27 @@ namespace Dalamud {
         /// <summary>
         /// Plugin Manager subsystem
         /// </summary>
-        internal readonly PluginManager PluginManager;
+        internal PluginManager PluginManager { get; private set; }
 
         /// <summary>
         /// Plugin Repository subsystem
         /// </summary>
-        internal readonly PluginRepository PluginRepository;
+        internal PluginRepository PluginRepository { get; private set; }
 
         /// <summary>
         /// Data provider subsystem
         /// </summary>
-        internal readonly DataManager Data;
+        internal DataManager Data { get; private set; }
 
         /// <summary>
         /// Command Manager subsystem
         /// </summary>
-        internal readonly CommandManager CommandManager;
+        internal CommandManager CommandManager { get; private set; }
 
         /// <summary>
         /// Localization subsystem facilitating localization for Dalamud and plugins
         /// </summary>
-        internal readonly Localization LocalizationManager;
+        internal Localization LocalizationManager { get; private set; }
 
         #endregion
 
@@ -91,27 +91,27 @@ namespace Dalamud {
         /// <summary>
         /// SeStringManager subsystem facilitating string parsing
         /// </summary>
-        internal readonly SeStringManager SeStringManager;
+        internal SeStringManager SeStringManager { get; private set; }
 
         /// <summary>
         /// Copy-enabled SigScanner for target module
         /// </summary>
-        internal readonly SigScanner SigScanner;
+        internal SigScanner SigScanner { get; private set; }
 
         /// <summary>
         /// LoggingLevelSwitch for Dalamud and Plugin logs
         /// </summary>
-        internal readonly LoggingLevelSwitch LogLevelSwitch;
+        internal LoggingLevelSwitch LogLevelSwitch { get; private set; }
 
         /// <summary>
         /// StartInfo object passed from injector
         /// </summary>
-        internal readonly DalamudStartInfo StartInfo;
+        internal DalamudStartInfo StartInfo { get; private set; }
 
         /// <summary>
         /// Configuration object facilitating save and load of Dalamud configuration
         /// </summary>
-        internal readonly DalamudConfiguration Configuration;
+        internal DalamudConfiguration Configuration { get; private set; }
 
         #endregion
 
@@ -120,22 +120,22 @@ namespace Dalamud {
         /// <summary>
         /// Dalamud base UI
         /// </summary>
-        internal readonly DalamudInterface DalamudUi;
+        internal DalamudInterface DalamudUi { get; private set; }
 
         /// <summary>
         /// Dalamud chat commands
         /// </summary>
-        internal readonly DalamudCommands DalamudCommands;
+        internal DalamudCommands DalamudCommands { get; private set; }
 
         /// <summary>
         /// Dalamud chat-based features
         /// </summary>
-        internal readonly ChatHandlers ChatHandlers;
+        internal ChatHandlers ChatHandlers { get; private set; }
 
         /// <summary>
         /// Dalamud network-based features
         /// </summary>
-        internal readonly NetworkHandlers NetworkHandlers;
+        internal NetworkHandlers NetworkHandlers { get; private set; }
 
         #endregion
 
@@ -152,7 +152,7 @@ namespace Dalamud {
         /// <summary>
         /// Injected process module
         /// </summary>
-        internal readonly ProcessModule TargetModule;
+        internal ProcessModule TargetModule { get; private set; }
 
         /// <summary>
         /// Value indicating if Dalamud was successfully loaded
@@ -165,92 +165,89 @@ namespace Dalamud {
         internal DirectoryInfo AssetDirectory => new DirectoryInfo(this.StartInfo.AssetDirectory);
 
         public Dalamud(DalamudStartInfo info, LoggingLevelSwitch loggingLevelSwitch, ManualResetEvent finishSignal) {
-            this.StartInfo = info;
-            this.LogLevelSwitch = loggingLevelSwitch;
+            StartInfo = info;
+            LogLevelSwitch = loggingLevelSwitch;
 
             this.baseDirectory = info.WorkingDirectory;
 
             this.unloadSignal = new ManualResetEvent(false);
-            this.finishUnloadSignal = finishSignal;
+            this.unloadSignal.Reset();
 
-            this.Configuration = DalamudConfiguration.Load(info.ConfigurationPath);
+            this.finishUnloadSignal = finishSignal;
+            this.unloadSignal.Reset();
+        }
+
+        public void Start() {
+            Configuration = DalamudConfiguration.Load(StartInfo.ConfigurationPath);
 
             // Initialize the process information.
-            this.TargetModule = Process.GetCurrentProcess().MainModule;
-            this.SigScanner = new SigScanner(this.TargetModule, true);
+            TargetModule = Process.GetCurrentProcess().MainModule;
+            SigScanner = new SigScanner(TargetModule, true);
 
-            this.AntiDebug = new AntiDebug(this.SigScanner);
+            AntiDebug = new AntiDebug(SigScanner);
+#if DEBUG
+            AntiDebug.Enable();
+#endif
 
             // Initialize game subsystem
-            this.Framework = new Framework(this.SigScanner, this);
+            Framework = new Framework(SigScanner, this);
 
-            this.WinSock2 = new WinSockHandlers();
+            WinSock2 = new WinSockHandlers();
 
-            this.NetworkHandlers = new NetworkHandlers(this, info.OptOutMbCollection);
+            NetworkHandlers = new NetworkHandlers(this, StartInfo.OptOutMbCollection);
 
-            this.ClientState = new ClientState(this, info, this.SigScanner);
+            ClientState = new ClientState(this, StartInfo, SigScanner);
 
-            this.LocalizationManager = new Localization(AssetDirectory.FullName);
-            if (!string.IsNullOrEmpty(this.Configuration.LanguageOverride))
-                this.LocalizationManager.SetupWithLangCode(this.Configuration.LanguageOverride);
+            LocalizationManager = new Localization(AssetDirectory.FullName);
+            if (!string.IsNullOrEmpty(Configuration.LanguageOverride))
+                LocalizationManager.SetupWithLangCode(Configuration.LanguageOverride);
             else
-                this.LocalizationManager.SetupWithUiCulture();
+                LocalizationManager.SetupWithUiCulture();
 
-            this.PluginRepository = new PluginRepository(this, this.StartInfo.PluginDirectory, this.StartInfo.GameVersion);
+            PluginRepository = new PluginRepository(this, StartInfo.PluginDirectory, StartInfo.GameVersion);
 
-            this.DalamudUi = new DalamudInterface(this);
+            DalamudUi = new DalamudInterface(this);
 
             var isInterfaceLoaded = false;
-            if (!bool.Parse(Environment.GetEnvironmentVariable("DALAMUD_NOT_HAVE_INTERFACE") ?? "false"))
-            {
-                try
-                {
-                    this.InterfaceManager = new InterfaceManager(this, this.SigScanner);
-                    this.InterfaceManager.OnDraw += this.DalamudUi.Draw;
+            if (!bool.Parse(Environment.GetEnvironmentVariable("DALAMUD_NOT_HAVE_INTERFACE") ?? "false")) {
+                try {
+                    InterfaceManager = new InterfaceManager(this, SigScanner);
+                    InterfaceManager.OnDraw += DalamudUi.Draw;
 
-                    this.InterfaceManager.Enable();
+                    InterfaceManager.Enable();
                     isInterfaceLoaded = true;
-                }
-                catch (Exception e)
-                {
+                } catch (Exception e) {
                     Log.Information(e, "Could not init interface.");
                 }
             }
 
-            this.Data = new DataManager(this.StartInfo.Language);
-            try
-            {
-                this.Data.Initialize(AssetDirectory.FullName);
-            }
-            catch (Exception e)
-            {
+            Data = new DataManager(StartInfo.Language);
+            try {
+                Data.Initialize(AssetDirectory.FullName);
+            } catch (Exception e) {
                 Log.Error(e, "Could not initialize DataManager.");
                 Unload();
                 return;
             }
 
-            this.SeStringManager = new SeStringManager(this.Data);
-
-#if DEBUG
-            this.AntiDebug = new AntiDebug(this.SigScanner);
-#endif
+            SeStringManager = new SeStringManager(Data);
 
             // Initialize managers. Basically handlers for the logic
-            this.CommandManager = new CommandManager(this, info.Language);
-            this.DalamudCommands = new DalamudCommands(this);
-            this.DalamudCommands.SetupCommands();
+            CommandManager = new CommandManager(this, StartInfo.Language);
+            DalamudCommands = new DalamudCommands(this);
+            DalamudCommands.SetupCommands();
 
-            this.ChatHandlers = new ChatHandlers(this);
+            ChatHandlers = new ChatHandlers(this);
 
             if (!bool.Parse(Environment.GetEnvironmentVariable("DALAMUD_NOT_HAVE_PLUGINS") ?? "false"))
             {
                 try
                 {
-                    this.PluginRepository.CleanupPlugins();
+                    PluginRepository.CleanupPlugins();
 
-                    this.PluginManager =
-                        new PluginManager(this, this.StartInfo.PluginDirectory, this.StartInfo.DefaultPluginDirectory);
-                    this.PluginManager.LoadPlugins();
+                    PluginManager =
+                        new PluginManager(this, StartInfo.PluginDirectory, StartInfo.DefaultPluginDirectory);
+                    PluginManager.LoadPlugins();
                 }
                 catch (Exception ex)
                 {
@@ -258,22 +255,18 @@ namespace Dalamud {
                 }
             }
 
-            this.Framework.Enable();
-            this.ClientState.Enable();
+            Framework.Enable();
+            ClientState.Enable();
 
             IsReady = true;
 
             Troubleshooting.LogTroubleshooting(this, isInterfaceLoaded);
-        }
 
-        public void Start() {
-#if DEBUG
-            AntiDebug.Enable();
-            //ReplaceExceptionHandler();
-#endif
+            Log.Information("Dalamud is ready.");
         }
 
         public void Unload() {
+            Log.Information("Trigger unload");
             this.unloadSignal.Set();
         }
 
@@ -286,35 +279,36 @@ namespace Dalamud {
         }
 
         public void Dispose() {
-            // this must be done before unloading plugins, or it can cause a race condition
-            // due to rendering happening on another thread, where a plugin might receive
-            // a render call after it has been disposed, which can crash if it attempts to
-            // use any resources that it freed in its own Dispose method
-            this.InterfaceManager?.Dispose();
+            try {
+                // this must be done before unloading plugins, or it can cause a race condition
+                // due to rendering happening on another thread, where a plugin might receive
+                // a render call after it has been disposed, which can crash if it attempts to
+                // use any resources that it freed in its own Dispose method
+                InterfaceManager?.Dispose();
 
-            try
-            {
-                this.PluginManager.UnloadPlugins();
+                try {
+                    PluginManager.UnloadPlugins();
+                } catch (Exception ex) {
+                    Log.Error(ex, "Plugin unload failed.");
+                }
+
+                Framework.Dispose();
+                ClientState.Dispose();
+
+                this.unloadSignal.Dispose();
+
+                WinSock2.Dispose();
+
+                SigScanner.Dispose();
+
+                Data.Dispose();
+
+                AntiDebug.Dispose();
+
+                Log.Debug("Dalamud::Dispose OK!");
+            } catch (Exception ex) {
+                Log.Error(ex, "skjdgjjkodsfg");
             }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Plugin unload failed.");
-            }
-
-            this.Framework.Dispose();
-            this.ClientState.Dispose();
-
-            this.unloadSignal.Dispose();
-
-            this.WinSock2.Dispose();
-
-            this.SigScanner.Dispose();
-            
-            this.Data.Dispose();
-
-            this.AntiDebug?.Dispose();
-
-            Log.Debug("Dalamud::Dispose OK!");
         }
 
         internal void ReplaceExceptionHandler() {
