@@ -55,7 +55,7 @@ namespace Dalamud
         /// <param name="result">The resulting object.</param>
         /// <returns>Whether or not the read succeeded.</returns>
         public static bool Read<T>(IntPtr address, out T result) where T : struct {
-            if (!ReadBytes(address, SizeOf<T>(), out var buffer)) {
+            if (!ReadBytes(address, SizeCache<T>.Size, out var buffer)) {
                 result = default;
                 return false;
             }
@@ -78,19 +78,14 @@ namespace Dalamud
         public static T[] Read<T>(IntPtr address, int count) where T : struct
         {
             var size = SizeOf<T>();
+            if (!ReadBytes(address, count * size, out var buffer))
+                return null;
             var result = new T[count];
-
-            var readSucceeded = true;
-            for (var i = 0; i < count; i++) {
-                var success = Read<T>(address + i * size, out var res);
-
-                if (!success)
-                    readSucceeded = false;
-
-                result[i] = res;
-            }
-
-            return !readSucceeded ? null : result;
+            using var mem = new LocalMemory(buffer.Length);
+            mem.Write(buffer);
+            for (var i = 0; i < result.Length; i++)
+                result[i] = mem.Read<T>(i * size);
+            return result;
         }
 
         /// <summary>
@@ -102,7 +97,7 @@ namespace Dalamud
         /// <returns>Whether or not the write succeeded.</returns>
         public static bool Write<T>(IntPtr address, T obj) where T : struct
         {
-            using var mem = new LocalMemory(SizeOf<T>());
+            using var mem = new LocalMemory(SizeCache<T>.Size);
             mem.Write(obj);
             return WriteBytes(address, mem.Read());
         }
@@ -118,11 +113,11 @@ namespace Dalamud
         {
             if (objArray == null || objArray.Length == 0)
                 return true;
-            var size = SizeOf<T>();
+            var size = SizeCache<T>.Size;
+            using var mem = new LocalMemory(objArray.Length * size);
             for (var i = 0; i < objArray.Length; i++)
-                if (!Write(address + i * size, objArray[i]))
-                    return false;
-            return true;
+                mem.Write(objArray[i], i * size);
+            return WriteBytes(address, mem.Read());
         }
 
         /// <summary>
@@ -204,12 +199,23 @@ namespace Dalamud
         /// </summary>
         /// <typeparam name="T">The type to inspect.</typeparam>
         /// <returns>The size of the passed type.</returns>
-        public static int SizeOf<T>()
+        public static int SizeOf<T>() where T: struct
         {
-            var type = typeof(T);
-            if (type.IsEnum)
-                type = type.GetEnumUnderlyingType();
-            return Type.GetTypeCode(type) == TypeCode.Boolean ? 1 : Marshal.SizeOf(type);
+            return SizeCache<T>.Size;
+        }
+
+        private static class SizeCache<T> 
+        {
+            // ReSharper disable once StaticMemberInGenericType
+            public static readonly int Size;
+
+            static SizeCache() 
+            {
+                var type = typeof(T);
+                if (type.IsEnum)
+                    type = type.GetEnumUnderlyingType();
+                Size = Type.GetTypeCode(type) == TypeCode.Boolean ? 1 : Marshal.SizeOf(type);
+            }
         }
 
         private static class Imports
@@ -242,9 +248,9 @@ namespace Dalamud
                 return bytes;
             }
 
-            public T Read<T>() => (T)Marshal.PtrToStructure(this.hGlobal, typeof(T));
+            public T Read<T>(int offset = 0) => (T)Marshal.PtrToStructure(this.hGlobal + offset, typeof(T));
             public void Write(byte[] data, int index = 0) => Marshal.Copy(data, index, this.hGlobal, this.size);
-            public void Write<T>(T data) => Marshal.StructureToPtr(data, this.hGlobal, false);
+            public void Write<T>(T data, int offset = 0) => Marshal.StructureToPtr(data, this.hGlobal + offset, false);
             ~LocalMemory() => Dispose();
 
             public void Dispose()
