@@ -31,8 +31,8 @@ namespace Dalamud.Game.Internal
             this.original = new byte[this.nop.Length];
             if (DebugCheckAddress != IntPtr.Zero && !IsEnabled) {
                 Log.Information($"Overwriting Debug Check @ 0x{DebugCheckAddress.ToInt64():X}");
-                Marshal.Copy(DebugCheckAddress, this.original, 0, this.nop.Length);
-                Marshal.Copy(this.nop, 0, DebugCheckAddress, this.nop.Length);
+                SafeMemory.ReadBytes(DebugCheckAddress, this.nop.Length, out this.original);
+                SafeMemory.WriteBytes(DebugCheckAddress, this.nop);
             } else {
                 Log.Information("DebugCheck already overwritten?");
             }
