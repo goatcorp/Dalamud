@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using System.Net.Mime;
@@ -29,6 +30,9 @@ namespace Dalamud.Interface
 
         private bool drawActors = false;
         private float maxActorDrawDistance = 20;
+
+        private string inputSig = string.Empty;
+        private IntPtr sigResult = IntPtr.Zero;
 
         private string inputAddonName = string.Empty;
         private int inputAddonIndex;
@@ -86,6 +90,20 @@ namespace Dalamud.Interface
                             ImGui.TextUnformatted(this.serverOpString);
                             break;
                         case 1:
+
+                            ImGui.InputText(".text sig", ref this.inputSig, 400);
+                            if (ImGui.Button("Resolve")) {
+                                try {
+                                    this.sigResult = this.dalamud.SigScanner.ScanText(this.inputSig);
+                                } catch (KeyNotFoundException) {
+                                    this.sigResult = new IntPtr(-1);
+                                }
+                            }
+                            ImGui.Text($"Result: {this.sigResult.ToInt64():X}");
+                            ImGui.SameLine();
+                            if (ImGui.Button("C")) {
+                                ImGui.SetClipboardText(this.sigResult.ToInt64().ToString("x"));
+                            }
 
                             foreach (var debugScannedValue in BaseAddressResolver.DebugScannedValues) {
                                 ImGui.TextUnformatted($"{debugScannedValue.Key}");
