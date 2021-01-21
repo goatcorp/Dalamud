@@ -48,7 +48,7 @@ namespace Dalamud.Interface
         private RawDX11Scene scene;
 
         public Device Device => this.scene.Device;
-        public IntPtr WindowHandlePtr => this.scene.WindowHandle;
+        public IntPtr WindowHandlePtr => this.scene.WindowHandlePtr;
 
         private delegate void InstallRTSSHook();
         private string rtssPath;
