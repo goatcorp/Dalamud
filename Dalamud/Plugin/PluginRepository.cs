@@ -35,8 +35,6 @@ namespace Dalamud.Plugin
         public PluginRepository(Dalamud dalamud, string pluginDirectory, string gameVersion) {
             this.dalamud = dalamud;
             this.pluginDirectory = pluginDirectory;
-
-            ReloadPluginMasterAsync();
         }
 
         public void ReloadPluginMasterAsync() {
