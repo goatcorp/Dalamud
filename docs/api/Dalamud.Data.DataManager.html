@@ -10,7 +10,7 @@
     <meta name="viewport" content="width=device-width">
     <meta name="title" content="Class DataManager
    ">
-    <meta name="generator" content="docfx 2.48.1.0">
+    <meta name="generator" content="docfx 2.56.6.0">
     
     <link rel="shortcut icon" href="../favicon.ico">
     <link rel="stylesheet" href="../styles/docfx.vendor.css">
@@ -282,7 +282,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Data_DataManager_Dispose.md&amp;value=---%0Auid%3A%20Dalamud.Data.DataManager.Dispose%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L240">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L250">View Source</a>
   </span>
   <a id="Dalamud_Data_DataManager_Dispose_" data-uid="Dalamud.Data.DataManager.Dispose*"></a>
   <h4 id="Dalamud_Data_DataManager_Dispose" data-uid="Dalamud.Data.DataManager.Dispose">Dispose()</h4>
@@ -292,6 +292,56 @@
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public void Dispose()</code></pre>
   </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Data_DataManager_FileExists_System_String_.md&amp;value=---%0Auid%3A%20Dalamud.Data.DataManager.FileExists(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L190">View Source</a>
+  </span>
+  <a id="Dalamud_Data_DataManager_FileExists_" data-uid="Dalamud.Data.DataManager.FileExists*"></a>
+  <h4 id="Dalamud_Data_DataManager_FileExists_System_String_" data-uid="Dalamud.Data.DataManager.FileExists(System.String)">FileExists(String)</h4>
+  <div class="markdown level1 summary"><p>Check if the file with the given path exists within the game's index files.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool FileExists(string path)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">path</span></td>
+        <td><p>The path inside of the game files.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p>True if the file exists.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Data_DataManager_GetExcelSheet__1.md&amp;value=---%0Auid%3A%20Dalamud.Data.DataManager.GetExcelSheet%60%601%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
@@ -307,7 +357,6 @@
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public ExcelSheet&lt;T&gt; GetExcelSheet&lt;T&gt;()
-
     where T : class, IExcelRow</code></pre>
   </div>
   <h5 class="returns">Returns</h5>
@@ -357,7 +406,6 @@
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public ExcelSheet&lt;T&gt; GetExcelSheet&lt;T&gt;(ClientLanguage language)
-
     where T : class, IExcelRow</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
@@ -475,7 +523,6 @@
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public T GetFile&lt;T&gt;(string path)
-
     where T : FileResource</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
@@ -533,7 +580,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Data_DataManager_GetIcon_Dalamud_ClientLanguage_System_Int32_.md&amp;value=---%0Auid%3A%20Dalamud.Data.DataManager.GetIcon(Dalamud.ClientLanguage%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L201">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L211">View Source</a>
   </span>
   <a id="Dalamud_Data_DataManager_GetIcon_" data-uid="Dalamud.Data.DataManager.GetIcon*"></a>
   <h4 id="Dalamud_Data_DataManager_GetIcon_Dalamud_ClientLanguage_System_Int32_" data-uid="Dalamud.Data.DataManager.GetIcon(Dalamud.ClientLanguage,System.Int32)">GetIcon(ClientLanguage, Int32)</h4>
@@ -589,7 +636,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Data_DataManager_GetIcon_System_Int32_.md&amp;value=---%0Auid%3A%20Dalamud.Data.DataManager.GetIcon(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L190">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L200">View Source</a>
   </span>
   <a id="Dalamud_Data_DataManager_GetIcon_" data-uid="Dalamud.Data.DataManager.GetIcon*"></a>
   <h4 id="Dalamud_Data_DataManager_GetIcon_System_Int32_" data-uid="Dalamud.Data.DataManager.GetIcon(System.Int32)">GetIcon(Int32)</h4>
@@ -639,7 +686,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Data_DataManager_GetIcon_System_String_System_Int32_.md&amp;value=---%0Auid%3A%20Dalamud.Data.DataManager.GetIcon(System.String%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L221">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L231">View Source</a>
   </span>
   <a id="Dalamud_Data_DataManager_GetIcon_" data-uid="Dalamud.Data.DataManager.GetIcon*"></a>
   <h4 id="Dalamud_Data_DataManager_GetIcon_System_String_System_Int32_" data-uid="Dalamud.Data.DataManager.GetIcon(System.String,System.Int32)">GetIcon(String, Int32)</h4>
@@ -703,7 +750,7 @@
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public Task Initialize(string baseDir)</code></pre>
+    <pre><code class="lang-csharp hljs">public void Initialize(string baseDir)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -718,21 +765,6 @@
       <tr>
         <td><span class="xref">System.String</span></td>
         <td><span class="parametername">baseDir</span></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <h5 class="returns">Returns</h5>
-  <table class="table table-bordered table-striped table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><span class="xref">System.Threading.Tasks.Task</span></td>
         <td></td>
       </tr>
     </tbody>
@@ -757,7 +789,8 @@
                 </ul>
               </div>
               <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
-              <!-- <p><a class="back-to-top" href="#top">Back to top</a><p> -->
+                <h5>In This Article</h5>
+                <div></div>
               </nav>
             </div>
           </div>
