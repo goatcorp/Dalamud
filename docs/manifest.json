@@ -12,6 +12,18 @@
           "hash": "g6qdwVgHIWulxe63U0Y6pw=="
         }
       },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.ClientLanguage.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.ClientLanguage.html",
+          "hash": "KTbMpwITm4R5l8kmZLxTCw=="
+        }
+      },
       "is_incremental": false,
       "version": ""
     },
@@ -53,11 +65,35 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Dalamud.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Dalamud.html",
+          "hash": "ufjysKHva/PwHbkExgD6Bg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.DalamudStartInfo.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.DalamudStartInfo.html",
+          "hash": "/ZibweIOoIdUFNIdXJs6UA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/Dalamud.Data.DataManager.yml",
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Data.DataManager.html",
-          "hash": "D56wfssdMq1HpTCn2ZxQ8g=="
+          "hash": "ProI/FO4tq9XAb/u4s90Gg=="
         }
       },
       "is_incremental": false,
@@ -130,6 +166,18 @@
         ".html": {
           "relative_path": "api/Dalamud.Data.html",
           "hash": "Hqwo1rHKmwTMM72de/eQQg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.EntryPoint.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.EntryPoint.html",
+          "hash": "cg/eDIWu8wWS98JMXI5Q7A=="
         }
       },
       "is_incremental": false,
@@ -525,7 +573,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.ChatHandlers.html",
-          "hash": "eV86rNfXaZ2S6Ga/2O6Opg=="
+          "hash": "aO6a0M/MVlO/idh4NKFVjw=="
         }
       },
       "is_incremental": false,
@@ -537,7 +585,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.ClientState.Actors.ActorTable.html",
-          "hash": "gr1Re+DX0DAdljSugpdesQ=="
+          "hash": "q/17GogbEOiNUfAg4LZp3A=="
         }
       },
       "is_incremental": false,
@@ -585,7 +633,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.ClientState.Actors.Resolvers.BaseResolver.html",
-          "hash": "ontBOW18v3kmBuaIahJzmw=="
+          "hash": "8qK2umE2waEmYPYyYvLLRg=="
         }
       },
       "is_incremental": false,
@@ -597,7 +645,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.ClientState.Actors.Resolvers.ClassJob.html",
-          "hash": "N+2YxVPP3sFiUNRuFBa4lQ=="
+          "hash": "QESo7r3j6TJsqTILAxX6Mw=="
         }
       },
       "is_incremental": false,
@@ -609,7 +657,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.ClientState.Actors.Resolvers.World.html",
-          "hash": "4+NlIYWEyd52uS4d9tbMxg=="
+          "hash": "C9o/B4QcIcR346qYOqZpDA=="
         }
       },
       "is_incremental": false,
@@ -657,7 +705,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.ClientState.Actors.Types.Actor.html",
-          "hash": "p2yMJnb7ZdPrdoaI6EJsjg=="
+          "hash": "s6yQ5Q0O9LRerQV1qJ64Bw=="
         }
       },
       "is_incremental": false,
@@ -669,7 +717,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.ClientState.Actors.Types.Chara.html",
-          "hash": "MNhaPV5G/pjba252nXs0Og=="
+          "hash": "/dye10pgHVut38xM8SGXjA=="
         }
       },
       "is_incremental": false,
@@ -681,7 +729,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.ClientState.Actors.Types.NonPlayer.BattleNpc.html",
-          "hash": "zSpWIIUDt5v598T/8oofPA=="
+          "hash": "uFvfLBb0eDkMm/Xpp6Uyrg=="
         }
       },
       "is_incremental": false,
@@ -705,7 +753,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.ClientState.Actors.Types.NonPlayer.EventObj.html",
-          "hash": "XG4iDCw4mBDrei8ec9Wv6A=="
+          "hash": "0vngXgDq/4hxsgCULy4pxQ=="
         }
       },
       "is_incremental": false,
@@ -717,7 +765,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.ClientState.Actors.Types.NonPlayer.Npc.html",
-          "hash": "3DTzTqltjvdiLBtBwfmGgA=="
+          "hash": "5Ojqm4dEZd+R5M7cPdfR9A=="
         }
       },
       "is_incremental": false,
@@ -753,7 +801,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.ClientState.Actors.Types.PlayerCharacter.html",
-          "hash": "R+xhVPz+Nqle08mJgHEjzg=="
+          "hash": "/aBwvXLmUu6DlptxRmi7VQ=="
         }
       },
       "is_incremental": false,
@@ -789,7 +837,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.ClientState.ClientState.html",
-          "hash": "cwNy4BMLP+O8kBQX9gBKgg=="
+          "hash": "TUCCijDtBHWlklFW4jF+cg=="
         }
       },
       "is_incremental": false,
@@ -849,7 +897,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.ClientState.PartyList.html",
-          "hash": "8rSdyiKBmUKfhPB60YXhZA=="
+          "hash": "lQPZYigS8hbhh0R4lWUvjA=="
         }
       },
       "is_incremental": false,
@@ -1281,7 +1329,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Command.CommandManager.html",
-          "hash": "aGfcXZAJvSuDIgSaDKz/Ow=="
+          "hash": "hBIe8O0URrXeSYEgKliDvA=="
         }
       },
       "is_incremental": false,
@@ -1353,7 +1401,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Internal.File.ResourceManager.html",
-          "hash": "kHLfC/qrcH83VKWCKsJScA=="
+          "hash": "itSZ51EgEbdwGQxgZGp+KQ=="
         }
       },
       "is_incremental": false,
@@ -1401,7 +1449,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Internal.Framework.html",
-          "hash": "wq0qAQXH+WYmGEu/mKnC4Q=="
+          "hash": "EFUsmNG0CzUtBgdTzvF0cg=="
         }
       },
       "is_incremental": false,
@@ -1473,7 +1521,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Internal.Gui.ChatGui.html",
-          "hash": "ertiuX7OeXOhHBgGRYkQTw=="
+          "hash": "cua7aCEpc1ydInXkG2JtrQ=="
         }
       },
       "is_incremental": false,
@@ -1497,7 +1545,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Internal.Gui.GameGui.html",
-          "hash": "8Wo1e9oFJPi3xzXsfWY8TQ=="
+          "hash": "vHSrYw9vuLgqbfUuDp3Img=="
         }
       },
       "is_incremental": false,
@@ -1569,7 +1617,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Internal.Gui.TargetManager.html",
-          "hash": "GTViEzaaE9DogvLrzMqD3Q=="
+          "hash": "2fXgF0xrvNfND1rdX2Pdiw=="
         }
       },
       "is_incremental": false,
@@ -1701,7 +1749,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Network.NetworkHandlers.html",
-          "hash": "W/dWR0B88SPRnxisL4AVOg=="
+          "hash": "10woSDGk7iZ+W5Pl4Ua/yA=="
         }
       },
       "is_incremental": false,
@@ -1954,6 +2002,30 @@
         ".html": {
           "relative_path": "api/Dalamud.Plugin.html",
           "hash": "PN2g0sujiOs75SXhVxQ8zg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.SafeMemory.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.SafeMemory.html",
+          "hash": "OrDMSU96QKsuNRSJWiwhaA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.html",
+          "hash": "idDcY/fZfCAG/DJ4rB8PEQ=="
         }
       },
       "is_incremental": false,
@@ -6849,7 +6921,7 @@
       "output": {
         ".html": {
           "relative_path": "api/toc.html",
-          "hash": "0dYEXzTvN81dgj5gJwcl5A=="
+          "hash": "mmwhKctGGfcx/T3Y9AQ3Dw=="
         }
       },
       "is_incremental": false,
@@ -6864,32 +6936,30 @@
           "hash": "SfST5AwBnU8oPdlya6ggRg=="
         }
       },
-      "is_incremental": false,
+      "is_incremental": true,
       "version": ""
     }
   ],
   "incremental_info": [
     {
       "status": {
-        "can_incremental": false,
-        "details": "Cannot build incrementally because last build info is missing.",
+        "can_incremental": true,
         "incrementalPhase": "build",
         "total_file_count": 0,
-        "skipped_file_count": 0,
-        "full_build_reason_code": "NoAvailableBuildCache"
+        "skipped_file_count": 0
       },
       "processors": {
         "ConceptualDocumentProcessor": {
-          "can_incremental": false,
+          "can_incremental": true,
           "incrementalPhase": "build",
           "total_file_count": 3,
-          "skipped_file_count": 0
+          "skipped_file_count": 3
         },
         "ManagedReferenceDocumentProcessor": {
-          "can_incremental": false,
+          "can_incremental": true,
           "incrementalPhase": "build",
-          "total_file_count": 568,
-          "skipped_file_count": 0
+          "total_file_count": 574,
+          "skipped_file_count": 568
         },
         "TocDocumentProcessor": {
           "can_incremental": false,
@@ -6902,8 +6972,8 @@
     },
     {
       "status": {
-        "can_incremental": false,
-        "details": "Cannot support incremental post processing, the reason is: last post processor info is null.",
+        "can_incremental": true,
+        "details": "Can support incremental post processing.",
         "incrementalPhase": "postProcessing",
         "total_file_count": 0,
         "skipped_file_count": 0
