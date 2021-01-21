@@ -11,6 +11,7 @@ using EasyHook;
 using ImGuiNET;
 using ImGuiScene;
 using Serilog;
+using SharpDX.Direct3D11;
 
 // general dev notes, here because it's easiest
 /*
@@ -45,6 +46,9 @@ namespace Dalamud.Interface
 
         private Dalamud dalamud;
         private RawDX11Scene scene;
+
+        public Device Device => this.scene.Device;
+        public IntPtr WindowHandlePtr => this.scene.WindowHandle;
 
         private delegate void InstallRTSSHook();
         private string rtssPath;
@@ -218,9 +222,9 @@ namespace Dalamud.Interface
 
         private IntPtr PresentDetour(IntPtr swapChain, uint syncInterval, uint presentFlags)
         {
-            if (this.scene == null)
-            {
+            if (this.scene == null) {
                 this.scene = new RawDX11Scene(swapChain);
+
                 this.scene.ImGuiIniPath = Path.Combine(Path.GetDirectoryName(this.dalamud.StartInfo.ConfigurationPath), "dalamudUI.ini");
                 this.scene.OnBuildUI += Display;
                 this.scene.OnNewInputFrame += OnNewInputFrame;

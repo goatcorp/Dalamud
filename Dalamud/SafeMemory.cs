@@ -12,6 +12,10 @@ namespace Dalamud
     /// <summary>
     /// Class facilitating safe memory access
     /// </summary>
+    /// <remarks>
+    /// Attention! The performance of these methods is severely worse than regular <see cref="Marshal"/> calls.
+    /// Please consider using these instead in performance-critical code.
+    /// </remarks>
     public static class SafeMemory
     {
         private static readonly IntPtr Handle;

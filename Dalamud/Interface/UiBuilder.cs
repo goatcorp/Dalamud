@@ -20,6 +20,16 @@ namespace Dalamud.Interface
         private readonly string namespaceName;
 
         /// <summary>
+        /// The game's active Direct3D device.
+        /// </summary>
+        public Device Device => this.dalamud.InterfaceManager.Device;
+        
+        /// <summary>
+        /// The game's main window handle.
+        /// </summary>
+        public IntPtr WindowHandlePtr => this.dalamud.InterfaceManager.WindowHandlePtr;
+
+        /// <summary>
         /// The default Dalamud font based on Noto Sans CJK Medium in 17pt - supporting all game languages and icons.
         /// </summary>
         public static ImFontPtr DefaultFont => InterfaceManager.DefaultFont;
