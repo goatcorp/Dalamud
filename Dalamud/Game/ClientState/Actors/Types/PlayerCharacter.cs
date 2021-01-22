@@ -9,7 +9,7 @@ namespace Dalamud.Game.ClientState.Actors.Types {
     /// <summary>
     ///     This class represents a player character.
     /// </summary>
-    public class PlayerCharacter : Chara {
+    public unsafe class PlayerCharacter : Chara {
         /// <summary>
         ///     Set up a new player character with the provided memory representation.
         /// </summary>
@@ -28,12 +28,12 @@ namespace Dalamud.Game.ClientState.Actors.Types {
         /// <summary>
         ///     The current <see cref="World">world</see> of the character.
         /// </summary>
-        public World CurrentWorld => new World(this.actorStruct.CurrentWorld, this.dalamud);
+        public World CurrentWorld => new World(*(ushort*)(Address + ActorOffsets.CurrentWorld), this.dalamud);
 
         /// <summary>
         ///     The home <see cref="World">world</see> of the character.
         /// </summary>
-        public World HomeWorld => new World(this.actorStruct.HomeWorld, this.dalamud);
+        public World HomeWorld => new World(*(ushort*)(Address + ActorOffsets.HomeWorld), this.dalamud);
 
         /// <summary>
         ///     The Free Company tag of this player.
@@ -43,7 +43,7 @@ namespace Dalamud.Game.ClientState.Actors.Types {
         /// <summary>
         /// Target of the PlayerCharacter
         /// </summary>
-        public override int TargetActorID => this.actorStruct.PlayerCharacterTargetActorId;
+        public override int TargetActorID => *(int*)(Address + ActorOffsets.PlayerCharacterTargetActorId);
 
     }
 }
