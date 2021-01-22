@@ -24,7 +24,7 @@ namespace Dalamud.Game.Internal
             Log.Verbose("DebugCheck address {DebugCheckAddress}", DebugCheckAddress);
         }
 
-        private readonly byte[] nop = new byte[] { 0x31, 0xC0, 0x90, 0x90, 0x90, 0x90, 0x90 };
+        private readonly byte[] nop = new byte[] { 0x31, 0xC0, 0x90, 0x90, 0x90, 0x90 };
         private byte[] original;
 
         public void Enable() {
