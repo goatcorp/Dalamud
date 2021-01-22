@@ -4,6 +4,7 @@ using System.IO;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using Dalamud.Game;
 using Dalamud.Game.Internal.DXGI;
 using Dalamud.Hooking;
@@ -42,6 +43,8 @@ namespace Dalamud.Interface
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         private delegate IntPtr SetCursorDelegate(IntPtr hCursor);
 
+        private ManualResetEvent fontBuildSignal;
+
         private ISwapChainAddressResolver Address { get; }
 
         private Dalamud dalamud;
@@ -67,6 +70,8 @@ namespace Dalamud.Interface
         public InterfaceManager(Dalamud dalamud, SigScanner scanner)
         {
             this.dalamud = dalamud;
+
+            this.fontBuildSignal = new ManualResetEvent(false);
 
             try {
                 var sigResolver = new SwapChainSigResolver();
@@ -272,6 +277,8 @@ namespace Dalamud.Interface
 
         private unsafe void SetupFonts()
         {
+            this.fontBuildSignal.Reset();
+
             ImGui.GetIO().Fonts.Clear();
 
             ImFontConfigPtr fontConfig = ImGuiNative.ImFontConfig_ImFontConfig();
@@ -317,10 +324,16 @@ namespace Dalamud.Interface
 
             Log.Verbose("[FONT] Fonts built!");
 
+            this.fontBuildSignal.Set();
+
             fontConfig.Destroy();
             japaneseRangeHandle.Free();
             gameRangeHandle.Free();
             iconRangeHandle.Free();
+        }
+
+        public void WaitForFontRebuild() {
+            this.fontBuildSignal.WaitOne();
         }
 
         // This is intended to only be called as a handler attached to scene.OnNewRenderFrame

@@ -178,91 +178,94 @@ namespace Dalamud {
         }
 
         public void Start() {
-            Configuration = DalamudConfiguration.Load(StartInfo.ConfigurationPath);
+            try {
+                Configuration = DalamudConfiguration.Load(StartInfo.ConfigurationPath);
 
-            // Initialize the process information.
-            TargetModule = Process.GetCurrentProcess().MainModule;
-            SigScanner = new SigScanner(TargetModule, true);
+                // Initialize the process information.
+                TargetModule = Process.GetCurrentProcess().MainModule;
+                SigScanner = new SigScanner(TargetModule, true);
 
-            AntiDebug = new AntiDebug(SigScanner);
+                AntiDebug = new AntiDebug(SigScanner);
 #if DEBUG
-            AntiDebug.Enable();
+                AntiDebug.Enable();
 #endif
 
-            // Initialize game subsystem
-            Framework = new Framework(SigScanner, this);
+                // Initialize game subsystem
+                Framework = new Framework(SigScanner, this);
 
-            WinSock2 = new WinSockHandlers();
+                WinSock2 = new WinSockHandlers();
 
-            NetworkHandlers = new NetworkHandlers(this, StartInfo.OptOutMbCollection);
+                NetworkHandlers = new NetworkHandlers(this, StartInfo.OptOutMbCollection);
 
-            ClientState = new ClientState(this, StartInfo, SigScanner);
+                ClientState = new ClientState(this, StartInfo, SigScanner);
 
-            LocalizationManager = new Localization(AssetDirectory.FullName);
-            if (!string.IsNullOrEmpty(Configuration.LanguageOverride))
-                LocalizationManager.SetupWithLangCode(Configuration.LanguageOverride);
-            else
-                LocalizationManager.SetupWithUiCulture();
+                LocalizationManager = new Localization(AssetDirectory.FullName);
+                if (!string.IsNullOrEmpty(Configuration.LanguageOverride))
+                    LocalizationManager.SetupWithLangCode(Configuration.LanguageOverride);
+                else
+                    LocalizationManager.SetupWithUiCulture();
 
-            PluginRepository = new PluginRepository(this, StartInfo.PluginDirectory, StartInfo.GameVersion);
+                PluginRepository = new PluginRepository(this, StartInfo.PluginDirectory, StartInfo.GameVersion);
 
-            DalamudUi = new DalamudInterface(this);
+                DalamudUi = new DalamudInterface(this);
 
-            var isInterfaceLoaded = false;
-            if (!bool.Parse(Environment.GetEnvironmentVariable("DALAMUD_NOT_HAVE_INTERFACE") ?? "false")) {
+                var isInterfaceLoaded = false;
+                if (!bool.Parse(Environment.GetEnvironmentVariable("DALAMUD_NOT_HAVE_INTERFACE") ?? "false")) {
+                    try {
+                        InterfaceManager = new InterfaceManager(this, SigScanner);
+                        InterfaceManager.OnDraw += DalamudUi.Draw;
+
+                        InterfaceManager.Enable();
+                        isInterfaceLoaded = true;
+
+                        InterfaceManager.WaitForFontRebuild();
+                    } catch (Exception e) {
+                        Log.Information(e, "Could not init interface.");
+                    }
+                }
+
+                Data = new DataManager(StartInfo.Language);
                 try {
-                    InterfaceManager = new InterfaceManager(this, SigScanner);
-                    InterfaceManager.OnDraw += DalamudUi.Draw;
-
-                    InterfaceManager.Enable();
-                    isInterfaceLoaded = true;
+                    Data.Initialize(AssetDirectory.FullName);
                 } catch (Exception e) {
-                    Log.Information(e, "Could not init interface.");
+                    Log.Error(e, "Could not initialize DataManager.");
+                    Unload();
+                    return;
                 }
-            }
 
-            Data = new DataManager(StartInfo.Language);
-            try {
-                Data.Initialize(AssetDirectory.FullName);
-            } catch (Exception e) {
-                Log.Error(e, "Could not initialize DataManager.");
+                SeStringManager = new SeStringManager(Data);
+
+                // Initialize managers. Basically handlers for the logic
+                CommandManager = new CommandManager(this, StartInfo.Language);
+                DalamudCommands = new DalamudCommands(this);
+                DalamudCommands.SetupCommands();
+
+                ChatHandlers = new ChatHandlers(this);
+
+                if (!bool.Parse(Environment.GetEnvironmentVariable("DALAMUD_NOT_HAVE_PLUGINS") ?? "false")) {
+                    try {
+                        PluginRepository.CleanupPlugins();
+
+                        PluginManager =
+                            new PluginManager(this, StartInfo.PluginDirectory, StartInfo.DefaultPluginDirectory);
+                        PluginManager.LoadPlugins();
+                    } catch (Exception ex) {
+                        Log.Error(ex, "Plugin load failed.");
+                    }
+                }
+
+                Framework.Enable();
+                ClientState.Enable();
+
+                IsReady = true;
+
+                Troubleshooting.LogTroubleshooting(this, isInterfaceLoaded);
+
+                Log.Information("Dalamud is ready.");
+            } catch (Exception ex) {
+                Log.Error(ex, "Oh no! Dalamud::Start() failed.");
                 Unload();
-                return;
             }
-
-            SeStringManager = new SeStringManager(Data);
-
-            // Initialize managers. Basically handlers for the logic
-            CommandManager = new CommandManager(this, StartInfo.Language);
-            DalamudCommands = new DalamudCommands(this);
-            DalamudCommands.SetupCommands();
-
-            ChatHandlers = new ChatHandlers(this);
-
-            if (!bool.Parse(Environment.GetEnvironmentVariable("DALAMUD_NOT_HAVE_PLUGINS") ?? "false"))
-            {
-                try
-                {
-                    PluginRepository.CleanupPlugins();
-
-                    PluginManager =
-                        new PluginManager(this, StartInfo.PluginDirectory, StartInfo.DefaultPluginDirectory);
-                    PluginManager.LoadPlugins();
-                }
-                catch (Exception ex)
-                {
-                    Log.Error(ex, "Plugin load failed.");
-                }
-            }
-
-            Framework.Enable();
-            ClientState.Enable();
-
-            IsReady = true;
-
-            Troubleshooting.LogTroubleshooting(this, isInterfaceLoaded);
-
-            Log.Information("Dalamud is ready.");
         }
 
         public void Unload() {
