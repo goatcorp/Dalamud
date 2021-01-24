@@ -145,6 +145,10 @@ namespace Dalamud.Interface
                             var a = Marshal.ReadByte(IntPtr.Zero);
                         }
                         ImGui.Separator();
+                        if (ImGui.MenuItem("Enable Dalamud testing", "", this.dalamud.Configuration.DoDalamudTest)) {
+                            this.dalamud.Configuration.DoDalamudTest = !this.dalamud.Configuration.DoDalamudTest;
+                            this.dalamud.Configuration.Save();
+                        }
                         ImGui.MenuItem(Util.AssemblyVersion, false);
                         ImGui.MenuItem(this.dalamud.StartInfo.GameVersion, false);
 

@@ -30,7 +30,6 @@ namespace Dalamud.Interface
             this.doToggleUiHideDuringGpose = this.dalamud.Configuration.ToggleUiHideDuringGpose;
 
             this.doPluginTest = this.dalamud.Configuration.DoPluginTest;
-            this.doDalamudTest = this.dalamud.Configuration.DoDalamudTest;
             this.thirdRepoList = this.dalamud.Configuration.ThirdRepoList;
 
             this.printPluginsWelcomeMsg = this.dalamud.Configuration.PrintPluginsWelcomeMsg;
@@ -101,7 +100,6 @@ namespace Dalamud.Interface
         #region Experimental
 
         private bool doPluginTest;
-        private bool doDalamudTest;
 
         #endregion
 
@@ -150,15 +148,17 @@ namespace Dalamud.Interface
                 }
 
                 if (ImGui.BeginTabItem(Loc.Localize("DalamudSettingsVisual", "Look & Feel"))) {
+                    ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 3);
                     ImGui.Text(Loc.Localize("DalamudSettingsGlobalUiScale", "Global UI Scale"));
-                    if (ImGui.DragFloat("##DalamudSettingsGlobalUiScaleDrag", ref this.globalUiScale, 0.005f, MinScale, MaxScale, "%.2f"))
-                        ImGui.GetIO().FontGlobalScale = this.globalUiScale;
-
                     ImGui.SameLine();
+                    ImGui.SetCursorPosY(ImGui.GetCursorPosY() - 3);
                     if (ImGui.Button("Reset")) {
                         this.globalUiScale = 1.0f;
                         ImGui.GetIO().FontGlobalScale = this.globalUiScale;
                     }
+
+                    if (ImGui.DragFloat("##DalamudSettingsGlobalUiScaleDrag", ref this.globalUiScale, 0.005f, MinScale, MaxScale, "%.2f"))
+                        ImGui.GetIO().FontGlobalScale = this.globalUiScale;
 
                     ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingsGlobalUiScaleHint", "Scale all XIVLauncher UI elements - useful for 4K displays."));
 
@@ -185,9 +185,6 @@ namespace Dalamud.Interface
 
                     ImGui.Checkbox(Loc.Localize("DalamudSettingsPluginTest", "Get plugin testing builds"), ref this.doPluginTest);
                     ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingsPluginTestHint", "Receive testing prereleases for plugins."));
-
-                    ImGui.Checkbox(Loc.Localize("DalamudSettingDalamudTest", "Get Dalamud testing builds"), ref this.doDalamudTest);
-                    ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingDalamudTestHint", "Receive testing prereleases for Dalamud."));
 
                     ImGui.Dummy(new Vector2(12f, 12f) * ImGui.GetIO().FontGlobalScale);
 
@@ -317,7 +314,6 @@ namespace Dalamud.Interface
             this.dalamud.Configuration.ToggleUiHideDuringGpose = this.doToggleUiHideDuringGpose;
 
             this.dalamud.Configuration.DoPluginTest = this.doPluginTest;
-            this.dalamud.Configuration.DoDalamudTest = this.doDalamudTest;
             this.dalamud.Configuration.ThirdRepoList = this.thirdRepoList;
 
             this.dalamud.Configuration.PrintPluginsWelcomeMsg = this.printPluginsWelcomeMsg;
