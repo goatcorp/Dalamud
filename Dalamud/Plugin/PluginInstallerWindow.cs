@@ -365,9 +365,8 @@ namespace Dalamud.Plugin
                     info += pluginDefinition.DownloadCount != 0
                                 ? $", {pluginDefinition.DownloadCount} downloads"
                                 : ", download count unavailable";
-                    if (pluginDefinition.FromRepo != "goatcorp.github.io" &&
-                        !string.IsNullOrWhiteSpace(pluginDefinition.FromRepo))
-                        info += $", from {pluginDefinition.FromRepo}";
+                    if (pluginDefinition.RepoNumber != 0)
+                        info += $", from custom plugin repository #{pluginDefinition.RepoNumber}";
                     ImGui.TextColored(new Vector4(0.5f, 0.5f, 0.5f, 1.0f), info);
 
                     if (!string.IsNullOrWhiteSpace(pluginDefinition.Description))

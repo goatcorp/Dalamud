@@ -51,19 +51,21 @@ namespace Dalamud.Plugin
                 try {
                     using var client = new WebClient();
 
+                    var repoNumber = 0;
                     foreach (var repo in repos) {
                         Log.Information("[PLUGINR] Fetching repo: {0}", repo);
                         
                         var data = client.DownloadString(repo);
 
                         var unsortedPluginMaster = JsonConvert.DeserializeObject<List<PluginDefinition>>(data);
-                        var host = new Uri(repo).Host;
 
                         foreach (var pluginDefinition in unsortedPluginMaster) {
-                            pluginDefinition.FromRepo = host;
+                            pluginDefinition.RepoNumber = repoNumber;
                         }
 
                         allPlugins.AddRange(unsortedPluginMaster);
+
+                        repoNumber++;
                     }
 
                     this.PluginMaster = allPlugins.AsReadOnly();

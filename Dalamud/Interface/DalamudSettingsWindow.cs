@@ -197,12 +197,16 @@ namespace Dalamud.Interface
 
                     ImGui.Dummy(new Vector2(5f, 5f) * ImGui.GetIO().FontGlobalScale);
 
-                    ImGui.Columns(3);
-                    ImGui.SetColumnWidth(0, ImGui.GetWindowWidth() - (16 + 14) - (45 + 26)  * ImGui.GetIO().FontGlobalScale);
-                    ImGui.SetColumnWidth(1, 16 + (45 * ImGui.GetIO().FontGlobalScale));
+                    ImGui.Columns(4);
+                    ImGui.SetColumnWidth(0, 18 + 5 * ImGui.GetIO().FontGlobalScale);
+                    ImGui.SetColumnWidth(1, ImGui.GetWindowWidth() - (18 + 16 + 14) - (5 + 45 + 26) * ImGui.GetIO().FontGlobalScale);
+                    ImGui.SetColumnWidth(2, 16 + (45 * ImGui.GetIO().FontGlobalScale));
+                    ImGui.SetColumnWidth(3, 14 + (26 * ImGui.GetIO().FontGlobalScale));
 
                     ImGui.Separator();
 
+                    ImGui.Text("#");
+                    ImGui.NextColumn();
                     ImGui.Text("URL");
                     ImGui.NextColumn();
                     ImGui.Text("Enabled");
@@ -212,6 +216,8 @@ namespace Dalamud.Interface
 
                     ImGui.Separator();
 
+                    ImGui.Text("0");
+                    ImGui.NextColumn();
                     ImGui.Text("XIVLauncher");
                     ImGui.NextColumn();
                     ImGui.NextColumn();
@@ -220,16 +226,23 @@ namespace Dalamud.Interface
 
                     ThirdRepoSetting toRemove = null;
 
+                    var repoNumber = 1;
                     foreach (var thirdRepoSetting in this.thirdRepoList) {
                         var isEnabled = thirdRepoSetting.IsEnabled;
 
                         ImGui.PushID($"thirdRepo_{thirdRepoSetting.Url}");
 
+                        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (ImGui.GetColumnWidth() / 2) - 8 - (ImGui.CalcTextSize(repoNumber.ToString()).X / 2));
+                        ImGui.Text(repoNumber.ToString());
+                        ImGui.NextColumn();
+
                         ImGui.TextWrapped(thirdRepoSetting.Url);
                         ImGui.NextColumn();
-                        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (ImGui.GetColumnWidth() / 2) - (12 * ImGui.GetIO().FontGlobalScale) - 7);
+
+                        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (ImGui.GetColumnWidth() / 2) - 7 - 12 * ImGui.GetIO().FontGlobalScale);
                         ImGui.Checkbox("##thirdRepoCheck", ref isEnabled);
                         ImGui.NextColumn();
+
                         ImGui.PushFont(InterfaceManager.IconFont);
                         if (ImGui.Button(FontAwesomeIcon.Trash.ToIconString())) {
                             toRemove = thirdRepoSetting;
@@ -239,12 +252,17 @@ namespace Dalamud.Interface
                         ImGui.Separator();
 
                         thirdRepoSetting.IsEnabled = isEnabled;
+
+                        repoNumber++;
                     }
 
                     if (toRemove != null) {
                         this.thirdRepoList.Remove(toRemove);
                     }
 
+                    ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (ImGui.GetColumnWidth() / 2) - 8 - (ImGui.CalcTextSize(repoNumber.ToString()).X / 2));
+                    ImGui.Text(repoNumber.ToString());
+                    ImGui.NextColumn();
                     ImGui.SetNextItemWidth(-1);
                     ImGui.InputText("##thirdRepoUrlInput", ref this.thirdRepoTempUrl, 300);
                     ImGui.NextColumn();

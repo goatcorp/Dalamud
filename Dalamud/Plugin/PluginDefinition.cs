@@ -79,9 +79,9 @@ namespace Dalamud.Plugin
         public long LastUpdate { get; set; }
 
         /// <summary>
-        /// Domain of the origin repo
+        /// Number of the repo.
         /// </summary>
-        public string FromRepo { get; set; }
+        public int RepoNumber { get; set; }
         
         /// <summary>
         /// Download link used to install the plugin.
