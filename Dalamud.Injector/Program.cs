@@ -182,7 +182,7 @@ namespace Dalamud.Injector {
                               $"DefaultPluginDirectory: {startInfo.DefaultPluginDirectory}\n" +
                               $"Language: {startInfo.Language}\n" +
                               $"GameVersion: {startInfo.GameVersion}\n" +
-                              $"OptOutMbCollection: {startInfo.OptOutMbCollection}" +
+                              $"OptOutMbCollection: {startInfo.OptOutMbCollection}\n" +
                               $"AssetDirectory: {startInfo.AssetDirectory}");
 
             return startInfo;

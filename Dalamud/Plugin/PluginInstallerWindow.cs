@@ -62,6 +62,22 @@ namespace Dalamud.Plugin
                 this.dalamud.PluginRepository.ReloadPluginMasterAsync();
         }
 
+        private void RefetchPlugins() {
+            var hiddenPlugins = this.dalamud.PluginManager.Plugins.Where(
+                        x => this.dalamud.PluginRepository.PluginMaster.All(
+                            y => y.InternalName != x.Definition.InternalName || y.InternalName == x.Definition.InternalName && y.IsHide)).Select(x => x.Definition).ToList();
+            this.pluginListInstalled = this.dalamud.PluginRepository.PluginMaster
+                                           .Where(def => {
+                                               return this.dalamud.PluginManager.Plugins.Where(x => x.Definition != null).Any(
+                                                   x => x.Definition.InternalName == def.InternalName);
+                                           })
+                                           .ToList();
+            this.pluginListInstalled.AddRange(hiddenPlugins);
+            this.pluginListInstalled.Sort((x, y) => x.Name.CompareTo(y.Name));
+
+            ResortPlugins();
+        }
+
         private void ResortPlugins() {
             var availableDefs = this.dalamud.PluginRepository.PluginMaster.Where(
                 x => this.pluginListInstalled.All(y => x.InternalName != y.InternalName)).ToList();
@@ -136,27 +152,16 @@ namespace Dalamud.Plugin
             string initializationStatusText = null;
             if (this.dalamud.PluginRepository.State == PluginRepository.InitializationState.InProgress) {
                 initializationStatusText = Loc.Localize("InstallerLoading", "Loading plugins...");
+                this.pluginListAvailable = null;
             } else if (this.dalamud.PluginRepository.State == PluginRepository.InitializationState.Fail) {
                 initializationStatusText = Loc.Localize("InstallerDownloadFailed", "Download failed.");
-            }
-            else if (this.dalamud.PluginRepository.State == PluginRepository.InitializationState.FailThirdRepo) {
+                this.pluginListAvailable = null;
+            } else if (this.dalamud.PluginRepository.State == PluginRepository.InitializationState.FailThirdRepo) {
                 initializationStatusText = Loc.Localize("InstallerDownloadFailedThird", "One of your third party repos is unreachable or there is no internet connection.");
-            }
-            else {
+                this.pluginListAvailable = null;
+            } else {
                 if (this.pluginListAvailable == null) {
-                    var hiddenPlugins = this.dalamud.PluginManager.Plugins.Where(
-                        x => this.dalamud.PluginRepository.PluginMaster.All(
-                            y => y.InternalName != x.Definition.InternalName || y.InternalName == x.Definition.InternalName && y.IsHide)).Select(x => x.Definition).ToList();
-                    this.pluginListInstalled = this.dalamud.PluginRepository.PluginMaster
-                                                   .Where(def => {
-                                                       return this.dalamud.PluginManager.Plugins.Where(x => x.Definition != null).Any(
-                                                           x => x.Definition.InternalName == def.InternalName);
-                                                   })
-                                                   .ToList();
-                    this.pluginListInstalled.AddRange(hiddenPlugins);
-                    this.pluginListInstalled.Sort((x, y) => x.Name.CompareTo(y.Name));
-
-                    ResortPlugins();
+                    RefetchPlugins();
                 }
             }
 
@@ -360,9 +365,8 @@ namespace Dalamud.Plugin
                     info += pluginDefinition.DownloadCount != 0
                                 ? $", {pluginDefinition.DownloadCount} downloads"
                                 : ", download count unavailable";
-                    if (pluginDefinition.FromRepo != "goatcorp.github.io" &&
-                        !string.IsNullOrWhiteSpace(pluginDefinition.FromRepo))
-                        info += $", from {pluginDefinition.FromRepo}";
+                    if (pluginDefinition.RepoNumber != 0)
+                        info += $", from custom plugin repository #{pluginDefinition.RepoNumber}";
                     ImGui.TextColored(new Vector4(0.5f, 0.5f, 0.5f, 1.0f), info);
 
                     if (!string.IsNullOrWhiteSpace(pluginDefinition.Description))

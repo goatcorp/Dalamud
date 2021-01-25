@@ -30,7 +30,7 @@ namespace Dalamud.Interface
             this.doToggleUiHideDuringGpose = this.dalamud.Configuration.ToggleUiHideDuringGpose;
 
             this.doPluginTest = this.dalamud.Configuration.DoPluginTest;
-            this.thirdRepoList = this.dalamud.Configuration.ThirdRepoList;
+            this.thirdRepoList = this.dalamud.Configuration.ThirdRepoList.Select(x => x.Clone()).ToList();
 
             this.printPluginsWelcomeMsg = this.dalamud.Configuration.PrintPluginsWelcomeMsg;
             this.autoUpdatePlugins = this.dalamud.Configuration.AutoUpdatePlugins;
@@ -114,7 +114,7 @@ namespace Dalamud.Interface
             }
 
             var windowSize = ImGui.GetWindowSize();
-            ImGui.BeginChild("scrolling", new Vector2(windowSize.X - 10, windowSize.Y - 70) * ImGui.GetIO().FontGlobalScale, false, ImGuiWindowFlags.HorizontalScrollbar);
+            ImGui.BeginChild("scrolling", new Vector2(windowSize.X - 5 - (5 * ImGui.GetIO().FontGlobalScale), windowSize.Y - 35 - (35 * ImGui.GetIO().FontGlobalScale)), false, ImGuiWindowFlags.HorizontalScrollbar);
 
             if (ImGui.BeginTabBar("SetTabBar")) {
                 if (ImGui.BeginTabItem(Loc.Localize("DalamudSettingsGeneral", "General"))) {
@@ -179,10 +179,6 @@ namespace Dalamud.Interface
                 }
 
                 if (ImGui.BeginTabItem(Loc.Localize("DalamudSettingsExperimental", "Experimental"))) {
-                    ImGui.Text(Loc.Localize("DalamudSettingsRestartHint", "You need to restart your game after changing these settings."));
-
-                    ImGui.Dummy(new Vector2(10f, 10f) * ImGui.GetIO().FontGlobalScale);
-
                     ImGui.Checkbox(Loc.Localize("DalamudSettingsPluginTest", "Get plugin testing builds"), ref this.doPluginTest);
                     ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingsPluginTestHint", "Receive testing prereleases for plugins."));
 
@@ -201,12 +197,16 @@ namespace Dalamud.Interface
 
                     ImGui.Dummy(new Vector2(5f, 5f) * ImGui.GetIO().FontGlobalScale);
 
-                    ImGui.Columns(3);
-                    ImGui.SetColumnWidth(0, ImGui.GetWindowWidth() - 350);
-                    ImGui.SetColumnWidth(1, 60);
+                    ImGui.Columns(4);
+                    ImGui.SetColumnWidth(0, 18 + 5 * ImGui.GetIO().FontGlobalScale);
+                    ImGui.SetColumnWidth(1, ImGui.GetWindowWidth() - (18 + 16 + 14) - (5 + 45 + 26) * ImGui.GetIO().FontGlobalScale);
+                    ImGui.SetColumnWidth(2, 16 + (45 * ImGui.GetIO().FontGlobalScale));
+                    ImGui.SetColumnWidth(3, 14 + (26 * ImGui.GetIO().FontGlobalScale));
 
                     ImGui.Separator();
 
+                    ImGui.Text("#");
+                    ImGui.NextColumn();
                     ImGui.Text("URL");
                     ImGui.NextColumn();
                     ImGui.Text("Enabled");
@@ -216,6 +216,8 @@ namespace Dalamud.Interface
 
                     ImGui.Separator();
 
+                    ImGui.Text("0");
+                    ImGui.NextColumn();
                     ImGui.Text("XIVLauncher");
                     ImGui.NextColumn();
                     ImGui.NextColumn();
@@ -224,15 +226,23 @@ namespace Dalamud.Interface
 
                     ThirdRepoSetting toRemove = null;
 
+                    var repoNumber = 1;
                     foreach (var thirdRepoSetting in this.thirdRepoList) {
                         var isEnabled = thirdRepoSetting.IsEnabled;
 
                         ImGui.PushID($"thirdRepo_{thirdRepoSetting.Url}");
 
-                        ImGui.Text(thirdRepoSetting.Url);
+                        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (ImGui.GetColumnWidth() / 2) - 8 - (ImGui.CalcTextSize(repoNumber.ToString()).X / 2));
+                        ImGui.Text(repoNumber.ToString());
                         ImGui.NextColumn();
+
+                        ImGui.TextWrapped(thirdRepoSetting.Url);
+                        ImGui.NextColumn();
+
+                        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (ImGui.GetColumnWidth() / 2) - 7 - 12 * ImGui.GetIO().FontGlobalScale);
                         ImGui.Checkbox("##thirdRepoCheck", ref isEnabled);
                         ImGui.NextColumn();
+
                         ImGui.PushFont(InterfaceManager.IconFont);
                         if (ImGui.Button(FontAwesomeIcon.Trash.ToIconString())) {
                             toRemove = thirdRepoSetting;
@@ -242,12 +252,17 @@ namespace Dalamud.Interface
                         ImGui.Separator();
 
                         thirdRepoSetting.IsEnabled = isEnabled;
+
+                        repoNumber++;
                     }
 
                     if (toRemove != null) {
                         this.thirdRepoList.Remove(toRemove);
                     }
 
+                    ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (ImGui.GetColumnWidth() / 2) - 8 - (ImGui.CalcTextSize(repoNumber.ToString()).X / 2));
+                    ImGui.Text(repoNumber.ToString());
+                    ImGui.NextColumn();
                     ImGui.SetNextItemWidth(-1);
                     ImGui.InputText("##thirdRepoUrlInput", ref this.thirdRepoTempUrl, 300);
                     ImGui.NextColumn();
@@ -267,14 +282,13 @@ namespace Dalamud.Interface
                         }
                     }
                     ImGui.PopFont();
-
-                    if (!string.IsNullOrEmpty(this.thirdRepoAddError)) {
-                        ImGui.SameLine();
-                        ImGui.TextColored(new Vector4(1, 0, 0, 1), this.thirdRepoAddError);
-                    }
                     ImGui.Columns(1);
 
                     ImGui.EndTabItem();
+
+                    if (!string.IsNullOrEmpty(this.thirdRepoAddError)) {
+                        ImGui.TextColored(new Vector4(1, 0, 0, 1), this.thirdRepoAddError);
+                    }
                 }
 
                 ImGui.EndTabBar();
@@ -284,6 +298,7 @@ namespace Dalamud.Interface
 
             if (!isOpen) {
                 ImGui.GetIO().FontGlobalScale = this.dalamud.Configuration.GlobalUiScale;
+                this.thirdRepoList = this.dalamud.Configuration.ThirdRepoList.Select(x => x.Clone()).ToList();
             }
             if (ImGui.Button(Loc.Localize("Save", "Save"))) {
                 Save();
@@ -314,12 +329,14 @@ namespace Dalamud.Interface
             this.dalamud.Configuration.ToggleUiHideDuringGpose = this.doToggleUiHideDuringGpose;
 
             this.dalamud.Configuration.DoPluginTest = this.doPluginTest;
-            this.dalamud.Configuration.ThirdRepoList = this.thirdRepoList;
+            this.dalamud.Configuration.ThirdRepoList = this.thirdRepoList.Select(x => x.Clone()).ToList();
 
             this.dalamud.Configuration.PrintPluginsWelcomeMsg = this.printPluginsWelcomeMsg;
             this.dalamud.Configuration.AutoUpdatePlugins = this.autoUpdatePlugins;
 
             this.dalamud.Configuration.Save();
+
+            this.dalamud.PluginRepository.ReloadPluginMasterAsync();
         }
     }
 }
