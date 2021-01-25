@@ -6,8 +6,10 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using Dalamud.Game.ClientState.Actors.Types;
 using Dalamud.Game.ClientState.Actors.Types.NonPlayer;
+using Dalamud.Game.ClientState.Structs;
 using JetBrains.Annotations;
 using Serilog;
+using Actor = Dalamud.Game.ClientState.Actors.Types.Actor;
 
 namespace Dalamud.Game.ClientState.Actors {
     /// <summary>
@@ -77,7 +79,7 @@ namespace Dalamud.Game.ClientState.Actors {
             get => ActorsCache[index];
         }
 
-        internal Actor ReadActorFromMemory(IntPtr offset)
+        internal unsafe Actor ReadActorFromMemory(IntPtr offset)
         {
             try {
                 // FIXME: hack workaround for trying to access the player on logout, after the main object has been deleted
@@ -87,14 +89,14 @@ namespace Dalamud.Game.ClientState.Actors {
                     return null;
                 }
 
-                var actorStruct = Marshal.PtrToStructure<Structs.Actor>(this.actorMem);
-
-                return actorStruct.ObjectKind switch {
-                    ObjectKind.Player => new PlayerCharacter(offset, actorStruct, this.dalamud),
-                    ObjectKind.BattleNpc => new BattleNpc(offset, actorStruct, this.dalamud),
-                    ObjectKind.EventObj => new EventObj(offset, actorStruct, this.dalamud),
-                    ObjectKind.Companion => new Npc(offset, actorStruct, this.dalamud),
-                _ => new Actor(offset, actorStruct, this.dalamud)
+                var objKind = *( ObjectKind* )( this.actorMem + ActorOffsets.ObjectKind );
+                
+                return objKind switch {
+                    ObjectKind.Player => new PlayerCharacter(offset, this.dalamud),
+                    ObjectKind.BattleNpc => new BattleNpc(offset, this.dalamud),
+                    ObjectKind.EventObj => new EventObj(offset, this.dalamud),
+                    ObjectKind.Companion => new Npc(offset, this.dalamud),
+                _ => new Actor(offset, this.dalamud)
                 };
             }
             catch (Exception e) {

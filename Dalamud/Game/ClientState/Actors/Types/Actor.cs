@@ -1,5 +1,6 @@
 using Dalamud.Game.ClientState.Structs;
 using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Dalamud.Game.ClientState.Actors.Types
@@ -9,11 +10,6 @@ namespace Dalamud.Game.ClientState.Actors.Types
     /// </summary>
     public unsafe class Actor : IEquatable<Actor>
     {
-        /// <summary>
-        ///     The memory representation of the base actor.
-        /// </summary>
-        protected Structs.Actor actorStruct;
-
         protected Dalamud dalamud;
 
         /// <summary>
@@ -24,12 +20,10 @@ namespace Dalamud.Game.ClientState.Actors.Types
         /// <summary>
         ///     Initialize a representation of a basic FFXIV actor.
         /// </summary>
-        /// <param name="actorStruct">The memory representation of the base actor.</param>
-        /// <param name="dalamud">A dalamud reference needed to access game data in Resolvers.</param>
         /// <param name="address">The address of this actor in memory.</param>
-        public Actor(IntPtr address, Structs.Actor actorStruct, Dalamud dalamud)
+        /// <param name="dalamud">A dalamud reference needed to access game data in Resolvers.</param>
+        public Actor( IntPtr address, Dalamud dalamud )
         {
-            this.actorStruct = actorStruct;
             this.dalamud = dalamud;
             this.Address = address;
         }
@@ -79,8 +73,38 @@ namespace Dalamud.Game.ClientState.Actors.Types
         /// <summary>
         ///  Status Effects
         /// </summary>
-        public StatusEffect[] StatusEffects => this.actorStruct.UIStatusEffects;
+        public StatusEffect[] StatusEffects
+        {
+            get
+            {
+                const int length = 20;
+                var effects = new StatusEffect[length];
+
+                var addr = Address + ActorOffsets.UIStatusEffects;
+                var size = Marshal.SizeOf< StatusEffect >();
+                for( var i = 0; i < length; i++ )
+                {
+                    effects[ i ] = Marshal.PtrToStructure< StatusEffect >( addr + i * size );
+                }
+                
+                return effects;
+            }
+        }
 
         bool IEquatable<Actor>.Equals(Actor other) => this.ActorId == other.ActorId;
+
+        public static implicit operator bool( Actor a ) => IsValid( a );
+
+        public static bool IsValid( Actor actor )
+        {
+            if( actor == null )
+            {
+                return false;
+            }
+            
+            // todo: check game state
+
+            return true;
+        }
     }
 }

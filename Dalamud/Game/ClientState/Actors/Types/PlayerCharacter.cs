@@ -13,11 +13,10 @@ namespace Dalamud.Game.ClientState.Actors.Types {
         /// <summary>
         ///     Set up a new player character with the provided memory representation.
         /// </summary>
-        /// <param name="actorStruct">The memory representation of the base actor.</param>
-        /// <param name="dalamud">A dalamud reference needed to access game data in Resolvers.</param>
         /// <param name="address">The address of this actor in memory.</param>
-        public PlayerCharacter(IntPtr address, Structs.Actor actorStruct, Dalamud dalamud) : base(
-            address, actorStruct, dalamud) {
+        /// <param name="dalamud">A dalamud reference needed to access game data in Resolvers.</param>
+        public PlayerCharacter( IntPtr address, Dalamud dalamud ) : base(
+            address, dalamud) {
             // We need to read the FC tag here, since we can't read it in the struct due to alignment issues
             var fcTagBytes = new byte[5];
             Marshal.Copy(this.Address + ActorOffsets.CompanyTag, fcTagBytes, 0, fcTagBytes.Length);
