@@ -9,5 +9,12 @@ namespace Dalamud.Configuration
     class ThirdRepoSetting {
         public string Url { get; set; }
         public bool IsEnabled { get;set; }
+
+        public ThirdRepoSetting Clone() {
+            return new ThirdRepoSetting {
+                Url = this.Url,
+                IsEnabled = this.IsEnabled
+            };
+        }
     }
 }

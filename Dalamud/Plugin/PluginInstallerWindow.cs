@@ -62,6 +62,22 @@ namespace Dalamud.Plugin
                 this.dalamud.PluginRepository.ReloadPluginMasterAsync();
         }
 
+        private void RefetchPlugins() {
+            var hiddenPlugins = this.dalamud.PluginManager.Plugins.Where(
+                        x => this.dalamud.PluginRepository.PluginMaster.All(
+                            y => y.InternalName != x.Definition.InternalName || y.InternalName == x.Definition.InternalName && y.IsHide)).Select(x => x.Definition).ToList();
+            this.pluginListInstalled = this.dalamud.PluginRepository.PluginMaster
+                                           .Where(def => {
+                                               return this.dalamud.PluginManager.Plugins.Where(x => x.Definition != null).Any(
+                                                   x => x.Definition.InternalName == def.InternalName);
+                                           })
+                                           .ToList();
+            this.pluginListInstalled.AddRange(hiddenPlugins);
+            this.pluginListInstalled.Sort((x, y) => x.Name.CompareTo(y.Name));
+
+            ResortPlugins();
+        }
+
         private void ResortPlugins() {
             var availableDefs = this.dalamud.PluginRepository.PluginMaster.Where(
                 x => this.pluginListInstalled.All(y => x.InternalName != y.InternalName)).ToList();
@@ -136,27 +152,16 @@ namespace Dalamud.Plugin
             string initializationStatusText = null;
             if (this.dalamud.PluginRepository.State == PluginRepository.InitializationState.InProgress) {
                 initializationStatusText = Loc.Localize("InstallerLoading", "Loading plugins...");
+                this.pluginListAvailable = null;
             } else if (this.dalamud.PluginRepository.State == PluginRepository.InitializationState.Fail) {
                 initializationStatusText = Loc.Localize("InstallerDownloadFailed", "Download failed.");
-            }
-            else if (this.dalamud.PluginRepository.State == PluginRepository.InitializationState.FailThirdRepo) {
+                this.pluginListAvailable = null;
+            } else if (this.dalamud.PluginRepository.State == PluginRepository.InitializationState.FailThirdRepo) {
                 initializationStatusText = Loc.Localize("InstallerDownloadFailedThird", "One of your third party repos is unreachable or there is no internet connection.");
-            }
-            else {
+                this.pluginListAvailable = null;
+            } else {
                 if (this.pluginListAvailable == null) {
-                    var hiddenPlugins = this.dalamud.PluginManager.Plugins.Where(
-                        x => this.dalamud.PluginRepository.PluginMaster.All(
-                            y => y.InternalName != x.Definition.InternalName || y.InternalName == x.Definition.InternalName && y.IsHide)).Select(x => x.Definition).ToList();
-                    this.pluginListInstalled = this.dalamud.PluginRepository.PluginMaster
-                                                   .Where(def => {
-                                                       return this.dalamud.PluginManager.Plugins.Where(x => x.Definition != null).Any(
-                                                           x => x.Definition.InternalName == def.InternalName);
-                                                   })
-                                                   .ToList();
-                    this.pluginListInstalled.AddRange(hiddenPlugins);
-                    this.pluginListInstalled.Sort((x, y) => x.Name.CompareTo(y.Name));
-
-                    ResortPlugins();
+                    RefetchPlugins();
                 }
             }
 
