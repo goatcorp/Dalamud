@@ -263,7 +263,7 @@ namespace Dalamud {
 
                 Log.Information("Dalamud is ready.");
             } catch (Exception ex) {
-                Log.Error(ex, "Oh no! Dalamud::Start() failed.");
+                Log.Error(ex, "Dalamud::Start() failed.");
                 Unload();
             }
         }
@@ -308,9 +308,9 @@ namespace Dalamud {
 
                 AntiDebug.Dispose();
 
-                Log.Debug("Dalamud::Dispose OK!");
+                Log.Debug("Dalamud::Dispose() OK!");
             } catch (Exception ex) {
-                Log.Error(ex, "skjdgjjkodsfg");
+                Log.Error(ex, "Dalamud::Dispose() failed.");
             }
         }
 
