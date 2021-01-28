@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Dalamud.Hooking;
-//using JetBrains.Annotations;
+using JetBrains.Annotations;
 using Serilog;
 #pragma warning disable 1591
 
@@ -76,7 +76,7 @@ namespace Dalamud.Game.ClientState.Fates
         /// </summary>
         /// <param name="index">Spawn index.</param>
         /// <returns><see cref="Fate" /> at the specified spawn index.</returns>
-        //[CanBeNull]
+        [CanBeNull]
         public Fate this[int index]
         {
             get => FatesCache[index];
