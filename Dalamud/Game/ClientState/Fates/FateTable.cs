@@ -89,7 +89,7 @@ namespace Dalamud.Game.ClientState.Fates
             if (SafeMemory.ReadBytes(ptr, FateMemSize, this.fateMem))
             {
                 var fateStruct = Marshal.PtrToStructure<Structs.Fate>(this.fateMem);
-                return new Fate(ptr, fateStruct);
+                return new Fate(ptr, fateStruct, this.dalamud);
             }
             return null;
         }

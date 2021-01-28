@@ -1,10 +1,13 @@
 using System;
 using Dalamud.Game.ClientState.Actors;
+using Dalamud.Game.ClientState.Actors.Resolvers;
 
 namespace Dalamud.Game.ClientState.Fates
 {
     public class Fate : IEquatable<Fate>
     {
+        private readonly Dalamud dalamud;
+
         /// <summary>
         /// The memory representation of the base fate.
         /// </summary>
@@ -20,21 +23,31 @@ namespace Dalamud.Game.ClientState.Fates
         /// </summary>
         /// <param name="fateStruct">The memory representation of the base fate.</param>
         /// <param name="address">The address of this fate in memory.</param>
-        public Fate(IntPtr address, Structs.Fate fateStruct)
+        /// <param name="dalamud">Dalamud instance.</param>
+        public Fate(IntPtr address, Structs.Fate fateStruct, Dalamud dalamud)
         {
             this.fateStruct = fateStruct;
             this.Address = address;
+            this.dalamud = dalamud;
         }
 
         /// <summary>
         /// Fate ID of this <see cref="Fate" />.
         /// </summary>
-        public int FateId => this.fateStruct.FateId;
+        public ushort Id => this.fateStruct.Id;
 
+        /// <summary>
+        /// GameData linked to this Fate.
+        /// </summary>
+        public Lumina.Excel.GeneratedSheets.Fate GameData =>
+            this.dalamud.Data.GetExcelSheet<Lumina.Excel.GeneratedSheets.Fate>().GetRow(this.Id);
+
+        /*
         /// <summary>
         /// Display name of this <see cref="Fate" />.
         /// </summary>
         public string Name => this.fateStruct.Name;
+        */
 
         /// <summary>
         /// State of this <see cref="Fate" /> (Running, Ended, Failed, Preparation, WaitingForEnd).
@@ -69,7 +82,7 @@ namespace Dalamud.Game.ClientState.Fates
         /// <summary>
         /// Territory this <see cref="Fate" /> is located.
         /// </summary>
-        public short Territory => this.fateStruct.Territory;
+        public Territory Territory => new Territory(this.fateStruct.Territory, this.dalamud);
 
         /// <summary>
         /// Position of this <see cref="Fate" />.
@@ -81,11 +94,11 @@ namespace Dalamud.Game.ClientState.Fates
             if (other is null)
                 return false;
 
-            return this.FateId == other.FateId;
+            return this.Id == other.Id;
         }
 
         public override bool Equals(object obj) => Equals(obj as Fate);
-        public override int GetHashCode() => (this.FateId).GetHashCode();
+        public override int GetHashCode() => (this.Id).GetHashCode();
 
         public static bool operator ==(Fate fate1, Fate fate2)
         {
