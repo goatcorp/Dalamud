@@ -8,6 +8,7 @@ using Dalamud.Game.Chat;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Actors.Types;
 using Dalamud.Game.ClientState.Actors.Types.NonPlayer;
+using Dalamud.Game.ClientState.Fates;
 using Dalamud.Game.ClientState.Structs.JobGauge;
 using Dalamud.Game.Internal;
 using Dalamud.Game.Internal.Gui.Addon;
@@ -72,8 +73,8 @@ namespace Dalamud.Interface
             ImGui.SameLine();
             var copy = ImGui.Button("Copy all");
             ImGui.SameLine();
-            ImGui.Combo("Data kind", ref this.currentKind, new[] {"ServerOpCode", "Address", "Actor Table", "Font Test", "Party List", "Plugin IPC", "Condition", "Gauge", "Command", "Addon", "Addon Inspector", "StartInfo", "Target" },
-                        13);
+            ImGui.Combo("Data kind", ref this.currentKind, new[] {"ServerOpCode", "Address", "Actor Table", "Fate Table", "Font Test", "Party List", "Plugin IPC", "Condition", "Gauge", "Command", "Addon", "Addon Inspector", "StartInfo", "Target" },
+                        14);
             ImGui.Checkbox("Resolve GameData", ref this.resolveGameData);
 
             ImGui.BeginChild("scrolling", new Vector2(0, 0), false, ImGuiWindowFlags.HorizontalScrollbar);
@@ -186,8 +187,33 @@ namespace Dalamud.Interface
                         }
                             break;
 
+                        // FT
+                        case 3: {
+                            var stateString = string.Empty;
+                            if (this.dalamud.ClientState.Fates.Length == 0) {
+                                ImGui.TextUnformatted("No fates or data not ready.");
+                            } else {
+                                stateString +=
+                                    $"FrameworkBase: {this.dalamud.Framework.Address.BaseAddress.ToInt64():X}\n";
+
+                                stateString += $"FateTableLen: {this.dalamud.ClientState.Fates.Length}\n";
+
+                                ImGui.TextUnformatted(stateString);
+
+                                for (var i = 0; i < this.dalamud.ClientState.Fates.Length; i++) {
+                                    var fate = this.dalamud.ClientState.Fates[i];
+
+                                    if (fate == null)
+                                        continue;
+
+                                    PrintFate(fate, i.ToString());
+                                }
+                            }
+                        }
+                            break;
+
                         // Font
-                        case 3:
+                        case 4:
                             var specialChars = string.Empty;
                             for (var i = 0xE020; i <= 0xE0DB; i++) {
                                 specialChars += $"0x{i:X} - {(SeIconChar) i} - {(char) i}\n";
@@ -208,7 +234,7 @@ namespace Dalamud.Interface
                             break;
 
                         // Party
-                        case 4:
+                        case 5:
                             var partyString = string.Empty;
 
                             if (this.dalamud.ClientState.PartyList.Length == 0) {
@@ -234,7 +260,7 @@ namespace Dalamud.Interface
                             break;
 
                         // Subscriptions
-                        case 5:
+                        case 6:
                             var i1 = new DalamudPluginInterface(this.dalamud, "DalamudTestSub", null,
                                                                 PluginLoadReason.Boot);
                             var i2 = new DalamudPluginInterface(this.dalamud, "DalamudTestPub", null,
@@ -276,7 +302,7 @@ namespace Dalamud.Interface
                             break;
 
                         // Condition
-                        case 6:
+                        case 7:
 #if DEBUG
                             ImGui.Text($"ptr: {this.dalamud.ClientState.Condition.conditionArrayBase.ToString("X16")}");
 #endif
@@ -306,14 +332,14 @@ namespace Dalamud.Interface
                             break;
 
                         // Gauge
-                        case 7:
+                        case 8:
                             var gauge = this.dalamud.ClientState.JobGauges.Get<ASTGauge>();
                             ImGui.Text($"Moon: {gauge.ContainsSeal(SealType.MOON)} Drawn: {gauge.DrawnCard()}");
 
                             break;
 
                         // Command
-                        case 8:
+                        case 9:
                             foreach (var command in this.dalamud.CommandManager.Commands) {
                                 ImGui.Text(
                                     $"{command.Key}\n    -> {command.Value.HelpMessage}\n    -> In help: {command.Value.ShowInHelp}\n\n");
@@ -322,7 +348,7 @@ namespace Dalamud.Interface
                             break;
 
                         // Addon
-                        case 9:
+                        case 10:
                             ImGui.InputText("Addon name", ref this.inputAddonName, 256);
                             ImGui.InputInt("Addon Index", ref this.inputAddonIndex);
 
@@ -346,7 +372,7 @@ namespace Dalamud.Interface
                             break;
 
                         // Addon Inspector
-                        case 10:
+                        case 11:
                         {
                             this.UIDebug ??= new UIDebug(this.dalamud);
                             this.UIDebug.Draw();
@@ -354,12 +380,12 @@ namespace Dalamud.Interface
                         }
 
                         // StartInfo
-                        case 11:
+                        case 12:
                             ImGui.Text(JsonConvert.SerializeObject(this.dalamud.StartInfo, Formatting.Indented));
                             break;
 
                         // Target
-                        case 12:
+                        case 13:
                             var targetMgr = this.dalamud.ClientState.Targets;
 
                             if (targetMgr.CurrentTarget != null)
@@ -430,7 +456,21 @@ namespace Dalamud.Interface
             if (ImGui.Button("C")) {
                 ImGui.SetClipboardText(actor.Address.ToInt64().ToString("X"));
             }
+        }
 
+        private void PrintFate(Fate fate, string tag)
+        {
+            var fateString =
+                $"{fate.Address.ToInt64():X}:[{tag}] - {fate.FateId} - Lv.{fate.Level} {fate.Name} ({fate.Progress}%) - X{fate.Position.X} Y{fate.Position.Y} Z{fate.Position.Z} - Territory {fate.Territory}\n";
+
+            fateString +=
+                $"       StartTimeEpoch: {fate.StartTimeEpoch} Duration: {fate.Duration} State: {fate.State}";
+
+            ImGui.TextUnformatted(fateString);
+            ImGui.SameLine();
+            if (ImGui.Button("C")) {
+                ImGui.SetClipboardText(fate.Address.ToInt64().ToString("X"));
+            }
         }
     }
 }

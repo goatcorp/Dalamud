@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Runtime.InteropServices;
 using Dalamud.Game.ClientState.Actors;
 using Dalamud.Game.ClientState.Actors.Types;
+using Dalamud.Game.ClientState.Fates;
 using Dalamud.Game.Internal;
 using Dalamud.Game.Internal.Network;
 using Dalamud.Hooking;
@@ -27,6 +28,11 @@ namespace Dalamud.Game.ClientState
         /// The table of all present actors.
         /// </summary>
         public readonly ActorTable Actors;
+
+        /// <summary>
+        /// The table of all present fates.
+        /// </summary>
+        public readonly FateTable Fates;
 
         /// <summary>
         /// The local player character, if one is present.
@@ -125,6 +131,8 @@ namespace Dalamud.Game.ClientState
 
             this.Actors = new ActorTable(dalamud, Address);
 
+            this.Fates = new FateTable(dalamud, Address);
+
             this.PartyList = new PartyList(dalamud, Address);
 
             this.JobGauges = new JobGauges(Address);
@@ -150,6 +158,7 @@ namespace Dalamud.Game.ClientState
         }
 
         public void Enable() {
+            this.Fates.Enable();
             this.PartyList.Enable();
             this.setupTerritoryTypeHook.Enable();
         }
@@ -158,6 +167,7 @@ namespace Dalamud.Game.ClientState
             this.PartyList.Dispose();
             this.setupTerritoryTypeHook.Dispose();
             this.Actors.Dispose();
+            this.Fates.Dispose();
 
             this.dalamud.Framework.OnUpdateEvent -= FrameworkOnOnUpdateEvent;
             this.dalamud.NetworkHandlers.CfPop += NetworkHandlersOnCfPop;
