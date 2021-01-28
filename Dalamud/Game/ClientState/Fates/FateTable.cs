@@ -20,6 +20,8 @@ namespace Dalamud.Game.ClientState.Fates
         private IntPtr firstFate;
         private IntPtr lastFate;
 
+        private static readonly int FateMemSize = Marshal.SizeOf(typeof(Structs.Fate));
+        private readonly IntPtr fateMem = Marshal.AllocHGlobal(FateMemSize);
 
         private List<Fate> fatesCache;
 
@@ -84,16 +86,12 @@ namespace Dalamud.Game.ClientState.Fates
 
         internal Fate ReadFateFromMemory(IntPtr ptr)
         {
-            try
+            if (SafeMemory.ReadBytes(ptr, FateMemSize, this.fateMem))
             {
-                var fateStruct = Marshal.PtrToStructure<Structs.Fate>(ptr);
+                var fateStruct = Marshal.PtrToStructure<Structs.Fate>(this.fateMem);
                 return new Fate(ptr, fateStruct);
             }
-            catch (Exception e)
-            {
-                Log.Error(e, "Could not read fate from memory.");
-                return null;
-            }
+            return null;
         }
 
         private List<Fate> GetFateTable()
