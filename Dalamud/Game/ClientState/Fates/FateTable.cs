@@ -105,7 +105,7 @@ namespace Dalamud.Game.ClientState.Fates
 
             while (current != end)
             {
-                var fatePtr = Marshal.ReadIntPtr(current);
+                SafeMemory.Read<IntPtr>(current, out var fatePtr);
                 fates.Add(fatePtr != IntPtr.Zero ? ReadFateFromMemory(fatePtr) : null);
                 current += 8;
             }
