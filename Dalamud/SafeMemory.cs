@@ -41,6 +41,18 @@ namespace Dalamud
         }
 
         /// <summary>
+        /// Read a byte array from the current process.
+        /// </summary>
+        /// <param name="address">The address to read from.</param>
+        /// <param name="count">The amount of bytes to read.</param>
+        /// <param name="ptr">Pointer to read into.</param>
+        /// <returns>Whether or not the read succeeded.</returns>
+        public static bool ReadBytes(IntPtr address, int count, IntPtr ptr)
+        {
+            return Imports.ReadProcessMemory(Handle, address, ptr, count, out _);
+        }
+
+        /// <summary>
         /// Write a byte array to the current process.
         /// </summary>
         /// <param name="address">The address to write to.</param>
@@ -49,6 +61,18 @@ namespace Dalamud
         public static bool WriteBytes(IntPtr address, byte[] buffer)
         {
             return Imports.WriteProcessMemory(Handle, address, buffer, buffer.Length, out _);
+        }
+
+        /// <summary>
+        /// Write a byte array to the current process.
+        /// </summary>
+        /// <param name="address">The address to write to.</param>
+        /// <param name="count">The amount of bytes to write.</param>
+        /// <param name="ptr">Pointer to write into</param>
+        /// <returns>Whether or not the write succeeded.</returns>
+        public static bool WriteBytes(IntPtr address, int count, IntPtr ptr)
+        {
+            return Imports.WriteProcessMemory(Handle, address, ptr, count, out _);
         }
 
         /// <summary>
@@ -228,7 +252,13 @@ namespace Dalamud
             public static extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, [Out] byte[] lpBuffer, int nSize, out int lpNumberOfBytesRead);
 
             [DllImport("kernel32", SetLastError = true)]
+            public static extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, IntPtr lpBuffer, int nSize, out int lpNumberOfBytesRead);
+
+            [DllImport("kernel32", SetLastError = true)]
             public static extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer, int nSize, out int lpNumberOfBytesWritten);
+
+            [DllImport("kernel32", SetLastError = true)]
+            public static extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, IntPtr lpBuffer, int nSize, out int lpNumberOfBytesWritten);
 
             [DllImport("kernel32", SetLastError = false)]
             public static extern IntPtr GetCurrentProcess();
