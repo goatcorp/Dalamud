@@ -23,6 +23,14 @@ namespace Dalamud.Game.Internal.Gui {
         private delegate IntPtr HandleItemOutDelegate(IntPtr hoverState, IntPtr a2, IntPtr a3, ulong a4);
         private readonly Hook<HandleItemOutDelegate> handleItemOutHook;
 
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        private delegate void HandleActionHoverDelegate(IntPtr hoverState, HoverActionKind a2, uint a3, int a4, byte a5);
+        private readonly Hook<HandleActionHoverDelegate> handleActionHoverHook;
+        
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        private delegate IntPtr HandleActionOutDelegate(IntPtr agentActionDetail, IntPtr a2, IntPtr a3, int a4);
+        private Hook<HandleActionOutDelegate> handleActionOutHook;
+
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate IntPtr GetUIObjectDelegate();
         private readonly GetUIObjectDelegate getUIObject;
@@ -69,11 +77,21 @@ namespace Dalamud.Game.Internal.Gui {
         /// If > 1.000.000, subtract 1.000.000 and treat it as HQ
         /// </summary>
         public ulong HoveredItem { get; set; }
+
+        /// <summary>
+        /// The action ID that is current hovered by the player. 0 when no action is hovered.
+        /// </summary>
+        public HoveredAction HoveredAction { get; } = new HoveredAction();
         
         /// <summary>
         /// Event that is fired when the currently hovered item changes.
         /// </summary>
         public EventHandler<ulong> HoveredItemChanged { get; set; }
+        
+        /// <summary>
+        /// Event that is fired when the currently hovered action changes.
+        /// </summary>
+        public EventHandler<HoveredAction> HoveredActionChanged { get; set; }
 
         public GameGui(IntPtr baseAddress, SigScanner scanner, Dalamud dalamud) {
             Address = new GameGuiAddressResolver(baseAddress);
@@ -103,6 +121,15 @@ namespace Dalamud.Game.Internal.Gui {
                                                   new HandleItemOutDelegate(HandleItemOutDetour),
                                                   this);
 
+            this.handleActionHoverHook =
+                new Hook<HandleActionHoverDelegate>(Address.HandleActionHover,
+                                                        new HandleActionHoverDelegate(HandleActionHoverDetour),
+                                                        this);
+            this.handleActionOutHook =
+                new Hook<HandleActionOutDelegate>(Address.HandleActionOut,
+                                                        new HandleActionOutDelegate(HandleActionOutDetour),
+                                                        this);
+            
             this.getUIObject = Marshal.GetDelegateForFunctionPointer<GetUIObjectDelegate>(Address.GetUIObject);
 
             this.getMatrixSingleton =
@@ -164,6 +191,51 @@ namespace Dalamud.Game.Internal.Gui {
                 }
             }
 
+            return retVal;
+        }
+
+        private void HandleActionHoverDetour(IntPtr hoverState, HoverActionKind actionKind, uint actionId, int a4, byte a5)
+        {
+            handleActionHoverHook.Original(hoverState, actionKind, actionId, a4, a5);
+            HoveredAction.ActionKind = actionKind;
+            HoveredAction.BaseActionID = actionId;
+            HoveredAction.ActionID = (uint) Marshal.ReadInt32(hoverState, 0x3C);
+            try
+            {
+                HoveredActionChanged?.Invoke(this, this.HoveredAction);
+            } catch (Exception e)
+            {
+                Log.Error(e, "Could not dispatch HoveredItemChanged event.");
+            }
+            Log.Verbose("HoverActionId: {0}/{1} this:{2}", actionKind, actionId, hoverState.ToInt64().ToString("X"));
+        }
+        
+        private IntPtr HandleActionOutDetour(IntPtr agentActionDetail, IntPtr a2, IntPtr a3, int a4)
+        {
+            var retVal = handleActionOutHook.Original(agentActionDetail, a2, a3, a4);
+           
+            if (a3 != IntPtr.Zero && a4 == 1)
+            {
+                var a3Val = Marshal.ReadByte(a3, 0x8);
+
+                if (a3Val == 255)
+                {
+                    this.HoveredAction.ActionKind = HoverActionKind.None;
+                    HoveredAction.BaseActionID = 0;
+                    HoveredAction.ActionID = 0;
+
+                    try
+                    {
+                        HoveredActionChanged?.Invoke(this, this.HoveredAction);
+                    } catch (Exception e)
+                    {
+                        Log.Error(e, "Could not dispatch HoveredActionChanged event.");
+                    }
+
+                    Log.Verbose("HoverActionId: 0");
+                }
+            }
+            
             return retVal;
         }
 
@@ -347,6 +419,8 @@ namespace Dalamud.Game.Internal.Gui {
             this.handleItemHoverHook.Enable();
             this.handleItemOutHook.Enable();
             this.toggleUiHideHook.Enable();
+            this.handleActionHoverHook.Enable();
+            this.handleActionOutHook.Enable();
         }
 
         public void Dispose() {
@@ -355,6 +429,8 @@ namespace Dalamud.Game.Internal.Gui {
             this.handleItemHoverHook.Dispose();
             this.handleItemOutHook.Dispose();
             this.toggleUiHideHook.Dispose();
+            this.handleActionHoverHook.Dispose();
+            this.handleActionOutHook.Dispose();
         }
     }
 }
