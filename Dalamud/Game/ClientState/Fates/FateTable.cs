@@ -12,54 +12,61 @@ namespace Dalamud.Game.ClientState.Fates
 {
     public class FateTable : IReadOnlyCollection<Fate>, ICollection, IDisposable
     {
+        private const int checkPtrOffset = 0x16D0; // If the pointer at this offset is 0, do not scan table
+        private const int firstPtrOffset = 0x16E0;
+        private const int lastPtrOffset = 0x16E8;
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         private delegate void FateTableDelegate(IntPtr singleton);
         private readonly Hook<FateTableDelegate> fateTableHook;
 
-        private IntPtr firstFate;
-        private IntPtr lastFate;
-
-        private static readonly int FateMemSize = Marshal.SizeOf(typeof(Structs.Fate));
-        private readonly IntPtr fateMem = Marshal.AllocHGlobal(FateMemSize);
 
         private List<Fate> fatesCache;
-
-        private List<Fate> FatesCache
-        {
-            get
-            {
-                if (this.fatesCache != null) return this.fatesCache;
-                this.fatesCache = GetFateTable();
-                return this.fatesCache;
-            }
-        }
-
+        private List<Fate> FatesCache => this.fatesCache ??= this.GetFateTable();
         private void ResetCache() => fatesCache = null;
 
         private ClientStateAddressResolver Address { get; }
+        private ClientState ClientState { get; }
         private readonly Dalamud dalamud;
+
+        private IntPtr manager;
 
         /// <summary>
         /// Set up the fate table collection.
         /// </summary>
-        public FateTable(Dalamud dalamud, ClientStateAddressResolver addressResolver)
+        public FateTable(Dalamud dalamud, ClientState clientState, ClientStateAddressResolver addressResolver)
         {
             Address = addressResolver;
             this.dalamud = dalamud;
+            this.ClientState = clientState;
 
             this.dalamud.Framework.OnUpdateEvent += Framework_OnUpdateEvent;
+            this.ClientState.OnLogout += ClientState_OnLogout;
 
-            Log.Verbose("Fate manager address " + Address.FateTable);
+            Log.Verbose("Fate manager hook address: " + Address.FateTable);
 
             this.fateTableHook = new Hook<FateTableDelegate>(Address.FateTable, new FateTableDelegate(FateTableDetour));
         }
 
+        /// <summary>
+        /// This needs to be done or else risk a crash
+        /// The data pointed by at this pointer effectively becomes deallocated and/or corrupted
+        /// It seem the game's Fate Manaager is completely deallocated / destructed when logging out
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ClientState_OnLogout(object sender, EventArgs e)
+        {
+            this.manager = IntPtr.Zero;
+        }
+
         private void FateTableDetour(IntPtr manager)
         {
-            this.firstFate = Marshal.ReadIntPtr(manager + 0x16E0);
-            this.lastFate = Marshal.ReadIntPtr(manager + 0x16E8);
-
+            if (this.manager != manager)
+            {
+                Log.Verbose($"Fate manager address changed to 0x{manager.ToString("X8")}");
+            }
+            this.manager = manager;
             this.fateTableHook.Original(manager);
         }
 
@@ -84,28 +91,39 @@ namespace Dalamud.Game.ClientState.Fates
             get => FatesCache[index];
         }
 
-        internal Fate ReadFateFromMemory(IntPtr ptr)
+        private List<IntPtr> GetPointerTable()
         {
-            if (SafeMemory.ReadBytes(ptr, FateMemSize, this.fateMem))
+            var ret = new List<IntPtr>();
+            IntPtr current = Marshal.ReadIntPtr(manager + firstPtrOffset);
+            IntPtr end = Marshal.ReadIntPtr(manager + lastPtrOffset);
+
+            while (current != end)
             {
-                var fateStruct = Marshal.PtrToStructure<Structs.Fate>(this.fateMem);
-                return new Fate(ptr, fateStruct, this.dalamud);
+                var fatePtr = Marshal.ReadIntPtr(current);
+                ret.Add(fatePtr);
+                current += 8;
             }
-            return null;
+
+            return ret;
         }
 
         private List<Fate> GetFateTable()
         {
             var fates = new List<Fate>();
 
-            IntPtr current = this.firstFate;
-            IntPtr end = this.lastFate;
+            if (this.manager == IntPtr.Zero) return fates;
+            if (Marshal.ReadIntPtr(this.manager + checkPtrOffset) == IntPtr.Zero) return fates;
 
-            while (current != end)
+            var currentTerritory = this.dalamud.ClientState.TerritoryType;
+            if (currentTerritory == 0) return fates;
+
+            var ptrTable = GetPointerTable();
+            foreach (var ptr in ptrTable.Distinct())
             {
-                SafeMemory.Read<IntPtr>(current, out var fatePtr);
-                fates.Add(fatePtr != IntPtr.Zero ? ReadFateFromMemory(fatePtr) : null);
-                current += 8;
+                var fateStruct = Marshal.PtrToStructure<Structs.Fate>(ptr);
+                if (fateStruct.TerritoryId != currentTerritory) break;
+                var fate = new Fate(ptr, fateStruct, dalamud);
+                fates.Add(fate);
             }
 
             return fates;
@@ -149,6 +167,7 @@ namespace Dalamud.Game.ClientState.Fates
         private void Dispose(bool disposing)
         {
             if (this.disposed) return;
+            this.ClientState.OnLogout -= ClientState_OnLogout;
             this.dalamud.Framework.OnUpdateEvent -= Framework_OnUpdateEvent;
 
             if (disposing)

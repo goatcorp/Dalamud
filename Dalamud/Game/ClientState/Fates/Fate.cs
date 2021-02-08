@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.InteropServices;
 using Dalamud.Game.ClientState.Actors;
 using Dalamud.Game.ClientState.Actors.Resolvers;
 
@@ -34,7 +35,7 @@ namespace Dalamud.Game.ClientState.Fates
         /// <summary>
         /// Fate ID of this <see cref="Fate" />.
         /// </summary>
-        public ushort Id => this.fateStruct.Id;
+        public ushort Id => this.fateStruct.FateId;
 
         /// <summary>
         /// GameData linked to this Fate.
@@ -42,12 +43,11 @@ namespace Dalamud.Game.ClientState.Fates
         public Lumina.Excel.GeneratedSheets.Fate GameData =>
             this.dalamud.Data.GetExcelSheet<Lumina.Excel.GeneratedSheets.Fate>().GetRow(this.Id);
 
-        /*
+        private string name;
         /// <summary>
         /// Display name of this <see cref="Fate" />.
         /// </summary>
-        public string Name => this.fateStruct.Name;
-        */
+        public string Name => this.name ??= Marshal.PtrToStringAnsi(this.fateStruct.Name);
 
         /// <summary>
         /// State of this <see cref="Fate" /> (Running, Ended, Failed, Preparation, WaitingForEnd).
@@ -82,7 +82,7 @@ namespace Dalamud.Game.ClientState.Fates
         /// <summary>
         /// Territory this <see cref="Fate" /> is located.
         /// </summary>
-        public Territory Territory => new Territory(this.fateStruct.Territory, this.dalamud);
+        public Territory Territory => new Territory(this.fateStruct.TerritoryId, this.dalamud);
 
         /// <summary>
         /// Position of this <see cref="Fate" />.

@@ -461,15 +461,15 @@ namespace Dalamud.Interface
         private void PrintFate(Fate fate, string tag)
         {
             var fateString =
-                $"{fate.Address.ToInt64():X}:[{tag}] - Lv.{fate.Level} {(this.resolveGameData ? (fate.GameData?.Name ?? fate.Id.ToString()) : fate.Id.ToString())} ({fate.Progress}%) - X{fate.Position.X} Y{fate.Position.Y} Z{fate.Position.Z} - Territory {(this.resolveGameData ? (fate.Territory.GameData?.Name ?? fate.Territory.Id.ToString()) : fate.Territory.Id.ToString())}\n";
+                $"{fate.Address.ToString("X")}:[{tag}] - Lv.{fate.Level} {fate.Name} ({fate.Progress}%) - X{fate.Position.X} Y{fate.Position.Y} Z{fate.Position.Z} - Territory {(this.resolveGameData ? (fate.Territory.GameData?.Name ?? fate.Territory.Id.ToString()) : fate.Territory.Id.ToString())}\n";
 
             fateString +=
-                $"       StartTimeEpoch: {fate.StartTimeEpoch} Duration: {fate.Duration} State: {fate.State}";
+                $"       StartTimeEpoch: {fate.StartTimeEpoch} - Duration: {fate.Duration} - State: {fate.State} - GameData name - {(this.resolveGameData ? (fate.GameData?.Name ?? fate.Id.ToString()) : fate.Id.ToString())}";
 
             ImGui.TextUnformatted(fateString);
             ImGui.SameLine();
             if (ImGui.Button("C")) {
-                ImGui.SetClipboardText(fate.Address.ToInt64().ToString("X"));
+                ImGui.SetClipboardText(fate.Address.ToString("X"));
             }
         }
     }
