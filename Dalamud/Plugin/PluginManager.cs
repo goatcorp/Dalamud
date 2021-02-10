@@ -239,9 +239,13 @@ namespace Dalamud.Plugin
                         return false;
                     }
 
-                    if (pluginDef.InternalName == "FPSPlugin" && pluginDef.AssemblyVersion == "1.4.2.0")
-                    {
+                    if (pluginDef.InternalName == "FPSPlugin" && pluginDef.AssemblyVersion == "1.4.2.0") {
                         Log.Error("Banned PingPlugin");
+                        return false;
+                    }
+
+                    if (pluginDef.InternalName == "SonarPlugin" && pluginDef.AssemblyVersion == "0.1.3.1") {
+                        Log.Error("Banned SonarPlugin");
                         return false;
                     }
 
