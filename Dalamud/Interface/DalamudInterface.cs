@@ -60,6 +60,8 @@ namespace Dalamud.Interface
 
         public void Draw()
         {
+            this.frameCount++;
+
             if (!this.IsDevMenu && !this.dalamud.ClientState.Condition.Any())
             {
                 ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0, 0, 0, 0));
@@ -246,7 +248,6 @@ namespace Dalamud.Interface
                         ImGui.BeginMenu("UI is hidden...", false);
 
                     ImGui.BeginMenu(this.frameCount.ToString(), false);
-                    this.frameCount++;
 
                     ImGui.EndMainMenuBar();
                 }
