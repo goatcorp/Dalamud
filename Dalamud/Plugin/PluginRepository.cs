@@ -40,10 +40,10 @@ namespace Dalamud.Plugin
         }
 
         public void ReloadPluginMasterAsync() {
+            State = InitializationState.InProgress;
+
             Task.Run(() => {
                 this.PluginMaster = null;
-
-                State = InitializationState.InProgress;
 
                 var allPlugins = new List<PluginDefinition>();
 
