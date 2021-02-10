@@ -55,7 +55,11 @@ namespace Dalamud {
         }
 
         private (Logger logger, LoggingLevelSwitch levelSwitch) NewLogger(string baseDirectory) {
+#if DEBUG
             var logPath = Path.Combine(baseDirectory, "dalamud.txt");
+#else
+            var logPath = Path.Combine(baseDirectory, "..", "..", "dalamud.txt");
+#endif
 
             var levelSwitch = new LoggingLevelSwitch();
 
