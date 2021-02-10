@@ -182,6 +182,8 @@ namespace Dalamud.Plugin
                         return false;
                     }
 
+                    Log.Verbose("Plugin CreateInstance...");
+
                     var plugin = (IDalamudPlugin)Activator.CreateInstance(type);
 
                     // this happens for raw plugins that don't specify a PluginDefinition - just generate a dummy one to avoid crashes anywhere
@@ -201,6 +203,8 @@ namespace Dalamud.Plugin
                         disabledFile.Create().Close();
                         return false;
                     }
+
+                    Log.Verbose("Plugin Initialize...");
 
                     var dalamudInterface = new DalamudPluginInterface(this.dalamud, type.Assembly.GetName().Name, this.pluginConfigs, reason);
                     plugin.Initialize(dalamudInterface);

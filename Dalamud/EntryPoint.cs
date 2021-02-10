@@ -66,7 +66,7 @@ namespace Dalamud {
 #endif
 
             var newLogger =  new LoggerConfiguration()
-                   .WriteTo.Async(a => a.File(logPath, outputTemplate: "{Timestamp:HH:mm:ss.fff}[{Level:u3}] {Message:lj}{NewLine}{Exception}"))
+                   .WriteTo.Async(a => a.File(logPath, outputTemplate: "[{Timestamp:HH:mm:ss.fff}][{Level:u3}] {Message:lj}{NewLine}{Exception}"))
                    .WriteTo.EventSink()
                    .MinimumLevel.ControlledBy(levelSwitch)
                    .CreateLogger();

@@ -22,6 +22,8 @@ namespace Dalamud.Interface
     {
         private readonly Dalamud dalamud;
 
+        private ulong frameCount = 0;
+
         public DalamudInterface(Dalamud dalamud) {
             this.dalamud = dalamud;
         }
@@ -242,6 +244,9 @@ namespace Dalamud.Interface
 
                     if (this.dalamud.Framework.Gui.GameUiHidden)
                         ImGui.BeginMenu("UI is hidden...", false);
+
+                    ImGui.BeginMenu(this.frameCount.ToString(), false);
+                    this.frameCount++;
 
                     ImGui.EndMainMenuBar();
                 }
