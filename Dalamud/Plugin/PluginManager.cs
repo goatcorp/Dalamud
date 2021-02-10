@@ -234,6 +234,11 @@ namespace Dalamud.Plugin
                         DalamudApiLevel = DALAMUD_API_LEVEL
                     };
 
+                    if (pluginDef.InternalName == "PingPlugin" && pluginDef.AssemblyVersion == "1.11.0.0") {
+                        Log.Error("Banned PingPlugin");
+                        return false;
+                    }
+
                     if (pluginDef.DalamudApiLevel < DALAMUD_API_LEVEL) {
                         Log.Error("Incompatible API level: {0}", dllFile.FullName);
                         disabledFile.Create().Close();
