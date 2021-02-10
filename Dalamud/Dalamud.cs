@@ -185,19 +185,31 @@ namespace Dalamud {
                 TargetModule = Process.GetCurrentProcess().MainModule;
                 SigScanner = new SigScanner(TargetModule, true);
 
+                Log.Information("[START] Scanner OK!");
+
                 AntiDebug = new AntiDebug(SigScanner);
 #if DEBUG
                 AntiDebug.Enable();
 #endif
 
+                Log.Information("[START] AntiDebug OK!");
+
                 // Initialize game subsystem
                 Framework = new Framework(SigScanner, this);
 
+                Log.Information("[START] Framework OK!");
+
                 WinSock2 = new WinSockHandlers();
+
+                Log.Information("[START] WinSock OK!");
 
                 NetworkHandlers = new NetworkHandlers(this, StartInfo.OptOutMbCollection);
 
+                Log.Information("[START] NH OK!");
+
                 ClientState = new ClientState(this, StartInfo, SigScanner);
+
+                Log.Information("[START] CS OK!");
 
                 LocalizationManager = new Localization(AssetDirectory.FullName);
                 if (!string.IsNullOrEmpty(Configuration.LanguageOverride))
@@ -205,9 +217,15 @@ namespace Dalamud {
                 else
                     LocalizationManager.SetupWithUiCulture();
 
+                Log.Information("[START] LOC OK!");
+
                 PluginRepository = new PluginRepository(this, StartInfo.PluginDirectory, StartInfo.GameVersion);
 
+                Log.Information("[START] PREPO OK!");
+
                 DalamudUi = new DalamudInterface(this);
+
+                Log.Information("[START] DUI OK!");
 
                 var isInterfaceLoaded = false;
                 if (!bool.Parse(Environment.GetEnvironmentVariable("DALAMUD_NOT_HAVE_INTERFACE") ?? "false")) {
@@ -217,6 +235,8 @@ namespace Dalamud {
 
                         InterfaceManager.Enable();
                         isInterfaceLoaded = true;
+
+                        Log.Information("[START] IM OK!");
 
                         InterfaceManager.WaitForFontRebuild();
                     } catch (Exception e) {
@@ -233,29 +253,44 @@ namespace Dalamud {
                     return;
                 }
 
+                Log.Information("[START] Data OK!");
+
                 SeStringManager = new SeStringManager(Data);
+
+                Log.Information("[START] SeString OK!");
 
                 // Initialize managers. Basically handlers for the logic
                 CommandManager = new CommandManager(this, StartInfo.Language);
                 DalamudCommands = new DalamudCommands(this);
                 DalamudCommands.SetupCommands();
 
+                Log.Information("[START] CM OK!");
+
                 ChatHandlers = new ChatHandlers(this);
+
+                Log.Information("[START] CH OK!");
 
                 if (!bool.Parse(Environment.GetEnvironmentVariable("DALAMUD_NOT_HAVE_PLUGINS") ?? "false")) {
                     try {
                         PluginRepository.CleanupPlugins();
 
+                        Log.Information("[START] PRC OK!");
+
                         PluginManager =
                             new PluginManager(this, StartInfo.PluginDirectory, StartInfo.DefaultPluginDirectory);
                         PluginManager.LoadPlugins();
+
+                        Log.Information("[START] PM OK!");
                     } catch (Exception ex) {
                         Log.Error(ex, "Plugin load failed.");
                     }
                 }
 
                 Framework.Enable();
+                Log.Information("[START] Framework ENABLE!");
+
                 ClientState.Enable();
+                Log.Information("[START] CS ENABLE!");
 
                 IsReady = true;
 
