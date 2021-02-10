@@ -11,15 +11,12 @@ namespace Dalamud.Interface {
         private readonly Dalamud dalamud;
         private string assemblyVersion = Util.AssemblyVersion;
 
-        private const bool WarrantsChangelog = false;
+        private const bool WarrantsChangelog = true;
         private const string ChangeLog =
-            @"* Fixed various bugs with plugins not installing correctly or causing crashes in certain situations
-* All installed plugins, regardless of their status in the repository, are now shown
-* Plugins are now grouped by installation state in the installer
+            @"* Various behind-the-scenes changes to improve stability
+* Faster startup times
 
-If you have previously encoutered issues with plugins since 5.4, they should be resolved now for most of them.
-
-As this is a major patch and we have made several backend changes, please keep in mind that it may take a little bit for all of your favorite plugins to be available again.";
+If you note any issues or need help, please make sure to ask on our discord server.";
 
         public DalamudChangelogWindow(Dalamud dalamud) {
             this.dalamud = dalamud;
