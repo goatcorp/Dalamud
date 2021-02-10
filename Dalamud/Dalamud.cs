@@ -185,31 +185,31 @@ namespace Dalamud {
                 TargetModule = Process.GetCurrentProcess().MainModule;
                 SigScanner = new SigScanner(TargetModule, true);
 
-                Log.Information("[START] Scanner OK!");
+                Log.Verbose("[START] Scanner OK!");
 
                 AntiDebug = new AntiDebug(SigScanner);
 #if DEBUG
                 AntiDebug.Enable();
 #endif
 
-                Log.Information("[START] AntiDebug OK!");
+                Log.Verbose("[START] AntiDebug OK!");
 
                 // Initialize game subsystem
                 Framework = new Framework(SigScanner, this);
 
-                Log.Information("[START] Framework OK!");
+                Log.Verbose("[START] Framework OK!");
 
                 WinSock2 = new WinSockHandlers();
 
-                Log.Information("[START] WinSock OK!");
+                Log.Verbose("[START] WinSock OK!");
 
                 NetworkHandlers = new NetworkHandlers(this, StartInfo.OptOutMbCollection);
 
-                Log.Information("[START] NH OK!");
+                Log.Verbose("[START] NH OK!");
 
                 ClientState = new ClientState(this, StartInfo, SigScanner);
 
-                Log.Information("[START] CS OK!");
+                Log.Verbose("[START] CS OK!");
 
                 LocalizationManager = new Localization(AssetDirectory.FullName);
                 if (!string.IsNullOrEmpty(Configuration.LanguageOverride))
@@ -217,15 +217,15 @@ namespace Dalamud {
                 else
                     LocalizationManager.SetupWithUiCulture();
 
-                Log.Information("[START] LOC OK!");
+                Log.Verbose("[START] LOC OK!");
 
                 PluginRepository = new PluginRepository(this, StartInfo.PluginDirectory, StartInfo.GameVersion);
 
-                Log.Information("[START] PREPO OK!");
+                Log.Verbose("[START] PREPO OK!");
 
                 DalamudUi = new DalamudInterface(this);
 
-                Log.Information("[START] DUI OK!");
+                Log.Verbose("[START] DUI OK!");
 
                 var isInterfaceLoaded = false;
                 if (!bool.Parse(Environment.GetEnvironmentVariable("DALAMUD_NOT_HAVE_INTERFACE") ?? "false")) {
@@ -236,7 +236,7 @@ namespace Dalamud {
                         InterfaceManager.Enable();
                         isInterfaceLoaded = true;
 
-                        Log.Information("[START] IM OK!");
+                        Log.Verbose("[START] IM OK!");
 
                         InterfaceManager.WaitForFontRebuild();
                     } catch (Exception e) {
@@ -253,44 +253,44 @@ namespace Dalamud {
                     return;
                 }
 
-                Log.Information("[START] Data OK!");
+                Log.Verbose("[START] Data OK!");
 
                 SeStringManager = new SeStringManager(Data);
 
-                Log.Information("[START] SeString OK!");
+                Log.Verbose("[START] SeString OK!");
 
                 // Initialize managers. Basically handlers for the logic
                 CommandManager = new CommandManager(this, StartInfo.Language);
                 DalamudCommands = new DalamudCommands(this);
                 DalamudCommands.SetupCommands();
 
-                Log.Information("[START] CM OK!");
+                Log.Verbose("[START] CM OK!");
 
                 ChatHandlers = new ChatHandlers(this);
 
-                Log.Information("[START] CH OK!");
+                Log.Verbose("[START] CH OK!");
 
                 if (!bool.Parse(Environment.GetEnvironmentVariable("DALAMUD_NOT_HAVE_PLUGINS") ?? "false")) {
                     try {
                         PluginRepository.CleanupPlugins();
 
-                        Log.Information("[START] PRC OK!");
+                        Log.Verbose("[START] PRC OK!");
 
                         PluginManager =
                             new PluginManager(this, StartInfo.PluginDirectory, StartInfo.DefaultPluginDirectory);
                         PluginManager.LoadPlugins();
 
-                        Log.Information("[START] PM OK!");
+                        Log.Verbose("[START] PM OK!");
                     } catch (Exception ex) {
                         Log.Error(ex, "Plugin load failed.");
                     }
                 }
 
                 Framework.Enable();
-                Log.Information("[START] Framework ENABLE!");
+                Log.Verbose("[START] Framework ENABLE!");
 
                 ClientState.Enable();
-                Log.Information("[START] CS ENABLE!");
+                Log.Verbose("[START] CS ENABLE!");
 
                 IsReady = true;
 
