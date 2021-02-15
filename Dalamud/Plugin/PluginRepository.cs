@@ -6,6 +6,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using CheapLoc;
@@ -149,8 +150,13 @@ namespace Dalamud.Plugin
 
                 return this.dalamud.PluginManager.LoadPluginFromAssembly(dllFile, false, PluginLoadReason.Installer);
             }
-            catch (Exception e) {
-                Log.Error(e, "Plugin download failed hard.");
+            catch (Exception ex) {
+                Log.Error(ex, "Plugin download failed hard.");
+                if (ex is ReflectionTypeLoadException typeLoadException) {
+                    foreach (var exception in typeLoadException.LoaderExceptions) {
+                        Log.Error(exception, "LoaderException:");
+                    }
+                }
                 return false;
             }
         }
@@ -287,8 +293,8 @@ namespace Dalamud.Plugin
                     }
                 }
             }
-            catch (Exception e) {
-                Log.Error(e, "Plugin update failed.");
+            catch (Exception ex) {
+                Log.Error(ex, "Plugin update failed.");
                 hasError = true;
             }
 
