@@ -104,6 +104,12 @@ namespace Dalamud.Plugin
                 }
                 catch (Exception ex) {
                     Log.Error(ex, $"Plugin load for {dllFile.FullName} failed.");
+                    if (ex is ReflectionTypeLoadException) {
+                        var typeLoadException = ex as ReflectionTypeLoadException;
+                        foreach (var exception in typeLoadException.LoaderExceptions) {
+                            Log.Error(exception, "LoaderException:");
+                        }
+                    }
                 }
             }
         }
