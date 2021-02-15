@@ -152,8 +152,7 @@ namespace Dalamud.Plugin
             }
             catch (Exception ex) {
                 Log.Error(ex, "Plugin download failed hard.");
-                if (ex is ReflectionTypeLoadException) {
-                    var typeLoadException = ex as ReflectionTypeLoadException;
+                if (ex is ReflectionTypeLoadException typeLoadException) {
                     foreach (var exception in typeLoadException.LoaderExceptions) {
                         Log.Error(exception, "LoaderException:");
                     }
