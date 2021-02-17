@@ -192,7 +192,19 @@ namespace Dalamud.Plugin
                         });
                         var latest = sortedVersions.Last();
 
-                        if (File.Exists(Path.Combine(latest.FullName, ".disabled")) && !File.Exists(Path.Combine(latest.FullName, ".testing"))) {
+                        var isEnabled = !File.Exists(Path.Combine(latest.FullName, ".disabled"));
+                        if (!isEnabled && File.Exists(Path.Combine(latest.FullName, ".testing"))) {
+                            // In case testing is installed, but stable is enabled
+                            foreach (var version in versions) {
+                                if (!File.Exists(Path.Combine(version.FullName, ".disabled"))) {
+                                    isEnabled = true;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (!isEnabled) {
+                            Log.Verbose("Is disabled: {0}", installed.FullName);
                             continue;
                         }
 
@@ -234,15 +246,14 @@ namespace Dalamud.Plugin
                             // with an exception if we try to do it twice in row like this
 
                             if (!dryRun) {
-                                var wasEnabled =
+                                var wasLoaded =
                                     this.dalamud.PluginManager.Plugins.Where(x => x.Definition != null).Any(
                                         x => x.Definition.InternalName == info.InternalName);
-                                ;
 
-                                Log.Verbose("wasEnabled: {0}", wasEnabled);
+                                Log.Verbose("isEnabled: {0} / wasLoaded: {1}", isEnabled, wasLoaded);
 
                                 // Try to disable plugin if it is loaded
-                                if (wasEnabled) {
+                                if (wasLoaded) {
                                     try {
                                         this.dalamud.PluginManager.DisablePlugin(info);
                                     }
@@ -264,7 +275,7 @@ namespace Dalamud.Plugin
                                     Log.Error(ex, "Plugin disable old versions failed");
                                 }
 
-                                var installSuccess = InstallPlugin(remoteInfo, wasEnabled, true, testingAvailable);
+                                var installSuccess = InstallPlugin(remoteInfo, isEnabled, true, testingAvailable);
 
                                 if (!installSuccess) {
                                     Log.Error("InstallPlugin failed.");
