@@ -206,7 +206,7 @@ namespace Dalamud.Plugin
                         var info = JsonConvert.DeserializeObject<PluginDefinition>(
                             File.ReadAllText(localInfoFile.FullName));
 
-                        var remoteInfo = this.PluginMaster.FirstOrDefault(x => x.Name == info.Name);
+                        var remoteInfo = this.PluginMaster.FirstOrDefault(x => x.InternalName == info.InternalName);
 
                         if (remoteInfo == null) {
                             Log.Information("Is not in pluginmaster: {0}", info.Name);
