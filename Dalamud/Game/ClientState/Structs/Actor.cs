@@ -70,7 +70,7 @@ namespace Dalamud.Game.ClientState.Structs
     [StructLayout(LayoutKind.Explicit)]
     public struct Actor
     {
-        [FieldOffset(ActorOffsets.Name)] [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 30)] public string Name;
+        [FieldOffset(ActorOffsets.Name)] [MarshalAs(UnmanagedType.LPUTF8Str, SizeConst = 30)] public string Name;
 
         [FieldOffset(ActorOffsets.ActorId)] public int ActorId;
         [FieldOffset(ActorOffsets.DataId)] public int DataId;
