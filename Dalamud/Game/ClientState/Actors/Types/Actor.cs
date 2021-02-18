@@ -1,5 +1,6 @@
 using Dalamud.Game.ClientState.Structs;
 using System;
+using System.Text;
 
 namespace Dalamud.Game.ClientState.Actors.Types {
     /// <summary>
@@ -44,7 +45,15 @@ namespace Dalamud.Game.ClientState.Actors.Types {
         /// <summary>
         ///     Displayname of this <see cref="Actor">Actor</see>.
         /// </summary>
-        public string Name => this.actorStruct.Name;
+        public string Name {
+            get {
+                int i;
+                for (i = 0; i < this.actorStruct.Name.Length; i++) {
+                    if (this.actorStruct.Name[i] == 0) break;
+                }
+                return Encoding.UTF8.GetString(this.actorStruct.Name, 0, i);
+            }
+        }
 
         /// <summary>
         ///     Actor ID of this <see cref="Actor" />.
