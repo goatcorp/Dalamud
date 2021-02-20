@@ -79,7 +79,7 @@ namespace Dalamud.Game {
         };
 
         private readonly Regex urlRegex =
-            new Regex(@"((http|ftp|https)://)?([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?",
+            new Regex(@"(http|ftp|https)://([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?",
                       RegexOptions.Compiled);
 
         private bool hasSeenLoadingMsg;
