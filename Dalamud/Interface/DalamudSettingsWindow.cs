@@ -18,8 +18,7 @@ namespace Dalamud.Interface
         public DalamudSettingsWindow(Dalamud dalamud) {
             this.dalamud = dalamud;
 
-            this.chatTypes = Enum.GetValues(typeof(XivChatType)).Cast<XivChatType>().Select(x => x.ToString()).ToArray();
-            this.dalamudMessagesChatType = (int) this.dalamud.Configuration.GeneralChatType;
+            this.dalamudMessagesChatType = this.dalamud.Configuration.GeneralChatType;
 
             this.doCfTaskBarFlash = this.dalamud.Configuration.DutyFinderTaskbarFlash;
             this.doCfChatMessage = this.dalamud.Configuration.DutyFinderChatMessage;
@@ -74,11 +73,9 @@ namespace Dalamud.Interface
         private string[] locLanguages;
         private int langIndex;
 
-        private string[] chatTypes;
-
         private Vector4 hintTextColor = new Vector4(0.70f, 0.70f, 0.70f, 1.00f);
 
-        private int dalamudMessagesChatType;
+        private XivChatType dalamudMessagesChatType;
 
         private bool doCfTaskBarFlash;
         private bool doCfChatMessage;
@@ -126,8 +123,14 @@ namespace Dalamud.Interface
                     ImGui.Dummy(new Vector2(5f, 5f) * ImGui.GetIO().FontGlobalScale);
 
                     ImGui.Text(Loc.Localize("DalamudSettingsChannel", "General Chat Channel"));
-                    ImGui.Combo("##XlChatTypeCombo", ref this.dalamudMessagesChatType, this.chatTypes,
-                                this.chatTypes.Length);
+                    if (ImGui.BeginCombo("##XlChatTypeCombo", this.dalamudMessagesChatType.ToString())) {
+                        foreach (var type in Enum.GetValues(typeof(XivChatType)).Cast<XivChatType>()) {
+                            if (ImGui.Selectable(type.ToString(), type == this.dalamudMessagesChatType)) {
+                                this.dalamudMessagesChatType = type;
+                            }
+                        }
+                        ImGui.EndCombo();
+                    }
                     ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingsChannelHint", "Select the chat channel that is to be used for general Dalamud messages."));
 
                     ImGui.Dummy(new Vector2(5f, 5f) * ImGui.GetIO().FontGlobalScale);
@@ -318,7 +321,7 @@ namespace Dalamud.Interface
             this.dalamud.LocalizationManager.SetupWithLangCode(this.languages[this.langIndex]);
             this.dalamud.Configuration.LanguageOverride = this.languages[this.langIndex];
 
-            this.dalamud.Configuration.GeneralChatType = (XivChatType) this.dalamudMessagesChatType;
+            this.dalamud.Configuration.GeneralChatType = this.dalamudMessagesChatType;
 
             this.dalamud.Configuration.DutyFinderTaskbarFlash = this.doCfTaskBarFlash;
             this.dalamud.Configuration.DutyFinderChatMessage = this.doCfChatMessage;
