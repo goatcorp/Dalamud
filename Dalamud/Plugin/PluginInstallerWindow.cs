@@ -460,7 +460,9 @@ namespace Dalamud.Plugin
                         if (installedPlugin.IsRaw) {
                             ImGui.SameLine();
                             ImGui.TextColored(new Vector4(1.0f, 0.0f, 0.0f, 1.0f),
-                                              " To update or disable this plugin, please remove it from the devPlugins folder.");
+                                              this.dalamud.PluginRepository.PluginMaster.Any(x => x.InternalName == installedPlugin.Definition.InternalName)
+                                                   ? " This plugin is available in one of your repos, please remove it from the devPlugins folder."
+                                                   : " To disable this plugin, please remove it from the devPlugins folder.");
                         }
                     }
 
