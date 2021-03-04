@@ -256,8 +256,8 @@ namespace Dalamud.Game.Internal.Gui.Structs {
             this.jobsPresent = listing.jobsPresent;
 
             Id = listing.id;
-            Name = seStringManager.Parse(listing.name);
-            Description = seStringManager.Parse(listing.description);
+            Name = seStringManager.Parse(listing.name.TakeWhile(b => b != 0).ToArray());
+            Description = seStringManager.Parse(listing.description.TakeWhile(b => b != 0).ToArray());
             World = new Lazy<World>(() => dataManager.GetExcelSheet<World>().GetRow(listing.world));
             HomeWorld = new Lazy<World>(() => dataManager.GetExcelSheet<World>().GetRow(listing.homeWorld));
             CurrentWorld = new Lazy<World>(() => dataManager.GetExcelSheet<World>().GetRow(listing.currentWorld));
