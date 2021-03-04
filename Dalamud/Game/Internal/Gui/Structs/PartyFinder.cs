@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 using Dalamud.Data;
+using Dalamud.Game.Chat.SeStringHandling;
 using Lumina.Excel.GeneratedSheets;
 
 namespace Dalamud.Game.Internal.Gui.Structs {
@@ -101,27 +101,10 @@ namespace Dalamud.Game.Internal.Gui.Structs {
 
             // Note that ByValTStr will not work here because the strings are UTF-8 and there's only a CharSet for UTF-16 in C#.
             [MarshalAs(UnmanagedType.ByValArray, SizeConst = 32)]
-            private readonly byte[] name;
+            internal readonly byte[] name;
 
             [MarshalAs(UnmanagedType.ByValArray, SizeConst = 192)]
-            private readonly byte[] description;
-
-            // 128 (0x80) before name and desc
-            // 160 (0xA0) with name (32 bytes/0x20)
-            // 352 (0x160) with both (192 bytes/0xC0)
-
-            private static string HandleString(IEnumerable<byte> bytes) {
-                var nonNull = bytes.TakeWhile(b => b != 0).ToArray();
-                return Encoding.UTF8.GetString(nonNull);
-            }
-
-            internal string Name() {
-                return HandleString(this.name);
-            }
-
-            internal string Description() {
-                return HandleString(this.description);
-            }
+            internal readonly byte[] description;
 
             internal bool IsNull() {
                 // a valid party finder must have at least one slot set
@@ -142,11 +125,11 @@ namespace Dalamud.Game.Internal.Gui.Structs {
         /// <summary>
         /// The name of the player hosting this listing.
         /// </summary>
-        public string Name { get; }
+        public SeString Name { get; }
         /// <summary>
         /// The description of this listing as set by the host. May be multiple lines.
         /// </summary>
-        public string Description { get; }
+        public SeString Description { get; }
         /// <summary>
         /// The world that this listing was created on.
         /// </summary>
@@ -263,7 +246,7 @@ namespace Dalamud.Game.Internal.Gui.Structs {
 
         #endregion
 
-        internal PartyFinderListing(PartyFinder.Listing listing, DataManager dataManager) {
+        internal PartyFinderListing(PartyFinder.Listing listing, DataManager dataManager, SeStringManager seStringManager) {
             this.objective = listing.objective;
             this.conditions = listing.conditions;
             this.dutyFinderSettings = listing.dutyFinderSettings;
@@ -273,8 +256,8 @@ namespace Dalamud.Game.Internal.Gui.Structs {
             this.jobsPresent = listing.jobsPresent;
 
             Id = listing.id;
-            Name = listing.Name();
-            Description = listing.Description();
+            Name = seStringManager.Parse(listing.name);
+            Description = seStringManager.Parse(listing.description);
             World = new Lazy<World>(() => dataManager.GetExcelSheet<World>().GetRow(listing.world));
             HomeWorld = new Lazy<World>(() => dataManager.GetExcelSheet<World>().GetRow(listing.homeWorld));
             CurrentWorld = new Lazy<World>(() => dataManager.GetExcelSheet<World>().GetRow(listing.currentWorld));

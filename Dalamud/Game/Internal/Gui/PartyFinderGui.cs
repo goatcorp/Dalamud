@@ -79,7 +79,7 @@ namespace Dalamud.Game.Internal.Gui {
                     continue;
                 }
 
-                var listing = new PartyFinderListing(packet.listings[i], Dalamud.Data);
+                var listing = new PartyFinderListing(packet.listings[i], Dalamud.Data, Dalamud.SeStringManager);
                 var args = new PartyFinderListingEventArgs();
                 ReceiveListing?.Invoke(listing, args);
 
