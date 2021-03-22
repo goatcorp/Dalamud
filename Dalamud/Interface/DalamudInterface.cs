@@ -134,6 +134,7 @@ namespace Dalamud.Interface
                         {
                             OpenChangelog();
                         }
+                        ImGui.MenuItem("Draw Tippy", "", ref this.dalamud.Fools.IsEnabled);
                         ImGui.MenuItem("Draw ImGui demo", "", ref this.isImguiDrawDemoWindow);
                         ImGui.Separator();
                         if (ImGui.MenuItem("Unload Dalamud"))

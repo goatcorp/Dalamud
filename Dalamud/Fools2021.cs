@@ -24,6 +24,8 @@ namespace Dalamud
 
         private Stopwatch tippyTimer = new Stopwatch();
 
+        public bool IsEnabled = true;
+
         public Fools2021(Dalamud dalamud)
         {
             this.dalamud = dalamud;
@@ -36,15 +38,8 @@ namespace Dalamud
 
             this.welcomeTex = this.dalamud.InterfaceManager.LoadImage(
                 Path.Combine(dalamud.StartInfo.AssetDirectory, "UIRes", "welcome.png"));
-
-            var watch = new Stopwatch();
-            watch.Start();
-
-            LoadTippyFrames(TippyAnimState.GetAttention, 199, 223);
-            LoadTippyFrames(TippyAnimState.Idle, 233, 267);
-
-            watch.Stop();
-            Log.Information($"Loading tippy frames took {watch.ElapsedMilliseconds}ms");
+            this.tippySpriteSheet = this.dalamud.InterfaceManager.LoadImage(
+                Path.Combine(dalamud.StartInfo.AssetDirectory, "UIRes", "map.png"));
 
             this.tippyTimer.Start();
 
@@ -65,6 +60,8 @@ namespace Dalamud
 
         public void Draw()
         {
+            if (!IsEnabled)
+                return;
 
             if (this.frames < 2000)
             {
@@ -101,7 +98,14 @@ namespace Dalamud
         private enum TippyAnimState
         {
             Idle,
-            GetAttention
+            GetAttention,
+            Banger,
+            Sending,
+            Reading,
+            GetAttention2,
+            PointLeft,
+            WritingDown,
+            CheckingYouOut
         }
 
         private Dictionary<TippyAnimState, TextureWrap[]> tippyAnimFrames =
@@ -180,11 +184,22 @@ namespace Dalamud
             ImGui.End();
 
             ImGui.PopStyleColor();
+
+            ImGui.Begin("Tippy AI debug");
+
+            foreach (var tippyAnimData in this.tippyAnimDatas) {
+                if (ImGui.Button(tippyAnimData.Key.ToString()))
+                    SetTippyAnim(tippyAnimData.Key, true);
+            }
         }
 
         private TippyAnimState tippyAnim = TippyAnimState.Idle;
 
-        private long currentTippyFrame = 0;
+        private int startTippyFrame = 0;
+        private int endTippyFrame = 0;
+        private int FramesInTippyAnimation => this.endTippyFrame - this.startTippyFrame;
+
+        private int currentTippyFrame = 0;
         private bool tippyAnimUp = true;
         private bool tippyAnimDone = false;
         private bool tippyLoopAnim = false;
@@ -192,18 +207,63 @@ namespace Dalamud
         private long currentFrameTime = 0;
         private long minFrameTime = 150;
 
+        private readonly int tippySpritesheetW = 27; // amount in row + 1
+        private readonly int tippySpritesheetH = 27;
+        private readonly Vector2 tippySingleSize = new Vector2(124, 93);
+
+        private class TippyAnimData {
+            public TippyAnimData(int start, int stop) {
+                Start = start;
+                Stop = stop;
+            }
+
+            public int Start { get; set; }
+            public int Stop { get; set; }
+        }
+
+        private Dictionary<TippyAnimState, TippyAnimData> tippyAnimDatas =
+            new Dictionary<TippyAnimState, TippyAnimData> {
+                {TippyAnimState.GetAttention, new TippyAnimData(199, 223)},
+                {TippyAnimState.Idle, new TippyAnimData(233, 267)},
+                {TippyAnimState.Banger, new TippyAnimData(343, 360)},
+                {TippyAnimState.Sending, new TippyAnimData(361, 412)},
+                {TippyAnimState.Reading, new TippyAnimData(443, 493)},
+                {TippyAnimState.GetAttention2, new TippyAnimData(522, 535)},
+                {TippyAnimState.PointLeft, new TippyAnimData(545, 554)},
+                {TippyAnimState.WritingDown, new TippyAnimData(555, 624)},
+                {TippyAnimState.CheckingYouOut, new TippyAnimData(718, 791)},
+            };
+
+        private readonly TextureWrap tippySpriteSheet;
+
+        private Vector2 GetTippyTexCoords(int spriteIndex) {
+            var w = spriteIndex % this.tippySpritesheetW;
+            var h = spriteIndex / this.tippySpritesheetH;
+
+            return new Vector2(this.tippySingleSize.X * w, this.tippySingleSize.Y * h);
+        }
+
         private void SetTippyAnim(TippyAnimState anim, bool loop) {
+            var animData = this.tippyAnimDatas[anim];
+
+            this.startTippyFrame = animData.Start;
+            this.endTippyFrame = animData.Stop;
+
+            this.currentTippyFrame = 0;
             this.tippyAnim = anim;
             this.tippyAnimUp = true;
             this.tippyLoopAnim = loop;
         }
 
+        private Vector2 ToSpriteSheetScale(Vector2 input) => new Vector2(input.X / this.tippySpriteSheet.Width, input.Y / this.tippySpriteSheet.Height);
+
         private void DrawTippyAnim() {
-            var animFrames = this.tippyAnimFrames[this.tippyAnim];
+            var frameCoords = GetTippyTexCoords(this.startTippyFrame + this.currentTippyFrame);
+            var botRight = ToSpriteSheetScale(frameCoords + this.tippySingleSize);
 
-            Log.Verbose($"Drawing Tippy: {this.tippyAnim} {this.currentTippyFrame} / {animFrames.Length} up:{this.tippyAnimUp} {this.tippyAnimDone}");
+            Log.Verbose($"Drawing Tippy: {this.tippyAnim} {this.currentTippyFrame} / {FramesInTippyAnimation} up:{this.tippyAnimUp} {this.tippyAnimDone} cx:{frameCoords.X} cy:{frameCoords.Y} rx:{botRight.X} ry:{botRight.Y}");
 
-            if (this.currentTippyFrame > animFrames.Length - 2) {
+            if (this.currentTippyFrame > FramesInTippyAnimation - 2) {
                 this.tippyAnimDone = true;
                 if (!this.tippyLoopAnim)
                     return;
@@ -215,8 +275,10 @@ namespace Dalamud
                 this.tippyAnimUp = true;
             }
 
-            var frame = animFrames[this.currentTippyFrame];
-            ImGui.Image(frame.ImGuiHandle, new Vector2(frame.Width, frame.Height) * ImGui.GetIO().FontGlobalScale * TippyScale);
+
+            ImGui.Image(this.tippySpriteSheet.ImGuiHandle, this.tippySingleSize * ImGui.GetIO().FontGlobalScale * TippyScale, ToSpriteSheetScale(frameCoords), botRight);
+
+            ImGui.Text(this.currentTippyFrame.ToString());
 
             this.currentFrameTime += this.tippyTimer.ElapsedMilliseconds;
             this.tippyTimer.Restart();
@@ -264,6 +326,7 @@ namespace Dalamud
         public void Dispose()
         {
             this.welcomeTex.Dispose();
+            this.tippySpriteSheet.Dispose();
 
             foreach (var anim in this.tippyAnimFrames.Values.SelectMany(x => x))
             {
