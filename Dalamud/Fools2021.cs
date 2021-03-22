@@ -6,6 +6,8 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms.VisualStyles;
+using Dalamud.Interface;
 using ImGuiNET;
 using ImGuiScene;
 using Serilog;
@@ -19,6 +21,9 @@ namespace Dalamud
         private TextureWrap welcomeTex;
         private const float WelcomeTexScale = 0.74f;
         private const float TippyScale = 1;
+
+        private TextureWrap bubbleTex;
+        private const float BubbleScale = 1;
 
         private long frames = 0;
 
@@ -40,6 +45,8 @@ namespace Dalamud
                 Path.Combine(dalamud.StartInfo.AssetDirectory, "UIRes", "welcome.png"));
             this.tippySpriteSheet = this.dalamud.InterfaceManager.LoadImage(
                 Path.Combine(dalamud.StartInfo.AssetDirectory, "UIRes", "map.png"));
+            this.bubbleTex = this.dalamud.InterfaceManager.LoadImage(
+                Path.Combine(dalamud.StartInfo.AssetDirectory, "UIRes", "bubble.png"));
 
             this.tippyTimer.Start();
 
@@ -141,9 +148,11 @@ namespace Dalamud
         private string currentTip = string.Empty;
         private long lastTipFrame = 0;
 
+        private string tippyTextOverride = string.Empty;
+        private bool showTippyButton = true;
+
         private void DrawTippy()
         {
-            /*
             if (string.IsNullOrEmpty(this.currentTip))
             {
                 this.currentTip = CalcNewTip();
@@ -155,42 +164,93 @@ namespace Dalamud
                 this.currentTip = CalcNewTip();
                 this.lastTipFrame = this.frames;
             }
-           
-            */
-            var windowSize = ImGui.GetIO().DisplaySize;
-        
-            var tippyX = windowSize.X - 200;
-            var tippyY = windowSize.Y - 200;
+            
+            var displaySize = ImGui.GetIO().DisplaySize;
 
-            ImGui.SetNextWindowPos(new Vector2(tippyX, tippyY), ImGuiCond.Always);
+            var tippyPos = new Vector2(displaySize.X - 400, displaySize.Y - 350);
+
+            ImGui.SetNextWindowPos(tippyPos, ImGuiCond.Always);
+            ImGui.SetNextWindowSize(new Vector2(500, 500), ImGuiCond.Always);
 
             ImGui.PushStyleColor(ImGuiCol.WindowBg, new Vector4(0, 0, 0, 0));
 
             ImGui.Begin("###TippyWindow", ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoMouseInputs | ImGuiWindowFlags.NoFocusOnAppearing);
 
-            switch (tippyState)
+            if (string.IsNullOrEmpty(this.tippyTextOverride))
             {
-                case TippyState.Intro:
-                    
-                    break;
-                case TippyState.Tips:
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
+                switch (tippyState)
+                {
+                    case TippyState.Intro:
+                        DrawTextBox("Hi, I'm Tippy!\n\nI'm your new friend and assistant.\n\nI will help you get better at FFXIV!");
+                        break;
+                    case TippyState.Tips:
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            } else {
+                DrawTextBox(this.tippyTextOverride);
             }
+
+            ImGui.SameLine();
+
+            ImGui.SetCursorPosX(230);
+            ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 55);
 
             DrawTippyAnim();
 
             ImGui.End();
 
+            
+
+            ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.6f, 0.6f, 0.6f, 1f));
+
+            ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0, 0, 0, 1));
+
+            if (this.showTippyButton) {
+                ImGui.SetNextWindowPos(tippyPos + new Vector2(117, 117), ImGuiCond.Always);
+                ImGui.SetNextWindowSize(new Vector2(90, 40), ImGuiCond.Always);
+                ImGui.Begin("###TippyButton", ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse);
+                ImGui.Button("OK!", new Vector2(80, 20));
+                ImGui.End();
+            }
+
+            ImGui.PopStyleColor();
+
+            ImGui.PopFont();
+
+            ImGui.PopStyleColor();
+
+            
+
             ImGui.PopStyleColor();
 
             ImGui.Begin("Tippy AI debug");
+
+            ImGui.Text("State: " + this.tippyState);
 
             foreach (var tippyAnimData in this.tippyAnimDatas) {
                 if (ImGui.Button(tippyAnimData.Key.ToString()))
                     SetTippyAnim(tippyAnimData.Key, true);
             }
+
+            ImGui.InputTextMultiline("Text Override", ref this.tippyTextOverride, 200, new Vector2(300, 120));
+            ImGui.Checkbox("Show button", ref this.showTippyButton);
+
+            ImGui.End();
+        }
+
+        private void DrawTextBox(string text) {
+            ImGui.PushFont(InterfaceManager.FoolsFont);
+
+            var beforeBubbleCursor = ImGui.GetCursorPos();
+            ImGui.Image(this.bubbleTex.ImGuiHandle, new Vector2(this.bubbleTex.Width, this.bubbleTex.Height) * ImGui.GetIO().FontGlobalScale * BubbleScale);
+            var afterBubbleCursor = ImGui.GetCursorPos();
+
+            ImGui.SetCursorPos(beforeBubbleCursor + new Vector2(10, 10));
+            ImGui.TextColored(new Vector4(0, 0, 0, 1), text);
+
+            ImGui.SetCursorPos(afterBubbleCursor);
         }
 
         private TippyAnimState tippyAnim = TippyAnimState.Idle;
@@ -221,7 +281,7 @@ namespace Dalamud
             public int Stop { get; set; }
         }
 
-        private Dictionary<TippyAnimState, TippyAnimData> tippyAnimDatas =
+        private readonly Dictionary<TippyAnimState, TippyAnimData> tippyAnimDatas =
             new Dictionary<TippyAnimState, TippyAnimData> {
                 {TippyAnimState.GetAttention, new TippyAnimData(199, 223)},
                 {TippyAnimState.Idle, new TippyAnimData(233, 267)},

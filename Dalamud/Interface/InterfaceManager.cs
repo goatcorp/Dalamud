@@ -274,6 +274,7 @@ namespace Dalamud.Interface
 
         public static ImFontPtr DefaultFont { get; private set; }
         public static ImFontPtr IconFont { get; private set; }
+        public static ImFontPtr FoolsFont { get; private set; }
 
         private unsafe void SetupFonts()
         {
@@ -311,6 +312,9 @@ namespace Dalamud.Interface
                 0
             }, GCHandleType.Pinned);
             IconFont = ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPathIcon, 17.0f, null, iconRangeHandle.AddrOfPinnedObject());
+
+            var fontPathFools = Path.Combine(this.dalamud.AssetDirectory.FullName, "UIRes", "MS Sans Serif.ttf");
+            FoolsFont = ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPathFools, 14.0f);
 
             Log.Verbose("[FONT] Invoke OnBuildFonts");
             this.OnBuildFonts?.Invoke();
