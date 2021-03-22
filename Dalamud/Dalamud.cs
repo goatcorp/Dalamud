@@ -164,6 +164,8 @@ namespace Dalamud {
         /// </summary>
         internal DirectoryInfo AssetDirectory => new DirectoryInfo(this.StartInfo.AssetDirectory);
 
+        internal Fools2021 Fools { get; private set; }
+
         public Dalamud(DalamudStartInfo info, LoggingLevelSwitch loggingLevelSwitch, ManualResetEvent finishSignal) {
             StartInfo = info;
             LogLevelSwitch = loggingLevelSwitch;
@@ -244,6 +246,13 @@ namespace Dalamud {
                     }
                 }
 
+                var time = DateTime.Now;
+                if (time.Day == 1 && time.Month == 4 && time.Year == 2021 || true)
+                {
+                    Fools = new Fools2021(this);
+                    InterfaceManager.OnDraw += Fools.Draw;
+                }
+
                 Data = new DataManager(StartInfo.Language);
                 try {
                     Data.Initialize(AssetDirectory.FullName);
@@ -318,6 +327,8 @@ namespace Dalamud {
 
         public void Dispose() {
             try {
+                Fools?.Dispose();
+
                 // this must be done before unloading plugins, or it can cause a race condition
                 // due to rendering happening on another thread, where a plugin might receive
                 // a render call after it has been disposed, which can crash if it attempts to
