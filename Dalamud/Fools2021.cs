@@ -118,25 +118,100 @@ namespace Dalamud
         private Dictionary<TippyAnimState, TextureWrap[]> tippyAnimFrames =
             new Dictionary<TippyAnimState, TextureWrap[]>();
 
-        private static string TippyIntro =
-            "Hi! I am Tippy, your new virtual assistant.\n\nI will teach you how to play your job!\n\nJust click \"OK\" to begin!";
-
         private static readonly string[] GeneralTips = new[] {
-            "Vuln stacks really don't affect damage you receive by that much, so ignore any healer that complains about you not doing mechanics correctly.",
-            "Wiping the party is an excellent method to clear away bad status effects, including death.",
-            "Players in your party do not pay your sub. Play the game how you like and report harassment.",
-            "In a big pull, always use the ability with the highest potency number on your bar.",
-            "Make sure to avoid the stack marker so that your healers have less people to heal during raids!",
-            "Put macro'd dialogue on all of your attacks as a tank to also gain enmity from your party members."
+            "Vuln stacks really don't affect damage \nyou receive by that much, so ignore\nany healer that complains about you\nnot doing mechanics correctly.",
+            "Wiping the party is an excellent\nmethod to clear away bad status\neffects, including death.",
+            "Players in your party do not pay \nyour sub.\n\nPlay the game however you like and\nreport harassment.",
+            "In a big pull, always use the ability with\nthe highest potency number on your bar.",
+            "Make sure to avoid the stack marker\nso that your healers have less people\nto heal during raids!",
+            "Put macro'd dialogue on all of your\nattacks as a tank to also gain enmity\nfrom your party members.",
+            "Make sure to save your LB until the\nboss is at 1 pct.\n\nThis will lead to the greatest effect.",
+            "If you want to leave your party quickly\nand blame disconnect, just change\nyour PC time!",
+            "Also try the OwO plugin!",
+            "I will never leave you!",
+            "I'm always watching.",
+            "You cannot hide any longer.",
+            "Powered by XIVLauncher!",
+            "When playing Hunter, specialize your\npet into taunting to help out your tank!",
+            "It doesn't matter if you play BRD or MCH, \nit comes down to personal choice!",
+            "Much like doing a \"brake check\" on the\nroad, you can do a \"heal check\"\nin-game! \n\nJust pop Superbolide at a random time,\npreferably about five seconds before \nraidwide damage.",
+            "This text is powered by duck energy!"
         };
+
+        private static readonly string GoodSong = "Man, this song is great!";
 
         private static readonly string[] PldTips = new[] {
             "Just don't.",
+            "Always save your cooldowns for boss\nfights.",
+            "Piety matters as much as tenacity.",
+            "Meld piety to maximize your DPS."
         };
 
         private static readonly string[] AstTips = new[] {
-            "Always use Benediction on cooldown to maximize healing power!",
-            "Remember, Rescue works over gaps in the floor. Use it to save fellow players."
+            "Always use Benediction on cooldown\nto maximize healing power!",
+            "Remember, Rescue works over gaps\nin the floor.\n\nUse it to save fellow players."
+        };
+
+        private static readonly string[] MnkTips = new[] {
+            "Always use Six-Sided Star on CD.\n\nIt's your highest potency ability.",
+            "Use Fists of Fire Earth to mitigate big\ndamage during fights.\n\nYour healers will thank you.",
+
+        };
+
+        private static readonly string[] DrgTips = new[] {
+            "Always make sure to use Mirage Dive\ndirectly after Jump so you don't forget\nto use it."
+        };
+
+        private static readonly string[] NinTips = new[] {
+            "A ninja always appears raiton time!",
+            "Tiger Palm is your most important GCD\nfor Brew and Chi generation.\n\nMake sure to cast it in favor of other\nenergy-spending abilities!"
+        };
+
+        private static readonly string[] SamTips = new[] {
+            "Increase Midare damage by shouting\n\"BANKAI\" in chat.\n\nThis can be accomplished through the\nuse of macros.\n"
+        };
+
+        private static readonly string[] DncTips = new[] {
+            "Only give Dance Partner to people\nafter they used a dance emote."
+        };
+
+        private static readonly string[] BlmTips = new[] {
+            "Tired of casting fire so much?\n\nTry out using only ice spells for a\nchange of pace!"
+        };
+
+        private static readonly string[] SmnTips = new[] {
+            "Titan-Egi can maximize your DPS by\nshielding you from interrupting\ndamage!"
+        };
+
+        private static readonly string[] BluTips = new[] {
+            "Did you know that Blue Mage is\nthrowaway content?"
+        };
+
+        private static readonly string[] WhmTips = new[] {
+            "Always use Benediction on cooldown\nto maximize healing power!",
+            "Fluid Aura is a DPS gain!",
+            "Always use Cure immediately so you\ncan get Freecure procs!",
+            "Cure 1 is more mana-efficient than\nCure 2, so use that instead of Glare!",
+            "Remember, Rescue works over gaps\nin the floor.\n\nUse it to save fellow players."
+        };
+
+        private static readonly string[] SchTips = new[] {
+            "Attach Eos to the BRD so they receive\nhealing when at max range.",
+            "Swiftcast Succor before raidwide for\nheals and shield mitigation, allowing\nyou to weave in an oGCD!",
+            "Remember, Rescue works over gaps\nin the floor.\n\nUse it to save fellow players."
+        };
+
+        private static readonly string[] BrdTips = new[] {
+            "Use TBN on your co-DRK so they don't\nhave to!",
+            "Always save your cooldowns for boss\nfights.",
+            "Piety matters as much as tenacity."
+        };
+
+        private static readonly string[] WarTips = new[] {
+            "Infuriate before Inner Release to\nguarantee a Direct Hit Critical Inner\nChaos.",
+            "Apply Nascent Flash to yourself to gain\nNascent Glint for 10% damage \nmitigation.",
+            "Always save your cooldowns for boss\nfights.",
+            "Piety matters as much as tenacity."
         };
 
         private static Dictionary<uint, string[]> jobTipDict = new Dictionary<uint, string[]>() {
@@ -248,7 +323,9 @@ namespace Dalamud
             var afterBubbleCursor = ImGui.GetCursorPos();
 
             ImGui.SetCursorPos(beforeBubbleCursor + new Vector2(10, 10));
-            ImGui.TextColored(new Vector4(0, 0, 0, 1), text);
+            ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0, 0, 0, 1));
+            ImGui.TextUnformatted(text);
+            ImGui.PopStyleColor();
 
             ImGui.SetCursorPos(afterBubbleCursor);
         }
