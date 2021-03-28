@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Data.SqlTypes;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Media;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,7 +21,7 @@ namespace Dalamud
         private readonly Dalamud dalamud;
 
         private TextureWrap welcomeTex;
-        private const float WelcomeTexScale = 0.74f;
+        private const float WelcomeTexScale = 1f;
         private const float TippyScale = 1;
 
         private TextureWrap bubbleTex;
@@ -27,7 +29,8 @@ namespace Dalamud
 
         private long frames = 0;
 
-        private Stopwatch tippyTimer = new Stopwatch();
+        private readonly Stopwatch tippyFrameTimer = new Stopwatch();
+        private readonly Stopwatch tippyLogicTimer = new Stopwatch();
 
         public bool IsEnabled = true;
 
@@ -35,10 +38,16 @@ namespace Dalamud
         {
             this.dalamud = dalamud;
 
-            this.dalamud.ClientState.OnLogin += (sender, args) => this.isTippyDrawing = true;
+            this.dalamud.ClientState.OnLogin += (sender, args) => {
+                this.isTippyDrawing = true;
+                this.tippyLogicTimer.Restart();
+            };
             this.dalamud.ClientState.OnLogout += (sender, args) => {
                 this.isTippyDrawing = false;
-                this.tippyState = TippyState.Intro;
+
+                this.tippyText = string.Empty;
+                this.tippyState = TippyState.BeforeIntro;
+                this.showTippyButton = false;
             };
 
             this.welcomeTex = this.dalamud.InterfaceManager.LoadImage(
@@ -48,21 +57,7 @@ namespace Dalamud
             this.bubbleTex = this.dalamud.InterfaceManager.LoadImage(
                 Path.Combine(dalamud.StartInfo.AssetDirectory, "UIRes", "bubble.png"));
 
-            this.tippyTimer.Start();
-
-            SetTippyAnim(TippyAnimState.Idle, true);
-            this.isTippyDrawing = true;
-        }
-
-        private void LoadTippyFrames(TippyAnimState anim, int start, int end) {
-            var frames = new TextureWrap[end - start];
-
-            for (var i = start; i < end; i++) {
-                frames[i - start] = this.dalamud.InterfaceManager.LoadImage(
-                    Path.Combine(dalamud.StartInfo.AssetDirectory, "UIRes", "tippy", $"tile{i:D4}.png"));
-            }
-
-            this.tippyAnimFrames[anim] = frames;
+            this.tippyFrameTimer.Start();
         }
 
         public void Draw()
@@ -72,9 +67,10 @@ namespace Dalamud
 
             if (this.frames < 2000)
             {
-                ImGui.SetNextWindowSize(new Vector2(this.welcomeTex.Width, this.welcomeTex.Height + 28) * ImGui.GetIO().FontGlobalScale * WelcomeTexScale, ImGuiCond.Always);
+                ImGui.SetNextWindowSize(new Vector2(this.welcomeTex.Width, this.welcomeTex.Height) * ImGui.GetIO().FontGlobalScale * WelcomeTexScale, ImGuiCond.Always);
 
                 ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(0f, 0f));
+                ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 0f);
 
                 ImGui.Begin("Please wait...",
                             ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoTitleBar);
@@ -83,10 +79,45 @@ namespace Dalamud
 
                 ImGui.End();
 
-                ImGui.PopStyleVar();
+                ImGui.PopStyleVar(2);
             }
 
             this.frames++;
+
+#if DEBUG
+            ImGui.Begin("Tippy AI debug");
+
+            ImGui.Text("State: " + this.tippyState);
+
+            foreach (var tippyAnimData in this.tippyAnimDatas)
+            {
+                if (ImGui.Button(tippyAnimData.Key.ToString()))
+                    SetTippyAnim(tippyAnimData.Key, true);
+            }
+
+            ImGui.InputTextMultiline("Text Override", ref this.tippyText, 200, new Vector2(300, 120));
+            ImGui.Checkbox("Show button", ref this.showTippyButton);
+            ImGui.Checkbox("IsTippyDrawing", ref this.isTippyDrawing);
+
+            if (ImGui.Button("Play intro")) {
+                this.isTippyDrawing = true;
+
+                this.tippyText = string.Empty;
+                this.tippyState = TippyState.BeforeIntro;
+                this.showTippyButton = false;
+
+                this.tippyLogicTimer.Restart();
+            }
+
+            if (ImGui.Button("SetNewTip"))
+                SetNewTip();
+
+            foreach (var lastGeneralTip in this.lastGeneralTips) {
+                ImGui.Text(lastGeneralTip);
+            }
+
+            ImGui.End();
+#endif
 
             if (this.isTippyDrawing)
                 DrawTippy();
@@ -96,11 +127,14 @@ namespace Dalamud
 
         private enum TippyState
         {
+            BeforeIntro,
             Intro,
-            Tips
+            Tips,
+            Timeout,
+            Parse
         }
 
-        private TippyState tippyState = TippyState.Intro;
+        private TippyState tippyState = TippyState.BeforeIntro;
 
         private enum TippyAnimState
         {
@@ -115,9 +149,6 @@ namespace Dalamud
             CheckingYouOut
         }
 
-        private Dictionary<TippyAnimState, TextureWrap[]> tippyAnimFrames =
-            new Dictionary<TippyAnimState, TextureWrap[]>();
-
         private static readonly string[] GeneralTips = new[] {
             "Vuln stacks really don't affect damage \nyou receive by that much, so ignore\nany healer that complains about you\nnot doing mechanics correctly.",
             "Wiping the party is an excellent\nmethod to clear away bad status\neffects, including death.",
@@ -129,7 +160,6 @@ namespace Dalamud
             "If you want to leave your party quickly\nand blame disconnect, just change\nyour PC time!",
             "Also try the OwO plugin!",
             "I will never leave you!",
-            "I'm always watching.",
             "You cannot hide any longer.",
             "Powered by XIVLauncher!",
             "When playing Hunter, specialize your\npet into taunting to help out your tank!",
@@ -138,6 +168,8 @@ namespace Dalamud
             "This text is powered by duck energy!"
         };
 
+        private static readonly string Intro =
+            "Hi, I'm Tippy!\n\nI'm your new friend and assistant.\n\nI will help you get better at FFXIV!";
         private static readonly string GoodSong = "Man, this song is great!";
 
         private static readonly string[] PldTips = new[] {
@@ -223,23 +255,49 @@ namespace Dalamud
         private string currentTip = string.Empty;
         private long lastTipFrame = 0;
 
-        private string tippyTextOverride = string.Empty;
-        private bool showTippyButton = true;
+        private string tippyText = string.Empty;
+        private bool showTippyButton = false;
+
+        private SoundPlayer sounds = new SoundPlayer();
+
+        private Random rand = new Random();
+
+        private void PlayTada() {
+            this.sounds.SoundLocation = Path.Combine(dalamud.StartInfo.AssetDirectory, "UIRes", "tada.wav");
+            this.sounds.Play();
+        }
+
+        private void PlayChord()
+        {
+            this.sounds.SoundLocation = Path.Combine(dalamud.StartInfo.AssetDirectory, "UIRes", "chord.wav");
+            this.sounds.Play();
+        }
 
         private void DrawTippy()
         {
-            if (string.IsNullOrEmpty(this.currentTip))
-            {
-                this.currentTip = CalcNewTip();
-                this.lastTipFrame = this.frames;
+            if (this.tippyState == TippyState.BeforeIntro && this.tippyLogicTimer.ElapsedMilliseconds > 8000) {
+                PlayTada();
+                SetTippyAnim(TippyAnimState.GetAttention, true);
+                this.tippyText = Intro;
+                this.showTippyButton = true;
+                this.tippyState = TippyState.Intro;
+            } else if (this.tippyState == TippyState.BeforeIntro) {
+                return;
             }
 
-            if (this.frames - this.lastTipFrame > 2000)
-            {
-                this.currentTip = CalcNewTip();
-                this.lastTipFrame = this.frames;
+            switch (tippyState) {
+                case TippyState.Tips:
+                    if (this.tippyLogicTimer.ElapsedMilliseconds > 120000 && string.IsNullOrEmpty(this.tippyText))
+                        SetNewTip();
+                    break;
+                case TippyState.Timeout:
+                    if (this.tippyLogicTimer.ElapsedMilliseconds > 60000) {
+                        SetNewTip();
+                        this.tippyState = TippyState.Tips;
+                    }
+                    break;
             }
-            
+
             var displaySize = ImGui.GetIO().DisplaySize;
 
             var tippyPos = new Vector2(displaySize.X - 400, displaySize.Y - 350);
@@ -249,28 +307,19 @@ namespace Dalamud
 
             ImGui.PushStyleColor(ImGuiCol.WindowBg, new Vector4(0, 0, 0, 0));
 
-            ImGui.Begin("###TippyWindow", ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoMouseInputs | ImGuiWindowFlags.NoFocusOnAppearing);
+            ImGui.Begin("###TippyWindow", ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoMouseInputs | ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoBringToFrontOnFocus);
 
-            if (string.IsNullOrEmpty(this.tippyTextOverride))
+            ImGui.PushFont(InterfaceManager.FoolsFont);
+
+            if (!string.IsNullOrEmpty(this.tippyText))
             {
-                switch (tippyState)
-                {
-                    case TippyState.Intro:
-                        DrawTextBox("Hi, I'm Tippy!\n\nI'm your new friend and assistant.\n\nI will help you get better at FFXIV!");
-                        break;
-                    case TippyState.Tips:
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
-            } else {
-                DrawTextBox(this.tippyTextOverride);
+                DrawTextBox(this.tippyText);
             }
 
             ImGui.SameLine();
 
             ImGui.SetCursorPosX(230);
-            ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 55);
+            ImGui.SetCursorPosY(18 + 55);
 
             DrawTippyAnim();
 
@@ -284,9 +333,42 @@ namespace Dalamud
 
             if (this.showTippyButton) {
                 ImGui.SetNextWindowPos(tippyPos + new Vector2(117, 117), ImGuiCond.Always);
-                ImGui.SetNextWindowSize(new Vector2(90, 40), ImGuiCond.Always);
+                ImGui.SetNextWindowSize(new Vector2(95, 40), ImGuiCond.Always);
+                //ImGui.SetNextWindowFocus();
                 ImGui.Begin("###TippyButton", ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse);
-                ImGui.Button("OK!", new Vector2(80, 20));
+
+                if (ImGui.Button("OK!", new Vector2(80, 20)))
+                {
+                    switch (tippyState) {
+                        case TippyState.Intro:
+                            this.showTippyButton = false;
+                            this.tippyText = string.Empty;
+                            SetTippyAnim(TippyAnimState.Idle, true);
+
+                            this.tippyState = TippyState.Tips;
+                            this.tippyLogicTimer.Restart();
+                            break;
+                        case TippyState.Tips:
+                            SetTippyAnim(TippyAnimState.Idle, true);
+                            this.tippyText = string.Empty;
+                            this.showTippyButton = false;
+
+                            this.tippyLogicTimer.Restart();
+                            break;
+
+                        case TippyState.Parse:
+                            Process.Start("https://na.finalfantasyxiv.com/jobguide/pvp/");
+
+                            this.showTippyButton = false;
+                            this.tippyText = string.Empty;
+                            SetTippyAnim(TippyAnimState.Idle, true);
+
+                            this.tippyState = TippyState.Tips;
+                            this.tippyLogicTimer.Restart();
+                            break;
+                    }
+                }
+
                 ImGui.End();
             }
 
@@ -296,27 +378,10 @@ namespace Dalamud
 
             ImGui.PopStyleColor();
 
-            
-
             ImGui.PopStyleColor();
-
-            ImGui.Begin("Tippy AI debug");
-
-            ImGui.Text("State: " + this.tippyState);
-
-            foreach (var tippyAnimData in this.tippyAnimDatas) {
-                if (ImGui.Button(tippyAnimData.Key.ToString()))
-                    SetTippyAnim(tippyAnimData.Key, true);
-            }
-
-            ImGui.InputTextMultiline("Text Override", ref this.tippyTextOverride, 200, new Vector2(300, 120));
-            ImGui.Checkbox("Show button", ref this.showTippyButton);
-
-            ImGui.End();
         }
 
         private void DrawTextBox(string text) {
-            ImGui.PushFont(InterfaceManager.FoolsFont);
 
             var beforeBubbleCursor = ImGui.GetCursorPos();
             ImGui.Image(this.bubbleTex.ImGuiHandle, new Vector2(this.bubbleTex.Width, this.bubbleTex.Height) * ImGui.GetIO().FontGlobalScale * BubbleScale);
@@ -398,8 +463,6 @@ namespace Dalamud
             var frameCoords = GetTippyTexCoords(this.startTippyFrame + this.currentTippyFrame);
             var botRight = ToSpriteSheetScale(frameCoords + this.tippySingleSize);
 
-            Log.Verbose($"Drawing Tippy: {this.tippyAnim} {this.currentTippyFrame} / {FramesInTippyAnimation} up:{this.tippyAnimUp} {this.tippyAnimDone} cx:{frameCoords.X} cy:{frameCoords.Y} rx:{botRight.X} ry:{botRight.Y}");
-
             if (this.currentTippyFrame > FramesInTippyAnimation - 2) {
                 this.tippyAnimDone = true;
                 if (!this.tippyLoopAnim)
@@ -412,13 +475,10 @@ namespace Dalamud
                 this.tippyAnimUp = true;
             }
 
-
             ImGui.Image(this.tippySpriteSheet.ImGuiHandle, this.tippySingleSize * ImGui.GetIO().FontGlobalScale * TippyScale, ToSpriteSheetScale(frameCoords), botRight);
 
-            ImGui.Text(this.currentTippyFrame.ToString());
-
-            this.currentFrameTime += this.tippyTimer.ElapsedMilliseconds;
-            this.tippyTimer.Restart();
+            this.currentFrameTime += this.tippyFrameTimer.ElapsedMilliseconds;
+            this.tippyFrameTimer.Restart();
 
             if (this.currentFrameTime >= this.minFrameTime) {
                 if (this.tippyAnimUp)
@@ -433,30 +493,105 @@ namespace Dalamud
             }
         }
 
-        private string CalcNewTip()
+        private Queue<string> lastGeneralTips = new Queue<string>();
+
+        private string GetGeneralTip()
         {
-            var rand = new Random();
+            var gti = this.rand.Next(0, GeneralTips.Length);
+            var generalTip = GeneralTips[gti];
+
+            while (this.lastGeneralTips.Any(x => x == generalTip)) {
+                gti = this.rand.Next(0, GeneralTips.Length);
+                generalTip = GeneralTips[gti];
+            }
+
+            this.lastGeneralTips.Enqueue(generalTip);
+
+            if (this.lastGeneralTips.Count > 5)
+                this.lastGeneralTips.Dequeue();
+
+            return generalTip;
+        }
+
+        private void SetNewTip()
+        {
+            var anim = this.rand.Next(0, 3);
+            switch (anim) {
+                case 0: SetTippyAnim(TippyAnimState.PointLeft, true);
+                    break;
+                case 1: SetTippyAnim(TippyAnimState.GetAttention2, true);
+                    break;
+                case 2: SetTippyAnim(TippyAnimState.GetAttention, true);
+                    break;
+            }
 
             var lp = this.dalamud.ClientState.LocalPlayer;
 
-            var gti = rand.Next(0, GeneralTips.Length);
-            var generalTip = GeneralTips[gti];
+            var generalTip = GetGeneralTip();
 
-            if (lp == null || rand.Next(0, 32) < 8)
+            var choice = this.rand.Next(0, 28);
+
+
+            Log.Information($"Choice: {choice}");
+
+            var classJob = 14u;
+            if (lp != null)
+                classJob = lp.ClassJob.Id;
+
+            var hasJobTips = jobTipDict.TryGetValue(classJob, out var ccTips);
+
+            if (choice < 8)
             {
-                return generalTip;
+                this.tippyText = generalTip;
+
+                PlayTada();
+                this.showTippyButton = true;
+            }
+            else if (choice == 9 || choice == 10) {
+                this.tippyState = TippyState.Timeout;
+                this.tippyText = "Analyzing ERP logs...";
+                SetTippyAnim(TippyAnimState.Reading, true);
+                this.showTippyButton = false;
+
+                this.tippyLogicTimer.Restart();
+
+                PlayChord();
+            }
+            else if (choice == 11) {
+                this.tippyState = TippyState.Timeout;
+                this.tippyText = "I'm always watching.";
+                SetTippyAnim(TippyAnimState.CheckingYouOut, true);
+                this.showTippyButton = false;
+
+                this.tippyLogicTimer.Restart();
+
+                PlayChord();
+            }
+            else if (choice == 12)
+            {
+                this.tippyState = TippyState.Parse;
+                this.tippyText = "It seems like you are parsing grey.\n\nDo you want me to help you play your\njob better?";
+                SetTippyAnim(TippyAnimState.Reading, true);
+                this.showTippyButton = true;
+
+                this.tippyLogicTimer.Restart();
+
+                PlayChord();
             }
             else
             {
-                if (jobTipDict.TryGetValue(lp.ClassJob.Id, out var ccTips))
+                if (hasJobTips)
                 {
                     var ti = rand.Next(0, ccTips.Length);
-                    return ccTips[ti];
+                    this.tippyText = ccTips[ti];
                 }
                 else
                 {
-                    return generalTip;
+                    this.tippyText = generalTip;
                 }
+
+                PlayTada();
+                this.showTippyButton = true;
             }
         }
 
@@ -464,11 +599,7 @@ namespace Dalamud
         {
             this.welcomeTex.Dispose();
             this.tippySpriteSheet.Dispose();
-
-            foreach (var anim in this.tippyAnimFrames.Values.SelectMany(x => x))
-            {
-                anim.Dispose();
-            }
+            this.bubbleTex.Dispose();
         }
     }
 }
