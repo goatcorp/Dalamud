@@ -34,6 +34,8 @@ namespace Dalamud
 
         public bool PrintPluginsWelcomeMsg { get; set; } = true;
         public bool AutoUpdatePlugins { get; set; } = false;
+        public bool LogAutoScroll { get; set; } = true;
+        public bool LogOpenAtStartup { get; set; }
 
         [JsonIgnore]
         public string ConfigPath;
