@@ -45,6 +45,10 @@
         <PackageReference Include="Serilog.Sinks.File" Version="4.0.0" />
         <PackageReference Include="EasyHook" Version="2.7.6270" />
         <PackageReference Include="SharpDX.Desktop" Version="4.2.0" />
+        <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
     </ItemGroup>
     <ItemGroup>
         <Reference Include="System.Net.Http" />
