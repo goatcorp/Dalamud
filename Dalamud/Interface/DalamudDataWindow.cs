@@ -157,29 +157,44 @@ namespace Dalamud.Interface
 
                                     PrintActor(actor, i.ToString());
 
-                                    if (this.drawActors &&
-                                        this.dalamud.Framework.Gui.WorldToScreen(actor.Position, out var screenCoords)
-                                    ) {
-                                        ImGui.PushID("ActorWindow" + i);
-                                        ImGui.SetNextWindowPos(new Vector2(screenCoords.X, screenCoords.Y));
+                                    if (this.drawActors && this.dalamud.Framework.Gui.WorldToScreen(actor.Position, out var screenCoords)) {
+                                        
+                                        // So, while WorldToScreen will return false if the point is off of game client screen, to
+                                        // to avoid performance issues, we have to manually determine if creating a window would
+                                        // produce a new viewport, and skip rendering it if so
+                                        var actorText = $"{actor.Address.ToInt64():X}:{actor.ActorId:X}[{i}] - {actor.ObjectKind} - {actor.Name}";
+
+                                        var screenPos = ImGui.GetMainViewport().Pos;
+                                        var screenSize = ImGui.GetMainViewport().Size;
+
+                                        var windowSize = ImGui.CalcTextSize(actorText);
+
+                                        // Add some extra safety padding
+                                        windowSize.X += ImGui.GetStyle().WindowPadding.X + 10;
+                                        windowSize.Y += ImGui.GetStyle().WindowPadding.Y + 10;
+
+                                        if (screenCoords.X + windowSize.X > screenPos.X + screenSize.X ||
+                                            screenCoords.Y + windowSize.Y > screenPos.Y + screenSize.Y)
+                                            continue;
 
                                         if (actor.YalmDistanceX > this.maxActorDrawDistance)
                                             continue;
 
-                                        ImGui.SetNextWindowBgAlpha(
-                                            Math.Max(1f - (actor.YalmDistanceX / this.maxActorDrawDistance), 0.2f));
-                                        if (ImGui.Begin("Actor" + i,
+                                        ImGui.SetNextWindowPos(new Vector2(screenCoords.X, screenCoords.Y));
+
+                                        ImGui.SetNextWindowBgAlpha(Math.Max(1f - (actor.YalmDistanceX / this.maxActorDrawDistance), 0.2f));
+                                        if (ImGui.Begin($"Actor{i}##ActorWindow{i}",
                                                         ImGuiWindowFlags.NoDecoration |
                                                         ImGuiWindowFlags.AlwaysAutoResize |
-                                                        ImGuiWindowFlags.NoSavedSettings | ImGuiWindowFlags.NoMove |
+                                                        ImGuiWindowFlags.NoSavedSettings |
+                                                        ImGuiWindowFlags.NoMove |
                                                         ImGuiWindowFlags.NoMouseInputs |
-                                                        ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoNav)) {
-                                            ImGui.Text(
-                                                $"{actor.Address.ToInt64():X}:{actor.ActorId:X}[{i}] - {actor.ObjectKind} - {actor.Name}");
-                                            ImGui.End();
+                                                        ImGuiWindowFlags.NoDocking |
+                                                        ImGuiWindowFlags.NoFocusOnAppearing |
+                                                        ImGuiWindowFlags.NoNav)) {
+                                            ImGui.Text(actorText);
                                         }
-
-                                        ImGui.PopID();
+                                        ImGui.End();
                                     }
                                 }
                             }

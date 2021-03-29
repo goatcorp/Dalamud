@@ -2,6 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using Dalamud.Game.Chat.SeStringHandling.Payloads;
 using Dalamud.Hooking;
+using ImGuiNET;
 using Serilog;
 using SharpDX;
 
@@ -287,6 +288,8 @@ namespace Dalamud.Game.Internal.Gui {
             // Read current ViewProjectionMatrix plus game window size
             var viewProjectionMatrix = new Matrix();
             float width, height;
+            var windowPos = ImGui.GetMainViewport().Pos;
+
             unsafe {
                 var rawMatrix = (float*) (matrixSingleton + 0x1b4).ToPointer();
 
@@ -301,10 +304,12 @@ namespace Dalamud.Game.Internal.Gui {
 
             screenPos = new Vector2(pCoords.X / pCoords.Z, pCoords.Y / pCoords.Z);
 
-            screenPos.X = 0.5f * width * (screenPos.X + 1f);
-            screenPos.Y = 0.5f * height * (1f - screenPos.Y);
+            screenPos.X = 0.5f * width * (screenPos.X + 1f) + windowPos.X;
+            screenPos.Y = 0.5f * height * (1f - screenPos.Y) + windowPos.Y;
 
-            return pCoords.Z > 0;
+            return pCoords.Z > 0 &&
+                   screenPos.X > windowPos.X && screenPos.X < windowPos.X + width &&
+                   screenPos.Y > windowPos.Y && screenPos.Y < windowPos.Y + height;
         }
 
         /// <summary>
@@ -316,6 +321,18 @@ namespace Dalamud.Game.Internal.Gui {
         /// <returns>True if successful. On false, worldPos's contents are undefined</returns>
         public bool ScreenToWorld(Vector2 screenPos, out Vector3 worldPos, float rayDistance = 100000.0f)
         {
+            // The game is only visible in the main viewport, so if the cursor is outside
+            // of the game window, do not bother calculating anything
+            var windowPos = ImGui.GetMainViewport().Pos;
+            var windowSize = ImGui.GetMainViewport().Size;
+
+            if (screenPos.X < windowPos.X || screenPos.X > windowPos.X + windowSize.X ||
+                screenPos.Y < windowPos.Y || screenPos.Y > windowPos.Y + windowSize.Y)
+            {
+                worldPos = new Vector3();
+                return false;
+            }
+
             // Get base object with matrices
             var matrixSingleton = this.getMatrixSingleton();
 
