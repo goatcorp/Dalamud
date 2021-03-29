@@ -11,6 +11,7 @@ namespace Dalamud.Game.Internal.Gui {
         private GameGuiAddressResolver Address { get; }
         
         public ChatGui Chat { get; private set; }
+        public PartyFinderGui PartyFinder { get; private set; }
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         private delegate IntPtr SetGlobalBgmDelegate(UInt16 bgmKey, byte a2, UInt32 a3, UInt32 a4, UInt32 a5, byte a6);
@@ -107,6 +108,7 @@ namespace Dalamud.Game.Internal.Gui {
             Log.Verbose("GetUIObject address {Address}", Address.GetUIObject);
 
             Chat = new ChatGui(Address.ChatManager, scanner, dalamud);
+            PartyFinder = new PartyFinderGui(scanner, dalamud);
 
             this.setGlobalBgmHook =
                 new Hook<SetGlobalBgmDelegate>(Address.SetGlobalBgm,
@@ -432,6 +434,7 @@ namespace Dalamud.Game.Internal.Gui {
 
         public void Enable() {
             Chat.Enable();
+            PartyFinder.Enable();
             this.setGlobalBgmHook.Enable();
             this.handleItemHoverHook.Enable();
             this.handleItemOutHook.Enable();
@@ -442,6 +445,7 @@ namespace Dalamud.Game.Internal.Gui {
 
         public void Dispose() {
             Chat.Dispose();
+            PartyFinder.Dispose();
             this.setGlobalBgmHook.Dispose();
             this.handleItemHoverHook.Dispose();
             this.handleItemOutHook.Dispose();

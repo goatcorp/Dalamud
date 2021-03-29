@@ -42,6 +42,8 @@ namespace Dalamud.Interface
 
         private UIDebug UIDebug = null;
 
+        private uint copyButtonIndex = 0;
+        
         public DalamudDataWindow(Dalamud dalamud) {
             this.dalamud = dalamud;
 
@@ -57,6 +59,7 @@ namespace Dalamud.Interface
         }
 
         public bool Draw() {
+            this.copyButtonIndex = 0;
             ImGui.SetNextWindowSize(new Vector2(500, 500), ImGuiCond.FirstUseEver);
 
             var isOpen = true;
@@ -101,7 +104,7 @@ namespace Dalamud.Interface
                             }
                             ImGui.Text($"Result: {this.sigResult.ToInt64():X}");
                             ImGui.SameLine();
-                            if (ImGui.Button("C")) {
+                            if (ImGui.Button($"C{this.copyButtonIndex++}")) {
                                 ImGui.SetClipboardText(this.sigResult.ToInt64().ToString("x"));
                             }
 
@@ -112,7 +115,7 @@ namespace Dalamud.Interface
                                         $"      {valueTuple.Item1} - 0x{valueTuple.Item2.ToInt64():x}");
                                     ImGui.SameLine();
 
-                                    if (ImGui.Button("C")) {
+                                    if (ImGui.Button($"C##copyAddress{copyButtonIndex++}")) {
                                         ImGui.SetClipboardText(valueTuple.Item2.ToInt64().ToString("x"));
                                     }
                                 }
@@ -442,7 +445,7 @@ namespace Dalamud.Interface
 
             ImGui.TextUnformatted(actorString);
             ImGui.SameLine();
-            if (ImGui.Button("C")) {
+            if (ImGui.Button($"C##{this.copyButtonIndex++}")) {
                 ImGui.SetClipboardText(actor.Address.ToInt64().ToString("X"));
             }
 

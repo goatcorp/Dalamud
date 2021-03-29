@@ -87,7 +87,23 @@ namespace Dalamud.Plugin
 #else
         public bool IsDebugging => this.dalamud.DalamudUi.IsDevMenu;
 #endif
+        
+        /// <summary>
+        /// Event that gets fired when loc is changed
+        /// </summary>
+        public event LanguageChangedDelegate OnLanguageChanged;
+        
+        /// <summary>
+        /// Delegate for localization change with two-letter iso lang code
+        /// </summary>
+        /// <param name="langCode"></param>
+        public delegate void LanguageChangedDelegate(string langCode);
 
+        /// <summary>
+        /// Current ui language in two-letter iso format
+        /// </summary>
+        public string UiLanguage { get; private set; }
+        
         private readonly Dalamud dalamud;
         private readonly string pluginName;
         private readonly PluginConfigurations configs;
@@ -109,6 +125,14 @@ namespace Dalamud.Plugin
             this.dalamud = dalamud;
             this.pluginName = pluginName;
             this.configs = configs;
+
+            this.UiLanguage = this.dalamud.Configuration.LanguageOverride;
+            dalamud.LocalizationManager.OnLocalizationChanged += OnLocalizationChanged;
+        }
+
+        private void OnLocalizationChanged(string langCode) {
+            this.UiLanguage = langCode;
+            OnLanguageChanged?.Invoke(langCode);
         }
 
         /// <summary>
@@ -117,6 +141,7 @@ namespace Dalamud.Plugin
         public void Dispose() {
             this.UiBuilder.Dispose();
             this.Framework.Gui.Chat.RemoveChatLinkHandler(this.pluginName);
+            this.dalamud.LocalizationManager.OnLocalizationChanged -= OnLocalizationChanged;
         }
 
         /// <summary>
