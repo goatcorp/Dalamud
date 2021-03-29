@@ -226,7 +226,7 @@ namespace Dalamud.Interface
                         {
                             if (ImGui.MenuItem("From Fallbacks"))
                             {
-                                Loc.SetupWithFallbacks();
+                                this.dalamud.LocalizationManager.SetupWithFallbacks();
                             }
 
                             if (ImGui.MenuItem("From UICulture"))
