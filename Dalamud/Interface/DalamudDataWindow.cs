@@ -332,9 +332,24 @@ namespace Dalamud.Interface
                                         this.inputAddonName, this.inputAddonIndex);
                             }
 
+                            if (ImGui.Button("Find Agent")) {
+                                this.findAgentInterfacePtr = FindAgentInterface(this.inputAddonName);
+                            }
+
                             if (this.resultAddon != null) {
                                 ImGui.TextUnformatted(
                                     $"{this.resultAddon.Name} - 0x{this.resultAddon.Address.ToInt64():x}\n    v:{this.resultAddon.Visible} x:{this.resultAddon.X} y:{this.resultAddon.Y} s:{this.resultAddon.Scale}, w:{this.resultAddon.Width}, h:{this.resultAddon.Height}");
+                            }
+
+                            if (this.findAgentInterfacePtr != IntPtr.Zero) {
+                                ImGui.TextUnformatted(
+                                    $"Agent: 0x{this.findAgentInterfacePtr.ToInt64():x}");
+                                ImGui.SameLine();
+
+                                if (ImGui.Button("C"))
+                                {
+                                    ImGui.SetClipboardText(this.findAgentInterfacePtr.ToInt64().ToString("x"));
+                                }
                             }
 
                             if (ImGui.Button("Get Base UI object")) {
@@ -407,6 +422,31 @@ namespace Dalamud.Interface
             ImGui.End();
 
             return isOpen;
+        }
+
+        private IntPtr findAgentInterfacePtr;
+
+        private unsafe IntPtr FindAgentInterface(string addonName)
+        {
+            var addon = this.dalamud.Framework.Gui.GetUiObjectByName(addonName, 1);
+            if (addon == IntPtr.Zero) return IntPtr.Zero;
+            SafeMemory.Read<short>(addon + 0x1CE, out var id);
+
+            if (id == 0)
+                _ = SafeMemory.Read(addon + 0x1CC, out id);
+
+            var framework = this.dalamud.Framework.Address.BaseAddress;
+            var uiModule = *(IntPtr*)(framework + 0x29F8);
+            var agentModule = uiModule + 0xC3E78;
+            for (var i = 0; i < 379; i++)
+            {
+                var agent = *(IntPtr*)(agentModule + 0x20 + i * 8);
+                if (agent == IntPtr.Zero)
+                    continue;
+                if (*(short*)(agent + 0x20) == id)
+                    return agent;
+            }
+            return IntPtr.Zero;
         }
 
         private void PrintActor(Actor actor, string tag) {

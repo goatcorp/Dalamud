@@ -292,7 +292,11 @@ namespace Dalamud
                     break;
                 case TippyState.Timeout:
                     if (this.tippyLogicTimer.ElapsedMilliseconds > 60000) {
-                        SetNewTip();
+                        SetTippyAnim(TippyAnimState.Idle, true);
+                        this.tippyText = string.Empty;
+                        this.showTippyButton = false;
+
+                        this.tippyLogicTimer.Restart();
                         this.tippyState = TippyState.Tips;
                     }
                     break;
