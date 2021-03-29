@@ -40,22 +40,16 @@ namespace Dalamud.Game.ClientState
         }
 
         public bool Any() {
-            var didAny = false;
-
             for (var i = 0; i < MaxConditionEntries; i++)
             {
                 var typedCondition = (ConditionFlag)i;
                 var cond = this[typedCondition];
 
-                if (!cond)
-                {
-                    continue;
-                }
-
-                didAny = true;
+                if (cond)
+                    return true;
             }
 
-            return didAny;
+            return false;
         }
     }
 }

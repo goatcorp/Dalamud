@@ -26,6 +26,9 @@ namespace Dalamud.Interface
 
         public DalamudInterface(Dalamud dalamud) {
             this.dalamud = dalamud;
+            if (dalamud.Configuration.LogOpenAtStartup) {
+                OpenLog();
+            }
         }
 
         private bool isImguiDrawDemoWindow = false;
@@ -97,7 +100,7 @@ namespace Dalamud.Interface
                         ImGui.Separator();
                         if (ImGui.MenuItem("Open Log window"))
                         {
-                            this.logWindow = new DalamudLogWindow(this.dalamud.CommandManager);
+                            this.logWindow = new DalamudLogWindow(this.dalamud.CommandManager, this.dalamud.Configuration);
                             this.isImguiDrawLogWindow = true;
                         }
                         if (ImGui.BeginMenu("Set log level..."))
@@ -224,7 +227,7 @@ namespace Dalamud.Interface
                         {
                             if (ImGui.MenuItem("From Fallbacks"))
                             {
-                                Loc.SetupWithFallbacks();
+                                this.dalamud.LocalizationManager.SetupWithFallbacks();
                             }
 
                             if (ImGui.MenuItem("From UICulture"))
@@ -337,7 +340,7 @@ namespace Dalamud.Interface
         }
 
         public void OpenLog() {
-            this.logWindow = new DalamudLogWindow(this.dalamud.CommandManager);
+            this.logWindow = new DalamudLogWindow(this.dalamud.CommandManager, this.dalamud.Configuration);
             this.isImguiDrawLogWindow = true;
         }
 

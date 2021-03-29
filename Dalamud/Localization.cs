@@ -13,8 +13,11 @@ namespace Dalamud
     class Localization {
         private readonly string workingDirectory;
 
+        private const string FallbackLangCode = "en";
         public static readonly string[] ApplicableLangCodes = { "de", "ja", "fr", "it", "es", "ko", "no", "ru" };
-
+        public delegate void LocalizationChangedDelegate(string langCode);
+        public event LocalizationChangedDelegate OnLocalizationChanged;
+        
         public Localization(string workingDirectory) {
             this.workingDirectory = workingDirectory;
         }
@@ -28,22 +31,28 @@ namespace Dalamud
                 if (ApplicableLangCodes.Any(x => currentUiLang.TwoLetterISOLanguageName == x)) {
                     SetupWithLangCode(currentUiLang.TwoLetterISOLanguageName);
                 } else {
-                    Loc.SetupWithFallbacks();
+                    SetupWithFallbacks();
                 }
             }
             catch (Exception ex)
             {
                 Log.Error(ex, "Could not get language information. Setting up fallbacks.");
-                Loc.SetupWithFallbacks();
+                SetupWithFallbacks();
             }
         }
 
+        public void SetupWithFallbacks() {
+            OnLocalizationChanged?.Invoke(FallbackLangCode);
+            Loc.SetupWithFallbacks();
+        }
+
         public void SetupWithLangCode(string langCode) {
-            if (langCode.ToLower() == "en") {
-                Loc.SetupWithFallbacks();
+            if (langCode.ToLower() == FallbackLangCode) {
+                SetupWithFallbacks();
                 return;
             }
-
+            
+            OnLocalizationChanged?.Invoke(langCode);
             Loc.Setup(File.ReadAllText(Path.Combine(this.workingDirectory, "UIRes", "loc", "dalamud", $"dalamud_{langCode}.json")));
         }
     }
