@@ -100,6 +100,13 @@ namespace Dalamud
                 HelpMessage = "ImGui DEBUG",
                 ShowInHelp = false
             });
+
+            // Only april fools 2021
+            this.dalamud.CommandManager.AddHandler("/dontfoolme", new CommandInfo(this.OnDisableAprilFools2021Command)
+            {
+                HelpMessage = "Disable April Fools 2021",
+                ShowInHelp = true
+            });
         }
 
         private void OnUnloadCommand(string command, string arguments)
@@ -247,6 +254,12 @@ namespace Dalamud
 
         private void OnOpenSettingsCommand(string command, string arguments) {
             this.dalamud.DalamudUi.OpenSettings();
+        }
+
+        private void OnDisableAprilFools2021Command(string command, string arguments)
+        {
+            if (this.dalamud.Fools != null)
+                this.dalamud.Fools.IsEnabled = false;
         }
     }
 }

@@ -32,7 +32,7 @@ namespace Dalamud
         private readonly Stopwatch tippyFrameTimer = new Stopwatch();
         private readonly Stopwatch tippyLogicTimer = new Stopwatch();
 
-        public bool IsEnabled = true;
+        public bool IsEnabled = false;
 
         public Fools2021(Dalamud dalamud)
         {
@@ -40,10 +40,13 @@ namespace Dalamud
 
             this.dalamud.ClientState.OnLogin += (sender, args) => {
                 this.isTippyDrawing = true;
+                this.IsEnabled = true;
                 this.tippyLogicTimer.Restart();
             };
             this.dalamud.ClientState.OnLogout += (sender, args) => {
                 this.isTippyDrawing = false;
+                this.frames = 0;
+                this.IsEnabled = false;
 
                 this.tippyText = string.Empty;
                 this.tippyState = TippyState.BeforeIntro;
@@ -65,25 +68,44 @@ namespace Dalamud
             if (!IsEnabled)
                 return;
 
-            if (this.frames < 2000)
-            {
-                ImGui.SetNextWindowSize(new Vector2(this.welcomeTex.Width, this.welcomeTex.Height) * ImGui.GetIO().FontGlobalScale * WelcomeTexScale, ImGuiCond.Always);
+            try {
+                /*
+                if (this.frames < 1900) {
 
-                ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(0f, 0f));
-                ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 0f);
+                    var windowSize = new Vector2(this.welcomeTex.Width, this.welcomeTex.Height) *
+                                     ImGui.GetIO().FontGlobalScale *
+                                     WelcomeTexScale;
+                    ImGui.SetNextWindowSize(windowSize, ImGuiCond.Always);
 
-                ImGui.Begin("Please wait...",
-                            ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoTitleBar);
+                    var screenSize = ImGui.GetIO().DisplaySize;
+                    ImGui.SetNextWindowPos(new Vector2((screenSize.X / 2) - windowSize.X / 2, (screenSize.Y / 2) - windowSize.Y / 2), ImGuiCond.Always);
 
-                ImGui.Image(this.welcomeTex.ImGuiHandle, new Vector2(this.welcomeTex.Width, this.welcomeTex.Height) * ImGui.GetIO().FontGlobalScale * WelcomeTexScale);
+                    ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(0f, 0f));
+                    ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 0f);
 
-                ImGui.End();
+                    ImGui.Begin("Please wait...",
+                                ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar |
+                                ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoCollapse |
+                                ImGuiWindowFlags.NoTitleBar);
 
-                ImGui.PopStyleVar(2);
+                    ImGui.Image(this.welcomeTex.ImGuiHandle,
+                                new Vector2(this.welcomeTex.Width, this.welcomeTex.Height) *
+                                ImGui.GetIO().FontGlobalScale * WelcomeTexScale);
+
+                    ImGui.End();
+
+                    ImGui.PopStyleVar(2);
+                }
+                */
+
+                this.frames++;
+
+                if (this.isTippyDrawing)
+                    DrawTippy();
+            } catch (Exception ex) {
+                Log.Error(ex, "Fools exception OnDraw caught");
             }
-
-            this.frames++;
-
+            
 #if DEBUG
             ImGui.Begin("Tippy AI debug");
 
@@ -119,8 +141,7 @@ namespace Dalamud
             ImGui.End();
 #endif
 
-            if (this.isTippyDrawing)
-                DrawTippy();
+
         }
 
         private bool isTippyDrawing = false;
@@ -246,14 +267,40 @@ namespace Dalamud
             "Piety matters as much as tenacity."
         };
 
-        private static Dictionary<uint, string[]> jobTipDict = new Dictionary<uint, string[]>() {
-            { 1, PldTips },
-
-            { 33, AstTips }
+        private static readonly string[] GunTips = new[] {
+            "Much like doing a \"brake check\" on the\nroad, you can do a \"heal check\"\nin-game! \n\nJust pop Superbolide at a random time,\npreferably about five seconds before \nraidwide damage.",
         };
 
-        private string currentTip = string.Empty;
-        private long lastTipFrame = 0;
+        private static Dictionary<uint, string[]> jobTipDict = new Dictionary<uint, string[]>() {
+            { 1, PldTips },
+            { 2, MnkTips },
+            { 3, WarTips },
+            { 4, DrgTips },
+            { 5, BrdTips },
+            { 6, WhmTips },
+            { 7, BlmTips },
+
+            { 19, PldTips },
+            { 20, MnkTips },
+            { 21, WarTips },
+            { 22, DrgTips },
+            { 23, BrdTips },
+            { 24, WhmTips },
+            { 25, BlmTips },
+            { 26, SchTips.Concat(SmnTips).ToArray() },
+            { 27, SmnTips },
+            { 28, SchTips },
+            { 29, NinTips },
+            { 30, NinTips },
+            { 31, BrdTips },
+
+            { 33, AstTips },
+            { 34, SamTips },
+            
+            { 36, BluTips },
+            { 37, GunTips },
+            { 38, DncTips }
+        };
 
         private string tippyText = string.Empty;
         private bool showTippyButton = false;
@@ -287,7 +334,7 @@ namespace Dalamud
 
             switch (tippyState) {
                 case TippyState.Tips:
-                    if (this.tippyLogicTimer.ElapsedMilliseconds > 120000 && string.IsNullOrEmpty(this.tippyText))
+                    if (this.tippyLogicTimer.ElapsedMilliseconds > 600000 && string.IsNullOrEmpty(this.tippyText)) // New tip every 10 minutes
                         SetNewTip();
                     break;
                 case TippyState.Timeout:
@@ -497,24 +544,35 @@ namespace Dalamud
             }
         }
 
-        private Queue<string> lastGeneralTips = new Queue<string>();
+        private Queue<string> lastTips = new Queue<string>();
 
         private string GetGeneralTip()
         {
-            var gti = this.rand.Next(0, GeneralTips.Length);
-            var generalTip = GeneralTips[gti];
+            var lp = this.dalamud.ClientState.LocalPlayer;
 
-            while (this.lastGeneralTips.Any(x => x == generalTip)) {
-                gti = this.rand.Next(0, GeneralTips.Length);
-                generalTip = GeneralTips[gti];
+            var classJob = 0u;
+            if (lp != null)
+                classJob = lp.ClassJob.Id;
+
+            var tAry = GeneralTips;
+
+            if (jobTipDict.TryGetValue(classJob, out var ccTips))
+                tAry = tAry.Concat(ccTips).Concat(ccTips).ToArray(); // Concat job tips twice so they have a greater chance of being seen
+
+            var index = this.rand.Next(0, tAry.Length);
+            var tip = tAry[index];
+
+            while (this.lastTips.Any(x => x == tip)) {
+                index = this.rand.Next(0, tAry.Length);
+                tip = tAry[index];
             }
 
-            this.lastGeneralTips.Enqueue(generalTip);
+            this.lastTips.Enqueue(tip);
 
-            if (this.lastGeneralTips.Count > 5)
-                this.lastGeneralTips.Dequeue();
+            if (this.lastTips.Count > 5)
+                this.lastTips.Dequeue();
 
-            return generalTip;
+            return tip;
         }
 
         private void SetNewTip()
@@ -529,8 +587,6 @@ namespace Dalamud
                     break;
             }
 
-            var lp = this.dalamud.ClientState.LocalPlayer;
-
             var generalTip = GetGeneralTip();
 
             var choice = this.rand.Next(0, 28);
@@ -538,20 +594,7 @@ namespace Dalamud
 
             Log.Information($"Choice: {choice}");
 
-            var classJob = 14u;
-            if (lp != null)
-                classJob = lp.ClassJob.Id;
-
-            var hasJobTips = jobTipDict.TryGetValue(classJob, out var ccTips);
-
-            if (choice < 8)
-            {
-                this.tippyText = generalTip;
-
-                PlayTada();
-                this.showTippyButton = true;
-            }
-            else if (choice == 9 || choice == 10) {
+            if (choice == 1 || choice == 2) {
                 this.tippyState = TippyState.Timeout;
                 this.tippyText = "Analyzing ERP logs...";
                 SetTippyAnim(TippyAnimState.Reading, true);
@@ -561,7 +604,7 @@ namespace Dalamud
 
                 PlayChord();
             }
-            else if (choice == 11) {
+            else if (choice == 3 || choice == 5) {
                 this.tippyState = TippyState.Timeout;
                 this.tippyText = "I'm always watching.";
                 SetTippyAnim(TippyAnimState.CheckingYouOut, true);
@@ -571,7 +614,7 @@ namespace Dalamud
 
                 PlayChord();
             }
-            else if (choice == 12)
+            else if (choice == 4 || choice == 6)
             {
                 this.tippyState = TippyState.Parse;
                 this.tippyText = "It seems like you are parsing grey.\n\nDo you want me to help you play your\njob better?";
@@ -584,15 +627,7 @@ namespace Dalamud
             }
             else
             {
-                if (hasJobTips)
-                {
-                    var ti = rand.Next(0, ccTips.Length);
-                    this.tippyText = ccTips[ti];
-                }
-                else
-                {
-                    this.tippyText = generalTip;
-                }
+                this.tippyText = generalTip;
 
                 PlayTada();
                 this.showTippyButton = true;
