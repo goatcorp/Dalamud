@@ -6,7 +6,7 @@ namespace Dalamud.Game.ClientState.Structs
 {
     public class ActorOffsets
     {
-        // ??? Offsets based on https://github.com/FFXIVAPP/sharlayan-resources/blob/master/structures/5.3/x64.json
+        // ??? Offsets based on https://github.com/FFXIVAPP/sharlayan-resources/blob/master/structures/5.4/x64.json
 
         public const int Name = 48;                          // 0x0030
         public const int ActorId = 116;                      // 0x0074
@@ -38,19 +38,19 @@ namespace Dalamud.Game.ClientState.Structs
         public const int NameId = 6432;                      // 0x1868 ModelID
         public const int CurrentWorld = 6460;                // 0x1884
         public const int HomeWorld = 6462;                   // 0x1886
-        public const int CurrentHp = 452;                   // 0x1898 HPCurrent
-        public const int MaxHp = 456;                       // 0x189C HPMax
-        public const int CurrentMp = 460;                   // 0x18A0 MPCurrent
-        public const int MaxMp = 464;                       // 0x18A4 MPMax
-        public const int CurrentGp = 468;                   // 0x18AA GPCurrent
-        public const int MaxGp = 472;                       // 0x18AC GPMax
-        public const int CurrentCp = 476;                   // 0x18AE CPCurrent
-        public const int MaxCp = 480;                       // 0x18B0 CPMax
+        public const int CurrentHp = 452;                    // 0x01C4 HPCurrent
+        public const int MaxHp = 456;                        // 0x01C8 HPMax
+        public const int CurrentMp = 460;                    // 0x01CC MPCurrent
+        public const int MaxMp = 464;                        // 0x01D0 MPMax
+        public const int CurrentGp = 468;                    // 0x01D4 GPCurrent
+        public const int MaxGp = 470;                        // 0x01D6 GPMax
+        public const int CurrentCp = 472;                    // 0x01D8 CPCurrent
+        public const int MaxCp = 474;                        // 0x01DA CPMax
         // public const int ??? = 6326;                      // 0x18B6 Title
         // public const int ??? = 6354;                      // 0x18D2 Icon
         // public const int ??? = 6356;                      // 0x18D4 ActionStatus
-        public const int ClassJob = 482;                    // 0x18DA Job
-        public const int Level = 483;                       // 0x18DC Level
+        public const int ClassJob = 482;                     // 0x01E2 Job
+        public const int Level = 483;                        // 0x01E3 Level
         // public const int ??? = 6367;                      // 0x18DF GrandCompany
         // public const int ??? = 6367;                      // 0x18DF GrandCompanyRank
         // public const int ??? = 6371;                      // 0x18E3 DifficultyRank
