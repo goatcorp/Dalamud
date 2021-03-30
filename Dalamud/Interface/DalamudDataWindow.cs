@@ -64,7 +64,7 @@ namespace Dalamud.Interface
 
             var isOpen = true;
 
-            if (!ImGui.Begin("Dalamud Data", ref isOpen, ImGuiWindowFlags.NoCollapse)) {
+            if (!ImGui.Begin("Dalamud Data", ref isOpen)) {
                 ImGui.End();
                 return false;
             }
