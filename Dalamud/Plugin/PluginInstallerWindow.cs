@@ -71,7 +71,8 @@ namespace Dalamud.Plugin
                                                return this.dalamud.PluginManager.Plugins.Where(x => x.Definition != null).Any(
                                                    x => x.Definition.InternalName == def.InternalName);
                                            })
-                                           .ToList();
+                                           .GroupBy(x => new {x.InternalName, x.AssemblyVersion})
+                                           .Select(y => y.First()).ToList();
             this.pluginListInstalled.AddRange(hiddenPlugins);
             this.pluginListInstalled.Sort((x, y) => x.Name.CompareTo(y.Name));
 
@@ -80,7 +81,9 @@ namespace Dalamud.Plugin
 
         private void ResortPlugins() {
             var availableDefs = this.dalamud.PluginRepository.PluginMaster.Where(
-                x => this.pluginListInstalled.All(y => x.InternalName != y.InternalName)).ToList();
+                x => this.pluginListInstalled.All(y => x.InternalName != y.InternalName))
+                                    .GroupBy(x => new {x.InternalName, x.AssemblyVersion})
+                                    .Select(y => y.First()).ToList();
 
             switch (this.sortKind) {
                 case PluginSortKind.Alphabetical:
