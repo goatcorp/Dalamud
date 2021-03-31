@@ -172,7 +172,7 @@ namespace Dalamud
         };
 
         private static readonly string Intro =
-            "Hi, I'm Tippy!\n\nI'm your new friend and assistant.\nI will help you get better at FFXIV!\n\nPowered by XIVLauncher!";
+            "Hi, I'm Tippy!\n\nI'm your new friend and assistant.\nI will help you get better at FFXIV.\n\nPowered by XIVLauncher!";
         private static readonly string GoodSong = "Man, this song is great!";
 
         private static readonly string[] PldTips = new[] {
