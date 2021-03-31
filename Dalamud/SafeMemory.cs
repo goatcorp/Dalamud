@@ -1,16 +1,14 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
+
 using JetBrains.Annotations;
 
 namespace Dalamud
 {
     /// <summary>
-    /// Class facilitating safe memory access
+    /// Class facilitating safe memory access.
     /// </summary>
     /// <remarks>
     /// Attention! The performance of these methods is severely worse than regular <see cref="Marshal"/> calls.
@@ -52,14 +50,16 @@ namespace Dalamud
         }
 
         /// <summary>
-        /// Read an object of the specified struct from the current process.
+        ///     Read an object of the specified struct from the current process.
         /// </summary>
         /// <typeparam name="T">The type of the struct.</typeparam>
         /// <param name="address">The address to read from.</param>
         /// <param name="result">The resulting object.</param>
         /// <returns>Whether or not the read succeeded.</returns>
-        public static bool Read<T>(IntPtr address, out T result) where T : struct {
-            if (!ReadBytes(address, SizeCache<T>.Size, out var buffer)) {
+        public static bool Read<T>(IntPtr address, out T result) where T : struct
+        {
+            if (!ReadBytes(address, SizeCache<T>.Size, out var buffer))
+            {
                 result = default;
                 return false;
             }
@@ -203,17 +203,17 @@ namespace Dalamud
         /// </summary>
         /// <typeparam name="T">The type to inspect.</typeparam>
         /// <returns>The size of the passed type.</returns>
-        public static int SizeOf<T>() where T: struct
+        public static int SizeOf<T>() where T : struct
         {
             return SizeCache<T>.Size;
         }
 
-        private static class SizeCache<T> 
+        private static class SizeCache<T>
         {
             // ReSharper disable once StaticMemberInGenericType
             public static readonly int Size;
 
-            static SizeCache() 
+            static SizeCache()
             {
                 var type = typeof(T);
                 if (type.IsEnum)
@@ -236,14 +236,17 @@ namespace Dalamud
 
         private sealed class LocalMemory : IDisposable
         {
-            private IntPtr hGlobal;
             private readonly int size;
+
+            private IntPtr hGlobal;
 
             public LocalMemory(int size)
             {
                 this.size = size;
                 this.hGlobal = Marshal.AllocHGlobal(this.size);
             }
+
+            ~LocalMemory() => this.Dispose();
 
             public byte[] Read()
             {
@@ -253,9 +256,10 @@ namespace Dalamud
             }
 
             public T Read<T>(int offset = 0) => (T)Marshal.PtrToStructure(this.hGlobal + offset, typeof(T));
+
             public void Write(byte[] data, int index = 0) => Marshal.Copy(data, index, this.hGlobal, this.size);
+
             public void Write<T>(T data, int offset = 0) => Marshal.StructureToPtr(data, this.hGlobal + offset, false);
-            ~LocalMemory() => Dispose();
 
             public void Dispose()
             {
