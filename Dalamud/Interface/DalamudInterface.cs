@@ -155,11 +155,6 @@ namespace Dalamud.Interface
                             this.OpenChangelog();
                         }
 
-                        if (this.dalamud.Fools != null)
-                        {
-                            ImGui.MenuItem("Draw Tippy", string.Empty, ref this.dalamud.Fools.IsEnabled);
-                        }
-
                         ImGui.MenuItem("Draw ImGui demo", string.Empty, ref this.isImguiDrawDemoWindow);
 
                         ImGui.Separator();
