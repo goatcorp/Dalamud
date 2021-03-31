@@ -1,32 +1,20 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
+
+#pragma warning disable SA1600 // Elements should be documented
+#pragma warning disable SA1602 // Enumeration items should be documented
 
 namespace Dalamud
 {
-    static class NativeFunctions
+    internal static class NativeFunctions
     {
-        #region Enums and Structs
-
-        [StructLayout(LayoutKind.Sequential)]
-        public struct FLASHWINFO
-        {
-            public UInt32 cbSize;
-            public IntPtr hwnd;
-            public FlashWindow dwFlags;
-            public UInt32 uCount;
-            public UInt32 dwTimeout;
-        }
-
         public enum FlashWindow : uint
         {
             /// <summary>
             /// Stop flashing. The system restores the window to its original state.
-            /// </summary>    
+            /// </summary>
             FLASHW_STOP = 0,
 
             /// <summary>
@@ -53,7 +41,7 @@ namespace Dalamud
             /// <summary>
             /// Flash continuously until the window comes to the foreground.
             /// </summary>
-            FLASHW_TIMERNOFG = 12
+            FLASHW_TIMERNOFG = 12,
         }
 
         [Flags]
@@ -63,12 +51,11 @@ namespace Dalamud
             SEM_FAILCRITICALERRORS = 0x0001,
             SEM_NOALIGNMENTFAULTEXCEPT = 0x0004,
             SEM_NOGPFAULTERRORBOX = 0x0002,
-            SEM_NOOPENFILEERRORBOX = 0x8000
+            SEM_NOOPENFILEERRORBOX = 0x8000,
         }
 
-        #endregion
-
-        /// <summary>Returns true if the current application has focus, false otherwise</summary>
+        /// <summary>Returns true if the current application has focus, false otherwise.</summary>
+        /// <returns>If the current application is focused.</returns>
         public static bool ApplicationIsActivated()
         {
             var activatedHandle = GetForegroundWindow();
@@ -78,17 +65,16 @@ namespace Dalamud
             }
 
             var procId = Process.GetCurrentProcess().Id;
-            int activeProcId;
-            GetWindowThreadProcessId(activatedHandle, out activeProcId);
+            GetWindowThreadProcessId(activatedHandle, out var activeProcId);
 
             return activeProcId == procId;
         }
 
         [DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
-        private static extern IntPtr GetForegroundWindow();
+        public static extern IntPtr GetForegroundWindow();
 
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        private static extern int GetWindowThreadProcessId(IntPtr handle, out int processId);
+        public static extern int GetWindowThreadProcessId(IntPtr handle, out int processId);
 
         [DllImport("user32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
@@ -103,21 +89,13 @@ namespace Dalamud
 
         [DllImport("kernel32.dll", SetLastError = true)]
         [PreserveSig]
-        public static extern uint GetModuleFileName
-        (
-            [In]
-            IntPtr hModule,
-
-            [Out]
-            StringBuilder lpFilename,
-
-            [In]
-            [MarshalAs(UnmanagedType.U4)]
-            int nSize
-        );
+        public static extern uint GetModuleFileName(
+            [In] IntPtr hModule,
+            [Out] StringBuilder lpFilename,
+            [In][MarshalAs(UnmanagedType.U4)] int nSize);
 
         [DllImport("kernel32", SetLastError = true, CharSet = CharSet.Ansi)]
-        public static extern IntPtr LoadLibrary([MarshalAs(UnmanagedType.LPStr)]string lpFileName);
+        public static extern IntPtr LoadLibrary([MarshalAs(UnmanagedType.LPStr)] string lpFileName);
 
         [DllImport("kernel32.dll")]
         public static extern IntPtr SetUnhandledExceptionFilter(IntPtr lpTopLevelExceptionFilter);
@@ -127,5 +105,24 @@ namespace Dalamud
 
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern bool DebugActiveProcess(uint dwProcessId);
+
+#pragma warning disable SA1307 // Accessible fields should begin with upper-case letter
+#pragma warning disable SA1121 // Use built-in type alias
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct FLASHWINFO
+        {
+            public UInt32 cbSize;
+            public IntPtr hwnd;
+            public FlashWindow dwFlags;
+            public UInt32 uCount;
+            public UInt32 dwTimeout;
+        }
+
+#pragma warning restore SA1121 // Use built-in type alias
+#pragma warning restore SA1307 // Accessible fields should begin with upper-case letter
     }
 }
+
+#pragma warning restore SA1600 // Elements should be documented
+#pragma warning restore SA1602 // Enumeration items should be documented
