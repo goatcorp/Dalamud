@@ -439,11 +439,11 @@ namespace Dalamud.Plugin
                             }
                         }
 
-                        if (installedPlugin.PluginInterface.UiBuilder.OnOpenConfigUi != null) {
+                        if (installedPlugin.PluginInterface.UiBuilder.HasConfigUi) {
                             ImGui.SameLine();
 
                             if (ImGui.Button(Loc.Localize("InstallerOpenConfig", "Open Configuration")))
-                                installedPlugin.PluginInterface.UiBuilder.OnOpenConfigUi?.Invoke(null, null);
+                                installedPlugin.PluginInterface.UiBuilder.OpenConfigUi();
                         }
 
                         if (!string.IsNullOrEmpty(installedPlugin.Definition.RepoUrl)) {
