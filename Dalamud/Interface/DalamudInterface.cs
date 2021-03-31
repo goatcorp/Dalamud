@@ -256,6 +256,7 @@ namespace Dalamud.Interface
                         ImGui.BeginMenu("UI is hidden...", false);
 
                     ImGui.BeginMenu(this.frameCount.ToString(), false);
+                    ImGui.BeginMenu(ImGui.GetIO().Framerate.ToString("F2"), false);
 
                     ImGui.EndMainMenuBar();
                 }
