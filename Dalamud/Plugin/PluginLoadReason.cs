@@ -24,6 +24,6 @@ namespace Dalamud.Plugin
         /// <summary>
         /// This plugin was loaded because the game was started or Dalamud was reinjected.
         /// </summary>
-        Boot
+        Boot,
     }
 }
