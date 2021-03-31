@@ -5,14 +5,12 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 
+using Lumina;
 using Lumina.Data;
 using Lumina.Data.Files;
 using Lumina.Excel;
 using Newtonsoft.Json;
 using Serilog;
-
-using LuminaOptions = Lumina.LuminaOptions;
-using ParsedFilePath = Lumina.ParsedFilePath;
 
 namespace Dalamud.Data
 {
@@ -26,7 +24,7 @@ namespace Dalamud.Data
         /// <summary>
         /// A <see cref="Lumina"/> object which gives access to any excel/game data.
         /// </summary>
-        private Lumina.Lumina gameData;
+        private Lumina.GameData gameData;
 
         private ClientLanguage language;
 
@@ -107,7 +105,7 @@ namespace Dalamud.Data
                     },
                 };
 
-                this.gameData = new Lumina.Lumina(Path.Combine(Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName), "sqpack"), luminaOptions);
+                this.gameData = new GameData(Path.Combine(Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName), "sqpack"), luminaOptions);
 
                 Log.Information("Lumina is ready: {0}", this.gameData.DataPath);
 
@@ -144,7 +142,7 @@ namespace Dalamud.Data
         /// </summary>
         /// <typeparam name="T">The excel sheet type to get.</typeparam>
         /// <returns>The <see cref="ExcelSheet{T}"/>, giving access to game rows.</returns>
-        public ExcelSheet<T> GetExcelSheet<T>() where T : class, IExcelRow
+        public ExcelSheet<T> GetExcelSheet<T>() where T : ExcelRow
         {
             return this.Excel.GetSheet<T>();
         }
@@ -155,7 +153,7 @@ namespace Dalamud.Data
         /// <param name="language">Language of the sheet to get.</param>
         /// <typeparam name="T">The excel sheet type to get.</typeparam>
         /// <returns>The <see cref="ExcelSheet{T}"/>, giving access to game rows.</returns>
-        public ExcelSheet<T> GetExcelSheet<T>(ClientLanguage language) where T : class, IExcelRow
+        public ExcelSheet<T> GetExcelSheet<T>(ClientLanguage language) where T : ExcelRow
         {
             var lang = language switch {
                 ClientLanguage.Japanese => Language.Japanese,
@@ -185,7 +183,7 @@ namespace Dalamud.Data
         /// <returns>The <see cref="FileResource"/> of the file.</returns>
         public T GetFile<T>(string path) where T : FileResource
         {
-            ParsedFilePath filePath = Lumina.Lumina.ParseFilePath(path);
+            ParsedFilePath filePath = GameData.ParseFilePath(path);
             if (filePath == null)
                 return default(T);
             Repository repository;
