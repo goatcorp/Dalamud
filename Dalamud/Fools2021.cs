@@ -400,7 +400,7 @@ namespace Dalamud
                             break;
 
                         case TippyState.Parse:
-                            //Process.Start("https://na.finalfantasyxiv.com/jobguide/pvp/");
+                            Process.Start("https://na.finalfantasyxiv.com/jobguide/pvp/");
 
                             this.showTippyButton = false;
                             this.tippyText = string.Empty;
@@ -606,7 +606,8 @@ namespace Dalamud
 
                 PlayChord();
             }
-            else if (choice == 4 || choice == 6)
+            /*
+            else if (choice == 4)
             {
                 this.tippyState = TippyState.Parse;
                 this.tippyText = "It seems like you are parsing grey.\n\nDo you want me to help you play your\njob better?";
@@ -617,6 +618,7 @@ namespace Dalamud
 
                 PlayChord();
             }
+            */
             else
             {
                 this.tippyText = generalTip;
