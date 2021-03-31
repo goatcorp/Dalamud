@@ -5,7 +5,7 @@ using Lumina.Excel;
 
 namespace Dalamud.Data.TransientSheet
 {
-    [Obsolete("This sheet is transient and will be removed soon.", true)]
+    [Obsolete("This sheet is transient and will be removed soon.")]
     [Sheet( "Completion", columnHash: 0x2e6c55a3 )]
     public class Completion : ExcelRow
     {
