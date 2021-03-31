@@ -3,26 +3,45 @@ using System.IO;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Dalamud.Interface;
 using EasyHook;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
 
-namespace Dalamud {
-    public sealed class EntryPoint : IEntryPoint {
-        public EntryPoint(RemoteHooking.IContext ctx, DalamudStartInfo info) {
+namespace Dalamud
+{
+    /// <summary>
+    /// The main entrypoint for the Dalamud system.
+    /// </summary>
+    public sealed class EntryPoint : IEntryPoint
+    {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="EntryPoint"/> class.
+        /// </summary>
+        /// <param name="ctx">The <see cref="RemoteHooking.IContext"/> used to load the DLL.</param>
+        /// <param name="info">The <see cref="DalamudStartInfo"/> containing information needed to initialize Dalamud.</param>
+        public EntryPoint(RemoteHooking.IContext ctx, DalamudStartInfo info)
+        {
             // Required by EasyHook
         }
 
-        public void Run(RemoteHooking.IContext ctx, DalamudStartInfo info) {
+        /// <summary>
+        /// Initialize all Dalamud subsystems and start running on the main thread.
+        /// </summary>
+        /// <param name="ctx">The <see cref="RemoteHooking.IContext"/> used to load the DLL.</param>
+        /// <param name="info">The <see cref="DalamudStartInfo"/> containing information needed to initialize Dalamud.</param>
+        public void Run(RemoteHooking.IContext ctx, DalamudStartInfo info)
+        {
             // Setup logger
-            var (logger, levelSwitch) = NewLogger(info.WorkingDirectory);
+            var (logger, levelSwitch) = this.NewLogger(info.WorkingDirectory);
             Log.Logger = logger;
 
             var finishSignal = new ManualResetEvent(false);
 
-            try {
+            try
+            {
                 Log.Information(new string('-', 80));
                 Log.Information("Initializing a session..");
 
@@ -31,22 +50,26 @@ namespace Dalamud {
                     SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12 | SecurityProtocolType.Tls | SecurityProtocolType.Ssl3;
 
                 // Log any unhandled exception.
-                AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
-                TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
+                AppDomain.CurrentDomain.UnhandledException += this.OnUnhandledException;
+                TaskScheduler.UnobservedTaskException += this.OnUnobservedTaskException;
 
                 var dalamud = new Dalamud(info, levelSwitch, finishSignal);
                 Log.Information("Starting a session..");
-                    
+
                 // Run session
                 dalamud.Start();
                 dalamud.WaitForUnload();
 
                 dalamud.Dispose();
-            } catch (Exception ex) {
+            }
+            catch (Exception ex)
+            {
                 Log.Fatal(ex, "Unhandled exception on main thread.");
-            } finally {
-                AppDomain.CurrentDomain.UnhandledException -= OnUnhandledException;
-                
+            }
+            finally
+            {
+                AppDomain.CurrentDomain.UnhandledException -= this.OnUnhandledException;
+
                 Log.Information("Session has ended.");
                 Log.CloseAndFlush();
 
@@ -54,7 +77,8 @@ namespace Dalamud {
             }
         }
 
-        private (Logger logger, LoggingLevelSwitch levelSwitch) NewLogger(string baseDirectory) {
+        private (Logger logger, LoggingLevelSwitch levelSwitch) NewLogger(string baseDirectory)
+        {
 #if DEBUG
             var logPath = Path.Combine(baseDirectory, "dalamud.log");
 #else
@@ -69,7 +93,7 @@ namespace Dalamud {
             levelSwitch.MinimumLevel = LogEventLevel.Information;
 #endif
 
-            var newLogger =  new LoggerConfiguration()
+            var newLogger = new LoggerConfiguration()
                    .WriteTo.Async(a => a.File(logPath))
                    .WriteTo.EventSink()
                    .MinimumLevel.ControlledBy(levelSwitch)
@@ -78,8 +102,10 @@ namespace Dalamud {
             return (newLogger, levelSwitch);
         }
 
-        private void OnUnhandledException(object sender, UnhandledExceptionEventArgs arg) {
-            switch (arg.ExceptionObject) {
+        private void OnUnhandledException(object sender, UnhandledExceptionEventArgs arg)
+        {
+            switch (arg.ExceptionObject)
+            {
                 case Exception ex:
                     Log.Fatal(ex, "Unhandled exception on AppDomain");
                     break;
