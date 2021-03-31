@@ -39,6 +39,23 @@ namespace Dalamud
         {
             this.dalamud = dalamud;
 
+            this.welcomeTex = this.dalamud.InterfaceManager.LoadImage(
+                Path.Combine(dalamud.StartInfo.AssetDirectory, "UIRes", "welcome.png"));
+            this.tippySpriteSheet = this.dalamud.InterfaceManager.LoadImage(
+                Path.Combine(dalamud.StartInfo.AssetDirectory, "UIRes", "map.png"));
+            this.bubbleTex = this.dalamud.InterfaceManager.LoadImage(
+                Path.Combine(dalamud.StartInfo.AssetDirectory, "UIRes", "bubble.png"));
+
+            Log.Information(Path.Combine(dalamud.StartInfo.AssetDirectory, "UIRes", "bubble.png"));
+
+            if (this.welcomeTex == null || this.tippySpriteSheet == null || this.bubbleTex == null)
+            {
+                Log.Information("Tippy assets not found.");
+                return;
+            }
+
+            Log.Information("Tippy assets OK!");
+
             this.dalamud.ClientState.OnLogin += (sender, args) => {
                 this.isTippyDrawing = true;
                 this.IsEnabled = true;
@@ -54,13 +71,6 @@ namespace Dalamud
                 this.showTippyButton = false;
             };
 
-            this.welcomeTex = this.dalamud.InterfaceManager.LoadImage(
-                Path.Combine(dalamud.StartInfo.AssetDirectory, "UIRes", "welcome.png"));
-            this.tippySpriteSheet = this.dalamud.InterfaceManager.LoadImage(
-                Path.Combine(dalamud.StartInfo.AssetDirectory, "UIRes", "map.png"));
-            this.bubbleTex = this.dalamud.InterfaceManager.LoadImage(
-                Path.Combine(dalamud.StartInfo.AssetDirectory, "UIRes", "bubble.png"));
-
             this.tippyFrameTimer.Start();
         }
 
@@ -70,35 +80,6 @@ namespace Dalamud
                 return;
 
             try {
-                /*
-                if (this.frames < 1900) {
-
-                    var windowSize = new Vector2(this.welcomeTex.Width, this.welcomeTex.Height) *
-                                     ImGui.GetIO().FontGlobalScale *
-                                     WelcomeTexScale;
-                    ImGui.SetNextWindowSize(windowSize, ImGuiCond.Always);
-
-                    var screenSize = ImGui.GetIO().DisplaySize;
-                    ImGui.SetNextWindowPos(new Vector2((screenSize.X / 2) - windowSize.X / 2, (screenSize.Y / 2) - windowSize.Y / 2), ImGuiCond.Always);
-
-                    ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(0f, 0f));
-                    ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 0f);
-
-                    ImGui.Begin("Please wait...",
-                                ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar |
-                                ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoCollapse |
-                                ImGuiWindowFlags.NoTitleBar);
-
-                    ImGui.Image(this.welcomeTex.ImGuiHandle,
-                                new Vector2(this.welcomeTex.Width, this.welcomeTex.Height) *
-                                ImGui.GetIO().FontGlobalScale * WelcomeTexScale);
-
-                    ImGui.End();
-
-                    ImGui.PopStyleVar(2);
-                }
-                */
-
                 this.frames++;
 
                 if (this.isTippyDrawing)
@@ -112,6 +93,8 @@ namespace Dalamud
 
             ImGui.Text("State: " + this.tippyState);
             ImGui.Text("Logic: " + this.tippyLogicTimer.ElapsedMilliseconds);
+            ImGui.Text(this.ShouldHide.ToString());
+            ImGui.Text(this.tippyAnim.ToString());
 
             foreach (var tippyAnimData in this.tippyAnimDatas)
             {
@@ -142,8 +125,6 @@ namespace Dalamud
 
             ImGui.End();
 #endif
-
-
         }
 
         private bool isTippyDrawing = false;
@@ -184,7 +165,6 @@ namespace Dalamud
             "Also try the OwO plugin!",
             "I will never leave you!",
             "You cannot hide any longer.",
-            "Powered by XIVLauncher!",
             "When playing Hunter, specialize your\npet into taunting to help out your tank!",
             "It doesn't matter if you play BRD or MCH, \nit comes down to personal choice!",
             "Much like doing a \"brake check\" on the\nroad, you can do a \"heal check\"\nin-game! \n\nJust pop Superbolide at a random time,\npreferably about five seconds before \nraidwide damage.",
@@ -192,7 +172,7 @@ namespace Dalamud
         };
 
         private static readonly string Intro =
-            "Hi, I'm Tippy!\n\nI'm your new friend and assistant.\n\nI will help you get better at FFXIV!";
+            "Hi, I'm Tippy!\n\nI'm your new friend and assistant.\nI will help you get better at FFXIV!\n\nPowered by XIVLauncher!";
         private static readonly string GoodSong = "Man, this song is great!";
 
         private static readonly string[] PldTips = new[] {
@@ -385,6 +365,8 @@ namespace Dalamud
             ImGui.SetCursorPosX(230);
             ImGui.SetCursorPosY(18 + 55);
 
+            Log.Information($"{this.ShouldHide} {shouldDraw}");
+
             if (!ShouldHide && shouldDraw)
                 DrawTippyAnim();
 
@@ -420,7 +402,7 @@ namespace Dalamud
                             break;
 
                         case TippyState.Parse:
-                            Process.Start("https://na.finalfantasyxiv.com/jobguide/pvp/");
+                            //Process.Start("https://na.finalfantasyxiv.com/jobguide/pvp/");
 
                             this.showTippyButton = false;
                             this.tippyText = string.Empty;
@@ -648,9 +630,9 @@ namespace Dalamud
 
         public void Dispose()
         {
-            this.welcomeTex.Dispose();
-            this.tippySpriteSheet.Dispose();
-            this.bubbleTex.Dispose();
+            this.welcomeTex?.Dispose();
+            this.tippySpriteSheet?.Dispose();
+            this.bubbleTex?.Dispose();
         }
     }
 }
