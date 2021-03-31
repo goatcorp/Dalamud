@@ -365,8 +365,6 @@ namespace Dalamud
             ImGui.SetCursorPosX(230);
             ImGui.SetCursorPosY(18 + 55);
 
-            Log.Information($"{this.ShouldHide} {shouldDraw}");
-
             if (!ShouldHide && shouldDraw)
                 DrawTippyAnim();
 
