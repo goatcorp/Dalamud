@@ -1,10 +1,13 @@
+using System;
+using Lumina;
 using Lumina.Excel;
 using Lumina.Data;
 
 namespace Dalamud.Data.TransientSheet
 {
+    [Obsolete("This sheet is transient and will be removed soon.")]
     [Sheet( "PetMirage", columnHash: 0x720608f1 )]
-    public class PetMirage : IExcelRow
+    public class PetMirage : ExcelRow
     {
         // column defs from Sun, 26 Apr 2020 15:17:06 GMT
 
@@ -202,7 +205,7 @@ namespace Dalamud.Data.TransientSheet
         public uint RowId { get; set; }
         public uint SubRowId { get; set; }
 
-        public void PopulateData( RowParser parser, Lumina.Lumina lumina, Language language )
+        public void PopulateData( RowParser parser, GameData lumina, Language language )
         {
             RowId = parser.Row;
             SubRowId = parser.SubRow;

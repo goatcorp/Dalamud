@@ -1,10 +1,13 @@
+using System;
+using Lumina;
 using Lumina.Data;
 using Lumina.Excel;
 
 namespace Dalamud.Data.TransientSheet
 {
+    [Obsolete("This sheet is transient and will be removed soon.", true)]
     [Sheet( "Completion", columnHash: 0x2e6c55a3 )]
-    public class Completion : IExcelRow
+    public class Completion : ExcelRow
     {
         // column defs from Mon, 02 Mar 2020 11:00:20 GMT
 
@@ -28,7 +31,7 @@ namespace Dalamud.Data.TransientSheet
         public uint RowId { get; set; }
         public uint SubRowId { get; set; }
 
-        public void PopulateData( RowParser parser, Lumina.Lumina lumina, Language language )
+        public void PopulateData( RowParser parser, GameData lumina, Language language )
         {
             RowId = parser.Row;
             SubRowId = parser.SubRow;
