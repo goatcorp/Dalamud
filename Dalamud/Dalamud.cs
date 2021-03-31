@@ -179,11 +179,6 @@ namespace Dalamud
         internal DirectoryInfo AssetDirectory => new DirectoryInfo(this.StartInfo.AssetDirectory);
 
         /// <summary>
-        /// Gets April Fools system.
-        /// </summary>
-        internal Fools2021 Fools { get; private set; }
-
-        /// <summary>
         /// Start and initialize Dalamud subsystems.
         /// </summary>
         public void Start()
@@ -258,13 +253,6 @@ namespace Dalamud
                     {
                         Log.Information(e, "Could not init interface.");
                     }
-                }
-
-                var time = DateTime.Now;
-                if (time.Day == 1 && time.Month == 4 && time.Year == 2021)
-                {
-                    this.Fools = new Fools2021(this);
-                    this.InterfaceManager.OnDraw += this.Fools.Draw;
                 }
 
                 this.Data = new DataManager(this.StartInfo.Language);
@@ -369,8 +357,6 @@ namespace Dalamud
         {
             try
             {
-                this.Fools?.Dispose();
-
                 // this must be done before unloading plugins, or it can cause a race condition
                 // due to rendering happening on another thread, where a plugin might receive
                 // a render call after it has been disposed, which can crash if it attempts to
