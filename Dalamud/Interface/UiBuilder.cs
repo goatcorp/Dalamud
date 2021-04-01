@@ -65,8 +65,8 @@ namespace Dalamud.Interface
         public bool DisableGposeUiHide { get; set; } = false;
 
         private bool CutsceneActive => this.dalamud.ClientState != null &&
-                                       this.dalamud.ClientState.Condition[ConditionFlag.OccupiedInCutSceneEvent] ||
-                                       this.dalamud.ClientState.Condition[ConditionFlag.WatchingCutscene78];
+                                       (this.dalamud.ClientState.Condition[ConditionFlag.OccupiedInCutSceneEvent] ||
+                                       this.dalamud.ClientState.Condition[ConditionFlag.WatchingCutscene78]);
 
         private bool GposeActive => this.dalamud.ClientState != null &&
                                     this.dalamud.ClientState.Condition[ConditionFlag.WatchingCutscene];
