@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 
+using Dalamud.Configuration;
 using Dalamud.Data;
 using Dalamud.Game;
 using Dalamud.Game.Chat.SeStringHandling;

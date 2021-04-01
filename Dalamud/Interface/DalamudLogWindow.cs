@@ -4,6 +4,8 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+
+using Dalamud.Configuration;
 using Dalamud.Game.Command;
 using ImGuiNET;
 using Serilog;
