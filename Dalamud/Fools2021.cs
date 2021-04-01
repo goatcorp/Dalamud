@@ -9,6 +9,7 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms.VisualStyles;
+using Dalamud.Game.ClientState;
 using Dalamud.Interface;
 using ImGuiNET;
 using ImGuiScene;
@@ -320,6 +321,15 @@ namespace Dalamud
             this.sounds.Play();
         }
 
+        private bool CutsceneActive => this.dalamud.ClientState != null &&
+                                       (this.dalamud.ClientState.Condition[ConditionFlag.OccupiedInCutSceneEvent] ||
+                                       this.dalamud.ClientState.Condition[ConditionFlag.WatchingCutscene78]);
+
+        private bool GposeActive => this.dalamud.ClientState != null &&
+                                    this.dalamud.ClientState.Condition[ConditionFlag.WatchingCutscene];
+
+        private bool ShouldHide => this.CutsceneActive || this.GposeActive || this.dalamud.Framework.Gui.GameUiHidden;
+
         private void DrawTippy()
         {
             if (this.tippyState == TippyState.BeforeIntro && this.tippyLogicTimer.ElapsedMilliseconds > 8000) {
@@ -362,7 +372,7 @@ namespace Dalamud
 
             ImGui.PushFont(InterfaceManager.FoolsFont);
 
-            if (!string.IsNullOrEmpty(this.tippyText))
+            if (!string.IsNullOrEmpty(this.tippyText) && !ShouldHide)
             {
                 DrawTextBox(this.tippyText);
             }
@@ -372,17 +382,16 @@ namespace Dalamud
             ImGui.SetCursorPosX(230);
             ImGui.SetCursorPosY(18 + 55);
 
-            DrawTippyAnim();
+            if (!ShouldHide)
+                DrawTippyAnim();
 
             ImGui.End();
-
-            
 
             ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.6f, 0.6f, 0.6f, 1f));
 
             ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0, 0, 0, 1));
 
-            if (this.showTippyButton) {
+            if (this.showTippyButton && !ShouldHide) {
                 ImGui.SetNextWindowPos(tippyPos + new Vector2(117, 117), ImGuiCond.Always);
                 ImGui.SetNextWindowSize(new Vector2(95, 40), ImGuiCond.Always);
                 //ImGui.SetNextWindowFocus();
