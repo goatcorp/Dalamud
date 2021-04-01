@@ -225,7 +225,7 @@ namespace Dalamud.Plugin
                             continue;
                         }
 
-                        if (remoteInfo.DalamudApiLevel < PluginManager.DALAMUD_API_LEVEL) {
+                        if (remoteInfo.DalamudApiLevel < PluginManager.DalamudApiLevel) {
                             Log.Information("Has not applicable API level: {0}", info.Name);
                             continue;
                         }

@@ -239,7 +239,7 @@ namespace Dalamud.Interface
                         }
 
                         ImGui.Separator();
-                        ImGui.MenuItem("API Level:" + PluginManager.DALAMUD_API_LEVEL, false);
+                        ImGui.MenuItem("API Level:" + PluginManager.DalamudApiLevel, false);
                         ImGui.MenuItem("Loaded plugins:" + this.dalamud.PluginManager?.Plugins.Count, false);
                         ImGui.EndMenu();
                     }

@@ -359,7 +359,7 @@ namespace Dalamud.Plugin
                 if (pluginDefinition.IsHide)
                     continue;
 
-                if (pluginDefinition.DalamudApiLevel < PluginManager.DALAMUD_API_LEVEL)
+                if (pluginDefinition.DalamudApiLevel < PluginManager.DalamudApiLevel)
                     continue;
 
                 if (this.dalamud.Configuration.HiddenPluginInternalName.Contains(pluginDefinition.InternalName))

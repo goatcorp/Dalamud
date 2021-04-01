@@ -67,7 +67,7 @@ namespace Dalamud.Plugin
         public bool IsHide { get; set; }
 
         /// <summary>
-        /// Gets or sets the API level of this plugin. For the current API level, please see <see cref="PluginManager.DALAMUD_API_LEVEL"/> for the currently used API level.
+        /// Gets or sets the API level of this plugin. For the current API level, please see <see cref="PluginManager.DalamudApiLevel"/> for the currently used API level.
         /// </summary>
         public int DalamudApiLevel { get; set; }
 
