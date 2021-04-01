@@ -10,7 +10,7 @@
         <OutputPath></OutputPath>
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
         <DebugSymbols>true</DebugSymbols>
-        <DebugType>Portable</DebugType>
+        <DebugType>full</DebugType>
         <DocumentationFile>$(SolutionDir)\bin\Dalamud.xml</DocumentationFile>
     </PropertyGroup>
     <PropertyGroup Label="Feature">
@@ -29,6 +29,9 @@
     </PropertyGroup>
     <PropertyGroup>
         <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+      <DefineConstants>DEBUG;TRACE</DefineConstants>
     </PropertyGroup>
     <ItemGroup>
       <None Remove="Resources\Lumina.Generated.dll" />

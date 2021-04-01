@@ -84,7 +84,8 @@ namespace Dalamud.Interface
                 ImGui.PushStyleColor(ImGuiCol.BorderShadow, new Vector4(0, 0, 0, 1));
                 ImGui.PushStyleColor(ImGuiCol.WindowBg, new Vector4(0, 0, 0, 1));
 
-                ImGui.SetNextWindowPos(new Vector2(0, 0), ImGuiCond.Always);
+                var mainViewportPos = ImGui.GetMainViewport().Pos;
+                ImGui.SetNextWindowPos(new Vector2(mainViewportPos.X, mainViewportPos.Y), ImGuiCond.Always);
                 ImGui.SetNextWindowBgAlpha(1);
 
                 if (ImGui.Begin("DevMenu Opener", ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoSavedSettings))

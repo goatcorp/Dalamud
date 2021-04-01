@@ -165,7 +165,7 @@ namespace Dalamud.Interface
             // So... not great, but much better than constantly crashing on unload
             this.Disable();
             System.Threading.Thread.Sleep(500);
-
+            
             this.scene?.Dispose();
             this.presentHook.Dispose();
             this.resizeBuffersHook.Dispose();
@@ -228,6 +228,7 @@ namespace Dalamud.Interface
         private IntPtr PresentDetour(IntPtr swapChain, uint syncInterval, uint presentFlags)
         {
             if (this.scene == null) {
+            
                 this.scene = new RawDX11Scene(swapChain);
 
                 this.scene.ImGuiIniPath = Path.Combine(Path.GetDirectoryName(this.dalamud.StartInfo.ConfigurationPath), "dalamudUI.ini");
@@ -357,7 +358,12 @@ namespace Dalamud.Interface
 
         private IntPtr ResizeBuffersDetour(IntPtr swapChain, uint bufferCount, uint width, uint height, uint newFormat, uint swapChainFlags)
         {
-            Log.Verbose($"Calling resizebuffers {bufferCount} {width} {height} {newFormat} {swapChainFlags}");
+            Log.Verbose($"Calling resizebuffers swap@{swapChain.ToInt64():X}{bufferCount} {width} {height} {newFormat} {swapChainFlags}");
+
+            // We have to ensure we're working with the main swapchain,
+            // as viewports might be resizing as well
+            if (swapChain != this.scene.SwapChain.NativePointer)
+                return resizeBuffersHook.Original(swapChain, bufferCount, width, height, newFormat, swapChainFlags);
 
             this.scene?.OnPreResize();
 
