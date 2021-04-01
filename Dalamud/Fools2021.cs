@@ -111,6 +111,7 @@ namespace Dalamud
             ImGui.Begin("Tippy AI debug");
 
             ImGui.Text("State: " + this.tippyState);
+            ImGui.Text("Logic: " + this.tippyLogicTimer.ElapsedMilliseconds);
 
             foreach (var tippyAnimData in this.tippyAnimDatas)
             {
@@ -135,7 +136,7 @@ namespace Dalamud
             if (ImGui.Button("SetNewTip"))
                 SetNewTip();
 
-            foreach (var lastGeneralTip in this.lastGeneralTips) {
+            foreach (var lastGeneralTip in this.lastTips) {
                 ImGui.Text(lastGeneralTip);
             }
 
@@ -344,7 +345,7 @@ namespace Dalamud
 
             switch (tippyState) {
                 case TippyState.Tips:
-                    if (this.tippyLogicTimer.ElapsedMilliseconds > 600000 && string.IsNullOrEmpty(this.tippyText)) // New tip every 10 minutes
+                    if (this.tippyLogicTimer.ElapsedMilliseconds > 900000 && string.IsNullOrEmpty(this.tippyText)) // New tip every 15 minutes
                         SetNewTip();
                     break;
                 case TippyState.Timeout:
@@ -372,7 +373,9 @@ namespace Dalamud
 
             ImGui.PushFont(InterfaceManager.FoolsFont);
 
-            if (!string.IsNullOrEmpty(this.tippyText) && !ShouldHide)
+            var shouldDraw = this.tippyAnim != TippyAnimState.Idle;
+
+            if (!string.IsNullOrEmpty(this.tippyText) && !ShouldHide && shouldDraw)
             {
                 DrawTextBox(this.tippyText);
             }
@@ -382,7 +385,7 @@ namespace Dalamud
             ImGui.SetCursorPosX(230);
             ImGui.SetCursorPosY(18 + 55);
 
-            if (!ShouldHide)
+            if (!ShouldHide && shouldDraw)
                 DrawTippyAnim();
 
             ImGui.End();
@@ -391,7 +394,7 @@ namespace Dalamud
 
             ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0, 0, 0, 1));
 
-            if (this.showTippyButton && !ShouldHide) {
+            if (this.showTippyButton && !ShouldHide && shouldDraw) {
                 ImGui.SetNextWindowPos(tippyPos + new Vector2(117, 117), ImGuiCond.Always);
                 ImGui.SetNextWindowSize(new Vector2(95, 40), ImGuiCond.Always);
                 //ImGui.SetNextWindowFocus();
