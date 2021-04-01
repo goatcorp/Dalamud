@@ -19,7 +19,7 @@ namespace Dalamud.Plugin
         /// <summary>
         /// The current Dalamud API level, used to handle breaking changes. Only plugins with this level will be loaded.
         /// </summary>
-        public const int DalamudApiLevel = 2;
+        public const int DalamudApiLevel = 3;
 
         private readonly Dalamud dalamud;
         private readonly string pluginDirectory;
