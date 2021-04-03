@@ -28,6 +28,9 @@ jobs:
         run: |
           cd "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\"
            .\MSBuild.exe $Env:GITHUB_WORKSPACE\Dalamud.sln /t:Build /p:Configuration=Release /p:DefineConstants=XL_NOAUTOUPDATE
+      - name: Run NUnit Tests
+        run: |
+          ${{github.workspace}}\packages\NUnit.ConsoleRunner.3.12.0\tools\nunit3-console.exe ${{github.workspace}}\Dalamud.Test\bin\Release\Dalamud.Test.dll
       - name: Upload artifact
         uses: actions/upload-artifact@master
         with:
