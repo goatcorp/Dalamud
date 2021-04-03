@@ -175,16 +175,23 @@ namespace Dalamud.Game.ClientState
         /// </summary>
         public event EventHandler OnLogout;
 
+        /// <summary>
+        /// Gets a value indicating whether a character is logged in.
+        /// </summary>
+        public bool IsLoggedIn { get; private set; }
+
         private void FrameworkOnOnUpdateEvent(Framework framework) {
             if (this.Condition.Any() && this.lastConditionNone == true) {
                 Log.Debug("Is login");
                 this.lastConditionNone = false;
+                this.IsLoggedIn = true;
                 OnLogin?.Invoke(this, null);
             }
                 
             if (!this.Condition.Any() && this.lastConditionNone == false) {
                 Log.Debug("Is logout");
                 this.lastConditionNone = true;
+                this.IsLoggedIn = false;
                 OnLogout?.Invoke(this, null);
             }
         }
