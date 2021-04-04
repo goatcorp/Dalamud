@@ -1,29 +1,22 @@
 ﻿using System.IO;
 using System.Reflection;
-using NUnit.Framework;
+using Xunit;
 
 namespace Dalamud.Test {
-    [TestFixture]
     public class LocalizationTests {
-        private Localization localization;
+        private readonly Localization localization;
         private string currentLangCode;
-        private string workingDir;
-
-        [OneTimeSetUp]
-        public void Init() {
-            this.workingDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-        }
-
-        [SetUp]
-        public void Setup() {
-            this.localization = new Localization(this.workingDir);
+        
+        public LocalizationTests() {
+            var workingDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            this.localization = new Localization(workingDir);
             this.localization.OnLocalizationChanged += code => this.currentLangCode = code;
         }
 
-        [Test]
+        [Fact]
         public void SetupWithFallbacks_EventInvoked() {
             this.localization.SetupWithFallbacks();
-            Assert.AreEqual("en", this.currentLangCode);
+            Assert.Equal("en", this.currentLangCode);
         }
     }
 }
