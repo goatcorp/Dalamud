@@ -19,14 +19,17 @@ namespace Dalamud.Data
     /// </summary>
     public class DataManager : IDisposable
     {
+        /// <summary>
+        /// The current game client language.
+        /// </summary>
+        internal ClientLanguage Language;
+
         private const string IconFileFormat = "ui/icon/{0:D3}000/{1}{2:D6}.tex";
 
         /// <summary>
         /// A <see cref="Lumina"/> object which gives access to any excel/game data.
         /// </summary>
         private Lumina.GameData gameData;
-
-        private ClientLanguage language;
 
         private Thread luminaResourceThread;
 
@@ -39,7 +42,7 @@ namespace Dalamud.Data
             // Set up default values so plugins do not null-reference when data is being loaded.
             this.ServerOpCodes = new ReadOnlyDictionary<string, ushort>(new Dictionary<string, ushort>());
 
-            this.language = language;
+            this.Language = language;
         }
 
         /// <summary>
@@ -94,14 +97,14 @@ namespace Dalamud.Data
                     PanicOnSheetChecksumMismatch = false,
 #endif
 
-                    DefaultExcelLanguage = this.language switch {
-                        ClientLanguage.Japanese => Language.Japanese,
-                        ClientLanguage.English => Language.English,
-                        ClientLanguage.German => Language.German,
-                        ClientLanguage.French => Language.French,
+                    DefaultExcelLanguage = this.Language switch {
+                        ClientLanguage.Japanese => Lumina.Data.Language.Japanese,
+                        ClientLanguage.English => Lumina.Data.Language.English,
+                        ClientLanguage.German => Lumina.Data.Language.German,
+                        ClientLanguage.French => Lumina.Data.Language.French,
                         _ => throw new ArgumentOutOfRangeException(
-                                 nameof(this.language),
-                                 "Unknown Language: " + this.language),
+                                 nameof(this.Language),
+                                 "Unknown Language: " + this.Language),
                     },
                 };
 
@@ -156,11 +159,11 @@ namespace Dalamud.Data
         public ExcelSheet<T> GetExcelSheet<T>(ClientLanguage language) where T : ExcelRow
         {
             var lang = language switch {
-                ClientLanguage.Japanese => Language.Japanese,
-                ClientLanguage.English => Language.English,
-                ClientLanguage.German => Language.German,
-                ClientLanguage.French => Language.French,
-                _ => throw new ArgumentOutOfRangeException(nameof(this.language), "Unknown Language: " + this.language)
+                ClientLanguage.Japanese => Lumina.Data.Language.Japanese,
+                ClientLanguage.English => Lumina.Data.Language.English,
+                ClientLanguage.German => Lumina.Data.Language.German,
+                ClientLanguage.French => Lumina.Data.Language.French,
+                _ => throw new ArgumentOutOfRangeException(nameof(this.Language), "Unknown Language: " + this.Language)
             };
             return this.Excel.GetSheet<T>(lang);
         }
@@ -207,7 +210,7 @@ namespace Dalamud.Data
         /// <returns>The <see cref="TexFile"/> containing the icon.</returns>
         public TexFile GetIcon(int iconId)
         {
-            return this.GetIcon(this.language, iconId);
+            return this.GetIcon(this.Language, iconId);
         }
 
         /// <summary>
@@ -223,7 +226,7 @@ namespace Dalamud.Data
                 ClientLanguage.English => "en/",
                 ClientLanguage.German => "de/",
                 ClientLanguage.French => "fr/",
-                _ => throw new ArgumentOutOfRangeException(nameof(this.language), "Unknown Language: " + this.language)
+                _ => throw new ArgumentOutOfRangeException(nameof(this.Language), "Unknown Language: " + this.Language)
             };
 
             return this.GetIcon(type, iconId);
