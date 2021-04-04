@@ -13,6 +13,7 @@ using Dalamud.Game.ClientState;
 using Dalamud.Game.Command;
 using Dalamud.Game.Internal;
 using Dalamud.Interface;
+using Dalamud.Plugin.Sanitizer;
 
 namespace Dalamud.Plugin
 {
@@ -48,6 +49,7 @@ namespace Dalamud.Plugin
             this.pluginName = pluginName;
             this.configs = configs;
 
+            this.Sanitizer = new Sanitizer.Sanitizer(this.Data.Language);
             this.UiLanguage = this.dalamud.Configuration.LanguageOverride;
             dalamud.LocalizationManager.OnLocalizationChanged += this.OnLocalizationChanged;
         }
@@ -131,6 +133,11 @@ namespace Dalamud.Plugin
         /// Gets the current UI language in two-letter iso format.
         /// </summary>
         public string UiLanguage { get; private set; }
+
+        /// <summary>
+        /// Gets serializer class with functions to remove special characters from strings.
+        /// </summary>
+        public ISanitizer Sanitizer { get; }
 
         /// <summary>
         /// Gets the action that should be executed when any plugin sends a message.
