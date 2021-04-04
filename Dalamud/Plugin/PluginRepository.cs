@@ -17,7 +17,7 @@ using Serilog;
 namespace Dalamud.Plugin
 {
     internal class PluginRepository { 
-        private string PluginMasterUrl => "https://goatcorp.github.io/DalamudPlugins/pluginmaster.json";
+        private string PluginMasterUrl => "https://raw.githubusercontent.com/goatcorp/DalamudPlugins/api3/pluginmaster.json";
 
         private readonly Dalamud dalamud;
         private string pluginDirectory;
