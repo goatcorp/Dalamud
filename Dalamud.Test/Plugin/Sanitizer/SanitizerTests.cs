@@ -1,67 +1,32 @@
 ﻿// ReSharper disable StringLiteralTypo
 
+using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
 namespace Dalamud.Test.Plugin.Sanitizer {
 
     public class SanitizerTests {
-        global::Dalamud.Plugin.Sanitizer.Sanitizer sanitizer;
+        private global::Dalamud.Plugin.Sanitizer.Sanitizer sanitizer;
 
-        [Fact]
-        public void Sanitize_NormalString_NoChange() {
+        [Theory]
+        [InlineData( ClientLanguage.English, "Pixie Cotton Hood of Healing", "Pixie Cotton Hood of Healing" )]
+        [InlineData( ClientLanguage.Japanese, "アラガントームストーン:真理", "アラガントームストーン:真理" )]
+        [InlineData( ClientLanguage.German, "Anemos-Pan\x02\x16\x01\x03zer\x02\x16\x01\x03hand\x02\x16\x01\x03schu\x02\x16\x01\x03he des Drachenbluts", "Anemos-Panzerhandschuhe des Drachenbluts" )]
+        [InlineData( ClientLanguage.German, "Bienen-Spatha †", "Bienen-Spatha" )]
+        [InlineData( ClientLanguage.French, "Le Diademe\x02\x1D\x01\x03: terrains de chasse|Le Diademe\x02\x1D\x01\x03: terrains de chasse", "Le Diademe: terrains de chasse|Le Diademe: terrains de chasse" )]
+        [InlineData( ClientLanguage.French, "Cuir de bœuf", "Cuir de boeuf" )]
+        public void StringsAreSanitizedCorrectly(
+            ClientLanguage clientLanguage, string unsanitizedString, string sanitizedString)
+        {
+            var sanitizedStrings = new List<string> {unsanitizedString};
+            sanitizer = new global::Dalamud.Plugin.Sanitizer.Sanitizer(clientLanguage);
+            Assert.Equal(sanitizedString, sanitizer.Sanitize(unsanitizedString));
+            Assert.Equal(sanitizedString, sanitizer.Sanitize(sanitizedStrings).First());
+            
             sanitizer = new global::Dalamud.Plugin.Sanitizer.Sanitizer(ClientLanguage.English);
-            const string str = "Pixie Cotton Hood of Healing";
-            var sanitizedString = sanitizer.Sanitize(str);
-            Assert.Equal(str, sanitizedString);
-        }
-
-        [Fact]
-        public void Sanitize_DESpecialCharacters_Sanitized() {
-            sanitizer = new global::Dalamud.Plugin.Sanitizer.Sanitizer(ClientLanguage.German);
-            const string str = @"Anemos-Panzerhandschuhe des Drachenbluts";
-            var sanitizedString = sanitizer.Sanitize(str);
-            Assert.Equal(@"Anemos-Panzerhandschuhe des Drachenbluts", sanitizedString);
-        }
-
-        [Fact]
-        public void Sanitize_FRSpecialCharacters_Sanitized() {
-            sanitizer = new global::Dalamud.Plugin.Sanitizer.Sanitizer(ClientLanguage.French);
-            const string str = @"Le Diademe: terrains de chasse|Le Diademe: terrains de chasse";
-            var sanitizedString = sanitizer.Sanitize(str);
-            Assert.Equal(@"Le Diademe: terrains de chasse|Le Diademe: terrains de chasse", sanitizedString);
-        }
-
-        [Fact]
-        public void Sanitize_SpecifyLanguage_Sanitized() {
-            sanitizer = new global::Dalamud.Plugin.Sanitizer.Sanitizer(ClientLanguage.French);
-            const string str = @"Le Diademe: terrains de chasse|Le Diademe: terrains de chasse";
-            var sanitizedString = sanitizer.Sanitize(str, ClientLanguage.French);
-            Assert.Equal(@"Le Diademe: terrains de chasse|Le Diademe: terrains de chasse", sanitizedString);
-        }
-
-        [Fact]
-        public void Sanitize_List_Sanitized() {
-            sanitizer = new global::Dalamud.Plugin.Sanitizer.Sanitizer(ClientLanguage.German);
-            const string str = @"Anemos-Panzerhandschuhe des Drachenbluts";
-            var sanitizedStrings = sanitizer.Sanitize(new[] {str});
-            Assert.Equal(@"Anemos-Panzerhandschuhe des Drachenbluts", sanitizedStrings.First());
-        }
-
-        [Fact]
-        public void Sanitize_SpecifyLanguageList_Sanitized() {
-            sanitizer = new global::Dalamud.Plugin.Sanitizer.Sanitizer(ClientLanguage.German);
-            const string str = @"Anemos-Panzerhandschuhe des Drachenbluts";
-            var sanitizedStrings = sanitizer.Sanitize(new[] {str}, ClientLanguage.German);
-            Assert.Equal(@"Anemos-Panzerhandschuhe des Drachenbluts", sanitizedStrings.First());
-        }
-        
-        [Fact]
-        public void Sanitize_UseAlternateLanguage_Sanitized() {
-            sanitizer = new global::Dalamud.Plugin.Sanitizer.Sanitizer(ClientLanguage.English);
-            const string str = @"Anemos-Panzerhandschuhe des Drachenbluts";
-            var sanitizedStrings = sanitizer.Sanitize(new[] {str}, ClientLanguage.German);
-            Assert.Equal(@"Anemos-Panzerhandschuhe des Drachenbluts", sanitizedStrings.First());
+            Assert.Equal(sanitizedString, sanitizer.Sanitize(unsanitizedString, clientLanguage));
+            Assert.Equal(sanitizedString, sanitizer.Sanitize(sanitizedStrings, clientLanguage).First());
         }
     }
 }

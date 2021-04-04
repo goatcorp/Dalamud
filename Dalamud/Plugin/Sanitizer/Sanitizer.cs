@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace Dalamud.Plugin.Sanitizer
 {
@@ -10,21 +9,25 @@ namespace Dalamud.Plugin.Sanitizer
     /// </summary>
     public class Sanitizer : ISanitizer
     {
-        private readonly KeyValuePair<string, string> softHyphen = new KeyValuePair<string, string>("\u0002\u0016\u0001\u0003", string.Empty);
-        private readonly KeyValuePair<string, string> emphasisOpen = new KeyValuePair<string, string>("\u0002\u001A\u0003", string.Empty);
-        private readonly KeyValuePair<string, string> emphasisClose = new KeyValuePair<string, string>("\u0002\u001A\u0001\u0003", string.Empty);
-        private readonly KeyValuePair<string, string> indent = new KeyValuePair<string, string>("\u0002\u001D\u0001\u0003", string.Empty);
-        private readonly KeyValuePair<string, string> dagger = new KeyValuePair<string, string>("\u0020\u2020", string.Empty);
-        private readonly KeyValuePair<string, string> ligatureOE = new KeyValuePair<string, string>("\u0153", "\u006F\u0065");
-        private readonly List<KeyValuePair<string, string>> defaultSanitizationList;
+        private static readonly Dictionary<string, string> DESanitizationDict = new Dictionary<string, string>
+        {
+            { "\u0020\u2020", string.Empty }, // dagger
+        };
+
+        private static readonly Dictionary<string, string> FRSanitizationDict = new Dictionary<string, string>
+        {
+            { "\u0153", "\u006F\u0065" }, // ligature oe
+        };
+
+        private readonly ClientLanguage defaultClientLanguage;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Sanitizer"/> class.
         /// </summary>
-        /// <param name="clientLanguage">Default clientLanguage for sanitizing strings.</param>
-        public Sanitizer(ClientLanguage clientLanguage)
+        /// <param name="defaultClientLanguage">Default clientLanguage for sanitizing strings.</param>
+        public Sanitizer(ClientLanguage defaultClientLanguage)
         {
-            this.defaultSanitizationList = this.BuildSanitizationList(clientLanguage);
+            this.defaultClientLanguage = defaultClientLanguage;
         }
 
         /// <summary>
@@ -34,7 +37,7 @@ namespace Dalamud.Plugin.Sanitizer
         /// <returns>A sanitized string.</returns>
         public string Sanitize(string unsanitizedString)
         {
-            return this.defaultSanitizationList == null ? unsanitizedString : ApplySanitizationList(unsanitizedString, this.defaultSanitizationList);
+            return SanitizeByLanguage(unsanitizedString, this.defaultClientLanguage);
         }
 
         /// <summary>
@@ -45,8 +48,7 @@ namespace Dalamud.Plugin.Sanitizer
         /// <returns>A sanitized string.</returns>
         public string Sanitize(string unsanitizedString, ClientLanguage clientLanguage)
         {
-            var newSanitizationList = this.BuildSanitizationList(clientLanguage);
-            return newSanitizationList == null ? unsanitizedString : ApplySanitizationList(unsanitizedString, newSanitizationList);
+            return SanitizeByLanguage(unsanitizedString, clientLanguage);
         }
 
         /// <summary>
@@ -56,8 +58,7 @@ namespace Dalamud.Plugin.Sanitizer
         /// <returns>A list of sanitized strings.</returns>
         public IEnumerable<string> Sanitize(IEnumerable<string> unsanitizedStrings)
         {
-            return this.defaultSanitizationList == null ? unsanitizedStrings.Select(unsanitizedString => unsanitizedString) :
-                       unsanitizedStrings.Select(unsanitizedString => ApplySanitizationList(unsanitizedString, this.defaultSanitizationList));
+            return SanitizeByLanguage(unsanitizedStrings, this.defaultClientLanguage);
         }
 
         /// <summary>
@@ -68,46 +69,63 @@ namespace Dalamud.Plugin.Sanitizer
         /// <returns>A list of sanitized strings.</returns>
         public IEnumerable<string> Sanitize(IEnumerable<string> unsanitizedStrings, ClientLanguage clientLanguage)
         {
-            var newSanitizationList = this.BuildSanitizationList(clientLanguage);
-            return newSanitizationList == null ? unsanitizedStrings.Select(unsanitizedString => unsanitizedString) :
-                       unsanitizedStrings.Select(unsanitizedString => ApplySanitizationList(unsanitizedString, newSanitizationList));
+            return SanitizeByLanguage(unsanitizedStrings, clientLanguage);
         }
 
-        private static string ApplySanitizationList(string unsanitizedString, IEnumerable<KeyValuePair<string, string>> sanitizationList)
+        private static string SanitizeByLanguage(string unsanitizedString, ClientLanguage clientLanguage)
         {
-            var sanitizedValue = new StringBuilder(unsanitizedString);
-            foreach (var item in sanitizationList) sanitizedValue.Replace(item.Key, item.Value);
-            return sanitizedValue.ToString();
-        }
-
-        private List<KeyValuePair<string, string>> BuildSanitizationList(ClientLanguage clientLanguage)
-        {
+            var sanitizedString = FilterUnprintableCharacters(unsanitizedString);
             switch (clientLanguage)
             {
                 case ClientLanguage.Japanese:
-                    break;
                 case ClientLanguage.English:
-                    break;
+                    return sanitizedString;
                 case ClientLanguage.German:
-                    return new List<KeyValuePair<string, string>>
-                    {
-                        this.softHyphen,
-                        this.emphasisOpen,
-                        this.emphasisClose,
-                        this.dagger,
-                    };
+                    return FilterByDict(sanitizedString, DESanitizationDict);
                 case ClientLanguage.French:
-                    return new List<KeyValuePair<string, string>>
-                    {
-                        this.softHyphen,
-                        this.indent,
-                        this.ligatureOE,
-                    };
+                    return FilterByDict(sanitizedString, FRSanitizationDict);
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    throw new ArgumentOutOfRangeException(nameof(clientLanguage), clientLanguage, null);
             }
+        }
 
-            return null;
+        private static IEnumerable<string> SanitizeByLanguage(
+            IEnumerable<string> unsanitizedStrings, ClientLanguage clientLanguage)
+        {
+            var sanitizedStrings = new List<string>();
+            switch (clientLanguage)
+            {
+                case ClientLanguage.Japanese:
+                case ClientLanguage.English:
+                    sanitizedStrings.AddRange(unsanitizedStrings.Select(FilterUnprintableCharacters));
+                    return sanitizedStrings;
+                case ClientLanguage.German:
+                    sanitizedStrings.AddRange(
+                        unsanitizedStrings.Select(
+                            unsanitizedString =>
+                                FilterByDict(FilterUnprintableCharacters(unsanitizedString), DESanitizationDict)));
+                    return sanitizedStrings;
+                case ClientLanguage.French:
+                    sanitizedStrings.AddRange(
+                        unsanitizedStrings.Select(
+                            unsanitizedString =>
+                                FilterByDict(FilterUnprintableCharacters(unsanitizedString), FRSanitizationDict)));
+                    return sanitizedStrings;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(clientLanguage), clientLanguage, null);
+            }
+        }
+
+        private static string FilterUnprintableCharacters(string str)
+        {
+            return new string(str?.Where(ch => ch >= 0x20).ToArray());
+        }
+
+        private static string FilterByDict(string str, Dictionary<string, string> dict)
+        {
+            return dict.Aggregate(
+                str, (current, kvp) =>
+                    current.Replace(kvp.Key, kvp.Value));
         }
     }
 }
