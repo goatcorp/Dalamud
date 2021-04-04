@@ -1,6 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
-using Dalamud.Game.Chat.SeStringHandling.Payloads;
+using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Hooking;
 using ImGuiNET;
 using Serilog;

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-using Dalamud.Game.Chat;
+using Dalamud.Game.Text;
 using Newtonsoft.Json;
 using Serilog;
 

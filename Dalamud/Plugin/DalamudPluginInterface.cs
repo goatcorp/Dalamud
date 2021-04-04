@@ -7,13 +7,13 @@ using System.Reflection;
 using Dalamud.Configuration;
 using Dalamud.Data;
 using Dalamud.Game;
-using Dalamud.Game.Chat.SeStringHandling;
-using Dalamud.Game.Chat.SeStringHandling.Payloads;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.Command;
 using Dalamud.Game.Internal;
+using Dalamud.Game.Text.Sanitizer;
+using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface;
-using Dalamud.Plugin.Sanitizer;
 
 namespace Dalamud.Plugin
 {
@@ -49,7 +49,7 @@ namespace Dalamud.Plugin
             this.pluginName = pluginName;
             this.configs = configs;
 
-            this.Sanitizer = new Sanitizer.Sanitizer(this.Data.Language);
+            this.Sanitizer = new Sanitizer(this.Data.Language);
             this.UiLanguage = this.dalamud.Configuration.LanguageOverride;
             dalamud.LocalizationManager.OnLocalizationChanged += this.OnLocalizationChanged;
         }

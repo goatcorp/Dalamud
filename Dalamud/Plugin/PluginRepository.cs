@@ -10,7 +10,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using CheapLoc;
-using Dalamud.Game.Chat;
+using Dalamud.Game.Text;
 using Newtonsoft.Json;
 using Serilog;
 

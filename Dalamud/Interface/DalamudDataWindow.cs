@@ -4,7 +4,7 @@ using System.Dynamic;
 using System.Linq;
 using System.Numerics;
 
-using Dalamud.Game.Chat;
+using Dalamud.Game.Text;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Actors.Types;
 using Dalamud.Game.ClientState.Actors.Types.NonPlayer;

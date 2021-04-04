@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms.VisualStyles;
 using CheapLoc;
 using Dalamud.Configuration;
-using Dalamud.Game.Chat;
+using Dalamud.Game.Text;
 using ImGuiNET;
 
 namespace Dalamud.Interface

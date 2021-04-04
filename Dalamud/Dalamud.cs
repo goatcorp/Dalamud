@@ -6,7 +6,7 @@ using System.Threading;
 using Dalamud.Configuration;
 using Dalamud.Data;
 using Dalamud.Game;
-using Dalamud.Game.Chat.SeStringHandling;
+using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.Command;
 using Dalamud.Game.Internal;
