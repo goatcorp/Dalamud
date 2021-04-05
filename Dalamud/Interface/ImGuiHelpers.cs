@@ -1,6 +1,5 @@
 using System.Numerics;
 using ImGuiNET;
-using Serilog;
 
 namespace Dalamud.Interface
 {
@@ -37,6 +36,10 @@ namespace Dalamud.Interface
         /// <param name="spacing">The spacing to use.</param>
         public static void ScaledRelativeSameLine(float offset, float spacing = -1.0f) =>
             ImGui.SameLine(ImGui.GetCursorPosX() + (offset * GlobalScale));
+
+        public static void SetNextWindowPosRelativeMainViewport(
+            Vector2 position, ImGuiCond condition = ImGuiCond.None, Vector2 pivot = default)
+            => ImGui.SetNextWindowPos(position + MainViewport.Pos, condition, pivot);
 
         /// <summary>
         /// Get data needed for each new frame.

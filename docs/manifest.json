@@ -12,7 +12,7 @@
           "hash": "g6qdwVgHIWulxe63U0Y6pw=="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -21,7 +21,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.ClientLanguage.html",
-          "hash": "KTbMpwITm4R5l8kmZLxTCw=="
+          "hash": "9typhRAbaR8uaIZG2DwTAQ=="
         }
       },
       "is_incremental": false,
@@ -69,7 +69,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Dalamud.html",
-          "hash": "ufjysKHva/PwHbkExgD6Bg=="
+          "hash": "Kw4RcLqOwO+jFq6zhhfnUg=="
         }
       },
       "is_incremental": false,
@@ -81,7 +81,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.DalamudStartInfo.html",
-          "hash": "/ZibweIOoIdUFNIdXJs6UA=="
+          "hash": "d1m01X+fEZGKc1ssD+9teg=="
         }
       },
       "is_incremental": false,
@@ -93,7 +93,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Data.DataManager.html",
-          "hash": "ProI/FO4tq9XAb/u4s90Gg=="
+          "hash": "qdTdxl4F20+hL1Ns2IoM3A=="
         }
       },
       "is_incremental": false,
@@ -129,7 +129,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Data.TransientSheet.Completion.html",
-          "hash": "POYDah+yi94vw31cSnHMoQ=="
+          "hash": "S8qRVdBoN1V22qtFCCbmYg=="
         }
       },
       "is_incremental": false,
@@ -141,7 +141,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Data.TransientSheet.PetMirage.html",
-          "hash": "2J/DGKuV/ZnAz2mky2JPRA=="
+          "hash": "lQs8m9P47Um/LvvPlQ8spg=="
         }
       },
       "is_incremental": false,
@@ -177,391 +177,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.EntryPoint.html",
-          "hash": "cg/eDIWu8wWS98JMXI5Q7A=="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Dalamud.Game.Chat.EnumExtensions.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Dalamud.Game.Chat.EnumExtensions.html",
-          "hash": "QCqBLb0wuJa8XafACaXrlQ=="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Dalamud.Game.Chat.SeIconChar.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Dalamud.Game.Chat.SeIconChar.html",
-          "hash": "mF79POZ+wth2gbKQ2w3E/Q=="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Dalamud.Game.Chat.SeStringHandling.BitmapFontIcon.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.BitmapFontIcon.html",
-          "hash": "F37tbP0YizzxgEfbXCDXNg=="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Dalamud.Game.Chat.SeStringHandling.ITextProvider.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.ITextProvider.html",
-          "hash": "VvskyBM47+aXUGy4i2jAJA=="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payload.EmbeddedInfoType.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payload.EmbeddedInfoType.html",
-          "hash": "d7v5aezv9cdvT2ByTXh4oA=="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payload.IntegerType.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payload.IntegerType.html",
-          "hash": "pXyDNdLfcdncnSbFHZbqlg=="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payload.SeStringChunkType.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payload.SeStringChunkType.html",
-          "hash": "xIiVC3wYE0BVnVD7JYW8WA=="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payload.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payload.html",
-          "hash": "99K7tRWfO+COCtqlY2H0SA=="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Dalamud.Game.Chat.SeStringHandling.PayloadType.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.PayloadType.html",
-          "hash": "2ylAWItd7zi20shE9lRIhA=="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payloads.AutoTranslatePayload.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payloads.AutoTranslatePayload.html",
-          "hash": "GajKcai1AHMRiYMtaJtyQg=="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payloads.DalamudLinkPayload.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payloads.DalamudLinkPayload.html",
-          "hash": "ZZjbnnISkVd+d4pt66C9ug=="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payloads.EmphasisItalicPayload.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payloads.EmphasisItalicPayload.html",
-          "hash": "kz+Ra4O6NuQh3w8tNyveLw=="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payloads.IconPayload.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payloads.IconPayload.html",
-          "hash": "tEbG3Djk4S8Ws9HJzaXuhQ=="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payloads.ItemPayload.html",
-          "hash": "gZeIz6dA+/iC9lJ8fW/KXA=="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payloads.MapLinkPayload.html",
-          "hash": "35/mufJq8Gz9EXF58KCt0w=="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payloads.PlayerPayload.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payloads.PlayerPayload.html",
-          "hash": "G1b1NK4XNv6CRZD+3xAgCg=="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payloads.QuestPayload.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payloads.QuestPayload.html",
-          "hash": "s5gsgfhD+9iEaDgF9gBVnw=="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payloads.RawPayload.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payloads.RawPayload.html",
-          "hash": "gAVUTvfSddLz618dSW9qBg=="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payloads.SeHyphenPayload.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payloads.SeHyphenPayload.html",
-          "hash": "ZSb8JXoZ0fSTHCm1eOPxZw=="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payloads.StatusPayload.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payloads.StatusPayload.html",
-          "hash": "D3/Q0/wM6nnM5E5x1lxgwQ=="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payloads.TextPayload.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payloads.TextPayload.html",
-          "hash": "n2RR8Ap7Z1alSLQl4girWQ=="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payloads.UIForegroundPayload.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payloads.UIForegroundPayload.html",
-          "hash": "xJemBCwUdtJPU1IrfNXnIQ=="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payloads.UIGlowPayload.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payloads.UIGlowPayload.html",
-          "hash": "XU4oVKKlt2EpWzIsB7ljVA=="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payloads.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.Payloads.html",
-          "hash": "YCmDcfDJAectPpHdEZaSCw=="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Dalamud.Game.Chat.SeStringHandling.SeString.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.SeString.html",
-          "hash": "6O9tAgBwmsgznW17+rFiIg=="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Dalamud.Game.Chat.SeStringHandling.SeStringManager.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.SeStringManager.html",
-          "hash": "O5R4wWBRJ4cv3Btuib9iSg=="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Dalamud.Game.Chat.SeStringHandling.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Dalamud.Game.Chat.SeStringHandling.html",
-          "hash": "5RoXqqSIkl5lifOPqJafFw=="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Dalamud.Game.Chat.XivChatEntry.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Dalamud.Game.Chat.XivChatEntry.html",
-          "hash": "sLIYIL5yyEGb7mDdq6KUZA=="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Dalamud.Game.Chat.XivChatType.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Dalamud.Game.Chat.XivChatType.html",
-          "hash": "cK/Z8sM/oxm1PKFo4rGqNQ=="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Dalamud.Game.Chat.XivChatTypeExtensions.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Dalamud.Game.Chat.XivChatTypeExtensions.html",
-          "hash": "Mluz529eFyJb/PA9R4u+Fw=="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Dalamud.Game.Chat.XivChatTypeInfoAttribute.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Dalamud.Game.Chat.XivChatTypeInfoAttribute.html",
-          "hash": "e2j8V9aI81iQPAy4tD66SQ=="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Dalamud.Game.Chat.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Dalamud.Game.Chat.html",
-          "hash": "WKSXMKk1SxENjdiahnxfxQ=="
+          "hash": "2Atf44RBZQVQrzDJHSaneg=="
         }
       },
       "is_incremental": false,
@@ -597,7 +213,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.ClientState.Actors.CustomizeIndex.html",
-          "hash": "tleeS+EmAKHWRIhiYbFxaA=="
+          "hash": "mMMWK29IyCtwaJPDomBD+w=="
         }
       },
       "is_incremental": false,
@@ -609,7 +225,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.ClientState.Actors.ObjectKind.html",
-          "hash": "q04LutCRvprGq7wZMTeJfw=="
+          "hash": "+lGu+T4c9ujiELM1qt+92Q=="
         }
       },
       "is_incremental": false,
@@ -741,7 +357,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.ClientState.Actors.Types.NonPlayer.BattleNpcSubKind.html",
-          "hash": "fd09xTPQ9qDp/M9vmYzwNQ=="
+          "hash": "ZDUeiHyFoaCih0jUPlufMw=="
         }
       },
       "is_incremental": false,
@@ -837,7 +453,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.ClientState.ClientState.html",
-          "hash": "TUCCijDtBHWlklFW4jF+cg=="
+          "hash": "LPvUSpJdX1wGXNriIpjyuw=="
         }
       },
       "is_incremental": false,
@@ -861,7 +477,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.ClientState.ConditionFlag.html",
-          "hash": "8HK3Poas5klPgRCVP96z+w=="
+          "hash": "Xm4FKgnGGONdy9qoYj8G4A=="
         }
       },
       "is_incremental": false,
@@ -921,7 +537,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.ClientState.Structs.ActorOffsets.html",
-          "hash": "gEFD0xUDy3Ddxf3wseqauA=="
+          "hash": "TEEBY6O52+CKDl7TMIb4gA=="
         }
       },
       "is_incremental": false,
@@ -957,7 +573,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.ClientState.Structs.JobGauge.BOTDState.html",
-          "hash": "JpYC6dSws9qrrwVW8zzqpg=="
+          "hash": "IH5cpbSUivjw0JJNK0gqJw=="
         }
       },
       "is_incremental": false,
@@ -981,7 +597,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.ClientState.Structs.JobGauge.CardType.html",
-          "hash": "nV3CeZGM8mE6TkrSJjGcQg=="
+          "hash": "jAl2QIQ1bHu35x/t/PU7WA=="
         }
       },
       "is_incremental": false,
@@ -993,7 +609,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.ClientState.Structs.JobGauge.CurrentSong.html",
-          "hash": "OidCJYRM4PGh1t/ZyVk5WA=="
+          "hash": "m8/2S7kg3AvWPNjfS9/LGw=="
         }
       },
       "is_incremental": false,
@@ -1041,7 +657,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.ClientState.Structs.JobGauge.DismissedFairy.html",
-          "hash": "fgke3bsgC7GLZSWBT92pRA=="
+          "hash": "siguqFhijEiAhXb4d7w6bg=="
         }
       },
       "is_incremental": false,
@@ -1089,7 +705,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.ClientState.Structs.JobGauge.Mudras.html",
-          "hash": "hVx/FEMhHvD+EZXYDMgV5g=="
+          "hash": "RhdhpCpgzf9jnYVP/tetoA=="
         }
       },
       "is_incremental": false,
@@ -1125,7 +741,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.ClientState.Structs.JobGauge.PetGlam.html",
-          "hash": "zf88+Kz/M1MUFvXkwI0Jcg=="
+          "hash": "O/rwhhfoslOIidKQmJEB6w=="
         }
       },
       "is_incremental": false,
@@ -1185,7 +801,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.ClientState.Structs.JobGauge.SealType.html",
-          "hash": "Z7JxxUSwK+t9bohCkWK0Uw=="
+          "hash": "g9j19hTCvY1bixkQX1STJw=="
         }
       },
       "is_incremental": false,
@@ -1197,7 +813,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.ClientState.Structs.JobGauge.Sen.html",
-          "hash": "VJdSYXneTa0/caEd9QswmQ=="
+          "hash": "NwQ0W8fkrtDJNzHpwotk1A=="
         }
       },
       "is_incremental": false,
@@ -1209,7 +825,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.ClientState.Structs.JobGauge.SummonPet.html",
-          "hash": "VGcE8F8kGzPoWHkxU3aJhg=="
+          "hash": "qNtgfeLV3gBMfZssz+hqhw=="
         }
       },
       "is_incremental": false,
@@ -1485,7 +1101,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Internal.Gui.ChatGui.OnCheckMessageHandledDelegate.html",
-          "hash": "tiSMbYC+gjoUf94ko+fjxg=="
+          "hash": "4Jis2rzU8MqNSSlX/OlWtQ=="
         }
       },
       "is_incremental": false,
@@ -1497,7 +1113,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Internal.Gui.ChatGui.OnMessageDelegate.html",
-          "hash": "Q9U8pAQPiO/Dy9v+uBLDww=="
+          "hash": "9n19HCDr2wdaaFNSAU3HLQ=="
         }
       },
       "is_incremental": false,
@@ -1509,7 +1125,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Internal.Gui.ChatGui.OnMessageRawDelegate.html",
-          "hash": "K92gN0ClmB17lA7gxGp3GA=="
+          "hash": "4NWQin/SJHdiki2j8ndPBQ=="
         }
       },
       "is_incremental": false,
@@ -1521,7 +1137,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Internal.Gui.ChatGui.html",
-          "hash": "cua7aCEpc1ydInXkG2JtrQ=="
+          "hash": "geghH5beYEmOPi1A50SVzQ=="
         }
       },
       "is_incremental": false,
@@ -1533,7 +1149,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Internal.Gui.GameGui.GetBaseUIObjectDelegate.html",
-          "hash": "bG/TVNrppemSxdkNpYXo5Q=="
+          "hash": "9wqn24aHei8NoVpNZ8XMrw=="
         }
       },
       "is_incremental": false,
@@ -1545,7 +1161,67 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Internal.Gui.GameGui.html",
-          "hash": "vHSrYw9vuLgqbfUuDp3Img=="
+          "hash": "aF0Lhr2OuAP9QCf2WsvReQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Internal.Gui.HoverActionKind.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Internal.Gui.HoverActionKind.html",
+          "hash": "GhNeDQitnsxdTL9UaX5frw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Internal.Gui.HoveredAction.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Internal.Gui.HoveredAction.html",
+          "hash": "ZRTcHLQg2N+wNAYhILJbSQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Internal.Gui.PartyFinderGui.PartyFinderListingEventDelegate.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Internal.Gui.PartyFinderGui.PartyFinderListingEventDelegate.html",
+          "hash": "Hpa3a26B5UdwSjyr8Fad5w=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Internal.Gui.PartyFinderGui.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Internal.Gui.PartyFinderGui.html",
+          "hash": "1rolWnJNp4l/y2f0u7hVsg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Internal.Gui.PartyFinderListingEventArgs.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Internal.Gui.PartyFinderListingEventArgs.html",
+          "hash": "XpZLUPTKyQx+99pwNagbRA=="
         }
       },
       "is_incremental": false,
@@ -1589,11 +1265,143 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Internal.Gui.Structs.Category.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Internal.Gui.Structs.Category.html",
+          "hash": "Ugt2UKliKqSuliFJnUJZ5g=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Internal.Gui.Structs.ConditionFlags.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Internal.Gui.Structs.ConditionFlags.html",
+          "hash": "IiVCRkPKPBHuvV/AkdEVFQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Internal.Gui.Structs.DutyFinderSettingsFlags.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Internal.Gui.Structs.DutyFinderSettingsFlags.html",
+          "hash": "EnVaM5ZuxGNZDnuUQjC8CQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Internal.Gui.Structs.DutyType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Internal.Gui.Structs.DutyType.html",
+          "hash": "wZYRo8iBmh06hl9B5vl0pQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Internal.Gui.Structs.JobFlags.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Internal.Gui.Structs.JobFlags.html",
+          "hash": "aPEV4ZfPjhmeoJ8oGJzWbA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Internal.Gui.Structs.JobFlagsExt.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Internal.Gui.Structs.JobFlagsExt.html",
+          "hash": "imyik/inMheTau9IAReR0w=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Internal.Gui.Structs.LootRuleFlags.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Internal.Gui.Structs.LootRuleFlags.html",
+          "hash": "R8lFzgclIc9pDu0GSC9I8A=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Internal.Gui.Structs.ObjectiveFlags.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Internal.Gui.Structs.ObjectiveFlags.html",
+          "hash": "NX4Qm4DZoMg5wKlqcc43sA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Internal.Gui.Structs.PartyFinderListing.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Internal.Gui.Structs.PartyFinderListing.html",
+          "hash": "vqnpVM97aVPYB+UgQs0tLw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Internal.Gui.Structs.PartyFinderSlot.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Internal.Gui.Structs.PartyFinderSlot.html",
+          "hash": "6eN9QA/pg6Wg7B4LSm5iaQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Internal.Gui.Structs.SearchAreaFlags.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Internal.Gui.Structs.SearchAreaFlags.html",
+          "hash": "OcrTLKX3zQ2zUMttNZh5tw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/Dalamud.Game.Internal.Gui.Structs.yml",
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Internal.Gui.Structs.html",
-          "hash": "pkTOquyQXQtjAMLCJQ6a+g=="
+          "hash": "9qkpWULs5AOu6wOFIKiJEw=="
         }
       },
       "is_incremental": false,
@@ -1629,7 +1437,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Internal.Gui.html",
-          "hash": "XSHq1++9Q0RQYWZM/NPnZQ=="
+          "hash": "eUTnmasoeS1+A6mHJoq0Yg=="
         }
       },
       "is_incremental": false,
@@ -1713,7 +1521,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Internal.Network.NetworkMessageDirection.html",
-          "hash": "hc0XoMbcVKKv4WEvczZeSw=="
+          "hash": "v5TuTHGHfR3E/UNwg/vpMw=="
         }
       },
       "is_incremental": false,
@@ -1865,11 +1673,479 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Text.EnumExtensions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Text.EnumExtensions.html",
+          "hash": "UD2q7lgcitU0JBTJkjONXA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Text.Sanitizer.ISanitizer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Text.Sanitizer.ISanitizer.html",
+          "hash": "imduOj+rjybERUtwnhsd2A=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Text.Sanitizer.Sanitizer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Text.Sanitizer.Sanitizer.html",
+          "hash": "EMi4QQ4V+C271VLGYEd7Iw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Text.Sanitizer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Text.Sanitizer.html",
+          "hash": "PdtDNszK5CRB+AQ/Z1taCw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Text.SeIconChar.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Text.SeIconChar.html",
+          "hash": "Vy6Sj3aLw4mM5gmxuy5nLA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Text.SeStringHandling.BitmapFontIcon.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Text.SeStringHandling.BitmapFontIcon.html",
+          "hash": "FTd4e+Z3z5S9q5uVrV1LAQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Text.SeStringHandling.ITextProvider.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Text.SeStringHandling.ITextProvider.html",
+          "hash": "9uZ7zwh2Il6VveXMbVGdQA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Text.SeStringHandling.Payload.EmbeddedInfoType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Text.SeStringHandling.Payload.EmbeddedInfoType.html",
+          "hash": "PRVzvlX5URb3z/fitNMVtg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Text.SeStringHandling.Payload.IntegerType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Text.SeStringHandling.Payload.IntegerType.html",
+          "hash": "KbzBTjDFt/6rvZIY+u+pGg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Text.SeStringHandling.Payload.SeStringChunkType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Text.SeStringHandling.Payload.SeStringChunkType.html",
+          "hash": "EU7PGGd20Zkgf+n2AlZNqQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Text.SeStringHandling.Payload.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Text.SeStringHandling.Payload.html",
+          "hash": "X9+kKshqlJFxp4GLa62wuQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Text.SeStringHandling.PayloadType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Text.SeStringHandling.PayloadType.html",
+          "hash": "B6dtbVwfMcj2FDKvrQEwqw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Text.SeStringHandling.Payloads.AutoTranslatePayload.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Text.SeStringHandling.Payloads.AutoTranslatePayload.html",
+          "hash": "eE8+jC0yQ5VP+lnkAh1Ang=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Text.SeStringHandling.Payloads.DalamudLinkPayload.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Text.SeStringHandling.Payloads.DalamudLinkPayload.html",
+          "hash": "vSCwkWX1CzZetgzEW2cNjg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Text.SeStringHandling.Payloads.EmphasisItalicPayload.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Text.SeStringHandling.Payloads.EmphasisItalicPayload.html",
+          "hash": "eX6h8mwZZ2zYMdarixD9eQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Text.SeStringHandling.Payloads.IconPayload.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Text.SeStringHandling.Payloads.IconPayload.html",
+          "hash": "YHoYyFBxs2RLB7RftC0vCg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Text.SeStringHandling.Payloads.ItemPayload.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Text.SeStringHandling.Payloads.ItemPayload.html",
+          "hash": "i5XeA3az81cSeXUsdRB7cg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.html",
+          "hash": "7Ag8UNNLq3yUh02vcItahg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Text.SeStringHandling.Payloads.PlayerPayload.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Text.SeStringHandling.Payloads.PlayerPayload.html",
+          "hash": "o0F/19a7jmpL4POdovG61w=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Text.SeStringHandling.Payloads.QuestPayload.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Text.SeStringHandling.Payloads.QuestPayload.html",
+          "hash": "Hz7hH1PvtRUri7Hm2eovew=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Text.SeStringHandling.Payloads.RawPayload.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Text.SeStringHandling.Payloads.RawPayload.html",
+          "hash": "U8NUmwZiFoUSkDzCp1wt/A=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Text.SeStringHandling.Payloads.SeHyphenPayload.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Text.SeStringHandling.Payloads.SeHyphenPayload.html",
+          "hash": "M+QEqRfzNYKJIYTyi8Ogjg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Text.SeStringHandling.Payloads.StatusPayload.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Text.SeStringHandling.Payloads.StatusPayload.html",
+          "hash": "wlyP812no731sAC6vRqTGA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Text.SeStringHandling.Payloads.TextPayload.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Text.SeStringHandling.Payloads.TextPayload.html",
+          "hash": "xxNQ4+c2GYAfCYLaXCGRaQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Text.SeStringHandling.Payloads.UIForegroundPayload.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Text.SeStringHandling.Payloads.UIForegroundPayload.html",
+          "hash": "dHCfn9EEFs05R/yA9Kz9uA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Text.SeStringHandling.Payloads.UIGlowPayload.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Text.SeStringHandling.Payloads.UIGlowPayload.html",
+          "hash": "79w8Eb5Ri4O+FscRni8apA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Text.SeStringHandling.Payloads.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Text.SeStringHandling.Payloads.html",
+          "hash": "a3mIlbhxqHq4uTlUeo9JCg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Text.SeStringHandling.SeString.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Text.SeStringHandling.SeString.html",
+          "hash": "iztywWvNKM5p9Yk6ue4X1Q=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Text.SeStringHandling.SeStringManager.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Text.SeStringHandling.SeStringManager.html",
+          "hash": "lxm7C4AjLOhcrd66SKg0yQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Text.SeStringHandling.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Text.SeStringHandling.html",
+          "hash": "QU6gWYy4HbQ0R3p37vSScA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Text.XivChatEntry.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Text.XivChatEntry.html",
+          "hash": "Zch7TfUOmvI6OCEneCI+aw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Text.XivChatType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Text.XivChatType.html",
+          "hash": "m/dr6Hs62+whi9gdSdnTDw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Text.XivChatTypeExtensions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Text.XivChatTypeExtensions.html",
+          "hash": "I86aiurRubZXfIDWFXEjVQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Text.XivChatTypeInfoAttribute.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Text.XivChatTypeInfoAttribute.html",
+          "hash": "kxvBafX34VBzDxdxw1ySJw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.Text.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.Text.html",
+          "hash": "nUlxz8+BiyQZBzrMB/KQow=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/Dalamud.Game.yml",
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.html",
           "hash": "It81mk7sYx74g2HA+tM7VQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Hooking.Hook-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Hooking.Hook-1.html",
+          "hash": "4vipeDBFJaL5EsJ3e+12MQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Hooking.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Hooking.html",
+          "hash": "+7YxwFe3xaQNv2RPDN+U9g=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Interface.Components.IComponent.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Interface.Components.IComponent.html",
+          "hash": "aYlj5v07IkPmnqXo9qao2w=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Interface.Components.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Interface.Components.html",
+          "hash": "Q5GMIlsMbQjQ3Xk+WIIVng=="
         }
       },
       "is_incremental": false,
@@ -1893,7 +2169,19 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Interface.FontAwesomeIcon.html",
-          "hash": "rdSseznerJzRhfWGuWY+Cg=="
+          "hash": "8GSbuZeXKnyQn6DFci830Q=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Interface.ImGuiHelpers.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Interface.ImGuiHelpers.html",
+          "hash": "gHKowwntVIWAxMxhY2ylyw=="
         }
       },
       "is_incremental": false,
@@ -1917,7 +2205,43 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Interface.UiBuilder.html",
-          "hash": "pQFiHDkKMZkLJMhN3daSlg=="
+          "hash": "Y+BubOZPfd9RxMyphHBKMQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Interface.Windowing.Window.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Interface.Windowing.Window.html",
+          "hash": "ozL7MSp0YgaGs/HEGr+C+A=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Interface.Windowing.WindowSystem.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Interface.Windowing.WindowSystem.html",
+          "hash": "veGduVBGqe311Bo9yaNoyg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Interface.Windowing.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Interface.Windowing.html",
+          "hash": "ikP+NA4tv9vkBtXIlGOiMQ=="
         }
       },
       "is_incremental": false,
@@ -1929,7 +2253,43 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Interface.html",
-          "hash": "BaZL3tU/CMceaW8KNUDseQ=="
+          "hash": "3c4KmQ1vteuvGRls9YNkag=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Localization.LocalizationChangedDelegate.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Localization.LocalizationChangedDelegate.html",
+          "hash": "hKnbim4VXWEaCR9VJeA0aA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Localization.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Localization.html",
+          "hash": "32K+lnJoslRHxVEdbIp/qw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Plugin.DalamudPluginInterface.LanguageChangedDelegate.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Plugin.DalamudPluginInterface.LanguageChangedDelegate.html",
+          "hash": "xVdHF+/4bl0BmJaR/REQxA=="
         }
       },
       "is_incremental": false,
@@ -1941,7 +2301,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Plugin.DalamudPluginInterface.html",
-          "hash": "X/tEyJXT4fZAm5fLvxjm0w=="
+          "hash": "Mq8eltRmeF4MN8MvZ577Yw=="
         }
       },
       "is_incremental": false,
@@ -1953,7 +2313,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Plugin.IDalamudPlugin.html",
-          "hash": "NB+ofE3fvwQHofR8abbqDQ=="
+          "hash": "MRgTJwdkCHWo6JgFdIZTVA=="
         }
       },
       "is_incremental": false,
@@ -1965,7 +2325,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Plugin.PluginDefinition.html",
-          "hash": "lBHTdpo+TQQStXeNdrsBgQ=="
+          "hash": "DSPwyc+zuZ8+3RKRzGkrMg=="
         }
       },
       "is_incremental": false,
@@ -1977,7 +2337,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Plugin.PluginLoadReason.html",
-          "hash": "klxVNAkyNq5c3AjoN8QG5w=="
+          "hash": "o6RGoVqp0644KE6W/2JilQ=="
         }
       },
       "is_incremental": false,
@@ -1989,7 +2349,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Plugin.PluginLog.html",
-          "hash": "MsoMpQ6OifoIpou944MGww=="
+          "hash": "oGQie7qHG9KQVXXaMqYjUQ=="
         }
       },
       "is_incremental": false,
@@ -2001,7 +2361,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Plugin.html",
-          "hash": "PN2g0sujiOs75SXhVxQ8zg=="
+          "hash": "8yjvhVXcfEYbmQyYGKrtdQ=="
         }
       },
       "is_incremental": false,
@@ -2013,7 +2373,67 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.SafeMemory.html",
-          "hash": "OrDMSU96QKsuNRSJWiwhaA=="
+          "hash": "BHVoeu9a5LrPNYk3N3CciQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Test.Game.Text.Sanitizer.SanitizerTests.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Test.Game.Text.Sanitizer.SanitizerTests.html",
+          "hash": "+H004EXaipmUfBkPpH9QjA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Test.Game.Text.Sanitizer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Test.Game.Text.Sanitizer.html",
+          "hash": "qawwwVADO/MIUHbc9p+pjA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Test.LocalizationTests.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Test.LocalizationTests.html",
+          "hash": "I9aU2UCgR0k5uwZx0yfOcA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Test.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Test.html",
+          "hash": "RzN8n41zoJClIBnuXYdC2w=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Util.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Util.html",
+          "hash": "GUziyEpTRIDRtInZnN4fKA=="
         }
       },
       "is_incremental": false,
@@ -2025,7 +2445,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.html",
-          "hash": "idDcY/fZfCAG/DJ4rB8PEQ=="
+          "hash": "Ybg3IwXo7M+J1fswsJadlQ=="
         }
       },
       "is_incremental": false,
@@ -2037,7 +2457,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Client.Game.Character.BattleChara.html",
-          "hash": "XgLScKNiS786k0mZAuJv1g=="
+          "hash": "fL3o+YdweHv1QakmI6fHSw=="
         }
       },
       "is_incremental": false,
@@ -2049,7 +2469,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Client.Game.Character.Character.html",
-          "hash": "kXK9ahxZNKJMOWhnT7H0tA=="
+          "hash": "fY9WIEXIk1oqFdSw0y9jow=="
         }
       },
       "is_incremental": false,
@@ -2061,7 +2481,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Client.Game.Character.Companion.html",
-          "hash": "eJjG4gKp9WMQFObvkocdcw=="
+          "hash": "SainjDkQcAKWH6RHHIPwFQ=="
         }
       },
       "is_incremental": false,
@@ -2085,7 +2505,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Client.Game.Object.GameObject.html",
-          "hash": "BeFs1qCNJDteUCm4efFE6g=="
+          "hash": "YJPKvYSlZdEASRcfB+HdXQ=="
         }
       },
       "is_incremental": false,
@@ -2109,7 +2529,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Client.Graphics.Render.Notifier.html",
-          "hash": "+AU7H8jd4tzPzw38RtBlTg=="
+          "hash": "A23Uoa2LQJQSCB7ceuDLag=="
         }
       },
       "is_incremental": false,
@@ -2121,7 +2541,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Client.Graphics.Render.OffscreenRenderingManager.html",
-          "hash": "rtyG5p4Y+SCffvHlqax/+Q=="
+          "hash": "zGnRRtWTAv/ocMZmDP8aYA=="
         }
       },
       "is_incremental": false,
@@ -2133,7 +2553,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Client.Graphics.Render.Texture.html",
-          "hash": "TIHLVM2QGKnM6n/+qECcCA=="
+          "hash": "tg1pJBsQNb29CaV5TS3xvA=="
         }
       },
       "is_incremental": false,
@@ -2145,7 +2565,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Client.Graphics.Render.TextureFormat.html",
-          "hash": "SJ8LAkZ8357PTyuXmEQ5PQ=="
+          "hash": "3jcFGgiDBR2Qh4YdRPVWvg=="
         }
       },
       "is_incremental": false,
@@ -2169,7 +2589,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Client.Graphics.Scene.CharacterBase.html",
-          "hash": "jCdiGh8RuQWcX/Chxw1rZQ=="
+          "hash": "juUcn56idH20w9LHvkhB5Q=="
         }
       },
       "is_incremental": false,
@@ -2181,7 +2601,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Client.Graphics.Scene.DrawObject.html",
-          "hash": "jc42/+MIH5WQAsKleFxNcA=="
+          "hash": "v1/sDyWrs+VyNqWZFzz/BQ=="
         }
       },
       "is_incremental": false,
@@ -2193,7 +2613,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Client.Graphics.Scene.Human.html",
-          "hash": "2hYP2Rua6lNvt0OnvAPFEQ=="
+          "hash": "H8i8Sa39SP+74BYHsmwhGQ=="
         }
       },
       "is_incremental": false,
@@ -2205,7 +2625,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Client.Graphics.Scene.Object.html",
-          "hash": "yDPn8JbBsW3iyh/ALXDiRQ=="
+          "hash": "9lYQHjrDQJC9t0JYvSF63Q=="
         }
       },
       "is_incremental": false,
@@ -2229,7 +2649,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Client.System.Configuration.SystemConfig.html",
-          "hash": "5or5kYhhc+8mb2IWscnJRA=="
+          "hash": "y2t8W8U+hA1OgsXp3T8GMg=="
         }
       },
       "is_incremental": false,
@@ -2253,7 +2673,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Client.System.Framework.html",
-          "hash": "0Srv+hk4Ji7C0bXDgDvrvQ=="
+          "hash": "y8dRGjQNhHdaddHB5dz5hQ=="
         }
       },
       "is_incremental": false,
@@ -2265,7 +2685,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Client.System.Resource.Handle.ResourceHandle.html",
-          "hash": "oj3cf4h38NaGrAFKZHg/Kw=="
+          "hash": "a38Kw+9HznUKzjaIdy+6zQ=="
         }
       },
       "is_incremental": false,
@@ -2277,7 +2697,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Client.System.Resource.Handle.TextureResourceHandle.html",
-          "hash": "vO9e26U7zxmeV9z6uStJ7Q=="
+          "hash": "H4oAvGCLDintxudpKpyn4w=="
         }
       },
       "is_incremental": false,
@@ -2313,7 +2733,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Client.UI.AddonContextIconMenu.html",
-          "hash": "+REXaGPvYRrpL7hPbp7z4Q=="
+          "hash": "ZufEPF3STFLyXK1HmAJQUA=="
         }
       },
       "is_incremental": false,
@@ -2325,7 +2745,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Client.UI.AddonGathering.html",
-          "hash": "TQ0ArbRRPHPLcOmV2vngCg=="
+          "hash": "irl7RqgraB/ZaO1BynLLaw=="
         }
       },
       "is_incremental": false,
@@ -2337,7 +2757,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Client.UI.AddonGatheringMasterpiece.html",
-          "hash": "grh3gq7kPM4V1eTxwuffCg=="
+          "hash": "gmPZoXKYw2XITvfswuU62A=="
         }
       },
       "is_incremental": false,
@@ -2349,7 +2769,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Client.UI.AddonGuildLeve.html",
-          "hash": "swwMFBtTSK9OYGJimcHyRQ=="
+          "hash": "5M88GtL+F7hYjSBvy+076g=="
         }
       },
       "is_incremental": false,
@@ -2361,7 +2781,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Client.UI.AddonHudLayoutScreen.html",
-          "hash": "Y8bmm+l2LZc8AFXKPFxFZw=="
+          "hash": "coVo6SzY4bmG8R1MZ60jUQ=="
         }
       },
       "is_incremental": false,
@@ -2373,7 +2793,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Client.UI.AddonHudLayoutWindow.html",
-          "hash": "r8yecDXGP5uKosdjzAKGag=="
+          "hash": "sXxgOt/7pvdSAxv6WEPWEw=="
         }
       },
       "is_incremental": false,
@@ -2385,7 +2805,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Client.UI.AddonJournalDetail.html",
-          "hash": "pXp948KzsBBF15Ph1ZCoZg=="
+          "hash": "CEhtqifY9D9FHXw8N0RaVg=="
         }
       },
       "is_incremental": false,
@@ -2397,7 +2817,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Client.UI.AddonJournalResult.html",
-          "hash": "B5Itzgcm67y3REYF3qNueA=="
+          "hash": "HPP35YY5yBZ2vUYrqIz6gg=="
         }
       },
       "is_incremental": false,
@@ -2409,7 +2829,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Client.UI.AddonLotteryDaily.GameBoardNumbers.html",
-          "hash": "+zK8Thh4dw0s9hb5I/ALnw=="
+          "hash": "6r9YVr2acAMW0TjK2w6mZw=="
         }
       },
       "is_incremental": false,
@@ -2421,7 +2841,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Client.UI.AddonLotteryDaily.GameNumberRow.html",
-          "hash": "TI68CDP+elGHkrwkYMJqHA=="
+          "hash": "j4P+h/MFB3+OljragDMjNw=="
         }
       },
       "is_incremental": false,
@@ -2433,7 +2853,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Client.UI.AddonLotteryDaily.GameTileBoard.html",
-          "hash": "2tR5/zhL3Lt4m//CdJtVlg=="
+          "hash": "Gz8y1Cu09NVOr/5xX7vsrw=="
         }
       },
       "is_incremental": false,
@@ -2445,7 +2865,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Client.UI.AddonLotteryDaily.GameTileRow.html",
-          "hash": "3hLe50njENWSkJusLWDGGQ=="
+          "hash": "3H+LY7dz5xjKqZaO13gt3A=="
         }
       },
       "is_incremental": false,
@@ -2457,7 +2877,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Client.UI.AddonLotteryDaily.LaneTileSelector.html",
-          "hash": "rnWP7cBkAoVr1toOzNrnhg=="
+          "hash": "hVIcicLO3DEDQdPxUJmgzQ=="
         }
       },
       "is_incremental": false,
@@ -2469,7 +2889,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Client.UI.AddonLotteryDaily.html",
-          "hash": "2Y5DYgEQS7B0gk4frpuNHw=="
+          "hash": "WG+kVBsGifnNeZlMTirgyg=="
         }
       },
       "is_incremental": false,
@@ -2481,7 +2901,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Client.UI.AddonRecipeNote.html",
-          "hash": "cjAjvmi9T5j6DlJ/hQNJ9A=="
+          "hash": "6V/ruShgL9CwhRjEIuWruQ=="
         }
       },
       "is_incremental": false,
@@ -2493,7 +2913,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Client.UI.AddonRequest.html",
-          "hash": "08+zgfag6regzOEYwl9STg=="
+          "hash": "qV18vj8U/vy7k85bmapGnw=="
         }
       },
       "is_incremental": false,
@@ -2505,7 +2925,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Client.UI.AddonSelectIconString.html",
-          "hash": "hyuvuSp3MRoep8bUVpA8OA=="
+          "hash": "XR4KapizxzacOsUV1jOp+Q=="
         }
       },
       "is_incremental": false,
@@ -2517,7 +2937,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Client.UI.AddonSelectString.html",
-          "hash": "YGTDglrRUv/0DxPiNCPrKA=="
+          "hash": "FakP6n0LDd3Ew2SnkEuxhA=="
         }
       },
       "is_incremental": false,
@@ -2529,7 +2949,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Client.UI.AddonSelectYesno.html",
-          "hash": "ojrpZnIKvive3qInQlOXEw=="
+          "hash": "lY39zw2V7dJuiU/cq5OxFw=="
         }
       },
       "is_incremental": false,
@@ -2541,7 +2961,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Client.UI.AddonTalk.html",
-          "hash": "Q5pHxRfVMe6QI3AwG/HQ6Q=="
+          "hash": "6Bhcpe9HWdxI68YszWyA2w=="
         }
       },
       "is_incremental": false,
@@ -2553,7 +2973,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Client.UI.AddonWeeklyPuzzle.GameTileBoard.html",
-          "hash": "s8T5W6kVP4I4t2KtF2Vj8w=="
+          "hash": "c4+knC/ZKVrjIIy6bj9HZw=="
         }
       },
       "is_incremental": false,
@@ -2565,7 +2985,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Client.UI.AddonWeeklyPuzzle.GameTileItem.html",
-          "hash": "5w8kXHbdENi6eM96zkd1ow=="
+          "hash": "DK4DxdynctaIH1h0De4s5Q=="
         }
       },
       "is_incremental": false,
@@ -2577,7 +2997,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Client.UI.AddonWeeklyPuzzle.GameTileRow.html",
-          "hash": "97MKG/uut+AOJpXSj6KHGg=="
+          "hash": "8ThR7zsmswLsAYsukq5vSg=="
         }
       },
       "is_incremental": false,
@@ -2589,7 +3009,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Client.UI.AddonWeeklyPuzzle.RewardPanelItem.html",
-          "hash": "RPf5P5vrXkrbjD7Qszqafg=="
+          "hash": "ygnfftBdo4r86cwKJRHPXw=="
         }
       },
       "is_incremental": false,
@@ -2601,7 +3021,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Client.UI.AddonWeeklyPuzzle.html",
-          "hash": "pPFUkf0vfl61tmVCtHbwXw=="
+          "hash": "R59ZKMANJDFgiOf2ah8CGw=="
         }
       },
       "is_incremental": false,
@@ -2613,7 +3033,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Client.UI.MoveableAddonInfoStruct.html",
-          "hash": "Iz7jixZ/Qr6TamX+LC8/zQ=="
+          "hash": "x+QVcfVe+RaEIo0uoX2wGw=="
         }
       },
       "is_incremental": false,
@@ -2625,7 +3045,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Client.UI.RaptureAtkUnitManager.html",
-          "hash": "HtM0+gD5W6OhpRNwu+DJyQ=="
+          "hash": "qoiJ8c6LQVF0dl220QtMJA=="
         }
       },
       "is_incremental": false,
@@ -2649,7 +3069,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Common.Configuration.ChangeEventInterface.html",
-          "hash": "WCwsy4CXs1nA6KGQayk2HA=="
+          "hash": "Nf0nxe2m6KbfcsTw1DwKPA=="
         }
       },
       "is_incremental": false,
@@ -2661,7 +3081,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Common.Configuration.ConfigBase.html",
-          "hash": "//YzI1VtlLYtw+ede6ieIw=="
+          "hash": "J1SB5pWUd4cAdgcSG28yWw=="
         }
       },
       "is_incremental": false,
@@ -2673,7 +3093,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Common.Configuration.ConfigEntry.html",
-          "hash": "xNT1MbkhtzguoblBbAwE1Q=="
+          "hash": "CAv4lJA38lILBXHkjxOgNw=="
         }
       },
       "is_incremental": false,
@@ -2685,7 +3105,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Common.Configuration.ConfigProperties.FloatProperties.html",
-          "hash": "+tdc1y199vB4N7P3LpeGTA=="
+          "hash": "9DUoIds1dcHmRHZsOMwx4A=="
         }
       },
       "is_incremental": false,
@@ -2697,7 +3117,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Common.Configuration.ConfigProperties.StringProperties.html",
-          "hash": "IMsq5yNNBFkJexQUr9zIbA=="
+          "hash": "nTaDJVpktDEvq9fM307TmQ=="
         }
       },
       "is_incremental": false,
@@ -2709,7 +3129,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Common.Configuration.ConfigProperties.UIntProperties.html",
-          "hash": "qOkf5zh5ZluDHvC7AeZcAg=="
+          "hash": "O++m346GRd7MhSfSR/3XmQ=="
         }
       },
       "is_incremental": false,
@@ -2721,7 +3141,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Common.Configuration.ConfigProperties.html",
-          "hash": "JmHqWS0GbjR17iVOn3JhwA=="
+          "hash": "qkTsBzHQueaaq35IVpN4fQ=="
         }
       },
       "is_incremental": false,
@@ -2733,7 +3153,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Common.Configuration.ConfigType.html",
-          "hash": "ncp7YBwzSf+9WyQSQO6Dcw=="
+          "hash": "uNCWuAIND26KEbg5D4rbHg=="
         }
       },
       "is_incremental": false,
@@ -2745,7 +3165,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Common.Configuration.ConfigValue.html",
-          "hash": "E6np9Diy9mFVIa7cI8IiOg=="
+          "hash": "GKdGPaT9ZGPeTilEKdCp4Q=="
         }
       },
       "is_incremental": false,
@@ -2757,7 +3177,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Common.Configuration.SystemConfig.html",
-          "hash": "MGOueFTkOBOCXOszm/9aAw=="
+          "hash": "gz/D2Yl/YcdF6yC5OLXKSw=="
         }
       },
       "is_incremental": false,
@@ -2781,7 +3201,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.AgentHudLayout.html",
-          "hash": "dQ557K76zUlVnAQ5ugquCg=="
+          "hash": "54nNiU0uPNu88+GFHQM7Dw=="
         }
       },
       "is_incremental": false,
@@ -2793,7 +3213,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.AgentInterface.html",
-          "hash": "g6SDe8QrxxsbIR/hrFFjGA=="
+          "hash": "tp7fpR2ln5wL89GFXH2nEQ=="
         }
       },
       "is_incremental": false,
@@ -2805,7 +3225,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.AtkCollisionNode.html",
-          "hash": "kPAglTGmWe+Z+XgX7gECDA=="
+          "hash": "Hz55fXQGSNiGwLRf1ksuIQ=="
         }
       },
       "is_incremental": false,
@@ -2817,7 +3237,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.AtkComponentBase.html",
-          "hash": "XePBnvtP89DXcRlOZ1Qpiw=="
+          "hash": "6HoKXX+T9qcBxh2e5vi8Rw=="
         }
       },
       "is_incremental": false,
@@ -2829,7 +3249,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.AtkComponentButton.html",
-          "hash": "fi/2p5f6KPYq9w4ni7VtQg=="
+          "hash": "1MM0R97py6zUXoYJfOMReg=="
         }
       },
       "is_incremental": false,
@@ -2841,7 +3261,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.AtkComponentCheckBox.html",
-          "hash": "bmTaW9QmMblWCT13/SYzJQ=="
+          "hash": "DDLWJG4NlvylSC1m0LZEIA=="
         }
       },
       "is_incremental": false,
@@ -2853,7 +3273,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.AtkComponentDragDrop.html",
-          "hash": "I09z5CBaYGh58n5Hia+wMA=="
+          "hash": "0PhOK0jVIg6bUxJEb+LtQA=="
         }
       },
       "is_incremental": false,
@@ -2865,7 +3285,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.AtkComponentGaugeBar.html",
-          "hash": "f9Ik/vfk0Gpa1TlfsMjt9A=="
+          "hash": "xl6o22xWfTzvRZuq2d+nhw=="
         }
       },
       "is_incremental": false,
@@ -2877,7 +3297,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.AtkComponentGuildLeveCard.html",
-          "hash": "DgE2ski1ybdV5nKTy71xMQ=="
+          "hash": "qpchTZdfCqfRr0pW2vOVHQ=="
         }
       },
       "is_incremental": false,
@@ -2889,7 +3309,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.AtkComponentIcon.html",
-          "hash": "pt3Sgz2xfut/M6v26/lkQg=="
+          "hash": "DuWlJzqIX4r0OrV4tMkIUQ=="
         }
       },
       "is_incremental": false,
@@ -2901,7 +3321,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.AtkComponentInputBase.html",
-          "hash": "kyKmYY7CEVlkHlgFgELhDA=="
+          "hash": "yeZEEXp6sv3eCrVshOl4lg=="
         }
       },
       "is_incremental": false,
@@ -2913,7 +3333,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.AtkComponentJournalCanvas.html",
-          "hash": "xN2FnZ/ZXBdGxnegji0SBg=="
+          "hash": "HsDIGYFS+M0CsFnTD1+LVg=="
         }
       },
       "is_incremental": false,
@@ -2925,7 +3345,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.AtkComponentList.ListItem.html",
-          "hash": "P6M07tdz17+IirW135lQkQ=="
+          "hash": "nisaLWieKBGrDfMNNIHBOQ=="
         }
       },
       "is_incremental": false,
@@ -2937,7 +3357,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.AtkComponentList.html",
-          "hash": "/TEylr4Kvp3XBgW12TpFVQ=="
+          "hash": "TN8evcT3j96/IqvdDHTcSA=="
         }
       },
       "is_incremental": false,
@@ -2949,7 +3369,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.AtkComponentListItemRenderer.html",
-          "hash": "3shRlxAgTUwHMmxVg2Goig=="
+          "hash": "MNunUrkdqbnxVeSXrdKoaA=="
         }
       },
       "is_incremental": false,
@@ -2961,7 +3381,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.AtkComponentNode.html",
-          "hash": "iogkcI8I0l0KLdcj6CqNDQ=="
+          "hash": "rMgfG8ROBFMiLwdExlMu1w=="
         }
       },
       "is_incremental": false,
@@ -2973,7 +3393,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.AtkComponentRadioButton.html",
-          "hash": "4GSTnITvlePiSm5WB3ukZw=="
+          "hash": "6PTl8efq8bEv1hu5OlNy+w=="
         }
       },
       "is_incremental": false,
@@ -2985,7 +3405,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.AtkComponentScrollBar.html",
-          "hash": "nmCnnZamXS1JXKoroJJ4Tw=="
+          "hash": "yEjZfK0gy5I0hAzyeasoaw=="
         }
       },
       "is_incremental": false,
@@ -2997,7 +3417,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.AtkComponentSlider.html",
-          "hash": "OY5jFTBD8Sabjpg2R+k44Q=="
+          "hash": "pgw/mn8T4GqwdAhwure7tA=="
         }
       },
       "is_incremental": false,
@@ -3009,7 +3429,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.AtkComponentTextInput.html",
-          "hash": "F+9WBO1MdjtZXK3ijO84dA=="
+          "hash": "4Ts60Bb69CjxbH5zFmaJww=="
         }
       },
       "is_incremental": false,
@@ -3021,7 +3441,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.AtkComponentTreeList.html",
-          "hash": "p7inAPkXZDCmJPiHY+T7EQ=="
+          "hash": "AmGd4LVOjXBOO5deQ0iPEA=="
         }
       },
       "is_incremental": false,
@@ -3033,7 +3453,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.AtkComponentUnknownButton.html",
-          "hash": "s2aPYP35y8KZhI8oiovJGw=="
+          "hash": "TOunD9+2GvRsqRra8jtMEg=="
         }
       },
       "is_incremental": false,
@@ -3045,7 +3465,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.AtkComponentWindow.html",
-          "hash": "CwiqLLa/sFDuM36cUmvu7w=="
+          "hash": "mQOGhtEdxTNQptw0Q9ScVA=="
         }
       },
       "is_incremental": false,
@@ -3057,7 +3477,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.AtkCounterNode.html",
-          "hash": "Qgz0DDpZmi9AM9io8xgaXg=="
+          "hash": "6oz1ysyFveG/Aovb677qlA=="
         }
       },
       "is_incremental": false,
@@ -3069,7 +3489,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.AtkEventInterface.html",
-          "hash": "GRyZG/eLmYtD980vINRpTw=="
+          "hash": "RVNUfRpnJYyhH1VTiZGCZQ=="
         }
       },
       "is_incremental": false,
@@ -3081,7 +3501,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.AtkEventListener.html",
-          "hash": "QL3dZKivnyo67vaDjUyqDw=="
+          "hash": "FVm0GxzYYCC1cCdfef4Asw=="
         }
       },
       "is_incremental": false,
@@ -3093,7 +3513,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.AtkEventTarget.html",
-          "hash": "tJz/Dj1U3rU7nw3PEyH4oQ=="
+          "hash": "+GXcNGmp/8mRk0eJUMD1CA=="
         }
       },
       "is_incremental": false,
@@ -3105,7 +3525,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.AtkImageNode.html",
-          "hash": "M1NOAZwHtrv8xWzqU6Srpw=="
+          "hash": "oqgvXBSu8jy4SBTrnpZUHw=="
         }
       },
       "is_incremental": false,
@@ -3117,7 +3537,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.AtkNineGridNode.html",
-          "hash": "GHj5CHd1DXvMe9jF82Zidw=="
+          "hash": "GvpXe4/vjGI4do87EC+4SQ=="
         }
       },
       "is_incremental": false,
@@ -3129,7 +3549,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.AtkResNode.html",
-          "hash": "3QntBAL61mzPQbsNJA0sPA=="
+          "hash": "DJToEcttASsWe22ySI00yw=="
         }
       },
       "is_incremental": false,
@@ -3141,7 +3561,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.AtkStage.html",
-          "hash": "agu0gKpOI4BJL5qbybF2Xw=="
+          "hash": "o98uHN53DxTYoj/s7T1AaQ=="
         }
       },
       "is_incremental": false,
@@ -3153,7 +3573,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.AtkTextNode.html",
-          "hash": "bR3zZ0E+FP3aeL2z6SCDEw=="
+          "hash": "RR4Wjwdj+nUKf6P9C/1hKA=="
         }
       },
       "is_incremental": false,
@@ -3165,7 +3585,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.AtkTexture.html",
-          "hash": "4ZUcvOX/FenERCd3mhpObw=="
+          "hash": "ZfnSqfAJhuGDtOTsFJqI+g=="
         }
       },
       "is_incremental": false,
@@ -3177,7 +3597,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.AtkUnitBase.html",
-          "hash": "KGYouaQ9K1us1VhAqTW2HQ=="
+          "hash": "a9/vEdkI9NIQnKaXfZ4WlQ=="
         }
       },
       "is_incremental": false,
@@ -3189,7 +3609,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.AtkUnitList.html",
-          "hash": "oHoI3IhiJ3ZZ/4YAo17j0A=="
+          "hash": "gmx/vrJS+urQOa4NMfPkeQ=="
         }
       },
       "is_incremental": false,
@@ -3201,7 +3621,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.AtkUnitManager.html",
-          "hash": "ROlG+LZitxRGiIEgECOwpg=="
+          "hash": "92xoniueH7NyZcbWZUFnuw=="
         }
       },
       "is_incremental": false,
@@ -3213,7 +3633,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.CollisionType.html",
-          "hash": "4qCkHji+yrpzVqSFOMhOFw=="
+          "hash": "Oo2fMv0za9LjqUMqQbTZ4Q=="
         }
       },
       "is_incremental": false,
@@ -3225,7 +3645,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.ComponentType.html",
-          "hash": "zhS9yKGh50obH5/Qvk3ChQ=="
+          "hash": "YVtEpopzm5ZECqch7nF9Lg=="
         }
       },
       "is_incremental": false,
@@ -3237,7 +3657,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.IconComponentFlags.html",
-          "hash": "YEOSN0P4TIK3Lja75k8O6g=="
+          "hash": "DeKGU3E+QP3Jn5d/UyxYTA=="
         }
       },
       "is_incremental": false,
@@ -3249,7 +3669,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.ImageNodeFlags.html",
-          "hash": "+fVWmvBvCfmdIJgU3PL4Xw=="
+          "hash": "eRZ2XO9Nrruv09qiW+I2cQ=="
         }
       },
       "is_incremental": false,
@@ -3261,7 +3681,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.NodeFlags.html",
-          "hash": "Gkq5U4GKtPY51RL569GWIA=="
+          "hash": "I750kS8KITBWeqDevpVQEQ=="
         }
       },
       "is_incremental": false,
@@ -3273,7 +3693,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.NodeType.html",
-          "hash": "neVNHEc7KkPzce88b8wzdQ=="
+          "hash": "5kNfCCuCFxoB83zve6WBiw=="
         }
       },
       "is_incremental": false,
@@ -3285,7 +3705,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.TextFlags.html",
-          "hash": "xj+oyGb4GXXgSibZAUGYSA=="
+          "hash": "Xzl4+yWe95hB+KZQvn/4eA=="
         }
       },
       "is_incremental": false,
@@ -3297,7 +3717,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.TextFlags2.html",
-          "hash": "Ig76gemSHJtsIytoZrqq4w=="
+          "hash": "5nUjE701EyJ7X7FQWYVx4A=="
         }
       },
       "is_incremental": false,
@@ -3309,7 +3729,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.TextureResource.html",
-          "hash": "0Zfhy5hrOscuYqEB5jL2IQ=="
+          "hash": "zCCzpiThyPgshzewiyLmOw=="
         }
       },
       "is_incremental": false,
@@ -3321,7 +3741,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.TextureType.html",
-          "hash": "XW1gkvDddL71zaUqtSFcYg=="
+          "hash": "Ed9LYrEiQswdy7hJDWBviw=="
         }
       },
       "is_incremental": false,
@@ -3333,7 +3753,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.ULD.AlignmentType.html",
-          "hash": "txjcEvoyORwUyBBlWI9cNQ=="
+          "hash": "GrJTsuEcjtaL0bcbsjVURQ=="
         }
       },
       "is_incremental": false,
@@ -3345,7 +3765,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.ULD.TextInputFlags1.html",
-          "hash": "nY0eBFJNGxHcp5ZNCDTv+Q=="
+          "hash": "fFpfpxoqMQoeg7wnuzrMdg=="
         }
       },
       "is_incremental": false,
@@ -3357,7 +3777,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.ULD.TextInputFlags2.html",
-          "hash": "AIaLpljHc27GB/WzJiWfeg=="
+          "hash": "C0b5D188FCUX5glxZ+0e9w=="
         }
       },
       "is_incremental": false,
@@ -3369,7 +3789,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.ULD.ULDComponentDataBase.html",
-          "hash": "xrFAQY2BUSRkqLwmx5o2zw=="
+          "hash": "KkTFFtpoPMbeQJseK4Cgiw=="
         }
       },
       "is_incremental": false,
@@ -3381,7 +3801,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.ULD.ULDComponentDataButton.html",
-          "hash": "FdZp7R8+5zM7zJnQ6yn+tA=="
+          "hash": "2zY9/GUapW3KnXFQS7+Qlg=="
         }
       },
       "is_incremental": false,
@@ -3393,7 +3813,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.ULD.ULDComponentDataCheckBox.html",
-          "hash": "FhBYPrgAesJRSp0DPJxpjQ=="
+          "hash": "/trmPSu1YuGRjCCl7EnTPg=="
         }
       },
       "is_incremental": false,
@@ -3405,7 +3825,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.ULD.ULDComponentDataDragDrop.html",
-          "hash": "73QRVlwVtTtIPS9Q1pUSQA=="
+          "hash": "+cuFEYxYGp5keV2upF65vQ=="
         }
       },
       "is_incremental": false,
@@ -3417,7 +3837,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.ULD.ULDComponentDataDropDownList.html",
-          "hash": "iyB1+qCyj5cSPJN2cRMmrw=="
+          "hash": "eVT5BPros0pC2DwUorixwg=="
         }
       },
       "is_incremental": false,
@@ -3429,7 +3849,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.ULD.ULDComponentDataGaugeBar.html",
-          "hash": "WpRjjXd+eX2vvlsE1WGkrQ=="
+          "hash": "rJJM3qRvTikXWRs22Klacw=="
         }
       },
       "is_incremental": false,
@@ -3441,7 +3861,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.ULD.ULDComponentDataGuildLeveCard.html",
-          "hash": "ca4wjyQv2RKF/BtqnPvsLg=="
+          "hash": "SHTdC98u4Yyj6+/CxY+LWA=="
         }
       },
       "is_incremental": false,
@@ -3453,7 +3873,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.ULD.ULDComponentDataIcon.html",
-          "hash": "zPVNd0NC05tkmYcMZGygKQ=="
+          "hash": "sftcoZLbBOkXDbQVO+ojNQ=="
         }
       },
       "is_incremental": false,
@@ -3465,7 +3885,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.ULD.ULDComponentDataIconText.html",
-          "hash": "LqI5YbJVNdSDoAMWaf8tsA=="
+          "hash": "u3y30lsfmH8jkdO6dHoPww=="
         }
       },
       "is_incremental": false,
@@ -3477,7 +3897,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.ULD.ULDComponentDataInputBase.html",
-          "hash": "LysCFWVNi/juWBuUwVDspA=="
+          "hash": "3V/3QVorftCTDZirYl51wQ=="
         }
       },
       "is_incremental": false,
@@ -3489,7 +3909,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.ULD.ULDComponentDataJournalCanvas.html",
-          "hash": "GuuH+cd6xRrXsch9b0Oeag=="
+          "hash": "fh14vSGTzex9ZprWg9uhaQ=="
         }
       },
       "is_incremental": false,
@@ -3501,7 +3921,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.ULD.ULDComponentDataList.html",
-          "hash": "hkL6ePFrXAGfdEDb0BPEGQ=="
+          "hash": "miHgRjQhYD7L3tMS6q5zoQ=="
         }
       },
       "is_incremental": false,
@@ -3513,7 +3933,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.ULD.ULDComponentDataListItemRenderer.html",
-          "hash": "rYGKzVCCXUVyTeMLenWI+A=="
+          "hash": "XV58reIIfIKPl5ps0vA+CQ=="
         }
       },
       "is_incremental": false,
@@ -3525,7 +3945,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.ULD.ULDComponentDataMap.html",
-          "hash": "JEV9nO30yvsHlrwDJQFsvQ=="
+          "hash": "pJphagq5FwprCaPiELhoqQ=="
         }
       },
       "is_incremental": false,
@@ -3537,7 +3957,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.ULD.ULDComponentDataMultipurpose.html",
-          "hash": "9wAMThfOBWppxeifhZzjug=="
+          "hash": "18dkRP2EdBwAW0Pprw+7qg=="
         }
       },
       "is_incremental": false,
@@ -3549,7 +3969,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.ULD.ULDComponentDataNumericInput.html",
-          "hash": "jwjYmnxIUV4Ctf8c/8+MIQ=="
+          "hash": "fsF68qPmEYZyBUur/PJTzg=="
         }
       },
       "is_incremental": false,
@@ -3561,7 +3981,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.ULD.ULDComponentDataPreview.html",
-          "hash": "yJEWc6teHKLhRlqs7SUV6A=="
+          "hash": "tucIrfflRAuWLPHlrUY/sw=="
         }
       },
       "is_incremental": false,
@@ -3573,7 +3993,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.ULD.ULDComponentDataRadioButton.html",
-          "hash": "i/iRVVLgFoLPbDTsNvjBYg=="
+          "hash": "h92j7BBhK7h1YB9gN/0hiA=="
         }
       },
       "is_incremental": false,
@@ -3585,7 +4005,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.ULD.ULDComponentDataScrollBar.html",
-          "hash": "2k+FJaPvD3Cb8e86A4lzaA=="
+          "hash": "M1dI5Y/SOpAJltrsea8Dng=="
         }
       },
       "is_incremental": false,
@@ -3597,7 +4017,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.ULD.ULDComponentDataSlider.html",
-          "hash": "xk8RqMrPpVbK64jvn8tnvg=="
+          "hash": "6gQjhojpc9Y+OMcTjrNjug=="
         }
       },
       "is_incremental": false,
@@ -3609,7 +4029,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.ULD.ULDComponentDataTab.html",
-          "hash": "XhJM5uGo2V0CDHHsNNuVaw=="
+          "hash": "8PEgyoI9YMW8kbcPso1CwQ=="
         }
       },
       "is_incremental": false,
@@ -3621,7 +4041,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.ULD.ULDComponentDataTextInput.html",
-          "hash": "O8nIOMyLn+GrafmLJnY4Qg=="
+          "hash": "xVTjI3BkxKoFGVBNeLrr4Q=="
         }
       },
       "is_incremental": false,
@@ -3633,7 +4053,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.ULD.ULDComponentDataTextNineGrid.html",
-          "hash": "LCkRtvtIj4dEtUHgUFZy4w=="
+          "hash": "HfKPmYnM5SBMaJK4QlL8JA=="
         }
       },
       "is_incremental": false,
@@ -3645,7 +4065,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.ULD.ULDComponentDataTreeList.html",
-          "hash": "hb8WOxuL3TAwNjQtYj9Xdg=="
+          "hash": "oe7RqWspa98kLsgmWN4E0g=="
         }
       },
       "is_incremental": false,
@@ -3657,7 +4077,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.ULD.ULDComponentDataUnknownButton.html",
-          "hash": "9SLjVjXwVcpqoaoiCv/kew=="
+          "hash": "qOKHzw/Sh0zTdCYxDBWsAg=="
         }
       },
       "is_incremental": false,
@@ -3669,7 +4089,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.ULD.ULDComponentDataWindow.html",
-          "hash": "6tzPYCVlJz0v7uezApyXyg=="
+          "hash": "HlMf5S4osOBr7mrEmthESg=="
         }
       },
       "is_incremental": false,
@@ -3681,7 +4101,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.ULD.ULDComponentInfo.html",
-          "hash": "y77LoKGLFeOYuq1W5Hg06A=="
+          "hash": "I/15YDf6bnwx/2wdJ4RnRA=="
         }
       },
       "is_incremental": false,
@@ -3693,7 +4113,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.ULD.ULDData.html",
-          "hash": "7YSfSEAmv/bSNhO5SeCUSQ=="
+          "hash": "qTA4CyQJwylxBRx0iOTotg=="
         }
       },
       "is_incremental": false,
@@ -3705,7 +4125,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.ULD.ULDObjectInfo.html",
-          "hash": "0+OQBKYb2uObyMEw/dMrug=="
+          "hash": "CDChGzZZi0PoFyNYbuAwQA=="
         }
       },
       "is_incremental": false,
@@ -3717,7 +4137,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.ULD.ULDPart.html",
-          "hash": "l1ElHuWWWX+NNoD4AXC+QQ=="
+          "hash": "xTRF2B67TplPHhuvq5zU+Q=="
         }
       },
       "is_incremental": false,
@@ -3729,7 +4149,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.ULD.ULDPartsList.html",
-          "hash": "Qy2n5JODHK3cRAQv+KANLg=="
+          "hash": "z3ZMOdlfmgC8sWsdItJdsA=="
         }
       },
       "is_incremental": false,
@@ -3741,7 +4161,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.ULD.ULDTexture.html",
-          "hash": "hGWWo5o80Yco81hqk7HYAw=="
+          "hash": "xAtSiKoqjEXujqdycJE5/A=="
         }
       },
       "is_incremental": false,
@@ -3753,7 +4173,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Component.GUI.ULD.ULDWidgetInfo.html",
-          "hash": "Xepe4gYnqrNboNyOUOt8Vg=="
+          "hash": "PaJ6sAZ8tESNSdizoPZbow=="
         }
       },
       "is_incremental": false,
@@ -3789,7 +4209,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIVByteColor.html",
-          "hash": "LxE3PJin9gB6x2QnGqoTMQ=="
+          "hash": "TkdFnWpkRTR1k6XhmjJgTg=="
         }
       },
       "is_incremental": false,
@@ -3801,7 +4221,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIVString.html",
-          "hash": "Msz/bFGkwLu6Ru7cc7O8nA=="
+          "hash": "NZGubnnL+av0CTFWN88hQw=="
         }
       },
       "is_incremental": false,
@@ -3813,7 +4233,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Group.Buff.html",
-          "hash": "dbf8mZaTG+KCN8Pb0QXfbQ=="
+          "hash": "N8HLz5FQrZBxvMgGoNwYCw=="
         }
       },
       "is_incremental": false,
@@ -3825,7 +4245,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Group.BuffList.html",
-          "hash": "ZpO0fvLlVmYlvwqgbgGIIA=="
+          "hash": "nEMgByZvrsn15IWCxaMj4g=="
         }
       },
       "is_incremental": false,
@@ -3837,7 +4257,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Group.GroupManager.html",
-          "hash": "fko67cR9fu8TjZ+JS8TdRw=="
+          "hash": "4fP1EGf2CH/34YdnvQgHFQ=="
         }
       },
       "is_incremental": false,
@@ -3849,7 +4269,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Group.PartyMember.html",
-          "hash": "aagVdu0YI84bADzN51Q5bg=="
+          "hash": "04ikbcMROFjp+6gX/Sty6A=="
         }
       },
       "is_incremental": false,
@@ -3885,7 +4305,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImColor.html",
-          "hash": "S4aakG0P1/Bc7i4Vfdz2lA=="
+          "hash": "cMFjoNNAsfXrg0u9leicng=="
         }
       },
       "is_incremental": false,
@@ -3897,7 +4317,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImColorPtr.html",
-          "hash": "HMO4SY0xbmM/VLwWswzR3Q=="
+          "hash": "tHC+friThbOW7nItykhh/w=="
         }
       },
       "is_incremental": false,
@@ -3909,7 +4329,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImDrawChannel.html",
-          "hash": "DotWRUYzZ5P6hOYwQzKwpw=="
+          "hash": "3jemJgjVsPg2aY7tCHUGaA=="
         }
       },
       "is_incremental": false,
@@ -3921,7 +4341,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImDrawChannelPtr.html",
-          "hash": "V9TEzrX5Yi7D5wZiDQrM0A=="
+          "hash": "ocqMmtR6SAttzWAWu6mRtw=="
         }
       },
       "is_incremental": false,
@@ -3933,7 +4353,31 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImDrawCmd.html",
-          "hash": "/lXdOmfpQcnl2dQc0+iS3A=="
+          "hash": "WwAQADYGO6YjlmTnUoZFog=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImGuiNET.ImDrawCmdHeader.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImGuiNET.ImDrawCmdHeader.html",
+          "hash": "1lzYO0t/2HM2hSe1VPgccQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImGuiNET.ImDrawCmdHeaderPtr.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImGuiNET.ImDrawCmdHeaderPtr.html",
+          "hash": "5YEoKTnL18NQFI1m4Ri/GA=="
         }
       },
       "is_incremental": false,
@@ -3945,19 +4389,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImDrawCmdPtr.html",
-          "hash": "xmja2qXA85/GwNekin8vIg=="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/ImGuiNET.ImDrawCornerFlags.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/ImGuiNET.ImDrawCornerFlags.html",
-          "hash": "tWo8ksV61bz5qEsHznsG1Q=="
+          "hash": "y50rc2y/R4RPZDiQrEEaWw=="
         }
       },
       "is_incremental": false,
@@ -3969,7 +4401,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImDrawData.html",
-          "hash": "IGQx9BLksRcDyH5VXX3Peg=="
+          "hash": "azjH9FNA4LrBtyEo/DdetA=="
         }
       },
       "is_incremental": false,
@@ -3981,7 +4413,19 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImDrawDataPtr.html",
-          "hash": "Z8GUanOHkk9EC8WKva5+qg=="
+          "hash": "mgJaweKPcu5wBT7kZqV73Q=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImGuiNET.ImDrawFlags.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImGuiNET.ImDrawFlags.html",
+          "hash": "76/VYkOs4i3hTAzJo7Zn2A=="
         }
       },
       "is_incremental": false,
@@ -3993,7 +4437,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImDrawList.html",
-          "hash": "jUoYZl3/rE9vUI4E9Y8w/w=="
+          "hash": "9XrJjbA6YfLqrHV1hOClsQ=="
         }
       },
       "is_incremental": false,
@@ -4005,7 +4449,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImDrawListFlags.html",
-          "hash": "whC2yAK8zonXYYE4fTrSGQ=="
+          "hash": "wRNC4SvWcSUex6gm4Po0+Q=="
         }
       },
       "is_incremental": false,
@@ -4017,7 +4461,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImDrawListPtr.html",
-          "hash": "4L8x2TJEQY/Ep9VsE+2+fA=="
+          "hash": "bJyvhrvdgxavxraESmEeDw=="
         }
       },
       "is_incremental": false,
@@ -4029,7 +4473,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImDrawListSplitter.html",
-          "hash": "RPsHP/kr0/tRxT4pQhEXdw=="
+          "hash": "THwl5v9Sj7zTYswQ3IxHPA=="
         }
       },
       "is_incremental": false,
@@ -4041,7 +4485,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImDrawListSplitterPtr.html",
-          "hash": "QBgeIGAm7zTUkdWwy61J3A=="
+          "hash": "kBrI8CxWOjclEZpSjXomXg=="
         }
       },
       "is_incremental": false,
@@ -4053,7 +4497,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImDrawVert.html",
-          "hash": "fjeO510bfUh8/TCVagSXUQ=="
+          "hash": "+DQOHW8yvwIpabiJWC3OkQ=="
         }
       },
       "is_incremental": false,
@@ -4065,7 +4509,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImDrawVertPtr.html",
-          "hash": "bDyE72mYcwZu4UuTbxGPCQ=="
+          "hash": "B1vD+KCCz/qF2zB2OWriSw=="
         }
       },
       "is_incremental": false,
@@ -4077,7 +4521,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImFont.html",
-          "hash": "mfLRPw1xymrdc6rYEiETiQ=="
+          "hash": "VSsIO7X6N6242hj5ybbQvw=="
         }
       },
       "is_incremental": false,
@@ -4089,7 +4533,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImFontAtlas.html",
-          "hash": "4hIc+eO/iYbUgx5n11or1g=="
+          "hash": "GeP/AQk1IVbISdUfU2oY4w=="
         }
       },
       "is_incremental": false,
@@ -4101,7 +4545,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImFontAtlasCustomRect.html",
-          "hash": "KX2avQmO9Y8XnSdDY33eAA=="
+          "hash": "mmjep1JpB0zEMl+YwSZWJQ=="
         }
       },
       "is_incremental": false,
@@ -4113,7 +4557,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImFontAtlasCustomRectPtr.html",
-          "hash": "hZh4ucDWn3cEF1xBYbG3jQ=="
+          "hash": "ztCg3ZsTzsRi4GEDzzzizQ=="
         }
       },
       "is_incremental": false,
@@ -4125,7 +4569,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImFontAtlasFlags.html",
-          "hash": "bAeKiB6+/zKeBG+vBDqg9Q=="
+          "hash": "cMpORZQhpb5lZsM3VtMrwg=="
         }
       },
       "is_incremental": false,
@@ -4137,7 +4581,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImFontAtlasPtr.html",
-          "hash": "ambiaffZFT37lA1K7+zqPA=="
+          "hash": "kBP/35UkzB9PNLOwuGCedQ=="
         }
       },
       "is_incremental": false,
@@ -4149,7 +4593,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImFontConfig.html",
-          "hash": "DueCicH8bJK6LodGTeCdZw=="
+          "hash": "cVLrhBFwwdGtYq+EWDyXkg=="
         }
       },
       "is_incremental": false,
@@ -4161,7 +4605,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImFontConfigPtr.html",
-          "hash": "tISA67e9sVliFbJrLSQEWQ=="
+          "hash": "9LdTez7Cq9Wky7ELIZcapA=="
         }
       },
       "is_incremental": false,
@@ -4173,7 +4617,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImFontGlyph.html",
-          "hash": "j3T3MCyDWSqhaCUM7vVkQg=="
+          "hash": "ZY8XcW8iRNqsEcir3gVjiQ=="
         }
       },
       "is_incremental": false,
@@ -4185,7 +4629,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImFontGlyphPtr.html",
-          "hash": "ft5bBogxWT8bSVKv/0lBEA=="
+          "hash": "guJlyxZmwwP1aUFrZSWfYA=="
         }
       },
       "is_incremental": false,
@@ -4197,7 +4641,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImFontGlyphRangesBuilder.html",
-          "hash": "neK8BspyMM6GWv+yl+4bfQ=="
+          "hash": "gFWv0o2AiElamOHSP2jang=="
         }
       },
       "is_incremental": false,
@@ -4209,7 +4653,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImFontGlyphRangesBuilderPtr.html",
-          "hash": "QiPb79zRU2DV1Qv/rYhPuA=="
+          "hash": "VeT8fPmkKzyyu/jOqnVPFA=="
         }
       },
       "is_incremental": false,
@@ -4221,7 +4665,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImFontPtr.html",
-          "hash": "HhuH69L2/rd9BOuesP1Ikw=="
+          "hash": "Vd8SFxpf3o9auC3rN03X3Q=="
         }
       },
       "is_incremental": false,
@@ -4233,7 +4677,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImGui.html",
-          "hash": "JNuQiUyk5E4W8xYA2T2K+Q=="
+          "hash": "7uTY1DRYNiiE7IlZDvDZvQ=="
         }
       },
       "is_incremental": false,
@@ -4245,7 +4689,19 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImGuiBackendFlags.html",
-          "hash": "e+I2GHbnLpdS49kgUJJyig=="
+          "hash": "6jbITkb/ZLcSHE4d/1DRzA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImGuiNET.ImGuiButtonFlags.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImGuiNET.ImGuiButtonFlags.html",
+          "hash": "yvRQ4GGiHpIffuVncf9ouQ=="
         }
       },
       "is_incremental": false,
@@ -4257,7 +4713,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImGuiCol.html",
-          "hash": "kYC4JTI60AzSDRSsWWlCyA=="
+          "hash": "/+4HqW8wVwTpHIyVEXrxBw=="
         }
       },
       "is_incremental": false,
@@ -4269,7 +4725,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImGuiColorEditFlags.html",
-          "hash": "OlBB3g+47YgAQvlC8GMCbw=="
+          "hash": "+t5LS8gIdnR0urjiqEaWfQ=="
         }
       },
       "is_incremental": false,
@@ -4281,7 +4737,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImGuiComboFlags.html",
-          "hash": "eX4GgAUCLVbyGuX36xGTvw=="
+          "hash": "7o1XO4kHhlcVFT7qo/gIiA=="
         }
       },
       "is_incremental": false,
@@ -4293,7 +4749,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImGuiCond.html",
-          "hash": "AgEKTd2A1S+Rs7dnf9MdmQ=="
+          "hash": "r/2Y9QD0ebOBWnndB5uUow=="
         }
       },
       "is_incremental": false,
@@ -4305,7 +4761,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImGuiConfigFlags.html",
-          "hash": "jM0r3WXi42D2Qv+aNDzhlA=="
+          "hash": "vDfuFe6ReBDE3GYw2a/QQQ=="
         }
       },
       "is_incremental": false,
@@ -4317,7 +4773,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImGuiDataType.html",
-          "hash": "KJnJeKb1S6l6wQQ7zfAS4Q=="
+          "hash": "jfcVhH0Y2H6mKIKmDeKe4A=="
         }
       },
       "is_incremental": false,
@@ -4329,7 +4785,19 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImGuiDir.html",
-          "hash": "QLYJgej1xzSVg6sDYbSoZw=="
+          "hash": "3ubUwAU7wVS6Tzcu20MmuQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImGuiNET.ImGuiDockNodeFlags.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImGuiNET.ImGuiDockNodeFlags.html",
+          "hash": "9bz/Hov/WE4fuPSj4qek1g=="
         }
       },
       "is_incremental": false,
@@ -4341,7 +4809,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImGuiDragDropFlags.html",
-          "hash": "16oE8NWdQcegMyzPennOww=="
+          "hash": "H8WbjBg9d+aTlMq8yETiow=="
         }
       },
       "is_incremental": false,
@@ -4353,7 +4821,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImGuiFocusedFlags.html",
-          "hash": "LWKYRG1cMgK6nJPouye3Ng=="
+          "hash": "NhkDPf125PpoiPcQkkYEBw=="
         }
       },
       "is_incremental": false,
@@ -4365,7 +4833,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImGuiHoveredFlags.html",
-          "hash": "vK55jK8zPGiW26UIXaXF2g=="
+          "hash": "Opr4rlJIo0vYZZrLfXMskg=="
         }
       },
       "is_incremental": false,
@@ -4377,7 +4845,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImGuiIO.html",
-          "hash": "EDvlC5RsWhwqZ1Arb8c6XQ=="
+          "hash": "6oZ4xc6RfEoah63ZToIpfA=="
         }
       },
       "is_incremental": false,
@@ -4389,7 +4857,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImGuiIOPtr.html",
-          "hash": "Jdx7uU/y7Zz6vhjx2I0pvQ=="
+          "hash": "LjoHnzg0uvPW9pqndW5kzw=="
         }
       },
       "is_incremental": false,
@@ -4401,7 +4869,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImGuiInputTextCallback.html",
-          "hash": "SWORldEpcLGZ2A4/PEVMWw=="
+          "hash": "qrerv9efuGBwstwvI++jGA=="
         }
       },
       "is_incremental": false,
@@ -4413,7 +4881,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImGuiInputTextCallbackData.html",
-          "hash": "rz4Q5pehgTDwaBM2BYtoJw=="
+          "hash": "TAo/dBPynKqS0b03UHRr9Q=="
         }
       },
       "is_incremental": false,
@@ -4425,7 +4893,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImGuiInputTextCallbackDataPtr.html",
-          "hash": "d6bhtucqZ0L2qc1DiYxRGw=="
+          "hash": "gr5BsPJLhSEkh8V1YzSWxw=="
         }
       },
       "is_incremental": false,
@@ -4437,7 +4905,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImGuiInputTextFlags.html",
-          "hash": "mURQb2lxSErEEpJQh++D7A=="
+          "hash": "AFGzj0SZSoXu4yy0vYiqNg=="
         }
       },
       "is_incremental": false,
@@ -4449,7 +4917,19 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImGuiKey.html",
-          "hash": "CxEYGfWgZ2UGyYTqxsjupQ=="
+          "hash": "UjUpDTK4qdhFzoowlymTfg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImGuiNET.ImGuiKeyModFlags.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImGuiNET.ImGuiKeyModFlags.html",
+          "hash": "vlfDfqIftwYCFWyyyTsykQ=="
         }
       },
       "is_incremental": false,
@@ -4461,7 +4941,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImGuiListClipper.html",
-          "hash": "6SfpdkB7VDfI3FNIpYL6mw=="
+          "hash": "YhqD2+hCqAmNtHyd9PQtPA=="
         }
       },
       "is_incremental": false,
@@ -4473,7 +4953,19 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImGuiListClipperPtr.html",
-          "hash": "896OzMeMnpn/t+8mzwAPhQ=="
+          "hash": "RbMbof75eTj4mpIFzyFxug=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImGuiNET.ImGuiMouseButton.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImGuiNET.ImGuiMouseButton.html",
+          "hash": "2wvSwQEYTtvCpZ0surl8rA=="
         }
       },
       "is_incremental": false,
@@ -4485,7 +4977,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImGuiMouseCursor.html",
-          "hash": "vhiUYcFlyP7bfr6/zH01Mw=="
+          "hash": "T/jbsl7kyuLVCXB+s1n7Tg=="
         }
       },
       "is_incremental": false,
@@ -4497,7 +4989,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImGuiNative.html",
-          "hash": "FAL+2H322ZkBozmSbllRFA=="
+          "hash": "9ZqMpcQYSLrJw/pHNWReOQ=="
         }
       },
       "is_incremental": false,
@@ -4509,7 +5001,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImGuiNavInput.html",
-          "hash": "MXZBpVU14HlZs6D2pQT36A=="
+          "hash": "UT4XwnKvPipKJ1xvM6JYeQ=="
         }
       },
       "is_incremental": false,
@@ -4521,7 +5013,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImGuiOnceUponAFrame.html",
-          "hash": "g9q8U1dJBUn29sVcJx+dzw=="
+          "hash": "iI4XcXNv90DfZLSnzBMacA=="
         }
       },
       "is_incremental": false,
@@ -4533,7 +5025,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImGuiOnceUponAFramePtr.html",
-          "hash": "+WHPXGN3I9ONhZyOq4vkNg=="
+          "hash": "+G0qsdvFW/LrZR5IeRYTkA=="
         }
       },
       "is_incremental": false,
@@ -4545,7 +5037,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImGuiPayload.html",
-          "hash": "821NcEHEIv3Xur+Dq7AiFA=="
+          "hash": "LIrcLWIOCJ35ZG1HQaET4w=="
         }
       },
       "is_incremental": false,
@@ -4557,7 +5049,67 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImGuiPayloadPtr.html",
-          "hash": "cLFPx6FJ07LWLirAF8PZ2Q=="
+          "hash": "uMyRtUuAguLUOkGkUpFm6g=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImGuiNET.ImGuiPlatformIO.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImGuiNET.ImGuiPlatformIO.html",
+          "hash": "wX0DKEGvEGt/DQSO6j1eBA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImGuiNET.ImGuiPlatformIOPtr.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImGuiNET.ImGuiPlatformIOPtr.html",
+          "hash": "sYspf2/+YIXQ/m8B8iw+Ww=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImGuiNET.ImGuiPlatformMonitor.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImGuiNET.ImGuiPlatformMonitor.html",
+          "hash": "au4Nwol/y7rbXyygd1c5tw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImGuiNET.ImGuiPlatformMonitorPtr.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImGuiNET.ImGuiPlatformMonitorPtr.html",
+          "hash": "F9AaqVA5ET+32Fh6tlAK9A=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImGuiNET.ImGuiPopupFlags.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImGuiNET.ImGuiPopupFlags.html",
+          "hash": "7LPyvxm+nN1MVHQsNYP86A=="
         }
       },
       "is_incremental": false,
@@ -4569,7 +5121,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImGuiSelectableFlags.html",
-          "hash": "m8SsQVhbE2MyDFmpTgatfw=="
+          "hash": "k+t3aWoQaL3YIAZEIhD08w=="
         }
       },
       "is_incremental": false,
@@ -4581,7 +5133,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImGuiSizeCallback.html",
-          "hash": "LJ2lan6tyUfQFQOUguuD/w=="
+          "hash": "vx2Cp/euLKHxOxa9ai4+xw=="
         }
       },
       "is_incremental": false,
@@ -4593,7 +5145,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImGuiSizeCallbackData.html",
-          "hash": "hFcug1ra8mVyYfCD3BB+Lg=="
+          "hash": "jlGaWAoMGa1+AmcWUKXnmw=="
         }
       },
       "is_incremental": false,
@@ -4605,7 +5157,31 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImGuiSizeCallbackDataPtr.html",
-          "hash": "g57OM4KiWC9SJgyTjB/ouA=="
+          "hash": "GQAmlJuRWMONH+yKT+k03Q=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImGuiNET.ImGuiSliderFlags.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImGuiNET.ImGuiSliderFlags.html",
+          "hash": "VGqGYaC33th6U2BjacuIMw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImGuiNET.ImGuiSortDirection.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImGuiNET.ImGuiSortDirection.html",
+          "hash": "6JprXjXOCRZzyZfPfmwIsQ=="
         }
       },
       "is_incremental": false,
@@ -4617,7 +5193,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImGuiStorage.html",
-          "hash": "JV24YbdsCr7pu5dZy9othA=="
+          "hash": "PqRasC43YYKH2WCJ1/Hzew=="
         }
       },
       "is_incremental": false,
@@ -4629,7 +5205,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImGuiStoragePair.html",
-          "hash": "9RvPrKYV79CuC+JhZ3t8ng=="
+          "hash": "QZQ5wJ2eCWK3uBA39ZKGjw=="
         }
       },
       "is_incremental": false,
@@ -4641,7 +5217,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImGuiStoragePairPtr.html",
-          "hash": "bAYio4J50O5JJKPhkUKb9w=="
+          "hash": "ylK80LExwdO/WqXFJKjk/A=="
         }
       },
       "is_incremental": false,
@@ -4653,7 +5229,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImGuiStoragePtr.html",
-          "hash": "sfYzE19fjVqNgRq6gQRoJw=="
+          "hash": "hs3pZazqMKnnz1o6sf3gmA=="
         }
       },
       "is_incremental": false,
@@ -4665,7 +5241,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImGuiStyle.html",
-          "hash": "OCG8hm4O4yZP+gJH5e6dtA=="
+          "hash": "uhST6oB0iF9+Xx9Wjpz9ig=="
         }
       },
       "is_incremental": false,
@@ -4677,7 +5253,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImGuiStylePtr.html",
-          "hash": "3G6GbSNA2lwD32pkB6GMfw=="
+          "hash": "dxQ0b58fHmJqL+5y5Bsg3Q=="
         }
       },
       "is_incremental": false,
@@ -4689,7 +5265,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImGuiStyleVar.html",
-          "hash": "EBG522LASPBu+eUXzQAsiw=="
+          "hash": "Wr7ZzWwvdObme4aEbefp7Q=="
         }
       },
       "is_incremental": false,
@@ -4701,7 +5277,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImGuiTabBarFlags.html",
-          "hash": "UN0p9ugCTyzlHhQ9BnFlsg=="
+          "hash": "5jTchSyxykrlLBhAI+kfrg=="
         }
       },
       "is_incremental": false,
@@ -4713,7 +5289,103 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImGuiTabItemFlags.html",
-          "hash": "pdm0oVHzVC/Hz5QOgbaz5g=="
+          "hash": "xSXfrlLFnG4LzhNn3DA5gg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImGuiNET.ImGuiTableBgTarget.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImGuiNET.ImGuiTableBgTarget.html",
+          "hash": "cY5llccbkj7cIzHnYVTHzw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImGuiNET.ImGuiTableColumnFlags.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImGuiNET.ImGuiTableColumnFlags.html",
+          "hash": "xRH73HBOWMwHaUmohglRyg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImGuiNET.ImGuiTableColumnSortSpecs.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImGuiNET.ImGuiTableColumnSortSpecs.html",
+          "hash": "lMOL7vkfobT9HenZKCA/Fg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImGuiNET.ImGuiTableColumnSortSpecsPtr.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImGuiNET.ImGuiTableColumnSortSpecsPtr.html",
+          "hash": "M2uZDXgfpioNhASJhudIVg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImGuiNET.ImGuiTableFlags.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImGuiNET.ImGuiTableFlags.html",
+          "hash": "xqjAgw7/00UsC+RkHXWR0A=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImGuiNET.ImGuiTableRowFlags.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImGuiNET.ImGuiTableRowFlags.html",
+          "hash": "2+nMYnRXtNDSw4H3hP8IzA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImGuiNET.ImGuiTableSortSpecs.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImGuiNET.ImGuiTableSortSpecs.html",
+          "hash": "STB8kiWgLvqVKjU3bWySdA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImGuiNET.ImGuiTableSortSpecsPtr.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImGuiNET.ImGuiTableSortSpecsPtr.html",
+          "hash": "Bau+qIMxXvrh0h0OzfaP0w=="
         }
       },
       "is_incremental": false,
@@ -4725,7 +5397,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImGuiTextBuffer.html",
-          "hash": "ngAiY8abM/fjtgLhWKNOCg=="
+          "hash": "XDuC6Le6aPWlPJw4tDZNzg=="
         }
       },
       "is_incremental": false,
@@ -4737,7 +5409,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImGuiTextBufferPtr.html",
-          "hash": "VnyVQpWVK+WQrQ61rR98Rg=="
+          "hash": "Px6twtvGFOeOvXZmzamYVw=="
         }
       },
       "is_incremental": false,
@@ -4749,7 +5421,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImGuiTextFilter.html",
-          "hash": "8d8hw1tBnsTPqh4WtGFgqw=="
+          "hash": "sGhJcsGTkRfdzEDTiSI1UQ=="
         }
       },
       "is_incremental": false,
@@ -4761,7 +5433,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImGuiTextFilterPtr.html",
-          "hash": "zH0zBPOGnYpcV5bHupzXhw=="
+          "hash": "wEoey68ZAn71X+NGSG9Zxw=="
         }
       },
       "is_incremental": false,
@@ -4773,7 +5445,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImGuiTextRange.html",
-          "hash": "eqgbq9whu4Z2lsQxc6OpBg=="
+          "hash": "veXcQF7hWK+vs1bjpPJW1Q=="
         }
       },
       "is_incremental": false,
@@ -4785,7 +5457,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImGuiTextRangePtr.html",
-          "hash": "ALDHrWMP43g6g4d71dtnTw=="
+          "hash": "69XWeB/Rbk/gUGMmY4fuGg=="
         }
       },
       "is_incremental": false,
@@ -4797,7 +5469,67 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImGuiTreeNodeFlags.html",
-          "hash": "2hst/j8q+XulMrjCFKpbbA=="
+          "hash": "CzLANz8NmyJ681TKGprXGQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImGuiNET.ImGuiViewport.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImGuiNET.ImGuiViewport.html",
+          "hash": "SEq1lUAGYLn2Uo57vzq4Dg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImGuiNET.ImGuiViewportFlags.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImGuiNET.ImGuiViewportFlags.html",
+          "hash": "pe3VvtV5aO3kVC+Wskkz0Q=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImGuiNET.ImGuiViewportPtr.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImGuiNET.ImGuiViewportPtr.html",
+          "hash": "Z8UAsSg126GTfqPcuky0dw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImGuiNET.ImGuiWindowClass.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImGuiNET.ImGuiWindowClass.html",
+          "hash": "I5rGVh26ZY+II63x79ieTA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImGuiNET.ImGuiWindowClassPtr.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImGuiNET.ImGuiWindowClassPtr.html",
+          "hash": "faqpXIEMgXVuMMUUQPHbMw=="
         }
       },
       "is_incremental": false,
@@ -4809,7 +5541,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImGuiWindowFlags.html",
-          "hash": "TaQdRSvRXhEpG8kN1yYANQ=="
+          "hash": "/Cy2bHWdPaMbF20l6RUBSg=="
         }
       },
       "is_incremental": false,
@@ -4821,7 +5553,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImPtrVector-1.html",
-          "hash": "S4hGTweNvV0jKirPkZdTCQ=="
+          "hash": "zNs7cdDn4E9uF8+T7R2Msg=="
         }
       },
       "is_incremental": false,
@@ -4833,7 +5565,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImVector-1.html",
-          "hash": "1WVnQyHUkCPDoXnFi1JWtg=="
+          "hash": "Bzyx1Ef80R5kgGQtqHesjQ=="
         }
       },
       "is_incremental": false,
@@ -4845,7 +5577,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.ImVector.html",
-          "hash": "RGrz5CgydoXFryZcFrxRwA=="
+          "hash": "nfd832qtVhfXU9p3uDvgGw=="
         }
       },
       "is_incremental": false,
@@ -4857,7 +5589,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.NullTerminatedString.html",
-          "hash": "9SE9O0sLwfg4LoT76I77rw=="
+          "hash": "EBTPEhSDzGyIdKNGM9cE3g=="
         }
       },
       "is_incremental": false,
@@ -4869,7 +5601,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.RangeAccessor-1.html",
-          "hash": "nsnrQyVX7PXV+fiukFdX9Q=="
+          "hash": "nygt8Bin6IvlEkkXH/m9sw=="
         }
       },
       "is_incremental": false,
@@ -4881,7 +5613,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.RangeAccessorExtensions.html",
-          "hash": "JdI/SKOkhBFwvlXccFegUA=="
+          "hash": "QwcvwQJ9eEs+OkTSrH2dCw=="
         }
       },
       "is_incremental": false,
@@ -4893,7 +5625,103 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.RangePtrAccessor-1.html",
-          "hash": "/jsPa4lmYmnIbYVX2A4oYg=="
+          "hash": "exLNvFfGTe+dzNKy5gqBSg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImGuiNET.STB_TexteditState.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImGuiNET.STB_TexteditState.html",
+          "hash": "T0HL8tRNPeFQSwIdPznhkg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImGuiNET.STB_TexteditStatePtr.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImGuiNET.STB_TexteditStatePtr.html",
+          "hash": "ditRHpeJUwQwFeL+RcvQog=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImGuiNET.StbTexteditRow.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImGuiNET.StbTexteditRow.html",
+          "hash": "KdRjBd3Ds4+FPZ5nUmXRCg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImGuiNET.StbTexteditRowPtr.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImGuiNET.StbTexteditRowPtr.html",
+          "hash": "SWvv+C9MVoFvOyaVvcdtQA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImGuiNET.StbUndoRecord.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImGuiNET.StbUndoRecord.html",
+          "hash": "vYqVY+mZCuXvNGQrCDzPIw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImGuiNET.StbUndoRecordPtr.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImGuiNET.StbUndoRecordPtr.html",
+          "hash": "dbMELaoPhB23i8h4wKrC2g=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImGuiNET.StbUndoState.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImGuiNET.StbUndoState.html",
+          "hash": "aRvDOzKMUnRaBH3CL3OUfw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImGuiNET.StbUndoStatePtr.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImGuiNET.StbUndoStatePtr.html",
+          "hash": "zajWQpyUIsWlkReq5q6LQw=="
         }
       },
       "is_incremental": false,
@@ -4905,7 +5733,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.UnionValue.html",
-          "hash": "zCJdU4HVIPXy0UojeOq4Yw=="
+          "hash": "vFrvpEqetUcaEto8ghp/Pw=="
         }
       },
       "is_incremental": false,
@@ -4917,7 +5745,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiNET.html",
-          "hash": "OWeL0rmTF4bDnwOB9Az/yA=="
+          "hash": "0grRoZe5xIoFW/25H9zf1A=="
         }
       },
       "is_incremental": false,
@@ -4929,7 +5757,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.FramerateLimit.LimitType.html",
-          "hash": "mfn/+udYjOcoofsoCczeOA=="
+          "hash": "I6V42xyrtgmyDX5dZ+LnhQ=="
         }
       },
       "is_incremental": false,
@@ -4941,7 +5769,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.FramerateLimit.html",
-          "hash": "QAFiqfyBlz6UQL1EPP2TDQ=="
+          "hash": "CtfzG3O/icvuxaU33Fhe8A=="
         }
       },
       "is_incremental": false,
@@ -4953,7 +5781,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.GLTextureWrap.html",
-          "hash": "fo3/cL/qz2HxX2zgkx6gqw=="
+          "hash": "CBxe3SCF3gq9gn19mdWxzQ=="
         }
       },
       "is_incremental": false,
@@ -4965,7 +5793,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.IImGuiInputHandler.html",
-          "hash": "D6ls3/Od9Vnlq450NwH0FA=="
+          "hash": "zRn5NKIs3fegLEozFNlpnQ=="
         }
       },
       "is_incremental": false,
@@ -4977,7 +5805,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.IImGuiRenderer.html",
-          "hash": "v9whrSGtFPOwTGm0hDzlAA=="
+          "hash": "GamUp8saTFHywVjqhOVH3w=="
         }
       },
       "is_incremental": false,
@@ -4989,7 +5817,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.IRenderer.html",
-          "hash": "lY9Y0JGfIuyFGsKJCW9ZUQ=="
+          "hash": "LN+2TwG3Xre886K0EDj72g=="
         }
       },
       "is_incremental": false,
@@ -5001,7 +5829,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.ImGui_Impl_DX11.html",
-          "hash": "r03Y+DDFqHoVzEIU3tSqxg=="
+          "hash": "Up13D3G99Co3/PfJUmyMqg=="
         }
       },
       "is_incremental": false,
@@ -5013,7 +5841,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.ImGui_Impl_OpenGL3.html",
-          "hash": "Z/DrNmvCGZTzjqc6lch+6g=="
+          "hash": "JZTnSD86qm3JD7Jipu75Fw=="
         }
       },
       "is_incremental": false,
@@ -5025,7 +5853,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.ImGui_Impl_SDL.html",
-          "hash": "NrBJoCMRdir4+GHHYvWL0A=="
+          "hash": "WzZXzI22/jHPN20lJbS35Q=="
         }
       },
       "is_incremental": false,
@@ -5037,7 +5865,19 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.ImGui_Input_Impl_Direct.html",
-          "hash": "6ite52XjxN8YG8Smro0n4g=="
+          "hash": "Gda7/TdkjDR167FHikAcUw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImGuiScene.MemUtil.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImGuiScene.MemUtil.html",
+          "hash": "YDm/A4BhTV/+qLYEMV82MA=="
         }
       },
       "is_incremental": false,
@@ -5049,7 +5889,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.RawDX11Scene.BuildUIDelegate.html",
-          "hash": "ro6A8QEsYBYdYganmf7jGw=="
+          "hash": "/YJr8vm5R6FaBOkyMRwZpw=="
         }
       },
       "is_incremental": false,
@@ -5061,7 +5901,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.RawDX11Scene.NewInputFrameDelegate.html",
-          "hash": "ia/wyASzNnZtOQ9rZoEz2g=="
+          "hash": "47T1QYVhiCA3bGx33HJgOg=="
         }
       },
       "is_incremental": false,
@@ -5073,7 +5913,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.RawDX11Scene.NewRenderFrameDelegate.html",
-          "hash": "x6kP0Yq5eGyV5swCu4hYOA=="
+          "hash": "v89MzydcLn4F955/PXmODA=="
         }
       },
       "is_incremental": false,
@@ -5085,7 +5925,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.RawDX11Scene.html",
-          "hash": "O7UaRdHE15RjwDYgqboTZg=="
+          "hash": "DyNQz1KdlWLSMMkH++P7RQ=="
         }
       },
       "is_incremental": false,
@@ -5097,7 +5937,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.RendererFactory.RendererBackend.html",
-          "hash": "G6dD5R4DWx94PmnK9UFGJg=="
+          "hash": "8OFbP9/7cdtOaCJdXTwYiA=="
         }
       },
       "is_incremental": false,
@@ -5109,7 +5949,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.RendererFactory.html",
-          "hash": "A2hlqNDw95fnrmKwTHV6yQ=="
+          "hash": "hHHpKsXFDSZF9Cb8hkVY2Q=="
         }
       },
       "is_incremental": false,
@@ -5121,7 +5961,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.SDLWindowGL.html",
-          "hash": "7RDlmmskFrEO5xdCokMVqg=="
+          "hash": "cnQdXu2ZDdOL2b1f8DFgyA=="
         }
       },
       "is_incremental": false,
@@ -5133,7 +5973,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.SimpleD3D.html",
-          "hash": "J82jAShE6AObxtjRbPRShQ=="
+          "hash": "i3C8OpNfSOxpYHF7ZDZQSg=="
         }
       },
       "is_incremental": false,
@@ -5145,7 +5985,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.SimpleImGuiScene.BuildUIDelegate.html",
-          "hash": "52meLAKHm9qvmriL3vCHKA=="
+          "hash": "D/kz9UEpHXh/KIysDZjEMA=="
         }
       },
       "is_incremental": false,
@@ -5157,7 +5997,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.SimpleImGuiScene.html",
-          "hash": "iwWzcUyACNhoS69GPjELIA=="
+          "hash": "mSvqW2N2z+WwlEQOpuvaGg=="
         }
       },
       "is_incremental": false,
@@ -5169,7 +6009,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.SimpleOGL3.html",
-          "hash": "P8NDfRGfo/ci3UkYwKMxeA=="
+          "hash": "Kzk+rKPXKnKfMlTr8CFszw=="
         }
       },
       "is_incremental": false,
@@ -5181,7 +6021,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.SimpleSDLWindow.ProcessEventDelegate.html",
-          "hash": "9dzzDMjGhUEdFBHG4hfXfQ=="
+          "hash": "RVthzRUf+mmxpKOYH9nqIw=="
         }
       },
       "is_incremental": false,
@@ -5193,7 +6033,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.SimpleSDLWindow.html",
-          "hash": "u0gNteIhkoWCri1WU7ceSg=="
+          "hash": "tyNfGtnISpUezaUN3brQOg=="
         }
       },
       "is_incremental": false,
@@ -5205,7 +6045,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.TextureWrap.html",
-          "hash": "vaEnOzYOe4JvWOrSYUA/Bw=="
+          "hash": "SCci7Vb8JKLUbqsbzB2v6A=="
         }
       },
       "is_incremental": false,
@@ -5217,7 +6057,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.WindowCreateInfo.html",
-          "hash": "jsreIEYbgsBcZMhhUIrMBw=="
+          "hash": "H5i78bfjr4xpW9WWXOCoiw=="
         }
       },
       "is_incremental": false,
@@ -5229,7 +6069,7 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.WindowFactory.html",
-          "hash": "PLa7TEc2N8re8oKxng2Jkg=="
+          "hash": "pMlYqRlZY7tJejE9+kKHnw=="
         }
       },
       "is_incremental": false,
@@ -5241,7 +6081,307 @@
       "output": {
         ".html": {
           "relative_path": "api/ImGuiScene.html",
-          "hash": "SxQP+2JyL3NZDjhEgb+ozA=="
+          "hash": "9Tl1w6MCoI7gQYeUzWuXGw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImGuizmoNET.ImGuizmo.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImGuizmoNET.ImGuizmo.html",
+          "hash": "8+5m6fpw5Op15XSCYpc76g=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImGuizmoNET.ImGuizmoNative.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImGuizmoNET.ImGuizmoNative.html",
+          "hash": "s6ZGKL5tZmgy2AWxw5XkPQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImGuizmoNET.MODE.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImGuizmoNET.MODE.html",
+          "hash": "onGxZ+pmPOwHjEWOMLnJ8Q=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImGuizmoNET.OPERATION.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImGuizmoNET.OPERATION.html",
+          "hash": "sZ1A6ZrxIx7dA7JwqwIDIg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImGuizmoNET.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImGuizmoNET.html",
+          "hash": "c+j9lj4bm+iMMdb114cYAA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImPlotNET.ImPlot.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImPlotNET.ImPlot.html",
+          "hash": "dMim0YFZzF6ksLYGVI0Eyg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImPlotNET.ImPlotAxisFlags.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImPlotNET.ImPlotAxisFlags.html",
+          "hash": "HFa4Qg5TIhdcBR8aECzqWA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImPlotNET.ImPlotCol.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImPlotNET.ImPlotCol.html",
+          "hash": "vL5bldxC6+QPwmVJQ2amSQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImPlotNET.ImPlotColormap.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImPlotNET.ImPlotColormap.html",
+          "hash": "iK0TnKIkLPR1VLIP/zJzmQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImPlotNET.ImPlotFlags.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImPlotNET.ImPlotFlags.html",
+          "hash": "DyiPO73Ap2mLuaYHkFIaxw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImPlotNET.ImPlotLimits.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImPlotNET.ImPlotLimits.html",
+          "hash": "vPUHC3JzUUq2ffEIsqExew=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImPlotNET.ImPlotLimitsPtr.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImPlotNET.ImPlotLimitsPtr.html",
+          "hash": "AkJHZf6C/0FCw0WlZ340Fw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImPlotNET.ImPlotLocation.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImPlotNET.ImPlotLocation.html",
+          "hash": "Hxzfj/0qTRGcZXeaK6IYYg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImPlotNET.ImPlotMarker.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImPlotNET.ImPlotMarker.html",
+          "hash": "xyz95Qp000VLuL4KTQQwkw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImPlotNET.ImPlotNative.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImPlotNET.ImPlotNative.html",
+          "hash": "GgZ0PrtT4eDOw5/YZaf/Hw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImPlotNET.ImPlotOrientation.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImPlotNET.ImPlotOrientation.html",
+          "hash": "oCCMQjqNTzdrORS9jk+yTA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImPlotNET.ImPlotPoint.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImPlotNET.ImPlotPoint.html",
+          "hash": "KXLcekM6aMxqZEnuWV65gA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImPlotNET.ImPlotPointPtr.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImPlotNET.ImPlotPointPtr.html",
+          "hash": "DarJWYKa0g5m7nz0UuDWZQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImPlotNET.ImPlotRange.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImPlotNET.ImPlotRange.html",
+          "hash": "ImQj3DOkawT7AiqqR5ZJyQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImPlotNET.ImPlotRangePtr.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImPlotNET.ImPlotRangePtr.html",
+          "hash": "y+9wZ8CPyw6uh08SjsvPVw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImPlotNET.ImPlotStyle.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImPlotNET.ImPlotStyle.html",
+          "hash": "gOIwN/ZgFBgRQKh0s4QqrQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImPlotNET.ImPlotStylePtr.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImPlotNET.ImPlotStylePtr.html",
+          "hash": "hsMSMJxMqRhv3v0FUjAtUw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImPlotNET.ImPlotStyleVar.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImPlotNET.ImPlotStyleVar.html",
+          "hash": "hm2HM5YZz+AUFGV/Y4DKbg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImPlotNET.ImPlotYAxis.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImPlotNET.ImPlotYAxis.html",
+          "hash": "oATqfHWy0AXlvyzXDESi/g=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/ImPlotNET.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/ImPlotNET.html",
+          "hash": "z+irMUZx2reAIw297SQT7Q=="
         }
       },
       "is_incremental": false,
@@ -5493,7 +6633,7 @@
       "output": {
         ".html": {
           "relative_path": "api/SDL2.SDL.SDL_AudioStatus.html",
-          "hash": "okgGt5x/NG6mYsVepFrFlw=="
+          "hash": "p7IzPMlmazhVAnWfYk+Diw=="
         }
       },
       "is_incremental": false,
@@ -5505,7 +6645,7 @@
       "output": {
         ".html": {
           "relative_path": "api/SDL2.SDL.SDL_BlendFactor.html",
-          "hash": "HCiFpoDeMri7vQx/7t28IA=="
+          "hash": "ZTFaa6s4bBpzK3Z8PvR36A=="
         }
       },
       "is_incremental": false,
@@ -5517,7 +6657,7 @@
       "output": {
         ".html": {
           "relative_path": "api/SDL2.SDL.SDL_BlendMode.html",
-          "hash": "eGMbqlGU5R4jhHbV7Dhrtw=="
+          "hash": "ChEuAH9vX1fje0oltbdP3A=="
         }
       },
       "is_incremental": false,
@@ -5529,7 +6669,7 @@
       "output": {
         ".html": {
           "relative_path": "api/SDL2.SDL.SDL_BlendOperation.html",
-          "hash": "onKscnrKOkYBfyAdhzGvyg=="
+          "hash": "s5ieOsK+RjrN55E54qP4CQ=="
         }
       },
       "is_incremental": false,
@@ -5601,7 +6741,7 @@
       "output": {
         ".html": {
           "relative_path": "api/SDL2.SDL.SDL_DisplayEventID.html",
-          "hash": "pyX+LVBeq9EUpG1KoQ5KMA=="
+          "hash": "f/sTEoln9+u9ePbbQN3Zng=="
         }
       },
       "is_incremental": false,
@@ -5625,7 +6765,7 @@
       "output": {
         ".html": {
           "relative_path": "api/SDL2.SDL.SDL_DisplayOrientation.html",
-          "hash": "fNyoLVLmU3Acn4E/02cnbw=="
+          "hash": "urgaynIyMLsBM/fPLUASXw=="
         }
       },
       "is_incremental": false,
@@ -5685,7 +6825,7 @@
       "output": {
         ".html": {
           "relative_path": "api/SDL2.SDL.SDL_EventType.html",
-          "hash": "S3DnrAQTzW9X/H2y3J3E+w=="
+          "hash": "MPTlSkK732esyd1JNbO4Sg=="
         }
       },
       "is_incremental": false,
@@ -5733,7 +6873,7 @@
       "output": {
         ".html": {
           "relative_path": "api/SDL2.SDL.SDL_GLattr.html",
-          "hash": "uX9nGNHAKlyOQ8/s5w0Cag=="
+          "hash": "rf5s4bBujl7PVehXThHOWQ=="
         }
       },
       "is_incremental": false,
@@ -5745,7 +6885,7 @@
       "output": {
         ".html": {
           "relative_path": "api/SDL2.SDL.SDL_GLcontext.html",
-          "hash": "52Pao1tH/7TsNU0rreF0nA=="
+          "hash": "IcqbWLpA4A5g0n/4WzfdSg=="
         }
       },
       "is_incremental": false,
@@ -5757,7 +6897,7 @@
       "output": {
         ".html": {
           "relative_path": "api/SDL2.SDL.SDL_GLprofile.html",
-          "hash": "LrooWsPf2MASZIovyGhndw=="
+          "hash": "39zht0SfWvZjYXb3aUDs0Q=="
         }
       },
       "is_incremental": false,
@@ -5769,7 +6909,7 @@
       "output": {
         ".html": {
           "relative_path": "api/SDL2.SDL.SDL_GameControllerAxis.html",
-          "hash": "0dGtHuG9ZT3dUjagNGVmdA=="
+          "hash": "r6+Gm2Ybk+YCqPNZYodx0Q=="
         }
       },
       "is_incremental": false,
@@ -5781,7 +6921,7 @@
       "output": {
         ".html": {
           "relative_path": "api/SDL2.SDL.SDL_GameControllerBindType.html",
-          "hash": "c6CsrIRA5nyPbYLqG1IFWg=="
+          "hash": "/rik2Y6xRU8HmP/EyLrcpg=="
         }
       },
       "is_incremental": false,
@@ -5793,7 +6933,7 @@
       "output": {
         ".html": {
           "relative_path": "api/SDL2.SDL.SDL_GameControllerButton.html",
-          "hash": "LaKVei6oBDGdhyL9jWnN2Q=="
+          "hash": "d2iTKbhqdGFIoNl/2BO9jA=="
         }
       },
       "is_incremental": false,
@@ -5925,7 +7065,7 @@
       "output": {
         ".html": {
           "relative_path": "api/SDL2.SDL.SDL_HintPriority.html",
-          "hash": "bAm/Zq4mrl6H2AQTaKgndg=="
+          "hash": "yqwrcUu53K0vy5LwBtGS5A=="
         }
       },
       "is_incremental": false,
@@ -5949,7 +7089,7 @@
       "output": {
         ".html": {
           "relative_path": "api/SDL2.SDL.SDL_HitTestResult.html",
-          "hash": "EHt5qtrbH/8OnFzAFA768A=="
+          "hash": "VEg89ptgdGE9RUPX2BSa6A=="
         }
       },
       "is_incremental": false,
@@ -6021,7 +7161,7 @@
       "output": {
         ".html": {
           "relative_path": "api/SDL2.SDL.SDL_JoystickPowerLevel.html",
-          "hash": "Tg1VXtH9E146HbIzB1dlTA=="
+          "hash": "Os8JxEvLsod8iGlSDfC+Nw=="
         }
       },
       "is_incremental": false,
@@ -6033,7 +7173,7 @@
       "output": {
         ".html": {
           "relative_path": "api/SDL2.SDL.SDL_JoystickType.html",
-          "hash": "EdBZs57COfy2ALEKiIkNqw=="
+          "hash": "zpc0KZOCAJnZJoVG4UPSuQ=="
         }
       },
       "is_incremental": false,
@@ -6057,7 +7197,7 @@
       "output": {
         ".html": {
           "relative_path": "api/SDL2.SDL.SDL_Keycode.html",
-          "hash": "6Q4V4R6E9ImeOGeXRd6TCQ=="
+          "hash": "M4oBeAbcNpruMpZeSkghIg=="
         }
       },
       "is_incremental": false,
@@ -6069,7 +7209,7 @@
       "output": {
         ".html": {
           "relative_path": "api/SDL2.SDL.SDL_Keymod.html",
-          "hash": "yM/p5nBbj8Myh3a9TO9CUw=="
+          "hash": "ZC5sF/7Yh5TiIjVQw1qLfg=="
         }
       },
       "is_incremental": false,
@@ -6105,7 +7245,7 @@
       "output": {
         ".html": {
           "relative_path": "api/SDL2.SDL.SDL_LogPriority.html",
-          "hash": "hYbWluoJw8FQNXIHLJRAkg=="
+          "hash": "owaJDjw2CkQ4OZxsL4eJVQ=="
         }
       },
       "is_incremental": false,
@@ -6129,7 +7269,7 @@
       "output": {
         ".html": {
           "relative_path": "api/SDL2.SDL.SDL_MessageBoxButtonFlags.html",
-          "hash": "TjBFt2Ljqyivb/DMFxNpmw=="
+          "hash": "wuw7WtjXibaNZ20/a5sjig=="
         }
       },
       "is_incremental": false,
@@ -6165,7 +7305,7 @@
       "output": {
         ".html": {
           "relative_path": "api/SDL2.SDL.SDL_MessageBoxColorType.html",
-          "hash": "SYpxc23BivjYWZcSIWBs/w=="
+          "hash": "eWONFeQB/W/AMD/7FcmfqQ=="
         }
       },
       "is_incremental": false,
@@ -6189,7 +7329,7 @@
       "output": {
         ".html": {
           "relative_path": "api/SDL2.SDL.SDL_MessageBoxFlags.html",
-          "hash": "/Xo5ld3Itzv867Mf+KuEFg=="
+          "hash": "MyH0DzF3VJPOq2lTgHS9OQ=="
         }
       },
       "is_incremental": false,
@@ -6225,7 +7365,7 @@
       "output": {
         ".html": {
           "relative_path": "api/SDL2.SDL.SDL_MouseWheelDirection.html",
-          "hash": "85TIsVofFqbEY6ZBbzu9tQ=="
+          "hash": "8fa7T/9d4AlJ1eIrT8fDUw=="
         }
       },
       "is_incremental": false,
@@ -6261,7 +7401,7 @@
       "output": {
         ".html": {
           "relative_path": "api/SDL2.SDL.SDL_PACKEDLAYOUT_ENUM.html",
-          "hash": "anxVeAPajUg45oVB2WPx+g=="
+          "hash": "jda6vXum5E9T2NXFgSspzA=="
         }
       },
       "is_incremental": false,
@@ -6273,7 +7413,7 @@
       "output": {
         ".html": {
           "relative_path": "api/SDL2.SDL.SDL_PIXELORDER_ENUM.html",
-          "hash": "PR/2DB5fYKX6H1JIWJrO7w=="
+          "hash": "I8Bp83Hf6RtS6YQPNIjatg=="
         }
       },
       "is_incremental": false,
@@ -6285,7 +7425,7 @@
       "output": {
         ".html": {
           "relative_path": "api/SDL2.SDL.SDL_PIXELTYPE_ENUM.html",
-          "hash": "l9iAfm2sjp0yr9gV+2yVaA=="
+          "hash": "w9tycTSYpCx2r1N/ZbpmcQ=="
         }
       },
       "is_incremental": false,
@@ -6333,7 +7473,7 @@
       "output": {
         ".html": {
           "relative_path": "api/SDL2.SDL.SDL_PowerState.html",
-          "hash": "xGM56np8vzT0pzj0EcyiMg=="
+          "hash": "es//tt1cDzAB52JIq8xS5w=="
         }
       },
       "is_incremental": false,
@@ -6381,7 +7521,7 @@
       "output": {
         ".html": {
           "relative_path": "api/SDL2.SDL.SDL_RendererFlags.html",
-          "hash": "cjgoc+ltXMvXX2wmpAV7rQ=="
+          "hash": "aHsHdBlZZ9jMtbgpRmDekA=="
         }
       },
       "is_incremental": false,
@@ -6393,7 +7533,7 @@
       "output": {
         ".html": {
           "relative_path": "api/SDL2.SDL.SDL_RendererFlip.html",
-          "hash": "I0po2OP83GLsH1vDv9O0LQ=="
+          "hash": "ydxWdCZk1AAVPL1EixfmRA=="
         }
       },
       "is_incremental": false,
@@ -6417,7 +7557,7 @@
       "output": {
         ".html": {
           "relative_path": "api/SDL2.SDL.SDL_SYSWM_TYPE.html",
-          "hash": "//A8QVAfCTeZ+QfQNEtiyg=="
+          "hash": "tk+erarxr6nRDjJoVAPWEA=="
         }
       },
       "is_incremental": false,
@@ -6429,7 +7569,7 @@
       "output": {
         ".html": {
           "relative_path": "api/SDL2.SDL.SDL_Scancode.html",
-          "hash": "fnRbK8LnWHhIOqfwvBMsLg=="
+          "hash": "YZbORxn1nox7ijYuUwSQFg=="
         }
       },
       "is_incremental": false,
@@ -6453,7 +7593,7 @@
       "output": {
         ".html": {
           "relative_path": "api/SDL2.SDL.SDL_SensorType.html",
-          "hash": "L4UiGtzg+vM1g5bz81HnyQ=="
+          "hash": "4w3fKC+L+gIAXqaYoVh98Q=="
         }
       },
       "is_incremental": false,
@@ -6501,7 +7641,7 @@
       "output": {
         ".html": {
           "relative_path": "api/SDL2.SDL.SDL_SystemCursor.html",
-          "hash": "+vvNrqYb5/JSAFtebe/T1w=="
+          "hash": "zx7I+lWmN30LM0VPBswgtA=="
         }
       },
       "is_incremental": false,
@@ -6537,7 +7677,7 @@
       "output": {
         ".html": {
           "relative_path": "api/SDL2.SDL.SDL_TextureAccess.html",
-          "hash": "iSwwiA21DsCIGcBl8a+D3A=="
+          "hash": "b79/yJf0oPlXOGia84aHxg=="
         }
       },
       "is_incremental": false,
@@ -6549,7 +7689,7 @@
       "output": {
         ".html": {
           "relative_path": "api/SDL2.SDL.SDL_TextureModulate.html",
-          "hash": "SZ4MJxaCRkNRY1wVT2TGkA=="
+          "hash": "rP/Dlf+hxs7fGWAjm8ag7w=="
         }
       },
       "is_incremental": false,
@@ -6573,7 +7713,7 @@
       "output": {
         ".html": {
           "relative_path": "api/SDL2.SDL.SDL_TouchDeviceType.html",
-          "hash": "chggpxv9S/aik3laRXuHWA=="
+          "hash": "fpVgYjXbkXaOyYDgPuqOJw=="
         }
       },
       "is_incremental": false,
@@ -6609,7 +7749,7 @@
       "output": {
         ".html": {
           "relative_path": "api/SDL2.SDL.SDL_WinRT_DeviceFamily.html",
-          "hash": "cMO/+BKAi2Qg1jWzViapsA=="
+          "hash": "q5Q9UJe2kO6aZNvveC2UmA=="
         }
       },
       "is_incremental": false,
@@ -6633,7 +7773,7 @@
       "output": {
         ".html": {
           "relative_path": "api/SDL2.SDL.SDL_WindowEventID.html",
-          "hash": "xLy9ZtYgDG1unox5BKzXsw=="
+          "hash": "vmRV+Q9DOCP2fFmPIc17Iw=="
         }
       },
       "is_incremental": false,
@@ -6645,7 +7785,7 @@
       "output": {
         ".html": {
           "relative_path": "api/SDL2.SDL.SDL_WindowFlags.html",
-          "hash": "gWe+Vkad2KD/KkaoMs31Ww=="
+          "hash": "34MLxR4nC6ATrFfkTZX2cw=="
         }
       },
       "is_incremental": false,
@@ -6669,7 +7809,7 @@
       "output": {
         ".html": {
           "relative_path": "api/SDL2.SDL.SDL_bool.html",
-          "hash": "CSEzOA8g5C+h24Zs6Tge3Q=="
+          "hash": "OkhDH8CuREnUPgZsRvA5Lg=="
         }
       },
       "is_incremental": false,
@@ -6681,7 +7821,7 @@
       "output": {
         ".html": {
           "relative_path": "api/SDL2.SDL.SDL_eventaction.html",
-          "hash": "fvJ5e620re773LjbZNBPqQ=="
+          "hash": "g/IXTuIQhe4nRq9sfRuYrw=="
         }
       },
       "is_incremental": false,
@@ -6741,7 +7881,7 @@
       "output": {
         ".html": {
           "relative_path": "api/SDL2.SDL_image.IMG_InitFlags.html",
-          "hash": "bT9N401VIUtVt30v4tDpJA=="
+          "hash": "TOlBfqM6F3axT1O4wkk6kQ=="
         }
       },
       "is_incremental": false,
@@ -6777,7 +7917,7 @@
       "output": {
         ".html": {
           "relative_path": "api/SDL2.SDL_mixer.MIX_InitFlags.html",
-          "hash": "1u5oui3ABLWcEkpxDFGg2g=="
+          "hash": "itzhJgLSOleVf23QNY3Vnw=="
         }
       },
       "is_incremental": false,
@@ -6825,7 +7965,7 @@
       "output": {
         ".html": {
           "relative_path": "api/SDL2.SDL_mixer.Mix_Fading.html",
-          "hash": "PaJCC05khF9/z5icot/bYQ=="
+          "hash": "L9b8Gg37eXZfAKnP8Xv+dA=="
         }
       },
       "is_incremental": false,
@@ -6837,7 +7977,7 @@
       "output": {
         ".html": {
           "relative_path": "api/SDL2.SDL_mixer.Mix_MusicType.html",
-          "hash": "/1fCnUV1H0mCAFXpMFp5bw=="
+          "hash": "NApG6mmgy+O6rSR+yo7YFQ=="
         }
       },
       "is_incremental": false,
@@ -6904,6 +8044,198 @@
       "version": ""
     },
     {
+      "type": "ManagedReference",
+      "source_relative_path": "api/imnodesNET.AttributeFlags.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/imnodesNET.AttributeFlags.html",
+          "hash": "3Y66khGmm0/uVSMjmxWB0Q=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/imnodesNET.ColorStyle.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/imnodesNET.ColorStyle.html",
+          "hash": "bbsPZx+0uO7Q98p7k6RKgg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/imnodesNET.EmulateThreeButtonMouse.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/imnodesNET.EmulateThreeButtonMouse.html",
+          "hash": "wwWi0Ua7RIZVIEMcSjqh4Q=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/imnodesNET.EmulateThreeButtonMousePtr.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/imnodesNET.EmulateThreeButtonMousePtr.html",
+          "hash": "YVEiQsMxD10+7ihyLB8aKw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/imnodesNET.IO.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/imnodesNET.IO.html",
+          "hash": "NUJkW39hraaxEPvPTiNzKQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/imnodesNET.IOPtr.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/imnodesNET.IOPtr.html",
+          "hash": "AzDjHMk6IFT9vKfENOoTgg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/imnodesNET.LinkDetachWithModifierClick.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/imnodesNET.LinkDetachWithModifierClick.html",
+          "hash": "RNv1JeIWJsHtcuL60MMhUQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/imnodesNET.LinkDetachWithModifierClickPtr.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/imnodesNET.LinkDetachWithModifierClickPtr.html",
+          "hash": "QnonfFiCLLXSpirz98RaDg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/imnodesNET.PinShape.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/imnodesNET.PinShape.html",
+          "hash": "4q6wxwDIdcfg1hXSaBIctg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/imnodesNET.Style.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/imnodesNET.Style.html",
+          "hash": "/NF5rKSaz13IT80PXxjcCg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/imnodesNET.StyleFlags.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/imnodesNET.StyleFlags.html",
+          "hash": "QV5IKUOs7NU/BB5OeQBZ9w=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/imnodesNET.StylePtr.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/imnodesNET.StylePtr.html",
+          "hash": "uh4GJ37tlUP4DqV/8/OKTQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/imnodesNET.StyleVar.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/imnodesNET.StyleVar.html",
+          "hash": "H0MH30wVsLrVQWi+sqjFHQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/imnodesNET.imnodes.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/imnodesNET.imnodes.html",
+          "hash": "67H9KU9k5VGGSFSVBKy/7Q=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/imnodesNET.imnodesNative.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/imnodesNET.imnodesNative.html",
+          "hash": "uDVoXa3p07BqrDHLrhk4cQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/imnodesNET.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/imnodesNET.html",
+          "hash": "1xjMfYDUry4yYUEaqYgILQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
       "type": "Conceptual",
       "source_relative_path": "api/index.md",
       "output": {
@@ -6921,7 +8253,7 @@
       "output": {
         ".html": {
           "relative_path": "api/toc.html",
-          "hash": "mmwhKctGGfcx/T3Y9AQ3Dw=="
+          "hash": "56QHcmCPMqj0Dptz99NsIQ=="
         }
       },
       "is_incremental": false,
@@ -6936,30 +8268,32 @@
           "hash": "SfST5AwBnU8oPdlya6ggRg=="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     }
   ],
   "incremental_info": [
     {
       "status": {
-        "can_incremental": true,
+        "can_incremental": false,
+        "details": "Cannot build incrementally because last build info is missing.",
         "incrementalPhase": "build",
         "total_file_count": 0,
-        "skipped_file_count": 0
+        "skipped_file_count": 0,
+        "full_build_reason_code": "NoAvailableBuildCache"
       },
       "processors": {
         "ConceptualDocumentProcessor": {
-          "can_incremental": true,
+          "can_incremental": false,
           "incrementalPhase": "build",
           "total_file_count": 3,
-          "skipped_file_count": 3
+          "skipped_file_count": 0
         },
         "ManagedReferenceDocumentProcessor": {
-          "can_incremental": true,
+          "can_incremental": false,
           "incrementalPhase": "build",
-          "total_file_count": 574,
-          "skipped_file_count": 568
+          "total_file_count": 685,
+          "skipped_file_count": 0
         },
         "TocDocumentProcessor": {
           "can_incremental": false,
@@ -6972,8 +8306,8 @@
     },
     {
       "status": {
-        "can_incremental": true,
-        "details": "Can support incremental post processing.",
+        "can_incremental": false,
+        "details": "Cannot support incremental post processing, the reason is: last post processor info is null.",
         "incrementalPhase": "postProcessing",
         "total_file_count": 0,
         "skipped_file_count": 0
