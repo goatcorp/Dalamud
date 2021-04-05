@@ -141,7 +141,7 @@ namespace Dalamud.Interface.Windowing
             this.ApplyConditionals();
 
             if (this.ForceMainWindow)
-                ImGuiHelpers.ForceMainWindow();
+                ImGuiHelpers.ForceMainViewport();
 
             if (ImGui.Begin(this.WindowName, ref this.internalIsOpen, this.Flags))
             {
@@ -179,7 +179,7 @@ namespace Dalamud.Interface.Windowing
                 var pos = this.Position.Value;
 
                 if (this.ForceMainWindow)
-                    pos += ImGuiHelpers.MainWindowPos;
+                    pos += ImGuiHelpers.MainViewport.Pos;
 
                 ImGui.SetNextWindowPos(pos, this.PositionCondition);
             }

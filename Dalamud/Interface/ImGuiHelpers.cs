@@ -22,7 +22,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// Force this ImGui window to stay inside the main game window.
         /// </summary>
-        public static void ForceMainWindow() => ImGui.SetNextWindowViewport(MainViewport.ID);
+        public static void ForceMainViewport() => ImGui.SetNextWindowViewport(MainViewport.ID);
 
         /// <summary>
         /// Create a dummy scaled by the global Dalamud scale.
