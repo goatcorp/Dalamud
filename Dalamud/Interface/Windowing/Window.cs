@@ -20,7 +20,7 @@ namespace Dalamud.Interface.Windowing
         /// </param>
         /// <param name="flags">The <see cref="ImGuiWindowFlags"/> of this window.</param>
         /// <param name="forceMainWindow">Whether or not this window should be limited to the main game window.</param>
-        protected Window(string name, ImGuiWindowFlags flags, bool forceMainWindow = false)
+        protected Window(string name, ImGuiWindowFlags flags = ImGuiWindowFlags.None, bool forceMainWindow = false)
         {
             this.WindowName = name;
             this.Flags = flags;
