@@ -225,7 +225,7 @@ namespace Dalamud
 
         private void OnOpenLog(string command, string arguments)
         {
-            this.dalamud.DalamudUi.OpenLog();
+            this.dalamud.DalamudUi.ToggleLog();
         }
 
         private void OnDebugImInfoCommand(string command, string arguments)
@@ -253,12 +253,12 @@ namespace Dalamud
 
         private void OnOpenInstallerCommand(string command, string arguments)
         {
-            this.dalamud.DalamudUi.OpenPluginInstaller();
+            this.dalamud.DalamudUi.TogglePluginInstaller();
         }
 
         private void OnOpenCreditsCommand(string command, string arguments)
         {
-            this.dalamud.DalamudUi.OpenCredits();
+            this.dalamud.DalamudUi.ToggleCredits();
         }
 
         private void OnSetLanguageCommand(string command, string arguments)
@@ -285,7 +285,7 @@ namespace Dalamud
 
         private void OnOpenSettingsCommand(string command, string arguments)
         {
-            this.dalamud.DalamudUi.OpenSettings();
+            this.dalamud.DalamudUi.ToggleSettings();
         }
     }
 }
