@@ -1,6 +1,7 @@
 using System.Numerics;
 
 using ImGuiNET;
+using Serilog;
 
 namespace Dalamud.Interface.Windowing
 {
@@ -11,6 +12,7 @@ namespace Dalamud.Interface.Windowing
     {
         private bool internalLastIsOpen = false;
         private bool internalIsOpen = false;
+        private bool mainIsOpen = false;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Window"/> class.
@@ -27,6 +29,8 @@ namespace Dalamud.Interface.Windowing
             this.Flags = flags;
             this.ForceMainWindow = forceMainWindow;
         }
+
+        public string Namespace { get; set; }
 
         /// <summary>
         /// Gets or sets the name of the window.
@@ -86,12 +90,23 @@ namespace Dalamud.Interface.Windowing
         public bool ForceMainWindow { get; set; }
 
         /// <summary>
+        /// Gets or sets this window's background alpha value.
+        /// </summary>
+        public float? BgAlpha { get; set; }
+
+        /// <summary>
         /// Gets or sets a value indicating whether or not this window will stay open.
         /// </summary>
         public bool IsOpen
         {
-            get => this.internalIsOpen;
-            set => this.internalIsOpen = value;
+            get => this.mainIsOpen;
+            set
+            {
+                if (!value)
+                    this.internalIsOpen = true;
+
+                this.mainIsOpen = value;
+            }
         }
 
         /// <summary>
@@ -115,6 +130,14 @@ namespace Dalamud.Interface.Windowing
         /// </summary>
         internal void DrawInternal()
         {
+            if (!this.IsOpen)
+                return;
+
+            var hasNamespace = !string.IsNullOrEmpty(this.Namespace);
+
+            if (hasNamespace)
+                ImGui.PushID(this.Namespace);
+
             this.ApplyConditionals();
 
             if (this.ForceMainWindow)
@@ -124,9 +147,12 @@ namespace Dalamud.Interface.Windowing
             {
                 // Draw the actual window contents
                 this.Draw();
-
-                ImGui.End();
             }
+
+            ImGui.End();
+
+            if (hasNamespace)
+                ImGui.PopID();
 
             if (this.internalLastIsOpen != this.internalIsOpen)
             {
@@ -141,18 +167,26 @@ namespace Dalamud.Interface.Windowing
             }
 
             this.internalLastIsOpen = this.internalIsOpen;
+
+            if (this.internalIsOpen != true)
+                this.IsOpen = false;
         }
 
         private void ApplyConditionals()
         {
             if (this.Position.HasValue)
             {
-                ImGui.SetNextWindowPos(this.Position.Value, this.PositionCondition);
+                var pos = this.Position.Value;
+
+                if (this.ForceMainWindow)
+                    pos += ImGuiHelpers.MainWindowPos;
+
+                ImGui.SetNextWindowPos(pos, this.PositionCondition);
             }
 
             if (this.Size.HasValue)
             {
-                ImGui.SetNextWindowPos(this.Size.Value * ImGuiHelpers.GlobalScale, this.SizeCondition);
+                ImGui.SetNextWindowSize(this.Size.Value * ImGuiHelpers.GlobalScale, this.SizeCondition);
             }
 
             if (this.Collapsed.HasValue)
@@ -163,6 +197,11 @@ namespace Dalamud.Interface.Windowing
             if (this.SizeConstraintsMin.HasValue && this.SizeConstraintsMax.HasValue)
             {
                 ImGui.SetNextWindowSizeConstraints(this.SizeConstraintsMin.Value * ImGuiHelpers.GlobalScale, this.SizeConstraintsMax.Value * ImGuiHelpers.GlobalScale);
+            }
+
+            if (this.BgAlpha.HasValue)
+            {
+                ImGui.SetNextWindowBgAlpha(this.BgAlpha.Value);
             }
         }
     }
