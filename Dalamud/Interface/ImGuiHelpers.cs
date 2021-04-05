@@ -1,3 +1,4 @@
+using System.Numerics;
 using ImGuiNET;
 
 namespace Dalamud.Interface
@@ -8,6 +9,11 @@ namespace Dalamud.Interface
     public static class ImGuiHelpers
     {
         private static uint mainViewportId;
+
+        /// <summary>
+        /// Gets the global Dalamud scale.
+        /// </summary>
+        public static float GlobalScale { get; private set; }
 
         /// <summary>
         /// Force this ImGui window to stay inside the main game window.
@@ -24,6 +30,28 @@ namespace Dalamud.Interface
                 mainViewportId = ImGui.GetMainViewport().ID;
 
             return mainViewportId;
+        }
+
+        /// <summary>
+        /// Create a dummy scaled by the global Dalamud scale.
+        /// </summary>
+        /// <param name="size">The size of the dummy.</param>
+        public static void ScaledDummy(Vector2 size) => ImGui.Dummy(size * GlobalScale);
+
+        /// <summary>
+        /// Use a relative ImGui.SameLine() from your current cursor position, scaled by the Dalamud global scale.
+        /// </summary>
+        /// <param name="offset">The offset from your current cursor position.</param>
+        /// <param name="spacing">The spacing to use.</param>
+        public static void ScaledRelativeSameLine(float offset, float spacing = -1.0f) =>
+            ImGui.SameLine(ImGui.GetCursorPosX() + (offset * GlobalScale));
+
+        /// <summary>
+        /// Get data needed for each new frame.
+        /// </summary>
+        internal static void NewFrame()
+        {
+            GlobalScale = ImGui.GetIO().FontGlobalScale;
         }
     }
 }
