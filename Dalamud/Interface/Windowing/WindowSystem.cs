@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using ImGuiNET;
+using Serilog;
 
 namespace Dalamud.Interface.Windowing
 {
@@ -68,6 +69,10 @@ namespace Dalamud.Interface.Windowing
 
             foreach (var window in this.windows)
             {
+#if DEBUG
+                //Log.Verbose($"[WS{(hasNamespace ? "/" + this.Namespace : string.Empty)}] Drawing {window.WindowName}");
+#endif
+
                 window.DrawInternal();
             }
 
