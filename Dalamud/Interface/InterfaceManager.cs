@@ -267,6 +267,8 @@ namespace Dalamud.Interface
 
                 ImGui.GetIO().FontGlobalScale = this.dalamud.Configuration.GlobalUiScale;
                 ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.DockingEnable;
+
+                ImGuiHelpers.MainViewport = ImGui.GetMainViewport();
             }
 
             // Process information needed by ImGuiHelpers each frame.

@@ -9,7 +9,10 @@ namespace Dalamud.Interface
     /// </summary>
     public static class ImGuiHelpers
     {
-        private static uint mainViewportId;
+        /// <summary>
+        /// Gets the main viewport.
+        /// </summary>
+        public static ImGuiViewportPtr MainViewport { get; internal set; }
 
         /// <summary>
         /// Gets the global Dalamud scale.
@@ -19,21 +22,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// Force this ImGui window to stay inside the main game window.
         /// </summary>
-        public static void ForceMainWindow() => ImGui.SetNextWindowViewport(GetMainViewportId());
-
-        /// <summary>
-        /// Get the ID of the main game window viewport.
-        /// </summary>
-        /// <returns>The ID of the main game window viewport.</returns>
-        public static uint GetMainViewportId()
-        {
-            if (mainViewportId == 0)
-                mainViewportId = ImGui.GetMainViewport().ID;
-
-            return mainViewportId;
-        }
-
-        public static Vector2 MainWindowPos { get; set; }
+        public static void ForceMainWindow() => ImGui.SetNextWindowViewport(MainViewport.ID);
 
         /// <summary>
         /// Create a dummy scaled by the global Dalamud scale.
@@ -55,7 +44,6 @@ namespace Dalamud.Interface
         internal static void NewFrame()
         {
             GlobalScale = ImGui.GetIO().FontGlobalScale;
-            MainWindowPos = ImGui.GetMainViewport().Pos;
         }
     }
 }
