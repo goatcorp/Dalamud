@@ -2,6 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Hooking;
+using Dalamud.Interface;
 using ImGuiNET;
 using Serilog;
 using SharpDX;
@@ -290,7 +291,7 @@ namespace Dalamud.Game.Internal.Gui {
             // Read current ViewProjectionMatrix plus game window size
             var viewProjectionMatrix = new Matrix();
             float width, height;
-            var windowPos = ImGui.GetMainViewport().Pos;
+            var windowPos = ImGuiHelpers.MainViewport.Pos;
 
             unsafe {
                 var rawMatrix = (float*) (matrixSingleton + 0x1b4).ToPointer();
@@ -325,8 +326,8 @@ namespace Dalamud.Game.Internal.Gui {
         {
             // The game is only visible in the main viewport, so if the cursor is outside
             // of the game window, do not bother calculating anything
-            var windowPos = ImGui.GetMainViewport().Pos;
-            var windowSize = ImGui.GetMainViewport().Size;
+            var windowPos = ImGuiHelpers.MainViewport.Pos;
+            var windowSize = ImGuiHelpers.MainViewport.Size;
 
             if (screenPos.X < windowPos.X || screenPos.X > windowPos.X + windowSize.X ||
                 screenPos.Y < windowPos.Y || screenPos.Y > windowPos.Y + windowSize.Y)
