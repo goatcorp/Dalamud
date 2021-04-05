@@ -269,6 +269,9 @@ namespace Dalamud.Interface
                 ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.DockingEnable;
             }
 
+            // Process information needed by ImGuiHelpers each frame.
+            ImGuiHelpers.NewFrame();
+
             this.scene.Render();
 
             return this.presentHook.Original(swapChain, syncInterval, presentFlags);
