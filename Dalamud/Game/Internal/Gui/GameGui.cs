@@ -354,9 +354,10 @@ namespace Dalamud.Game.Internal.Gui {
 
             viewProjectionMatrix.Invert();
 
+            var localScreenPos = new Vector2(screenPos.X - windowPos.X, screenPos.Y - windowPos.Y);
             var screenPos3D = new Vector3 {
-                X = screenPos.X / width * 2.0f - 1.0f,
-                Y = -(screenPos.Y / height * 2.0f - 1.0f),
+                X = localScreenPos.X / width * 2.0f - 1.0f,
+                Y = -(localScreenPos.Y / height * 2.0f - 1.0f),
                 Z = 0
             };
 
