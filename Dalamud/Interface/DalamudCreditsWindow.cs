@@ -178,7 +178,6 @@ Thank you for using XIVLauncher and Dalamud!
 
             if (curY < maxY - 1)
             {
-                Log.Information($"{ImGui.GetScrollY()} {ImGui.GetScrollMaxY()}");
                 ImGui.SetScrollY(curY + 1);
             }
 
