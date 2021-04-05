@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 using CheapLoc;
+using Dalamud.Interface.Components;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
 using ImGuiNET;
@@ -39,6 +40,7 @@ namespace Dalamud.Interface
         private readonly PluginInstallerWindow pluginWindow;
         private readonly DalamudPluginStatWindow pluginStatWindow;
         private readonly DalamudChangelogWindow changelogWindow;
+        private readonly ComponentDemoWindow componentDemoWindow;
 
         private readonly WindowSystem windowSystem = new WindowSystem("DalamudCore");
 
@@ -91,6 +93,12 @@ namespace Dalamud.Interface
                 IsOpen = false,
             };
             this.windowSystem.AddWindow(this.changelogWindow);
+
+            this.componentDemoWindow = new ComponentDemoWindow()
+            {
+                IsOpen = false,
+            };
+            this.windowSystem.AddWindow(this.componentDemoWindow);
 
             Log.Information("[DUI] Windows added");
 
@@ -193,6 +201,11 @@ namespace Dalamud.Interface
                         if (ImGui.MenuItem("Open Changelog window"))
                         {
                             this.OpenChangelog();
+                        }
+
+                        if (ImGui.MenuItem("Open Components Demo"))
+                        {
+                            this.OpenComponentDemo();
                         }
 
                         ImGui.MenuItem("Draw ImGui demo", string.Empty, ref this.isImguiDrawDemoWindow);
@@ -385,6 +398,14 @@ namespace Dalamud.Interface
         internal void OpenPluginStats()
         {
             this.pluginStatWindow.IsOpen ^= true;
+        }
+
+        /// <summary>
+        /// Open the component test window.
+        /// </summary>
+        internal void OpenComponentDemo()
+        {
+            this.componentDemoWindow.IsOpen ^= true;
         }
 
         public void Dispose()
