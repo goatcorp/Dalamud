@@ -164,11 +164,16 @@ namespace Dalamud.Game.Internal {
 
         private IntPtr HandleFrameworkDestroy() {
             Log.Information("Framework::OnDestroy!");
+
+            // Store the pointer to the original trampoline location
+            var originalPtr = Marshal.GetFunctionPointerForDelegate(this.destroyHook.Original);
+
             this.dalamud.Unload();
 
             this.dalamud.WaitForUnloadFinish();
 
-            return this.destroyHook.Original();
+            // Return the original trampoline location to cleanly exit
+            return originalPtr;
         }
     }
 }
