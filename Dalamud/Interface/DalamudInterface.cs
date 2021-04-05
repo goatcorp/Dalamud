@@ -23,16 +23,6 @@ namespace Dalamud.Interface
     {
         private readonly Dalamud dalamud;
 
-        private ulong frameCount = 0;
-
-        private bool isImguiDrawDemoWindow = false;
-
-#if DEBUG
-        private bool isImguiDrawDevMenu = true;
-#else
-        private bool isImguiDrawDevMenu = false;
-#endif
-
         private readonly DalamudLogWindow logWindow;
         private readonly DalamudDataWindow dataWindow;
         private readonly DalamudCreditsWindow creditsWindow;
@@ -43,6 +33,16 @@ namespace Dalamud.Interface
         private readonly ComponentDemoWindow componentDemoWindow;
 
         private readonly WindowSystem windowSystem = new WindowSystem("DalamudCore");
+
+        private ulong frameCount = 0;
+
+        private bool isImguiDrawDemoWindow = false;
+
+#if DEBUG
+        private bool isImguiDrawDevMenu = true;
+#else
+        private bool isImguiDrawDevMenu = false;
+#endif
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DalamudInterface"/> class.
@@ -261,7 +261,7 @@ namespace Dalamud.Interface
 
                         if (ImGui.MenuItem("Open Plugin Stats"))
                         {
-                            OpenPluginStats();
+                            this.OpenPluginStats();
                         }
 
                         if (ImGui.MenuItem("Print plugin info"))
@@ -345,6 +345,18 @@ namespace Dalamud.Interface
         }
 
         /// <summary>
+        /// Dispose the window system and all windows that require it.
+        /// </summary>
+        public void Dispose()
+        {
+            this.windowSystem.RemoveAllWindows();
+
+            this.dalamud?.Dispose();
+            this.logWindow?.Dispose();
+            this.creditsWindow?.Dispose();
+        }
+
+        /// <summary>
         /// Open the Plugin Installer window.
         /// </summary>
         internal void OpenPluginInstaller()
@@ -406,15 +418,6 @@ namespace Dalamud.Interface
         internal void OpenComponentDemo()
         {
             this.componentDemoWindow.IsOpen ^= true;
-        }
-
-        public void Dispose()
-        {
-            this.windowSystem.RemoveAllWindows();
-
-            this.dalamud?.Dispose();
-            this.logWindow?.Dispose();
-            this.creditsWindow?.Dispose();
         }
     }
 }
