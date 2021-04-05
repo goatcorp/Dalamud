@@ -9,7 +9,8 @@ namespace Dalamud.Interface.Windowing
     /// </summary>
     public abstract class Window
     {
-        private bool internalIsOpen;
+        private bool internalLastIsOpen = false;
+        private bool internalIsOpen = false;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Window"/> class.
@@ -100,6 +101,16 @@ namespace Dalamud.Interface.Windowing
         public abstract void Draw();
 
         /// <summary>
+        /// Code to be executed when the window is opened.
+        /// </summary>
+        public virtual void OnOpen() { }
+
+        /// <summary>
+        /// Code to be executed when the window is closed.
+        /// </summary>
+        public virtual void OnClose() { }
+
+        /// <summary>
         /// Draw the window via ImGui.
         /// </summary>
         internal void DrawInternal()
@@ -116,6 +127,20 @@ namespace Dalamud.Interface.Windowing
 
                 ImGui.End();
             }
+
+            if (this.internalLastIsOpen != this.internalIsOpen)
+            {
+                if (this.internalIsOpen)
+                {
+                    this.OnOpen();
+                }
+                else
+                {
+                    this.OnClose();
+                }
+            }
+
+            this.internalLastIsOpen = this.internalIsOpen;
         }
 
         private void ApplyConditionals()
@@ -127,7 +152,7 @@ namespace Dalamud.Interface.Windowing
 
             if (this.Size.HasValue)
             {
-                ImGui.SetNextWindowPos(this.Size.Value, this.SizeCondition);
+                ImGui.SetNextWindowPos(this.Size.Value * ImGuiHelpers.GlobalScale, this.SizeCondition);
             }
 
             if (this.Collapsed.HasValue)
@@ -137,7 +162,7 @@ namespace Dalamud.Interface.Windowing
 
             if (this.SizeConstraintsMin.HasValue && this.SizeConstraintsMax.HasValue)
             {
-                ImGui.SetNextWindowSizeConstraints(this.SizeConstraintsMin.Value, this.SizeConstraintsMax.Value);
+                ImGui.SetNextWindowSizeConstraints(this.SizeConstraintsMin.Value * ImGuiHelpers.GlobalScale, this.SizeConstraintsMax.Value * ImGuiHelpers.GlobalScale);
             }
         }
     }
