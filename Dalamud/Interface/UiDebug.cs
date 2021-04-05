@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
@@ -512,7 +512,10 @@ namespace Dalamud.Interface {
             var size = new Vector2(node->Width, node->Height) * scale;
             
             var nodeVisible = GetNodeVisible(node);
-            ImGui.GetForegroundDrawList().AddRect(position, position + size, nodeVisible ? 0xFF00FF00 : 0xFF0000FF);
+
+            position += ImGuiHelpers.MainViewport.Pos;
+
+            ImGui.GetForegroundDrawList(ImGuiHelpers.MainViewport).AddRect(position, position + size, nodeVisible ? 0xFF00FF00 : 0xFF0000FF);
         }
         
         private static void ClickToCopyText(string text, string textCopy = null) {
