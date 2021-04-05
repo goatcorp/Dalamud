@@ -52,6 +52,11 @@ namespace Dalamud.Interface.Windowing
         }
 
         /// <summary>
+        /// Remove all windows from this <see cref="WindowSystem"/>.
+        /// </summary>
+        public void RemoveAllWindows() => this.windows.Clear();
+
+        /// <summary>
         /// Draw all registered windows using ImGui.
         /// </summary>
         public void Draw()
