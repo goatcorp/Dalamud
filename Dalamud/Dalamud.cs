@@ -231,17 +231,12 @@ namespace Dalamud
 
                 Log.Verbose("[START] PREPO OK!");
 
-                this.DalamudUi = new DalamudInterface(this);
-
-                Log.Verbose("[START] DUI OK!");
-
                 var isInterfaceLoaded = false;
                 if (!bool.Parse(Environment.GetEnvironmentVariable("DALAMUD_NOT_HAVE_INTERFACE") ?? "false"))
                 {
                     try
                     {
                         this.InterfaceManager = new InterfaceManager(this, this.SigScanner);
-                        this.InterfaceManager.OnDraw += this.DalamudUi.Draw;
 
                         this.InterfaceManager.Enable();
                         isInterfaceLoaded = true;
@@ -313,6 +308,11 @@ namespace Dalamud
                 this.ClientState.Enable();
                 Log.Verbose("[START] CS ENABLE!");
 
+                this.DalamudUi = new DalamudInterface(this);
+                this.InterfaceManager.OnDraw += this.DalamudUi.Draw;
+
+                Log.Verbose("[START] DUI OK!");
+
                 this.IsReady = true;
 
                 Troubleshooting.LogTroubleshooting(this, isInterfaceLoaded);
@@ -373,18 +373,20 @@ namespace Dalamud
                     Log.Error(ex, "Plugin unload failed.");
                 }
 
-                this.Framework.Dispose();
-                this.ClientState.Dispose();
+                this.DalamudUi?.Dispose();
 
-                this.unloadSignal.Dispose();
+                this.Framework?.Dispose();
+                this.ClientState?.Dispose();
 
-                this.WinSock2.Dispose();
+                this.unloadSignal?.Dispose();
 
-                this.SigScanner.Dispose();
+                this.WinSock2?.Dispose();
 
-                this.Data.Dispose();
+                this.SigScanner?.Dispose();
 
-                this.AntiDebug.Dispose();
+                this.Data?.Dispose();
+
+                this.AntiDebug?.Dispose();
 
                 Log.Debug("Dalamud::Dispose() OK!");
             }

@@ -8,15 +8,22 @@ using System.Windows.Forms.VisualStyles;
 using CheapLoc;
 using Dalamud.Configuration;
 using Dalamud.Game.Text;
+using Dalamud.Interface.Windowing;
 using ImGuiNET;
+using Serilog;
 
 namespace Dalamud.Interface
 {
-    internal class DalamudSettingsWindow {
+    internal class DalamudSettingsWindow : Window {
         private readonly Dalamud dalamud;
 
-        public DalamudSettingsWindow(Dalamud dalamud) {
+        public DalamudSettingsWindow(Dalamud dalamud) 
+            : base(Loc.Localize("DalamudSettingsHeader", "Dalamud Settings") + "###XlSettings2", ImGuiWindowFlags.NoCollapse)
+        {
             this.dalamud = dalamud;
+
+            this.Size = new Vector2(740, 500);
+            this.SizeCondition = ImGuiCond.FirstUseEver;
 
             this.dalamudMessagesChatType = this.dalamud.Configuration.GeneralChatType;
 
@@ -35,8 +42,10 @@ namespace Dalamud.Interface
             this.autoUpdatePlugins = this.dalamud.Configuration.AutoUpdatePlugins;
 
             this.languages = Localization.ApplicableLangCodes.Prepend("en").ToArray();
-            try {
-                if (string.IsNullOrEmpty(this.dalamud.Configuration.LanguageOverride)) {
+            try
+            {
+                if (string.IsNullOrEmpty(this.dalamud.Configuration.LanguageOverride))
+                {
                     var currentUiLang = CultureInfo.CurrentUICulture;
 
                     if (Localization.ApplicableLangCodes.Any(x => currentUiLang.TwoLetterISOLanguageName == x))
@@ -44,29 +53,60 @@ namespace Dalamud.Interface
                     else
                         this.langIndex = 0;
                 }
-                else {
+                else
+                {
                     this.langIndex = Array.IndexOf(this.languages, this.dalamud.Configuration.LanguageOverride);
                 }
-            } catch (Exception) {
+            }
+            catch (Exception)
+            {
                 this.langIndex = 0;
             }
 
-            try {
+            try
+            {
                 List<string> locLanguagesList = new List<string>();
                 string locLanguage;
-                foreach (var language in this.languages) {
-                    if (language != "ko") {
+                foreach (var language in this.languages)
+                {
+                    if (language != "ko")
+                    {
                         locLanguage = CultureInfo.GetCultureInfo(language).NativeName;
                         locLanguagesList.Add(char.ToUpper(locLanguage[0]) + locLanguage.Substring(1));
-                    } else {
+                    }
+                    else
+                    {
                         locLanguagesList.Add("Korean");
                     }
                 }
                 this.locLanguages = locLanguagesList.ToArray();
             }
-            catch (Exception) {
+            catch (Exception)
+            {
                 this.locLanguages = this.languages; // Languages not localized, only codes.
             }
+        }
+
+        public override void OnOpen()
+        {
+            base.OnOpen();
+
+            Log.Information("OnOpen start");
+
+            Log.Information("OnOpen end");
+        }
+
+        public override void OnClose()
+        {
+            base.OnClose();
+
+            Log.Information("OnClose start");
+
+            ImGui.GetIO().FontGlobalScale = this.dalamud.Configuration.GlobalUiScale;
+            this.thirdRepoList = this.dalamud.Configuration.ThirdRepoList.Select(x => x.Clone()).ToList();
+
+            Log.Information("OnClose end");
+
         }
 
         private string[] languages;
@@ -100,16 +140,7 @@ namespace Dalamud.Interface
 
         #endregion
 
-        public bool Draw() {
-            ImGui.SetNextWindowSize(new Vector2(740, 500) * ImGui.GetIO().FontGlobalScale, ImGuiCond.FirstUseEver);
-
-            var isOpen = true;
-
-            if (!ImGui.Begin(Loc.Localize("DalamudSettingsHeader", "Dalamud Settings") + "###XlSettings2", ref isOpen, ImGuiWindowFlags.NoCollapse)) {
-                ImGui.End();
-                return false;
-            }
-
+        public override void Draw() {
             var windowSize = ImGui.GetWindowSize();
             ImGui.BeginChild("scrolling", new Vector2(windowSize.X - 5 - (5 * ImGui.GetIO().FontGlobalScale), windowSize.Y - 35 - (35 * ImGui.GetIO().FontGlobalScale)), false, ImGuiWindowFlags.HorizontalScrollbar);
 
@@ -299,22 +330,16 @@ namespace Dalamud.Interface
 
             ImGui.EndChild();
 
-            if (!isOpen) {
-                ImGui.GetIO().FontGlobalScale = this.dalamud.Configuration.GlobalUiScale;
-                this.thirdRepoList = this.dalamud.Configuration.ThirdRepoList.Select(x => x.Clone()).ToList();
-            }
             if (ImGui.Button(Loc.Localize("Save", "Save"))) {
                 Save();
             }
+
             ImGui.SameLine();
+
             if (ImGui.Button(Loc.Localize("SaveAndClose", "Save and Close"))) {
                 Save();
-                isOpen = false;
+                this.IsOpen = false;
             }
-
-            ImGui.End();
-
-            return isOpen;
         }
 
         private void Save() {

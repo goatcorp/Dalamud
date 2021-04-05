@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 using CheapLoc;
 using Dalamud.Interface;
+using Dalamud.Interface.Windowing;
 using ImGuiNET;
 using Serilog;
 
@@ -15,7 +16,7 @@ namespace Dalamud.Plugin
     /// <summary>
     /// Class responsible for drawing the plugin installer.
     /// </summary>
-    internal class PluginInstallerWindow
+    internal class PluginInstallerWindow : Window
     {
         private readonly Dalamud dalamud;
         private readonly Vector4 colorGrey = new Vector4(0.70f, 0.70f, 0.70f, 1.00f);
@@ -45,9 +46,15 @@ namespace Dalamud.Plugin
         /// <param name="dalamud">The relevant Dalamud instance.</param>
         /// <param name="gameVersion">The version of the game.</param>
         public PluginInstallerWindow(Dalamud dalamud, string gameVersion)
+            : base(
+                Loc.Localize("InstallerHeader", "Plugin Installer") + (dalamud.Configuration.DoPluginTest ? " (TESTING)" : string.Empty) + "###XlPluginInstaller",
+                ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar)
         {
             this.dalamud = dalamud;
             this.gameVersion = gameVersion;
+
+            this.Size = new Vector2(810, 520);
+            this.SizeCondition = ImGuiCond.Always;
 
             if (this.dalamud.PluginRepository.State != PluginRepository.InitializationState.InProgress)
                 this.dalamud.PluginRepository.ReloadPluginMasterAsync();
@@ -71,18 +78,8 @@ namespace Dalamud.Plugin
         /// <summary>
         /// Draw the plugin installer view ImGui.
         /// </summary>
-        /// <returns>Whether or not the plugin installer window is open.</returns>
-        public bool Draw()
+        public override void Draw()
         {
-            var windowOpen = true;
-
-            ImGui.SetNextWindowSize(new Vector2(810, 520) * ImGui.GetIO().FontGlobalScale);
-
-            ImGui.Begin(
-                Loc.Localize("InstallerHeader", "Plugin Installer") + (this.dalamud.Configuration.DoPluginTest ? " (TESTING)" : string.Empty) + "###XlPluginInstaller",
-                ref windowOpen,
-                ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar);
-
             ImGui.SetCursorPosY(ImGui.GetCursorPosY() - (5 * ImGui.GetIO().FontGlobalScale));
             var descriptionText = Loc.Localize("InstallerHint", "This window allows you to install and remove in-game plugins.\nThey are made by third-party developers.");
             ImGui.Text(descriptionText);
@@ -224,7 +221,7 @@ namespace Dalamud.Plugin
             ImGui.SameLine(ImGui.GetWindowWidth() - ImGui.CalcTextSize(closeText).X - (16 * ImGui.GetIO().FontGlobalScale));
             if (ImGui.Button(closeText))
             {
-                windowOpen = false;
+                this.IsOpen = false;
                 this.dalamud.Configuration.Save();
             }
 
@@ -269,10 +266,6 @@ namespace Dalamud.Plugin
                 ImGui.OpenPopup(Loc.Localize("InstallerError", "Installer failed"));
                 this.errorModalOnNextFrame = false;
             }
-
-            ImGui.End();
-
-            return windowOpen;
         }
 
         private void RefetchPlugins()

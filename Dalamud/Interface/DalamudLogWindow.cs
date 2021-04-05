@@ -7,13 +7,14 @@ using System.Threading.Tasks;
 
 using Dalamud.Configuration;
 using Dalamud.Game.Command;
+using Dalamud.Interface.Windowing;
 using ImGuiNET;
 using Serilog;
 using Serilog.Events;
 
 namespace Dalamud.Interface
 {
-    class DalamudLogWindow : IDisposable {
+    class DalamudLogWindow : Window, IDisposable {
         private readonly CommandManager commandManager;
         private readonly DalamudConfiguration configuration;
         private bool autoScroll;
@@ -24,12 +25,17 @@ namespace Dalamud.Interface
 
         private string commandText = string.Empty;
 
-        public DalamudLogWindow(CommandManager commandManager, DalamudConfiguration configuration) {
+        public DalamudLogWindow(CommandManager commandManager, DalamudConfiguration configuration)
+            : base("Dalamud LOG")
+        {
             this.commandManager = commandManager;
             this.configuration = configuration;
             this.autoScroll = configuration.LogAutoScroll;
             this.openAtStartup = configuration.LogOpenAtStartup;
             SerilogEventSink.Instance.OnLogLine += Serilog_OnLogLine;
+
+            this.Size = new Vector2(500, 400);
+            this.SizeCondition = ImGuiCond.FirstUseEver;
         }
 
         public void Dispose() {
@@ -64,17 +70,7 @@ namespace Dalamud.Interface
             }
         }
 
-        public bool Draw() {
-            ImGui.SetNextWindowSize(new Vector2(500, 400), ImGuiCond.FirstUseEver);
-
-            var isOpen = true;
-
-            if (!ImGui.Begin("Dalamud LOG", ref isOpen, ImGuiWindowFlags.NoCollapse))
-            {
-                ImGui.End();
-                return false;
-            }
-
+        public override void Draw() {
             // Options menu
             if (ImGui.BeginPopup("Options"))
             {
@@ -130,9 +126,6 @@ namespace Dalamud.Interface
                 ImGui.SetScrollHereY(1.0f);
 
             ImGui.EndChild();
-            ImGui.End();
-
-            return isOpen;
         }
     }
 }

@@ -11,6 +11,7 @@ using Dalamud.Game.ClientState.Actors.Types.NonPlayer;
 using Dalamud.Game.ClientState.Structs.JobGauge;
 using Dalamud.Game.Internal;
 using Dalamud.Game.Internal.Gui.Addon;
+using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
 using ImGuiNET;
 using Newtonsoft.Json;
@@ -21,7 +22,7 @@ namespace Dalamud.Interface
     /// <summary>
     /// Class responsible for drawing the data/debug window.
     /// </summary>
-    internal class DalamudDataWindow
+    internal class DalamudDataWindow : Window
     {
         private readonly Dalamud dalamud;
 
@@ -53,8 +54,12 @@ namespace Dalamud.Interface
         /// </summary>
         /// <param name="dalamud">The Dalamud instance to access data of.</param>
         public DalamudDataWindow(Dalamud dalamud)
+            : base("Dalamud Data")
         {
             this.dalamud = dalamud;
+
+            this.Size = new Vector2(500, 500);
+            this.SizeCondition = ImGuiCond.FirstUseEver;
 
             this.Load();
         }
@@ -62,15 +67,9 @@ namespace Dalamud.Interface
         /// <summary>
         /// Draw the window via ImGui.
         /// </summary>
-        /// <returns>Whether or not the window is open.</returns>
-        public bool Draw()
+        public override void Draw()
         {
             this.copyButtonIndex = 0;
-            ImGui.SetNextWindowSize(new Vector2(500, 500), ImGuiCond.FirstUseEver);
-
-            var isOpen = true;
-
-            ImGui.Begin("Dalamud Data", ref isOpen);
 
             // Main window
             if (ImGui.Button("Force Reload"))
@@ -285,9 +284,6 @@ namespace Dalamud.Interface
             ImGui.PopStyleVar();
 
             ImGui.EndChild();
-            ImGui.End();
-
-            return isOpen;
         }
 
         private void DrawActorTable() {

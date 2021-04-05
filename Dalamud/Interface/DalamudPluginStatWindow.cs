@@ -3,23 +3,23 @@ using System.Linq;
 using System.Reflection;
 using Dalamud.Game.Internal;
 using Dalamud.Hooking;
+using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
 using ImGuiNET;
 
 namespace Dalamud.Interface {
-    internal class DalamudPluginStatWindow : IDisposable {
+    internal class DalamudPluginStatWindow : Window {
 
         private readonly PluginManager pluginManager;
         private bool showDalamudHooks;
 
-        public DalamudPluginStatWindow(PluginManager pluginManager) {
+        public DalamudPluginStatWindow(PluginManager pluginManager) 
+            : base("Plugin Statistics###DalamudPluginStatWindow")
+        {
             this.pluginManager = pluginManager;
         }
 
-        public bool Draw() {
-            bool doDraw = true;
-            ImGui.PushID("DalamudPluginStatWindow");
-            ImGui.Begin("Plugin Statistics", ref doDraw);
+        public override void Draw() {
             ImGui.BeginTabBar("Stat Tabs");
 
             if (ImGui.BeginTabItem("Draw times")) {
@@ -188,15 +188,6 @@ namespace Dalamud.Interface {
             }
 
             ImGui.EndTabBar();
-
-            ImGui.End();
-            ImGui.PopID();
-
-            return doDraw;
-        }
-
-        public void Dispose() {
-
         }
     }
 }

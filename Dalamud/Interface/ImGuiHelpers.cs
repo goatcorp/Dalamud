@@ -1,5 +1,6 @@
 using System.Numerics;
 using ImGuiNET;
+using Serilog;
 
 namespace Dalamud.Interface
 {
@@ -32,6 +33,8 @@ namespace Dalamud.Interface
             return mainViewportId;
         }
 
+        public static Vector2 MainWindowPos { get; set; }
+
         /// <summary>
         /// Create a dummy scaled by the global Dalamud scale.
         /// </summary>
@@ -52,6 +55,7 @@ namespace Dalamud.Interface
         internal static void NewFrame()
         {
             GlobalScale = ImGui.GetIO().FontGlobalScale;
+            MainWindowPos = ImGui.GetMainViewport().Pos;
         }
     }
 }
