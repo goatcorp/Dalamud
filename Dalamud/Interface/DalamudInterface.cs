@@ -361,7 +361,7 @@ namespace Dalamud.Interface
         /// </summary>
         internal void OpenPluginInstaller()
         {
-            this.pluginWindow.IsOpen ^= true;
+            this.pluginWindow.IsOpen = true;
         }
 
         /// <summary>
@@ -369,7 +369,7 @@ namespace Dalamud.Interface
         /// </summary>
         internal void OpenChangelog()
         {
-            this.changelogWindow.IsOpen ^= true;
+            this.changelogWindow.IsOpen = true;
         }
 
         /// <summary>
@@ -377,7 +377,7 @@ namespace Dalamud.Interface
         /// </summary>
         internal void OpenSettings()
         {
-            this.settingsWindow.IsOpen ^= true;
+            this.settingsWindow.IsOpen = true;
         }
 
         /// <summary>
@@ -385,7 +385,7 @@ namespace Dalamud.Interface
         /// </summary>
         internal void OpenLog()
         {
-            this.logWindow.IsOpen ^= true;
+            this.logWindow.IsOpen = true;
         }
 
         /// <summary>
@@ -393,7 +393,7 @@ namespace Dalamud.Interface
         /// </summary>
         internal void OpenData()
         {
-            this.dataWindow.IsOpen ^= true;
+            this.dataWindow.IsOpen = true;
         }
 
         /// <summary>
@@ -401,7 +401,7 @@ namespace Dalamud.Interface
         /// </summary>
         internal void OpenCredits()
         {
-            this.creditsWindow.IsOpen ^= true;
+            this.creditsWindow.IsOpen = true;
         }
 
         /// <summary>
@@ -409,13 +409,77 @@ namespace Dalamud.Interface
         /// </summary>
         internal void OpenPluginStats()
         {
-            this.pluginStatWindow.IsOpen ^= true;
+            this.pluginStatWindow.IsOpen = true;
         }
 
         /// <summary>
         /// Open the component test window.
         /// </summary>
         internal void OpenComponentDemo()
+        {
+            this.componentDemoWindow.IsOpen = true;
+        }
+
+        /// <summary>
+        /// Toggle the Plugin Installer window.
+        /// </summary>
+        internal void TogglePluginInstaller()
+        {
+            this.pluginWindow.IsOpen ^= true;
+        }
+
+        /// <summary>
+        /// Toggle the changelog window.
+        /// </summary>
+        internal void ToggleChangelog()
+        {
+            this.changelogWindow.IsOpen ^= true;
+        }
+
+        /// <summary>
+        /// Toggle the settings window.
+        /// </summary>
+        internal void ToggleSettings()
+        {
+            this.settingsWindow.IsOpen ^= true;
+        }
+
+        /// <summary>
+        /// Toggle the log window.
+        /// </summary>
+        internal void ToggleLog()
+        {
+            this.logWindow.IsOpen ^= true;
+        }
+
+        /// <summary>
+        /// Toggle the data window.
+        /// </summary>
+        internal void ToggleData()
+        {
+            this.dataWindow.IsOpen ^= true;
+        }
+
+        /// <summary>
+        /// Toggle the credits window.
+        /// </summary>
+        internal void ToggleCredits()
+        {
+            this.creditsWindow.IsOpen ^= true;
+        }
+
+        /// <summary>
+        /// Toggle the stats window.
+        /// </summary>
+        internal void TogglePluginStats()
+        {
+            this.pluginStatWindow.IsOpen ^= true;
+        }
+
+        /// <summary>
+        /// Toggle the component test window.
+        /// </summary>
+        internal void ToggleComponentDemo()
         {
             this.componentDemoWindow.IsOpen ^= true;
         }
