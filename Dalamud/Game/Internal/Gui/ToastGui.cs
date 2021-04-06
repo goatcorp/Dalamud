@@ -107,6 +107,11 @@ namespace Dalamud.Game.Internal.Gui
 
         private IntPtr HandleToastDetour(IntPtr manager, IntPtr text, int layer, byte bool1, byte bool2, int logMessageId)
         {
+            if (text == IntPtr.Zero)
+            {
+                return IntPtr.Zero;
+            }
+
             // get the message as an sestring
             var bytes = new List<byte>();
             unsafe
