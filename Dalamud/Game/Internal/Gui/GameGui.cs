@@ -418,6 +418,10 @@ namespace Dalamud.Game.Internal.Gui {
             return this.toggleUiHideHook.Original(thisPtr, unknownByte);
         }
 
+        /// <summary>
+        /// Gets a pointer to the game's UI module.
+        /// </summary>
+        /// <returns>IntPtr pointing to UI module</returns>
         public IntPtr GetUIModule()
         {
             return this.getUiModule(Marshal.ReadIntPtr(Address.GetUIModulePtr));

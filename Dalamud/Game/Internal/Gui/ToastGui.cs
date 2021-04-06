@@ -25,11 +25,19 @@ namespace Dalamud.Game.Internal.Gui
             this.showToast = Marshal.GetDelegateForFunctionPointer<ShowToastDelegate>(Address.ShowToast);
         }
 
+        /// <summary>
+        /// Show a toast message with the given content.
+        /// </summary>
+        /// <param name="message">The message to be shown</param>
         public void Show(string message)
         {
             this.Show(Encoding.UTF8.GetBytes(message));
         }
 
+        /// <summary>
+        /// Show a toast message with the given content.
+        /// </summary>
+        /// <param name="message">The message to be shown</param>
         public void Show(SeString message)
         {
             this.Show(message.Encode());
