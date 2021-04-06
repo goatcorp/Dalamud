@@ -28,42 +28,42 @@ namespace Dalamud.Game.ClientState.Actors.Types {
         /// <summary>
         ///     The current HP of this Chara.
         /// </summary>
-        public int CurrentHp => *(int*)(this.Address + ActorOffsets.CurrentHp);
+        public uint CurrentHp => *(uint*)(this.Address + ActorOffsets.CurrentHp);
 
         /// <summary>
         ///     The maximum HP of this Chara.
         /// </summary>
-        public int MaxHp => *(int*)(this.Address + ActorOffsets.MaxHp);
+        public uint MaxHp => *(uint*)(this.Address + ActorOffsets.MaxHp);
 
         /// <summary>
         ///     The current MP of this Chara.
         /// </summary>
-        public int CurrentMp => *(int*)(this.Address + ActorOffsets.CurrentMp);
+        public uint CurrentMp => *(uint*)(this.Address + ActorOffsets.CurrentMp);
 
         /// <summary>
         ///     The maximum MP of this Chara.
         /// </summary>
-        public int MaxMp => *(int*)(this.Address + ActorOffsets.MaxMp);
+        public uint MaxMp => *(uint*)(this.Address + ActorOffsets.MaxMp);
 
         /// <summary>
         ///     The current GP of this Chara.
         /// </summary>
-        public int CurrentGp => *(int*)(this.Address + ActorOffsets.CurrentGp);
+        public uint CurrentGp => *(uint*)(this.Address + ActorOffsets.CurrentGp);
 
         /// <summary>
         ///     The maximum GP of this Chara.
         /// </summary>
-        public int MaxGp => *(int*)(this.Address + ActorOffsets.MaxGp);
+        public uint MaxGp => *(uint*)(this.Address + ActorOffsets.MaxGp);
 
         /// <summary>
         ///     The current CP of this Chara.
         /// </summary>
-        public int CurrentCp => *(int*)(this.Address + ActorOffsets.CurrentCp);
+        public uint CurrentCp => *(uint*)(this.Address + ActorOffsets.CurrentCp);
 
         /// <summary>
         ///     The maximum CP of this Chara.
         /// </summary>
-        public int MaxCp => *(int*)(this.Address + ActorOffsets.MaxCp);
+        public uint MaxCp => *(uint*)(this.Address + ActorOffsets.MaxCp);
 
         /// <summary>
         /// Byte array describing the visual appearance of this Chara. Indexed by <see cref="CustomizeIndex"/>.

@@ -17,13 +17,13 @@ namespace Dalamud.Game.ClientState.Actors.Types.NonPlayer
         }
 
         /// <summary>
-        ///     The data ID of the NPC linking to their assoicated BNpcBase data.
+        /// The data ID of the NPC linking to their assoicated BNpcBase data.
         /// </summary>
-        public int BaseId => *(int*)(Address + Structs.ActorOffsets.DataId);
+        public uint BaseId => *(uint*)(Address + Structs.ActorOffsets.DataId);
 
         /// <summary>
-        ///     The name ID of the NPC linking to their respective game data.
+        /// The name ID of the NPC linking to their respective game data.
         /// </summary>
-        public int NameId => *(int*)(Address + Structs.ActorOffsets.NameId);
+        public uint NameId => *(uint*)(Address + Structs.ActorOffsets.NameId);
     }
 }

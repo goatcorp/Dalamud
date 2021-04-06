@@ -48,7 +48,7 @@ namespace Dalamud.Game.ClientState.Actors.Types
         /// <summary>
         /// Target of the PlayerCharacter.
         /// </summary>
-        public override int TargetActorID => *(int*)(Address + ActorOffsets.PlayerCharacterTargetActorId);
+        public override uint TargetActorID => *(uint*)(Address + ActorOffsets.PlayerCharacterTargetActorId);
 
     }
 }

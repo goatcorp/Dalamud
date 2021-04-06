@@ -18,6 +18,6 @@ namespace Dalamud.Game.ClientState.Actors.Types.NonPlayer {
         /// <summary>
         /// The event object ID of the linking to their respective game data.
         /// </summary>
-        public int EventObjectId => *(int*)(Address + ActorOffsets.DataId);
+        public uint EventObjectId => *(uint*)(Address + ActorOffsets.DataId);
     }
 }

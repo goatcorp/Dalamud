@@ -24,12 +24,12 @@ namespace Dalamud.Game.ClientState.Actors.Types.NonPlayer
         /// <summary>
         /// The ID of this BattleNpc's owner.
         /// </summary>
-        public int OwnerId => *(int*)(Address + Structs.ActorOffsets.OwnerId);
+        public uint OwnerId => *(uint*)(Address + Structs.ActorOffsets.OwnerId);
 
         /// <summary>
         /// Target of the Battle NPC.
         /// </summary>
-        public override int TargetActorID => *(int*)(Address + Structs.ActorOffsets.BattleNpcTargetActorId);
+        public override uint TargetActorID => *(uint*)(Address + Structs.ActorOffsets.BattleNpcTargetActorId);
 
     }
 }

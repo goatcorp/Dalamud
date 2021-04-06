@@ -47,7 +47,7 @@ namespace Dalamud.Game.ClientState.Actors.Types
         /// <summary>
         ///     Actor ID of this <see cref="Actor" />.
         /// </summary>
-        public int ActorId => *(int*)(Address + ActorOffsets.ActorId);
+        public uint ActorId => *(uint*)(Address + ActorOffsets.ActorId);
 
         /// <summary>
         ///     Entity kind of this <see cref="Actor">actor</see>. See <see cref="ObjectKind">the ObjectKind enum</see> for
@@ -68,7 +68,7 @@ namespace Dalamud.Game.ClientState.Actors.Types
         /// <summary>
         /// The target of the actor
         /// </summary>
-        public virtual int TargetActorID => 0;
+        public virtual uint TargetActorID => 0;
 
         /// <summary>
         /// Status Effects.
