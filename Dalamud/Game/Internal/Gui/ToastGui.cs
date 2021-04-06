@@ -125,10 +125,24 @@ namespace Dalamud.Game.Internal.Gui
 
             this.OnToast?.Invoke(ref str, ref isHandled);
 
-            // do nothing if handled or show the toast
-            return isHandled
-                       ? IntPtr.Zero
-                       : this.showToastHook.Original(manager, text, layer, bool1, bool2, logMessageId);
+            // do nothing if handled
+            if (isHandled)
+            {
+                return IntPtr.Zero;
+            }
+
+            var encoded = str.Encode();
+            var terminated = new byte[encoded.Length + 1];
+            Array.Copy(encoded, 0, terminated, 0, encoded.Length);
+            terminated[^1] = 0;
+
+            unsafe
+            {
+                fixed (byte* message = terminated)
+                {
+                    return this.showToastHook.Original(manager, (IntPtr)message, layer, bool1, bool2, logMessageId);
+                }
+            }
         }
     }
 }
