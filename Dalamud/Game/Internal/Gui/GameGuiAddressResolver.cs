@@ -19,6 +19,8 @@ namespace Dalamud.Game.Internal.Gui {
         public IntPtr ToggleUiHide { get; set; }
         public IntPtr GetBaseUIObject { get; private set; }
         public IntPtr GetUIObjectByName { get; private set; }
+        public IntPtr GetUIModule { get; private set; }
+        public IntPtr GetUIModulePtr { get; private set; }
 
         public GameGuiAddressResolver(IntPtr baseAddress) {
             BaseAddress = baseAddress;
@@ -45,6 +47,8 @@ namespace Dalamud.Game.Internal.Gui {
             ToggleUiHide = sig.ScanText("48 89 5C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 0F B6 B9 ?? ?? ?? ?? B8 ?? ?? ?? ??");
             GetBaseUIObject = sig.ScanText("E8 ?? ?? ?? ?? 41 B8 01 00 00 00 48 8D 15 ?? ?? ?? ?? 48 8B 48 20 E8 ?? ?? ?? ?? 48 8B CF");
             GetUIObjectByName = sig.ScanText("E8 ?? ?? ?? ?? 48 8B CF 48 89 87 ?? ?? 00 00 E8 ?? ?? ?? ?? 41 B8 01 00 00 00");
+            GetUIModule = sig.ScanText("E8 ?? ?? ?? ?? 83 3B 01");
+            GetUIModulePtr = sig.GetStaticAddressFromSig("48 8B 0D ?? ?? ?? ?? 48 8D 54 24 ?? 48 83 C1 10 E8 ?? ?? ?? ??");
         }
     }
 }
