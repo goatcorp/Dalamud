@@ -277,7 +277,7 @@ namespace Dalamud.Interface
                             ImGui.InputText("Toast text", ref this.inputTextToast, 200);
 
                             if (ImGui.Button("Show toast"))
-                                this.dalamud.Framework.Gui.Toast.Show(this.inputTextToast);
+                                this.dalamud.Framework.Gui.Toast.ShowNormal(this.inputTextToast);
                             break;
                     }
                 }
