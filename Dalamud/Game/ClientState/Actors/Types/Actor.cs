@@ -2,6 +2,7 @@ using Dalamud.Game.ClientState.Structs;
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace Dalamud.Game.ClientState.Actors.Types
 {
@@ -42,7 +43,15 @@ namespace Dalamud.Game.ClientState.Actors.Types
         /// <summary>
         ///     Displayname of this <see cref="Actor">Actor</see>.
         /// </summary>
-        public string Name => Marshal.PtrToStringAnsi(Address + ActorOffsets.Name);
+        public string Name
+        {
+            get
+            {
+                var name = new byte[32];
+                Marshal.Copy(Address + ActorOffsets.Name, name, 0, 32);
+                return Encoding.UTF8.GetString(name);
+            }
+        }
 
         /// <summary>
         ///     Actor ID of this <see cref="Actor" />.
