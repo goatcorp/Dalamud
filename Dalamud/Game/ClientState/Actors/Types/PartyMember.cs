@@ -1,34 +1,85 @@
-using Dalamud.Game.ClientState.Structs;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Dalamud.Game.ClientState.Actors.Types
 {
     public class PartyMember
     {
-        public string CharacterName;
-        public long Unknown;
-        public Actor Actor;
-        public ObjectKind ObjectKind;
-
-        public PartyMember(ActorTable table, Structs.PartyMember rawData)
+        private PartyMember()
         {
-            CharacterName = Marshal.PtrToStringAnsi(rawData.namePtr);
-            Unknown = rawData.unknown;
-            Actor = null;
+        }
+
+        public string CharacterName { get; private set; }
+
+        public Actor Actor { get; private set; }
+
+        internal static PartyMember RegularMember(ActorTable table, IntPtr memberAddress)
+        {
+            var member = new PartyMember
+            {
+                CharacterName = PtrToStringUtf8(memberAddress + 0x1C4),
+                Actor = GetActorById(table, Marshal.ReadInt32(memberAddress, 0x1A8)),
+            };
+            return member;
+        }
+
+        internal static PartyMember CrossRealmMember(ActorTable table, IntPtr crossMemberAddress)
+        {
+            var member = new PartyMember
+            {
+                CharacterName = PtrToStringUtf8(crossMemberAddress + 0x22),
+                Actor = GetActorById(table, Marshal.ReadInt32(crossMemberAddress, 0x10)),
+            };
+            return member;
+        }
+
+        internal static PartyMember CompanionMember(ActorTable table, IntPtr companionMemberAddress)
+        {
+            var actor = GetActorById(table, Marshal.ReadInt32(companionMemberAddress, 0));
+            var member = new PartyMember
+            {
+                Actor = actor,
+                CharacterName = actor?.Name ?? string.Empty,
+            };
+            return member;
+        }
+
+        internal static PartyMember LocalPlayerMember(Dalamud dalamud)
+        {
+            var player = dalamud.ClientState.LocalPlayer;
+            return new PartyMember()
+            {
+                Actor = player,
+                CharacterName = player?.Name ?? string.Empty,
+            };
+        }
+
+        private static Actor GetActorById(ActorTable table, int id)
+        {
             for (var i = 0; i < table.Length; i++)
             {
-                if (table[i] != null && table[i].ActorId == rawData.actorId)
+                var obj = table[i];
+                if (obj != null && obj.ActorId == id)
                 {
-                    Actor = table[i];
-                    break;
+                    return obj;
                 }
             }
-            ObjectKind = rawData.objectKind;
+
+            return null;
+        }
+
+        private static unsafe string PtrToStringUtf8(IntPtr address, int maxLen = 64)
+        {
+            if (address == IntPtr.Zero)
+                return string.Empty;
+
+            var buffer = (byte*)address;
+            var len = 0;
+            while (len <= maxLen && *(buffer + len) != 0)
+                ++len;
+
+            return len < 1 ? string.Empty : Encoding.UTF8.GetString(buffer, len);
         }
     }
 }

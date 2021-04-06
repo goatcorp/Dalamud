@@ -175,7 +175,7 @@ namespace Dalamud.Interface
                         case 4:
                             var partyString = string.Empty;
 
-                            if (this.dalamud.ClientState.PartyList.Length == 0)
+                            if (this.dalamud.ClientState.PartyList.Count == 0)
                             {
                                 ImGui.TextUnformatted("Data not ready.");
                             }
@@ -193,7 +193,7 @@ namespace Dalamud.Interface
                                     }
 
                                     partyString +=
-                                        $"[{i}] {member.CharacterName} - {member.ObjectKind} - {member.Actor.ActorId}\n";
+                                        $"[{i}] {member.CharacterName} - {member.Actor?.ObjectKind} - {member.Actor?.ActorId}\n";
                                 }
 
                                 ImGui.TextUnformatted(partyString);
