@@ -1,28 +1,60 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
+
 using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Hooking;
 
 namespace Dalamud.Game.Internal.Gui
 {
-    public class ToastGui
+    public class ToastGui : IDisposable
     {
+        #region Events
+
+        public delegate void OnToastDelegate(ref SeString message, ref bool isHandled);
+
+        /// <summary>
+        /// Event that will be fired when a toast is sent by the game or a plugin.
+        /// </summary>
+        public event OnToastDelegate OnToast;
+
+        #endregion
+
+        #region Hooks
+
+        private readonly Hook<ShowToastDelegate> showToastHook;
+
+        #endregion
+
+        private delegate IntPtr ShowToastDelegate(IntPtr manager, IntPtr text, int layer, byte bool1, byte bool2, int logMessageId);
+
         private Dalamud Dalamud { get; }
 
         private ToastGuiAddressResolver Address { get; }
 
-        private delegate IntPtr ShowToastDelegate(IntPtr manager, IntPtr text, int layer, byte bool1, byte bool2, int logMessageId);
+        private Queue<byte[]> ToastQueue { get; } = new Queue<byte[]>();
 
-        private readonly ShowToastDelegate showToast;
 
         public ToastGui(SigScanner scanner, Dalamud dalamud)
         {
-            Dalamud = dalamud;
+            this.Dalamud = dalamud;
 
-            Address = new ToastGuiAddressResolver();
-            Address.Setup(scanner);
+            this.Address = new ToastGuiAddressResolver();
+            this.Address.Setup(scanner);
 
-            this.showToast = Marshal.GetDelegateForFunctionPointer<ShowToastDelegate>(Address.ShowToast);
+            Marshal.GetDelegateForFunctionPointer<ShowToastDelegate>(this.Address.ShowToast);
+            this.showToastHook = new Hook<ShowToastDelegate>(this.Address.ShowToast, new ShowToastDelegate(this.HandleToastDetour));
+        }
+
+        public void Enable()
+        {
+            this.showToastHook.Enable();
+        }
+
+        public void Dispose()
+        {
+            this.showToastHook.Dispose();
         }
 
         /// <summary>
@@ -31,7 +63,7 @@ namespace Dalamud.Game.Internal.Gui
         /// <param name="message">The message to be shown</param>
         public void Show(string message)
         {
-            this.Show(Encoding.UTF8.GetBytes(message));
+            this.ToastQueue.Enqueue(Encoding.UTF8.GetBytes(message));
         }
 
         /// <summary>
@@ -40,20 +72,63 @@ namespace Dalamud.Game.Internal.Gui
         /// <param name="message">The message to be shown</param>
         public void Show(SeString message)
         {
-            this.Show(message.Encode());
+            this.ToastQueue.Enqueue(message.Encode());
+        }
+
+        /// <summary>
+        /// Process the toast queue.
+        /// </summary>
+        internal void UpdateQueue()
+        {
+            while (this.ToastQueue.Count > 0)
+            {
+                var message = this.ToastQueue.Dequeue();
+                this.Show(message);
+            }
         }
 
         private void Show(byte[] bytes)
         {
-            var manager = Dalamud.Framework.Gui.GetUIModule();
+            var manager = this.Dalamud.Framework.Gui.GetUIModule();
+
+            // terminate the string
+            var terminated = new byte[bytes.Length + 1];
+            Array.Copy(bytes, 0, terminated, 0, bytes.Length);
+            terminated[^1] = 0;
 
             unsafe
             {
-                fixed (byte* ptr = bytes)
+                fixed (byte* ptr = terminated)
                 {
-                    this.showToast(manager, (IntPtr) ptr, 5, 0, 1, 0);
+                    this.HandleToastDetour(manager, (IntPtr)ptr, 5, 0, 1, 0);
                 }
             }
+        }
+
+        private IntPtr HandleToastDetour(IntPtr manager, IntPtr text, int layer, byte bool1, byte bool2, int logMessageId)
+        {
+            // get the message as an sestring
+            var bytes = new List<byte>();
+            unsafe
+            {
+                var ptr = (byte*)text;
+                while (*ptr != 0)
+                {
+                    bytes.Add(*ptr);
+                    ptr += 1;
+                }
+            }
+
+            // call events
+            var isHandled = false;
+            var str = this.Dalamud.SeStringManager.Parse(bytes.ToArray());
+
+            this.OnToast?.Invoke(ref str, ref isHandled);
+
+            // do nothing if handled or show the toast
+            return isHandled
+                       ? IntPtr.Zero
+                       : this.showToastHook.Original(manager, text, layer, bool1, bool2, logMessageId);
         }
     }
 }
