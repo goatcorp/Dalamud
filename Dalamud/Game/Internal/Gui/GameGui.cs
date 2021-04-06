@@ -13,6 +13,7 @@ namespace Dalamud.Game.Internal.Gui {
         
         public ChatGui Chat { get; private set; }
         public PartyFinderGui PartyFinder { get; private set; }
+        public ToastGui Toast { get; private set; }
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         private delegate IntPtr SetGlobalBgmDelegate(UInt16 bgmKey, byte a2, UInt32 a3, UInt32 a4, UInt32 a5, byte a6);
@@ -68,6 +69,9 @@ namespace Dalamud.Game.Internal.Gui {
         private delegate IntPtr GetUIObjectByNameDelegate(IntPtr thisPtr, string uiName, int index);
         private readonly GetUIObjectByNameDelegate getUIObjectByName;
 
+        private delegate IntPtr GetUiModuleDelegate(IntPtr basePtr);
+        private readonly GetUiModuleDelegate getUiModule;
+
         public bool GameUiHidden { get; private set; }
 
         /// <summary>
@@ -110,6 +114,7 @@ namespace Dalamud.Game.Internal.Gui {
 
             Chat = new ChatGui(Address.ChatManager, scanner, dalamud);
             PartyFinder = new PartyFinderGui(scanner, dalamud);
+            Toast = new ToastGui(scanner, dalamud);
 
             this.setGlobalBgmHook =
                 new Hook<SetGlobalBgmDelegate>(Address.SetGlobalBgm,
@@ -146,6 +151,8 @@ namespace Dalamud.Game.Internal.Gui {
 
             this.GetBaseUIObject = Marshal.GetDelegateForFunctionPointer<GetBaseUIObjectDelegate>(Address.GetBaseUIObject);
             this.getUIObjectByName = Marshal.GetDelegateForFunctionPointer<GetUIObjectByNameDelegate>(Address.GetUIObjectByName);
+
+            this.getUiModule = Marshal.GetDelegateForFunctionPointer<GetUiModuleDelegate>(Address.GetUIModule);
         }
 
         private IntPtr HandleSetGlobalBgmDetour(UInt16 bgmKey, byte a2, UInt32 a3, UInt32 a4, UInt32 a5, byte a6) {
@@ -412,6 +419,15 @@ namespace Dalamud.Game.Internal.Gui {
         }
 
         /// <summary>
+        /// Gets a pointer to the game's UI module.
+        /// </summary>
+        /// <returns>IntPtr pointing to UI module</returns>
+        public IntPtr GetUIModule()
+        {
+            return this.getUiModule(Marshal.ReadIntPtr(Address.GetUIModulePtr));
+        }
+
+        /// <summary>
         /// Gets the pointer to the UI Object with the given name and index.
         /// </summary>
         /// <param name="name">Name of UI to find</param>
@@ -436,6 +452,7 @@ namespace Dalamud.Game.Internal.Gui {
 
         public void Enable() {
             Chat.Enable();
+            Toast.Enable();
             PartyFinder.Enable();
             this.setGlobalBgmHook.Enable();
             this.handleItemHoverHook.Enable();
@@ -447,6 +464,7 @@ namespace Dalamud.Game.Internal.Gui {
 
         public void Dispose() {
             Chat.Dispose();
+            Toast.Dispose();
             PartyFinder.Dispose();
             this.setGlobalBgmHook.Dispose();
             this.handleItemHoverHook.Dispose();

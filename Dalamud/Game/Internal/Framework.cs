@@ -120,6 +120,7 @@ namespace Dalamud.Game.Internal {
         private bool HandleFrameworkUpdate(IntPtr framework) {
             try {
                 Gui.Chat.UpdateQueue(this);
+                Gui.Toast.UpdateQueue();
                 Network.UpdateQueue(this);
             } catch (Exception ex) {
                 Log.Error(ex, "Exception while handling Framework::Update hook.");
