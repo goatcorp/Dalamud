@@ -8,7 +8,10 @@ using Serilog;
 using SharpDX;
 
 namespace Dalamud.Game.Internal.Gui {
-    public sealed class GameGui : IDisposable {
+    public sealed class GameGui : IDisposable
+    {
+        private readonly Dalamud dalamud;
+
         private GameGuiAddressResolver Address { get; }
         
         public ChatGui Chat { get; private set; }
@@ -100,7 +103,10 @@ namespace Dalamud.Game.Internal.Gui {
         /// </summary>
         public EventHandler<HoveredAction> HoveredActionChanged { get; set; }
 
-        public GameGui(IntPtr baseAddress, SigScanner scanner, Dalamud dalamud) {
+        public GameGui(IntPtr baseAddress, SigScanner scanner, Dalamud dalamud)
+        {
+            this.dalamud = dalamud;
+
             Address = new GameGuiAddressResolver(baseAddress);
             Address.Setup(scanner);
 
@@ -424,7 +430,7 @@ namespace Dalamud.Game.Internal.Gui {
         /// <returns>IntPtr pointing to UI module</returns>
         public IntPtr GetUIModule()
         {
-            return this.getUiModule(Marshal.ReadIntPtr(Address.GetUIModulePtr));
+            return this.getUiModule(this.dalamud.Framework.Address.BaseAddress);
         }
 
         /// <summary>
