@@ -47,6 +47,8 @@ namespace Dalamud.Interface
 
         private UIDebug addonInspector = null;
 
+        private string inputTextToast = string.Empty;
+
         private uint copyButtonIndex = 0;
 
         /// <summary>
@@ -268,6 +270,14 @@ namespace Dalamud.Interface
                         // Target
                         case 12:
                             this.DrawTargetDebug();
+                            break;
+
+                        // Toast
+                        case 13:
+                            ImGui.InputText("Toast text", ref this.inputTextToast, 200);
+
+                            if (ImGui.Button("Show toast"))
+                                this.dalamud.Framework.Gui.Toast.Show(this.inputTextToast);
                             break;
                     }
                 }
