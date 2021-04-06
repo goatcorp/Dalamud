@@ -97,9 +97,14 @@ namespace Dalamud.Game.ClientState.Actors.Types
         /// <inheritdoc/>
         bool IEquatable<Actor>.Equals(Actor other) => this.ActorId == other?.ActorId;
 
-        public static implicit operator bool( Actor a ) => IsValid( a );
+        /// <summary>
+        /// Allows you to <code>if (actor) {...}</code> to check for validity.
+        /// </summary>
+        /// <param name="a"></param>
+        /// <returns></returns>
+        public static implicit operator bool(Actor a) => IsValid(a);
 
-        public static bool IsValid( Actor actor )
+        public static bool IsValid(Actor actor)
         {
             if (actor == null)
             {
@@ -111,7 +116,7 @@ namespace Dalamud.Game.ClientState.Actors.Types
             {
                 return false;
             }
-            
+
             return true;
         }
     }

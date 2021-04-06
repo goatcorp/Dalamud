@@ -42,7 +42,7 @@ namespace Dalamud.Game.ClientState.Actors {
             if (Address.TargetManager == IntPtr.Zero) return null;
             var actorAddress = Marshal.ReadIntPtr(Address.TargetManager + offset);
             if (actorAddress == IntPtr.Zero) return null;
-            return this.dalamud.ClientState.Actors.ReadActorFromMemory(actorAddress);
+            return this.dalamud.ClientState.Actors.CreateActorReference(actorAddress);
         }
     }
 }

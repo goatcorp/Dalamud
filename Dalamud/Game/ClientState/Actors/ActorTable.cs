@@ -19,22 +19,6 @@ namespace Dalamud.Game.ClientState.Actors {
 
         private const int ActorTableLength = 424;
 
-        #region ReadProcessMemory Hack
-
-        [DllImport("kernel32.dll", SetLastError = true)]
-        static extern bool ReadProcessMemory(
-            IntPtr hProcess,
-            IntPtr lpBaseAddress,
-            IntPtr lpBuffer,
-            int dwSize,
-            out IntPtr lpNumberOfBytesRead);
-
-        private static readonly int ActorMemSize = Marshal.SizeOf(typeof(Structs.Actor));
-        private IntPtr actorMem = Marshal.AllocHGlobal(ActorMemSize);
-        private IntPtr currentProcessHandle = new IntPtr(-1);
-
-        #endregion
-
         private ClientStateAddressResolver Address { get; }
         private Dalamud dalamud;
 
@@ -55,20 +39,20 @@ namespace Dalamud.Game.ClientState.Actors {
         /// <param name="index">Spawn index.</param>
         /// <returns><see cref="Actor" /> at the specified spawn index.</returns>
         [CanBeNull]
-        public unsafe Actor this[int index] {
+        public Actor this[int index] {
             get
             {
                 var ptr = GetActorAddress(index);
                 if (ptr != IntPtr.Zero)
                 {
-                    return ReadActorFromMemory(ptr);
+                    return CreateActorReference(ptr);
                 }
 
                 return null;
             }
         }
 
-        private unsafe IntPtr GetActorAddress(int index)
+        public unsafe IntPtr GetActorAddress(int index)
         {
             if (index >= ActorTableLength)
             {
@@ -78,37 +62,22 @@ namespace Dalamud.Game.ClientState.Actors {
             return *(IntPtr*)(Address.ActorTable + (8 * index));
         }
 
-        internal unsafe Actor ReadActorFromMemory(IntPtr offset)
+        internal unsafe Actor CreateActorReference(IntPtr offset)
         {
-            try
+            if (this.dalamud.ClientState.LocalContentId == 0)
             {
-                if (this.dalamud.ClientState.LocalContentId == 0)
-                {
-                    return null;
-                }
-
-                // FIXME: hack workaround for trying to access the player on logout, after the main object has been deleted
-                if (!ReadProcessMemory(this.currentProcessHandle, offset, this.actorMem, ActorMemSize, out _))
-                {
-                    Log.Debug("ActorTable - ReadProcessMemory failed: likely player deletion during logout");
-                    return null;
-                }
-
-                var objKind = *(ObjectKind*)(this.actorMem + ActorOffsets.ObjectKind);
-
-                return objKind switch {
-                    ObjectKind.Player => new PlayerCharacter(offset, this.dalamud),
-                    ObjectKind.BattleNpc => new BattleNpc(offset, this.dalamud),
-                    ObjectKind.EventObj => new EventObj(offset, this.dalamud),
-                    ObjectKind.Companion => new Npc(offset, this.dalamud),
-                _ => new Actor(offset, this.dalamud)
-                };
-            }
-            catch (Exception e)
-            {
-                Log.Error(e, "Could not read actor from memory.");
                 return null;
             }
+
+            var objKind = *(ObjectKind*)(offset + ActorOffsets.ObjectKind);
+
+            return objKind switch {
+                ObjectKind.Player => new PlayerCharacter(offset, this.dalamud),
+                ObjectKind.BattleNpc => new BattleNpc(offset, this.dalamud),
+                ObjectKind.EventObj => new EventObj(offset, this.dalamud),
+                ObjectKind.Companion => new Npc(offset, this.dalamud),
+                _ => new Actor(offset, this.dalamud)
+            };
         }
 
         public IEnumerator<Actor> GetEnumerator()
@@ -166,7 +135,6 @@ namespace Dalamud.Game.ClientState.Actors {
         private void Dispose(bool disposing)
         {
             if (this.disposed) return;
-            Marshal.FreeHGlobal(this.actorMem);
             this.disposed = true;
         }
 
