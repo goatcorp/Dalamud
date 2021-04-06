@@ -5,23 +5,20 @@ using System.Text;
 using Dalamud.Game.ClientState.Actors.Resolvers;
 using Dalamud.Game.ClientState.Structs;
 
-namespace Dalamud.Game.ClientState.Actors.Types {
+namespace Dalamud.Game.ClientState.Actors.Types
+{
     /// <summary>
     ///     This class represents a player character.
     /// </summary>
-    public unsafe class PlayerCharacter : Chara {
+    public unsafe class PlayerCharacter : Chara
+    {
         /// <summary>
         ///     Set up a new player character with the provided memory representation.
         /// </summary>
         /// <param name="address">The address of this actor in memory.</param>
         /// <param name="dalamud">A dalamud reference needed to access game data in Resolvers.</param>
-        public PlayerCharacter( IntPtr address, Dalamud dalamud ) : base(
-            address, dalamud) {
-            // We need to read the FC tag here, since we can't read it in the struct due to alignment issues
-            var fcTagBytes = new byte[5];
-            Marshal.Copy(this.Address + ActorOffsets.CompanyTag, fcTagBytes, 0, fcTagBytes.Length);
-
-            CompanyTag = Encoding.UTF8.GetString(fcTagBytes.TakeWhile(x => x != 0x00).ToArray());
+        public PlayerCharacter(IntPtr address, Dalamud dalamud) : base(address, dalamud)
+        {
         }
 
         /// <summary>
@@ -37,10 +34,19 @@ namespace Dalamud.Game.ClientState.Actors.Types {
         /// <summary>
         ///     The Free Company tag of this player.
         /// </summary>
-        public string CompanyTag { get; private set; }
+        public string CompanyTag
+        {
+            get
+            {
+                var fcTagBytes = new byte[5];
+                Marshal.Copy(this.Address + ActorOffsets.CompanyTag, fcTagBytes, 0, fcTagBytes.Length);
+
+                return Encoding.UTF8.GetString( fcTagBytes.TakeWhile( x => x != 0x00 ).ToArray() );
+            }
+        }
 
         /// <summary>
-        /// Target of the PlayerCharacter
+        /// Target of the PlayerCharacter.
         /// </summary>
         public override int TargetActorID => *(int*)(Address + ActorOffsets.PlayerCharacterTargetActorId);
 

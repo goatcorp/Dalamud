@@ -18,11 +18,11 @@ namespace Dalamud.Game.ClientState.Actors.Types
         public readonly IntPtr Address;
 
         /// <summary>
-        ///     Initialize a representation of a basic FFXIV actor.
+        /// Initializes a new instance of the <see cref="Actor"/> class.
         /// </summary>
         /// <param name="address">The address of this actor in memory.</param>
         /// <param name="dalamud">A dalamud reference needed to access game data in Resolvers.</param>
-        public Actor( IntPtr address, Dalamud dalamud )
+        public Actor(IntPtr address, Dalamud dalamud)
         {
             this.dalamud = dalamud;
             this.Address = address;
@@ -71,8 +71,11 @@ namespace Dalamud.Game.ClientState.Actors.Types
         public virtual int TargetActorID => 0;
 
         /// <summary>
-        ///  Status Effects
+        /// Status Effects.
         /// </summary>
+        /// <remarks>
+        /// This copies every time it is invoked, so make sure to only grab it once
+        /// </remarks>
         public StatusEffect[] StatusEffects
         {
             get
@@ -82,28 +85,33 @@ namespace Dalamud.Game.ClientState.Actors.Types
 
                 var addr = Address + ActorOffsets.UIStatusEffects;
                 var size = Marshal.SizeOf< StatusEffect >();
-                for( var i = 0; i < length; i++ )
+                for (var i = 0; i < length; i++)
                 {
-                    effects[ i ] = Marshal.PtrToStructure< StatusEffect >( addr + i * size );
+                    effects[i] = Marshal.PtrToStructure<StatusEffect>(addr + (i * size));
                 }
-                
+
                 return effects;
             }
         }
 
-        bool IEquatable<Actor>.Equals(Actor other) => this.ActorId == other.ActorId;
+        /// <inheritdoc/>
+        bool IEquatable<Actor>.Equals(Actor other) => this.ActorId == other?.ActorId;
 
         public static implicit operator bool( Actor a ) => IsValid( a );
 
         public static bool IsValid( Actor actor )
         {
-            if( actor == null )
+            if (actor == null)
+            {
+                return false;
+            }
+
+            // todo: check game state
+            if (actor.dalamud.ClientState.LocalContentId == 0)
             {
                 return false;
             }
             
-            // todo: check game state
-
             return true;
         }
     }
