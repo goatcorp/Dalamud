@@ -12,7 +12,7 @@ namespace Dalamud.Game.Internal.Gui
     {
         #region Events
 
-        public delegate void OnToastDelegate(ref SeString message, ref bool isHandled);
+        public delegate void OnToastDelegate(ref SeString message, ref ToastOptions options, ref bool isHandled);
 
         /// <summary>
         /// Event that will be fired when a toast is sent by the game or a plugin.
@@ -133,8 +133,13 @@ namespace Dalamud.Game.Internal.Gui
             // call events
             var isHandled = false;
             var str = this.Dalamud.SeStringManager.Parse(bytes.ToArray());
+            var options = new ToastOptions
+            {
+                Position = (ToastPosition) isTop,
+                Speed = (ToastSpeed)isFast,
+            };
 
-            this.OnToast?.Invoke(ref str, ref isHandled);
+            this.OnToast?.Invoke(ref str, ref options, ref isHandled);
 
             // do nothing if handled
             if (isHandled)
@@ -151,7 +156,7 @@ namespace Dalamud.Game.Internal.Gui
             {
                 fixed (byte* message = terminated)
                 {
-                    return this.showToastHook.Original(manager, (IntPtr)message, layer, isTop, isFast, logMessageId);
+                    return this.showToastHook.Original(manager, (IntPtr)message, layer, (byte)options.Position, (byte)options.Speed, logMessageId);
                 }
             }
         }
