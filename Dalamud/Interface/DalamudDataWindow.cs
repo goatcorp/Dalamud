@@ -86,9 +86,9 @@ namespace Dalamud.Interface
                 new[]
                 {
                     "ServerOpCode", "Address", "Actor Table", "Font Test", "Party List", "Plugin IPC", "Condition",
-                    "Gauge", "Command", "Addon", "Addon Inspector", "StartInfo", "Target",
+                    "Gauge", "Command", "Addon", "Addon Inspector", "StartInfo", "Target", "Toast",
                 },
-                13);
+                14);
 
             ImGui.Checkbox("Resolve GameData", ref this.resolveGameData);
 
