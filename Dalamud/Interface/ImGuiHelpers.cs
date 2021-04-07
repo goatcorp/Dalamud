@@ -19,9 +19,9 @@ namespace Dalamud.Interface
         public static float GlobalScale { get; private set; }
 
         /// <summary>
-        /// Force this ImGui window to stay inside the main game window.
+        /// Force the next ImGui window to stay inside the main game window.
         /// </summary>
-        public static void ForceMainViewport() => ImGui.SetNextWindowViewport(MainViewport.ID);
+        public static void ForceNextWindowMainViewport() => ImGui.SetNextWindowViewport(MainViewport.ID);
 
         /// <summary>
         /// Create a dummy scaled by the global Dalamud scale.
