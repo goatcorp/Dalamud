@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using System.Text;
 
 using Dalamud.Game.Internal.Gui.Toast;
@@ -54,9 +53,7 @@ namespace Dalamud.Game.Internal.Gui
 
         private delegate byte ShowQuestToastDelegate(IntPtr manager, int position, IntPtr text, uint iconOrCheck1, byte playSound, uint iconOrCheck2, byte alsoPlaySound);
 
-        private delegate byte ShowErrorToastDelegate(IntPtr manager, IntPtr text, int layer, byte respectsHidingMaybe);
-
-        private delegate IntPtr GetAtkModuleDelegate(IntPtr uiModule);
+        private delegate byte ShowErrorToastDelegate(IntPtr manager, IntPtr text, byte respectsHidingMaybe);
 
         #endregion
 
@@ -265,11 +262,7 @@ namespace Dalamud.Game.Internal.Gui
 
         private void ShowError(byte[] bytes)
         {
-            var uiModule = this.Dalamud.Framework.Gui.GetUIModule();
-            var vtbl = Marshal.ReadIntPtr(uiModule);
-            var atkModulePtr = Marshal.ReadIntPtr(vtbl + (7 * 8));
-            var getAtkModule = Marshal.GetDelegateForFunctionPointer<GetAtkModuleDelegate>(atkModulePtr);
-            var manager = getAtkModule(uiModule);
+            var manager = this.Dalamud.Framework.Gui.GetUIModule();
 
             // terminate the string
             var terminated = Terminate(bytes);
@@ -278,7 +271,7 @@ namespace Dalamud.Game.Internal.Gui
             {
                 fixed (byte* ptr = terminated)
                 {
-                    this.HandleErrorToastDetour(manager, (IntPtr) ptr, 10, 0);
+                    this.HandleErrorToastDetour(manager, (IntPtr) ptr, 0);
                 }
             }
         }
@@ -366,7 +359,7 @@ namespace Dalamud.Game.Internal.Gui
             }
         }
 
-        private byte HandleErrorToastDetour(IntPtr manager, IntPtr text, int layer, byte respectsHidingMaybe)
+        private byte HandleErrorToastDetour(IntPtr manager, IntPtr text, byte respectsHidingMaybe)
         {
             if (text == IntPtr.Zero)
             {
@@ -391,7 +384,7 @@ namespace Dalamud.Game.Internal.Gui
             {
                 fixed (byte* message = terminated)
                 {
-                    return this.showErrorToastHook.Original(manager, (IntPtr) message, layer, respectsHidingMaybe);
+                    return this.showErrorToastHook.Original(manager, (IntPtr) message, respectsHidingMaybe);
                 }
             }
         }
