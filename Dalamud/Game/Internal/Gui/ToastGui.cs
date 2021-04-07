@@ -1,40 +1,71 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using System.Text;
 
+using Dalamud.Game.Internal.Gui.Toast;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Hooking;
 
 namespace Dalamud.Game.Internal.Gui
 {
-    public class ToastGui : IDisposable
+    public sealed class ToastGui : IDisposable
     {
+        internal const uint QuestToastCheckmarkMagic = 60081;
+
         #region Events
 
-        public delegate void OnToastDelegate(ref SeString message, ref bool isHandled);
+        public delegate void OnNormalToastDelegate(ref SeString message, ref ToastOptions options, ref bool isHandled);
+
+        public delegate void OnQuestToastDelegate(ref SeString message, ref QuestToastOptions options, ref bool isHandled);
+
+        public delegate void OnErrorToastDelegate(ref SeString message, ref bool isHandled);
 
         /// <summary>
         /// Event that will be fired when a toast is sent by the game or a plugin.
         /// </summary>
-        public event OnToastDelegate OnToast;
+        public event OnNormalToastDelegate OnToast;
+
+        /// <summary>
+        /// Event that will be fired when a quest toast is sent by the game or a plugin.
+        /// </summary>
+        public event OnQuestToastDelegate OnQuestToast;
+
+        /// <summary>
+        /// Event that will be fired when an error toast is sent by the game or a plugin.
+        /// </summary>
+        public event OnErrorToastDelegate OnErrorToast;
 
         #endregion
 
         #region Hooks
 
-        private readonly Hook<ShowToastDelegate> showToastHook;
+        private readonly Hook<ShowNormalToastDelegate> showNormalToastHook;
+
+        private readonly Hook<ShowQuestToastDelegate> showQuestToastHook;
+
+        private readonly Hook<ShowErrorToastDelegate> showErrorToastHook;
 
         #endregion
 
-        private delegate IntPtr ShowToastDelegate(IntPtr manager, IntPtr text, int layer, byte bool1, byte bool2, int logMessageId);
+        #region Delegates
+
+        private delegate IntPtr ShowNormalToastDelegate(IntPtr manager, IntPtr text, int layer, byte isTop, byte isFast, int logMessageId);
+
+        private delegate byte ShowQuestToastDelegate(IntPtr manager, int position, IntPtr text, uint iconOrCheck1, byte playSound, uint iconOrCheck2, byte alsoPlaySound);
+
+        private delegate byte ShowErrorToastDelegate(IntPtr manager, IntPtr text, byte respectsHidingMaybe);
+
+        #endregion
 
         private Dalamud Dalamud { get; }
 
         private ToastGuiAddressResolver Address { get; }
 
-        private Queue<byte[]> ToastQueue { get; } = new Queue<byte[]>();
+        private Queue<(byte[], ToastOptions)> NormalQueue { get; } = new Queue<(byte[], ToastOptions)>();
 
+        private Queue<(byte[], QuestToastOptions)> QuestQueue { get; } = new Queue<(byte[], QuestToastOptions)>();
+
+        private Queue<byte[]> ErrorQueue { get; } = new Queue<byte[]>();
 
         public ToastGui(SigScanner scanner, Dalamud dalamud)
         {
@@ -43,80 +74,40 @@ namespace Dalamud.Game.Internal.Gui
             this.Address = new ToastGuiAddressResolver();
             this.Address.Setup(scanner);
 
-            Marshal.GetDelegateForFunctionPointer<ShowToastDelegate>(this.Address.ShowToast);
-            this.showToastHook = new Hook<ShowToastDelegate>(this.Address.ShowToast, new ShowToastDelegate(this.HandleToastDetour));
+            this.showNormalToastHook = new Hook<ShowNormalToastDelegate>(this.Address.ShowNormalToast, new ShowNormalToastDelegate(this.HandleNormalToastDetour));
+            this.showQuestToastHook = new Hook<ShowQuestToastDelegate>(this.Address.ShowQuestToast, new ShowQuestToastDelegate(this.HandleQuestToastDetour));
+            this.showErrorToastHook = new Hook<ShowErrorToastDelegate>(this.Address.ShowErrorToast, new ShowErrorToastDelegate(this.HandleErrorToastDetour));
         }
 
         public void Enable()
         {
-            this.showToastHook.Enable();
+            this.showNormalToastHook.Enable();
+            this.showQuestToastHook.Enable();
+            this.showErrorToastHook.Enable();
         }
 
         public void Dispose()
         {
-            this.showToastHook.Dispose();
+            this.showNormalToastHook.Dispose();
+            this.showQuestToastHook.Dispose();
+            this.showErrorToastHook.Dispose();
         }
 
-        /// <summary>
-        /// Show a toast message with the given content.
-        /// </summary>
-        /// <param name="message">The message to be shown</param>
-        public void Show(string message)
+        private static byte[] Terminate(byte[] source)
         {
-            this.ToastQueue.Enqueue(Encoding.UTF8.GetBytes(message));
-        }
-
-        /// <summary>
-        /// Show a toast message with the given content.
-        /// </summary>
-        /// <param name="message">The message to be shown</param>
-        public void Show(SeString message)
-        {
-            this.ToastQueue.Enqueue(message.Encode());
-        }
-
-        /// <summary>
-        /// Process the toast queue.
-        /// </summary>
-        internal void UpdateQueue()
-        {
-            while (this.ToastQueue.Count > 0)
-            {
-                var message = this.ToastQueue.Dequeue();
-                this.Show(message);
-            }
-        }
-
-        private void Show(byte[] bytes)
-        {
-            var manager = this.Dalamud.Framework.Gui.GetUIModule();
-
-            // terminate the string
-            var terminated = new byte[bytes.Length + 1];
-            Array.Copy(bytes, 0, terminated, 0, bytes.Length);
+            var terminated = new byte[source.Length + 1];
+            Array.Copy(source, 0, terminated, 0, source.Length);
             terminated[^1] = 0;
 
-            unsafe
-            {
-                fixed (byte* ptr = terminated)
-                {
-                    this.HandleToastDetour(manager, (IntPtr)ptr, 5, 0, 1, 0);
-                }
-            }
+            return terminated;
         }
 
-        private IntPtr HandleToastDetour(IntPtr manager, IntPtr text, int layer, byte bool1, byte bool2, int logMessageId)
+        private SeString ParseString(IntPtr text)
         {
-            if (text == IntPtr.Zero)
-            {
-                return IntPtr.Zero;
-            }
-
-            // get the message as an sestring
             var bytes = new List<byte>();
             unsafe
             {
-                var ptr = (byte*)text;
+                var ptr = (byte*) text;
                 while (*ptr != 0)
                 {
                     bytes.Add(*ptr);
@@ -125,10 +116,185 @@ namespace Dalamud.Game.Internal.Gui
             }
 
             // call events
-            var isHandled = false;
-            var str = this.Dalamud.SeStringManager.Parse(bytes.ToArray());
+            return this.Dalamud.SeStringManager.Parse(bytes.ToArray());
+        }
 
-            this.OnToast?.Invoke(ref str, ref isHandled);
+        /// <summary>
+        /// Process the toast queue.
+        /// </summary>
+        internal void UpdateQueue()
+        {
+            while (this.NormalQueue.Count > 0)
+            {
+                var (message, options) = this.NormalQueue.Dequeue();
+                this.ShowNormal(message, options);
+            }
+
+            while (this.QuestQueue.Count > 0)
+            {
+                var (message, options) = this.QuestQueue.Dequeue();
+                this.ShowQuest(message, options);
+            }
+
+            while (this.ErrorQueue.Count > 0)
+            {
+                var message = this.ErrorQueue.Dequeue();
+                this.ShowError(message);
+            }
+        }
+
+        #region Normal API
+
+        /// <summary>
+        /// Show a toast message with the given content.
+        /// </summary>
+        /// <param name="message">The message to be shown</param>
+        /// <param name="options">Options for the toast</param>
+        public void ShowNormal(string message, ToastOptions options = null)
+        {
+            options ??= new ToastOptions();
+            this.NormalQueue.Enqueue((Encoding.UTF8.GetBytes(message), options));
+        }
+
+        /// <summary>
+        /// Show a toast message with the given content.
+        /// </summary>
+        /// <param name="message">The message to be shown</param>
+        /// <param name="options">Options for the toast</param>
+        public void ShowNormal(SeString message, ToastOptions options = null)
+        {
+            options ??= new ToastOptions();
+            this.NormalQueue.Enqueue((message.Encode(), options));
+        }
+
+        private void ShowNormal(byte[] bytes, ToastOptions options = null)
+        {
+            options ??= new ToastOptions();
+
+            var manager = this.Dalamud.Framework.Gui.GetUIModule();
+
+            // terminate the string
+            var terminated = Terminate(bytes);
+
+            unsafe
+            {
+                fixed (byte* ptr = terminated)
+                {
+                    this.HandleNormalToastDetour(manager, (IntPtr) ptr, 5, (byte) options.Position, (byte) options.Speed, 0);
+                }
+            }
+        }
+
+        #endregion
+
+        #region Quest API
+
+        /// <summary>
+        /// Show a quest toast message with the given content.
+        /// </summary>
+        /// <param name="message">The message to be shown</param>
+        /// <param name="options">Options for the toast</param>
+        public void ShowQuest(string message, QuestToastOptions options = null)
+        {
+            options ??= new QuestToastOptions();
+            this.QuestQueue.Enqueue((Encoding.UTF8.GetBytes(message), options));
+        }
+
+        /// <summary>
+        /// Show a quest toast message with the given content.
+        /// </summary>
+        /// <param name="message">The message to be shown</param>
+        /// <param name="options">Options for the toast</param>
+        public void ShowQuest(SeString message, QuestToastOptions options = null)
+        {
+            options ??= new QuestToastOptions();
+            this.QuestQueue.Enqueue((message.Encode(), options));
+        }
+
+        private void ShowQuest(byte[] bytes, QuestToastOptions options = null)
+        {
+            options ??= new QuestToastOptions();
+
+            var manager = this.Dalamud.Framework.Gui.GetUIModule();
+
+            // terminate the string
+            var terminated = Terminate(bytes);
+
+            var (ioc1, ioc2) = options.DetermineParameterOrder();
+
+            unsafe
+            {
+                fixed (byte* ptr = terminated)
+                {
+                    this.HandleQuestToastDetour(
+                        manager,
+                        (int) options.Position,
+                        (IntPtr) ptr,
+                        ioc1,
+                        options.PlaySound ? (byte) 1 : (byte) 0,
+                        ioc2,
+                        0);
+                }
+            }
+        }
+
+        #endregion
+
+        #region Error API
+
+        /// <summary>
+        /// Show an error toast message with the given content.
+        /// </summary>
+        /// <param name="message">The message to be shown</param>
+        public void ShowError(string message)
+        {
+            this.ErrorQueue.Enqueue(Encoding.UTF8.GetBytes(message));
+        }
+
+        /// <summary>
+        /// Show an error toast message with the given content.
+        /// </summary>
+        /// <param name="message">The message to be shown</param>
+        public void ShowError(SeString message)
+        {
+            this.ErrorQueue.Enqueue(message.Encode());
+        }
+
+        private void ShowError(byte[] bytes)
+        {
+            var manager = this.Dalamud.Framework.Gui.GetUIModule();
+
+            // terminate the string
+            var terminated = Terminate(bytes);
+
+            unsafe
+            {
+                fixed (byte* ptr = terminated)
+                {
+                    this.HandleErrorToastDetour(manager, (IntPtr) ptr, 0);
+                }
+            }
+        }
+
+        #endregion
+
+        private IntPtr HandleNormalToastDetour(IntPtr manager, IntPtr text, int layer, byte isTop, byte isFast, int logMessageId)
+        {
+            if (text == IntPtr.Zero)
+            {
+                return IntPtr.Zero;
+            }
+
+            // call events
+            var isHandled = false;
+            var str = this.ParseString(text);
+            var options = new ToastOptions
+            {
+                Position = (ToastPosition) isTop,
+                Speed = (ToastSpeed) isFast,
+            };
+
+            this.OnToast?.Invoke(ref str, ref options, ref isHandled);
 
             // do nothing if handled
             if (isHandled)
@@ -136,16 +302,89 @@ namespace Dalamud.Game.Internal.Gui
                 return IntPtr.Zero;
             }
 
-            var encoded = str.Encode();
-            var terminated = new byte[encoded.Length + 1];
-            Array.Copy(encoded, 0, terminated, 0, encoded.Length);
-            terminated[^1] = 0;
+            var terminated = Terminate(str.Encode());
 
             unsafe
             {
                 fixed (byte* message = terminated)
                 {
-                    return this.showToastHook.Original(manager, (IntPtr)message, layer, bool1, bool2, logMessageId);
+                    return this.showNormalToastHook.Original(manager, (IntPtr) message, layer, (byte) options.Position, (byte) options.Speed, logMessageId);
+                }
+            }
+        }
+
+        private byte HandleQuestToastDetour(IntPtr manager, int position, IntPtr text, uint iconOrCheck1, byte playSound, uint iconOrCheck2, byte alsoPlaySound)
+        {
+            if (text == IntPtr.Zero)
+            {
+                return 0;
+            }
+
+            // call events
+            var isHandled = false;
+            var str = this.ParseString(text);
+            var options = new QuestToastOptions
+            {
+                Position = (QuestToastPosition) position,
+                DisplayCheckmark = iconOrCheck1 == QuestToastCheckmarkMagic,
+                IconId = iconOrCheck1 == QuestToastCheckmarkMagic ? iconOrCheck2 : iconOrCheck1,
+                PlaySound = playSound == 1,
+            };
+
+            this.OnQuestToast?.Invoke(ref str, ref options, ref isHandled);
+
+            // do nothing if handled
+            if (isHandled)
+            {
+                return 0;
+            }
+
+            var terminated = Terminate(str.Encode());
+
+            var (ioc1, ioc2) = options.DetermineParameterOrder();
+
+            unsafe
+            {
+                fixed (byte* message = terminated)
+                {
+                    return this.showQuestToastHook.Original(
+                        manager,
+                        (int) options.Position,
+                        (IntPtr) message,
+                        ioc1,
+                        options.PlaySound ? (byte) 1 : (byte) 0,
+                        ioc2,
+                        0);
+                }
+            }
+        }
+
+        private byte HandleErrorToastDetour(IntPtr manager, IntPtr text, byte respectsHidingMaybe)
+        {
+            if (text == IntPtr.Zero)
+            {
+                return 0;
+            }
+
+            // call events
+            var isHandled = false;
+            var str = this.ParseString(text);
+
+            this.OnErrorToast?.Invoke(ref str, ref isHandled);
+
+            // do nothing if handled
+            if (isHandled)
+            {
+                return 0;
+            }
+
+            var terminated = Terminate(str.Encode());
+
+            unsafe
+            {
+                fixed (byte* message = terminated)
+                {
+                    return this.showErrorToastHook.Original(manager, (IntPtr) message, respectsHidingMaybe);
                 }
             }
         }

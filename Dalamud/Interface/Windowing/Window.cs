@@ -141,7 +141,7 @@ namespace Dalamud.Interface.Windowing
             this.ApplyConditionals();
 
             if (this.ForceMainWindow)
-                ImGuiHelpers.ForceMainViewport();
+                ImGuiHelpers.ForceNextWindowMainViewport();
 
             if (ImGui.Begin(this.WindowName, ref this.internalIsOpen, this.Flags))
             {
