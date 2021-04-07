@@ -179,19 +179,19 @@
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_ImGuiHelpers_ForceMainViewport.md&amp;value=---%0Auid%3A%20Dalamud.Interface.ImGuiHelpers.ForceMainViewport%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_ImGuiHelpers_ForceNextWindowMainViewport.md&amp;value=---%0Auid%3A%20Dalamud.Interface.ImGuiHelpers.ForceNextWindowMainViewport%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
     <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/ImGuiHelpers.cs/#L24">View Source</a>
   </span>
-  <a id="Dalamud_Interface_ImGuiHelpers_ForceMainViewport_" data-uid="Dalamud.Interface.ImGuiHelpers.ForceMainViewport*"></a>
-  <h4 id="Dalamud_Interface_ImGuiHelpers_ForceMainViewport" data-uid="Dalamud.Interface.ImGuiHelpers.ForceMainViewport">ForceMainViewport()</h4>
-  <div class="markdown level1 summary"><p>Force this ImGui window to stay inside the main game window.</p>
+  <a id="Dalamud_Interface_ImGuiHelpers_ForceNextWindowMainViewport_" data-uid="Dalamud.Interface.ImGuiHelpers.ForceNextWindowMainViewport*"></a>
+  <h4 id="Dalamud_Interface_ImGuiHelpers_ForceNextWindowMainViewport" data-uid="Dalamud.Interface.ImGuiHelpers.ForceNextWindowMainViewport">ForceNextWindowMainViewport()</h4>
+  <div class="markdown level1 summary"><p>Force the next ImGui window to stay inside the main game window.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void ForceMainViewport()</code></pre>
+    <pre><code class="lang-csharp hljs">public static void ForceNextWindowMainViewport()</code></pre>
   </div>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
@@ -272,11 +272,12 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_ImGuiHelpers_SetNextWindowPosRelativeMainViewport_System_Numerics_Vector2_ImGuiNET_ImGuiCond_System_Numerics_Vector2_.md&amp;value=---%0Auid%3A%20Dalamud.Interface.ImGuiHelpers.SetNextWindowPosRelativeMainViewport(System.Numerics.Vector2%2CImGuiNET.ImGuiCond%2CSystem.Numerics.Vector2)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/ImGuiHelpers.cs/#L40">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/ImGuiHelpers.cs/#L46">View Source</a>
   </span>
   <a id="Dalamud_Interface_ImGuiHelpers_SetNextWindowPosRelativeMainViewport_" data-uid="Dalamud.Interface.ImGuiHelpers.SetNextWindowPosRelativeMainViewport*"></a>
   <h4 id="Dalamud_Interface_ImGuiHelpers_SetNextWindowPosRelativeMainViewport_System_Numerics_Vector2_ImGuiNET_ImGuiCond_System_Numerics_Vector2_" data-uid="Dalamud.Interface.ImGuiHelpers.SetNextWindowPosRelativeMainViewport(System.Numerics.Vector2,ImGuiNET.ImGuiCond,System.Numerics.Vector2)">SetNextWindowPosRelativeMainViewport(Vector2, ImGuiCond, Vector2)</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Set the position of the next window relative to the main viewport.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -295,17 +296,66 @@
       <tr>
         <td><span class="xref">System.Numerics.Vector2</span></td>
         <td><span class="parametername">position</span></td>
-        <td></td>
+        <td><p>The position of the next window.</p>
+</td>
       </tr>
       <tr>
         <td><a class="xref" href="ImGuiNET.ImGuiCond.html">ImGuiCond</a></td>
         <td><span class="parametername">condition</span></td>
-        <td></td>
+        <td><p>When to set the position.</p>
+</td>
       </tr>
       <tr>
         <td><span class="xref">System.Numerics.Vector2</span></td>
         <td><span class="parametername">pivot</span></td>
-        <td></td>
+        <td><p>The pivot to set the position around.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_ImGuiHelpers_SetWindowPosRelativeMainViewport_System_String_System_Numerics_Vector2_ImGuiNET_ImGuiCond_.md&amp;value=---%0Auid%3A%20Dalamud.Interface.ImGuiHelpers.SetWindowPosRelativeMainViewport(System.String%2CSystem.Numerics.Vector2%2CImGuiNET.ImGuiCond)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/ImGuiHelpers.cs/#L56">View Source</a>
+  </span>
+  <a id="Dalamud_Interface_ImGuiHelpers_SetWindowPosRelativeMainViewport_" data-uid="Dalamud.Interface.ImGuiHelpers.SetWindowPosRelativeMainViewport*"></a>
+  <h4 id="Dalamud_Interface_ImGuiHelpers_SetWindowPosRelativeMainViewport_System_String_System_Numerics_Vector2_ImGuiNET_ImGuiCond_" data-uid="Dalamud.Interface.ImGuiHelpers.SetWindowPosRelativeMainViewport(System.String,System.Numerics.Vector2,ImGuiNET.ImGuiCond)">SetWindowPosRelativeMainViewport(String, Vector2, ImGuiCond)</h4>
+  <div class="markdown level1 summary"><p>Set the position of a window relative to the main viewport.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void SetWindowPosRelativeMainViewport(string name, Vector2 position, ImGuiCond condition = ImGuiCond.None)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">name</span></td>
+        <td><p>The name/ID of the window.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Numerics.Vector2</span></td>
+        <td><span class="parametername">position</span></td>
+        <td><p>The position of the window.</p>
+</td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="ImGuiNET.ImGuiCond.html">ImGuiCond</a></td>
+        <td><span class="parametername">condition</span></td>
+        <td><p>When to set the position.</p>
+</td>
       </tr>
     </tbody>
   </table>
