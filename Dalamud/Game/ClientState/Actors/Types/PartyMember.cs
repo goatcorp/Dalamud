@@ -14,12 +14,15 @@ namespace Dalamud.Game.ClientState.Actors.Types
 
         public Actor Actor { get; private set; }
 
+        public IntPtr Address { get; private set; }
+
         internal static PartyMember RegularMember(ActorTable table, IntPtr memberAddress)
         {
             var member = new PartyMember
             {
                 CharacterName = PtrToStringUtf8(memberAddress + 0x1C4),
                 Actor = GetActorById(table, Marshal.ReadInt32(memberAddress, 0x1A8)),
+                Address = memberAddress,
             };
             return member;
         }
@@ -30,6 +33,7 @@ namespace Dalamud.Game.ClientState.Actors.Types
             {
                 CharacterName = PtrToStringUtf8(crossMemberAddress + 0x22),
                 Actor = GetActorById(table, Marshal.ReadInt32(crossMemberAddress, 0x10)),
+                Address = crossMemberAddress,
             };
             return member;
         }
@@ -41,6 +45,7 @@ namespace Dalamud.Game.ClientState.Actors.Types
             {
                 Actor = actor,
                 CharacterName = actor?.Name ?? string.Empty,
+                Address = companionMemberAddress,
             };
             return member;
         }
@@ -52,6 +57,7 @@ namespace Dalamud.Game.ClientState.Actors.Types
             {
                 Actor = player,
                 CharacterName = player?.Name ?? string.Empty,
+                Address = player?.Address ?? IntPtr.Zero,
             };
         }
 
