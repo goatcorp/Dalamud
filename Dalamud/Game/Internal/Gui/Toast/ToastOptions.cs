@@ -1,4 +1,4 @@
-﻿namespace Dalamud.Game.Internal.Gui.Toast
+namespace Dalamud.Game.Internal.Gui.Toast
 {
     public sealed class ToastOptions
     {
