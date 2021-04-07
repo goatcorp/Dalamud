@@ -266,7 +266,15 @@ namespace Dalamud.Interface
                 ImGui.GetStyle().Colors[(int) ImGuiCol.TabActive] = new Vector4(0.36f, 0.36f, 0.36f, 1.00f);
 
                 ImGui.GetIO().FontGlobalScale = this.dalamud.Configuration.GlobalUiScale;
-                ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.DockingEnable;
+
+                if (!this.dalamud.Configuration.IsDocking)
+                {
+                    ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.DockingEnable;
+                }
+                else
+                {
+                    ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.DockingEnable;
+                }
 
                 ImGuiHelpers.MainViewport = ImGui.GetMainViewport();
             }

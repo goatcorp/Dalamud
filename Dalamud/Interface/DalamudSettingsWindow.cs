@@ -35,6 +35,8 @@ namespace Dalamud.Interface
             this.doToggleUiHideDuringCutscenes = this.dalamud.Configuration.ToggleUiHideDuringCutscenes;
             this.doToggleUiHideDuringGpose = this.dalamud.Configuration.ToggleUiHideDuringGpose;
 
+            this.doDocking = this.dalamud.Configuration.IsDocking;
+
             this.doPluginTest = this.dalamud.Configuration.DoPluginTest;
             this.thirdRepoList = this.dalamud.Configuration.ThirdRepoList.Select(x => x.Clone()).ToList();
 
@@ -106,7 +108,6 @@ namespace Dalamud.Interface
             this.thirdRepoList = this.dalamud.Configuration.ThirdRepoList.Select(x => x.Clone()).ToList();
 
             Log.Information("OnClose end");
-
         }
 
         private string[] languages;
@@ -114,6 +115,7 @@ namespace Dalamud.Interface
         private int langIndex;
 
         private Vector4 hintTextColor = new Vector4(0.70f, 0.70f, 0.70f, 1.00f);
+        private Vector4 warnTextColor = new Vector4(1.0f, 0.0f, 0.0f, 1.00f);
 
         private XivChatType dalamudMessagesChatType;
 
@@ -126,6 +128,7 @@ namespace Dalamud.Interface
         private bool doToggleUiHide;
         private bool doToggleUiHideDuringCutscenes;
         private bool doToggleUiHideDuringGpose;
+        private bool doDocking;
         private List<ThirdRepoSetting> thirdRepoList;
 
         private bool printPluginsWelcomeMsg;
@@ -209,12 +212,18 @@ namespace Dalamud.Interface
                     ImGui.Checkbox(Loc.Localize("DalamudSettingToggleUiHideDuringGpose", "Hide plugin UI while gpose is active"), ref this.doToggleUiHideDuringGpose);
                     ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingToggleUiHideDuringGposeHint", "Hide any open windows by plugins while gpose is active."));
 
+                    ImGui.Dummy(new Vector2(10f, 16f) * ImGui.GetIO().FontGlobalScale);
+
+                    ImGui.Checkbox(Loc.Localize("DalamudSettingToggleDocking", "Enable window docking"), ref this.doDocking);
+                    ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingToggleDockingHint", "This will allow you to fuse and tab plugin windows."));
+
                     ImGui.EndTabItem();
                 }
 
                 if (ImGui.BeginTabItem(Loc.Localize("DalamudSettingsExperimental", "Experimental"))) {
                     ImGui.Checkbox(Loc.Localize("DalamudSettingsPluginTest", "Get plugin testing builds"), ref this.doPluginTest);
                     ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingsPluginTestHint", "Receive testing prereleases for plugins."));
+                    ImGui.TextColored(this.warnTextColor, Loc.Localize("DalamudSettingsPluginTestWarning", "Testing plugins may not have been vetted before being published. Please only enable this if you are aware of the risks."));
 
                     ImGui.Dummy(new Vector2(12f, 12f) * ImGui.GetIO().FontGlobalScale);
 
@@ -227,7 +236,8 @@ namespace Dalamud.Interface
                     ImGui.Dummy(new Vector2(12f, 12f) * ImGui.GetIO().FontGlobalScale);
 
                     ImGui.Text(Loc.Localize("DalamudSettingsCustomRepo", "Custom Plugin Repositories"));
-                    ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingCustomRepoHint", "Add custom plugin repositories. Only change these settings if you know what you are doing."));
+                    ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingCustomRepoHint", "Add custom plugin repositories."));
+                    ImGui.TextColored(this.warnTextColor, Loc.Localize("DalamudSettingCustomRepoWarning", "We cannot take any responsibility for third-party plugins and repositories.\nTake care when installing third-party plugins from untrusted sources."));
 
                     ImGui.Dummy(new Vector2(5f, 5f) * ImGui.GetIO().FontGlobalScale);
 
@@ -355,6 +365,18 @@ namespace Dalamud.Interface
             this.dalamud.Configuration.ToggleUiHide = this.doToggleUiHide;
             this.dalamud.Configuration.ToggleUiHideDuringCutscenes = this.doToggleUiHideDuringCutscenes;
             this.dalamud.Configuration.ToggleUiHideDuringGpose = this.doToggleUiHideDuringGpose;
+
+            this.dalamud.Configuration.IsDocking = this.doDocking;
+
+            // Apply docking flag
+            if (!this.dalamud.Configuration.IsDocking)
+            {
+                ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.DockingEnable;
+            }
+            else
+            {
+                ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.DockingEnable;
+            }
 
             this.dalamud.Configuration.DoPluginTest = this.doPluginTest;
             this.dalamud.Configuration.ThirdRepoList = this.thirdRepoList.Select(x => x.Clone()).ToList();

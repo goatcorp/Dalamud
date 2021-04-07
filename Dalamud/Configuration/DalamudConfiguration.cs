@@ -108,6 +108,11 @@ namespace Dalamud.Configuration
         public bool LogOpenAtStartup { get; set; }
 
         /// <summary>
+        /// Gets or sets a value indicating whether or not docking should be globally enabled in ImGui.
+        /// </summary>
+        public bool IsDocking { get; set; }
+
+        /// <summary>
         /// Load a configuration from the provided path.
         /// </summary>
         /// <param name="path">The path to load the configuration file from.</param>
