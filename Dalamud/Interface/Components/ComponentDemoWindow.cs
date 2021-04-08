@@ -5,7 +5,9 @@ using ImGuiNET;
 
 namespace Dalamud.Interface.Components
 {
-
+    /// <summary>
+    /// Component Demo Window to view custom components.
+    /// </summary>
     internal class ComponentDemoWindow : Window
     {
         private readonly IComponent[] components =
@@ -13,6 +15,9 @@ namespace Dalamud.Interface.Components
             new TestComponent(),
         };
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ComponentDemoWindow"/> class.
+        /// </summary>
         public ComponentDemoWindow()
             : base("Dalamud Components Demo")
         {
@@ -20,6 +25,7 @@ namespace Dalamud.Interface.Components
             this.SizeCondition = ImGuiCond.FirstUseEver;
         }
 
+        /// <inheritdoc/>
         public override void Draw()
         {
             ImGui.BeginChild("comp_scrolling", new Vector2(0, 0), false, ImGuiWindowFlags.AlwaysVerticalScrollbar | ImGuiWindowFlags.HorizontalScrollbar);
