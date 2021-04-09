@@ -461,6 +461,16 @@ namespace Dalamud.Interface
         }
 
         /// <summary>
+        /// Toggle the data window and preset the dropdown.
+        /// </summary>
+        internal void ToggleData(string dataKind)
+        {
+            this.dataWindow.IsOpen ^= true;
+            if (this.dataWindow.IsOpen)
+                this.dataWindow.SetDataKind(dataKind);
+        }
+
+        /// <summary>
         /// Toggle the credits window.
         /// </summary>
         internal void ToggleCredits()
