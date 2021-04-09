@@ -45,7 +45,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
-        repository: daemitus/dalamud-distrib
+        repository: goatcorp/dalamud-distrib
         token: ${{ secrets.PAT }}
     - uses: actions/download-artifact@v2
       with:
