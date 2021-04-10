@@ -1,19 +1,18 @@
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 
 using Dalamud.Interface.Windowing;
-using Dalamud.Plugin;
 using ImGuiNET;
 
 namespace Dalamud.Interface.Components
 {
     /// <summary>
-    /// Component Demo Window to view custom components.
+    /// Component Demo Window to view custom ImGui components.
     /// </summary>
     internal class ComponentDemoWindow : Window
     {
-        private List<IComponent> components = new List<IComponent>();
+        private readonly List<KeyValuePair<string, Action>> componentDemos;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ComponentDemoWindow"/> class.
@@ -23,45 +22,59 @@ namespace Dalamud.Interface.Components
         {
             this.Size = new Vector2(600, 500);
             this.SizeCondition = ImGuiCond.FirstUseEver;
-            this.AddComponents();
-            this.SortComponents();
+            this.componentDemos = new List<KeyValuePair<string, Action>>
+            {
+                Demo("Test", ImGuiComponents.Test),
+                Demo("HelpMarker", HelpMarkerDemo),
+                Demo("IconButton", IconButtonDemo),
+            };
         }
 
         /// <inheritdoc/>
         public override void Draw()
         {
             ImGui.BeginChild("comp_scrolling", new Vector2(0, 0), false, ImGuiWindowFlags.AlwaysVerticalScrollbar | ImGuiWindowFlags.HorizontalScrollbar);
-
             ImGui.Text("This is a collection of UI components you can use in your plugin.");
 
-            for (var i = 0; i < this.components.Count; i++)
+            for (var i = 0; i < this.componentDemos.Count; i++)
             {
-                var thisComp = this.components[i];
+                var componentDemo = this.componentDemos[i];
 
-                if (ImGui.CollapsingHeader($"{thisComp.Name} ({thisComp.GetType().FullName})###comp{i}"))
+                if (ImGui.CollapsingHeader($"{componentDemo.Key}###comp{i}"))
                 {
-                    thisComp.Draw();
+                    componentDemo.Value();
                 }
             }
 
             ImGui.EndChild();
         }
 
-        private void AddComponents()
+        private static void HelpMarkerDemo()
         {
-            this.components.Add(new TestComponent());
-            this.components.Add(new HelpMarkerComponent("help me!")
-            {
-                SameLine = false,
-            });
-            var iconButtonComponent = new IconButtonComponent(1, FontAwesomeIcon.Carrot);
-            iconButtonComponent.OnButtonClicked += id => PluginLog.Log("Button#{0} clicked!", id);
-            this.components.Add(iconButtonComponent);
+            ImGui.Text("Hover over the icon to learn more.");
+            ImGuiComponents.HelpMarker("help me!");
         }
 
-        private void SortComponents()
+        private static void IconButtonDemo()
         {
-            this.components = this.components.OrderBy(component => component.Name).ToList();
+            ImGui.Text("Click on the icon to use as a button.");
+            ImGui.SameLine();
+            if (ImGuiComponents.IconButton(1, FontAwesomeIcon.Carrot))
+            {
+                ImGui.OpenPopup("IconButtonDemoPopup");
+            }
+
+            if (ImGui.BeginPopup("IconButtonDemoPopup"))
+            {
+                ImGui.Text("You clicked!");
+            }
+
+            ImGui.EndPopup();
+        }
+
+        private static KeyValuePair<string, Action> Demo(string name, Action func)
+        {
+            return new KeyValuePair<string, Action>(name, func);
         }
     }
 }
