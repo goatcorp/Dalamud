@@ -50,12 +50,12 @@ namespace Dalamud.Configuration
         /// <summary>
         /// Gets or sets a value indicating whether or not plugin testing builds should be shown.
         /// </summary>
-        public bool DoPluginTest { get; set; } = false;
+        public bool DoPluginTest { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether or not Dalamud testing builds should be used.
         /// </summary>
-        public bool DoDalamudTest { get; set; } = false;
+        public bool DoDalamudTest { get; set; }
 
         /// <summary>
         /// Gets or sets a list of custom repos.
@@ -95,7 +95,7 @@ namespace Dalamud.Configuration
         /// <summary>
         /// Gets or sets a value indicating whether or not plugins should be auto-updated.
         /// </summary>
-        public bool AutoUpdatePlugins { get; set; } = false;
+        public bool AutoUpdatePlugins { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether or not the debug log should scroll automatically.
