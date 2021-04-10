@@ -73,6 +73,7 @@ jobs:
         }
         
     - name: Commit changes
+      shell: bash
       env:
         DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
         GIT_SSH_COMMAND: "ssh -o StrictHostKeyChecking=no"
