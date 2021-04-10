@@ -14,10 +14,11 @@
         <DocumentationFile>$(SolutionDir)\bin\Dalamud.xml</DocumentationFile>
     </PropertyGroup>
     <PropertyGroup Label="Feature">
+        <DalamudVersion>5.2.4.10</DalamudVersion>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <AssemblyVersion>5.2.4.9</AssemblyVersion>
-        <Version>5.2.4.9</Version>
-        <FileVersion>5.2.4.9</FileVersion>
+        <AssemblyVersion>$(DalamudVersion)</AssemblyVersion>
+        <Version>$(DalamudVersion)</Version>
+        <FileVersion>$(DalamudVersion)</FileVersion>
     </PropertyGroup>
     <ItemGroup Label="Resources">
         <None Include="$(SolutionDir)/Resources/**/*" CopyToOutputDirectory="PreserveNewest" Visible="false" />
