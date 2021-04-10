@@ -72,14 +72,13 @@ jobs:
           $versionData | ConvertTo-Json -Compress | Out-File .\stg\version
         }
         
-        $env:GITHUB_ENV += "DVER=" + $newVersion
+        echo "DVER=${newVersion}" >> $Env:GITHUB_ENV
         
     - name: Commit changes
       shell: bash
       env:
         DEPLOY_SSH: ${{ secrets.DEPLOY_SSH }}
         GIT_SSH_COMMAND: "ssh -o StrictHostKeyChecking=no"
-        DVER: ${{ env.DVER }}
       run: |
         eval "$(ssh-agent -s)"
         ssh-add - <<< "${DEPLOY_SSH}"
