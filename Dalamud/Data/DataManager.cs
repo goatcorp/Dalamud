@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 
+using JetBrains.Annotations;
 using Lumina;
 using Lumina.Data;
 using Lumina.Data.Files;
@@ -19,17 +20,12 @@ namespace Dalamud.Data
     /// </summary>
     public class DataManager : IDisposable
     {
-        /// <summary>
-        /// The current game client language.
-        /// </summary>
-        internal ClientLanguage Language;
-
         private const string IconFileFormat = "ui/icon/{0:D3}000/{1}{2:D6}.tex";
 
         /// <summary>
         /// A <see cref="Lumina"/> object which gives access to any excel/game data.
         /// </summary>
-        private Lumina.GameData gameData;
+        private GameData gameData;
 
         private Thread luminaResourceThread;
 
@@ -46,6 +42,11 @@ namespace Dalamud.Data
         }
 
         /// <summary>
+        /// Gets the current game client language.
+        /// </summary>
+        public ClientLanguage Language { get; private set; }
+
+        /// <summary>
         /// Gets the OpCodes sent by the server to the client.
         /// </summary>
         public ReadOnlyDictionary<string, ushort> ServerOpCodes { get; private set; }
@@ -53,6 +54,7 @@ namespace Dalamud.Data
         /// <summary>
         /// Gets the OpCodes sent by the client to the server.
         /// </summary>
+        [UsedImplicitly]
         public ReadOnlyDictionary<string, ushort> ClientOpCodes { get; private set; }
 
         /// <summary>
@@ -104,11 +106,19 @@ namespace Dalamud.Data
                         ClientLanguage.French => Lumina.Data.Language.French,
                         _ => throw new ArgumentOutOfRangeException(
                                  nameof(this.Language),
-                                 "Unknown Language: " + this.Language),
+                                 @"Unknown Language: " + this.Language),
                     },
                 };
 
-                this.gameData = new GameData(Path.Combine(Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName), "sqpack"), luminaOptions);
+                var processModule = Process.GetCurrentProcess().MainModule;
+                if (processModule != null)
+                {
+                    this.gameData =
+                        new GameData(
+                            Path.Combine(
+                                Path.GetDirectoryName(processModule.FileName) !,
+                                "sqpack"), luminaOptions);
+                }
 
                 Log.Information("Lumina is ready: {0}", this.gameData.DataPath);
 
@@ -163,7 +173,7 @@ namespace Dalamud.Data
                 ClientLanguage.English => Lumina.Data.Language.English,
                 ClientLanguage.German => Lumina.Data.Language.German,
                 ClientLanguage.French => Lumina.Data.Language.French,
-                _ => throw new ArgumentOutOfRangeException(nameof(this.Language), "Unknown Language: " + this.Language)
+                _ => throw new ArgumentOutOfRangeException(nameof(this.Language), @"Unknown Language: " + this.Language)
             };
             return this.Excel.GetSheet<T>(lang);
         }
@@ -186,11 +196,10 @@ namespace Dalamud.Data
         /// <returns>The <see cref="FileResource"/> of the file.</returns>
         public T GetFile<T>(string path) where T : FileResource
         {
-            ParsedFilePath filePath = GameData.ParseFilePath(path);
+            var filePath = GameData.ParseFilePath(path);
             if (filePath == null)
-                return default(T);
-            Repository repository;
-            return this.gameData.Repositories.TryGetValue(filePath.Repository, out repository) ? repository.GetFile<T>(filePath.Category, filePath) : default(T);
+                return default;
+            return this.gameData.Repositories.TryGetValue(filePath.Repository, out var repository) ? repository.GetFile<T>(filePath.Category, filePath) : default(T);
         }
 
         /// <summary>
@@ -226,7 +235,7 @@ namespace Dalamud.Data
                 ClientLanguage.English => "en/",
                 ClientLanguage.German => "de/",
                 ClientLanguage.French => "fr/",
-                _ => throw new ArgumentOutOfRangeException(nameof(this.Language), "Unknown Language: " + this.Language)
+                _ => throw new ArgumentOutOfRangeException(nameof(this.Language), @"Unknown Language: " + this.Language)
             };
 
             return this.GetIcon(type, iconId);
