@@ -218,7 +218,7 @@ namespace Dalamud
 
                 Log.Verbose("[START] CS OK!");
 
-                this.LocalizationManager = new Localization(this.AssetDirectory.FullName);
+                this.LocalizationManager = new Localization(Path.Combine(this.AssetDirectory.FullName, "UIRes", "loc", "dalamud"), "dalamud_");
                 if (!string.IsNullOrEmpty(this.Configuration.LanguageOverride))
                     this.LocalizationManager.SetupWithLangCode(this.Configuration.LanguageOverride);
                 else

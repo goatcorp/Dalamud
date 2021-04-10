@@ -9,7 +9,7 @@ namespace Dalamud.Test {
         
         public LocalizationTests() {
             var workingDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            this.localization = new Localization(workingDir);
+            this.localization = new Localization(workingDir, "dalamud_");
             this.localization.OnLocalizationChanged += code => this.currentLangCode = code;
         }
 
