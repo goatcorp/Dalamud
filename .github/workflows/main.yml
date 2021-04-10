@@ -51,6 +51,7 @@ jobs:
       with:
         name: dalamud-artifact
         path: .\scratch
+
     - name: Generate dalamud-distrib version file
       shell: powershell
       run: |
@@ -70,11 +71,19 @@ jobs:
           $versionData.AssemblyVersion = $newVersion
           $versionData | ConvertTo-Json -Compress | Out-File .\stg\version
         }
+        
     - name: Commit changes
-      uses: EndBug/add-and-commit@v7
-      with:
-        add: --all
-        author_name: GitHub Action
-        author_email: github-actions[bot]@users.noreply.github.com
-        message: Update staging
-        branch: main
+      env:
+        DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+        GIT_SSH_COMMAND: "ssh -o StrictHostKeyChecking=no"
+      run: |
+        eval "$(ssh-agent -s)"
+        ssh-add - <<< "${DEPLOY_KEY}"
+        
+        git config --global user.name "Actions User"
+        git config --global user.email "actions@github.com"
+        
+        git add .
+        git commit -m "[CI] Update staging"
+        
+        git push origin master
