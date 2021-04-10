@@ -149,7 +149,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
                 }
                 catch (Exception e)
                 {
-                    Log.Error(e, $"AutoTranslatePayload - failed to resolve: {this}");
+                    Log.Error(e, $"AutoTranslatePayload - failed to resolve: {this.Type} - Group: {this.group}, Key: {this.key}");
                 }
             }
 

@@ -78,6 +78,12 @@ namespace Dalamud
                 ShowInHelp = false,
             });
 
+            this.dalamud.CommandManager.AddHandler("/xldata", new CommandInfo(this.OnDebugDrawDataMenu)
+            {
+                HelpMessage = Loc.Localize("DalamudDevDataMenuHelp", "Draw dev data menu DEBUG. Usage: /xldata [Data Dropdown Type]"),
+                ShowInHelp = false,
+            });
+
             this.dalamud.CommandManager.AddHandler("/xllog", new CommandInfo(this.OnOpenLog)
             {
                 HelpMessage = Loc.Localize("DalamudDevLogHelp", "Open dev log DEBUG"),
@@ -221,6 +227,14 @@ namespace Dalamud
         private void OnDebugDrawDevMenu(string command, string arguments)
         {
             this.dalamud.DalamudUi.IsDevMenu = !this.dalamud.DalamudUi.IsDevMenu;
+        }
+
+        private void OnDebugDrawDataMenu(string command, string arguments)
+        {
+            if (string.IsNullOrEmpty(arguments))
+                this.dalamud.DalamudUi.ToggleData();
+            else
+                this.dalamud.DalamudUi.ToggleData(arguments);
         }
 
         private void OnOpenLog(string command, string arguments)

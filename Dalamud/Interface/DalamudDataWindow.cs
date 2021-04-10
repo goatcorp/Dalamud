@@ -31,6 +31,11 @@ namespace Dalamud.Interface
         private string serverOpString;
 
         private int currentKind;
+        private string[] dataKinds = new[]
+        {
+            "ServerOpCode", "Address", "Actor Table", "Font Test", "Party List", "Plugin IPC", "Condition",
+            "Gauge", "Command", "Addon", "Addon Inspector", "StartInfo", "Target", "Toast",
+        };
 
         private bool drawActors = false;
         private float maxActorDrawDistance = 20;
@@ -74,6 +79,31 @@ namespace Dalamud.Interface
         }
 
         /// <summary>
+        /// Set the DataKind dropdown menu.
+        /// </summary>
+        /// <param name="dataKind">Data kind name, can be lower and/or without spaces.</param>
+        public void SetDataKind(string dataKind)
+        {
+            if (string.IsNullOrEmpty(dataKind))
+                return;
+
+            if (dataKind == "ai")
+                dataKind = "Addon Inspector";
+
+            int index;
+            dataKind = dataKind.Replace(" ", string.Empty).ToLower();
+            var dataKinds = this.dataKinds.Select(k => k.Replace(" ", string.Empty).ToLower()).ToList();
+            if ((index = dataKinds.IndexOf(dataKind)) != -1)
+            {
+                this.currentKind = index;
+            }
+            else
+            {
+                this.dalamud.Framework.Gui.Chat.PrintError("/xldata: Invalid Data Type");
+            }
+        }
+
+        /// <summary>
         /// Draw the window via ImGui.
         /// </summary>
         public override void Draw()
@@ -87,15 +117,7 @@ namespace Dalamud.Interface
             var copy = ImGui.Button("Copy all");
             ImGui.SameLine();
 
-            ImGui.Combo(
-                "Data kind",
-                ref this.currentKind,
-                new[]
-                {
-                    "ServerOpCode", "Address", "Actor Table", "Font Test", "Party List", "Plugin IPC", "Condition",
-                    "Gauge", "Command", "Addon", "Addon Inspector", "StartInfo", "Target", "Toast",
-                },
-                14);
+            ImGui.Combo("Data kind", ref this.currentKind, dataKinds, dataKinds.Length);
 
             ImGui.Checkbox("Resolve GameData", ref this.resolveGameData);
 
