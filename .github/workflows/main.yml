@@ -90,4 +90,4 @@ jobs:
         git add .
         git commit -m "[CI] Update staging" || true
         
-        git push origin master || true
+        git push origin main || true
