@@ -70,9 +70,9 @@ jobs:
           Move-Item -Force .\canary.zip .\stg\latest.zip
           $versionData.AssemblyVersion = $newVersion
           $versionData | ConvertTo-Json -Compress | Out-File .\stg\version
-          
-          $env:DVER = $newVersion
         }
+        
+        $env:GITHUB_ENV += "DVER=" + $newVersion
         
     - name: Commit changes
       shell: bash
