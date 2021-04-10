@@ -37,6 +37,13 @@ namespace Dalamud.Game.Text.SeStringHandling
         }
 
         /// <summary>
+        /// Implicitly convert a string into a SeString containing a <see cref="TextPayload"/>.
+        /// </summary>
+        /// <param name="str">string to convert</param>
+        /// <returns>Equivalent SeString</returns>
+        public static implicit operator SeString(string str) => new SeString(new Payload[] { new TextPayload(str) });
+
+        /// <summary>
         /// Creates a new SeString from an ordered list of payloads.
         /// </summary>
         /// <param name="payloads">The Payload objects to make up this string.</param>
