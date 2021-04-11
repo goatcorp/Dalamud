@@ -341,6 +341,7 @@ namespace Dalamud.Interface
                     if (this.dalamud.Framework.Gui.GameUiHidden)
                         ImGui.BeginMenu("UI is hidden...", false);
 
+                    ImGui.BeginMenu(Util.GetGitHash(), false);
                     ImGui.BeginMenu(this.frameCount.ToString(), false);
                     ImGui.BeginMenu(ImGui.GetIO().Framerate.ToString("F2"), false);
 
