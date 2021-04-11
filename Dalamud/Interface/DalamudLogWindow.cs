@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 using Dalamud.Configuration;
 using Dalamud.Game.Command;
+using Dalamud.Interface.Colors;
 using Dalamud.Interface.Windowing;
 using ImGuiNET;
 using Serilog;
@@ -46,13 +47,13 @@ namespace Dalamud.Interface
         {
             var color = logEvent.level switch
             {
-                LogEventLevel.Error => new Vector4(1f, 0f, 0f, 1f),
-                LogEventLevel.Verbose => new Vector4(1f, 1f, 1f, 1f),
-                LogEventLevel.Debug => new Vector4(0.878f, 0.878f, 0.878f, 1f),
-                LogEventLevel.Information => new Vector4(1f, 1f, 1f, 1f),
-                LogEventLevel.Warning => new Vector4(1f, 0.709f, 0f, 1f),
-                LogEventLevel.Fatal => new Vector4(1f, 0f, 0f, 1f),
-                _ => throw new ArgumentOutOfRangeException()
+                LogEventLevel.Error => ImGuiColors.DalamudRed,
+                LogEventLevel.Verbose => ImGuiColors.DalamudWhite,
+                LogEventLevel.Debug => ImGuiColors.DalamudWhite2,
+                LogEventLevel.Information => ImGuiColors.DalamudWhite,
+                LogEventLevel.Warning => ImGuiColors.DalamudOrange,
+                LogEventLevel.Fatal => ImGuiColors.DalamudRed,
+                _ => throw new ArgumentOutOfRangeException(),
             };
 
             AddLog(logEvent.line, color);

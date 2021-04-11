@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 using CheapLoc;
+using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
@@ -31,6 +32,7 @@ namespace Dalamud.Interface
         private readonly DalamudPluginStatWindow pluginStatWindow;
         private readonly DalamudChangelogWindow changelogWindow;
         private readonly ComponentDemoWindow componentDemoWindow;
+        private readonly ColorDemoWindow colorDemoWindow;
 
         private readonly WindowSystem windowSystem = new WindowSystem("DalamudCore");
 
@@ -99,6 +101,12 @@ namespace Dalamud.Interface
                 IsOpen = false,
             };
             this.windowSystem.AddWindow(this.componentDemoWindow);
+
+            this.colorDemoWindow = new ColorDemoWindow()
+            {
+                IsOpen = false,
+            };
+            this.windowSystem.AddWindow(this.colorDemoWindow);
 
             Log.Information("[DUI] Windows added");
 
@@ -206,6 +214,11 @@ namespace Dalamud.Interface
                         if (ImGui.MenuItem("Open Components Demo"))
                         {
                             this.OpenComponentDemo();
+                        }
+
+                        if (ImGui.MenuItem("Open Colors Demo"))
+                        {
+                            this.OpenColorsDemo();
                         }
 
                         ImGui.MenuItem("Draw ImGui demo", string.Empty, ref this.isImguiDrawDemoWindow);
@@ -418,6 +431,14 @@ namespace Dalamud.Interface
         internal void OpenComponentDemo()
         {
             this.componentDemoWindow.IsOpen = true;
+        }
+
+        /// <summary>
+        /// Open the colors test window.
+        /// </summary>
+        internal void OpenColorsDemo()
+        {
+            this.colorDemoWindow.IsOpen = true;
         }
 
         /// <summary>

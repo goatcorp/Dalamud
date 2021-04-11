@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 using CheapLoc;
 using Dalamud.Interface;
+using Dalamud.Interface.Colors;
 using Dalamud.Interface.Windowing;
 using ImGuiNET;
 using Serilog;
@@ -19,7 +20,6 @@ namespace Dalamud.Plugin
     internal class PluginInstallerWindow : Window
     {
         private readonly Dalamud dalamud;
-        private readonly Vector4 colorGrey = new Vector4(0.70f, 0.70f, 0.70f, 1.00f);
 
         private string gameVersion;
 
@@ -326,7 +326,7 @@ namespace Dalamud.Plugin
                 ImGui.SetCursorPosY(ImGui.GetCursorPosY() - 5);
 
                 if (statusText != null)
-                    ImGui.TextColored(this.colorGrey, statusText);
+                    ImGui.TextColored(ImGuiColors.DalamudGrey, statusText);
                 else
                     this.DrawPluginList(installed ? this.pluginListInstalled : this.pluginListAvailable, installed);
 
@@ -422,7 +422,7 @@ namespace Dalamud.Plugin
                                 : ", download count unavailable";
                     if (pluginDefinition.RepoNumber != 0)
                         info += $", from custom plugin repository #{pluginDefinition.RepoNumber}";
-                    ImGui.TextColored(new Vector4(0.5f, 0.5f, 0.5f, 1.0f), info);
+                    ImGui.TextColored(ImGuiColors.DalamudGrey3, info);
 
                     if (!string.IsNullOrWhiteSpace(pluginDefinition.Description))
                         ImGui.TextWrapped(pluginDefinition.Description);
@@ -526,13 +526,13 @@ namespace Dalamud.Plugin
                         }
 
                         ImGui.SameLine();
-                        ImGui.TextColored(new Vector4(0.5f, 0.5f, 0.5f, 1.0f), $" v{installedPlugin.Definition.AssemblyVersion}");
+                        ImGui.TextColored(ImGuiColors.DalamudGrey3, $" v{installedPlugin.Definition.AssemblyVersion}");
 
                         if (installedPlugin.IsRaw)
                         {
                             ImGui.SameLine();
                             ImGui.TextColored(
-                                new Vector4(1.0f, 0.0f, 0.0f, 1.0f),
+                                ImGuiColors.DalamudRed,
                                 this.dalamud.PluginRepository.PluginMaster.Any(x => x.InternalName == installedPlugin.Definition.InternalName)
                                                    ? " This plugin is available in one of your repos, please remove it from the devPlugins folder."
                                                    : " To disable this plugin, please remove it from the devPlugins folder.");
@@ -557,7 +557,7 @@ namespace Dalamud.Plugin
                 if (installed)
                 {
                     ImGui.TextColored(
-                        this.colorGrey,
+                        ImGuiColors.DalamudGrey,
                         Loc.Localize(
                             "InstallerNoInstalled",
                             "No plugins are currently installed. You can install them from the Available Plugins tab."));
@@ -565,7 +565,7 @@ namespace Dalamud.Plugin
                 else
                 {
                     ImGui.TextColored(
-                        this.colorGrey,
+                        ImGuiColors.DalamudGrey,
                         Loc.Localize(
                             "InstallerNoCompatible",
                             "No compatible plugins were found :( Please restart your game and try again."));
@@ -574,7 +574,7 @@ namespace Dalamud.Plugin
             else if (!didAnyWithSearch)
             {
                 ImGui.TextColored(
-                    new Vector4(0.7f, 0.7f, 0.7f, 1.0f),
+                    ImGuiColors.DalamudGrey2,
                     Loc.Localize("InstallNoMatching", "No plugins were found matching your search."));
             }
         }
