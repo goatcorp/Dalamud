@@ -59,7 +59,7 @@ jobs:
         
         $dllBytes = [System.IO.File]::ReadAllBytes("$(Get-Location)\scratch\Dalamud.dll")
         $assembly = [System.Reflection.Assembly]::Load($dllBytes)
-        $newVersion = $assembly.GetName().Version.ToString()
+        $newVersion = $assembly.GetCustomAttributes([System.Reflection.AssemblyMetadataAttribute]) | Where { $_.GetType() -eq [System.Reflection.AssemblyMetadataAttribute] } | Select -First 1 | Select -ExpandProperty "Value"
         Remove-Item -Force -Recurse .\scratch
 
         $versionData = Get-Content .\stg\version | ConvertFrom-Json
