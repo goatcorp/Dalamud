@@ -8,6 +8,7 @@ using System.Windows.Forms.VisualStyles;
 using CheapLoc;
 using Dalamud.Configuration;
 using Dalamud.Game.Text;
+using Dalamud.Interface.Colors;
 using Dalamud.Interface.Windowing;
 using ImGuiNET;
 using Serilog;
@@ -114,8 +115,8 @@ namespace Dalamud.Interface
         private string[] locLanguages;
         private int langIndex;
 
-        private Vector4 hintTextColor = new Vector4(0.70f, 0.70f, 0.70f, 1.00f);
-        private Vector4 warnTextColor = new Vector4(1.0f, 0.0f, 0.0f, 1.00f);
+        private Vector4 hintTextColor = ImGuiColors.DalamudGrey;
+        private Vector4 warnTextColor = ImGuiColors.DalamudRed;
 
         private XivChatType dalamudMessagesChatType;
 
