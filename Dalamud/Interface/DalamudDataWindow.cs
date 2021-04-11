@@ -504,7 +504,7 @@ namespace Dalamud.Interface
             }
 
             if (ImGui.Button("Find Agent"))
-                this.findAgentInterfacePtr = this.FindAgentInterface(this.inputAddonName);
+                this.findAgentInterfacePtr = this.dalamud.Framework.Gui.FindAgentInterface(this.inputAddonName);
 
             if (this.resultAddon != null)
             {
@@ -575,30 +575,6 @@ namespace Dalamud.Interface
                 this.serverOpString = JsonConvert.SerializeObject(this.dalamud.Data.ServerOpCodes, Formatting.Indented);
                 this.wasReady = true;
             }
-        }
-
-        private unsafe IntPtr FindAgentInterface(string addonName)
-        {
-            var addon = this.dalamud.Framework.Gui.GetUiObjectByName(addonName, 1);
-            if (addon == IntPtr.Zero) return IntPtr.Zero;
-            SafeMemory.Read<short>(addon + 0x1CE, out var id);
-
-            if (id == 0)
-                _ = SafeMemory.Read(addon + 0x1CC, out id);
-
-            var framework = this.dalamud.Framework.Address.BaseAddress;
-            var uiModule = *(IntPtr*)(framework + 0x29F8);
-            var agentModule = uiModule + 0xC3E78;
-            for (var i = 0; i < 379; i++)
-            {
-                var agent = *(IntPtr*)(agentModule + 0x20 + (i * 8));
-                if (agent == IntPtr.Zero)
-                    continue;
-                if (*(short*)(agent + 0x20) == id)
-                    return agent;
-            }
-
-            return IntPtr.Zero;
         }
 
         private void PrintActor(Actor actor, string tag)
