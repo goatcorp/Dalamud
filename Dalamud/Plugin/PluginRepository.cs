@@ -16,7 +16,7 @@ using Serilog;
 
 namespace Dalamud.Plugin
 {
-    internal class PluginRepository { 
+    internal class PluginRepository {
         private string PluginMasterUrl => "https://raw.githubusercontent.com/goatcorp/DalamudPlugins/api3/pluginmaster.json";
 
         private readonly Dalamud dalamud;
@@ -57,7 +57,7 @@ namespace Dalamud.Plugin
                     var repoNumber = 0;
                     foreach (var repo in repos) {
                         Log.Information("[PLUGINR] Fetching repo: {0}", repo);
-                        
+
                         var data = client.DownloadString(repo);
 
                         var unsortedPluginMaster = JsonConvert.DeserializeObject<List<PluginDefinition>>(data);
@@ -238,7 +238,7 @@ namespace Dalamud.Plugin
                             Version.TryParse(remoteInfo.TestingAssemblyVersion, out var testingAssemblyVer);
                             testingAvailable = testingAssemblyVer > localAssemblyVer && this.dalamud.Configuration.DoPluginTest;
                         }
-                        
+
                         if (remoteAssemblyVer > localAssemblyVer || testingAvailable) {
                             Log.Information("Eligible for update: {0}", remoteInfo.InternalName);
 
@@ -322,7 +322,7 @@ namespace Dalamud.Plugin
                         this.dalamud.Framework.Gui.Chat.Print(string.Format(Loc.Localize("DalamudPluginUpdateSuccessful", "    》 {0} updated to v{1}."), plugin.Name, plugin.Version));
                     } else {
                         this.dalamud.Framework.Gui.Chat.PrintChat(new XivChatEntry {
-                            MessageBytes = Encoding.UTF8.GetBytes(string.Format(Loc.Localize("DalamudPluginUpdateFailed", "    》 {0} update to v{1} failed."), plugin.Name, plugin.Version)),
+                            Message = string.Format(Loc.Localize("DalamudPluginUpdateFailed", "    》 {0} update to v{1} failed."), plugin.Name, plugin.Version),
                             Type = XivChatType.Urgent
                         });
                     }

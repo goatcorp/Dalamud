@@ -88,7 +88,7 @@ namespace Dalamud.Game {
 
         public ChatHandlers(Dalamud dalamud) {
             this.dalamud = dalamud;
-            
+
             dalamud.Framework.Gui.Chat.OnCheckMessageHandled += OnCheckMessageHandled;
             dalamud.Framework.Gui.Chat.OnChatMessage += OnChatMessage;
 
@@ -118,10 +118,10 @@ namespace Dalamud.Game {
             }
         }
 
-        private void OnChatMessage(XivChatType type, uint senderId, ref SeString sender, 
+        private void OnChatMessage(XivChatType type, uint senderId, ref SeString sender,
             ref SeString message, ref bool isHandled) {
 
-            if (type == XivChatType.Notice && !this.hasSeenLoadingMsg) 
+            if (type == XivChatType.Notice && !this.hasSeenLoadingMsg)
                 PrintWelcomeMessage();
 
             // For injections while logged in
@@ -207,7 +207,7 @@ namespace Dalamud.Game {
 
             if (string.IsNullOrEmpty(this.dalamud.Configuration.LastVersion) || !assemblyVersion.StartsWith(this.dalamud.Configuration.LastVersion)) {
                 this.dalamud.Framework.Gui.Chat.PrintChat(new XivChatEntry {
-                    MessageBytes = Encoding.UTF8.GetBytes(Loc.Localize("DalamudUpdated", "The In-Game addon has been updated or was reinstalled successfully! Please check the discord for a full changelog.")),
+                    Message = Loc.Localize("DalamudUpdated", "The In-Game addon has been updated or was reinstalled successfully! Please check the discord for a full changelog."),
                     Type = XivChatType.Notice
                 });
 
@@ -228,7 +228,7 @@ namespace Dalamud.Game {
                             this.dalamud.PluginRepository.PrintUpdatedPlugins(updatedPlugins, Loc.Localize("DalamudPluginAutoUpdate", "Auto-update:"));
                         } else {
                             this.dalamud.Framework.Gui.Chat.PrintChat(new XivChatEntry {
-                                MessageBytes = new SeString(new List<Payload>() {
+                                Message = new SeString(new List<Payload>() {
                                     new TextPayload(Loc.Localize("DalamudPluginUpdateRequired", "One or more of your plugins needs to be updated. Please use the /xlplugins command in-game to update them!")),
                                     new TextPayload("  ["),
                                     new UIForegroundPayload(this.dalamud.Data, 500),
@@ -237,7 +237,7 @@ namespace Dalamud.Game {
                                     RawPayload.LinkTerminator,
                                     new UIForegroundPayload(this.dalamud.Data, 0),
                                     new TextPayload("]"),
-                                }).Encode(),
+                                }),
                                 Type = XivChatType.Urgent
                             });
                         }

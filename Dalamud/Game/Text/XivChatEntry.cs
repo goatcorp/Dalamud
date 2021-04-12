@@ -1,4 +1,5 @@
 using System;
+using Dalamud.Game.Text.SeStringHandling;
 
 namespace Dalamud.Game.Text
 {
@@ -7,9 +8,9 @@ namespace Dalamud.Game.Text
 
         public uint SenderId { get; set; }
 
-        public string Name { get; set; } = string.Empty;
+        public SeString Name { get; set; } = string.Empty;
 
-        public byte[] MessageBytes { get; set; }
+        public SeString Message { get; set; }
 
         public IntPtr Parameters { get; set; }
     }

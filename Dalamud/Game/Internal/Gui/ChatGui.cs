@@ -166,7 +166,7 @@ namespace Dalamud.Game.Internal.Gui {
                     Log.Verbose("SeString was edited, taking precedence over StdString edit.");
                     message.RawData = newEdited;
                     Log.Debug($"\nOLD: {BitConverter.ToString(originalMessageData)}\nNEW: {BitConverter.ToString(newEdited)}");
-                } 
+                }
 
                 var messagePtr = pMessage;
                 OwnedStdString allocatedString = null;
@@ -305,7 +305,7 @@ namespace Dalamud.Game.Internal.Gui {
         public void Print(string message) {
             Log.Verbose("[CHATGUI PRINT]{0}", message);
             PrintChat(new XivChatEntry {
-                MessageBytes = Encoding.UTF8.GetBytes(message),
+                Message = message,
                 Type = this.dalamud.Configuration.GeneralChatType
             });
         }
@@ -313,7 +313,7 @@ namespace Dalamud.Game.Internal.Gui {
         public void PrintError(string message) {
             Log.Verbose("[CHATGUI PRINT ERROR]{0}", message);
             PrintChat(new XivChatEntry {
-                MessageBytes = Encoding.UTF8.GetBytes(message),
+                Message = message,
                 Type = XivChatType.Urgent
             });
         }
@@ -329,10 +329,10 @@ namespace Dalamud.Game.Internal.Gui {
                     continue;
                 }
 
-                var senderRaw = Encoding.UTF8.GetBytes(chat.Name ?? "");
+                var senderRaw = chat.Name?.Encode() ?? new byte[0];
                 using var senderOwned = framework.Libc.NewString(senderRaw);
 
-                var messageRaw = chat.MessageBytes ?? new byte[0];
+                var messageRaw = chat.Message?.Encode() ?? new byte[0];
                 using var messageOwned = framework.Libc.NewString(messageRaw);
 
                 this.HandlePrintMessageDetour(this.baseAddress, chat.Type, senderOwned.Address, messageOwned.Address, chat.SenderId, chat.Parameters);
