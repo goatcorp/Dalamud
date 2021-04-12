@@ -298,7 +298,7 @@ namespace Dalamud.Interface
                 return;
             }
 
-            ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.DockingEnable;
+            ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;
         }
 
         public static ImFontPtr DefaultFont { get; private set; }
