@@ -27,6 +27,7 @@ namespace Dalamud.Interface.Components
                 Demo("Test", ImGuiComponents.Test),
                 Demo("HelpMarker", HelpMarkerDemo),
                 Demo("IconButton", IconButtonDemo),
+                Demo("TextWithLabel", TextWithLabelDemo),
             };
         }
 
@@ -70,6 +71,11 @@ namespace Dalamud.Interface.Components
             }
 
             ImGui.EndPopup();
+        }
+
+        private static void TextWithLabelDemo()
+        {
+            ImGuiComponents.TextWithLabel("Label", "Hover to see more", "more");
         }
 
         private static KeyValuePair<string, Action> Demo(string name, Action func)
