@@ -23,6 +23,7 @@ namespace Dalamud
 
         private readonly string locResourceDirectory;
         private readonly string locResourcePrefix;
+        private readonly bool useEmbedded;
         private readonly Assembly assembly;
 
         /// <summary>
@@ -30,10 +31,12 @@ namespace Dalamud
         /// </summary>
         /// <param name="locResourceDirectory">The working directory to load language files from.</param>
         /// <param name="locResourcePrefix">The prefix on the loc resource file name (e.g. dalamud_).</param>
-        public Localization(string locResourceDirectory, string locResourcePrefix = "")
+        /// <param name="useEmbedded">Use embedded loc resource files.</param>
+        public Localization(string locResourceDirectory, string locResourcePrefix = "", bool useEmbedded = false)
         {
             this.locResourceDirectory = locResourceDirectory;
             this.locResourcePrefix = locResourcePrefix;
+            this.useEmbedded = useEmbedded;
             this.assembly = Assembly.GetCallingAssembly();
         }
 
@@ -130,9 +133,16 @@ namespace Dalamud
 
         private string ReadLocData(string langCode)
         {
-            return File.ReadAllText(Path.Combine(
-                this.locResourceDirectory,
-                $"{this.locResourcePrefix}{langCode}.json"));
+            if (this.useEmbedded)
+            {
+                var resourceStream =
+                    this.assembly.GetManifestResourceStream($"{this.locResourceDirectory}{this.locResourcePrefix}{langCode}.json");
+                if (resourceStream == null) return null;
+                using var reader = new StreamReader(resourceStream);
+                return reader.ReadToEnd();
+            }
+
+            return File.ReadAllText(Path.Combine(this.locResourceDirectory, $"{this.locResourcePrefix}{langCode}.json"));
         }
     }
 }
