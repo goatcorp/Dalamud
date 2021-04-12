@@ -37,6 +37,7 @@ namespace Dalamud.Interface
             this.doToggleUiHideDuringGpose = this.dalamud.Configuration.ToggleUiHideDuringGpose;
 
             this.doDocking = this.dalamud.Configuration.IsDocking;
+            this.doViewport = !this.dalamud.Configuration.IsNeverViewport;
 
             this.doPluginTest = this.dalamud.Configuration.DoPluginTest;
             this.thirdRepoList = this.dalamud.Configuration.ThirdRepoList.Select(x => x.Clone()).ToList();
@@ -130,6 +131,7 @@ namespace Dalamud.Interface
         private bool doToggleUiHideDuringCutscenes;
         private bool doToggleUiHideDuringGpose;
         private bool doDocking;
+        private bool doViewport;
         private List<ThirdRepoSetting> thirdRepoList;
 
         private bool printPluginsWelcomeMsg;
@@ -214,6 +216,9 @@ namespace Dalamud.Interface
                     ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingToggleUiHideDuringGposeHint", "Hide any open windows by plugins while gpose is active."));
 
                     ImGui.Dummy(new Vector2(10f, 16f) * ImGui.GetIO().FontGlobalScale);
+
+                    ImGui.Checkbox(Loc.Localize("DalamudSettingToggleViewports", "Enable multi-monitor windows"), ref this.doViewport);
+                    ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingToggleViewportsHint", "This will allow you move plugin windows onto other monitors.\nWill only work in Borderless Window or Windowed mode."));
 
                     ImGui.Checkbox(Loc.Localize("DalamudSettingToggleDocking", "Enable window docking"), ref this.doDocking);
                     ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingToggleDockingHint", "This will allow you to fuse and tab plugin windows."));
@@ -368,6 +373,9 @@ namespace Dalamud.Interface
             this.dalamud.Configuration.ToggleUiHideDuringGpose = this.doToggleUiHideDuringGpose;
 
             this.dalamud.Configuration.IsDocking = this.doDocking;
+
+            // This is applied every frame in InterfaceManager::CheckViewportState()
+            this.dalamud.Configuration.IsNeverViewport = !this.doViewport;
 
             // Apply docking flag
             if (!this.dalamud.Configuration.IsDocking)
