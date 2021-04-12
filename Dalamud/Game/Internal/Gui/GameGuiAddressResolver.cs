@@ -49,11 +49,8 @@ namespace Dalamud.Game.Internal.Gui {
             GetUIObjectByName = sig.ScanText("E8 ?? ?? ?? ?? 48 8B CF 48 89 87 ?? ?? 00 00 E8 ?? ?? ?? ?? 41 B8 01 00 00 00");
             GetUIModule = sig.ScanText("E8 ?? ?? ?? ?? 83 3B 01");
 
-            // TODO replace manual resolving the vtable when SigScanner supports resolving .rdata offsets
-            var uiModuleVtableSig = sig.ScanText("48 8D 05 ?? ?? ?? ?? 4C 89 44 24 ?? 48 89 01");
-            var offset = Marshal.ReadInt32(uiModuleVtableSig, 3);
-            var vtable = uiModuleVtableSig + offset + 7;
-            this.GetAgentModule = Marshal.ReadIntPtr(vtable, 34 * IntPtr.Size);
+            var uiModuleVtableSig = sig.GetStaticAddressFromSig("48 8D 05 ?? ?? ?? ?? 4C 89 44 24 ?? 48 89 01");
+            this.GetAgentModule = Marshal.ReadIntPtr(uiModuleVtableSig, 34 * IntPtr.Size);
         }
     }
 }
