@@ -113,6 +113,11 @@ namespace Dalamud.Configuration
         public bool IsDocking { get; set; }
 
         /// <summary>
+        /// Gets or sets a value indicating whether viewports should always be disabled.
+        /// </summary>
+        public bool IsNeverViewport { get; set; }
+
+        /// <summary>
         /// Load a configuration from the provided path.
         /// </summary>
         /// <param name="path">The path to load the configuration file from.</param>
