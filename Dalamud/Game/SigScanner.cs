@@ -84,6 +84,21 @@ namespace Dalamud.Game
         public int DataSectionSize { get; private set; }
 
         /// <summary>
+        /// Gets the base address of the .rdata section search area.
+        /// </summary>
+        public IntPtr RDataSectionBase => new IntPtr(this.SearchBase.ToInt64() + this.RDataSectionOffset);
+
+        /// <summary>
+        /// Gets the offset of the .rdata section from the base of the module.
+        /// </summary>
+        public long RDataSectionOffset { get; private set; }
+
+        /// <summary>
+        /// Gets the size of the .rdata section.
+        /// </summary>
+        public int RDataSectionSize { get; private set; }
+
+        /// <summary>
         /// Gets the ProcessModule on which the search is performed.
         /// </summary>
         public ProcessModule Module { get; }
@@ -126,7 +141,8 @@ namespace Dalamud.Game
                 instrAddr = IntPtr.Add(instrAddr, 1);
                 num = Marshal.ReadInt32(instrAddr) + (long)instrAddr + 4 - bAddr;
             }
-            while (!(num >= this.DataSectionOffset && num <= this.DataSectionOffset + this.DataSectionSize));
+            while (!(num >= this.DataSectionOffset && num <= this.DataSectionOffset + this.DataSectionSize)
+                   && !(num >= this.RDataSectionOffset && num <= this.RDataSectionOffset + this.RDataSectionSize));
 
             return IntPtr.Add(instrAddr, Marshal.ReadInt32(instrAddr) + 4);
         }
@@ -321,6 +337,10 @@ namespace Dalamud.Game
                     case 0x617461642E: // .data
                         this.DataSectionOffset = Marshal.ReadInt32(sectionCursor, 12);
                         this.DataSectionSize = Marshal.ReadInt32(sectionCursor, 8);
+                        break;
+                    case 0x61746164722E: // .rdata
+                        this.RDataSectionOffset = Marshal.ReadInt32(sectionCursor, 12);
+                        this.RDataSectionSize = Marshal.ReadInt32(sectionCursor, 8);
                         break;
                 }
 
