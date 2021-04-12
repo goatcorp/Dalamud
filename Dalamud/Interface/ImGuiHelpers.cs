@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Numerics;
 using ImGuiNET;
 
@@ -56,6 +57,23 @@ namespace Dalamud.Interface
         public static void SetWindowPosRelativeMainViewport(
             string name, Vector2 position, ImGuiCond condition = ImGuiCond.None)
             => ImGui.SetWindowPos(position + MainViewport.Pos, condition);
+
+        /// <summary>
+        /// Creates default color palette for use with color pickers.
+        /// </summary>
+        /// <param name="swatchCount">The total number of swatches to use.</param>
+        /// <returns>Default color palette.</returns>
+        public static List<Vector4> DefaultColorPalette(int swatchCount = 32)
+        {
+            var colorPalette = new List<Vector4>();
+            for (var i = 0; i < swatchCount; i++)
+            {
+                ImGui.ColorConvertHSVtoRGB(i / 31.0f, 0.7f, 0.8f, out var r, out var g, out var b);
+                colorPalette.Add(new Vector4(r, g, b, 1.0f));
+            }
+
+            return colorPalette;
+        }
 
         /// <summary>
         /// Get data needed for each new frame.
