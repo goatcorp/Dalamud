@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 
+using Dalamud.Interface.Colors;
 using Dalamud.Interface.Windowing;
 using ImGuiNET;
 
@@ -13,6 +14,7 @@ namespace Dalamud.Interface.Components
     internal class ComponentDemoWindow : Window
     {
         private readonly List<KeyValuePair<string, Action>> componentDemos;
+        private Vector4 defaultColor = ImGuiColors.DalamudOrange;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ComponentDemoWindow"/> class.
@@ -27,6 +29,8 @@ namespace Dalamud.Interface.Components
                 Demo("Test", ImGuiComponents.Test),
                 Demo("HelpMarker", HelpMarkerDemo),
                 Demo("IconButton", IconButtonDemo),
+                Demo("TextWithLabel", TextWithLabelDemo),
+                Demo("ColorPickerWithPalette", this.ColorPickerWithPaletteDemo),
             };
         }
 
@@ -72,9 +76,21 @@ namespace Dalamud.Interface.Components
             ImGui.EndPopup();
         }
 
+        private static void TextWithLabelDemo()
+        {
+            ImGuiComponents.TextWithLabel("Label", "Hover to see more", "more");
+        }
+
         private static KeyValuePair<string, Action> Demo(string name, Action func)
         {
             return new KeyValuePair<string, Action>(name, func);
+        }
+
+        private void ColorPickerWithPaletteDemo()
+        {
+            ImGui.Text("Click on the color button to use the picker.");
+            ImGui.SameLine();
+            this.defaultColor = ImGuiComponents.ColorPickerWithPalette(1, "ColorPickerWithPalette Demo", this.defaultColor);
         }
     }
 }
