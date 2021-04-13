@@ -1,96 +1,121 @@
-using Dalamud.Game.ClientState.Actors.Types;
-using Dalamud.Hooking;
-using Dalamud.Plugin;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
+
+using Dalamud.Game.ClientState.Actors.Types;
 
 namespace Dalamud.Game.ClientState
 {
-    public class PartyList : IReadOnlyCollection<PartyMember>, ICollection, IDisposable
+    /// <summary>
+    /// A PartyList.
+    /// </summary>
+    public class PartyList : IReadOnlyCollection<PartyMember>
     {
-        private ClientStateAddressResolver Address { get; }
-        private Dalamud dalamud;
+        private readonly Dalamud dalamud;
+        private readonly ClientStateAddressResolver address;
+        private readonly GetPartyMemberCountDelegate getCrossPartyMemberCount;
+        private readonly GetCompanionMemberCountDelegate getCompanionMemberCount;
+        private readonly GetCrossMemberByGrpIndexDelegate getCrossMemberByGrpIndex;
 
-        private delegate long PartyListUpdateDelegate(IntPtr structBegin, long param2, char param3);
-
-        private Hook<PartyListUpdateDelegate> partyListUpdateHook;
-        private IntPtr partyListBegin;
-        private bool isReady = false;
-
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PartyList"/> class.
+        /// </summary>
+        /// <param name="dalamud">A Dalamud.</param>
+        /// <param name="addressResolver">A ClientStateAddressResolver.</param>
         public PartyList(Dalamud dalamud, ClientStateAddressResolver addressResolver)
         {
-            Address = addressResolver;
+            this.address = addressResolver;
             this.dalamud = dalamud;
-            //this.partyListUpdateHook = new Hook<PartyListUpdateDelegate>(Address.PartyListUpdate, new PartyListUpdateDelegate(PartyListUpdateDetour), this);
+            this.getCrossPartyMemberCount = Marshal.GetDelegateForFunctionPointer<GetPartyMemberCountDelegate>(addressResolver.GetCrossRealmMemberCount);
+            this.getCrossMemberByGrpIndex = Marshal.GetDelegateForFunctionPointer<GetCrossMemberByGrpIndexDelegate>(addressResolver.GetCrossMemberByGrpIndex);
+            this.getCompanionMemberCount = Marshal.GetDelegateForFunctionPointer<GetCompanionMemberCountDelegate>(addressResolver.GetCompanionMemberCount);
         }
 
-        public void Enable()
+        private delegate byte GetPartyMemberCountDelegate();
+
+        private delegate IntPtr GetCrossMemberByGrpIndexDelegate(int index, int group);
+
+        private delegate byte GetCompanionMemberCountDelegate(IntPtr manager);
+
+        /// <inheritdoc/>
+        public int Count
         {
-            // TODO Fix for 5.3
-            //this.partyListUpdateHook.Enable();
+            get
+            {
+                var count = this.getCrossPartyMemberCount();
+                if (count > 0)
+                    return count;
+                count = this.GetRegularMemberCount();
+                if (count > 1)
+                    return count;
+                count = this.GetCompanionMemberCount();
+                return count > 0 ? count + 1 : 0;
+            }
         }
 
-        public void Dispose()
-        {
-            //if (!this.isReady)
-            //    this.partyListUpdateHook.Dispose();
-            this.isReady = false;
-        }
-
-        private long PartyListUpdateDetour(IntPtr structBegin, long param2, char param3)
-        {
-            var result = this.partyListUpdateHook.Original(structBegin, param2, param3);
-            this.partyListBegin = structBegin + 0xB48;
-            this.partyListUpdateHook.Dispose();
-            this.isReady = true;
-            return result;
-        }
-
+        /// <summary>
+        /// Gets the PartyMember at the specified index or null.
+        /// </summary>
+        /// <param name="index">The index.</param>
         public PartyMember this[int index]
         {
-            get {
-                if (!this.isReady)
-                    return null;
-                if (index >= Length)
-                    return null;
-                var tblIndex = partyListBegin + index * 24;
-                var memberStruct = Marshal.PtrToStructure<Structs.PartyMember>(tblIndex);
-                return new PartyMember(this.dalamud.ClientState.Actors, memberStruct);
-            }
-        }
-
-        public void CopyTo(Array array, int index)
-        {
-            for (var i = 0; i < Length; i++)
+            get
             {
-                array.SetValue(this[i], index);
-                index++;
-            }
-        }
+                if (index < 0 || index >= this.Count)
+                    return null;
 
-        public IEnumerator<PartyMember> GetEnumerator() {
-            for (var i = 0; i < Length; i++) {
-                if (this[i] != null) {
-                    yield return this[i];
+                if (this.getCrossPartyMemberCount() > 0)
+                {
+                    var member = this.getCrossMemberByGrpIndex(index, -1);
+                    if (member == IntPtr.Zero)
+                        return null;
+                    return PartyMember.CrossRealmMember(this.dalamud.ClientState.Actors, member);
                 }
+
+                if (this.GetRegularMemberCount() > 1)
+                {
+                    var member = this.address.GroupManager + (0x230 * index);
+                    return PartyMember.RegularMember(this.dalamud.ClientState.Actors, member);
+                }
+
+                if (this.GetCompanionMemberCount() > 0)
+                {
+                    if (index >= 3) // return a dummy player member if it's not one of the npcs
+                        return PartyMember.LocalPlayerMember(this.dalamud);
+                    var member = Marshal.ReadIntPtr(this.address.CompanionManagerPtr) + (0x198 * index);
+                    return PartyMember.CompanionMember(this.dalamud.ClientState.Actors, member);
+                }
+
+                return null;
             }
         }
 
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        /// <inheritdoc/>
+        IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
 
-        public int Length => !this.isReady ? 0 : Marshal.ReadByte(partyListBegin + 0xF0);
+        /// <inheritdoc/>
+        public IEnumerator<PartyMember> GetEnumerator()
+        {
+            for (var i = 0; i < this.Count; i++)
+            {
+                var member = this[i];
+                if (member != null)
+                    yield return member;
+            }
+        }
 
-        int IReadOnlyCollection<PartyMember>.Count => Length;
+        private byte GetRegularMemberCount()
+        {
+            return Marshal.ReadByte(this.address.GroupManager, 0x3D5C);
+        }
 
-        public int Count => Length;
-
-        public object SyncRoot => this;
-
-        public bool IsSynchronized => false;
+        private byte GetCompanionMemberCount()
+        {
+            var manager = Marshal.ReadIntPtr(this.address.CompanionManagerPtr);
+            if (manager == IntPtr.Zero)
+                return 0;
+            return this.getCompanionMemberCount(this.address.CompanionManagerPtr);
+        }
     }
 }
