@@ -12,6 +12,7 @@ using Dalamud.Game.Internal;
 using Dalamud.Game.Internal.Gui.Addon;
 using Dalamud.Game.Internal.Gui.Toast;
 using Dalamud.Game.Text;
+using Dalamud.Interface.Colors;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
 using ImGuiNET;
@@ -541,7 +542,10 @@ namespace Dalamud.Interface
             var targetMgr = this.dalamud.ClientState.Targets;
 
             if (targetMgr.CurrentTarget != null)
+            {
                 this.PrintActor(targetMgr.CurrentTarget, "CurrentTarget");
+                Util.ShowObject(targetMgr.CurrentTarget);
+            }
 
             if (targetMgr.FocusTarget != null)
                 this.PrintActor(targetMgr.FocusTarget, "FocusTarget");

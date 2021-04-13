@@ -5,6 +5,9 @@ using System.Runtime.InteropServices;
 using System.Text;
 
 using Dalamud.Game;
+using Dalamud.Interface;
+using Dalamud.Interface.Colors;
+using ImGuiNET;
 using Serilog;
 
 namespace Dalamud
@@ -115,6 +118,33 @@ namespace Dalamud
             }
 
             return sb.ToString().TrimEnd(Environment.NewLine.ToCharArray());
+        }
+
+        /// <summary>
+        /// Show all properties and fields of the provided object via ImGui.
+        /// </summary>
+        /// <param name="obj">The object to show.</param>
+        public static void ShowObject(object obj)
+        {
+            var type = obj.GetType();
+
+            ImGui.Text($"Object Dump({type.Name}) for {obj}({obj.GetHashCode()})");
+
+            ImGuiHelpers.ScaledDummy(5);
+
+            ImGui.TextColored(ImGuiColors.DalamudOrange, "-> Properties:");
+            foreach (var propertyInfo in type.GetProperties())
+            {
+                ImGui.TextColored(ImGuiColors.DalamudOrange, $"    {propertyInfo.Name}: {propertyInfo.GetValue(obj)}");
+            }
+
+            ImGuiHelpers.ScaledDummy(5);
+
+            ImGui.TextColored(ImGuiColors.HealerGreen, "-> Fields:");
+            foreach (var fieldInfo in type.GetFields())
+            {
+                ImGui.TextColored(ImGuiColors.HealerGreen, $"    {fieldInfo.Name}: {fieldInfo.GetValue(obj)}");
+            }
         }
     }
 }
