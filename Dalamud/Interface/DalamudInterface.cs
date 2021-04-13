@@ -309,7 +309,7 @@ namespace Dalamud.Interface
                     {
                         if (ImGui.MenuItem("Export localizable"))
                         {
-                            Loc.ExportLocalizable();
+                            this.dalamud.LocalizationManager.ExportLocalizable();
                         }
 
                         if (ImGui.BeginMenu("Load language..."))

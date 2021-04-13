@@ -34,7 +34,7 @@ namespace Dalamud.Interface
         private string[] dataKinds = new[]
         {
             "ServerOpCode", "Address", "Actor Table", "Font Test", "Party List", "Plugin IPC", "Condition",
-            "Gauge", "Command", "Addon", "Addon Inspector", "StartInfo", "Target", "Toast",
+            "Gauge", "Command", "Addon", "Addon Inspector", "StartInfo", "Target", "Toast", "ImGui"
         };
 
         private bool drawActors = false;
@@ -117,7 +117,7 @@ namespace Dalamud.Interface
             var copy = ImGui.Button("Copy all");
             ImGui.SameLine();
 
-            ImGui.Combo("Data kind", ref this.currentKind, dataKinds, dataKinds.Length);
+            ImGui.Combo("Data kind", ref this.currentKind, this.dataKinds, this.dataKinds.Length);
 
             ImGui.Checkbox("Resolve GameData", ref this.resolveGameData);
 
@@ -338,6 +338,12 @@ namespace Dalamud.Interface
                             {
                                 this.dalamud.Framework.Gui.Toast.ShowError(this.inputTextToast);
                             }
+
+                            break;
+
+                        // ImGui
+                        case 14:
+                            ImGui.Text("Monitor count: " + ImGui.GetPlatformIO().Monitors.Size);
 
                             break;
                     }

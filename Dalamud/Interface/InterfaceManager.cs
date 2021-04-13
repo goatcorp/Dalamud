@@ -282,9 +282,23 @@ namespace Dalamud.Interface
             // Process information needed by ImGuiHelpers each frame.
             ImGuiHelpers.NewFrame();
 
+            // Check if we can still enable viewports without any issues.
+            this.CheckViewportState();
+
             this.scene.Render();
 
             return this.presentHook.Original(swapChain, syncInterval, presentFlags);
+        }
+
+        private void CheckViewportState()
+        {
+            if (this.dalamud.Configuration.IsNeverViewport || this.scene.SwapChain.IsFullScreen || ImGui.GetPlatformIO().Monitors.Size == 1)
+            {
+                ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.ViewportsEnable;
+                return;
+            }
+
+            ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;
         }
 
         public static ImFontPtr DefaultFont { get; private set; }

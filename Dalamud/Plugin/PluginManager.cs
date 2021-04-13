@@ -29,6 +29,8 @@ namespace Dalamud.Plugin
 
         private readonly Type interfaceType = typeof(IDalamudPlugin);
 
+        private readonly List<BannedPlugin> bannedPlugins;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="PluginManager"/> class.
         /// </summary>
@@ -47,6 +49,9 @@ namespace Dalamud.Plugin
             this.IpcSubscriptions = new List<(string SourcePluginName, string SubPluginName, Action<ExpandoObject> SubAction)>();
 
             this.pluginConfigs = new PluginConfigurations(Path.Combine(Path.GetDirectoryName(dalamud.StartInfo.ConfigurationPath), "pluginConfigs"));
+
+            this.bannedPlugins = JsonConvert.DeserializeObject<List<BannedPlugin>>(
+                File.ReadAllText(Path.Combine(this.dalamud.StartInfo.AssetDirectory, "UIRes", "bannedplugin.json")));
 
             // Try to load missing assemblies from the local directory of the requesting assembly
             // This would usually be implicit when using Assembly.Load(), but Assembly.LoadFile() doesn't do it...
@@ -317,6 +322,13 @@ namespace Dalamud.Plugin
                         DalamudApiLevel = DalamudApiLevel,
                     };
 
+                    if (this.bannedPlugins.Any(x => x.Name == pluginDef.InternalName &&
+                                                    x.AssemblyVersion == pluginDef.AssemblyVersion))
+                    {
+                        Log.Error($"[PLUGINM] Banned plugin {pluginDef.InternalName} with {pluginDef.AssemblyVersion}");
+                        return false;
+                    }
+
                     if (pluginDef.InternalName == "PingPlugin" && pluginDef.AssemblyVersion == "1.11.0.0")
                     {
                         Log.Error("Banned PingPlugin");
@@ -365,6 +377,13 @@ namespace Dalamud.Plugin
         {
             this.UnloadPlugins();
             this.LoadPlugins();
+        }
+
+        private class BannedPlugin
+        {
+            public string Name { get; set; }
+
+            public string AssemblyVersion { get; set; }
         }
     }
 }
