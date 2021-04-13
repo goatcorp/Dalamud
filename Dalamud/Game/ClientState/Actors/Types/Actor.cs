@@ -1,82 +1,98 @@
-using Dalamud.Game.ClientState.Structs;
 using System;
 
-namespace Dalamud.Game.ClientState.Actors.Types {
+using Dalamud.Game.ClientState.Structs;
+
+namespace Dalamud.Game.ClientState.Actors.Types
+{
     /// <summary>
     ///     This class represents a basic FFXIV actor.
     /// </summary>
-    public class Actor : IEquatable<Actor> {
-        /// <summary>
-        ///     The memory representation of the base actor.
-        /// </summary>
-        protected Structs.Actor actorStruct;
-
-        protected Dalamud dalamud;
-
-        /// <summary>
-        /// The address of this actor in memory.
-        /// </summary>
-        public readonly IntPtr Address;
+    public class Actor : IEquatable<Actor>
+    {
+        private readonly Structs.Actor actorStruct;
+        // This is a breaking change. StyleCop demands it.
+        // private readonly IntPtr address;
+        private readonly Dalamud dalamud;
 
         /// <summary>
-        ///     Initialize a representation of a basic FFXIV actor.
+        /// Initializes a new instance of the <see cref="Actor"/> class.
+        /// This represents a basic FFXIV actor.
         /// </summary>
         /// <param name="actorStruct">The memory representation of the base actor.</param>
         /// <param name="dalamud">A dalamud reference needed to access game data in Resolvers.</param>
         /// <param name="address">The address of this actor in memory.</param>
-        public Actor(IntPtr address, Structs.Actor actorStruct, Dalamud dalamud) {
+        public Actor(IntPtr address, Structs.Actor actorStruct, Dalamud dalamud)
+        {
             this.actorStruct = actorStruct;
             this.dalamud = dalamud;
             this.Address = address;
         }
 
         /// <summary>
-        ///     Position of this <see cref="Actor" />.
+        /// Gets position of this <see cref="Actor" />.
         /// </summary>
-        public Position3 Position => this.actorStruct.Position;
+        public Position3 Position => this.ActorStruct.Position;
 
         /// <summary>
-        /// Rotation of this <see cref="Actor"/>.<br/>
+        /// Gets rotation of this <see cref="Actor" />.
         /// This ranges from -pi to pi radians.
         /// </summary>
-        public float Rotation => this.actorStruct.Rotation;
+        public float Rotation => this.ActorStruct.Rotation;
 
         /// <summary>
-        ///     Displayname of this <see cref="Actor">Actor</see>.
+        /// Gets displayname of this <see cref="Actor" />.
         /// </summary>
-        public string Name => this.actorStruct.Name;
+        public string Name => this.ActorStruct.Name;
 
         /// <summary>
-        ///     Actor ID of this <see cref="Actor" />.
+        /// Gets actor ID of this <see cref="Actor" />.
         /// </summary>
-        public int ActorId => this.actorStruct.ActorId;
+        public int ActorId => this.ActorStruct.ActorId;
 
         /// <summary>
-        ///     Entity kind of this <see cref="Actor">actor</see>. See <see cref="ObjectKind">the ObjectKind enum</see> for
-        ///     possible values.
+        /// Gets entity kind of this <see cref="Actor" />.
+        /// See <see cref="ObjectKind">the ObjectKind enum</see> for possible values.
         /// </summary>
-        public ObjectKind ObjectKind => this.actorStruct.ObjectKind;
+        public ObjectKind ObjectKind => this.ActorStruct.ObjectKind;
 
         /// <summary>
-        /// The X distance from the local player in yalms.
+        /// Gets the X distance from the local player in yalms.
         /// </summary>
-        public byte YalmDistanceX => this.actorStruct.YalmDistanceFromPlayerX;
+        public byte YalmDistanceX => this.ActorStruct.YalmDistanceFromPlayerX;
 
         /// <summary>
-        /// The Y distance from the local player in yalms.
+        /// Gets the Y distance from the local player in yalms.
         /// </summary>
-        public byte YalmDistanceY => this.actorStruct.YalmDistanceFromPlayerY;
+        public byte YalmDistanceY => this.ActorStruct.YalmDistanceFromPlayerY;
 
         /// <summary>
-        /// The target of the actor
+        /// Gets the target of the actor.
         /// </summary>
         public virtual int TargetActorID => 0;
 
         /// <summary>
-        ///  Status Effects
+        ///  Gets status Effects.
         /// </summary>
-        public StatusEffect[] StatusEffects => this.actorStruct.UIStatusEffects;
+        public StatusEffect[] StatusEffects => this.ActorStruct.UIStatusEffects;
 
+        /// <summary>
+        /// Gets the address of this actor in memory.
+        /// </summary>
+        // TODO: This is a breaking change, StyleCop demands it.
+        // public IntPtr Address => this.address;
+        public readonly IntPtr Address;
+
+        /// <summary>
+        /// Gets the memory representation of the base actor.
+        /// </summary>
+        internal Structs.Actor ActorStruct => this.actorStruct;
+
+        /// <summary>
+        /// Gets the <see cref="Dalamud"/> backing instance.
+        /// </summary>
+        protected Dalamud Dalamud => this.dalamud;
+
+        /// <inheritdoc/>
         bool IEquatable<Actor>.Equals(Actor other) => this.ActorId == other.ActorId;
     }
 }
