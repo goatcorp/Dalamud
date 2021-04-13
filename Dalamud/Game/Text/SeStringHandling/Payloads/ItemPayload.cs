@@ -175,40 +175,5 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
                 this.displayName = Encoding.UTF8.GetString(itemNameBytes);
             }
         }
-
-        protected override byte[] MakeInteger(uint value, bool withMarker = true, bool incrementSmallInts = true)
-        {
-            // TODO: as part of refactor
-
-            // linking an item id that is a multiple of 256 seemingly *requires* using byte*256 marker encoding
-            // or the link will not display correctly
-            // I am unsure if this applies to other data types as well, so keeping localized here, pending the
-            // refactor of all this integer handling mess
-            if (value % 256 == 0)
-            {
-                value /= 256;
-                // this is no longer a small int, but it was likely converted to that range
-                incrementSmallInts = false;
-            }
-
-            return base.MakeInteger(value, withMarker, incrementSmallInts);
-        }
-
-        protected override byte GetMarkerForIntegerBytes(byte[] bytes)
-        {
-            // custom marker just for hq items?
-            if (bytes.Length == 3 && IsHQ)
-            {
-                return (byte)IntegerType.Int24Special;
-            }
-
-            // TODO: as in the above function
-            if (bytes.Length == 1 && (this.itemId % 256 == 0))
-            {
-                return (byte)IntegerType.ByteTimes256;
-            }
-
-            return base.GetMarkerForIntegerBytes(bytes);
-        }
     }
 }

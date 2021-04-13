@@ -247,240 +247,61 @@ namespace Dalamud.Game.Text.SeStringHandling
         }
 
 
-        // TODO - everything below needs to be completely refactored, now that we have run into
-        // a lot more cases than were originally handled.
-
-        protected enum IntegerType
-        {
-            // used as an internal marker; sometimes single bytes are bare with no marker at all
-            None = 0,
-
-            Byte = 0xF0,
-            ByteTimes256 = 0xF1,
-            Int16 = 0xF2,
-            ByteSHL16 = 0xF3,
-            Int16Packed = 0xF4,         // seen in map links, seemingly 2 8-bit values packed into 2 bytes with only one marker
-            Int16SHL8 = 0xF5,
-            Int24Special = 0xF6,        // unsure how different form Int24 - used for hq items that add 1 million, also used for normal 24-bit values in map links
-            Int8SHL24 = 0xF7,
-            Int8SHL8Int8 = 0xF8,
-            Int8SHL8Int8SHL8 = 0xF9,
-            Int24 = 0xFA,
-            Int16SHL16 = 0xFB,
-            Int24Packed = 0xFC,         // used in map links- sometimes short+byte, sometimes... not??
-            Int16Int8SHL8 = 0xFD,
-            Int32 = 0xFE
-        }
-
         // made protected, unless we actually want to use it externally
         // in which case it should probably go live somewhere else
         protected static uint GetInteger(BinaryReader input)
         {
-            var t = input.ReadByte();
-            var type = (IntegerType)t;
-            return GetInteger(input, type);
-        }
+            uint marker = input.ReadByte();
+            if (marker < 0xD0) return marker - 1;
 
-        private static uint GetInteger(BinaryReader input, IntegerType type)
-        {
-            const byte ByteLengthCutoff = 0xF0;
+            // the game adds 0xF0 marker for values >= 0xCF
+            // uasge of 0xD0-0xEF is unknown, should we throw here?
+            // if (marker < 0xF0) throw new NotSupportedException();
 
-            var t = (byte)type;
-            if (t < ByteLengthCutoff)
-                return (uint)(t - 1);
+            marker = (marker + 1) & 0b1111;
 
-            switch (type)
+            var ret = new byte[4];
+            for (var i = 3; i >= 0; i--)
             {
-                case IntegerType.Byte:
-                    return input.ReadByte();
-
-                case IntegerType.ByteTimes256:
-                    return input.ReadByte() * (uint)256;
-                case IntegerType.ByteSHL16:
-                    return (uint)(input.ReadByte() << 16);
-                case IntegerType.Int8SHL24:
-                    return (uint)(input.ReadByte() << 24);
-                case IntegerType.Int8SHL8Int8:
-                    {
-                        var v = 0;
-                        v |= input.ReadByte() << 24;
-                        v |= input.ReadByte();
-                        return (uint)v;
-                    }
-                case IntegerType.Int8SHL8Int8SHL8:
-                    {
-                        var v = 0;
-                        v |= input.ReadByte() << 24;
-                        v |= input.ReadByte() << 8;
-                        return (uint)v;
-                    }
-
-
-                case IntegerType.Int16:
-                    // fallthrough - same logic
-                case IntegerType.Int16Packed:
-                    {
-                        var v = 0;
-                        v |= input.ReadByte() << 8;
-                        v |= input.ReadByte();
-                        return (uint)v;
-                    }
-                case IntegerType.Int16SHL8:
-                    {
-                        var v = 0;
-                        v |= input.ReadByte() << 16;
-                        v |= input.ReadByte() << 8;
-                        return (uint)v;
-                    }
-                case IntegerType.Int16SHL16:
-                    {
-                        var v = 0;
-                        v |= input.ReadByte() << 24;
-                        v |= input.ReadByte() << 16;
-                        return (uint)v;
-                    }
-
-                case IntegerType.Int24Special:
-                    // Fallthrough - same logic
-                case IntegerType.Int24Packed:
-                // fallthrough again
-                case IntegerType.Int24:
-                    {
-                        var v = 0;
-                        v |= input.ReadByte() << 16;
-                        v |= input.ReadByte() << 8;
-                        v |= input.ReadByte();
-                        return (uint)v;
-                    }
-                case IntegerType.Int16Int8SHL8:
-                    {
-                        var v = 0;
-                        v |= input.ReadByte() << 24;
-                        v |= input.ReadByte() << 16;
-                        v |= input.ReadByte() << 8;
-                        return (uint)v;
-                    }
-                case IntegerType.Int32:
-                    {
-                        var v = 0;
-                        v |= input.ReadByte() << 24;
-                        v |= input.ReadByte() << 16;
-                        v |= input.ReadByte() << 8;
-                        v |= input.ReadByte();
-                        return (uint)v;
-                    }
-
-                default:
-                    throw new NotSupportedException();
-            }
-        }
-
-        protected virtual byte[] MakeInteger(uint value, bool withMarker = true, bool incrementSmallInts = true) // TODO: better way to handle this
-        {
-            // single-byte values below the marker values have no marker and have 1 added
-            if (incrementSmallInts && (value + 1 < (int)IntegerType.Byte))
-            {
-                value++;
-                return new byte[] { (byte)value };
+                ret[i] = (marker & (1 << i)) == 0 ? (byte)0 : input.ReadByte();
             }
 
-            var bytesPadded = BitConverter.GetBytes(value);
-            Array.Reverse(bytesPadded);
-            var shrunkValue = bytesPadded.SkipWhile(b => b == 0x00).ToArray();
+            return BitConverter.ToUInt32(ret, 0);
+        }
 
-            var encodedNum = new List<byte>();
-
-            if (withMarker)
+        protected static byte[] MakeInteger(uint value)
+        {
+            if (value < 0xCF)
             {
-                var marker = GetMarkerForIntegerBytes(shrunkValue);
-                if (marker != 0)
+                return new byte[] { (byte)(value + 1) };
+            }
+
+            var bytes = BitConverter.GetBytes(value);
+
+            var ret = new List<byte>() { 0xF0 };
+            for (var i = 3; i >= 0; i--)
+            {
+                if (bytes[i] != 0)
                 {
-                    encodedNum.Add(marker);
+                    ret.Add(bytes[i]);
+                    ret[0] |= (byte)(1 << i);
                 }
             }
+            ret[0] -= 1;
 
-            encodedNum.AddRange(shrunkValue);
-
-            return encodedNum.ToArray();
+            return ret.ToArray();
         }
 
-        // This is only accurate in a very general sense
-        // Different payloads seem to use different default values for things
-        // So this should be overridden where necessary
-        protected virtual byte GetMarkerForIntegerBytes(byte[] bytes)
+        protected static (uint, uint) GetPackedIntegers(BinaryReader input)
         {
-            // not the most scientific, exists mainly for laziness
-
-            var marker = bytes.Length switch
-            {
-                1 => IntegerType.Byte,
-                2 => IntegerType.Int16,
-                3 => IntegerType.Int24,
-                4 => IntegerType.Int32,
-                _ => throw new NotSupportedException()
-            };
-
-            return (byte)marker;
-        }
-
-        protected virtual byte GetMarkerForPackedIntegerBytes(byte[] bytes)
-        {
-            // unsure if any 'strange' size groupings exist; only ever seen these
-            var type = bytes.Length switch
-            {
-                4 => IntegerType.Int32,
-                3 => IntegerType.Int24Packed,
-                2 => IntegerType.Int16Packed,
-                _ => throw new NotSupportedException()
-            };
-
-            return (byte)type;
-        }
-
-        protected (uint, uint) GetPackedIntegers(BinaryReader input)
-        {
-            // HACK - this was already a hack, but the addition of Int24Packed made it even worse
-            // All of this should be redone/removed at some point
-
-            var marker = (IntegerType)input.ReadByte();
-            input.BaseStream.Position--;
-
             var value = GetInteger(input);
-
-            if (marker == IntegerType.Int24Packed)
-            {
-                return ((uint)((value & 0xFFFF00) >> 8), (uint)(value & 0xFF));
-            }
-            // this used to be the catchall before Int24Packed; leave it for now to ensure we handle all encodings
-            else // if (marker == IntegerType.Int16Packed || marker == IntegerType.Int32)
-            {
-                if (value > 0xFFFF)
-                {
-                    return ((uint)((value & 0xFFFF0000) >> 16), (uint)(value & 0xFFFF));
-                }
-                else if (value > 0xFF)
-                {
-                    return ((uint)((value & 0xFF00) >> 8), (uint)(value & 0xFF));
-                }
-            }
-
-            // unsure if there are other cases
-            throw new NotSupportedException();
+            return (value >> 16, value & 0xFFFF);
         }
 
-        protected byte[] MakePackedInteger(uint val1, uint val2, bool withMarker = true)
+        protected static byte[] MakePackedInteger(uint val1, uint val2)
         {
-            var value = MakeInteger(val1, false, false).Concat(MakeInteger(val2, false, false)).ToArray();
-
-            var valueBytes = new List<byte>();
-            if (withMarker)
-            {
-                valueBytes.Add(GetMarkerForPackedIntegerBytes(value));
-            }
-
-            valueBytes.AddRange(value);
-
-            return valueBytes.ToArray();
+            var value = (val1 << 16) | (val2 & 0xFFFF);
+            return MakeInteger(value);
         }
         #endregion
     }
