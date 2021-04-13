@@ -75,6 +75,9 @@ namespace Dalamud.Game.Internal.Gui {
         private delegate IntPtr GetUiModuleDelegate(IntPtr basePtr);
         private readonly GetUiModuleDelegate getUiModule;
 
+        private delegate IntPtr GetAgentModuleDelegate(IntPtr uiModule);
+        private GetAgentModuleDelegate getAgentModule;
+
         public bool GameUiHidden { get; private set; }
 
         /// <summary>
@@ -117,6 +120,7 @@ namespace Dalamud.Game.Internal.Gui {
             Log.Verbose("HandleItemHover address {Address}", Address.HandleItemHover);
             Log.Verbose("HandleItemOut address {Address}", Address.HandleItemOut);
             Log.Verbose("GetUIObject address {Address}", Address.GetUIObject);
+            Log.Verbose("GetAgentModule address {Address}", Address.GetAgentModule);
 
             Chat = new ChatGui(Address.ChatManager, scanner, dalamud);
             PartyFinder = new PartyFinderGui(scanner, dalamud);
@@ -159,6 +163,7 @@ namespace Dalamud.Game.Internal.Gui {
             this.getUIObjectByName = Marshal.GetDelegateForFunctionPointer<GetUIObjectByNameDelegate>(Address.GetUIObjectByName);
 
             this.getUiModule = Marshal.GetDelegateForFunctionPointer<GetUiModuleDelegate>(Address.GetUIModule);
+            this.getAgentModule = Marshal.GetDelegateForFunctionPointer<GetAgentModuleDelegate>(Address.GetAgentModule);
         }
 
         private IntPtr HandleSetGlobalBgmDetour(UInt16 bgmKey, byte a2, UInt32 a3, UInt32 a4, UInt32 a5, byte a6) {
@@ -452,6 +457,48 @@ namespace Dalamud.Game.Internal.Gui {
             if (addonMem == IntPtr.Zero) return null;
             var addonStruct = Marshal.PtrToStructure<Structs.Addon>(addonMem);
             return new Addon.Addon(addonMem, addonStruct);
+        }
+
+        public IntPtr FindAgentInterface(string addonName)
+        {
+            var addon = this.dalamud.Framework.Gui.GetUiObjectByName(addonName, 1);
+            return this.FindAgentInterface(addon);
+        }
+
+        public IntPtr FindAgentInterface(IntPtr addon)
+        {
+            if (addon == IntPtr.Zero)
+                return IntPtr.Zero;
+
+            var uiModule = this.dalamud.Framework.Gui.GetUIModule();
+            if (uiModule == IntPtr.Zero)
+            {
+                return IntPtr.Zero;
+            }
+
+            var agentModule = this.getAgentModule(uiModule);
+            if (agentModule == IntPtr.Zero)
+            {
+                return IntPtr.Zero;
+            }
+
+            var id = Marshal.ReadInt16(addon, 0x1CE);
+            if (id == 0)
+                id = Marshal.ReadInt16(addon, 0x1CC);
+
+            if (id == 0)
+                return IntPtr.Zero;
+
+            for (var i = 0; i < 379; i++)
+            {
+                var agent = Marshal.ReadIntPtr(agentModule, 0x20 + (i * 8));
+                if (agent == IntPtr.Zero)
+                    continue;
+                if (Marshal.ReadInt32(agent, 0x20) == id)
+                    return agent;
+            }
+
+            return IntPtr.Zero;
         }
 
         public void SetBgm(ushort bgmKey) => this.setGlobalBgmHook.Original(bgmKey, 0, 0, 0, 0, 0); 
