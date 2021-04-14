@@ -20,6 +20,7 @@ namespace Dalamud.Game.ClientState.Structs
         public const int YalmDistanceFromPlayerY = 146;      // 0x0092 Distance
         public const int Position = 160;                     // 0x00A0 (X,Z,Y)
         public const int Rotation = 176;                     // 0x00B0 Heading
+        public const int HitboxRadius = 190;
         public const int CurrentHp = 452;                    // 0x01C4 HPCurrent
         public const int MaxHp = 456;                        // 0x01C8 HPMax
         public const int CurrentMp = 460;                    // 0x01CC MPCurrent
@@ -66,6 +67,7 @@ namespace Dalamud.Game.ClientState.Structs
         [FieldOffset(ActorOffsets.YalmDistanceFromPlayerY)] public byte YalmDistanceFromPlayerY; // and the other is z distance
         [FieldOffset(ActorOffsets.Position)] public Position3 Position;
         [FieldOffset(ActorOffsets.Rotation)] public float Rotation; // Rotation around the vertical axis (yaw), from -pi to pi radians
+        [FieldOffset(ActorOffsets.HitboxRadius)] public float HitboxRadius;
         [FieldOffset(ActorOffsets.CurrentHp)] public int CurrentHp;
         [FieldOffset(ActorOffsets.MaxHp)] public int MaxHp;
         [FieldOffset(ActorOffsets.CurrentMp)] public int CurrentMp;
