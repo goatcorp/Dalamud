@@ -383,7 +383,7 @@ namespace Dalamud.Plugin
 
                 if (this.dalamud.Configuration.DoPluginTest && pluginDefinition.IsTestingExclusive)
                     isTestingAvailable = true;
-                else if (!this.dalamud.Configuration.DoPluginTest && pluginDefinition.IsTestingExclusive) continue;
+                else if (!installed && !this.dalamud.Configuration.DoPluginTest && pluginDefinition.IsTestingExclusive) continue;
 
                 var label = string.Empty;
                 if (isInstalled && !installed)
