@@ -115,7 +115,7 @@ namespace Dalamud.Configuration
         /// <summary>
         /// Gets or sets a value indicating whether viewports should always be disabled.
         /// </summary>
-        public bool IsNeverViewport { get; set; }
+        public bool IsNeverViewport { get; set; } = true;
 
         /// <summary>
         /// Load a configuration from the provided path.
