@@ -81,7 +81,7 @@ namespace Dalamud.Game.ClientState.Structs
 
         // Normally pack=2 should work, but ByTVal or Injection breaks this.
         // [FieldOffset(ActorOffsets.CompanyTag)] [MarshalAs(UnmanagedType.ByValArray, SizeConst = 6)] public string CompanyTag;
-        // [FieldOffset(ActorOffsets.BattleNpcTargetActorId)] public int BattleNpcTargetActorId;
+        [FieldOffset(ActorOffsets.BattleNpcTargetActorId)] public int BattleNpcTargetActorId;
         [FieldOffset(ActorOffsets.NameId)] public int NameId;
         [FieldOffset(ActorOffsets.CurrentWorld)] public ushort CurrentWorld;
         [FieldOffset(ActorOffsets.HomeWorld)] public ushort HomeWorld;
