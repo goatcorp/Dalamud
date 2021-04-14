@@ -556,9 +556,6 @@ namespace Dalamud.Interface
             if (targetMgr.PreviousTarget != null)
                 this.PrintActor(targetMgr.PreviousTarget, "PreviousTarget");
 
-            if (targetMgr.PreviousTarget != null)
-                this.PrintActor(targetMgr.PreviousTarget, "PreviousTarget");
-
             if (targetMgr.SoftTarget != null)
                 this.PrintActor(targetMgr.SoftTarget, "SoftTarget");
 
