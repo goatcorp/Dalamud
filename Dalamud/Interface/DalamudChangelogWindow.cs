@@ -12,7 +12,7 @@ namespace Dalamud.Interface {
         private readonly Dalamud dalamud;
         private string assemblyVersion = Util.AssemblyVersion;
 
-        public const bool WarrantsChangelog = true;
+        public const bool WarrantsChangelog = false;
         private const string ChangeLog =
             @"* Various behind-the-scenes changes to improve stability
 * Faster startup times
