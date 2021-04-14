@@ -1,21 +1,23 @@
-namespace Dalamud.Game.ClientState.Actors.Types.NonPlayer {
+namespace Dalamud.Game.ClientState.Actors.Types.NonPlayer
+{
     /// <summary>
-    ///     Enum describing possible BattleNpc kinds.
+    /// An Enum describing possible BattleNpc kinds.
     /// </summary>
-    public enum BattleNpcSubKind : byte {
+    public enum BattleNpcSubKind : byte
+    {
         /// <summary>
-        ///     Invalid BattleNpc.
+        /// Invalid BattleNpc.
         /// </summary>
         None = 0,
 
         /// <summary>
-        ///     BattleNpc representing a Pet.
+        /// BattleNpc representing a Pet.
         /// </summary>
         Pet = 2,
 
         /// <summary>
-        ///     BattleNpc representing a standard enemy.
+        /// BattleNpc representing a standard enemy.
         /// </summary>
-        Enemy = 5
+        Enemy = 5,
     }
 }
