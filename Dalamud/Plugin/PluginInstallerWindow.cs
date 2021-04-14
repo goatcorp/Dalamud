@@ -218,6 +218,8 @@ namespace Dalamud.Plugin
                             this.errorModalOnNextFrame = this.installStatus == PluginInstallStatus.Fail;
 
                             this.dalamud.PluginRepository.PrintUpdatedPlugins(this.updatedPlugins, Loc.Localize("DalamudPluginUpdates", "Updates:"));
+
+                            this.RefetchPlugins();
                         });
                     }
                 }
