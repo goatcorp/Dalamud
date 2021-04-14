@@ -1,72 +1,80 @@
 using System;
+
 using Dalamud.Game.ClientState.Actors.Resolvers;
 
-namespace Dalamud.Game.ClientState.Actors.Types {
+namespace Dalamud.Game.ClientState.Actors.Types
+{
     /// <summary>
-    ///     This class represents the base for non-static entities.
+    /// This class represents the base for non-static entities.
     /// </summary>
-    public class Chara : Actor {
+    public class Chara : Actor
+    {
         /// <summary>
-        ///     Set up a new Chara with the provided memory representation.
+        /// Initializes a new instance of the <see cref="Chara"/> class.
+        /// This represents a non-static entity.
         /// </summary>
         /// <param name="actorStruct">The memory representation of the base actor.</param>
         /// <param name="dalamud">A dalamud reference needed to access game data in Resolvers.</param>
         /// <param name="address">The address of this actor in memory.</param>
-        protected Chara(IntPtr address, Structs.Actor actorStruct, Dalamud dalamud) : base(address, actorStruct, dalamud) { }
+        protected Chara(IntPtr address, Structs.Actor actorStruct, Dalamud dalamud)
+            : base(address, actorStruct, dalamud)
+        {
+        }
 
         /// <summary>
-        ///     The level of this Chara.
+        /// Gets the level of this Chara.
         /// </summary>
-        public byte Level => this.actorStruct.Level;
+        public byte Level => this.ActorStruct.Level;
 
         /// <summary>
-        ///     The ClassJob of this Chara.
+        /// Gets the ClassJob of this Chara.
         /// </summary>
-        public ClassJob ClassJob => new ClassJob(this.actorStruct.ClassJob, this.dalamud);
+        public ClassJob ClassJob => new ClassJob(this.ActorStruct.ClassJob, this.Dalamud);
 
         /// <summary>
-        ///     The current HP of this Chara.
+        /// Gets the current HP of this Chara.
         /// </summary>
-        public int CurrentHp => this.actorStruct.CurrentHp;
+        public int CurrentHp => this.ActorStruct.CurrentHp;
 
         /// <summary>
-        ///     The maximum HP of this Chara.
+        /// Gets the maximum HP of this Chara.
         /// </summary>
-        public int MaxHp => this.actorStruct.MaxHp;
+        public int MaxHp => this.ActorStruct.MaxHp;
 
         /// <summary>
-        ///     The current MP of this Chara.
+        /// Gets the current MP of this Chara.
         /// </summary>
-        public int CurrentMp => this.actorStruct.CurrentMp;
+        public int CurrentMp => this.ActorStruct.CurrentMp;
 
         /// <summary>
-        ///     The maximum MP of this Chara.
+        /// Gets the maximum MP of this Chara.
         /// </summary>
-        public int MaxMp => this.actorStruct.MaxMp;
+        public int MaxMp => this.ActorStruct.MaxMp;
 
         /// <summary>
-        ///     The current GP of this Chara.
+        /// Gets the current GP of this Chara.
         /// </summary>
-        public int CurrentGp => this.actorStruct.CurrentGp;
+        public int CurrentGp => this.ActorStruct.CurrentGp;
 
         /// <summary>
-        ///     The maximum GP of this Chara.
+        /// Gets the maximum GP of this Chara.
         /// </summary>
-        public int MaxGp => this.actorStruct.MaxGp;
+        public int MaxGp => this.ActorStruct.MaxGp;
 
         /// <summary>
-        ///     The current CP of this Chara.
+        /// Gets the current CP of this Chara.
         /// </summary>
-        public int CurrentCp => this.actorStruct.CurrentCp;
+        public int CurrentCp => this.ActorStruct.CurrentCp;
 
         /// <summary>
-        ///     The maximum CP of this Chara.
+        /// Gets the maximum CP of this Chara.
         /// </summary>
-        public int MaxCp => this.actorStruct.MaxCp;
+        public int MaxCp => this.ActorStruct.MaxCp;
 
         /// <summary>
-        /// Byte array describing the visual appearance of this Chara. Indexed by <see cref="CustomizeIndex"/>.
+        /// Gets a byte array describing the visual appearance of this Chara.
+        /// Indexed by <see cref="CustomizeIndex"/>.
         /// </summary>
-        public byte[] Customize => this.actorStruct.Customize;
+        public byte[] Customize => this.ActorStruct.Customize;
     }
 }
