@@ -8,6 +8,7 @@ namespace Dalamud.Game.ClientState.Actors {
         public const int MouseOverTarget = 0xD0;
         public const int FocusTarget = 0xF8;
         public const int PreviousTarget = 0x110;
+        public const int SoftTarget = 0x88;
     }
 
     public sealed class Targets {
@@ -18,7 +19,8 @@ namespace Dalamud.Game.ClientState.Actors {
         public Actor MouseOverTarget => GetActorByOffset(TargetOffsets.MouseOverTarget);
         public Actor FocusTarget => GetActorByOffset(TargetOffsets.FocusTarget);
         public Actor PreviousTarget => GetActorByOffset(TargetOffsets.PreviousTarget);
-        
+        public Actor SoftTarget => GetActorByOffset(TargetOffsets.SoftTarget);
+
         internal Targets(Dalamud dalamud, ClientStateAddressResolver addressResolver) {
             this.dalamud = dalamud;
             Address = addressResolver;
