@@ -14,7 +14,7 @@
         <DocumentationFile>$(SolutionDir)\bin\Dalamud.xml</DocumentationFile>
     </PropertyGroup>
     <PropertyGroup Label="Feature">
-        <DalamudVersion>5.2.5.1</DalamudVersion>
+        <DalamudVersion>5.2.5.2</DalamudVersion>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <AssemblyVersion>$(DalamudVersion)</AssemblyVersion>
         <Version>$(DalamudVersion)</Version>
