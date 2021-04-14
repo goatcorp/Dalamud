@@ -29,28 +29,33 @@ namespace Dalamud.Game.ClientState.Actors.Types
         }
 
         /// <summary>
-        /// Gets position of this <see cref="Actor" />.
+        /// Gets the position of this <see cref="Actor" />.
         /// </summary>
         public Position3 Position => this.ActorStruct.Position;
 
         /// <summary>
-        /// Gets rotation of this <see cref="Actor" />.
+        /// Gets the rotation of this <see cref="Actor" />.
         /// This ranges from -pi to pi radians.
         /// </summary>
         public float Rotation => this.ActorStruct.Rotation;
 
         /// <summary>
-        /// Gets displayname of this <see cref="Actor" />.
+        /// Gets the displayname of this <see cref="Actor" />.
         /// </summary>
         public string Name => this.ActorStruct.Name;
 
         /// <summary>
-        /// Gets actor ID of this <see cref="Actor" />.
+        /// Gets the actor ID of this <see cref="Actor" />.
         /// </summary>
         public int ActorId => this.ActorStruct.ActorId;
 
         /// <summary>
-        /// Gets entity kind of this <see cref="Actor" />.
+        /// Gets the hitbox radius of this <see cref="Actor" />.
+        /// </summary>
+        public float HitboxRadius => this.ActorStruct.HitboxRadius;
+
+        /// <summary>
+        /// Gets the entity kind of this <see cref="Actor" />.
         /// See <see cref="ObjectKind">the ObjectKind enum</see> for possible values.
         /// </summary>
         public ObjectKind ObjectKind => this.ActorStruct.ObjectKind;
@@ -71,7 +76,7 @@ namespace Dalamud.Game.ClientState.Actors.Types
         public virtual int TargetActorID => 0;
 
         /// <summary>
-        ///  Gets status Effects.
+        /// Gets status Effects.
         /// </summary>
         public StatusEffect[] StatusEffects => this.ActorStruct.UIStatusEffects;
 
