@@ -55,9 +55,6 @@ namespace Dalamud.Plugin
 
             this.Size = new Vector2(810, 520);
             this.SizeCondition = ImGuiCond.Always;
-
-            if (this.dalamud.PluginRepository.State != PluginRepository.InitializationState.InProgress)
-                this.dalamud.PluginRepository.ReloadPluginMasterAsync();
         }
 
         private enum PluginInstallStatus
@@ -73,6 +70,23 @@ namespace Dalamud.Plugin
             Alphabetical,
             DownloadCount,
             LastUpdate,
+        }
+
+        public override void OnOpen()
+        {
+            base.OnOpen();
+
+            if (this.dalamud.PluginRepository.State != PluginRepository.InitializationState.InProgress)
+                this.dalamud.PluginRepository.ReloadPluginMasterAsync();
+
+            this.pluginListAvailable = null;
+            this.pluginListInstalled = null;
+            this.updateComplete = false;
+            this.updatePluginCount = 0;
+            this.updatedPlugins = null;
+            this.searchText = string.Empty;
+            this.sortKind = PluginSortKind.Alphabetical;
+            this.filterText = Loc.Localize("SortAlphabetical", "Alphabetical");
         }
 
         /// <summary>
