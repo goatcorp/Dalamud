@@ -14,6 +14,8 @@ using ImGuiScene;
 using Serilog;
 using SharpDX.Direct3D11;
 
+#nullable enable
+
 // general dev notes, here because it's easiest
 /*
  * - Hooking ResizeBuffers seemed to be unnecessary, though I'm not sure why.  Left out for now since it seems to work without it.
