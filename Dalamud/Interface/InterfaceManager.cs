@@ -382,11 +382,13 @@ namespace Dalamud.Interface
 
         private IntPtr ResizeBuffersDetour(IntPtr swapChain, uint bufferCount, uint width, uint height, uint newFormat, uint swapChainFlags)
         {
+#if DEBUG
             Log.Verbose($"Calling resizebuffers swap@{swapChain.ToInt64():X}{bufferCount} {width} {height} {newFormat} {swapChainFlags}");
+#endif
 
             // We have to ensure we're working with the main swapchain,
             // as viewports might be resizing as well
-            if (swapChain != this.scene.SwapChain.NativePointer)
+            if (this.scene == null || swapChain != this.scene.SwapChain.NativePointer)
                 return resizeBuffersHook.Original(swapChain, bufferCount, width, height, newFormat, swapChainFlags);
 
             this.scene?.OnPreResize();
