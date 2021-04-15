@@ -294,7 +294,7 @@ namespace Dalamud.Interface
 
         private void CheckViewportState()
         {
-            if (this.dalamud.Configuration.IsNeverViewport || this.scene.SwapChain.IsFullScreen || ImGui.GetPlatformIO().Monitors.Size == 1)
+            if (this.dalamud.Configuration.IsDisableViewport || this.scene.SwapChain.IsFullScreen || ImGui.GetPlatformIO().Monitors.Size == 1)
             {
                 ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.ViewportsEnable;
                 return;

@@ -37,7 +37,7 @@ namespace Dalamud.Interface
             this.doToggleUiHideDuringGpose = this.dalamud.Configuration.ToggleUiHideDuringGpose;
 
             this.doDocking = this.dalamud.Configuration.IsDocking;
-            this.doViewport = !this.dalamud.Configuration.IsNeverViewport;
+            this.doViewport = !this.dalamud.Configuration.IsDisableViewport;
 
             this.doPluginTest = this.dalamud.Configuration.DoPluginTest;
             this.thirdRepoList = this.dalamud.Configuration.ThirdRepoList.Select(x => x.Clone()).ToList();
@@ -375,7 +375,7 @@ namespace Dalamud.Interface
             this.dalamud.Configuration.IsDocking = this.doDocking;
 
             // This is applied every frame in InterfaceManager::CheckViewportState()
-            this.dalamud.Configuration.IsNeverViewport = !this.doViewport;
+            this.dalamud.Configuration.IsDisableViewport = !this.doViewport;
 
             // Apply docking flag
             if (!this.dalamud.Configuration.IsDocking)
