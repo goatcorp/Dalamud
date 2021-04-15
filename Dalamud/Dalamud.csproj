@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup Label="Target">
         <PlatformTarget>AnyCPU</PlatformTarget>
         <TargetFramework>net472</TargetFramework>
@@ -14,7 +14,7 @@
         <DocumentationFile>$(SolutionDir)\bin\Dalamud.xml</DocumentationFile>
     </PropertyGroup>
     <PropertyGroup Label="Feature">
-        <DalamudVersion>5.2.5.2</DalamudVersion>
+        <DalamudVersion>5.2.5.3</DalamudVersion>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <AssemblyVersion>$(DalamudVersion)</AssemblyVersion>
         <Version>$(DalamudVersion)</Version>
