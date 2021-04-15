@@ -25,6 +25,8 @@ If you note any issues or need help, please make sure to ask on our discord serv
             this.dalamud = dalamud;
 
             this.Namespace = "DalamudChangelogWindow";
+
+            this.IsOpen = WarrantsChangelog;
         }
 
         public override void Draw() {
