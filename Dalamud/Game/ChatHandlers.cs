@@ -211,7 +211,8 @@ namespace Dalamud.Game {
                     Type = XivChatType.Notice
                 });
 
-                this.dalamud.DalamudUi.OpenChangelog();
+                if (DalamudChangelogWindow.WarrantsChangelog)
+                    this.dalamud.DalamudUi.OpenChangelog();
 
                 this.dalamud.Configuration.LastVersion = assemblyVersion;
                 this.dalamud.Configuration.Save();
