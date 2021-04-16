@@ -192,31 +192,31 @@ namespace Dalamud
                 this.TargetModule = Process.GetCurrentProcess().MainModule;
                 this.SigScanner = new SigScanner(this.TargetModule, true);
 
-                Log.Verbose("[START] Scanner OK!");
+                Log.Information("[START] Scanner OK!");
 
                 this.AntiDebug = new AntiDebug(this.SigScanner);
 #if DEBUG
                 AntiDebug.Enable();
 #endif
 
-                Log.Verbose("[START] AntiDebug OK!");
+                Log.Information("[START] AntiDebug OK!");
 
                 // Initialize game subsystem
                 this.Framework = new Framework(this.SigScanner, this);
 
-                Log.Verbose("[START] Framework OK!");
+                Log.Information("[START] Framework OK!");
 
                 this.WinSock2 = new WinSockHandlers();
 
-                Log.Verbose("[START] WinSock OK!");
+                Log.Information("[START] WinSock OK!");
 
                 this.NetworkHandlers = new NetworkHandlers(this, this.StartInfo.OptOutMbCollection);
 
-                Log.Verbose("[START] NH OK!");
+                Log.Information("[START] NH OK!");
 
                 this.ClientState = new ClientState(this, this.StartInfo, this.SigScanner);
 
-                Log.Verbose("[START] CS OK!");
+                Log.Information("[START] CS OK!");
 
                 this.LocalizationManager = new Localization(Path.Combine(this.AssetDirectory.FullName, "UIRes", "loc", "dalamud"), "dalamud_");
                 if (!string.IsNullOrEmpty(this.Configuration.LanguageOverride))
@@ -224,12 +224,12 @@ namespace Dalamud
                 else
                     this.LocalizationManager.SetupWithUiCulture();
 
-                Log.Verbose("[START] LOC OK!");
+                Log.Information("[START] LOC OK!");
 
                 this.PluginRepository =
                     new PluginRepository(this, this.StartInfo.PluginDirectory, this.StartInfo.GameVersion);
 
-                Log.Verbose("[START] PREPO OK!");
+                Log.Information("[START] PREPO OK!");
 
                 var isInterfaceLoaded = false;
                 if (!bool.Parse(Environment.GetEnvironmentVariable("DALAMUD_NOT_HAVE_INTERFACE") ?? "false"))
@@ -241,7 +241,7 @@ namespace Dalamud
                         this.InterfaceManager.Enable();
                         isInterfaceLoaded = true;
 
-                        Log.Verbose("[START] IM OK!");
+                        Log.Information("[START] IM OK!");
 
                         this.InterfaceManager.WaitForFontRebuild();
                     }
@@ -263,22 +263,22 @@ namespace Dalamud
                     return;
                 }
 
-                Log.Verbose("[START] Data OK!");
+                Log.Information("[START] Data OK!");
 
                 this.SeStringManager = new SeStringManager(this.Data);
 
-                Log.Verbose("[START] SeString OK!");
+                Log.Information("[START] SeString OK!");
 
                 // Initialize managers. Basically handlers for the logic
                 this.CommandManager = new CommandManager(this, this.StartInfo.Language);
                 this.DalamudCommands = new DalamudCommands(this);
                 this.DalamudCommands.SetupCommands();
 
-                Log.Verbose("[START] CM OK!");
+                Log.Information("[START] CM OK!");
 
                 this.ChatHandlers = new ChatHandlers(this);
 
-                Log.Verbose("[START] CH OK!");
+                Log.Information("[START] CH OK!");
 
                 if (!bool.Parse(Environment.GetEnvironmentVariable("DALAMUD_NOT_HAVE_PLUGINS") ?? "false"))
                 {
@@ -286,7 +286,7 @@ namespace Dalamud
                     {
                         this.PluginRepository.CleanupPlugins();
 
-                        Log.Verbose("[START] PRC OK!");
+                        Log.Information("[START] PRC OK!");
 
                         this.PluginManager = new PluginManager(
                             this,
@@ -294,7 +294,7 @@ namespace Dalamud
                             this.StartInfo.DefaultPluginDirectory);
                         this.PluginManager.LoadPlugins();
 
-                        Log.Verbose("[START] PM OK!");
+                        Log.Information("[START] PM OK!");
                     }
                     catch (Exception ex)
                     {
@@ -303,15 +303,15 @@ namespace Dalamud
                 }
 
                 this.Framework.Enable();
-                Log.Verbose("[START] Framework ENABLE!");
+                Log.Information("[START] Framework ENABLE!");
 
                 this.ClientState.Enable();
-                Log.Verbose("[START] CS ENABLE!");
+                Log.Information("[START] CS ENABLE!");
 
                 this.DalamudUi = new DalamudInterface(this);
                 this.InterfaceManager.OnDraw += this.DalamudUi.Draw;
 
-                Log.Verbose("[START] DUI OK!");
+                Log.Information("[START] DUI OK!");
 
                 this.IsReady = true;
 
