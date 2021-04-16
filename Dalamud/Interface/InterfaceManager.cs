@@ -279,6 +279,8 @@ namespace Dalamud.Interface
                 }
 
                 ImGuiHelpers.MainViewport = ImGui.GetMainViewport();
+				
+				Log.Information("[IM] Scene & ImGui setup OK!");
             }
 
             // Process information needed by ImGuiHelpers each frame.
