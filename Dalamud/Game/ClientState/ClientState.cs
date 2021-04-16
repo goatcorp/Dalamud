@@ -98,6 +98,8 @@ namespace Dalamud.Game.ClientState
         /// </summary>
         public KeyState KeyState;
 
+        public GamepadState GamepadState;
+        
         /// <summary>
         /// Provides access to client conditions/player state. Allows you to check if a player is in a duty, mounted, etc.
         /// </summary>
@@ -131,6 +133,8 @@ namespace Dalamud.Game.ClientState
 
             this.KeyState = new KeyState(Address, scanner.Module.BaseAddress);
 
+            this.GamepadState = new GamepadState(scanner);
+
             this.Condition = new Condition( Address );
 
             this.Targets = new Targets(dalamud, Address);
@@ -150,6 +154,7 @@ namespace Dalamud.Game.ClientState
         }
 
         public void Enable() {
+            this.GamepadState.Enable();
             this.PartyList.Enable();
             this.setupTerritoryTypeHook.Enable();
         }
@@ -158,6 +163,7 @@ namespace Dalamud.Game.ClientState
             this.PartyList.Dispose();
             this.setupTerritoryTypeHook.Dispose();
             this.Actors.Dispose();
+            this.GamepadState.Dispose();
 
             this.dalamud.Framework.OnUpdateEvent -= FrameworkOnOnUpdateEvent;
             this.dalamud.NetworkHandlers.CfPop += NetworkHandlersOnCfPop;

@@ -291,6 +291,9 @@ namespace Dalamud.Interface
                     ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.DockingEnable;
                 }
 
+                //TODO (Chiv) Addition
+                ImGui.GetIO().BackendFlags |= ImGuiBackendFlags.HasGamepad;
+                
                 ImGuiHelpers.MainViewport = ImGui.GetMainViewport();
 
                 Log.Information("[IM] Scene & ImGui setup OK!");
@@ -460,6 +463,23 @@ namespace Dalamud.Interface
                 this.dalamud.ClientState.KeyState.ClearAll();
             }
 
+            ImGui.GetIO().NavInputs[(int)ImGuiNavInput.Activate] = this.dalamud.ClientState.GamepadState.ButtonSouth;
+            ImGui.GetIO().NavInputs[(int)ImGuiNavInput.Cancel] = this.dalamud.ClientState.GamepadState.ButtonEast;
+            ImGui.GetIO().NavInputs[(int)ImGuiNavInput.Input] = this.dalamud.ClientState.GamepadState.ButtonNorth;
+            ImGui.GetIO().NavInputs[(int)ImGuiNavInput.Menu] = this.dalamud.ClientState.GamepadState.ButtonWest;
+            ImGui.GetIO().NavInputs[(int)ImGuiNavInput.DpadLeft] = this.dalamud.ClientState.GamepadState.DPadLeft;
+            ImGui.GetIO().NavInputs[(int)ImGuiNavInput.DpadRight] = this.dalamud.ClientState.GamepadState.DPadRight;
+            ImGui.GetIO().NavInputs[(int)ImGuiNavInput.DpadUp] = this.dalamud.ClientState.GamepadState.DPadUp;
+            ImGui.GetIO().NavInputs[(int)ImGuiNavInput.DpadDown] = this.dalamud.ClientState.GamepadState.DPadDown;
+            ImGui.GetIO().NavInputs[(int)ImGuiNavInput.LStickLeft] = this.dalamud.ClientState.GamepadState.LeftStickLeft;
+            ImGui.GetIO().NavInputs[(int)ImGuiNavInput.LStickRight] = this.dalamud.ClientState.GamepadState.LeftStickRight;
+            ImGui.GetIO().NavInputs[(int)ImGuiNavInput.LStickUp] = this.dalamud.ClientState.GamepadState.LeftStickUp;
+            ImGui.GetIO().NavInputs[(int)ImGuiNavInput.LStickDown] = this.dalamud.ClientState.GamepadState.LeftStickDown;
+            ImGui.GetIO().NavInputs[(int)ImGuiNavInput.FocusPrev] = this.dalamud.ClientState.GamepadState.L1;
+            ImGui.GetIO().NavInputs[(int)ImGuiNavInput.FocusNext] = this.dalamud.ClientState.GamepadState.R1;
+            ImGui.GetIO().NavInputs[(int)ImGuiNavInput.TweakSlow] = this.dalamud.ClientState.GamepadState.L2;
+            ImGui.GetIO().NavInputs[(int)ImGuiNavInput.TweakFast] = this.dalamud.ClientState.GamepadState.R2;
+            
             // TODO: mouse state?
         }
 
