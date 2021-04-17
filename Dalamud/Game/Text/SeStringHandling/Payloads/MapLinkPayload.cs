@@ -258,18 +258,5 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             return (int)scaledPos;
         }
         #endregion
-
-        protected override byte GetMarkerForIntegerBytes(byte[] bytes)
-        {
-            var type = bytes.Length switch
-            {
-                3 => (byte)IntegerType.Int24Special,                              // used because seen in incoming data
-                2 => (byte)IntegerType.Int16,
-                1 => (byte)IntegerType.None,                                      // single bytes seem to have no prefix at all here
-                _ => base.GetMarkerForIntegerBytes(bytes)
-            };
-
-            return type;
-        }
     }
 }

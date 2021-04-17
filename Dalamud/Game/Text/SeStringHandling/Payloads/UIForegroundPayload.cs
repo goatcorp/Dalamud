@@ -109,15 +109,5 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         {
             this.colorKey = (ushort)GetInteger(reader);
         }
-
-        protected override byte GetMarkerForIntegerBytes(byte[] bytes)
-        {
-            return bytes.Length switch
-            {
-                // a single byte of 0x01 is used to 'disable' color, and has no marker
-                1 => (byte)IntegerType.None,
-                _ => base.GetMarkerForIntegerBytes(bytes)
-            };
-        }
     }
 }
