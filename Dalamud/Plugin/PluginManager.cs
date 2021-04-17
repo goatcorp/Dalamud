@@ -152,7 +152,7 @@ namespace Dalamud.Plugin
             {
                 try
                 {
-                    this.LoadPluginFromAssembly(dllFile, isRaw, PluginLoadReason.Boot, true, definition);
+                    this.LoadPluginFromAssembly(dllFile, isRaw, PluginLoadReason.Boot, definition);
                 }
                 catch (Exception ex)
                 {
@@ -206,10 +206,9 @@ namespace Dalamud.Plugin
         /// <param name="dllFile">The <see cref="FileInfo"/> associated with the main assembly of this plugin.</param>
         /// <param name="isRaw">Whether or not the plugin is a dev plugin.</param>
         /// <param name="reason">The reason this plugin was loaded.</param>
-        /// <param name="preloaded">Whether or not to skip loading a definition from a file path.</param>
-        /// <param name="preloadedDef">The already loaded definition, when <paramref name="preloaded"/> is set to true.</param>
+        /// <param name="pluginDef">The already loaded definition, if available</param>
         /// <returns>Whether or not the plugin was loaded successfully.</returns>
-        public bool LoadPluginFromAssembly(FileInfo dllFile, bool isRaw, PluginLoadReason reason, bool preloaded = false, PluginDefinition preloadedDef = null)
+        public bool LoadPluginFromAssembly(FileInfo dllFile, bool isRaw, PluginLoadReason reason, PluginDefinition pluginDef = null)
         {
             Log.Information("Loading plugin at {0}", dllFile.Directory.FullName);
 
@@ -230,28 +229,8 @@ namespace Dalamud.Plugin
                 return false;
             }
 
-            PluginDefinition pluginDef = null;
-
             // Preloaded
-            if (preloaded)
-            {
-                if (preloadedDef == null && !isRaw)
-                {
-                    Log.Information("Plugin DLL {0} has no definition.", dllFile.FullName);
-                    return false;
-                }
-
-                if (preloadedDef != null &&
-                    preloadedDef.ApplicableVersion != this.dalamud.StartInfo.GameVersion &&
-                    preloadedDef.ApplicableVersion != "any")
-                {
-                    Log.Information("Plugin {0} has not applicable version.", dllFile.FullName);
-                    return false;
-                }
-
-                pluginDef = preloadedDef;
-            }
-            else
+            if (pluginDef == null)
             {
                 // read the plugin def if present - again, fail before actually trying to load the dll if there is a problem
                 var defJsonFile = new FileInfo(Path.Combine(dllFile.Directory.FullName, $"{Path.GetFileNameWithoutExtension(dllFile.Name)}.json"));
@@ -264,16 +243,35 @@ namespace Dalamud.Plugin
                     pluginDef =
                         JsonConvert.DeserializeObject<PluginDefinition>(
                             File.ReadAllText(defJsonFile.FullName));
+                }
+            }
 
-                    if (pluginDef.ApplicableVersion != this.dalamud.StartInfo.GameVersion && pluginDef.ApplicableVersion != "any")
+            // Perform checks
+            if (!isRaw)
+            {
+                if (pluginDef != null)
+                {
+                    if (pluginDef.ApplicableVersion != this.dalamud.StartInfo.GameVersion &&
+                        pluginDef.ApplicableVersion != "any")
                     {
                         Log.Information("Plugin {0} has not applicable version.", dllFile.FullName);
                         return false;
                     }
-                }
 
-                // but developer plugins don't require one to load
-                else if (!isRaw)
+                    if (pluginDef.DalamudApiLevel < DalamudApiLevel)
+                    {
+                        Log.Error("Incompatible API level: {0}", dllFile.FullName);
+                        return false;
+                    }
+
+                    if (this.bannedPlugins.Any(x => x.Name == pluginDef.InternalName &&
+                                                    x.AssemblyVersion == pluginDef.AssemblyVersion))
+                    {
+                        Log.Error($"[PLUGINM] Banned plugin {pluginDef.InternalName} {pluginDef.AssemblyVersion}");
+                        return false;
+                    }
+                }
+                else
                 {
                     Log.Information("Plugin DLL {0} has no definition.", dllFile.FullName);
                     return false;
@@ -321,37 +319,6 @@ namespace Dalamud.Plugin
                         IsHide = false,
                         DalamudApiLevel = DalamudApiLevel,
                     };
-
-                    if (this.bannedPlugins.Any(x => x.Name == pluginDef.InternalName &&
-                                                    x.AssemblyVersion == pluginDef.AssemblyVersion))
-                    {
-                        Log.Error($"[PLUGINM] Banned plugin {pluginDef.InternalName} with {pluginDef.AssemblyVersion}");
-                        return false;
-                    }
-
-                    if (pluginDef.InternalName == "PingPlugin" && pluginDef.AssemblyVersion == "1.11.0.0")
-                    {
-                        Log.Error("Banned PingPlugin");
-                        return false;
-                    }
-
-                    if (pluginDef.InternalName == "FPSPlugin" && pluginDef.AssemblyVersion == "1.4.2.0")
-                    {
-                        Log.Error("Banned PingPlugin");
-                        return false;
-                    }
-
-                    if (pluginDef.InternalName == "SonarPlugin" && pluginDef.AssemblyVersion == "0.1.3.1")
-                    {
-                        Log.Error("Banned SonarPlugin");
-                        return false;
-                    }
-
-                    if (pluginDef.DalamudApiLevel < DalamudApiLevel)
-                    {
-                        Log.Error("Incompatible API level: {0}", dllFile.FullName);
-                        return false;
-                    }
 
                     Log.Verbose("Plugin Initialize...");
 
