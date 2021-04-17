@@ -308,6 +308,13 @@ namespace Dalamud.Interface
         public static ImFontPtr DefaultFont { get; private set; }
         public static ImFontPtr IconFont { get; private set; }
 
+        private static void ShowFontError(string path)
+        {
+            Util.Fatal(
+                $"One or more files required by XIVLauncher were not found.\nPlease restart and report this error if it occurs again.\n\n{path}",
+                "Error");
+        }
+
         private unsafe void SetupFonts()
         {
             this.fontBuildSignal.Reset();
@@ -320,11 +327,17 @@ namespace Dalamud.Interface
 
             var fontPathJp = Path.Combine(this.dalamud.AssetDirectory.FullName, "UIRes", "NotoSansCJKjp-Medium.otf");
 
+            if (!File.Exists(fontPathJp))
+                ShowFontError(fontPathJp);
+
             var japaneseRangeHandle = GCHandle.Alloc(GlyphRangesJapanese.GlyphRanges, GCHandleType.Pinned);
 
             DefaultFont = ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPathJp, 17.0f, null, japaneseRangeHandle.AddrOfPinnedObject());
 
             var fontPathGame = Path.Combine(this.dalamud.AssetDirectory.FullName, "UIRes", "gamesym.ttf");
+
+            if (!File.Exists(fontPathGame))
+                ShowFontError(fontPathGame);
 
             var gameRangeHandle = GCHandle.Alloc(new ushort[]
             {
@@ -336,6 +349,9 @@ namespace Dalamud.Interface
             ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPathGame, 17.0f, fontConfig, gameRangeHandle.AddrOfPinnedObject());
 
             var fontPathIcon = Path.Combine(this.dalamud.AssetDirectory.FullName, "UIRes", "FontAwesome5FreeSolid.otf");
+
+            if (!File.Exists(fontPathIcon))
+                ShowFontError(fontPathIcon);
 
             var iconRangeHandle = GCHandle.Alloc(new ushort[]
             {

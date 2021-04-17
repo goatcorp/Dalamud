@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -145,6 +146,15 @@ namespace Dalamud
             {
                 ImGui.TextColored(ImGuiColors.HealerGreen, $"    {fieldInfo.Name}: {fieldInfo.GetValue(obj)}");
             }
+        }
+
+        [DllImport("user32.dll", SetLastError = true, CharSet= CharSet.Auto)]
+        public static extern int MessageBox(IntPtr hWnd, string text, string caption, uint type);
+
+        public static void Fatal(string message, string caption)
+        {
+            MessageBox(Process.GetCurrentProcess().MainWindowHandle, message, caption, 0);
+            Environment.Exit(-1);
         }
     }
 }
