@@ -303,17 +303,33 @@ namespace Dalamud.Game.Internal.Gui {
         }
 
         public void Print(string message) {
-            Log.Verbose("[CHATGUI PRINT]{0}", message);
+            Log.Verbose("[CHATGUI PRINT REGULAR]{0}", message);
             PrintChat(new XivChatEntry {
                 MessageBytes = Encoding.UTF8.GetBytes(message),
                 Type = this.dalamud.Configuration.GeneralChatType
             });
         }
 
+        public void Print(SeString message) {
+            Log.Verbose("[CHATGUI PRINT SESTRING]{0}", message.TextValue);
+            PrintChat(new XivChatEntry {
+                MessageBytes = message.Encode(),
+                Type = this.dalamud.Configuration.GeneralChatType
+            });
+        }
+
         public void PrintError(string message) {
-            Log.Verbose("[CHATGUI PRINT ERROR]{0}", message);
+            Log.Verbose("[CHATGUI PRINT REGULAR ERROR]{0}", message);
             PrintChat(new XivChatEntry {
                 MessageBytes = Encoding.UTF8.GetBytes(message),
+                Type = XivChatType.Urgent
+            });
+        }
+
+        public void PrintError(SeString message) {
+            Log.Verbose("[CHATGUI PRINT SESTRING ERROR]{0}", message.TextValue);
+            PrintChat(new XivChatEntry {
+                MessageBytes = message.Encode(),
                 Type = XivChatType.Urgent
             });
         }
