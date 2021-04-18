@@ -80,7 +80,7 @@ namespace Dalamud
 
             this.dalamud.CommandManager.AddHandler("/xlime", new CommandInfo(this.OnDebugDrawIMEPanel)
             {
-                HelpMessage = Loc.Localize("DalamudDevMenuHelp", "Draw IME panel"),
+                HelpMessage = Loc.Localize("DalamudIMEPanelHelp", "Draw IME panel"),
                 ShowInHelp = false,
             });
 
