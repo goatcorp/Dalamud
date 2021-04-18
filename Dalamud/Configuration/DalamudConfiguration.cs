@@ -123,6 +123,11 @@ namespace Dalamud.Configuration
         public bool IsDisableViewport { get; set; } = true;
 
         /// <summary>
+        /// Gets or sets a value indicating whether or not navigation via a gamepad should be globally enabled in ImGui.
+        /// </summary>
+        public bool IsGamepadNavigationEnabled { get; set; } = true;
+
+        /// <summary>
         /// Load a configuration from the provided path.
         /// </summary>
         /// <param name="path">The path to load the configuration file from.</param>

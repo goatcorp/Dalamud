@@ -98,6 +98,9 @@ namespace Dalamud.Game.ClientState
         /// </summary>
         public KeyState KeyState;
 
+        /// <summary>
+        /// Provides access to the button state of gamepad buttons in game.
+        /// </summary>
         public GamepadState GamepadState;
         
         /// <summary>
@@ -133,7 +136,7 @@ namespace Dalamud.Game.ClientState
 
             this.KeyState = new KeyState(Address, scanner.Module.BaseAddress);
 
-            this.GamepadState = new GamepadState(scanner);
+            this.GamepadState = new GamepadState(this.Address);
 
             this.Condition = new Condition( Address );
 
