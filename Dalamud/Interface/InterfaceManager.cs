@@ -478,7 +478,7 @@ namespace Dalamud.Interface
             var gamepadEnabled = (ImGui.GetIO().BackendFlags & ImGuiBackendFlags.HasGamepad) > 0;
 
             // NOTE (Chiv) Activate ImGui navigation  via L1+L3 press
-            // (mimicking to how mouse navigation is activated via L1+R3 press in game).
+            // (mimicking how mouse navigation is activated via L1+R3 press in game).
             if (gamepadEnabled
                 && this.dalamud.ClientState.GamepadState.Raw(GamepadButtons.L1) > 0
                 && this.dalamud.ClientState.GamepadState.Pressed(GamepadButtons.L3) > 0)
