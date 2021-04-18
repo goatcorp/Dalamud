@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using CheapLoc;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
+using Dalamud.Interface.IME;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
 using ImGuiNET;
@@ -28,6 +29,7 @@ namespace Dalamud.Interface
         private readonly DalamudDataWindow dataWindow;
         private readonly DalamudCreditsWindow creditsWindow;
         private readonly DalamudSettingsWindow settingsWindow;
+        private readonly DalamudIMEWindow IMEWindow;
         private readonly PluginInstallerWindow pluginWindow;
         private readonly DalamudPluginStatWindow pluginStatWindow;
         private readonly DalamudChangelogWindow changelogWindow;
@@ -107,6 +109,12 @@ namespace Dalamud.Interface
                 IsOpen = false,
             };
             this.windowSystem.AddWindow(this.colorDemoWindow);
+
+            this.IMEWindow = new DalamudIMEWindow(this.dalamud.IME)
+            {
+                IsOpen = this.dalamud.IME.UIVisible,
+            };
+            this.windowSystem.AddWindow(this.IMEWindow);
 
             Log.Information("[DUI] Windows added");
 
@@ -384,6 +392,15 @@ namespace Dalamud.Interface
         internal void OpenChangelog()
         {
             this.changelogWindow.IsOpen = true;
+        }
+
+        /// <summary>
+        /// Open the IME panel.
+        /// </summary>
+        /// <param name="open">Whether or not open the panel.</param>
+        internal void OpenIMEPanel(bool open = true)
+        {
+            this.IMEWindow.IsOpen = open;
         }
 
         /// <summary>

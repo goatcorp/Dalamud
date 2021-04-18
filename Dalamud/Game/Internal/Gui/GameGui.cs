@@ -33,10 +33,14 @@ namespace Dalamud.Game.Internal.Gui {
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         private delegate void HandleActionHoverDelegate(IntPtr hoverState, HoverActionKind a2, uint a3, int a4, byte a5);
         private readonly Hook<HandleActionHoverDelegate> handleActionHoverHook;
-        
+
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         private delegate IntPtr HandleActionOutDelegate(IntPtr agentActionDetail, IntPtr a2, IntPtr a3, int a4);
         private Hook<HandleActionOutDelegate> handleActionOutHook;
+
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        private delegate char HandleImmDelegate(Int64 a1, char a2, byte a3);
+        private Hook<HandleImmDelegate> handleImmHook;
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate IntPtr GetUIObjectDelegate();
@@ -119,6 +123,7 @@ namespace Dalamud.Game.Internal.Gui {
             Log.Verbose("SetGlobalBgm address {Address}", Address.SetGlobalBgm);
             Log.Verbose("HandleItemHover address {Address}", Address.HandleItemHover);
             Log.Verbose("HandleItemOut address {Address}", Address.HandleItemOut);
+            Log.Verbose("HandleImm address {Address}", Address.HandleImm);
             Log.Verbose("GetUIObject address {Address}", Address.GetUIObject);
             Log.Verbose("GetAgentModule address {Address}", Address.GetAgentModule);
 
@@ -148,7 +153,11 @@ namespace Dalamud.Game.Internal.Gui {
                 new Hook<HandleActionOutDelegate>(Address.HandleActionOut,
                                                         new HandleActionOutDelegate(HandleActionOutDetour),
                                                         this);
-            
+            this.handleImmHook =
+                new Hook<HandleImmDelegate>(Address.HandleImm,
+                                                        new HandleImmDelegate(HandleImmDetour),
+                                                        this);
+
             this.getUIObject = Marshal.GetDelegateForFunctionPointer<GetUIObjectDelegate>(Address.GetUIObject);
 
             this.getMatrixSingleton =
@@ -259,6 +268,12 @@ namespace Dalamud.Game.Internal.Gui {
             }
             
             return retVal;
+        }
+
+        private char HandleImmDetour(Int64 a1, char a2, byte a3)
+        {
+            char ret = this.handleImmHook.Original(a1, a2, a3);
+            return (char)(ImGui.GetIO().WantTextInput ? 0 : ret);
         }
 
         /// <summary>
@@ -513,6 +528,7 @@ namespace Dalamud.Game.Internal.Gui {
             this.toggleUiHideHook.Enable();
             this.handleActionHoverHook.Enable();
             this.handleActionOutHook.Enable();
+            this.handleImmHook.Enable();
         }
 
         public void Dispose() {
@@ -525,6 +541,7 @@ namespace Dalamud.Game.Internal.Gui {
             this.toggleUiHideHook.Dispose();
             this.handleActionHoverHook.Dispose();
             this.handleActionOutHook.Dispose();
+            this.handleImmHook.Dispose();
         }
     }
 }

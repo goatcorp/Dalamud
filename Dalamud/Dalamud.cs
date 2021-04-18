@@ -15,6 +15,7 @@ using Dalamud.Interface;
 using Dalamud.Plugin;
 using Serilog;
 using Serilog.Core;
+using Dalamud.Interface.IME;
 
 namespace Dalamud
 {
@@ -74,6 +75,11 @@ namespace Dalamud
         /// Gets ImGui Interface subsystem.
         /// </summary>
         internal InterfaceManager InterfaceManager { get; private set; }
+
+        /// <summary>
+        /// Gets Input Method subsystem.
+        /// </summary>
+        internal DalamudIME IME;
 
         /// <summary>
         /// Gets ClientState subsystem.
@@ -249,6 +255,16 @@ namespace Dalamud
                     {
                         Log.Information(e, "Could not init interface.");
                     }
+
+                    try
+                    {
+                        this.IME = new DalamudIME(this);
+                        Log.Information("[START] IME OK!");
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Information(e, "Could not init IME.");
+                    }
                 }
 
                 this.Data = new DataManager(this.StartInfo.Language);
@@ -358,6 +374,11 @@ namespace Dalamud
         {
             try
             {
+                // this must be done before unloading interface manager, in order to do rebuild
+                // the correct cascaded WndProc (IME -> RawDX11Scene -> Game). Otherwise the game
+                // will not receive any windows messages
+                this.IME?.Dispose();
+
                 // this must be done before unloading plugins, or it can cause a race condition
                 // due to rendering happening on another thread, where a plugin might receive
                 // a render call after it has been disposed, which can crash if it attempts to
