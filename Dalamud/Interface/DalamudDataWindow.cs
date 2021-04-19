@@ -16,6 +16,7 @@ using Dalamud.Interface.Colors;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
 using ImGuiNET;
+using ImGuiScene;
 using Newtonsoft.Json;
 using Serilog;
 
@@ -35,7 +36,7 @@ namespace Dalamud.Interface
         private string[] dataKinds = new[]
         {
             "ServerOpCode", "Address", "Actor Table", "Font Test", "Party List", "Plugin IPC", "Condition",
-            "Gauge", "Command", "Addon", "Addon Inspector", "StartInfo", "Target", "Toast", "ImGui"
+            "Gauge", "Command", "Addon", "Addon Inspector", "StartInfo", "Target", "Toast", "ImGui", "Tex",
         };
 
         private bool drawActors = false;
@@ -61,6 +62,9 @@ namespace Dalamud.Interface
         private bool questToastSound = false;
         private int questToastIconId = 0;
         private bool questToastCheckmark = false;
+
+        private string inputTexPath = string.Empty;
+        private TextureWrap debugTex = null;
 
         private uint copyButtonIndex = 0;
 
@@ -345,6 +349,27 @@ namespace Dalamud.Interface
                         // ImGui
                         case 14:
                             ImGui.Text("Monitor count: " + ImGui.GetPlatformIO().Monitors.Size);
+
+                            break;
+
+                        // Tex
+                        case 15:
+                            ImGui.InputText("Tex Path", ref this.inputTexPath, 255);
+
+                            if (ImGui.Button("Load Tex"))
+                            {
+                                try
+                                {
+                                    this.debugTex = this.dalamud.Data.GetImGuiTexture(this.inputTexPath);
+                                }
+                                catch (Exception ex)
+                                {
+                                    Log.Error(ex, "Could not load tex.");
+                                }
+                            }
+
+                            if (this.debugTex != null)
+                                ImGui.Image(this.debugTex.ImGuiHandle, new Vector2(this.debugTex.Width, this.debugTex.Height));
 
                             break;
                     }

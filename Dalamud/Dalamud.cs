@@ -251,7 +251,7 @@ namespace Dalamud
                     }
                 }
 
-                this.Data = new DataManager(this.StartInfo.Language);
+                this.Data = new DataManager(this.StartInfo.Language, this.InterfaceManager);
                 try
                 {
                     this.Data.Initialize(this.AssetDirectory.FullName);
