@@ -4,7 +4,9 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
-
+using Dalamud.Data.LuminaExtensions;
+using Dalamud.Interface;
+using ImGuiScene;
 using JetBrains.Annotations;
 using Lumina;
 using Lumina.Data;
@@ -20,6 +22,7 @@ namespace Dalamud.Data
     /// </summary>
     public class DataManager : IDisposable
     {
+        private readonly InterfaceManager interfaceManager;
         private const string IconFileFormat = "ui/icon/{0:D3}000/{1}{2:D6}.tex";
 
         /// <summary>
@@ -33,8 +36,9 @@ namespace Dalamud.Data
         /// Initializes a new instance of the <see cref="DataManager"/> class.
         /// </summary>
         /// <param name="language">The language to load data with by default.</param>
-        public DataManager(ClientLanguage language)
+        internal DataManager(ClientLanguage language, InterfaceManager interfaceManager)
         {
+            this.interfaceManager = interfaceManager;
             // Set up default values so plugins do not null-reference when data is being loaded.
             this.ServerOpCodes = new ReadOnlyDictionary<string, ushort>(new Dictionary<string, ushort>());
 
@@ -71,7 +75,7 @@ namespace Dalamud.Data
         /// Initialize this data manager.
         /// </summary>
         /// <param name="baseDir">The directory to load data from.</param>
-        public void Initialize(string baseDir)
+        internal void Initialize(string baseDir)
         {
             try
             {
@@ -263,6 +267,39 @@ namespace Dalamud.Data
             file = this.GetFile<TexFile>(filePath);
             return file;
         }
+
+        /// <summary>
+        /// Get the passed <see cref="TexFile"/> as a drawable ImGui TextureWrap.
+        /// </summary>
+        /// <param name="tex">The Lumina <see cref="TexFile"/>.</param>
+        /// <returns>A <see cref="TextureWrap"/> that can be used to draw the texture.</returns>
+        public TextureWrap GetImGuiTexture(TexFile tex) =>
+            this.interfaceManager.LoadImageRaw(tex.GetRgbaImageData(), tex.Header.Width, tex.Header.Height, 4);
+
+        /// <summary>
+        /// Get the passed texture path as a drawable ImGui TextureWrap.
+        /// </summary>
+        /// <param name="path">The internal path to the texture.</param>
+        /// <returns>A <see cref="TextureWrap"/> that can be used to draw the texture.</returns>
+        public TextureWrap GetImGuiTexture(string path) => this.GetImGuiTexture(this.GetFile<TexFile>(path));
+
+        /// <summary>
+        /// Get a <see cref="TextureWrap"/> containing the icon with the given ID, of the given language.
+        /// </summary>
+        /// <param name="iconLanguage">The requested language.</param>
+        /// <param name="iconId">The icon ID.</param>
+        /// <returns>The <see cref="TextureWrap"/> containing the icon.</returns>
+        public TextureWrap GetImGuiTextureIcon(ClientLanguage iconLanguage, int iconId) =>
+            this.GetImGuiTexture(this.GetIcon(iconLanguage, iconId));
+
+        /// <summary>
+        /// Get a <see cref="TextureWrap"/> containing the icon with the given ID, of the given type.
+        /// </summary>
+        /// <param name="type">The type of the icon (e.g. 'hq' to get the HQ variant of an item icon).</param>
+        /// <param name="iconId">The icon ID.</param>
+        /// <returns>The <see cref="TextureWrap"/> containing the icon.</returns>
+        public TextureWrap GetImGuiTextureIcon(string type, int iconId) =>
+            this.GetImGuiTexture(this.GetIcon(type, iconId));
 
         #endregion
 
