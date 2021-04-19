@@ -65,6 +65,10 @@ namespace Dalamud.Interface
 
         private string inputTexPath = string.Empty;
         private TextureWrap debugTex = null;
+        private Vector2 inputTexUv0 = Vector2.Zero;
+        private Vector2 inputTexUv1 = Vector2.One;
+        private Vector4 inputTintCol = Vector4.One;
+        private Vector2 inputTexScale = Vector2.Zero;
 
         private uint copyButtonIndex = 0;
 
@@ -355,12 +359,17 @@ namespace Dalamud.Interface
                         // Tex
                         case 15:
                             ImGui.InputText("Tex Path", ref this.inputTexPath, 255);
+                            ImGui.InputFloat2("UV0", ref this.inputTexUv0);
+                            ImGui.InputFloat2("UV1", ref this.inputTexUv1);
+                            ImGui.InputFloat4("Tint", ref this.inputTintCol);
+                            ImGui.InputFloat2("Scale", ref this.inputTexScale);
 
                             if (ImGui.Button("Load Tex"))
                             {
                                 try
                                 {
                                     this.debugTex = this.dalamud.Data.GetImGuiTexture(this.inputTexPath);
+                                    this.inputTexScale = new Vector2(this.debugTex.Width, this.debugTex.Height);
                                 }
                                 catch (Exception ex)
                                 {
@@ -368,8 +377,14 @@ namespace Dalamud.Interface
                                 }
                             }
 
+                            ImGuiHelpers.ScaledDummy(10);
+
                             if (this.debugTex != null)
-                                ImGui.Image(this.debugTex.ImGuiHandle, new Vector2(this.debugTex.Width, this.debugTex.Height));
+                            {
+                                ImGui.Image(this.debugTex.ImGuiHandle, this.inputTexScale, this.inputTexUv0, this.inputTexUv1, this.inputTintCol);
+                                ImGuiHelpers.ScaledDummy(5);
+                                Util.ShowObject(this.debugTex);
+                            }
 
                             break;
                     }
