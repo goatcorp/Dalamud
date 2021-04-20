@@ -348,7 +348,7 @@ namespace Dalamud
         /// </summary>
         public void WaitForUnloadFinish()
         {
-            this.finishUnloadSignal.WaitOne();
+            this.finishUnloadSignal?.WaitOne();
         }
 
         /// <summary>
