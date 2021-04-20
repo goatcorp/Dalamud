@@ -365,7 +365,6 @@ namespace Dalamud.Interface
         {
             this.windowSystem.RemoveAllWindows();
 
-            this.dalamud?.Dispose();
             this.logWindow?.Dispose();
             this.creditsWindow?.Dispose();
         }
