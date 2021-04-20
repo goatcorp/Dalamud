@@ -17,6 +17,8 @@ namespace Dalamud.Game.Internal {
     public sealed class Framework : IDisposable {
         private readonly Dalamud dalamud;
 
+        internal bool DispatchUpdateEvents { get; set; } = true;
+
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         private delegate bool OnUpdateDetour(IntPtr framework);
 
@@ -39,8 +41,8 @@ namespace Dalamud.Game.Internal {
         /// A raw pointer to the instance of Client::Framework
         /// </summary>
         public FrameworkAddressResolver Address { get; }
-        
-#region Stats
+
+        #region Stats
         public static bool StatsEnabled { get; set; }
         public static Dictionary<string, List<double>> StatsHistory = new Dictionary<string, List<double>>();
         private static Stopwatch statsStopwatch = new Stopwatch();
@@ -125,39 +127,42 @@ namespace Dalamud.Game.Internal {
             } catch (Exception ex) {
                 Log.Error(ex, "Exception while handling Framework::Update hook.");
             }
-            
-            try {
-                if (StatsEnabled && OnUpdateEvent != null) {
-                    // Stat Tracking for Framework Updates
-                    var invokeList = OnUpdateEvent.GetInvocationList();
-                    var notUpdated = StatsHistory.Keys.ToList();
-                    // Individually invoke OnUpdate handlers and time them.
-                    foreach (var d in invokeList) {
-                        statsStopwatch.Restart();
-                        d.Method.Invoke(d.Target, new object[]{ this });
-                        statsStopwatch.Stop();
-                        var key = $"{d.Target}::{d.Method.Name}";
-                        if (notUpdated.Contains(key)) notUpdated.Remove(key);
-                        if (!StatsHistory.ContainsKey(key)) StatsHistory.Add(key, new List<double>());
-                        StatsHistory[key].Add(statsStopwatch.Elapsed.TotalMilliseconds);
-                        if (StatsHistory[key].Count > 1000) {
-                            StatsHistory[key].RemoveRange(0, StatsHistory[key].Count - 1000);
-                        }
-                    }
 
-                    // Cleanup handlers that are no longer being called
-                    foreach (var key in notUpdated) {
-                        if (StatsHistory[key].Count > 0) {
-                            StatsHistory[key].RemoveAt(0);
-                        } else {
-                            StatsHistory.Remove(key);
+            if (this.DispatchUpdateEvents)
+            {
+                try {
+                    if (StatsEnabled && OnUpdateEvent != null) {
+                        // Stat Tracking for Framework Updates
+                        var invokeList = OnUpdateEvent.GetInvocationList();
+                        var notUpdated = StatsHistory.Keys.ToList();
+                        // Individually invoke OnUpdate handlers and time them.
+                        foreach (var d in invokeList) {
+                            statsStopwatch.Restart();
+                            d.Method.Invoke(d.Target, new object[]{ this });
+                            statsStopwatch.Stop();
+                            var key = $"{d.Target}::{d.Method.Name}";
+                            if (notUpdated.Contains(key)) notUpdated.Remove(key);
+                            if (!StatsHistory.ContainsKey(key)) StatsHistory.Add(key, new List<double>());
+                            StatsHistory[key].Add(statsStopwatch.Elapsed.TotalMilliseconds);
+                            if (StatsHistory[key].Count > 1000) {
+                                StatsHistory[key].RemoveRange(0, StatsHistory[key].Count - 1000);
+                            }
                         }
+
+                        // Cleanup handlers that are no longer being called
+                        foreach (var key in notUpdated) {
+                            if (StatsHistory[key].Count > 0) {
+                                StatsHistory[key].RemoveAt(0);
+                            } else {
+                                StatsHistory.Remove(key);
+                            }
+                        }
+                    } else {
+                        OnUpdateEvent?.Invoke(this);
                     }
-                } else {
-                    OnUpdateEvent?.Invoke(this);
+                } catch (Exception ex) {
+                    Log.Error(ex, "Exception while dispatching Framework::Update event.");
                 }
-            } catch (Exception ex) {
-                Log.Error(ex, "Exception while dispatching Framework::Update event.");
             }
 
             return this.updateHook.Original(framework);
@@ -165,6 +170,8 @@ namespace Dalamud.Game.Internal {
 
         private IntPtr HandleFrameworkDestroy() {
             Log.Information("Framework::OnDestroy!");
+
+            this.DispatchUpdateEvents = false;
 
             // Store the pointer to the original trampoline location
             var originalPtr = Marshal.GetFunctionPointerForDelegate(this.destroyHook.Original);

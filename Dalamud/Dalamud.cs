@@ -358,6 +358,10 @@ namespace Dalamud
         {
             try
             {
+                // this must be done before unloading plugins, to prevent crashes due to errors
+                // in plugin cleanup
+                this.Framework.DispatchUpdateEvents = false;
+
                 // this must be done before unloading plugins, or it can cause a race condition
                 // due to rendering happening on another thread, where a plugin might receive
                 // a render call after it has been disposed, which can crash if it attempts to
