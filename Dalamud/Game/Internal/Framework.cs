@@ -97,8 +97,8 @@ namespace Dalamud.Game.Internal {
             this.updateHook = new Hook<OnUpdateDetour>(pUpdate, new OnUpdateDetour(HandleFrameworkUpdate), this);
 
             var pDestroy = Marshal.ReadIntPtr(vtable, IntPtr.Size * 3);
-            //this.destroyHook =
-            //    new Hook<OnDestroyDetour>(pDestroy, new OnDestroyDelegate(HandleFrameworkDestroy), this);
+            this.destroyHook =
+                new Hook<OnDestroyDetour>(pDestroy, new OnDestroyDelegate(HandleFrameworkDestroy), this);
         }
         
         public void Enable() {
@@ -106,7 +106,7 @@ namespace Dalamud.Game.Internal {
             Network.Enable();
             
             this.updateHook.Enable();
-            //this.destroyHook.Enable();
+            this.destroyHook.Enable();
         }
         
         public void Dispose() {
@@ -114,7 +114,7 @@ namespace Dalamud.Game.Internal {
             Network.Dispose();
 
             this.updateHook.Dispose();
-            //this.destroyHook.Dispose();
+            this.destroyHook.Dispose();
         }
 
         private bool HandleFrameworkUpdate(IntPtr framework) {
@@ -165,9 +165,7 @@ namespace Dalamud.Game.Internal {
 
         private IntPtr HandleFrameworkDestroy() {
             Log.Information("Framework::OnDestroy!");
-            return this.destroyHook.Original();
 
-            /*
             // Store the pointer to the original trampoline location
             var originalPtr = Marshal.GetFunctionPointerForDelegate(this.destroyHook.Original);
 
@@ -177,7 +175,6 @@ namespace Dalamud.Game.Internal {
 
             // Return the original trampoline location to cleanly exit
             return originalPtr;
-            */
         }
     }
 }
