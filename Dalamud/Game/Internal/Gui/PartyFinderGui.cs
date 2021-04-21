@@ -80,7 +80,7 @@ namespace Dalamud.Game.Internal.Gui {
                 }
 
                 var listing = new PartyFinderListing(packet.listings[i], Dalamud.Data, Dalamud.SeStringManager);
-                var args = new PartyFinderListingEventArgs();
+                var args = new PartyFinderListingEventArgs(packet.batchNumber);
                 ReceiveListing?.Invoke(listing, args);
 
                 if (args.Visible) {
@@ -112,6 +112,12 @@ namespace Dalamud.Game.Internal.Gui {
     }
 
     public class PartyFinderListingEventArgs {
+        public int BatchNumber { get; }
+
         public bool Visible { get; set; } = true;
+
+        internal PartyFinderListingEventArgs(int batchNumber) {
+            BatchNumber = batchNumber;
+        }
     }
 }
