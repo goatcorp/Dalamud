@@ -16,7 +16,7 @@ namespace Dalamud.Game.Internal.Gui.Structs {
 
         [StructLayout(LayoutKind.Sequential)]
         public readonly struct Packet {
-            private readonly int unk0;
+            public readonly int batchNumber;
 
             [MarshalAs(UnmanagedType.ByValArray, SizeConst = 8)]
             private readonly byte[] padding1;
