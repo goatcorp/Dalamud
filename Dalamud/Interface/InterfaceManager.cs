@@ -169,6 +169,7 @@ namespace Dalamud.Interface
             System.Threading.Thread.Sleep(500);
             
             this.scene?.Dispose();
+            this.setCursorHook.Dispose();
             this.presentHook.Dispose();
             this.resizeBuffersHook.Dispose();
         }
