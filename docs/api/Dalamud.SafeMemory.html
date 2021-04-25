@@ -204,7 +204,8 @@ Please consider using these instead in performance-critical code.</p>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static T[] Read&lt;T&gt;(IntPtr address, int count)
+    <pre><code class="lang-csharp hljs">[CanBeNull]
+public static T[] Read&lt;T&gt;(IntPtr address, int count)
     where T : struct</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
@@ -339,7 +340,8 @@ Please consider using these instead in performance-critical code.</p>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static string ReadString(IntPtr address, int maxLength = 256)</code></pre>
+    <pre><code class="lang-csharp hljs">[CanBeNull]
+public static string ReadString(IntPtr address, int maxLength = 256)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -400,7 +402,8 @@ since Encoding.UTF8 destroys the FFXIV payload structure.</p>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static string ReadString(IntPtr address, Encoding encoding, int maxLength = 256)</code></pre>
+    <pre><code class="lang-csharp hljs">[CanBeNull]
+public static string ReadString(IntPtr address, Encoding encoding, int maxLength = 256)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">

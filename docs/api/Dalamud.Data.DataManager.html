@@ -115,42 +115,6 @@
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public class DataManager : IDisposable</code></pre>
   </div>
-  <h3 id="constructors">Constructors
-  </h3>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Data_DataManager__ctor_Dalamud_ClientLanguage_.md&amp;value=---%0Auid%3A%20Dalamud.Data.DataManager.%23ctor(Dalamud.ClientLanguage)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L40">View Source</a>
-  </span>
-  <a id="Dalamud_Data_DataManager__ctor_" data-uid="Dalamud.Data.DataManager.#ctor*"></a>
-  <h4 id="Dalamud_Data_DataManager__ctor_Dalamud_ClientLanguage_" data-uid="Dalamud.Data.DataManager.#ctor(Dalamud.ClientLanguage)">DataManager(ClientLanguage)</h4>
-  <div class="markdown level1 summary"><p>Initializes a new instance of the <a class="xref" href="Dalamud.Data.DataManager.html">DataManager</a> class.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-  <h5 class="decalaration">Declaration</h5>
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public DataManager(ClientLanguage language)</code></pre>
-  </div>
-  <h5 class="parameters">Parameters</h5>
-  <table class="table table-bordered table-striped table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Name</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="Dalamud.ClientLanguage.html">ClientLanguage</a></td>
-        <td><span class="parametername">language</span></td>
-        <td><p>The language to load data with by default.</p>
-</td>
-      </tr>
-    </tbody>
-  </table>
   <h3 id="properties">Properties
   </h3>
   <span class="small pull-right mobile-hide">
@@ -158,7 +122,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Data_DataManager_ClientOpCodes.md&amp;value=---%0Auid%3A%20Dalamud.Data.DataManager.ClientOpCodes%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L56">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L61">View Source</a>
   </span>
   <a id="Dalamud_Data_DataManager_ClientOpCodes_" data-uid="Dalamud.Data.DataManager.ClientOpCodes*"></a>
   <h4 id="Dalamud_Data_DataManager_ClientOpCodes" data-uid="Dalamud.Data.DataManager.ClientOpCodes">ClientOpCodes</h4>
@@ -167,7 +131,8 @@
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ReadOnlyDictionary&lt;string, ushort&gt; ClientOpCodes { get; }</code></pre>
+    <pre><code class="lang-csharp hljs">[UsedImplicitly]
+public ReadOnlyDictionary&lt;string, ushort&gt; ClientOpCodes { get; }</code></pre>
   </div>
   <h5 class="propertyValue">Property Value</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -189,11 +154,11 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Data_DataManager_Excel.md&amp;value=---%0Auid%3A%20Dalamud.Data.DataManager.Excel%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L61">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L67">View Source</a>
   </span>
   <a id="Dalamud_Data_DataManager_Excel_" data-uid="Dalamud.Data.DataManager.Excel*"></a>
   <h4 id="Dalamud_Data_DataManager_Excel" data-uid="Dalamud.Data.DataManager.Excel">Excel</h4>
-  <div class="markdown level1 summary"><p>Gets an <see cref="!:ExcelModule"></see> object which gives access to any of the game's sheet data.</p>
+  <div class="markdown level1 summary"><p>Gets an <span class="xref">Lumina.Excel.ExcelModule</span> object which gives access to any of the game's sheet data.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
@@ -210,7 +175,7 @@
     </thead>
     <tbody>
       <tr>
-        <td><span class="xref">ExcelModule</span></td>
+        <td><span class="xref">Lumina.Excel.ExcelModule</span></td>
         <td></td>
       </tr>
     </tbody>
@@ -220,7 +185,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Data_DataManager_IsDataReady.md&amp;value=---%0Auid%3A%20Dalamud.Data.DataManager.IsDataReady%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L66">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L72">View Source</a>
   </span>
   <a id="Dalamud_Data_DataManager_IsDataReady_" data-uid="Dalamud.Data.DataManager.IsDataReady*"></a>
   <h4 id="Dalamud_Data_DataManager_IsDataReady" data-uid="Dalamud.Data.DataManager.IsDataReady">IsDataReady</h4>
@@ -248,10 +213,41 @@
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Data_DataManager_ServerOpCodes.md&amp;value=---%0Auid%3A%20Dalamud.Data.DataManager.ServerOpCodes%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Data_DataManager_Language.md&amp;value=---%0Auid%3A%20Dalamud.Data.DataManager.Language%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
     <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L51">View Source</a>
+  </span>
+  <a id="Dalamud_Data_DataManager_Language_" data-uid="Dalamud.Data.DataManager.Language*"></a>
+  <h4 id="Dalamud_Data_DataManager_Language" data-uid="Dalamud.Data.DataManager.Language">Language</h4>
+  <div class="markdown level1 summary"><p>Gets the current game client language.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ClientLanguage Language { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Dalamud.ClientLanguage.html">ClientLanguage</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Data_DataManager_ServerOpCodes.md&amp;value=---%0Auid%3A%20Dalamud.Data.DataManager.ServerOpCodes%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L56">View Source</a>
   </span>
   <a id="Dalamud_Data_DataManager_ServerOpCodes_" data-uid="Dalamud.Data.DataManager.ServerOpCodes*"></a>
   <h4 id="Dalamud_Data_DataManager_ServerOpCodes" data-uid="Dalamud.Data.DataManager.ServerOpCodes">ServerOpCodes</h4>
@@ -284,7 +280,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Data_DataManager_Dispose.md&amp;value=---%0Auid%3A%20Dalamud.Data.DataManager.Dispose%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L263">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L309">View Source</a>
   </span>
   <a id="Dalamud_Data_DataManager_Dispose_" data-uid="Dalamud.Data.DataManager.Dispose*"></a>
   <h4 id="Dalamud_Data_DataManager_Dispose" data-uid="Dalamud.Data.DataManager.Dispose">Dispose()</h4>
@@ -300,7 +296,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Data_DataManager_FileExists_System_String_.md&amp;value=---%0Auid%3A%20Dalamud.Data.DataManager.FileExists(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L201">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L214">View Source</a>
   </span>
   <a id="Dalamud_Data_DataManager_FileExists_" data-uid="Dalamud.Data.DataManager.FileExists*"></a>
   <h4 id="Dalamud_Data_DataManager_FileExists_System_String_" data-uid="Dalamud.Data.DataManager.FileExists(System.String)">FileExists(String)</h4>
@@ -350,11 +346,11 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Data_DataManager_GetExcelSheet__1.md&amp;value=---%0Auid%3A%20Dalamud.Data.DataManager.GetExcelSheet%60%601%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L148">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L162">View Source</a>
   </span>
   <a id="Dalamud_Data_DataManager_GetExcelSheet_" data-uid="Dalamud.Data.DataManager.GetExcelSheet*"></a>
   <h4 id="Dalamud_Data_DataManager_GetExcelSheet__1" data-uid="Dalamud.Data.DataManager.GetExcelSheet``1">GetExcelSheet&lt;T&gt;()</h4>
-  <div class="markdown level1 summary"><p>Get an <see cref="!:ExcelSheet&lt;T>"></see> with the given Excel sheet row type.</p>
+  <div class="markdown level1 summary"><p>Get an <span class="xref">Lumina.Excel.ExcelSheet&lt;T&gt;</span> with the given Excel sheet row type.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
@@ -372,8 +368,8 @@
     </thead>
     <tbody>
       <tr>
-        <td><span class="xref">ExcelSheet</span>&lt;T&gt;</td>
-        <td><p>The <see cref="!:ExcelSheet&lt;T>"></see>, giving access to game rows.</p>
+        <td><span class="xref">Lumina.Excel.ExcelSheet</span>&lt;T&gt;</td>
+        <td><p>The <span class="xref">Lumina.Excel.ExcelSheet&lt;T&gt;</span>, giving access to game rows.</p>
 </td>
       </tr>
     </tbody>
@@ -399,11 +395,11 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Data_DataManager_GetExcelSheet__1_Dalamud_ClientLanguage_.md&amp;value=---%0Auid%3A%20Dalamud.Data.DataManager.GetExcelSheet%60%601(Dalamud.ClientLanguage)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L159">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L173">View Source</a>
   </span>
   <a id="Dalamud_Data_DataManager_GetExcelSheet_" data-uid="Dalamud.Data.DataManager.GetExcelSheet*"></a>
   <h4 id="Dalamud_Data_DataManager_GetExcelSheet__1_Dalamud_ClientLanguage_" data-uid="Dalamud.Data.DataManager.GetExcelSheet``1(Dalamud.ClientLanguage)">GetExcelSheet&lt;T&gt;(ClientLanguage)</h4>
-  <div class="markdown level1 summary"><p>Get an <see cref="!:ExcelSheet&lt;T>"></see> with the given Excel sheet row type with a specified language.</p>
+  <div class="markdown level1 summary"><p>Get an <span class="xref">Lumina.Excel.ExcelSheet&lt;T&gt;</span> with the given Excel sheet row type with a specified language.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
@@ -439,8 +435,8 @@
     </thead>
     <tbody>
       <tr>
-        <td><span class="xref">ExcelSheet</span>&lt;T&gt;</td>
-        <td><p>The <see cref="!:ExcelSheet&lt;T>"></see>, giving access to game rows.</p>
+        <td><span class="xref">Lumina.Excel.ExcelSheet</span>&lt;T&gt;</td>
+        <td><p>The <span class="xref">Lumina.Excel.ExcelSheet&lt;T&gt;</span>, giving access to game rows.</p>
 </td>
       </tr>
     </tbody>
@@ -466,11 +462,11 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Data_DataManager_GetFile_System_String_.md&amp;value=---%0Auid%3A%20Dalamud.Data.DataManager.GetFile(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L176">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L190">View Source</a>
   </span>
   <a id="Dalamud_Data_DataManager_GetFile_" data-uid="Dalamud.Data.DataManager.GetFile*"></a>
   <h4 id="Dalamud_Data_DataManager_GetFile_System_String_" data-uid="Dalamud.Data.DataManager.GetFile(System.String)">GetFile(String)</h4>
-  <div class="markdown level1 summary"><p>Get a <see cref="!:FileResource"></see> with the given path.</p>
+  <div class="markdown level1 summary"><p>Get a <span class="xref">Lumina.Data.FileResource</span> with the given path.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
@@ -505,8 +501,8 @@
     </thead>
     <tbody>
       <tr>
-        <td><span class="xref">FileResource</span></td>
-        <td><p>The <see cref="!:FileResource"></see> of the file.</p>
+        <td><span class="xref">Lumina.Data.FileResource</span></td>
+        <td><p>The <span class="xref">Lumina.Data.FileResource</span> of the file.</p>
 </td>
       </tr>
     </tbody>
@@ -516,11 +512,11 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Data_DataManager_GetFile__1_System_String_.md&amp;value=---%0Auid%3A%20Dalamud.Data.DataManager.GetFile%60%601(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L187">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L201">View Source</a>
   </span>
   <a id="Dalamud_Data_DataManager_GetFile_" data-uid="Dalamud.Data.DataManager.GetFile*"></a>
   <h4 id="Dalamud_Data_DataManager_GetFile__1_System_String_" data-uid="Dalamud.Data.DataManager.GetFile``1(System.String)">GetFile&lt;T&gt;(String)</h4>
-  <div class="markdown level1 summary"><p>Get a <see cref="!:FileResource"></see> with the given path, of the given type.</p>
+  <div class="markdown level1 summary"><p>Get a <span class="xref">Lumina.Data.FileResource</span> with the given path, of the given type.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
@@ -557,7 +553,7 @@
     <tbody>
       <tr>
         <td><span class="xref">T</span></td>
-        <td><p>The <see cref="!:FileResource"></see> of the file.</p>
+        <td><p>The <span class="xref">Lumina.Data.FileResource</span> of the file.</p>
 </td>
       </tr>
     </tbody>
@@ -583,11 +579,11 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Data_DataManager_GetIcon_Dalamud_ClientLanguage_System_Int32_.md&amp;value=---%0Auid%3A%20Dalamud.Data.DataManager.GetIcon(Dalamud.ClientLanguage%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L222">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L235">View Source</a>
   </span>
   <a id="Dalamud_Data_DataManager_GetIcon_" data-uid="Dalamud.Data.DataManager.GetIcon*"></a>
   <h4 id="Dalamud_Data_DataManager_GetIcon_Dalamud_ClientLanguage_System_Int32_" data-uid="Dalamud.Data.DataManager.GetIcon(Dalamud.ClientLanguage,System.Int32)">GetIcon(ClientLanguage, Int32)</h4>
-  <div class="markdown level1 summary"><p>Get a <see cref="!:TexFile"></see> containing the icon with the given ID, of the given language.</p>
+  <div class="markdown level1 summary"><p>Get a <span class="xref">Lumina.Data.Files.TexFile</span> containing the icon with the given ID, of the given language.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
@@ -628,8 +624,8 @@
     </thead>
     <tbody>
       <tr>
-        <td><span class="xref">TexFile</span></td>
-        <td><p>The <see cref="!:TexFile"></see> containing the icon.</p>
+        <td><span class="xref">Lumina.Data.Files.TexFile</span></td>
+        <td><p>The <span class="xref">Lumina.Data.Files.TexFile</span> containing the icon.</p>
 </td>
       </tr>
     </tbody>
@@ -639,11 +635,11 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Data_DataManager_GetIcon_System_Int32_.md&amp;value=---%0Auid%3A%20Dalamud.Data.DataManager.GetIcon(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L211">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L224">View Source</a>
   </span>
   <a id="Dalamud_Data_DataManager_GetIcon_" data-uid="Dalamud.Data.DataManager.GetIcon*"></a>
   <h4 id="Dalamud_Data_DataManager_GetIcon_System_Int32_" data-uid="Dalamud.Data.DataManager.GetIcon(System.Int32)">GetIcon(Int32)</h4>
-  <div class="markdown level1 summary"><p>Get a <see cref="!:TexFile"></see> containing the icon with the given ID.</p>
+  <div class="markdown level1 summary"><p>Get a <span class="xref">Lumina.Data.Files.TexFile</span> containing the icon with the given ID.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
@@ -678,8 +674,8 @@
     </thead>
     <tbody>
       <tr>
-        <td><span class="xref">TexFile</span></td>
-        <td><p>The <see cref="!:TexFile"></see> containing the icon.</p>
+        <td><span class="xref">Lumina.Data.Files.TexFile</span></td>
+        <td><p>The <span class="xref">Lumina.Data.Files.TexFile</span> containing the icon.</p>
 </td>
       </tr>
     </tbody>
@@ -689,11 +685,11 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Data_DataManager_GetIcon_System_String_System_Int32_.md&amp;value=---%0Auid%3A%20Dalamud.Data.DataManager.GetIcon(System.String%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L241">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L254">View Source</a>
   </span>
   <a id="Dalamud_Data_DataManager_GetIcon_" data-uid="Dalamud.Data.DataManager.GetIcon*"></a>
   <h4 id="Dalamud_Data_DataManager_GetIcon_System_String_System_Int32_" data-uid="Dalamud.Data.DataManager.GetIcon(System.String,System.Int32)">GetIcon(String, Int32)</h4>
-  <div class="markdown level1 summary"><p>Get a <see cref="!:TexFile"></see> containing the icon with the given ID, of the given type.</p>
+  <div class="markdown level1 summary"><p>Get a <span class="xref">Lumina.Data.Files.TexFile</span> containing the icon with the given ID, of the given type.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
@@ -734,27 +730,77 @@
     </thead>
     <tbody>
       <tr>
-        <td><span class="xref">TexFile</span></td>
-        <td><p>The <see cref="!:TexFile"></see> containing the icon.</p>
+        <td><span class="xref">Lumina.Data.Files.TexFile</span></td>
+        <td><p>The <span class="xref">Lumina.Data.Files.TexFile</span> containing the icon.</p>
 </td>
       </tr>
     </tbody>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Data_DataManager_Initialize_System_String_.md&amp;value=---%0Auid%3A%20Dalamud.Data.DataManager.Initialize(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Data_DataManager_GetImGuiTexture_Lumina_Data_Files_TexFile_.md&amp;value=---%0Auid%3A%20Dalamud.Data.DataManager.GetImGuiTexture(Lumina.Data.Files.TexFile)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L72">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L276">View Source</a>
   </span>
-  <a id="Dalamud_Data_DataManager_Initialize_" data-uid="Dalamud.Data.DataManager.Initialize*"></a>
-  <h4 id="Dalamud_Data_DataManager_Initialize_System_String_" data-uid="Dalamud.Data.DataManager.Initialize(System.String)">Initialize(String)</h4>
-  <div class="markdown level1 summary"><p>Initialize this data manager.</p>
+  <a id="Dalamud_Data_DataManager_GetImGuiTexture_" data-uid="Dalamud.Data.DataManager.GetImGuiTexture*"></a>
+  <h4 id="Dalamud_Data_DataManager_GetImGuiTexture_Lumina_Data_Files_TexFile_" data-uid="Dalamud.Data.DataManager.GetImGuiTexture(Lumina.Data.Files.TexFile)">GetImGuiTexture(TexFile)</h4>
+  <div class="markdown level1 summary"><p>Get the passed <span class="xref">Lumina.Data.Files.TexFile</span> as a drawable ImGui TextureWrap.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public void Initialize(string baseDir)</code></pre>
+    <pre><code class="lang-csharp hljs">public TextureWrap GetImGuiTexture(TexFile tex)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Lumina.Data.Files.TexFile</span></td>
+        <td><span class="parametername">tex</span></td>
+        <td><p>The Lumina <span class="xref">Lumina.Data.Files.TexFile</span>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="ImGuiScene.TextureWrap.html">TextureWrap</a></td>
+        <td><p>A <a class="xref" href="ImGuiScene.TextureWrap.html">TextureWrap</a> that can be used to draw the texture.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Data_DataManager_GetImGuiTexture_System_String_.md&amp;value=---%0Auid%3A%20Dalamud.Data.DataManager.GetImGuiTexture(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L284">View Source</a>
+  </span>
+  <a id="Dalamud_Data_DataManager_GetImGuiTexture_" data-uid="Dalamud.Data.DataManager.GetImGuiTexture*"></a>
+  <h4 id="Dalamud_Data_DataManager_GetImGuiTexture_System_String_" data-uid="Dalamud.Data.DataManager.GetImGuiTexture(System.String)">GetImGuiTexture(String)</h4>
+  <div class="markdown level1 summary"><p>Get the passed texture path as a drawable ImGui TextureWrap.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public TextureWrap GetImGuiTexture(string path)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -768,8 +814,136 @@
     <tbody>
       <tr>
         <td><span class="xref">System.String</span></td>
-        <td><span class="parametername">baseDir</span></td>
-        <td><p>The directory to load data from.</p>
+        <td><span class="parametername">path</span></td>
+        <td><p>The internal path to the texture.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="ImGuiScene.TextureWrap.html">TextureWrap</a></td>
+        <td><p>A <a class="xref" href="ImGuiScene.TextureWrap.html">TextureWrap</a> that can be used to draw the texture.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Data_DataManager_GetImGuiTextureIcon_Dalamud_ClientLanguage_System_Int32_.md&amp;value=---%0Auid%3A%20Dalamud.Data.DataManager.GetImGuiTextureIcon(Dalamud.ClientLanguage%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L292">View Source</a>
+  </span>
+  <a id="Dalamud_Data_DataManager_GetImGuiTextureIcon_" data-uid="Dalamud.Data.DataManager.GetImGuiTextureIcon*"></a>
+  <h4 id="Dalamud_Data_DataManager_GetImGuiTextureIcon_Dalamud_ClientLanguage_System_Int32_" data-uid="Dalamud.Data.DataManager.GetImGuiTextureIcon(Dalamud.ClientLanguage,System.Int32)">GetImGuiTextureIcon(ClientLanguage, Int32)</h4>
+  <div class="markdown level1 summary"><p>Get a <a class="xref" href="ImGuiScene.TextureWrap.html">TextureWrap</a> containing the icon with the given ID, of the given language.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public TextureWrap GetImGuiTextureIcon(ClientLanguage iconLanguage, int iconId)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Dalamud.ClientLanguage.html">ClientLanguage</a></td>
+        <td><span class="parametername">iconLanguage</span></td>
+        <td><p>The requested language.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">iconId</span></td>
+        <td><p>The icon ID.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="ImGuiScene.TextureWrap.html">TextureWrap</a></td>
+        <td><p>The <a class="xref" href="ImGuiScene.TextureWrap.html">TextureWrap</a> containing the icon.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Data_DataManager_GetImGuiTextureIcon_System_String_System_Int32_.md&amp;value=---%0Auid%3A%20Dalamud.Data.DataManager.GetImGuiTextureIcon(System.String%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L301">View Source</a>
+  </span>
+  <a id="Dalamud_Data_DataManager_GetImGuiTextureIcon_" data-uid="Dalamud.Data.DataManager.GetImGuiTextureIcon*"></a>
+  <h4 id="Dalamud_Data_DataManager_GetImGuiTextureIcon_System_String_System_Int32_" data-uid="Dalamud.Data.DataManager.GetImGuiTextureIcon(System.String,System.Int32)">GetImGuiTextureIcon(String, Int32)</h4>
+  <div class="markdown level1 summary"><p>Get a <a class="xref" href="ImGuiScene.TextureWrap.html">TextureWrap</a> containing the icon with the given ID, of the given type.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public TextureWrap GetImGuiTextureIcon(string type, int iconId)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">type</span></td>
+        <td><p>The type of the icon (e.g. 'hq' to get the HQ variant of an item icon).</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">iconId</span></td>
+        <td><p>The icon ID.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="ImGuiScene.TextureWrap.html">TextureWrap</a></td>
+        <td><p>The <a class="xref" href="ImGuiScene.TextureWrap.html">TextureWrap</a> containing the icon.</p>
 </td>
       </tr>
     </tbody>
@@ -789,7 +963,7 @@
                     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Data_DataManager.md&amp;value=---%0Auid%3A%20Dalamud.Data.DataManager%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
                   </li>
                   <li>
-                    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L20" class="contribution-link">View Source</a>
+                    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Data/DataManager.cs/#L23" class="contribution-link">View Source</a>
                   </li>
                 </ul>
               </div>
