@@ -59,11 +59,6 @@ namespace Dalamud
                 // Run session
                 dalamud.Start();
                 dalamud.WaitForUnload();
-                if (dalamud.Framework.DispatchUpdateEvents)
-                {
-                    dalamud.DisposePlugins();
-                    Thread.Sleep(100);
-                }
 
                 dalamud.Dispose();
             }
