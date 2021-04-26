@@ -386,7 +386,10 @@ namespace Dalamud
             try
             {
                 if (!this.hasDisposedPlugins)
+                {
                     this.DisposePlugins();
+                    Thread.Sleep(100);
+                }
 
                 this.Framework?.Dispose();
                 this.ClientState?.Dispose();
