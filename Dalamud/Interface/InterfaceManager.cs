@@ -70,6 +70,8 @@ namespace Dalamud.Interface
 
         public bool FontsReady { get; set; } = false;
 
+        public bool IsReady => this.scene != null;
+
         public InterfaceManager(Dalamud dalamud, SigScanner scanner)
         {
             this.dalamud = dalamud;
@@ -281,8 +283,8 @@ namespace Dalamud.Interface
                 }
 
                 ImGuiHelpers.MainViewport = ImGui.GetMainViewport();
-				
-				Log.Information("[IM] Scene & ImGui setup OK!");
+
+                Log.Information("[IM] Scene & ImGui setup OK!");
             }
 
             // Process information needed by ImGuiHelpers each frame.

@@ -182,6 +182,8 @@ namespace Dalamud
         /// </summary>
         internal bool IsReady { get; private set; }
 
+        internal bool IsLoadedPluginSystem => this.PluginManager != null;
+
         /// <summary>
         /// Gets location of stored assets.
         /// </summary>
@@ -241,10 +243,6 @@ namespace Dalamud
 
                 Log.Information("[SPOST] LOC OK!");
 
-                this.PluginRepository =
-                    new PluginRepository(this, this.StartInfo.PluginDirectory, this.StartInfo.GameVersion);
-
-                Log.Information("[SPOST] PREPO OK!");
 
                 var isInterfaceLoaded = false;
                 if (!bool.Parse(Environment.GetEnvironmentVariable("DALAMUD_NOT_HAVE_INTERFACE") ?? "false"))
@@ -293,28 +291,6 @@ namespace Dalamud
 
                 Log.Information("[SPOST] CH OK!");
 
-                if (!bool.Parse(Environment.GetEnvironmentVariable("DALAMUD_NOT_HAVE_PLUGINS") ?? "false"))
-                {
-                    try
-                    {
-                        this.PluginRepository.CleanupPlugins();
-
-                        Log.Information("[SPOST] PRC OK!");
-
-                        this.PluginManager = new PluginManager(
-                            this,
-                            this.StartInfo.PluginDirectory,
-                            this.StartInfo.DefaultPluginDirectory);
-                        this.PluginManager.LoadPlugins();
-
-                        Log.Information("[SPOST] PM OK!");
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Error(ex, "Plugin load failed.");
-                    }
-                }
-
                 this.ClientState.Enable();
                 Log.Information("[SPOST] CS ENABLE!");
 
@@ -337,6 +313,40 @@ namespace Dalamud
                 Log.Error(ex, "Dalamud::Start() failed.");
                 this.Unload();
             }
+        }
+
+        public void LoadPluginSystem()
+        {
+            Log.Information("[LPS] START!");
+
+            this.PluginRepository =
+                new PluginRepository(this, this.StartInfo.PluginDirectory, this.StartInfo.GameVersion);
+
+            Log.Information("[LPS] PREPO OK!");
+
+            if (!bool.Parse(Environment.GetEnvironmentVariable("DALAMUD_NOT_HAVE_PLUGINS") ?? "false"))
+            {
+                try
+                {
+                    this.PluginRepository.CleanupPlugins();
+
+                    Log.Information("[LPS] PRC OK!");
+
+                    this.PluginManager = new PluginManager(
+                        this,
+                        this.StartInfo.PluginDirectory,
+                        this.StartInfo.DefaultPluginDirectory);
+                    this.PluginManager.LoadPlugins();
+
+                    Log.Information("[LPS] PM OK!");
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Plugin load failed.");
+                }
+            }
+
+            Log.Information("[LPS] OK!");
         }
 
         /// <summary>

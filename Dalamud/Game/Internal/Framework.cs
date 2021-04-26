@@ -134,6 +134,9 @@ namespace Dalamud.Game.Internal {
             if (!this.dalamud.IsReady)
                 this.dalamud.StartSubsystems();
 
+            if (!this.dalamud.IsLoadedPluginSystem && this.dalamud.InterfaceManager.IsReady)
+                this.dalamud.LoadPluginSystem();
+
             try {
                 Gui.Chat.UpdateQueue(this);
                 Gui.Toast.UpdateQueue();
