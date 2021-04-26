@@ -114,15 +114,15 @@ namespace Dalamud.Game.Addon
             atkValueChangeType(secondStringEntry, ValueType.String);
 
             // do this the most terrible way possible since im lazy
-            var bytes = stackalloc byte[17];
-            Marshal.Copy(System.Text.Encoding.ASCII.GetBytes("Dalamud Settings"), 0, new IntPtr(bytes), 16);
-            bytes[16] = 0x0;
+            var bytes = stackalloc byte[16];
+            Marshal.Copy(System.Text.Encoding.ASCII.GetBytes("Dalamud Plugins"), 0, new IntPtr(bytes), 15);
+            bytes[15] = 0x0;
 
             atkValueSetString(firstStringEntry, bytes); // this allocs the string properly using the game's allocators and copies it, so we dont have to worry about memory fuckups
 
-            var bytes2 = stackalloc byte[16];
-            Marshal.Copy(System.Text.Encoding.ASCII.GetBytes("Dalamud Plugins"), 0, new IntPtr(bytes2), 15);
-            bytes2[15] = 0x0;
+            var bytes2 = stackalloc byte[17];
+            Marshal.Copy(System.Text.Encoding.ASCII.GetBytes("Dalamud Settings"), 0, new IntPtr(bytes2), 16);
+            bytes2[16] = 0x0;
 
             atkValueSetString(secondStringEntry, bytes2);
 
@@ -137,11 +137,11 @@ namespace Dalamud.Game.Addon
         {
             if (commandId == 69420)
             {
-                this.dalamud.DalamudUi.OpenSettings();
+                this.dalamud.DalamudUi.OpenPluginInstaller();
             }
             else if (commandId == 69421)
             {
-                this.dalamud.DalamudUi.OpenPluginInstaller();
+                this.dalamud.DalamudUi.OpenSettings();
             }
             else
             {
