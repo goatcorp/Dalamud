@@ -5,9 +5,11 @@ using System.Numerics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using FFXIVClientStructs.Component.GUI;
-using FFXIVClientStructs.Component.GUI.ULD;
+
+using FFXIVClientStructs.FFXIV.Component.GUI;
+using FFXIVClientStructs.FFXIV.Component.GUI.ULD;
 using ImGuiNET;
+using AlignmentType = FFXIVClientStructs.FFXIV.Component.GUI.AlignmentType;
 
 // Customised version of https://github.com/aers/FFXIVUIDebug
 
@@ -228,7 +230,7 @@ namespace Dalamud.Interface {
                             if (imageNode->PartId > imageNode->PartsList->PartCount) {
                                 ImGui.Text("part id > part count?");
                             } else {
-                                var textureInfo = imageNode->PartsList->Parts[imageNode->PartId].ULDTexture;
+                                var textureInfo = imageNode->PartsList->Parts[imageNode->PartId].UldAsset;
                                 var texType = textureInfo->AtkTexture.TextureType;
                                 ImGui.Text($"texture type: {texType} part_id={imageNode->PartId} part_id_count={imageNode->PartsList->PartCount}");
                                 if (texType == TextureType.Resource) {
