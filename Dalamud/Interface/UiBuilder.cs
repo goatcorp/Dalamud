@@ -197,6 +197,9 @@ namespace Dalamud.Interface
                 (this.GposeActive && this.dalamud.Configuration.ToggleUiHideDuringGpose && !(this.DisableGposeUiHide || this.DisableAutomaticUiHide)))
                 return;
 
+            if (!this.dalamud.InterfaceManager.FontsReady)
+                return;
+
             ImGui.PushID(this.namespaceName);
             if (DoStats)
             {

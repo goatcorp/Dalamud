@@ -197,6 +197,9 @@ namespace Dalamud
             this.Framework = new Framework(this.SigScanner, this);
 
             Log.Information("[SPRE] Framework OK!");
+
+            this.Framework.Enable();
+            Log.Information("[SPRE] Framework ENABLE!");
         }
 
         /// <summary>
@@ -254,8 +257,6 @@ namespace Dalamud
                         isInterfaceLoaded = true;
 
                         Log.Information("[SPOST] IM OK!");
-
-                        this.InterfaceManager.WaitForFontRebuild();
                     }
                     catch (Exception e)
                     {
@@ -313,9 +314,6 @@ namespace Dalamud
                         Log.Error(ex, "Plugin load failed.");
                     }
                 }
-
-                this.Framework.Enable();
-                Log.Information("[SPOST] Framework ENABLE!");
 
                 this.ClientState.Enable();
                 Log.Information("[SPOST] CS ENABLE!");

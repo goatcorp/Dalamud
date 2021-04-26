@@ -68,6 +68,7 @@ namespace Dalamud.Interface
         /// </summary>
         public event RawDX11Scene.BuildUIDelegate OnDraw;
 
+        public bool FontsReady { get; set; } = false;
 
         public InterfaceManager(Dalamud dalamud, SigScanner scanner)
         {
@@ -380,6 +381,8 @@ namespace Dalamud.Interface
             japaneseRangeHandle.Free();
             gameRangeHandle.Free();
             iconRangeHandle.Free();
+
+            this.FontsReady = true;
         }
 
         public void WaitForFontRebuild() {
