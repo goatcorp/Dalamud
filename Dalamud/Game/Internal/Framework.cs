@@ -28,6 +28,8 @@ namespace Dalamud.Game.Internal {
 
         public delegate IntPtr OnDestroyDelegate();
 
+        public delegate bool OnRealDestroyDelegate(IntPtr framework);
+
         /// <summary>
         /// Event that gets fired every time the game framework updates.
         /// </summary>
@@ -36,6 +38,8 @@ namespace Dalamud.Game.Internal {
         private Hook<OnUpdateDetour> updateHook;
 
         private Hook<OnDestroyDetour> destroyHook;
+
+        private Hook<OnRealDestroyDelegate> realDestroyHook;
         
         /// <summary>
         /// A raw pointer to the instance of Client::Framework
@@ -101,6 +105,10 @@ namespace Dalamud.Game.Internal {
             var pDestroy = Marshal.ReadIntPtr(vtable, IntPtr.Size * 3);
             this.destroyHook =
                 new Hook<OnDestroyDetour>(pDestroy, new OnDestroyDelegate(HandleFrameworkDestroy), this);
+
+            var pRealDestroy = Marshal.ReadIntPtr(vtable, IntPtr.Size * 2);
+            this.realDestroyHook =
+                new Hook<OnRealDestroyDelegate>(pRealDestroy, new OnRealDestroyDelegate(HandleRealDestroy), this);
         }
         
         public void Enable() {
@@ -109,6 +117,7 @@ namespace Dalamud.Game.Internal {
             
             this.updateHook.Enable();
             this.destroyHook.Enable();
+            this.realDestroyHook.Enable();
         }
         
         public void Dispose() {
@@ -117,6 +126,7 @@ namespace Dalamud.Game.Internal {
 
             this.updateHook.Dispose();
             this.destroyHook.Dispose();
+            this.realDestroyHook.Dispose();
         }
 
         private bool HandleFrameworkUpdate(IntPtr framework) {
@@ -168,10 +178,22 @@ namespace Dalamud.Game.Internal {
             return this.updateHook.Original(framework);
         }
 
-        private IntPtr HandleFrameworkDestroy() {
-            Log.Information("Framework::OnDestroy!");
+        private bool HandleRealDestroy(IntPtr framework)
+        {
+            if (this.DispatchUpdateEvents)
+            {
+                Log.Information("Framework::Destroy!");
+                this.dalamud.DisposePlugins();
+                Log.Information("Framework::Destroy OK!");
+            }
 
             this.DispatchUpdateEvents = false;
+
+            return this.realDestroyHook.Original(framework);
+        }
+
+        private IntPtr HandleFrameworkDestroy() {
+            Log.Information("Framework::Free!");
 
             // Store the pointer to the original trampoline location
             var originalPtr = Marshal.GetFunctionPointerForDelegate(this.destroyHook.Original);
@@ -179,6 +201,8 @@ namespace Dalamud.Game.Internal {
             this.dalamud.Unload();
 
             this.dalamud.WaitForUnloadFinish();
+
+            Log.Information("Framework::Free OK!");
 
             // Return the original trampoline location to cleanly exit
             return originalPtr;
