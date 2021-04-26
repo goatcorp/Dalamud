@@ -140,7 +140,7 @@ Thank you for using XIVLauncher and Dalamud!
         }
 
         public void Dispose() {
-            this.logoTexture.Dispose();
+            this.logoTexture?.Dispose();
         }
 
         public override void Draw() {
