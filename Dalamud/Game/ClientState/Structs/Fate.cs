@@ -15,8 +15,8 @@ namespace Dalamud.Game.ClientState.Structs
         public const int State = 0x3AC;
         public const int Progress = 0x3B8;
         public const int Level = 0x3F9;
-        public const int Position = 0x440;
-        public const int Territory = 0x676;
+        public const int Position = 0x450;
+        public const int Territory = 0x74E;
     }
 
     [StructLayout(LayoutKind.Explicit)]
