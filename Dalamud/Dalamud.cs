@@ -315,6 +315,9 @@ namespace Dalamud
             }
         }
 
+        /// <summary>
+        /// Loads the plugin manager and repository.
+        /// </summary>
         public void LoadPluginSystem()
         {
             Log.Information("[LPS] START!");
