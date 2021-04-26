@@ -187,44 +187,48 @@ namespace Dalamud
         /// </summary>
         internal DirectoryInfo AssetDirectory => new DirectoryInfo(this.StartInfo.AssetDirectory);
 
+        public void Start()
+        {
+            // Initialize the process information.
+            this.TargetModule = Process.GetCurrentProcess().MainModule;
+            this.SigScanner = new SigScanner(this.TargetModule, true);
+
+            // Initialize game subsystem
+            this.Framework = new Framework(this.SigScanner, this);
+
+            Log.Information("[SPRE] Framework OK!");
+        }
+
         /// <summary>
         /// Start and initialize Dalamud subsystems.
         /// </summary>
-        public void Start()
+        public void StartSubsystems()
         {
             try
             {
                 this.Configuration = DalamudConfiguration.Load(this.StartInfo.ConfigurationPath);
 
-                // Initialize the process information.
-                this.TargetModule = Process.GetCurrentProcess().MainModule;
-                this.SigScanner = new SigScanner(this.TargetModule, true);
-
-                Log.Information("[START] Scanner OK!");
+                Log.Information("[SPOST] Scanner OK!");
 
                 this.AntiDebug = new AntiDebug(this.SigScanner);
 #if DEBUG
                 this.AntiDebug.Enable();
 #endif
 
-                Log.Information("[START] AntiDebug OK!");
+                Log.Information("[SPOST] AntiDebug OK!");
 
-                // Initialize game subsystem
-                this.Framework = new Framework(this.SigScanner, this);
-
-                Log.Information("[START] Framework OK!");
 
                 this.WinSock2 = new WinSockHandlers();
 
-                Log.Information("[START] WinSock OK!");
+                Log.Information("[SPOST] WinSock OK!");
 
                 this.NetworkHandlers = new NetworkHandlers(this, this.StartInfo.OptOutMbCollection);
 
-                Log.Information("[START] NH OK!");
+                Log.Information("[SPOST] NH OK!");
 
                 this.ClientState = new ClientState(this, this.StartInfo, this.SigScanner);
 
-                Log.Information("[START] CS OK!");
+                Log.Information("[SPOST] CS OK!");
 
                 this.LocalizationManager = new Localization(Path.Combine(this.AssetDirectory.FullName, "UIRes", "loc", "dalamud"), "dalamud_");
                 if (!string.IsNullOrEmpty(this.Configuration.LanguageOverride))
@@ -232,12 +236,12 @@ namespace Dalamud
                 else
                     this.LocalizationManager.SetupWithUiCulture();
 
-                Log.Information("[START] LOC OK!");
+                Log.Information("[SPOST] LOC OK!");
 
                 this.PluginRepository =
                     new PluginRepository(this, this.StartInfo.PluginDirectory, this.StartInfo.GameVersion);
 
-                Log.Information("[START] PREPO OK!");
+                Log.Information("[SPOST] PREPO OK!");
 
                 var isInterfaceLoaded = false;
                 if (!bool.Parse(Environment.GetEnvironmentVariable("DALAMUD_NOT_HAVE_INTERFACE") ?? "false"))
@@ -249,7 +253,7 @@ namespace Dalamud
                         this.InterfaceManager.Enable();
                         isInterfaceLoaded = true;
 
-                        Log.Information("[START] IM OK!");
+                        Log.Information("[SPOST] IM OK!");
 
                         this.InterfaceManager.WaitForFontRebuild();
                     }
@@ -271,22 +275,22 @@ namespace Dalamud
                     return;
                 }
 
-                Log.Information("[START] Data OK!");
+                Log.Information("[SPOST] Data OK!");
 
                 this.SeStringManager = new SeStringManager(this.Data);
 
-                Log.Information("[START] SeString OK!");
+                Log.Information("[SPOST] SeString OK!");
 
                 // Initialize managers. Basically handlers for the logic
                 this.CommandManager = new CommandManager(this, this.StartInfo.Language);
                 this.DalamudCommands = new DalamudCommands(this);
                 this.DalamudCommands.SetupCommands();
 
-                Log.Information("[START] CM OK!");
+                Log.Information("[SPOST] CM OK!");
 
                 this.ChatHandlers = new ChatHandlers(this);
 
-                Log.Information("[START] CH OK!");
+                Log.Information("[SPOST] CH OK!");
 
                 if (!bool.Parse(Environment.GetEnvironmentVariable("DALAMUD_NOT_HAVE_PLUGINS") ?? "false"))
                 {
@@ -294,7 +298,7 @@ namespace Dalamud
                     {
                         this.PluginRepository.CleanupPlugins();
 
-                        Log.Information("[START] PRC OK!");
+                        Log.Information("[SPOST] PRC OK!");
 
                         this.PluginManager = new PluginManager(
                             this,
@@ -302,7 +306,7 @@ namespace Dalamud
                             this.StartInfo.DefaultPluginDirectory);
                         this.PluginManager.LoadPlugins();
 
-                        Log.Information("[START] PM OK!");
+                        Log.Information("[SPOST] PM OK!");
                     }
                     catch (Exception ex)
                     {
@@ -311,15 +315,15 @@ namespace Dalamud
                 }
 
                 this.Framework.Enable();
-                Log.Information("[START] Framework ENABLE!");
+                Log.Information("[SPOST] Framework ENABLE!");
 
                 this.ClientState.Enable();
-                Log.Information("[START] CS ENABLE!");
+                Log.Information("[SPOST] CS ENABLE!");
 
                 this.DalamudUi = new DalamudInterface(this);
                 this.InterfaceManager.OnDraw += this.DalamudUi.Draw;
 
-                Log.Information("[START] DUI OK!");
+                Log.Information("[SPOST] DUI OK!");
 
                 this.SystemMenu = new DalamudSystemMenu(this);
                 this.SystemMenu.Enable();

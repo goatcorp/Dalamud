@@ -130,6 +130,10 @@ namespace Dalamud.Game.Internal {
         }
 
         private bool HandleFrameworkUpdate(IntPtr framework) {
+            // If this is the first time we are running this loop, we need to init Dalamud subsystems synchronously
+            if (!this.dalamud.IsReady)
+                this.dalamud.StartSubsystems();
+
             try {
                 Gui.Chat.UpdateQueue(this);
                 Gui.Toast.UpdateQueue();
