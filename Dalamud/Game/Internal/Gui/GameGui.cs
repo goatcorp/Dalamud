@@ -489,7 +489,7 @@ namespace Dalamud.Game.Internal.Gui {
             if (id == 0)
                 return IntPtr.Zero;
 
-            for (var i = 0; i < 379; i++)
+            for (var i = 0; i < 380; i++)
             {
                 var agent = Marshal.ReadIntPtr(agentModule, 0x20 + (i * 8));
                 if (agent == IntPtr.Zero)

@@ -43,9 +43,11 @@ namespace Dalamud.Interface {
         };
 
         private string searchInput = string.Empty;
+        private readonly Dalamud dalamud;
         
-        
-        public UIDebug(Dalamud dalamud) {
+        public UIDebug(Dalamud dalamud)
+        {
+            this.dalamud = dalamud;
             var getSingletonAddr = dalamud.SigScanner.ScanText("E8 ?? ?? ?? ?? 41 B8 01 00 00 00 48 8D 15 ?? ?? ?? ?? 48 8B 48 20 E8 ?? ?? ?? ?? 48 8B CF");
             this.getAtkStageSingleton = Marshal.GetDelegateForFunctionPointer<GetAtkStageSingleton>(getSingletonAddr);
         }
@@ -72,7 +74,8 @@ namespace Dalamud.Interface {
         private void DrawUnitBase(AtkUnitBase* atkUnitBase) {
             var isVisible = (atkUnitBase->Flags & 0x20) == 0x20;
             var addonName = Marshal.PtrToStringAnsi(new IntPtr(atkUnitBase->Name));
-            
+            var agent = this.dalamud.Framework.Gui.FindAgentInterface((IntPtr)atkUnitBase);
+
             ImGui.Text($"{addonName}");
             ImGui.SameLine();
             ImGui.PushStyleColor(ImGuiCol.Text, isVisible ? 0xFF00FF00 : 0xFF0000FF);
@@ -86,6 +89,7 @@ namespace Dalamud.Interface {
             
             ImGui.Separator();
             ClickToCopyText($"Address: {(ulong) atkUnitBase:X}", $"{(ulong) atkUnitBase:X}");
+            ClickToCopyText($"Agent: {(ulong)agent:X}", $"{(ulong)agent:X}");
             ImGui.Separator();
             
             ImGui.Text($"Position: [ {atkUnitBase->X} , {atkUnitBase->Y} ]");
