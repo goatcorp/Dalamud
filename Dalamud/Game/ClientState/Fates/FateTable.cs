@@ -12,9 +12,9 @@ namespace Dalamud.Game.ClientState.Fates
 {
     public class FateTable : IReadOnlyCollection<Fate>, ICollection, IDisposable
     {
-        private const int checkPtrOffset = 0x16D0; // If the pointer at this offset is 0, do not scan table
-        private const int firstPtrOffset = 0x16E0;
-        private const int lastPtrOffset = 0x16E8;
+        private const int checkPtrOffset = 0x80; // If the pointer at this offset is 0, do not scan table
+        private const int firstPtrOffset = 0x90;
+        private const int lastPtrOffset = 0x98;
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         private delegate void FateTableDelegate(IntPtr singleton);
