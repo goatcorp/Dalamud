@@ -6,6 +6,7 @@ using System.Threading;
 using Dalamud.Configuration;
 using Dalamud.Data;
 using Dalamud.Game;
+using Dalamud.Game.Addon;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.Command;
@@ -164,6 +165,11 @@ namespace Dalamud
         /// </summary>
         internal NetworkHandlers NetworkHandlers { get; private set; }
 
+        /// <summary>
+        /// Gets subsystem responsible for adding the Dalamud menu items to the game's system menu.
+        /// </summary>
+        internal DalamudSystemMenu SystemMenu { get; private set; }
+
         #endregion
 
         /// <summary>
@@ -198,7 +204,7 @@ namespace Dalamud
 
                 this.AntiDebug = new AntiDebug(this.SigScanner);
 #if DEBUG
-                AntiDebug.Enable();
+                this.AntiDebug.Enable();
 #endif
 
                 Log.Information("[START] AntiDebug OK!");
@@ -315,6 +321,9 @@ namespace Dalamud
 
                 Log.Information("[START] DUI OK!");
 
+                this.SystemMenu = new DalamudSystemMenu(this);
+                this.SystemMenu.Enable();
+
                 this.IsReady = true;
 
                 Troubleshooting.LogTroubleshooting(this, isInterfaceLoaded);
@@ -403,6 +412,8 @@ namespace Dalamud
                 this.Data?.Dispose();
 
                 this.AntiDebug?.Dispose();
+
+                this.SystemMenu?.Dispose();
 
                 Log.Debug("Dalamud::Dispose() OK!");
             }
