@@ -336,26 +336,31 @@ namespace Dalamud.Plugin
                 foreach (var installed in pluginsDirectory.GetDirectories()) {
                     var versions = installed.GetDirectories();
 
-                    if (versions.Length == 0) {
-                        Log.Information("[PLUGINR] Has no versions: {0}", installed.FullName);
-                        continue;
-                    }
-
                     var sortedVersions = versions.OrderBy(dirInfo => {
                         var success = Version.TryParse(dirInfo.Name, out Version version);
                         if (!success) { Log.Debug("Unparseable version: {0}", dirInfo.Name); }
                         return version;
                     }).ToArray();
-                    for (var i = 0; i < sortedVersions.Length; i++) {
-                        var disabledFile = new FileInfo(Path.Combine(sortedVersions[i].FullName, ".disabled"));
+                    foreach (var version in sortedVersions) {
+                        var disabledFile = new FileInfo(Path.Combine(version.FullName, ".disabled"));
                         if (disabledFile.Exists) {
-                            Log.Information("[PLUGINR] Trying to clean up {0} at {1}", installed.Name, sortedVersions[i].FullName);
+                            Log.Information("[PLUGINR] Trying to clean up {0} at {1}", installed.Name, version.FullName);
                             try {
-                                sortedVersions[i].Delete(true);
+                                version.Delete(true);
                             }
                             catch (Exception ex) {
                                 Log.Error(ex, $"[PLUGINR] Could not clean up {disabledFile.FullName}");
                             }
+                        }
+                    }
+
+                    if (installed.GetDirectories().Length == 0) {
+                        Log.Information("[PLUGINR] Has no versions, cleaning up: {0}", installed.FullName);
+                        try {
+                            installed.Delete();
+                        }
+                        catch (Exception ex) {
+                            Log.Error(ex, $"[PLUGINR] Could not clean up {installed.FullName}");
                         }
                     }
                 }
