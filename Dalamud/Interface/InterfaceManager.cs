@@ -55,6 +55,15 @@ namespace Dalamud.Interface
         public Device Device => this.scene.Device;
         public IntPtr WindowHandlePtr => this.scene.WindowHandlePtr;
 
+        /// <summary>
+        /// Gets or sets a value indicating whether or not the game's cursor should be overridden with the ImGui cursor.
+        /// </summary>
+        public bool OverrideGameCursor
+        {
+            get => this.scene.UpdateCursor;
+            set => this.scene.UpdateCursor = value;
+        }
+
         private delegate void InstallRTSSHook();
         private string rtssPath;
 
@@ -434,7 +443,7 @@ namespace Dalamud.Interface
         private bool lastWantCapture = false;
 
         private IntPtr SetCursorDetour(IntPtr hCursor) {
-            if (this.lastWantCapture == true && (!scene?.IsImGuiCursor(hCursor) ?? false))
+            if (this.lastWantCapture == true && (!scene?.IsImGuiCursor(hCursor) ?? false) && this.OverrideGameCursor)
                 return IntPtr.Zero;
 
             return this.setCursorHook.Original(hCursor);

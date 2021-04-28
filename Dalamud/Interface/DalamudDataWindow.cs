@@ -353,6 +353,10 @@ namespace Dalamud.Interface
                         // ImGui
                         case 14:
                             ImGui.Text("Monitor count: " + ImGui.GetPlatformIO().Monitors.Size);
+                            ImGui.Text("OverrideGameCursor: " + this.dalamud.InterfaceManager.OverrideGameCursor);
+
+                            ImGui.Button("THIS IS A BUTTON###hoverTestButton");
+                            this.dalamud.InterfaceManager.OverrideGameCursor = !ImGui.IsItemHovered();
 
                             break;
 
