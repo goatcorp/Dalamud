@@ -308,11 +308,6 @@ namespace Dalamud
         {
             Log.Information("[T3] START!");
 
-            this.DalamudUi = new DalamudInterface(this);
-            this.InterfaceManager.OnDraw += this.DalamudUi.Draw;
-
-            Log.Information("[T3] DUI OK!");
-
             this.PluginRepository =
                 new PluginRepository(this, this.StartInfo.PluginDirectory, this.StartInfo.GameVersion);
 
@@ -339,6 +334,11 @@ namespace Dalamud
                     Log.Error(ex, "Plugin load failed.");
                 }
             }
+
+            this.DalamudUi = new DalamudInterface(this);
+            this.InterfaceManager.OnDraw += this.DalamudUi.Draw;
+
+            Log.Information("[T3] DUI OK!");
 
             Troubleshooting.LogTroubleshooting(this, this.InterfaceManager != null);
 
