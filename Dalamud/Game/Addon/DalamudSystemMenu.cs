@@ -4,7 +4,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
-
+using CheapLoc;
 using Dalamud.Hooking;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
@@ -113,16 +113,19 @@ namespace Dalamud.Game.Addon
             var secondStringEntry = &atkValueArgs[6 + 15];
             atkValueChangeType(secondStringEntry, ValueType.String);
 
+            var strPlugins = Encoding.UTF8.GetBytes(Loc.Localize("SystemMenuPlugins", "Dalamud Plugins"));
+            var strSettings = Encoding.UTF8.GetBytes(Loc.Localize("SystemMenuSettings", "Dalamud Settings"));
+
             // do this the most terrible way possible since im lazy
-            var bytes = stackalloc byte[17];
-            Marshal.Copy(System.Text.Encoding.ASCII.GetBytes("Dalamud Settings"), 0, new IntPtr(bytes), 16);
-            bytes[16] = 0x0;
+            var bytes = stackalloc byte[strPlugins.Length + 1];
+            Marshal.Copy(strPlugins, 0, new IntPtr(bytes), strPlugins.Length);
+            bytes[strPlugins.Length] = 0x0;
 
             atkValueSetString(firstStringEntry, bytes); // this allocs the string properly using the game's allocators and copies it, so we dont have to worry about memory fuckups
 
-            var bytes2 = stackalloc byte[16];
-            Marshal.Copy(System.Text.Encoding.ASCII.GetBytes("Dalamud Plugins"), 0, new IntPtr(bytes2), 15);
-            bytes2[15] = 0x0;
+            var bytes2 = stackalloc byte[strSettings.Length + 1];
+            Marshal.Copy(strSettings, 0, new IntPtr(bytes2), strSettings.Length);
+            bytes2[strSettings.Length] = 0x0;
 
             atkValueSetString(secondStringEntry, bytes2);
 
@@ -137,11 +140,11 @@ namespace Dalamud.Game.Addon
         {
             if (commandId == 69420)
             {
-                this.dalamud.DalamudUi.OpenSettings();
+                this.dalamud.DalamudUi.OpenPluginInstaller();
             }
             else if (commandId == 69421)
             {
-                this.dalamud.DalamudUi.OpenPluginInstaller();
+                this.dalamud.DalamudUi.OpenSettings();
             }
             else
             {

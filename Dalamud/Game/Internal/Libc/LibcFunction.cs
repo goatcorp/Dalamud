@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
+using System.Text;
 using Serilog;
 
 namespace Dalamud.Game.Internal.Libc {
@@ -37,6 +38,13 @@ namespace Dalamud.Game.Internal.Libc {
             //Log.Verbose("Prev: {Prev} Now: {Now}", pString, pReallocString);
             
             return new OwnedStdString(pReallocString, DeallocateStdString);
+        }
+
+        public OwnedStdString NewString(string content, Encoding encoding = null)
+        {
+            encoding ??= Encoding.UTF8;
+
+            return this.NewString(encoding.GetBytes(content));
         }
 
         private void DeallocateStdString(IntPtr address) {
