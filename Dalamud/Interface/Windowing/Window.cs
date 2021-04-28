@@ -99,13 +99,10 @@ namespace Dalamud.Interface.Windowing
         /// </summary>
         public bool IsOpen
         {
-            get => this.mainIsOpen;
+            get => this.internalIsOpen;
             set
             {
-                if (!value)
-                    this.internalIsOpen = true;
-
-                this.mainIsOpen = value;
+                this.internalIsOpen = value;
             }
         }
 
@@ -130,8 +127,19 @@ namespace Dalamud.Interface.Windowing
         /// </summary>
         internal void DrawInternal()
         {
+            //if (WindowName.Contains("Credits"))
+            //    Log.Information($"Draw: {IsOpen} {this.internalIsOpen} {this.internalLastIsOpen}");
+
             if (!this.IsOpen)
+            {
+                if (this.internalIsOpen != this.internalLastIsOpen)
+                {
+                    this.internalLastIsOpen = this.internalIsOpen;
+                    this.OnClose();
+                }
+
                 return;
+            }
 
             var hasNamespace = !string.IsNullOrEmpty(this.Namespace);
 
@@ -143,6 +151,12 @@ namespace Dalamud.Interface.Windowing
             if (this.ForceMainWindow)
                 ImGuiHelpers.ForceNextWindowMainViewport();
 
+            if (this.internalLastIsOpen != this.internalIsOpen && this.internalIsOpen)
+            {
+                this.internalLastIsOpen = this.internalIsOpen;
+                this.OnOpen();
+            }
+
             if (ImGui.Begin(this.WindowName, ref this.internalIsOpen, this.Flags))
             {
                 // Draw the actual window contents
@@ -153,7 +167,10 @@ namespace Dalamud.Interface.Windowing
 
             if (hasNamespace)
                 ImGui.PopID();
+        }
 
+        private void CheckState()
+        {
             if (this.internalLastIsOpen != this.internalIsOpen)
             {
                 if (this.internalIsOpen)
@@ -165,11 +182,6 @@ namespace Dalamud.Interface.Windowing
                     this.OnClose();
                 }
             }
-
-            this.internalLastIsOpen = this.internalIsOpen;
-
-            if (this.internalIsOpen != true)
-                this.IsOpen = false;
         }
 
         private void ApplyConditionals()
