@@ -346,15 +346,15 @@ namespace Dalamud.Plugin
                         if (!success) { Log.Debug("Unparseable version: {0}", dirInfo.Name); }
                         return version;
                     }).ToArray();
-                    for (var i = 0; i < sortedVersions.Length - 1; i++) {
+                    for (var i = 0; i < sortedVersions.Length; i++) {
                         var disabledFile = new FileInfo(Path.Combine(sortedVersions[i].FullName, ".disabled"));
                         if (disabledFile.Exists) {
-                            Log.Information("[PLUGINR] Trying to delete old {0} at {1}", installed.Name, sortedVersions[i].FullName);
+                            Log.Information("[PLUGINR] Trying to clean up {0} at {1}", installed.Name, sortedVersions[i].FullName);
                             try {
                                 sortedVersions[i].Delete(true);
                             }
                             catch (Exception ex) {
-                                Log.Error(ex, "[PLUGINR] Could not delete old version");
+                                Log.Error(ex, $"[PLUGINR] Could not clean up {disabledFile.FullName}");
                             }
                         }
                     }
