@@ -57,7 +57,7 @@ namespace Dalamud
                 Log.Information("Starting a session..");
 
                 // Run session
-                dalamud.Start();
+                dalamud.LoadTier1();
                 dalamud.WaitForUnload();
 
                 dalamud.Dispose();
