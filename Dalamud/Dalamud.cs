@@ -2,7 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
-
+using System.Threading.Tasks;
 using Dalamud.Configuration;
 using Dalamud.Data;
 using Dalamud.Game;
@@ -325,7 +325,9 @@ namespace Dalamud
                         this,
                         this.StartInfo.PluginDirectory,
                         this.StartInfo.DefaultPluginDirectory);
-                    this.PluginManager.LoadPlugins();
+                    this.PluginManager.LoadSynchronousPlugins();
+
+                    Task.Run(() => this.PluginManager.LoadDeferredPlugins());
 
                     Log.Information("[T3] PM OK!");
                 }

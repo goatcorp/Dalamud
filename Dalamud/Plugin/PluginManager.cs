@@ -109,10 +109,12 @@ namespace Dalamud.Plugin
             this.Plugins.Clear();
         }
 
+        private IEnumerable<(FileInfo dllFile, PluginDefinition definition, bool isRaw)> deferredPlugins;
+
         /// <summary>
-        /// Load all regular and dev plugins.
+        /// Load plugins that need to be loaded synchronously and prepare plugins that can be loaded asynchronously.
         /// </summary>
-        public void LoadPlugins()
+        public void LoadSynchronousPlugins()
         {
             var loadDirectories = new List<(DirectoryInfo dirInfo, bool isRaw)>
             {
@@ -147,8 +149,36 @@ namespace Dalamud.Plugin
                 return prio2.CompareTo(prio1);
             });
 
-            // Pass preloaded definitions to LoadPluginFromAssembly, because we already loaded them anyways
-            foreach (var (dllFile, definition, isRaw) in pluginDefs)
+            this.deferredPlugins = pluginDefs.Where(x => x.definition?.LoadPriority <= 0);
+
+            // Pass preloaded definitions for "synchronous load" plugins to LoadPluginFromAssembly, because we already loaded them anyways
+            foreach (var (dllFile, definition, isRaw) in pluginDefs.Where(x => x.definition?.LoadPriority > 0))
+            {
+                try
+                {
+                    this.LoadPluginFromAssembly(dllFile, isRaw, PluginLoadReason.Boot, definition);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, $"Plugin load for {dllFile.FullName} failed.");
+                    if (ex is ReflectionTypeLoadException typeLoadException)
+                    {
+                        foreach (var exception in typeLoadException.LoaderExceptions)
+                        {
+                            Log.Error(exception, "LoaderException:");
+                        }
+                    }
+                }
+            }
+        }
+
+        public void LoadDeferredPlugins()
+        {
+            if (this.deferredPlugins == null)
+                throw new Exception("Synchronous plugins need to be loaded before deferred plugins.");
+
+            // Pass preloaded definitions for "deferred load" plugins to LoadPluginFromAssembly, because we already loaded them anyways
+            foreach (var (dllFile, definition, isRaw) in this.deferredPlugins)
             {
                 try
                 {
@@ -343,7 +373,7 @@ namespace Dalamud.Plugin
         public void ReloadPlugins()
         {
             this.UnloadPlugins();
-            this.LoadPlugins();
+            this.LoadSynchronousPlugins();
         }
 
         private class BannedPlugin
