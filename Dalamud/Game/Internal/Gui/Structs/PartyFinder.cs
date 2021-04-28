@@ -35,7 +35,7 @@ namespace Dalamud.Game.Internal.Gui.Structs {
             [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
             private readonly byte[] header2;
 
-            private readonly uint unknownInt1;
+            internal readonly uint contentIdLower;
             private readonly ushort unknownShort1;
             private readonly ushort unknownShort2;
 
@@ -122,6 +122,10 @@ namespace Dalamud.Game.Internal.Gui.Structs {
         /// The ID assigned to this listing by the game's server.
         /// </summary>
         public uint Id { get; }
+        /// <summary>
+        /// The lower bits of the player's content ID.
+        /// </summary>
+        public uint ContentIdLower { get; }
         /// <summary>
         /// The name of the player hosting this listing.
         /// </summary>
@@ -256,6 +260,7 @@ namespace Dalamud.Game.Internal.Gui.Structs {
             this.jobsPresent = listing.jobsPresent;
 
             Id = listing.id;
+            ContentIdLower = listing.contentIdLower;
             Name = seStringManager.Parse(listing.name.TakeWhile(b => b != 0).ToArray());
             Description = seStringManager.Parse(listing.description.TakeWhile(b => b != 0).ToArray());
             World = new Lazy<World>(() => dataManager.GetExcelSheet<World>().GetRow(listing.world));

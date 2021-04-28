@@ -126,9 +126,9 @@ namespace Dalamud
         /// <param name="key">The string key to be returned.</param>
         /// <param name="fallBack">The fallback string, usually your source language.</param>
         /// <returns>The localized string, fallback or string key if not found.</returns>
-        public string Localize(string key, string fallBack)
+        public static string Localize(string key, string fallBack)
         {
-            return Loc.Localize(key, fallBack, this.assembly);
+            return Loc.Localize(key, fallBack, Assembly.GetCallingAssembly());
         }
 
         private string ReadLocData(string langCode)
