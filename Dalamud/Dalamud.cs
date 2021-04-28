@@ -189,23 +189,34 @@ namespace Dalamud
         /// </summary>
         internal DirectoryInfo AssetDirectory => new DirectoryInfo(this.StartInfo.AssetDirectory);
 
+        /// <summary>
+        /// Runs tier 1 of the Dalamud initialization process.
+        /// </summary>
         public void LoadTier1()
         {
-            // Initialize the process information.
-            this.TargetModule = Process.GetCurrentProcess().MainModule;
-            this.SigScanner = new SigScanner(this.TargetModule, true);
+            try
+            {
+                // Initialize the process information.
+                this.TargetModule = Process.GetCurrentProcess().MainModule;
+                this.SigScanner = new SigScanner(this.TargetModule, true);
 
-            // Initialize game subsystem
-            this.Framework = new Framework(this.SigScanner, this);
+                // Initialize game subsystem
+                this.Framework = new Framework(this.SigScanner, this);
 
-            Log.Information("[T1] Framework OK!");
+                Log.Information("[T1] Framework OK!");
 
-            this.Framework.Enable();
-            Log.Information("[T1] Framework ENABLE!");
+                this.Framework.Enable();
+                Log.Information("[T1] Framework ENABLE!");
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Tier 1 load failed.");
+                this.Unload();
+            }
         }
 
         /// <summary>
-        /// Start and initialize Dalamud subsystems.
+        /// Runs tier 2 of the Dalamud initialization process.
         /// </summary>
         public void LoadTier2()
         {
@@ -296,55 +307,63 @@ namespace Dalamud
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Dalamud::LoadTier2() failed.");
+                Log.Error(ex, "Tier 2 load failed.");
                 this.Unload();
             }
         }
 
         /// <summary>
-        /// Loads the plugin manager and repository.
+        /// Runs tier 3 of the Dalamud initialization process.
         /// </summary>
         public void LoadTier3()
         {
-            Log.Information("[T3] START!");
-
-            this.PluginRepository =
-                new PluginRepository(this, this.StartInfo.PluginDirectory, this.StartInfo.GameVersion);
-
-            Log.Information("[T3] PREPO OK!");
-
-            if (!bool.Parse(Environment.GetEnvironmentVariable("DALAMUD_NOT_HAVE_PLUGINS") ?? "false"))
+            try
             {
-                try
+                Log.Information("[T3] START!");
+
+                this.PluginRepository =
+                    new PluginRepository(this, this.StartInfo.PluginDirectory, this.StartInfo.GameVersion);
+
+                Log.Information("[T3] PREPO OK!");
+
+                if (!bool.Parse(Environment.GetEnvironmentVariable("DALAMUD_NOT_HAVE_PLUGINS") ?? "false"))
                 {
-                    this.PluginRepository.CleanupPlugins();
+                    try
+                    {
+                        this.PluginRepository.CleanupPlugins();
 
-                    Log.Information("[T3] PRC OK!");
+                        Log.Information("[T3] PRC OK!");
 
-                    this.PluginManager = new PluginManager(
-                        this,
-                        this.StartInfo.PluginDirectory,
-                        this.StartInfo.DefaultPluginDirectory);
-                    this.PluginManager.LoadSynchronousPlugins();
+                        this.PluginManager = new PluginManager(
+                            this,
+                            this.StartInfo.PluginDirectory,
+                            this.StartInfo.DefaultPluginDirectory);
+                        this.PluginManager.LoadSynchronousPlugins();
 
-                    Task.Run(() => this.PluginManager.LoadDeferredPlugins());
+                        Task.Run(() => this.PluginManager.LoadDeferredPlugins());
 
-                    Log.Information("[T3] PM OK!");
+                        Log.Information("[T3] PM OK!");
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, "Plugin load failed.");
+                    }
                 }
-                catch (Exception ex)
-                {
-                    Log.Error(ex, "Plugin load failed.");
-                }
+
+                this.DalamudUi = new DalamudInterface(this);
+                this.InterfaceManager.OnDraw += this.DalamudUi.Draw;
+
+                Log.Information("[T3] DUI OK!");
+
+                Troubleshooting.LogTroubleshooting(this, this.InterfaceManager != null);
+
+                Log.Information("Dalamud is ready.");
             }
-
-            this.DalamudUi = new DalamudInterface(this);
-            this.InterfaceManager.OnDraw += this.DalamudUi.Draw;
-
-            Log.Information("[T3] DUI OK!");
-
-            Troubleshooting.LogTroubleshooting(this, this.InterfaceManager != null);
-
-            Log.Information("Dalamud is ready.");
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Tier 3 load failed.");
+                this.Unload();
+            }
         }
 
         /// <summary>
