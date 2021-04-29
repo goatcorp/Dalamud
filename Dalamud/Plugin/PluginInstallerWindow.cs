@@ -192,7 +192,8 @@ namespace Dalamud.Plugin
                 }
                 else
                 {
-                    if (ImGui.Button(Loc.Localize("InstallerUpdatePlugins", "Update plugins")))
+                    if (ImGui.Button(Loc.Localize("InstallerUpdatePlugins", "Update plugins")) &&
+                        this.dalamud.PluginRepository.State == PluginRepository.InitializationState.Success)
                     {
                         this.installStatus = PluginInstallStatus.InProgress;
 
@@ -217,7 +218,8 @@ namespace Dalamud.Plugin
                             this.errorModalDrawing = this.installStatus == PluginInstallStatus.Fail;
                             this.errorModalOnNextFrame = this.installStatus == PluginInstallStatus.Fail;
 
-                            this.dalamud.PluginRepository.PrintUpdatedPlugins(this.updatedPlugins, Loc.Localize("DalamudPluginUpdates", "Updates:"));
+                            this.dalamud.PluginRepository.PrintUpdatedPlugins(
+                                this.updatedPlugins, Loc.Localize("DalamudPluginUpdates", "Updates:"));
 
                             this.RefetchPlugins();
                         });
@@ -305,8 +307,11 @@ namespace Dalamud.Plugin
 
         private void ResortPlugins()
         {
+            if (this.dalamud.PluginRepository.State != PluginRepository.InitializationState.Success)
+                return;
+
             var availableDefs = this.dalamud.PluginRepository.PluginMaster.Where(
-                x => this.pluginListInstalled.All(y => x.InternalName != y.InternalName))
+                                        x => this.pluginListInstalled.All(y => x.InternalName != y.InternalName))
                                     .GroupBy(x => new { x.InternalName, x.AssemblyVersion })
                                     .Select(y => y.First()).ToList();
 
