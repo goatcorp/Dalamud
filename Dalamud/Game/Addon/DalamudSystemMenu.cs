@@ -1,9 +1,7 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
+
 using CheapLoc;
 using Dalamud.Hooking;
 using FFXIVClientStructs.FFXIV.Component.GUI;
@@ -16,9 +14,9 @@ namespace Dalamud.Game.Addon
     {
         private readonly Dalamud dalamud;
 
-        private delegate void AgentHudOpenSystemMenuProtoype(void* thisPtr, AtkValue* atkValueArgs, uint menuSize);
+        private delegate void AgentHudOpenSystemMenuPrototype(void* thisPtr, AtkValue* atkValueArgs, uint menuSize);
 
-        private Hook<AgentHudOpenSystemMenuProtoype> hookAgentHudOpenSystemMenu;
+        private Hook<AgentHudOpenSystemMenuPrototype> hookAgentHudOpenSystemMenu;
 
         private delegate void AtkValueChangeType(AtkValue* thisPtr, ValueType type);
 
@@ -43,9 +41,9 @@ namespace Dalamud.Game.Addon
 
             var openSystemMenuAddress = this.dalamud.SigScanner.ScanText("E8 ?? ?? ?? ?? 32 C0 4C 8B AC 24 ?? ?? ?? ?? 48 8B 8D ?? ?? ?? ??");
 
-            this.hookAgentHudOpenSystemMenu = new Hook<AgentHudOpenSystemMenuProtoype>(
+            this.hookAgentHudOpenSystemMenu = new Hook<AgentHudOpenSystemMenuPrototype>(
                 openSystemMenuAddress,
-                new AgentHudOpenSystemMenuProtoype(this.AgentHudOpenSystemMenuDetour),
+                new AgentHudOpenSystemMenuPrototype(this.AgentHudOpenSystemMenuDetour),
                 this);
 
             var atkValueChangeTypeAddress =
@@ -57,10 +55,10 @@ namespace Dalamud.Game.Addon
                 this.dalamud.SigScanner.ScanText("E8 ?? ?? ?? ?? 41 03 ED");
             this.atkValueSetString = Marshal.GetDelegateForFunctionPointer<AtkValueSetString>(atkValueSetStringAddress);
 
-            var uiModuleRequestMainCommmandAddress = this.dalamud.SigScanner.ScanText(
+            var uiModuleRequestMainCommandAddress = this.dalamud.SigScanner.ScanText(
                 "40 53 56 48 81 EC ?? ?? ?? ?? 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 84 24 ?? ?? ?? ?? 48 8B 01 8B DA 48 8B F1 FF 90 ?? ?? ?? ??");
             this.hookUiModuleRequestMainCommand = new Hook<UiModuleRequestMainCommand>(
-                uiModuleRequestMainCommmandAddress,
+                uiModuleRequestMainCommandAddress,
                 new UiModuleRequestMainCommand(this.UiModuleRequestMainCommandDetour),
                 this);
         }
@@ -78,7 +76,7 @@ namespace Dalamud.Game.Addon
             // see if we can add 2 entries
             if (menuSize >= 0xD)
             {
-                hookAgentHudOpenSystemMenu.Original(thisPtr, atkValueArgs, menuSize);
+                this.hookAgentHudOpenSystemMenu.Original(thisPtr, atkValueArgs, menuSize);
                 return;
             }
 
@@ -88,10 +86,10 @@ namespace Dalamud.Game.Addon
             // reference the original function for more details :)
 
             // step 1) move all the current menu items down so we can put Dalamud at the top like it deserves
-            atkValueChangeType(&atkValueArgs[menuSize + 5], ValueType.Int); // currently this value has no type, set it to int
-            atkValueChangeType(&atkValueArgs[menuSize + 5 + 1], ValueType.Int);
+            this.atkValueChangeType(&atkValueArgs[menuSize + 5], ValueType.Int); // currently this value has no type, set it to int
+            this.atkValueChangeType(&atkValueArgs[menuSize + 5 + 1], ValueType.Int);
 
-            for (uint i = menuSize+2; i > 1; i--)
+            for (uint i = menuSize + 2; i > 1; i--)
             {
                 var curEntry = &atkValueArgs[i + 5 - 2];
                 var nextEntry = &atkValueArgs[i + 5];
@@ -109,9 +107,9 @@ namespace Dalamud.Game.Addon
             // since the game first checks for strings in the AtkValue argument before pulling them from the exd, if we create strings we dont have to worry
             // about hooking the exd reader, thank god
             var firstStringEntry = &atkValueArgs[5 + 15];
-            atkValueChangeType(firstStringEntry, ValueType.String);
+            this.atkValueChangeType(firstStringEntry, ValueType.String);
             var secondStringEntry = &atkValueArgs[6 + 15];
-            atkValueChangeType(secondStringEntry, ValueType.String);
+            this.atkValueChangeType(secondStringEntry, ValueType.String);
 
             var strPlugins = Encoding.UTF8.GetBytes(Loc.Localize("SystemMenuPlugins", "Dalamud Plugins"));
             var strSettings = Encoding.UTF8.GetBytes(Loc.Localize("SystemMenuSettings", "Dalamud Settings"));
@@ -121,13 +119,13 @@ namespace Dalamud.Game.Addon
             Marshal.Copy(strPlugins, 0, new IntPtr(bytes), strPlugins.Length);
             bytes[strPlugins.Length] = 0x0;
 
-            atkValueSetString(firstStringEntry, bytes); // this allocs the string properly using the game's allocators and copies it, so we dont have to worry about memory fuckups
+            this.atkValueSetString(firstStringEntry, bytes); // this allocs the string properly using the game's allocators and copies it, so we dont have to worry about memory fuckups
 
             var bytes2 = stackalloc byte[strSettings.Length + 1];
             Marshal.Copy(strSettings, 0, new IntPtr(bytes2), strSettings.Length);
             bytes2[strSettings.Length] = 0x0;
 
-            atkValueSetString(secondStringEntry, bytes2);
+            this.atkValueSetString(secondStringEntry, bytes2);
 
             // open menu with new size
             var sizeEntry = &atkValueArgs[4];
@@ -138,17 +136,17 @@ namespace Dalamud.Game.Addon
 
         private void UiModuleRequestMainCommandDetour(void* thisPtr, int commandId)
         {
-            if (commandId == 69420)
+            switch (commandId)
             {
-                this.dalamud.DalamudUi.OpenPluginInstaller();
-            }
-            else if (commandId == 69421)
-            {
-                this.dalamud.DalamudUi.OpenSettings();
-            }
-            else
-            {
-                this.hookUiModuleRequestMainCommand.Original(thisPtr, commandId);
+                case 69420:
+                    this.dalamud.DalamudUi.TogglePluginInstaller();
+                    break;
+                case 69421:
+                    this.dalamud.DalamudUi.ToggleSettings();
+                    break;
+                default:
+                    this.hookUiModuleRequestMainCommand.Original(thisPtr, commandId);
+                    break;
             }
         }
 

@@ -149,7 +149,7 @@ namespace Dalamud.Plugin
                 return prio2.CompareTo(prio1);
             });
 
-            this.deferredPlugins = pluginDefs.Where(x => x.definition?.LoadPriority <= 0);
+            this.deferredPlugins = pluginDefs.Where(x => x.definition == null || x.definition.LoadPriority <= 0);
 
             // Pass preloaded definitions for "synchronous load" plugins to LoadPluginFromAssembly, because we already loaded them anyways
             foreach (var (dllFile, definition, isRaw) in pluginDefs.Where(x => x.definition?.LoadPriority > 0))
