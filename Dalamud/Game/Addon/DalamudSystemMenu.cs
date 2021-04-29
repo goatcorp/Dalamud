@@ -140,11 +140,11 @@ namespace Dalamud.Game.Addon
         {
             if (commandId == 69420)
             {
-                this.dalamud.DalamudUi.OpenPluginInstaller();
+                this.dalamud.DalamudUi.TogglePluginInstaller();
             }
             else if (commandId == 69421)
             {
-                this.dalamud.DalamudUi.OpenSettings();
+                this.dalamud.DalamudUi.ToggleSettings();
             }
             else
             {
