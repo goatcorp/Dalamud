@@ -336,11 +336,6 @@ namespace Dalamud.Plugin
                 foreach (var installed in pluginsDirectory.GetDirectories()) {
                     var versions = installed.GetDirectories();
 
-                    if (versions.Length == 0) {
-                        Log.Information("[PLUGINR] Has no versions: {0}", installed.FullName);
-                        continue;
-                    }
-
                     var sortedVersions = versions.OrderBy(dirInfo => {
                         var success = Version.TryParse(dirInfo.Name, out Version version);
                         if (!success) { Log.Debug("Unparseable version: {0}", dirInfo.Name); }
@@ -380,6 +375,20 @@ namespace Dalamud.Plugin
                         catch (Exception ex)
                         {
                             Log.Error(ex, $"[PLUGINR] Could not clean up {version.FullName}");
+                        }
+
+                        if (installed.GetDirectories().Length == 0)
+                        {
+                            Log.Information("[PLUGINR] Has no versions, cleaning up: {0}", installed.FullName);
+
+                            try
+                            {
+                                installed.Delete();
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Error(ex, $"[PLUGINR] Could not clean up {installed.FullName}");
+                            }
                         }
                     }
                 }
