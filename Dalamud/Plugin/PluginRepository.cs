@@ -346,16 +346,40 @@ namespace Dalamud.Plugin
                         if (!success) { Log.Debug("Unparseable version: {0}", dirInfo.Name); }
                         return version;
                     }).ToArray();
-                    for (var i = 0; i < sortedVersions.Length; i++) {
-                        var disabledFile = new FileInfo(Path.Combine(sortedVersions[i].FullName, ".disabled"));
-                        if (disabledFile.Exists) {
-                            Log.Information("[PLUGINR] Trying to clean up {0} at {1}", installed.Name, sortedVersions[i].FullName);
-                            try {
-                                sortedVersions[i].Delete(true);
+
+                    foreach (var version in sortedVersions)
+                    {
+                        try
+                        {
+                            var disabledFile = new FileInfo(Path.Combine(version.FullName, ".disabled"));
+                            var definition = JsonConvert.DeserializeObject<PluginDefinition>(
+                                File.ReadAllText(Path.Combine(version.FullName,
+                                                              version.Parent.Name + ".json")));
+
+                            if (disabledFile.Exists) {
+                                Log.Information("[PLUGINR] Disabled: cleaning up {0} at {1}", installed.Name, version.FullName);
+                                try {
+                                    version.Delete(true);
+                                }
+                                catch (Exception ex) {
+                                    Log.Error(ex, $"[PLUGINR] Could not clean up {disabledFile.FullName}");
+                                }
                             }
-                            catch (Exception ex) {
-                                Log.Error(ex, $"[PLUGINR] Could not clean up {disabledFile.FullName}");
+
+                            if (definition.DalamudApiLevel < PluginManager.DalamudApiLevel - 1)
+                            {
+                                Log.Information("[PLUGINR] Lower API: cleaning up {0} at {1}", installed.Name, version.FullName);
+                                try {
+                                    version.Delete(true);
+                                }
+                                catch (Exception ex) {
+                                    Log.Error(ex, $"[PLUGINR] Could not clean up {disabledFile.FullName}");
+                                }
                             }
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error(ex, $"[PLUGINR] Could not clean up {version.FullName}");
                         }
                     }
                 }
