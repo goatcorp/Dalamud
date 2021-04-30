@@ -29,17 +29,17 @@ namespace Dalamud.Game.Network.Universalis.MarketBoardUploaders {
 
                 var listingsRequestObject = new UniversalisItemListingsUploadRequest();
                 listingsRequestObject.WorldId = this.dalamud.ClientState.LocalPlayer?.CurrentWorld.Id ?? 0;
-                listingsRequestObject.UploaderId = uploader;
+                listingsRequestObject.UploaderId = uploader.ToString();
                 listingsRequestObject.ItemId = request.CatalogId;
 
                 listingsRequestObject.Listings = new List<UniversalisItemListingsEntry>();
                 foreach (var marketBoardItemListing in request.Listings) {
                     var universalisListing = new UniversalisItemListingsEntry {
                         Hq = marketBoardItemListing.IsHq,
-                        SellerId = marketBoardItemListing.RetainerOwnerId,
+                        SellerId = marketBoardItemListing.RetainerOwnerId.ToString(),
                         RetainerName = marketBoardItemListing.RetainerName,
-                        RetainerId = marketBoardItemListing.RetainerId,
-                        CreatorId = marketBoardItemListing.ArtisanId,
+                        RetainerId = marketBoardItemListing.RetainerId.ToString(),
+                        CreatorId = marketBoardItemListing.ArtisanId.ToString(),
                         CreatorName = marketBoardItemListing.PlayerName,
                         OnMannequin = marketBoardItemListing.OnMannequin,
                         LastReviewTime = ((DateTimeOffset) marketBoardItemListing.LastReviewTime).ToUnixTimeSeconds(),
@@ -64,7 +64,7 @@ namespace Dalamud.Game.Network.Universalis.MarketBoardUploaders {
 
                 var historyRequestObject = new UniversalisHistoryUploadRequest();
                 historyRequestObject.WorldId = this.dalamud.ClientState.LocalPlayer?.CurrentWorld.Id ?? 0;
-                historyRequestObject.UploaderId = uploader;
+                historyRequestObject.UploaderId = uploader.ToString();
                 historyRequestObject.ItemId = request.CatalogId;
 
                 historyRequestObject.Entries = new List<UniversalisHistoryEntry>();
@@ -93,7 +93,7 @@ namespace Dalamud.Game.Network.Universalis.MarketBoardUploaders {
             {
                 var taxRatesRequest = new UniversalisTaxUploadRequest();
                 taxRatesRequest.WorldId = this.dalamud.ClientState.LocalPlayer?.CurrentWorld.Id ?? 0;
-                taxRatesRequest.UploaderId = this.dalamud.ClientState.LocalContentId;
+                taxRatesRequest.UploaderId = this.dalamud.ClientState.LocalContentId.ToString();
 
                 taxRatesRequest.TaxData = new UniversalisTaxData {
                     LimsaLominsa = taxRates.LimsaLominsaTax,
