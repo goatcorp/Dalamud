@@ -1,13 +1,13 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace Dalamud.Configuration
 {
+    /// <summary>
+    /// Configuration to store settings for a dalamud plugin.
+    /// </summary>
     public interface IPluginConfiguration
     {
+        /// <summary>
+        /// Gets or sets configuration version.
+        /// </summary>
         int Version { get; set; }
     }
 }

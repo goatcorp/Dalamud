@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using Dalamud.Game.Chat;
-using Dalamud.Game.Chat.SeStringHandling;
-using Dalamud.Game.Chat.SeStringHandling.Payloads;
+using Dalamud.Game.Text;
+using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Game.Internal.Libc;
 using Dalamud.Hooking;
 using Serilog;
@@ -19,6 +19,8 @@ namespace Dalamud.Game.Internal.Gui {
         public delegate void OnMessageDelegate(XivChatType type, uint senderId, ref SeString sender, ref SeString message, ref bool isHandled);
         public delegate void OnMessageRawDelegate(XivChatType type, uint senderId, ref StdString sender, ref StdString message, ref bool isHandled);
         public delegate void OnCheckMessageHandledDelegate(XivChatType type, uint senderId, ref SeString sender, ref SeString message, ref bool isHandled);
+        public delegate void OnMessageHandledDelegate(XivChatType type, uint senderId, SeString sender, SeString message);
+        public delegate void OnMessageUnhandledDelegate(XivChatType type, uint senderId, SeString sender, SeString message);
 
         /// <summary>
         /// Event that allows you to stop messages from appearing in chat by setting the isHandled parameter to true.
@@ -29,6 +31,16 @@ namespace Dalamud.Game.Internal.Gui {
         /// Event that will be fired when a chat message is sent to chat by the game.
         /// </summary>
         public event OnMessageDelegate OnChatMessage;
+
+        /// <summary>
+        /// Event that will be fired when a chat message is handled by Dalamud or a Plugin.
+        /// </summary>
+        public event OnMessageHandledDelegate OnChatMessageHandled;
+
+        /// <summary>
+        /// Event that will be fired when a chat message is not handled by Dalamud or a Plugin.
+        /// </summary>
+        public event OnMessageUnhandledDelegate OnChatMessageUnhandled;
 
         /// <summary>
         /// Event that will be fired when a chat message is sent by the game, containing raw, unparsed data.
@@ -167,8 +179,15 @@ namespace Dalamud.Game.Internal.Gui {
                 }
 
                 // Print the original chat if it's handled.
-                if (!isHandled)
+                if (isHandled)
+                {
+                    OnChatMessageHandled?.Invoke(chattype, senderid, parsedSender, parsedMessage);
+                }
+                else
+                {
                     retVal = this.printMessageHook.Original(manager, chattype, pSenderName, messagePtr, senderid, parameter);
+                    OnChatMessageUnhandled?.Invoke(chattype, senderid, parsedSender, parsedMessage);
+                }
 
                 if (this.baseAddress == IntPtr.Zero)
                     this.baseAddress = manager;
@@ -284,17 +303,33 @@ namespace Dalamud.Game.Internal.Gui {
         }
 
         public void Print(string message) {
-            Log.Verbose("[CHATGUI PRINT]{0}", message);
+            Log.Verbose("[CHATGUI PRINT REGULAR]{0}", message);
             PrintChat(new XivChatEntry {
                 MessageBytes = Encoding.UTF8.GetBytes(message),
                 Type = this.dalamud.Configuration.GeneralChatType
             });
         }
 
+        public void Print(SeString message) {
+            Log.Verbose("[CHATGUI PRINT SESTRING]{0}", message.TextValue);
+            PrintChat(new XivChatEntry {
+                MessageBytes = message.Encode(),
+                Type = this.dalamud.Configuration.GeneralChatType
+            });
+        }
+
         public void PrintError(string message) {
-            Log.Verbose("[CHATGUI PRINT ERROR]{0}", message);
+            Log.Verbose("[CHATGUI PRINT REGULAR ERROR]{0}", message);
             PrintChat(new XivChatEntry {
                 MessageBytes = Encoding.UTF8.GetBytes(message),
+                Type = XivChatType.Urgent
+            });
+        }
+
+        public void PrintError(SeString message) {
+            Log.Verbose("[CHATGUI PRINT SESTRING ERROR]{0}", message.TextValue);
+            PrintChat(new XivChatEntry {
+                MessageBytes = message.Encode(),
                 Type = XivChatType.Urgent
             });
         }

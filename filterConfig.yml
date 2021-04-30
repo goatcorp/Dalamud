@@ -2,8 +2,6 @@ apiRules:
 - exclude:
     uidRegex: ^Dalamud\.Discord
 - exclude:
-    uidRegex: ^Dalamud\.Hooking
-- exclude:
     uidRegex: ^Dalamud\.FFNotify
 - exclude:
     uidRegex: ^Dalamud\.Plugin\.PluginManager$

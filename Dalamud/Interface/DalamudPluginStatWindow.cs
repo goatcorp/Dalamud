@@ -3,23 +3,23 @@ using System.Linq;
 using System.Reflection;
 using Dalamud.Game.Internal;
 using Dalamud.Hooking;
+using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
 using ImGuiNET;
 
 namespace Dalamud.Interface {
-    internal class DalamudPluginStatWindow : IDisposable {
+    internal class DalamudPluginStatWindow : Window {
 
         private readonly PluginManager pluginManager;
         private bool showDalamudHooks;
 
-        public DalamudPluginStatWindow(PluginManager pluginManager) {
+        public DalamudPluginStatWindow(PluginManager pluginManager) 
+            : base("Plugin Statistics###DalamudPluginStatWindow")
+        {
             this.pluginManager = pluginManager;
         }
 
-        public bool Draw() {
-            bool doDraw = true;
-            ImGui.PushID("DalamudPluginStatWindow");
-            ImGui.Begin("Plugin Statistics", ref doDraw);
+        public override void Draw() {
             ImGui.BeginTabBar("Stat Tabs");
 
             if (ImGui.BeginTabItem("Draw times")) {
@@ -35,9 +35,9 @@ namespace Dalamud.Interface {
                     ImGui.SameLine();
                     if (ImGui.Button("Reset")) {
                         foreach (var a in this.pluginManager.Plugins) {
-                            a.PluginInterface.UiBuilder.lastDrawTime = -1;
-                            a.PluginInterface.UiBuilder.maxDrawTime = -1;
-                            a.PluginInterface.UiBuilder.drawTimeHistory.Clear();
+                            a.PluginInterface.UiBuilder.LastDrawTime = -1;
+                            a.PluginInterface.UiBuilder.MaxDrawTime = -1;
+                            a.PluginInterface.UiBuilder.DrawTimeHistory.Clear();
                         }
                     }
 
@@ -59,12 +59,12 @@ namespace Dalamud.Interface {
                     foreach (var a in this.pluginManager.Plugins) {
                         ImGui.Text(a.Definition.Name);
                         ImGui.NextColumn();
-                        ImGui.Text($"{a.PluginInterface.UiBuilder.lastDrawTime/10000f:F4}ms");
+                        ImGui.Text($"{a.PluginInterface.UiBuilder.LastDrawTime/10000f:F4}ms");
                         ImGui.NextColumn();
-                        ImGui.Text($"{a.PluginInterface.UiBuilder.maxDrawTime/10000f:F4}ms");
+                        ImGui.Text($"{a.PluginInterface.UiBuilder.MaxDrawTime/10000f:F4}ms");
                         ImGui.NextColumn();
-                        if (a.PluginInterface.UiBuilder.drawTimeHistory.Count > 0) {
-                            ImGui.Text($"{a.PluginInterface.UiBuilder.drawTimeHistory.Average()/10000f:F4}ms");
+                        if (a.PluginInterface.UiBuilder.DrawTimeHistory.Count > 0) {
+                            ImGui.Text($"{a.PluginInterface.UiBuilder.DrawTimeHistory.Average()/10000f:F4}ms");
                         } else {
                             ImGui.Text("-");
                         }
@@ -188,15 +188,6 @@ namespace Dalamud.Interface {
             }
 
             ImGui.EndTabBar();
-
-            ImGui.End();
-            ImGui.PopID();
-
-            return doDraw;
-        }
-
-        public void Dispose() {
-
         }
     }
 }

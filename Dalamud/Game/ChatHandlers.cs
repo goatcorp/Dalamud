@@ -7,9 +7,9 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using CheapLoc;
-using Dalamud.Game.Chat;
-using Dalamud.Game.Chat.SeStringHandling;
-using Dalamud.Game.Chat.SeStringHandling.Payloads;
+using Dalamud.Game.Text;
+using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Game.Internal.Libc;
 using Dalamud.Interface;
 using Dalamud.Plugin;
@@ -79,7 +79,7 @@ namespace Dalamud.Game {
         };
 
         private readonly Regex urlRegex =
-            new Regex(@"((http|ftp|https)://)?([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?",
+            new Regex(@"(http|ftp|https)://([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?",
                       RegexOptions.Compiled);
 
         private bool hasSeenLoadingMsg;
@@ -211,7 +211,8 @@ namespace Dalamud.Game {
                     Type = XivChatType.Notice
                 });
 
-                this.dalamud.DalamudUi.OpenChangelog();
+                if (DalamudChangelogWindow.WarrantsChangelog)
+                    this.dalamud.DalamudUi.OpenChangelog();
 
                 this.dalamud.Configuration.LastVersion = assemblyVersion;
                 this.dalamud.Configuration.Save();

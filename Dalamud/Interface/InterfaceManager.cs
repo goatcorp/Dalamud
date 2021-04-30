@@ -14,6 +14,8 @@ using ImGuiScene;
 using Serilog;
 using SharpDX.Direct3D11;
 
+#nullable enable
+
 // general dev notes, here because it's easiest
 /*
  * - Hooking ResizeBuffers seemed to be unnecessary, though I'm not sure why.  Left out for now since it seems to work without it.
@@ -53,6 +55,15 @@ namespace Dalamud.Interface
         public Device Device => this.scene.Device;
         public IntPtr WindowHandlePtr => this.scene.WindowHandlePtr;
 
+        /// <summary>
+        /// Gets or sets a value indicating whether or not the game's cursor should be overridden with the ImGui cursor.
+        /// </summary>
+        public bool OverrideGameCursor
+        {
+            get => this.scene.UpdateCursor;
+            set => this.scene.UpdateCursor = value;
+        }
+
         private delegate void InstallRTSSHook();
         private string rtssPath;
 
@@ -66,6 +77,9 @@ namespace Dalamud.Interface
         /// </summary>
         public event RawDX11Scene.BuildUIDelegate OnDraw;
 
+        public bool FontsReady { get; set; } = false;
+
+        public bool IsReady => this.scene != null;
 
         public InterfaceManager(Dalamud dalamud, SigScanner scanner)
         {
@@ -165,8 +179,9 @@ namespace Dalamud.Interface
             // So... not great, but much better than constantly crashing on unload
             this.Disable();
             System.Threading.Thread.Sleep(500);
-
+            
             this.scene?.Dispose();
+            this.setCursorHook.Dispose();
             this.presentHook.Dispose();
             this.resizeBuffersHook.Dispose();
         }
@@ -228,6 +243,7 @@ namespace Dalamud.Interface
         private IntPtr PresentDetour(IntPtr swapChain, uint syncInterval, uint presentFlags)
         {
             if (this.scene == null) {
+            
                 this.scene = new RawDX11Scene(swapChain);
 
                 this.scene.ImGuiIniPath = Path.Combine(Path.GetDirectoryName(this.dalamud.StartInfo.ConfigurationPath), "dalamudUI.ini");
@@ -265,15 +281,52 @@ namespace Dalamud.Interface
                 ImGui.GetStyle().Colors[(int) ImGuiCol.TabActive] = new Vector4(0.36f, 0.36f, 0.36f, 1.00f);
 
                 ImGui.GetIO().FontGlobalScale = this.dalamud.Configuration.GlobalUiScale;
+
+                if (!this.dalamud.Configuration.IsDocking)
+                {
+                    ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.DockingEnable;
+                }
+                else
+                {
+                    ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.DockingEnable;
+                }
+
+                ImGuiHelpers.MainViewport = ImGui.GetMainViewport();
+
+                Log.Information("[IM] Scene & ImGui setup OK!");
             }
+
+            // Process information needed by ImGuiHelpers each frame.
+            ImGuiHelpers.NewFrame();
+
+            // Check if we can still enable viewports without any issues.
+            this.CheckViewportState();
 
             this.scene.Render();
 
             return this.presentHook.Original(swapChain, syncInterval, presentFlags);
         }
 
+        private void CheckViewportState()
+        {
+            if (this.dalamud.Configuration.IsDisableViewport || this.scene.SwapChain.IsFullScreen || ImGui.GetPlatformIO().Monitors.Size == 1)
+            {
+                ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.ViewportsEnable;
+                return;
+            }
+
+            ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;
+        }
+
         public static ImFontPtr DefaultFont { get; private set; }
         public static ImFontPtr IconFont { get; private set; }
+
+        private static void ShowFontError(string path)
+        {
+            Util.Fatal(
+                $"One or more files required by XIVLauncher were not found.\nPlease restart and report this error if it occurs again.\n\n{path}",
+                "Error");
+        }
 
         private unsafe void SetupFonts()
         {
@@ -287,11 +340,17 @@ namespace Dalamud.Interface
 
             var fontPathJp = Path.Combine(this.dalamud.AssetDirectory.FullName, "UIRes", "NotoSansCJKjp-Medium.otf");
 
+            if (!File.Exists(fontPathJp))
+                ShowFontError(fontPathJp);
+
             var japaneseRangeHandle = GCHandle.Alloc(GlyphRangesJapanese.GlyphRanges, GCHandleType.Pinned);
 
             DefaultFont = ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPathJp, 17.0f, null, japaneseRangeHandle.AddrOfPinnedObject());
 
             var fontPathGame = Path.Combine(this.dalamud.AssetDirectory.FullName, "UIRes", "gamesym.ttf");
+
+            if (!File.Exists(fontPathGame))
+                ShowFontError(fontPathGame);
 
             var gameRangeHandle = GCHandle.Alloc(new ushort[]
             {
@@ -303,6 +362,9 @@ namespace Dalamud.Interface
             ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPathGame, 17.0f, fontConfig, gameRangeHandle.AddrOfPinnedObject());
 
             var fontPathIcon = Path.Combine(this.dalamud.AssetDirectory.FullName, "UIRes", "FontAwesome5FreeSolid.otf");
+
+            if (!File.Exists(fontPathIcon))
+                ShowFontError(fontPathIcon);
 
             var iconRangeHandle = GCHandle.Alloc(new ushort[]
             {
@@ -330,6 +392,8 @@ namespace Dalamud.Interface
             japaneseRangeHandle.Free();
             gameRangeHandle.Free();
             iconRangeHandle.Free();
+
+            this.FontsReady = true;
         }
 
         public void WaitForFontRebuild() {
@@ -353,7 +417,14 @@ namespace Dalamud.Interface
 
         private IntPtr ResizeBuffersDetour(IntPtr swapChain, uint bufferCount, uint width, uint height, uint newFormat, uint swapChainFlags)
         {
-            Log.Verbose($"Calling resizebuffers {bufferCount} {width} {height} {newFormat} {swapChainFlags}");
+#if DEBUG
+            Log.Verbose($"Calling resizebuffers swap@{swapChain.ToInt64():X}{bufferCount} {width} {height} {newFormat} {swapChainFlags}");
+#endif
+
+            // We have to ensure we're working with the main swapchain,
+            // as viewports might be resizing as well
+            if (this.scene == null || swapChain != this.scene.SwapChain.NativePointer)
+                return resizeBuffersHook.Original(swapChain, bufferCount, width, height, newFormat, swapChainFlags);
 
             this.scene?.OnPreResize();
 
@@ -372,7 +443,7 @@ namespace Dalamud.Interface
         private bool lastWantCapture = false;
 
         private IntPtr SetCursorDetour(IntPtr hCursor) {
-            if (this.lastWantCapture == true && (!scene?.IsImGuiCursor(hCursor) ?? false))
+            if (this.lastWantCapture == true && (!scene?.IsImGuiCursor(hCursor) ?? false) && this.OverrideGameCursor)
                 return IntPtr.Zero;
 
             return this.setCursorHook.Original(hCursor);

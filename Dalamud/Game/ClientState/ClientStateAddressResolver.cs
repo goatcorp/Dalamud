@@ -24,7 +24,7 @@ namespace Dalamud.Game.ClientState
             // We don't need those anymore, but maybe someone else will - let's leave them here for good measure
             //ViewportActorTable = sig.GetStaticAddressFromSig("48 8D 0D ?? ?? ?? ?? 85 ED", 0) + 0x148;
             //SomeActorTableAccess = sig.ScanText("E8 ?? ?? ?? ?? 48 8D 55 A0 48 8D 8E ?? ?? ?? ??");
-            ActorTable = sig.GetStaticAddressFromSig("88 91 ?? ?? ?? ?? 48 8D 3D ?? ?? ?? ??");
+            ActorTable = sig.GetStaticAddressFromSig("48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 44 0F B6 83");
 
             // Fates table
             FateTable = sig.ScanText("E8 ?? ?? ?? ?? 80 BF 08 35 00 00 00 75 09");

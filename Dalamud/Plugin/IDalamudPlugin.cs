@@ -12,7 +12,7 @@ namespace Dalamud.Plugin
     public interface IDalamudPlugin : IDisposable
     {
         /// <summary>
-        /// The name of the plugin.
+        /// Gets the name of the plugin.
         /// </summary>
         string Name { get; }
 

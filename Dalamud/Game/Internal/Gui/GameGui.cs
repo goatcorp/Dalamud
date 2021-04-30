@@ -1,15 +1,22 @@
 using System;
 using System.Runtime.InteropServices;
-using Dalamud.Game.Chat.SeStringHandling.Payloads;
+using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Hooking;
+using Dalamud.Interface;
+using ImGuiNET;
 using Serilog;
 using SharpDX;
 
 namespace Dalamud.Game.Internal.Gui {
-    public sealed class GameGui : IDisposable {
+    public sealed class GameGui : IDisposable
+    {
+        private readonly Dalamud dalamud;
+
         private GameGuiAddressResolver Address { get; }
         
         public ChatGui Chat { get; private set; }
+        public PartyFinderGui PartyFinder { get; private set; }
+        public ToastGui Toast { get; private set; }
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         private delegate IntPtr SetGlobalBgmDelegate(UInt16 bgmKey, byte a2, UInt32 a3, UInt32 a4, UInt32 a5, byte a6);
@@ -22,6 +29,14 @@ namespace Dalamud.Game.Internal.Gui {
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         private delegate IntPtr HandleItemOutDelegate(IntPtr hoverState, IntPtr a2, IntPtr a3, ulong a4);
         private readonly Hook<HandleItemOutDelegate> handleItemOutHook;
+
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        private delegate void HandleActionHoverDelegate(IntPtr hoverState, HoverActionKind a2, uint a3, int a4, byte a5);
+        private readonly Hook<HandleActionHoverDelegate> handleActionHoverHook;
+        
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        private delegate IntPtr HandleActionOutDelegate(IntPtr agentActionDetail, IntPtr a2, IntPtr a3, int a4);
+        private Hook<HandleActionOutDelegate> handleActionOutHook;
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate IntPtr GetUIObjectDelegate();
@@ -57,6 +72,12 @@ namespace Dalamud.Game.Internal.Gui {
         private delegate IntPtr GetUIObjectByNameDelegate(IntPtr thisPtr, string uiName, int index);
         private readonly GetUIObjectByNameDelegate getUIObjectByName;
 
+        private delegate IntPtr GetUiModuleDelegate(IntPtr basePtr);
+        private readonly GetUiModuleDelegate getUiModule;
+
+        private delegate IntPtr GetAgentModuleDelegate(IntPtr uiModule);
+        private GetAgentModuleDelegate getAgentModule;
+
         public bool GameUiHidden { get; private set; }
 
         /// <summary>
@@ -69,13 +90,26 @@ namespace Dalamud.Game.Internal.Gui {
         /// If > 1.000.000, subtract 1.000.000 and treat it as HQ
         /// </summary>
         public ulong HoveredItem { get; set; }
+
+        /// <summary>
+        /// The action ID that is current hovered by the player. 0 when no action is hovered.
+        /// </summary>
+        public HoveredAction HoveredAction { get; } = new HoveredAction();
         
         /// <summary>
         /// Event that is fired when the currently hovered item changes.
         /// </summary>
         public EventHandler<ulong> HoveredItemChanged { get; set; }
+        
+        /// <summary>
+        /// Event that is fired when the currently hovered action changes.
+        /// </summary>
+        public EventHandler<HoveredAction> HoveredActionChanged { get; set; }
 
-        public GameGui(IntPtr baseAddress, SigScanner scanner, Dalamud dalamud) {
+        public GameGui(IntPtr baseAddress, SigScanner scanner, Dalamud dalamud)
+        {
+            this.dalamud = dalamud;
+
             Address = new GameGuiAddressResolver(baseAddress);
             Address.Setup(scanner);
 
@@ -86,8 +120,11 @@ namespace Dalamud.Game.Internal.Gui {
             Log.Verbose("HandleItemHover address {Address}", Address.HandleItemHover);
             Log.Verbose("HandleItemOut address {Address}", Address.HandleItemOut);
             Log.Verbose("GetUIObject address {Address}", Address.GetUIObject);
+            Log.Verbose("GetAgentModule address {Address}", Address.GetAgentModule);
 
             Chat = new ChatGui(Address.ChatManager, scanner, dalamud);
+            PartyFinder = new PartyFinderGui(scanner, dalamud);
+            Toast = new ToastGui(scanner, dalamud);
 
             this.setGlobalBgmHook =
                 new Hook<SetGlobalBgmDelegate>(Address.SetGlobalBgm,
@@ -103,6 +140,15 @@ namespace Dalamud.Game.Internal.Gui {
                                                   new HandleItemOutDelegate(HandleItemOutDetour),
                                                   this);
 
+            this.handleActionHoverHook =
+                new Hook<HandleActionHoverDelegate>(Address.HandleActionHover,
+                                                        new HandleActionHoverDelegate(HandleActionHoverDetour),
+                                                        this);
+            this.handleActionOutHook =
+                new Hook<HandleActionOutDelegate>(Address.HandleActionOut,
+                                                        new HandleActionOutDelegate(HandleActionOutDetour),
+                                                        this);
+            
             this.getUIObject = Marshal.GetDelegateForFunctionPointer<GetUIObjectDelegate>(Address.GetUIObject);
 
             this.getMatrixSingleton =
@@ -115,6 +161,9 @@ namespace Dalamud.Game.Internal.Gui {
 
             this.GetBaseUIObject = Marshal.GetDelegateForFunctionPointer<GetBaseUIObjectDelegate>(Address.GetBaseUIObject);
             this.getUIObjectByName = Marshal.GetDelegateForFunctionPointer<GetUIObjectByNameDelegate>(Address.GetUIObjectByName);
+
+            this.getUiModule = Marshal.GetDelegateForFunctionPointer<GetUiModuleDelegate>(Address.GetUIModule);
+            this.getAgentModule = Marshal.GetDelegateForFunctionPointer<GetAgentModuleDelegate>(Address.GetAgentModule);
         }
 
         private IntPtr HandleSetGlobalBgmDetour(UInt16 bgmKey, byte a2, UInt32 a3, UInt32 a4, UInt32 a5, byte a6) {
@@ -167,6 +216,51 @@ namespace Dalamud.Game.Internal.Gui {
             return retVal;
         }
 
+        private void HandleActionHoverDetour(IntPtr hoverState, HoverActionKind actionKind, uint actionId, int a4, byte a5)
+        {
+            handleActionHoverHook.Original(hoverState, actionKind, actionId, a4, a5);
+            HoveredAction.ActionKind = actionKind;
+            HoveredAction.BaseActionID = actionId;
+            HoveredAction.ActionID = (uint) Marshal.ReadInt32(hoverState, 0x3C);
+            try
+            {
+                HoveredActionChanged?.Invoke(this, this.HoveredAction);
+            } catch (Exception e)
+            {
+                Log.Error(e, "Could not dispatch HoveredItemChanged event.");
+            }
+            Log.Verbose("HoverActionId: {0}/{1} this:{2}", actionKind, actionId, hoverState.ToInt64().ToString("X"));
+        }
+        
+        private IntPtr HandleActionOutDetour(IntPtr agentActionDetail, IntPtr a2, IntPtr a3, int a4)
+        {
+            var retVal = handleActionOutHook.Original(agentActionDetail, a2, a3, a4);
+           
+            if (a3 != IntPtr.Zero && a4 == 1)
+            {
+                var a3Val = Marshal.ReadByte(a3, 0x8);
+
+                if (a3Val == 255)
+                {
+                    this.HoveredAction.ActionKind = HoverActionKind.None;
+                    HoveredAction.BaseActionID = 0;
+                    HoveredAction.ActionID = 0;
+
+                    try
+                    {
+                        HoveredActionChanged?.Invoke(this, this.HoveredAction);
+                    } catch (Exception e)
+                    {
+                        Log.Error(e, "Could not dispatch HoveredActionChanged event.");
+                    }
+
+                    Log.Verbose("HoverActionId: 0");
+                }
+            }
+            
+            return retVal;
+        }
+
         /// <summary>
         /// Opens the in-game map with a flag on the location of the parameter
         /// </summary>
@@ -215,6 +309,8 @@ namespace Dalamud.Game.Internal.Gui {
             // Read current ViewProjectionMatrix plus game window size
             var viewProjectionMatrix = new Matrix();
             float width, height;
+            var windowPos = ImGuiHelpers.MainViewport.Pos;
+
             unsafe {
                 var rawMatrix = (float*) (matrixSingleton + 0x1b4).ToPointer();
 
@@ -229,10 +325,12 @@ namespace Dalamud.Game.Internal.Gui {
 
             screenPos = new Vector2(pCoords.X / pCoords.Z, pCoords.Y / pCoords.Z);
 
-            screenPos.X = 0.5f * width * (screenPos.X + 1f);
-            screenPos.Y = 0.5f * height * (1f - screenPos.Y);
+            screenPos.X = 0.5f * width * (screenPos.X + 1f) + windowPos.X;
+            screenPos.Y = 0.5f * height * (1f - screenPos.Y) + windowPos.Y;
 
-            return pCoords.Z > 0;
+            return pCoords.Z > 0 &&
+                   screenPos.X > windowPos.X && screenPos.X < windowPos.X + width &&
+                   screenPos.Y > windowPos.Y && screenPos.Y < windowPos.Y + height;
         }
 
         /// <summary>
@@ -244,6 +342,18 @@ namespace Dalamud.Game.Internal.Gui {
         /// <returns>True if successful. On false, worldPos's contents are undefined</returns>
         public bool ScreenToWorld(Vector2 screenPos, out Vector3 worldPos, float rayDistance = 100000.0f)
         {
+            // The game is only visible in the main viewport, so if the cursor is outside
+            // of the game window, do not bother calculating anything
+            var windowPos = ImGuiHelpers.MainViewport.Pos;
+            var windowSize = ImGuiHelpers.MainViewport.Size;
+
+            if (screenPos.X < windowPos.X || screenPos.X > windowPos.X + windowSize.X ||
+                screenPos.Y < windowPos.Y || screenPos.Y > windowPos.Y + windowSize.Y)
+            {
+                worldPos = new Vector3();
+                return false;
+            }
+
             // Get base object with matrices
             var matrixSingleton = this.getMatrixSingleton();
 
@@ -263,9 +373,10 @@ namespace Dalamud.Game.Internal.Gui {
 
             viewProjectionMatrix.Invert();
 
+            var localScreenPos = new Vector2(screenPos.X - windowPos.X, screenPos.Y - windowPos.Y);
             var screenPos3D = new Vector3 {
-                X = screenPos.X / width * 2.0f - 1.0f,
-                Y = -(screenPos.Y / height * 2.0f - 1.0f),
+                X = localScreenPos.X / width * 2.0f - 1.0f,
+                Y = -(localScreenPos.Y / height * 2.0f - 1.0f),
                 Z = 0
             };
 
@@ -319,6 +430,15 @@ namespace Dalamud.Game.Internal.Gui {
         }
 
         /// <summary>
+        /// Gets a pointer to the game's UI module.
+        /// </summary>
+        /// <returns>IntPtr pointing to UI module</returns>
+        public IntPtr GetUIModule()
+        {
+            return this.getUiModule(this.dalamud.Framework.Address.BaseAddress);
+        }
+
+        /// <summary>
         /// Gets the pointer to the UI Object with the given name and index.
         /// </summary>
         /// <param name="name">Name of UI to find</param>
@@ -339,22 +459,72 @@ namespace Dalamud.Game.Internal.Gui {
             return new Addon.Addon(addonMem, addonStruct);
         }
 
+        public IntPtr FindAgentInterface(string addonName)
+        {
+            var addon = this.dalamud.Framework.Gui.GetUiObjectByName(addonName, 1);
+            return this.FindAgentInterface(addon);
+        }
+
+        public IntPtr FindAgentInterface(IntPtr addon)
+        {
+            if (addon == IntPtr.Zero)
+                return IntPtr.Zero;
+
+            var uiModule = this.dalamud.Framework.Gui.GetUIModule();
+            if (uiModule == IntPtr.Zero)
+            {
+                return IntPtr.Zero;
+            }
+
+            var agentModule = this.getAgentModule(uiModule);
+            if (agentModule == IntPtr.Zero)
+            {
+                return IntPtr.Zero;
+            }
+
+            var id = Marshal.ReadInt16(addon, 0x1CE);
+            if (id == 0)
+                id = Marshal.ReadInt16(addon, 0x1CC);
+
+            if (id == 0)
+                return IntPtr.Zero;
+
+            for (var i = 0; i < 380; i++)
+            {
+                var agent = Marshal.ReadIntPtr(agentModule, 0x20 + (i * 8));
+                if (agent == IntPtr.Zero)
+                    continue;
+                if (Marshal.ReadInt32(agent, 0x20) == id)
+                    return agent;
+            }
+
+            return IntPtr.Zero;
+        }
+
         public void SetBgm(ushort bgmKey) => this.setGlobalBgmHook.Original(bgmKey, 0, 0, 0, 0, 0); 
 
         public void Enable() {
             Chat.Enable();
+            Toast.Enable();
+            PartyFinder.Enable();
             this.setGlobalBgmHook.Enable();
             this.handleItemHoverHook.Enable();
             this.handleItemOutHook.Enable();
             this.toggleUiHideHook.Enable();
+            this.handleActionHoverHook.Enable();
+            this.handleActionOutHook.Enable();
         }
 
         public void Dispose() {
             Chat.Dispose();
+            Toast.Dispose();
+            PartyFinder.Dispose();
             this.setGlobalBgmHook.Dispose();
             this.handleItemHoverHook.Dispose();
             this.handleItemOutHook.Dispose();
             this.toggleUiHideHook.Dispose();
+            this.handleActionHoverHook.Dispose();
+            this.handleActionOutHook.Dispose();
         }
     }
 }

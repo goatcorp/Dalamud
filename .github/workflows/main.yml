@@ -1,18 +1,18 @@
 name: Build Dalamud
-on: [push, pull_request]
+on: [push, pull_request, workflow_dispatch]
 
 jobs:
   build:
     name: Build on Windows
     runs-on: windows-2019
     steps:
-      - uses: actions/checkout@v1
-      - name: Initialize Submodules
-        run: git submodule update --init --recursive
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
       - name: Setup Nuget
         uses: nuget/setup-nuget@v1
         with:
-          nuget-version: 'latest'
+          nuget-version: latest
       - name: Restore Nuget Packages
         run: nuget restore Dalamud.sln
       - name: Define VERSION
@@ -27,9 +27,66 @@ jobs:
       - name: Build DotNet4
         run: |
           cd "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\"
-           .\MSBuild.exe $Env:GITHUB_WORKSPACE\Dalamud.sln /t:Build /p:Configuration=Release /p:DefineConstants=XL_NOAUTOUPDATE
+          .\MSBuild.exe $Env:GITHUB_WORKSPACE\Dalamud.sln /t:Build /p:Configuration=Release /p:DefineConstants=XL_NOAUTOUPDATE
+      - name: Run xUnit Tests
+        run: |
+          ${{github.workspace}}\packages\xunit.runner.console.2.4.1\tools\net472\xunit.console.exe ${{github.workspace}}\Dalamud.Test\bin\Release\Dalamud.Test.dll
       - name: Upload artifact
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@v2
         with:
           name: dalamud-artifact
           path: bin\
+  
+  deploy_stg:
+    name: Deploy dalamud-distrib staging
+    if: ${{ github.ref == 'refs/heads/master' && github.event_name == 'push' }}
+    needs: build
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        repository: goatcorp/dalamud-distrib
+        ssh-key: ${{ secrets.DEPLOY_SSH }}
+    - uses: actions/download-artifact@v2
+      with:
+        name: dalamud-artifact
+        path: .\scratch
+
+    - name: Generate dalamud-distrib version file
+      shell: powershell
+      run: |
+        Compress-Archive .\scratch\* .\canary.zip  # Recreate the release zip
+        
+        $dllBytes = [System.IO.File]::ReadAllBytes("$(Get-Location)\scratch\Dalamud.dll")
+        $assembly = [System.Reflection.Assembly]::Load($dllBytes)
+        $newVersion = $assembly.GetCustomAttributes([System.Reflection.AssemblyMetadataAttribute]) | Where { $_.GetType() -eq [System.Reflection.AssemblyMetadataAttribute] } | Select -First 1 | Select -ExpandProperty "Value"
+        Remove-Item -Force -Recurse .\scratch
+
+        $versionData = Get-Content .\stg\version | ConvertFrom-Json
+        $oldVersion = $versionData.AssemblyVersion
+        if ($oldVersion -eq $newVersion) {
+          Remove-Item .\canary.zip
+        } else {
+          Move-Item -Force .\canary.zip .\stg\latest.zip
+          $versionData.AssemblyVersion = $newVersion
+          $versionData | ConvertTo-Json -Compress | Out-File .\stg\version
+        }
+        
+        echo "DVER=${newVersion}" >> $Env:GITHUB_ENV
+        
+    - name: Commit changes
+      shell: bash
+      env:
+        DEPLOY_SSH: ${{ secrets.DEPLOY_SSH }}
+        GIT_SSH_COMMAND: "ssh -o StrictHostKeyChecking=no"
+      run: |
+        eval "$(ssh-agent -s)"
+        ssh-add - <<< "${DEPLOY_SSH}"
+        
+        git config --global user.name "Actions User"
+        git config --global user.email "actions@github.com"
+        
+        git add .
+        git commit -m "[CI] Update staging for ${DVER}" || true
+        
+        git push origin main || true

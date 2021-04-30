@@ -1,4 +1,4 @@
-# Dalamud  [![Actions Status](https://github.com/goatcorp/Dalamud/workflows/Build%20Dalamud/badge.svg)](https://github.com/goaaats/Dalamud/actions) [![Discord Shield](https://discordapp.com/api/guilds/581875019861328007/widget.png?style=shield)](https://discord.gg/3NMcUV5)
+# Dalamud  [![Actions Status](https://github.com/goatcorp/Dalamud/workflows/Build%20Dalamud/badge.svg)](https://github.com/goatcorp/Dalamud/actions) [![Discord Shield](https://discordapp.com/api/guilds/581875019861328007/widget.png?style=shield)](https://discord.gg/3NMcUV5)
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/goatcorp/DalamudAssets/master/UIRes/logo.png" alt="Dalamud" width="200"/>
@@ -20,4 +20,4 @@ Thanks to Mino, whose work has made this possible!
 
 <br>
 
-##### Final Fantasy XIV © 2010-2020 SQUARE ENIX CO., LTD. All Rights Reserved. We are not affiliated with SQUARE ENIX CO., LTD. in any way.
+##### Final Fantasy XIV © 2010-2021 SQUARE ENIX CO., LTD. All Rights Reserved. We are not affiliated with SQUARE ENIX CO., LTD. in any way.

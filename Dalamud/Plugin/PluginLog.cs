@@ -1,11 +1,15 @@
-using Serilog;
-using Serilog.Events;
 using System;
 using System.Diagnostics;
 using System.Reflection;
 
+using Serilog;
+using Serilog.Events;
+
 namespace Dalamud.Plugin
 {
+    /// <summary>
+    /// Class offering various static methods to allow for logging in plugins.
+    /// </summary>
     public static class PluginLog
     {
         #region "Log" prefixed Serilog style methods

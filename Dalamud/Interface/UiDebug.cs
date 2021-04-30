@@ -1,13 +1,15 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using FFXIVClientStructs.Component.GUI;
-using FFXIVClientStructs.Component.GUI.ULD;
+
+using FFXIVClientStructs.FFXIV.Component.GUI;
+using FFXIVClientStructs.FFXIV.Component.GUI.ULD;
 using ImGuiNET;
+using AlignmentType = FFXIVClientStructs.FFXIV.Component.GUI.AlignmentType;
 
 // Customised version of https://github.com/aers/FFXIVUIDebug
 
@@ -43,9 +45,11 @@ namespace Dalamud.Interface {
         };
 
         private string searchInput = string.Empty;
+        private readonly Dalamud dalamud;
         
-        
-        public UIDebug(Dalamud dalamud) {
+        public UIDebug(Dalamud dalamud)
+        {
+            this.dalamud = dalamud;
             var getSingletonAddr = dalamud.SigScanner.ScanText("E8 ?? ?? ?? ?? 41 B8 01 00 00 00 48 8D 15 ?? ?? ?? ?? 48 8B 48 20 E8 ?? ?? ?? ?? 48 8B CF");
             this.getAtkStageSingleton = Marshal.GetDelegateForFunctionPointer<GetAtkStageSingleton>(getSingletonAddr);
         }
@@ -72,7 +76,8 @@ namespace Dalamud.Interface {
         private void DrawUnitBase(AtkUnitBase* atkUnitBase) {
             var isVisible = (atkUnitBase->Flags & 0x20) == 0x20;
             var addonName = Marshal.PtrToStringAnsi(new IntPtr(atkUnitBase->Name));
-            
+            var agent = this.dalamud.Framework.Gui.FindAgentInterface((IntPtr)atkUnitBase);
+
             ImGui.Text($"{addonName}");
             ImGui.SameLine();
             ImGui.PushStyleColor(ImGuiCol.Text, isVisible ? 0xFF00FF00 : 0xFF0000FF);
@@ -86,6 +91,7 @@ namespace Dalamud.Interface {
             
             ImGui.Separator();
             ClickToCopyText($"Address: {(ulong) atkUnitBase:X}", $"{(ulong) atkUnitBase:X}");
+            ClickToCopyText($"Agent: {(ulong)agent:X}", $"{(ulong)agent:X}");
             ImGui.Separator();
             
             ImGui.Text($"Position: [ {atkUnitBase->X} , {atkUnitBase->Y} ]");
@@ -224,7 +230,7 @@ namespace Dalamud.Interface {
                             if (imageNode->PartId > imageNode->PartsList->PartCount) {
                                 ImGui.Text("part id > part count?");
                             } else {
-                                var textureInfo = imageNode->PartsList->Parts[imageNode->PartId].ULDTexture;
+                                var textureInfo = imageNode->PartsList->Parts[imageNode->PartId].UldAsset;
                                 var texType = textureInfo->AtkTexture.TextureType;
                                 ImGui.Text($"texture type: {texType} part_id={imageNode->PartId} part_id_count={imageNode->PartsList->PartCount}");
                                 if (texType == TextureType.Resource) {
@@ -512,7 +518,10 @@ namespace Dalamud.Interface {
             var size = new Vector2(node->Width, node->Height) * scale;
             
             var nodeVisible = GetNodeVisible(node);
-            ImGui.GetForegroundDrawList().AddRect(position, position + size, nodeVisible ? 0xFF00FF00 : 0xFF0000FF);
+
+            position += ImGuiHelpers.MainViewport.Pos;
+
+            ImGui.GetForegroundDrawList(ImGuiHelpers.MainViewport).AddRect(position, position + size, nodeVisible ? 0xFF00FF00 : 0xFF0000FF);
         }
         
         private static void ClickToCopyText(string text, string textCopy = null) {

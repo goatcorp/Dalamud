@@ -197,8 +197,13 @@ namespace Dalamud.Game.Network {
                     }
                 }
 
-                if (opCode == this.dalamud.Data.ServerOpCodes["MarketTaxRates"])
-                {
+                if (opCode == this.dalamud.Data.ServerOpCodes["MarketTaxRates"]) {
+                    var category = (uint) Marshal.ReadInt32(dataPtr);
+                    // Result dialog packet does not contain market tax rates
+                    if (category != 720905) {
+                        return;
+                    }
+
                     var taxes = MarketTaxRates.Read(dataPtr);
 
                     Log.Verbose("MarketTaxRates: limsa#{0} grid#{1} uldah#{2} ish#{3} kugane#{4} cr#{5}",

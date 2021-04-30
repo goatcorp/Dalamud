@@ -1,13 +1,16 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Numerics;
 using Dalamud.Game.Internal;
+using Dalamud.Interface.Windowing;
 using ImGuiNET;
 using ImGuiScene;
+using Serilog;
 
 namespace Dalamud.Interface
 {
-    class DalamudCreditsWindow : IDisposable {
+    class DalamudCreditsWindow : Window, IDisposable {
         private const string CreditsTextTempl = @"
 Dalamud
 A FFXIV Hooking Framework
@@ -31,6 +34,7 @@ karashiiro
 Pohky
 daemitus
 Aireil
+kalilistic
 
 
 
@@ -100,39 +104,50 @@ Thank you for using XIVLauncher and Dalamud!
 
         private string creditsText;
 
-        public DalamudCreditsWindow(Dalamud dalamud, TextureWrap logoTexture, Framework framework) {
+        public DalamudCreditsWindow(Dalamud dalamud)
+            : base("Dalamud Credits", ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize, true)
+        {
             this.dalamud = dalamud;
-            this.logoTexture = logoTexture;
-            this.framework = framework;
+            this.logoTexture = this.dalamud.InterfaceManager.LoadImage(
+                                       Path.Combine(this.dalamud.AssetDirectory.FullName, "UIRes", "logo.png"));
+            this.framework = dalamud.Framework;
 
-            framework.Gui.SetBgm(132);
+            this.Size = new Vector2(500, 400);
+            this.SizeCondition = ImGuiCond.Always;
 
-            var pluginCredits = dalamud.PluginManager.Plugins.Where(x => x.Definition != null).Aggregate(string.Empty, (current, plugin) => current + $"{plugin.Definition.Name} by {plugin.Definition.Author}\n");
+            this.PositionCondition = ImGuiCond.Always;
+
+            this.BgAlpha = 0.5f;
+        }
+
+        public override void OnOpen()
+        {
+            base.OnOpen();
+
+            var pluginCredits = this.dalamud.PluginManager.Plugins.Where(x => x.Definition != null).Aggregate(string.Empty, (current, plugin) => current + $"{plugin.Definition.Name} by {plugin.Definition.Author}\n");
 
             this.creditsText =
                 string.Format(CreditsTextTempl, typeof(Dalamud).Assembly.GetName().Version, pluginCredits);
+
+            this.framework.Gui.SetBgm(132);
+        }
+
+        public override void OnClose()
+        {
+            base.OnClose();
+
+            this.framework.Gui.SetBgm(9999);
         }
 
         public void Dispose() {
-            this.logoTexture.Dispose();
+            this.logoTexture?.Dispose();
         }
 
-        public bool Draw() {
-            var windowSize = new Vector2(500, 400) * ImGui.GetIO().FontGlobalScale;
-            ImGui.SetNextWindowSize(windowSize, ImGuiCond.Always);
-            
-            var screenSize = ImGui.GetIO().DisplaySize;
-            ImGui.SetNextWindowPos(new Vector2((screenSize.X / 2) - windowSize.X /2, (screenSize.Y / 2) - windowSize.Y / 2), ImGuiCond.Always);
+        public override void Draw() {
+            var screenSize = ImGui.GetMainViewport().Size;
+            var windowSize = ImGui.GetWindowSize();
 
-            var isOpen = true;
-
-            ImGui.SetNextWindowBgAlpha(0.5f);
-
-            if (!ImGui.Begin("Dalamud Credits", ref isOpen, ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoSavedSettings | ImGuiWindowFlags.NoResize))
-            {
-                ImGui.End();
-                return false;
-            }
+            this.Position = new Vector2((screenSize.X / 2) - windowSize.X / 2, (screenSize.Y / 2) - windowSize.Y / 2);
 
             ImGui.BeginChild("scrolling", new Vector2(0, 0), false, ImGuiWindowFlags.NoScrollbar);
 
@@ -150,7 +165,7 @@ Thank you for using XIVLauncher and Dalamud!
 
             foreach (var creditsLine in this.creditsText.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None)) {
                 var lineLenX = ImGui.CalcTextSize(creditsLine).X;
-                
+
                 ImGui.Dummy(new Vector2((windowX / 2) - lineLenX / 2, 0f));
                 ImGui.SameLine();
                 ImGui.TextUnformatted(creditsLine);
@@ -158,16 +173,15 @@ Thank you for using XIVLauncher and Dalamud!
 
             ImGui.PopStyleVar();
 
-            if (ImGui.GetScrollY() < ImGui.GetScrollMaxY() - 0.2f)
-                ImGui.SetScrollY(ImGui.GetScrollY() + 0.2f);
+            var curY = ImGui.GetScrollY();
+            var maxY = ImGui.GetScrollMaxY();
+
+            if (curY < maxY - 1)
+            {
+                ImGui.SetScrollY(curY + 1);
+            }
 
             ImGui.EndChild();
-            ImGui.End();
-
-            if (!isOpen)
-                this.framework.Gui.SetBgm(9999);
-
-            return isOpen;
         }
     }
 }

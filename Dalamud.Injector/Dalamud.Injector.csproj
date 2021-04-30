@@ -6,18 +6,18 @@
         <Platforms>AnyCPU;x64</Platforms>
     </PropertyGroup>
     <PropertyGroup Label="Build">
-        <OutputType>Exe</OutputType>
-        <OutputPath>$(SolutionDir)/bin</OutputPath>
+        <OutputType>WinExe</OutputType>
+        <OutputPath>$(SolutionDir)bin</OutputPath>
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
         <DebugSymbols>true</DebugSymbols>
         <DebugType>Portable</DebugType>
     </PropertyGroup>
     <PropertyGroup Label="Feature">
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <AssemblyVersion>5.2.2.1</AssemblyVersion>
-        <FileVersion>5.2.2.1</FileVersion>
+        <AssemblyVersion>5.2.4.6</AssemblyVersion>
+        <FileVersion>5.2.4.6</FileVersion>
         <Description>XIVLauncher addon injection</Description>
-        <Version>5.2.2.1</Version>
+        <Version>5.2.4.6</Version>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
         <DocumentationFile></DocumentationFile>
@@ -44,4 +44,7 @@
     <ItemGroup>
         <Reference Include="System.Windows.Forms" />
     </ItemGroup>
+    <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(Configuration)'=='Release'">
+      <Exec Command="powershell -ExecutionPolicy Unrestricted $(SolutionDir)CreateHashList.ps1 $(OutputPath)" />
+    </Target>
 </Project>
