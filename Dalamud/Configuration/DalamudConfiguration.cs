@@ -98,6 +98,11 @@ namespace Dalamud.Configuration
         public bool AutoUpdatePlugins { get; set; }
 
         /// <summary>
+        /// Gets or sets a value indicating whether or not Dalamud should add buttons to the system menu.
+        /// </summary>
+        public bool DoButtonsSystemMenu { get; set; } = true;
+
+        /// <summary>
         /// Gets or sets a value indicating whether or not the debug log should scroll automatically.
         /// </summary>
         public bool LogAutoScroll { get; set; } = true;
