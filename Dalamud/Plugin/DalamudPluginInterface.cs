@@ -1,5 +1,6 @@
 using System;
 using System.Dynamic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -50,7 +51,19 @@ namespace Dalamud.Plugin
             this.configs = configs;
 
             this.Sanitizer = new Sanitizer(this.Data.Language);
-            this.UiLanguage = this.dalamud.Configuration.LanguageOverride;
+            if (this.dalamud.Configuration.LanguageOverride != null)
+            {
+                this.UiLanguage = this.dalamud.Configuration.LanguageOverride;
+            }
+            else
+            {
+                var currentUiLang = CultureInfo.CurrentUICulture;
+                if (Localization.ApplicableLangCodes.Any(x => currentUiLang.TwoLetterISOLanguageName == x))
+                    this.UiLanguage = currentUiLang.TwoLetterISOLanguageName;
+                else
+                    this.UiLanguage = "en";
+            }
+
             dalamud.LocalizationManager.OnLocalizationChanged += this.OnLocalizationChanged;
         }
 
