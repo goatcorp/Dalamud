@@ -71,6 +71,12 @@ namespace Dalamud.Game.Addon
 
         private void AgentHudOpenSystemMenuDetour(void* thisPtr, AtkValue* atkValueArgs, uint menuSize)
         {
+            if (!this.dalamud.Configuration.DoButtonsSystemMenu)
+            {
+                this.hookAgentHudOpenSystemMenu.Original(thisPtr, atkValueArgs, menuSize);
+                return;
+            }
+
             // the max size (hardcoded) is 0xE/15, but the system menu currently uses 0xC/12
             // this is a just in case that doesnt really matter
             // see if we can add 2 entries

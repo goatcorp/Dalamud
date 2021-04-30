@@ -44,6 +44,7 @@ namespace Dalamud.Interface
 
             this.printPluginsWelcomeMsg = this.dalamud.Configuration.PrintPluginsWelcomeMsg;
             this.autoUpdatePlugins = this.dalamud.Configuration.AutoUpdatePlugins;
+            this.doButtonsSystemMenu = this.dalamud.Configuration.DoButtonsSystemMenu;
 
             this.languages = Localization.ApplicableLangCodes.Prepend("en").ToArray();
             try
@@ -136,6 +137,7 @@ namespace Dalamud.Interface
 
         private bool printPluginsWelcomeMsg;
         private bool autoUpdatePlugins;
+        private bool doButtonsSystemMenu;
 
         private string thirdRepoTempUrl = string.Empty;
         private string thirdRepoAddError = string.Empty;
@@ -183,6 +185,9 @@ namespace Dalamud.Interface
 
                     ImGui.Checkbox(Loc.Localize("DalamudSettingsAutoUpdatePlugins", "Auto-update plugins"), ref this.autoUpdatePlugins);
                     ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingsAutoUpdatePluginsMsgHint", "Automatically update plugins when logging in with a character."));
+
+                    ImGui.Checkbox(Loc.Localize("DalamudSettingsSystemMenu", "Dalamud buttons in system menu"), ref this.doButtonsSystemMenu);
+                    ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingsSystemMenuMsgHint", "Add buttons for Dalamud plugins and settings to the system menu."));
 
                     ImGui.EndTabItem();
                 }
@@ -392,6 +397,7 @@ namespace Dalamud.Interface
 
             this.dalamud.Configuration.PrintPluginsWelcomeMsg = this.printPluginsWelcomeMsg;
             this.dalamud.Configuration.AutoUpdatePlugins = this.autoUpdatePlugins;
+            this.dalamud.Configuration.DoButtonsSystemMenu = this.doButtonsSystemMenu;
 
             this.dalamud.Configuration.Save();
 
