@@ -336,20 +336,20 @@ namespace Dalamud.Plugin
                 foreach (var installed in pluginsDirectory.GetDirectories()) {
                     var versions = installed.GetDirectories();
 
-                    var sortedVersions = versions.OrderBy(dirInfo => {
-                        var success = Version.TryParse(dirInfo.Name, out Version version);
-                        if (!success) { Log.Debug("Unparseable version: {0}", dirInfo.Name); }
-                        return version;
-                    }).ToArray();
-
-                    foreach (var version in sortedVersions)
+                    foreach (var version in versions)
                     {
                         try
                         {
                             var disabledFile = new FileInfo(Path.Combine(version.FullName, ".disabled"));
+                            var definitionFile = new FileInfo(Path.Combine(
+                                version.FullName,
+                                version.Parent?.Name + ".json"));
+
+                            if (!definitionFile.Exists)
+                                continue;
+
                             var definition = JsonConvert.DeserializeObject<PluginDefinition>(
-                                File.ReadAllText(Path.Combine(version.FullName,
-                                                              version.Parent.Name + ".json")));
+                                File.ReadAllText(definitionFile.FullName));
 
                             if (disabledFile.Exists) {
                                 Log.Information("[PLUGINR] Disabled: cleaning up {0} at {1}", installed.Name, version.FullName);
