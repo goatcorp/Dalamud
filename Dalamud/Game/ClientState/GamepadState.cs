@@ -3,6 +3,7 @@
 using Dalamud.Game.ClientState.Structs;
 using Dalamud.Hooking;
 using ImGuiNET;
+using Serilog;
 
 namespace Dalamud.Game.ClientState
 {
@@ -28,6 +29,9 @@ namespace Dalamud.Game.ClientState
         /// <param name="resolver">Resolver knowing the pointer to the GamepadPoll function.</param>
         public GamepadState(ClientStateAddressResolver resolver)
         {
+#if DEBUG
+            Log.Verbose("GamepadPoll address {GamepadPoll}", resolver.GamepadPoll);
+#endif
             this.gamepadPoll = new Hook<ControllerPoll>(
                 resolver.GamepadPoll,
                 (ControllerPoll)this.GamepadPollDetour);
@@ -119,9 +123,20 @@ namespace Dalamud.Game.ClientState
         internal ushort ButtonsRepeat { get; private set; }
 
         /// <summary>
+        /// Gets or sets a value indicating whether detour should block gamepad input for game.
+        ///
+        /// Ideally, we would use
+        /// (ImGui.GetIO().ConfigFlags & ImGuiConfigFlags.NavEnableGamepad) > 0
+        /// but this has a race condition during load with the detour which sets up ImGui
+        /// and throws if our detour gets called before the other.
+        /// </summary>
+        internal bool NavEnableGamepad { get; set; }
+
+        /// <summary>
         /// Gets whether <paramref name="button"/> has been pressed.
         ///
         /// Only true on first frame of the press.
+        /// If ImGuiConfigFlags.NavEnableGamepad is set, this is unreliable.
         /// </summary>
         /// <param name="button">The button to check for.</param>
         /// <returns>1 if pressed, 0 otherwise.</returns>
@@ -131,6 +146,7 @@ namespace Dalamud.Game.ClientState
         /// Gets whether <paramref name="button"/> is being pressed.
         ///
         /// True in intervals if button is held down.
+        /// If ImGuiConfigFlags.NavEnableGamepad is set, this is unreliable.
         /// </summary>
         /// <param name="button">The button to check for.</param>
         /// <returns>1 if still pressed during interval, 0 otherwise or in between intervals.</returns>
@@ -140,6 +156,7 @@ namespace Dalamud.Game.ClientState
         /// Gets whether <paramref name="button"/> has been released.
         ///
         /// Only true the frame after release.
+        /// If ImGuiConfigFlags.NavEnableGamepad is set, this is unreliable.
         /// </summary>
         /// <param name="button">The button to check for.</param>
         /// <returns>1 if released, 0 otherwise.</returns>
@@ -173,56 +190,68 @@ namespace Dalamud.Game.ClientState
 
         private int GamepadPollDetour(IntPtr gamepadInput)
         {
-#if DEBUG
-            this.GamepadInput = gamepadInput;
-#endif
             var original = this.gamepadPoll.Original(gamepadInput);
-            var input = (GamepadInput*)gamepadInput;
-            this.leftStickX = input->LeftStickX;
-            this.leftStickY = input->LeftStickY;
-            this.rightStickX = input->RightStickX;
-            this.rightStickY = input->RightStickY;
-            this.ButtonsRaw = input->ButtonsRaw;
-            this.ButtonsPressed = input->ButtonsPressed;
-            this.ButtonsReleased = input->ButtonsReleased;
-            this.ButtonsRepeat = input->ButtonsRepeat;
-
-            if ((ImGui.GetIO().ConfigFlags & ImGuiConfigFlags.NavEnableGamepad) > 0)
+            try
             {
-                input->LeftStickX = 0;
-                input->LeftStickY = 0;
-                input->RightStickX = 0;
-                input->RightStickY = 0;
+#if DEBUG
+                this.GamepadInput = gamepadInput;
+#endif
+                var input = (GamepadInput*)gamepadInput;
+                this.leftStickX = input->LeftStickX;
+                this.leftStickY = input->LeftStickY;
+                this.rightStickX = input->RightStickX;
+                this.rightStickY = input->RightStickY;
+                this.ButtonsRaw = input->ButtonsRaw;
+                this.ButtonsPressed = input->ButtonsPressed;
+                this.ButtonsReleased = input->ButtonsReleased;
+                this.ButtonsRepeat = input->ButtonsRepeat;
 
-                // NOTE (Chiv) Zeroing `ButtonsRaw` destroys `ButtonPressed`, `ButtonReleased`
-                // and `ButtonRepeat` as the game uses the RAW input to determine those (apparently).
-                // It does block, however, all input to the game.
-                // Leaving `ButtonsRaw` as it is and only zeroing the other leaves e.g. long-hold L2/R2
-                // and the digipad (in some situations, but thankfully not in menus) functional.
-                // We can either:
-                // (a) Explicitly only set L2/R2/Digipad to 0 (and destroy their `ButtonPressed` field) => Needs to be documented, or
-                // (b) ignore it as so far it seems only a 'visual' error
-                //      (L2/R2 being held down activates CrossHotBar but activating an ability is impossible because of the others blocked input,
-                //      Digipad is ignored in menus but without any menu's  one still switches target or party members, but cannot interact with them
-                //      because of the other blocked input)
-                // `ButtonPressed` is pretty useful so we opt-in to (b).
-                // This is debatable.
-                // ImGui itself does not care either way as it uses the Raw values and does its own state handling.
-                // input->ButtonsRaw &= (ushort)~GamepadButtons.L2;
-                // input->ButtonsRaw &= (ushort)~GamepadButtons.R2;
-                // input->ButtonsRaw &= (ushort)~GamepadButtons.DpadDown;
-                // input->ButtonsRaw &= (ushort)~GamepadButtons.DpadLeft;
-                // input->ButtonsRaw &= (ushort)~GamepadButtons.DpadUp;
-                // input->ButtonsRaw &= (ushort)~GamepadButtons.DpadRight;
-                input->ButtonsPressed = 0;
-                input->ButtonsReleased = 0;
-                input->ButtonsRepeat = 0;
-                return 0;
+                if (this.NavEnableGamepad)
+                {
+                    input->LeftStickX = 0;
+                    input->LeftStickY = 0;
+                    input->RightStickX = 0;
+                    input->RightStickY = 0;
+
+                    // NOTE (Chiv) Zeroing `ButtonsRaw` destroys `ButtonPressed`, `ButtonReleased`
+                    // and `ButtonRepeat` as the game uses the RAW input to determine those (apparently).
+                    // It does block, however, all input to the game.
+                    // Leaving `ButtonsRaw` as it is and only zeroing the other leaves e.g. long-hold L2/R2
+                    // and the digipad (in some situations, but thankfully not in menus) functional.
+                    // We can either:
+                    // (a) Explicitly only set L2/R2/Digipad to 0 (and destroy their `ButtonPressed` field) => Needs to be documented, or
+                    // (b) ignore it as so far it seems only a 'visual' error
+                    //      (L2/R2 being held down activates CrossHotBar but activating an ability is impossible because of the others blocked input,
+                    //      Digipad is ignored in menus but without any menu's  one still switches target or party members, but cannot interact with them
+                    //      because of the other blocked input)
+                    // `ButtonPressed` is pretty useful but its hella confusing to the user, so we do (a) and advise plugins do not rely on
+                    // `ButtonPressed` while ImGuiConfigFlags.NavEnableGamepad is set.
+                    // This is debatable.
+                    // ImGui itself does not care either way as it uses the Raw values and does its own state handling.
+                    input->ButtonsRaw &= (ushort)~GamepadButtons.L2;
+                    input->ButtonsRaw &= (ushort)~GamepadButtons.R2;
+                    input->ButtonsRaw &= (ushort)~GamepadButtons.DpadDown;
+                    input->ButtonsRaw &= (ushort)~GamepadButtons.DpadLeft;
+                    input->ButtonsRaw &= (ushort)~GamepadButtons.DpadUp;
+                    input->ButtonsRaw &= (ushort)~GamepadButtons.DpadRight;
+                    input->ButtonsPressed = 0;
+                    input->ButtonsReleased = 0;
+                    input->ButtonsRepeat = 0;
+                    return 0;
+                }
+
+                // NOTE (Chiv) Not so sure about the return value, does not seem to matter if we return the
+                // original, zero or do the work adjusting the bits.
+                return original;
             }
+            catch (Exception e)
+            {
+                Log.Error(e, $"Gamepad Poll detour critical error! Gamepad navigation will not work!");
 
-            // NOTE (Chiv) Not so sure about the return value, does not seem to matter if we return the
-            // original, zero or do the work adjusting the bits.
-            return original;
+                // NOTE (Chiv) Explicitly deactivate on error
+                ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.NavEnableGamepad;
+                return original;
+            }
         }
 
         private void Dispose(bool disposing)

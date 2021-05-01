@@ -304,6 +304,9 @@ namespace Dalamud.Interface
                     ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.NavEnableSetMousePos;
                 }
 
+                // NOTE (Chiv) Explicitly deactivate on dalamud boot
+                ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.NavEnableGamepad;
+
                 ImGuiHelpers.MainViewport = ImGui.GetMainViewport();
 
                 Log.Information("[IM] Scene & ImGui setup OK!");
@@ -484,7 +487,7 @@ namespace Dalamud.Interface
                 && this.dalamud.ClientState.GamepadState.Pressed(GamepadButtons.L3) > 0)
             {
                 ImGui.GetIO().ConfigFlags ^= ImGuiConfigFlags.NavEnableGamepad;
-                this.dalamud.DalamudUi.TogglePluginInstaller();
+                this.dalamud.ClientState.GamepadState.NavEnableGamepad ^= true;
             }
 
             if (gamepadEnabled
