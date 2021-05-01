@@ -50,9 +50,15 @@ namespace Dalamud
         /// <param name="len">The length to read.</param>
         public static void DumpMemory(IntPtr offset, int len = 512)
         {
-            var data = new byte[len];
-            Marshal.Copy(offset, data, 0, len);
-            Log.Information(ByteArrayToHex(data));
+            try
+            {
+                SafeMemory.ReadBytes(offset, len, out var data);
+                Log.Information(ByteArrayToHex(data));
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Read failed");
+            }
         }
 
         /// <summary>
