@@ -42,7 +42,11 @@ namespace Dalamud.Interface.Scratchpad
                     {
 
                     }
+
+                    ImGui.EndMenu();
                 }
+
+                ImGui.EndMenuBar();
             }
 
             var flags = ImGuiTabBarFlags.Reorderable | ImGuiTabBarFlags.TabListPopupButton |
