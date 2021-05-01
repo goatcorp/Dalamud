@@ -509,6 +509,11 @@ namespace Dalamud.Interface
                 ImGui.GetIO().NavInputs[(int)ImGuiNavInput.FocusNext] = this.dalamud.ClientState.GamepadState.Raw(GamepadButtons.R1);
                 ImGui.GetIO().NavInputs[(int)ImGuiNavInput.TweakSlow] = this.dalamud.ClientState.GamepadState.Raw(GamepadButtons.L2);
                 ImGui.GetIO().NavInputs[(int)ImGuiNavInput.TweakFast] = this.dalamud.ClientState.GamepadState.Raw(GamepadButtons.R2);
+
+                if (this.dalamud.ClientState.GamepadState.Pressed(GamepadButtons.R3) > 0)
+                {
+                    this.dalamud.DalamudUi.TogglePluginInstaller();
+                }
             }
         }
 

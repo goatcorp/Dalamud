@@ -23,7 +23,7 @@ namespace Dalamud.Interface
         {
             this.dalamud = dalamud;
 
-            this.Size = new Vector2(740, 525);
+            this.Size = new Vector2(740, 550);
             this.SizeCondition = ImGuiCond.FirstUseEver;
 
             this.dalamudMessagesChatType = this.dalamud.Configuration.GeneralChatType;
@@ -231,7 +231,7 @@ namespace Dalamud.Interface
                     ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingToggleDockingHint", "This will allow you to fuse and tab plugin windows."));
 
                     ImGui.Checkbox(Loc.Localize("DalamudSettingToggleGamepadNavigation", "Enable navigation of ImGui windows via gamepad."), ref this.doGamepad);
-                    ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingToggleGamepadNavigationHint", "This will allow you to toggle between game and ImGui navigation via L1+L3."));
+                    ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingToggleGamepadNavigationHint", "This will allow you to toggle between game and ImGui navigation via L1+L3.\nToggle the PluginInstaller window via R3 if ImGui navigation is enabled."));
 
                     ImGui.EndTabItem();
                 }
