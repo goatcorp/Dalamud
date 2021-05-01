@@ -190,10 +190,16 @@ public class ScratchPlugin : IDalamudPlugin {
                 if (hook.RetType != "void")
                     originalCall = "return " + originalCall;
 
-                if (hook.Body.Contains("hook{i}Inst.Original"))
+                if (hook.Body.Contains($"hook{i}Inst.Original(") || hook.Body.Contains("ORIG("))
                 {
                     PluginLog.Warning($"Attention! A manual call to Original() in Hook #{i} was detected. Original calls will not be managed for you.");
                     originalCall = string.Empty;
+                }
+
+                if (hook.Body.Contains("ORIG("))
+                {
+                    PluginLog.Warning($"Normalizing Original() call in Hook #{i}.");
+                    hook.Body = hook.Body.Replace("ORIG(", $"this.hook{i}Inst.Original(");
                 }
 
                 hookDetour +=
