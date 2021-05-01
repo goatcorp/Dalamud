@@ -43,7 +43,7 @@ namespace Dalamud.Interface.Scratchpad
             if (existingScratch.Value != null)
             {
                 existingScratch.Value.Dispose();
-                this.loadedScratches.Remove(existingScratch.Key);
+                this.loadedScratches[existingScratch.Key] = null;
             }
 
             var code = doc.IsMacro ? this.MacroProcessor.Process(doc.Content) : doc.Content;
@@ -76,7 +76,7 @@ namespace Dalamud.Interface.Scratchpad
 
                 plugin.Initialize(pi);
 
-                this.loadedScratches.Add(doc.Id, plugin);
+                this.loadedScratches[doc.Id] = plugin;
                 return ScratchLoadStatus.Success;
             }
             catch (CompilationErrorException ex)
