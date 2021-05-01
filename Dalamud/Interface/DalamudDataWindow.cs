@@ -36,7 +36,7 @@ namespace Dalamud.Interface
         private int currentKind;
         private string[] dataKinds = new[]
         {
-            "ServerOpCode", "Address", "Actor Table", "Font Test", "Party List", "Plugin IPC", "Condition",
+            "ServerOpCode", "Address", "Actor Table", "Fate Table", "Font Test", "Party List", "Plugin IPC", "Condition",
             "Gauge", "Command", "Addon", "Addon Inspector", "StartInfo", "Target", "Toast", "ImGui", "Tex",
         };
 
@@ -144,11 +144,13 @@ namespace Dalamud.Interface
                 {
                     switch (this.currentKind)
                     {
+                        // ServerOpCode
                         case 0:
                             ImGui.TextUnformatted(this.serverOpString);
                             break;
-                        case 1:
 
+                        // Address
+                        case 1:
                             ImGui.InputText(".text sig", ref this.inputSig, 400);
                             if (ImGui.Button("Resolve"))
                             {
@@ -183,13 +185,13 @@ namespace Dalamud.Interface
 
                             break;
 
-                        // AT
+                        // Actor Table
                         case 2:
                             this.DrawActorTable();
 
                             break;
 
-                        // FT
+                        // Fate Table
                         case 3: {
                             var stateString = string.Empty;
                             if (this.dalamud.ClientState.Fates.Length == 0) {
@@ -214,7 +216,7 @@ namespace Dalamud.Interface
                         }
                             break;
 
-                        // Font
+                        // Font Test
                         case 4:
                             var specialChars = string.Empty;
                             for (var i = 0xE020; i <= 0xE0DB; i++)
@@ -235,7 +237,7 @@ namespace Dalamud.Interface
 
                             break;
 
-                        // Party
+                        // Party List
                         case 5:
                             var partyString = string.Empty;
 
@@ -265,8 +267,8 @@ namespace Dalamud.Interface
 
                             break;
 
-                        // Subscriptions
-                        case 5:
+                        // Plugin IPC (Subscriptions)
+                        case 6:
                             this.DrawIpcDebug();
 
                             break;
@@ -307,14 +309,14 @@ namespace Dalamud.Interface
                             break;
 
                         // Command
-                        case 8:
+                        case 9:
                             foreach (var command in this.dalamud.CommandManager.Commands)
                                 ImGui.Text($"{command.Key}\n    -> {command.Value.HelpMessage}\n    -> In help: {command.Value.ShowInHelp}\n\n");
 
                             break;
 
                         // Addon
-                        case 9:
+                        case 10:
                             this.DrawAddonDebug();
                             break;
 
@@ -332,12 +334,12 @@ namespace Dalamud.Interface
                             break;
 
                         // Target
-                        case 12:
+                        case 13:
                             this.DrawTargetDebug();
                             break;
 
                         // Toast
-                        case 13:
+                        case 14:
                             ImGui.InputText("Toast text", ref this.inputTextToast, 200);
 
                             ImGui.Combo("Toast Position", ref this.toastPosition, new[] { "Bottom", "Top", }, 2);
@@ -377,7 +379,7 @@ namespace Dalamud.Interface
                             break;
 
                         // ImGui
-                        case 14:
+                        case 15:
                             ImGui.Text("Monitor count: " + ImGui.GetPlatformIO().Monitors.Size);
                             ImGui.Text("OverrideGameCursor: " + this.dalamud.InterfaceManager.OverrideGameCursor);
 
@@ -387,7 +389,7 @@ namespace Dalamud.Interface
                             break;
 
                         // Tex
-                        case 15:
+                        case 16:
                             ImGui.InputText("Tex Path", ref this.inputTexPath, 255);
                             ImGui.InputFloat2("UV0", ref this.inputTexUv0);
                             ImGui.InputFloat2("UV1", ref this.inputTexUv1);
