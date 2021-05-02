@@ -228,12 +228,13 @@ namespace Dalamud.Game.ClientState
                     // `ButtonPressed` while ImGuiConfigFlags.NavEnableGamepad is set.
                     // This is debatable.
                     // ImGui itself does not care either way as it uses the Raw values and does its own state handling.
-                    input->ButtonsRaw &= (ushort)~GamepadButtons.L2;
-                    input->ButtonsRaw &= (ushort)~GamepadButtons.R2;
-                    input->ButtonsRaw &= (ushort)~GamepadButtons.DpadDown;
-                    input->ButtonsRaw &= (ushort)~GamepadButtons.DpadLeft;
-                    input->ButtonsRaw &= (ushort)~GamepadButtons.DpadUp;
-                    input->ButtonsRaw &= (ushort)~GamepadButtons.DpadRight;
+                    const ushort deletionMask = (ushort)(~GamepadButtons.L2
+                                                         & ~GamepadButtons.R2
+                                                         & ~GamepadButtons.DpadDown
+                                                         & ~GamepadButtons.DpadLeft
+                                                         & ~GamepadButtons.DpadUp
+                                                         & ~GamepadButtons.DpadRight);
+                    input->ButtonsRaw &= deletionMask;
                     input->ButtonsPressed = 0;
                     input->ButtonsReleased = 0;
                     input->ButtonsRepeat = 0;

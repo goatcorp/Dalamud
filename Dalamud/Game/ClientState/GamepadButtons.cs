@@ -1,10 +1,18 @@
-﻿namespace Dalamud.Game.ClientState
+﻿using System;
+
+namespace Dalamud.Game.ClientState
 {
     /// <summary>
     /// Bitmask of the Button ushort used by the game.
     /// </summary>
+    [Flags]
     public enum GamepadButtons : ushort
     {
+        /// <summary>
+        /// No buttons pressed.
+        /// </summary>
+        None = 0,
+
         /// <summary>
         /// Digipad up.
         /// </summary>
