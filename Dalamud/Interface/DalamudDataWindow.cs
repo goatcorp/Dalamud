@@ -9,6 +9,7 @@ using Dalamud.Game.ClientState.Actors.Types;
 using Dalamud.Game.ClientState.Actors.Types.NonPlayer;
 using Dalamud.Game.ClientState.Structs.JobGauge;
 using Dalamud.Game.Internal;
+using Dalamud.Game.Internal.Gui;
 using Dalamud.Game.Internal.Gui.Addon;
 using Dalamud.Game.Internal.Gui.Toast;
 using Dalamud.Game.Text;
@@ -36,7 +37,7 @@ namespace Dalamud.Interface
         private string[] dataKinds = new[]
         {
             "ServerOpCode", "Address", "Actor Table", "Font Test", "Party List", "Plugin IPC", "Condition",
-            "Gauge", "Command", "Addon", "Addon Inspector", "StartInfo", "Target", "Toast", "ImGui", "Tex",
+            "Gauge", "Command", "Addon", "Addon Inspector", "StartInfo", "Target", "Toast", "Flytext", "ImGui", "Tex",
         };
 
         private bool drawActors = false;
@@ -62,6 +63,15 @@ namespace Dalamud.Interface
         private bool questToastSound = false;
         private int questToastIconId = 0;
         private bool questToastCheckmark = false;
+
+        private int flyActor;
+        private FlyTextKind flyKind;
+        private int flyVal1;
+        private int flyVal2;
+        private string flyText1 = string.Empty;
+        private string flyText2 = string.Empty;
+        private int flyIcon;
+        private Vector4 flyColor = new Vector4(1, 1, 1, 1);
 
         private string inputTexPath = string.Empty;
         private TextureWrap debugTex = null;
@@ -350,8 +360,49 @@ namespace Dalamud.Interface
 
                             break;
 
-                        // ImGui
+                        // Flytext
                         case 14:
+
+                            if (ImGui.BeginCombo("Kind", this.flyKind.ToString()))
+                            {
+                                var names = Enum.GetNames(typeof(FlyTextKind));
+                                for (int i = 0; i < names.Length; i++)
+                                {
+                                    if (ImGui.Selectable($"{names[i]} ({i})"))
+                                        this.flyKind = (FlyTextKind)i;
+                                }
+
+                                ImGui.EndCombo();
+                            }
+
+                            ImGui.InputText("Text1", ref this.flyText1, 200);
+                            ImGui.InputText("Text2", ref this.flyText2, 200);
+
+                            ImGui.InputInt("Val1", ref this.flyVal1);
+                            ImGui.InputInt("Val2", ref this.flyVal2);
+
+                            ImGui.InputInt("Icon ID", ref this.flyIcon);
+                            ImGui.ColorEdit4("Color", ref this.flyColor);
+                            ImGui.InputInt("Actor Index", ref this.flyActor);
+                            var sendColor = ImGui.ColorConvertFloat4ToU32(this.flyColor);
+
+                            if (ImGui.Button("Send"))
+                            {
+                                this.dalamud.Framework.Gui.AddFlyText(
+                                    this.flyKind,
+                                    unchecked((uint)this.flyActor),
+                                    unchecked((uint)this.flyVal1),
+                                    unchecked((uint)this.flyVal2),
+                                    this.flyText1,
+                                    this.flyText2,
+                                    sendColor,
+                                    unchecked((uint)this.flyIcon));
+                            }
+
+                            break;
+
+                        // ImGui
+                        case 15:
                             ImGui.Text("Monitor count: " + ImGui.GetPlatformIO().Monitors.Size);
                             ImGui.Text("OverrideGameCursor: " + this.dalamud.InterfaceManager.OverrideGameCursor);
 
@@ -361,7 +412,7 @@ namespace Dalamud.Interface
                             break;
 
                         // Tex
-                        case 15:
+                        case 16:
                             ImGui.InputText("Tex Path", ref this.inputTexPath, 255);
                             ImGui.InputFloat2("UV0", ref this.inputTexUv0);
                             ImGui.InputFloat2("UV1", ref this.inputTexUv1);
