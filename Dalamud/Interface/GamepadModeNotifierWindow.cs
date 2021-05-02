@@ -1,5 +1,6 @@
 ﻿using System.Numerics;
 
+using CheapLoc;
 using Dalamud.Interface.Windowing;
 using ImGuiNET;
 
@@ -34,7 +35,12 @@ namespace Dalamud.Interface
             var drawList = ImGui.GetBackgroundDrawList();
             drawList.PushClipRectFullScreen();
             drawList.AddRectFilled(Vector2.Zero, ImGuiHelpers.MainViewport.Size, 0x661A1A1A);
-            drawList.AddText(Vector2.One, 0xFFFFFFFF, "Gamepad mode is ON. Press R1+L3 to deactivate, press R3 to toggle PluginInstaller.");
+            drawList.AddText(
+                Vector2.One,
+                0xFFFFFFFF,
+                Loc.Localize(
+                    "DalamudGamepadModeNotifierText",
+                    "Gamepad mode is ON. Press R1+L3 to deactivate, press R3 to toggle PluginInstaller."));
             drawList.PopClipRect();
         }
     }
