@@ -488,6 +488,7 @@ namespace Dalamud.Interface
             {
                 ImGui.GetIO().ConfigFlags ^= ImGuiConfigFlags.NavEnableGamepad;
                 this.dalamud.ClientState.GamepadState.NavEnableGamepad ^= true;
+                this.dalamud.DalamudUi.ToggleGamePadNotifierWindow();
             }
 
             if (gamepadEnabled
