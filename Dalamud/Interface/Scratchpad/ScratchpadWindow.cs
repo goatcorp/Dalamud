@@ -21,8 +21,12 @@ namespace Dalamud.Interface.Scratchpad
 
         private List<ScratchpadDocument> documents = new List<ScratchpadDocument>();
 
+        private ScratchFileWatcher watcher = new ScratchFileWatcher();
+
+        private string pathInput = string.Empty;
+
         public ScratchpadWindow(Dalamud dalamud) :
-            base("Plugin Scratchpad")
+            base("Plugin Scratchpad", ImGuiWindowFlags.MenuBar)
         {
             this.dalamud = dalamud;
             this.documents.Add(new ScratchpadDocument());
@@ -34,13 +38,32 @@ namespace Dalamud.Interface.Scratchpad
 
         public override void Draw()
         {
+            if (ImGui.BeginPopupModal("Choose Path"))
+            {
+                ImGui.Text("Enter path:\n\n");
+
+                ImGui.InputText("###ScratchPathInput", ref this.pathInput, 1000);
+
+                if (ImGui.Button("OK", new Vector2(120, 0)))
+                {
+                    ImGui.CloseCurrentPopup();
+                    this.watcher.Load(this.pathInput);
+                    this.pathInput = string.Empty;
+                }
+
+                ImGui.SetItemDefaultFocus();
+                ImGui.SameLine();
+                if (ImGui.Button("Cancel", new Vector2(120, 0))) { ImGui.CloseCurrentPopup(); }
+                ImGui.EndPopup();
+            }
+
             if (ImGui.BeginMenuBar())
             {
                 if (ImGui.BeginMenu("File"))
                 {
                     if (ImGui.MenuItem("Load & Watch"))
                     {
-
+                        ImGui.OpenPopup("Choose Path");
                     }
 
                     ImGui.EndMenu();
@@ -57,23 +80,25 @@ namespace Dalamud.Interface.Scratchpad
                 if (ImGui.TabItemButton("+", ImGuiTabItemFlags.Trailing | ImGuiTabItemFlags.NoTooltip))
                     this.documents.Add(new ScratchpadDocument());
 
-                for (var i = 0; i < this.documents.Count; i++)
+                var docs = this.documents.Concat(this.watcher.TrackedScratches).ToArray();
+
+                for (var i = 0; i < docs.Length; i++)
                 {
                     var isOpen = true;
 
-                    if (ImGui.BeginTabItem(this.documents[i].Title + (this.documents[i].HasUnsaved ? "*" : string.Empty) + "###ScratchItem" + i, ref isOpen))
+                    if (ImGui.BeginTabItem(docs[i].Title + (docs[i].HasUnsaved ? "*" : string.Empty) + "###ScratchItem" + i, ref isOpen))
                     {
-                        if (ImGui.InputTextMultiline("###ScratchInput" + i, ref this.documents[i].Content, 20000,
+                        if (ImGui.InputTextMultiline("###ScratchInput" + i, ref docs[i].Content, 20000,
                                                      new Vector2(-1, -34), ImGuiInputTextFlags.AllowTabInput))
                         {
-                            this.documents[i].HasUnsaved = true;
+                            docs[i].HasUnsaved = true;
                         }
 
                         ImGuiHelpers.ScaledDummy(3);
 
                         if (ImGui.Button("Compile & Reload"))
                         {
-                            this.documents[i].Status = this.Execution.RenewScratch(this.documents[i]);
+                            docs[i].Status = this.Execution.RenewScratch(docs[i]);
                         }
 
                         ImGui.SameLine();
@@ -89,7 +114,7 @@ namespace Dalamud.Interface.Scratchpad
                         {
                             try
                             {
-                                var code = this.Execution.MacroProcessor.Process(this.documents[i].Content);
+                                var code = this.Execution.MacroProcessor.Process(docs[i].Content);
                                 Log.Information(code);
                                 ImGui.SetClipboardText(code);
                             }
@@ -108,11 +133,11 @@ namespace Dalamud.Interface.Scratchpad
 
                         ImGui.SameLine();
 
-                        ImGui.Checkbox("Use Macros", ref this.documents[i].IsMacro);
+                        ImGui.Checkbox("Use Macros", ref docs[i].IsMacro);
 
                         ImGui.SameLine();
 
-                        switch (this.documents[i].Status)
+                        switch (docs[i].Status)
                         {
                             case ScratchLoadStatus.Unknown:
                                 ImGui.TextColored(ImGuiColors.DalamudGrey, "Compile scratch to see status");
@@ -132,7 +157,7 @@ namespace Dalamud.Interface.Scratchpad
 
                         ImGui.SameLine();
 
-                        ImGui.TextColored(ImGuiColors.DalamudGrey, this.documents[i].Id.ToString());
+                        ImGui.TextColored(ImGuiColors.DalamudGrey, docs[i].Id.ToString());
 
                         ImGui.EndTabItem();
                     }
