@@ -35,6 +35,7 @@ namespace Dalamud.Interface
         private readonly ComponentDemoWindow componentDemoWindow;
         private readonly ColorDemoWindow colorDemoWindow;
         private readonly ScratchpadWindow scratchpadWindow;
+        private readonly GamepadModeNotifierWindow gamepadModeNotifierWindow;
 
         private readonly WindowSystem windowSystem = new WindowSystem("DalamudCore");
 
@@ -115,6 +116,9 @@ namespace Dalamud.Interface
                 IsOpen = false,
             };
             this.windowSystem.AddWindow(this.scratchpadWindow);
+
+            this.gamepadModeNotifierWindow = new GamepadModeNotifierWindow();
+            this.windowSystem.AddWindow(this.gamepadModeNotifierWindow);
 
             Log.Information("[DUI] Windows added");
 
@@ -552,6 +556,14 @@ namespace Dalamud.Interface
         internal void ToggleScratchpadWindow()
         {
             this.scratchpadWindow.IsOpen ^= true;
+        }
+
+        /// <summary>
+        /// Toggle the gamepad notifier window window.
+        /// </summary>
+        internal void ToggleGamePadNotifierWindow()
+        {
+            this.gamepadModeNotifierWindow.IsOpen ^= true;
         }
     }
 }
