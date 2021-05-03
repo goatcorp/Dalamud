@@ -204,13 +204,18 @@ public class ScratchPlugin : IDalamudPlugin {
 
                 hookDetour +=
                     $"private {hook.RetType} Hook{i}Detour({hook.Arguments}) {{\n" +
-                    $"try {{\n" +
-                    $"  {hook.Body}\n" +
-                    $"}} catch(Exception ex) {{\n" +
-                    $"  PluginLog.Error(ex, \"Exception in Hook{i}Detour!!\");\n" +
-                    $"}}\n" +
-                    $"{originalCall}" +
-                    $"\n}}\n";
+                    (!string.IsNullOrEmpty(originalCall) ? "try {\n" : string.Empty) +
+                    $"  {hook.Body}\n";
+
+                if (!string.IsNullOrEmpty(originalCall))
+                {
+                    hookDetour += "} catch(Exception ex) {\n" +
+                                  $"  PluginLog.Error(ex, \"Exception in Hook{i}Detour!!\");\n" +
+                                  "}\n" +
+                                  $"{originalCall}";
+                }
+
+                hookDetour += $"\n}}\n";
 
                 hookDispose += $"this.hook{i}Inst.Dispose();\n";
             }
