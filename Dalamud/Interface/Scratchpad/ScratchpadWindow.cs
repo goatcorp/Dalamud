@@ -13,7 +13,7 @@ using Serilog;
 
 namespace Dalamud.Interface.Scratchpad
 {
-    class ScratchpadWindow : Window
+    class ScratchpadWindow : Window, IDisposable
     {
         private readonly Dalamud dalamud;
 
@@ -165,6 +165,11 @@ namespace Dalamud.Interface.Scratchpad
 
                 ImGui.EndTabBar();
             }
+        }
+
+        public void Dispose()
+        {
+            this.Execution.DisposeAllScratches();
         }
     }
 }

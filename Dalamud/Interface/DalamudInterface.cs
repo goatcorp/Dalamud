@@ -390,6 +390,7 @@ namespace Dalamud.Interface
         /// </summary>
         public void Dispose()
         {
+            this.scratchpadWindow.Dispose();
             this.windowSystem.RemoveAllWindows();
 
             this.logWindow?.Dispose();
