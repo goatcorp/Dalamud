@@ -21,7 +21,6 @@ namespace Dalamud.Game.Internal.Gui {
         public IntPtr GetUIObjectByName { get; private set; }
         public IntPtr GetUIModule { get; private set; }
         public IntPtr GetAgentModule { get; private set; }
-        public IntPtr AddFlyText { get; private set; }
 
         public GameGuiAddressResolver(IntPtr baseAddress) {
             BaseAddress = baseAddress;
@@ -49,7 +48,6 @@ namespace Dalamud.Game.Internal.Gui {
             GetBaseUIObject = sig.ScanText("E8 ?? ?? ?? ?? 41 B8 01 00 00 00 48 8D 15 ?? ?? ?? ?? 48 8B 48 20 E8 ?? ?? ?? ?? 48 8B CF");
             GetUIObjectByName = sig.ScanText("E8 ?? ?? ?? ?? 48 8B CF 48 89 87 ?? ?? 00 00 E8 ?? ?? ?? ?? 41 B8 01 00 00 00");
             GetUIModule = sig.ScanText("E8 ?? ?? ?? ?? 48 8B C8 48 85 C0 75 2D");
-            AddFlyText = sig.ScanText("4C 8B DC 4D 89 4B 20 57 41 54 41 55 48 81 EC ?? ?? ?? ?? 8B C2 49 8B F9");
 
             var uiModuleVtableSig = sig.GetStaticAddressFromSig("48 8D 05 ?? ?? ?? ?? 4C 89 61 28");
             this.GetAgentModule = Marshal.ReadIntPtr(uiModuleVtableSig, 34 * IntPtr.Size);

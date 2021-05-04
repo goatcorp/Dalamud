@@ -18,6 +18,7 @@ namespace Dalamud.Game.Internal.Gui {
         public ChatGui Chat { get; private set; }
         public PartyFinderGui PartyFinder { get; private set; }
         public ToastGui Toast { get; private set; }
+        public FlyTextGui FlyText { get; private set; }
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         private delegate IntPtr SetGlobalBgmDelegate(UInt16 bgmKey, byte a2, UInt32 a3, UInt32 a4, UInt32 a5, byte a6);
@@ -79,13 +80,6 @@ namespace Dalamud.Game.Internal.Gui {
         private delegate IntPtr GetAgentModuleDelegate(IntPtr uiModule);
         private GetAgentModuleDelegate getAgentModule;
 
-        private delegate void AddFlyTextDelegate(IntPtr thisPtr, uint section, uint messageMax,
-                                         IntPtr numbers, uint offsetNum, uint offsetNumMax,
-                                         IntPtr strings, uint offsetStr, uint offsetStrMax,
-                                         uint unknown);
-
-        private AddFlyTextDelegate addFlyText;
-
         public bool GameUiHidden { get; private set; }
 
         /// <summary>
@@ -133,6 +127,7 @@ namespace Dalamud.Game.Internal.Gui {
             Chat = new ChatGui(Address.ChatManager, scanner, dalamud);
             PartyFinder = new PartyFinderGui(scanner, dalamud);
             Toast = new ToastGui(scanner, dalamud);
+            FlyText = new FlyTextGui(scanner, dalamud);
 
             this.setGlobalBgmHook =
                 new Hook<SetGlobalBgmDelegate>(Address.SetGlobalBgm,
@@ -172,8 +167,6 @@ namespace Dalamud.Game.Internal.Gui {
 
             this.getUiModule = Marshal.GetDelegateForFunctionPointer<GetUiModuleDelegate>(Address.GetUIModule);
             this.getAgentModule = Marshal.GetDelegateForFunctionPointer<GetAgentModuleDelegate>(Address.GetAgentModule);
-
-            this.addFlyText = Marshal.GetDelegateForFunctionPointer<AddFlyTextDelegate>(Address.AddFlyText);
         }
 
         private IntPtr HandleSetGlobalBgmDetour(UInt16 bgmKey, byte a2, UInt32 a3, UInt32 a4, UInt32 a5, byte a6) {
@@ -509,77 +502,6 @@ namespace Dalamud.Game.Internal.Gui {
             }
 
             return IntPtr.Zero;
-        }
-
-        /// <summary>
-        /// Displays a Flytext in-game on the local player.
-        /// </summary>
-        /// <param name="kind">The FlyTextKind. See <see cref="FlyTextKind"/>.</param>
-        /// <param name="actorIndex">The index of the actor to place flytext on. Indexing unknown. 1 places flytext on local player.</param>
-        /// <param name="val1">Value1 passed to the native flytext function.</param>
-        /// <param name="val2">Value2 passed to the native flytext function. Seems unused.</param>
-        /// <param name="text1">Text1 passed to the native flytext function.</param>
-        /// <param name="text2">Text2 passed to the native flytext function.</param>
-        /// <param name="color">Color passed to the native flytext function. Changes flytext color.</param>
-        /// <param name="icon">Icon ID passed to the native flytext function. Only displays with select FlyTextKind.</param>
-        public unsafe void AddFlyText(FlyTextKind kind, uint actorIndex, uint val1, uint val2, string text1, string text2, uint color, uint icon)
-        {
-            // The hook for this function must be past the actorIndex check
-            // to avoid an unhookable conditional jump, so we manually check
-            // here as to not introduce unintended behavior
-            if (actorIndex >= 10)
-                return;
-
-            int numIndex = 28;
-            int strIndex = 25;
-
-            uint numOffset = 147;
-            uint strOffset = 28;
-
-            // Get the UI module and flytext addon pointers
-            var ui = (UIModule*)this.GetUIModule();
-            var flytext = this.GetUiObjectByName("_FlyText", 1);
-
-            if (ui == null || flytext == IntPtr.Zero)
-                return;
-
-            // Get the number and string arrays we need
-            var atkArrayDataHolder = ui->RaptureAtkModule.AtkModule.AtkArrayDataHolder;
-            var numArray = atkArrayDataHolder._NumberArrays[numIndex];
-            var strArray = atkArrayDataHolder._StringArrays[strIndex];
-
-            // Write the values to the arrays using a known valid flytext region
-            numArray->IntArray[numOffset + 0] = 1;
-            numArray->IntArray[numOffset + 1] = (int)kind;
-            numArray->IntArray[numOffset + 2] = unchecked((int)val1);
-            numArray->IntArray[numOffset + 3] = unchecked((int)val2);
-            numArray->IntArray[numOffset + 4] = 5;
-            numArray->IntArray[numOffset + 5] = unchecked((int)color);
-            numArray->IntArray[numOffset + 6] = unchecked((int)icon);
-            numArray->IntArray[numOffset + 7] = 0;
-            numArray->IntArray[numOffset + 8] = 0;
-            numArray->IntArray[numOffset + 9] = 0;
-
-            var pText1 = Marshal.StringToHGlobalAnsi(text1);
-            var pText2 = Marshal.StringToHGlobalAnsi(text2);
-
-            strArray->StringArray[strOffset + 0] = (byte*)pText1.ToPointer();
-            strArray->StringArray[strOffset + 1] = (byte*)pText2.ToPointer();
-
-            this.addFlyText(
-                flytext,
-                actorIndex,
-                14,
-                (IntPtr)numArray,
-                numOffset,
-                9,
-                (IntPtr)strArray,
-                strOffset,
-                2,
-                0);
-
-            Marshal.FreeHGlobal(pText1);
-            Marshal.FreeHGlobal(pText2);
         }
 
         public void SetBgm(ushort bgmKey) => this.setGlobalBgmHook.Original(bgmKey, 0, 0, 0, 0, 0); 

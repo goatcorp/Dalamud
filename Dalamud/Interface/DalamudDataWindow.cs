@@ -388,7 +388,7 @@ namespace Dalamud.Interface
 
                             if (ImGui.Button("Send"))
                             {
-                                this.dalamud.Framework.Gui.AddFlyText(
+                                this.dalamud.Framework.Gui.FlyText.AddFlyText(
                                     this.flyKind,
                                     unchecked((uint)this.flyActor),
                                     unchecked((uint)this.flyVal1),
