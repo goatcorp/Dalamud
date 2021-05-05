@@ -509,6 +509,7 @@ namespace Dalamud.Game.Internal.Gui {
         public void Enable() {
             Chat.Enable();
             Toast.Enable();
+            FlyText.Enable();
             PartyFinder.Enable();
             this.setGlobalBgmHook.Enable();
             this.handleItemHoverHook.Enable();
@@ -521,6 +522,7 @@ namespace Dalamud.Game.Internal.Gui {
         public void Dispose() {
             Chat.Dispose();
             Toast.Dispose();
+            FlyText.Dispose();
             PartyFinder.Dispose();
             this.setGlobalBgmHook.Dispose();
             this.handleItemHoverHook.Dispose();

@@ -1,28 +1,48 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using System.Text;
-
-using Dalamud.Game.Internal.Gui.Toast;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Hooking;
 using FFXIVClientStructs.FFXIV.Client.UI;
+using FFXIVClientStructs.FFXIV.Component.GUI;
+using Serilog;
 
 namespace Dalamud.Game.Internal.Gui
 {
     public sealed class FlyTextGui : IDisposable
     {
-        #region Hooks
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="kind">The FlyTextKind. See <see cref="FlyTextKind"/>.</param>
+        /// <param name="actorIndex">The index of the actor to place flytext on. Indexing unknown. 1 places flytext on local player.</param>
+        /// <param name="val1">Value1 passed to the native flytext function.</param>
+        /// <param name="val2">Value2 passed to the native flytext function. Seems unused.</param>
+        /// <param name="text1">Text1 passed to the native flytext function.</param>
+        /// <param name="text2">Text2 passed to the native flytext function.</param>
+        /// <param name="color">Color passed to the native flytext function. Changes flytext color.</param>
+        /// <param name="icon">Icon ID passed to the native flytext function. Only displays with select FlyTextKind.</param>
+        /// <param name="dirty">Must be set to <c>true</c> if any value has been changed and must be reflected in the flytext call.</param>
+        /// <param name="handled">Must be set if the subscribing function wants to cancel the flytext from appearing..</param>
+        public delegate void OnFlyTextDelegate(
+            ref FlyTextKind kind,
+            ref uint actorIndex,
+            ref uint val1,
+            ref uint val2,
+            ref SeString text1,
+            ref SeString text2,
+            ref uint color,
+            ref uint icon,
+            ref bool dirty,
+            ref bool handled);
+
+        public event OnFlyTextDelegate OnFlyText;
 
         private readonly Hook<AddFlyTextDelegate> addFlyTextHook;
 
-        #endregion
-
-        #region Delegates
-
         private delegate void AddFlyTextDelegate(
             IntPtr thisPtr,
-            uint section,
+            uint actorIndex,
             uint messageMax,
             IntPtr numbers,
             uint offsetNum,
@@ -31,8 +51,6 @@ namespace Dalamud.Game.Internal.Gui
             uint offsetStr,
             uint offsetStrMax,
             uint unknown);
-
-        #endregion
 
         private Dalamud Dalamud { get; }
 
@@ -58,6 +76,15 @@ namespace Dalamud.Game.Internal.Gui
             this.addFlyTextHook.Dispose();
         }
 
+        private static byte[] Terminate(byte[] source)
+        {
+            var terminated = new byte[source.Length + 1];
+            Array.Copy(source, 0, terminated, 0, source.Length);
+            terminated[^1] = 0;
+
+            return terminated;
+        }
+
         /// <summary>
         /// Displays a Flytext in-game on the local player.
         /// </summary>
@@ -69,7 +96,7 @@ namespace Dalamud.Game.Internal.Gui
         /// <param name="text2">Text2 passed to the native flytext function.</param>
         /// <param name="color">Color passed to the native flytext function. Changes flytext color.</param>
         /// <param name="icon">Icon ID passed to the native flytext function. Only displays with select FlyTextKind.</param>
-        public unsafe void AddFlyText(FlyTextKind kind, uint actorIndex, uint val1, uint val2, string text1, string text2, uint color, uint icon)
+        public unsafe void AddFlyText(FlyTextKind kind, uint actorIndex, uint val1, uint val2, SeString text1, SeString text2, uint color, uint icon)
         {
             // The hook for this function must be past the actorIndex check
             // to avoid an unhookable conditional jump, so we manually check
@@ -107,31 +134,31 @@ namespace Dalamud.Game.Internal.Gui
             numArray->IntArray[numOffset + 8] = 0;
             numArray->IntArray[numOffset + 9] = 0;
 
-            var pText1 = Marshal.StringToHGlobalAnsi(text1);
-            var pText2 = Marshal.StringToHGlobalAnsi(text2);
+            fixed (byte* pText1 = text1.Encode())
+            {
+                fixed (byte* pText2 = text2.Encode())
+                {
+                    strArray->StringArray[strOffset + 0] = pText1;
+                    strArray->StringArray[strOffset + 1] = pText2;
 
-            strArray->StringArray[strOffset + 0] = (byte*)pText1.ToPointer();
-            strArray->StringArray[strOffset + 1] = (byte*)pText2.ToPointer();
-
-            this.addFlyTextHook.Original(
-                flytext,
-                actorIndex,
-                14,
-                (IntPtr)numArray,
-                numOffset,
-                9,
-                (IntPtr)strArray,
-                strOffset,
-                2,
-                0);
-
-            Marshal.FreeHGlobal(pText1);
-            Marshal.FreeHGlobal(pText2);
+                    this.addFlyTextHook.Original(
+                        flytext,
+                        actorIndex,
+                        14,
+                        (IntPtr)numArray,
+                        numOffset,
+                        9,
+                        (IntPtr)strArray,
+                        strOffset,
+                        2,
+                        0);
+                }
+            }
         }
 
-        public void AddFlyTextDetour(
+        public unsafe void AddFlyTextDetour(
             IntPtr thisPtr,
-            uint section,
+            uint actorIndex,
             uint messageMax,
             IntPtr numbers,
             uint offsetNum,
@@ -141,8 +168,114 @@ namespace Dalamud.Game.Internal.Gui
             uint offsetStrMax,
             uint unknown)
         {
-            // TODO: In the future, fire an event to subscribers that a FlyText has been added.
-            this.addFlyTextHook.Original(thisPtr, section, messageMax, numbers, offsetNum, offsetNumMax, strings, offsetStr, offsetStrMax, unknown);
+            try
+            {
+                var numArray = (NumberArrayData*) numbers;
+                var strArray = (StringArrayData*) strings;
+
+                var tmpKind = (FlyTextKind) numArray->IntArray[offsetNum + 1];
+
+                var tmpVal1 = unchecked((uint) numArray->IntArray[offsetNum + 2]);
+                var tmpVal2 = unchecked((uint) numArray->IntArray[offsetNum + 3]);
+
+                var tmpColor = unchecked((uint) numArray->IntArray[offsetNum + 5]);
+                var tmpIcon = unchecked((uint) numArray->IntArray[offsetNum + 6]);
+
+                var tmpText1 = this.Dalamud.SeStringManager.Parse((IntPtr) strArray->StringArray[offsetStr + 0]);
+                var tmpText2 = this.Dalamud.SeStringManager.Parse((IntPtr) strArray->StringArray[offsetStr + 1]);
+
+                var dirty = false;
+                var handled = false;
+
+                this.OnFlyText?.Invoke(
+                    ref tmpKind,
+                    ref actorIndex,
+                    ref tmpVal1,
+                    ref tmpVal2,
+                    ref tmpText1,
+                    ref tmpText2,
+                    ref tmpColor,
+                    ref tmpIcon,
+                    ref dirty,
+                    ref handled);
+
+                // If handled, ignore the original call
+                if (handled) return;
+
+                if (!dirty)
+                {
+                    this.addFlyTextHook.Original(
+                        thisPtr,
+                        actorIndex,
+                        messageMax,
+                        numbers,
+                        offsetNum,
+                        offsetNumMax,
+                        strings,
+                        offsetStr,
+                        offsetStrMax,
+                        unknown);
+                    return;
+                }
+
+                numArray->IntArray[offsetNum + 1] = (int)tmpKind;
+                numArray->IntArray[offsetNum + 2] = unchecked((int)tmpVal1);
+                numArray->IntArray[offsetNum + 3] = unchecked((int)tmpVal2);
+                numArray->IntArray[offsetNum + 5] = unchecked((int)tmpColor);
+                numArray->IntArray[offsetNum + 6] = unchecked((int)tmpIcon);
+
+                Log.Debug($"[FlyText] text1 before encode: {tmpText1.TextValue}");
+                Log.Debug($"[FlyText] text2 before encode: {tmpText2.TextValue}");
+
+                var terminated1 = Terminate(tmpText1.Encode());
+                var terminated2 = Terminate(tmpText2.Encode());
+
+                var pText1 = Marshal.AllocHGlobal(terminated1.Length);
+                var pText2 = Marshal.AllocHGlobal(terminated2.Length);
+
+                Marshal.Copy(terminated1, 0, pText1, terminated1.Length);
+                Marshal.Copy(terminated2, 0, pText2, terminated2.Length);
+
+                strArray->StringArray[offsetStr + 0] = (byte*)pText1;
+                strArray->StringArray[offsetStr + 1] = (byte*)pText2;
+
+                this.addFlyTextHook.Original(
+                    thisPtr,
+                    actorIndex,
+                    messageMax,
+                    numbers,
+                    offsetNum,
+                    offsetNumMax,
+                    strings,
+                    offsetStr,
+                    offsetStrMax,
+                    unknown);
+
+                // fixed (byte* newText1 = terminated1)
+                // {
+                //     fixed (byte* newText2 = terminated2)
+                //     {
+                //         // strArray->StringArray[offsetStr + 0] = newText1;
+                //         // strArray->StringArray[offsetStr + 1] = newText2;
+                //
+                //         this.addFlyTextHook.Original(
+                //             thisPtr,
+                //             actorIndex,
+                //             messageMax,
+                //             numbers,
+                //             offsetNum,
+                //             offsetNumMax,
+                //             strings,
+                //             offsetStr,
+                //             offsetStrMax,
+                //             unknown);
+                //     }
+                // }
+            }
+            catch (Exception e)
+            {
+                Log.Debug(e, "Exception occurred in AddFlyTextDetour!");
+            }
         }
     }
 }
