@@ -6,6 +6,7 @@ using Dalamud.Hooking;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using Serilog;
+using SharpDX.Text;
 
 namespace Dalamud.Game.Internal.Gui
 {
@@ -181,8 +182,8 @@ namespace Dalamud.Game.Internal.Gui
                 var tmpColor = unchecked((uint) numArray->IntArray[offsetNum + 5]);
                 var tmpIcon = unchecked((uint) numArray->IntArray[offsetNum + 6]);
 
-                var tmpText1 = this.Dalamud.SeStringManager.Parse((IntPtr) strArray->StringArray[offsetStr + 0]);
-                var tmpText2 = this.Dalamud.SeStringManager.Parse((IntPtr) strArray->StringArray[offsetStr + 1]);
+                var tmpText1 = this.Dalamud.SeStringManager.Parse((IntPtr)strArray->StringArray[offsetStr + 0]);
+                var tmpText2 = this.Dalamud.SeStringManager.Parse((IntPtr)strArray->StringArray[offsetStr + 1]);
 
                 var dirty = false;
                 var handled = false;
@@ -202,6 +203,7 @@ namespace Dalamud.Game.Internal.Gui
                 // If handled, ignore the original call
                 if (handled) return;
 
+                // If not dirty, make the original call
                 if (!dirty)
                 {
                     this.addFlyTextHook.Original(
@@ -218,41 +220,34 @@ namespace Dalamud.Game.Internal.Gui
                     return;
                 }
 
+                // Update the flytext values
                 numArray->IntArray[offsetNum + 1] = (int)tmpKind;
                 numArray->IntArray[offsetNum + 2] = unchecked((int)tmpVal1);
                 numArray->IntArray[offsetNum + 3] = unchecked((int)tmpVal2);
                 numArray->IntArray[offsetNum + 5] = unchecked((int)tmpColor);
                 numArray->IntArray[offsetNum + 6] = unchecked((int)tmpIcon);
 
-                Log.Debug($"[FlyText] text1 before encode: {tmpText1.TextValue}");
-                Log.Debug($"[FlyText] text2 before encode: {tmpText2.TextValue}");
-
                 var terminated1 = Terminate(tmpText1.Encode());
                 var terminated2 = Terminate(tmpText2.Encode());
 
-                var pText1 = Marshal.AllocHGlobal(terminated1.Length);
-                var pText2 = Marshal.AllocHGlobal(terminated2.Length);
+                // We can use fixed here as our text is copied into text nodes during the function
+                fixed (byte* pText1 = terminated1, pText2 = terminated2)
+                {
+                    strArray->StringArray[offsetStr + 0] = pText1;
+                    strArray->StringArray[offsetStr + 1] = pText2;
 
-                Marshal.Copy(terminated1, 0, pText1, terminated1.Length);
-                Marshal.Copy(terminated2, 0, pText2, terminated2.Length);
-
-                strArray->StringArray[offsetStr + 0] = (byte*)pText1;
-                strArray->StringArray[offsetStr + 1] = (byte*)pText2;
-
-                this.addFlyTextHook.Original(
-                    thisPtr,
-                    actorIndex,
-                    messageMax,
-                    numbers,
-                    offsetNum,
-                    offsetNumMax,
-                    strings,
-                    offsetStr,
-                    offsetStrMax,
-                    unknown);
-
-                Marshal.FreeHGlobal(pText1);
-                Marshal.FreeHGlobal(pText2);
+                    this.addFlyTextHook.Original(
+                        thisPtr,
+                        actorIndex,
+                        messageMax,
+                        numbers,
+                        offsetNum,
+                        offsetNumMax,
+                        strings,
+                        offsetStr,
+                        offsetStrMax,
+                        unknown);
+                }
             }
             catch (Exception e)
             {
