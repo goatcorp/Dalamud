@@ -251,26 +251,8 @@ namespace Dalamud.Game.Internal.Gui
                     offsetStrMax,
                     unknown);
 
-                // fixed (byte* newText1 = terminated1)
-                // {
-                //     fixed (byte* newText2 = terminated2)
-                //     {
-                //         // strArray->StringArray[offsetStr + 0] = newText1;
-                //         // strArray->StringArray[offsetStr + 1] = newText2;
-                //
-                //         this.addFlyTextHook.Original(
-                //             thisPtr,
-                //             actorIndex,
-                //             messageMax,
-                //             numbers,
-                //             offsetNum,
-                //             offsetNumMax,
-                //             strings,
-                //             offsetStr,
-                //             offsetStrMax,
-                //             unknown);
-                //     }
-                // }
+                Marshal.FreeHGlobal(pText1);
+                Marshal.FreeHGlobal(pText2);
             }
             catch (Exception e)
             {
