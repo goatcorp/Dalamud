@@ -415,7 +415,7 @@ namespace Dalamud.Interface {
                 selectedInList[i] = false;
                 var unitManager = &unitManagers[i];
 
-                var unitBaseArray = &(unitManager->AtkUnitEntries);
+                var unitBaseArray = &unitManager->AtkUnitEntries;
 
                 var headerOpen = true;
                 
@@ -548,7 +548,7 @@ namespace Dalamud.Interface {
                     if (beginModule > 0 && unboxedAddr >= this.beginModule && unboxedAddr <= this.endModule) {
                         ImGui.SameLine();
                         ImGui.PushStyleColor(ImGuiCol.Text, 0xffcbc0ff);
-                        ClickToCopyText($"ffxiv_dx11.exe+{(unboxedAddr-this.beginModule):X}");
+                        ClickToCopyText($"ffxiv_dx11.exe+{unboxedAddr-this.beginModule:X}");
                         ImGui.PopStyleColor();
                     }
                     try {
@@ -581,7 +581,7 @@ namespace Dalamud.Interface {
                     var processModule = Process.GetCurrentProcess().MainModule;
                     if (processModule != null) {
                         this.beginModule = (ulong) processModule.BaseAddress.ToInt64();
-                        this.endModule = (this.beginModule + (ulong) processModule.ModuleMemorySize);
+                        this.endModule = this.beginModule + (ulong) processModule.ModuleMemorySize;
                     } else {
                         this.endModule = 1;
                     }

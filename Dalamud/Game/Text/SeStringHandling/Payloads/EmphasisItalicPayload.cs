@@ -64,7 +64,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
 
         protected override void DecodeImpl(BinaryReader reader, long endOfStream)
         {
-            IsEnabled = (GetInteger(reader) == 1);
+            IsEnabled = GetInteger(reader) == 1;
         }
     }
 }

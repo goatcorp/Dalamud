@@ -98,7 +98,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             if (hasName)
             {
                 // 1 additional unknown byte compared to the nameless version, 1 byte for the name length, and then the name itself
-                chunkLen += (1 + 1 + this.displayName.Length);
+                chunkLen += 1 + 1 + this.displayName.Length;
                 if (IsHQ)
                 {
                     chunkLen += 4;  // unicode representation of the HQ symbol is 3 bytes, preceded by a space

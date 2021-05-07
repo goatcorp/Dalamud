@@ -131,7 +131,7 @@ namespace Dalamud.Game.Internal.File
         public static bool FilePathHasInvalidChars(string path)
         {
 
-            return (!string.IsNullOrEmpty(path) && path.IndexOfAny(System.IO.Path.GetInvalidPathChars()) >= 0);
+            return !string.IsNullOrEmpty(path) && path.IndexOfAny(System.IO.Path.GetInvalidPathChars()) >= 0;
         }
     }
 }

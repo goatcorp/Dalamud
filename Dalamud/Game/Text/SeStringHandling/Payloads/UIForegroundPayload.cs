@@ -65,7 +65,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         {
             get
             {
-                return (UIColor.UIForeground & 0xFFFFFF);
+                return UIColor.UIForeground & 0xFFFFFF;
             }
         }
 

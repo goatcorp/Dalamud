@@ -37,7 +37,7 @@ namespace Dalamud.Game.ClientState
                 if (vkCode< 0 || vkCode > MaxKeyCodeIndex)
                     throw new ArgumentException($"Keycode state only appears to be valid up to {MaxKeyCodeIndex}");
 
-                return (Marshal.ReadInt32(this.bufferBase + (4 * vkCode)) != 0);
+                return Marshal.ReadInt32(this.bufferBase + (4 * vkCode)) != 0;
             }
 
             set
