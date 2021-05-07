@@ -108,7 +108,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             var bytes = new List<byte>()
             {
                 START_BYTE,
-                (byte)SeStringChunkType.Interactable, (byte)chunkLen, (byte)EmbeddedInfoType.ItemLink
+                (byte)SeStringChunkType.Interactable, (byte)chunkLen, (byte)EmbeddedInfoType.ItemLink,
             };
             bytes.AddRange(idBytes);
             // unk
@@ -126,7 +126,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
                 bytes.AddRange(new byte[]
                 {
                     0xFF,   // unk
-                    (byte)nameLen
+                    (byte)nameLen,
                 });
                 bytes.AddRange(Encoding.UTF8.GetBytes(this.displayName));
 

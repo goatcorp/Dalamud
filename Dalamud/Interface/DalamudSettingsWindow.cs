@@ -335,7 +335,7 @@ namespace Dalamud.Interface
                         } else {
                             this.thirdRepoList.Add(new ThirdRepoSetting {
                                 Url = this.thirdRepoTempUrl,
-                                IsEnabled = true
+                                IsEnabled = true,
                             });
 
                             this.thirdRepoTempUrl = string.Empty;

@@ -45,7 +45,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads {
             var indexBytes = MakeInteger((uint) this.Icon);
             var chunkLen = indexBytes.Length + 1;
             var bytes = new List<byte>(new byte[] {
-                START_BYTE, (byte)SeStringChunkType.Icon, (byte)chunkLen
+                START_BYTE, (byte)SeStringChunkType.Icon, (byte)chunkLen,
             });
             bytes.AddRange(indexBytes);
             bytes.Add(END_BYTE);

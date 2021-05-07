@@ -42,7 +42,7 @@ namespace Dalamud.Interface {
             "Focused Units",
             "Units 16",
             "Units 17",
-            "Units 18"
+            "Units 18",
         };
 
         private string searchInput = string.Empty;

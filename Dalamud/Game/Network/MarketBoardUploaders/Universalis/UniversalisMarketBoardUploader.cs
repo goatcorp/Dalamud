@@ -46,14 +46,14 @@ namespace Dalamud.Game.Network.Universalis.MarketBoardUploaders {
                         LastReviewTime = ((DateTimeOffset) marketBoardItemListing.LastReviewTime).ToUnixTimeSeconds(),
                         PricePerUnit = marketBoardItemListing.PricePerUnit,
                         Quantity = marketBoardItemListing.ItemQuantity,
-                        RetainerCity = marketBoardItemListing.RetainerCityId
+                        RetainerCity = marketBoardItemListing.RetainerCityId,
                     };
 
                     universalisListing.Materia = new List<UniversalisItemMateria>();
                     foreach (var itemMateria in marketBoardItemListing.Materia)
                         universalisListing.Materia.Add(new UniversalisItemMateria {
                             MateriaId = itemMateria.MateriaId,
-                            SlotId = itemMateria.Index
+                            SlotId = itemMateria.Index,
                         });
 
                     listingsRequestObject.Listings.Add(universalisListing);
@@ -76,7 +76,7 @@ namespace Dalamud.Game.Network.Universalis.MarketBoardUploaders {
                         OnMannequin = marketBoardHistoryListing.OnMannequin,
                         PricePerUnit = marketBoardHistoryListing.SalePrice,
                         Quantity = marketBoardHistoryListing.Quantity,
-                        Timestamp = ((DateTimeOffset) marketBoardHistoryListing.PurchaseTime).ToUnixTimeSeconds()
+                        Timestamp = ((DateTimeOffset) marketBoardHistoryListing.PurchaseTime).ToUnixTimeSeconds(),
                     });
 
                 client.Headers.Add(HttpRequestHeader.ContentType, "application/json");
@@ -102,7 +102,7 @@ namespace Dalamud.Game.Network.Universalis.MarketBoardUploaders {
                     Uldah = taxRates.UldahTax,
                     Ishgard = taxRates.IshgardTax,
                     Kugane = taxRates.KuganeTax,
-                    Crystarium = taxRates.CrystariumTax
+                    Crystarium = taxRates.CrystariumTax,
                 };
 
                 client.Headers.Add(HttpRequestHeader.ContentType, "application/json");

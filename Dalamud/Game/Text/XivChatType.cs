@@ -110,7 +110,7 @@ namespace Dalamud.Game.Text
         CrossLinkShell7 = 106,
 
         [XivChatTypeInfo("Crossworld Linkshell 8", "cw8", 0xFF1E90FF)]
-        CrossLinkShell8 = 107
+        CrossLinkShell8 = 107,
     }
 
     public static class XivChatTypeExtensions

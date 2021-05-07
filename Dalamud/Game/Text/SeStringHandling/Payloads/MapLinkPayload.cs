@@ -199,7 +199,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             var bytes = new List<byte>()
             {
                 START_BYTE,
-                (byte)SeStringChunkType.Interactable, (byte)chunkLen, (byte)EmbeddedInfoType.MapPositionLink
+                (byte)SeStringChunkType.Interactable, (byte)chunkLen, (byte)EmbeddedInfoType.MapPositionLink,
             };
 
             bytes.AddRange(packedTerritoryAndMapBytes);

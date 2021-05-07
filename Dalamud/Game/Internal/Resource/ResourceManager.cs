@@ -121,7 +121,7 @@ namespace Dalamud.Game.Internal.File
             }
 
             var hookInfo = new ResourceHandleHookInfo {
-                Path = path
+                Path = path,
             };
 
             var hookPath = Path.Combine(this.dalamud.StartInfo.WorkingDirectory, "ResourceHook", path);

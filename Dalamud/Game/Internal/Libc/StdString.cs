@@ -31,7 +31,7 @@ namespace Dalamud.Game.Internal.Libc {
 
                 return new StdString {
                     RawData = rawData,
-                    Value = Encoding.UTF8.GetString(rawData)
+                    Value = Encoding.UTF8.GetString(rawData),
                 };
             }
         }

@@ -87,7 +87,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
                 /* unk */ 0x01,
                 (byte)(this.serverId+1),                 // I didn't want to deal with single-byte values in MakeInteger, so we have to do the +1 manually
                 /* unk */0x01, /* unk */0xFF,       // these sometimes vary but are frequently this
-                (byte)(this.playerName.Length+1)
+                (byte)(this.playerName.Length+1),
             };
 
             bytes.AddRange(Encoding.UTF8.GetBytes(this.playerName));
@@ -104,7 +104,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             {
                 START_BYTE, (byte)SeStringChunkType.Interactable, 0x07, (byte)EmbeddedInfoType.LinkTerminator,
                 0x01, 0x01, 0x01, 0xFF, 0x01,
-                END_BYTE
+                END_BYTE,
             });
 
             return bytes.ToArray();

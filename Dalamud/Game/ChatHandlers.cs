@@ -18,7 +18,7 @@ namespace Dalamud.Game {
     public class ChatHandlers {
         private static readonly Dictionary<string, string> UnicodeToDiscordEmojiDict = new Dictionary<string, string> {
             {"", "<:ffxive071:585847382210642069>"},
-            {"", "<:ffxive083:585848592699490329>"}
+            {"", "<:ffxive083:585848592699490329>"},
         };
 
         private readonly Dalamud dalamud;
@@ -49,7 +49,7 @@ namespace Dalamud.Game {
             {XivChatType.PvPTeam, Color.SandyBrown},
             {XivChatType.Urgent, Color.DarkViolet},
             {XivChatType.NoviceNetwork, Color.SaddleBrown},
-            {XivChatType.Echo, Color.Gray}
+            {XivChatType.Echo, Color.Gray},
         };
 
         private readonly Regex rmtRegex =
@@ -60,21 +60,21 @@ namespace Dalamud.Game {
         private readonly Dictionary<ClientLanguage, Regex[]> retainerSaleRegexes = new Dictionary<ClientLanguage, Regex[]>() { {
                 ClientLanguage.Japanese, new Regex[] {
                     new Regex(@"^(?:.+)マーケットに(?<origValue>[\d,.]+)ギルで出品した(?<item>.*)×(?<count>[\d,.]+)が売れ、(?<value>[\d,.]+)ギルを入手しました。$", RegexOptions.Compiled),
-                    new Regex(@"^(?:.+)マーケットに(?<origValue>[\d,.]+)ギルで出品した(?<item>.*)が売れ、(?<value>[\d,.]+)ギルを入手しました。$", RegexOptions.Compiled) }
+                    new Regex(@"^(?:.+)マーケットに(?<origValue>[\d,.]+)ギルで出品した(?<item>.*)が売れ、(?<value>[\d,.]+)ギルを入手しました。$", RegexOptions.Compiled), }
             }, {
                 ClientLanguage.English, new Regex[] {
-                    new Regex(@"^(?<item>.+) you put up for sale in the (?:.+) markets (?:have|has) sold for (?<value>[\d,.]+) gil \(after fees\)\.$", RegexOptions.Compiled)
+                    new Regex(@"^(?<item>.+) you put up for sale in the (?:.+) markets (?:have|has) sold for (?<value>[\d,.]+) gil \(after fees\)\.$", RegexOptions.Compiled),
                 }
             }, {
                 ClientLanguage.German, new Regex[] {
                     new Regex(@"^Dein Gehilfe hat (?<item>.+) auf dem Markt von (?:.+) für (?<value>[\d,.]+) Gil verkauft\.$", RegexOptions.Compiled),
-                    new Regex(@"^Dein Gehilfe hat (?<item>.+) auf dem Markt von (?:.+) verkauft und (?<value>[\d,.]+) Gil erhalten\.$", RegexOptions.Compiled)
+                    new Regex(@"^Dein Gehilfe hat (?<item>.+) auf dem Markt von (?:.+) verkauft und (?<value>[\d,.]+) Gil erhalten\.$", RegexOptions.Compiled),
                 }
             }, {
                 ClientLanguage.French, new Regex[] {
-                    new Regex(@"^Un servant a vendu (?<item>.+) pour (?<value>[\d,.]+) gil à (?:.+)\.$", RegexOptions.Compiled)
+                    new Regex(@"^Un servant a vendu (?<item>.+) pour (?<value>[\d,.]+) gil à (?:.+)\.$", RegexOptions.Compiled),
                 }
-            }
+            },
         };
 
         private readonly Regex urlRegex =
@@ -207,7 +207,7 @@ namespace Dalamud.Game {
             if (string.IsNullOrEmpty(this.dalamud.Configuration.LastVersion) || !assemblyVersion.StartsWith(this.dalamud.Configuration.LastVersion)) {
                 this.dalamud.Framework.Gui.Chat.PrintChat(new XivChatEntry {
                     MessageBytes = Encoding.UTF8.GetBytes(Loc.Localize("DalamudUpdated", "The In-Game addon has been updated or was reinstalled successfully! Please check the discord for a full changelog.")),
-                    Type = XivChatType.Notice
+                    Type = XivChatType.Notice,
                 });
 
                 if (DalamudChangelogWindow.WarrantsChangelog)
@@ -238,7 +238,7 @@ namespace Dalamud.Game {
                                     new UIForegroundPayload(this.dalamud.Data, 0),
                                     new TextPayload("]"),
                                 }).Encode(),
-                                Type = XivChatType.Urgent
+                                Type = XivChatType.Urgent,
                             });
                         }
                     }
@@ -254,7 +254,7 @@ namespace Dalamud.Game {
             var italicString = new SeString(new List<Payload>(new Payload[] {
                 EmphasisItalicPayload.ItalicsOn,
                 new TextPayload(text),
-                EmphasisItalicPayload.ItalicsOff
+                EmphasisItalicPayload.ItalicsOff,
             }));
 
             return italicString;

@@ -377,7 +377,7 @@ namespace Dalamud.Game.Internal.Gui {
             var screenPos3D = new Vector3 {
                 X = localScreenPos.X / width * 2.0f - 1.0f,
                 Y = -(localScreenPos.Y / height * 2.0f - 1.0f),
-                Z = 0
+                Z = 0,
             };
 
             Vector3.TransformCoordinate(ref screenPos3D, ref viewProjectionMatrix, out var camPos);
@@ -408,7 +408,7 @@ namespace Dalamud.Game.Internal.Gui {
                 worldPos = new Vector3 {
                     X = worldPosArray[0],
                     Y = worldPosArray[1],
-                    Z = worldPosArray[2]
+                    Z = worldPosArray[2],
                 };
             }
 

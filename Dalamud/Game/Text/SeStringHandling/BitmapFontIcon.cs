@@ -115,6 +115,6 @@ namespace Dalamud.Game.Text.SeStringHandling {
         FateUnknownGold,
 
         OrangeDiamond,
-        FateCrafting
+        FateCrafting,
     }
 }

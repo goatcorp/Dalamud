@@ -28,7 +28,7 @@ namespace Dalamud.Plugin
             InProgress,
             Success,
             Fail,
-            FailThirdRepo
+            FailThirdRepo,
         }
 
         public InitializationState State { get; private set; }
@@ -286,14 +286,14 @@ namespace Dalamud.Plugin
                                     InternalName = remoteInfo.InternalName,
                                     Name = remoteInfo.Name,
                                     Version = testingAvailable ? remoteInfo.TestingAssemblyVersion : remoteInfo.AssemblyVersion,
-                                    WasUpdated = installSuccess
+                                    WasUpdated = installSuccess,
                                 });
                             } else {
                                 updatedList.Add(new PluginUpdateStatus {
                                     InternalName = remoteInfo.InternalName,
                                     Name = remoteInfo.Name,
                                     Version = testingAvailable ? remoteInfo.TestingAssemblyVersion : remoteInfo.AssemblyVersion,
-                                    WasUpdated = true
+                                    WasUpdated = true,
                                 });
                             }
                         } else {
@@ -323,7 +323,7 @@ namespace Dalamud.Plugin
                     } else {
                         this.dalamud.Framework.Gui.Chat.PrintChat(new XivChatEntry {
                             MessageBytes = Encoding.UTF8.GetBytes(string.Format(Loc.Localize("DalamudPluginUpdateFailed", "    》 {0} update to v{1} failed."), plugin.Name, plugin.Version)),
-                            Type = XivChatType.Urgent
+                            Type = XivChatType.Urgent,
                         });
                     }
                 }

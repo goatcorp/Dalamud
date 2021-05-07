@@ -66,7 +66,7 @@ namespace Dalamud.Game.Text.SeStringHandling
                 new ItemPayload(this.data, itemId, isHQ),
                 // arrow goes here
                 new TextPayload(displayName),
-                RawPayload.LinkTerminator
+                RawPayload.LinkTerminator,
                 // sometimes there is another set of uiglow/foreground off payloads here
                 // might be necessary when including additional text after the item name
             });
@@ -97,7 +97,7 @@ namespace Dalamud.Game.Text.SeStringHandling
                 mapPayload,
                 // arrow goes here
                 new TextPayload(nameString),
-                RawPayload.LinkTerminator
+                RawPayload.LinkTerminator,
             });
             payloads.InsertRange(1, TextArrowPayloads());
 
@@ -123,7 +123,7 @@ namespace Dalamud.Game.Text.SeStringHandling
                 mapPayload,
                 // arrow goes here
                 new TextPayload(nameString),
-                RawPayload.LinkTerminator
+                RawPayload.LinkTerminator,
             });
             payloads.InsertRange(1, TextArrowPayloads());
 
@@ -172,7 +172,7 @@ namespace Dalamud.Game.Text.SeStringHandling
                 new UIGlowPayload(this.data, 0x01F5),
                 new TextPayload($"{(char)SeIconChar.LinkMarker}"),
                 UIGlowPayload.UIGlowOff,
-                UIForegroundPayload.UIForegroundOff
+                UIForegroundPayload.UIForegroundOff,
             });
         }
     }

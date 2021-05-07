@@ -128,7 +128,7 @@ namespace Dalamud.Game.Text.SeStringHandling
             {
                 PreserveReferencesHandling = PreserveReferencesHandling.Objects,
                 ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-                TypeNameHandling = TypeNameHandling.Auto
+                TypeNameHandling = TypeNameHandling.Auto,
             });
         }
 
@@ -144,7 +144,7 @@ namespace Dalamud.Game.Text.SeStringHandling
             {
                 PreserveReferencesHandling = PreserveReferencesHandling.Objects,
                 TypeNameHandling = TypeNameHandling.Auto,
-                ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor
+                ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor,
             });
 
             foreach(var payload in s.Payloads)

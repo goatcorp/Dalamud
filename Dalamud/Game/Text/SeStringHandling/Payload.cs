@@ -230,7 +230,7 @@ namespace Dalamud.Game.Text.SeStringHandling
             Interactable = 0x27,
             AutoTranslateKey = 0x2E,
             UIForeground = 0x48,
-            UIGlow = 0x49
+            UIGlow = 0x49,
         }
 
         public enum EmbeddedInfoType
@@ -243,7 +243,7 @@ namespace Dalamud.Game.Text.SeStringHandling
 
             DalamudLink = 0x0F, // Dalamud Custom
 
-            LinkTerminator = 0xCF // not clear but seems to always follow a link
+            LinkTerminator = 0xCF, // not clear but seems to always follow a link
         }
 
 

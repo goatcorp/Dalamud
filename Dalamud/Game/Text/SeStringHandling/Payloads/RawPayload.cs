@@ -81,7 +81,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             {
                 START_BYTE,
                 this.chunkType,
-                (byte)chunkLen
+                (byte)chunkLen,
             };
             bytes.AddRange(this.data);
 

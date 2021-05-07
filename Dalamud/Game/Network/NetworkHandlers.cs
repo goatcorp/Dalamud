@@ -75,7 +75,7 @@ namespace Dalamud.Game.Network {
                         dwTimeout = 0,
                         dwFlags = NativeFunctions.FlashWindow.FLASHW_ALL |
                                         NativeFunctions.FlashWindow.FLASHW_TIMERNOFG,
-                        hwnd = Process.GetCurrentProcess().MainWindowHandle
+                        hwnd = Process.GetCurrentProcess().MainWindowHandle,
                     };
                     NativeFunctions.FlashWindowEx(ref flashInfo);
                 }
@@ -99,7 +99,7 @@ namespace Dalamud.Game.Network {
                         CatalogId = catalogId,
                         AmountToArrive = amount,
                         Listings = new List<MarketBoardCurrentOfferings.MarketBoardItemListing>(),
-                        History = new List<MarketBoardHistory.MarketBoardHistoryListing>()
+                        History = new List<MarketBoardHistory.MarketBoardHistoryListing>(),
                     });
 
                     Log.Verbose($"NEW MB REQUEST START: item#{catalogId} amount#{amount}");

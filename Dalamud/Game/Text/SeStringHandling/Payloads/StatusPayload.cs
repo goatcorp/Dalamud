@@ -58,7 +58,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             var chunkLen = idBytes.Length + 7;
             var bytes = new List<byte>()
             {
-                START_BYTE, (byte)SeStringChunkType.Interactable, (byte)chunkLen, (byte)EmbeddedInfoType.Status
+                START_BYTE, (byte)SeStringChunkType.Interactable, (byte)chunkLen, (byte)EmbeddedInfoType.Status,
             };
 
             bytes.AddRange(idBytes);

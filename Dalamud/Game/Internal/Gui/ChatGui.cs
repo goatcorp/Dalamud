@@ -307,7 +307,7 @@ namespace Dalamud.Game.Internal.Gui {
             Log.Verbose("[CHATGUI PRINT REGULAR]{0}", message);
             PrintChat(new XivChatEntry {
                 MessageBytes = Encoding.UTF8.GetBytes(message),
-                Type = this.dalamud.Configuration.GeneralChatType
+                Type = this.dalamud.Configuration.GeneralChatType,
             });
         }
 
@@ -315,7 +315,7 @@ namespace Dalamud.Game.Internal.Gui {
             Log.Verbose("[CHATGUI PRINT SESTRING]{0}", message.TextValue);
             PrintChat(new XivChatEntry {
                 MessageBytes = message.Encode(),
-                Type = this.dalamud.Configuration.GeneralChatType
+                Type = this.dalamud.Configuration.GeneralChatType,
             });
         }
 
@@ -323,7 +323,7 @@ namespace Dalamud.Game.Internal.Gui {
             Log.Verbose("[CHATGUI PRINT REGULAR ERROR]{0}", message);
             PrintChat(new XivChatEntry {
                 MessageBytes = Encoding.UTF8.GetBytes(message),
-                Type = XivChatType.Urgent
+                Type = XivChatType.Urgent,
             });
         }
 
@@ -331,7 +331,7 @@ namespace Dalamud.Game.Internal.Gui {
             Log.Verbose("[CHATGUI PRINT SESTRING ERROR]{0}", message.TextValue);
             PrintChat(new XivChatEntry {
                 MessageBytes = message.Encode(),
-                Type = XivChatType.Urgent
+                Type = XivChatType.Urgent,
             });
         }
 

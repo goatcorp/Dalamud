@@ -54,7 +54,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             var chunkLen = enabledBytes.Length + 1;
             var bytes = new List<byte>()
             {
-                START_BYTE, (byte)SeStringChunkType.EmphasisItalic, (byte)chunkLen
+                START_BYTE, (byte)SeStringChunkType.EmphasisItalic, (byte)chunkLen,
             };
             bytes.AddRange(enabledBytes);
             bytes.Add(END_BYTE);

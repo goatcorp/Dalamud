@@ -64,6 +64,6 @@ namespace Dalamud.Game.ClientState.Actors {
         /// </summary>
         Housing = 0x0C,
         Cutscene = 0x0D,
-        CardStand = 0x0E
+        CardStand = 0x0E,
     }
 }

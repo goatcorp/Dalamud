@@ -29,7 +29,7 @@ namespace Dalamud.Game.Internal.DXGI
                 OutputHandle = renderForm,
                 SampleDescription = new SampleDescription(1, 0),
                 SwapEffect = SwapEffect.Discard,
-                Usage = Usage.RenderTargetOutput
+                Usage = Usage.RenderTargetOutput,
             };
         }
 

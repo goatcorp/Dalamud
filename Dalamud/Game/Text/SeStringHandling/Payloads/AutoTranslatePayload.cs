@@ -75,7 +75,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             {
                 START_BYTE,
                 (byte)SeStringChunkType.AutoTranslateKey, (byte)chunkLen,
-                (byte)this.group
+                (byte)this.group,
             };
             bytes.AddRange(keyBytes);
             bytes.Add(END_BYTE);

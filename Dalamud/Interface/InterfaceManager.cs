@@ -373,7 +373,7 @@ namespace Dalamud.Interface
             {
                 0xE020,
                 0xE0DB,
-                0
+                0,
             }, GCHandleType.Pinned);
 
             ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPathGame, 17.0f, fontConfig, gameRangeHandle.AddrOfPinnedObject());
@@ -387,7 +387,7 @@ namespace Dalamud.Interface
             {
                 0xE000,
                 0xF8FF,
-                0
+                0,
             }, GCHandleType.Pinned);
             IconFont = ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPathIcon, 17.0f, null, iconRangeHandle.AddrOfPinnedObject());
 
