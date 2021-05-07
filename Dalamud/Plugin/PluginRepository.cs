@@ -187,7 +187,9 @@ namespace Dalamud.Plugin
 
                         var sortedVersions = versions.OrderBy(dirInfo => {
                             var success = Version.TryParse(dirInfo.Name, out Version version);
-                            if (!success) { Log.Debug("Unparseable version: {0}", dirInfo.Name); }
+                            if (!success) { 
+                                Log.Debug("Unparseable version: {0}", dirInfo.Name); 
+                            }
                             return version;
                         });
                         var latest = sortedVersions.Last();
@@ -338,7 +340,9 @@ namespace Dalamud.Plugin
 
                     var sortedVersions = versions.OrderBy(dirInfo => {
                         var success = Version.TryParse(dirInfo.Name, out Version version);
-                        if (!success) { Log.Debug("Unparseable version: {0}", dirInfo.Name); }
+                        if (!success) { 
+                            Log.Debug("Unparseable version: {0}", dirInfo.Name); 
+                        }
                         return version;
                     }).ToArray();
 

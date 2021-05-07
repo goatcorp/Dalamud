@@ -106,7 +106,9 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
                 // (again, if it's meant for another table)
                 row = sheet.GetRow(this.key);
             }
-            catch { }    // don't care, row will be null
+            catch
+            {
+            } // don't care, row will be null
 
             if (row?.Group == this.group)
             {

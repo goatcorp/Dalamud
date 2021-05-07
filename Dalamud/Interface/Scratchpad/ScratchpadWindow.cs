@@ -53,7 +53,10 @@ namespace Dalamud.Interface.Scratchpad
 
                 ImGui.SetItemDefaultFocus();
                 ImGui.SameLine();
-                if (ImGui.Button("Cancel", new Vector2(120, 0))) { ImGui.CloseCurrentPopup(); }
+                if (ImGui.Button("Cancel", new Vector2(120, 0)))
+                {
+                    ImGui.CloseCurrentPopup();
+                }
                 ImGui.EndPopup();
             }
 
