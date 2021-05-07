@@ -154,7 +154,7 @@ Thank you for using XIVLauncher and Dalamud!
             ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(0, 0));
 
             ImGui.Dummy(new Vector2(0, 340f) * ImGui.GetIO().FontGlobalScale);
-            ImGui.Text("");
+            ImGui.Text(string.Empty);
 
             ImGui.SameLine(150f);
             ImGui.Image(this.logoTexture.ImGuiHandle, new Vector2(190f, 190f) * ImGui.GetIO().FontGlobalScale);

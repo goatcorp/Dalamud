@@ -346,7 +346,7 @@ namespace Dalamud.Game.Internal.Gui {
                     continue;
                 }
 
-                var senderRaw = Encoding.UTF8.GetBytes(chat.Name ?? "");
+                var senderRaw = Encoding.UTF8.GetBytes(chat.Name ?? string.Empty);
                 using var senderOwned = framework.Libc.NewString(senderRaw);
 
                 var messageRaw = chat.MessageBytes ?? new byte[0];

@@ -1424,7 +1424,7 @@ namespace Dalamud.Interface
 
         public static string ToIconString(this FontAwesomeIcon icon)
         {
-            return "" + (char) icon;
+            return string.Empty + (char) icon;
         }
     }
 }

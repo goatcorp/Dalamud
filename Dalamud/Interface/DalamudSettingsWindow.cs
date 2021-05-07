@@ -271,7 +271,7 @@ namespace Dalamud.Interface
                     ImGui.NextColumn();
                     ImGui.Text("Enabled");
                     ImGui.NextColumn();
-                    ImGui.Text("");
+                    ImGui.Text(string.Empty);
                     ImGui.NextColumn();
 
                     ImGui.Separator();

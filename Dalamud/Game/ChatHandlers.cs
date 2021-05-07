@@ -154,7 +154,7 @@ namespace Dalamud.Game {
 
                     var valueInfo = matchInfo.Groups["value"];
                     // not sure if using a culture here would work correctly, so just strip symbols instead
-                    if (!valueInfo.Success || !int.TryParse(valueInfo.Value.Replace(",", "").Replace(".", ""), out var itemValue))
+                    if (!valueInfo.Success || !int.TryParse(valueInfo.Value.Replace(",", string.Empty).Replace(".", string.Empty), out var itemValue))
                         continue;
 
                     //Task.Run(() => this.dalamud.BotManager.ProcessRetainerSale(itemLink.Item.RowId, itemValue, itemLink.IsHQ));
