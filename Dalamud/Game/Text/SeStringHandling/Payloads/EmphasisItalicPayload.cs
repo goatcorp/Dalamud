@@ -49,7 +49,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         {
             // realistically this will always be a single byte of value 1 or 2
             // but we'll treat it normally anyway
-            var enabledBytes = MakeInteger(IsEnabled ? (uint)1 : 0);
+            var enabledBytes = MakeInteger(IsEnabled ? 1u : 0);
 
             var chunkLen = enabledBytes.Length + 1;
             var bytes = new List<byte>()
