@@ -19,7 +19,7 @@ namespace Dalamud.Game.Internal.Gui {
         public ToastGui Toast { get; private set; }
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-        private delegate IntPtr SetGlobalBgmDelegate(UInt16 bgmKey, byte a2, UInt32 a3, UInt32 a4, UInt32 a5, byte a6);
+        private delegate IntPtr SetGlobalBgmDelegate(ushort bgmKey, byte a2, uint a3, uint a4, uint a5, byte a6);
         private readonly Hook<SetGlobalBgmDelegate> setGlobalBgmHook;
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
@@ -166,7 +166,7 @@ namespace Dalamud.Game.Internal.Gui {
             this.getAgentModule = Marshal.GetDelegateForFunctionPointer<GetAgentModuleDelegate>(Address.GetAgentModule);
         }
 
-        private IntPtr HandleSetGlobalBgmDetour(UInt16 bgmKey, byte a2, UInt32 a3, UInt32 a4, UInt32 a5, byte a6) {
+        private IntPtr HandleSetGlobalBgmDetour(ushort bgmKey, byte a2, uint a3, uint a4, uint a5, byte a6) {
             var retVal = this.setGlobalBgmHook.Original(bgmKey, a2, a3, a4, a5, a6);
 
             Log.Verbose("SetGlobalBgm: {0} {1} {2} {3} {4} {5} -> {6}", bgmKey, a2, a3, a4, a5, a6, retVal);

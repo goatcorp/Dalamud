@@ -133,7 +133,7 @@ namespace Dalamud.Game.Internal.Network {
 
             BitConverter.GetBytes((short) cat).CopyTo(packetData, 0x10);
 
-            BitConverter.GetBytes((UInt32) param1).CopyTo(packetData, 0x14);
+            BitConverter.GetBytes((uint) param1).CopyTo(packetData, 0x14);
 
             InjectZoneProtoPacket(packetData);
         }
