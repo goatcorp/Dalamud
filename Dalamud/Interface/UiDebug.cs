@@ -259,7 +259,9 @@ namespace Dalamud.Interface {
 
                 ImGui.TreePop();
             }
-            else if(ImGui.IsItemHovered()) DrawOutline(node);
+            else if(ImGui.IsItemHovered()) {
+                DrawOutline(node);
+            }
 
             if (isVisible && !popped)
                 ImGui.PopStyleColor();
@@ -343,8 +345,9 @@ namespace Dalamud.Interface {
 
                 ImGui.TreePop();
             }
-            else if (ImGui.IsItemHovered()) DrawOutline(node);
-
+            else if (ImGui.IsItemHovered()) {
+                DrawOutline(node);
+            }
 
             if (isVisible && !popped)
                 ImGui.PopStyleColor();
