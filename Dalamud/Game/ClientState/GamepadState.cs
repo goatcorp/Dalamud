@@ -126,7 +126,7 @@ namespace Dalamud.Game.ClientState
         /// Gets or sets a value indicating whether detour should block gamepad input for game.
         ///
         /// Ideally, we would use
-        /// (ImGui.GetIO().ConfigFlags & ImGuiConfigFlags.NavEnableGamepad) > 0
+        /// (ImGui.GetIO().ConfigFlags &amp; ImGuiConfigFlags.NavEnableGamepad) > 0
         /// but this has a race condition during load with the detour which sets up ImGui
         /// and throws if our detour gets called before the other.
         /// </summary>
