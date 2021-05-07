@@ -81,7 +81,7 @@ namespace Dalamud.Game.Network {
                 }
 
                 Task.Run(() => {
-                    if(this.dalamud.Configuration.DutyFinderChatMessage)
+                    if (this.dalamud.Configuration.DutyFinderChatMessage)
                         this.dalamud.Framework.Gui.Chat.Print("Duty pop: " + cfcName);
 
                     CfPop?.Invoke(this, contentFinderCondition);

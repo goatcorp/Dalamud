@@ -259,7 +259,7 @@ namespace Dalamud.Interface {
 
                 ImGui.TreePop();
             }
-            else if(ImGui.IsItemHovered()) {
+            else if (ImGui.IsItemHovered()) {
                 DrawOutline(node);
             }
 

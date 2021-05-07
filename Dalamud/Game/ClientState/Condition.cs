@@ -29,7 +29,7 @@ namespace Dalamud.Game.ClientState
             {
                 var idx = ( int )flag;
                 
-                if( idx > MaxConditionEntries || idx < 0 )
+                if ( idx > MaxConditionEntries || idx < 0 )
                     return false;
                 
                 return *( bool* )( this.conditionArrayBase + idx );
