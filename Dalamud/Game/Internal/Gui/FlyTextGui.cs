@@ -1,12 +1,11 @@
 using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Hooking;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using Serilog;
-using SharpDX.Text;
 
 namespace Dalamud.Game.Internal.Gui
 {
@@ -171,6 +170,7 @@ namespace Dalamud.Game.Internal.Gui
         {
             try
             {
+                Log.Verbose("[Flytext] Enter Flytext detour!");
                 var numArray = (NumberArrayData*) numbers;
                 var strArray = (StringArrayData*) strings;
 
@@ -188,6 +188,7 @@ namespace Dalamud.Game.Internal.Gui
                 var dirty = false;
                 var handled = false;
 
+                Log.Verbose("[Flytext] Calling flytext events!");
                 this.OnFlyText?.Invoke(
                     ref tmpKind,
                     ref actorIndex,
@@ -201,11 +202,16 @@ namespace Dalamud.Game.Internal.Gui
                     ref handled);
 
                 // If handled, ignore the original call
-                if (handled) return;
+                if (handled)
+                {
+                    Log.Verbose("[Flytext] Flytext was handled.");
+                    return;
+                }
 
                 // If not dirty, make the original call
                 if (!dirty)
                 {
+                    Log.Verbose("[Flytext] Calling flytext with original args.");
                     this.addFlyTextHook.Original(
                         thisPtr,
                         actorIndex,
@@ -220,6 +226,8 @@ namespace Dalamud.Game.Internal.Gui
                     return;
                 }
 
+                Log.Verbose("[Flytext] Updating flytext values.");
+
                 // Update the flytext values
                 numArray->IntArray[offsetNum + 1] = (int)tmpKind;
                 numArray->IntArray[offsetNum + 2] = unchecked((int)tmpVal1);
@@ -230,24 +238,44 @@ namespace Dalamud.Game.Internal.Gui
                 var terminated1 = Terminate(tmpText1.Encode());
                 var terminated2 = Terminate(tmpText2.Encode());
 
-                // We can use fixed here as our text is copied into text nodes during the function
-                fixed (byte* pText1 = terminated1, pText2 = terminated2)
-                {
-                    strArray->StringArray[offsetStr + 0] = pText1;
-                    strArray->StringArray[offsetStr + 1] = pText2;
+                var pText1 = Marshal.AllocHGlobal(terminated1.Length);
+                var pText2 = Marshal.AllocHGlobal(terminated2.Length);
 
-                    this.addFlyTextHook.Original(
-                        thisPtr,
-                        actorIndex,
-                        messageMax,
-                        numbers,
-                        offsetNum,
-                        offsetNumMax,
-                        strings,
-                        offsetStr,
-                        offsetStrMax,
-                        unknown);
-                }
+                Marshal.Copy(terminated1, 0, pText1, terminated1.Length);
+                Marshal.Copy(terminated2, 0, pText2, terminated2.Length);
+
+                strArray->StringArray[offsetStr + 0] = (byte*)pText1;
+                strArray->StringArray[offsetStr + 1] = (byte*)pText2;
+
+                Log.Verbose("[Flytext] Allocated and set strings.");
+
+                this.addFlyTextHook.Original(
+                    thisPtr,
+                    actorIndex,
+                    messageMax,
+                    numbers,
+                    offsetNum,
+                    offsetNumMax,
+                    strings,
+                    offsetStr,
+                    offsetStrMax,
+                    unknown);
+
+                Log.Verbose("[Flytext] Returned from original. Delaying free task.");
+
+                Task.Delay(2000).ContinueWith(_ =>
+                {
+                    try
+                    {
+                        Marshal.FreeHGlobal(pText1);
+                        Marshal.FreeHGlobal(pText2);
+                        Log.Verbose("[Flytext] Freed strings.");
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Verbose(e, "[Flytext] Exception occurred freeing strings in task.");
+                    }
+                });
             }
             catch (Exception e)
             {
