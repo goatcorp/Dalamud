@@ -147,7 +147,7 @@ namespace Dalamud.Game.Text.SeStringHandling
                 ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor,
             });
 
-            foreach(var payload in s.Payloads)
+            foreach (var payload in s.Payloads)
             {
                 payload.DataResolver = dataManager;
             }
