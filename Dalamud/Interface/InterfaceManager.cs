@@ -55,6 +55,7 @@ namespace Dalamud.Interface
         private RawDX11Scene scene;
 
         public Device Device => this.scene.Device;
+
         public IntPtr WindowHandlePtr => this.scene.WindowHandlePtr;
 
         /// <summary>
@@ -67,6 +68,7 @@ namespace Dalamud.Interface
         }
 
         private delegate void InstallRTSSHook();
+
         private string rtssPath;
 
         public ImGuiIOPtr LastImGuiIoPtr;
@@ -89,14 +91,17 @@ namespace Dalamud.Interface
 
             this.fontBuildSignal = new ManualResetEvent(false);
 
-            try {
+            try
+            {
                 var sigResolver = new SwapChainSigResolver();
                 sigResolver.Setup(scanner);
 
                 Log.Verbose("Found SwapChain via signatures.");
 
                 Address = sigResolver;
-            } catch (Exception ex) {
+            }
+            catch (Exception ex)
+            {
                 // The SigScanner method fails on wine/proton since DXGI is not a real DLL. We fall back to vtable to detect our Present function address.
                 Log.Debug(ex, "Could not get SwapChain address via sig method, falling back to vtable...");
 
@@ -108,10 +113,12 @@ namespace Dalamud.Interface
                 Address = vtableResolver;
             }
 
-            try {
+            try
+            {
                 var rtss = NativeFunctions.GetModuleHandle("RTSSHooks64.dll");
 
-                if (rtss != IntPtr.Zero) {
+                if (rtss != IntPtr.Zero)
+                {
                     var fileName = new StringBuilder(255);
                     NativeFunctions.GetModuleFileName(rtss, fileName, fileName.Capacity);
                     this.rtssPath = fileName.ToString();
@@ -120,10 +127,11 @@ namespace Dalamud.Interface
                     if (!NativeFunctions.FreeLibrary(rtss))
                         throw new Win32Exception();
                 }
-            } catch (Exception e) {
+            }
+            catch (Exception e)
+            {
                 Log.Error(e, "RTSS Free failed");
             }
-            
 
             var setCursorAddr = LocalHook.GetProcAddress("user32.dll", "SetCursor");
 
@@ -145,15 +153,19 @@ namespace Dalamud.Interface
             this.presentHook.Enable();
             this.resizeBuffersHook.Enable();
 
-            try {
-                if (!string.IsNullOrEmpty(this.rtssPath)) {
+            try
+            {
+                if (!string.IsNullOrEmpty(this.rtssPath))
+                {
                     NativeFunctions.LoadLibrary(this.rtssPath);
 
                     var installAddr = LocalHook.GetProcAddress("RTSSHooks64.dll", "InstallRTSSHook");
                     var installDele = Marshal.GetDelegateForFunctionPointer<InstallRTSSHook>(installAddr);
                     installDele.Invoke();
                 }
-            } catch (Exception ex) {
+            }
+            catch (Exception ex)
+            {
                 Log.Error(ex, "Could not reload RTSS");
             }
         }
@@ -175,14 +187,14 @@ namespace Dalamud.Interface
             // So... not great, but much better than constantly crashing on unload
             this.Disable();
             System.Threading.Thread.Sleep(500);
-            
+
             this.scene?.Dispose();
             this.setCursorHook.Dispose();
             this.presentHook.Dispose();
             this.resizeBuffersHook.Dispose();
         }
 
-        public TextureWrap LoadImage(string filePath)
+        public TextureWrap? LoadImage(string filePath)
         {
             try
             {
@@ -192,10 +204,11 @@ namespace Dalamud.Interface
             {
                 Log.Error(ex, $"Failed to load image from {filePath}");
             }
+
             return null;
         }
 
-        public TextureWrap LoadImage(byte[] imageData)
+        public TextureWrap? LoadImage(byte[] imageData)
         {
             try
             {
@@ -205,10 +218,11 @@ namespace Dalamud.Interface
             {
                 Log.Error(ex, "Failed to load image from memory");
             }
+
             return null;
         }
 
-        public TextureWrap LoadImageRaw(byte[] imageData, int width, int height, int numChannels)
+        public TextureWrap? LoadImageRaw(byte[] imageData, int width, int height, int numChannels)
         {
             try
             {
@@ -218,6 +232,7 @@ namespace Dalamud.Interface
             {
                 Log.Error(ex, "Failed to load image from raw data");
             }
+
             return null;
         }
 
@@ -238,8 +253,8 @@ namespace Dalamud.Interface
 
         private IntPtr PresentDetour(IntPtr swapChain, uint syncInterval, uint presentFlags)
         {
-            if (this.scene == null) {
-            
+            if (this.scene == null)
+            {
                 this.scene = new RawDX11Scene(swapChain);
 
                 this.scene.ImGuiIniPath = Path.Combine(Path.GetDirectoryName(this.dalamud.StartInfo.ConfigurationPath), "dalamudUI.ini");
@@ -255,26 +270,26 @@ namespace Dalamud.Interface
                 ImGui.GetStyle().WindowMenuButtonPosition = ImGuiDir.Right;
                 ImGui.GetStyle().ScrollbarSize = 16f;
 
-                ImGui.GetStyle().Colors[(int) ImGuiCol.WindowBg] = new Vector4(0.06f, 0.06f, 0.06f, 0.87f);
-                ImGui.GetStyle().Colors[(int) ImGuiCol.FrameBg] = new Vector4(0.29f, 0.29f, 0.29f, 0.54f);
-                ImGui.GetStyle().Colors[(int) ImGuiCol.FrameBgHovered] = new Vector4(0.54f, 0.54f, 0.54f, 0.40f);
-                ImGui.GetStyle().Colors[(int) ImGuiCol.FrameBgActive] = new Vector4(0.64f, 0.64f, 0.64f, 0.67f);
-                ImGui.GetStyle().Colors[(int) ImGuiCol.TitleBgActive] = new Vector4(0.29f, 0.29f, 0.29f, 1.00f);
-                ImGui.GetStyle().Colors[(int) ImGuiCol.CheckMark] = new Vector4(0.86f, 0.86f, 0.86f, 1.00f);
-                ImGui.GetStyle().Colors[(int) ImGuiCol.SliderGrab] = new Vector4(0.54f, 0.54f, 0.54f, 1.00f);
-                ImGui.GetStyle().Colors[(int) ImGuiCol.SliderGrabActive] = new Vector4(0.67f, 0.67f, 0.67f, 1.00f);
-                ImGui.GetStyle().Colors[(int) ImGuiCol.Button] = new Vector4(0.71f, 0.71f, 0.71f, 0.40f);
-                ImGui.GetStyle().Colors[(int) ImGuiCol.ButtonHovered] = new Vector4(0.47f, 0.47f, 0.47f, 1.00f);
-                ImGui.GetStyle().Colors[(int) ImGuiCol.ButtonActive] = new Vector4(0.74f, 0.74f, 0.74f, 1.00f);
-                ImGui.GetStyle().Colors[(int) ImGuiCol.Header] = new Vector4(0.59f, 0.59f, 0.59f, 0.31f);
-                ImGui.GetStyle().Colors[(int) ImGuiCol.HeaderHovered] = new Vector4(0.50f, 0.50f, 0.50f, 0.80f);
-                ImGui.GetStyle().Colors[(int) ImGuiCol.HeaderActive] = new Vector4(0.60f, 0.60f, 0.60f, 1.00f);
-                ImGui.GetStyle().Colors[(int) ImGuiCol.ResizeGrip] = new Vector4(0.79f, 0.79f, 0.79f, 0.25f);
-                ImGui.GetStyle().Colors[(int) ImGuiCol.ResizeGripHovered] = new Vector4(0.78f, 0.78f, 0.78f, 0.67f);
-                ImGui.GetStyle().Colors[(int) ImGuiCol.ResizeGripActive] = new Vector4(0.88f, 0.88f, 0.88f, 0.95f);
-                ImGui.GetStyle().Colors[(int) ImGuiCol.Tab] = new Vector4(0.23f, 0.23f, 0.23f, 0.86f);
-                ImGui.GetStyle().Colors[(int) ImGuiCol.TabHovered] = new Vector4(0.71f, 0.71f, 0.71f, 0.80f);
-                ImGui.GetStyle().Colors[(int) ImGuiCol.TabActive] = new Vector4(0.36f, 0.36f, 0.36f, 1.00f);
+                ImGui.GetStyle().Colors[(int)ImGuiCol.WindowBg] = new Vector4(0.06f, 0.06f, 0.06f, 0.87f);
+                ImGui.GetStyle().Colors[(int)ImGuiCol.FrameBg] = new Vector4(0.29f, 0.29f, 0.29f, 0.54f);
+                ImGui.GetStyle().Colors[(int)ImGuiCol.FrameBgHovered] = new Vector4(0.54f, 0.54f, 0.54f, 0.40f);
+                ImGui.GetStyle().Colors[(int)ImGuiCol.FrameBgActive] = new Vector4(0.64f, 0.64f, 0.64f, 0.67f);
+                ImGui.GetStyle().Colors[(int)ImGuiCol.TitleBgActive] = new Vector4(0.29f, 0.29f, 0.29f, 1.00f);
+                ImGui.GetStyle().Colors[(int)ImGuiCol.CheckMark] = new Vector4(0.86f, 0.86f, 0.86f, 1.00f);
+                ImGui.GetStyle().Colors[(int)ImGuiCol.SliderGrab] = new Vector4(0.54f, 0.54f, 0.54f, 1.00f);
+                ImGui.GetStyle().Colors[(int)ImGuiCol.SliderGrabActive] = new Vector4(0.67f, 0.67f, 0.67f, 1.00f);
+                ImGui.GetStyle().Colors[(int)ImGuiCol.Button] = new Vector4(0.71f, 0.71f, 0.71f, 0.40f);
+                ImGui.GetStyle().Colors[(int)ImGuiCol.ButtonHovered] = new Vector4(0.47f, 0.47f, 0.47f, 1.00f);
+                ImGui.GetStyle().Colors[(int)ImGuiCol.ButtonActive] = new Vector4(0.74f, 0.74f, 0.74f, 1.00f);
+                ImGui.GetStyle().Colors[(int)ImGuiCol.Header] = new Vector4(0.59f, 0.59f, 0.59f, 0.31f);
+                ImGui.GetStyle().Colors[(int)ImGuiCol.HeaderHovered] = new Vector4(0.50f, 0.50f, 0.50f, 0.80f);
+                ImGui.GetStyle().Colors[(int)ImGuiCol.HeaderActive] = new Vector4(0.60f, 0.60f, 0.60f, 1.00f);
+                ImGui.GetStyle().Colors[(int)ImGuiCol.ResizeGrip] = new Vector4(0.79f, 0.79f, 0.79f, 0.25f);
+                ImGui.GetStyle().Colors[(int)ImGuiCol.ResizeGripHovered] = new Vector4(0.78f, 0.78f, 0.78f, 0.67f);
+                ImGui.GetStyle().Colors[(int)ImGuiCol.ResizeGripActive] = new Vector4(0.88f, 0.88f, 0.88f, 0.95f);
+                ImGui.GetStyle().Colors[(int)ImGuiCol.Tab] = new Vector4(0.23f, 0.23f, 0.23f, 0.86f);
+                ImGui.GetStyle().Colors[(int)ImGuiCol.TabHovered] = new Vector4(0.71f, 0.71f, 0.71f, 0.80f);
+                ImGui.GetStyle().Colors[(int)ImGuiCol.TabActive] = new Vector4(0.36f, 0.36f, 0.36f, 1.00f);
 
                 ImGui.GetIO().FontGlobalScale = this.dalamud.Configuration.GlobalUiScale;
 
@@ -330,6 +345,7 @@ namespace Dalamud.Interface
         }
 
         public static ImFontPtr DefaultFont { get; private set; }
+
         public static ImFontPtr IconFont { get; private set; }
 
         private static void ShowFontError(string path)
@@ -391,7 +407,8 @@ namespace Dalamud.Interface
             this.OnBuildFonts?.Invoke();
             Log.Verbose("[FONT] OnBuildFonts OK!");
 
-            for (var i = 0; i < ImGui.GetIO().Fonts.Fonts.Size; i++) {
+            for (var i = 0; i < ImGui.GetIO().Fonts.Fonts.Size; i++)
+            {
                 Log.Verbose("{0} - {1}", i, ImGui.GetIO().Fonts.Fonts[i].GetDebugName());
             }
 
@@ -409,7 +426,8 @@ namespace Dalamud.Interface
             this.FontsReady = true;
         }
 
-        public void WaitForFontRebuild() {
+        public void WaitForFontRebuild()
+        {
             this.fontBuildSignal.WaitOne();
         }
 
@@ -455,7 +473,8 @@ namespace Dalamud.Interface
         // can't access imgui IO before first present call
         private bool lastWantCapture = false;
 
-        private IntPtr SetCursorDetour(IntPtr hCursor) {
+        private IntPtr SetCursorDetour(IntPtr hCursor)
+        {
             if (this.lastWantCapture == true && (!scene?.IsImGuiCursor(hCursor) ?? false) && this.OverrideGameCursor)
                 return IntPtr.Zero;
 
@@ -524,7 +543,7 @@ namespace Dalamud.Interface
             // If the player has the game software cursor enabled, we can't really do anything about that and
             // they will see both cursors.
             // Doing this here because it's somewhat application-specific behavior
-            //ImGui.GetIO().MouseDrawCursor = ImGui.GetIO().WantCaptureMouse;
+            // ImGui.GetIO().MouseDrawCursor = ImGui.GetIO().WantCaptureMouse;
             this.LastImGuiIoPtr = ImGui.GetIO();
             this.lastWantCapture = this.LastImGuiIoPtr.WantCaptureMouse;
 

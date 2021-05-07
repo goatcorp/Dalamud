@@ -1,8 +1,5 @@
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
-using System.Text;
 
 namespace Dalamud.Game.Network.Structures
 {
@@ -14,7 +11,6 @@ namespace Dalamud.Game.Network.Structures
         public uint IshgardTax;
         public uint KuganeTax;
         public uint CrystariumTax;
-
 
         public static unsafe MarketTaxRates Read(IntPtr dataPtr)
         {

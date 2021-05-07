@@ -9,6 +9,7 @@ namespace Dalamud.Game.Internal.DXGI
     public sealed class SwapChainSigResolver : BaseAddressResolver, ISwapChainAddressResolver
     {
         public IntPtr Present { get; set; }
+
         public IntPtr ResizeBuffers { get; set; }
 
         protected override void Setup64Bit(SigScanner sig)

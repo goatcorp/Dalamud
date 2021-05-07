@@ -14,11 +14,12 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
     public class EmphasisItalicPayload : Payload
     {
         /// <summary>
-        /// Payload representing enabling italics on following text.
+        /// Gets a payload representing enabling italics on following text.
         /// </summary>
         public static EmphasisItalicPayload ItalicsOn => new EmphasisItalicPayload(true);
+
         /// <summary>
-        /// Payload representing disabling italics on following text.
+        /// Gets a payload representing disabling italics on following text.
         /// </summary>
         public static EmphasisItalicPayload ItalicsOff => new EmphasisItalicPayload(false);
 
@@ -29,9 +30,12 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         /// </summary>
         public bool IsEnabled { get; private set; }
 
-        internal EmphasisItalicPayload() { }
+        internal EmphasisItalicPayload()
+        {
+        }
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="EmphasisItalicPayload"/> class.
         /// Creates an EmphasisItalicPayload.
         /// </summary>
         /// <param name="enabled">Whether italics formatting should be enabled or disabled for following text.</param>

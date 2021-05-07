@@ -1,9 +1,10 @@
-namespace Dalamud.Game.Internal.Gui {
-    
+namespace Dalamud.Game.Internal.Gui
+{
     /// <summary>
     /// ActionKinds used in AgentActionDetail.
     /// </summary>
-    public enum HoverActionKind {
+    public enum HoverActionKind
+    {
         None = 0,
         Action = 21,
         GeneralAction = 23,

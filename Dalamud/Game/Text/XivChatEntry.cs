@@ -2,7 +2,8 @@ using System;
 
 namespace Dalamud.Game.Text
 {
-    public sealed class XivChatEntry {
+    public sealed class XivChatEntry
+    {
         public XivChatType Type { get; set; } = XivChatType.Debug;
 
         public uint SenderId { get; set; }

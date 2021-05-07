@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -107,7 +107,7 @@ namespace Dalamud.Game.Internal.Gui
             var bytes = new List<byte>();
             unsafe
             {
-                var ptr = (byte*) text;
+                var ptr = (byte*)text;
                 while (*ptr != 0)
                 {
                     bytes.Add(*ptr);
@@ -148,8 +148,8 @@ namespace Dalamud.Game.Internal.Gui
         /// <summary>
         /// Show a toast message with the given content.
         /// </summary>
-        /// <param name="message">The message to be shown</param>
-        /// <param name="options">Options for the toast</param>
+        /// <param name="message">The message to be shown.</param>
+        /// <param name="options">Options for the toast.</param>
         public void ShowNormal(string message, ToastOptions options = null)
         {
             options ??= new ToastOptions();
@@ -159,8 +159,8 @@ namespace Dalamud.Game.Internal.Gui
         /// <summary>
         /// Show a toast message with the given content.
         /// </summary>
-        /// <param name="message">The message to be shown</param>
-        /// <param name="options">Options for the toast</param>
+        /// <param name="message">The message to be shown.</param>
+        /// <param name="options">Options for the toast.</param>
         public void ShowNormal(SeString message, ToastOptions options = null)
         {
             options ??= new ToastOptions();
@@ -180,7 +180,7 @@ namespace Dalamud.Game.Internal.Gui
             {
                 fixed (byte* ptr = terminated)
                 {
-                    this.HandleNormalToastDetour(manager, (IntPtr) ptr, 5, (byte) options.Position, (byte) options.Speed, 0);
+                    this.HandleNormalToastDetour(manager, (IntPtr)ptr, 5, (byte)options.Position, (byte)options.Speed, 0);
                 }
             }
         }
@@ -192,8 +192,8 @@ namespace Dalamud.Game.Internal.Gui
         /// <summary>
         /// Show a quest toast message with the given content.
         /// </summary>
-        /// <param name="message">The message to be shown</param>
-        /// <param name="options">Options for the toast</param>
+        /// <param name="message">The message to be shown.</param>
+        /// <param name="options">Options for the toast.</param>
         public void ShowQuest(string message, QuestToastOptions options = null)
         {
             options ??= new QuestToastOptions();
@@ -203,8 +203,8 @@ namespace Dalamud.Game.Internal.Gui
         /// <summary>
         /// Show a quest toast message with the given content.
         /// </summary>
-        /// <param name="message">The message to be shown</param>
-        /// <param name="options">Options for the toast</param>
+        /// <param name="message">The message to be shown.</param>
+        /// <param name="options">Options for the toast.</param>
         public void ShowQuest(SeString message, QuestToastOptions options = null)
         {
             options ??= new QuestToastOptions();
@@ -228,10 +228,10 @@ namespace Dalamud.Game.Internal.Gui
                 {
                     this.HandleQuestToastDetour(
                         manager,
-                        (int) options.Position,
-                        (IntPtr) ptr,
+                        (int)options.Position,
+                        (IntPtr)ptr,
                         ioc1,
-                        options.PlaySound ? (byte) 1 : (byte) 0,
+                        options.PlaySound ? (byte)1 : (byte)0,
                         ioc2,
                         0);
                 }
@@ -245,7 +245,7 @@ namespace Dalamud.Game.Internal.Gui
         /// <summary>
         /// Show an error toast message with the given content.
         /// </summary>
-        /// <param name="message">The message to be shown</param>
+        /// <param name="message">The message to be shown.</param>
         public void ShowError(string message)
         {
             this.ErrorQueue.Enqueue(Encoding.UTF8.GetBytes(message));
@@ -254,7 +254,7 @@ namespace Dalamud.Game.Internal.Gui
         /// <summary>
         /// Show an error toast message with the given content.
         /// </summary>
-        /// <param name="message">The message to be shown</param>
+        /// <param name="message">The message to be shown.</param>
         public void ShowError(SeString message)
         {
             this.ErrorQueue.Enqueue(message.Encode());
@@ -271,7 +271,7 @@ namespace Dalamud.Game.Internal.Gui
             {
                 fixed (byte* ptr = terminated)
                 {
-                    this.HandleErrorToastDetour(manager, (IntPtr) ptr, 0);
+                    this.HandleErrorToastDetour(manager, (IntPtr)ptr, 0);
                 }
             }
         }
@@ -290,8 +290,8 @@ namespace Dalamud.Game.Internal.Gui
             var str = this.ParseString(text);
             var options = new ToastOptions
             {
-                Position = (ToastPosition) isTop,
-                Speed = (ToastSpeed) isFast,
+                Position = (ToastPosition)isTop,
+                Speed = (ToastSpeed)isFast,
             };
 
             this.OnToast?.Invoke(ref str, ref options, ref isHandled);
@@ -308,7 +308,7 @@ namespace Dalamud.Game.Internal.Gui
             {
                 fixed (byte* message = terminated)
                 {
-                    return this.showNormalToastHook.Original(manager, (IntPtr) message, layer, (byte) options.Position, (byte) options.Speed, logMessageId);
+                    return this.showNormalToastHook.Original(manager, (IntPtr)message, layer, (byte)options.Position, (byte)options.Speed, logMessageId);
                 }
             }
         }
@@ -325,7 +325,7 @@ namespace Dalamud.Game.Internal.Gui
             var str = this.ParseString(text);
             var options = new QuestToastOptions
             {
-                Position = (QuestToastPosition) position,
+                Position = (QuestToastPosition)position,
                 DisplayCheckmark = iconOrCheck1 == QuestToastCheckmarkMagic,
                 IconId = iconOrCheck1 == QuestToastCheckmarkMagic ? iconOrCheck2 : iconOrCheck1,
                 PlaySound = playSound == 1,
@@ -349,10 +349,10 @@ namespace Dalamud.Game.Internal.Gui
                 {
                     return this.showQuestToastHook.Original(
                         manager,
-                        (int) options.Position,
-                        (IntPtr) message,
+                        (int)options.Position,
+                        (IntPtr)message,
                         ioc1,
-                        options.PlaySound ? (byte) 1 : (byte) 0,
+                        options.PlaySound ? (byte)1 : (byte)0,
                         ioc2,
                         0);
                 }
@@ -384,7 +384,7 @@ namespace Dalamud.Game.Internal.Gui
             {
                 fixed (byte* message = terminated)
                 {
-                    return this.showErrorToastHook.Original(manager, (IntPtr) message, respectsHidingMaybe);
+                    return this.showErrorToastHook.Original(manager, (IntPtr)message, respectsHidingMaybe);
                 }
             }
         }

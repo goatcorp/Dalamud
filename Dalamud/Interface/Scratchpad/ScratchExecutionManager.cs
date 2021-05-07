@@ -52,11 +52,10 @@ namespace Dalamud.Interface.Scratchpad
             var options = ScriptOptions.Default
                                        .AddReferences(typeof(ImGui).Assembly)
                                        .AddReferences(typeof(Dalamud).Assembly)
-                                       .AddReferences(typeof(FFXIVClientStructs.Attributes.Addon)
-                                                          .Assembly)                    // FFXIVClientStructs
+                                       .AddReferences(typeof(FFXIVClientStructs.Attributes.Addon).Assembly) // FFXIVClientStructs
                                        .AddReferences(typeof(Lumina.GameData).Assembly) // Lumina
                                        .AddReferences(typeof(TerritoryType).Assembly) // Lumina.Excel
-                                       //.WithReferences(MetadataReference.CreateFromFile(typeof(ScratchExecutionManager).Assembly.Location))
+                                       // .WithReferences(MetadataReference.CreateFromFile(typeof(ScratchExecutionManager).Assembly.Location))
                                        .AddImports("System")
                                        .AddImports("System.IO")
                                        .AddImports("System.Reflection")

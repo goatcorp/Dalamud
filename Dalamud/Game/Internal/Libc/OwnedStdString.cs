@@ -3,19 +3,22 @@ using System.Runtime.InteropServices;
 
 using Serilog;
 
-namespace Dalamud.Game.Internal.Libc {
-    public sealed class OwnedStdString : IDisposable {
+namespace Dalamud.Game.Internal.Libc
+{
+    public sealed class OwnedStdString : IDisposable
+    {
         internal delegate void DeallocatorDelegate(IntPtr address);
-        
+
         // ala. the drop flag
         private bool isDisposed;
-        
+
         private readonly DeallocatorDelegate dealloc;
-        
+
         public IntPtr Address { get; private set; }
-        
+
         /// <summary>
-        /// Construct a wrapper around std::string
+        /// Initializes a new instance of the <see cref="OwnedStdString"/> class.
+        /// Construct a wrapper around std::string.
         /// </summary>
         /// <remarks>
         /// Violating any of these might cause an undefined hehaviour.
@@ -26,43 +29,51 @@ namespace Dalamud.Game.Internal.Libc {
         /// <param name="address"></param>
         /// <param name="dealloc">A deallocator function.</param>
         /// <returns></returns>
-        internal OwnedStdString(IntPtr address, DeallocatorDelegate dealloc) {
+        internal OwnedStdString(IntPtr address, DeallocatorDelegate dealloc)
+        {
             Address = address;
             this.dealloc = dealloc;
         }
-        
-        ~OwnedStdString() {
+
+        ~OwnedStdString()
+        {
             ReleaseUnmanagedResources();
         }
 
-        private void ReleaseUnmanagedResources() {
-            if (Address == IntPtr.Zero) {
+        private void ReleaseUnmanagedResources()
+        {
+            if (Address == IntPtr.Zero)
+            {
                 // Something got seriously fucked.
                 throw new AccessViolationException();
             }
-            
+
             // Deallocate inner string first
             this.dealloc(Address);
-            
+
             // Free the heap
             Marshal.FreeHGlobal(Address);
-            
+
             // Better safe (running on a nullptr) than sorry. (running on a dangling pointer)
             Address = IntPtr.Zero;
         }
 
-        public void Dispose() {
+        public void Dispose()
+        {
             // No double free plz, kthx.
-            if (this.isDisposed) {
+            if (this.isDisposed)
+            {
                 return;
-            } 
+            }
+
             this.isDisposed = true;
-            
+
             ReleaseUnmanagedResources();
             GC.SuppressFinalize(this);
         }
 
-        public StdString Read() {
+        public StdString Read()
+        {
             return StdString.ReadFromPointer(Address);
         }
     }

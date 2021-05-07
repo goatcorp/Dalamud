@@ -5,8 +5,10 @@ using Dalamud.Game.Internal.Gui.Structs;
 using Dalamud.Hooking;
 using Serilog;
 
-namespace Dalamud.Game.Internal.Gui {
-    public sealed class PartyFinderGui : IDisposable {
+namespace Dalamud.Game.Internal.Gui
+{
+    public sealed class PartyFinderGui : IDisposable
+    {
         #region Events
 
         public delegate void PartyFinderListingEventDelegate(PartyFinderListing listing, PartyFinderListingEventArgs args);
@@ -33,10 +35,13 @@ namespace Dalamud.Game.Internal.Gui {
         #endregion
 
         private Dalamud Dalamud { get; }
+
         private PartyFinderAddressResolver Address { get; }
+
         private IntPtr Memory { get; }
 
-        public PartyFinderGui(SigScanner scanner, Dalamud dalamud) {
+        public PartyFinderGui(SigScanner scanner, Dalamud dalamud)
+        {
             Dalamud = dalamud;
 
             Address = new PartyFinderAddressResolver();
@@ -47,26 +52,33 @@ namespace Dalamud.Game.Internal.Gui {
             this.receiveListingHook = new Hook<ReceiveListingDelegate>(Address.ReceiveListing, new ReceiveListingDelegate(HandleReceiveListingDetour));
         }
 
-        public void Enable() {
+        public void Enable()
+        {
             this.receiveListingHook.Enable();
         }
 
-        public void Dispose() {
+        public void Dispose()
+        {
             this.receiveListingHook.Dispose();
             Marshal.FreeHGlobal(Memory);
         }
 
-        private void HandleReceiveListingDetour(IntPtr managerPtr, IntPtr data) {
-            try {
+        private void HandleReceiveListingDetour(IntPtr managerPtr, IntPtr data)
+        {
+            try
+            {
                 HandleListingEvents(data);
-            } catch (Exception ex) {
+            }
+            catch (Exception ex)
+            {
                 Log.Error(ex, "Exception on ReceiveListing hook.");
             }
 
             this.receiveListingHook.Original(managerPtr, data);
         }
 
-        private void HandleListingEvents(IntPtr data) {
+        private void HandleListingEvents(IntPtr data)
+        {
             var dataPtr = data + 0x10;
 
             var packet = Marshal.PtrToStructure<PartyFinder.Packet>(dataPtr);
@@ -74,9 +86,11 @@ namespace Dalamud.Game.Internal.Gui {
             // rewriting is an expensive operation, so only do it if necessary
             var needToRewrite = false;
 
-            for (var i = 0; i < packet.listings.Length; i++) {
+            for (var i = 0; i < packet.listings.Length; i++)
+            {
                 // these are empty slots that are not shown to the player
-                if (packet.listings[i].IsNull()) {
+                if (packet.listings[i].IsNull())
+                {
                     continue;
                 }
 
@@ -84,7 +98,8 @@ namespace Dalamud.Game.Internal.Gui {
                 var args = new PartyFinderListingEventArgs(packet.batchNumber);
                 ReceiveListing?.Invoke(listing, args);
 
-                if (args.Visible) {
+                if (args.Visible)
+                {
                     continue;
                 }
 
@@ -93,7 +108,8 @@ namespace Dalamud.Game.Internal.Gui {
                 needToRewrite = true;
             }
 
-            if (!needToRewrite) {
+            if (!needToRewrite)
+            {
                 return;
             }
 
@@ -101,23 +117,21 @@ namespace Dalamud.Game.Internal.Gui {
             Marshal.StructureToPtr(packet, Memory, false);
 
             // copy our new memory over the game's
-            unsafe {
-                Buffer.MemoryCopy(
-                    (void*) Memory,
-                    (void*) dataPtr,
-                    PartyFinder.PacketInfo.PacketSize,
-                    PartyFinder.PacketInfo.PacketSize
-                );
+            unsafe
+            {
+                Buffer.MemoryCopy((void*)Memory, (void*)dataPtr, PartyFinder.PacketInfo.PacketSize, PartyFinder.PacketInfo.PacketSize);
             }
         }
     }
 
-    public class PartyFinderListingEventArgs {
+    public class PartyFinderListingEventArgs
+    {
         public int BatchNumber { get; }
 
         public bool Visible { get; set; } = true;
 
-        internal PartyFinderListingEventArgs(int batchNumber) {
+        internal PartyFinderListingEventArgs(int batchNumber)
+        {
             BatchNumber = batchNumber;
         }
     }

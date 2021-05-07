@@ -18,8 +18,9 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         public override PayloadType Type => PayloadType.AutoTranslateText;
 
         private string text;
+
         /// <summary>
-        /// The actual text displayed in-game for this payload.
+        /// Gets the actual text displayed in-game for this payload.
         /// </summary>
         /// <remarks>
         /// Value is evaluated lazily and cached.
@@ -41,9 +42,12 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         [JsonProperty]
         private uint key;
 
-        internal AutoTranslatePayload() { }
+        internal AutoTranslatePayload()
+        {
+        }
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="AutoTranslatePayload"/> class.
         /// Creates a new auto-translate payload.
         /// </summary>
         /// <param name="data">DataManager instance needed to resolve game data.</param>
@@ -53,7 +57,8 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         /// This table is somewhat complicated in structure, and so using this constructor may not be very nice.
         /// There is probably little use to create one of these, however.
         /// </remarks>
-        public AutoTranslatePayload(DataManager data, uint group, uint key) {
+        public AutoTranslatePayload(DataManager data, uint group, uint key)
+        {
             this.DataResolver = data;
             this.group = group;
             this.key = key;

@@ -232,7 +232,6 @@ namespace Dalamud
 
                 Log.Information("[T2] AntiDebug OK!");
 
-
                 this.WinSock2 = new WinSockHandlers();
 
                 Log.Information("[T2] WinSock OK!");

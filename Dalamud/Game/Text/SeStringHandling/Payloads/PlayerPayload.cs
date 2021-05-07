@@ -17,13 +17,18 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
 
         [JsonProperty]
         private string playerName;
+
         /// <summary>
         /// The player's displayed name.  This does not contain the server name.
         /// </summary>
         [JsonIgnore]
         public string PlayerName
         {
-            get { return this.playerName; }
+            get
+            {
+                return this.playerName;
+            }
+
             set
             {
                 this.playerName = value;
@@ -32,6 +37,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         }
 
         private World world;
+
         /// <summary>
         /// The Lumina object representing the player's home server.
         /// </summary>
@@ -58,15 +64,19 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         [JsonProperty]
         private uint serverId;
 
-        internal PlayerPayload() { }
+        internal PlayerPayload()
+        {
+        }
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="PlayerPayload"/> class.
         /// Create a PlayerPayload link for the specified player.
         /// </summary>
         /// <param name="data">DataManager instance needed to resolve game data.</param>
         /// <param name="playerName">The player's displayed name.</param>
         /// <param name="serverId">The player's home server id.</param>
-        public PlayerPayload(DataManager data, string playerName, uint serverId) {
+        public PlayerPayload(DataManager data, string playerName, uint serverId)
+        {
             this.DataResolver = data;
             this.playerName = playerName;
             this.serverId = serverId;
@@ -85,9 +95,10 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
                 START_BYTE,
                 (byte)SeStringChunkType.Interactable, (byte)chunkLen, (byte)EmbeddedInfoType.PlayerName,
                 /* unk */ 0x01,
-                (byte)(this.serverId+1),                 // I didn't want to deal with single-byte values in MakeInteger, so we have to do the +1 manually
-                /* unk */0x01, /* unk */0xFF,       // these sometimes vary but are frequently this
-                (byte)(this.playerName.Length+1),
+                (byte)(this.serverId + 1), // I didn't want to deal with single-byte values in MakeInteger, so we have to do the +1 manually
+                /* unk */ 0x01,
+                /* unk */ 0xFF,             // these sometimes vary but are frequently this
+                (byte)(this.playerName.Length + 1),
             };
 
             bytes.AddRange(Encoding.UTF8.GetBytes(this.playerName));

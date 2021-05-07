@@ -294,11 +294,9 @@ namespace Dalamud.Interface
 
                         // Addon Inspector
                         case 10:
-                        {
                             this.addonInspector ??= new UIDebug(this.dalamud);
                             this.addonInspector.Draw();
                             break;
-                        }
 
                         // StartInfo
                         case 11:
@@ -532,7 +530,7 @@ namespace Dalamud.Interface
 
                         ImGui.SetNextWindowPos(new Vector2(screenCoords.X, screenCoords.Y));
 
-                        ImGui.SetNextWindowBgAlpha(Math.Max(1f - actor.YalmDistanceX / this.maxActorDrawDistance, 0.2f));
+                        ImGui.SetNextWindowBgAlpha(Math.Max(1f - (actor.YalmDistanceX / this.maxActorDrawDistance), 0.2f));
                         if (ImGui.Begin(
                                 $"Actor{i}##ActorWindow{i}",
                                 ImGuiWindowFlags.NoDecoration |
@@ -573,9 +571,11 @@ namespace Dalamud.Interface
                 });
             }
 
-            if (ImGui.Button("Remove test sub")) i1.Unsubscribe("DalamudTestPub");
+            if (ImGui.Button("Remove test sub"))
+                i1.Unsubscribe("DalamudTestPub");
 
-            if (ImGui.Button("Remove test sub any")) i1.UnsubscribeAny();
+            if (ImGui.Button("Remove test sub any"))
+                i1.UnsubscribeAny();
 
             if (ImGui.Button("Send test message"))
             {

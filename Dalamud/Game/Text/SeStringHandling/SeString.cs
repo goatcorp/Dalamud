@@ -19,10 +19,10 @@ namespace Dalamud.Game.Text.SeStringHandling
         public List<Payload> Payloads { get; }
 
         /// <summary>
-        /// Helper function to get all raw text from a message as a single joined string
+        /// Helper function to get all raw text from a message as a single joined string.
         /// </summary>
         /// <returns>
-        /// All the raw text from the contained payloads, joined into a single string
+        /// All the raw text from the contained payloads, joined into a single string.
         /// </returns>
         public string TextValue
         {
@@ -38,11 +38,12 @@ namespace Dalamud.Game.Text.SeStringHandling
         /// <summary>
         /// Implicitly convert a string into a SeString containing a <see cref="TextPayload"/>.
         /// </summary>
-        /// <param name="str">string to convert</param>
-        /// <returns>Equivalent SeString</returns>
+        /// <param name="str">string to convert.</param>
+        /// <returns>Equivalent SeString.</returns>
         public static implicit operator SeString(string str) => new SeString(new Payload[] { new TextPayload(str) });
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="SeString"/> class.
         /// Creates a new SeString from an ordered list of payloads.
         /// </summary>
         /// <param name="payloads">The Payload objects to make up this string.</param>
@@ -53,6 +54,7 @@ namespace Dalamud.Game.Text.SeStringHandling
         }
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="SeString"/> class.
         /// Creates a new SeString from an ordered list of payloads.
         /// </summary>
         /// <param name="payloads">The Payload objects to make up this string.</param>
@@ -113,15 +115,16 @@ namespace Dalamud.Game.Text.SeStringHandling
         /// <summary>
         /// Get the text value of this SeString.
         /// </summary>
-        /// <returns>The TextValue property</returns>
-        public override string ToString() {
+        /// <returns>The TextValue property.</returns>
+        public override string ToString()
+        {
             return TextValue;
         }
 
         /// <summary>
-        /// Serializes the SeString to json
+        /// Serializes the SeString to json.
         /// </summary>
-        /// <returns>An json representation of this object</returns>
+        /// <returns>An json representation of this object.</returns>
         public string ToJson()
         {
             return JsonConvert.SerializeObject(this, Formatting.Indented, new JsonSerializerSettings()
@@ -135,9 +138,9 @@ namespace Dalamud.Game.Text.SeStringHandling
         /// <summary>
         /// Creates a SeString from a json. (For testing - not recommended for production use.)
         /// </summary>
-        /// <param name="json">A serialized SeString produced by ToJson() <see cref="ToJson"/></param>
+        /// <param name="json">A serialized SeString produced by ToJson() <see cref="ToJson"/>.</param>
         /// <param name="dataManager">An initialized instance of DataManager for Lumina queries.</param>
-        /// <returns>A SeString initialized with values from the json</returns>
+        /// <returns>A SeString initialized with values from the json.</returns>
         public static SeString FromJson(string json, DataManager dataManager)
         {
             var s = JsonConvert.DeserializeObject<SeString>(json, new JsonSerializerSettings

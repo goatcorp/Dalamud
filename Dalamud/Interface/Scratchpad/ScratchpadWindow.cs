@@ -25,8 +25,8 @@ namespace Dalamud.Interface.Scratchpad
 
         private string pathInput = string.Empty;
 
-        public ScratchpadWindow(Dalamud dalamud) :
-            base("Plugin Scratchpad", ImGuiWindowFlags.MenuBar)
+        public ScratchpadWindow(Dalamud dalamud)
+            : base("Plugin Scratchpad", ImGuiWindowFlags.MenuBar)
         {
             this.dalamud = dalamud;
             this.documents.Add(new ScratchpadDocument());
@@ -57,6 +57,7 @@ namespace Dalamud.Interface.Scratchpad
                 {
                     ImGui.CloseCurrentPopup();
                 }
+
                 ImGui.EndPopup();
             }
 

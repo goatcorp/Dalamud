@@ -1,8 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
-namespace Dalamud.Game.Internal.Gui.Structs {
-
-    public class AddonOffsets {
+namespace Dalamud.Game.Internal.Gui.Structs
+{
+    public class AddonOffsets
+    {
         public const int Name = 0x8;
         public const int RootNode = 0xC8;
         public const int Flags = 0x182;
@@ -12,15 +14,25 @@ namespace Dalamud.Game.Internal.Gui.Structs {
     }
 
     [StructLayout(LayoutKind.Explicit)]
-    public struct Addon {
-        [FieldOffset(AddonOffsets.Name), MarshalAs(UnmanagedType.ByValTStr, SizeConst = 20)]
+    public struct Addon
+    {
+        [FieldOffset(AddonOffsets.Name)]
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 20)]
         public string Name;
 
-        [FieldOffset(AddonOffsets.Flags)] public byte Flags;
-        [FieldOffset(AddonOffsets.X)] public short X;
-        [FieldOffset(AddonOffsets.Y)] public short Y;
-        [FieldOffset(AddonOffsets.Scale)] public float Scale;
-        [FieldOffset(AddonOffsets.RootNode)] public unsafe AtkResNode* RootNode;
+        [FieldOffset(AddonOffsets.Flags)]
+        public byte Flags;
 
+        [FieldOffset(AddonOffsets.X)]
+        public short X;
+
+        [FieldOffset(AddonOffsets.Y)]
+        public short Y;
+
+        [FieldOffset(AddonOffsets.Scale)]
+        public float Scale;
+
+        [FieldOffset(AddonOffsets.RootNode)]
+        public unsafe AtkResNode* RootNode;
     }
 }

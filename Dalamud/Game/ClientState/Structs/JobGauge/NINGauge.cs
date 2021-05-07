@@ -6,13 +6,18 @@ namespace Dalamud.Game.ClientState.Structs.JobGauge
     [StructLayout(LayoutKind.Explicit)]
     public struct NINGauge
     {
-        [FieldOffset(0)] public int HutonTimeLeft;
-        [FieldOffset(4)] public byte Ninki;
+        [FieldOffset(0)]
+        public int HutonTimeLeft;
+
+        [FieldOffset(4)]
+        public byte Ninki;
 
         [Obsolete("Does not appear to be used")]
-        [FieldOffset(4)] public byte TCJMudrasUsed;
+        [FieldOffset(4)]
+        public byte TCJMudrasUsed;
 
         [Obsolete("Does not appear to be used")]
-        [FieldOffset(6)] public byte NumHutonManualCasts;
+        [FieldOffset(6)]
+        public byte NumHutonManualCasts;
     }
 }

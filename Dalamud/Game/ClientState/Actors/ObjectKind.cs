@@ -1,8 +1,10 @@
-namespace Dalamud.Game.ClientState.Actors {
+namespace Dalamud.Game.ClientState.Actors
+{
     /// <summary>
     ///     Enum describing possible entity kinds.
     /// </summary>
-    public enum ObjectKind : byte {
+    public enum ObjectKind : byte
+    {
         /// <summary>
         ///     Invalid actor.
         /// </summary>

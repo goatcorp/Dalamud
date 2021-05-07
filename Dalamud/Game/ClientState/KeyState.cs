@@ -7,7 +7,7 @@ namespace Dalamud.Game.ClientState
 {
     /// <summary>
     /// Wrapper around the game keystate buffer, which contains the pressed state for
-    /// all keyboard keys, indexed by virtual vkCode
+    /// all keyboard keys, indexed by virtual vkCode.
     /// </summary>
     public class KeyState
     {
@@ -34,7 +34,7 @@ namespace Dalamud.Game.ClientState
         {
             get
             {
-                if (vkCode< 0 || vkCode > MaxKeyCodeIndex)
+                if (vkCode < 0 || vkCode > MaxKeyCodeIndex)
                     throw new ArgumentException($"Keycode state only appears to be valid up to {MaxKeyCodeIndex}");
 
                 return Marshal.ReadInt32(this.bufferBase + (4 * vkCode)) != 0;

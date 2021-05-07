@@ -26,8 +26,9 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         public bool IsEnabled => ColorKey != 0;
 
         private UIColor color;
+
         /// <summary>
-        /// A Lumina UIColor object representing this payload.  The actual color data is at UIColor.UIForeground
+        /// A Lumina UIColor object representing this payload.  The actual color data is at UIColor.UIForeground.
         /// </summary>
         /// <remarks>
         /// Value is evaluated lazily and cached.
@@ -48,7 +49,11 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         [JsonIgnore]
         public ushort ColorKey
         {
-            get { return this.colorKey; }
+            get
+            {
+                return this.colorKey;
+            }
+
             set
             {
                 this.colorKey = value;
@@ -72,14 +77,18 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         [JsonProperty]
         private ushort colorKey;
 
-        internal UIForegroundPayload() { }
+        internal UIForegroundPayload()
+        {
+        }
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="UIForegroundPayload"/> class.
         /// Creates a new UIForegroundPayload for the given UIColor key.
         /// </summary>
         /// <param name="data">DataManager instance needed to resolve game data.</param>
         /// <param name="colorKey"></param>
-        public UIForegroundPayload(DataManager data, ushort colorKey) {
+        public UIForegroundPayload(DataManager data, ushort colorKey)
+        {
             this.DataResolver = data;
             this.colorKey = colorKey;
         }

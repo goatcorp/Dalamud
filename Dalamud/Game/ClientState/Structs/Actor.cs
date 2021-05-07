@@ -55,44 +55,117 @@ namespace Dalamud.Game.ClientState.Structs
     [StructLayout(LayoutKind.Explicit, Pack = 2)]
     public struct Actor
     {
-        [FieldOffset(ActorOffsets.Name)] [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 30)] public string Name;
-        [FieldOffset(ActorOffsets.ActorId)] public int ActorId;
-        [FieldOffset(ActorOffsets.DataId)] public int DataId;
-        [FieldOffset(ActorOffsets.OwnerId)] public int OwnerId;
-        [FieldOffset(ActorOffsets.ObjectKind)] public ObjectKind ObjectKind;
-        [FieldOffset(ActorOffsets.SubKind)] public byte SubKind;
-        [FieldOffset(ActorOffsets.IsFriendly)] public bool IsFriendly;
-        [FieldOffset(ActorOffsets.YalmDistanceFromPlayerX)] public byte YalmDistanceFromPlayerX; // Demo says one of these is x distance
-        [FieldOffset(ActorOffsets.PlayerTargetStatus)] public byte PlayerTargetStatus; // This is some kind of enum
-        [FieldOffset(ActorOffsets.YalmDistanceFromPlayerY)] public byte YalmDistanceFromPlayerY; // and the other is z distance
-        [FieldOffset(ActorOffsets.Position)] public Position3 Position;
-        [FieldOffset(ActorOffsets.Rotation)] public float Rotation; // Rotation around the vertical axis (yaw), from -pi to pi radians
-        [FieldOffset(ActorOffsets.HitboxRadius)] public float HitboxRadius;
-        [FieldOffset(ActorOffsets.CurrentHp)] public int CurrentHp;
-        [FieldOffset(ActorOffsets.MaxHp)] public int MaxHp;
-        [FieldOffset(ActorOffsets.CurrentMp)] public int CurrentMp;
-        [FieldOffset(ActorOffsets.MaxMp)] public short MaxMp;
-        [FieldOffset(ActorOffsets.CurrentGp)] public short CurrentGp;
-        [FieldOffset(ActorOffsets.MaxGp)] public short MaxGp;
-        [FieldOffset(ActorOffsets.CurrentCp)] public short CurrentCp;
-        [FieldOffset(ActorOffsets.MaxCp)] public short MaxCp;
-        [FieldOffset(ActorOffsets.ClassJob)] public byte ClassJob;
-        [FieldOffset(ActorOffsets.Level)] public byte Level;
-        [FieldOffset(ActorOffsets.PlayerCharacterTargetActorId)] public int PlayerCharacterTargetActorId;
-        [FieldOffset(ActorOffsets.Customize)] [MarshalAs(UnmanagedType.ByValArray, SizeConst = 28)] public byte[] Customize;
+        [FieldOffset(ActorOffsets.Name)]
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 30)]
+        public string Name;
+
+        [FieldOffset(ActorOffsets.ActorId)]
+        public int ActorId;
+
+        [FieldOffset(ActorOffsets.DataId)]
+        public int DataId;
+
+        [FieldOffset(ActorOffsets.OwnerId)]
+        public int OwnerId;
+
+        [FieldOffset(ActorOffsets.ObjectKind)]
+        public ObjectKind ObjectKind;
+
+        [FieldOffset(ActorOffsets.SubKind)]
+        public byte SubKind;
+
+        [FieldOffset(ActorOffsets.IsFriendly)]
+        public bool IsFriendly;
+
+        [FieldOffset(ActorOffsets.YalmDistanceFromPlayerX)]
+        public byte YalmDistanceFromPlayerX; // Demo says one of these is x distance
+
+        [FieldOffset(ActorOffsets.PlayerTargetStatus)]
+        public byte PlayerTargetStatus; // This is some kind of enum
+
+        [FieldOffset(ActorOffsets.YalmDistanceFromPlayerY)]
+        public byte YalmDistanceFromPlayerY; // and the other is z distance
+
+        [FieldOffset(ActorOffsets.Position)]
+        public Position3 Position;
+
+        [FieldOffset(ActorOffsets.Rotation)]
+        public float Rotation; // Rotation around the vertical axis (yaw), from -pi to pi radians
+
+        [FieldOffset(ActorOffsets.HitboxRadius)]
+        public float HitboxRadius;
+
+        [FieldOffset(ActorOffsets.CurrentHp)]
+        public int CurrentHp;
+
+        [FieldOffset(ActorOffsets.MaxHp)]
+        public int MaxHp;
+
+        [FieldOffset(ActorOffsets.CurrentMp)]
+        public int CurrentMp;
+
+        [FieldOffset(ActorOffsets.MaxMp)]
+        public short MaxMp;
+
+        [FieldOffset(ActorOffsets.CurrentGp)]
+        public short CurrentGp;
+
+        [FieldOffset(ActorOffsets.MaxGp)]
+        public short MaxGp;
+
+        [FieldOffset(ActorOffsets.CurrentCp)]
+        public short CurrentCp;
+
+        [FieldOffset(ActorOffsets.MaxCp)]
+        public short MaxCp;
+
+        [FieldOffset(ActorOffsets.ClassJob)]
+        public byte ClassJob;
+
+        [FieldOffset(ActorOffsets.Level)]
+        public byte Level;
+
+        [FieldOffset(ActorOffsets.PlayerCharacterTargetActorId)]
+        public int PlayerCharacterTargetActorId;
+
+        [FieldOffset(ActorOffsets.Customize)]
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 28)]
+        public byte[] Customize;
 
         // Normally pack=2 should work, but ByTVal or Injection breaks this.
         // [FieldOffset(ActorOffsets.CompanyTag)] [MarshalAs(UnmanagedType.ByValArray, SizeConst = 6)] public string CompanyTag;
-        [FieldOffset(ActorOffsets.BattleNpcTargetActorId)] public int BattleNpcTargetActorId;
-        [FieldOffset(ActorOffsets.NameId)] public int NameId;
-        [FieldOffset(ActorOffsets.CurrentWorld)] public ushort CurrentWorld;
-        [FieldOffset(ActorOffsets.HomeWorld)] public ushort HomeWorld;
-        [FieldOffset(ActorOffsets.IsCasting)] public bool IsCasting;
-        [FieldOffset(ActorOffsets.IsCasting2)] public bool IsCasting2;
-        [FieldOffset(ActorOffsets.CurrentCastSpellActionId)] public uint CurrentCastSpellActionId;
-        [FieldOffset(ActorOffsets.CurrentCastTargetActorId)] public uint CurrentCastTargetActorId;
-        [FieldOffset(ActorOffsets.CurrentCastTime)] public float CurrentCastTime;
-        [FieldOffset(ActorOffsets.TotalCastTime)] public float TotalCastTime;
-        [FieldOffset(ActorOffsets.UIStatusEffects)] [MarshalAs(UnmanagedType.ByValArray, SizeConst = 20)] public StatusEffect[] UIStatusEffects;
+        [FieldOffset(ActorOffsets.BattleNpcTargetActorId)]
+        public int BattleNpcTargetActorId;
+
+        [FieldOffset(ActorOffsets.NameId)]
+        public int NameId;
+
+        [FieldOffset(ActorOffsets.CurrentWorld)]
+        public ushort CurrentWorld;
+
+        [FieldOffset(ActorOffsets.HomeWorld)]
+        public ushort HomeWorld;
+
+        [FieldOffset(ActorOffsets.IsCasting)]
+        public bool IsCasting;
+
+        [FieldOffset(ActorOffsets.IsCasting2)]
+        public bool IsCasting2;
+
+        [FieldOffset(ActorOffsets.CurrentCastSpellActionId)]
+        public uint CurrentCastSpellActionId;
+
+        [FieldOffset(ActorOffsets.CurrentCastTargetActorId)]
+        public uint CurrentCastTargetActorId;
+
+        [FieldOffset(ActorOffsets.CurrentCastTime)]
+        public float CurrentCastTime;
+
+        [FieldOffset(ActorOffsets.TotalCastTime)]
+        public float TotalCastTime;
+
+        [FieldOffset(ActorOffsets.UIStatusEffects)]
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 20)]
+        public StatusEffect[] UIStatusEffects;
     }
 }

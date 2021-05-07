@@ -10,12 +10,14 @@ namespace Dalamud.Game
     {
         [UnmanagedFunctionPointer(CallingConvention.Winapi)]
         private delegate IntPtr SocketDelegate(int af, int type, int protocol);
+
         private Hook<SocketDelegate> ws2SocketHook;
 
         [DllImport("ws2_32.dll", CallingConvention = CallingConvention.Winapi)]
         private static extern int setsockopt(IntPtr socket, SocketOptionLevel level, SocketOptionName optName, ref IntPtr optVal, int optLen);
 
-        public WinSockHandlers() {
+        public WinSockHandlers()
+        {
             this.ws2SocketHook = Hook<SocketDelegate>.FromSymbol("ws2_32.dll", "socket", new SocketDelegate(OnSocket));
             this.ws2SocketHook.Enable();
         }
@@ -27,7 +29,7 @@ namespace Dalamud.Game
             // IPPROTO_TCP
             if (type == 1)
             {
-                // INVALID_SOCKET 
+                // INVALID_SOCKET
                 if (socket != new IntPtr(-1))
                 {
                     // In case you're not aware of it: (albeit you should)
@@ -45,7 +47,8 @@ namespace Dalamud.Game
             return socket;
         }
 
-        public void Dispose() {
+        public void Dispose()
+        {
             ws2SocketHook.Dispose();
         }
     }

@@ -16,6 +16,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         // allow modifying the text of existing payloads on the fly
         [JsonProperty]
         private string text;
+
         /// <summary>
         /// The text contained in this payload.
         /// This may contain SE's special unicode characters.
@@ -23,7 +24,11 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         [JsonIgnore]
         public string Text
         {
-            get { return this.text; }
+            get
+            {
+                return this.text;
+            }
+
             set
             {
                 this.text = value;
@@ -36,9 +41,12 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             return $"{Type} - Text: {Text}";
         }
 
-        internal TextPayload() { }
+        internal TextPayload()
+        {
+        }
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="TextPayload"/> class.
         /// Creates a new TextPayload for the given text.
         /// </summary>
         /// <param name="text">The text to include for this payload.</param>

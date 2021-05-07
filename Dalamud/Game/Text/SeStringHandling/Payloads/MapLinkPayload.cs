@@ -16,6 +16,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         public override PayloadType Type => PayloadType.MapLink;
 
         private Map map;
+
         /// <summary>
         /// The Map specified for this map link.
         /// </summary>
@@ -33,6 +34,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         }
 
         private TerritoryType territoryType;
+
         /// <summary>
         /// The TerritoryType specified for this map link.
         /// </summary>
@@ -60,6 +62,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         public int RawY { get; private set; }
 
         // these could be cached, but this isn't really too egregious
+
         /// <summary>
         /// The readable x-coordinate position for this map link.  This value is approximate and unrounded.
         /// </summary>
@@ -96,8 +99,8 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
                 // the fudge also just attempts to correct the truncated/displayed value for rounding/fp issues
                 // TODO: should this fudge factor be the same as in the ctor? currently not since that is customizable
                 const float fudge = 0.02f;
-                var x = Math.Truncate((XCoord+fudge) * 10.0f) / 10.0f;
-                var y = Math.Truncate((YCoord+fudge) * 10.0f) / 10.0f;
+                var x = Math.Truncate((XCoord + fudge) * 10.0f) / 10.0f;
+                var y = Math.Truncate((YCoord + fudge) * 10.0f) / 10.0f;
 
                 // the formatting and spacing the game uses
                 return $"( {x.ToString("0.0")}  , {y.ToString("0.0")} )";
@@ -105,8 +108,9 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         }
 
         private string placeNameRegion;
+
         /// <summary>
-        /// The region name for this map link.  This corresponds to the upper zone name found in the actual in-game map UI.  eg, "La Noscea"
+        /// The region name for this map link.  This corresponds to the upper zone name found in the actual in-game map UI.  eg, "La Noscea".
         /// </summary>
         [JsonIgnore]
         public string PlaceNameRegion
@@ -119,8 +123,9 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         }
 
         private string placeName;
+
         /// <summary>
-        /// The place name for this map link.  This corresponds to the lower zone name found in the actual in-game map UI.  eg, "Limsa Lominsa Upper Decks"
+        /// The place name for this map link.  This corresponds to the lower zone name found in the actual in-game map UI.  eg, "Limsa Lominsa Upper Decks".
         /// </summary>
         [JsonIgnore]
         public string PlaceName
@@ -144,9 +149,12 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         private uint mapId;
         // there is no Z; it's purely in the text payload where applicable
 
-        internal MapLinkPayload() { }
+        internal MapLinkPayload()
+        {
+        }
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="MapLinkPayload"/> class.
         /// Creates an interactable MapLinkPayload from a human-readable position.
         /// </summary>
         /// <param name="data">DataManager instance needed to resolve game data.</param>
@@ -155,7 +163,8 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         /// <param name="niceXCoord">The human-readable x-coordinate for this link.</param>
         /// <param name="niceYCoord">The human-readable y-coordinate for this link.</param>
         /// <param name="fudgeFactor">An optional offset to account for rounding and truncation errors; it is best to leave this untouched in most cases.</param>
-        public MapLinkPayload(DataManager data, uint territoryTypeId, uint mapId, float niceXCoord, float niceYCoord, float fudgeFactor = 0.05f) {
+        public MapLinkPayload(DataManager data, uint territoryTypeId, uint mapId, float niceXCoord, float niceYCoord, float fudgeFactor = 0.05f)
+        {
             this.DataResolver = data;
             this.territoryTypeId = territoryTypeId;
             this.mapId = mapId;
@@ -167,6 +176,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         }
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="MapLinkPayload"/> class.
         /// Creates an interactable MapLinkPayload from a raw position.
         /// </summary>
         /// <param name="data">DataManager instance needed to resolve game data.</param>

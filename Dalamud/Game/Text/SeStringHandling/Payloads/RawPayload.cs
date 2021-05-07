@@ -15,6 +15,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
     public class RawPayload : Payload
     {
         // this and others could be an actual static member somewhere and avoid construction costs, but that probably isn't a real concern
+
         /// <summary>
         /// A fixed Payload representing a common link-termination sequence, found in many payload chains.
         /// </summary>
@@ -24,9 +25,11 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
 
         [JsonProperty]
         private byte[] data;
+
         // this is a bit different from the underlying data
         // We need to store just the chunk data for decode to behave nicely, but when reading data out
         // it makes more sense to get the entire payload
+
         /// <summary>
         /// The entire payload byte sequence for this payload.
         /// The returned data is a clone and modifications will not be persisted.
@@ -57,7 +60,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             // and not just the data after the header
             // This sets data to hold the chunk data fter the header, excluding the END_BYTE
             this.chunkType = data[1];
-            this.data = data.Skip(3).Take(data.Length-4).ToArray();
+            this.data = data.Skip(3).Take(data.Length - 4).ToArray();
         }
 
         public override string ToString()
@@ -65,11 +68,14 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             return $"{Type} - Data: {BitConverter.ToString(Data).Replace("-", " ")}";
         }
 
-        public override bool Equals(object obj) {
-            if (obj is RawPayload rp) {
+        public override bool Equals(object obj)
+        {
+            if (obj is RawPayload rp)
+            {
                 if (rp.Data.Length != this.Data.Length) return false;
                 return !Data.Where((t, i) => rp.Data[i] != t).Any();
             }
+
             return false;
         }
 

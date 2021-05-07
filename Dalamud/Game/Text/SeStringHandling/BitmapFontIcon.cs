@@ -1,7 +1,7 @@
-#pragma warning disable 1591
-
-namespace Dalamud.Game.Text.SeStringHandling {
-    public enum BitmapFontIcon : uint {
+namespace Dalamud.Game.Text.SeStringHandling
+{
+    public enum BitmapFontIcon : uint
+    {
         None,
         ControllerDPadUp,
         ControllerDPadDown,
@@ -105,11 +105,11 @@ namespace Dalamud.Game.Text.SeStringHandling {
 
         Recording,
         Alarm,
-        
+
         ArrowUp,
         ArrowDown,
         Crystarium,
-        
+
         MentorProblem,
 
         FateUnknownGold,

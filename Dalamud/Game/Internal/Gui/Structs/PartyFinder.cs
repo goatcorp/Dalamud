@@ -7,16 +7,20 @@ using Dalamud.Data;
 using Dalamud.Game.Text.SeStringHandling;
 using Lumina.Excel.GeneratedSheets;
 
-namespace Dalamud.Game.Internal.Gui.Structs {
+namespace Dalamud.Game.Internal.Gui.Structs
+{
     #region Raw structs
 
-    internal static class PartyFinder {
-        public static class PacketInfo {
+    internal static class PartyFinder
+    {
+        public static class PacketInfo
+        {
             public static readonly int PacketSize = Marshal.SizeOf<Packet>();
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        public readonly struct Packet {
+        public readonly struct Packet
+        {
             public readonly int batchNumber;
 
             [MarshalAs(UnmanagedType.ByValArray, SizeConst = 8)]
@@ -27,7 +31,8 @@ namespace Dalamud.Game.Internal.Gui.Structs {
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        public readonly struct Listing {
+        public readonly struct Listing
+        {
             [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
             private readonly byte[] header1;
 
@@ -107,7 +112,8 @@ namespace Dalamud.Game.Internal.Gui.Structs {
             [MarshalAs(UnmanagedType.ByValArray, SizeConst = 192)]
             internal readonly byte[] description;
 
-            internal bool IsNull() {
+            internal bool IsNull()
+            {
                 // a valid party finder must have at least one slot set
                 return this.slots.All(slot => slot == 0);
             }
@@ -118,68 +124,84 @@ namespace Dalamud.Game.Internal.Gui.Structs {
 
     #region Read-only classes
 
-    public class PartyFinderListing {
+    public class PartyFinderListing
+    {
         /// <summary>
-        /// The ID assigned to this listing by the game's server.
+        /// Gets the ID assigned to this listing by the game's server.
         /// </summary>
         public uint Id { get; }
+
         /// <summary>
-        /// The lower bits of the player's content ID.
+        /// Gets the lower bits of the player's content ID.
         /// </summary>
         public uint ContentIdLower { get; }
+
         /// <summary>
         /// The name of the player hosting this listing.
         /// </summary>
         public SeString Name { get; }
+
         /// <summary>
         /// The description of this listing as set by the host. May be multiple lines.
         /// </summary>
         public SeString Description { get; }
+
         /// <summary>
         /// The world that this listing was created on.
         /// </summary>
         public Lazy<World> World { get; }
+
         /// <summary>
         /// The home world of the listing's host.
         /// </summary>
         public Lazy<World> HomeWorld { get; }
+
         /// <summary>
         /// The current world of the listing's host.
         /// </summary>
         public Lazy<World> CurrentWorld { get; }
+
         /// <summary>
         /// The Party Finder category this listing is listed under.
         /// </summary>
         public Category Category { get; }
+
         /// <summary>
         /// The row ID of the duty this listing is for. May be 0 for non-duty listings.
         /// </summary>
         public ushort RawDuty { get; }
+
         /// <summary>
         /// The duty this listing is for. May be null for non-duty listings.
         /// </summary>
         public Lazy<ContentFinderCondition> Duty { get; }
+
         /// <summary>
         /// The type of duty this listing is for.
         /// </summary>
         public DutyType DutyType { get; }
+
         /// <summary>
-        /// If this listing is beginner-friendly. Shown with a sprout icon in-game.
+        /// Gets a value indicating whether if this listing is beginner-friendly. Shown with a sprout icon in-game.
         /// </summary>
         public bool BeginnersWelcome { get; }
+
         /// <summary>
         /// How many seconds this listing will continue to be available for. It may end before this time if the party
         /// fills or the host ends it early.
         /// </summary>
         public ushort SecondsRemaining { get; }
+
         /// <summary>
         /// The minimum item level required to join this listing.
         /// </summary>
         public ushort MinimumItemLevel { get; }
+
         /// <summary>
         /// The number of parties this listing is recruiting for.
         /// </summary>
         public byte Parties { get; }
+
         /// <summary>
         /// The number of player slots this listing is recruiting for.
         /// </summary>
@@ -193,33 +215,34 @@ namespace Dalamud.Game.Internal.Gui.Structs {
         /// <summary>
         /// The objective of this listing.
         /// </summary>
-        public ObjectiveFlags Objective => (ObjectiveFlags) this.objective;
+        public ObjectiveFlags Objective => (ObjectiveFlags)this.objective;
 
         /// <summary>
         /// The conditions of this listing.
         /// </summary>
-        public ConditionFlags Conditions => (ConditionFlags) this.conditions;
+        public ConditionFlags Conditions => (ConditionFlags)this.conditions;
 
         /// <summary>
         /// The Duty Finder settings that will be used for this listing.
         /// </summary>
-        public DutyFinderSettingsFlags DutyFinderSettings => (DutyFinderSettingsFlags) this.dutyFinderSettings;
+        public DutyFinderSettingsFlags DutyFinderSettings => (DutyFinderSettingsFlags)this.dutyFinderSettings;
 
         /// <summary>
         /// The loot rules that will be used for this listing.
         /// </summary>
-        public LootRuleFlags LootRules => (LootRuleFlags) this.lootRules;
+        public LootRuleFlags LootRules => (LootRuleFlags)this.lootRules;
 
         /// <summary>
         /// Where this listing is searching. Note that this is also used for denoting alliance raid listings and one
         /// player per job.
         /// </summary>
-        public SearchAreaFlags SearchArea => (SearchAreaFlags) this.searchArea;
+        public SearchAreaFlags SearchArea => (SearchAreaFlags)this.searchArea;
 
         /// <summary>
         /// A list of the class/job IDs that are currently present in the party.
         /// </summary>
         public IReadOnlyCollection<byte> RawJobsPresent => this.jobsPresent;
+
         /// <summary>
         /// A list of the classes/jobs that are currently present in the party.
         /// </summary>
@@ -239,19 +262,20 @@ namespace Dalamud.Game.Internal.Gui.Structs {
 
         #region Indexers
 
-        public bool this[ObjectiveFlags flag] => this.objective == 0 || (this.objective & (uint) flag) > 0;
+        public bool this[ObjectiveFlags flag] => this.objective == 0 || (this.objective & (uint)flag) > 0;
 
-        public bool this[ConditionFlags flag] => this.conditions == 0 || (this.conditions & (uint) flag) > 0;
+        public bool this[ConditionFlags flag] => this.conditions == 0 || (this.conditions & (uint)flag) > 0;
 
-        public bool this[DutyFinderSettingsFlags flag] => this.dutyFinderSettings == 0 || (this.dutyFinderSettings & (uint) flag) > 0;
+        public bool this[DutyFinderSettingsFlags flag] => this.dutyFinderSettings == 0 || (this.dutyFinderSettings & (uint)flag) > 0;
 
-        public bool this[LootRuleFlags flag] => this.lootRules == 0 || (this.lootRules & (uint) flag) > 0;
+        public bool this[LootRuleFlags flag] => this.lootRules == 0 || (this.lootRules & (uint)flag) > 0;
 
-        public bool this[SearchAreaFlags flag] => this.searchArea == 0 || (this.searchArea & (uint) flag) > 0;
+        public bool this[SearchAreaFlags flag] => this.searchArea == 0 || (this.searchArea & (uint)flag) > 0;
 
         #endregion
 
-        internal PartyFinderListing(PartyFinder.Listing listing, DataManager dataManager, SeStringManager seStringManager) {
+        internal PartyFinderListing(PartyFinder.Listing listing, DataManager dataManager, SeStringManager seStringManager)
+        {
             this.objective = listing.objective;
             this.conditions = listing.conditions;
             this.dutyFinderSettings = listing.dutyFinderSettings;
@@ -267,10 +291,10 @@ namespace Dalamud.Game.Internal.Gui.Structs {
             World = new Lazy<World>(() => dataManager.GetExcelSheet<World>().GetRow(listing.world));
             HomeWorld = new Lazy<World>(() => dataManager.GetExcelSheet<World>().GetRow(listing.homeWorld));
             CurrentWorld = new Lazy<World>(() => dataManager.GetExcelSheet<World>().GetRow(listing.currentWorld));
-            Category = (Category) listing.category;
+            Category = (Category)listing.category;
             RawDuty = listing.duty;
             Duty = new Lazy<ContentFinderCondition>(() => dataManager.GetExcelSheet<ContentFinderCondition>().GetRow(listing.duty));
-            DutyType = (DutyType) listing.dutyType;
+            DutyType = (DutyType)listing.dutyType;
             BeginnersWelcome = listing.beginnersWelcome == 1;
             SecondsRemaining = listing.secondsRemaining;
             MinimumItemLevel = listing.minimumItemLevel;
@@ -287,16 +311,20 @@ namespace Dalamud.Game.Internal.Gui.Structs {
     /// <summary>
     /// A player slot in a Party Finder listing.
     /// </summary>
-    public class PartyFinderSlot {
+    public class PartyFinderSlot
+    {
         private readonly uint accepting;
         private JobFlags[] listAccepting;
 
         /// <summary>
         /// List of jobs that this slot is accepting.
         /// </summary>
-        public IReadOnlyCollection<JobFlags> Accepting {
-            get {
-                if (this.listAccepting != null) {
+        public IReadOnlyCollection<JobFlags> Accepting
+        {
+            get
+            {
+                if (this.listAccepting != null)
+                {
                     return this.listAccepting;
                 }
 
@@ -312,16 +340,18 @@ namespace Dalamud.Game.Internal.Gui.Structs {
         /// <summary>
         /// Tests if this slot is accepting a job.
         /// </summary>
-        /// <param name="flag">Job to test</param>
-        public bool this[JobFlags flag] => (this.accepting & (uint) flag) > 0;
+        /// <param name="flag">Job to test.</param>
+        public bool this[JobFlags flag] => (this.accepting & (uint)flag) > 0;
 
-        internal PartyFinderSlot(uint accepting) {
+        internal PartyFinderSlot(uint accepting)
+        {
             this.accepting = accepting;
         }
     }
 
     [Flags]
-    public enum SearchAreaFlags : uint {
+    public enum SearchAreaFlags : uint
+    {
         DataCentre = 1 << 0,
         Private = 1 << 1,
         AllianceRaid = 1 << 2,
@@ -330,7 +360,8 @@ namespace Dalamud.Game.Internal.Gui.Structs {
     }
 
     [Flags]
-    public enum JobFlags {
+    public enum JobFlags
+    {
         Gladiator = 1 << 1,
         Pugilist = 1 << 2,
         Marauder = 1 << 3,
@@ -360,17 +391,20 @@ namespace Dalamud.Game.Internal.Gui.Structs {
         Dancer = 1 << 27,
     }
 
-    public static class JobFlagsExt {
+    public static class JobFlagsExt
+    {
         /// <summary>
         /// Get the actual ClassJob from the in-game sheets for this JobFlags.
         /// </summary>
-        /// <param name="job">A JobFlags enum member</param>
-        /// <param name="data">A DataManager to get the ClassJob from</param>
-        /// <returns>A ClassJob if found or null if not</returns>
-        public static ClassJob ClassJob(this JobFlags job, DataManager data) {
+        /// <param name="job">A JobFlags enum member.</param>
+        /// <param name="data">A DataManager to get the ClassJob from.</param>
+        /// <returns>A ClassJob if found or null if not.</returns>
+        public static ClassJob ClassJob(this JobFlags job, DataManager data)
+        {
             var jobs = data.GetExcelSheet<ClassJob>();
 
-            uint? row = job switch {
+            uint? row = job switch
+            {
                 JobFlags.Gladiator => 1,
                 JobFlags.Pugilist => 2,
                 JobFlags.Marauder => 3,
@@ -401,12 +435,13 @@ namespace Dalamud.Game.Internal.Gui.Structs {
                 _ => null,
             };
 
-            return row == null ? null : jobs.GetRow((uint) row);
+            return row == null ? null : jobs.GetRow((uint)row);
         }
     }
 
     [Flags]
-    public enum ObjectiveFlags : uint {
+    public enum ObjectiveFlags : uint
+    {
         None = 0,
         DutyCompletion = 1,
         Practice = 2,
@@ -414,14 +449,16 @@ namespace Dalamud.Game.Internal.Gui.Structs {
     }
 
     [Flags]
-    public enum ConditionFlags : uint {
+    public enum ConditionFlags : uint
+    {
         None = 1,
         DutyComplete = 2,
         DutyIncomplete = 4,
     }
 
     [Flags]
-    public enum DutyFinderSettingsFlags : uint {
+    public enum DutyFinderSettingsFlags : uint
+    {
         None = 0,
         UndersizedParty = 1 << 0,
         MinimumItemLevel = 1 << 1,
@@ -429,13 +466,15 @@ namespace Dalamud.Game.Internal.Gui.Structs {
     }
 
     [Flags]
-    public enum LootRuleFlags : uint {
+    public enum LootRuleFlags : uint
+    {
         None = 0,
         GreedOnly = 1,
         Lootmaster = 2,
     }
 
-    public enum Category {
+    public enum Category
+    {
         Duty = 0,
         QuestBattles = 1 << 0,
         Fates = 1 << 1,
@@ -446,7 +485,8 @@ namespace Dalamud.Game.Internal.Gui.Structs {
         AdventuringForays = 1 << 6,
     }
 
-    public enum DutyType {
+    public enum DutyType
+    {
         Other = 0,
         Roulette = 1 << 0,
         Normal = 1 << 1,

@@ -15,13 +15,14 @@ using Serilog.Events;
 
 namespace Dalamud.Interface
 {
-    class DalamudLogWindow : Window, IDisposable {
+    class DalamudLogWindow : Window, IDisposable
+    {
         private readonly CommandManager commandManager;
         private readonly DalamudConfiguration configuration;
         private bool autoScroll;
         private bool openAtStartup;
         private readonly List<(string line, Vector4 color)> logText = new List<(string line, Vector4 color)>();
-        
+
         private readonly object renderLock = new object();
 
         private string commandText = string.Empty;
@@ -39,7 +40,8 @@ namespace Dalamud.Interface
             this.SizeCondition = ImGuiCond.FirstUseEver;
         }
 
-        public void Dispose() {
+        public void Dispose()
+        {
             SerilogEventSink.Instance.OnLogLine -= Serilog_OnLogLine;
         }
 
@@ -59,30 +61,39 @@ namespace Dalamud.Interface
             AddLog(logEvent.line, color);
         }
 
-        public void Clear() {
-            lock (this.renderLock) {
+        public void Clear()
+        {
+            lock (this.renderLock)
+            {
                 this.logText.Clear();
             }
         }
 
-        public void AddLog(string line, Vector4 color) {
-            lock (this.renderLock) {
+        public void AddLog(string line, Vector4 color)
+        {
+            lock (this.renderLock)
+            {
                 this.logText.Add((line, color));
             }
         }
 
-        public override void Draw() {
+        public override void Draw()
+        {
             // Options menu
             if (ImGui.BeginPopup("Options"))
             {
-                if (ImGui.Checkbox("Auto-scroll", ref this.autoScroll)) {
+                if (ImGui.Checkbox("Auto-scroll", ref this.autoScroll))
+                {
                     this.configuration.LogAutoScroll = this.autoScroll;
                     this.configuration.Save();
-                };
-                if (ImGui.Checkbox("Open at startup", ref this.openAtStartup)) {
+                }
+
+                if (ImGui.Checkbox("Open at startup", ref this.openAtStartup))
+                {
                     this.configuration.LogOpenAtStartup = this.openAtStartup;
                     this.configuration.Save();
-                };
+                }
+
                 ImGui.EndPopup();
             }
 
@@ -98,10 +109,14 @@ namespace Dalamud.Interface
             ImGui.SameLine();
             ImGui.InputText("##commandbox", ref this.commandText, 255);
             ImGui.SameLine();
-            if (ImGui.Button("Send")) {
-                if (this.commandManager.ProcessCommand(this.commandText)) {
+            if (ImGui.Button("Send"))
+            {
+                if (this.commandManager.ProcessCommand(this.commandText))
+                {
                     Log.Information("Command was dispatched.");
-                } else {
+                }
+                else
+                {
                     Log.Information("Command {0} not registered.", this.commandText);
                 }
             }
@@ -115,8 +130,10 @@ namespace Dalamud.Interface
 
             ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(0, 0));
 
-            lock (this.renderLock) {
-                foreach (var (line, color) in this.logText) {
+            lock (this.renderLock)
+            {
+                foreach (var (line, color) in this.logText)
+                {
                     ImGui.TextColored(color, line);
                 }
             }

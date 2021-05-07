@@ -15,8 +15,10 @@ namespace Dalamud.Game.ClientState
     /// <summary>
     /// This class represents the state of the game client at the time of access.
     /// </summary>
-    public class ClientState : INotifyPropertyChanged, IDisposable {
+    public class ClientState : INotifyPropertyChanged, IDisposable
+    {
         private readonly Dalamud dalamud;
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         private ClientStateAddressResolver Address { get; }
@@ -29,11 +31,13 @@ namespace Dalamud.Game.ClientState
         public readonly ActorTable Actors;
 
         /// <summary>
-        /// The local player character, if one is present.
+        /// Gets the local player character, if one is present.
         /// </summary>
         [CanBeNull]
-        public PlayerCharacter LocalPlayer {
-            get {
+        public PlayerCharacter LocalPlayer
+        {
+            get
+            {
                 var actor = this.Actors[0];
 
                 if (actor is PlayerCharacter pc)
@@ -79,17 +83,17 @@ namespace Dalamud.Game.ClientState
         #endregion
 
         /// <summary>
-        /// The content ID of the local character.
+        /// Gets the content ID of the local character.
         /// </summary>
-        public ulong LocalContentId => (ulong) Marshal.ReadInt64(Address.LocalContentId);
+        public ulong LocalContentId => (ulong)Marshal.ReadInt64(Address.LocalContentId);
 
         /// <summary>
-        /// The class facilitating Job Gauge data access
+        /// The class facilitating Job Gauge data access.
         /// </summary>
         public JobGauges JobGauges;
 
         /// <summary>
-        /// The class facilitating party list data access
+        /// The class facilitating party list data access.
         /// </summary>
         public PartyList PartyList;
 
@@ -102,24 +106,26 @@ namespace Dalamud.Game.ClientState
         /// Provides access to the button state of gamepad buttons in game.
         /// </summary>
         public GamepadState GamepadState;
-        
+
         /// <summary>
         /// Provides access to client conditions/player state. Allows you to check if a player is in a duty, mounted, etc.
         /// </summary>
         public Condition Condition;
 
         /// <summary>
-        /// The class facilitating target data access
+        /// The class facilitating target data access.
         /// </summary>
         public Targets Targets;
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="ClientState"/> class.
         /// Set up client state access.
         /// </summary>
-        /// <param name="dalamud">Dalamud instance</param>
-        /// /// <param name="startInfo">StartInfo of the current Dalamud launch</param>
-        /// <param name="scanner">Sig scanner</param>
-        public ClientState(Dalamud dalamud, DalamudStartInfo startInfo, SigScanner scanner) {
+        /// <param name="dalamud">Dalamud instance.</param>
+        /// <param name="startInfo">StartInfo of the current Dalamud launch.</param>
+        /// <param name="scanner">Sig scanner.</param>
+        public ClientState(Dalamud dalamud, DalamudStartInfo startInfo, SigScanner scanner)
+        {
             this.dalamud = dalamud;
             Address = new ClientStateAddressResolver();
             Address.Setup(scanner);
@@ -138,7 +144,7 @@ namespace Dalamud.Game.ClientState
 
             this.GamepadState = new GamepadState(this.Address);
 
-            this.Condition = new Condition( Address );
+            this.Condition = new Condition(Address);
 
             this.Targets = new Targets(dalamud, Address);
 
@@ -150,17 +156,20 @@ namespace Dalamud.Game.ClientState
             dalamud.NetworkHandlers.CfPop += NetworkHandlersOnCfPop;
         }
 
-        private void NetworkHandlersOnCfPop(object sender, ContentFinderCondition e) {
+        private void NetworkHandlersOnCfPop(object sender, ContentFinderCondition e)
+        {
             CfPop?.Invoke(this, e);
         }
 
-        public void Enable() {
+        public void Enable()
+        {
             this.GamepadState.Enable();
             this.PartyList.Enable();
             this.setupTerritoryTypeHook.Enable();
         }
 
-        public void Dispose() {
+        public void Dispose()
+        {
             this.PartyList.Dispose();
             this.setupTerritoryTypeHook.Dispose();
             this.Actors.Dispose();
@@ -187,15 +196,18 @@ namespace Dalamud.Game.ClientState
         /// </summary>
         public bool IsLoggedIn { get; private set; }
 
-        private void FrameworkOnOnUpdateEvent(Framework framework) {
-            if (this.Condition.Any() && this.lastConditionNone == true) {
+        private void FrameworkOnOnUpdateEvent(Framework framework)
+        {
+            if (this.Condition.Any() && this.lastConditionNone == true)
+            {
                 Log.Debug("Is login");
                 this.lastConditionNone = false;
                 this.IsLoggedIn = true;
                 OnLogin?.Invoke(this, null);
             }
-                
-            if (!this.Condition.Any() && this.lastConditionNone == false) {
+
+            if (!this.Condition.Any() && this.lastConditionNone == false)
+            {
                 Log.Debug("Is logout");
                 this.lastConditionNone = true;
                 this.IsLoggedIn = false;

@@ -4,15 +4,18 @@ using System.Runtime.InteropServices;
 using Dalamud.Hooking;
 using Serilog;
 
-namespace Dalamud.Game.Internal.Gui {
-    public class TargetManager {
+namespace Dalamud.Game.Internal.Gui
+{
+    public class TargetManager
+    {
         public delegate IntPtr GetTargetDelegate(IntPtr manager);
 
         private Hook<GetTargetDelegate> getTargetHook;
 
         private TargetManagerAddressResolver Address;
 
-        public unsafe TargetManager(Dalamud dalamud, SigScanner scanner) {
+        public unsafe TargetManager(Dalamud dalamud, SigScanner scanner)
+        {
             this.Address = new TargetManagerAddressResolver();
             this.Address.Setup(scanner);
 
@@ -22,17 +25,20 @@ namespace Dalamud.Game.Internal.Gui {
             this.getTargetHook = new Hook<GetTargetDelegate>(this.Address.GetTarget, new GetTargetDelegate(GetTargetDetour), this);
         }
 
-        public void Enable() {
+        public void Enable()
+        {
             this.getTargetHook.Enable();
         }
 
-        public void Dispose() {
+        public void Dispose()
+        {
             this.getTargetHook.Dispose();
         }
 
         private IntPtr GetTargetDetour(IntPtr manager)
         {
-            try {
+            try
+            {
                 var res = this.getTargetHook.Original(manager);
 
                 var test = Marshal.ReadInt32(res);

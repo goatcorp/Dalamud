@@ -5,21 +5,26 @@ using System.Runtime.InteropServices;
 using Dalamud.Hooking;
 using Serilog;
 
-namespace Dalamud.Game.Internal.Network {
-    public sealed class GameNetwork : IDisposable {
+namespace Dalamud.Game.Internal.Network
+{
+    public sealed class GameNetwork : IDisposable
+    {
         #region Hooks
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         private delegate void ProcessZonePacketDownDelegate(IntPtr a, uint targetId, IntPtr dataPtr);
+
         private readonly Hook<ProcessZonePacketDownDelegate> processZonePacketDownHook;
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         private delegate byte ProcessZonePacketUpDelegate(IntPtr a1, IntPtr dataPtr, IntPtr a3, byte a4);
+
         private readonly Hook<ProcessZonePacketUpDelegate> processZonePacketUpHook;
 
         #endregion
 
         private GameNetworkAddressResolver Address { get; }
+
         private IntPtr baseAddress;
 
         public delegate void OnNetworkMessageDelegate(IntPtr dataPtr, ushort opCode, uint sourceActorId, uint targetActorId, NetworkMessageDirection direction);
@@ -29,11 +34,10 @@ namespace Dalamud.Game.Internal.Network {
         /// </summary>
         public OnNetworkMessageDelegate OnNetworkMessage;
 
-
-
         private readonly Queue<byte[]> zoneInjectQueue = new Queue<byte[]>();
 
-        public GameNetwork(SigScanner scanner) {
+        public GameNetwork(SigScanner scanner)
+        {
             Address = new GameNetworkAddressResolver();
             Address.Setup(scanner);
 
@@ -46,36 +50,43 @@ namespace Dalamud.Game.Internal.Network {
             this.processZonePacketUpHook = new Hook<ProcessZonePacketUpDelegate>(Address.ProcessZonePacketUp, new ProcessZonePacketUpDelegate(ProcessZonePacketUpDetour), this);
         }
 
-        public void Enable() {
+        public void Enable()
+        {
             this.processZonePacketDownHook.Enable();
             this.processZonePacketUpHook.Enable();
         }
 
-        public void Dispose() {
+        public void Dispose()
+        {
             this.processZonePacketDownHook.Dispose();
             this.processZonePacketUpHook.Dispose();
         }
 
-        private void ProcessZonePacketDownDetour(IntPtr a, uint targetId, IntPtr dataPtr) {
+        private void ProcessZonePacketDownDetour(IntPtr a, uint targetId, IntPtr dataPtr)
+        {
             this.baseAddress = a;
 
             // Go back 0x10 to get back to the start of the packet header
             dataPtr -= 0x10;
 
-            try {
-                
-
+            try
+            {
                 // Call events
-                this.OnNetworkMessage?.Invoke(dataPtr + 0x20, (ushort) Marshal.ReadInt16(dataPtr, 0x12), 0, targetId, NetworkMessageDirection.ZoneDown);
+                this.OnNetworkMessage?.Invoke(dataPtr + 0x20, (ushort)Marshal.ReadInt16(dataPtr, 0x12), 0, targetId, NetworkMessageDirection.ZoneDown);
 
                 this.processZonePacketDownHook.Original(a, targetId, dataPtr + 0x10);
-            } catch (Exception ex) {
+            }
+            catch (Exception ex)
+            {
                 string header;
-                try {
+                try
+                {
                     var data = new byte[32];
                     Marshal.Copy(dataPtr, data, 0, 32);
                     header = BitConverter.ToString(data);
-                } catch (Exception) {
+                }
+                catch (Exception)
+                {
                     header = "failed";
                 }
 
@@ -85,13 +96,13 @@ namespace Dalamud.Game.Internal.Network {
             }
         }
 
-        private byte ProcessZonePacketUpDetour(IntPtr a1, IntPtr dataPtr, IntPtr a3, byte a4) {
-
+        private byte ProcessZonePacketUpDetour(IntPtr a1, IntPtr dataPtr, IntPtr a3, byte a4)
+        {
             try
             {
                 // Call events
                 // TODO: Implement actor IDs
-                this.OnNetworkMessage?.Invoke(dataPtr + 0x20, (ushort) Marshal.ReadInt16(dataPtr), 0x0, 0x0, NetworkMessageDirection.ZoneUp);
+                this.OnNetworkMessage?.Invoke(dataPtr + 0x20, (ushort)Marshal.ReadInt16(dataPtr), 0x0, 0x0, NetworkMessageDirection.ZoneUp);
             }
             catch (Exception ex)
             {
@@ -114,20 +125,23 @@ namespace Dalamud.Game.Internal.Network {
         }
 
 #if DEBUG
-        public void InjectZoneProtoPacket(byte[] data) {
+        public void InjectZoneProtoPacket(byte[] data)
+        {
             this.zoneInjectQueue.Enqueue(data);
         }
 
-        private void InjectActorControl(short cat, int param1) {
-            var packetData = new byte[] {
+        private void InjectActorControl(short cat, int param1)
+        {
+            var packetData = new byte[]
+            {
                 0x14, 0x00, 0x8D, 0x00, 0x00, 0x00, 0x0E, 0x00, 0x17, 0x7C, 0xC5, 0x5D, 0x00, 0x00, 0x00, 0x00,
                 0x05, 0x00, 0x48, 0xB2, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                 0x00, 0x00, 0x00, 0x00, 0x43, 0x7F, 0x00, 0x00,
             };
 
-            BitConverter.GetBytes((short) cat).CopyTo(packetData, 0x10);
+            BitConverter.GetBytes((short)cat).CopyTo(packetData, 0x10);
 
-            BitConverter.GetBytes((uint) param1).CopyTo(packetData, 0x14);
+            BitConverter.GetBytes((uint)param1).CopyTo(packetData, 0x14);
 
             InjectZoneProtoPacket(packetData);
         }
@@ -145,7 +159,8 @@ namespace Dalamud.Game.Internal.Network {
                 var unmanagedPacketData = Marshal.AllocHGlobal(packetData.Length);
                 Marshal.Copy(packetData, 0, unmanagedPacketData, packetData.Length);
 
-                if (this.baseAddress != IntPtr.Zero) {
+                if (this.baseAddress != IntPtr.Zero)
+                {
                     this.processZonePacketDownHook.Original(this.baseAddress, 0, unmanagedPacketData);
                 }
 

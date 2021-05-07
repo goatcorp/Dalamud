@@ -16,7 +16,8 @@ namespace Dalamud.Game.Text.SeStringHandling
     {
         private readonly DataManager data;
 
-        public SeStringManager(DataManager Data) {
+        public SeStringManager(DataManager Data)
+        {
             this.data = Data;
         }
 

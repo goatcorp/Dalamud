@@ -15,6 +15,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         public override PayloadType Type => PayloadType.Status;
 
         private Status status;
+
         /// <summary>
         /// The Lumina Status object represented by this payload.
         /// </summary>
@@ -34,14 +35,18 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         [JsonProperty]
         private uint statusId;
 
-        internal StatusPayload() { }
+        internal StatusPayload()
+        {
+        }
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="StatusPayload"/> class.
         /// Creates a new StatusPayload for the given status id.
         /// </summary>
         /// <param name="data">DataManager instance needed to resolve game data.</param>
         /// <param name="statusId">The id of the Status for this link.</param>
-        public StatusPayload(DataManager data, uint statusId) {
+        public StatusPayload(DataManager data, uint statusId)
+        {
             this.DataResolver = data;
             this.statusId = statusId;
         }

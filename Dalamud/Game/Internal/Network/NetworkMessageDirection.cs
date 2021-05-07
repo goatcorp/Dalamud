@@ -1,5 +1,7 @@
-namespace Dalamud.Game.Internal.Network {
-    public enum NetworkMessageDirection {
+namespace Dalamud.Game.Internal.Network
+{
+    public enum NetworkMessageDirection
+    {
         ZoneDown,
         ZoneUp,
     }

@@ -66,7 +66,7 @@ public class ScratchPlugin : IDalamudPlugin {
 
         public string Process(string input)
         {
-            var lines = input.Split(new[] {'\r', '\n'});
+            var lines = input.Split(new[] { '\r', '\n' });
 
             var ctx = ParseContext.None;
 

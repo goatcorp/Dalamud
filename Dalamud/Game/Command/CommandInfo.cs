@@ -1,10 +1,12 @@
 using System.Reflection;
 
-namespace Dalamud.Game.Command {
+namespace Dalamud.Game.Command
+{
     /// <summary>
     /// This class describes a registered command.
     /// </summary>
-    public sealed class CommandInfo {
+    public sealed class CommandInfo
+    {
         /// <summary>
         /// The function to be executed when the command is dispatched.
         /// </summary>
@@ -13,25 +15,27 @@ namespace Dalamud.Game.Command {
         public delegate void HandlerDelegate(string command, string arguments);
 
         /// <summary>
-        /// A <see cref="HandlerDelegate"/> which will be called when the command is dispatched.
+        /// Gets a <see cref="HandlerDelegate"/> which will be called when the command is dispatched.
         /// </summary>
         public HandlerDelegate Handler { get; }
 
         /// <summary>
-        /// The help message for this command.
+        /// Gets or sets the help message for this command.
         /// </summary>
         public string HelpMessage { get; set; } = string.Empty;
 
         /// <summary>
-        /// If this command should be shown in the help output.
+        /// Gets or sets a value indicating whether if this command should be shown in the help output.
         /// </summary>
         public bool ShowInHelp { get; set; } = true;
-        
+
         /// <summary>
+        /// Initializes a new instance of the <see cref="CommandInfo"/> class.
         /// Create a new CommandInfo with the provided handler.
         /// </summary>
         /// <param name="handler"></param>
-        public CommandInfo(HandlerDelegate handler) {
+        public CommandInfo(HandlerDelegate handler)
+        {
             Handler = handler;
             LoaderAssemblyName = Assembly.GetCallingAssembly()?.GetName()?.Name;
         }

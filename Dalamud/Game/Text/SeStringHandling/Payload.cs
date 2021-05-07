@@ -27,7 +27,7 @@ namespace Dalamud.Game.Text.SeStringHandling
         public abstract PayloadType Type { get; }
 
         /// <summary>
-        /// Whether this payload has been modified since the last Encode().
+        /// Gets or sets a value indicating whether whether this payload has been modified since the last Encode().
         /// </summary>
         public bool Dirty { get; protected set; } = true;
 
@@ -41,6 +41,7 @@ namespace Dalamud.Game.Text.SeStringHandling
         // TODO: endOfStream is somewhat legacy now that payload length is always handled correctly.
         // This could be changed to just take a straight byte[], but that would complicate reading
         // but we could probably at least remove the end param
+
         /// <summary>
         /// Decodes a byte stream from the game into a payload object.
         /// </summary>
@@ -164,18 +165,20 @@ namespace Dalamud.Game.Text.SeStringHandling
                                 break;
 
                             case EmbeddedInfoType.LinkTerminator:
-                                // this has no custom handling and so needs to fallthrough to ensure it is captured
+                            // this has no custom handling and so needs to fallthrough to ensure it is captured
                             default:
                                 // but I'm also tired of this log
                                 if (subType != EmbeddedInfoType.LinkTerminator)
                                 {
                                     Log.Verbose("Unhandled EmbeddedInfoType: {0}", subType);
                                 }
+
                                 // rewind so we capture the Interactable byte in the raw data
                                 reader.BaseStream.Seek(-1, SeekOrigin.Current);
                                 break;
                         }
                     }
+
                     break;
 
                 case SeStringChunkType.AutoTranslateKey:
@@ -246,7 +249,6 @@ namespace Dalamud.Game.Text.SeStringHandling
             LinkTerminator = 0xCF, // not clear but seems to always follow a link
         }
 
-
         // made protected, unless we actually want to use it externally
         // in which case it should probably go live somewhere else
         protected static uint GetInteger(BinaryReader input)
@@ -287,6 +289,7 @@ namespace Dalamud.Game.Text.SeStringHandling
                     ret[0] |= (byte)(1 << i);
                 }
             }
+
             ret[0] -= 1;
 
             return ret.ToArray();

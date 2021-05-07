@@ -17,6 +17,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         public override PayloadType Type => PayloadType.Item;
 
         private Item item;
+
         /// <summary>
         /// The underlying Lumina Item represented by this payload.
         /// </summary>
@@ -38,6 +39,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         //   For things like owo, changing the text payload is probably correct, whereas changing the
         //   actual embedded name might not work properly.
         private string displayName = null;
+
         /// <summary>
         /// The displayed name for this item link.  Note that incoming links only sometimes have names embedded,
         /// often the name is only present in a following text payload.
@@ -65,9 +67,12 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         [JsonProperty]
         private uint itemId;
 
-        internal ItemPayload() { }
+        internal ItemPayload()
+        {
+        }
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="ItemPayload"/> class.
         /// Creates a payload representing an interactable item link for the specified item.
         /// </summary>
         /// <param name="data">DataManager instance needed to resolve game data.</param>
@@ -76,7 +81,8 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         /// <param name="displayNameOverride">An optional name to include in the item link.  Typically this should
         /// be left as null, or set to the normal item name.  Actual overrides are better done with the subsequent
         /// TextPayload that is a part of a full item link in chat.</param>
-        public ItemPayload(DataManager data, uint itemId, bool isHQ, string displayNameOverride = null) {
+        public ItemPayload(DataManager data, uint itemId, bool isHQ, string displayNameOverride = null)
+        {
             this.DataResolver = data;
             this.itemId = itemId;
             this.IsHQ = isHQ;

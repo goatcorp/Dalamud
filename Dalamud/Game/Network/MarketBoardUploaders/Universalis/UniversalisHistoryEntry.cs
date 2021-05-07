@@ -1,7 +1,9 @@
 using Newtonsoft.Json;
 
-namespace Dalamud.Game.Network.MarketBoardUploaders.Universalis {
-    internal class UniversalisHistoryEntry {
+namespace Dalamud.Game.Network.MarketBoardUploaders.Universalis
+{
+    internal class UniversalisHistoryEntry
+    {
         [JsonProperty("hq")]
         public bool Hq { get; set; }
 

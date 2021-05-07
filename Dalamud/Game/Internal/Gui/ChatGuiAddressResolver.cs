@@ -1,21 +1,25 @@
 using System;
 
-namespace Dalamud.Game.Internal.Gui {
-    public sealed class ChatGuiAddressResolver : BaseAddressResolver {
+namespace Dalamud.Game.Internal.Gui
+{
+    public sealed class ChatGuiAddressResolver : BaseAddressResolver
+    {
         public IntPtr BaseAddress { get; }
-        
-        public IntPtr PrintMessage { get; private set; }
-        public IntPtr PopulateItemLinkObject { get; private set; }
-        public IntPtr InteractableLinkClicked { get; private set; } 
 
-        public ChatGuiAddressResolver(IntPtr baseAddres) {
+        public IntPtr PrintMessage { get; private set; }
+
+        public IntPtr PopulateItemLinkObject { get; private set; }
+
+        public IntPtr InteractableLinkClicked { get; private set; }
+
+        public ChatGuiAddressResolver(IntPtr baseAddres)
+        {
             BaseAddress = baseAddres;
         }
-        
-        
+
         /*
          --- for reference: 4.57 ---
-         
+
 .text:00000001405CD210 ; __int64 __fastcall Xiv::Gui::ChatGui::PrintMessage(__int64 handler, unsigned __int16 chatType, __int64 senderName, __int64 message, int senderActorId, char isLocal)
 .text:00000001405CD210 Xiv__Gui__ChatGui__PrintMessage proc near
 .text:00000001405CD210                                         ; CODE XREF: sub_1401419F0+201↑p
@@ -75,20 +79,18 @@ namespace Dalamud.Game.Internal.Gui {
 .text:00000001405CD24E                 lea     r8, [rcx+0C10h]
 .text:00000001405CD255                 mov     rdi, rcx
          */
-        
-        protected override void Setup64Bit(SigScanner sig) {
-            //PrintMessage = sig.ScanText("4055 57 41 ?? 41 ?? 488DAC24D8FEFFFF 4881EC28020000 488B05???????? 4833C4 488985F0000000 4532D2 48894C2448"); LAST PART FOR 5.1???
-            PrintMessage =
-                sig.ScanText(
-                    "4055 53 56 4154 4157 48 8d ac 24 ?? ?? ?? ?? 48 81 ec 20 02 00 00 48 8b 05"
-                );
-            //PrintMessage = sig.ScanText("4055 57 41 ?? 41 ?? 488DAC24E8FEFFFF 4881EC18020000 488B05???????? 4833C4 488985E0000000 4532D2 48894C2438"); old
 
-            //PrintMessage = sig.ScanText("40 55 57 41 56 41 57 48  8D AC 24 D8 FE FF FF 48 81 EC 28 02 00 00 48 8B  05 63 47 4A 01 48 33 C4 48 89 85 F0 00 00 00 45  32 D2 48 89 4C 24 48 33");
+        protected override void Setup64Bit(SigScanner sig)
+        {
+            // PrintMessage = sig.ScanText("4055 57 41 ?? 41 ?? 488DAC24D8FEFFFF 4881EC28020000 488B05???????? 4833C4 488985F0000000 4532D2 48894C2448"); LAST PART FOR 5.1???
+            PrintMessage = sig.ScanText("4055 53 56 4154 4157 48 8d ac 24 ?? ?? ?? ?? 48 81 ec 20 02 00 00 48 8b 05");
+            // PrintMessage = sig.ScanText("4055 57 41 ?? 41 ?? 488DAC24E8FEFFFF 4881EC18020000 488B05???????? 4833C4 488985E0000000 4532D2 48894C2438"); old
 
-            //PopulateItemLinkObject = sig.ScanText("48 89 5C 24 08 57 48 83  EC 20 80 7A 06 00 48 8B DA 48 8B F9 74 14 48 8B  CA E8 32 03 00 00 48 8B C8 E8 FA F2 B0 FF 8B C8  EB 1D 0F B6 42 14 8B 4A");
+            // PrintMessage = sig.ScanText("40 55 57 41 56 41 57 48  8D AC 24 D8 FE FF FF 48 81 EC 28 02 00 00 48 8B  05 63 47 4A 01 48 33 C4 48 89 85 F0 00 00 00 45  32 D2 48 89 4C 24 48 33");
 
-            //PopulateItemLinkObject = sig.ScanText(      "48 89 5C 24 08 57 48 83  EC 20 80 7A 06 00 48 8B DA 48 8B F9 74 14 48 8B  CA E8 32 03 00 00 48 8B C8 E8 ?? ?? B0 FF 8B C8  EB 1D 0F B6 42 14 8B 4A"); 5.0
+            // PopulateItemLinkObject = sig.ScanText("48 89 5C 24 08 57 48 83  EC 20 80 7A 06 00 48 8B DA 48 8B F9 74 14 48 8B  CA E8 32 03 00 00 48 8B C8 E8 FA F2 B0 FF 8B C8  EB 1D 0F B6 42 14 8B 4A");
+
+            // PopulateItemLinkObject = sig.ScanText(      "48 89 5C 24 08 57 48 83  EC 20 80 7A 06 00 48 8B DA 48 8B F9 74 14 48 8B  CA E8 32 03 00 00 48 8B C8 E8 ?? ?? B0 FF 8B C8  EB 1D 0F B6 42 14 8B 4A"); 5.0
             PopulateItemLinkObject = sig.ScanText("48 89 5C 24 08 57 48 83  EC 20 80 7A 06 00 48 8B DA 48 8B F9 74 14 48 8B  CA E8 32 03 00 00 48 8B C8 E8 ?? ?? ?? FF 8B C8  EB 1D 0F B6 42 14 8B 4A");
 
             InteractableLinkClicked = sig.ScanText("E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 80 BB ?? ?? ?? ?? ?? 0F 85 ?? ?? ?? ?? 80 BB") + 9;

@@ -22,6 +22,7 @@ namespace Dalamud.Game.ClientState.Actors.Types
                     break;
                 }
             }
+
             ObjectKind = rawData.objectKind;
         }
     }

@@ -9,19 +9,22 @@ using Dalamud.Game.ClientState.Actors.Types.NonPlayer;
 using JetBrains.Annotations;
 using Serilog;
 
-namespace Dalamud.Game.ClientState.Actors {
+namespace Dalamud.Game.ClientState.Actors
+{
     /// <summary>
     ///     This collection represents the currently spawned FFXIV actors.
     /// </summary>
-    public class ActorTable : IReadOnlyCollection<Actor>, ICollection, IDisposable {
-
+    public class ActorTable : IReadOnlyCollection<Actor>, ICollection, IDisposable
+    {
         private const int ActorTableLength = 424;
 
         #region Actor Table Cache
         private List<Actor> actorsCache;
 
-        private List<Actor> ActorsCache {
-            get {
+        private List<Actor> ActorsCache
+        {
+            get
+            {
                 if (this.actorsCache != null) return this.actorsCache;
                 this.actorsCache = GetActorTable();
                 return this.actorsCache;
@@ -48,13 +51,16 @@ namespace Dalamud.Game.ClientState.Actors {
         #endregion
 
         private ClientStateAddressResolver Address { get; }
+
         private Dalamud dalamud;
 
         /// <summary>
-        ///     Set up the actor table collection.
+        /// Initializes a new instance of the <see cref="ActorTable"/> class.
+        /// Set up the actor table collection.
         /// </summary>
         /// <param name="addressResolver">Client state address resolver.</param>
-        public ActorTable(Dalamud dalamud, ClientStateAddressResolver addressResolver) {
+        public ActorTable(Dalamud dalamud, ClientStateAddressResolver addressResolver)
+        {
             Address = addressResolver;
             this.dalamud = dalamud;
 
@@ -63,7 +69,8 @@ namespace Dalamud.Game.ClientState.Actors {
             Log.Verbose("Actor table address {ActorTable}", Address.ActorTable);
         }
 
-        private void Framework_OnUpdateEvent(Internal.Framework framework) {
+        private void Framework_OnUpdateEvent(Internal.Framework framework)
+        {
             this.ResetCache();
         }
 
@@ -73,13 +80,15 @@ namespace Dalamud.Game.ClientState.Actors {
         /// <param name="index">Spawn index.</param>
         /// <returns><see cref="Actor" /> at the specified spawn index.</returns>
         [CanBeNull]
-        public Actor this[int index] {
+        public Actor this[int index]
+        {
             get => ActorsCache[index];
         }
 
         internal Actor ReadActorFromMemory(IntPtr offset)
         {
-            try {
+            try
+            {
                 // FIXME: hack workaround for trying to access the player on logout, after the main object has been deleted
                 if (!ReadProcessMemory(this.currentProcessHandle, offset, this.actorMem, ActorMemSize, out _))
                 {
@@ -89,45 +98,53 @@ namespace Dalamud.Game.ClientState.Actors {
 
                 var actorStruct = Marshal.PtrToStructure<Structs.Actor>(this.actorMem);
 
-                return actorStruct.ObjectKind switch {
+                return actorStruct.ObjectKind switch
+                {
                     ObjectKind.Player => new PlayerCharacter(offset, actorStruct, this.dalamud),
                     ObjectKind.BattleNpc => new BattleNpc(offset, actorStruct, this.dalamud),
                     ObjectKind.EventObj => new EventObj(offset, actorStruct, this.dalamud),
                     ObjectKind.Companion => new Npc(offset, actorStruct, this.dalamud),
-                _ => new Actor(offset, actorStruct, this.dalamud)
+                    _ => new Actor(offset, actorStruct, this.dalamud)
                 };
             }
-            catch (Exception e) {
+            catch (Exception e)
+            {
                 Log.Error(e, "Could not read actor from memory.");
                 return null;
             }
         }
 
-        private IntPtr[] GetPointerTable() {
+        private IntPtr[] GetPointerTable()
+        {
             var ret = new IntPtr[ActorTableLength];
             Marshal.Copy(Address.ActorTable, ret, 0, ActorTableLength);
             return ret;
         }
 
-        private List<Actor> GetActorTable() {
+        private List<Actor> GetActorTable()
+        {
             var actors = new List<Actor>();
             var ptrTable = GetPointerTable();
-            for (var i = 0; i < ActorTableLength; i++) {
+            for (var i = 0; i < ActorTableLength; i++)
+            {
                 actors.Add(ptrTable[i] != IntPtr.Zero ? ReadActorFromMemory(ptrTable[i]) : null);
             }
+
             return actors;
         }
 
-        public IEnumerator<Actor> GetEnumerator() {
+        public IEnumerator<Actor> GetEnumerator()
+        {
             return ActorsCache.Where(a => a != null).GetEnumerator();
         }
 
-        IEnumerator IEnumerable.GetEnumerator() {
+        IEnumerator IEnumerable.GetEnumerator()
+        {
             return GetEnumerator();
         }
 
         /// <summary>
-        ///     The amount of currently spawned actors.
+        /// Gets the amount of currently spawned actors.
         /// </summary>
         public int Length => ActorsCache.Count;
 
@@ -139,8 +156,10 @@ namespace Dalamud.Game.ClientState.Actors {
 
         object ICollection.SyncRoot => this;
 
-        void ICollection.CopyTo(Array array, int index) {
-            for (var i = 0; i < Length; i++) {
+        void ICollection.CopyTo(Array array, int index)
+        {
+            for (var i = 0; i < Length; i++)
+            {
                 array.SetValue(this[i], index);
                 index++;
             }
@@ -157,12 +176,14 @@ namespace Dalamud.Game.ClientState.Actors {
             this.disposed = true;
         }
 
-        public void Dispose() {
+        public void Dispose()
+        {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
 
-        ~ActorTable() {
+        ~ActorTable()
+        {
             Dispose(false);
         }
         #endregion

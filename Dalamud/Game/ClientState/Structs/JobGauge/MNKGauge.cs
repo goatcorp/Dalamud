@@ -6,16 +6,20 @@ namespace Dalamud.Game.ClientState.Structs.JobGauge
     [StructLayout(LayoutKind.Explicit)]
     public struct MNKGauge
     {
-        [FieldOffset(0)] public byte NumChakra;
+        [FieldOffset(0)]
+        public byte NumChakra;
 
         [Obsolete("GL has been removed from the game")]
-        [FieldOffset(0)] public byte GLTimer;
+        [FieldOffset(0)]
+        public byte GLTimer;
 
         [Obsolete("GL has been removed from the game")]
-        [FieldOffset(2)] public byte NumGLStacks;
+        [FieldOffset(2)]
+        public byte NumGLStacks;
 
         [Obsolete("GL has been removed from the game")]
-        [FieldOffset(4)] private byte GLTimerFreezeState;
+        [FieldOffset(4)]
+        private byte GLTimerFreezeState;
 
         [Obsolete("GL has been removed from the game")]
         public bool IsGLTimerFroze() => false;

@@ -8,8 +8,10 @@ using Dalamud.Plugin;
 using ImGuiNET;
 using Lumina.Data.Parsing.Layer;
 
-namespace Dalamud.Interface {
-    class DalamudChangelogWindow : Window {
+namespace Dalamud.Interface
+{
+    class DalamudChangelogWindow : Window
+    {
         private readonly Dalamud dalamud;
         private string assemblyVersion = Util.AssemblyVersion;
 
@@ -30,7 +32,8 @@ If you note any issues or need help, please make sure to ask on our discord serv
             this.IsOpen = WarrantsChangelog;
         }
 
-        public override void Draw() {
+        public override void Draw()
+        {
             ImGui.Text($"The in-game addon has been updated to version D{this.assemblyVersion}.");
 
             ImGui.Dummy(new Vector2(10, 10) * ImGui.GetIO().FontGlobalScale);
@@ -46,21 +49,23 @@ If you note any issues or need help, please make sure to ask on our discord serv
 
             ImGui.PushFont(InterfaceManager.IconFont);
 
-            if (ImGui.Button(FontAwesomeIcon.Download.ToIconString())) 
+            if (ImGui.Button(FontAwesomeIcon.Download.ToIconString()))
                 this.dalamud.DalamudUi.OpenPluginInstaller();
 
-            if (ImGui.IsItemHovered()) {
+            if (ImGui.IsItemHovered())
+            {
                 ImGui.PopFont();
                 ImGui.SetTooltip("Open Plugin Installer");
                 ImGui.PushFont(InterfaceManager.IconFont);
             }
-            
+
             ImGui.SameLine();
 
-            if (ImGui.Button(FontAwesomeIcon.LaughBeam.ToIconString())) 
+            if (ImGui.Button(FontAwesomeIcon.LaughBeam.ToIconString()))
                 Process.Start("https://discord.gg/3NMcUV5");
 
-            if (ImGui.IsItemHovered()) {
+            if (ImGui.IsItemHovered())
+            {
                 ImGui.PopFont();
                 ImGui.SetTooltip("Join our Discord server");
                 ImGui.PushFont(InterfaceManager.IconFont);
@@ -71,12 +76,12 @@ If you note any issues or need help, please make sure to ask on our discord serv
             if (ImGui.Button(FontAwesomeIcon.Globe.ToIconString()))
                 Process.Start("https://github.com/goatcorp/FFXIVQuickLauncher");
 
-            if (ImGui.IsItemHovered()) {
+            if (ImGui.IsItemHovered())
+            {
                 ImGui.PopFont();
                 ImGui.SetTooltip("See our GitHub repository");
                 ImGui.PushFont(InterfaceManager.IconFont);
             }
-                
 
             ImGui.PopFont();
 

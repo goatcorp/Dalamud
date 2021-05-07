@@ -14,7 +14,8 @@ namespace Dalamud.Game.Network.MarketBoardUploaders.Universalis
         public UniversalisTaxData TaxData { get; set; }
     }
 
-    class UniversalisTaxData {
+    class UniversalisTaxData
+    {
         [JsonProperty("limsaLominsa")]
         public uint LimsaLominsa { get; set; }
 

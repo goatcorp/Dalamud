@@ -20,8 +20,10 @@ namespace Dalamud.Game.Internal.DXGI
         private const int DxgiSwapchainMethodCount = 18;
         private const int D3D11DeviceMethodCount = 43;
 
-        private static SwapChainDescription CreateSwapChainDescription(IntPtr renderForm) {
-            return new SwapChainDescription {
+        private static SwapChainDescription CreateSwapChainDescription(IntPtr renderForm)
+        {
+            return new SwapChainDescription
+            {
                 BufferCount = 1,
                 Flags = SwapChainFlags.None,
                 IsWindowed = true,
@@ -61,12 +63,15 @@ namespace Dalamud.Game.Internal.DXGI
         #region Addresses
 
         public IntPtr Present { get; set; }
+
         public IntPtr ResizeBuffers { get; set; }
 
         #endregion
 
-        protected override void Setup64Bit(SigScanner sig) {
-            if (this.d3d11VTblAddresses == null) {
+        protected override void Setup64Bit(SigScanner sig)
+        {
+            if (this.d3d11VTblAddresses == null)
+            {
                 this.d3d11VTblAddresses = new List<IntPtr>();
                 this.dxgiSwapChainVTblAddresses = new List<IntPtr>();
 
@@ -79,10 +84,10 @@ namespace Dalamud.Game.Internal.DXGI
                     DeviceCreationFlags.BgraSupport,
                     CreateSwapChainDescription(this.renderForm.Handle),
                     out this.device,
-                    out this.swapChain
-                );
+                    out this.swapChain);
 
-                if (this.device != null && this.swapChain != null) {
+                if (this.device != null && this.swapChain != null)
+                {
                     this.d3d11VTblAddresses.AddRange(
                         GetVTblAddresses(this.device.NativePointer, D3D11DeviceMethodCount));
                     this.dxgiSwapChainVTblAddresses.AddRange(

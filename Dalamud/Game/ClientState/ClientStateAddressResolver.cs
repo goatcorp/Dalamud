@@ -4,22 +4,28 @@ using Dalamud.Game.Internal;
 
 namespace Dalamud.Game.ClientState
 {
-    public sealed class ClientStateAddressResolver : BaseAddressResolver {
+    public sealed class ClientStateAddressResolver : BaseAddressResolver
+    {
         // Static offsets
         public IntPtr ActorTable { get; private set; }
-        //public IntPtr ViewportActorTable { get; private set; }
+
+        // public IntPtr ViewportActorTable { get; private set; }
+
         public IntPtr LocalContentId { get; private set; }
+
         public IntPtr JobGaugeData { get; private set; }
+
         public IntPtr KeyboardState { get; private set; }
+
         public IntPtr TargetManager { get; private set; }
 
         // Functions
         public IntPtr SetupTerritoryType { get; private set; }
-        //public IntPtr SomeActorTableAccess { get; private set; }
-        //public IntPtr PartyListUpdate { get; private set; }
+        // public IntPtr SomeActorTableAccess { get; private set; }
+        // public IntPtr PartyListUpdate { get; private set; }
 
         /// <summary>
-        /// Game function which polls the gamepads for data.
+        /// Gets game function which polls the gamepads for data.
         ///
         /// Called every frame, even when `Enable Gamepad` is off in the settings.
         /// </summary>
@@ -27,10 +33,11 @@ namespace Dalamud.Game.ClientState
 
         public IntPtr ConditionFlags { get; private set; }
 
-        protected override void Setup64Bit(SigScanner sig) {
+        protected override void Setup64Bit(SigScanner sig)
+        {
             // We don't need those anymore, but maybe someone else will - let's leave them here for good measure
-            //ViewportActorTable = sig.GetStaticAddressFromSig("48 8D 0D ?? ?? ?? ?? 85 ED", 0) + 0x148;
-            //SomeActorTableAccess = sig.ScanText("E8 ?? ?? ?? ?? 48 8D 55 A0 48 8D 8E ?? ?? ?? ??");
+            // ViewportActorTable = sig.GetStaticAddressFromSig("48 8D 0D ?? ?? ?? ?? 85 ED", 0) + 0x148;
+            // SomeActorTableAccess = sig.ScanText("E8 ?? ?? ?? ?? 48 8D 55 A0 48 8D 8E ?? ?? ?? ??");
             ActorTable = sig.GetStaticAddressFromSig("48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 44 0F B6 83");
 
             LocalContentId = sig.GetStaticAddressFromSig("48 0F 44 05 ?? ?? ?? ?? 48 39 07");
@@ -41,7 +48,7 @@ namespace Dalamud.Game.ClientState
             // This resolves to a fixed offset only, without the base address added in, so GetStaticAddressFromSig() can't be used
             KeyboardState = sig.ScanText("48 8D 0C 85 ?? ?? ?? ?? 8B 04 31 85 C2 0F 85") + 0x4;
 
-            //PartyListUpdate = sig.ScanText("E8 ?? ?? ?? ?? 49 8B D7 4C 8D 86 ?? ?? ?? ??");
+            // PartyListUpdate = sig.ScanText("E8 ?? ?? ?? ?? 49 8B D7 4C 8D 86 ?? ?? ?? ??");
 
             ConditionFlags = sig.GetStaticAddressFromSig("48 8D 0D ?? ?? ?? ?? BA ?? ?? ?? ?? E8 ?? ?? ?? ?? B0 01 48 83 C4 30");
 

@@ -2,8 +2,10 @@ using System.Collections.Generic;
 
 using Newtonsoft.Json;
 
-namespace Dalamud.Game.Network.MarketBoardUploaders.Universalis {
-    internal class UniversalisItemListingsEntry {
+namespace Dalamud.Game.Network.MarketBoardUploaders.Universalis
+{
+    internal class UniversalisItemListingsEntry
+    {
         [JsonProperty("listingID")]
         public string ListingId { get; set; }
 

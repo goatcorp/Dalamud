@@ -14,7 +14,7 @@ namespace Dalamud.Game.ClientState
         /// </summary>
         public const int MaxConditionEntries = 100;
 
-        internal Condition( ClientStateAddressResolver resolver )
+        internal Condition(ClientStateAddressResolver resolver)
         {
             this.conditionArrayBase = resolver.ConditionFlags;
         }
@@ -22,21 +22,22 @@ namespace Dalamud.Game.ClientState
         /// <summary>
         /// Check the value of a specific condition/state flag.
         /// </summary>
-        /// <param name="flag">The condition flag to check</param>
-        public unsafe bool this[ ConditionFlag flag ]
+        /// <param name="flag">The condition flag to check.</param>
+        public unsafe bool this[ConditionFlag flag]
         {
             get
             {
-                var idx = ( int )flag;
-                
-                if ( idx > MaxConditionEntries || idx < 0 )
+                var idx = (int)flag;
+
+                if (idx > MaxConditionEntries || idx < 0)
                     return false;
-                
-                return *( bool* )( this.conditionArrayBase + idx );
+
+                return *(bool*)(this.conditionArrayBase + idx);
             }
         }
 
-        public bool Any() {
+        public bool Any()
+        {
             for (var i = 0; i < MaxConditionEntries; i++)
             {
                 var typedCondition = (ConditionFlag)i;

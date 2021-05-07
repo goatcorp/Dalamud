@@ -1,19 +1,24 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Dalamud.Game.ClientState.Structs.JobGauge {
+namespace Dalamud.Game.ClientState.Structs.JobGauge
+{
     [StructLayout(LayoutKind.Explicit)]
-    public struct DRKGauge {
-        [FieldOffset(0)] public byte Blood;
-        [FieldOffset(2)] public ushort DarksideTimeRemaining;
-        [FieldOffset(4)] private byte DarkArtsState;
-        [FieldOffset(6)] public ushort ShadowTimeRemaining;
+    public struct DRKGauge
+    {
+        [FieldOffset(0)]
+        public byte Blood;
 
-        public bool HasDarkArts() {
+        [FieldOffset(2)]
+        public ushort DarksideTimeRemaining;
+
+        [FieldOffset(4)]
+        private byte DarkArtsState;
+
+        [FieldOffset(6)]
+        public ushort ShadowTimeRemaining;
+
+        public bool HasDarkArts()
+        {
             return DarkArtsState > 0;
         }
     }

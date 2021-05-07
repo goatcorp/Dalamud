@@ -2,8 +2,10 @@ using System.Collections.Generic;
 
 using Newtonsoft.Json;
 
-namespace Dalamud.Game.Network.MarketBoardUploaders.Universalis {
-    internal class UniversalisHistoryUploadRequest {
+namespace Dalamud.Game.Network.MarketBoardUploaders.Universalis
+{
+    internal class UniversalisHistoryUploadRequest
+    {
         [JsonProperty("worldID")]
         public uint WorldId { get; set; }
 

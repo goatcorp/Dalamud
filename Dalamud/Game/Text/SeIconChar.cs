@@ -1,16 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-#pragma warning disable 1591
-
 namespace Dalamud.Game.Text
 {
     /// <summary>
     /// Special unicode characters with game-related symbols that work both in-game and in any dalamud window.
     /// </summary>
-    public enum SeIconChar {
+    public enum SeIconChar
+    {
         BotanistSprout = 0xE034,
         ItemLevel = 0xE033,
         AutoTranslateOpen = 0xE040,
@@ -130,9 +124,8 @@ namespace Dalamud.Game.Text
         Square = 0xE04B,
         Cross = 0xE04C,
         Triangle = 0xE04D,
-        Hexagon = 0xE042, 
+        Hexagon = 0xE042,
         Prohibited = 0xE043,
-
 
         Dice = 0xE03E,
         Debuff = 0xE05B,

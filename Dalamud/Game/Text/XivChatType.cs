@@ -1,13 +1,12 @@
 using System;
 using System.Linq;
-#pragma warning disable 1591
 
 namespace Dalamud.Game.Text
 {
     /// <summary>
     ///     The FFXIV chat types as seen in the LogKind ex table.
     /// </summary>
-    public enum XivChatType : ushort    // FIXME: this is a single byte
+    public enum XivChatType : ushort // FIXME: this is a single byte
     {
         None = 0,
         Debug = 1,
@@ -131,7 +130,9 @@ namespace Dalamud.Game.Text
         }
 
         public string FancyName { get; }
+
         public string Slug { get; }
+
         public uint DefaultColor { get; }
     }
 

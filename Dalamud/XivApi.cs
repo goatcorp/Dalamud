@@ -47,12 +47,14 @@ namespace Dalamud
         }
 
         [Obsolete("This class will not be supported anymore in the future. Please migrate to your own version.", true)]
-        public static async Task<JObject> GetContentFinderCondition(int contentFinderCondition) {
+        public static async Task<JObject> GetContentFinderCondition(int contentFinderCondition)
+        {
             return await Get("ContentFinderCondition/" + contentFinderCondition);
         }
 
         [Obsolete("This class will not be supported anymore in the future. Please migrate to your own version.", true)]
-        public static async Task<JObject> Search(string query, string indexes, int limit = 100, bool exact = false) {
+        public static async Task<JObject> Search(string query, string indexes, int limit = 100, bool exact = false)
+        {
             query = System.Net.WebUtility.UrlEncode(query);
 
             var queryString = $"?string={query}&indexes={indexes}&limit={limit}";
@@ -65,17 +67,20 @@ namespace Dalamud
         }
 
         [Obsolete("This class will not be supported anymore in the future. Please migrate to your own version.", true)]
-        public static async Task<JObject> GetMarketInfoWorld(int itemId, string worldName) {
+        public static async Task<JObject> GetMarketInfoWorld(int itemId, string worldName)
+        {
             return await Get($"market/{worldName}/item/{itemId}", true);
         }
 
         [Obsolete("This class will not be supported anymore in the future. Please migrate to your own version.", true)]
-        public static async Task<JObject> GetMarketInfoDc(int itemId, string dcName) {
+        public static async Task<JObject> GetMarketInfoDc(int itemId, string dcName)
+        {
             return await Get($"market/item/{itemId}?dc={dcName}", true);
         }
 
         [Obsolete("This class will not be supported anymore in the future. Please migrate to your own version.", true)]
-        public static async Task<JObject> GetItem(uint itemId) {
+        public static async Task<JObject> GetItem(uint itemId)
+        {
             return await Get($"Item/{itemId}", true);
         }
 

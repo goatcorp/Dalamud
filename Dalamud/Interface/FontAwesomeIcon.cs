@@ -1,6 +1,4 @@
-//Font-Awesome - Version 5.0.9
-using System.Collections.Generic;
-#pragma warning disable 1591
+// Font-Awesome - Version 5.0.9
 
 namespace Dalamud.Interface
 {
@@ -1418,13 +1416,14 @@ namespace Dalamud.Interface
 
     public static class FontAwesomeExtensions
     {
-        public static char ToIconChar(this FontAwesomeIcon icon) {
-            return (char) icon;
+        public static char ToIconChar(this FontAwesomeIcon icon)
+        {
+            return (char)icon;
         }
 
         public static string ToIconString(this FontAwesomeIcon icon)
         {
-            return string.Empty + (char) icon;
+            return string.Empty + (char)icon;
         }
     }
 }

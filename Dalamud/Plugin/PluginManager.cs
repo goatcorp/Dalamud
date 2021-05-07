@@ -236,7 +236,7 @@ namespace Dalamud.Plugin
         /// <param name="dllFile">The <see cref="FileInfo"/> associated with the main assembly of this plugin.</param>
         /// <param name="isRaw">Whether or not the plugin is a dev plugin.</param>
         /// <param name="reason">The reason this plugin was loaded.</param>
-        /// <param name="pluginDef">The already loaded definition, if available</param>
+        /// <param name="pluginDef">The already loaded definition, if available.</param>
         /// <returns>Whether or not the plugin was loaded successfully.</returns>
         public bool LoadPluginFromAssembly(FileInfo dllFile, bool isRaw, PluginLoadReason reason, PluginDefinition pluginDef = null)
         {

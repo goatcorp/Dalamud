@@ -8,40 +8,44 @@ using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
 using ImGuiNET;
 
-namespace Dalamud.Interface {
-    internal class DalamudPluginStatWindow : Window {
-
+namespace Dalamud.Interface
+{
+    internal class DalamudPluginStatWindow : Window
+    {
         private readonly PluginManager pluginManager;
         private bool showDalamudHooks;
 
-        public DalamudPluginStatWindow(PluginManager pluginManager) 
+        public DalamudPluginStatWindow(PluginManager pluginManager)
             : base("Plugin Statistics###DalamudPluginStatWindow")
         {
             this.pluginManager = pluginManager;
         }
 
-        public override void Draw() {
+        public override void Draw()
+        {
             ImGui.BeginTabBar("Stat Tabs");
 
-            if (ImGui.BeginTabItem("Draw times")) {
-
+            if (ImGui.BeginTabItem("Draw times"))
+            {
                 bool doStats = UiBuilder.DoStats;
 
-                if (ImGui.Checkbox("Enable Draw Time Tracking", ref doStats)) {
+                if (ImGui.Checkbox("Enable Draw Time Tracking", ref doStats))
+                {
                     UiBuilder.DoStats = doStats;
                 }
 
-                if (doStats) {
-
+                if (doStats)
+                {
                     ImGui.SameLine();
-                    if (ImGui.Button("Reset")) {
-                        foreach (var a in this.pluginManager.Plugins) {
+                    if (ImGui.Button("Reset"))
+                    {
+                        foreach (var a in this.pluginManager.Plugins)
+                        {
                             a.PluginInterface.UiBuilder.LastDrawTime = -1;
                             a.PluginInterface.UiBuilder.MaxDrawTime = -1;
                             a.PluginInterface.UiBuilder.DrawTimeHistory.Clear();
                         }
                     }
-
 
                     ImGui.Columns(4);
                     ImGui.SetColumnWidth(0, 180f);
@@ -57,41 +61,49 @@ namespace Dalamud.Interface {
                     ImGui.Text("Average");
                     ImGui.NextColumn();
                     ImGui.Separator();
-                    foreach (var a in this.pluginManager.Plugins) {
+                    foreach (var a in this.pluginManager.Plugins)
+                    {
                         ImGui.Text(a.Definition.Name);
                         ImGui.NextColumn();
-                        ImGui.Text($"{a.PluginInterface.UiBuilder.LastDrawTime/10000f:F4}ms");
+                        ImGui.Text($"{a.PluginInterface.UiBuilder.LastDrawTime / 10000f:F4}ms");
                         ImGui.NextColumn();
-                        ImGui.Text($"{a.PluginInterface.UiBuilder.MaxDrawTime/10000f:F4}ms");
+                        ImGui.Text($"{a.PluginInterface.UiBuilder.MaxDrawTime / 10000f:F4}ms");
                         ImGui.NextColumn();
-                        if (a.PluginInterface.UiBuilder.DrawTimeHistory.Count > 0) {
-                            ImGui.Text($"{a.PluginInterface.UiBuilder.DrawTimeHistory.Average()/10000f:F4}ms");
-                        } else {
+                        if (a.PluginInterface.UiBuilder.DrawTimeHistory.Count > 0)
+                        {
+                            ImGui.Text($"{a.PluginInterface.UiBuilder.DrawTimeHistory.Average() / 10000f:F4}ms");
+                        }
+                        else
+                        {
                             ImGui.Text("-");
                         }
+
                         ImGui.NextColumn();
                     }
 
                     ImGui.Columns(1);
-
                 }
+
                 ImGui.EndTabItem();
             }
 
-            if (ImGui.BeginTabItem("Framework times")) {
-
+            if (ImGui.BeginTabItem("Framework times"))
+            {
                 var doStats = Framework.StatsEnabled;
 
-                if (ImGui.Checkbox("Enable Framework Update Tracking", ref doStats)) {
+                if (ImGui.Checkbox("Enable Framework Update Tracking", ref doStats))
+                {
                     Framework.StatsEnabled = doStats;
                 }
 
-                if (doStats) {
+                if (doStats)
+                {
                     ImGui.SameLine();
-                    if (ImGui.Button("Reset")) {
+                    if (ImGui.Button("Reset"))
+                    {
                         Framework.StatsHistory.Clear();
                     }
-                    
+
                     ImGui.Columns(4);
                     ImGui.SetColumnWidth(0, ImGui.GetWindowContentRegionWidth() - 300);
                     ImGui.SetColumnWidth(1, 100f);
@@ -108,7 +120,8 @@ namespace Dalamud.Interface {
                     ImGui.Separator();
                     ImGui.Separator();
 
-                    foreach (var handlerHistory in Framework.StatsHistory) {
+                    foreach (var handlerHistory in Framework.StatsHistory)
+                    {
                         if (handlerHistory.Value.Count == 0) continue;
                         ImGui.SameLine();
                         ImGui.Text($"{handlerHistory.Key}");
@@ -121,13 +134,15 @@ namespace Dalamud.Interface {
                         ImGui.NextColumn();
                         ImGui.Separator();
                     }
+
                     ImGui.Columns(0);
                 }
 
                 ImGui.EndTabItem();
             }
 
-            if (ImGui.BeginTabItem("Hooks")) {
+            if (ImGui.BeginTabItem("Hooks"))
+            {
                 ImGui.Columns(3);
                 ImGui.SetColumnWidth(0, ImGui.GetWindowContentRegionWidth() - 280);
                 ImGui.SetColumnWidth(1, 180f);
@@ -145,34 +160,43 @@ namespace Dalamud.Interface {
                 ImGui.Separator();
                 ImGui.Separator();
 
-                foreach (var trackedHook in HookInfo.TrackedHooks) {
-                    try {
+                foreach (var trackedHook in HookInfo.TrackedHooks)
+                {
+                    try
+                    {
                         if (!this.showDalamudHooks && trackedHook.Assembly == Assembly.GetExecutingAssembly()) continue;
 
                         ImGui.Text($"{trackedHook.Delegate.Target} :: {trackedHook.Delegate.Method.Name}");
                         ImGui.TextDisabled(trackedHook.Assembly.FullName);
                         ImGui.NextColumn();
-                        if (!trackedHook.Hook.IsDisposed) {
+                        if (!trackedHook.Hook.IsDisposed)
+                        {
                             ImGui.Text($"{trackedHook.Hook.Address.ToInt64():X}");
                             if (ImGui.IsItemClicked()) ImGui.SetClipboardText($"{trackedHook.Hook.Address.ToInt64():X}");
 
                             var processMemoryOffset = trackedHook.InProcessMemory;
-                            if (processMemoryOffset.HasValue) {
+                            if (processMemoryOffset.HasValue)
+                            {
                                 ImGui.Text($"ffxiv_dx11.exe + {processMemoryOffset:X}");
                                 if (ImGui.IsItemClicked()) ImGui.SetClipboardText($"ffxiv_dx11.exe+{processMemoryOffset:X}");
                             }
-
                         }
+
                         ImGui.NextColumn();
 
-                        if (trackedHook.Hook.IsDisposed) {
+                        if (trackedHook.Hook.IsDisposed)
+                        {
                             ImGui.Text("Disposed");
-                        } else {
+                        }
+                        else
+                        {
                             ImGui.Text(trackedHook.Hook.IsEnabled ? "Enabled" : "Disabled");
                         }
 
                         ImGui.NextColumn();
-                    } catch (Exception ex) {
+                    }
+                    catch (Exception ex)
+                    {
                         ImGui.Text(ex.Message);
                         ImGui.NextColumn();
                         while (ImGui.GetColumnIndex() != 0) ImGui.NextColumn();
@@ -180,11 +204,12 @@ namespace Dalamud.Interface {
 
                     ImGui.Separator();
                 }
-                
+
                 ImGui.Columns();
             }
 
-            if (ImGui.IsWindowAppearing()) {
+            if (ImGui.IsWindowAppearing())
+            {
                 HookInfo.TrackedHooks.RemoveAll(h => h.Hook.IsDisposed);
             }
 

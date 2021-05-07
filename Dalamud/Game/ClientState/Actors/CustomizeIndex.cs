@@ -10,7 +10,8 @@ namespace Dalamud.Game.ClientState.Actors
     /// This enum describes the indices of the Customize array.
     /// </summary>
     // TODO: This may need some rework since it may not be entirely accurate (stolen from Sapphire)
-    public enum CustomizeIndex {
+    public enum CustomizeIndex
+    {
         /// <summary>
         /// The race of the character.
         /// </summary>
@@ -35,12 +36,12 @@ namespace Dalamud.Game.ClientState.Actors
         /// The model type of the character.
         /// </summary>
         ModelType = 0x02, // Au Ra: changes horns/tails, everything else: seems to drastically change appearance (flip between two sets, odd/even numbers). sometimes retains hairstyle and other features
-        
+
         /// <summary>
         /// The face type of the character.
         /// </summary>
         FaceType = 0x05,
-        
+
         /// <summary>
         /// The hair of the character.
         /// </summary>
@@ -50,12 +51,12 @@ namespace Dalamud.Game.ClientState.Actors
         /// Whether or not the character has hair highlights.
         /// </summary>
         HasHighlights = 0x07, // negative to enable, positive to disable
-        
+
         /// <summary>
         /// The skin color of the character.
         /// </summary>
         SkinColor = 0x08,
-        
+
         /// <summary>
         /// The eye color of the character.
         /// </summary>
@@ -125,17 +126,17 @@ namespace Dalamud.Game.ClientState.Actors
         /// The race feature type of the character.
         /// </summary>
         RaceFeatureType = 0x16, // negative or out of range tail shapes for race result in no tail (e.g. Au Ra has max of 4 tail shapes), incorrect value can crash client
-        
+
         /// <summary>
         /// The bust size of the character.
         /// </summary>
         BustSize = 0x17, // char creator allows up to max of 100, i set to 127 cause who wouldnt but no visible difference
-        
+
         /// <summary>
         /// The face paint of the character.
         /// </summary>
         Facepaint = 0x18,
-        
+
         /// <summary>
         /// The face paint color of the character.
         /// </summary>

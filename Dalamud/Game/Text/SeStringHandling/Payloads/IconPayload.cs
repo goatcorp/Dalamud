@@ -2,38 +2,46 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace Dalamud.Game.Text.SeStringHandling.Payloads {
-
+namespace Dalamud.Game.Text.SeStringHandling.Payloads
+{
     /// <summary>
-    /// SeString payload representing a bitmap icon from fontIcon
+    /// SeString payload representing a bitmap icon from fontIcon.
     /// </summary>
-    public class IconPayload : Payload {
-
+    public class IconPayload : Payload
+    {
         /// <summary>
-        /// Index of the icon
+        /// Gets the index of the icon.
         /// </summary>
         [Obsolete("Use IconPayload.Icon")]
-        public uint IconIndex => (uint) Icon;
+        public uint IconIndex => (uint)Icon;
 
         /// <summary>
         /// Icon the payload represents.
         /// </summary>
         public BitmapFontIcon Icon { get; set; } = BitmapFontIcon.None;
 
-        internal IconPayload() { }
+        internal IconPayload()
+        {
+        }
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="IconPayload"/> class.
         /// Create a Icon payload for the specified icon.
         /// </summary>
-        /// <param name="iconIndex">Index of the icon</param>
+        /// <param name="iconIndex">Index of the icon.</param>
         [Obsolete("IconPayload(uint) is deprecated, please use IconPayload(BitmapFontIcon).")]
-        public IconPayload(uint iconIndex) : this((BitmapFontIcon) iconIndex) { }
+        public IconPayload(uint iconIndex)
+            : this((BitmapFontIcon)iconIndex)
+        {
+        }
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="IconPayload"/> class.
         /// Create a Icon payload for the specified icon.
         /// </summary>
-        /// <param name="icon">The Icon</param>
-        public IconPayload(BitmapFontIcon icon) {
+        /// <param name="icon">The Icon.</param>
+        public IconPayload(BitmapFontIcon icon)
+        {
             Icon = icon;
         }
 
@@ -41,10 +49,12 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads {
         public override PayloadType Type => PayloadType.Icon;
 
         /// <inheritdoc />
-        protected override byte[] EncodeImpl() {
-            var indexBytes = MakeInteger((uint) this.Icon);
+        protected override byte[] EncodeImpl()
+        {
+            var indexBytes = MakeInteger((uint)this.Icon);
             var chunkLen = indexBytes.Length + 1;
-            var bytes = new List<byte>(new byte[] {
+            var bytes = new List<byte>(new byte[]
+            {
                 START_BYTE, (byte)SeStringChunkType.Icon, (byte)chunkLen,
             });
             bytes.AddRange(indexBytes);
@@ -53,14 +63,15 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads {
         }
 
         /// <inheritdoc />
-        protected override void DecodeImpl(BinaryReader reader, long endOfStream) {
-            Icon = (BitmapFontIcon) GetInteger(reader);
+        protected override void DecodeImpl(BinaryReader reader, long endOfStream)
+        {
+            Icon = (BitmapFontIcon)GetInteger(reader);
         }
 
         /// <inheritdoc />
-        public override string ToString() {
+        public override string ToString()
+        {
             return $"{Type} - {Icon}";
         }
-
     }
 }

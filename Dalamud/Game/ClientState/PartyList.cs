@@ -11,6 +11,7 @@ namespace Dalamud.Game.ClientState
     public class PartyList : IReadOnlyCollection<PartyMember>, ICollection, IDisposable
     {
         private ClientStateAddressResolver Address { get; }
+
         private Dalamud dalamud;
 
         private delegate long PartyListUpdateDelegate(IntPtr structBegin, long param2, char param3);
@@ -23,19 +24,19 @@ namespace Dalamud.Game.ClientState
         {
             Address = addressResolver;
             this.dalamud = dalamud;
-            //this.partyListUpdateHook = new Hook<PartyListUpdateDelegate>(Address.PartyListUpdate, new PartyListUpdateDelegate(PartyListUpdateDetour), this);
+            // this.partyListUpdateHook = new Hook<PartyListUpdateDelegate>(Address.PartyListUpdate, new PartyListUpdateDelegate(PartyListUpdateDetour), this);
         }
 
         public void Enable()
         {
             // TODO Fix for 5.3
-            //this.partyListUpdateHook.Enable();
+            // this.partyListUpdateHook.Enable();
         }
 
         public void Dispose()
         {
-            //if (!this.isReady)
-            //    this.partyListUpdateHook.Dispose();
+            // if (!this.isReady)
+            //     this.partyListUpdateHook.Dispose();
             this.isReady = false;
         }
 
@@ -50,12 +51,13 @@ namespace Dalamud.Game.ClientState
 
         public PartyMember this[int index]
         {
-            get {
+            get
+            {
                 if (!this.isReady)
                     return null;
                 if (index >= Length)
                     return null;
-                var tblIndex = partyListBegin + index * 24;
+                var tblIndex = partyListBegin + (index * 24);
                 var memberStruct = Marshal.PtrToStructure<Structs.PartyMember>(tblIndex);
                 return new PartyMember(this.dalamud.ClientState.Actors, memberStruct);
             }
@@ -70,9 +72,12 @@ namespace Dalamud.Game.ClientState
             }
         }
 
-        public IEnumerator<PartyMember> GetEnumerator() {
-            for (var i = 0; i < Length; i++) {
-                if (this[i] != null) {
+        public IEnumerator<PartyMember> GetEnumerator()
+        {
+            for (var i = 0; i < Length; i++)
+            {
+                if (this[i] != null)
+                {
                     yield return this[i];
                 }
             }

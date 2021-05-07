@@ -123,20 +123,24 @@ namespace Dalamud.Interface.Windowing
         /// <summary>
         /// Code to be executed when the window is opened.
         /// </summary>
-        public virtual void OnOpen() { }
+        public virtual void OnOpen()
+        {
+        }
 
         /// <summary>
         /// Code to be executed when the window is closed.
         /// </summary>
-        public virtual void OnClose() { }
+        public virtual void OnClose()
+        {
+        }
 
         /// <summary>
         /// Draw the window via ImGui.
         /// </summary>
         internal void DrawInternal()
         {
-            //if (WindowName.Contains("Credits"))
-            //    Log.Information($"Draw: {IsOpen} {this.internalIsOpen} {this.internalLastIsOpen}");
+            // if (WindowName.Contains("Credits"))
+            //     Log.Information($"Draw: {IsOpen} {this.internalIsOpen} {this.internalLastIsOpen}");
 
             if (!this.IsOpen)
             {

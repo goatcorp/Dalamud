@@ -12,8 +12,10 @@ using Dalamud.Game.Network.Universalis.MarketBoardUploaders;
 using Lumina.Excel.GeneratedSheets;
 using Serilog;
 
-namespace Dalamud.Game.Network {
-    public class NetworkHandlers {
+namespace Dalamud.Game.Network
+{
+    public class NetworkHandlers
+    {
         private readonly Dalamud dalamud;
 
         private readonly List<MarketBoardItemRequest> marketBoardRequests = new List<MarketBoardItemRequest>();
@@ -24,26 +26,28 @@ namespace Dalamud.Game.Network {
         /// <summary>
         /// Event which gets fired when a duty is ready.
         /// </summary>
-        public event EventHandler<ContentFinderCondition> CfPop; 
+        public event EventHandler<ContentFinderCondition> CfPop;
 
-        public NetworkHandlers(Dalamud dalamud, bool optOutMbUploads) {
+        public NetworkHandlers(Dalamud dalamud, bool optOutMbUploads)
+        {
             this.dalamud = dalamud;
             this.optOutMbUploads = optOutMbUploads;
 
             this.uploader = new UniversalisMarketBoardUploader(dalamud);
 
             dalamud.Framework.Network.OnNetworkMessage += OnNetworkMessage;
-
         }
 
-        private void OnNetworkMessage(IntPtr dataPtr, ushort opCode, uint sourceActorId, uint targetActorId, NetworkMessageDirection direction) {
+        private void OnNetworkMessage(IntPtr dataPtr, ushort opCode, uint sourceActorId, uint targetActorId, NetworkMessageDirection direction)
+        {
             if (direction != NetworkMessageDirection.ZoneDown)
                 return;
 
             if (!this.dalamud.Data.IsDataReady)
                 return;
 
-            if (opCode == this.dalamud.Data.ServerOpCodes["CfNotifyPop"]) {
+            if (opCode == this.dalamud.Data.ServerOpCodes["CfNotifyPop"])
+            {
                 var data = new byte[64];
                 Marshal.Copy(dataPtr, data, 0, 64);
 
@@ -62,12 +66,14 @@ namespace Dalamud.Game.Network {
                 }
 
                 var cfcName = contentFinderCondition.Name.ToString();
-                if (string.IsNullOrEmpty(contentFinderCondition.Name)) {
+                if (string.IsNullOrEmpty(contentFinderCondition.Name))
+                {
                     cfcName = "Duty Roulette";
                     contentFinderCondition.Image = 112324;
                 }
 
-                if (this.dalamud.Configuration.DutyFinderTaskbarFlash && !NativeFunctions.ApplicationIsActivated()) {
+                if (this.dalamud.Configuration.DutyFinderTaskbarFlash && !NativeFunctions.ApplicationIsActivated())
+                {
                     var flashInfo = new NativeFunctions.FLASHWINFO
                     {
                         cbSize = (uint)Marshal.SizeOf<NativeFunctions.FLASHWINFO>(),
@@ -80,7 +86,8 @@ namespace Dalamud.Game.Network {
                     NativeFunctions.FlashWindowEx(ref flashInfo);
                 }
 
-                Task.Run(() => {
+                Task.Run(() =>
+                {
                     if (this.dalamud.Configuration.DutyFinderChatMessage)
                         this.dalamud.Framework.Gui.Chat.Print("Duty pop: " + cfcName);
 
@@ -90,12 +97,15 @@ namespace Dalamud.Game.Network {
                 return;
             }
 
-            if (!this.optOutMbUploads) {
-                if (opCode == this.dalamud.Data.ServerOpCodes["MarketBoardItemRequestStart"]) {
-                    var catalogId = (uint) Marshal.ReadInt32(dataPtr);
+            if (!this.optOutMbUploads)
+            {
+                if (opCode == this.dalamud.Data.ServerOpCodes["MarketBoardItemRequestStart"])
+                {
+                    var catalogId = (uint)Marshal.ReadInt32(dataPtr);
                     var amount = Marshal.ReadByte(dataPtr + 0xB);
 
-                    this.marketBoardRequests.Add(new MarketBoardItemRequest {
+                    this.marketBoardRequests.Add(new MarketBoardItemRequest
+                    {
                         CatalogId = catalogId,
                         AmountToArrive = amount,
                         Listings = new List<MarketBoardCurrentOfferings.MarketBoardItemListing>(),
@@ -106,38 +116,38 @@ namespace Dalamud.Game.Network {
                     return;
                 }
 
-                if (opCode == this.dalamud.Data.ServerOpCodes["MarketBoardOfferings"]) {
+                if (opCode == this.dalamud.Data.ServerOpCodes["MarketBoardOfferings"])
+                {
                     var listing = MarketBoardCurrentOfferings.Read(dataPtr);
 
-                    var request =
-                        this.marketBoardRequests.LastOrDefault(
-                            r => r.CatalogId == listing.ItemListings[0].CatalogId && !r.IsDone);
+                    var request = this.marketBoardRequests.LastOrDefault(r => r.CatalogId == listing.ItemListings[0].CatalogId && !r.IsDone);
 
-                    if (request == null) {
-                        Log.Error(
-                            $"Market Board data arrived without a corresponding request: item#{listing.ItemListings[0].CatalogId}");
+                    if (request == null)
+                    {
+                        Log.Error($"Market Board data arrived without a corresponding request: item#{listing.ItemListings[0].CatalogId}");
                         return;
                     }
 
-                    if (request.Listings.Count + listing.ItemListings.Count > request.AmountToArrive) {
-                        Log.Error(
-                            $"Too many Market Board listings received for request: {request.Listings.Count + listing.ItemListings.Count} > {request.AmountToArrive} item#{listing.ItemListings[0].CatalogId}");
+                    if (request.Listings.Count + listing.ItemListings.Count > request.AmountToArrive)
+                    {
+                        Log.Error($"Too many Market Board listings received for request: {request.Listings.Count + listing.ItemListings.Count} > {request.AmountToArrive} item#{listing.ItemListings[0].CatalogId}");
                         return;
                     }
 
-                    if (request.ListingsRequestId != -1 && request.ListingsRequestId != listing.RequestId) {
-                        Log.Error(
-                            $"Non-matching RequestIds for Market Board data request: {request.ListingsRequestId}, {listing.RequestId}");
+                    if (request.ListingsRequestId != -1 && request.ListingsRequestId != listing.RequestId)
+                    {
+                        Log.Error($"Non-matching RequestIds for Market Board data request: {request.ListingsRequestId}, {listing.RequestId}");
                         return;
                     }
 
-                    if (request.ListingsRequestId == -1 && request.Listings.Count > 0) {
-                        Log.Error(
-                            $"Market Board data request sequence break: {request.ListingsRequestId}, {request.Listings.Count}");
+                    if (request.ListingsRequestId == -1 && request.Listings.Count > 0)
+                    {
+                        Log.Error($"Market Board data request sequence break: {request.ListingsRequestId}, {request.Listings.Count}");
                         return;
                     }
 
-                    if (request.ListingsRequestId == -1) {
+                    if (request.ListingsRequestId == -1)
+                    {
                         request.ListingsRequestId = listing.RequestId;
                         Log.Verbose($"First Market Board packet in sequence: {listing.RequestId}");
                     }
@@ -152,15 +162,19 @@ namespace Dalamud.Game.Network {
                         request.AmountToArrive,
                         request.CatalogId);
 
-                    if (request.IsDone) {
+                    if (request.IsDone)
+                    {
                         Log.Verbose(
                             "Market Board request finished, starting upload: request#{0} item#{1} amount#{2}",
                             request.ListingsRequestId,
                             request.CatalogId,
                             request.AmountToArrive);
-                        try {
+                        try
+                        {
                             Task.Run(() => this.uploader.Upload(request));
-                        } catch (Exception ex) {
+                        }
+                        catch (Exception ex)
+                        {
                             Log.Error(ex, "Market Board data upload failed.");
                         }
                     }
@@ -168,18 +182,21 @@ namespace Dalamud.Game.Network {
                     return;
                 }
 
-                if (opCode == this.dalamud.Data.ServerOpCodes["MarketBoardHistory"]) {
+                if (opCode == this.dalamud.Data.ServerOpCodes["MarketBoardHistory"])
+                {
                     var listing = MarketBoardHistory.Read(dataPtr);
 
                     var request = this.marketBoardRequests.LastOrDefault(r => r.CatalogId == listing.CatalogId);
 
-                    if (request == null) {
+                    if (request == null)
+                    {
                         Log.Error(
                             $"Market Board data arrived without a corresponding request: item#{listing.CatalogId}");
                         return;
                     }
 
-                    if (request.ListingsRequestId != -1) {
+                    if (request.ListingsRequestId != -1)
+                    {
                         Log.Error(
                             $"Market Board data history sequence break: {request.ListingsRequestId}, {request.Listings.Count}");
                         return;
@@ -189,7 +206,8 @@ namespace Dalamud.Game.Network {
 
                     Log.Verbose("Added history for item#{0}", listing.CatalogId);
 
-                    if (request.AmountToArrive == 0) {
+                    if (request.AmountToArrive == 0)
+                    {
                         Log.Verbose("Request had 0 amount, uploading now");
 
                         try
@@ -203,10 +221,12 @@ namespace Dalamud.Game.Network {
                     }
                 }
 
-                if (opCode == this.dalamud.Data.ServerOpCodes["MarketTaxRates"]) {
-                    var category = (uint) Marshal.ReadInt32(dataPtr);
+                if (opCode == this.dalamud.Data.ServerOpCodes["MarketTaxRates"])
+                {
+                    var category = (uint)Marshal.ReadInt32(dataPtr);
                     // Result dialog packet does not contain market tax rates
-                    if (category != 720905) {
+                    if (category != 720905)
+                    {
                         return;
                     }
 

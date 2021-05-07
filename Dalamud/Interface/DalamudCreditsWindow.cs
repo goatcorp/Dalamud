@@ -10,7 +10,8 @@ using ImGuiScene;
 
 namespace Dalamud.Interface
 {
-    class DalamudCreditsWindow : Window, IDisposable {
+    class DalamudCreditsWindow : Window, IDisposable
+    {
         private const string CreditsTextTempl = @"
 Dalamud
 A FFXIV Hooking Framework
@@ -139,15 +140,17 @@ Thank you for using XIVLauncher and Dalamud!
             this.framework.Gui.SetBgm(9999);
         }
 
-        public void Dispose() {
+        public void Dispose()
+        {
             this.logoTexture?.Dispose();
         }
 
-        public override void Draw() {
+        public override void Draw()
+        {
             var screenSize = ImGui.GetMainViewport().Size;
             var windowSize = ImGui.GetWindowSize();
 
-            this.Position = new Vector2((screenSize.X / 2) - windowSize.X / 2, (screenSize.Y / 2) - windowSize.Y / 2);
+            this.Position = new Vector2((screenSize.X / 2) - (windowSize.X / 2), (screenSize.Y / 2) - (windowSize.Y / 2));
 
             ImGui.BeginChild("scrolling", new Vector2(0, 0), false, ImGuiWindowFlags.NoScrollbar);
 
@@ -163,10 +166,11 @@ Thank you for using XIVLauncher and Dalamud!
 
             var windowX = ImGui.GetWindowSize().X;
 
-            foreach (var creditsLine in this.creditsText.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None)) {
+            foreach (var creditsLine in this.creditsText.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None))
+            {
                 var lineLenX = ImGui.CalcTextSize(creditsLine).X;
 
-                ImGui.Dummy(new Vector2((windowX / 2) - lineLenX / 2, 0f));
+                ImGui.Dummy(new Vector2((windowX / 2) - (lineLenX / 2), 0f));
                 ImGui.SameLine();
                 ImGui.TextUnformatted(creditsLine);
             }
