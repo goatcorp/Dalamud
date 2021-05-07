@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using FFXIVClientStructs.FFXIV.Component.GUI.ULD;
 using ImGuiNET;
+
 using AlignmentType = FFXIVClientStructs.FFXIV.Component.GUI.AlignmentType;
 
 // Customised version of https://github.com/aers/FFXIVUIDebug

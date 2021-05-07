@@ -1,9 +1,9 @@
 using System;
 using System.Runtime.InteropServices;
+
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Hooking;
 using Dalamud.Interface;
-using ImGuiNET;
 using Serilog;
 using SharpDX;
 

@@ -1,11 +1,8 @@
-using Dalamud.Game.ClientState;
-using Dalamud.Game.ClientState.Actors.Types;
-using Dalamud.Game.ClientState.Structs.JobGauge;
+using System;
+using System.Runtime.InteropServices;
+
 using Dalamud.Hooking;
 using Serilog;
-using System;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
 
 namespace Dalamud.Game.Internal.Gui {
     public class TargetManager {

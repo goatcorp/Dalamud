@@ -1,10 +1,7 @@
-using Dalamud.Game.ClientState.Actors;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
+
+using Dalamud.Game.ClientState.Actors;
 
 namespace Dalamud.Game.ClientState.Structs
 {

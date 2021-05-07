@@ -1,7 +1,4 @@
 using System;
-using System.Runtime.CompilerServices;
-using Dalamud.Hooking;
-using Serilog;
 
 namespace Dalamud.Game.ClientState
 {

@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Reflection;
+
 using Dalamud.Game.Internal;
 using Dalamud.Hooking;
 using Dalamud.Interface.Windowing;

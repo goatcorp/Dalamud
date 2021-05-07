@@ -1,10 +1,12 @@
-using SharpDX.Direct3D;
-using SharpDX.Direct3D11;
-using SharpDX.DXGI;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+
+using SharpDX.Direct3D;
+using SharpDX.Direct3D11;
+using SharpDX.DXGI;
 using SharpDX.Windows;
+
 using Device = SharpDX.Direct3D11.Device;
 
 namespace Dalamud.Game.Internal.DXGI

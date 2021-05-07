@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Runtime.InteropServices;
+
 using Dalamud.Game.Internal.Gui.Structs;
 using Dalamud.Hooking;
 using Serilog;

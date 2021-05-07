@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+
 using Newtonsoft.Json;
 
 namespace Dalamud.Game.Network.MarketBoardUploaders.Universalis {

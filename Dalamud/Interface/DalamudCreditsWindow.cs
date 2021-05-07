@@ -2,11 +2,11 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+
 using Dalamud.Game.Internal;
 using Dalamud.Interface.Windowing;
 using ImGuiNET;
 using ImGuiScene;
-using Serilog;
 
 namespace Dalamud.Interface
 {

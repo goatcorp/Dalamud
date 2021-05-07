@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+
 using JetBrains.Annotations;
 
 namespace Dalamud.Game.Text.SeStringHandling.Payloads {

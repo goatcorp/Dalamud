@@ -6,13 +6,12 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+
 using CheapLoc;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
-using Dalamud.Game.Internal.Libc;
 using Dalamud.Interface;
-using Dalamud.Plugin;
 using Serilog;
 
 namespace Dalamud.Game {

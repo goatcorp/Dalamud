@@ -1,6 +1,5 @@
 using System;
 using System.Runtime.InteropServices;
-using Serilog;
 
 namespace Dalamud.Game.Internal.Gui {
     internal sealed class GameGuiAddressResolver : BaseAddressResolver {

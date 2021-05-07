@@ -1,4 +1,5 @@
 using System;
+
 using Dalamud.Game.Internal;
 
 namespace Dalamud.Game.ClientState

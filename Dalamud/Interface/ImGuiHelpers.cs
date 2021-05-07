@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Numerics;
+
 using ImGuiNET;
 
 namespace Dalamud.Interface

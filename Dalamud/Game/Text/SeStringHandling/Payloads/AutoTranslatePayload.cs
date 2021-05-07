@@ -1,11 +1,12 @@
-using Lumina.Excel.GeneratedSheets;
-using Serilog;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+
 using Dalamud.Data;
+using Lumina.Excel.GeneratedSheets;
 using Newtonsoft.Json;
+using Serilog;
 
 namespace Dalamud.Game.Text.SeStringHandling.Payloads
 {

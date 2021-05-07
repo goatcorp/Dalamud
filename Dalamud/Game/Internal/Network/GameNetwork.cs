@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+
 using Dalamud.Hooking;
 using Serilog;
-using SharpDX.DXGI;
 
 namespace Dalamud.Game.Internal.Network {
     public sealed class GameNetwork : IDisposable {

@@ -1,8 +1,9 @@
-using Lumina.Excel.GeneratedSheets;
 using System;
 using System.Collections.Generic;
 using System.IO;
+
 using Dalamud.Data;
+using Lumina.Excel.GeneratedSheets;
 using Newtonsoft.Json;
 
 namespace Dalamud.Game.Text.SeStringHandling.Payloads

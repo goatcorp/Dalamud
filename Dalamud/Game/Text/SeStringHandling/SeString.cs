@@ -1,8 +1,7 @@
-using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
+
 using Dalamud.Data;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Newtonsoft.Json;

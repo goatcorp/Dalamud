@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Threading;
+
 using Dalamud.Game.Internal.Gui;
 using Dalamud.Game.Internal.Libc;
 using Dalamud.Game.Internal.Network;

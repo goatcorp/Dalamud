@@ -1,11 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-using Dalamud.Game.Internal.Libc;
+
 using Dalamud.Hooking;
 using Serilog;
 

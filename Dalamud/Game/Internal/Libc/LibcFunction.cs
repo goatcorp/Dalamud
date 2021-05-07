@@ -1,7 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
-using Serilog;
 
 namespace Dalamud.Game.Internal.Libc {
     public sealed class LibcFunction {

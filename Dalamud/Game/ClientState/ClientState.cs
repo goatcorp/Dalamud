@@ -1,10 +1,10 @@
 using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
+
 using Dalamud.Game.ClientState.Actors;
 using Dalamud.Game.ClientState.Actors.Types;
 using Dalamud.Game.Internal;
-using Dalamud.Game.Internal.Network;
 using Dalamud.Hooking;
 using JetBrains.Annotations;
 using Lumina.Excel.GeneratedSheets;
