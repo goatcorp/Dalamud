@@ -41,15 +41,9 @@ namespace Dalamud.Game.Internal.Network {
             Log.Verbose("ProcessZonePacketDown address {ProcessZonePacketDown}", Address.ProcessZonePacketDown);
             Log.Verbose("ProcessZonePacketUp address {ProcessZonePacketUp}", Address.ProcessZonePacketUp);
 
-            this.processZonePacketDownHook =
-                new Hook<ProcessZonePacketDownDelegate>(Address.ProcessZonePacketDown,
-                                                    new ProcessZonePacketDownDelegate(ProcessZonePacketDownDetour),
-                                                    this);
+            this.processZonePacketDownHook = new Hook<ProcessZonePacketDownDelegate>(Address.ProcessZonePacketDown, new ProcessZonePacketDownDelegate(ProcessZonePacketDownDetour), this);
 
-            this.processZonePacketUpHook =
-                new Hook<ProcessZonePacketUpDelegate>(Address.ProcessZonePacketUp,
-                                                        new ProcessZonePacketUpDelegate(ProcessZonePacketUpDetour),
-                                                        this);
+            this.processZonePacketUpHook = new Hook<ProcessZonePacketUpDelegate>(Address.ProcessZonePacketUp, new ProcessZonePacketUpDelegate(ProcessZonePacketUpDetour), this);
         }
 
         public void Enable() {

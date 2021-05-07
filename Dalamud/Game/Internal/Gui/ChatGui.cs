@@ -64,9 +64,7 @@ namespace Dalamud.Game.Internal.Gui {
         #region Delegates
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-        private delegate IntPtr PrintMessageDelegate(IntPtr manager, XivChatType chatType, IntPtr senderName,
-                                                     IntPtr message,
-                                                     uint senderId, IntPtr parameter);
+        private delegate IntPtr PrintMessageDelegate(IntPtr manager, XivChatType chatType, IntPtr senderName, IntPtr message, uint senderId, IntPtr parameter);
 
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
@@ -95,17 +93,9 @@ namespace Dalamud.Game.Internal.Gui {
 
             Log.Verbose("Chat manager address {ChatManager}", Address.BaseAddress);
 
-            this.printMessageHook =
-                new Hook<PrintMessageDelegate>(Address.PrintMessage, new PrintMessageDelegate(HandlePrintMessageDetour),
-                                               this);
-            this.populateItemLinkHook =
-                new Hook<PopulateItemLinkDelegate>(Address.PopulateItemLinkObject,
-                                                   new PopulateItemLinkDelegate(HandlePopulateItemLinkDetour),
-                                                   this);
-            this.interactableLinkClickedHook =
-                new Hook<InteractableLinkClickedDelegate>(Address.InteractableLinkClicked,
-                                                          new InteractableLinkClickedDelegate(InteractableLinkClickedDetour));
-
+            this.printMessageHook = new Hook<PrintMessageDelegate>(Address.PrintMessage, new PrintMessageDelegate(HandlePrintMessageDetour), this);
+            this.populateItemLinkHook = new Hook<PopulateItemLinkDelegate>(Address.PopulateItemLinkObject, new PopulateItemLinkDelegate(HandlePopulateItemLinkDetour), this);
+            this.interactableLinkClickedHook = new Hook<InteractableLinkClickedDelegate>(Address.InteractableLinkClicked, new InteractableLinkClickedDelegate(InteractableLinkClickedDetour));
         }
 
         public void Enable() {
@@ -134,8 +124,7 @@ namespace Dalamud.Game.Internal.Gui {
             }
         }
 
-        private IntPtr HandlePrintMessageDetour(IntPtr manager, XivChatType chattype, IntPtr pSenderName, IntPtr pMessage,
-                                              uint senderid, IntPtr parameter) {
+        private IntPtr HandlePrintMessageDetour(IntPtr manager, XivChatType chattype, IntPtr pSenderName, IntPtr pMessage, uint senderid, IntPtr parameter) {
             var retVal = IntPtr.Zero;
 
             try {

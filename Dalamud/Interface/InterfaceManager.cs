@@ -134,15 +134,9 @@ namespace Dalamud.Interface
 
             this.setCursorHook = new Hook<SetCursorDelegate>(setCursorAddr, new SetCursorDelegate(SetCursorDetour), this);
 
-            this.presentHook =
-                new Hook<PresentDelegate>(Address.Present, 
-                    new PresentDelegate(PresentDetour),
-                    this);
+            this.presentHook = new Hook<PresentDelegate>(Address.Present, new PresentDelegate(PresentDetour), this);
 
-            this.resizeBuffersHook =
-                new Hook<ResizeBuffersDelegate>(Address.ResizeBuffers,
-                    new ResizeBuffersDelegate(ResizeBuffersDetour),
-                    this);
+            this.resizeBuffersHook = new Hook<ResizeBuffersDelegate>(Address.ResizeBuffers, new ResizeBuffersDelegate(ResizeBuffersDetour), this);
         }
 
         public void Enable()
@@ -369,12 +363,13 @@ namespace Dalamud.Interface
             if (!File.Exists(fontPathGame))
                 ShowFontError(fontPathGame);
 
-            var gameRangeHandle = GCHandle.Alloc(new ushort[]
-            {
-                0xE020,
-                0xE0DB,
-                0,
-            }, GCHandleType.Pinned);
+            var gameRangeHandle = GCHandle.Alloc(
+                new ushort[]
+                {
+                    0xE020,
+                    0xE0DB,
+                    0,
+                }, GCHandleType.Pinned);
 
             ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPathGame, 17.0f, fontConfig, gameRangeHandle.AddrOfPinnedObject());
 
@@ -383,12 +378,13 @@ namespace Dalamud.Interface
             if (!File.Exists(fontPathIcon))
                 ShowFontError(fontPathIcon);
 
-            var iconRangeHandle = GCHandle.Alloc(new ushort[]
-            {
-                0xE000,
-                0xF8FF,
-                0,
-            }, GCHandleType.Pinned);
+            var iconRangeHandle = GCHandle.Alloc(
+                new ushort[]
+                {
+                    0xE000,
+                    0xF8FF,
+                    0,
+                }, GCHandleType.Pinned);
             IconFont = ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPathIcon, 17.0f, null, iconRangeHandle.AddrOfPinnedObject());
 
             Log.Verbose("[FONT] Invoke OnBuildFonts");

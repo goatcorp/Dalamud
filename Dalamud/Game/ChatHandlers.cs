@@ -77,9 +77,7 @@ namespace Dalamud.Game {
             },
         };
 
-        private readonly Regex urlRegex =
-            new Regex(@"(http|ftp|https)://([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?",
-                      RegexOptions.Compiled);
+        private readonly Regex urlRegex = new Regex(@"(http|ftp|https)://([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?", RegexOptions.Compiled);
 
         private bool hasSeenLoadingMsg;
 
@@ -117,8 +115,7 @@ namespace Dalamud.Game {
             }
         }
 
-        private void OnChatMessage(XivChatType type, uint senderId, ref SeString sender, 
-            ref SeString message, ref bool isHandled) {
+        private void OnChatMessage(XivChatType type, uint senderId, ref SeString sender, ref SeString message, ref bool isHandled) {
 
             if (type == XivChatType.Notice && !this.hasSeenLoadingMsg) 
                 PrintWelcomeMessage();

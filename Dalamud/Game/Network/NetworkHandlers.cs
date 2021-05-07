@@ -144,13 +144,20 @@ namespace Dalamud.Game.Network {
 
                     request.Listings.AddRange(listing.ItemListings);
 
-                    Log.Verbose("Added {0} ItemListings to request#{1}, now {2}/{3}, item#{4}",
-                                listing.ItemListings.Count, request.ListingsRequestId, request.Listings.Count,
-                                request.AmountToArrive, request.CatalogId);
+                    Log.Verbose(
+                        "Added {0} ItemListings to request#{1}, now {2}/{3}, item#{4}",
+                        listing.ItemListings.Count,
+                        request.ListingsRequestId,
+                        request.Listings.Count,
+                        request.AmountToArrive,
+                        request.CatalogId);
 
                     if (request.IsDone) {
-                        Log.Verbose("Market Board request finished, starting upload: request#{0} item#{1} amount#{2}",
-                                    request.ListingsRequestId, request.CatalogId, request.AmountToArrive);
+                        Log.Verbose(
+                            "Market Board request finished, starting upload: request#{0} item#{1} amount#{2}",
+                            request.ListingsRequestId,
+                            request.CatalogId,
+                            request.AmountToArrive);
                         try {
                             Task.Run(() => this.uploader.Upload(request));
                         } catch (Exception ex) {
@@ -205,8 +212,14 @@ namespace Dalamud.Game.Network {
 
                     var taxes = MarketTaxRates.Read(dataPtr);
 
-                    Log.Verbose("MarketTaxRates: limsa#{0} grid#{1} uldah#{2} ish#{3} kugane#{4} cr#{5}",
-                                taxes.LimsaLominsaTax, taxes.GridaniaTax, taxes.UldahTax, taxes.IshgardTax, taxes.KuganeTax, taxes.CrystariumTax);
+                    Log.Verbose(
+                        "MarketTaxRates: limsa#{0} grid#{1} uldah#{2} ish#{3} kugane#{4} cr#{5}",
+                        taxes.LimsaLominsaTax,
+                        taxes.GridaniaTax,
+                        taxes.UldahTax,
+                        taxes.IshgardTax,
+                        taxes.KuganeTax,
+                        taxes.CrystariumTax);
                     try
                     {
                         Task.Run(() => this.uploader.UploadTax(taxes));

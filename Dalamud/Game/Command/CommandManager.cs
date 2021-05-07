@@ -22,17 +22,13 @@ namespace Dalamud.Game.Command {
         public ReadOnlyDictionary<string, CommandInfo> Commands =>
             new ReadOnlyDictionary<string, CommandInfo>(this.commandMap);
 
-        private readonly Regex commandRegexEn =
-            new Regex(@"^The command (?<command>.+) does not exist\.$", RegexOptions.Compiled);
+        private readonly Regex commandRegexEn = new Regex(@"^The command (?<command>.+) does not exist\.$", RegexOptions.Compiled);
 
         private readonly Regex commandRegexJp = new Regex(@"^そのコマンドはありません。： (?<command>.+)$", RegexOptions.Compiled);
 
-        private readonly Regex commandRegexDe =
-            new Regex(@"^„(?<command>.+)“ existiert nicht als Textkommando\.$", RegexOptions.Compiled);
+        private readonly Regex commandRegexDe = new Regex(@"^„(?<command>.+)“ existiert nicht als Textkommando\.$", RegexOptions.Compiled);
 
-        private readonly Regex commandRegexFr =
-            new Regex(@"^La commande texte “(?<command>.+)” n'existe pas\.$",
-                      RegexOptions.Compiled);
+        private readonly Regex commandRegexFr = new Regex(@"^La commande texte “(?<command>.+)” n'existe pas\.$", RegexOptions.Compiled);
 
         private readonly Regex currentLangCommandRegex;
 
@@ -118,8 +114,7 @@ namespace Dalamud.Game.Command {
             try {
                 info.Handler(command, argument);
             } catch (Exception ex) {
-                Log.Error(ex, "Error while dispatching command {CommandName} (Argument: {Argument})", command,
-                          argument);
+                Log.Error(ex, "Error while dispatching command {CommandName} (Argument: {Argument})", command, argument);
             }
         }
 

@@ -532,17 +532,17 @@ namespace Dalamud.Interface
 
                         ImGui.SetNextWindowPos(new Vector2(screenCoords.X, screenCoords.Y));
 
-                        ImGui.SetNextWindowBgAlpha(Math.Max(1f - actor.YalmDistanceX / this.maxActorDrawDistance,
-                                                            0.2f));
-                        if (ImGui.Begin($"Actor{i}##ActorWindow{i}",
-                                        ImGuiWindowFlags.NoDecoration |
-                                        ImGuiWindowFlags.AlwaysAutoResize |
-                                        ImGuiWindowFlags.NoSavedSettings |
-                                        ImGuiWindowFlags.NoMove |
-                                        ImGuiWindowFlags.NoMouseInputs |
-                                        ImGuiWindowFlags.NoDocking |
-                                        ImGuiWindowFlags.NoFocusOnAppearing |
-                                        ImGuiWindowFlags.NoNav))
+                        ImGui.SetNextWindowBgAlpha(Math.Max(1f - actor.YalmDistanceX / this.maxActorDrawDistance, 0.2f));
+                        if (ImGui.Begin(
+                                $"Actor{i}##ActorWindow{i}",
+                                ImGuiWindowFlags.NoDecoration |
+                                ImGuiWindowFlags.AlwaysAutoResize |
+                                ImGuiWindowFlags.NoSavedSettings |
+                                ImGuiWindowFlags.NoMove |
+                                ImGuiWindowFlags.NoMouseInputs |
+                                ImGuiWindowFlags.NoDocking |
+                                ImGuiWindowFlags.NoFocusOnAppearing |
+                                ImGuiWindowFlags.NoNav))
                             ImGui.Text(actorText);
                         ImGui.End();
                     }

@@ -157,8 +157,7 @@ namespace Dalamud.Interface
             if (ImGui.BeginTabBar("SetTabBar")) {
                 if (ImGui.BeginTabItem(Loc.Localize("DalamudSettingsGeneral", "General"))) {
                     ImGui.Text(Loc.Localize("DalamudSettingsLanguage","Language"));
-                    ImGui.Combo("##XlLangCombo", ref this.langIndex, this.locLanguages,
-                                this.locLanguages.Length);
+                    ImGui.Combo("##XlLangCombo", ref this.langIndex, this.locLanguages, this.locLanguages.Length);
                     ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingsLanguageHint", "Select the language Dalamud will be displayed in."));
 
                     ImGui.Dummy(new Vector2(5f, 5f) * ImGui.GetIO().FontGlobalScale);

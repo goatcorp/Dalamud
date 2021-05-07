@@ -348,8 +348,7 @@ namespace Dalamud.Plugin
                         {
                             var disabledFile = new FileInfo(Path.Combine(version.FullName, ".disabled"));
                             var definition = JsonConvert.DeserializeObject<PluginDefinition>(
-                                File.ReadAllText(Path.Combine(version.FullName,
-                                                              version.Parent.Name + ".json")));
+                                File.ReadAllText(Path.Combine(version.FullName, version.Parent.Name + ".json")));
 
                             if (disabledFile.Exists) {
                                 Log.Information("[PLUGINR] Disabled: cleaning up {0} at {1}", installed.Name, version.FullName);

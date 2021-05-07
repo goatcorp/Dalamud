@@ -88,8 +88,7 @@ namespace Dalamud.Interface.Scratchpad
 
                     if (ImGui.BeginTabItem(docs[i].Title + (docs[i].HasUnsaved ? "*" : string.Empty) + "###ScratchItem" + i, ref isOpen))
                     {
-                        if (ImGui.InputTextMultiline("###ScratchInput" + i, ref docs[i].Content, 20000,
-                                                     new Vector2(-1, -34), ImGuiInputTextFlags.AllowTabInput))
+                        if (ImGui.InputTextMultiline("###ScratchInput" + i, ref docs[i].Content, 20000, new Vector2(-1, -34), ImGuiInputTextFlags.AllowTabInput))
                         {
                             docs[i].HasUnsaved = true;
                         }

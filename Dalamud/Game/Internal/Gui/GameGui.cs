@@ -126,36 +126,19 @@ namespace Dalamud.Game.Internal.Gui {
             PartyFinder = new PartyFinderGui(scanner, dalamud);
             Toast = new ToastGui(scanner, dalamud);
 
-            this.setGlobalBgmHook =
-                new Hook<SetGlobalBgmDelegate>(Address.SetGlobalBgm,
-                                                   new SetGlobalBgmDelegate(HandleSetGlobalBgmDetour),
-                                                   this);
-            this.handleItemHoverHook =
-                new Hook<HandleItemHoverDelegate>(Address.HandleItemHover,
-                                               new HandleItemHoverDelegate(HandleItemHoverDetour),
-                                               this);
+            this.setGlobalBgmHook = new Hook<SetGlobalBgmDelegate>(Address.SetGlobalBgm, new SetGlobalBgmDelegate(HandleSetGlobalBgmDetour), this);
+            this.handleItemHoverHook = new Hook<HandleItemHoverDelegate>(Address.HandleItemHover, new HandleItemHoverDelegate(HandleItemHoverDetour), this);
 
-            this.handleItemOutHook =
-                new Hook<HandleItemOutDelegate>(Address.HandleItemOut,
-                                                  new HandleItemOutDelegate(HandleItemOutDetour),
-                                                  this);
+            this.handleItemOutHook = new Hook<HandleItemOutDelegate>(Address.HandleItemOut, new HandleItemOutDelegate(HandleItemOutDetour), this);
 
-            this.handleActionHoverHook =
-                new Hook<HandleActionHoverDelegate>(Address.HandleActionHover,
-                                                        new HandleActionHoverDelegate(HandleActionHoverDetour),
-                                                        this);
-            this.handleActionOutHook =
-                new Hook<HandleActionOutDelegate>(Address.HandleActionOut,
-                                                        new HandleActionOutDelegate(HandleActionOutDetour),
-                                                        this);
+            this.handleActionHoverHook = new Hook<HandleActionHoverDelegate>(Address.HandleActionHover, new HandleActionHoverDelegate(HandleActionHoverDetour), this);
+            this.handleActionOutHook = new Hook<HandleActionOutDelegate>(Address.HandleActionOut, new HandleActionOutDelegate(HandleActionOutDetour), this);
             
             this.getUIObject = Marshal.GetDelegateForFunctionPointer<GetUIObjectDelegate>(Address.GetUIObject);
 
-            this.getMatrixSingleton =
-                Marshal.GetDelegateForFunctionPointer<GetMatrixSingletonDelegate>(Address.GetMatrixSingleton);
+            this.getMatrixSingleton = Marshal.GetDelegateForFunctionPointer<GetMatrixSingletonDelegate>(Address.GetMatrixSingleton);
 
-            this.screenToWorldNative =
-                Marshal.GetDelegateForFunctionPointer<ScreenToWorldNativeDelegate>(Address.ScreenToWorld);
+            this.screenToWorldNative = Marshal.GetDelegateForFunctionPointer<ScreenToWorldNativeDelegate>(Address.ScreenToWorld);
 
             this.toggleUiHideHook = new Hook<ToggleUiHideDelegate>(Address.ToggleUiHide, new ToggleUiHideDelegate(ToggleUiHideDetour), this);
 
