@@ -421,7 +421,7 @@ namespace Dalamud.Interface
                             break;
 
                         // Gamepad
-                        case 16:
+                        case 17:
                             Action<string, uint, Func<GamepadButtons, float>> helper = (text, mask, resolve) =>
                             {
                                 ImGui.Text($"{text} {mask:X4}");
