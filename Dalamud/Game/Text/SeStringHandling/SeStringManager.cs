@@ -145,7 +145,7 @@ namespace Dalamud.Game.Text.SeStringHandling
 
             foreach (var place in matches)
             {
-                var map = mapSheet.GetRows().FirstOrDefault(row => row.PlaceName.Row == place.RowId);
+                var map = mapSheet.FirstOrDefault(row => row.PlaceName.Row == place.RowId);
                 if (map != null)
                 {
                     return CreateMapLink(map.TerritoryType.Row, (uint)map.RowId, xCoord, yCoord, fudgeFactor);
