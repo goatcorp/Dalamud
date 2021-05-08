@@ -162,10 +162,8 @@ namespace Dalamud.Game
                     if (!itemInfo.Success)
                         continue;
 
-                    var itemLink =
-                        message.Payloads.First(x => x.Type == PayloadType.Item) as ItemPayload;
-
-                    if (itemLink == null)
+                    var itemLink = message.Payloads.FirstOrDefault(x => x.Type == PayloadType.Item) as ItemPayload;
+                    if (itemLink == default)
                     {
                         Log.Error("itemLink was null. Msg: {0}", BitConverter.ToString(message.Encode()));
                         break;
