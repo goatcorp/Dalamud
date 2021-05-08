@@ -37,7 +37,7 @@ namespace Dalamud.Interface
         private string[] dataKinds = new[]
         {
             "ServerOpCode", "Address", "Actor Table", "Fate Table", "Font Test", "Party List", "Plugin IPC", "Condition",
-            "Gauge", "Command", "Addon", "Addon Inspector", "StartInfo", "Target", "Toast", "ImGui", "Tex",
+            "Gauge", "Command", "Addon", "Addon Inspector", "StartInfo", "Target", "Toast", "ImGui", "Tex", "Gamepad",
         };
 
         private bool drawActors = false;
@@ -418,6 +418,60 @@ namespace Dalamud.Interface
                                 Util.ShowObject(this.debugTex);
                             }
 
+                            break;
+
+                        // Gamepad
+                        case 16:
+                            Action<string, uint, Func<GamepadButtons, float>> helper = (text, mask, resolve) =>
+                            {
+                                ImGui.Text($"{text} {mask:X4}");
+                                ImGui.Text($"DPadLeft {resolve(GamepadButtons.DpadLeft)} " +
+                                           $"DPadUp {resolve(GamepadButtons.DpadUp)} " +
+                                           $"DPadRight {resolve(GamepadButtons.DpadRight)} " +
+                                           $"DPadDown {resolve(GamepadButtons.DpadDown)} ");
+                                ImGui.Text($"West {resolve(GamepadButtons.West)} " +
+                                           $"North {resolve(GamepadButtons.North)} " +
+                                           $"East {resolve(GamepadButtons.East)} " +
+                                           $"South {resolve(GamepadButtons.South)} ");
+                                ImGui.Text($"L1 {resolve(GamepadButtons.L1)} " +
+                                           $"L2 {resolve(GamepadButtons.L2)} " +
+                                           $"R1 {resolve(GamepadButtons.R1)} " +
+                                           $"R2 {resolve(GamepadButtons.R2)} ");
+                                ImGui.Text($"Select {resolve(GamepadButtons.Select)} " +
+                                           $"Start {resolve(GamepadButtons.Start)} " +
+                                           $"L3 {resolve(GamepadButtons.L3)} " +
+                                           $"R3 {resolve(GamepadButtons.R3)} ");
+                            };
+#if DEBUG
+                            ImGui.Text($"GamepadInput {this.dalamud.ClientState.GamepadState.GamepadInput.ToString("X")}");
+                            if (ImGui.IsItemHovered()) ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
+                            if (ImGui.IsItemClicked()) ImGui.SetClipboardText($"{this.dalamud.ClientState.GamepadState.GamepadInput.ToString("X")}");
+#endif
+
+                            helper(
+                                "Buttons Raw",
+                                this.dalamud.ClientState.GamepadState.ButtonsRaw,
+                                this.dalamud.ClientState.GamepadState.Raw);
+                            helper(
+                                "Buttons Pressed",
+                                this.dalamud.ClientState.GamepadState.ButtonsPressed,
+                                this.dalamud.ClientState.GamepadState.Pressed);
+                            helper(
+                                "Buttons Repeat",
+                                this.dalamud.ClientState.GamepadState.ButtonsRepeat,
+                                this.dalamud.ClientState.GamepadState.Repeat);
+                            helper(
+                                "Buttons Released",
+                                this.dalamud.ClientState.GamepadState.ButtonsReleased,
+                                this.dalamud.ClientState.GamepadState.Released);
+                            ImGui.Text($"LeftStickLeft {this.dalamud.ClientState.GamepadState.LeftStickLeft:0.00} " +
+                                       $"LeftStickUp {this.dalamud.ClientState.GamepadState.LeftStickUp:0.00} " +
+                                       $"LeftStickRight {this.dalamud.ClientState.GamepadState.LeftStickRight:0.00} " +
+                                       $"LeftStickDown {this.dalamud.ClientState.GamepadState.LeftStickDown:0.00} ");
+                            ImGui.Text($"RightStickLeft {this.dalamud.ClientState.GamepadState.RightStickLeft:0.00} " +
+                                       $"RightStickUp {this.dalamud.ClientState.GamepadState.RightStickUp:0.00} " +
+                                       $"RightStickRight {this.dalamud.ClientState.GamepadState.RightStickRight:0.00} " +
+                                       $"RightStickDown {this.dalamud.ClientState.GamepadState.RightStickDown:0.00} ");
                             break;
                     }
                 }

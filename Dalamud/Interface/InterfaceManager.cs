@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using Dalamud.Game;
+using Dalamud.Game.ClientState;
 using Dalamud.Game.Internal.DXGI;
 using Dalamud.Hooking;
 using EasyHook;
@@ -291,6 +292,21 @@ namespace Dalamud.Interface
                     ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.DockingEnable;
                 }
 
+                // NOTE (Chiv) Toggle gamepad navigation via setting
+                if (!this.dalamud.Configuration.IsGamepadNavigationEnabled)
+                {
+                    ImGui.GetIO().BackendFlags &= ~ImGuiBackendFlags.HasGamepad;
+                    ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.NavEnableSetMousePos;
+                }
+                else
+                {
+                    ImGui.GetIO().BackendFlags |= ImGuiBackendFlags.HasGamepad;
+                    ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.NavEnableSetMousePos;
+                }
+
+                // NOTE (Chiv) Explicitly deactivate on dalamud boot
+                ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.NavEnableGamepad;
+
                 ImGuiHelpers.MainViewport = ImGui.GetMainViewport();
 
                 Log.Information("[IM] Scene & ImGui setup OK!");
@@ -461,6 +477,45 @@ namespace Dalamud.Interface
             }
 
             // TODO: mouse state?
+
+            var gamepadEnabled = (ImGui.GetIO().BackendFlags & ImGuiBackendFlags.HasGamepad) > 0;
+
+            // NOTE (Chiv) Activate ImGui navigation  via L1+L3 press
+            // (mimicking how mouse navigation is activated via L1+R3 press in game).
+            if (gamepadEnabled
+                && this.dalamud.ClientState.GamepadState.Raw(GamepadButtons.L1) > 0
+                && this.dalamud.ClientState.GamepadState.Pressed(GamepadButtons.L3) > 0)
+            {
+                ImGui.GetIO().ConfigFlags ^= ImGuiConfigFlags.NavEnableGamepad;
+                this.dalamud.ClientState.GamepadState.NavEnableGamepad ^= true;
+                this.dalamud.DalamudUi.ToggleGamePadNotifierWindow();
+            }
+
+            if (gamepadEnabled
+                && (ImGui.GetIO().ConfigFlags & ImGuiConfigFlags.NavEnableGamepad) > 0)
+            {
+                ImGui.GetIO().NavInputs[(int)ImGuiNavInput.Activate] = this.dalamud.ClientState.GamepadState.Raw(GamepadButtons.South);
+                ImGui.GetIO().NavInputs[(int)ImGuiNavInput.Cancel] = this.dalamud.ClientState.GamepadState.Raw(GamepadButtons.East);
+                ImGui.GetIO().NavInputs[(int)ImGuiNavInput.Input] = this.dalamud.ClientState.GamepadState.Raw(GamepadButtons.North);
+                ImGui.GetIO().NavInputs[(int)ImGuiNavInput.Menu] = this.dalamud.ClientState.GamepadState.Raw(GamepadButtons.West);
+                ImGui.GetIO().NavInputs[(int)ImGuiNavInput.DpadLeft] = this.dalamud.ClientState.GamepadState.Raw(GamepadButtons.DpadLeft);
+                ImGui.GetIO().NavInputs[(int)ImGuiNavInput.DpadRight] = this.dalamud.ClientState.GamepadState.Raw(GamepadButtons.DpadRight);
+                ImGui.GetIO().NavInputs[(int)ImGuiNavInput.DpadUp] = this.dalamud.ClientState.GamepadState.Raw(GamepadButtons.DpadUp);
+                ImGui.GetIO().NavInputs[(int)ImGuiNavInput.DpadDown] = this.dalamud.ClientState.GamepadState.Raw(GamepadButtons.DpadDown);
+                ImGui.GetIO().NavInputs[(int)ImGuiNavInput.LStickLeft] = this.dalamud.ClientState.GamepadState.LeftStickLeft;
+                ImGui.GetIO().NavInputs[(int)ImGuiNavInput.LStickRight] = this.dalamud.ClientState.GamepadState.LeftStickRight;
+                ImGui.GetIO().NavInputs[(int)ImGuiNavInput.LStickUp] = this.dalamud.ClientState.GamepadState.LeftStickUp;
+                ImGui.GetIO().NavInputs[(int)ImGuiNavInput.LStickDown] = this.dalamud.ClientState.GamepadState.LeftStickDown;
+                ImGui.GetIO().NavInputs[(int)ImGuiNavInput.FocusPrev] = this.dalamud.ClientState.GamepadState.Raw(GamepadButtons.L1);
+                ImGui.GetIO().NavInputs[(int)ImGuiNavInput.FocusNext] = this.dalamud.ClientState.GamepadState.Raw(GamepadButtons.R1);
+                ImGui.GetIO().NavInputs[(int)ImGuiNavInput.TweakSlow] = this.dalamud.ClientState.GamepadState.Raw(GamepadButtons.L2);
+                ImGui.GetIO().NavInputs[(int)ImGuiNavInput.TweakFast] = this.dalamud.ClientState.GamepadState.Raw(GamepadButtons.R2);
+
+                if (this.dalamud.ClientState.GamepadState.Pressed(GamepadButtons.R3) > 0)
+                {
+                    this.dalamud.DalamudUi.TogglePluginInstaller();
+                }
+            }
         }
 
         private void Display()

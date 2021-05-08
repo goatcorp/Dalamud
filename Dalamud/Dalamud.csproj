@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup Label="Target">
         <PlatformTarget>AnyCPU</PlatformTarget>
         <TargetFramework>net472</TargetFramework>
@@ -14,7 +14,7 @@
         <DocumentationFile>$(SolutionDir)\bin\Dalamud.xml</DocumentationFile>
     </PropertyGroup>
     <PropertyGroup Label="Feature">
-        <DalamudVersion>5.2.5.9</DalamudVersion>
+        <DalamudVersion>5.2.6.0</DalamudVersion>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <AssemblyVersion>$(DalamudVersion)</AssemblyVersion>
         <Version>$(DalamudVersion)</Version>
@@ -46,6 +46,7 @@
         <PackageReference Include="JetBrains.Annotations" Version="2020.3.0" />
         <PackageReference Include="Lumina" Version="3.1.0" />
         <PackageReference Include="Lumina.Excel" Version="5.50.0" />
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="3.0.0" />
         <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
         <PackageReference Include="PropertyChanged.Fody" Version="2.6.1" />
         <PackageReference Include="Serilog" Version="2.6.0" />

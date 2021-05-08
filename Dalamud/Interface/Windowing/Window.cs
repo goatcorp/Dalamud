@@ -107,6 +107,14 @@ namespace Dalamud.Interface.Windowing
         }
 
         /// <summary>
+        /// Toggle window is open state.
+        /// </summary>
+        public void Toggle()
+        {
+            this.IsOpen ^= true;
+        }
+
+        /// <summary>
         /// In this method, implement your drawing code.
         /// You do NOT need to ImGui.Begin your window.
         /// </summary>

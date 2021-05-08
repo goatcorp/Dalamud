@@ -13,6 +13,6 @@ namespace Dalamud.Game.Network.MarketBoardUploaders.Universalis {
         public List<UniversalisHistoryEntry> Entries { get; set; }
 
         [JsonProperty("uploaderID")]
-        public ulong UploaderId { get; set; }
+        public string UploaderId { get; set; }
     }
 }

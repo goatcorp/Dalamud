@@ -18,10 +18,10 @@ namespace Dalamud.Game.Network.MarketBoardUploaders.Universalis {
         public bool OnMannequin { get; set; }
 
         [JsonProperty("sellerID")]
-        public ulong SellerId { get; set; }
+        public string SellerId { get; set; }
 
         [JsonProperty("buyerID")]
-        public ulong BuyerId { get; set; }
+        public string BuyerId { get; set; }
 
         [JsonProperty("timestamp")]
         public long Timestamp { get; set; }

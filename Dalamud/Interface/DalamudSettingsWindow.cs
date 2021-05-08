@@ -23,7 +23,7 @@ namespace Dalamud.Interface
         {
             this.dalamud = dalamud;
 
-            this.Size = new Vector2(740, 500);
+            this.Size = new Vector2(740, 550);
             this.SizeCondition = ImGuiCond.FirstUseEver;
 
             this.dalamudMessagesChatType = this.dalamud.Configuration.GeneralChatType;
@@ -38,6 +38,7 @@ namespace Dalamud.Interface
 
             this.doDocking = this.dalamud.Configuration.IsDocking;
             this.doViewport = !this.dalamud.Configuration.IsDisableViewport;
+            this.doGamepad = this.dalamud.Configuration.IsGamepadNavigationEnabled;
 
             this.doPluginTest = this.dalamud.Configuration.DoPluginTest;
             this.thirdRepoList = this.dalamud.Configuration.ThirdRepoList.Select(x => x.Clone()).ToList();
@@ -133,6 +134,7 @@ namespace Dalamud.Interface
         private bool doToggleUiHideDuringGpose;
         private bool doDocking;
         private bool doViewport;
+        private bool doGamepad;
         private List<ThirdRepoSetting> thirdRepoList;
 
         private bool printPluginsWelcomeMsg;
@@ -227,6 +229,9 @@ namespace Dalamud.Interface
 
                     ImGui.Checkbox(Loc.Localize("DalamudSettingToggleDocking", "Enable window docking"), ref this.doDocking);
                     ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingToggleDockingHint", "This will allow you to fuse and tab plugin windows."));
+
+                    ImGui.Checkbox(Loc.Localize("DalamudSettingToggleGamepadNavigation", "Enable navigation of ImGui windows via gamepad."), ref this.doGamepad);
+                    ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingToggleGamepadNavigationHint", "This will allow you to toggle between game and ImGui navigation via L1+L3.\nToggle the PluginInstaller window via R3 if ImGui navigation is enabled."));
 
                     ImGui.EndTabItem();
                 }
@@ -378,6 +383,7 @@ namespace Dalamud.Interface
             this.dalamud.Configuration.ToggleUiHideDuringGpose = this.doToggleUiHideDuringGpose;
 
             this.dalamud.Configuration.IsDocking = this.doDocking;
+            this.dalamud.Configuration.IsGamepadNavigationEnabled = this.doGamepad;
 
             // This is applied every frame in InterfaceManager::CheckViewportState()
             this.dalamud.Configuration.IsDisableViewport = !this.doViewport;
@@ -390,6 +396,18 @@ namespace Dalamud.Interface
             else
             {
                 ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.DockingEnable;
+            }
+
+            // NOTE (Chiv) Toggle gamepad navigation via setting
+            if (!this.dalamud.Configuration.IsGamepadNavigationEnabled)
+            {
+                ImGui.GetIO().BackendFlags &= ~ImGuiBackendFlags.HasGamepad;
+                ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.NavEnableSetMousePos;
+            }
+            else
+            {
+                ImGui.GetIO().BackendFlags |= ImGuiBackendFlags.HasGamepad;
+                ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.NavEnableSetMousePos;
             }
 
             this.dalamud.Configuration.DoPluginTest = this.doPluginTest;

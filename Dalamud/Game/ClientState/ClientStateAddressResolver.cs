@@ -17,7 +17,14 @@ namespace Dalamud.Game.ClientState
         public IntPtr SetupTerritoryType { get; private set; }
         //public IntPtr SomeActorTableAccess { get; private set; }
         //public IntPtr PartyListUpdate { get; private set; }
-        
+
+        /// <summary>
+        /// Game function which polls the gamepads for data.
+        ///
+        /// Called every frame, even when `Enable Gamepad` is off in the settings.
+        /// </summary>
+        public IntPtr GamepadPoll { get; private set; }
+
         public IntPtr ConditionFlags { get; private set; }
 
         protected override void Setup64Bit(SigScanner sig) {
@@ -42,6 +49,8 @@ namespace Dalamud.Game.ClientState
             ConditionFlags = sig.GetStaticAddressFromSig("48 8D 0D ?? ?? ?? ?? BA ?? ?? ?? ?? E8 ?? ?? ?? ?? B0 01 48 83 C4 30");
 
             TargetManager = sig.GetStaticAddressFromSig("48 8B 05 ?? ?? ?? ?? 48 8D 0D ?? ?? ?? ?? FF 50 ?? 48 85 DB", 3);
+
+            this.GamepadPoll = sig.ScanText("40 ?? 57 41 ?? 48 81 EC ?? ?? ?? ?? 44 0F ?? ?? ?? ?? ?? ?? ?? 48 8B");
         }
     }
 }

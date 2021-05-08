@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 namespace Dalamud.Game.Network.MarketBoardUploaders.Universalis {
     internal class UniversalisItemListingsEntry {
         [JsonProperty("listingID")]
-        public ulong ListingId { get; set; }
+        public string ListingId { get; set; }
 
         [JsonProperty("hq")]
         public bool Hq { get; set; }
@@ -19,7 +19,7 @@ namespace Dalamud.Game.Network.MarketBoardUploaders.Universalis {
         public string RetainerName { get; set; }
 
         [JsonProperty("retainerID")]
-        public ulong RetainerId { get; set; }
+        public string RetainerId { get; set; }
 
         [JsonProperty("creatorName")]
         public string CreatorName { get; set; }
@@ -28,10 +28,10 @@ namespace Dalamud.Game.Network.MarketBoardUploaders.Universalis {
         public bool OnMannequin { get; set; }
 
         [JsonProperty("sellerID")]
-        public ulong SellerId { get; set; }
+        public string SellerId { get; set; }
 
         [JsonProperty("creatorID")]
-        public ulong CreatorId { get; set; }
+        public string CreatorId { get; set; }
 
         [JsonProperty("stainID")]
         public int StainId { get; set; }
