@@ -24,7 +24,7 @@ namespace Dalamud.Game.Internal.File
 
         private readonly Dalamud dalamud;
 
-        class ResourceHandleHookInfo
+        private class ResourceHandleHookInfo
         {
             public string Path { get; set; }
 

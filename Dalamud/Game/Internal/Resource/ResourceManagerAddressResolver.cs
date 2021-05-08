@@ -2,7 +2,7 @@ using System;
 
 namespace Dalamud.Game.Internal.File
 {
-    class ResourceManagerAddressResolver : BaseAddressResolver
+    internal class ResourceManagerAddressResolver : BaseAddressResolver
     {
         public IntPtr GetResourceAsync { get; private set; }
 

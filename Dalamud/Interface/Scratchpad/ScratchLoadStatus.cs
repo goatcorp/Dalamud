@@ -1,6 +1,6 @@
 namespace Dalamud.Interface.Scratchpad
 {
-    enum ScratchLoadStatus
+    internal enum ScratchLoadStatus
     {
         Unknown,
         FailureCompile,

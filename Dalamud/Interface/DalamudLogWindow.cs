@@ -12,7 +12,7 @@ using Serilog.Events;
 
 namespace Dalamud.Interface
 {
-    class DalamudLogWindow : Window, IDisposable
+    internal class DalamudLogWindow : Window, IDisposable
     {
         private readonly CommandManager commandManager;
         private readonly DalamudConfiguration configuration;

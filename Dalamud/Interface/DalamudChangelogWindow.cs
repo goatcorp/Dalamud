@@ -6,7 +6,7 @@ using ImGuiNET;
 
 namespace Dalamud.Interface
 {
-    class DalamudChangelogWindow : Window
+    internal class DalamudChangelogWindow : Window
     {
         private readonly Dalamud dalamud;
         private string assemblyVersion = Util.AssemblyVersion;

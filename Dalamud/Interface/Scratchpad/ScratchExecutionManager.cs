@@ -11,7 +11,7 @@ using Serilog;
 
 namespace Dalamud.Interface.Scratchpad
 {
-    class ScratchExecutionManager
+    internal class ScratchExecutionManager
     {
         private readonly Dalamud dalamud;
         private Dictionary<Guid, IDalamudPlugin> loadedScratches = new();

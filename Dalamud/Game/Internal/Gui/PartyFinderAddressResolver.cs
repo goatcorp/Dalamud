@@ -2,7 +2,7 @@ using System;
 
 namespace Dalamud.Game.Internal.Gui
 {
-    class PartyFinderAddressResolver : BaseAddressResolver
+    internal class PartyFinderAddressResolver : BaseAddressResolver
     {
         public IntPtr ReceiveListing { get; private set; }
 

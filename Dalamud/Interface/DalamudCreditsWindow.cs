@@ -10,7 +10,7 @@ using ImGuiScene;
 
 namespace Dalamud.Interface
 {
-    class DalamudCreditsWindow : Window, IDisposable
+    internal class DalamudCreditsWindow : Window, IDisposable
     {
         private const string CreditsTextTempl = @"
 Dalamud

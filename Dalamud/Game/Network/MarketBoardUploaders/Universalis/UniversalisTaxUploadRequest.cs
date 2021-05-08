@@ -2,7 +2,7 @@ using Newtonsoft.Json;
 
 namespace Dalamud.Game.Network.MarketBoardUploaders.Universalis
 {
-    class UniversalisTaxUploadRequest
+    internal class UniversalisTaxUploadRequest
     {
         [JsonProperty("uploaderID")]
         public string UploaderId { get; set; }
@@ -14,7 +14,7 @@ namespace Dalamud.Game.Network.MarketBoardUploaders.Universalis
         public UniversalisTaxData TaxData { get; set; }
     }
 
-    class UniversalisTaxData
+    internal class UniversalisTaxData
     {
         [JsonProperty("limsaLominsa")]
         public uint LimsaLominsa { get; set; }

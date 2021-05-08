@@ -3,7 +3,7 @@ using System.IO;
 
 namespace Dalamud.Interface.Scratchpad
 {
-    class ScratchFileWatcher
+    internal class ScratchFileWatcher
     {
         public List<ScratchpadDocument> TrackedScratches { get; set; } = new List<ScratchpadDocument>();
 

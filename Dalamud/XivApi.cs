@@ -8,7 +8,7 @@ using Serilog;
 
 namespace Dalamud
 {
-    class XivApi
+    internal class XivApi
     {
         private const string URL = "https://xivapi.com/";
 

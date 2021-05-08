@@ -2,18 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Windowing;
-using Dalamud.Plugin;
 using ImGuiNET;
 using Serilog;
 
 namespace Dalamud.Interface.Scratchpad
 {
-    class ScratchpadWindow : Window, IDisposable
+    internal class ScratchpadWindow : Window, IDisposable
     {
         private readonly Dalamud dalamud;
 

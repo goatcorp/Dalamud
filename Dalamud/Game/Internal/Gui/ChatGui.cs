@@ -298,7 +298,7 @@ namespace Dalamud.Game.Internal.Gui
         // Distributed under the MIT/X11 software license
         // Ref: http://www.opensource.org/licenses/mit-license.php.
         // https://stackoverflow.com/a/8808245
-        static unsafe bool FastByteArrayCompare(byte[] a1, byte[] a2)
+        private static unsafe bool FastByteArrayCompare(byte[] a1, byte[] a2)
         {
             if (a1 == a2) return true;
             if (a1 == null || a2 == null || a1.Length != a2.Length)

@@ -2,7 +2,7 @@ using System;
 
 namespace Dalamud.Interface.Scratchpad
 {
-    class ScratchpadDocument
+    internal class ScratchpadDocument
     {
         public Guid Id { get; set; } = Guid.NewGuid();
 

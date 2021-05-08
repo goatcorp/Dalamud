@@ -2,7 +2,7 @@ using System;
 
 namespace Dalamud.Game.Internal.Gui
 {
-    class TargetManagerAddressResolver : BaseAddressResolver
+    internal class TargetManagerAddressResolver : BaseAddressResolver
     {
         public IntPtr GetTarget { get; private set; }
 

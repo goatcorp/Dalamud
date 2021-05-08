@@ -7,7 +7,7 @@ using Dalamud.Plugin;
 
 namespace Dalamud.Interface.Scratchpad
 {
-    class ScratchMacroProcessor
+    internal class ScratchMacroProcessor
     {
         private const string template = @"
 
