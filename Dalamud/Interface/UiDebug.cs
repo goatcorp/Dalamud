@@ -104,7 +104,7 @@ namespace Dalamud.Interface
 
             ImGui.Text($"Position: [ {atkUnitBase->X} , {atkUnitBase->Y} ]");
             ImGui.Text($"Scale: {atkUnitBase->Scale * 100}%%");
-            ImGui.Text($"Widget Count {atkUnitBase->ULDData.ObjectCount}");
+            ImGui.Text($"Widget Count {atkUnitBase->UldManager.ObjectCount}");
 
             ImGui.Separator();
 
@@ -117,7 +117,7 @@ namespace Dalamud.Interface
             if (atkUnitBase->RootNode != null)
                 this.PrintNode(atkUnitBase->RootNode);
 
-            if (atkUnitBase->ULDData.NodeListCount > 0)
+            if (atkUnitBase->UldManager.NodeListCount > 0)
             {
                 ImGui.Dummy(new Vector2(25 * ImGui.GetIO().FontGlobalScale));
                 ImGui.Separator();
@@ -126,9 +126,9 @@ namespace Dalamud.Interface
                 {
                     ImGui.PopStyleColor();
 
-                    for (var j = 0; j < atkUnitBase->ULDData.NodeListCount; j++)
+                    for (var j = 0; j < atkUnitBase->UldManager.NodeListCount; j++)
                     {
-                        PrintNode(atkUnitBase->ULDData.NodeList[j], false, $"[{j}] ");
+                        this.PrintNode(atkUnitBase->UldManager.NodeList[j], false, $"[{j}] ");
                     }
 
                     ImGui.TreePop();
@@ -298,7 +298,7 @@ namespace Dalamud.Interface
             if (isVisible)
                 ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0, 255, 0, 255));
 
-            var componentInfo = compNode->Component->ULDData;
+            var componentInfo = compNode->Component->UldManager;
 
             var childCount = componentInfo.NodeListCount;
 
@@ -359,9 +359,9 @@ namespace Dalamud.Interface
                 {
                     ImGui.PopStyleColor();
 
-                    for (var i = 0; i < compNode->Component->ULDData.NodeListCount; i++)
+                    for (var i = 0; i < compNode->Component->UldManager.NodeListCount; i++)
                     {
-                        PrintNode(compNode->Component->ULDData.NodeList[i], false, $"[{i}] ");
+                        this.PrintNode(compNode->Component->UldManager.NodeList[i], false, $"[{i}] ");
                     }
 
                     ImGui.TreePop();
