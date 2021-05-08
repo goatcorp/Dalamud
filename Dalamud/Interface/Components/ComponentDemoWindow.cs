@@ -71,9 +71,8 @@ namespace Dalamud.Interface.Components
             if (ImGui.BeginPopup("IconButtonDemoPopup"))
             {
                 ImGui.Text("You clicked!");
+                ImGui.EndPopup();
             }
-
-            ImGui.EndPopup();
         }
 
         private static void TextWithLabelDemo()
