@@ -1,6 +1,6 @@
 namespace Dalamud.Interface
 {
-    static class GlyphRangesJapanese
+    public static class GlyphRangesJapanese
     {
         public static ushort[] GlyphRanges => new ushort[]
         {
