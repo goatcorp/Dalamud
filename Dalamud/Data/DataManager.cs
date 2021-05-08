@@ -37,6 +37,7 @@ namespace Dalamud.Data
         /// Initializes a new instance of the <see cref="DataManager"/> class.
         /// </summary>
         /// <param name="language">The language to load data with by default.</param>
+        /// <param name="interfaceManager">An <see cref="InterfaceManager"/> instance to parse the data with.</param>
         internal DataManager(ClientLanguage language, InterfaceManager interfaceManager)
         {
             this.interfaceManager = interfaceManager;
@@ -104,7 +105,8 @@ namespace Dalamud.Data
                     PanicOnSheetChecksumMismatch = false,
 #endif
 
-                    DefaultExcelLanguage = this.Language switch {
+                    DefaultExcelLanguage = this.Language switch
+                    {
                         ClientLanguage.Japanese => Lumina.Data.Language.Japanese,
                         ClientLanguage.English => Lumina.Data.Language.English,
                         ClientLanguage.German => Lumina.Data.Language.German,
@@ -118,11 +120,7 @@ namespace Dalamud.Data
                 var processModule = Process.GetCurrentProcess().MainModule;
                 if (processModule != null)
                 {
-                    this.gameData =
-                        new GameData(
-                            Path.Combine(
-                                Path.GetDirectoryName(processModule.FileName) !,
-                                "sqpack"), luminaOptions);
+                    this.gameData = new GameData(Path.Combine(Path.GetDirectoryName(processModule.FileName), "sqpack"), luminaOptions);
                 }
 
                 Log.Information("Lumina is ready: {0}", this.gameData.DataPath);
@@ -173,7 +171,8 @@ namespace Dalamud.Data
         /// <returns>The <see cref="ExcelSheet{T}"/>, giving access to game rows.</returns>
         public ExcelSheet<T> GetExcelSheet<T>(ClientLanguage language) where T : ExcelRow
         {
-            var lang = language switch {
+            var lang = language switch
+            {
                 ClientLanguage.Japanese => Lumina.Data.Language.Japanese,
                 ClientLanguage.English => Lumina.Data.Language.English,
                 ClientLanguage.German => Lumina.Data.Language.German,
@@ -235,7 +234,8 @@ namespace Dalamud.Data
         /// <returns>The <see cref="TexFile"/> containing the icon.</returns>
         public TexFile GetIcon(ClientLanguage iconLanguage, int iconId)
         {
-            var type = iconLanguage switch {
+            var type = iconLanguage switch
+            {
                 ClientLanguage.Japanese => "ja/",
                 ClientLanguage.English => "en/",
                 ClientLanguage.German => "de/",

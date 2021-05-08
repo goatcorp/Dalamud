@@ -66,13 +66,13 @@ namespace Dalamud.Interface
             ImGui.SetNextItemWidth(-1);
             ImGui.InputTextWithHint("###atkUnitBaseSearch", "Search", ref this.searchInput, 0x20);
 
-            DrawUnitBaseList();
+            this.DrawUnitBaseList();
             ImGui.EndChild();
-            if (selectedUnitBase != null)
+            if (this.selectedUnitBase != null)
             {
                 ImGui.SameLine();
                 ImGui.BeginChild("st_uiDebug_selectedUnitBase", new Vector2(-1, -1), true);
-                DrawUnitBase(selectedUnitBase);
+                this.DrawUnitBase(this.selectedUnitBase);
                 ImGui.EndChild();
             }
 
@@ -110,12 +110,12 @@ namespace Dalamud.Interface
 
             object addonObj = *atkUnitBase;
 
-            PrintOutObject(addonObj, (ulong)atkUnitBase, new List<string>());
+            this.PrintOutObject(addonObj, (ulong)atkUnitBase, new List<string>());
 
             ImGui.Dummy(new Vector2(25 * ImGui.GetIO().FontGlobalScale));
             ImGui.Separator();
             if (atkUnitBase->RootNode != null)
-                PrintNode(atkUnitBase->RootNode);
+                this.PrintNode(atkUnitBase->RootNode);
 
             if (atkUnitBase->ULDData.NodeListCount > 0)
             {
@@ -146,19 +146,19 @@ namespace Dalamud.Interface
                 return;
 
             if ((int)node->Type < 1000)
-                PrintSimpleNode(node, treePrefix);
+                this.PrintSimpleNode(node, treePrefix);
             else
-                PrintComponentNode(node, treePrefix);
+                this.PrintComponentNode(node, treePrefix);
 
             if (printSiblings)
             {
                 var prevNode = node;
                 while ((prevNode = prevNode->PrevSiblingNode) != null)
-                    PrintNode(prevNode, false, "prev ");
+                    this.PrintNode(prevNode, false, "prev ");
 
                 var nextNode = node;
                 while ((nextNode = nextNode->NextSiblingNode) != null)
-                    PrintNode(nextNode, false, "next ");
+                    this.PrintNode(nextNode, false, "next ");
             }
         }
 
@@ -172,7 +172,9 @@ namespace Dalamud.Interface
 
             if (ImGui.TreeNode($"{treePrefix}{node->Type} Node (ptr = {(long)node:X})###{(long)node}"))
             {
-                if (ImGui.IsItemHovered()) DrawOutline(node);
+                if (ImGui.IsItemHovered())
+                    this.DrawOutline(node);
+
                 if (isVisible)
                 {
                     ImGui.PopStyleColor();
@@ -185,20 +187,18 @@ namespace Dalamud.Interface
                 ImGui.SameLine();
                 switch (node->Type)
                 {
-                    case NodeType.Text: PrintOutObject(*(AtkTextNode*)node, (ulong)node, new List<string>()); break;
-                    case NodeType.Image: PrintOutObject(*(AtkImageNode*)node, (ulong)node, new List<string>()); break;
-                    case NodeType.Collision: PrintOutObject(*(AtkCollisionNode*)node, (ulong)node, new List<string>()); break;
-                    case NodeType.NineGrid: PrintOutObject(*(AtkNineGridNode*)node, (ulong)node, new List<string>()); break;
-                    case NodeType.Counter: PrintOutObject(*(AtkCounterNode*)node, (ulong)node, new List<string>()); break;
-                    default: PrintOutObject(*node, (ulong)node, new List<string>()); break;
+                    case NodeType.Text: this.PrintOutObject(*(AtkTextNode*)node, (ulong)node, new List<string>()); break;
+                    case NodeType.Image: this.PrintOutObject(*(AtkImageNode*)node, (ulong)node, new List<string>()); break;
+                    case NodeType.Collision: this.PrintOutObject(*(AtkCollisionNode*)node, (ulong)node, new List<string>()); break;
+                    case NodeType.NineGrid: this.PrintOutObject(*(AtkNineGridNode*)node, (ulong)node, new List<string>()); break;
+                    case NodeType.Counter: this.PrintOutObject(*(AtkCounterNode*)node, (ulong)node, new List<string>()); break;
+                    default: this.PrintOutObject(*node, (ulong)node, new List<string>()); break;
                 }
 
-                PrintResNode(node);
+                this.PrintResNode(node);
 
                 if (node->ChildNode != null)
-                {
-                    PrintNode(node->ChildNode);
-                }
+                    this.PrintNode(node->ChildNode);
 
                 switch (node->Type)
                 {
@@ -281,7 +281,7 @@ namespace Dalamud.Interface
             }
             else if (ImGui.IsItemHovered())
             {
-                DrawOutline(node);
+                this.DrawOutline(node);
             }
 
             if (isVisible && !popped)
@@ -305,7 +305,9 @@ namespace Dalamud.Interface
             var objectInfo = (ULDComponentInfo*)componentInfo.Objects;
             if (ImGui.TreeNode($"{treePrefix}{objectInfo->ComponentType} Component Node (ptr = {(long)node:X}, component ptr = {(long)compNode->Component:X}) child count = {childCount}  ###{(long)node}"))
             {
-                if (ImGui.IsItemHovered()) DrawOutline(node);
+                if (ImGui.IsItemHovered())
+                    this.DrawOutline(node);
+
                 if (isVisible)
                 {
                     ImGui.PopStyleColor();
@@ -316,7 +318,7 @@ namespace Dalamud.Interface
                 ImGui.SameLine();
                 ClickToCopyText($"{(ulong)node:X}");
                 ImGui.SameLine();
-                PrintOutObject(*compNode, (ulong)compNode, new List<string>());
+                this.PrintOutObject(*compNode, (ulong)compNode, new List<string>());
                 ImGui.Text("Component: ");
                 ImGui.SameLine();
                 ClickToCopyText($"{(ulong)compNode->Component:X}");
@@ -324,19 +326,19 @@ namespace Dalamud.Interface
 
                 switch (objectInfo->ComponentType)
                 {
-                    case ComponentType.Button: PrintOutObject(*(AtkComponentButton*)compNode->Component, (ulong)compNode->Component, new List<string>()); break;
-                    case ComponentType.Slider: PrintOutObject(*(AtkComponentSlider*)compNode->Component, (ulong)compNode->Component, new List<string>()); break;
-                    case ComponentType.Window: PrintOutObject(*(AtkComponentWindow*)compNode->Component, (ulong)compNode->Component, new List<string>()); break;
-                    case ComponentType.CheckBox: PrintOutObject(*(AtkComponentCheckBox*)compNode->Component, (ulong)compNode->Component, new List<string>()); break;
-                    case ComponentType.GaugeBar: PrintOutObject(*(AtkComponentGaugeBar*)compNode->Component, (ulong)compNode->Component, new List<string>()); break;
-                    case ComponentType.RadioButton: PrintOutObject(*(AtkComponentRadioButton*)compNode->Component, (ulong)compNode->Component, new List<string>()); break;
-                    case ComponentType.TextInput: PrintOutObject(*(AtkComponentTextInput*)compNode->Component, (ulong)compNode->Component, new List<string>()); break;
-                    case ComponentType.Icon: PrintOutObject(*(AtkComponentIcon*)compNode->Component, (ulong)compNode->Component, new List<string>()); break;
-                    default: PrintOutObject(*compNode->Component, (ulong)compNode->Component, new List<string>()); break;
+                    case ComponentType.Button: this.PrintOutObject(*(AtkComponentButton*)compNode->Component, (ulong)compNode->Component, new List<string>()); break;
+                    case ComponentType.Slider: this.PrintOutObject(*(AtkComponentSlider*)compNode->Component, (ulong)compNode->Component, new List<string>()); break;
+                    case ComponentType.Window: this.PrintOutObject(*(AtkComponentWindow*)compNode->Component, (ulong)compNode->Component, new List<string>()); break;
+                    case ComponentType.CheckBox: this.PrintOutObject(*(AtkComponentCheckBox*)compNode->Component, (ulong)compNode->Component, new List<string>()); break;
+                    case ComponentType.GaugeBar: this.PrintOutObject(*(AtkComponentGaugeBar*)compNode->Component, (ulong)compNode->Component, new List<string>()); break;
+                    case ComponentType.RadioButton: this.PrintOutObject(*(AtkComponentRadioButton*)compNode->Component, (ulong)compNode->Component, new List<string>()); break;
+                    case ComponentType.TextInput: this.PrintOutObject(*(AtkComponentTextInput*)compNode->Component, (ulong)compNode->Component, new List<string>()); break;
+                    case ComponentType.Icon: this.PrintOutObject(*(AtkComponentIcon*)compNode->Component, (ulong)compNode->Component, new List<string>()); break;
+                    default: this.PrintOutObject(*compNode->Component, (ulong)compNode->Component, new List<string>()); break;
                 }
 
-                PrintResNode(node);
-                PrintNode(componentInfo.RootNode);
+                this.PrintResNode(node);
+                this.PrintNode(componentInfo.RootNode);
 
                 switch (objectInfo->ComponentType)
                 {
@@ -373,7 +375,7 @@ namespace Dalamud.Interface
             }
             else if (ImGui.IsItemHovered())
             {
-                DrawOutline(node);
+                this.DrawOutline(node);
             }
 
             if (isVisible && !popped)
@@ -412,16 +414,16 @@ namespace Dalamud.Interface
         private bool DrawUnitListHeader(int index, uint count, ulong ptr, bool highlight)
         {
             ImGui.PushStyleColor(ImGuiCol.Text, highlight ? 0xFFAAAA00 : 0xFFFFFFFF);
-            if (!string.IsNullOrEmpty(this.searchInput) && !doingSearch)
+            if (!string.IsNullOrEmpty(this.searchInput) && !this.doingSearch)
             {
                 ImGui.SetNextItemOpen(true, ImGuiCond.Always);
             }
-            else if (doingSearch && string.IsNullOrEmpty(this.searchInput))
+            else if (this.doingSearch && string.IsNullOrEmpty(this.searchInput))
             {
                 ImGui.SetNextItemOpen(false, ImGuiCond.Always);
             }
 
-            var treeNode = ImGui.TreeNode($"{listNames[index]}##unitList_{index}");
+            var treeNode = ImGui.TreeNode($"{this.listNames[index]}##unitList_{index}");
             ImGui.PopStyleColor();
 
             ImGui.SameLine();
@@ -433,7 +435,7 @@ namespace Dalamud.Interface
         {
             bool foundSelected = false;
             bool noResults = true;
-            var stage = getAtkStageSingleton();
+            var stage = this.getAtkStageSingleton();
 
             var unitManagers = &stage->RaptureAtkUnitManager->AtkUnitManager.DepthLayerOneList;
 
@@ -444,8 +446,8 @@ namespace Dalamud.Interface
             {
                 var headerDrawn = false;
 
-                var highlight = selectedUnitBase != null && selectedInList[i];
-                selectedInList[i] = false;
+                var highlight = this.selectedUnitBase != null && this.selectedInList[i];
+                this.selectedInList[i] = false;
                 var unitManager = &unitManagers[i];
 
                 var unitBaseArray = &unitManager->AtkUnitEntries;
@@ -454,7 +456,7 @@ namespace Dalamud.Interface
 
                 if (!searching)
                 {
-                    headerOpen = DrawUnitListHeader(i, unitManager->Count, (ulong)unitManager, highlight);
+                    headerOpen = this.DrawUnitListHeader(i, unitManager->Count, (ulong)unitManager, highlight);
                     headerDrawn = true;
                     noResults = false;
                 }
@@ -462,9 +464,9 @@ namespace Dalamud.Interface
                 for (var j = 0; j < unitManager->Count && headerOpen; j++)
                 {
                     var unitBase = unitBaseArray[j];
-                    if (selectedUnitBase != null && unitBase == selectedUnitBase)
+                    if (this.selectedUnitBase != null && unitBase == this.selectedUnitBase)
                     {
-                        selectedInList[i] = true;
+                        this.selectedInList[i] = true;
                         foundSelected = true;
                     }
 
@@ -477,7 +479,7 @@ namespace Dalamud.Interface
                     noResults = false;
                     if (!headerDrawn)
                     {
-                        headerOpen = DrawUnitListHeader(i, unitManager->Count, (ulong)unitManager, highlight);
+                        headerOpen = this.DrawUnitListHeader(i, unitManager->Count, (ulong)unitManager, highlight);
                         headerDrawn = true;
                     }
 
@@ -486,11 +488,11 @@ namespace Dalamud.Interface
                         var visible = (unitBase->Flags & 0x20) == 0x20;
                         ImGui.PushStyleColor(ImGuiCol.Text, visible ? 0xFF00FF00 : 0xFF999999);
 
-                        if (ImGui.Selectable($"{name}##list{i}-{(ulong)unitBase:X}_{j}", selectedUnitBase == unitBase))
+                        if (ImGui.Selectable($"{name}##list{i}-{(ulong)unitBase:X}_{j}", this.selectedUnitBase == unitBase))
                         {
-                            selectedUnitBase = unitBase;
+                            this.selectedUnitBase = unitBase;
                             foundSelected = true;
-                            selectedInList[i] = true;
+                            this.selectedInList[i] = true;
                         }
 
                         ImGui.PopStyleColor();
@@ -502,12 +504,12 @@ namespace Dalamud.Interface
                     ImGui.TreePop();
                 }
 
-                if (selectedInList[i] == false && selectedUnitBase != null)
+                if (this.selectedInList[i] == false && this.selectedUnitBase != null)
                 {
                     for (var j = 0; j < unitManager->Count; j++)
                     {
-                        if (selectedUnitBase == null || unitBaseArray[j] != selectedUnitBase) continue;
-                        selectedInList[i] = true;
+                        if (this.selectedUnitBase == null || unitBaseArray[j] != this.selectedUnitBase) continue;
+                        this.selectedInList[i] = true;
                         foundSelected = true;
                     }
                 }
@@ -520,16 +522,16 @@ namespace Dalamud.Interface
 
             if (!foundSelected)
             {
-                selectedUnitBase = null;
+                this.selectedUnitBase = null;
             }
 
-            if (doingSearch && string.IsNullOrEmpty(this.searchInput))
+            if (this.doingSearch && string.IsNullOrEmpty(this.searchInput))
             {
-                doingSearch = false;
+                this.doingSearch = false;
             }
-            else if (!doingSearch && !string.IsNullOrEmpty(this.searchInput))
+            else if (!this.doingSearch && !string.IsNullOrEmpty(this.searchInput))
             {
-                doingSearch = true;
+                this.doingSearch = true;
             }
         }
 
@@ -574,11 +576,11 @@ namespace Dalamud.Interface
 
         private void DrawOutline(AtkResNode* node)
         {
-            var position = GetNodePosition(node);
-            var scale = GetNodeScale(node);
+            var position = this.GetNodePosition(node);
+            var scale = this.GetNodeScale(node);
             var size = new Vector2(node->Width, node->Height) * scale;
 
-            var nodeVisible = GetNodeVisible(node);
+            var nodeVisible = this.GetNodeVisible(node);
 
             position += ImGuiHelpers.MainViewport.Pos;
 
@@ -608,7 +610,7 @@ namespace Dalamud.Interface
                 {
                     var unboxedAddr = (ulong)unboxed;
                     ClickToCopyText($"{(ulong)unboxed:X}");
-                    if (beginModule > 0 && unboxedAddr >= this.beginModule && unboxedAddr <= this.endModule)
+                    if (this.beginModule > 0 && unboxedAddr >= this.beginModule && unboxedAddr <= this.endModule)
                     {
                         ImGui.SameLine();
                         ImGui.PushStyleColor(ImGuiCol.Text, 0xffcbc0ff);
@@ -621,7 +623,7 @@ namespace Dalamud.Interface
                         var eType = type.GetElementType();
                         var ptrObj = Marshal.PtrToStructure(new IntPtr(unboxed), eType);
                         ImGui.SameLine();
-                        PrintOutObject(ptrObj, (ulong)unboxed, new List<string>(path));
+                        this.PrintOutObject(ptrObj, (ulong)unboxed, new List<string>(path));
                     }
                     catch
                     {
@@ -637,7 +639,7 @@ namespace Dalamud.Interface
             {
                 if (!type.IsPrimitive)
                 {
-                    PrintOutObject(value, addr, new List<string>(path));
+                    this.PrintOutObject(value, addr, new List<string>(path));
                 }
                 else
                 {
@@ -699,7 +701,7 @@ namespace Dalamud.Interface
                     ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.4f, 1), $"{f.Name}: ");
                     ImGui.SameLine();
 
-                    PrintOutValue(addr, new List<string>(path) { f.Name }, f.FieldType, f.GetValue(obj));
+                    this.PrintOutValue(addr, new List<string>(path) { f.Name }, f.FieldType, f.GetValue(obj));
                 }
 
                 foreach (var p in obj.GetType().GetProperties())
@@ -709,7 +711,7 @@ namespace Dalamud.Interface
                     ImGui.TextColored(new Vector4(0.2f, 0.6f, 0.4f, 1), $"{p.Name}: ");
                     ImGui.SameLine();
 
-                    PrintOutValue(addr, new List<string>(path) { p.Name }, p.PropertyType, p.GetValue(obj));
+                    this.PrintOutValue(addr, new List<string>(path) { p.Name }, p.PropertyType, p.GetValue(obj));
                 }
 
                 ImGui.TreePop();

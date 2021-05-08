@@ -548,6 +548,7 @@ namespace Dalamud.Interface
             }
         }
 
+#pragma warning disable CS0618 // Type or member is obsolete
         private void DrawIpcDebug()
         {
             var i1 = new DalamudPluginInterface(this.dalamud, "DalamudTestSub", null, PluginLoadReason.Boot);
@@ -595,6 +596,7 @@ namespace Dalamud.Interface
             foreach (var sub in this.dalamud.PluginManager.IpcSubscriptions)
                 ImGui.Text($"Source:{sub.SourcePluginName} Sub:{sub.SubPluginName}");
         }
+#pragma warning restore CS0618 // Type or member is obsolete
 
         private void DrawAddonDebug()
         {

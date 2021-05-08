@@ -16,31 +16,31 @@ namespace Dalamud.Game.Internal
             // Because C# don't allow to call virtual function while in ctor
             // we have to do this shit :\
 
-            if (IsResolved)
+            if (this.IsResolved)
             {
                 return;
             }
 
             if (scanner.Is32BitProcess)
             {
-                Setup32Bit(scanner);
+                this.Setup32Bit(scanner);
             }
             else
             {
-                Setup64Bit(scanner);
+                this.Setup64Bit(scanner);
             }
 
-            SetupInternal(scanner);
+            this.SetupInternal(scanner);
 
-            var className = GetType().Name;
+            var className = this.GetType().Name;
             DebugScannedValues[className] = new List<(string, IntPtr)>();
 
-            foreach (var property in GetType().GetProperties().Where(x => x.PropertyType == typeof(IntPtr)))
+            foreach (var property in this.GetType().GetProperties().Where(x => x.PropertyType == typeof(IntPtr)))
             {
                 DebugScannedValues[className].Add((property.Name, (IntPtr)property.GetValue(this)));
             }
 
-            IsResolved = true;
+            this.IsResolved = true;
         }
 
         protected virtual void Setup32Bit(SigScanner scanner)

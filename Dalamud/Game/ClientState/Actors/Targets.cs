@@ -20,48 +20,48 @@ namespace Dalamud.Game.ClientState.Actors
 
         private Dalamud dalamud;
 
-        public Actor CurrentTarget => GetActorByOffset(TargetOffsets.CurrentTarget);
+        public Actor CurrentTarget => this.GetActorByOffset(TargetOffsets.CurrentTarget);
 
-        public Actor MouseOverTarget => GetActorByOffset(TargetOffsets.MouseOverTarget);
+        public Actor MouseOverTarget => this.GetActorByOffset(TargetOffsets.MouseOverTarget);
 
-        public Actor FocusTarget => GetActorByOffset(TargetOffsets.FocusTarget);
+        public Actor FocusTarget => this.GetActorByOffset(TargetOffsets.FocusTarget);
 
-        public Actor PreviousTarget => GetActorByOffset(TargetOffsets.PreviousTarget);
+        public Actor PreviousTarget => this.GetActorByOffset(TargetOffsets.PreviousTarget);
 
-        public Actor SoftTarget => GetActorByOffset(TargetOffsets.SoftTarget);
+        public Actor SoftTarget => this.GetActorByOffset(TargetOffsets.SoftTarget);
 
         internal Targets(Dalamud dalamud, ClientStateAddressResolver addressResolver)
         {
             this.dalamud = dalamud;
-            Address = addressResolver;
+            this.Address = addressResolver;
         }
 
-        public void SetCurrentTarget(Actor actor) => SetTarget(actor?.Address ?? IntPtr.Zero, TargetOffsets.CurrentTarget);
+        public void SetCurrentTarget(Actor actor) => this.SetTarget(actor?.Address ?? IntPtr.Zero, TargetOffsets.CurrentTarget);
 
-        public void SetCurrentTarget(IntPtr actorAddress) => SetTarget(actorAddress, TargetOffsets.CurrentTarget);
+        public void SetCurrentTarget(IntPtr actorAddress) => this.SetTarget(actorAddress, TargetOffsets.CurrentTarget);
 
-        public void SetFocusTarget(Actor actor) => SetTarget(actor?.Address ?? IntPtr.Zero, TargetOffsets.FocusTarget);
+        public void SetFocusTarget(Actor actor) => this.SetTarget(actor?.Address ?? IntPtr.Zero, TargetOffsets.FocusTarget);
 
-        public void SetFocusTarget(IntPtr actorAddress) => SetTarget(actorAddress, TargetOffsets.FocusTarget);
+        public void SetFocusTarget(IntPtr actorAddress) => this.SetTarget(actorAddress, TargetOffsets.FocusTarget);
 
-        public void ClearCurrentTarget() => SetCurrentTarget(IntPtr.Zero);
+        public void ClearCurrentTarget() => this.SetCurrentTarget(IntPtr.Zero);
 
-        public void ClearFocusTarget() => SetFocusTarget(IntPtr.Zero);
+        public void ClearFocusTarget() => this.SetFocusTarget(IntPtr.Zero);
 
         private void SetTarget(IntPtr actorAddress, int offset)
         {
-            if (Address.TargetManager == IntPtr.Zero)
+            if (this.Address.TargetManager == IntPtr.Zero)
                 return;
 
-            Marshal.WriteIntPtr(Address.TargetManager, offset, actorAddress);
+            Marshal.WriteIntPtr(this.Address.TargetManager, offset, actorAddress);
         }
 
         private Actor GetActorByOffset(int offset)
         {
-            if (Address.TargetManager == IntPtr.Zero)
+            if (this.Address.TargetManager == IntPtr.Zero)
                 return null;
 
-            var actorAddress = Marshal.ReadIntPtr(Address.TargetManager + offset);
+            var actorAddress = Marshal.ReadIntPtr(this.Address.TargetManager + offset);
             if (actorAddress == IntPtr.Zero)
                 return null;
 

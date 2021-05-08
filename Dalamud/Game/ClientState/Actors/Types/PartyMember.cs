@@ -11,19 +11,19 @@ namespace Dalamud.Game.ClientState.Actors.Types
 
         public PartyMember(ActorTable table, Structs.PartyMember rawData)
         {
-            CharacterName = Marshal.PtrToStringAnsi(rawData.namePtr);
-            Unknown = rawData.unknown;
-            Actor = null;
+            this.CharacterName = Marshal.PtrToStringAnsi(rawData.namePtr);
+            this.Unknown = rawData.unknown;
+            this.Actor = null;
             for (var i = 0; i < table.Length; i++)
             {
                 if (table[i] != null && table[i].ActorId == rawData.actorId)
                 {
-                    Actor = table[i];
+                    this.Actor = table[i];
                     break;
                 }
             }
 
-            ObjectKind = rawData.objectKind;
+            this.ObjectKind = rawData.objectKind;
         }
     }
 }

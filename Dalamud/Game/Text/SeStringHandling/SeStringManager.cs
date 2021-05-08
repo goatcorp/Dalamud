@@ -1,10 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 using Dalamud.Data;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
@@ -71,7 +67,7 @@ namespace Dalamud.Game.Text.SeStringHandling
                 // sometimes there is another set of uiglow/foreground off payloads here
                 // might be necessary when including additional text after the item name
             });
-            payloads.InsertRange(3, TextArrowPayloads());
+            payloads.InsertRange(3, this.TextArrowPayloads());
 
             return new SeString(payloads);
         }
@@ -85,7 +81,7 @@ namespace Dalamud.Game.Text.SeStringHandling
         /// <returns>An SeString containing all the payloads necessary to display an item link in the chat log.</returns>
         public SeString CreateItemLink(Item item, bool isHQ, string displayNameOverride = null)
         {
-            return CreateItemLink((uint)item.RowId, isHQ, displayNameOverride ?? item.Name);
+            return this.CreateItemLink((uint)item.RowId, isHQ, displayNameOverride ?? item.Name);
         }
 
         public SeString CreateMapLink(uint territoryId, uint mapId, int rawX, int rawY)
@@ -100,7 +96,7 @@ namespace Dalamud.Game.Text.SeStringHandling
                 new TextPayload(nameString),
                 RawPayload.LinkTerminator,
             });
-            payloads.InsertRange(1, TextArrowPayloads());
+            payloads.InsertRange(1, this.TextArrowPayloads());
 
             return new SeString(payloads);
         }
@@ -126,7 +122,7 @@ namespace Dalamud.Game.Text.SeStringHandling
                 new TextPayload(nameString),
                 RawPayload.LinkTerminator,
             });
-            payloads.InsertRange(1, TextArrowPayloads());
+            payloads.InsertRange(1, this.TextArrowPayloads());
 
             return new SeString(payloads);
         }

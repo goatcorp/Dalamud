@@ -16,6 +16,6 @@ namespace Dalamud.Game.Network
 
         public int ListingsRequestId { get; set; } = -1;
 
-        public bool IsDone => Listings.Count == AmountToArrive && History.Count != 0;
+        public bool IsDone => this.Listings.Count == this.AmountToArrive && this.History.Count != 0;
     }
 }

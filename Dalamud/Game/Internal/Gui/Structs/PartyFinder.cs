@@ -284,23 +284,23 @@ namespace Dalamud.Game.Internal.Gui.Structs
             this.slots = listing.slots.Select(accepting => new PartyFinderSlot(accepting)).ToArray();
             this.jobsPresent = listing.jobsPresent;
 
-            Id = listing.id;
-            ContentIdLower = listing.contentIdLower;
-            Name = seStringManager.Parse(listing.name.TakeWhile(b => b != 0).ToArray());
-            Description = seStringManager.Parse(listing.description.TakeWhile(b => b != 0).ToArray());
-            World = new Lazy<World>(() => dataManager.GetExcelSheet<World>().GetRow(listing.world));
-            HomeWorld = new Lazy<World>(() => dataManager.GetExcelSheet<World>().GetRow(listing.homeWorld));
-            CurrentWorld = new Lazy<World>(() => dataManager.GetExcelSheet<World>().GetRow(listing.currentWorld));
-            Category = (Category)listing.category;
-            RawDuty = listing.duty;
-            Duty = new Lazy<ContentFinderCondition>(() => dataManager.GetExcelSheet<ContentFinderCondition>().GetRow(listing.duty));
-            DutyType = (DutyType)listing.dutyType;
-            BeginnersWelcome = listing.beginnersWelcome == 1;
-            SecondsRemaining = listing.secondsRemaining;
-            MinimumItemLevel = listing.minimumItemLevel;
-            Parties = listing.numParties;
-            SlotsAvailable = listing.numSlots;
-            JobsPresent = listing.jobsPresent
+            this.Id = listing.id;
+            this.ContentIdLower = listing.contentIdLower;
+            this.Name = seStringManager.Parse(listing.name.TakeWhile(b => b != 0).ToArray());
+            this.Description = seStringManager.Parse(listing.description.TakeWhile(b => b != 0).ToArray());
+            this.World = new Lazy<World>(() => dataManager.GetExcelSheet<World>().GetRow(listing.world));
+            this.HomeWorld = new Lazy<World>(() => dataManager.GetExcelSheet<World>().GetRow(listing.homeWorld));
+            this.CurrentWorld = new Lazy<World>(() => dataManager.GetExcelSheet<World>().GetRow(listing.currentWorld));
+            this.Category = (Category)listing.category;
+            this.RawDuty = listing.duty;
+            this.Duty = new Lazy<ContentFinderCondition>(() => dataManager.GetExcelSheet<ContentFinderCondition>().GetRow(listing.duty));
+            this.DutyType = (DutyType)listing.dutyType;
+            this.BeginnersWelcome = listing.beginnersWelcome == 1;
+            this.SecondsRemaining = listing.secondsRemaining;
+            this.MinimumItemLevel = listing.minimumItemLevel;
+            this.Parties = listing.numParties;
+            this.SlotsAvailable = listing.numSlots;
+            this.JobsPresent = listing.jobsPresent
                               .Select(id => new Lazy<ClassJob>(() => id == 0
                                                                           ? null
                                                                           : dataManager.GetExcelSheet<ClassJob>().GetRow(id)))

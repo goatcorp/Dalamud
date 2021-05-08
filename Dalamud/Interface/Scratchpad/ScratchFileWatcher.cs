@@ -11,7 +11,7 @@ namespace Dalamud.Interface.Scratchpad
 
         public void Load(string path)
         {
-            TrackedScratches.Add(new ScratchpadDocument
+            this.TrackedScratches.Add(new ScratchpadDocument
             {
                 Title = Path.GetFileName(path),
                 Content = File.ReadAllText(path),

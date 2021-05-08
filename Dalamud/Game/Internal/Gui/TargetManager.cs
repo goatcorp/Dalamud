@@ -20,9 +20,9 @@ namespace Dalamud.Game.Internal.Gui
             this.Address.Setup(scanner);
 
             Log.Verbose("===== T A R G E T   M A N A G E R =====");
-            Log.Verbose("GetTarget address {GetTarget}", Address.GetTarget);
+            Log.Verbose("GetTarget address {GetTarget}", this.Address.GetTarget);
 
-            this.getTargetHook = new Hook<GetTargetDelegate>(this.Address.GetTarget, new GetTargetDelegate(GetTargetDetour), this);
+            this.getTargetHook = new Hook<GetTargetDelegate>(this.Address.GetTarget, new GetTargetDelegate(this.GetTargetDetour), this);
         }
 
         public void Enable()

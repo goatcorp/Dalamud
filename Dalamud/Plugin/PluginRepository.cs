@@ -40,12 +40,12 @@ namespace Dalamud.Plugin
             this.dalamud = dalamud;
             this.pluginDirectory = pluginDirectory;
 
-            ReloadPluginMasterAsync();
+            this.ReloadPluginMasterAsync();
         }
 
         public void ReloadPluginMasterAsync()
         {
-            State = InitializationState.InProgress;
+            this.State = InitializationState.InProgress;
 
             Task.Run(() =>
             {
@@ -54,7 +54,7 @@ namespace Dalamud.Plugin
                 var allPlugins = new List<PluginDefinition>();
 
                 var repos = this.dalamud.Configuration.ThirdRepoList.Where(x => x.IsEnabled).Select(x => x.Url)
-                                .Prepend(PluginMasterUrl).ToArray();
+                                .Prepend(this.PluginMasterUrl).ToArray();
 
                 try
                 {
@@ -80,18 +80,18 @@ namespace Dalamud.Plugin
                     }
 
                     this.PluginMaster = allPlugins.AsReadOnly();
-                    State = InitializationState.Success;
+                    this.State = InitializationState.Success;
                 }
                 catch (Exception ex)
                 {
                     Log.Error(ex, "Could not download PluginMaster");
 
-                    State = repos.Length > 1 ? InitializationState.FailThirdRepo : InitializationState.Fail;
+                    this.State = repos.Length > 1 ? InitializationState.FailThirdRepo : InitializationState.Fail;
                 }
             }).ContinueWith(t =>
             {
                 if (t.IsFaulted)
-                    State = InitializationState.Fail;
+                    this.State = InitializationState.Fail;
             });
         }
 
@@ -332,7 +332,7 @@ namespace Dalamud.Plugin
                                     Log.Error(ex, "Plugin disable old versions failed");
                                 }
 
-                                var installSuccess = InstallPlugin(remoteInfo, isEnabled, true, testingAvailable);
+                                var installSuccess = this.InstallPlugin(remoteInfo, isEnabled, true, testingAvailable);
 
                                 if (!installSuccess)
                                 {

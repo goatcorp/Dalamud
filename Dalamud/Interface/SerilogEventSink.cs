@@ -17,19 +17,19 @@ namespace Dalamud.Interface
 
         public SerilogEventSink(IFormatProvider formatProvider)
         {
-            _formatProvider = formatProvider;
+            this._formatProvider = formatProvider;
 
             Instance = this;
         }
 
         public void Emit(LogEvent logEvent)
         {
-            var message = $"[{DateTimeOffset.Now:HH:mm:ss.fff}][{logEvent.Level}] {logEvent.RenderMessage(_formatProvider)}";
+            var message = $"[{DateTimeOffset.Now:HH:mm:ss.fff}][{logEvent.Level}] {logEvent.RenderMessage(this._formatProvider)}";
 
             if (logEvent.Exception != null)
                 message += "\n" + logEvent.Exception;
 
-            OnLogLine?.Invoke(this, (message, logEvent.Level));
+            this.OnLogLine?.Invoke(this, (message, logEvent.Level));
         }
     }
 

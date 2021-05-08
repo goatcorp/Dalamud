@@ -36,16 +36,16 @@ namespace Dalamud.Game.Internal.File
         public ResourceManager(Dalamud dalamud, SigScanner scanner)
         {
             this.dalamud = dalamud;
-            Address = new ResourceManagerAddressResolver();
-            Address.Setup(scanner);
+            this.Address = new ResourceManagerAddressResolver();
+            this.Address.Setup(scanner);
 
             Log.Verbose("=====  R E S O U R C E   M A N A G E R  =====");
-            Log.Verbose("GetResourceAsync address {GetResourceAsync}", Address.GetResourceAsync);
-            Log.Verbose("GetResourceSync address {GetResourceSync}", Address.GetResourceSync);
+            Log.Verbose("GetResourceAsync address {GetResourceAsync}", this.Address.GetResourceAsync);
+            Log.Verbose("GetResourceSync address {GetResourceSync}", this.Address.GetResourceSync);
 
-            this.getResourceAsyncHook = new Hook<GetResourceAsyncDelegate>(Address.GetResourceAsync, new GetResourceAsyncDelegate(GetResourceAsyncDetour), this);
+            this.getResourceAsyncHook = new Hook<GetResourceAsyncDelegate>(this.Address.GetResourceAsync, new GetResourceAsyncDelegate(this.GetResourceAsyncDetour), this);
 
-            this.getResourceSyncHook = new Hook<GetResourceSyncDelegate>(Address.GetResourceSync, new GetResourceSyncDelegate(GetResourceSyncDetour), this);
+            this.getResourceSyncHook = new Hook<GetResourceSyncDelegate>(this.Address.GetResourceSync, new GetResourceSyncDelegate(this.GetResourceSyncDetour), this);
         }
 
         public void Enable()
@@ -73,7 +73,7 @@ namespace Dalamud.Game.Internal.File
 
                 Log.Verbose($"->{path}");
 
-                HandleGetResourceHookAcquire(resourceHandle, path);
+                this.HandleGetResourceHookAcquire(resourceHandle, path);
 
                 return resourceHandle;
             }
@@ -108,7 +108,7 @@ namespace Dalamud.Game.Internal.File
 
                 Log.Verbose($"->{path}");
 
-                HandleGetResourceHookAcquire(resourceHandle, path);
+                this.HandleGetResourceHookAcquire(resourceHandle, path);
 
                 return resourceHandle;
             }

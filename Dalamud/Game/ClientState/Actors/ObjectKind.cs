@@ -1,37 +1,37 @@
 namespace Dalamud.Game.ClientState.Actors
 {
     /// <summary>
-    ///     Enum describing possible entity kinds.
+    /// Enum describing possible entity kinds.
     /// </summary>
     public enum ObjectKind : byte
     {
         /// <summary>
-        ///     Invalid actor.
+        /// Invalid actor.
         /// </summary>
         None = 0x00,
 
         /// <summary>
-        ///     Objects representing player characters.
+        /// Objects representing player characters.
         /// </summary>
         Player = 0x01,
 
         /// <summary>
-        ///     Objects representing battle NPCs.
+        /// Objects representing battle NPCs.
         /// </summary>
         BattleNpc = 0x02,
 
         /// <summary>
-        ///     Objects representing event NPCs.
+        /// Objects representing event NPCs.
         /// </summary>
         EventNpc = 0x03,
 
         /// <summary>
-        ///     Objects representing treasures.
+        /// Objects representing treasures.
         /// </summary>
         Treasure = 0x04,
 
         /// <summary>
-        ///     Objects representing aetherytes.
+        /// Objects representing aetherytes.
         /// </summary>
         Aetheryte = 0x05,
 
@@ -46,23 +46,23 @@ namespace Dalamud.Game.ClientState.Actors
         EventObj = 0x07,
 
         /// <summary>
-        ///     Objects representing mounts.
+        /// Objects representing mounts.
         /// </summary>
         MountType = 0x08,
 
         /// <summary>
-        ///     Objects representing minions.
+        /// Objects representing minions.
         /// </summary>
         Companion = 0x09, // Minion
 
         /// <summary>
-        ///     Objects representing retainers.
+        /// Objects representing retainers.
         /// </summary>
         Retainer = 0x0A,
         Area = 0x0B,
 
         /// <summary>
-        ///     Objects representing housing objects.
+        /// Objects representing housing objects.
         /// </summary>
         Housing = 0x0C,
         Cutscene = 0x0D,

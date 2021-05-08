@@ -54,7 +54,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         /// <inheritdoc />
         public override string ToString()
         {
-            return $"{Type} - QuestId: {this.questId}, Name: {Quest?.Name ?? "QUEST NOT FOUND"}";
+            return $"{this.Type} - QuestId: {this.questId}, Name: {this.Quest?.Name ?? "QUEST NOT FOUND"}";
         }
 
         protected override byte[] EncodeImpl()

@@ -5,7 +5,7 @@ using Dalamud.Game.ClientState.Structs;
 namespace Dalamud.Game.ClientState.Actors.Types
 {
     /// <summary>
-    ///     This class represents a basic FFXIV actor.
+    /// This class represents a basic FFXIV actor.
     /// </summary>
     public class Actor : IEquatable<Actor>
     {

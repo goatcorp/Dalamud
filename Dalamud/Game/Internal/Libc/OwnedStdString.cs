@@ -31,31 +31,31 @@ namespace Dalamud.Game.Internal.Libc
         /// <returns></returns>
         internal OwnedStdString(IntPtr address, DeallocatorDelegate dealloc)
         {
-            Address = address;
+            this.Address = address;
             this.dealloc = dealloc;
         }
 
         ~OwnedStdString()
         {
-            ReleaseUnmanagedResources();
+            this.ReleaseUnmanagedResources();
         }
 
         private void ReleaseUnmanagedResources()
         {
-            if (Address == IntPtr.Zero)
+            if (this.Address == IntPtr.Zero)
             {
                 // Something got seriously fucked.
                 throw new AccessViolationException();
             }
 
             // Deallocate inner string first
-            this.dealloc(Address);
+            this.dealloc(this.Address);
 
             // Free the heap
-            Marshal.FreeHGlobal(Address);
+            Marshal.FreeHGlobal(this.Address);
 
             // Better safe (running on a nullptr) than sorry. (running on a dangling pointer)
-            Address = IntPtr.Zero;
+            this.Address = IntPtr.Zero;
         }
 
         public void Dispose()
@@ -68,13 +68,13 @@ namespace Dalamud.Game.Internal.Libc
 
             this.isDisposed = true;
 
-            ReleaseUnmanagedResources();
+            this.ReleaseUnmanagedResources();
             GC.SuppressFinalize(this);
         }
 
         public StdString Read()
         {
-            return StdString.ReadFromPointer(Address);
+            return StdString.ReadFromPointer(this.Address);
         }
     }
 }

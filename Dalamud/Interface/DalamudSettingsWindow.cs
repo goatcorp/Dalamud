@@ -381,14 +381,14 @@ namespace Dalamud.Interface
 
             if (ImGui.Button(Loc.Localize("Save", "Save")))
             {
-                Save();
+                this.Save();
             }
 
             ImGui.SameLine();
 
             if (ImGui.Button(Loc.Localize("SaveAndClose", "Save and Close")))
             {
-                Save();
+                this.Save();
                 this.IsOpen = false;
             }
         }

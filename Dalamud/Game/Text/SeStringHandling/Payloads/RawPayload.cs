@@ -17,7 +17,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         // this and others could be an actual static member somewhere and avoid construction costs, but that probably isn't a real concern
 
         /// <summary>
-        /// A fixed Payload representing a common link-termination sequence, found in many payload chains.
+        /// Gets a fixed Payload representing a common link-termination sequence, found in many payload chains.
         /// </summary>
         public static RawPayload LinkTerminator => new RawPayload(new byte[] { 0x02, 0x27, 0x07, 0xCF, 0x01, 0x01, 0x01, 0xFF, 0x01, 0x03 });
 
@@ -31,7 +31,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         // it makes more sense to get the entire payload
 
         /// <summary>
-        /// The entire payload byte sequence for this payload.
+        /// Gets the entire payload byte sequence for this payload.
         /// The returned data is a clone and modifications will not be persisted.
         /// </summary>
         [JsonIgnore]
@@ -41,7 +41,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             {
                 // for now don't allow modifying the contents
                 // because we don't really have a way to track Dirty
-                return (byte[])Encode().Clone();
+                return (byte[])this.Encode().Clone();
             }
         }
 
@@ -65,7 +65,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
 
         public override string ToString()
         {
-            return $"{Type} - Data: {BitConverter.ToString(Data).Replace("-", " ")}";
+            return $"{this.Type} - Data: {BitConverter.ToString(this.Data).Replace("-", " ")}";
         }
 
         public override bool Equals(object obj)
@@ -73,7 +73,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             if (obj is RawPayload rp)
             {
                 if (rp.Data.Length != this.Data.Length) return false;
-                return !Data.Where((t, i) => rp.Data[i] != t).Any();
+                return !this.Data.Where((t, i) => rp.Data[i] != t).Any();
             }
 
             return false;

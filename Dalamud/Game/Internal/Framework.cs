@@ -77,29 +77,29 @@ namespace Dalamud.Game.Internal
         public Framework(SigScanner scanner, Dalamud dalamud)
         {
             this.dalamud = dalamud;
-            Address = new FrameworkAddressResolver();
-            Address.Setup(scanner);
+            this.Address = new FrameworkAddressResolver();
+            this.Address.Setup(scanner);
 
-            Log.Verbose("Framework address {FrameworkAddress}", Address.BaseAddress);
-            if (Address.BaseAddress == IntPtr.Zero)
+            Log.Verbose("Framework address {FrameworkAddress}", this.Address.BaseAddress);
+            if (this.Address.BaseAddress == IntPtr.Zero)
             {
                 throw new InvalidOperationException("Framework is not initalized yet.");
             }
 
             // Hook virtual functions
-            HookVTable();
+            this.HookVTable();
 
             // Initialize subsystems
-            Libc = new LibcFunction(scanner);
+            this.Libc = new LibcFunction(scanner);
 
-            Gui = new GameGui(Address.GuiManager, scanner, dalamud);
+            this.Gui = new GameGui(this.Address.GuiManager, scanner, dalamud);
 
-            Network = new GameNetwork(scanner);
+            this.Network = new GameNetwork(scanner);
         }
 
         private void HookVTable()
         {
-            var vtable = Marshal.ReadIntPtr(Address.BaseAddress);
+            var vtable = Marshal.ReadIntPtr(this.Address.BaseAddress);
             // Virtual function layout:
             // .rdata:00000001411F1FE0 dq offset Xiv__Framework___dtor
             // .rdata:00000001411F1FE8 dq offset Xiv__Framework__init
@@ -108,21 +108,21 @@ namespace Dalamud.Game.Internal
             // .rdata:00000001411F2000 dq offset Xiv__Framework__update
 
             var pUpdate = Marshal.ReadIntPtr(vtable, IntPtr.Size * 4);
-            this.updateHook = new Hook<OnUpdateDetour>(pUpdate, new OnUpdateDetour(HandleFrameworkUpdate), this);
+            this.updateHook = new Hook<OnUpdateDetour>(pUpdate, new OnUpdateDetour(this.HandleFrameworkUpdate), this);
 
             var pDestroy = Marshal.ReadIntPtr(vtable, IntPtr.Size * 3);
             this.destroyHook =
-                new Hook<OnDestroyDetour>(pDestroy, new OnDestroyDelegate(HandleFrameworkDestroy), this);
+                new Hook<OnDestroyDetour>(pDestroy, new OnDestroyDelegate(this.HandleFrameworkDestroy), this);
 
             var pRealDestroy = Marshal.ReadIntPtr(vtable, IntPtr.Size * 2);
             this.realDestroyHook =
-                new Hook<OnRealDestroyDelegate>(pRealDestroy, new OnRealDestroyDelegate(HandleRealDestroy), this);
+                new Hook<OnRealDestroyDelegate>(pRealDestroy, new OnRealDestroyDelegate(this.HandleRealDestroy), this);
         }
 
         public void Enable()
         {
-            Gui.Enable();
-            Network.Enable();
+            this.Gui.Enable();
+            this.Network.Enable();
 
             this.updateHook.Enable();
             this.destroyHook.Enable();
@@ -131,8 +131,8 @@ namespace Dalamud.Game.Internal
 
         public void Dispose()
         {
-            Gui.Dispose();
-            Network.Dispose();
+            this.Gui.Dispose();
+            this.Network.Dispose();
 
             this.updateHook.Dispose();
             this.destroyHook.Dispose();
@@ -150,9 +150,9 @@ namespace Dalamud.Game.Internal
 
             try
             {
-                Gui.Chat.UpdateQueue(this);
-                Gui.Toast.UpdateQueue();
-                Network.UpdateQueue(this);
+                this.Gui.Chat.UpdateQueue(this);
+                this.Gui.Toast.UpdateQueue();
+                this.Network.UpdateQueue(this);
             }
             catch (Exception ex)
             {
@@ -163,10 +163,10 @@ namespace Dalamud.Game.Internal
             {
                 try
                 {
-                    if (StatsEnabled && OnUpdateEvent != null)
+                    if (StatsEnabled && this.OnUpdateEvent != null)
                     {
                         // Stat Tracking for Framework Updates
-                        var invokeList = OnUpdateEvent.GetInvocationList();
+                        var invokeList = this.OnUpdateEvent.GetInvocationList();
                         var notUpdated = StatsHistory.Keys.ToList();
                         // Individually invoke OnUpdate handlers and time them.
                         foreach (var d in invokeList)
@@ -199,7 +199,7 @@ namespace Dalamud.Game.Internal
                     }
                     else
                     {
-                        OnUpdateEvent?.Invoke(this);
+                        this.OnUpdateEvent?.Invoke(this);
                     }
                 }
                 catch (Exception ex)

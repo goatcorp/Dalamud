@@ -28,7 +28,7 @@ namespace Dalamud.Game.Text.SeStringHandling
         {
             get
             {
-                return Payloads
+                return this.Payloads
                     .Where(p => p is ITextProvider)
                     .Cast<ITextProvider>()
                     .Aggregate(new StringBuilder(), (sb, tp) => sb.Append(tp.Text), sb => sb.ToString());
@@ -50,7 +50,7 @@ namespace Dalamud.Game.Text.SeStringHandling
         [JsonConstructor]
         public SeString(List<Payload> payloads)
         {
-            Payloads = payloads;
+            this.Payloads = payloads;
         }
 
         /// <summary>
@@ -60,7 +60,7 @@ namespace Dalamud.Game.Text.SeStringHandling
         /// <param name="payloads">The Payload objects to make up this string.</param>
         public SeString(Payload[] payloads)
         {
-            Payloads = new List<Payload>(payloads);
+            this.Payloads = new List<Payload>(payloads);
         }
 
         /// <summary>
@@ -70,7 +70,7 @@ namespace Dalamud.Game.Text.SeStringHandling
         /// <returns>This object.</returns>
         public SeString Append(SeString other)
         {
-            Payloads.AddRange(other.Payloads);
+            this.Payloads.AddRange(other.Payloads);
             return this;
         }
 
@@ -81,7 +81,7 @@ namespace Dalamud.Game.Text.SeStringHandling
         /// <returns>This object.</returns>
         public SeString Append(List<Payload> payloads)
         {
-            Payloads.AddRange(payloads);
+            this.Payloads.AddRange(payloads);
             return this;
         }
 
@@ -92,7 +92,7 @@ namespace Dalamud.Game.Text.SeStringHandling
         /// <returns>This object.</returns>
         public SeString Append(Payload payload)
         {
-            Payloads.Add(payload);
+            this.Payloads.Add(payload);
             return this;
         }
 
@@ -104,7 +104,7 @@ namespace Dalamud.Game.Text.SeStringHandling
         public byte[] Encode()
         {
             var messageBytes = new List<byte>();
-            foreach (var p in Payloads)
+            foreach (var p in this.Payloads)
             {
                 messageBytes.AddRange(p.Encode());
             }
@@ -118,7 +118,7 @@ namespace Dalamud.Game.Text.SeStringHandling
         /// <returns>The TextValue property.</returns>
         public override string ToString()
         {
-            return TextValue;
+            return this.TextValue;
         }
 
         /// <summary>

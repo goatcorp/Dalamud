@@ -70,7 +70,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         {
             get
             {
-                return ConvertRawPositionToMapCoordinate(RawX, Map.SizeFactor);
+                return this.ConvertRawPositionToMapCoordinate(this.RawX, this.Map.SizeFactor);
             }
         }
 
@@ -82,7 +82,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         {
             get
             {
-                return ConvertRawPositionToMapCoordinate(RawY, Map.SizeFactor);
+                return this.ConvertRawPositionToMapCoordinate(this.RawY, this.Map.SizeFactor);
             }
         }
 
@@ -99,8 +99,8 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
                 // the fudge also just attempts to correct the truncated/displayed value for rounding/fp issues
                 // TODO: should this fudge factor be the same as in the ctor? currently not since that is customizable
                 const float fudge = 0.02f;
-                var x = Math.Truncate((XCoord + fudge) * 10.0f) / 10.0f;
-                var y = Math.Truncate((YCoord + fudge) * 10.0f) / 10.0f;
+                var x = Math.Truncate((this.XCoord + fudge) * 10.0f) / 10.0f;
+                var y = Math.Truncate((this.YCoord + fudge) * 10.0f) / 10.0f;
 
                 // the formatting and spacing the game uses
                 return $"( {x.ToString("0.0")}  , {y.ToString("0.0")} )";
@@ -117,7 +117,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         {
             get
             {
-                this.placeNameRegion ??= TerritoryType.PlaceNameRegion.Value?.Name;
+                this.placeNameRegion ??= this.TerritoryType.PlaceNameRegion.Value?.Name;
                 return this.placeNameRegion;
             }
         }
@@ -132,7 +132,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         {
             get
             {
-                this.placeName ??= TerritoryType.PlaceName.Value?.Name;
+                this.placeName ??= this.TerritoryType.PlaceName.Value?.Name;
                 return this.placeName;
             }
         }
@@ -140,7 +140,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         /// <summary>
         /// The data string for this map link, for use by internal game functions that take a string variant and not a binary payload.
         /// </summary>
-        public string DataString => $"m:{TerritoryType.RowId},{Map.RowId},{RawX},{RawY}";
+        public string DataString => $"m:{this.TerritoryType.RowId},{this.Map.RowId},{this.RawX},{this.RawY}";
 
         [JsonProperty]
         private uint territoryTypeId;
@@ -171,8 +171,8 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             // this fudge is necessary basically to ensure we don't shift down a full tenth
             // because essentially values are truncated instead of rounded, so 3.09999f will become
             // 3.0f and not 3.1f
-            RawX = this.ConvertMapCoordinateToRawPosition(niceXCoord + fudgeFactor, Map.SizeFactor);
-            RawY = this.ConvertMapCoordinateToRawPosition(niceYCoord + fudgeFactor, Map.SizeFactor);
+            this.RawX = this.ConvertMapCoordinateToRawPosition(niceXCoord + fudgeFactor, this.Map.SizeFactor);
+            this.RawY = this.ConvertMapCoordinateToRawPosition(niceYCoord + fudgeFactor, this.Map.SizeFactor);
         }
 
         /// <summary>
@@ -189,20 +189,20 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             this.DataResolver = data;
             this.territoryTypeId = territoryTypeId;
             this.mapId = mapId;
-            RawX = rawX;
-            RawY = rawY;
+            this.RawX = rawX;
+            this.RawY = rawY;
         }
 
         public override string ToString()
         {
-            return $"{Type} - TerritoryTypeId: {territoryTypeId}, MapId: {mapId}, RawX: {RawX}, RawY: {RawY}, display: {PlaceName} {CoordinateString}";
+            return $"{this.Type} - TerritoryTypeId: {this.territoryTypeId}, MapId: {this.mapId}, RawX: {this.RawX}, RawY: {this.RawY}, display: {this.PlaceName} {this.CoordinateString}";
         }
 
         protected override byte[] EncodeImpl()
         {
             var packedTerritoryAndMapBytes = MakePackedInteger(this.territoryTypeId, this.mapId);
-            var xBytes = MakeInteger(unchecked((uint)RawX));
-            var yBytes = MakeInteger(unchecked((uint)RawY));
+            var xBytes = MakeInteger(unchecked((uint)this.RawX));
+            var yBytes = MakeInteger(unchecked((uint)this.RawY));
 
             var chunkLen = 4 + packedTerritoryAndMapBytes.Length + xBytes.Length + yBytes.Length;
 
@@ -232,8 +232,8 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             try
             {
                 (this.territoryTypeId, this.mapId) = GetPackedIntegers(reader);
-                RawX = unchecked((int)GetInteger(reader));
-                RawY = unchecked((int)GetInteger(reader));
+                this.RawX = unchecked((int)GetInteger(reader));
+                this.RawY = unchecked((int)GetInteger(reader));
                 // the Z coordinate is never in this chunk, just the text (if applicable)
 
                 // seems to always be FF 01

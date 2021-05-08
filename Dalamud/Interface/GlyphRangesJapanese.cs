@@ -1,5 +1,3 @@
-using System.Runtime.InteropServices;
-
 namespace Dalamud.Interface
 {
     static class GlyphRangesJapanese

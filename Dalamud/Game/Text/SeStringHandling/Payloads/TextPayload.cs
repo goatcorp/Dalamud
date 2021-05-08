@@ -32,13 +32,13 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             set
             {
                 this.text = value;
-                Dirty = true;
+                this.Dirty = true;
             }
         }
 
         public override string ToString()
         {
-            return $"{Type} - Text: {Text}";
+            return $"{this.Type} - Text: {this.Text}";
         }
 
         internal TextPayload()

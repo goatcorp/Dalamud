@@ -32,7 +32,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             set
             {
                 this.playerName = value;
-                Dirty = true;
+                this.Dirty = true;
             }
         }
 
@@ -59,7 +59,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         /// The world name will always be present.
         /// </summary>
         [JsonIgnore]
-        public string DisplayedName => $"{PlayerName}{(char)SeIconChar.CrossWorld}{World.Name}";
+        public string DisplayedName => $"{this.PlayerName}{(char)SeIconChar.CrossWorld}{this.World.Name}";
 
         [JsonProperty]
         private uint serverId;
@@ -84,7 +84,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
 
         public override string ToString()
         {
-            return $"{Type} - PlayerName: {PlayerName}, ServerId: {serverId}, ServerName: {World.Name}";
+            return $"{this.Type} - PlayerName: {this.PlayerName}, ServerId: {this.serverId}, ServerName: {this.World.Name}";
         }
 
         protected override byte[] EncodeImpl()
@@ -108,7 +108,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
 
             // encoded names are followed by the name in plain text again
             // use the payload parsing for consistency, as this is technically a new chunk
-            bytes.AddRange(new TextPayload(playerName).Encode());
+            bytes.AddRange(new TextPayload(this.playerName).Encode());
 
             // unsure about this entire packet, but it seems to always follow a name
             bytes.AddRange(new byte[]

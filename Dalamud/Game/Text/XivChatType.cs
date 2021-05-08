@@ -124,9 +124,9 @@ namespace Dalamud.Game.Text
     {
         internal XivChatTypeInfoAttribute(string fancyName, string slug, uint defaultColor)
         {
-            FancyName = fancyName;
-            Slug = slug;
-            DefaultColor = defaultColor;
+            this.FancyName = fancyName;
+            this.Slug = slug;
+            this.DefaultColor = defaultColor;
         }
 
         public string FancyName { get; }

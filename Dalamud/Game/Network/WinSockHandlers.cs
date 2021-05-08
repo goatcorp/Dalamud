@@ -18,7 +18,7 @@ namespace Dalamud.Game
 
         public WinSockHandlers()
         {
-            this.ws2SocketHook = Hook<SocketDelegate>.FromSymbol("ws2_32.dll", "socket", new SocketDelegate(OnSocket));
+            this.ws2SocketHook = Hook<SocketDelegate>.FromSymbol("ws2_32.dll", "socket", new SocketDelegate(this.OnSocket));
             this.ws2SocketHook.Enable();
         }
 
@@ -49,7 +49,7 @@ namespace Dalamud.Game
 
         public void Dispose()
         {
-            ws2SocketHook.Dispose();
+            this.ws2SocketHook.Dispose();
         }
     }
 }

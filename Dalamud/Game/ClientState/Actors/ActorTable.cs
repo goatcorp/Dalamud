@@ -12,7 +12,7 @@ using Serilog;
 namespace Dalamud.Game.ClientState.Actors
 {
     /// <summary>
-    ///     This collection represents the currently spawned FFXIV actors.
+    /// This collection represents the currently spawned FFXIV actors.
     /// </summary>
     public class ActorTable : IReadOnlyCollection<Actor>, ICollection, IDisposable
     {
@@ -26,12 +26,12 @@ namespace Dalamud.Game.ClientState.Actors
             get
             {
                 if (this.actorsCache != null) return this.actorsCache;
-                this.actorsCache = GetActorTable();
+                this.actorsCache = this.GetActorTable();
                 return this.actorsCache;
             }
         }
 
-        private void ResetCache() => actorsCache = null;
+        private void ResetCache() => this.actorsCache = null;
         #endregion
 
         #region ReadProcessMemory Hack
@@ -61,12 +61,12 @@ namespace Dalamud.Game.ClientState.Actors
         /// <param name="addressResolver">Client state address resolver.</param>
         public ActorTable(Dalamud dalamud, ClientStateAddressResolver addressResolver)
         {
-            Address = addressResolver;
+            this.Address = addressResolver;
             this.dalamud = dalamud;
 
-            dalamud.Framework.OnUpdateEvent += Framework_OnUpdateEvent;
+            dalamud.Framework.OnUpdateEvent += this.Framework_OnUpdateEvent;
 
-            Log.Verbose("Actor table address {ActorTable}", Address.ActorTable);
+            Log.Verbose("Actor table address {ActorTable}", this.Address.ActorTable);
         }
 
         private void Framework_OnUpdateEvent(Internal.Framework framework)
@@ -82,7 +82,7 @@ namespace Dalamud.Game.ClientState.Actors
         [CanBeNull]
         public Actor this[int index]
         {
-            get => ActorsCache[index];
+            get => this.ActorsCache[index];
         }
 
         internal Actor ReadActorFromMemory(IntPtr offset)
@@ -117,17 +117,17 @@ namespace Dalamud.Game.ClientState.Actors
         private IntPtr[] GetPointerTable()
         {
             var ret = new IntPtr[ActorTableLength];
-            Marshal.Copy(Address.ActorTable, ret, 0, ActorTableLength);
+            Marshal.Copy(this.Address.ActorTable, ret, 0, ActorTableLength);
             return ret;
         }
 
         private List<Actor> GetActorTable()
         {
             var actors = new List<Actor>();
-            var ptrTable = GetPointerTable();
+            var ptrTable = this.GetPointerTable();
             for (var i = 0; i < ActorTableLength; i++)
             {
-                actors.Add(ptrTable[i] != IntPtr.Zero ? ReadActorFromMemory(ptrTable[i]) : null);
+                actors.Add(ptrTable[i] != IntPtr.Zero ? this.ReadActorFromMemory(ptrTable[i]) : null);
             }
 
             return actors;
@@ -135,22 +135,22 @@ namespace Dalamud.Game.ClientState.Actors
 
         public IEnumerator<Actor> GetEnumerator()
         {
-            return ActorsCache.Where(a => a != null).GetEnumerator();
+            return this.ActorsCache.Where(a => a != null).GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return GetEnumerator();
+            return this.GetEnumerator();
         }
 
         /// <summary>
         /// Gets the amount of currently spawned actors.
         /// </summary>
-        public int Length => ActorsCache.Count;
+        public int Length => this.ActorsCache.Count;
 
-        int IReadOnlyCollection<Actor>.Count => Length;
+        int IReadOnlyCollection<Actor>.Count => this.Length;
 
-        int ICollection.Count => Length;
+        int ICollection.Count => this.Length;
 
         bool ICollection.IsSynchronized => false;
 
@@ -158,7 +158,7 @@ namespace Dalamud.Game.ClientState.Actors
 
         void ICollection.CopyTo(Array array, int index)
         {
-            for (var i = 0; i < Length; i++)
+            for (var i = 0; i < this.Length; i++)
             {
                 array.SetValue(this[i], index);
                 index++;
@@ -171,20 +171,20 @@ namespace Dalamud.Game.ClientState.Actors
         private void Dispose(bool disposing)
         {
             if (this.disposed) return;
-            this.dalamud.Framework.OnUpdateEvent -= Framework_OnUpdateEvent;
+            this.dalamud.Framework.OnUpdateEvent -= this.Framework_OnUpdateEvent;
             Marshal.FreeHGlobal(this.actorMem);
             this.disposed = true;
         }
 
         public void Dispose()
         {
-            Dispose(true);
+            this.Dispose(true);
             GC.SuppressFinalize(this);
         }
 
         ~ActorTable()
         {
-            Dispose(false);
+            this.Dispose(false);
         }
         #endregion
     }

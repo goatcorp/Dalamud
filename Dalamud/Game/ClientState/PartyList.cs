@@ -22,7 +22,7 @@ namespace Dalamud.Game.ClientState
 
         public PartyList(Dalamud dalamud, ClientStateAddressResolver addressResolver)
         {
-            Address = addressResolver;
+            this.Address = addressResolver;
             this.dalamud = dalamud;
             // this.partyListUpdateHook = new Hook<PartyListUpdateDelegate>(Address.PartyListUpdate, new PartyListUpdateDelegate(PartyListUpdateDetour), this);
         }
@@ -55,9 +55,9 @@ namespace Dalamud.Game.ClientState
             {
                 if (!this.isReady)
                     return null;
-                if (index >= Length)
+                if (index >= this.Length)
                     return null;
-                var tblIndex = partyListBegin + (index * 24);
+                var tblIndex = this.partyListBegin + (index * 24);
                 var memberStruct = Marshal.PtrToStructure<Structs.PartyMember>(tblIndex);
                 return new PartyMember(this.dalamud.ClientState.Actors, memberStruct);
             }
@@ -65,7 +65,7 @@ namespace Dalamud.Game.ClientState
 
         public void CopyTo(Array array, int index)
         {
-            for (var i = 0; i < Length; i++)
+            for (var i = 0; i < this.Length; i++)
             {
                 array.SetValue(this[i], index);
                 index++;
@@ -74,7 +74,7 @@ namespace Dalamud.Game.ClientState
 
         public IEnumerator<PartyMember> GetEnumerator()
         {
-            for (var i = 0; i < Length; i++)
+            for (var i = 0; i < this.Length; i++)
             {
                 if (this[i] != null)
                 {
@@ -83,13 +83,13 @@ namespace Dalamud.Game.ClientState
             }
         }
 
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
 
-        public int Length => !this.isReady ? 0 : Marshal.ReadByte(partyListBegin + 0xF0);
+        public int Length => !this.isReady ? 0 : Marshal.ReadByte(this.partyListBegin + 0xF0);
 
-        int IReadOnlyCollection<PartyMember>.Count => Length;
+        int IReadOnlyCollection<PartyMember>.Count => this.Length;
 
-        public int Count => Length;
+        public int Count => this.Length;
 
         public object SyncRoot => this;
 

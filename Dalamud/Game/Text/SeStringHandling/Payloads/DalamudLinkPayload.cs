@@ -18,8 +18,8 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
 
         protected override byte[] EncodeImpl()
         {
-            var pluginBytes = Encoding.UTF8.GetBytes(Plugin);
-            var commandBytes = MakeInteger(CommandId);
+            var pluginBytes = Encoding.UTF8.GetBytes(this.Plugin);
+            var commandBytes = MakeInteger(this.CommandId);
             var chunkLen = 3 + pluginBytes.Length + commandBytes.Length;
 
             if (chunkLen > 255)
@@ -37,13 +37,13 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
 
         protected override void DecodeImpl(BinaryReader reader, long endOfStream)
         {
-            Plugin = Encoding.UTF8.GetString(reader.ReadBytes(reader.ReadByte()));
-            CommandId = GetInteger(reader);
+            this.Plugin = Encoding.UTF8.GetString(reader.ReadBytes(reader.ReadByte()));
+            this.CommandId = GetInteger(reader);
         }
 
         public override string ToString()
         {
-            return $"{Type} -  Plugin: {Plugin}, Command: {CommandId}";
+            return $"{this.Type} -  Plugin: {this.Plugin}, Command: {this.CommandId}";
         }
     }
 }

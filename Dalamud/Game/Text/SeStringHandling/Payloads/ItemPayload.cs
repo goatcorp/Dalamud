@@ -54,7 +54,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             set
             {
                 this.displayName = value;
-                Dirty = true;
+                this.Dirty = true;
             }
         }
 
@@ -91,12 +91,12 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
 
         public override string ToString()
         {
-            return $"{Type} - ItemId: {itemId}, IsHQ: {IsHQ}, Name: {this.displayName ?? Item.Name}";
+            return $"{this.Type} - ItemId: {this.itemId}, IsHQ: {this.IsHQ}, Name: {this.displayName ?? this.Item.Name}";
         }
 
         protected override byte[] EncodeImpl()
         {
-            var actualItemId = IsHQ ? this.itemId + 1000000 : this.itemId;
+            var actualItemId = this.IsHQ ? this.itemId + 1000000 : this.itemId;
             var idBytes = MakeInteger(actualItemId);
             bool hasName = !string.IsNullOrEmpty(this.displayName);
 
@@ -105,7 +105,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             {
                 // 1 additional unknown byte compared to the nameless version, 1 byte for the name length, and then the name itself
                 chunkLen += 1 + 1 + this.displayName.Length;
-                if (IsHQ)
+                if (this.IsHQ)
                 {
                     chunkLen += 4;  // unicode representation of the HQ symbol is 3 bytes, preceded by a space
                 }
@@ -124,7 +124,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             if (hasName)
             {
                 var nameLen = this.displayName.Length + 1;
-                if (IsHQ)
+                if (this.IsHQ)
                 {
                     nameLen += 4;   // space plus 3 bytes for HQ symbol
                 }
@@ -136,7 +136,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
                 });
                 bytes.AddRange(Encoding.UTF8.GetBytes(this.displayName));
 
-                if (IsHQ)
+                if (this.IsHQ)
                 {
                     // space and HQ symbol
                     bytes.AddRange(new byte[] { 0x20, 0xEE, 0x80, 0xBC });
@@ -155,7 +155,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             if (this.itemId > 1000000)
             {
                 this.itemId -= 1000000;
-                IsHQ = true;
+                this.IsHQ = true;
             }
 
             if (reader.BaseStream.Position + 3 < endOfStream)
@@ -173,7 +173,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
 
                 // HQ items have the HQ symbol as part of the name, but since we already recorded
                 // the HQ flag, we want just the bare name
-                if (IsHQ)
+                if (this.IsHQ)
                 {
                     itemNameBytes = itemNameBytes.Take(itemNameLen - 4).ToArray();
                 }

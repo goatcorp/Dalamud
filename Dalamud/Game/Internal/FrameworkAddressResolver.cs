@@ -13,14 +13,14 @@ namespace Dalamud.Game.Internal
 
         protected override void Setup64Bit(SigScanner sig)
         {
-            SetupFramework(sig);
+            this.SetupFramework(sig);
 
             // Xiv__Framework__GetGuiManager+8 000   mov     rax, [rcx+2C00h]
             // Xiv__Framework__GetGuiManager+F 000   retn
-            GuiManager = Marshal.ReadIntPtr(BaseAddress, 0x2C08);
+            this.GuiManager = Marshal.ReadIntPtr(this.BaseAddress, 0x2C08);
 
             // Called from Framework::Init
-            ScriptManager = BaseAddress + 0x2C68; // note that no deref here
+            this.ScriptManager = this.BaseAddress + 0x2C68; // note that no deref here
         }
 
         private void SetupFramework(SigScanner scanner)
@@ -36,7 +36,7 @@ namespace Dalamud.Game.Internal
             var pFramework = scanner.ResolveRelativeAddress(fwDtor + 11, fwOffset);
 
             // Framework does not change once initialized in startup so don't bother to deref again and again.
-            BaseAddress = Marshal.ReadIntPtr(pFramework);
+            this.BaseAddress = Marshal.ReadIntPtr(pFramework);
         }
     }
 }

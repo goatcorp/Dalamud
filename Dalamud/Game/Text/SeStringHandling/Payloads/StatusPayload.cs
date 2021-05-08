@@ -27,8 +27,8 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         {
             get
             {
-                status ??= this.DataResolver.GetExcelSheet<Status>().GetRow(this.statusId);
-                return status;
+                this.status ??= this.DataResolver.GetExcelSheet<Status>().GetRow(this.statusId);
+                return this.status;
             }
         }
 
@@ -53,7 +53,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
 
         public override string ToString()
         {
-            return $"{Type} - StatusId: {statusId}, Name: {Status.Name}";
+            return $"{this.Type} - StatusId: {this.statusId}, Name: {this.Status.Name}";
         }
 
         protected override byte[] EncodeImpl()

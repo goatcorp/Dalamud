@@ -10,15 +10,15 @@ namespace Dalamud.Game.ClientState
 
         public JobGauges(ClientStateAddressResolver addressResolver)
         {
-            Address = addressResolver;
+            this.Address = addressResolver;
 
-            Log.Verbose("JobGaugeData address {JobGaugeData}", Address.JobGaugeData);
+            Log.Verbose("JobGaugeData address {JobGaugeData}", this.Address.JobGaugeData);
         }
 
         // Should only be called with the gauge types in ClientState.Structs.JobGauge
         public T Get<T>()
         {
-            return Marshal.PtrToStructure<T>(Address.JobGaugeData);
+            return Marshal.PtrToStructure<T>(this.Address.JobGaugeData);
         }
     }
 }

@@ -55,8 +55,7 @@ namespace Dalamud.Game.Addon
                 this.dalamud.SigScanner.ScanText("E8 ?? ?? ?? ?? 41 03 ED");
             this.atkValueSetString = Marshal.GetDelegateForFunctionPointer<AtkValueSetString>(atkValueSetStringAddress);
 
-            var uiModuleRequestMainCommandAddress = this.dalamud.SigScanner.ScanText(
-                "40 53 56 48 81 EC ?? ?? ?? ?? 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 84 24 ?? ?? ?? ?? 48 8B 01 8B DA 48 8B F1 FF 90 ?? ?? ?? ??");
+            var uiModuleRequestMainCommandAddress = this.dalamud.SigScanner.ScanText("40 53 56 48 81 EC ?? ?? ?? ?? 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 84 24 ?? ?? ?? ?? 48 8B 01 8B DA 48 8B F1 FF 90 ?? ?? ?? ??");
             this.hookUiModuleRequestMainCommand = new Hook<UiModuleRequestMainCommand>(
                 uiModuleRequestMainCommandAddress,
                 new UiModuleRequestMainCommand(this.UiModuleRequestMainCommandDetour),
@@ -167,7 +166,7 @@ namespace Dalamud.Game.Addon
 
         public void Dispose()
         {
-            Dispose(true);
+            this.Dispose(true);
             GC.SuppressFinalize(this);
         }
         #endregion

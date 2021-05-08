@@ -41,19 +41,19 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         /// <param name="enabled">Whether italics formatting should be enabled or disabled for following text.</param>
         public EmphasisItalicPayload(bool enabled)
         {
-            IsEnabled = enabled;
+            this.IsEnabled = enabled;
         }
 
         public override string ToString()
         {
-            return $"{Type} - Enabled: {IsEnabled}";
+            return $"{this.Type} - Enabled: {this.IsEnabled}";
         }
 
         protected override byte[] EncodeImpl()
         {
             // realistically this will always be a single byte of value 1 or 2
             // but we'll treat it normally anyway
-            var enabledBytes = MakeInteger(IsEnabled ? 1u : 0);
+            var enabledBytes = MakeInteger(this.IsEnabled ? 1u : 0);
 
             var chunkLen = enabledBytes.Length + 1;
             var bytes = new List<byte>()
@@ -68,7 +68,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
 
         protected override void DecodeImpl(BinaryReader reader, long endOfStream)
         {
-            IsEnabled = GetInteger(reader) == 1;
+            this.IsEnabled = GetInteger(reader) == 1;
         }
     }
 }

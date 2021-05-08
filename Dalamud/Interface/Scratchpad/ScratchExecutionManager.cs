@@ -1,15 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-using Dalamud.Configuration;
 using Dalamud.Plugin;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
 using Serilog;
@@ -55,7 +50,7 @@ namespace Dalamud.Interface.Scratchpad
                                        .AddReferences(typeof(FFXIVClientStructs.Attributes.Addon).Assembly) // FFXIVClientStructs
                                        .AddReferences(typeof(Lumina.GameData).Assembly) // Lumina
                                        .AddReferences(typeof(TerritoryType).Assembly) // Lumina.Excel
-                                       // .WithReferences(MetadataReference.CreateFromFile(typeof(ScratchExecutionManager).Assembly.Location))
+                                            // .WithReferences(MetadataReference.CreateFromFile(typeof(ScratchExecutionManager).Assembly.Location))
                                        .AddImports("System")
                                        .AddImports("System.IO")
                                        .AddImports("System.Reflection")

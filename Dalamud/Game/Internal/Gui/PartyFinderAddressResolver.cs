@@ -8,7 +8,7 @@ namespace Dalamud.Game.Internal.Gui
 
         protected override void Setup64Bit(SigScanner sig)
         {
-            ReceiveListing = sig.ScanText("40 53 41 57 48 83 EC 28 48 8B D9");
+            this.ReceiveListing = sig.ScanText("40 53 41 57 48 83 EC 28 48 8B D9");
         }
     }
 }

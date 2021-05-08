@@ -21,9 +21,9 @@ namespace Dalamud.Game.Internal.Gui.Addon
 
         public float Scale => this.addonStruct.Scale;
 
-        public unsafe float Width => this.addonStruct.RootNode->Width * Scale;
+        public unsafe float Width => this.addonStruct.RootNode->Width * this.Scale;
 
-        public unsafe float Height => this.addonStruct.RootNode->Height * Scale;
+        public unsafe float Height => this.addonStruct.RootNode->Height * this.Scale;
 
         public bool Visible => (this.addonStruct.Flags & 0x20) == 0x20;
     }

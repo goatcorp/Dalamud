@@ -2,11 +2,25 @@ using System.Runtime.InteropServices;
 
 namespace Dalamud.Game.ClientState.Actors
 {
+    /// <summary>
+    /// A game native equivalent of a Vector3.
+    /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     public struct Position3
     {
+        /// <summary>
+        /// The X of (X,Z,Y).
+        /// </summary>
         public float X;
+
+        /// <summary>
+        /// The Z of (X,Z,Y).
+        /// </summary>
         public float Z;
+
+        /// <summary>
+        /// The Y of (X,Z,Y).
+        /// </summary>
         public float Y;
 
         /// <summary>

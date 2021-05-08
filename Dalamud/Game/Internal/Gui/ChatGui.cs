@@ -94,14 +94,14 @@ namespace Dalamud.Game.Internal.Gui
         {
             this.dalamud = dalamud;
 
-            Address = new ChatGuiAddressResolver(baseAddress);
-            Address.Setup(scanner);
+            this.Address = new ChatGuiAddressResolver(baseAddress);
+            this.Address.Setup(scanner);
 
-            Log.Verbose("Chat manager address {ChatManager}", Address.BaseAddress);
+            Log.Verbose("Chat manager address {ChatManager}", this.Address.BaseAddress);
 
-            this.printMessageHook = new Hook<PrintMessageDelegate>(Address.PrintMessage, new PrintMessageDelegate(HandlePrintMessageDetour), this);
-            this.populateItemLinkHook = new Hook<PopulateItemLinkDelegate>(Address.PopulateItemLinkObject, new PopulateItemLinkDelegate(HandlePopulateItemLinkDetour), this);
-            this.interactableLinkClickedHook = new Hook<InteractableLinkClickedDelegate>(Address.InteractableLinkClicked, new InteractableLinkClickedDelegate(InteractableLinkClickedDetour));
+            this.printMessageHook = new Hook<PrintMessageDelegate>(this.Address.PrintMessage, new PrintMessageDelegate(this.HandlePrintMessageDetour), this);
+            this.populateItemLinkHook = new Hook<PopulateItemLinkDelegate>(this.Address.PopulateItemLinkObject, new PopulateItemLinkDelegate(this.HandlePopulateItemLinkDetour), this);
+            this.interactableLinkClickedHook = new Hook<InteractableLinkClickedDelegate>(this.Address.InteractableLinkClicked, new InteractableLinkClickedDelegate(this.InteractableLinkClickedDetour));
         }
 
         public void Enable()
@@ -124,10 +124,10 @@ namespace Dalamud.Game.Internal.Gui
             {
                 this.populateItemLinkHook.Original(linkObjectPtr, itemInfoPtr);
 
-                LastLinkedItemId = Marshal.ReadInt32(itemInfoPtr, 8);
-                LastLinkedItemFlags = Marshal.ReadByte(itemInfoPtr, 0x14);
+                this.LastLinkedItemId = Marshal.ReadInt32(itemInfoPtr, 8);
+                this.LastLinkedItemFlags = Marshal.ReadByte(itemInfoPtr, 0x14);
 
-                Log.Debug($"HandlePopulateItemLinkDetour {linkObjectPtr} {itemInfoPtr} - linked:{LastLinkedItemId}");
+                Log.Debug($"HandlePopulateItemLinkDetour {linkObjectPtr} {itemInfoPtr} - linked:{this.LastLinkedItemId}");
             }
             catch (Exception ex)
             {
@@ -157,12 +157,12 @@ namespace Dalamud.Game.Internal.Gui
 
                 // Call events
                 var isHandled = false;
-                OnCheckMessageHandled?.Invoke(chattype, senderid, ref parsedSender, ref parsedMessage, ref isHandled);
+                this.OnCheckMessageHandled?.Invoke(chattype, senderid, ref parsedSender, ref parsedMessage, ref isHandled);
 
                 if (!isHandled)
                 {
-                    OnChatMessage?.Invoke(chattype, senderid, ref parsedSender, ref parsedMessage, ref isHandled);
-                    OnChatMessageRaw?.Invoke(chattype, senderid, ref sender, ref message, ref isHandled);
+                    this.OnChatMessage?.Invoke(chattype, senderid, ref parsedSender, ref parsedMessage, ref isHandled);
+                    this.OnChatMessageRaw?.Invoke(chattype, senderid, ref sender, ref message, ref isHandled);
                 }
 
                 var newEdited = parsedMessage.Encode();
@@ -188,12 +188,12 @@ namespace Dalamud.Game.Internal.Gui
                 // Print the original chat if it's handled.
                 if (isHandled)
                 {
-                    OnChatMessageHandled?.Invoke(chattype, senderid, parsedSender, parsedMessage);
+                    this.OnChatMessageHandled?.Invoke(chattype, senderid, parsedSender, parsedMessage);
                 }
                 else
                 {
                     retVal = this.printMessageHook.Original(manager, chattype, pSenderName, messagePtr, senderid, parameter);
-                    OnChatMessageUnhandled?.Invoke(chattype, senderid, parsedSender, parsedMessage);
+                    this.OnChatMessageUnhandled?.Invoke(chattype, senderid, parsedSender, parsedMessage);
                 }
 
                 if (this.baseAddress == IntPtr.Zero)
@@ -352,7 +352,7 @@ namespace Dalamud.Game.Internal.Gui
         public void Print(string message)
         {
             Log.Verbose("[CHATGUI PRINT REGULAR]{0}", message);
-            PrintChat(new XivChatEntry
+            this.PrintChat(new XivChatEntry
             {
                 MessageBytes = Encoding.UTF8.GetBytes(message),
                 Type = this.dalamud.Configuration.GeneralChatType,
@@ -362,7 +362,7 @@ namespace Dalamud.Game.Internal.Gui
         public void Print(SeString message)
         {
             Log.Verbose("[CHATGUI PRINT SESTRING]{0}", message.TextValue);
-            PrintChat(new XivChatEntry
+            this.PrintChat(new XivChatEntry
             {
                 MessageBytes = message.Encode(),
                 Type = this.dalamud.Configuration.GeneralChatType,
@@ -372,7 +372,7 @@ namespace Dalamud.Game.Internal.Gui
         public void PrintError(string message)
         {
             Log.Verbose("[CHATGUI PRINT REGULAR ERROR]{0}", message);
-            PrintChat(new XivChatEntry
+            this.PrintChat(new XivChatEntry
             {
                 MessageBytes = Encoding.UTF8.GetBytes(message),
                 Type = XivChatType.Urgent,
@@ -382,7 +382,7 @@ namespace Dalamud.Game.Internal.Gui
         public void PrintError(SeString message)
         {
             Log.Verbose("[CHATGUI PRINT SESTRING ERROR]{0}", message.TextValue);
-            PrintChat(new XivChatEntry
+            this.PrintChat(new XivChatEntry
             {
                 MessageBytes = message.Encode(),
                 Type = XivChatType.Urgent,

@@ -42,14 +42,14 @@ namespace Dalamud.Game.Internal.Gui
 
         public PartyFinderGui(SigScanner scanner, Dalamud dalamud)
         {
-            Dalamud = dalamud;
+            this.Dalamud = dalamud;
 
-            Address = new PartyFinderAddressResolver();
-            Address.Setup(scanner);
+            this.Address = new PartyFinderAddressResolver();
+            this.Address.Setup(scanner);
 
-            Memory = Marshal.AllocHGlobal(PartyFinder.PacketInfo.PacketSize);
+            this.Memory = Marshal.AllocHGlobal(PartyFinder.PacketInfo.PacketSize);
 
-            this.receiveListingHook = new Hook<ReceiveListingDelegate>(Address.ReceiveListing, new ReceiveListingDelegate(HandleReceiveListingDetour));
+            this.receiveListingHook = new Hook<ReceiveListingDelegate>(this.Address.ReceiveListing, new ReceiveListingDelegate(this.HandleReceiveListingDetour));
         }
 
         public void Enable()
@@ -60,14 +60,14 @@ namespace Dalamud.Game.Internal.Gui
         public void Dispose()
         {
             this.receiveListingHook.Dispose();
-            Marshal.FreeHGlobal(Memory);
+            Marshal.FreeHGlobal(this.Memory);
         }
 
         private void HandleReceiveListingDetour(IntPtr managerPtr, IntPtr data)
         {
             try
             {
-                HandleListingEvents(data);
+                this.HandleListingEvents(data);
             }
             catch (Exception ex)
             {
@@ -94,9 +94,9 @@ namespace Dalamud.Game.Internal.Gui
                     continue;
                 }
 
-                var listing = new PartyFinderListing(packet.listings[i], Dalamud.Data, Dalamud.SeStringManager);
+                var listing = new PartyFinderListing(packet.listings[i], this.Dalamud.Data, this.Dalamud.SeStringManager);
                 var args = new PartyFinderListingEventArgs(packet.batchNumber);
-                ReceiveListing?.Invoke(listing, args);
+                this.ReceiveListing?.Invoke(listing, args);
 
                 if (args.Visible)
                 {
@@ -114,12 +114,12 @@ namespace Dalamud.Game.Internal.Gui
             }
 
             // write our struct into the memory (doing this directly crashes the game)
-            Marshal.StructureToPtr(packet, Memory, false);
+            Marshal.StructureToPtr(packet, this.Memory, false);
 
             // copy our new memory over the game's
             unsafe
             {
-                Buffer.MemoryCopy((void*)Memory, (void*)dataPtr, PartyFinder.PacketInfo.PacketSize, PartyFinder.PacketInfo.PacketSize);
+                Buffer.MemoryCopy((void*)this.Memory, (void*)dataPtr, PartyFinder.PacketInfo.PacketSize, PartyFinder.PacketInfo.PacketSize);
             }
         }
     }
@@ -132,7 +132,7 @@ namespace Dalamud.Game.Internal.Gui
 
         internal PartyFinderListingEventArgs(int batchNumber)
         {
-            BatchNumber = batchNumber;
+            this.BatchNumber = batchNumber;
         }
     }
 }

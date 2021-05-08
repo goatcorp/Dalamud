@@ -127,43 +127,43 @@ namespace Dalamud.Game.Internal.Gui
         {
             this.dalamud = dalamud;
 
-            Address = new GameGuiAddressResolver(baseAddress);
-            Address.Setup(scanner);
+            this.Address = new GameGuiAddressResolver(baseAddress);
+            this.Address.Setup(scanner);
 
             Log.Verbose("===== G A M E G U I =====");
 
-            Log.Verbose("GameGuiManager address {Address}", Address.BaseAddress);
-            Log.Verbose("SetGlobalBgm address {Address}", Address.SetGlobalBgm);
-            Log.Verbose("HandleItemHover address {Address}", Address.HandleItemHover);
-            Log.Verbose("HandleItemOut address {Address}", Address.HandleItemOut);
-            Log.Verbose("GetUIObject address {Address}", Address.GetUIObject);
-            Log.Verbose("GetAgentModule address {Address}", Address.GetAgentModule);
+            Log.Verbose("GameGuiManager address {Address}", this.Address.BaseAddress);
+            Log.Verbose("SetGlobalBgm address {Address}", this.Address.SetGlobalBgm);
+            Log.Verbose("HandleItemHover address {Address}", this.Address.HandleItemHover);
+            Log.Verbose("HandleItemOut address {Address}", this.Address.HandleItemOut);
+            Log.Verbose("GetUIObject address {Address}", this.Address.GetUIObject);
+            Log.Verbose("GetAgentModule address {Address}", this.Address.GetAgentModule);
 
-            Chat = new ChatGui(Address.ChatManager, scanner, dalamud);
-            PartyFinder = new PartyFinderGui(scanner, dalamud);
-            Toast = new ToastGui(scanner, dalamud);
+            this.Chat = new ChatGui(this.Address.ChatManager, scanner, dalamud);
+            this.PartyFinder = new PartyFinderGui(scanner, dalamud);
+            this.Toast = new ToastGui(scanner, dalamud);
 
-            this.setGlobalBgmHook = new Hook<SetGlobalBgmDelegate>(Address.SetGlobalBgm, new SetGlobalBgmDelegate(HandleSetGlobalBgmDetour), this);
-            this.handleItemHoverHook = new Hook<HandleItemHoverDelegate>(Address.HandleItemHover, new HandleItemHoverDelegate(HandleItemHoverDetour), this);
+            this.setGlobalBgmHook = new Hook<SetGlobalBgmDelegate>(this.Address.SetGlobalBgm, new SetGlobalBgmDelegate(this.HandleSetGlobalBgmDetour), this);
+            this.handleItemHoverHook = new Hook<HandleItemHoverDelegate>(this.Address.HandleItemHover, new HandleItemHoverDelegate(this.HandleItemHoverDetour), this);
 
-            this.handleItemOutHook = new Hook<HandleItemOutDelegate>(Address.HandleItemOut, new HandleItemOutDelegate(HandleItemOutDetour), this);
+            this.handleItemOutHook = new Hook<HandleItemOutDelegate>(this.Address.HandleItemOut, new HandleItemOutDelegate(this.HandleItemOutDetour), this);
 
-            this.handleActionHoverHook = new Hook<HandleActionHoverDelegate>(Address.HandleActionHover, new HandleActionHoverDelegate(HandleActionHoverDetour), this);
-            this.handleActionOutHook = new Hook<HandleActionOutDelegate>(Address.HandleActionOut, new HandleActionOutDelegate(HandleActionOutDetour), this);
+            this.handleActionHoverHook = new Hook<HandleActionHoverDelegate>(this.Address.HandleActionHover, new HandleActionHoverDelegate(this.HandleActionHoverDetour), this);
+            this.handleActionOutHook = new Hook<HandleActionOutDelegate>(this.Address.HandleActionOut, new HandleActionOutDelegate(this.HandleActionOutDetour), this);
 
-            this.getUIObject = Marshal.GetDelegateForFunctionPointer<GetUIObjectDelegate>(Address.GetUIObject);
+            this.getUIObject = Marshal.GetDelegateForFunctionPointer<GetUIObjectDelegate>(this.Address.GetUIObject);
 
-            this.getMatrixSingleton = Marshal.GetDelegateForFunctionPointer<GetMatrixSingletonDelegate>(Address.GetMatrixSingleton);
+            this.getMatrixSingleton = Marshal.GetDelegateForFunctionPointer<GetMatrixSingletonDelegate>(this.Address.GetMatrixSingleton);
 
-            this.screenToWorldNative = Marshal.GetDelegateForFunctionPointer<ScreenToWorldNativeDelegate>(Address.ScreenToWorld);
+            this.screenToWorldNative = Marshal.GetDelegateForFunctionPointer<ScreenToWorldNativeDelegate>(this.Address.ScreenToWorld);
 
-            this.toggleUiHideHook = new Hook<ToggleUiHideDelegate>(Address.ToggleUiHide, new ToggleUiHideDelegate(ToggleUiHideDetour), this);
+            this.toggleUiHideHook = new Hook<ToggleUiHideDelegate>(this.Address.ToggleUiHide, new ToggleUiHideDelegate(this.ToggleUiHideDetour), this);
 
-            this.GetBaseUIObject = Marshal.GetDelegateForFunctionPointer<GetBaseUIObjectDelegate>(Address.GetBaseUIObject);
-            this.getUIObjectByName = Marshal.GetDelegateForFunctionPointer<GetUIObjectByNameDelegate>(Address.GetUIObjectByName);
+            this.GetBaseUIObject = Marshal.GetDelegateForFunctionPointer<GetBaseUIObjectDelegate>(this.Address.GetBaseUIObject);
+            this.getUIObjectByName = Marshal.GetDelegateForFunctionPointer<GetUIObjectByNameDelegate>(this.Address.GetUIObjectByName);
 
-            this.getUiModule = Marshal.GetDelegateForFunctionPointer<GetUiModuleDelegate>(Address.GetUIModule);
-            this.getAgentModule = Marshal.GetDelegateForFunctionPointer<GetAgentModuleDelegate>(Address.GetAgentModule);
+            this.getUiModule = Marshal.GetDelegateForFunctionPointer<GetUiModuleDelegate>(this.Address.GetUIModule);
+            this.getAgentModule = Marshal.GetDelegateForFunctionPointer<GetAgentModuleDelegate>(this.Address.GetAgentModule);
         }
 
         private IntPtr HandleSetGlobalBgmDetour(ushort bgmKey, byte a2, uint a3, uint a4, uint a5, byte a6)
@@ -186,7 +186,7 @@ namespace Dalamud.Game.Internal.Gui
 
                 try
                 {
-                    HoveredItemChanged?.Invoke(this, itemId);
+                    this.HoveredItemChanged?.Invoke(this, itemId);
                 }
                 catch (Exception e)
                 {
@@ -213,7 +213,7 @@ namespace Dalamud.Game.Internal.Gui
 
                     try
                     {
-                        HoveredItemChanged?.Invoke(this, 0ul);
+                        this.HoveredItemChanged?.Invoke(this, 0ul);
                     }
                     catch (Exception e)
                     {
@@ -229,13 +229,13 @@ namespace Dalamud.Game.Internal.Gui
 
         private void HandleActionHoverDetour(IntPtr hoverState, HoverActionKind actionKind, uint actionId, int a4, byte a5)
         {
-            handleActionHoverHook.Original(hoverState, actionKind, actionId, a4, a5);
-            HoveredAction.ActionKind = actionKind;
-            HoveredAction.BaseActionID = actionId;
-            HoveredAction.ActionID = (uint)Marshal.ReadInt32(hoverState, 0x3C);
+            this.handleActionHoverHook.Original(hoverState, actionKind, actionId, a4, a5);
+            this.HoveredAction.ActionKind = actionKind;
+            this.HoveredAction.BaseActionID = actionId;
+            this.HoveredAction.ActionID = (uint)Marshal.ReadInt32(hoverState, 0x3C);
             try
             {
-                HoveredActionChanged?.Invoke(this, this.HoveredAction);
+                this.HoveredActionChanged?.Invoke(this, this.HoveredAction);
             }
             catch (Exception e)
             {
@@ -247,7 +247,7 @@ namespace Dalamud.Game.Internal.Gui
 
         private IntPtr HandleActionOutDetour(IntPtr agentActionDetail, IntPtr a2, IntPtr a3, int a4)
         {
-            var retVal = handleActionOutHook.Original(agentActionDetail, a2, a3, a4);
+            var retVal = this.handleActionOutHook.Original(agentActionDetail, a2, a3, a4);
 
             if (a3 != IntPtr.Zero && a4 == 1)
             {
@@ -256,12 +256,12 @@ namespace Dalamud.Game.Internal.Gui
                 if (a3Val == 255)
                 {
                     this.HoveredAction.ActionKind = HoverActionKind.None;
-                    HoveredAction.BaseActionID = 0;
-                    HoveredAction.ActionID = 0;
+                    this.HoveredAction.BaseActionID = 0;
+                    this.HoveredAction.ActionID = 0;
 
                     try
                     {
-                        HoveredActionChanged?.Invoke(this, this.HoveredAction);
+                        this.HoveredActionChanged?.Invoke(this, this.HoveredAction);
                     }
                     catch (Exception e)
                     {
@@ -290,7 +290,7 @@ namespace Dalamud.Game.Internal.Gui
                 return false;
             }
 
-            this.getUIMapObject = Address.GetVirtualFunction<GetUIMapObjectDelegate>(uiObjectPtr, 0, 8);
+            this.getUIMapObject = this.Address.GetVirtualFunction<GetUIMapObjectDelegate>(uiObjectPtr, 0, 8);
 
             var uiMapObjectPtr = this.getUIMapObject(uiObjectPtr);
 
@@ -300,7 +300,7 @@ namespace Dalamud.Game.Internal.Gui
                 return false;
             }
 
-            this.openMapWithFlag = Address.GetVirtualFunction<OpenMapWithFlagDelegate>(uiMapObjectPtr, 0, 63);
+            this.openMapWithFlag = this.Address.GetVirtualFunction<OpenMapWithFlagDelegate>(uiMapObjectPtr, 0, 63);
 
             var mapLinkString = mapLink.DataString;
 
@@ -321,7 +321,7 @@ namespace Dalamud.Game.Internal.Gui
             var matrixSingleton = this.getMatrixSingleton();
 
             // Read current ViewProjectionMatrix plus game window size
-            var viewProjectionMatrix = new Matrix();
+            var viewProjectionMatrix = default(Matrix);
             float width, height;
             var windowPos = ImGuiHelpers.MainViewport.Pos;
 
@@ -373,7 +373,7 @@ namespace Dalamud.Game.Internal.Gui
             var matrixSingleton = this.getMatrixSingleton();
 
             // Read current ViewProjectionMatrix plus game window size
-            var viewProjectionMatrix = new Matrix();
+            var viewProjectionMatrix = default(Matrix);
             float width, height;
             unsafe
             {
@@ -442,18 +442,18 @@ namespace Dalamud.Game.Internal.Gui
 
         private IntPtr ToggleUiHideDetour(IntPtr thisPtr, byte unknownByte)
         {
-            GameUiHidden = !GameUiHidden;
+            this.GameUiHidden = !this.GameUiHidden;
 
             try
             {
-                OnUiHideToggled?.Invoke(this, GameUiHidden);
+                this.OnUiHideToggled?.Invoke(this, this.GameUiHidden);
             }
             catch (Exception ex)
             {
                 Log.Error(ex, "Error on OnUiHideToggled event dispatch");
             }
 
-            Log.Debug("UiHide toggled: {0}", GameUiHidden);
+            Log.Debug("UiHide toggled: {0}", this.GameUiHidden);
 
             return this.toggleUiHideHook.Original(thisPtr, unknownByte);
         }
@@ -484,7 +484,7 @@ namespace Dalamud.Game.Internal.Gui
 
         public Addon.Addon GetAddonByName(string name, int index)
         {
-            var addonMem = GetUiObjectByName(name, index);
+            var addonMem = this.GetUiObjectByName(name, index);
             if (addonMem == IntPtr.Zero) return null;
             var addonStruct = Marshal.PtrToStructure<Structs.Addon>(addonMem);
             return new Addon.Addon(addonMem, addonStruct);
@@ -536,9 +536,9 @@ namespace Dalamud.Game.Internal.Gui
 
         public void Enable()
         {
-            Chat.Enable();
-            Toast.Enable();
-            PartyFinder.Enable();
+            this.Chat.Enable();
+            this.Toast.Enable();
+            this.PartyFinder.Enable();
             this.setGlobalBgmHook.Enable();
             this.handleItemHoverHook.Enable();
             this.handleItemOutHook.Enable();
@@ -549,9 +549,9 @@ namespace Dalamud.Game.Internal.Gui
 
         public void Dispose()
         {
-            Chat.Dispose();
-            Toast.Dispose();
-            PartyFinder.Dispose();
+            this.Chat.Dispose();
+            this.Toast.Dispose();
+            this.PartyFinder.Dispose();
             this.setGlobalBgmHook.Dispose();
             this.handleItemHoverHook.Dispose();
             this.handleItemOutHook.Dispose();

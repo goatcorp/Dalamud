@@ -1,9 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
 using Dalamud.Configuration;
 using Dalamud.Game.Command;
@@ -34,7 +31,7 @@ namespace Dalamud.Interface
             this.configuration = configuration;
             this.autoScroll = configuration.LogAutoScroll;
             this.openAtStartup = configuration.LogOpenAtStartup;
-            SerilogEventSink.Instance.OnLogLine += Serilog_OnLogLine;
+            SerilogEventSink.Instance.OnLogLine += this.Serilog_OnLogLine;
 
             this.Size = new Vector2(500, 400);
             this.SizeCondition = ImGuiCond.FirstUseEver;
@@ -42,7 +39,7 @@ namespace Dalamud.Interface
 
         public void Dispose()
         {
-            SerilogEventSink.Instance.OnLogLine -= Serilog_OnLogLine;
+            SerilogEventSink.Instance.OnLogLine -= this.Serilog_OnLogLine;
         }
 
         private void Serilog_OnLogLine(object sender, (string line, LogEventLevel level) logEvent)
@@ -58,7 +55,7 @@ namespace Dalamud.Interface
                 _ => throw new ArgumentOutOfRangeException(),
             };
 
-            AddLog(logEvent.line, color);
+            this.AddLog(logEvent.line, color);
         }
 
         public void Clear()
@@ -124,7 +121,7 @@ namespace Dalamud.Interface
             ImGui.BeginChild("scrolling", new Vector2(0, 0), false, ImGuiWindowFlags.HorizontalScrollbar);
 
             if (clear)
-                Clear();
+                this.Clear();
             if (copy)
                 ImGui.LogToClipboard();
 

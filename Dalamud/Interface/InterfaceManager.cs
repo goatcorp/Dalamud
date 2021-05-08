@@ -98,7 +98,7 @@ namespace Dalamud.Interface
 
                 Log.Verbose("Found SwapChain via signatures.");
 
-                Address = sigResolver;
+                this.Address = sigResolver;
             }
             catch (Exception ex)
             {
@@ -110,7 +110,7 @@ namespace Dalamud.Interface
 
                 Log.Verbose("Found SwapChain via vtable.");
 
-                Address = vtableResolver;
+                this.Address = vtableResolver;
             }
 
             try
@@ -137,14 +137,14 @@ namespace Dalamud.Interface
 
             Log.Verbose("===== S W A P C H A I N =====");
             Log.Verbose("SetCursor address {SetCursor}", setCursorAddr);
-            Log.Verbose("Present address {Present}", Address.Present);
-            Log.Verbose("ResizeBuffers address {ResizeBuffers}", Address.ResizeBuffers);
+            Log.Verbose("Present address {Present}", this.Address.Present);
+            Log.Verbose("ResizeBuffers address {ResizeBuffers}", this.Address.ResizeBuffers);
 
-            this.setCursorHook = new Hook<SetCursorDelegate>(setCursorAddr, new SetCursorDelegate(SetCursorDetour), this);
+            this.setCursorHook = new Hook<SetCursorDelegate>(setCursorAddr, new SetCursorDelegate(this.SetCursorDetour), this);
 
-            this.presentHook = new Hook<PresentDelegate>(Address.Present, new PresentDelegate(PresentDetour), this);
+            this.presentHook = new Hook<PresentDelegate>(this.Address.Present, new PresentDelegate(this.PresentDetour), this);
 
-            this.resizeBuffersHook = new Hook<ResizeBuffersDelegate>(Address.ResizeBuffers, new ResizeBuffersDelegate(ResizeBuffersDetour), this);
+            this.resizeBuffersHook = new Hook<ResizeBuffersDelegate>(this.Address.ResizeBuffers, new ResizeBuffersDelegate(this.ResizeBuffersDetour), this);
         }
 
         public void Enable()
@@ -247,7 +247,7 @@ namespace Dalamud.Interface
                 Log.Verbose("[FONT] RebuildFonts() trigger");
 
                 this.isRebuildingFonts = true;
-                this.scene.OnNewRenderFrame += RebuildFontsInternal;
+                this.scene.OnNewRenderFrame += this.RebuildFontsInternal;
             }
         }
 
@@ -258,10 +258,10 @@ namespace Dalamud.Interface
                 this.scene = new RawDX11Scene(swapChain);
 
                 this.scene.ImGuiIniPath = Path.Combine(Path.GetDirectoryName(this.dalamud.StartInfo.ConfigurationPath), "dalamudUI.ini");
-                this.scene.OnBuildUI += Display;
-                this.scene.OnNewInputFrame += OnNewInputFrame;
+                this.scene.OnBuildUI += this.Display;
+                this.scene.OnNewInputFrame += this.OnNewInputFrame;
 
-                SetupFonts();
+                this.SetupFonts();
 
                 ImGui.GetStyle().GrabRounding = 3f;
                 ImGui.GetStyle().FrameRounding = 4f;
@@ -435,10 +435,10 @@ namespace Dalamud.Interface
         private void RebuildFontsInternal()
         {
             Log.Verbose("[FONT] RebuildFontsInternal() called");
-            SetupFonts();
+            this.SetupFonts();
 
             Log.Verbose("[FONT] RebuildFontsInternal() detaching");
-            this.scene.OnNewRenderFrame -= RebuildFontsInternal;
+            this.scene.OnNewRenderFrame -= this.RebuildFontsInternal;
             this.scene.InvalidateFonts();
 
             Log.Verbose("[FONT] Font Rebuild OK!");
@@ -455,7 +455,7 @@ namespace Dalamud.Interface
             // We have to ensure we're working with the main swapchain,
             // as viewports might be resizing as well
             if (this.scene == null || swapChain != this.scene.SwapChain.NativePointer)
-                return resizeBuffersHook.Original(swapChain, bufferCount, width, height, newFormat, swapChainFlags);
+                return this.resizeBuffersHook.Original(swapChain, bufferCount, width, height, newFormat, swapChainFlags);
 
             this.scene?.OnPreResize();
 
@@ -475,7 +475,7 @@ namespace Dalamud.Interface
 
         private IntPtr SetCursorDetour(IntPtr hCursor)
         {
-            if (this.lastWantCapture == true && (!scene?.IsImGuiCursor(hCursor) ?? false) && this.OverrideGameCursor)
+            if (this.lastWantCapture == true && (!this.scene?.IsImGuiCursor(hCursor) ?? false) && this.OverrideGameCursor)
                 return IntPtr.Zero;
 
             return this.setCursorHook.Original(hCursor);
@@ -547,7 +547,7 @@ namespace Dalamud.Interface
             this.LastImGuiIoPtr = ImGui.GetIO();
             this.lastWantCapture = this.LastImGuiIoPtr.WantCaptureMouse;
 
-            OnDraw?.Invoke();
+            this.OnDraw?.Invoke();
         }
     }
 }

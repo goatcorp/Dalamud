@@ -31,7 +31,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             {
                 // wrap the text in the colored brackets that is uses in-game, since those
                 // are not actually part of any of the payloads
-                this.text ??= $"{(char)SeIconChar.AutoTranslateOpen} {Resolve()} {(char)SeIconChar.AutoTranslateClose}";
+                this.text ??= $"{(char)SeIconChar.AutoTranslateOpen} {this.Resolve()} {(char)SeIconChar.AutoTranslateClose}";
                 return this.text;
             }
         }
@@ -68,7 +68,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
 
         public override string ToString()
         {
-            return $"{Type} - Group: {group}, Key: {key}, Text: {Text}";
+            return $"{this.Type} - Group: {this.group}, Key: {this.key}, Text: {this.Text}";
         }
 
         protected override byte[] EncodeImpl()

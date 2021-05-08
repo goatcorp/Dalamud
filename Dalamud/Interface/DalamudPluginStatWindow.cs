@@ -151,7 +151,7 @@ namespace Dalamud.Interface
                 ImGui.SameLine();
                 ImGui.Text("   ");
                 ImGui.SameLine();
-                ImGui.Checkbox("Show Dalamud Hooks ###showDalamudHooksCheckbox", ref showDalamudHooks);
+                ImGui.Checkbox("Show Dalamud Hooks ###showDalamudHooksCheckbox", ref this.showDalamudHooks);
                 ImGui.NextColumn();
                 ImGui.Text("Address");
                 ImGui.NextColumn();

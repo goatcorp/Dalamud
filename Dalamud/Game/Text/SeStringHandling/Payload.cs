@@ -65,10 +65,10 @@ namespace Dalamud.Game.Text.SeStringHandling
         /// <returns>A byte[] suitable for use with in-game handlers such as the chat log.</returns>
         public byte[] Encode(bool force = false)
         {
-            if (Dirty || force)
+            if (this.Dirty || force)
             {
-                this.encodedData = EncodeImpl();
-                Dirty = false;
+                this.encodedData = this.EncodeImpl();
+                this.Dirty = false;
             }
 
             return this.encodedData;

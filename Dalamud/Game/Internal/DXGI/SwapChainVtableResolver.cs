@@ -37,7 +37,7 @@ namespace Dalamud.Game.Internal.DXGI
 
         private IntPtr[] GetVTblAddresses(IntPtr pointer, int numberOfMethods)
         {
-            return GetVTblAddresses(pointer, 0, numberOfMethods);
+            return this.GetVTblAddresses(pointer, 0, numberOfMethods);
         }
 
         private IntPtr[] GetVTblAddresses(IntPtr pointer, int startIndex, int numberOfMethods)
@@ -89,9 +89,9 @@ namespace Dalamud.Game.Internal.DXGI
                 if (this.device != null && this.swapChain != null)
                 {
                     this.d3d11VTblAddresses.AddRange(
-                        GetVTblAddresses(this.device.NativePointer, D3D11DeviceMethodCount));
+                        this.GetVTblAddresses(this.device.NativePointer, D3D11DeviceMethodCount));
                     this.dxgiSwapChainVTblAddresses.AddRange(
-                        GetVTblAddresses(this.swapChain.NativePointer, DxgiSwapchainMethodCount));
+                        this.GetVTblAddresses(this.swapChain.NativePointer, DxgiSwapchainMethodCount));
                 }
 
                 this.device?.Dispose();
@@ -100,8 +100,8 @@ namespace Dalamud.Game.Internal.DXGI
                 #endregion
             }
 
-            Present = this.dxgiSwapChainVTblAddresses[8];
-            ResizeBuffers = this.dxgiSwapChainVTblAddresses[13];
+            this.Present = this.dxgiSwapChainVTblAddresses[8];
+            this.ResizeBuffers = this.dxgiSwapChainVTblAddresses[13];
         }
     }
 }

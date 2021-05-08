@@ -85,7 +85,7 @@ namespace Dalamud.Game.ClientState
         /// <summary>
         /// Gets the content ID of the local character.
         /// </summary>
-        public ulong LocalContentId => (ulong)Marshal.ReadInt64(Address.LocalContentId);
+        public ulong LocalContentId => (ulong)Marshal.ReadInt64(this.Address.LocalContentId);
 
         /// <summary>
         /// The class facilitating Job Gauge data access.
@@ -127,38 +127,38 @@ namespace Dalamud.Game.ClientState
         public ClientState(Dalamud dalamud, DalamudStartInfo startInfo, SigScanner scanner)
         {
             this.dalamud = dalamud;
-            Address = new ClientStateAddressResolver();
-            Address.Setup(scanner);
+            this.Address = new ClientStateAddressResolver();
+            this.Address.Setup(scanner);
 
             Log.Verbose("===== C L I E N T  S T A T E =====");
 
             this.ClientLanguage = startInfo.Language;
 
-            this.Actors = new ActorTable(dalamud, Address);
+            this.Actors = new ActorTable(dalamud, this.Address);
 
-            this.PartyList = new PartyList(dalamud, Address);
+            this.PartyList = new PartyList(dalamud, this.Address);
 
-            this.JobGauges = new JobGauges(Address);
+            this.JobGauges = new JobGauges(this.Address);
 
-            this.KeyState = new KeyState(Address, scanner.Module.BaseAddress);
+            this.KeyState = new KeyState(this.Address, scanner.Module.BaseAddress);
 
             this.GamepadState = new GamepadState(this.Address);
 
-            this.Condition = new Condition(Address);
+            this.Condition = new Condition(this.Address);
 
-            this.Targets = new Targets(dalamud, Address);
+            this.Targets = new Targets(dalamud, this.Address);
 
-            Log.Verbose("SetupTerritoryType address {SetupTerritoryType}", Address.SetupTerritoryType);
+            Log.Verbose("SetupTerritoryType address {SetupTerritoryType}", this.Address.SetupTerritoryType);
 
-            this.setupTerritoryTypeHook = new Hook<SetupTerritoryTypeDelegate>(Address.SetupTerritoryType, new SetupTerritoryTypeDelegate(SetupTerritoryTypeDetour), this);
+            this.setupTerritoryTypeHook = new Hook<SetupTerritoryTypeDelegate>(this.Address.SetupTerritoryType, new SetupTerritoryTypeDelegate(this.SetupTerritoryTypeDetour), this);
 
-            dalamud.Framework.OnUpdateEvent += FrameworkOnOnUpdateEvent;
-            dalamud.NetworkHandlers.CfPop += NetworkHandlersOnCfPop;
+            dalamud.Framework.OnUpdateEvent += this.FrameworkOnOnUpdateEvent;
+            dalamud.NetworkHandlers.CfPop += this.NetworkHandlersOnCfPop;
         }
 
         private void NetworkHandlersOnCfPop(object sender, ContentFinderCondition e)
         {
-            CfPop?.Invoke(this, e);
+            this.CfPop?.Invoke(this, e);
         }
 
         public void Enable()
@@ -175,8 +175,8 @@ namespace Dalamud.Game.ClientState
             this.Actors.Dispose();
             this.GamepadState.Dispose();
 
-            this.dalamud.Framework.OnUpdateEvent -= FrameworkOnOnUpdateEvent;
-            this.dalamud.NetworkHandlers.CfPop += NetworkHandlersOnCfPop;
+            this.dalamud.Framework.OnUpdateEvent -= this.FrameworkOnOnUpdateEvent;
+            this.dalamud.NetworkHandlers.CfPop += this.NetworkHandlersOnCfPop;
         }
 
         private bool lastConditionNone = true;
@@ -203,7 +203,7 @@ namespace Dalamud.Game.ClientState
                 Log.Debug("Is login");
                 this.lastConditionNone = false;
                 this.IsLoggedIn = true;
-                OnLogin?.Invoke(this, null);
+                this.OnLogin?.Invoke(this, null);
             }
 
             if (!this.Condition.Any() && this.lastConditionNone == false)
@@ -211,7 +211,7 @@ namespace Dalamud.Game.ClientState
                 Log.Debug("Is logout");
                 this.lastConditionNone = true;
                 this.IsLoggedIn = false;
-                OnLogout?.Invoke(this, null);
+                this.OnLogout?.Invoke(this, null);
             }
         }
     }

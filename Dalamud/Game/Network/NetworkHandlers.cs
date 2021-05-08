@@ -35,7 +35,7 @@ namespace Dalamud.Game.Network
 
             this.uploader = new UniversalisMarketBoardUploader(dalamud);
 
-            dalamud.Framework.Network.OnNetworkMessage += OnNetworkMessage;
+            dalamud.Framework.Network.OnNetworkMessage += this.OnNetworkMessage;
         }
 
         private void OnNetworkMessage(IntPtr dataPtr, ushort opCode, uint sourceActorId, uint targetActorId, NetworkMessageDirection direction)
@@ -91,7 +91,7 @@ namespace Dalamud.Game.Network
                     if (this.dalamud.Configuration.DutyFinderChatMessage)
                         this.dalamud.Framework.Gui.Chat.Print("Duty pop: " + cfcName);
 
-                    CfPop?.Invoke(this, contentFinderCondition);
+                    this.CfPop?.Invoke(this, contentFinderCondition);
                 });
 
                 return;

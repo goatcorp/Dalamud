@@ -21,11 +21,11 @@ namespace Dalamud.Game.Internal.Libc
 
         public LibcFunction(SigScanner scanner)
         {
-            Address = new LibcFunctionAddressResolver();
-            Address.Setup(scanner);
+            this.Address = new LibcFunctionAddressResolver();
+            this.Address.Setup(scanner);
 
-            this.stdStringCtorCString = Marshal.GetDelegateForFunctionPointer<StdStringFromCStringDelegate>(Address.StdStringFromCstring);
-            this.stdStringDeallocate = Marshal.GetDelegateForFunctionPointer<StdStringDeallocateDelegate>(Address.StdStringDeallocate);
+            this.stdStringCtorCString = Marshal.GetDelegateForFunctionPointer<StdStringFromCStringDelegate>(this.Address.StdStringFromCstring);
+            this.stdStringDeallocate = Marshal.GetDelegateForFunctionPointer<StdStringDeallocateDelegate>(this.Address.StdStringDeallocate);
         }
 
         public OwnedStdString NewString(byte[] content)
@@ -40,7 +40,7 @@ namespace Dalamud.Game.Internal.Libc
 
             // Log.Verbose("Prev: {Prev} Now: {Now}", pString, pReallocString);
 
-            return new OwnedStdString(pReallocString, DeallocateStdString);
+            return new OwnedStdString(pReallocString, this.DeallocateStdString);
         }
 
         public OwnedStdString NewString(string content, Encoding encoding = null)

@@ -101,8 +101,8 @@ namespace Dalamud.Game
         {
             this.dalamud = dalamud;
 
-            dalamud.Framework.Gui.Chat.OnCheckMessageHandled += OnCheckMessageHandled;
-            dalamud.Framework.Gui.Chat.OnChatMessage += OnChatMessage;
+            dalamud.Framework.Gui.Chat.OnCheckMessageHandled += this.OnCheckMessageHandled;
+            dalamud.Framework.Gui.Chat.OnChatMessage += this.OnChatMessage;
 
             this.openInstallerWindowLink = this.dalamud.Framework.Gui.Chat.AddChatLinkHandler("Dalamud", 1001, (i, m) =>
             {
@@ -136,11 +136,11 @@ namespace Dalamud.Game
         private void OnChatMessage(XivChatType type, uint senderId, ref SeString sender, ref SeString message, ref bool isHandled)
         {
             if (type == XivChatType.Notice && !this.hasSeenLoadingMsg)
-                PrintWelcomeMessage();
+                this.PrintWelcomeMessage();
 
             // For injections while logged in
             if (this.dalamud.ClientState.LocalPlayer != null && this.dalamud.ClientState.TerritoryType == 0 && !this.hasSeenLoadingMsg)
-                PrintWelcomeMessage();
+                this.PrintWelcomeMessage();
 
 #if !DEBUG && false
             if (!this.hasSeenLoadingMsg)
@@ -149,7 +149,7 @@ namespace Dalamud.Game
 
             if (type == XivChatType.RetainerSale)
             {
-                foreach (var regex in retainerSaleRegexes[dalamud.StartInfo.Language])
+                foreach (var regex in this.retainerSaleRegexes[this.dalamud.StartInfo.Language])
                 {
                     var matchInfo = regex.Match(message.TextValue);
 
@@ -185,7 +185,7 @@ namespace Dalamud.Game
 
             var linkMatch = this.urlRegex.Match(message.TextValue);
             if (linkMatch.Value.Length > 0)
-                LastLink = linkMatch.Value;
+                this.LastLink = linkMatch.Value;
 
             // Handle all of this with SeString some day
             /*
@@ -234,7 +234,9 @@ namespace Dalamud.Game
                 });
 
                 if (DalamudChangelogWindow.WarrantsChangelog)
+#pragma warning disable CS0162 // Unreachable code detected
                     this.dalamud.DalamudUi.OpenChangelog();
+#pragma warning restore CS0162 // Unreachable code detected
 
                 this.dalamud.Configuration.LastVersion = assemblyVersion;
                 this.dalamud.Configuration.Save();

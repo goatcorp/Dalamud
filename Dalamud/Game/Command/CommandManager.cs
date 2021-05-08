@@ -54,7 +54,7 @@ namespace Dalamud.Game.Command
                     break;
             }
 
-            dalamud.Framework.Gui.Chat.OnCheckMessageHandled += OnCheckMessageHandled;
+            dalamud.Framework.Gui.Chat.OnCheckMessageHandled += this.OnCheckMessageHandled;
         }
 
         private void OnCheckMessageHandled(XivChatType type, uint senderId, ref SeString sender, ref SeString message, ref bool isHandled)
@@ -66,7 +66,7 @@ namespace Dalamud.Game.Command
                 {
                     // Yes, it's a chat command.
                     var command = cmdMatch.Value;
-                    if (ProcessCommand(command)) isHandled = true;
+                    if (this.ProcessCommand(command)) isHandled = true;
                 }
             }
         }
@@ -114,7 +114,7 @@ namespace Dalamud.Game.Command
             if (!this.commandMap.TryGetValue(command, out var handler)) // Commad was not found.
                 return false;
 
-            DispatchCommand(command, argument, handler);
+            this.DispatchCommand(command, argument, handler);
             return true;
         }
 

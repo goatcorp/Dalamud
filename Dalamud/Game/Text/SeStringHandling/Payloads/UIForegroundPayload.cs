@@ -23,7 +23,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         /// <summary>
         /// Whether or not this payload represents applying a foreground color, or disabling one.
         /// </summary>
-        public bool IsEnabled => ColorKey != 0;
+        public bool IsEnabled => this.ColorKey != 0;
 
         private UIColor color;
 
@@ -58,7 +58,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             {
                 this.colorKey = value;
                 this.color = null;
-                Dirty = true;
+                this.Dirty = true;
             }
         }
 
@@ -70,7 +70,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         {
             get
             {
-                return UIColor.UIForeground & 0xFFFFFF;
+                return this.UIColor.UIForeground & 0xFFFFFF;
             }
         }
 
@@ -95,7 +95,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
 
         public override string ToString()
         {
-            return $"{Type} - UIColor: {colorKey} color: {(IsEnabled ? RGB : 0)}";
+            return $"{this.Type} - UIColor: {this.colorKey} color: {(this.IsEnabled ? this.RGB : 0)}";
         }
 
         protected override byte[] EncodeImpl()

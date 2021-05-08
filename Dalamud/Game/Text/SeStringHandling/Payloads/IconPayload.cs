@@ -13,7 +13,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         /// Gets the index of the icon.
         /// </summary>
         [Obsolete("Use IconPayload.Icon")]
-        public uint IconIndex => (uint)Icon;
+        public uint IconIndex => (uint)this.Icon;
 
         /// <summary>
         /// Icon the payload represents.
@@ -42,7 +42,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         /// <param name="icon">The Icon.</param>
         public IconPayload(BitmapFontIcon icon)
         {
-            Icon = icon;
+            this.Icon = icon;
         }
 
         /// <inheritdoc />
@@ -65,13 +65,13 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         /// <inheritdoc />
         protected override void DecodeImpl(BinaryReader reader, long endOfStream)
         {
-            Icon = (BitmapFontIcon)GetInteger(reader);
+            this.Icon = (BitmapFontIcon)GetInteger(reader);
         }
 
         /// <inheritdoc />
         public override string ToString()
         {
-            return $"{Type} - {Icon}";
+            return $"{this.Type} - {this.Icon}";
         }
     }
 }

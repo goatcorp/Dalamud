@@ -38,16 +38,16 @@ namespace Dalamud.Game.Internal.Network
 
         public GameNetwork(SigScanner scanner)
         {
-            Address = new GameNetworkAddressResolver();
-            Address.Setup(scanner);
+            this.Address = new GameNetworkAddressResolver();
+            this.Address.Setup(scanner);
 
             Log.Verbose("===== G A M E N E T W O R K =====");
-            Log.Verbose("ProcessZonePacketDown address {ProcessZonePacketDown}", Address.ProcessZonePacketDown);
-            Log.Verbose("ProcessZonePacketUp address {ProcessZonePacketUp}", Address.ProcessZonePacketUp);
+            Log.Verbose("ProcessZonePacketDown address {ProcessZonePacketDown}", this.Address.ProcessZonePacketDown);
+            Log.Verbose("ProcessZonePacketUp address {ProcessZonePacketUp}", this.Address.ProcessZonePacketUp);
 
-            this.processZonePacketDownHook = new Hook<ProcessZonePacketDownDelegate>(Address.ProcessZonePacketDown, new ProcessZonePacketDownDelegate(ProcessZonePacketDownDetour), this);
+            this.processZonePacketDownHook = new Hook<ProcessZonePacketDownDelegate>(this.Address.ProcessZonePacketDown, new ProcessZonePacketDownDelegate(this.ProcessZonePacketDownDetour), this);
 
-            this.processZonePacketUpHook = new Hook<ProcessZonePacketUpDelegate>(Address.ProcessZonePacketUp, new ProcessZonePacketUpDelegate(ProcessZonePacketUpDetour), this);
+            this.processZonePacketUpHook = new Hook<ProcessZonePacketUpDelegate>(this.Address.ProcessZonePacketUp, new ProcessZonePacketUpDelegate(this.ProcessZonePacketUpDetour), this);
         }
 
         public void Enable()
@@ -143,7 +143,7 @@ namespace Dalamud.Game.Internal.Network
 
             BitConverter.GetBytes((uint)param1).CopyTo(packetData, 0x14);
 
-            InjectZoneProtoPacket(packetData);
+            this.InjectZoneProtoPacket(packetData);
         }
 #endif
 
