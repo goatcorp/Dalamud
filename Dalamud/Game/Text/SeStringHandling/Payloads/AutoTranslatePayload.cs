@@ -150,7 +150,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
                         "TextCommand" => this.DataResolver.GetExcelSheet<TextCommand>().GetRow(this.key).Command,
                         "Tribe" => this.DataResolver.GetExcelSheet<Tribe>().GetRow(this.key).Masculine,
                         "Weather" => this.DataResolver.GetExcelSheet<Weather>().GetRow(this.key).Name,
-                        _ => throw new Exception(actualTableName)
+                        _ => throw new Exception(actualTableName),
                     };
 
                     value = name;

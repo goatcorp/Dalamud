@@ -75,18 +75,13 @@ namespace Dalamud.Game.Text.Sanitizer
         private static string SanitizeByLanguage(string unsanitizedString, ClientLanguage clientLanguage)
         {
             var sanitizedString = FilterUnprintableCharacters(unsanitizedString);
-            switch (clientLanguage)
+            return clientLanguage switch
             {
-                case ClientLanguage.Japanese:
-                case ClientLanguage.English:
-                    return sanitizedString;
-                case ClientLanguage.German:
-                    return FilterByDict(sanitizedString, DESanitizationDict);
-                case ClientLanguage.French:
-                    return FilterByDict(sanitizedString, FRSanitizationDict);
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(clientLanguage), clientLanguage, null);
-            }
+                ClientLanguage.Japanese or ClientLanguage.English => sanitizedString,
+                ClientLanguage.German => FilterByDict(sanitizedString, DESanitizationDict),
+                ClientLanguage.French => FilterByDict(sanitizedString, FRSanitizationDict),
+                _ => throw new ArgumentOutOfRangeException(nameof(clientLanguage), clientLanguage, null),
+            };
         }
 
         private static IEnumerable<string> SanitizeByLanguage(

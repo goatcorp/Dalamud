@@ -49,7 +49,7 @@ namespace Dalamud.Game.Text.SeStringHandling
         /// <returns>An SeString containing all the payloads necessary to display an item link in the chat log.</returns>
         public SeString CreateItemLink(uint itemId, bool isHQ, string displayNameOverride = null)
         {
-            string displayName = displayNameOverride ?? this.data.GetExcelSheet<Item>().GetRow(itemId).Name;
+            var displayName = displayNameOverride ?? this.data.GetExcelSheet<Item>().GetRow(itemId).Name;
             if (isHQ)
             {
                 displayName += $" {(char)SeIconChar.HighQuality}";

@@ -249,7 +249,7 @@ namespace Dalamud.Interface
 
                         if (ImGui.MenuItem("Cause AccessViolation"))
                         {
-                            var a = Marshal.ReadByte(IntPtr.Zero);
+                            Marshal.ReadByte(IntPtr.Zero);
                         }
 
                         ImGui.Separator();

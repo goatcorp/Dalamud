@@ -27,7 +27,7 @@ namespace Dalamud.Interface
 
             if (ImGui.BeginTabItem("Draw times"))
             {
-                bool doStats = UiBuilder.DoStats;
+                var doStats = UiBuilder.DoStats;
 
                 if (ImGui.Checkbox("Enable Draw Time Tracking", ref doStats))
                 {

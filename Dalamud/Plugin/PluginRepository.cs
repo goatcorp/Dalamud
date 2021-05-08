@@ -222,7 +222,7 @@ namespace Dalamud.Plugin
 
                         var sortedVersions = versions.OrderBy(dirInfo =>
                         {
-                            var success = Version.TryParse(dirInfo.Name, out Version version);
+                            var success = Version.TryParse(dirInfo.Name, out var version);
                             if (!success)
                             {
                                 Log.Debug("Unparseable version: {0}", dirInfo.Name);
@@ -277,8 +277,8 @@ namespace Dalamud.Plugin
                             continue;
                         }
 
-                        Version.TryParse(remoteInfo.AssemblyVersion, out Version remoteAssemblyVer);
-                        Version.TryParse(info.AssemblyVersion, out Version localAssemblyVer);
+                        Version.TryParse(remoteInfo.AssemblyVersion, out var remoteAssemblyVer);
+                        Version.TryParse(info.AssemblyVersion, out var localAssemblyVer);
 
                         var testingAvailable = false;
                         if (!string.IsNullOrEmpty(remoteInfo.TestingAssemblyVersion))
@@ -415,7 +415,7 @@ namespace Dalamud.Plugin
 
                     var sortedVersions = versions.OrderBy(dirInfo =>
                     {
-                        var success = Version.TryParse(dirInfo.Name, out Version version);
+                        var success = Version.TryParse(dirInfo.Name, out var version);
                         if (!success)
                         {
                             Log.Debug("Unparseable version: {0}", dirInfo.Name);

@@ -72,7 +72,7 @@ namespace Dalamud.Interface
 
             try
             {
-                List<string> locLanguagesList = new List<string>();
+                var locLanguagesList = new List<string>();
                 string locLanguage;
                 foreach (var language in this.languages)
                 {

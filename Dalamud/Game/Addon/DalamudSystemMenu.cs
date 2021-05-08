@@ -94,7 +94,7 @@ namespace Dalamud.Game.Addon
             this.atkValueChangeType(&atkValueArgs[menuSize + 5], ValueType.Int); // currently this value has no type, set it to int
             this.atkValueChangeType(&atkValueArgs[menuSize + 5 + 1], ValueType.Int);
 
-            for (uint i = menuSize + 2; i > 1; i--)
+            for (var i = menuSize + 2; i > 1; i--)
             {
                 var curEntry = &atkValueArgs[i + 5 - 2];
                 var nextEntry = &atkValueArgs[i + 5];

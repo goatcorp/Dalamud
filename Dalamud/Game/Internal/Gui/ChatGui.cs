@@ -306,8 +306,8 @@ namespace Dalamud.Game.Internal.Gui
             fixed (byte* p1 = a1, p2 = a2)
             {
                 byte* x1 = p1, x2 = p2;
-                int l = a1.Length;
-                for (int i = 0; i < l / 8; i++, x1 += 8, x2 += 8)
+                var l = a1.Length;
+                for (var i = 0; i < l / 8; i++, x1 += 8, x2 += 8)
                 {
                     if (*((long*)x1) != *((long*)x2))
                         return false;

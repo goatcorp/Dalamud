@@ -98,7 +98,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         {
             var actualItemId = this.IsHQ ? this.itemId + 1000000 : this.itemId;
             var idBytes = MakeInteger(actualItemId);
-            bool hasName = !string.IsNullOrEmpty(this.displayName);
+            var hasName = !string.IsNullOrEmpty(this.displayName);
 
             var chunkLen = idBytes.Length + 4;
             if (hasName)

@@ -42,9 +42,9 @@ namespace Dalamud.Game.Internal.DXGI
 
         private IntPtr[] GetVTblAddresses(IntPtr pointer, int startIndex, int numberOfMethods)
         {
-            List<IntPtr> vtblAddresses = new List<IntPtr>();
-            IntPtr vTable = Marshal.ReadIntPtr(pointer);
-            for (int i = startIndex; i < startIndex + numberOfMethods; i++)
+            var vtblAddresses = new List<IntPtr>();
+            var vTable = Marshal.ReadIntPtr(pointer);
+            for (var i = startIndex; i < startIndex + numberOfMethods; i++)
                 vtblAddresses.Add(Marshal.ReadIntPtr(vTable, i * IntPtr.Size)); // using IntPtr.Size allows us to support both 32 and 64-bit processes
 
             return vtblAddresses.ToArray();

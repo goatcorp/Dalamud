@@ -588,8 +588,8 @@ namespace Dalamud.Interface
                 i2.SendMessage("DalamudTestSub", testMsg);
             }
 
-            foreach (var sub in this.dalamud.PluginManager.IpcSubscriptions)
-                ImGui.Text($"Source:{sub.SourcePluginName} Sub:{sub.SubPluginName}");
+            foreach (var (sourcePluginName, subPluginName, subAction) in this.dalamud.PluginManager.IpcSubscriptions)
+                ImGui.Text($"Source:{sourcePluginName} Sub:{subPluginName}");
         }
 #pragma warning restore CS0618 // Type or member is obsolete
 

@@ -83,7 +83,7 @@ namespace Dalamud.Game.Text.SeStringHandling
         {
             var payloadStartPos = reader.BaseStream.Position;
 
-            Payload payload = null;
+            Payload payload;
 
             var initialByte = reader.ReadByte();
             reader.BaseStream.Position--;

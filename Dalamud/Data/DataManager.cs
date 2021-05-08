@@ -177,7 +177,7 @@ namespace Dalamud.Data
                 ClientLanguage.English => Lumina.Data.Language.English,
                 ClientLanguage.German => Lumina.Data.Language.German,
                 ClientLanguage.French => Lumina.Data.Language.French,
-                _ => throw new ArgumentOutOfRangeException(nameof(this.Language), @"Unknown Language: " + this.Language)
+                _ => throw new ArgumentOutOfRangeException(nameof(this.Language), $"Unknown Language: {this.Language}"),
             };
             return this.Excel.GetSheet<T>(lang);
         }
@@ -240,7 +240,7 @@ namespace Dalamud.Data
                 ClientLanguage.English => "en/",
                 ClientLanguage.German => "de/",
                 ClientLanguage.French => "fr/",
-                _ => throw new ArgumentOutOfRangeException(nameof(this.Language), @"Unknown Language: " + this.Language)
+                _ => throw new ArgumentOutOfRangeException(nameof(this.Language), $"Unknown Language: {this.Language}"),
             };
 
             return this.GetIcon(type, iconId);

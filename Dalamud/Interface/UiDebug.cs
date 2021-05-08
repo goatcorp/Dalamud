@@ -292,8 +292,8 @@ namespace Dalamud.Interface
         {
             var compNode = (AtkComponentNode*)node;
 
-            bool popped = false;
-            bool isVisible = (node->Flags & 0x10) == 0x10;
+            var popped = false;
+            var isVisible = (node->Flags & 0x10) == 0x10;
 
             if (isVisible)
                 ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0, 255, 0, 255));
@@ -433,8 +433,8 @@ namespace Dalamud.Interface
 
         private void DrawUnitBaseList()
         {
-            bool foundSelected = false;
-            bool noResults = true;
+            var foundSelected = false;
+            var noResults = true;
             var stage = this.getAtkStageSingleton();
 
             var unitManagers = &stage->RaptureAtkUnitManager->AtkUnitManager.DepthLayerOneList;

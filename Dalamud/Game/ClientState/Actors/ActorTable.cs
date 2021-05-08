@@ -104,7 +104,7 @@ namespace Dalamud.Game.ClientState.Actors
                     ObjectKind.BattleNpc => new BattleNpc(offset, actorStruct, this.dalamud),
                     ObjectKind.EventObj => new EventObj(offset, actorStruct, this.dalamud),
                     ObjectKind.Companion => new Npc(offset, actorStruct, this.dalamud),
-                    _ => new Actor(offset, actorStruct, this.dalamud)
+                    _ => new Actor(offset, actorStruct, this.dalamud),
                 };
             }
             catch (Exception e)
