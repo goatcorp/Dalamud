@@ -9,12 +9,12 @@ namespace Dalamud.Game.Text.Sanitizer
     /// </summary>
     public class Sanitizer : ISanitizer
     {
-        private static readonly Dictionary<string, string> DESanitizationDict = new Dictionary<string, string>
+        private static readonly Dictionary<string, string> DESanitizationDict = new()
         {
             { "\u0020\u2020", string.Empty }, // dagger
         };
 
-        private static readonly Dictionary<string, string> FRSanitizationDict = new Dictionary<string, string>
+        private static readonly Dictionary<string, string> FRSanitizationDict = new()
         {
             { "\u0153", "\u006F\u0065" }, // ligature oe
         };

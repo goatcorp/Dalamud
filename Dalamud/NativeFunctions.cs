@@ -18,7 +18,7 @@ namespace Dalamud
             FLASHW_STOP = 0,
 
             /// <summary>
-            /// Flash the window caption
+            /// Flash the window caption.
             /// </summary>
             FLASHW_CAPTION = 1,
 

@@ -31,9 +31,6 @@ namespace Dalamud.Game.ClientState
         /// <summary>
         /// Unable to execute command while mounted.
         /// </summary>
-        /// <summary>
-        /// Unable to execute command while mounted.
-        /// </summary>
         Mounted = 4,
 
         /// <summary>

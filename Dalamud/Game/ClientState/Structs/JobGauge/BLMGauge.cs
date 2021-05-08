@@ -2,6 +2,9 @@ using System.Runtime.InteropServices;
 
 namespace Dalamud.Game.ClientState.Structs.JobGauge
 {
+    /// <summary>
+    /// In-memory BLM job gauge.
+    /// </summary>
     [StructLayout(LayoutKind.Explicit)]
     public struct BLMGauge
     {
@@ -25,17 +28,17 @@ namespace Dalamud.Game.ClientState.Structs.JobGauge
 
         public bool InUmbralIce()
         {
-            return ElementStance > 4;
+            return this.ElementStance > 4;
         }
 
         public bool InAstralFire()
         {
-            return ElementStance > 0 && ElementStance < 4;
+            return this.ElementStance > 0 && this.ElementStance < 4;
         }
 
         public bool IsEnoActive()
         {
-            return EnoState > 0;
+            return this.EnoState > 0;
         }
     }
 }

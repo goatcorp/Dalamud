@@ -16,21 +16,20 @@ namespace Dalamud.Game.Command
     {
         private readonly Dalamud dalamud;
 
-        private readonly Dictionary<string, CommandInfo> commandMap = new Dictionary<string, CommandInfo>();
+        private readonly Dictionary<string, CommandInfo> commandMap = new();
 
         /// <summary>
         /// Gets a read-only list of all registered commands.
         /// </summary>
-        public ReadOnlyDictionary<string, CommandInfo> Commands =>
-            new ReadOnlyDictionary<string, CommandInfo>(this.commandMap);
+        public ReadOnlyDictionary<string, CommandInfo> Commands => new(this.commandMap);
 
-        private readonly Regex commandRegexEn = new Regex(@"^The command (?<command>.+) does not exist\.$", RegexOptions.Compiled);
+        private readonly Regex commandRegexEn = new(@"^The command (?<command>.+) does not exist\.$", RegexOptions.Compiled);
 
-        private readonly Regex commandRegexJp = new Regex(@"^そのコマンドはありません。： (?<command>.+)$", RegexOptions.Compiled);
+        private readonly Regex commandRegexJp = new(@"^そのコマンドはありません。： (?<command>.+)$", RegexOptions.Compiled);
 
-        private readonly Regex commandRegexDe = new Regex(@"^„(?<command>.+)“ existiert nicht als Textkommando\.$", RegexOptions.Compiled);
+        private readonly Regex commandRegexDe = new(@"^„(?<command>.+)“ existiert nicht als Textkommando\.$", RegexOptions.Compiled);
 
-        private readonly Regex commandRegexFr = new Regex(@"^La commande texte “(?<command>.+)” n'existe pas\.$", RegexOptions.Compiled);
+        private readonly Regex commandRegexFr = new(@"^La commande texte “(?<command>.+)” n'existe pas\.$", RegexOptions.Compiled);
 
         private readonly Regex currentLangCommandRegex;
 
@@ -108,7 +107,7 @@ namespace Dalamud.Game.Command
                 command = content.Substring(0, separatorPosition);
 
                 var argStart = separatorPosition + 1;
-                argument = content.Substring(argStart, content.Length - argStart);
+                argument = content[argStart..];
             }
 
             if (!this.commandMap.TryGetValue(command, out var handler)) // Commad was not found.

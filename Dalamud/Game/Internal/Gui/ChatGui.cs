@@ -15,7 +15,7 @@ namespace Dalamud.Game.Internal.Gui
 {
     public sealed class ChatGui : IDisposable
     {
-        private readonly Queue<XivChatEntry> chatQueue = new Queue<XivChatEntry>();
+        private readonly Queue<XivChatEntry> chatQueue = new();
 
         #region Events
 
@@ -210,7 +210,7 @@ namespace Dalamud.Game.Internal.Gui
             return retVal;
         }
 
-        private readonly Dictionary<(string pluginName, uint commandId), Action<uint, SeString>> dalamudLinkHandlers = new Dictionary<(string, uint), Action<uint, SeString>>();
+        private readonly Dictionary<(string pluginName, uint commandId), Action<uint, SeString>> dalamudLinkHandlers = new();
 
         /// <summary>
         /// Create a link handler.

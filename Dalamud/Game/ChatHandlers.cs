@@ -18,7 +18,7 @@ namespace Dalamud.Game
 {
     public class ChatHandlers
     {
-        private static readonly Dictionary<string, string> UnicodeToDiscordEmojiDict = new Dictionary<string, string>
+        private static readonly Dictionary<string, string> UnicodeToDiscordEmojiDict = new()
         {
             { "", "<:ffxive071:585847382210642069>" },
             { "", "<:ffxive083:585848592699490329>" },
@@ -28,7 +28,7 @@ namespace Dalamud.Game
 
         private DalamudLinkPayload openInstallerWindowLink;
 
-        private readonly Dictionary<XivChatType, Color> HandledChatTypeColors = new Dictionary<XivChatType, Color>
+        private readonly Dictionary<XivChatType, Color> HandledChatTypeColors = new()
         {
             { XivChatType.CrossParty, Color.DodgerBlue },
             { XivChatType.Party, Color.DodgerBlue },
@@ -56,42 +56,45 @@ namespace Dalamud.Game
             { XivChatType.Echo, Color.Gray },
         };
 
-        private readonly Regex rmtRegex =
-            new Regex(
+        private readonly Regex rmtRegex = new(
                 @"4KGOLD|We have sufficient stock|VPK\.OM|Gil for free|www\.so9\.com|Fast & Convenient|Cheap & Safety Guarantee|【Code|A O A U E|igfans|4KGOLD\.COM|Cheapest Gil with|pvp and bank on google|Selling Cheap GIL|ff14mogstation\.com|Cheap Gil 1000k|gilsforyou|server 1000K =|gils_selling|E A S Y\.C O M|bonus code|mins delivery guarantee|Sell cheap|Salegm\.com|cheap Mog|Off Code:|FF14Mog.com|使用する5％オ|Off Code( *):|offers Fantasia",
                 RegexOptions.Compiled);
 
-        private readonly Dictionary<ClientLanguage, Regex[]> retainerSaleRegexes = new Dictionary<ClientLanguage, Regex[]>()
+        private readonly Dictionary<ClientLanguage, Regex[]> retainerSaleRegexes = new()
         {
             {
-                ClientLanguage.Japanese, new Regex[]
+                ClientLanguage.Japanese,
+                new Regex[]
                 {
                     new Regex(@"^(?:.+)マーケットに(?<origValue>[\d,.]+)ギルで出品した(?<item>.*)×(?<count>[\d,.]+)が売れ、(?<value>[\d,.]+)ギルを入手しました。$", RegexOptions.Compiled),
                     new Regex(@"^(?:.+)マーケットに(?<origValue>[\d,.]+)ギルで出品した(?<item>.*)が売れ、(?<value>[\d,.]+)ギルを入手しました。$", RegexOptions.Compiled),
                 }
             },
             {
-                ClientLanguage.English, new Regex[]
+                ClientLanguage.English,
+                new Regex[]
                 {
                     new Regex(@"^(?<item>.+) you put up for sale in the (?:.+) markets (?:have|has) sold for (?<value>[\d,.]+) gil \(after fees\)\.$", RegexOptions.Compiled),
                 }
             },
             {
-                ClientLanguage.German, new Regex[]
+                ClientLanguage.German,
+                new Regex[]
                 {
                     new Regex(@"^Dein Gehilfe hat (?<item>.+) auf dem Markt von (?:.+) für (?<value>[\d,.]+) Gil verkauft\.$", RegexOptions.Compiled),
                     new Regex(@"^Dein Gehilfe hat (?<item>.+) auf dem Markt von (?:.+) verkauft und (?<value>[\d,.]+) Gil erhalten\.$", RegexOptions.Compiled),
                 }
             },
             {
-                ClientLanguage.French, new Regex[]
+                ClientLanguage.French,
+                new Regex[]
                 {
                     new Regex(@"^Un servant a vendu (?<item>.+) pour (?<value>[\d,.]+) gil à (?:.+)\.$", RegexOptions.Compiled),
                 }
             },
         };
 
-        private readonly Regex urlRegex = new Regex(@"(http|ftp|https)://([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?", RegexOptions.Compiled);
+        private readonly Regex urlRegex = new(@"(http|ftp|https)://([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?", RegexOptions.Compiled);
 
         private bool hasSeenLoadingMsg;
 

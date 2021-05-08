@@ -2,6 +2,9 @@ using System.Runtime.InteropServices;
 
 namespace Dalamud.Game.ClientState.Structs.JobGauge
 {
+    /// <summary>
+    /// In-memory DRK job gauge.
+    /// </summary>
     [StructLayout(LayoutKind.Explicit)]
     public struct DRKGauge
     {
@@ -19,7 +22,7 @@ namespace Dalamud.Game.ClientState.Structs.JobGauge
 
         public bool HasDarkArts()
         {
-            return DarkArtsState > 0;
+            return this.DarkArtsState > 0;
         }
     }
 }

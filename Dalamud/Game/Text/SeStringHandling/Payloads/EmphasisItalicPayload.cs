@@ -16,12 +16,12 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         /// <summary>
         /// Gets a payload representing enabling italics on following text.
         /// </summary>
-        public static EmphasisItalicPayload ItalicsOn => new EmphasisItalicPayload(true);
+        public static EmphasisItalicPayload ItalicsOn => new(true);
 
         /// <summary>
         /// Gets a payload representing disabling italics on following text.
         /// </summary>
-        public static EmphasisItalicPayload ItalicsOff => new EmphasisItalicPayload(false);
+        public static EmphasisItalicPayload ItalicsOff => new(false);
 
         public override PayloadType Type => PayloadType.EmphasisItalic;
 

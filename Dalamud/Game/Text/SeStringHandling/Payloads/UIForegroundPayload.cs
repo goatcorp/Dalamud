@@ -16,7 +16,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         /// Payload representing disabling foreground color on following text.
         /// </summary>
         // TODO Make this work with DI
-        public static UIForegroundPayload UIForegroundOff => new UIForegroundPayload(null, 0);
+        public static UIForegroundPayload UIForegroundOff => new(null, 0);
 
         public override PayloadType Type => PayloadType.UIForeground;
 

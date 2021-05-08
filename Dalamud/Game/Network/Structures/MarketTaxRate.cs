@@ -16,20 +16,17 @@ namespace Dalamud.Game.Network.Structures
         {
             var output = new MarketTaxRates();
 
-            using (var stream = new UnmanagedMemoryStream((byte*)dataPtr.ToPointer(), 1544))
-            {
-                using (var reader = new BinaryReader(stream))
-                {
-                    stream.Position += 8;
+            using var stream = new UnmanagedMemoryStream((byte*)dataPtr.ToPointer(), 1544);
+            using var reader = new BinaryReader(stream);
 
-                    output.LimsaLominsaTax = reader.ReadUInt32();
-                    output.GridaniaTax = reader.ReadUInt32();
-                    output.UldahTax = reader.ReadUInt32();
-                    output.IshgardTax = reader.ReadUInt32();
-                    output.KuganeTax = reader.ReadUInt32();
-                    output.CrystariumTax = reader.ReadUInt32();
-                }
-            }
+            stream.Position += 8;
+
+            output.LimsaLominsaTax = reader.ReadUInt32();
+            output.GridaniaTax = reader.ReadUInt32();
+            output.UldahTax = reader.ReadUInt32();
+            output.IshgardTax = reader.ReadUInt32();
+            output.KuganeTax = reader.ReadUInt32();
+            output.CrystariumTax = reader.ReadUInt32();
 
             return output;
         }

@@ -26,108 +26,106 @@ namespace Dalamud.Game.Network.Universalis.MarketBoardUploaders
 
         public void Upload(MarketBoardItemRequest request)
         {
-            using (var client = new WebClient())
+            using var client = new WebClient();
+
+            client.Headers.Add(HttpRequestHeader.ContentType, "application/json");
+
+            Log.Verbose("Starting Universalis upload.");
+            var uploader = this.dalamud.ClientState.LocalContentId;
+
+            var listingsRequestObject = new UniversalisItemListingsUploadRequest();
+            listingsRequestObject.WorldId = this.dalamud.ClientState.LocalPlayer?.CurrentWorld.Id ?? 0;
+            listingsRequestObject.UploaderId = uploader.ToString();
+            listingsRequestObject.ItemId = request.CatalogId;
+
+            listingsRequestObject.Listings = new List<UniversalisItemListingsEntry>();
+            foreach (var marketBoardItemListing in request.Listings)
             {
-                client.Headers.Add(HttpRequestHeader.ContentType, "application/json");
-
-                Log.Verbose("Starting Universalis upload.");
-                var uploader = this.dalamud.ClientState.LocalContentId;
-
-                var listingsRequestObject = new UniversalisItemListingsUploadRequest();
-                listingsRequestObject.WorldId = this.dalamud.ClientState.LocalPlayer?.CurrentWorld.Id ?? 0;
-                listingsRequestObject.UploaderId = uploader.ToString();
-                listingsRequestObject.ItemId = request.CatalogId;
-
-                listingsRequestObject.Listings = new List<UniversalisItemListingsEntry>();
-                foreach (var marketBoardItemListing in request.Listings)
+                var universalisListing = new UniversalisItemListingsEntry
                 {
-                    var universalisListing = new UniversalisItemListingsEntry
-                    {
-                        Hq = marketBoardItemListing.IsHq,
-                        SellerId = marketBoardItemListing.RetainerOwnerId.ToString(),
-                        RetainerName = marketBoardItemListing.RetainerName,
-                        RetainerId = marketBoardItemListing.RetainerId.ToString(),
-                        CreatorId = marketBoardItemListing.ArtisanId.ToString(),
-                        CreatorName = marketBoardItemListing.PlayerName,
-                        OnMannequin = marketBoardItemListing.OnMannequin,
-                        LastReviewTime = ((DateTimeOffset)marketBoardItemListing.LastReviewTime).ToUnixTimeSeconds(),
-                        PricePerUnit = marketBoardItemListing.PricePerUnit,
-                        Quantity = marketBoardItemListing.ItemQuantity,
-                        RetainerCity = marketBoardItemListing.RetainerCityId,
-                    };
+                    Hq = marketBoardItemListing.IsHq,
+                    SellerId = marketBoardItemListing.RetainerOwnerId.ToString(),
+                    RetainerName = marketBoardItemListing.RetainerName,
+                    RetainerId = marketBoardItemListing.RetainerId.ToString(),
+                    CreatorId = marketBoardItemListing.ArtisanId.ToString(),
+                    CreatorName = marketBoardItemListing.PlayerName,
+                    OnMannequin = marketBoardItemListing.OnMannequin,
+                    LastReviewTime = ((DateTimeOffset)marketBoardItemListing.LastReviewTime).ToUnixTimeSeconds(),
+                    PricePerUnit = marketBoardItemListing.PricePerUnit,
+                    Quantity = marketBoardItemListing.ItemQuantity,
+                    RetainerCity = marketBoardItemListing.RetainerCityId,
+                };
 
-                    universalisListing.Materia = new List<UniversalisItemMateria>();
-                    foreach (var itemMateria in marketBoardItemListing.Materia)
-                    {
-                        universalisListing.Materia.Add(new UniversalisItemMateria
-                        {
-                            MateriaId = itemMateria.MateriaId,
-                            SlotId = itemMateria.Index,
-                        });
-                    }
-
-                    listingsRequestObject.Listings.Add(universalisListing);
-                }
-
-                var upload = JsonConvert.SerializeObject(listingsRequestObject);
-                client.UploadString(ApiBase + $"/upload/{ApiKey}", "POST", upload);
-                Log.Verbose(upload);
-
-                var historyRequestObject = new UniversalisHistoryUploadRequest();
-                historyRequestObject.WorldId = this.dalamud.ClientState.LocalPlayer?.CurrentWorld.Id ?? 0;
-                historyRequestObject.UploaderId = uploader.ToString();
-                historyRequestObject.ItemId = request.CatalogId;
-
-                historyRequestObject.Entries = new List<UniversalisHistoryEntry>();
-                foreach (var marketBoardHistoryListing in request.History)
+                universalisListing.Materia = new List<UniversalisItemMateria>();
+                foreach (var itemMateria in marketBoardItemListing.Materia)
                 {
-                    historyRequestObject.Entries.Add(new UniversalisHistoryEntry
+                    universalisListing.Materia.Add(new UniversalisItemMateria
                     {
-                        BuyerName = marketBoardHistoryListing.BuyerName,
-                        Hq = marketBoardHistoryListing.IsHq,
-                        OnMannequin = marketBoardHistoryListing.OnMannequin,
-                        PricePerUnit = marketBoardHistoryListing.SalePrice,
-                        Quantity = marketBoardHistoryListing.Quantity,
-                        Timestamp = ((DateTimeOffset)marketBoardHistoryListing.PurchaseTime).ToUnixTimeSeconds(),
+                        MateriaId = itemMateria.MateriaId,
+                        SlotId = itemMateria.Index,
                     });
                 }
 
-                client.Headers.Add(HttpRequestHeader.ContentType, "application/json");
-
-                var historyUpload = JsonConvert.SerializeObject(historyRequestObject);
-                client.UploadString(ApiBase + $"/upload/{ApiKey}", "POST", historyUpload);
-                Log.Verbose(historyUpload);
-
-                Log.Verbose("Universalis data upload for item#{0} completed.", request.CatalogId);
+                listingsRequestObject.Listings.Add(universalisListing);
             }
+
+            var upload = JsonConvert.SerializeObject(listingsRequestObject);
+            client.UploadString(ApiBase + $"/upload/{ApiKey}", "POST", upload);
+            Log.Verbose(upload);
+
+            var historyRequestObject = new UniversalisHistoryUploadRequest();
+            historyRequestObject.WorldId = this.dalamud.ClientState.LocalPlayer?.CurrentWorld.Id ?? 0;
+            historyRequestObject.UploaderId = uploader.ToString();
+            historyRequestObject.ItemId = request.CatalogId;
+
+            historyRequestObject.Entries = new List<UniversalisHistoryEntry>();
+            foreach (var marketBoardHistoryListing in request.History)
+            {
+                historyRequestObject.Entries.Add(new UniversalisHistoryEntry
+                {
+                    BuyerName = marketBoardHistoryListing.BuyerName,
+                    Hq = marketBoardHistoryListing.IsHq,
+                    OnMannequin = marketBoardHistoryListing.OnMannequin,
+                    PricePerUnit = marketBoardHistoryListing.SalePrice,
+                    Quantity = marketBoardHistoryListing.Quantity,
+                    Timestamp = ((DateTimeOffset)marketBoardHistoryListing.PurchaseTime).ToUnixTimeSeconds(),
+                });
+            }
+
+            client.Headers.Add(HttpRequestHeader.ContentType, "application/json");
+
+            var historyUpload = JsonConvert.SerializeObject(historyRequestObject);
+            client.UploadString(ApiBase + $"/upload/{ApiKey}", "POST", historyUpload);
+            Log.Verbose(historyUpload);
+
+            Log.Verbose("Universalis data upload for item#{0} completed.", request.CatalogId);
         }
 
         public void UploadTax(MarketTaxRates taxRates)
         {
-            using (var client = new WebClient())
+            using var client = new WebClient();
+
+            var taxRatesRequest = new UniversalisTaxUploadRequest();
+            taxRatesRequest.WorldId = this.dalamud.ClientState.LocalPlayer?.CurrentWorld.Id ?? 0;
+            taxRatesRequest.UploaderId = this.dalamud.ClientState.LocalContentId.ToString();
+
+            taxRatesRequest.TaxData = new UniversalisTaxData
             {
-                var taxRatesRequest = new UniversalisTaxUploadRequest();
-                taxRatesRequest.WorldId = this.dalamud.ClientState.LocalPlayer?.CurrentWorld.Id ?? 0;
-                taxRatesRequest.UploaderId = this.dalamud.ClientState.LocalContentId.ToString();
+                LimsaLominsa = taxRates.LimsaLominsaTax,
+                Gridania = taxRates.GridaniaTax,
+                Uldah = taxRates.UldahTax,
+                Ishgard = taxRates.IshgardTax,
+                Kugane = taxRates.KuganeTax,
+                Crystarium = taxRates.CrystariumTax,
+            };
 
-                taxRatesRequest.TaxData = new UniversalisTaxData
-                {
-                    LimsaLominsa = taxRates.LimsaLominsaTax,
-                    Gridania = taxRates.GridaniaTax,
-                    Uldah = taxRates.UldahTax,
-                    Ishgard = taxRates.IshgardTax,
-                    Kugane = taxRates.KuganeTax,
-                    Crystarium = taxRates.CrystariumTax,
-                };
+            client.Headers.Add(HttpRequestHeader.ContentType, "application/json");
 
-                client.Headers.Add(HttpRequestHeader.ContentType, "application/json");
+            var historyUpload = JsonConvert.SerializeObject(taxRatesRequest);
+            client.UploadString(ApiBase + $"/upload/{ApiKey}", "POST", historyUpload);
+            Log.Verbose(historyUpload);
 
-                var historyUpload = JsonConvert.SerializeObject(taxRatesRequest);
-                client.UploadString(ApiBase + $"/upload/{ApiKey}", "POST", historyUpload);
-                Log.Verbose(historyUpload);
-
-                Log.Verbose("Universalis tax upload completed.");
-            }
+            Log.Verbose("Universalis tax upload completed.");
         }
     }
 }

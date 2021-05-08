@@ -9,7 +9,7 @@ namespace Dalamud.Game.Internal
     {
         protected bool IsResolved { get; set; }
 
-        public static Dictionary<string, List<(string, IntPtr)>> DebugScannedValues = new Dictionary<string, List<(string, IntPtr)>>();
+        public static Dictionary<string, List<(string, IntPtr)>> DebugScannedValues = new();
 
         public void Setup(SigScanner scanner)
         {

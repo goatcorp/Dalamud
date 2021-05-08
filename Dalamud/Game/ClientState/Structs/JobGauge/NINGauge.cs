@@ -3,6 +3,9 @@ using System.Runtime.InteropServices;
 
 namespace Dalamud.Game.ClientState.Structs.JobGauge
 {
+    /// <summary>
+    /// In-memory NIN job gauge.
+    /// </summary>
     [StructLayout(LayoutKind.Explicit)]
     public struct NINGauge
     {

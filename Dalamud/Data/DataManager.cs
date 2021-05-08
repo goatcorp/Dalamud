@@ -203,7 +203,7 @@ namespace Dalamud.Data
             var filePath = GameData.ParseFilePath(path);
             if (filePath == null)
                 return default;
-            return this.gameData.Repositories.TryGetValue(filePath.Repository, out var repository) ? repository.GetFile<T>(filePath.Category, filePath) : default(T);
+            return this.gameData.Repositories.TryGetValue(filePath.Repository, out var repository) ? repository.GetFile<T>(filePath.Category, filePath) : default;
         }
 
         /// <summary>

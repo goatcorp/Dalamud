@@ -40,7 +40,7 @@ namespace Dalamud.Game.Text.SeStringHandling
         /// </summary>
         /// <param name="str">string to convert.</param>
         /// <returns>Equivalent SeString.</returns>
-        public static implicit operator SeString(string str) => new SeString(new Payload[] { new TextPayload(str) });
+        public static implicit operator SeString(string str) => new(new Payload[] { new TextPayload(str) });
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SeString"/> class.

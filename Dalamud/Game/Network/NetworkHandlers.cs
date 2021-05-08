@@ -18,7 +18,7 @@ namespace Dalamud.Game.Network
     {
         private readonly Dalamud dalamud;
 
-        private readonly List<MarketBoardItemRequest> marketBoardRequests = new List<MarketBoardItemRequest>();
+        private readonly List<MarketBoardItemRequest> marketBoardRequests = new();
 
         private readonly bool optOutMbUploads;
         private readonly IMarketBoardUploader uploader;

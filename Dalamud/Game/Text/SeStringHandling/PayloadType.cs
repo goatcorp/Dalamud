@@ -61,7 +61,7 @@ namespace Dalamud.Game.Text.SeStringHandling
         Quest,
 
         /// <summary>
-        /// A SeString payload representing a custom clickable link for dalamud plugins
+        /// A SeString payload representing a custom clickable link for dalamud plugins.
         /// </summary>
         DalamudLink,
 

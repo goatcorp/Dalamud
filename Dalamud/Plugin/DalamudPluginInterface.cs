@@ -91,7 +91,7 @@ namespace Dalamud.Plugin
         /// <summary>
         /// Gets the directory your plugin configurations are stored in.
         /// </summary>
-        public DirectoryInfo ConfigDirectory => new DirectoryInfo(this.GetPluginConfigDirectory());
+        public DirectoryInfo ConfigDirectory => new(this.GetPluginConfigDirectory());
 
         /// <summary>
         /// Gets the config file of your plugin.

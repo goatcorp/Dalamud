@@ -103,7 +103,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
                 var y = Math.Truncate((this.YCoord + fudge) * 10.0f) / 10.0f;
 
                 // the formatting and spacing the game uses
-                return $"( {x.ToString("0.0")}  , {y.ToString("0.0")} )";
+                return $"( {x:0.0}  , {y:0.0} )";
             }
         }
 

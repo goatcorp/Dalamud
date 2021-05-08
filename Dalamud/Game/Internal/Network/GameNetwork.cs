@@ -34,7 +34,7 @@ namespace Dalamud.Game.Internal.Network
         /// </summary>
         public OnNetworkMessageDelegate OnNetworkMessage;
 
-        private readonly Queue<byte[]> zoneInjectQueue = new Queue<byte[]>();
+        private readonly Queue<byte[]> zoneInjectQueue = new();
 
         public GameNetwork(SigScanner scanner)
         {

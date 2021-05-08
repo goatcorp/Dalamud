@@ -12,7 +12,7 @@ namespace Dalamud
     {
         private const string URL = "https://xivapi.com/";
 
-        private static readonly ConcurrentDictionary<string, JObject> cachedResponses = new ConcurrentDictionary<string, JObject>();
+        private static readonly ConcurrentDictionary<string, JObject> cachedResponses = new();
 
         [Obsolete("This class will not be supported anymore in the future. Please migrate to your own version.", true)]
         public static async Task<JObject> GetWorld(int world)

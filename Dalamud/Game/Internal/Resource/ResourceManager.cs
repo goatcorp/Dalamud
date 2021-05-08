@@ -31,7 +31,7 @@ namespace Dalamud.Game.Internal.File
             public Stream DetourFile { get; set; }
         }
 
-        private Dictionary<IntPtr, ResourceHandleHookInfo> resourceHookMap = new Dictionary<IntPtr, ResourceHandleHookInfo>();
+        private Dictionary<IntPtr, ResourceHandleHookInfo> resourceHookMap = new();
 
         public ResourceManager(Dalamud dalamud, SigScanner scanner)
         {

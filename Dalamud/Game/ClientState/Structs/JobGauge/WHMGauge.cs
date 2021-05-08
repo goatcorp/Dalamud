@@ -2,6 +2,9 @@ using System.Runtime.InteropServices;
 
 namespace Dalamud.Game.ClientState.Structs.JobGauge
 {
+    /// <summary>
+    /// In-memory WHM job gauge.
+    /// </summary>
     [StructLayout(LayoutKind.Explicit)]
     public struct WHMGauge
     {

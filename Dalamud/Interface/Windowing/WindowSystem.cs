@@ -12,7 +12,7 @@ namespace Dalamud.Interface.Windowing
     /// </summary>
     public class WindowSystem
     {
-        private readonly List<Window> windows = new List<Window>();
+        private readonly List<Window> windows = new();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="WindowSystem"/> class.

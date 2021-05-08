@@ -14,9 +14,9 @@ namespace Dalamud.Interface.Scratchpad
     class ScratchExecutionManager
     {
         private readonly Dalamud dalamud;
-        private Dictionary<Guid, IDalamudPlugin> loadedScratches = new Dictionary<Guid, IDalamudPlugin>();
+        private Dictionary<Guid, IDalamudPlugin> loadedScratches = new();
 
-        public ScratchMacroProcessor MacroProcessor { get; private set; } = new ScratchMacroProcessor();
+        public ScratchMacroProcessor MacroProcessor { get; private set; } = new();
 
         public ScratchExecutionManager(Dalamud dalamud)
         {

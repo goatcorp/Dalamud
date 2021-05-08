@@ -10,7 +10,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         /// <summary>
         /// Instance of SeHyphenPayload.
         /// </summary>
-        public static SeHyphenPayload Payload => new SeHyphenPayload();
+        public static SeHyphenPayload Payload => new();
 
         /// <inheritdoc />
         public override PayloadType Type => PayloadType.SeHyphen;

@@ -19,7 +19,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         /// <summary>
         /// Gets a fixed Payload representing a common link-termination sequence, found in many payload chains.
         /// </summary>
-        public static RawPayload LinkTerminator => new RawPayload(new byte[] { 0x02, 0x27, 0x07, 0xCF, 0x01, 0x01, 0x01, 0xFF, 0x01, 0x03 });
+        public static RawPayload LinkTerminator => new(new byte[] { 0x02, 0x27, 0x07, 0xCF, 0x01, 0x01, 0x01, 0xFF, 0x01, 0x03 });
 
         public override PayloadType Type => PayloadType.Unknown;
 

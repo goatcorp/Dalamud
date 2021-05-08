@@ -476,18 +476,13 @@ namespace Dalamud.Interface
             }
             else
             {
-                stateString +=
-                    $"FrameworkBase: {this.dalamud.Framework.Address.BaseAddress.ToInt64():X}\n";
-
+                stateString += $"FrameworkBase: {this.dalamud.Framework.Address.BaseAddress.ToInt64():X}\n";
                 stateString += $"ActorTableLen: {this.dalamud.ClientState.Actors.Length}\n";
                 stateString += $"LocalPlayerName: {this.dalamud.ClientState.LocalPlayer.Name}\n";
-                stateString +=
-                    $"CurrentWorldName: {(this.resolveGameData ? this.dalamud.ClientState.LocalPlayer.CurrentWorld.GameData.Name : this.dalamud.ClientState.LocalPlayer.CurrentWorld.Id.ToString())}\n";
-                stateString +=
-                    $"HomeWorldName: {(this.resolveGameData ? this.dalamud.ClientState.LocalPlayer.HomeWorld.GameData.Name : this.dalamud.ClientState.LocalPlayer.HomeWorld.Id.ToString())}\n";
+                stateString += $"CurrentWorldName: {(this.resolveGameData ? this.dalamud.ClientState.LocalPlayer.CurrentWorld.GameData.Name : this.dalamud.ClientState.LocalPlayer.CurrentWorld.Id.ToString())}\n";
+                stateString += $"HomeWorldName: {(this.resolveGameData ? this.dalamud.ClientState.LocalPlayer.HomeWorld.GameData.Name : this.dalamud.ClientState.LocalPlayer.HomeWorld.Id.ToString())}\n";
                 stateString += $"LocalCID: {this.dalamud.ClientState.LocalContentId:X}\n";
-                stateString +=
-                    $"LastLinkedItem: {this.dalamud.Framework.Gui.Chat.LastLinkedItemId.ToString()}\n";
+                stateString += $"LastLinkedItem: {this.dalamud.Framework.Gui.Chat.LastLinkedItemId}\n";
                 stateString += $"TerritoryType: {this.dalamud.ClientState.TerritoryType}\n\n";
 
                 ImGui.TextUnformatted(stateString);

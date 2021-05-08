@@ -2,6 +2,9 @@ using System.Runtime.InteropServices;
 
 namespace Dalamud.Game.ClientState.Structs.JobGauge
 {
+    /// <summary>
+    /// In-memory DNC job gauge.
+    /// </summary>
     [StructLayout(LayoutKind.Explicit)]
     public unsafe struct DNCGauge
     {
@@ -19,12 +22,12 @@ namespace Dalamud.Game.ClientState.Structs.JobGauge
 
         public bool IsDancing()
         {
-            return StepOrder[0] != 0;
+            return this.StepOrder[0] != 0;
         }
 
         public ulong NextStep()
         {
-            return (ulong)(15999 + StepOrder[NumCompleteSteps] - 1);
+            return (ulong)(15999 + this.StepOrder[this.NumCompleteSteps] - 1);
         }
     }
 }

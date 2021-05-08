@@ -16,7 +16,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         /// Payload representing disabling glow color on following text.
         /// </summary>
         // TODO Make this work with DI
-        public static UIGlowPayload UIGlowOff => new UIGlowPayload(null, 0);
+        public static UIGlowPayload UIGlowOff => new(null, 0);
 
         public override PayloadType Type => PayloadType.UIGlow;
 

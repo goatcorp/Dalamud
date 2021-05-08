@@ -18,9 +18,9 @@ namespace Dalamud.Interface
         private readonly DalamudConfiguration configuration;
         private bool autoScroll;
         private bool openAtStartup;
-        private readonly List<(string line, Vector4 color)> logText = new List<(string line, Vector4 color)>();
+        private readonly List<(string line, Vector4 color)> logText = new();
 
-        private readonly object renderLock = new object();
+        private readonly object renderLock = new();
 
         private string commandText = string.Empty;
 

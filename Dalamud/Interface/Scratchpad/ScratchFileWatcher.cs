@@ -7,7 +7,7 @@ namespace Dalamud.Interface.Scratchpad
     {
         public List<ScratchpadDocument> TrackedScratches { get; set; } = new List<ScratchpadDocument>();
 
-        private FileSystemWatcher watcher = new FileSystemWatcher();
+        private FileSystemWatcher watcher = new();
 
         public void Load(string path)
         {

@@ -46,7 +46,7 @@ namespace Dalamud.Game.ClientState.Actors
 
         private static readonly int ActorMemSize = Marshal.SizeOf(typeof(Structs.Actor));
         private IntPtr actorMem = Marshal.AllocHGlobal(ActorMemSize);
-        private IntPtr currentProcessHandle = new IntPtr(-1);
+        private IntPtr currentProcessHandle = new(-1);
 
         #endregion
 

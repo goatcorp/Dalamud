@@ -2,6 +2,9 @@ using System.Runtime.InteropServices;
 
 namespace Dalamud.Game.ClientState.Structs.JobGauge
 {
+    /// <summary>
+    /// In-memory MCH job gauge.
+    /// </summary>
     [StructLayout(LayoutKind.Explicit)]
     public struct MCHGauge
     {
@@ -25,12 +28,12 @@ namespace Dalamud.Game.ClientState.Structs.JobGauge
 
         public bool IsOverheated()
         {
-            return (TimerActive & 1) != 0;
+            return (this.TimerActive & 1) != 0;
         }
 
         public bool IsRobotActive()
         {
-            return (TimerActive & 2) != 0;
+            return (this.TimerActive & 2) != 0;
         }
     }
 }

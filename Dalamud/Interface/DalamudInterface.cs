@@ -37,7 +37,7 @@ namespace Dalamud.Interface
         private readonly ScratchpadWindow scratchpadWindow;
         private readonly GamepadModeNotifierWindow gamepadModeNotifierWindow;
 
-        private readonly WindowSystem windowSystem = new WindowSystem("DalamudCore");
+        private readonly WindowSystem windowSystem = new("DalamudCore");
 
         private ulong frameCount = 0;
 

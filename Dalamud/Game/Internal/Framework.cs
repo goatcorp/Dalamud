@@ -51,9 +51,9 @@ namespace Dalamud.Game.Internal
         #region Stats
         public static bool StatsEnabled { get; set; }
 
-        public static Dictionary<string, List<double>> StatsHistory = new Dictionary<string, List<double>>();
+        public static Dictionary<string, List<double>> StatsHistory = new();
 
-        private static Stopwatch statsStopwatch = new Stopwatch();
+        private static Stopwatch statsStopwatch = new();
 
         #endregion
         #region Subsystems

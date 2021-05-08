@@ -19,9 +19,9 @@ namespace Dalamud.Interface.Scratchpad
 
         public ScratchExecutionManager Execution { get; private set; }
 
-        private List<ScratchpadDocument> documents = new List<ScratchpadDocument>();
+        private List<ScratchpadDocument> documents = new();
 
-        private ScratchFileWatcher watcher = new ScratchFileWatcher();
+        private ScratchFileWatcher watcher = new();
 
         private string pathInput = string.Empty;
 
