@@ -61,9 +61,9 @@ namespace Dalamud.Game.Internal.Gui
 
         private ToastGuiAddressResolver Address { get; }
 
-        private Queue<(byte[], ToastOptions)> NormalQueue { get; } = new Queue<(byte[], ToastOptions)>();
+        private Queue<(byte[] Message, ToastOptions Options)> NormalQueue { get; } = new Queue<(byte[], ToastOptions)>();
 
-        private Queue<(byte[], QuestToastOptions)> QuestQueue { get; } = new Queue<(byte[], QuestToastOptions)>();
+        private Queue<(byte[] Message, QuestToastOptions Options)> QuestQueue { get; } = new Queue<(byte[], QuestToastOptions)>();
 
         private Queue<byte[]> ErrorQueue { get; } = new Queue<byte[]>();
 

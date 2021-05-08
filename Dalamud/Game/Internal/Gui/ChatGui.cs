@@ -210,7 +210,7 @@ namespace Dalamud.Game.Internal.Gui
             return retVal;
         }
 
-        private readonly Dictionary<(string pluginName, uint commandId), Action<uint, SeString>> dalamudLinkHandlers = new();
+        private readonly Dictionary<(string PluginName, uint CommandId), Action<uint, SeString>> dalamudLinkHandlers = new();
 
         /// <summary>
         /// Create a link handler.
@@ -245,7 +245,7 @@ namespace Dalamud.Game.Internal.Gui
         /// <param name="pluginName"></param>
         internal void RemoveChatLinkHandler(string pluginName)
         {
-            foreach (var handler in this.dalamudLinkHandlers.Keys.ToList().Where(k => k.pluginName == pluginName))
+            foreach (var handler in this.dalamudLinkHandlers.Keys.ToList().Where(k => k.PluginName == pluginName))
             {
                 this.dalamudLinkHandlers.Remove(handler);
             }

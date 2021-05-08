@@ -109,20 +109,20 @@ namespace Dalamud.Plugin
             this.Plugins.Clear();
         }
 
-        private IEnumerable<(FileInfo dllFile, PluginDefinition definition, bool isRaw)> deferredPlugins;
+        private IEnumerable<(FileInfo DllFile, PluginDefinition Definition, bool IsRaw)> deferredPlugins;
 
         /// <summary>
         /// Load plugins that need to be loaded synchronously and prepare plugins that can be loaded asynchronously.
         /// </summary>
         public void LoadSynchronousPlugins()
         {
-            var loadDirectories = new List<(DirectoryInfo dirInfo, bool isRaw)>
+            var loadDirectories = new List<(DirectoryInfo DirInfo, bool IsRaw)>
             {
                 (new DirectoryInfo(this.pluginDirectory), false),
                 (new DirectoryInfo(this.devPluginDirectory), true),
             };
 
-            var pluginDefs = new List<(FileInfo dllFile, PluginDefinition definition, bool isRaw)>();
+            var pluginDefs = new List<(FileInfo DllFile, PluginDefinition Definition, bool IsRaw)>();
             foreach (var (dirInfo, isRaw) in loadDirectories)
             {
                 if (!dirInfo.Exists) continue;
@@ -144,15 +144,15 @@ namespace Dalamud.Plugin
             pluginDefs.Sort(
             (info1, info2) =>
             {
-                var prio1 = info1.definition?.LoadPriority ?? 0;
-                var prio2 = info2.definition?.LoadPriority ?? 0;
+                var prio1 = info1.Definition?.LoadPriority ?? 0;
+                var prio2 = info2.Definition?.LoadPriority ?? 0;
                 return prio2.CompareTo(prio1);
             });
 
-            this.deferredPlugins = pluginDefs.Where(x => x.definition == null || x.definition.LoadPriority <= 0);
+            this.deferredPlugins = pluginDefs.Where(x => x.Definition == null || x.Definition.LoadPriority <= 0);
 
             // Pass preloaded definitions for "synchronous load" plugins to LoadPluginFromAssembly, because we already loaded them anyways
-            foreach (var (dllFile, definition, isRaw) in pluginDefs.Where(x => x.definition?.LoadPriority > 0))
+            foreach (var (dllFile, definition, isRaw) in pluginDefs.Where(x => x.Definition?.LoadPriority > 0))
             {
                 try
                 {

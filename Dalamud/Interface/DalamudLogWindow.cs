@@ -18,7 +18,7 @@ namespace Dalamud.Interface
         private readonly DalamudConfiguration configuration;
         private bool autoScroll;
         private bool openAtStartup;
-        private readonly List<(string line, Vector4 color)> logText = new();
+        private readonly List<(string Line, Vector4 Color)> logText = new();
 
         private readonly object renderLock = new();
 
@@ -42,9 +42,9 @@ namespace Dalamud.Interface
             SerilogEventSink.Instance.OnLogLine -= this.Serilog_OnLogLine;
         }
 
-        private void Serilog_OnLogLine(object sender, (string line, LogEventLevel level) logEvent)
+        private void Serilog_OnLogLine(object sender, (string Line, LogEventLevel Level) logEvent)
         {
-            var color = logEvent.level switch
+            var color = logEvent.Level switch
             {
                 LogEventLevel.Error => ImGuiColors.DalamudRed,
                 LogEventLevel.Verbose => ImGuiColors.DalamudWhite,
@@ -55,7 +55,7 @@ namespace Dalamud.Interface
                 _ => throw new ArgumentOutOfRangeException(),
             };
 
-            this.AddLog(logEvent.line, color);
+            this.AddLog(logEvent.Line, color);
         }
 
         public void Clear()

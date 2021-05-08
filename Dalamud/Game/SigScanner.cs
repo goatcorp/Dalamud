@@ -230,7 +230,7 @@ namespace Dalamud.Game
             return IntPtr.Add(sigLocation, 5 + jumpOffset);
         }
 
-        private static (byte[] needle, bool[] mask) ParseSignature(string signature)
+        private static (byte[] Needle, bool[] Mask) ParseSignature(string signature)
         {
             signature = signature.Replace(" ", string.Empty);
             if (signature.Length % 2 != 0)
