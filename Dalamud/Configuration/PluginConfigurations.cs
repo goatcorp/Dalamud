@@ -55,8 +55,7 @@ namespace Dalamud.Configuration
                 File.ReadAllText(path.FullName),
                 new JsonSerializerSettings
                 {
-                    TypeNameAssemblyFormatHandling =
-                       TypeNameAssemblyFormatHandling.Simple,
+                    TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple,
                     TypeNameHandling = TypeNameHandling.Objects,
                 });
         }
