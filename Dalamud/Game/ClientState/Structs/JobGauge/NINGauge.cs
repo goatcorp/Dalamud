@@ -9,18 +9,30 @@ namespace Dalamud.Game.ClientState.Structs.JobGauge
     [StructLayout(LayoutKind.Explicit)]
     public struct NINGauge
     {
+        /// <summary>
+        /// Gets the time left on Huton in milliseconds.
+        /// </summary>
+        // TODO: Probably a short, confirm.
         [FieldOffset(0)]
         public int HutonTimeLeft;
 
+        /// <summary>
+        /// Gets the amount of Ninki available.
+        /// </summary>
         [FieldOffset(4)]
         public byte Ninki;
 
+        /// <summary>
+        /// Obsolete.
+        /// </summary>
         [Obsolete("Does not appear to be used")]
         [FieldOffset(4)]
         public byte TCJMudrasUsed;
 
-        [Obsolete("Does not appear to be used")]
-        [FieldOffset(6)]
+        /// <summary>
+        /// Gets the number of times Huton has been cast manually.
+        /// </summary>
+        [FieldOffset(5)]
         public byte NumHutonManualCasts;
     }
 }

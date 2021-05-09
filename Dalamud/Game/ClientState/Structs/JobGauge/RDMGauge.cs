@@ -8,9 +8,15 @@ namespace Dalamud.Game.ClientState.Structs.JobGauge
     [StructLayout(LayoutKind.Explicit)]
     public struct RDMGauge
     {
+        /// <summary>
+        /// Gets the level of the White gauge.
+        /// </summary>
         [FieldOffset(0)]
         public byte WhiteGauge;
 
+        /// <summary>
+        /// Gets the level of the Black gauge.
+        /// </summary>
         [FieldOffset(1)]
         public byte BlackGauge;
     }
