@@ -53,7 +53,7 @@ namespace Dalamud
             this.unloadSignal.Reset();
 
             this.finishUnloadSignal = finishSignal;
-            this.unloadSignal.Reset();
+            this.finishUnloadSignal.Reset();
         }
 
         #region Native Game Subsystems
