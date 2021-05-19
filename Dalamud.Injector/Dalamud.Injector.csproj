@@ -11,6 +11,7 @@
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
         <DebugSymbols>true</DebugSymbols>
         <DebugType>Portable</DebugType>
+        <NoWarn>IDE1006;CS1701;CS1702</NoWarn>
     </PropertyGroup>
     <PropertyGroup Label="Feature">
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -34,8 +35,18 @@
         <ApplicationIcon>dalamud.ico</ApplicationIcon>
     </PropertyGroup>
     <ItemGroup>
+      <None Remove="stylecop.json" />
+    </ItemGroup>
+    <ItemGroup>
+      <AdditionalFiles Include="stylecop.json" />
+    </ItemGroup>
+    <ItemGroup>
         <PackageReference Include="EasyHook" Version="2.7.6270" />
         <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
+        <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.333">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\DalamudDebugStub\DalamudDebugStub.vcxproj" />
@@ -45,6 +56,6 @@
         <Reference Include="System.Windows.Forms" />
     </ItemGroup>
     <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(Configuration)'=='Release'">
-      <Exec Command="powershell -ExecutionPolicy Unrestricted $(SolutionDir)CreateHashList.ps1 $(OutputPath)" />
+        <Exec Command="powershell -ExecutionPolicy Unrestricted $(SolutionDir)CreateHashList.ps1 $(OutputPath)" />
     </Target>
 </Project>
