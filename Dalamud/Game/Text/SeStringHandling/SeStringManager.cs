@@ -150,7 +150,7 @@ namespace Dalamud.Game.Text.SeStringHandling
                 var map = mapSheet.GetRows().FirstOrDefault(row => row.PlaceName.Row == place.RowId);
                 if (map != null)
                 {
-                    return CreateMapLink(map.TerritoryType.Row, (uint)map.RowId, xCoord, yCoord);
+                    return CreateMapLink(map.TerritoryType.Row, (uint)map.RowId, xCoord, yCoord, fudgeFactor);
                 }
             }
 
