@@ -8,13 +8,20 @@ using Lumina.Excel.GeneratedSheets;
 
 namespace Dalamud.Game.Text.SeStringHandling
 {
+    /// <summary>
+    /// This class facilitates creating new SeStrings and breaking down existing ones into their individual payload components.
+    /// </summary>
     public class SeStringManager
     {
         private readonly DataManager data;
 
-        public SeStringManager(DataManager Data)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SeStringManager"/> class.
+        /// </summary>
+        /// <param name="data">The DataManager instance.</param>
+        public SeStringManager(DataManager data)
         {
-            this.data = Data;
+            this.data = data;
         }
 
         /// <summary>
@@ -84,6 +91,14 @@ namespace Dalamud.Game.Text.SeStringHandling
             return this.CreateItemLink((uint)item.RowId, isHQ, displayNameOverride ?? item.Name);
         }
 
+        /// <summary>
+        /// Creates an SeString representing an entire Payload chain that can be used to link a map position in the chat log.
+        /// </summary>
+        /// <param name="territoryId">The id of the TerritoryType for this map link.</param>
+        /// <param name="mapId">The id of the Map for this map link.</param>
+        /// <param name="rawX">The raw x-coordinate for this link.</param>
+        /// <param name="rawY">The raw y-coordinate for this link..</param>
+        /// <returns>An SeString containing all of the payloads necessary to display a map link in the chat log.</returns>
         public SeString CreateMapLink(uint territoryId, uint mapId, int rawX, int rawY)
         {
             var mapPayload = new MapLinkPayload(this.data, territoryId, mapId, rawX, rawY);
@@ -148,7 +163,7 @@ namespace Dalamud.Game.Text.SeStringHandling
                 var map = mapSheet.FirstOrDefault(row => row.PlaceName.Row == place.RowId);
                 if (map != null)
                 {
-                    return CreateMapLink(map.TerritoryType.Row, (uint)map.RowId, xCoord, yCoord, fudgeFactor);
+                    return this.CreateMapLink(map.TerritoryType.Row, map.RowId, xCoord, yCoord, fudgeFactor);
                 }
             }
 

@@ -5,50 +5,114 @@ using Serilog;
 
 namespace Dalamud.Game.Internal
 {
-    public class AntiDebug : IDisposable
+    /// <summary>
+    /// This class disables anti-debug functionality in the game client.
+    /// </summary>
+    public sealed partial class AntiDebug
     {
-        private IntPtr DebugCheckAddress { get; set; }
+        private readonly byte[] nop = new byte[] { 0x31, 0xC0, 0x90, 0x90, 0x90, 0x90 };
+        private byte[] original;
+        private IntPtr debugCheckAddress;
 
-        public bool IsEnabled { get; private set; }
-
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AntiDebug"/> class.
+        /// </summary>
+        /// <param name="scanner">The SigScanner instance.</param>
         public AntiDebug(SigScanner scanner)
         {
             try
             {
-                this.DebugCheckAddress = scanner.ScanText("FF 15 ?? ?? ?? ?? 85 C0 74 11 41");
+                this.debugCheckAddress = scanner.ScanText("FF 15 ?? ?? ?? ?? 85 C0 74 11 41");
             }
             catch (KeyNotFoundException)
             {
-                this.DebugCheckAddress = IntPtr.Zero;
+                this.debugCheckAddress = IntPtr.Zero;
             }
 
-            Log.Verbose("DebugCheck address {DebugCheckAddress}", this.DebugCheckAddress);
+            Log.Verbose("DebugCheck address {DebugCheckAddress}", this.debugCheckAddress);
         }
 
-        private readonly byte[] nop = new byte[] { 0x31, 0xC0, 0x90, 0x90, 0x90, 0x90 };
-        private byte[] original;
+        /// <summary>
+        /// Gets a value indicating whether the anti-debugging is enabled.
+        /// </summary>
+        public bool IsEnabled { get; private set; }
 
+        /// <summary>
+        /// Enables the anti-debugging by overwriting code in memory.
+        /// </summary>
         public void Enable()
         {
             this.original = new byte[this.nop.Length];
-            if (this.DebugCheckAddress != IntPtr.Zero && !this.IsEnabled)
+            if (this.debugCheckAddress != IntPtr.Zero && !this.IsEnabled)
             {
-                Log.Information($"Overwriting Debug Check @ 0x{this.DebugCheckAddress.ToInt64():X}");
-                SafeMemory.ReadBytes(this.DebugCheckAddress, this.nop.Length, out this.original);
-                SafeMemory.WriteBytes(this.DebugCheckAddress, this.nop);
+                Log.Information($"Overwriting debug check @ 0x{this.debugCheckAddress.ToInt64():X}");
+                SafeMemory.ReadBytes(this.debugCheckAddress, this.nop.Length, out this.original);
+                SafeMemory.WriteBytes(this.debugCheckAddress, this.nop);
             }
             else
             {
-                Log.Information("DebugCheck already overwritten?");
+                Log.Information("Debug check already overwritten?");
             }
 
             this.IsEnabled = true;
         }
 
+        /// <summary>
+        /// Disable the anti-debugging by reverting the overwritten code in memory.
+        /// </summary>
+        public void Disable()
+        {
+            if (this.debugCheckAddress != IntPtr.Zero && this.original != null)
+            {
+                Log.Information($"Reverting debug check @ 0x{this.debugCheckAddress.ToInt64():X}");
+                SafeMemory.WriteBytes(this.debugCheckAddress, this.original);
+            }
+            else
+            {
+                Log.Information("Debug check was not overwritten?");
+            }
+
+            this.IsEnabled = false;
+        }
+    }
+
+    /// <summary>
+    /// Implementing IDisposable.
+    /// </summary>
+    public sealed partial class AntiDebug : IDisposable
+    {
+        private bool disposed = false;
+
+        /// <summary>
+        /// Finalizes an instance of the <see cref="AntiDebug"/> class.
+        /// </summary>
+        ~AntiDebug() => this.Dispose(false);
+
+        /// <summary>
+        /// Disposes of managed and unmanaged resources.
+        /// </summary>
         public void Dispose()
         {
-            // if (this.DebugCheckAddress != IntPtr.Zero && this.original != null)
-            //     Marshal.Copy(this.original, 0, DebugCheckAddress, this.nop.Length);
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Disposes of managed and unmanaged resources.
+        /// </summary>
+        /// <param name="disposing">If this was disposed through calling Dispose() or from being finalized.</param>
+        private void Dispose(bool disposing)
+        {
+            if (this.disposed)
+                return;
+
+            if (disposing)
+            {
+                // If anti-debug is enabled and is being disposed, odds are either the game is exiting, or Dalamud is being reloaded.
+                // If it is the latter, there's half a chance a debugger is currently attached. There's no real need to disable the
+                // check in either situation anyways.
+                // this.Disable();
+            }
         }
     }
 }

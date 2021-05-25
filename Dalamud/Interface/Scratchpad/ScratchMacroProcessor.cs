@@ -7,9 +7,12 @@ using Dalamud.Plugin;
 
 namespace Dalamud.Interface.Scratchpad
 {
+    /// <summary>
+    /// This class converts ScratchPad macros into runnable scripts.
+    /// </summary>
     internal class ScratchMacroProcessor
     {
-        private const string template = @"
+        private const string Template = @"
 
 public class ScratchPlugin : IDalamudPlugin {
 
@@ -51,19 +54,11 @@ public class ScratchPlugin : IDalamudPlugin {
             Dispose,
         }
 
-        private class HookInfo
-        {
-            public string Body { get; set; }
-
-            public string Arguments { get; set; }
-
-            public string Invocation { get; set; }
-
-            public string RetType { get; set; }
-
-            public string Sig { get; set; }
-        }
-
+        /// <summary>
+        /// Process the given macro input and return a script.
+        /// </summary>
+        /// <param name="input">Input to process.</param>
+        /// <returns>A runnable script.</returns>
         public string Process(string input)
         {
             var lines = input.Split(new[] { '\r', '\n' });
@@ -179,10 +174,8 @@ public class ScratchPlugin : IDalamudPlugin {
                     $"private Hook<Hook{i}Delegate> hook{i}Inst;\n";
 
                 hookInit += $"var addrH{i} = pi.TargetModuleScanner.ScanText(\"{hook.Sig}\");\n";
-                hookInit +=
-                    $"this.hook{i}Inst = new Hook<Hook{i}Delegate>(addrH{i}, new Hook{i}Delegate(Hook{i}Detour), this);\n";
-                hookInit +=
-                    $"this.hook{i}Inst.Enable();\n";
+                hookInit += $"this.hook{i}Inst = new Hook<Hook{i}Delegate>(addrH{i}, new Hook{i}Delegate(Hook{i}Detour), this);\n";
+                hookInit += $"this.hook{i}Inst.Enable();\n";
 
                 var originalCall = $"this.hook{i}Inst.Original({hook.Invocation});\n";
                 if (hook.RetType != "void")
@@ -223,7 +216,7 @@ public class ScratchPlugin : IDalamudPlugin {
             noneBody += "\n" + hookDetour;
             disposeBody += "\n" + hookDispose;
 
-            var output = template;
+            var output = Template;
             output = output.Replace("{SETUPBODY}", setupBody);
             output = output.Replace("{INITBODY}", initBody);
             output = output.Replace("{DRAWBODY}", drawBody);
@@ -231,6 +224,19 @@ public class ScratchPlugin : IDalamudPlugin {
             output = output.Replace("{DISPOSEBODY}", disposeBody);
 
             return output;
+        }
+
+        private class HookInfo
+        {
+            public string Body { get; set; }
+
+            public string Arguments { get; set; }
+
+            public string Invocation { get; set; }
+
+            public string RetType { get; set; }
+
+            public string Sig { get; set; }
         }
     }
 }

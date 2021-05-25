@@ -12,39 +12,56 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
     /// </summary>
     public class UIForegroundPayload : Payload
     {
+        private UIColor color;
+
+        [JsonProperty]
+        private ushort colorKey;
+
         /// <summary>
-        /// Payload representing disabling foreground color on following text.
+        /// Initializes a new instance of the <see cref="UIForegroundPayload"/> class.
+        /// Creates a new UIForegroundPayload for the given UIColor key.
+        /// </summary>
+        /// <param name="data">DataManager instance needed to resolve game data.</param>
+        /// <param name="colorKey">A UIColor key.</param>
+        public UIForegroundPayload(DataManager data, ushort colorKey)
+        {
+            this.DataResolver = data;
+            this.colorKey = colorKey;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UIForegroundPayload"/> class.
+        /// Creates a new UIForegroundPayload for the given UIColor key.
+        /// </summary>
+        internal UIForegroundPayload()
+        {
+        }
+
+        /// <summary>
+        /// Gets a payload representing disabling foreground color on following text.
         /// </summary>
         // TODO Make this work with DI
         public static UIForegroundPayload UIForegroundOff => new(null, 0);
 
+        /// <inheritdoc/>
         public override PayloadType Type => PayloadType.UIForeground;
 
         /// <summary>
-        /// Whether or not this payload represents applying a foreground color, or disabling one.
+        /// Gets a value indicating whether or not this payload represents applying a foreground color, or disabling one.
         /// </summary>
         public bool IsEnabled => this.ColorKey != 0;
 
-        private UIColor color;
-
         /// <summary>
-        /// A Lumina UIColor object representing this payload.  The actual color data is at UIColor.UIForeground.
+        /// Gets a Lumina UIColor object representing this payload.  The actual color data is at UIColor.UIForeground.
         /// </summary>
         /// <remarks>
-        /// Value is evaluated lazily and cached.
+        /// The value is evaluated lazily and cached.
         /// </remarks>
         [JsonIgnore]
-        public UIColor UIColor
-        {
-            get
-            {
-                this.color ??= this.DataResolver.GetExcelSheet<UIColor>().GetRow(this.colorKey);
-                return this.color;
-            }
-        }
+        public UIColor UIColor => this.color ??= this.DataResolver.GetExcelSheet<UIColor>().GetRow(this.colorKey);
 
         /// <summary>
-        /// The color key used as a lookup in the UIColor table for this foreground color.
+        /// Gets or sets the color key used as a lookup in the UIColor table for this foreground color.
         /// </summary>
         [JsonIgnore]
         public ushort ColorKey
@@ -63,41 +80,18 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         }
 
         /// <summary>
-        /// The Red/Green/Blue values for this foreground color, encoded as a typical hex color.
+        /// Gets the Red/Green/Blue values for this foreground color, encoded as a typical hex color.
         /// </summary>
         [JsonIgnore]
-        public uint RGB
-        {
-            get
-            {
-                return this.UIColor.UIForeground & 0xFFFFFF;
-            }
-        }
+        public uint RGB => this.UIColor.UIForeground & 0xFFFFFF;
 
-        [JsonProperty]
-        private ushort colorKey;
-
-        internal UIForegroundPayload()
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="UIForegroundPayload"/> class.
-        /// Creates a new UIForegroundPayload for the given UIColor key.
-        /// </summary>
-        /// <param name="data">DataManager instance needed to resolve game data.</param>
-        /// <param name="colorKey"></param>
-        public UIForegroundPayload(DataManager data, ushort colorKey)
-        {
-            this.DataResolver = data;
-            this.colorKey = colorKey;
-        }
-
+        /// <inheritdoc/>
         public override string ToString()
         {
             return $"{this.Type} - UIColor: {this.colorKey} color: {(this.IsEnabled ? this.RGB : 0)}";
         }
 
+        /// <inheritdoc/>
         protected override byte[] EncodeImpl()
         {
             var colorBytes = MakeInteger(this.colorKey);
@@ -114,6 +108,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             return bytes.ToArray();
         }
 
+        /// <inheritdoc/>
         protected override void DecodeImpl(BinaryReader reader, long endOfStream)
         {
             this.colorKey = (ushort)GetInteger(reader);

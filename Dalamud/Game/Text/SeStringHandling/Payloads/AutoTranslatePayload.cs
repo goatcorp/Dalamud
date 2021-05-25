@@ -15,36 +15,13 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
     /// </summary>
     public class AutoTranslatePayload : Payload, ITextProvider
     {
-        public override PayloadType Type => PayloadType.AutoTranslateText;
-
         private string text;
-
-        /// <summary>
-        /// Gets the actual text displayed in-game for this payload.
-        /// </summary>
-        /// <remarks>
-        /// Value is evaluated lazily and cached.
-        /// </remarks>
-        public string Text
-        {
-            get
-            {
-                // wrap the text in the colored brackets that is uses in-game, since those
-                // are not actually part of any of the payloads
-                this.text ??= $"{(char)SeIconChar.AutoTranslateOpen} {this.Resolve()} {(char)SeIconChar.AutoTranslateClose}";
-                return this.text;
-            }
-        }
 
         [JsonProperty]
         private uint group;
 
         [JsonProperty]
         private uint key;
-
-        internal AutoTranslatePayload()
-        {
-        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AutoTranslatePayload"/> class.
@@ -59,18 +36,47 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         /// </remarks>
         public AutoTranslatePayload(DataManager data, uint group, uint key)
         {
+            // TODO: friendlier ctor? not sure how to handle that given how weird the tables are
             this.DataResolver = data;
             this.group = group;
             this.key = key;
         }
 
-        // TODO: friendlier ctor? not sure how to handle that given how weird the tables are
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AutoTranslatePayload"/> class.
+        /// </summary>
+        internal AutoTranslatePayload()
+        {
+        }
 
+        /// <inheritdoc/>
+        public override PayloadType Type => PayloadType.AutoTranslateText;
+
+        /// <summary>
+        /// Gets the actual text displayed in-game for this payload.
+        /// </summary>
+        /// <remarks>
+        /// Value is evaluated lazily and cached.
+        /// </remarks>
+        public string Text
+        {
+            get
+            {
+                // wrap the text in the colored brackets that is uses in-game, since those are not actually part of any of the payloads
+                return this.text ??= $"{(char)SeIconChar.AutoTranslateOpen} {this.Resolve()} {(char)SeIconChar.AutoTranslateClose}";
+            }
+        }
+
+        /// <summary>
+        /// Returns a string that represents the current object.
+        /// </summary>
+        /// <returns>A string that represents the current object.</returns>
         public override string ToString()
         {
             return $"{this.Type} - Group: {this.group}, Key: {this.key}, Text: {this.Text}";
         }
 
+        /// <inheritdoc/>
         protected override byte[] EncodeImpl()
         {
             var keyBytes = MakeInteger(this.key);
@@ -88,6 +94,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             return bytes.ToArray();
         }
 
+        /// <inheritdoc/>
         protected override void DecodeImpl(BinaryReader reader, long endOfStream)
         {
             // this seems to always be a bare byte, and not following normal integer encoding

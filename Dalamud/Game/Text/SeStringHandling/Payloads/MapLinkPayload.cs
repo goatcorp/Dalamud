@@ -13,145 +13,16 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
     /// </summary>
     public class MapLinkPayload : Payload
     {
-        public override PayloadType Type => PayloadType.MapLink;
-
         private Map map;
-
-        /// <summary>
-        /// The Map specified for this map link.
-        /// </summary>
-        /// <remarks>
-        /// Value is evaluated lazily and cached.
-        /// </remarks>
-        [JsonIgnore]
-        public Map Map
-        {
-            get
-            {
-                this.map ??= this.DataResolver.GetExcelSheet<Map>().GetRow(this.mapId);
-                return this.map;
-            }
-        }
-
         private TerritoryType territoryType;
-
-        /// <summary>
-        /// The TerritoryType specified for this map link.
-        /// </summary>
-        /// <remarks>
-        /// Value is evaluated lazily and cached.
-        /// </remarks>
-        [JsonIgnore]
-        public TerritoryType TerritoryType
-        {
-            get
-            {
-                this.territoryType ??= this.DataResolver.GetExcelSheet<TerritoryType>().GetRow(this.territoryTypeId);
-                return this.territoryType;
-            }
-        }
-
-        /// <summary>
-        /// The internal x-coordinate for this map position.
-        /// </summary>
-        public int RawX { get; private set; }
-
-        /// <summary>
-        /// The internal y-coordinate for this map position.
-        /// </summary>
-        public int RawY { get; private set; }
-
-        // these could be cached, but this isn't really too egregious
-
-        /// <summary>
-        /// The readable x-coordinate position for this map link.  This value is approximate and unrounded.
-        /// </summary>
-        public float XCoord
-        {
-            get
-            {
-                return this.ConvertRawPositionToMapCoordinate(this.RawX, this.Map.SizeFactor);
-            }
-        }
-
-        /// <summary>
-        /// The readable y-coordinate position for this map link.  This value is approximate and unrounded.
-        /// </summary>
-        [JsonIgnore]
-        public float YCoord
-        {
-            get
-            {
-                return this.ConvertRawPositionToMapCoordinate(this.RawY, this.Map.SizeFactor);
-            }
-        }
-
-        /// <summary>
-        /// The printable map coordinates for this link.  This value tries to match the in-game printable text as closely as possible
-        /// but is an approximation and may be slightly off for some positions.
-        /// </summary>
-        [JsonIgnore]
-        public string CoordinateString
-        {
-            get
-            {
-                // this truncates the values to one decimal without rounding, which is what the game does
-                // the fudge also just attempts to correct the truncated/displayed value for rounding/fp issues
-                // TODO: should this fudge factor be the same as in the ctor? currently not since that is customizable
-                const float fudge = 0.02f;
-                var x = Math.Truncate((this.XCoord + fudge) * 10.0f) / 10.0f;
-                var y = Math.Truncate((this.YCoord + fudge) * 10.0f) / 10.0f;
-
-                // the formatting and spacing the game uses
-                return $"( {x:0.0}  , {y:0.0} )";
-            }
-        }
-
         private string placeNameRegion;
-
-        /// <summary>
-        /// The region name for this map link.  This corresponds to the upper zone name found in the actual in-game map UI.  eg, "La Noscea".
-        /// </summary>
-        [JsonIgnore]
-        public string PlaceNameRegion
-        {
-            get
-            {
-                this.placeNameRegion ??= this.TerritoryType.PlaceNameRegion.Value?.Name;
-                return this.placeNameRegion;
-            }
-        }
-
         private string placeName;
-
-        /// <summary>
-        /// The place name for this map link.  This corresponds to the lower zone name found in the actual in-game map UI.  eg, "Limsa Lominsa Upper Decks".
-        /// </summary>
-        [JsonIgnore]
-        public string PlaceName
-        {
-            get
-            {
-                this.placeName ??= this.TerritoryType.PlaceName.Value?.Name;
-                return this.placeName;
-            }
-        }
-
-        /// <summary>
-        /// The data string for this map link, for use by internal game functions that take a string variant and not a binary payload.
-        /// </summary>
-        public string DataString => $"m:{this.TerritoryType.RowId},{this.Map.RowId},{this.RawX},{this.RawY}";
 
         [JsonProperty]
         private uint territoryTypeId;
 
         [JsonProperty]
         private uint mapId;
-        // there is no Z; it's purely in the text payload where applicable
-
-        internal MapLinkPayload()
-        {
-        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MapLinkPayload"/> class.
@@ -193,11 +64,105 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             this.RawY = rawY;
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MapLinkPayload"/> class.
+        /// Creates an interactable MapLinkPayload from a human-readable position.
+        /// </summary>
+        internal MapLinkPayload()
+        {
+        }
+
+        /// <inheritdoc/>
+        public override PayloadType Type => PayloadType.MapLink;
+
+        /// <summary>
+        /// Gets the Map specified for this map link.
+        /// </summary>
+        /// <remarks>
+        /// The value is evaluated lazily and cached.
+        /// </remarks>
+        [JsonIgnore]
+        public Map Map => this.map ??= this.DataResolver.GetExcelSheet<Map>().GetRow(this.mapId);
+
+        /// <summary>
+        /// Gets the TerritoryType specified for this map link.
+        /// </summary>
+        /// <remarks>
+        /// The value is evaluated lazily and cached.
+        /// </remarks>
+        [JsonIgnore]
+        public TerritoryType TerritoryType => this.territoryType ??= this.DataResolver.GetExcelSheet<TerritoryType>().GetRow(this.territoryTypeId);
+
+        /// <summary>
+        /// Gets the internal x-coordinate for this map position.
+        /// </summary>
+        public int RawX { get; private set; }
+
+        /// <summary>
+        /// Gets the internal y-coordinate for this map position.
+        /// </summary>
+        public int RawY { get; private set; }
+
+        // these could be cached, but this isn't really too egregious
+
+        /// <summary>
+        /// Gets the readable x-coordinate position for this map link.  This value is approximate and unrounded.
+        /// </summary>
+        public float XCoord => this.ConvertRawPositionToMapCoordinate(this.RawX, this.Map.SizeFactor);
+
+        /// <summary>
+        /// Gets the readable y-coordinate position for this map link.  This value is approximate and unrounded.
+        /// </summary>
+        [JsonIgnore]
+        public float YCoord => this.ConvertRawPositionToMapCoordinate(this.RawY, this.Map.SizeFactor);
+
+        // there is no Z; it's purely in the text payload where applicable
+
+        /// <summary>
+        /// Gets the printable map coordinates for this link.  This value tries to match the in-game printable text as closely
+        /// as possible but is an approximation and may be slightly off for some positions.
+        /// </summary>
+        [JsonIgnore]
+        public string CoordinateString
+        {
+            get
+            {
+                // this truncates the values to one decimal without rounding, which is what the game does
+                // the fudge also just attempts to correct the truncated/displayed value for rounding/fp issues
+                // TODO: should this fudge factor be the same as in the ctor? currently not since that is customizable
+                const float fudge = 0.02f;
+                var x = Math.Truncate((this.XCoord + fudge) * 10.0f) / 10.0f;
+                var y = Math.Truncate((this.YCoord + fudge) * 10.0f) / 10.0f;
+
+                // the formatting and spacing the game uses
+                return $"( {x:0.0}  , {y:0.0} )";
+            }
+        }
+
+        /// <summary>
+        /// Gets the region name for this map link. This corresponds to the upper zone name found in the actual in-game map UI. eg, "La Noscea".
+        /// </summary>
+        [JsonIgnore]
+        public string PlaceNameRegion => this.placeNameRegion ??= this.TerritoryType.PlaceNameRegion.Value?.Name;
+
+        /// <summary>
+        /// Gets the place name for this map link. This corresponds to the lower zone name found in the actual in-game map UI. eg, "Limsa Lominsa Upper Decks".
+        /// </summary>
+        [JsonIgnore]
+        public string PlaceName => this.placeName ??= this.TerritoryType.PlaceName.Value?.Name;
+
+        /// <summary>
+        /// Gets the data string for this map link, for use by internal game functions that take a string variant and not a binary payload.
+        /// </summary>
+        public string DataString => $"m:{this.TerritoryType.RowId},{this.Map.RowId},{this.RawX},{this.RawY}";
+
+        /// <inheritdoc/>
         public override string ToString()
         {
             return $"{this.Type} - TerritoryTypeId: {this.territoryTypeId}, MapId: {this.mapId}, RawX: {this.RawX}, RawY: {this.RawY}, display: {this.PlaceName} {this.CoordinateString}";
         }
 
+        /// <inheritdoc/>
         protected override byte[] EncodeImpl()
         {
             var packedTerritoryAndMapBytes = MakePackedInteger(this.territoryTypeId, this.mapId);
@@ -222,6 +187,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             return bytes.ToArray();
         }
 
+        /// <inheritdoc/>
         protected override void DecodeImpl(BinaryReader reader, long endOfStream)
         {
             // for debugging for now
@@ -248,6 +214,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         }
 
         #region ugliness
+
         // from https://github.com/xivapi/ffxiv-datamining/blob/master/docs/MapCoordinates.md
         // extra 1/1000 because that is how the network ints are done
         private float ConvertRawPositionToMapCoordinate(int pos, float scale)
@@ -268,6 +235,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
 
             return (int)scaledPos;
         }
+
         #endregion
     }
 }

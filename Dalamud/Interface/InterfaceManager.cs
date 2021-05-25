@@ -16,8 +16,6 @@ using ImGuiScene;
 using Serilog;
 using SharpDX.Direct3D11;
 
-#nullable enable
-
 // general dev notes, here because it's easiest
 /*
  * - Hooking ResizeBuffers seemed to be unnecessary, though I'm not sure why.  Left out for now since it seems to work without it.
@@ -31,60 +29,42 @@ using SharpDX.Direct3D11;
 
 namespace Dalamud.Interface
 {
+    /// <summary>
+    /// This class manages interaction with the ImGui interface.
+    /// </summary>
     internal class InterfaceManager : IDisposable
     {
-        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-        private delegate IntPtr PresentDelegate(IntPtr swapChain, uint syncInterval, uint presentFlags);
+        /// <summary>
+        /// Code that is exexuted when fonts are rebuilt.
+        /// </summary>
+        public Action OnBuildFonts;
 
-        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-        private delegate IntPtr ResizeBuffersDelegate(IntPtr swapChain, uint bufferCount, uint width, uint height, uint newFormat, uint swapChainFlags);
+        /// <summary>
+        /// The pointer to ImGui.IO(), when it last used..
+        /// </summary>
+        public ImGuiIOPtr LastImGuiIoPtr;
+
+        private readonly Dalamud dalamud;
 
         private readonly Hook<PresentDelegate> presentHook;
         private readonly Hook<ResizeBuffersDelegate> resizeBuffersHook;
-
         private readonly Hook<SetCursorDelegate> setCursorHook;
 
-        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-        private delegate IntPtr SetCursorDelegate(IntPtr hCursor);
-
         private ManualResetEvent fontBuildSignal;
-
-        private ISwapChainAddressResolver Address { get; }
-
-        private Dalamud dalamud;
+        private ISwapChainAddressResolver address;
         private RawDX11Scene scene;
-
-        public Device Device => this.scene.Device;
-
-        public IntPtr WindowHandlePtr => this.scene.WindowHandlePtr;
-
-        /// <summary>
-        /// Gets or sets a value indicating whether or not the game's cursor should be overridden with the ImGui cursor.
-        /// </summary>
-        public bool OverrideGameCursor
-        {
-            get => this.scene.UpdateCursor;
-            set => this.scene.UpdateCursor = value;
-        }
-
-        private delegate void InstallRTSSHook();
 
         private string rtssPath;
 
-        public ImGuiIOPtr LastImGuiIoPtr;
-
-        public Action OnBuildFonts;
+        // can't access imgui IO before first present call
+        private bool lastWantCapture = false;
         private bool isRebuildingFonts = false;
 
         /// <summary>
-        /// This event gets called by a plugin UiBuilder when read
+        /// Initializes a new instance of the <see cref="InterfaceManager"/> class.
         /// </summary>
-        public event RawDX11Scene.BuildUIDelegate OnDraw;
-
-        public bool FontsReady { get; set; } = false;
-
-        public bool IsReady => this.scene != null;
-
+        /// <param name="dalamud">The Dalamud instance.</param>
+        /// <param name="scanner">The SigScanner instance.</param>
         public InterfaceManager(Dalamud dalamud, SigScanner scanner)
         {
             this.dalamud = dalamud;
@@ -98,7 +78,7 @@ namespace Dalamud.Interface
 
                 Log.Verbose("Found SwapChain via signatures.");
 
-                this.Address = sigResolver;
+                this.address = sigResolver;
             }
             catch (Exception ex)
             {
@@ -110,7 +90,7 @@ namespace Dalamud.Interface
 
                 Log.Verbose("Found SwapChain via vtable.");
 
-                this.Address = vtableResolver;
+                this.address = vtableResolver;
             }
 
             try
@@ -137,16 +117,74 @@ namespace Dalamud.Interface
 
             Log.Verbose("===== S W A P C H A I N =====");
             Log.Verbose("SetCursor address {SetCursor}", setCursorAddr);
-            Log.Verbose("Present address {Present}", this.Address.Present);
-            Log.Verbose("ResizeBuffers address {ResizeBuffers}", this.Address.ResizeBuffers);
+            Log.Verbose("Present address {Present}", this.address.Present);
+            Log.Verbose("ResizeBuffers address {ResizeBuffers}", this.address.ResizeBuffers);
 
             this.setCursorHook = new Hook<SetCursorDelegate>(setCursorAddr, new SetCursorDelegate(this.SetCursorDetour), this);
 
-            this.presentHook = new Hook<PresentDelegate>(this.Address.Present, new PresentDelegate(this.PresentDetour), this);
+            this.presentHook = new Hook<PresentDelegate>(this.address.Present, new PresentDelegate(this.PresentDetour), this);
 
-            this.resizeBuffersHook = new Hook<ResizeBuffersDelegate>(this.Address.ResizeBuffers, new ResizeBuffersDelegate(this.ResizeBuffersDetour), this);
+            this.resizeBuffersHook = new Hook<ResizeBuffersDelegate>(this.address.ResizeBuffers, new ResizeBuffersDelegate(this.ResizeBuffersDetour), this);
         }
 
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        private delegate IntPtr PresentDelegate(IntPtr swapChain, uint syncInterval, uint presentFlags);
+
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        private delegate IntPtr ResizeBuffersDelegate(IntPtr swapChain, uint bufferCount, uint width, uint height, uint newFormat, uint swapChainFlags);
+
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        private delegate IntPtr SetCursorDelegate(IntPtr hCursor);
+
+        private delegate void InstallRTSSHook();
+
+        /// <summary>
+        /// This event gets called by a plugin UiBuilder when read
+        /// </summary>
+        public event RawDX11Scene.BuildUIDelegate OnDraw;
+
+        /// <summary>
+        /// Gets the default ImGui font.
+        /// </summary>
+        public static ImFontPtr DefaultFont { get; private set; }
+
+        /// <summary>
+        /// Gets an included FontAwesome icon font.
+        /// </summary>
+        public static ImFontPtr IconFont { get; private set; }
+
+        /// <summary>
+        /// Gets the D3D11 device instance.
+        /// </summary>
+        public Device Device => this.scene.Device;
+
+        /// <summary>
+        /// Gets the address handle to the main process window.
+        /// </summary>
+        public IntPtr WindowHandlePtr => this.scene.WindowHandlePtr;
+
+        /// <summary>
+        /// Gets or sets a value indicating whether or not the game's cursor should be overridden with the ImGui cursor.
+        /// </summary>
+        public bool OverrideGameCursor
+        {
+            get => this.scene.UpdateCursor;
+            set => this.scene.UpdateCursor = value;
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the fonts are built and ready to use.
+        /// </summary>
+        public bool FontsReady { get; set; } = false;
+
+        /// <summary>
+        /// Gets a value indicating whether the Dalamud interface ready to use.
+        /// </summary>
+        public bool IsReady => this.scene != null;
+
+        /// <summary>
+        /// Enable this module.
+        /// </summary>
         public void Enable()
         {
             this.setCursorHook.Enable();
@@ -170,13 +208,9 @@ namespace Dalamud.Interface
             }
         }
 
-        private void Disable()
-        {
-            this.setCursorHook.Disable();
-            this.presentHook.Disable();
-            this.resizeBuffersHook.Disable();
-        }
-
+        /// <summary>
+        /// Dispose of managed and unmanaged resources.
+        /// </summary>
         public void Dispose()
         {
             // HACK: this is usually called on a separate thread from PresentDetour (likely on a dedicated render thread)
@@ -186,7 +220,7 @@ namespace Dalamud.Interface
             // calls to PresentDetour have finished (and Disable means no new ones will start), before we try to cleanup
             // So... not great, but much better than constantly crashing on unload
             this.Disable();
-            System.Threading.Thread.Sleep(500);
+            Thread.Sleep(500);
 
             this.scene?.Dispose();
             this.setCursorHook.Dispose();
@@ -194,6 +228,13 @@ namespace Dalamud.Interface
             this.resizeBuffersHook.Dispose();
         }
 
+#nullable enable
+
+        /// <summary>
+        /// Load an image from disk.
+        /// </summary>
+        /// <param name="filePath">The filepath to load.</param>
+        /// <returns>A texture, ready to use in ImGui.</returns>
         public TextureWrap? LoadImage(string filePath)
         {
             try
@@ -208,6 +249,11 @@ namespace Dalamud.Interface
             return null;
         }
 
+        /// <summary>
+        /// Load an image from an array of bytes.
+        /// </summary>
+        /// <param name="imageData">The data to load.</param>
+        /// <returns>A texture, ready to use in ImGui.</returns>
         public TextureWrap? LoadImage(byte[] imageData)
         {
             try
@@ -222,6 +268,14 @@ namespace Dalamud.Interface
             return null;
         }
 
+        /// <summary>
+        /// Load an image from an array of bytes.
+        /// </summary>
+        /// <param name="imageData">The data to load.</param>
+        /// <param name="width">The width in pixels.</param>
+        /// <param name="height">The height in pixels.</param>
+        /// <param name="numChannels">The number of channels.</param>
+        /// <returns>A texture, ready to use in ImGui.</returns>
         public TextureWrap? LoadImageRaw(byte[] imageData, int width, int height, int numChannels)
         {
             try
@@ -236,7 +290,11 @@ namespace Dalamud.Interface
             return null;
         }
 
-        // Sets up a deferred invocation of font rebuilding, before the next render frame
+#nullable restore
+
+        /// <summary>
+        /// Sets up a deferred invocation of font rebuilding, before the next render frame.
+        /// </summary>
         public void RebuildFonts()
         {
             Log.Verbose("[FONT] RebuildFonts() called");
@@ -249,6 +307,21 @@ namespace Dalamud.Interface
                 this.isRebuildingFonts = true;
                 this.scene.OnNewRenderFrame += this.RebuildFontsInternal;
             }
+        }
+
+        /// <summary>
+        /// Wait for the rebuilding fonts to complete.
+        /// </summary>
+        public void WaitForFontRebuild()
+        {
+            this.fontBuildSignal.WaitOne();
+        }
+
+        private static void ShowFontError(string path)
+        {
+            Util.Fatal(
+                $"One or more files required by XIVLauncher were not found.\nPlease restart and report this error if it occurs again.\n\n{path}",
+                "Error");
         }
 
         private IntPtr PresentDetour(IntPtr swapChain, uint syncInterval, uint presentFlags)
@@ -344,17 +417,6 @@ namespace Dalamud.Interface
             ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;
         }
 
-        public static ImFontPtr DefaultFont { get; private set; }
-
-        public static ImFontPtr IconFont { get; private set; }
-
-        private static void ShowFontError(string path)
-        {
-            Util.Fatal(
-                $"One or more files required by XIVLauncher were not found.\nPlease restart and report this error if it occurs again.\n\n{path}",
-                "Error");
-        }
-
         private unsafe void SetupFonts()
         {
             this.fontBuildSignal.Reset();
@@ -428,9 +490,11 @@ namespace Dalamud.Interface
             this.FontsReady = true;
         }
 
-        public void WaitForFontRebuild()
+        private void Disable()
         {
-            this.fontBuildSignal.WaitOne();
+            this.setCursorHook.Disable();
+            this.presentHook.Disable();
+            this.resizeBuffersHook.Disable();
         }
 
         // This is intended to only be called as a handler attached to scene.OnNewRenderFrame
@@ -471,9 +535,6 @@ namespace Dalamud.Interface
 
             return ret;
         }
-
-        // can't access imgui IO before first present call
-        private bool lastWantCapture = false;
 
         private IntPtr SetCursorDetour(IntPtr hCursor)
         {

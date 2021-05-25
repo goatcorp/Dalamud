@@ -6,18 +6,21 @@ using Serilog;
 namespace Dalamud.Game.ClientState
 {
     /// <summary>
-    /// Wrapper around the game keystate buffer, which contains the pressed state for
-    /// all keyboard keys, indexed by virtual vkCode.
+    /// Wrapper around the game keystate buffer, which contains the pressed state for all keyboard keys, indexed by virtual vkCode.
     /// </summary>
     public class KeyState
     {
-        private IntPtr bufferBase;
-
         // The array is accessed in a way that this limit doesn't appear to exist
         // but there is other state data past this point, and keys beyond here aren't
         // generally valid for most things anyway
         private const int MaxKeyCodeIndex = 0xA0;
+        private IntPtr bufferBase;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="KeyState"/> class.
+        /// </summary>
+        /// <param name="addressResolver">The ClientStateAddressResolver instance.</param>
+        /// <param name="moduleBaseAddress">The base address of the main process module.</param>
         public KeyState(ClientStateAddressResolver addressResolver, IntPtr moduleBaseAddress)
         {
             this.bufferBase = moduleBaseAddress + Marshal.ReadInt32(addressResolver.KeyboardState);

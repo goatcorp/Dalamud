@@ -10,17 +10,25 @@ using ImGuiNET;
 
 namespace Dalamud.Interface
 {
+    /// <summary>
+    /// This window displays plugin statistics for troubleshooting.
+    /// </summary>
     internal class DalamudPluginStatWindow : Window
     {
         private readonly PluginManager pluginManager;
         private bool showDalamudHooks;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DalamudPluginStatWindow"/> class.
+        /// </summary>
+        /// <param name="pluginManager">The PluginManager instance.</param>
         public DalamudPluginStatWindow(PluginManager pluginManager)
             : base("Plugin Statistics###DalamudPluginStatWindow")
         {
             this.pluginManager = pluginManager;
         }
 
+        /// <inheritdoc/>
         public override void Draw()
         {
             ImGui.BeginTabBar("Stat Tabs");

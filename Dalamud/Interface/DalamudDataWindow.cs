@@ -248,7 +248,7 @@ namespace Dalamud.Interface
                         // Condition
                         case 6:
 #if DEBUG
-                            ImGui.Text($"ptr: {this.dalamud.ClientState.Condition.conditionArrayBase.ToString("X16")}");
+                            ImGui.Text($"ptr: {this.dalamud.ClientState.Condition.ConditionArrayBase.ToString("X16")}");
 #endif
 
                             ImGui.Text("Current Conditions:");

@@ -14,27 +14,6 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
     public class EmphasisItalicPayload : Payload
     {
         /// <summary>
-        /// Gets a payload representing enabling italics on following text.
-        /// </summary>
-        public static EmphasisItalicPayload ItalicsOn => new(true);
-
-        /// <summary>
-        /// Gets a payload representing disabling italics on following text.
-        /// </summary>
-        public static EmphasisItalicPayload ItalicsOff => new(false);
-
-        public override PayloadType Type => PayloadType.EmphasisItalic;
-
-        /// <summary>
-        /// Whether this payload enables italics formatting for following text.
-        /// </summary>
-        public bool IsEnabled { get; private set; }
-
-        internal EmphasisItalicPayload()
-        {
-        }
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="EmphasisItalicPayload"/> class.
         /// Creates an EmphasisItalicPayload.
         /// </summary>
@@ -44,11 +23,39 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             this.IsEnabled = enabled;
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="EmphasisItalicPayload"/> class.
+        /// Creates an EmphasisItalicPayload.
+        /// </summary>
+        internal EmphasisItalicPayload()
+        {
+        }
+
+        /// <summary>
+        /// Gets a payload representing enabling italics on following text.
+        /// </summary>
+        public static EmphasisItalicPayload ItalicsOn => new(true);
+
+        /// <summary>
+        /// Gets a payload representing disabling italics on following text.
+        /// </summary>
+        public static EmphasisItalicPayload ItalicsOff => new(false);
+
+        /// <summary>
+        /// Gets a value indicating whether this payload enables italics formatting for following text.
+        /// </summary>
+        public bool IsEnabled { get; private set; }
+
+        /// <inheritdoc/>
+        public override PayloadType Type => PayloadType.EmphasisItalic;
+
+        /// <inheritdoc/>
         public override string ToString()
         {
             return $"{this.Type} - Enabled: {this.IsEnabled}";
         }
 
+        /// <inheritdoc/>
         protected override byte[] EncodeImpl()
         {
             // realistically this will always be a single byte of value 1 or 2
@@ -66,6 +73,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             return bytes.ToArray();
         }
 
+        /// <inheritdoc/>
         protected override void DecodeImpl(BinaryReader reader, long endOfStream)
         {
             this.IsEnabled = GetInteger(reader) == 1;

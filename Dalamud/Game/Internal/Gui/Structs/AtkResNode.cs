@@ -1,10 +1,15 @@
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 namespace Dalamud.Game.Internal.Gui.Structs
 {
-    // https://github.com/aers/FFXIVClientStructs/blob/main/Component/GUI/AtkResNode.cs
+    /// <summary>
+    /// Native memory representation of a UI resource node.
+    /// </summary>
+    /// <remarks>
+    /// This is copied from https://github.com/aers/FFXIVClientStructs/blob/main/Component/GUI/AtkResNode.cs.
+    /// If you need newer features, include FFXIVClientStructs and ILMerge the assembly.
+    /// </remarks>
     [StructLayout(LayoutKind.Explicit, Size = 0xA8)]
     public unsafe struct AtkResNode
     {

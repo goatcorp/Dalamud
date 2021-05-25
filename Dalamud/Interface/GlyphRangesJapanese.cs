@@ -1,7 +1,13 @@
 namespace Dalamud.Interface
 {
+    /// <summary>
+    /// Unicode glyph ranges for the Japanese language.
+    /// </summary>
     public static class GlyphRangesJapanese
     {
+        /// <summary>
+        /// Gets the unicode glyph ranges for the Japanese language.
+        /// </summary>
         public static ushort[] GlyphRanges => new ushort[]
         {
             0x0020, 0x00FF, 0x0391, 0x03A1, 0x03A3, 0x03A9, 0x03B1, 0x03C1, 0x03C3, 0x03C9, 0x0401, 0x0401, 0x0410, 0x044F, 0x0451, 0x0451,

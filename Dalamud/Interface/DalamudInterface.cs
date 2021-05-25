@@ -520,6 +520,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// Toggle the data window and preset the dropdown.
         /// </summary>
+        /// <param name="dataKind">The data kind to toggle.</param>
         internal void ToggleData(string dataKind)
         {
             this.dataWindow.IsOpen ^= true;

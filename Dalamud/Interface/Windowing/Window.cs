@@ -1,7 +1,6 @@
 using System.Numerics;
 
 using ImGuiNET;
-using Serilog;
 
 namespace Dalamud.Interface.Windowing
 {
@@ -12,7 +11,6 @@ namespace Dalamud.Interface.Windowing
     {
         private bool internalLastIsOpen = false;
         private bool internalIsOpen = false;
-        private bool mainIsOpen = false;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Window"/> class.
@@ -30,6 +28,9 @@ namespace Dalamud.Interface.Windowing
             this.ForceMainWindow = forceMainWindow;
         }
 
+        /// <summary>
+        /// Gets or sets the namespace of the window.
+        /// </summary>
         public string Namespace { get; set; }
 
         /// <summary>
@@ -115,9 +116,12 @@ namespace Dalamud.Interface.Windowing
         }
 
         /// <summary>
+        /// Code to be executed every time the window renders.
+        /// </summary>
+        /// <remarks>
         /// In this method, implement your drawing code.
         /// You do NOT need to ImGui.Begin your window.
-        /// </summary>
+        /// </remarks>
         public abstract void Draw();
 
         /// <summary>

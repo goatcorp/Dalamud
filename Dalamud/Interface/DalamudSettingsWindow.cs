@@ -15,10 +15,54 @@ using Serilog;
 
 namespace Dalamud.Interface
 {
+    /// <summary>
+    /// The window that allows for general configuration of Dalamud itself.
+    /// </summary>
     internal class DalamudSettingsWindow : Window
     {
+        private const float MinScale = 0.3f;
+        private const float MaxScale = 2.0f;
+
         private readonly Dalamud dalamud;
 
+        private string[] languages;
+        private string[] locLanguages;
+        private int langIndex;
+
+        private Vector4 hintTextColor = ImGuiColors.DalamudGrey;
+        private Vector4 warnTextColor = ImGuiColors.DalamudRed;
+
+        private XivChatType dalamudMessagesChatType;
+
+        private bool doCfTaskBarFlash;
+        private bool doCfChatMessage;
+
+        private float globalUiScale;
+        private bool doToggleUiHide;
+        private bool doToggleUiHideDuringCutscenes;
+        private bool doToggleUiHideDuringGpose;
+        private bool doDocking;
+        private bool doViewport;
+        private bool doGamepad;
+        private List<ThirdRepoSetting> thirdRepoList;
+
+        private bool printPluginsWelcomeMsg;
+        private bool autoUpdatePlugins;
+        private bool doButtonsSystemMenu;
+
+        private string thirdRepoTempUrl = string.Empty;
+        private string thirdRepoAddError = string.Empty;
+
+        #region Experimental
+
+        private bool doPluginTest;
+
+        #endregion
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DalamudSettingsWindow"/> class.
+        /// </summary>
+        /// <param name="dalamud">The Dalamud Instance.</param>
         public DalamudSettingsWindow(Dalamud dalamud)
             : base(Loc.Localize("DalamudSettingsHeader", "Dalamud Settings") + "###XlSettings2", ImGuiWindowFlags.NoCollapse)
         {
@@ -95,6 +139,7 @@ namespace Dalamud.Interface
             }
         }
 
+        /// <inheritdoc/>
         public override void OnOpen()
         {
             base.OnOpen();
@@ -104,6 +149,7 @@ namespace Dalamud.Interface
             Log.Information("OnOpen end");
         }
 
+        /// <inheritdoc/>
         public override void OnClose()
         {
             base.OnClose();
@@ -116,42 +162,7 @@ namespace Dalamud.Interface
             Log.Information("OnClose end");
         }
 
-        private string[] languages;
-        private string[] locLanguages;
-        private int langIndex;
-
-        private Vector4 hintTextColor = ImGuiColors.DalamudGrey;
-        private Vector4 warnTextColor = ImGuiColors.DalamudRed;
-
-        private XivChatType dalamudMessagesChatType;
-
-        private bool doCfTaskBarFlash;
-        private bool doCfChatMessage;
-
-        private const float MinScale = 0.3f;
-        private const float MaxScale = 2.0f;
-        private float globalUiScale;
-        private bool doToggleUiHide;
-        private bool doToggleUiHideDuringCutscenes;
-        private bool doToggleUiHideDuringGpose;
-        private bool doDocking;
-        private bool doViewport;
-        private bool doGamepad;
-        private List<ThirdRepoSetting> thirdRepoList;
-
-        private bool printPluginsWelcomeMsg;
-        private bool autoUpdatePlugins;
-        private bool doButtonsSystemMenu;
-
-        private string thirdRepoTempUrl = string.Empty;
-        private string thirdRepoAddError = string.Empty;
-
-        #region Experimental
-
-        private bool doPluginTest;
-
-        #endregion
-
+        /// <inheritdoc/>
         public override void Draw()
         {
             var windowSize = ImGui.GetWindowSize();

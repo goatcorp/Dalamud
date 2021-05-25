@@ -14,6 +14,9 @@ using Serilog;
 
 namespace Dalamud.Game.Network
 {
+    /// <summary>
+    /// This class handles network notifications and uploading Marketboard data.
+    /// </summary>
     public class NetworkHandlers
     {
         private readonly Dalamud dalamud;
@@ -24,10 +27,10 @@ namespace Dalamud.Game.Network
         private readonly IMarketBoardUploader uploader;
 
         /// <summary>
-        /// Event which gets fired when a duty is ready.
+        /// Initializes a new instance of the <see cref="NetworkHandlers"/> class.
         /// </summary>
-        public event EventHandler<ContentFinderCondition> CfPop;
-
+        /// <param name="dalamud">The Dalamud instance.</param>
+        /// <param name="optOutMbUploads">Whether the client should opt out of marketboard uploads.</param>
         public NetworkHandlers(Dalamud dalamud, bool optOutMbUploads)
         {
             this.dalamud = dalamud;
@@ -37,6 +40,11 @@ namespace Dalamud.Game.Network
 
             dalamud.Framework.Network.OnNetworkMessage += this.OnNetworkMessage;
         }
+
+        /// <summary>
+        /// Event which gets fired when a duty is ready.
+        /// </summary>
+        public event EventHandler<ContentFinderCondition> CfPop;
 
         private void OnNetworkMessage(IntPtr dataPtr, ushort opCode, uint sourceActorId, uint targetActorId, NetworkMessageDirection direction)
         {
@@ -74,13 +82,12 @@ namespace Dalamud.Game.Network
 
                 if (this.dalamud.Configuration.DutyFinderTaskbarFlash && !NativeFunctions.ApplicationIsActivated())
                 {
-                    var flashInfo = new NativeFunctions.FLASHWINFO
+                    var flashInfo = new NativeFunctions.FlashWindowInfo
                     {
-                        cbSize = (uint)Marshal.SizeOf<NativeFunctions.FLASHWINFO>(),
+                        cbSize = (uint)Marshal.SizeOf<NativeFunctions.FlashWindowInfo>(),
                         uCount = uint.MaxValue,
                         dwTimeout = 0,
-                        dwFlags = NativeFunctions.FlashWindow.FLASHW_ALL |
-                                        NativeFunctions.FlashWindow.FLASHW_TIMERNOFG,
+                        dwFlags = NativeFunctions.FlashWindow.All | NativeFunctions.FlashWindow.TimerNoFG,
                         hwnd = Process.GetCurrentProcess().MainWindowHandle,
                     };
                     NativeFunctions.FlashWindowEx(ref flashInfo);

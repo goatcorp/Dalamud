@@ -16,6 +16,9 @@ using Serilog;
 
 namespace Dalamud.Game
 {
+    /// <summary>
+    /// Chat events and public helper functions.
+    /// </summary>
     public class ChatHandlers
     {
         private static readonly Dictionary<string, string> UnicodeToDiscordEmojiDict = new()
@@ -24,11 +27,7 @@ namespace Dalamud.Game
             { "", "<:ffxive083:585848592699490329>" },
         };
 
-        private readonly Dalamud dalamud;
-
-        private DalamudLinkPayload openInstallerWindowLink;
-
-        private readonly Dictionary<XivChatType, Color> HandledChatTypeColors = new()
+        private readonly Dictionary<XivChatType, Color> handledChatTypeColors = new()
         {
             { XivChatType.CrossParty, Color.DodgerBlue },
             { XivChatType.Party, Color.DodgerBlue },
@@ -96,10 +95,14 @@ namespace Dalamud.Game
 
         private readonly Regex urlRegex = new(@"(http|ftp|https)://([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?", RegexOptions.Compiled);
 
+        private readonly Dalamud dalamud;
+        private DalamudLinkPayload openInstallerWindowLink;
         private bool hasSeenLoadingMsg;
 
-        public string LastLink { get; private set; }
-
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ChatHandlers"/> class.
+        /// </summary>
+        /// <param name="dalamud">Dalamud instance.</param>
         public ChatHandlers(Dalamud dalamud)
         {
             this.dalamud = dalamud;
@@ -111,6 +114,30 @@ namespace Dalamud.Game
             {
                 this.dalamud.DalamudUi.OpenPluginInstaller();
             });
+        }
+
+        /// <summary>
+        /// Gets the last URL seen in chat.
+        /// </summary>
+        public string LastLink { get; private set; }
+
+        /// <summary>
+        /// Convert a string to SeString and wrap in italics payloads.
+        /// </summary>
+        /// <param name="text">Text to convert.</param>
+        /// <returns>SeString payload of italicized text.</returns>
+        private static SeString MakeItalics(string text)
+        {
+            // TODO: when the code OnCharMessage is switched to SeString, this can be a straight insertion of the
+            // italics payloads only, and be a lot cleaner
+            var italicString = new SeString(new List<Payload>(new Payload[]
+            {
+                EmphasisItalicPayload.ItalicsOn,
+                new TextPayload(text),
+                EmphasisItalicPayload.ItalicsOff,
+            }));
+
+            return italicString;
         }
 
         private void OnCheckMessageHandled(XivChatType type, uint senderid, ref SeString sender, ref SeString message, ref bool isHandled)
@@ -282,20 +309,6 @@ namespace Dalamud.Game
             });
 
             this.hasSeenLoadingMsg = true;
-        }
-
-        private static SeString MakeItalics(string text)
-        {
-            // TODO: when the above code is switched to SeString, this can be a straight insertion of the
-            // italics payloads only, and be a lot cleaner
-            var italicString = new SeString(new List<Payload>(new Payload[]
-            {
-                EmphasisItalicPayload.ItalicsOn,
-                new TextPayload(text),
-                EmphasisItalicPayload.ItalicsOff,
-            }));
-
-            return italicString;
         }
     }
 }

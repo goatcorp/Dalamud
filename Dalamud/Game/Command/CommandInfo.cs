@@ -8,6 +8,17 @@ namespace Dalamud.Game.Command
     public sealed class CommandInfo
     {
         /// <summary>
+        /// Initializes a new instance of the <see cref="CommandInfo"/> class.
+        /// Create a new CommandInfo with the provided handler.
+        /// </summary>
+        /// <param name="handler">The method to call when the command is run.</param>
+        public CommandInfo(HandlerDelegate handler)
+        {
+            this.Handler = handler;
+            this.LoaderAssemblyName = Assembly.GetCallingAssembly()?.GetName()?.Name;
+        }
+
+        /// <summary>
         /// The function to be executed when the command is dispatched.
         /// </summary>
         /// <param name="command">The command itself.</param>
@@ -30,16 +41,8 @@ namespace Dalamud.Game.Command
         public bool ShowInHelp { get; set; } = true;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="CommandInfo"/> class.
-        /// Create a new CommandInfo with the provided handler.
+        /// Gets or sets the name of the assembly responsible for this command.
         /// </summary>
-        /// <param name="handler"></param>
-        public CommandInfo(HandlerDelegate handler)
-        {
-            this.Handler = handler;
-            this.LoaderAssemblyName = Assembly.GetCallingAssembly()?.GetName()?.Name;
-        }
-
         internal string LoaderAssemblyName { get; set; } = string.Empty;
     }
 }

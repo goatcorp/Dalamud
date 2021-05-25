@@ -7,15 +7,20 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
     /// </summary>
     public class SeHyphenPayload : Payload, ITextProvider
     {
+        private readonly byte[] bytes = { START_BYTE, (byte)SeStringChunkType.SeHyphen, 0x01, END_BYTE };
+
         /// <summary>
-        /// Instance of SeHyphenPayload.
+        /// Gets an instance of SeHyphenPayload.
         /// </summary>
         public static SeHyphenPayload Payload => new();
 
-        /// <inheritdoc />
-        public override PayloadType Type => PayloadType.SeHyphen;
+        /// <summary>
+        /// Gets the text, just a '–'.
+        /// </summary>
+        public string Text => "–";
 
-        private readonly byte[] bytes = { START_BYTE, (byte)SeStringChunkType.SeHyphen, 0x01, END_BYTE };
+        /// <inheritdoc/>
+        public override PayloadType Type => PayloadType.SeHyphen;
 
         /// <inheritdoc />
         protected override byte[] EncodeImpl() => this.bytes;
@@ -24,10 +29,5 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         protected override void DecodeImpl(BinaryReader reader, long endOfStream)
         {
         }
-
-        /// <summary>
-        /// Just a '–'.
-        /// </summary>
-        public string Text => "–";
     }
 }

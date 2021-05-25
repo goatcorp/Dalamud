@@ -10,18 +10,13 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
     public class IconPayload : Payload
     {
         /// <summary>
-        /// Gets the index of the icon.
+        /// Initializes a new instance of the <see cref="IconPayload"/> class.
+        /// Create a Icon payload for the specified icon.
         /// </summary>
-        [Obsolete("Use IconPayload.Icon")]
-        public uint IconIndex => (uint)this.Icon;
-
-        /// <summary>
-        /// Icon the payload represents.
-        /// </summary>
-        public BitmapFontIcon Icon { get; set; } = BitmapFontIcon.None;
-
-        internal IconPayload()
+        /// <param name="icon">The Icon.</param>
+        public IconPayload(BitmapFontIcon icon)
         {
+            this.Icon = icon;
         }
 
         /// <summary>
@@ -39,14 +34,29 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         /// Initializes a new instance of the <see cref="IconPayload"/> class.
         /// Create a Icon payload for the specified icon.
         /// </summary>
-        /// <param name="icon">The Icon.</param>
-        public IconPayload(BitmapFontIcon icon)
+        internal IconPayload()
         {
-            this.Icon = icon;
         }
 
-        /// <inheritdoc />
+        /// <inheritdoc/>
         public override PayloadType Type => PayloadType.Icon;
+
+        /// <summary>
+        /// Gets the index of the icon.
+        /// </summary>
+        [Obsolete("Use IconPayload.Icon")]
+        public uint IconIndex => (uint)this.Icon;
+
+        /// <summary>
+        /// Gets or sets the icon the payload represents.
+        /// </summary>
+        public BitmapFontIcon Icon { get; set; } = BitmapFontIcon.None;
+
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return $"{this.Type} - {this.Icon}";
+        }
 
         /// <inheritdoc />
         protected override byte[] EncodeImpl()
@@ -66,12 +76,6 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         protected override void DecodeImpl(BinaryReader reader, long endOfStream)
         {
             this.Icon = (BitmapFontIcon)GetInteger(reader);
-        }
-
-        /// <inheritdoc />
-        public override string ToString()
-        {
-            return $"{this.Type} - {this.Icon}";
         }
     }
 }

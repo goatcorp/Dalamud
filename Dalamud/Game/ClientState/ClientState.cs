@@ -17,75 +17,20 @@ namespace Dalamud.Game.ClientState
     /// </summary>
     public class ClientState : INotifyPropertyChanged, IDisposable
     {
-        private readonly Dalamud dalamud;
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        private ClientStateAddressResolver Address { get; }
-
-        public readonly ClientLanguage ClientLanguage;
-
         /// <summary>
         /// The table of all present actors.
         /// </summary>
         public readonly ActorTable Actors;
 
         /// <summary>
-        /// Gets the local player character, if one is present.
+        /// Gets the language of the client.
         /// </summary>
-        [CanBeNull]
-        public PlayerCharacter LocalPlayer
-        {
-            get
-            {
-                var actor = this.Actors[0];
-
-                if (actor is PlayerCharacter pc)
-                    return pc;
-
-                return null;
-            }
-        }
-
-        #region TerritoryType
-
-        // TODO: The hooking logic for this should go into a separate class.
-        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-        private delegate IntPtr SetupTerritoryTypeDelegate(IntPtr manager, ushort terriType);
-
-        private readonly Hook<SetupTerritoryTypeDelegate> setupTerritoryTypeHook;
+        public readonly ClientLanguage ClientLanguage;
 
         /// <summary>
         /// The current Territory the player resides in.
         /// </summary>
         public ushort TerritoryType;
-
-        /// <summary>
-        /// Event that gets fired when the current Territory changes.
-        /// </summary>
-        public EventHandler<ushort> TerritoryChanged;
-
-        /// <summary>
-        /// Event that gets fired when a duty is ready.
-        /// </summary>
-        public event EventHandler<ContentFinderCondition> CfPop;
-
-        private IntPtr SetupTerritoryTypeDetour(IntPtr manager, ushort terriType)
-        {
-            this.TerritoryType = terriType;
-            this.TerritoryChanged?.Invoke(this, terriType);
-
-            Log.Debug("TerritoryType changed: {0}", terriType);
-
-            return this.setupTerritoryTypeHook.Original(manager, terriType);
-        }
-
-        #endregion
-
-        /// <summary>
-        /// Gets the content ID of the local character.
-        /// </summary>
-        public ulong LocalContentId => (ulong)Marshal.ReadInt64(this.Address.LocalContentId);
 
         /// <summary>
         /// The class facilitating Job Gauge data access.
@@ -118,6 +63,17 @@ namespace Dalamud.Game.ClientState
         public Targets Targets;
 
         /// <summary>
+        /// Event that gets fired when the current Territory changes.
+        /// </summary>
+        public EventHandler<ushort> TerritoryChanged;
+
+        private readonly Dalamud dalamud;
+        private readonly ClientStateAddressResolver address;
+        private readonly Hook<SetupTerritoryTypeDelegate> setupTerritoryTypeHook;
+
+        private bool lastConditionNone = true;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="ClientState"/> class.
         /// Set up client state access.
         /// </summary>
@@ -127,59 +83,44 @@ namespace Dalamud.Game.ClientState
         public ClientState(Dalamud dalamud, DalamudStartInfo startInfo, SigScanner scanner)
         {
             this.dalamud = dalamud;
-            this.Address = new ClientStateAddressResolver();
-            this.Address.Setup(scanner);
+            this.address = new ClientStateAddressResolver();
+            this.address.Setup(scanner);
 
             Log.Verbose("===== C L I E N T  S T A T E =====");
 
             this.ClientLanguage = startInfo.Language;
 
-            this.Actors = new ActorTable(dalamud, this.Address);
+            this.Actors = new ActorTable(dalamud, this.address);
 
-            this.PartyList = new PartyList(dalamud, this.Address);
+            this.PartyList = new PartyList(dalamud, this.address);
 
-            this.JobGauges = new JobGauges(this.Address);
+            this.JobGauges = new JobGauges(this.address);
 
-            this.KeyState = new KeyState(this.Address, scanner.Module.BaseAddress);
+            this.KeyState = new KeyState(this.address, scanner.Module.BaseAddress);
 
-            this.GamepadState = new GamepadState(this.Address);
+            this.GamepadState = new GamepadState(this.address);
 
-            this.Condition = new Condition(this.Address);
+            this.Condition = new Condition(this.address);
 
-            this.Targets = new Targets(dalamud, this.Address);
+            this.Targets = new Targets(dalamud, this.address);
 
-            Log.Verbose("SetupTerritoryType address {SetupTerritoryType}", this.Address.SetupTerritoryType);
+            Log.Verbose("SetupTerritoryType address {SetupTerritoryType}", this.address.SetupTerritoryType);
 
-            this.setupTerritoryTypeHook = new Hook<SetupTerritoryTypeDelegate>(this.Address.SetupTerritoryType, new SetupTerritoryTypeDelegate(this.SetupTerritoryTypeDetour), this);
+            this.setupTerritoryTypeHook = new Hook<SetupTerritoryTypeDelegate>(this.address.SetupTerritoryType, new SetupTerritoryTypeDelegate(this.SetupTerritoryTypeDetour), this);
 
             dalamud.Framework.OnUpdateEvent += this.FrameworkOnOnUpdateEvent;
             dalamud.NetworkHandlers.CfPop += this.NetworkHandlersOnCfPop;
         }
 
-        private void NetworkHandlersOnCfPop(object sender, ContentFinderCondition e)
-        {
-            this.CfPop?.Invoke(this, e);
-        }
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        private delegate IntPtr SetupTerritoryTypeDelegate(IntPtr manager, ushort terriType);
 
-        public void Enable()
-        {
-            this.GamepadState.Enable();
-            this.PartyList.Enable();
-            this.setupTerritoryTypeHook.Enable();
-        }
-
-        public void Dispose()
-        {
-            this.PartyList.Dispose();
-            this.setupTerritoryTypeHook.Dispose();
-            this.Actors.Dispose();
-            this.GamepadState.Dispose();
-
-            this.dalamud.Framework.OnUpdateEvent -= this.FrameworkOnOnUpdateEvent;
-            this.dalamud.NetworkHandlers.CfPop += this.NetworkHandlersOnCfPop;
-        }
-
-        private bool lastConditionNone = true;
+        /// <summary>
+        /// Event that fires when a property changes.
+        /// </summary>
+#pragma warning disable CS0067
+        public event PropertyChangedEventHandler PropertyChanged;
+#pragma warning restore
 
         /// <summary>
         /// Event that fires when a character is logging in.
@@ -192,9 +133,75 @@ namespace Dalamud.Game.ClientState
         public event EventHandler OnLogout;
 
         /// <summary>
+        /// Event that gets fired when a duty is ready.
+        /// </summary>
+        public event EventHandler<ContentFinderCondition> CfPop;
+
+        /// <summary>
+        /// Gets the local player character, if one is present.
+        /// </summary>
+        [CanBeNull]
+        public PlayerCharacter LocalPlayer
+        {
+            get
+            {
+                var actor = this.Actors[0];
+
+                if (actor is PlayerCharacter pc)
+                    return pc;
+
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Gets the content ID of the local character.
+        /// </summary>
+        public ulong LocalContentId => (ulong)Marshal.ReadInt64(this.address.LocalContentId);
+
+        /// <summary>
         /// Gets a value indicating whether a character is logged in.
         /// </summary>
         public bool IsLoggedIn { get; private set; }
+
+        /// <summary>
+        /// Enable this module.
+        /// </summary>
+        public void Enable()
+        {
+            this.GamepadState.Enable();
+            this.PartyList.Enable();
+            this.setupTerritoryTypeHook.Enable();
+        }
+
+        /// <summary>
+        /// Dispose of managed and unmanaged resources.
+        /// </summary>
+        public void Dispose()
+        {
+            this.PartyList.Dispose();
+            this.setupTerritoryTypeHook.Dispose();
+            this.Actors.Dispose();
+            this.GamepadState.Dispose();
+
+            this.dalamud.Framework.OnUpdateEvent -= this.FrameworkOnOnUpdateEvent;
+            this.dalamud.NetworkHandlers.CfPop += this.NetworkHandlersOnCfPop;
+        }
+
+        private IntPtr SetupTerritoryTypeDetour(IntPtr manager, ushort terriType)
+        {
+            this.TerritoryType = terriType;
+            this.TerritoryChanged?.Invoke(this, terriType);
+
+            Log.Debug("TerritoryType changed: {0}", terriType);
+
+            return this.setupTerritoryTypeHook.Original(manager, terriType);
+        }
+
+        private void NetworkHandlersOnCfPop(object sender, ContentFinderCondition e)
+        {
+            this.CfPop?.Invoke(this, e);
+        }
 
         private void FrameworkOnOnUpdateEvent(Framework framework)
         {

@@ -34,12 +34,13 @@
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
         <DefineConstants>DEBUG;TRACE</DefineConstants>
     </PropertyGroup>
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-        <NoWarn>IDE0017;IDE0044;IDE0047;IDE0048;CS1573;CS1591;CS1701;CS1702</NoWarn>
+    <PropertyGroup>
+        <NoWarn>IDE0017;IDE0044;IDE0047;IDE0048;IDE1006;CS1573;CS1591;CS1701;CS1702</NoWarn>
         <!-- IDE0017 - Use object initializers -->
         <!-- IDE0044 - Add readonly modifier -->
         <!-- IDE0047 - Parentheses preferences -->
         <!-- IDE0048 - Parentheses preferences -->
+        <!-- IDE1006 - Naming preferences -->
         <!-- CS1573  - Parameter has no matching param tag in the XML comment -->
         <!-- CS1591  - Missing XML comment for publicly visible type or member -->
         <!-- CS1701  - Runtime policy may be needed -->

@@ -2,12 +2,22 @@ using System;
 
 namespace Dalamud.Game.Internal.File
 {
+    /// <summary>
+    /// The address resolver for the <see cref="ResourceManager"/> class.
+    /// </summary>
     internal class ResourceManagerAddressResolver : BaseAddressResolver
     {
+        /// <summary>
+        /// Gets the address of the GetResourceAsync method.
+        /// </summary>
         public IntPtr GetResourceAsync { get; private set; }
 
+        /// <summary>
+        /// Gets the address of the GetResourceSync method.
+        /// </summary>
         public IntPtr GetResourceSync { get; private set; }
 
+        /// <inheritdoc/>
         protected override void Setup64Bit(SigScanner sig)
         {
             this.GetResourceAsync = sig.ScanText("48 89 5C 24 08 48 89 54  24 10 57 48 83 EC 20 B8 03 00 00 00 48 8B F9 86  82 A1 00 00 00 48 8B 5C 24 38 B8 01 00 00 00 87  83 90 00 00 00 85 C0 74");

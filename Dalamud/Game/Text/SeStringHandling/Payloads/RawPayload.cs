@@ -14,46 +14,16 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
     /// </summary>
     public class RawPayload : Payload
     {
-        // this and others could be an actual static member somewhere and avoid construction costs, but that probably isn't a real concern
-
-        /// <summary>
-        /// Gets a fixed Payload representing a common link-termination sequence, found in many payload chains.
-        /// </summary>
-        public static RawPayload LinkTerminator => new(new byte[] { 0x02, 0x27, 0x07, 0xCF, 0x01, 0x01, 0x01, 0xFF, 0x01, 0x03 });
-
-        public override PayloadType Type => PayloadType.Unknown;
+        [JsonProperty]
+        private byte chunkType;
 
         [JsonProperty]
         private byte[] data;
 
-        // this is a bit different from the underlying data
-        // We need to store just the chunk data for decode to behave nicely, but when reading data out
-        // it makes more sense to get the entire payload
-
         /// <summary>
-        /// Gets the entire payload byte sequence for this payload.
-        /// The returned data is a clone and modifications will not be persisted.
+        /// Initializes a new instance of the <see cref="RawPayload"/> class.
         /// </summary>
-        [JsonIgnore]
-        public byte[] Data
-        {
-            get
-            {
-                // for now don't allow modifying the contents
-                // because we don't really have a way to track Dirty
-                return (byte[])this.Encode().Clone();
-            }
-        }
-
-        [JsonProperty]
-        private byte chunkType;
-
-        [JsonConstructor]
-        internal RawPayload(byte chunkType)
-        {
-            this.chunkType = chunkType;
-        }
-
+        /// <param name="data">The payload data.</param>
         public RawPayload(byte[] data)
         {
             // this payload is 'special' in that we require the entire chunk to be passed in
@@ -63,11 +33,43 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             this.data = data.Skip(3).Take(data.Length - 4).ToArray();
         }
 
-        public override string ToString()
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RawPayload"/> class.
+        /// </summary>
+        /// <param name="chunkType">The chunk type.</param>
+        [JsonConstructor]
+        internal RawPayload(byte chunkType)
         {
-            return $"{this.Type} - Data: {BitConverter.ToString(this.Data).Replace("-", " ")}";
+            this.chunkType = chunkType;
         }
 
+        /// <summary>
+        /// Gets a fixed Payload representing a common link-termination sequence, found in many payload chains.
+        /// </summary>
+        public static RawPayload LinkTerminator => new(new byte[] { 0x02, 0x27, 0x07, 0xCF, 0x01, 0x01, 0x01, 0xFF, 0x01, 0x03 });
+
+        /// <inheritdoc/>
+        public override PayloadType Type => PayloadType.Unknown;
+
+        /// <summary>
+        /// Gets the entire payload byte sequence for this payload.
+        /// The returned data is a clone and modifications will not be persisted.
+        /// </summary>
+        [JsonIgnore]
+        public byte[] Data
+        {
+            // this is a bit different from the underlying data
+            // We need to store just the chunk data for decode to behave nicely, but when reading data out
+            // it makes more sense to get the entire payload
+            get
+            {
+                // for now don't allow modifying the contents
+                // because we don't really have a way to track Dirty
+                return (byte[])this.Encode().Clone();
+            }
+        }
+
+        /// <inheritdoc/>
         public override bool Equals(object obj)
         {
             if (obj is RawPayload rp)
@@ -79,6 +81,24 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             return false;
         }
 
+        /// <inheritdoc/>
+        public override int GetHashCode()
+        {
+            // Generated random values.
+            var hashCode = 1216194372;
+            hashCode = (hashCode * -1521134295) + this.Type.GetHashCode();
+            hashCode = (hashCode * -1521134295) + this.chunkType.GetHashCode();
+            hashCode = (hashCode * -1521134295) + EqualityComparer<byte[]>.Default.GetHashCode(this.data);
+            return hashCode;
+        }
+
+        /// <inheritdoc/>
+        public override string ToString()
+        {
+            return $"{this.Type} - Data: {BitConverter.ToString(this.Data).Replace("-", " ")}";
+        }
+
+        /// <inheritdoc/>
         protected override byte[] EncodeImpl()
         {
             var chunkLen = this.data.Length + 1;
@@ -96,6 +116,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             return bytes.ToArray();
         }
 
+        /// <inheritdoc/>
         protected override void DecodeImpl(BinaryReader reader, long endOfStream)
         {
             this.data = reader.ReadBytes((int)(endOfStream - reader.BaseStream.Position + 1));

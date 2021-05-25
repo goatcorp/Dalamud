@@ -43,6 +43,5 @@ namespace Dalamud.Game.ClientState.Structs.JobGauge
         /// </summary>
         /// <returns><c>true</c> or <c>false</c>.</returns>
         public bool HasKa() => (this.Sen & Sen.KA) != 0;
-
     }
 }

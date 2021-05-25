@@ -6,12 +6,18 @@ using Serilog;
 
 namespace Dalamud.Game.Internal.DXGI
 {
+    /// <summary>
+    /// The address resolver for native D3D11 methods to facilitate displaying the Dalamud UI.
+    /// </summary>
     public sealed class SwapChainSigResolver : BaseAddressResolver, ISwapChainAddressResolver
     {
+        /// <inheritdoc/>
         public IntPtr Present { get; set; }
 
+        /// <inheritdoc/>
         public IntPtr ResizeBuffers { get; set; }
 
+        /// <inheritdoc/>
         protected override void Setup64Bit(SigScanner sig)
         {
             var module = Process.GetCurrentProcess().Modules.Cast<ProcessModule>().First(m => m.ModuleName == "dxgi.dll");

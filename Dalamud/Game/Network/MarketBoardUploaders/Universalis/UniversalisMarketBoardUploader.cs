@@ -10,6 +10,9 @@ using Serilog;
 
 namespace Dalamud.Game.Network.Universalis.MarketBoardUploaders
 {
+    /// <summary>
+    /// This class represents an uploader for contributing data to Universalis.
+    /// </summary>
     internal class UniversalisMarketBoardUploader : IMarketBoardUploader
     {
         private const string ApiBase = "https://universalis.app";
@@ -19,11 +22,16 @@ namespace Dalamud.Game.Network.Universalis.MarketBoardUploaders
 
         private readonly Dalamud dalamud;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UniversalisMarketBoardUploader"/> class.
+        /// </summary>
+        /// <param name="dalamud">The Dalamud instance.</param>
         public UniversalisMarketBoardUploader(Dalamud dalamud)
         {
             this.dalamud = dalamud;
         }
 
+        /// <inheritdoc/>
         public void Upload(MarketBoardItemRequest request)
         {
             using var client = new WebClient();
@@ -101,6 +109,7 @@ namespace Dalamud.Game.Network.Universalis.MarketBoardUploaders
             Log.Verbose("Universalis data upload for item#{0} completed.", request.CatalogId);
         }
 
+        /// <inheritdoc/>
         public void UploadTax(MarketTaxRates taxRates)
         {
             using var client = new WebClient();

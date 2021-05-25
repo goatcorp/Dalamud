@@ -16,25 +16,22 @@ using Serilog;
 
 namespace Dalamud.Plugin
 {
+    /// <summary>
+    /// This class represents a single plugin repository.
+    /// </summary>
     internal class PluginRepository
     {
-        private string PluginMasterUrl => "https://raw.githubusercontent.com/goatcorp/DalamudPlugins/master/pluginmaster.json";
+        private const string PluginMasterUrl = "https://raw.githubusercontent.com/goatcorp/DalamudPlugins/master/pluginmaster.json";
 
         private readonly Dalamud dalamud;
         private string pluginDirectory;
-        public ReadOnlyCollection<PluginDefinition> PluginMaster;
 
-        public enum InitializationState
-        {
-            Unknown,
-            InProgress,
-            Success,
-            Fail,
-            FailThirdRepo,
-        }
-
-        public InitializationState State { get; private set; }
-
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PluginRepository"/> class.
+        /// </summary>
+        /// <param name="dalamud">The Dalamud instance.</param>
+        /// <param name="pluginDirectory">The plugin directory path.</param>
+        /// <param name="gameVersion">The current game version.</param>
         public PluginRepository(Dalamud dalamud, string pluginDirectory, string gameVersion)
         {
             this.dalamud = dalamud;
@@ -43,6 +40,50 @@ namespace Dalamud.Plugin
             this.ReloadPluginMasterAsync();
         }
 
+        /// <summary>
+        /// Values representing plugin initialization state.
+        /// </summary>
+        public enum InitializationState
+        {
+            /// <summary>
+            /// State is unknown.
+            /// </summary>
+            Unknown,
+
+            /// <summary>
+            /// State is in progress.
+            /// </summary>
+            InProgress,
+
+            /// <summary>
+            /// State is successful.
+            /// </summary>
+            Success,
+
+            /// <summary>
+            /// State is failure.
+            /// </summary>
+            Fail,
+
+            /// <summary>
+            /// State is failure, for a 3rd party repo plugin.
+            /// </summary>
+            FailThirdRepo,
+        }
+
+        /// <summary>
+        /// Gets the plugin master list of available plugins.
+        /// </summary>
+        public ReadOnlyCollection<PluginDefinition> PluginMaster { get; private set; }
+
+        /// <summary>
+        /// Gets the initialization state of the plugin repository.
+        /// </summary>
+        public InitializationState State { get; private set; }
+
+        /// <summary>
+        /// Reload the plugin master asynchronously in a task.
+        /// </summary>
         public void ReloadPluginMasterAsync()
         {
             this.State = InitializationState.InProgress;
@@ -54,7 +95,7 @@ namespace Dalamud.Plugin
                 var allPlugins = new List<PluginDefinition>();
 
                 var repos = this.dalamud.Configuration.ThirdRepoList.Where(x => x.IsEnabled).Select(x => x.Url)
-                                .Prepend(this.PluginMasterUrl).ToArray();
+                                .Prepend(PluginMasterUrl).ToArray();
 
                 try
                 {
@@ -95,6 +136,14 @@ namespace Dalamud.Plugin
             });
         }
 
+        /// <summary>
+        /// Install a plugin.
+        /// </summary>
+        /// <param name="definition">The plugin definition.</param>
+        /// <param name="enableAfterInstall">Whether the plugin should be immediately enabled.</param>
+        /// <param name="isUpdate">Whether this install is an update.</param>
+        /// <param name="fromTesting">Whether this install is flagged as testing.</param>
+        /// <returns>Success or failure.</returns>
         public bool InstallPlugin(PluginDefinition definition, bool enableAfterInstall = true, bool isUpdate = false, bool fromTesting = false)
         {
             try
@@ -187,17 +236,11 @@ namespace Dalamud.Plugin
             }
         }
 
-        internal class PluginUpdateStatus
-        {
-            public string InternalName { get; set; }
-
-            public string Name { get; set; }
-
-            public string Version { get; set; }
-
-            public bool WasUpdated { get; set; }
-        }
-
+        /// <summary>
+        /// Update all plugins.
+        /// </summary>
+        /// <param name="dryRun">Perform a dry run of the update and skip the actual installation.</param>
+        /// <returns>A tuple of whether the update was successful and the list of updated plugins.</returns>
         public (bool Success, List<PluginUpdateStatus> UpdatedPlugins) UpdatePlugins(bool dryRun = false)
         {
             Log.Information("Starting plugin update... dry:{0}", dryRun);
@@ -381,7 +424,12 @@ namespace Dalamud.Plugin
             return (!hasError, updatedList);
         }
 
-        public void PrintUpdatedPlugins(List<PluginRepository.PluginUpdateStatus> updatedPlugins, string header)
+        /// <summary>
+        /// Print to chat any plugin updates and whether they were successful.
+        /// </summary>
+        /// <param name="updatedPlugins">The list of updated plugins.</param>
+        /// <param name="header">The header text to send to chat prior to any update info.</param>
+        public void PrintUpdatedPlugins(List<PluginUpdateStatus> updatedPlugins, string header)
         {
             if (updatedPlugins != null && updatedPlugins.Any())
             {
@@ -404,6 +452,9 @@ namespace Dalamud.Plugin
             }
         }
 
+        /// <summary>
+        /// Cleanup disabled plugins.
+        /// </summary>
         public void CleanupPlugins()
         {
             try
@@ -483,6 +534,32 @@ namespace Dalamud.Plugin
             {
                 Log.Error(ex, "[PLUGINR] Plugin cleanup failed.");
             }
+        }
+
+        /// <summary>
+        /// Plugin update status.
+        /// </summary>
+        internal class PluginUpdateStatus
+        {
+            /// <summary>
+            /// Gets or sets the plugin internal name.
+            /// </summary>
+            public string InternalName { get; set; }
+
+            /// <summary>
+            /// Gets or sets the plugin name.
+            /// </summary>
+            public string Name { get; set; }
+
+            /// <summary>
+            /// Gets or sets the plugin version.
+            /// </summary>
+            public string Version { get; set; }
+
+            /// <summary>
+            /// Gets or sets a value indicating whether the plugin was updated.
+            /// </summary>
+            public bool WasUpdated { get; set; }
         }
     }
 }

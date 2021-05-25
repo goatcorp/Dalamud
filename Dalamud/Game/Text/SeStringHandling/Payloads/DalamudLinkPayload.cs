@@ -7,15 +7,32 @@ using JetBrains.Annotations;
 
 namespace Dalamud.Game.Text.SeStringHandling.Payloads
 {
+    /// <summary>
+    /// This class represents a custom Dalamud clickable chat link.
+    /// </summary>
     public class DalamudLinkPayload : Payload
     {
+        /// <inheritdoc/>
         public override PayloadType Type => PayloadType.DalamudLink;
 
+        /// <summary>
+        /// Gets the plugin command ID to be linked.
+        /// </summary>
         public uint CommandId { get; internal set; } = 0;
 
+        /// <summary>
+        /// Gets the plugin name to be linked.
+        /// </summary>
         [NotNull]
         public string Plugin { get; internal set; } = string.Empty;
 
+        /// <inheritdoc/>
+        public override string ToString()
+        {
+            return $"{this.Type} -  Plugin: {this.Plugin}, Command: {this.CommandId}";
+        }
+
+        /// <inheritdoc/>
         protected override byte[] EncodeImpl()
         {
             var pluginBytes = Encoding.UTF8.GetBytes(this.Plugin);
@@ -35,15 +52,11 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             return bytes.ToArray();
         }
 
+        /// <inheritdoc/>
         protected override void DecodeImpl(BinaryReader reader, long endOfStream)
         {
             this.Plugin = Encoding.UTF8.GetString(reader.ReadBytes(reader.ReadByte()));
             this.CommandId = GetInteger(reader);
-        }
-
-        public override string ToString()
-        {
-            return $"{this.Type} -  Plugin: {this.Plugin}, Command: {this.CommandId}";
         }
     }
 }

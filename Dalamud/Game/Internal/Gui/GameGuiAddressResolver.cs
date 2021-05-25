@@ -3,53 +3,96 @@ using System.Runtime.InteropServices;
 
 namespace Dalamud.Game.Internal.Gui
 {
+    /// <summary>
+    /// The address resolver for the <see cref="GameGui"/> class.
+    /// </summary>
     internal sealed class GameGuiAddressResolver : BaseAddressResolver
     {
-        public IntPtr BaseAddress { get; private set; }
-
-        public IntPtr ChatManager { get; private set; }
-
-        public IntPtr SetGlobalBgm { get; private set; }
-
-        public IntPtr HandleItemHover { get; set; }
-
-        public IntPtr HandleItemOut { get; set; }
-
-        public IntPtr HandleActionHover { get; set; }
-
-        public IntPtr HandleActionOut { get; set; }
-
-        public IntPtr GetUIObject { get; private set; }
-
-        public IntPtr GetMatrixSingleton { get; private set; }
-
-        public IntPtr ScreenToWorld { get; private set; }
-
-        public IntPtr ToggleUiHide { get; set; }
-
-        public IntPtr GetBaseUIObject { get; private set; }
-
-        public IntPtr GetUIObjectByName { get; private set; }
-
-        public IntPtr GetUIModule { get; private set; }
-
-        public IntPtr GetAgentModule { get; private set; }
-
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GameGuiAddressResolver"/> class.
+        /// </summary>
+        /// <param name="baseAddress">The base address of the native GuiManager class.</param>
         public GameGuiAddressResolver(IntPtr baseAddress)
         {
             this.BaseAddress = baseAddress;
         }
 
-        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-        private delegate IntPtr GetChatManagerDelegate(IntPtr guiManager);
+        /// <summary>
+        /// Gets the base address of the native GuiManager class.
+        /// </summary>
+        public IntPtr BaseAddress { get; private set; }
 
-        protected override void SetupInternal(SigScanner scanner)
-        {
-            // Xiv__UiManager__GetChatManager   000   lea     rax, [rcx+13E0h]
-            // Xiv__UiManager__GetChatManager+7 000   retn
-            this.ChatManager = this.BaseAddress + 0x13E0;
-        }
+        /// <summary>
+        /// Gets the address of the native ChatManager class.
+        /// </summary>
+        public IntPtr ChatManager { get; private set; }
 
+        /// <summary>
+        /// Gets the address of the native SetGlobalBgm method.
+        /// </summary>
+        public IntPtr SetGlobalBgm { get; private set; }
+
+        /// <summary>
+        /// Gets the address of the native HandleItemHover method.
+        /// </summary>
+        public IntPtr HandleItemHover { get; private set; }
+
+        /// <summary>
+        /// Gets the address of the native HandleItemOut method.
+        /// </summary>
+        public IntPtr HandleItemOut { get; private set; }
+
+        /// <summary>
+        /// Gets the address of the native HandleActionHover method.
+        /// </summary>
+        public IntPtr HandleActionHover { get; private set; }
+
+        /// <summary>
+        /// Gets the address of the native HandleActionOut method.
+        /// </summary>
+        public IntPtr HandleActionOut { get; private set; }
+
+        /// <summary>
+        /// Gets the address of the native GetUIObject method.
+        /// </summary>
+        public IntPtr GetUIObject { get; private set; }
+
+        /// <summary>
+        /// Gets the address of the native GetMatrixSingleton method.
+        /// </summary>
+        public IntPtr GetMatrixSingleton { get; private set; }
+
+        /// <summary>
+        /// Gets the address of the native ScreenToWorld method.
+        /// </summary>
+        public IntPtr ScreenToWorld { get; private set; }
+
+        /// <summary>
+        /// Gets the address of the native ToggleUiHide method.
+        /// </summary>
+        public IntPtr ToggleUiHide { get; private set; }
+
+        /// <summary>
+        /// Gets the address of the native Client::UI::UIModule getter method.
+        /// </summary>
+        public IntPtr GetBaseUIObject { get; private set; }
+
+        /// <summary>
+        /// Gets the address of the native GetUIObjectByName method.
+        /// </summary>
+        public IntPtr GetUIObjectByName { get; private set; }
+
+        /// <summary>
+        /// Gets the address of the native GetUIModule method.
+        /// </summary>
+        public IntPtr GetUIModule { get; private set; }
+
+        /// <summary>
+        /// Gets the address of the native GetAgentModule method.
+        /// </summary>
+        public IntPtr GetAgentModule { get; private set; }
+
+        /// <inheritdoc/>
         protected override void Setup64Bit(SigScanner sig)
         {
             this.SetGlobalBgm = sig.ScanText("4C 8B 15 ?? ?? ?? ?? 4D 85 D2 74 58");
@@ -67,6 +110,14 @@ namespace Dalamud.Game.Internal.Gui
 
             var uiModuleVtableSig = sig.GetStaticAddressFromSig("48 8D 05 ?? ?? ?? ?? 4C 89 61 28");
             this.GetAgentModule = Marshal.ReadIntPtr(uiModuleVtableSig, 34 * IntPtr.Size);
+        }
+
+        /// <inheritdoc/>
+        protected override void SetupInternal(SigScanner scanner)
+        {
+            // Xiv__UiManager__GetChatManager   000   lea     rax, [rcx+13E0h]
+            // Xiv__UiManager__GetChatManager+7 000   retn
+            this.ChatManager = this.BaseAddress + 0x13E0;
         }
     }
 }

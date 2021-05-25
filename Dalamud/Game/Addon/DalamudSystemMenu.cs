@@ -10,24 +10,15 @@ using ValueType = FFXIVClientStructs.FFXIV.Component.GUI.ValueType;
 
 namespace Dalamud.Game.Addon
 {
-    internal unsafe class DalamudSystemMenu
+    /// <summary>
+    /// This class implements in-game Dalamud options in the in-game System menu.
+    /// </summary>
+    internal sealed unsafe partial class DalamudSystemMenu
     {
         private readonly Dalamud dalamud;
-
-        private delegate void AgentHudOpenSystemMenuPrototype(void* thisPtr, AtkValue* atkValueArgs, uint menuSize);
-
-        private Hook<AgentHudOpenSystemMenuPrototype> hookAgentHudOpenSystemMenu;
-
-        private delegate void AtkValueChangeType(AtkValue* thisPtr, ValueType type);
-
         private AtkValueChangeType atkValueChangeType;
-
-        private delegate void AtkValueSetString(AtkValue* thisPtr, byte* bytes);
-
         private AtkValueSetString atkValueSetString;
-
-        private delegate void UiModuleRequestMainCommand(void* thisPtr, int commandId);
-
+        private Hook<AgentHudOpenSystemMenuPrototype> hookAgentHudOpenSystemMenu;
         // TODO: Make this into events in Framework.Gui
         private Hook<UiModuleRequestMainCommand> hookUiModuleRequestMainCommand;
 
@@ -62,6 +53,17 @@ namespace Dalamud.Game.Addon
                 this);
         }
 
+        private delegate void AgentHudOpenSystemMenuPrototype(void* thisPtr, AtkValue* atkValueArgs, uint menuSize);
+
+        private delegate void AtkValueChangeType(AtkValue* thisPtr, ValueType type);
+
+        private delegate void AtkValueSetString(AtkValue* thisPtr, byte* bytes);
+
+        private delegate void UiModuleRequestMainCommand(void* thisPtr, int commandId);
+
+        /// <summary>
+        /// Enables the <see cref="DalamudSystemMenu"/>.
+        /// </summary>
         public void Enable()
         {
             this.hookAgentHudOpenSystemMenu.Enable();
@@ -154,21 +156,44 @@ namespace Dalamud.Game.Addon
                     break;
             }
         }
+    }
 
-        #region IDisposable Support
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposing) return;
+    /// <summary>
+    /// Implements IDisposable.
+    /// </summary>
+    internal sealed partial class DalamudSystemMenu : IDisposable
+    {
+        private bool disposed = false;
 
-            this.hookAgentHudOpenSystemMenu.Dispose();
-            this.hookUiModuleRequestMainCommand.Dispose();
-        }
+        /// <summary>
+        /// Finalizes an instance of the <see cref="DalamudSystemMenu"/> class.
+        /// </summary>
+        ~DalamudSystemMenu() => this.Dispose(false);
 
+        /// <summary>
+        /// Dispose of managed and unmanaged resources.
+        /// </summary>
         public void Dispose()
         {
             this.Dispose(true);
             GC.SuppressFinalize(this);
         }
-        #endregion
+
+        /// <summary>
+        /// Dispose of managed and unmanaged resources.
+        /// </summary>
+        private void Dispose(bool disposing)
+        {
+            if (this.disposed)
+                return;
+
+            if (disposing)
+            {
+                this.hookAgentHudOpenSystemMenu.Dispose();
+                this.hookUiModuleRequestMainCommand.Dispose();
+            }
+
+            this.disposed = true;
+        }
     }
 }

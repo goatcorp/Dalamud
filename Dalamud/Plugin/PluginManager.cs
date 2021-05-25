@@ -31,6 +31,8 @@ namespace Dalamud.Plugin
 
         private readonly List<BannedPlugin> bannedPlugins;
 
+        private IEnumerable<(FileInfo DllFile, PluginDefinition Definition, bool IsRaw)> deferredPlugins;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="PluginManager"/> class.
         /// </summary>
@@ -43,9 +45,7 @@ namespace Dalamud.Plugin
             this.pluginDirectory = pluginDirectory;
             this.devPluginDirectory = devPluginDirectory;
 
-            this.Plugins =
-                new List<(IDalamudPlugin Plugin, PluginDefinition Definition, DalamudPluginInterface PluginInterface,
-                    bool IsRaw)>();
+            this.Plugins = new List<(IDalamudPlugin Plugin, PluginDefinition Definition, DalamudPluginInterface PluginInterface, bool IsRaw)>();
             this.IpcSubscriptions = new List<(string SourcePluginName, string SubPluginName, Action<ExpandoObject> SubAction)>();
 
             this.pluginConfigs = new PluginConfigurations(Path.Combine(Path.GetDirectoryName(dalamud.StartInfo.ConfigurationPath), "pluginConfigs"));
@@ -109,8 +109,6 @@ namespace Dalamud.Plugin
             this.Plugins.Clear();
         }
 
-        private IEnumerable<(FileInfo DllFile, PluginDefinition Definition, bool IsRaw)> deferredPlugins;
-
         /// <summary>
         /// Load plugins that need to be loaded synchronously and prepare plugins that can be loaded asynchronously.
         /// </summary>
@@ -172,6 +170,9 @@ namespace Dalamud.Plugin
             }
         }
 
+        /// <summary>
+        /// Load plugins that have been explicitly deferred.
+        /// </summary>
         public void LoadDeferredPlugins()
         {
             if (this.deferredPlugins == null)

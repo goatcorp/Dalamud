@@ -6,18 +6,29 @@ using ImGuiNET;
 
 namespace Dalamud.Interface
 {
+    /// <summary>
+    /// For major updates, an in-game Changelog window.
+    /// </summary>
     internal class DalamudChangelogWindow : Window
     {
-        private readonly Dalamud dalamud;
-        private string assemblyVersion = Util.AssemblyVersion;
-
+        /// <summary>
+        /// Whether the latest update warrants a changelog window.
+        /// </summary>
         public const bool WarrantsChangelog = false;
+
         private const string ChangeLog =
             @"* Various behind-the-scenes changes to improve stability
 * Faster startup times
 
 If you note any issues or need help, please make sure to ask on our discord server.";
 
+        private readonly Dalamud dalamud;
+        private string assemblyVersion = Util.AssemblyVersion;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DalamudChangelogWindow"/> class.
+        /// </summary>
+        /// <param name="dalamud">The Dalamud instance.</param>
         public DalamudChangelogWindow(Dalamud dalamud)
             : base("What's new in XIVLauncher?", ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoResize)
         {
@@ -28,6 +39,7 @@ If you note any issues or need help, please make sure to ask on our discord serv
             this.IsOpen = WarrantsChangelog;
         }
 
+        /// <inheritdoc/>
         public override void Draw()
         {
             ImGui.Text($"The in-game addon has been updated to version D{this.assemblyVersion}.");

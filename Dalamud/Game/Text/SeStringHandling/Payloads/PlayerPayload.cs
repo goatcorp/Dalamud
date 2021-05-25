@@ -13,13 +13,47 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
     /// </summary>
     public class PlayerPayload : Payload
     {
-        public override PayloadType Type => PayloadType.Player;
+        private World world;
+
+        [JsonProperty]
+        private uint serverId;
 
         [JsonProperty]
         private string playerName;
 
         /// <summary>
-        /// The player's displayed name.  This does not contain the server name.
+        /// Initializes a new instance of the <see cref="PlayerPayload"/> class.
+        /// Create a PlayerPayload link for the specified player.
+        /// </summary>
+        /// <param name="data">DataManager instance needed to resolve game data.</param>
+        /// <param name="playerName">The player's displayed name.</param>
+        /// <param name="serverId">The player's home server id.</param>
+        public PlayerPayload(DataManager data, string playerName, uint serverId)
+        {
+            this.DataResolver = data;
+            this.playerName = playerName;
+            this.serverId = serverId;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PlayerPayload"/> class.
+        /// Create a PlayerPayload link for the specified player.
+        /// </summary>
+        internal PlayerPayload()
+        {
+        }
+
+        /// <summary>
+        /// Gets the Lumina object representing the player's home server.
+        /// </summary>
+        /// <remarks>
+        /// Value is evaluated lazily and cached.
+        /// </remarks>
+        [JsonIgnore]
+        public World World => this.world ??= this.DataResolver.GetExcelSheet<World>().GetRow(this.serverId);
+
+        /// <summary>
+        /// Gets or sets the player's displayed name.  This does not contain the server name.
         /// </summary>
         [JsonIgnore]
         public string PlayerName
@@ -36,57 +70,23 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             }
         }
 
-        private World world;
-
         /// <summary>
-        /// The Lumina object representing the player's home server.
-        /// </summary>
-        /// <remarks>
-        /// Value is evaluated lazily and cached.
-        /// </remarks>
-        [JsonIgnore]
-        public World World
-        {
-            get
-            {
-                this.world ??= this.DataResolver.GetExcelSheet<World>().GetRow(this.serverId);
-                return this.world;
-            }
-        }
-
-        /// <summary>
-        /// A text representation of this player link matching how it might appear in-game.
+        /// Gets the text representation of this player link matching how it might appear in-game.
         /// The world name will always be present.
         /// </summary>
         [JsonIgnore]
         public string DisplayedName => $"{this.PlayerName}{(char)SeIconChar.CrossWorld}{this.World.Name}";
 
-        [JsonProperty]
-        private uint serverId;
+        /// <inheritdoc/>
+        public override PayloadType Type => PayloadType.Player;
 
-        internal PlayerPayload()
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="PlayerPayload"/> class.
-        /// Create a PlayerPayload link for the specified player.
-        /// </summary>
-        /// <param name="data">DataManager instance needed to resolve game data.</param>
-        /// <param name="playerName">The player's displayed name.</param>
-        /// <param name="serverId">The player's home server id.</param>
-        public PlayerPayload(DataManager data, string playerName, uint serverId)
-        {
-            this.DataResolver = data;
-            this.playerName = playerName;
-            this.serverId = serverId;
-        }
-
+        /// <inheritdoc/>
         public override string ToString()
         {
             return $"{this.Type} - PlayerName: {this.PlayerName}, ServerId: {this.serverId}, ServerName: {this.World.Name}";
         }
 
+        /// <inheritdoc/>
         protected override byte[] EncodeImpl()
         {
             var chunkLen = this.playerName.Length + 7;
@@ -121,6 +121,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             return bytes.ToArray();
         }
 
+        /// <inheritdoc/>
         protected override void DecodeImpl(BinaryReader reader, long endOfStream)
         {
             // unk

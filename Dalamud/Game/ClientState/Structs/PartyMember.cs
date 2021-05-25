@@ -5,6 +5,9 @@ using Dalamud.Game.ClientState.Actors;
 
 namespace Dalamud.Game.ClientState.Structs
 {
+    /// <summary>
+    /// This represents a native PartyMember class in memory.
+    /// </summary>
     [StructLayout(LayoutKind.Explicit)]
     public struct PartyMember
     {

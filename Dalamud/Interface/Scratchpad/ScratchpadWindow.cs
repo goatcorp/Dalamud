@@ -10,18 +10,20 @@ using Serilog;
 
 namespace Dalamud.Interface.Scratchpad
 {
+    /// <summary>
+    /// This class facilitates interacting with the ScratchPad window.
+    /// </summary>
     internal class ScratchpadWindow : Window, IDisposable
     {
         private readonly Dalamud dalamud;
-
-        public ScratchExecutionManager Execution { get; private set; }
-
         private List<ScratchpadDocument> documents = new();
-
         private ScratchFileWatcher watcher = new();
-
         private string pathInput = string.Empty;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ScratchpadWindow"/> class.
+        /// </summary>
+        /// <param name="dalamud">The Dalamud instance.</param>
         public ScratchpadWindow(Dalamud dalamud)
             : base("Plugin Scratchpad", ImGuiWindowFlags.MenuBar)
         {
@@ -33,6 +35,12 @@ namespace Dalamud.Interface.Scratchpad
             this.Execution = new ScratchExecutionManager(dalamud);
         }
 
+        /// <summary>
+        /// Gets the ScratchPad execution manager.
+        /// </summary>
+        public ScratchExecutionManager Execution { get; private set; }
+
+        /// <inheritdoc/>
         public override void Draw()
         {
             if (ImGui.BeginPopupModal("Choose Path"))
@@ -89,8 +97,10 @@ namespace Dalamud.Interface.Scratchpad
 
                     if (ImGui.BeginTabItem(docs[i].Title + (docs[i].HasUnsaved ? "*" : string.Empty) + "###ScratchItem" + i, ref isOpen))
                     {
-                        if (ImGui.InputTextMultiline("###ScratchInput" + i, ref docs[i].Content, 20000, new Vector2(-1, -34), ImGuiInputTextFlags.AllowTabInput))
+                        var content = docs[i].Content;
+                        if (ImGui.InputTextMultiline("###ScratchInput" + i, ref content, 20000, new Vector2(-1, -34), ImGuiInputTextFlags.AllowTabInput))
                         {
+                            docs[i].Content = content;
                             docs[i].HasUnsaved = true;
                         }
 
@@ -133,7 +143,11 @@ namespace Dalamud.Interface.Scratchpad
 
                         ImGui.SameLine();
 
-                        ImGui.Checkbox("Use Macros", ref docs[i].IsMacro);
+                        var isMacro = docs[i].IsMacro;
+                        if (ImGui.Checkbox("Use Macros", ref isMacro))
+                        {
+                            docs[i].IsMacro = isMacro;
+                        }
 
                         ImGui.SameLine();
 
@@ -167,6 +181,9 @@ namespace Dalamud.Interface.Scratchpad
             }
         }
 
+        /// <summary>
+        /// Dispose of managed and unmanaged resources.
+        /// </summary>
         public void Dispose()
         {
             this.Execution.DisposeAllScratches();

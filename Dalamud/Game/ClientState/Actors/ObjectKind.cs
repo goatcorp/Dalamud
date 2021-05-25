@@ -36,12 +36,12 @@ namespace Dalamud.Game.ClientState.Actors
         Aetheryte = 0x05,
 
         /// <summary>
-        ///     Objects representing gathering points.
+        /// Objects representing gathering points.
         /// </summary>
         GatheringPoint = 0x06,
 
         /// <summary>
-        ///     Objects representing event objects.
+        /// Objects representing event objects.
         /// </summary>
         EventObj = 0x07,
 
@@ -59,13 +59,25 @@ namespace Dalamud.Game.ClientState.Actors
         /// Objects representing retainers.
         /// </summary>
         Retainer = 0x0A,
+
+        /// <summary>
+        /// Objects representing area objects.
+        /// </summary>
         Area = 0x0B,
 
         /// <summary>
         /// Objects representing housing objects.
         /// </summary>
         Housing = 0x0C,
+
+        /// <summary>
+        /// Objects representing cutscene objects.
+        /// </summary>
         Cutscene = 0x0D,
+
+        /// <summary>
+        /// Objects representing card stand objects.
+        /// </summary>
         CardStand = 0x0E,
     }
 }

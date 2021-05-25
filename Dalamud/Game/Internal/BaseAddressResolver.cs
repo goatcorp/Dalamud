@@ -5,12 +5,25 @@ using System.Runtime.InteropServices;
 
 namespace Dalamud.Game.Internal
 {
+    /// <summary>
+    /// Base memory address resolver.
+    /// </summary>
     public abstract class BaseAddressResolver
     {
-        protected bool IsResolved { get; set; }
-
+        /// <summary>
+        /// A list of memory addresses that were found, to list in /xldata.
+        /// </summary>
         public static Dictionary<string, List<(string, IntPtr)>> DebugScannedValues = new();
 
+        /// <summary>
+        /// Gets or sets a value indicating whether the resolver has successfully run <see cref="Setup32Bit(SigScanner)"/> or <see cref="Setup64Bit(SigScanner)"/>.
+        /// </summary>
+        protected bool IsResolved { get; set; }
+
+        /// <summary>
+        /// Setup the resolver, calling the appopriate method based on the process architecture.
+        /// </summary>
+        /// <param name="scanner">The SigScanner instance.</param>
         public void Setup(SigScanner scanner)
         {
             // Because C# don't allow to call virtual function while in ctor
@@ -43,21 +56,14 @@ namespace Dalamud.Game.Internal
             this.IsResolved = true;
         }
 
-        protected virtual void Setup32Bit(SigScanner scanner)
-        {
-            throw new NotSupportedException("32 bit version is not supported.");
-        }
-
-        protected virtual void Setup64Bit(SigScanner sig)
-        {
-            throw new NotSupportedException("64 bit version is not supported.");
-        }
-
-        protected virtual void SetupInternal(SigScanner scanner)
-        {
-            // Do nothing
-        }
-
+        /// <summary>
+        /// Fetch vfunc N from a pointer to the vtable and return a delegate function pointer.
+        /// </summary>
+        /// <typeparam name="T">The delegate to marshal the function pointer to.</typeparam>
+        /// <param name="address">The address of the virtual table.</param>
+        /// <param name="vtableOffset">The offset from address to the vtable pointer.</param>
+        /// <param name="count">The vfunc index.</param>
+        /// <returns>A delegate function pointer that can be invoked.</returns>
         public T GetVirtualFunction<T>(IntPtr address, int vtableOffset, int count) where T : class
         {
             // Get vtable
@@ -67,6 +73,33 @@ namespace Dalamud.Game.Internal
             var functionAddress = Marshal.ReadIntPtr(vtable, IntPtr.Size * count);
 
             return Marshal.GetDelegateForFunctionPointer<T>(functionAddress);
+        }
+
+        /// <summary>
+        /// Setup the resolver by finding any necessary memory addresses.
+        /// </summary>
+        /// <param name="scanner">The SigScanner instance.</param>
+        protected virtual void Setup32Bit(SigScanner scanner)
+        {
+            throw new NotSupportedException("32 bit version is not supported.");
+        }
+
+        /// <summary>
+        /// Setup the resolver by finding any necessary memory addresses.
+        /// </summary>
+        /// <param name="scanner">The SigScanner instance.</param>
+        protected virtual void Setup64Bit(SigScanner scanner)
+        {
+            throw new NotSupportedException("64 bit version is not supported.");
+        }
+
+        /// <summary>
+        /// Setup the resolver by finding any necessary memory addresses.
+        /// </summary>
+        /// <param name="scanner">The SigScanner instance.</param>
+        protected virtual void SetupInternal(SigScanner scanner)
+        {
+            // Do nothing
         }
     }
 }

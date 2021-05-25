@@ -12,32 +12,10 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
     /// </summary>
     public class StatusPayload : Payload
     {
-        public override PayloadType Type => PayloadType.Status;
-
         private Status status;
-
-        /// <summary>
-        /// The Lumina Status object represented by this payload.
-        /// </summary>
-        /// <remarks>
-        /// Value is evaluated lazily and cached.
-        /// </remarks>
-        [JsonIgnore]
-        public Status Status
-        {
-            get
-            {
-                this.status ??= this.DataResolver.GetExcelSheet<Status>().GetRow(this.statusId);
-                return this.status;
-            }
-        }
 
         [JsonProperty]
         private uint statusId;
-
-        internal StatusPayload()
-        {
-        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="StatusPayload"/> class.
@@ -51,11 +29,33 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             this.statusId = statusId;
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="StatusPayload"/> class.
+        /// Creates a new StatusPayload for the given status id.
+        /// </summary>
+        internal StatusPayload()
+        {
+        }
+
+        /// <inheritdoc/>
+        public override PayloadType Type => PayloadType.Status;
+
+        /// <summary>
+        /// Gets the Lumina Status object represented by this payload.
+        /// </summary>
+        /// <remarks>
+        /// The value is evaluated lazily and cached.
+        /// </remarks>
+        [JsonIgnore]
+        public Status Status => this.status ??= this.DataResolver.GetExcelSheet<Status>().GetRow(this.statusId);
+
+        /// <inheritdoc/>
         public override string ToString()
         {
             return $"{this.Type} - StatusId: {this.statusId}, Name: {this.Status.Name}";
         }
 
+        /// <inheritdoc/>
         protected override byte[] EncodeImpl()
         {
             var idBytes = MakeInteger(this.statusId);
@@ -73,6 +73,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             return bytes.ToArray();
         }
 
+        /// <inheritdoc/>
         protected override void DecodeImpl(BinaryReader reader, long endOfStream)
         {
             this.statusId = GetInteger(reader);

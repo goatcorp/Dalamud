@@ -72,6 +72,9 @@ namespace Dalamud.Plugin
             LastUpdate,
         }
 
+        /// <summary>
+        /// Code to be executed when the window is opened.
+        /// </summary>
         public override void OnOpen()
         {
             base.OnOpen();

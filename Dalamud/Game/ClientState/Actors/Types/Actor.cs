@@ -10,8 +10,6 @@ namespace Dalamud.Game.ClientState.Actors.Types
     public class Actor : IEquatable<Actor>
     {
         private readonly Structs.Actor actorStruct;
-        // This is a breaking change. StyleCop demands it.
-        // private readonly IntPtr address;
         private readonly Dalamud dalamud;
 
         /// <summary>
@@ -83,8 +81,6 @@ namespace Dalamud.Game.ClientState.Actors.Types
         /// <summary>
         /// Gets the address of this actor in memory.
         /// </summary>
-        // TODO: This is a breaking change, StyleCop demands it.
-        // public IntPtr Address => this.address;
         public readonly IntPtr Address;
 
         /// <summary>

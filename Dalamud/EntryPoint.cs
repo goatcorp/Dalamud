@@ -95,7 +95,7 @@ namespace Dalamud
 
             var newLogger = new LoggerConfiguration()
                    .WriteTo.Async(a => a.File(logPath))
-                   .WriteTo.EventSink()
+                   .WriteTo.Sink(SerilogEventSink.Instance)
                    .MinimumLevel.ControlledBy(levelSwitch)
                    .CreateLogger();
 

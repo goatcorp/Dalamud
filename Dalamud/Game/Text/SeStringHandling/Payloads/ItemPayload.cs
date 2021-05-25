@@ -14,25 +14,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
     /// </summary>
     public class ItemPayload : Payload
     {
-        public override PayloadType Type => PayloadType.Item;
-
         private Item item;
-
-        /// <summary>
-        /// The underlying Lumina Item represented by this payload.
-        /// </summary>
-        /// <remarks>
-        /// Value is evaluated lazily and cached.
-        /// </remarks>
-        [JsonIgnore]
-        public Item Item
-        {
-            get
-            {
-                this.item ??= this.DataResolver.GetExcelSheet<Item>().GetRow(this.itemId);
-                return this.item;
-            }
-        }
 
         // mainly to allow overriding the name (for things like owo)
         // TODO: even though this is present in some item links, it may not really have a use at all
@@ -40,36 +22,8 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         //   actual embedded name might not work properly.
         private string displayName = null;
 
-        /// <summary>
-        /// The displayed name for this item link.  Note that incoming links only sometimes have names embedded,
-        /// often the name is only present in a following text payload.
-        /// </summary>
-        public string DisplayName
-        {
-            get
-            {
-                return this.displayName;
-            }
-
-            set
-            {
-                this.displayName = value;
-                this.Dirty = true;
-            }
-        }
-
-        /// <summary>
-        /// Whether or not this item link is for a high-quality version of the item.
-        /// </summary>
-        [JsonProperty]
-        public bool IsHQ { get; private set; } = false;
-
         [JsonProperty]
         private uint itemId;
-
-        internal ItemPayload()
-        {
-        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ItemPayload"/> class.
@@ -89,11 +43,57 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             this.displayName = displayNameOverride;
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ItemPayload"/> class.
+        /// Creates a payload representing an interactable item link for the specified item.
+        /// </summary>
+        internal ItemPayload()
+        {
+        }
+
+        /// <inheritdoc/>
+        public override PayloadType Type => PayloadType.Item;
+
+        /// <summary>
+        /// Gets or sets the displayed name for this item link.  Note that incoming links only sometimes have names embedded,
+        /// often the name is only present in a following text payload.
+        /// </summary>
+        public string DisplayName
+        {
+            get
+            {
+                return this.displayName;
+            }
+
+            set
+            {
+                this.displayName = value;
+                this.Dirty = true;
+            }
+        }
+
+        /// <summary>
+        /// Gets the underlying Lumina Item represented by this payload.
+        /// </summary>
+        /// <remarks>
+        /// The value is evaluated lazily and cached.
+        /// </remarks>
+        [JsonIgnore]
+        public Item Item => this.item ??= this.DataResolver.GetExcelSheet<Item>().GetRow(this.itemId);
+
+        /// <summary>
+        /// Gets a value indicating whether or not this item link is for a high-quality version of the item.
+        /// </summary>
+        [JsonProperty]
+        public bool IsHQ { get; private set; } = false;
+
+        /// <inheritdoc/>
         public override string ToString()
         {
             return $"{this.Type} - ItemId: {this.itemId}, IsHQ: {this.IsHQ}, Name: {this.displayName ?? this.Item.Name}";
         }
 
+        /// <inheritdoc/>
         protected override byte[] EncodeImpl()
         {
             var actualItemId = this.IsHQ ? this.itemId + 1000000 : this.itemId;
@@ -148,6 +148,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             return bytes.ToArray();
         }
 
+        /// <inheritdoc/>
         protected override void DecodeImpl(BinaryReader reader, long endOfStream)
         {
             this.itemId = GetInteger(reader);

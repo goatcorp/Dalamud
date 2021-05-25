@@ -3,12 +3,22 @@ using System.IO;
 
 namespace Dalamud.Interface.Scratchpad
 {
+    /// <summary>
+    /// A file watcher for <see cref="ScratchpadDocument"/> classes.
+    /// </summary>
     internal class ScratchFileWatcher
     {
-        public List<ScratchpadDocument> TrackedScratches { get; set; } = new List<ScratchpadDocument>();
-
         private FileSystemWatcher watcher = new();
 
+        /// <summary>
+        /// Gets or sets the list of tracked ScratchPad documents.
+        /// </summary>
+        public List<ScratchpadDocument> TrackedScratches { get; set; } = new List<ScratchpadDocument>();
+
+        /// <summary>
+        /// Load a new ScratchPadDocument from disk.
+        /// </summary>
+        /// <param name="path">The filepath to load.</param>
         public void Load(string path)
         {
             this.TrackedScratches.Add(new ScratchpadDocument

@@ -31,7 +31,7 @@ namespace Dalamud.Game.ClientState.Structs.JobGauge
 
         [Obsolete("GL has been removed from the game")]
         [FieldOffset(4)]
-        private byte GLTimerFreezeState;
+        private byte glTimerFreezeState;
 
         /// <summary>
         /// Gets if the Greased Lightning timer has been frozen.

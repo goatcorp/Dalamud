@@ -11,14 +11,32 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
     /// </summary>
     public class TextPayload : Payload, ITextProvider
     {
-        public override PayloadType Type => PayloadType.RawText;
-
-        // allow modifying the text of existing payloads on the fly
         [JsonProperty]
         private string text;
 
         /// <summary>
-        /// The text contained in this payload.
+        /// Initializes a new instance of the <see cref="TextPayload"/> class.
+        /// Creates a new TextPayload for the given text.
+        /// </summary>
+        /// <param name="text">The text to include for this payload.</param>
+        public TextPayload(string text)
+        {
+            this.text = text;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TextPayload"/> class.
+        /// Creates a new TextPayload for the given text.
+        /// </summary>
+        internal TextPayload()
+        {
+        }
+
+        /// <inheritdoc/>
+        public override PayloadType Type => PayloadType.RawText;
+
+        /// <summary>
+        /// Gets or sets the text contained in this payload.
         /// This may contain SE's special unicode characters.
         /// </summary>
         [JsonIgnore]
@@ -36,25 +54,13 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             }
         }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             return $"{this.Type} - Text: {this.Text}";
         }
 
-        internal TextPayload()
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="TextPayload"/> class.
-        /// Creates a new TextPayload for the given text.
-        /// </summary>
-        /// <param name="text">The text to include for this payload.</param>
-        public TextPayload(string text)
-        {
-            this.text = text;
-        }
-
+        /// <inheritdoc/>
         protected override byte[] EncodeImpl()
         {
             // special case to allow for empty text payloads, so users don't have to check
@@ -67,6 +73,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             return Encoding.UTF8.GetBytes(this.text);
         }
 
+        /// <inheritdoc/>
         protected override void DecodeImpl(BinaryReader reader, long endOfStream)
         {
             var textBytes = new List<byte>();

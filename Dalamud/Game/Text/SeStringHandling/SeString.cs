@@ -14,12 +14,33 @@ namespace Dalamud.Game.Text.SeStringHandling
     public class SeString
     {
         /// <summary>
-        /// The ordered list of payloads included in this SeString.
+        /// Initializes a new instance of the <see cref="SeString"/> class.
+        /// Creates a new SeString from an ordered list of payloads.
+        /// </summary>
+        /// <param name="payloads">The Payload objects to make up this string.</param>
+        [JsonConstructor]
+        public SeString(List<Payload> payloads)
+        {
+            this.Payloads = payloads;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SeString"/> class.
+        /// Creates a new SeString from an ordered list of payloads.
+        /// </summary>
+        /// <param name="payloads">The Payload objects to make up this string.</param>
+        public SeString(Payload[] payloads)
+        {
+            this.Payloads = new List<Payload>(payloads);
+        }
+
+        /// <summary>
+        /// Gets the ordered list of payloads included in this SeString.
         /// </summary>
         public List<Payload> Payloads { get; }
 
         /// <summary>
-        /// Helper function to get all raw text from a message as a single joined string.
+        /// Gets all of the raw text from a message as a single joined string.
         /// </summary>
         /// <returns>
         /// All the raw text from the contained payloads, joined into a single string.
@@ -43,24 +64,40 @@ namespace Dalamud.Game.Text.SeStringHandling
         public static implicit operator SeString(string str) => new(new Payload[] { new TextPayload(str) });
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="SeString"/> class.
-        /// Creates a new SeString from an ordered list of payloads.
+        /// Creates a SeString from a json. (For testing - not recommended for production use.)
         /// </summary>
-        /// <param name="payloads">The Payload objects to make up this string.</param>
-        [JsonConstructor]
-        public SeString(List<Payload> payloads)
+        /// <param name="json">A serialized SeString produced by ToJson() <see cref="ToJson"/>.</param>
+        /// <param name="dataManager">An initialized instance of DataManager for Lumina queries.</param>
+        /// <returns>A SeString initialized with values from the json.</returns>
+        public static SeString FromJson(string json, DataManager dataManager)
         {
-            this.Payloads = payloads;
+            var s = JsonConvert.DeserializeObject<SeString>(json, new JsonSerializerSettings
+            {
+                PreserveReferencesHandling = PreserveReferencesHandling.Objects,
+                TypeNameHandling = TypeNameHandling.Auto,
+                ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor,
+            });
+
+            foreach (var payload in s.Payloads)
+            {
+                payload.DataResolver = dataManager;
+            }
+
+            return s;
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="SeString"/> class.
-        /// Creates a new SeString from an ordered list of payloads.
+        /// Serializes the SeString to json.
         /// </summary>
-        /// <param name="payloads">The Payload objects to make up this string.</param>
-        public SeString(Payload[] payloads)
+        /// <returns>An json representation of this object.</returns>
+        public string ToJson()
         {
-            this.Payloads = new List<Payload>(payloads);
+            return JsonConvert.SerializeObject(this, Formatting.Indented, new JsonSerializerSettings()
+            {
+                PreserveReferencesHandling = PreserveReferencesHandling.Objects,
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+                TypeNameHandling = TypeNameHandling.Auto,
+            });
         }
 
         /// <summary>
@@ -119,43 +156,6 @@ namespace Dalamud.Game.Text.SeStringHandling
         public override string ToString()
         {
             return this.TextValue;
-        }
-
-        /// <summary>
-        /// Serializes the SeString to json.
-        /// </summary>
-        /// <returns>An json representation of this object.</returns>
-        public string ToJson()
-        {
-            return JsonConvert.SerializeObject(this, Formatting.Indented, new JsonSerializerSettings()
-            {
-                PreserveReferencesHandling = PreserveReferencesHandling.Objects,
-                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-                TypeNameHandling = TypeNameHandling.Auto,
-            });
-        }
-
-        /// <summary>
-        /// Creates a SeString from a json. (For testing - not recommended for production use.)
-        /// </summary>
-        /// <param name="json">A serialized SeString produced by ToJson() <see cref="ToJson"/>.</param>
-        /// <param name="dataManager">An initialized instance of DataManager for Lumina queries.</param>
-        /// <returns>A SeString initialized with values from the json.</returns>
-        public static SeString FromJson(string json, DataManager dataManager)
-        {
-            var s = JsonConvert.DeserializeObject<SeString>(json, new JsonSerializerSettings
-            {
-                PreserveReferencesHandling = PreserveReferencesHandling.Objects,
-                TypeNameHandling = TypeNameHandling.Auto,
-                ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor,
-            });
-
-            foreach (var payload in s.Payloads)
-            {
-                payload.DataResolver = dataManager;
-            }
-
-            return s;
         }
     }
 }

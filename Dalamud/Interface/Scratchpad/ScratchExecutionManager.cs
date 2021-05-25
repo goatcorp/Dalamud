@@ -11,18 +11,31 @@ using Serilog;
 
 namespace Dalamud.Interface.Scratchpad
 {
+    /// <summary>
+    /// This class manages the execution of <see cref="ScratchpadDocument"/> classes.
+    /// </summary>
     internal class ScratchExecutionManager
     {
         private readonly Dalamud dalamud;
         private Dictionary<Guid, IDalamudPlugin> loadedScratches = new();
 
-        public ScratchMacroProcessor MacroProcessor { get; private set; } = new();
-
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ScratchExecutionManager"/> class.
+        /// </summary>
+        /// <param name="dalamud">The Dalamud instance.</param>
         public ScratchExecutionManager(Dalamud dalamud)
         {
             this.dalamud = dalamud;
         }
 
+        /// <summary>
+        /// Gets the ScratchPad macro processor.
+        /// </summary>
+        public ScratchMacroProcessor MacroProcessor { get; private set; } = new();
+
+        /// <summary>
+        /// Dispose of all currently loaded ScratchPads.
+        /// </summary>
         public void DisposeAllScratches()
         {
             foreach (var dalamudPlugin in this.loadedScratches)
@@ -33,6 +46,11 @@ namespace Dalamud.Interface.Scratchpad
             this.loadedScratches.Clear();
         }
 
+        /// <summary>
+        /// Renew a given ScratchPadDocument.
+        /// </summary>
+        /// <param name="doc">The document to renew.</param>
+        /// <returns>The new load status.</returns>
         public ScratchLoadStatus RenewScratch(ScratchpadDocument doc)
         {
             var existingScratch = this.loadedScratches.FirstOrDefault(x => x.Key == doc.Id);
@@ -50,7 +68,7 @@ namespace Dalamud.Interface.Scratchpad
                                        .AddReferences(typeof(FFXIVClientStructs.Attributes.Addon).Assembly) // FFXIVClientStructs
                                        .AddReferences(typeof(Lumina.GameData).Assembly) // Lumina
                                        .AddReferences(typeof(TerritoryType).Assembly) // Lumina.Excel
-                                            // .WithReferences(MetadataReference.CreateFromFile(typeof(ScratchExecutionManager).Assembly.Location))
+                                                                                      // .WithReferences(MetadataReference.CreateFromFile(typeof(ScratchExecutionManager).Assembly.Location))
                                        .AddImports("System")
                                        .AddImports("System.IO")
                                        .AddImports("System.Reflection")

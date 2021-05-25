@@ -2,14 +2,27 @@ using System;
 
 namespace Dalamud.Game.Internal.Gui
 {
+    /// <summary>
+    /// An address resolver for the <see cref="ToastGui"/> class.
+    /// </summary>
     public class ToastGuiAddressResolver : BaseAddressResolver
     {
+        /// <summary>
+        /// Gets the address of the native ShowNormalToast method.
+        /// </summary>
         public IntPtr ShowNormalToast { get; private set; }
 
+        /// <summary>
+        /// Gets the address of the native ShowQuestToast method.
+        /// </summary>
         public IntPtr ShowQuestToast { get; private set; }
 
+        /// <summary>
+        /// Gets the address of the ShowErrorToast method.
+        /// </summary>
         public IntPtr ShowErrorToast { get; private set; }
 
+        /// <inheritdoc/>
         protected override void Setup64Bit(SigScanner sig)
         {
             this.ShowNormalToast = sig.ScanText("48 89 5C 24 ?? 48 89 6C 24 ?? 48 89 74 24 ?? 57 48 83 EC 30 83 3D ?? ?? ?? ?? ??");

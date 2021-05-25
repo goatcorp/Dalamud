@@ -51,8 +51,7 @@ namespace Dalamud.Interface
         /// <param name="position">The position of the next window.</param>
         /// <param name="condition">When to set the position.</param>
         /// <param name="pivot">The pivot to set the position around.</param>
-        public static void SetNextWindowPosRelativeMainViewport(
-            Vector2 position, ImGuiCond condition = ImGuiCond.None, Vector2 pivot = default)
+        public static void SetNextWindowPosRelativeMainViewport(Vector2 position, ImGuiCond condition = ImGuiCond.None, Vector2 pivot = default)
             => ImGui.SetNextWindowPos(position + MainViewport.Pos, condition, pivot);
 
         /// <summary>

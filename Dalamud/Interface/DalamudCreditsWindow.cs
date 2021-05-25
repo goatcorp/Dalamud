@@ -10,6 +10,9 @@ using ImGuiScene;
 
 namespace Dalamud.Interface
 {
+    /// <summary>
+    /// A window documenting contributors to the project.
+    /// </summary>
     internal class DalamudCreditsWindow : Window, IDisposable
     {
         private const string CreditsTextTempl = @"
@@ -105,6 +108,10 @@ Thank you for using XIVLauncher and Dalamud!
 
         private string creditsText;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DalamudCreditsWindow"/> class.
+        /// </summary>
+        /// <param name="dalamud">The Dalamud instance.</param>
         public DalamudCreditsWindow(Dalamud dalamud)
             : base("Dalamud Credits", ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize, true)
         {
@@ -121,6 +128,7 @@ Thank you for using XIVLauncher and Dalamud!
             this.BgAlpha = 0.5f;
         }
 
+        /// <inheritdoc/>
         public override void OnOpen()
         {
             base.OnOpen();
@@ -133,6 +141,7 @@ Thank you for using XIVLauncher and Dalamud!
             this.framework.Gui.SetBgm(132);
         }
 
+        /// <inheritdoc/>
         public override void OnClose()
         {
             base.OnClose();
@@ -140,11 +149,7 @@ Thank you for using XIVLauncher and Dalamud!
             this.framework.Gui.SetBgm(9999);
         }
 
-        public void Dispose()
-        {
-            this.logoTexture?.Dispose();
-        }
-
+        /// <inheritdoc/>
         public override void Draw()
         {
             var screenSize = ImGui.GetMainViewport().Size;
@@ -186,6 +191,14 @@ Thank you for using XIVLauncher and Dalamud!
             }
 
             ImGui.EndChild();
+        }
+
+        /// <summary>
+        /// Disposes of managed and unmanaged resources.
+        /// </summary>
+        public void Dispose()
+        {
+            this.logoTexture?.Dispose();
         }
     }
 }

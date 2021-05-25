@@ -17,63 +17,18 @@ namespace Dalamud.Game.Internal
     /// </summary>
     public sealed class Framework : IDisposable
     {
+        private static Stopwatch statsStopwatch = new();
+
         private readonly Dalamud dalamud;
-
-        internal bool DispatchUpdateEvents { get; set; } = true;
-
-        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-        private delegate bool OnUpdateDetour(IntPtr framework);
-
-        private delegate IntPtr OnDestroyDetour();
-
-        public delegate void OnUpdateDelegate(Framework framework);
-
-        public delegate IntPtr OnDestroyDelegate();
-
-        public delegate bool OnRealDestroyDelegate(IntPtr framework);
-
-        /// <summary>
-        /// Event that gets fired every time the game framework updates.
-        /// </summary>
-        public event OnUpdateDelegate OnUpdateEvent;
-
         private Hook<OnUpdateDetour> updateHook;
-
         private Hook<OnDestroyDetour> destroyHook;
-
         private Hook<OnRealDestroyDelegate> realDestroyHook;
 
         /// <summary>
-        /// Gets a raw pointer to the instance of Client::Framework.
+        /// Initializes a new instance of the <see cref="Framework"/> class.
         /// </summary>
-        public FrameworkAddressResolver Address { get; }
-
-        #region Stats
-        public static bool StatsEnabled { get; set; }
-
-        public static Dictionary<string, List<double>> StatsHistory = new();
-
-        private static Stopwatch statsStopwatch = new();
-
-        #endregion
-        #region Subsystems
-
-        /// <summary>
-        /// Gets the GUI subsystem, used to access e.g. chat.
-        /// </summary>
-        public GameGui Gui { get; private set; }
-
-        /// <summary>
-        /// Gets the Network subsystem, used to access network data.
-        /// </summary>
-        public GameNetwork Network { get; private set; }
-
-        // public ResourceManager Resource { get; private set; }
-
-        public LibcFunction Libc { get; private set; }
-
-        #endregion
-
+        /// <param name="scanner">The SigScanner instance.</param>
+        /// <param name="dalamud">The Dalamud instance.</param>
         public Framework(SigScanner scanner, Dalamud dalamud)
         {
             this.dalamud = dalamud;
@@ -97,6 +52,102 @@ namespace Dalamud.Game.Internal
             this.Network = new GameNetwork(scanner);
         }
 
+        /// <summary>
+        /// A delegate type used with the <see cref="OnUpdateEvent"/> event.
+        /// </summary>
+        /// <param name="framework">The Framework instance.</param>
+        public delegate void OnUpdateDelegate(Framework framework);
+
+        /// <summary>
+        /// A delegate type used during the native Framework::destroy.
+        /// </summary>
+        /// <param name="framework">The native Framework address.</param>
+        /// <returns>A value indicating if the call was successful.</returns>
+        public delegate bool OnRealDestroyDelegate(IntPtr framework);
+
+        /// <summary>
+        /// A delegate type used during the native Framework::free.
+        /// </summary>
+        /// <returns>The native Framework address.</returns>
+        public delegate IntPtr OnDestroyDelegate();
+
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        private delegate bool OnUpdateDetour(IntPtr framework);
+
+        private delegate IntPtr OnDestroyDetour(); // OnDestroyDelegate
+
+        /// <summary>
+        /// Event that gets fired every time the game framework updates.
+        /// </summary>
+        public event OnUpdateDelegate OnUpdateEvent;
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the collection of stats is enabled.
+        /// </summary>
+        public static bool StatsEnabled { get; set; }
+
+        /// <summary>
+        /// Gets the stats history mapping.
+        /// </summary>
+        public static Dictionary<string, List<double>> StatsHistory = new();
+
+        #region Subsystems
+
+        /// <summary>
+        /// Gets the GUI subsystem, used to access e.g. chat.
+        /// </summary>
+        public GameGui Gui { get; private set; }
+
+        /// <summary>
+        /// Gets the Network subsystem, used to access network data.
+        /// </summary>
+        public GameNetwork Network { get; private set; }
+
+        // public ResourceManager Resource { get; private set; }
+
+        /// <summary>
+        /// Gets the Libc subsystem, used to facilitate interop with std::strings.
+        /// </summary>
+        public LibcFunction Libc { get; private set; }
+
+        #endregion
+
+        /// <summary>
+        /// Gets a raw pointer to the instance of Client::Framework.
+        /// </summary>
+        public FrameworkAddressResolver Address { get; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether to dispatch update events.
+        /// </summary>
+        internal bool DispatchUpdateEvents { get; set; } = true;
+
+        /// <summary>
+        /// Enable this module.
+        /// </summary>
+        public void Enable()
+        {
+            this.Gui.Enable();
+            this.Network.Enable();
+
+            this.updateHook.Enable();
+            this.destroyHook.Enable();
+            this.realDestroyHook.Enable();
+        }
+
+        /// <summary>
+        /// Dispose of managed and unmanaged resources.
+        /// </summary>
+        public void Dispose()
+        {
+            this.Gui.Dispose();
+            this.Network.Dispose();
+
+            this.updateHook.Dispose();
+            this.destroyHook.Dispose();
+            this.realDestroyHook.Dispose();
+        }
+
         private void HookVTable()
         {
             var vtable = Marshal.ReadIntPtr(this.Address.BaseAddress);
@@ -111,32 +162,10 @@ namespace Dalamud.Game.Internal
             this.updateHook = new Hook<OnUpdateDetour>(pUpdate, new OnUpdateDetour(this.HandleFrameworkUpdate), this);
 
             var pDestroy = Marshal.ReadIntPtr(vtable, IntPtr.Size * 3);
-            this.destroyHook =
-                new Hook<OnDestroyDetour>(pDestroy, new OnDestroyDelegate(this.HandleFrameworkDestroy), this);
+            this.destroyHook = new Hook<OnDestroyDetour>(pDestroy, new OnDestroyDelegate(this.HandleFrameworkDestroy), this);
 
             var pRealDestroy = Marshal.ReadIntPtr(vtable, IntPtr.Size * 2);
-            this.realDestroyHook =
-                new Hook<OnRealDestroyDelegate>(pRealDestroy, new OnRealDestroyDelegate(this.HandleRealDestroy), this);
-        }
-
-        public void Enable()
-        {
-            this.Gui.Enable();
-            this.Network.Enable();
-
-            this.updateHook.Enable();
-            this.destroyHook.Enable();
-            this.realDestroyHook.Enable();
-        }
-
-        public void Dispose()
-        {
-            this.Gui.Dispose();
-            this.Network.Dispose();
-
-            this.updateHook.Dispose();
-            this.destroyHook.Dispose();
-            this.realDestroyHook.Dispose();
+            this.realDestroyHook = new Hook<OnRealDestroyDelegate>(pRealDestroy, new OnRealDestroyDelegate(this.HandleRealDestroy), this);
         }
 
         private bool HandleFrameworkUpdate(IntPtr framework)

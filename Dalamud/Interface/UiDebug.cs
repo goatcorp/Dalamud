@@ -16,15 +16,15 @@ using AlignmentType = FFXIVClientStructs.FFXIV.Component.GUI.AlignmentType;
 
 namespace Dalamud.Interface
 {
+    /// <summary>
+    /// This class displays a debug window to inspect native addons.
+    /// </summary>
     internal unsafe class UIDebug
     {
-        private AtkUnitBase* selectedUnitBase = null;
-
-        private delegate AtkStage* GetAtkStageSingleton();
-
-        private readonly GetAtkStageSingleton getAtkStageSingleton;
-
         private const int UnitListCount = 18;
+
+        private readonly Dalamud dalamud;
+        private readonly GetAtkStageSingleton getAtkStageSingleton;
         private readonly bool[] selectedInList = new bool[UnitListCount];
         private readonly string[] listNames = new string[UnitListCount]
         {
@@ -48,9 +48,16 @@ namespace Dalamud.Interface
             "Units 18",
         };
 
+        private bool doingSearch;
         private string searchInput = string.Empty;
-        private readonly Dalamud dalamud;
+        private AtkUnitBase* selectedUnitBase = null;
+        private ulong beginModule;
+        private ulong endModule;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UIDebug"/> class.
+        /// </summary>
+        /// <param name="dalamud">The Dalamud instance.</param>
         public UIDebug(Dalamud dalamud)
         {
             this.dalamud = dalamud;
@@ -58,6 +65,11 @@ namespace Dalamud.Interface
             this.getAtkStageSingleton = Marshal.GetDelegateForFunctionPointer<GetAtkStageSingleton>(getSingletonAddr);
         }
 
+        private delegate AtkStage* GetAtkStageSingleton();
+
+        /// <summary>
+        /// Renders this window.
+        /// </summary>
         public void Draw()
         {
             ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(3, 2));
@@ -77,6 +89,19 @@ namespace Dalamud.Interface
             }
 
             ImGui.PopStyleVar();
+        }
+
+        private static void ClickToCopyText(string text, string textCopy = null)
+        {
+            textCopy ??= text;
+            ImGui.Text($"{text}");
+            if (ImGui.IsItemHovered())
+            {
+                ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
+                if (textCopy != text) ImGui.SetTooltip(textCopy);
+            }
+
+            if (ImGui.IsItemClicked()) ImGui.SetClipboardText($"{textCopy}");
         }
 
         private void DrawUnitBase(AtkUnitBase* atkUnitBase)
@@ -409,8 +434,6 @@ namespace Dalamud.Interface
                 $"MultiplyRGB: {node->MultiplyRed} {node->MultiplyGreen} {node->MultiplyBlue}");
         }
 
-        private bool doingSearch;
-
         private bool DrawUnitListHeader(int index, uint count, ulong ptr, bool highlight)
         {
             ImGui.PushStyleColor(ImGuiCol.Text, highlight ? 0xFFAAAA00 : 0xFFFFFFFF);
@@ -587,19 +610,6 @@ namespace Dalamud.Interface
             ImGui.GetForegroundDrawList(ImGuiHelpers.MainViewport).AddRect(position, position + size, nodeVisible ? 0xFF00FF00 : 0xFF0000FF);
         }
 
-        private static void ClickToCopyText(string text, string textCopy = null)
-        {
-            textCopy ??= text;
-            ImGui.Text($"{text}");
-            if (ImGui.IsItemHovered())
-            {
-                ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
-                if (textCopy != text) ImGui.SetTooltip(textCopy);
-            }
-
-            if (ImGui.IsItemClicked()) ImGui.SetClipboardText($"{textCopy}");
-        }
-
         private void PrintOutValue(ulong addr, IEnumerable<string> path, Type type, object value)
         {
             if (type.IsPointer)
@@ -647,9 +657,6 @@ namespace Dalamud.Interface
                 }
             }
         }
-
-        private ulong beginModule;
-        private ulong endModule;
 
         private void PrintOutObject(object obj, ulong addr, List<string> path, bool autoExpand = false)
         {

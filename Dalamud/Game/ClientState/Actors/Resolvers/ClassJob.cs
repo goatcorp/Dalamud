@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace Dalamud.Game.ClientState.Actors.Resolvers
 {
     /// <summary>
@@ -17,20 +11,21 @@ namespace Dalamud.Game.ClientState.Actors.Resolvers
         public readonly uint Id;
 
         /// <summary>
-        /// Gets GameData linked to this ClassJob.
-        /// </summary>
-        public Lumina.Excel.GeneratedSheets.ClassJob GameData =>
-            this.dalamud.Data.GetExcelSheet<Lumina.Excel.GeneratedSheets.ClassJob>().GetRow(this.Id);
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="ClassJob"/> class.
         /// Set up the ClassJob resolver with the provided ID.
         /// </summary>
-        /// <param name="id">The ID of the world.</param>
+        /// <param name="id">The ID of the classJob.</param>
+        /// <param name="dalamud">The Dalamud instance.</param>
         public ClassJob(byte id, Dalamud dalamud)
             : base(dalamud)
         {
             this.Id = id;
         }
+
+        /// <summary>
+        /// Gets GameData linked to this ClassJob.
+        /// </summary>
+        public Lumina.Excel.GeneratedSheets.ClassJob GameData =>
+            this.Dalamud.Data.GetExcelSheet<Lumina.Excel.GeneratedSheets.ClassJob>().GetRow(this.Id);
     }
 }

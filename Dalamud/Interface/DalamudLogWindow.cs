@@ -12,18 +12,25 @@ using Serilog.Events;
 
 namespace Dalamud.Interface
 {
+    /// <summary>
+    /// The window that displays the Dalamud log file in-game.
+    /// </summary>
     internal class DalamudLogWindow : Window, IDisposable
     {
         private readonly CommandManager commandManager;
         private readonly DalamudConfiguration configuration;
+        private readonly List<(string Line, Vector4 Color)> logText = new();
+        private readonly object renderLock = new();
         private bool autoScroll;
         private bool openAtStartup;
-        private readonly List<(string Line, Vector4 Color)> logText = new();
-
-        private readonly object renderLock = new();
 
         private string commandText = string.Empty;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DalamudLogWindow"/> class.
+        /// </summary>
+        /// <param name="commandManager">The CommandManager instance.</param>
+        /// <param name="configuration">The DalamudConfiguration instance.</param>
         public DalamudLogWindow(CommandManager commandManager, DalamudConfiguration configuration)
             : base("Dalamud LOG")
         {
@@ -37,27 +44,17 @@ namespace Dalamud.Interface
             this.SizeCondition = ImGuiCond.FirstUseEver;
         }
 
+        /// <summary>
+        /// Dispose of managed and unmanaged resources.
+        /// </summary>
         public void Dispose()
         {
             SerilogEventSink.Instance.OnLogLine -= this.Serilog_OnLogLine;
         }
 
-        private void Serilog_OnLogLine(object sender, (string Line, LogEventLevel Level) logEvent)
-        {
-            var color = logEvent.Level switch
-            {
-                LogEventLevel.Error => ImGuiColors.DalamudRed,
-                LogEventLevel.Verbose => ImGuiColors.DalamudWhite,
-                LogEventLevel.Debug => ImGuiColors.DalamudWhite2,
-                LogEventLevel.Information => ImGuiColors.DalamudWhite,
-                LogEventLevel.Warning => ImGuiColors.DalamudOrange,
-                LogEventLevel.Fatal => ImGuiColors.DalamudRed,
-                _ => throw new ArgumentOutOfRangeException(),
-            };
-
-            this.AddLog(logEvent.Line, color);
-        }
-
+        /// <summary>
+        /// Clear the window of all log entries.
+        /// </summary>
         public void Clear()
         {
             lock (this.renderLock)
@@ -66,6 +63,11 @@ namespace Dalamud.Interface
             }
         }
 
+        /// <summary>
+        /// Add a single log line to the display.
+        /// </summary>
+        /// <param name="line">The line to add.</param>
+        /// <param name="color">The line coloring.</param>
         public void AddLog(string line, Vector4 color)
         {
             lock (this.renderLock)
@@ -74,6 +76,7 @@ namespace Dalamud.Interface
             }
         }
 
+        /// <inheritdoc/>
         public override void Draw()
         {
             // Options menu
@@ -141,6 +144,22 @@ namespace Dalamud.Interface
                 ImGui.SetScrollHereY(1.0f);
 
             ImGui.EndChild();
+        }
+
+        private void Serilog_OnLogLine(object sender, (string Line, LogEventLevel Level) logEvent)
+        {
+            var color = logEvent.Level switch
+            {
+                LogEventLevel.Error => ImGuiColors.DalamudRed,
+                LogEventLevel.Verbose => ImGuiColors.DalamudWhite,
+                LogEventLevel.Debug => ImGuiColors.DalamudWhite2,
+                LogEventLevel.Information => ImGuiColors.DalamudWhite,
+                LogEventLevel.Warning => ImGuiColors.DalamudOrange,
+                LogEventLevel.Fatal => ImGuiColors.DalamudRed,
+                _ => throw new ArgumentOutOfRangeException(),
+            };
+
+            this.AddLog(logEvent.Line, color);
         }
     }
 }

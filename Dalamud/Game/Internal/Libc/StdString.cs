@@ -9,6 +9,28 @@ namespace Dalamud.Game.Internal.Libc
     /// </summary>
     public class StdString
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="StdString"/> class.
+        /// </summary>
+        private StdString()
+        {
+        }
+
+        /// <summary>
+        /// Gets the value of the cstring.
+        /// </summary>
+        public string Value { get; private set; }
+
+        /// <summary>
+        /// Gets or sets the raw byte representation of the cstring.
+        /// </summary>
+        public byte[] RawData { get; set; }
+
+        /// <summary>
+        /// Marshal a null terminated cstring from memory to a UTF-8 encoded string.
+        /// </summary>
+        /// <param name="cstring">Address of the cstring.</param>
+        /// <returns>A UTF-8 encoded string.</returns>
         public static StdString ReadFromPointer(IntPtr cstring)
         {
             unsafe
@@ -24,10 +46,10 @@ namespace Dalamud.Game.Internal.Libc
                     throw new NullReferenceException("Inner reference to the cstring is null.");
                 }
 
-                var count = 0;
-
                 // Count the number of chars. String is assumed to be zero-terminated.
-                while (Marshal.ReadByte(innerAddress + count) != 0)
+
+                var count = 0;
+                while (Marshal.ReadByte(innerAddress, count) != 0)
                 {
                     count += 1;
                 }
@@ -43,13 +65,5 @@ namespace Dalamud.Game.Internal.Libc
                 };
             }
         }
-
-        private StdString()
-        {
-        }
-
-        public string Value { get; private set; }
-
-        public byte[] RawData { get; set; }
     }
 }

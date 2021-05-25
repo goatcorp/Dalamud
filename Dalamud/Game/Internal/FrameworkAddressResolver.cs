@@ -3,14 +3,27 @@ using System.Runtime.InteropServices;
 
 namespace Dalamud.Game.Internal
 {
+    /// <summary>
+    /// The address resolver for the <see cref="Framework"/> class.
+    /// </summary>
     public sealed class FrameworkAddressResolver : BaseAddressResolver
     {
+        /// <summary>
+        /// Gets the base address native Framework class.
+        /// </summary>
         public IntPtr BaseAddress { get; private set; }
 
+        /// <summary>
+        /// Gets the address for the native GuiManager class.
+        /// </summary>
         public IntPtr GuiManager { get; private set; }
 
+        /// <summary>
+        /// Gets the address for the native ScriptManager class.
+        /// </summary>
         public IntPtr ScriptManager { get; private set; }
 
+        /// <inheritdoc/>
         protected override void Setup64Bit(SigScanner sig)
         {
             this.SetupFramework(sig);

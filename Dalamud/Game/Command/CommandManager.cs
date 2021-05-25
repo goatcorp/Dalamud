@@ -15,24 +15,18 @@ namespace Dalamud.Game.Command
     public sealed class CommandManager
     {
         private readonly Dalamud dalamud;
-
         private readonly Dictionary<string, CommandInfo> commandMap = new();
-
-        /// <summary>
-        /// Gets a read-only list of all registered commands.
-        /// </summary>
-        public ReadOnlyDictionary<string, CommandInfo> Commands => new(this.commandMap);
-
         private readonly Regex commandRegexEn = new(@"^The command (?<command>.+) does not exist\.$", RegexOptions.Compiled);
-
         private readonly Regex commandRegexJp = new(@"^そのコマンドはありません。： (?<command>.+)$", RegexOptions.Compiled);
-
         private readonly Regex commandRegexDe = new(@"^„(?<command>.+)“ existiert nicht als Textkommando\.$", RegexOptions.Compiled);
-
         private readonly Regex commandRegexFr = new(@"^La commande texte “(?<command>.+)” n'existe pas\.$", RegexOptions.Compiled);
-
         private readonly Regex currentLangCommandRegex;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CommandManager"/> class.
+        /// </summary>
+        /// <param name="dalamud">The Dalamud instance.</param>
+        /// <param name="language">The client language requested.</param>
         public CommandManager(Dalamud dalamud, ClientLanguage language)
         {
             this.dalamud = dalamud;
@@ -56,19 +50,10 @@ namespace Dalamud.Game.Command
             dalamud.Framework.Gui.Chat.OnCheckMessageHandled += this.OnCheckMessageHandled;
         }
 
-        private void OnCheckMessageHandled(XivChatType type, uint senderId, ref SeString sender, ref SeString message, ref bool isHandled)
-        {
-            if (type == XivChatType.ErrorMessage && senderId == 0)
-            {
-                var cmdMatch = this.currentLangCommandRegex.Match(message.TextValue).Groups["command"];
-                if (cmdMatch.Success)
-                {
-                    // Yes, it's a chat command.
-                    var command = cmdMatch.Value;
-                    if (this.ProcessCommand(command)) isHandled = true;
-                }
-            }
-        }
+        /// <summary>
+        /// Gets a read-only list of all registered commands.
+        /// </summary>
+        public ReadOnlyDictionary<string, CommandInfo> Commands => new(this.commandMap);
 
         /// <summary>
         /// Process a command in full.
@@ -165,6 +150,20 @@ namespace Dalamud.Game.Command
         public bool RemoveHandler(string command)
         {
             return this.commandMap.Remove(command);
+        }
+
+        private void OnCheckMessageHandled(XivChatType type, uint senderId, ref SeString sender, ref SeString message, ref bool isHandled)
+        {
+            if (type == XivChatType.ErrorMessage && senderId == 0)
+            {
+                var cmdMatch = this.currentLangCommandRegex.Match(message.TextValue).Groups["command"];
+                if (cmdMatch.Success)
+                {
+                    // Yes, it's a chat command.
+                    var command = cmdMatch.Value;
+                    if (this.ProcessCommand(command)) isHandled = true;
+                }
+            }
         }
     }
 }

@@ -41,7 +41,7 @@ namespace Dalamud
         }
 
         /// <summary>
-        /// Delegate for the <see cref="Localization.OnLocalizationChanged"/> event that occurs when the language is changed.
+        /// Delegate for the <see cref="OnLocalizationChanged"/> event that occurs when the language is changed.
         /// </summary>
         /// <param name="langCode">The language code of the new language.</param>
         public delegate void LocalizationChangedDelegate(string langCode);
@@ -50,6 +50,19 @@ namespace Dalamud
         /// Event that occurs when the language is changed.
         /// </summary>
         public event LocalizationChangedDelegate OnLocalizationChanged;
+
+        /// <summary>
+        /// Search the set-up localization data for the provided assembly for the given string key and return it.
+        /// If the key is not present, the fallback is shown.
+        /// The fallback is also required to create the string files to be localized.
+        /// </summary>
+        /// <param name="key">The string key to be returned.</param>
+        /// <param name="fallBack">The fallback string, usually your source language.</param>
+        /// <returns>The localized string, fallback or string key if not found.</returns>
+        public static string Localize(string key, string fallBack)
+        {
+            return Loc.Localize(key, fallBack, Assembly.GetCallingAssembly());
+        }
 
         /// <summary>
         /// Set up the UI language with the users' local UI culture.
@@ -116,19 +129,6 @@ namespace Dalamud
         public void ExportLocalizable()
         {
             Loc.ExportLocalizableForAssembly(this.assembly);
-        }
-
-        /// <summary>
-        /// Search the set-up localization data for the provided assembly for the given string key and return it.
-        /// If the key is not present, the fallback is shown.
-        /// The fallback is also required to create the string files to be localized.
-        /// </summary>
-        /// <param name="key">The string key to be returned.</param>
-        /// <param name="fallBack">The fallback string, usually your source language.</param>
-        /// <returns>The localized string, fallback or string key if not found.</returns>
-        public static string Localize(string key, string fallBack)
-        {
-            return Loc.Localize(key, fallBack, Assembly.GetCallingAssembly());
         }
 
         private string ReadLocData(string langCode)
