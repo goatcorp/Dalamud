@@ -11,6 +11,7 @@ using Dalamud.Game;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.Command;
 using Dalamud.Game.Internal;
+using Dalamud.Game.Text;
 using Dalamud.Game.Text.Sanitizer;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
@@ -50,6 +51,7 @@ namespace Dalamud.Plugin
             this.pluginName = pluginName;
             this.configs = configs;
 
+            this.GeneralChatType = this.dalamud.Configuration.GeneralChatType;
             this.Sanitizer = new Sanitizer(this.Data.Language);
             if (this.dalamud.Configuration.LanguageOverride != null)
             {
@@ -65,6 +67,7 @@ namespace Dalamud.Plugin
             }
 
             dalamud.LocalizationManager.OnLocalizationChanged += this.OnLocalizationChanged;
+            dalamud.Configuration.OnDalamudConfigurationSaved += this.OnDalamudConfigurationSaved;
         }
 
         /// <summary>
@@ -151,6 +154,11 @@ namespace Dalamud.Plugin
         /// Gets serializer class with functions to remove special characters from strings.
         /// </summary>
         public ISanitizer Sanitizer { get; }
+
+        /// <summary>
+        /// Gets the chat type used by default for plugin messages.
+        /// </summary>
+        public XivChatType GeneralChatType { get; private set; }
 
         /// <summary>
         /// Gets the action that should be executed when any plugin sends a message.
@@ -374,12 +382,18 @@ namespace Dalamud.Plugin
             this.UiBuilder.Dispose();
             this.Framework.Gui.Chat.RemoveChatLinkHandler(this.pluginName);
             this.dalamud.LocalizationManager.OnLocalizationChanged -= this.OnLocalizationChanged;
+            this.dalamud.Configuration.OnDalamudConfigurationSaved -= this.OnDalamudConfigurationSaved;
         }
 
         private void OnLocalizationChanged(string langCode)
         {
             this.UiLanguage = langCode;
             this.OnLanguageChanged?.Invoke(langCode);
+        }
+
+        private void OnDalamudConfigurationSaved(DalamudConfiguration dalamudConfiguration)
+        {
+            this.GeneralChatType = dalamudConfiguration.GeneralChatType;
         }
     }
 }
