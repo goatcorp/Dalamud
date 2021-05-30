@@ -1,5 +1,8 @@
-﻿namespace Dalamud.Game.Internal.Gui.Toast
+namespace Dalamud.Game.Internal.Gui.Toast
 {
+    /// <summary>
+    /// This class represents options that can be used with the <see cref="ToastGui"/> class for the quest toast variant.
+    /// </summary>
     public sealed class QuestToastOptions
     {
         /// <summary>
@@ -25,12 +28,5 @@
         /// This only works if <see cref="IconId"/> is non-zero or <see cref="DisplayCheckmark"/> is true.
         /// </summary>
         public bool PlaySound { get; set; } = false;
-
-        internal (uint, uint) DetermineParameterOrder()
-        {
-            return this.DisplayCheckmark
-                       ? (ToastGui.QuestToastCheckmarkMagic, this.IconId)
-                       : (this.IconId, 0);
-        }
     }
 }

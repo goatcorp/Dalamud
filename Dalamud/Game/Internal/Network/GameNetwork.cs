@@ -1,88 +1,128 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+
 using Dalamud.Hooking;
 using Serilog;
-using SharpDX.DXGI;
 
-namespace Dalamud.Game.Internal.Network {
-    public sealed class GameNetwork : IDisposable {
-        #region Hooks
-
-        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-        private delegate void ProcessZonePacketDownDelegate(IntPtr a, uint targetId, IntPtr dataPtr);
-        private readonly Hook<ProcessZonePacketDownDelegate> processZonePacketDownHook;
-
-        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-        private delegate byte ProcessZonePacketUpDelegate(IntPtr a1, IntPtr dataPtr, IntPtr a3, byte a4);
-        private readonly Hook<ProcessZonePacketUpDelegate> processZonePacketUpHook;
-
-        #endregion
-
-        private GameNetworkAddressResolver Address { get; }
-        private IntPtr baseAddress;
-
-        public delegate void OnNetworkMessageDelegate(IntPtr dataPtr, ushort opCode, uint sourceActorId, uint targetActorId, NetworkMessageDirection direction);
-
+namespace Dalamud.Game.Internal.Network
+{
+    /// <summary>
+    /// This class handles interacting with game network events.
+    /// </summary>
+    public sealed class GameNetwork : IDisposable
+    {
         /// <summary>
         /// Event that is called when a network message is sent/received.
         /// </summary>
         public OnNetworkMessageDelegate OnNetworkMessage;
 
+        private readonly GameNetworkAddressResolver address;
+        private readonly Hook<ProcessZonePacketDownDelegate> processZonePacketDownHook;
+        private readonly Hook<ProcessZonePacketUpDelegate> processZonePacketUpHook;
+        private readonly Queue<byte[]> zoneInjectQueue = new();
 
+        private IntPtr baseAddress;
 
-        private readonly Queue<byte[]> zoneInjectQueue = new Queue<byte[]>();
-
-        public GameNetwork(SigScanner scanner) {
-            Address = new GameNetworkAddressResolver();
-            Address.Setup(scanner);
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GameNetwork"/> class.
+        /// </summary>
+        /// <param name="scanner">The SigScanner instance.</param>
+        public GameNetwork(SigScanner scanner)
+        {
+            this.address = new GameNetworkAddressResolver();
+            this.address.Setup(scanner);
 
             Log.Verbose("===== G A M E N E T W O R K =====");
-            Log.Verbose("ProcessZonePacketDown address {ProcessZonePacketDown}", Address.ProcessZonePacketDown);
-            Log.Verbose("ProcessZonePacketUp address {ProcessZonePacketUp}", Address.ProcessZonePacketUp);
+            Log.Verbose("ProcessZonePacketDown address {ProcessZonePacketDown}", this.address.ProcessZonePacketDown);
+            Log.Verbose("ProcessZonePacketUp address {ProcessZonePacketUp}", this.address.ProcessZonePacketUp);
 
-            this.processZonePacketDownHook =
-                new Hook<ProcessZonePacketDownDelegate>(Address.ProcessZonePacketDown,
-                                                    new ProcessZonePacketDownDelegate(ProcessZonePacketDownDetour),
-                                                    this);
+            this.processZonePacketDownHook = new Hook<ProcessZonePacketDownDelegate>(this.address.ProcessZonePacketDown, new ProcessZonePacketDownDelegate(this.ProcessZonePacketDownDetour), this);
 
-            this.processZonePacketUpHook =
-                new Hook<ProcessZonePacketUpDelegate>(Address.ProcessZonePacketUp,
-                                                        new ProcessZonePacketUpDelegate(ProcessZonePacketUpDetour),
-                                                        this);
+            this.processZonePacketUpHook = new Hook<ProcessZonePacketUpDelegate>(this.address.ProcessZonePacketUp, new ProcessZonePacketUpDelegate(this.ProcessZonePacketUpDetour), this);
         }
 
-        public void Enable() {
+        /// <summary>
+        /// The delegate type of a network message event.
+        /// </summary>
+        /// <param name="dataPtr">The pointer to the raw data.</param>
+        /// <param name="opCode">The operation ID code.</param>
+        /// <param name="sourceActorId">The source actor ID.</param>
+        /// <param name="targetActorId">The taret actor ID.</param>
+        /// <param name="direction">The direction of the packed.</param>
+        public delegate void OnNetworkMessageDelegate(IntPtr dataPtr, ushort opCode, uint sourceActorId, uint targetActorId, NetworkMessageDirection direction);
+
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        private delegate void ProcessZonePacketDownDelegate(IntPtr a, uint targetId, IntPtr dataPtr);
+
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        private delegate byte ProcessZonePacketUpDelegate(IntPtr a1, IntPtr dataPtr, IntPtr a3, byte a4);
+
+        /// <summary>
+        /// Enable this module.
+        /// </summary>
+        public void Enable()
+        {
             this.processZonePacketDownHook.Enable();
             this.processZonePacketUpHook.Enable();
         }
 
-        public void Dispose() {
+        /// <summary>
+        /// Dispose of managed and unmanaged resources.
+        /// </summary>
+        public void Dispose()
+        {
             this.processZonePacketDownHook.Dispose();
             this.processZonePacketUpHook.Dispose();
         }
 
-        private void ProcessZonePacketDownDetour(IntPtr a, uint targetId, IntPtr dataPtr) {
+        /// <summary>
+        /// Process a chat queue.
+        /// </summary>
+        /// <param name="framework">The Framework instance.</param>
+        public void UpdateQueue(Framework framework)
+        {
+            while (this.zoneInjectQueue.Count > 0)
+            {
+                var packetData = this.zoneInjectQueue.Dequeue();
+
+                var unmanagedPacketData = Marshal.AllocHGlobal(packetData.Length);
+                Marshal.Copy(packetData, 0, unmanagedPacketData, packetData.Length);
+
+                if (this.baseAddress != IntPtr.Zero)
+                {
+                    this.processZonePacketDownHook.Original(this.baseAddress, 0, unmanagedPacketData);
+                }
+
+                Marshal.FreeHGlobal(unmanagedPacketData);
+            }
+        }
+
+        private void ProcessZonePacketDownDetour(IntPtr a, uint targetId, IntPtr dataPtr)
+        {
             this.baseAddress = a;
 
             // Go back 0x10 to get back to the start of the packet header
             dataPtr -= 0x10;
 
-            try {
-                
-
+            try
+            {
                 // Call events
-                this.OnNetworkMessage?.Invoke(dataPtr + 0x20, (ushort) Marshal.ReadInt16(dataPtr, 0x12), 0, targetId, NetworkMessageDirection.ZoneDown);
+                this.OnNetworkMessage?.Invoke(dataPtr + 0x20, (ushort)Marshal.ReadInt16(dataPtr, 0x12), 0, targetId, NetworkMessageDirection.ZoneDown);
 
                 this.processZonePacketDownHook.Original(a, targetId, dataPtr + 0x10);
-            } catch (Exception ex) {
+            }
+            catch (Exception ex)
+            {
                 string header;
-                try {
+                try
+                {
                     var data = new byte[32];
                     Marshal.Copy(dataPtr, data, 0, 32);
                     header = BitConverter.ToString(data);
-                } catch (Exception) {
+                }
+                catch (Exception)
+                {
                     header = "failed";
                 }
 
@@ -92,13 +132,13 @@ namespace Dalamud.Game.Internal.Network {
             }
         }
 
-        private byte ProcessZonePacketUpDetour(IntPtr a1, IntPtr dataPtr, IntPtr a3, byte a4) {
-
+        private byte ProcessZonePacketUpDetour(IntPtr a1, IntPtr dataPtr, IntPtr a3, byte a4)
+        {
             try
             {
                 // Call events
                 // TODO: Implement actor IDs
-                this.OnNetworkMessage?.Invoke(dataPtr + 0x20, (ushort) Marshal.ReadInt16(dataPtr), 0x0, 0x0, NetworkMessageDirection.ZoneUp);
+                this.OnNetworkMessage?.Invoke(dataPtr + 0x20, (ushort)Marshal.ReadInt16(dataPtr), 0x0, 0x0, NetworkMessageDirection.ZoneUp);
             }
             catch (Exception ex)
             {
@@ -121,43 +161,26 @@ namespace Dalamud.Game.Internal.Network {
         }
 
 #if DEBUG
-        public void InjectZoneProtoPacket(byte[] data) {
+        private void InjectZoneProtoPacket(byte[] data)
+        {
             this.zoneInjectQueue.Enqueue(data);
         }
 
-        private void InjectActorControl(short cat, int param1) {
-            var packetData = new byte[] {
+        private void InjectActorControl(short cat, int param1)
+        {
+            var packetData = new byte[]
+            {
                 0x14, 0x00, 0x8D, 0x00, 0x00, 0x00, 0x0E, 0x00, 0x17, 0x7C, 0xC5, 0x5D, 0x00, 0x00, 0x00, 0x00,
                 0x05, 0x00, 0x48, 0xB2, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                0x00, 0x00, 0x00, 0x00, 0x43, 0x7F, 0x00, 0x00
+                0x00, 0x00, 0x00, 0x00, 0x43, 0x7F, 0x00, 0x00,
             };
 
-            BitConverter.GetBytes((short) cat).CopyTo(packetData, 0x10);
+            BitConverter.GetBytes((short)cat).CopyTo(packetData, 0x10);
 
-            BitConverter.GetBytes((UInt32) param1).CopyTo(packetData, 0x14);
+            BitConverter.GetBytes((uint)param1).CopyTo(packetData, 0x14);
 
-            InjectZoneProtoPacket(packetData);
+            this.InjectZoneProtoPacket(packetData);
         }
 #endif
-
-        /// <summary>
-        ///     Process a chat queue.
-        /// </summary>
-        public void UpdateQueue(Framework framework)
-        {
-            while (this.zoneInjectQueue.Count > 0)
-            {
-                var packetData = this.zoneInjectQueue.Dequeue();
-
-                var unmanagedPacketData = Marshal.AllocHGlobal(packetData.Length);
-                Marshal.Copy(packetData, 0, unmanagedPacketData, packetData.Length);
-
-                if (this.baseAddress != IntPtr.Zero) {
-                    this.processZonePacketDownHook.Original(this.baseAddress, 0, unmanagedPacketData);
-                }
-
-                Marshal.FreeHGlobal(unmanagedPacketData);
-            }
-        }
     }
 }

@@ -1,17 +1,24 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace Dalamud.Game.ClientState.Actors.Resolvers
 {
-    public abstract class BaseResolver {
-        protected Dalamud dalamud;
+    /// <summary>
+    /// Base object resolver.
+    /// </summary>
+    public abstract class BaseResolver
+    {
+        private Dalamud dalamud;
 
-        public BaseResolver(Dalamud dalamud) {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BaseResolver"/> class.
+        /// </summary>
+        /// <param name="dalamud">The Dalamud instance.</param>
+        public BaseResolver(Dalamud dalamud)
+        {
             this.dalamud = dalamud;
         }
+
+        /// <summary>
+        /// Gets the Dalamud instance.
+        /// </summary>
+        protected Dalamud Dalamud => this.dalamud;
     }
 }

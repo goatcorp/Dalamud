@@ -5,13 +5,11 @@ using Dalamud.Game.ClientState.Structs;
 namespace Dalamud.Game.ClientState.Actors.Types
 {
     /// <summary>
-    ///     This class represents a basic FFXIV actor.
+    /// This class represents a basic FFXIV actor.
     /// </summary>
     public class Actor : IEquatable<Actor>
     {
         private readonly Structs.Actor actorStruct;
-        // This is a breaking change. StyleCop demands it.
-        // private readonly IntPtr address;
         private readonly Dalamud dalamud;
 
         /// <summary>
@@ -83,8 +81,6 @@ namespace Dalamud.Game.ClientState.Actors.Types
         /// <summary>
         /// Gets the address of this actor in memory.
         /// </summary>
-        // TODO: This is a breaking change, StyleCop demands it.
-        // public IntPtr Address => this.address;
         public readonly IntPtr Address;
 
         /// <summary>

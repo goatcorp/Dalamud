@@ -55,9 +55,8 @@ namespace Dalamud.Configuration
                 File.ReadAllText(path.FullName),
                 new JsonSerializerSettings
                 {
-                   TypeNameAssemblyFormatHandling =
-                       TypeNameAssemblyFormatHandling.Simple,
-                   TypeNameHandling = TypeNameHandling.Objects,
+                    TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple,
+                    TypeNameHandling = TypeNameHandling.Objects,
                 });
         }
 
@@ -108,8 +107,8 @@ namespace Dalamud.Configuration
         /// </summary>
         /// <param name="pluginName">InternalName of the plugin.</param>
         /// <returns>FileInfo of the config file.</returns>
-        public FileInfo GetConfigFile(string pluginName) => new FileInfo(Path.Combine(this.configDirectory.FullName, $"{pluginName}.json"));
+        public FileInfo GetConfigFile(string pluginName) => new(Path.Combine(this.configDirectory.FullName, $"{pluginName}.json"));
 
-        private DirectoryInfo GetDirectoryPath(string pluginName) => new DirectoryInfo(Path.Combine(this.configDirectory.FullName, pluginName));
+        private DirectoryInfo GetDirectoryPath(string pluginName) => new(Path.Combine(this.configDirectory.FullName, pluginName));
     }
 }
