@@ -1,21 +1,27 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Dalamud.Interface.Scratchpad
 {
-    class ScratchFileWatcher
+    /// <summary>
+    /// A file watcher for <see cref="ScratchpadDocument"/> classes.
+    /// </summary>
+    internal class ScratchFileWatcher
     {
+        private FileSystemWatcher watcher = new();
+
+        /// <summary>
+        /// Gets or sets the list of tracked ScratchPad documents.
+        /// </summary>
         public List<ScratchpadDocument> TrackedScratches { get; set; } = new List<ScratchpadDocument>();
 
-        private FileSystemWatcher watcher = new FileSystemWatcher();
-
+        /// <summary>
+        /// Load a new ScratchPadDocument from disk.
+        /// </summary>
+        /// <param name="path">The filepath to load.</param>
         public void Load(string path)
         {
-            TrackedScratches.Add(new ScratchpadDocument
+            this.TrackedScratches.Add(new ScratchpadDocument
             {
                 Title = Path.GetFileName(path),
                 Content = File.ReadAllText(path),

@@ -1,32 +1,41 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Dalamud.Configuration;
+
 using Dalamud.Plugin;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
 using Serilog;
 
 namespace Dalamud.Interface.Scratchpad
 {
-    class ScratchExecutionManager
+    /// <summary>
+    /// This class manages the execution of <see cref="ScratchpadDocument"/> classes.
+    /// </summary>
+    internal class ScratchExecutionManager
     {
         private readonly Dalamud dalamud;
-        private Dictionary<Guid, IDalamudPlugin> loadedScratches = new Dictionary<Guid, IDalamudPlugin>();
+        private Dictionary<Guid, IDalamudPlugin> loadedScratches = new();
 
-        public ScratchMacroProcessor MacroProcessor { get; private set; } = new ScratchMacroProcessor();
-
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ScratchExecutionManager"/> class.
+        /// </summary>
+        /// <param name="dalamud">The Dalamud instance.</param>
         public ScratchExecutionManager(Dalamud dalamud)
         {
             this.dalamud = dalamud;
         }
 
+        /// <summary>
+        /// Gets the ScratchPad macro processor.
+        /// </summary>
+        public ScratchMacroProcessor MacroProcessor { get; private set; } = new();
+
+        /// <summary>
+        /// Dispose of all currently loaded ScratchPads.
+        /// </summary>
         public void DisposeAllScratches()
         {
             foreach (var dalamudPlugin in this.loadedScratches)
@@ -37,6 +46,11 @@ namespace Dalamud.Interface.Scratchpad
             this.loadedScratches.Clear();
         }
 
+        /// <summary>
+        /// Renew a given ScratchPadDocument.
+        /// </summary>
+        /// <param name="doc">The document to renew.</param>
+        /// <returns>The new load status.</returns>
         public ScratchLoadStatus RenewScratch(ScratchpadDocument doc)
         {
             var existingScratch = this.loadedScratches.FirstOrDefault(x => x.Key == doc.Id);
@@ -51,11 +65,10 @@ namespace Dalamud.Interface.Scratchpad
             var options = ScriptOptions.Default
                                        .AddReferences(typeof(ImGui).Assembly)
                                        .AddReferences(typeof(Dalamud).Assembly)
-                                       .AddReferences(typeof(FFXIVClientStructs.Attributes.Addon)
-                                                          .Assembly)                    // FFXIVClientStructs
+                                       .AddReferences(typeof(FFXIVClientStructs.Attributes.Addon).Assembly) // FFXIVClientStructs
                                        .AddReferences(typeof(Lumina.GameData).Assembly) // Lumina
                                        .AddReferences(typeof(TerritoryType).Assembly) // Lumina.Excel
-                                       //.WithReferences(MetadataReference.CreateFromFile(typeof(ScratchExecutionManager).Assembly.Location))
+                                                                                      // .WithReferences(MetadataReference.CreateFromFile(typeof(ScratchExecutionManager).Assembly.Location))
                                        .AddImports("System")
                                        .AddImports("System.IO")
                                        .AddImports("System.Reflection")
