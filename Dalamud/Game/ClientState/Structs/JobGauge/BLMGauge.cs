@@ -1,34 +1,59 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Dalamud.Game.ClientState.Structs.JobGauge {
-
+namespace Dalamud.Game.ClientState.Structs.JobGauge
+{
+    /// <summary>
+    /// In-memory BLM job gauge.
+    /// </summary>
     [StructLayout(LayoutKind.Explicit)]
-    public struct BLMGauge {
-        [FieldOffset(0)] public short TimeUntilNextPolyglot;  //eno timer (ms)
-        [FieldOffset(2)] public short ElementTimeRemaining;  //ui/af timer
-        [FieldOffset(4)] private byte ElementStance; //ui/af
-        [FieldOffset(5)] public byte NumUmbralHearts; //number of umbral hearts
-        [FieldOffset(6)] public byte NumPolyglotStacks; //number of polyglot stacks
-        [FieldOffset(7)] private byte EnoState; //eno active?
+    public struct BLMGauge
+    {
+        /// <summary>
+        /// Gets the time until the next Polyglot stack in milliseconds.
+        /// </summary>
+        [FieldOffset(0)]
+        public short TimeUntilNextPolyglot;  // enochian timer
 
-        public bool InUmbralIce() {
-            return ElementStance > 4;
-        }
+        /// <summary>
+        /// Gets the time remaining for Astral Fire or Umbral Ice in milliseconds.
+        /// </summary>
+        [FieldOffset(2)]
+        public short ElementTimeRemaining;  // umbral ice and astral fire timer
 
-        public bool InAstralFire() {
-            return ElementStance > 0 && ElementStance < 4;
-        }
+        [FieldOffset(4)]
+        private byte elementStance; // umbral ice or astral fire
 
-        public bool IsEnoActive() {
-            return EnoState > 0;
-        }
+        /// <summary>
+        /// Gets the number of Umbral Hearts remaining.
+        /// </summary>
+        [FieldOffset(5)]
+        public byte NumUmbralHearts;
 
+        /// <summary>
+        /// Gets the number of Polyglot stacks remaining.
+        /// </summary>
+        [FieldOffset(6)]
+        public byte NumPolyglotStacks;
+
+        [FieldOffset(7)]
+        private byte enochianState;
+
+        /// <summary>
+        /// Gets if the player is in Umbral Ice.
+        /// </summary>
+        /// <returns><c>true</c> or <c>false</c>.</returns>
+        public bool InUmbralIce() => this.elementStance > 4;
+
+        /// <summary>
+        /// Gets if the player is in Astral fire.
+        /// </summary>
+        /// <returns><c>true</c> or <c>false</c>.</returns>
+        public bool InAstralFire() => this.elementStance > 0 && this.elementStance < 4;
+
+        /// <summary>
+        /// Gets if Enochian is active.
+        /// </summary>
+        /// <returns><c>true</c> or <c>false</c>.</returns>
+        public bool IsEnoActive() => this.enochianState > 0;
     }
-
-    
 }

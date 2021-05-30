@@ -1,20 +1,38 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Dalamud.Game.ClientState.Structs.JobGauge {
+namespace Dalamud.Game.ClientState.Structs.JobGauge
+{
+    /// <summary>
+    /// In-memory DRK job gauge.
+    /// </summary>
     [StructLayout(LayoutKind.Explicit)]
-    public struct DRKGauge {
-        [FieldOffset(0)] public byte Blood;
-        [FieldOffset(2)] public ushort DarksideTimeRemaining;
-        [FieldOffset(4)] private byte DarkArtsState;
-        [FieldOffset(6)] public ushort ShadowTimeRemaining;
+    public struct DRKGauge
+    {
+        /// <summary>
+        /// Gets the amount of blood accumulated.
+        /// </summary>
+        [FieldOffset(0)]
+        public byte Blood;
 
-        public bool HasDarkArts() {
-            return DarkArtsState > 0;
-        }
+        /// <summary>
+        /// Gets the Darkside time remaining in milliseconds.
+        /// </summary>
+        [FieldOffset(2)]
+        public ushort DarksideTimeRemaining;
+
+        [FieldOffset(4)]
+        private byte darkArtsState;
+
+        /// <summary>
+        /// Gets the Shadow time remaining in milliseconds.
+        /// </summary>
+        [FieldOffset(6)]
+        public ushort ShadowTimeRemaining;
+
+        /// <summary>
+        /// Gets if the player has Dark Arts or not.
+        /// </summary>
+        /// <returns><c>true</c> or <c>false</c>.</returns>
+        public bool HasDarkArts() => this.darkArtsState > 0;
     }
 }

@@ -1,25 +1,35 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Dalamud.Game.ClientState.Structs.JobGauge {
-
+namespace Dalamud.Game.ClientState.Structs.JobGauge
+{
+    /// <summary>
+    /// In-memory AST job gauge.
+    /// </summary>
     [StructLayout(LayoutKind.Explicit)]
-    public struct ASTGauge {
-        [FieldOffset(4)] private CardType Card;
-        [FieldOffset(5)] private unsafe fixed byte Seals[3];
+    public struct ASTGauge
+    {
+        [FieldOffset(4)]
+        private CardType card;
 
-        public CardType DrawnCard() {
-            return Card;
-        }
+        [FieldOffset(5)]
+        private unsafe fixed byte seals[3];
 
-        public unsafe bool ContainsSeal(SealType seal) {
-            if (Seals[0] == (byte)seal) return true;
-            if (Seals[1] == (byte)seal) return true;
-            if (Seals[2] == (byte)seal) return true;
+        /// <summary>
+        /// Gets the currently drawn <see cref="CardType"/>.
+        /// </summary>
+        /// <returns>Currently drawn <see cref="CardType"/>.</returns>
+        public CardType DrawnCard() => this.card;
+
+        /// <summary>
+        /// Check if a <see cref="SealType"/> is currently active on the divination gauge.
+        /// </summary>
+        /// <param name="seal">The <see cref="SealType"/> to check for.</param>
+        /// <returns>If the given Seal is currently divined.</returns>
+        public unsafe bool ContainsSeal(SealType seal)
+        {
+            if (this.seals[0] == (byte)seal) return true;
+            if (this.seals[1] == (byte)seal) return true;
+            if (this.seals[2] == (byte)seal) return true;
             return false;
         }
     }

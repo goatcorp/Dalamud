@@ -1,14 +1,17 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Dalamud.Game.ClientState.Structs.JobGauge {
-
+namespace Dalamud.Game.ClientState.Structs.JobGauge
+{
+    /// <summary>
+    /// In-memory PLD job gauge.
+    /// </summary>
     [StructLayout(LayoutKind.Explicit)]
-    public struct PLDGauge {
-        [FieldOffset(0)] public byte GaugeAmount;
+    public struct PLDGauge
+    {
+        /// <summary>
+        /// Gets the current level of the Oath gauge.
+        /// </summary>
+        [FieldOffset(0)]
+        public byte GaugeAmount;
     }
 }
