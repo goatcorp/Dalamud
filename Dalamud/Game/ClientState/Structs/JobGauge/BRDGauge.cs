@@ -1,17 +1,35 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Dalamud.Game.ClientState.Structs.JobGauge {
-
+namespace Dalamud.Game.ClientState.Structs.JobGauge
+{
+    /// <summary>
+    /// In-memory BRD job gauge.
+    /// </summary>
     [StructLayout(LayoutKind.Explicit)]
-    public struct BRDGauge {
-        [FieldOffset(0)] public short SongTimer;
-        [FieldOffset(2)] public byte NumSongStacks;
-        [FieldOffset(3)] public byte SoulVoiceValue;
-        [FieldOffset(4)] public CurrentSong ActiveSong;
+    public struct BRDGauge
+    {
+        /// <summary>
+        /// Gets the current song timer in milliseconds.
+        /// </summary>
+        [FieldOffset(0)]
+        public short SongTimer;
+
+        /// <summary>
+        /// Gets the number of stacks for the current song.
+        /// </summary>
+        [FieldOffset(2)]
+        public byte NumSongStacks;
+
+        /// <summary>
+        /// Gets the amount of Soul Voice accumulated.
+        /// </summary>
+        [FieldOffset(3)]
+        public byte SoulVoiceValue;
+
+        /// <summary>
+        /// Gets the type of song that is active.
+        /// </summary>
+        [FieldOffset(4)]
+        public CurrentSong ActiveSong;
     }
 }

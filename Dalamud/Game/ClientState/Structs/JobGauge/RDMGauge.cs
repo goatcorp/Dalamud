@@ -1,15 +1,23 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Dalamud.Game.ClientState.Structs.JobGauge {
-
+namespace Dalamud.Game.ClientState.Structs.JobGauge
+{
+    /// <summary>
+    /// In-memory RDM job gauge.
+    /// </summary>
     [StructLayout(LayoutKind.Explicit)]
-    public struct RDMGauge {
-        [FieldOffset(0)] public byte WhiteGauge;
-        [FieldOffset(1)] public byte BlackGauge;
+    public struct RDMGauge
+    {
+        /// <summary>
+        /// Gets the level of the White gauge.
+        /// </summary>
+        [FieldOffset(0)]
+        public byte WhiteGauge;
+
+        /// <summary>
+        /// Gets the level of the Black gauge.
+        /// </summary>
+        [FieldOffset(1)]
+        public byte BlackGauge;
     }
 }
