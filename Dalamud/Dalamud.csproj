@@ -2,7 +2,7 @@
     <PropertyGroup Label="Target">
         <PlatformTarget>AnyCPU</PlatformTarget>
         <TargetFramework>net472</TargetFramework>
-        <LangVersion>8.0</LangVersion>
+        <LangVersion>9.0</LangVersion>
         <Platforms>AnyCPU;x64</Platforms>
     </PropertyGroup>
     <PropertyGroup Label="Build">
