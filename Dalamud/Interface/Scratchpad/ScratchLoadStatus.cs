@@ -1,16 +1,28 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace Dalamud.Interface.Scratchpad
 {
-    enum ScratchLoadStatus
+    /// <summary>
+    /// The load status of a <see cref="ScratchpadDocument"/> class.
+    /// </summary>
+    internal enum ScratchLoadStatus
     {
+        /// <summary>
+        /// Unknown.
+        /// </summary>
         Unknown,
+
+        /// <summary>
+        /// Failure to compile.
+        /// </summary>
         FailureCompile,
+
+        /// <summary>
+        /// Failure to initialize.
+        /// </summary>
         FailureInit,
+
+        /// <summary>
+        /// Success.
+        /// </summary>
         Success,
     }
 }
