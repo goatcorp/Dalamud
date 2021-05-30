@@ -12,7 +12,7 @@ namespace Dalamud.Interface.Windowing
     /// </summary>
     public class WindowSystem
     {
-        private readonly List<Window> windows = new List<Window>();
+        private readonly List<Window> windows = new();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="WindowSystem"/> class.
@@ -70,7 +70,7 @@ namespace Dalamud.Interface.Windowing
             foreach (var window in this.windows)
             {
 #if DEBUG
-                //Log.Verbose($"[WS{(hasNamespace ? "/" + this.Namespace : string.Empty)}] Drawing {window.WindowName}");
+                // Log.Verbose($"[WS{(hasNamespace ? "/" + this.Namespace : string.Empty)}] Drawing {window.WindowName}");
 #endif
 
                 window.DrawInternal();

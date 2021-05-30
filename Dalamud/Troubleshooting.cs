@@ -37,9 +37,8 @@ namespace Dalamud
                     ThirdRepo = dalamud.Configuration.ThirdRepoList,
                 };
 
-                Log.Information("TROUBLESHOOTING:" +
-                                System.Convert.ToBase64String(
-                                    Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(payload))));
+                var encodedPayload = Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(payload)));
+                Log.Information($"TROUBLESHOOTING:{encodedPayload}");
             }
             catch (Exception ex)
             {
