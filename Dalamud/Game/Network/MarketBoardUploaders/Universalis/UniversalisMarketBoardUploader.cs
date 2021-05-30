@@ -59,7 +59,15 @@ namespace Dalamud.Game.Network.Universalis.MarketBoardUploaders {
                 }
 
                 var upload = JsonConvert.SerializeObject(listingsRequestObject);
-                client.UploadString(ApiBase + $"/upload/{ApiKey}", "POST", upload);
+                try
+                {
+                    client.UploadString(ApiBase + $"/upload/{ApiKey}", "POST", upload);
+                }
+                catch (WebException ex)
+                {
+                    int statusCode = (int)(ex.Response as HttpWebResponse).StatusCode;
+                    Log.Error(ex, $"Universalis returned an HTTP {statusCode}");
+                }
                 Log.Verbose(upload);
 
                 var historyRequestObject = new UniversalisHistoryUploadRequest();
@@ -81,7 +89,15 @@ namespace Dalamud.Game.Network.Universalis.MarketBoardUploaders {
                 client.Headers.Add(HttpRequestHeader.ContentType, "application/json");
 
                 var historyUpload = JsonConvert.SerializeObject(historyRequestObject);
-                client.UploadString(ApiBase + $"/upload/{ApiKey}", "POST", historyUpload);
+                try
+                {
+                    client.UploadString(ApiBase + $"/upload/{ApiKey}", "POST", historyUpload);
+                }
+                catch (WebException ex)
+                {
+                    int statusCode = (int)(ex.Response as HttpWebResponse).StatusCode;
+                    Log.Error(ex, $"Universalis returned an HTTP {statusCode}");
+                }
                 Log.Verbose(historyUpload);
 
                 Log.Verbose("Universalis data upload for item#{0} completed.", request.CatalogId);
