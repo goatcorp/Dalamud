@@ -1,9 +1,5 @@
 using System;
-using System.Diagnostics;
 using System.Reflection;
-
-using Serilog;
-using Serilog.Events;
 
 namespace Dalamud.Plugin
 {
