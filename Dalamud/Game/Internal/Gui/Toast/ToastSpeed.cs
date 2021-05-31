@@ -1,5 +1,8 @@
-﻿namespace Dalamud.Game.Internal.Gui.Toast
+namespace Dalamud.Game.Internal.Gui.Toast
 {
+    /// <summary>
+    /// The speed at which native toast windows will persist.
+    /// </summary>
     public enum ToastSpeed : byte
     {
         /// <summary>

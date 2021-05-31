@@ -1,11 +1,12 @@
-using Lumina.Excel.GeneratedSheets;
-using Serilog;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+
 using Dalamud.Data;
+using Lumina.Excel.GeneratedSheets;
 using Newtonsoft.Json;
+using Serilog;
 
 namespace Dalamud.Game.Text.SeStringHandling.Payloads
 {
@@ -14,25 +15,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
     /// </summary>
     public class AutoTranslatePayload : Payload, ITextProvider
     {
-        public override PayloadType Type => PayloadType.AutoTranslateText;
-
         private string text;
-        /// <summary>
-        /// The actual text displayed in-game for this payload.
-        /// </summary>
-        /// <remarks>
-        /// Value is evaluated lazily and cached.
-        /// </remarks>
-        public string Text
-        {
-            get
-            {
-                // wrap the text in the colored brackets that is uses in-game, since those
-                // are not actually part of any of the payloads
-                this.text ??= $"{(char)SeIconChar.AutoTranslateOpen} {Resolve()} {(char)SeIconChar.AutoTranslateClose}";
-                return this.text;
-            }
-        }
 
         [JsonProperty]
         private uint group;
@@ -40,9 +23,8 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         [JsonProperty]
         private uint key;
 
-        internal AutoTranslatePayload() { }
-
         /// <summary>
+        /// Initializes a new instance of the <see cref="AutoTranslatePayload"/> class.
         /// Creates a new auto-translate payload.
         /// </summary>
         /// <param name="data">DataManager instance needed to resolve game data.</param>
@@ -52,19 +34,49 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         /// This table is somewhat complicated in structure, and so using this constructor may not be very nice.
         /// There is probably little use to create one of these, however.
         /// </remarks>
-        public AutoTranslatePayload(DataManager data, uint group, uint key) {
+        public AutoTranslatePayload(DataManager data, uint group, uint key)
+        {
+            // TODO: friendlier ctor? not sure how to handle that given how weird the tables are
             this.DataResolver = data;
             this.group = group;
             this.key = key;
         }
 
-        // TODO: friendlier ctor? not sure how to handle that given how weird the tables are
-
-        public override string ToString()
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AutoTranslatePayload"/> class.
+        /// </summary>
+        internal AutoTranslatePayload()
         {
-            return $"{Type} - Group: {group}, Key: {key}, Text: {Text}";
         }
 
+        /// <inheritdoc/>
+        public override PayloadType Type => PayloadType.AutoTranslateText;
+
+        /// <summary>
+        /// Gets the actual text displayed in-game for this payload.
+        /// </summary>
+        /// <remarks>
+        /// Value is evaluated lazily and cached.
+        /// </remarks>
+        public string Text
+        {
+            get
+            {
+                // wrap the text in the colored brackets that is uses in-game, since those are not actually part of any of the payloads
+                return this.text ??= $"{(char)SeIconChar.AutoTranslateOpen} {this.Resolve()} {(char)SeIconChar.AutoTranslateClose}";
+            }
+        }
+
+        /// <summary>
+        /// Returns a string that represents the current object.
+        /// </summary>
+        /// <returns>A string that represents the current object.</returns>
+        public override string ToString()
+        {
+            return $"{this.Type} - Group: {this.group}, Key: {this.key}, Text: {this.Text}";
+        }
+
+        /// <inheritdoc/>
         protected override byte[] EncodeImpl()
         {
             var keyBytes = MakeInteger(this.key);
@@ -74,7 +86,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             {
                 START_BYTE,
                 (byte)SeStringChunkType.AutoTranslateKey, (byte)chunkLen,
-                (byte)this.group
+                (byte)this.group,
             };
             bytes.AddRange(keyBytes);
             bytes.Add(END_BYTE);
@@ -82,6 +94,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             return bytes.ToArray();
         }
 
+        /// <inheritdoc/>
         protected override void DecodeImpl(BinaryReader reader, long endOfStream)
         {
             // this seems to always be a bare byte, and not following normal integer encoding
@@ -105,7 +118,9 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
                 // (again, if it's meant for another table)
                 row = sheet.GetRow(this.key);
             }
-            catch { }    // don't care, row will be null
+            catch
+            {
+            } // don't care, row will be null
 
             if (row?.Group == this.group)
             {
@@ -142,7 +157,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
                         "TextCommand" => this.DataResolver.GetExcelSheet<TextCommand>().GetRow(this.key).Command,
                         "Tribe" => this.DataResolver.GetExcelSheet<Tribe>().GetRow(this.key).Masculine,
                         "Weather" => this.DataResolver.GetExcelSheet<Weather>().GetRow(this.key).Name,
-                        _ => throw new Exception(actualTableName)
+                        _ => throw new Exception(actualTableName),
                     };
 
                     value = name;

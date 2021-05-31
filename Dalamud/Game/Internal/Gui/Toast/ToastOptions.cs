@@ -1,5 +1,8 @@
 namespace Dalamud.Game.Internal.Gui.Toast
 {
+    /// <summary>
+    /// This class represents options that can be used with the <see cref="ToastGui"/> class.
+    /// </summary>
     public sealed class ToastOptions
     {
         /// <summary>

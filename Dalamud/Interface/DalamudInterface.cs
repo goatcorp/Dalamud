@@ -37,7 +37,7 @@ namespace Dalamud.Interface
         private readonly ScratchpadWindow scratchpadWindow;
         private readonly GamepadModeNotifierWindow gamepadModeNotifierWindow;
 
-        private readonly WindowSystem windowSystem = new WindowSystem("DalamudCore");
+        private readonly WindowSystem windowSystem = new("DalamudCore");
 
         private ulong frameCount = 0;
 
@@ -249,7 +249,7 @@ namespace Dalamud.Interface
 
                         if (ImGui.MenuItem("Cause AccessViolation"))
                         {
-                            var a = Marshal.ReadByte(IntPtr.Zero);
+                            Marshal.ReadByte(IntPtr.Zero);
                         }
 
                         ImGui.Separator();
@@ -520,6 +520,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// Toggle the data window and preset the dropdown.
         /// </summary>
+        /// <param name="dataKind">The data kind to toggle.</param>
         internal void ToggleData(string dataKind)
         {
             this.dataWindow.IsOpen ^= true;

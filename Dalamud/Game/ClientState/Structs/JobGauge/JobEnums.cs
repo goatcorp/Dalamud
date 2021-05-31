@@ -1,5 +1,7 @@
 using System;
 
+#pragma warning disable SA1402 // File may only contain a single type
+
 namespace Dalamud.Game.ClientState.Structs.JobGauge
 {
     #region AST
@@ -270,3 +272,5 @@ namespace Dalamud.Game.ClientState.Structs.JobGauge
 
     #endregion
 }
+
+#pragma warning restore SA1402 // File may only contain a single type

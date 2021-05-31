@@ -1,8 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+
 using Dalamud.Data;
 using Lumina.Excel.GeneratedSheets;
 using Newtonsoft.Json;
@@ -14,32 +14,48 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
     /// </summary>
     public class ItemPayload : Payload
     {
-        public override PayloadType Type => PayloadType.Item;
-
         private Item item;
-        /// <summary>
-        /// The underlying Lumina Item represented by this payload.
-        /// </summary>
-        /// <remarks>
-        /// Value is evaluated lazily and cached.
-        /// </remarks>
-        [JsonIgnore]
-        public Item Item
-        {
-            get
-            {
-                this.item ??= this.DataResolver.GetExcelSheet<Item>().GetRow(this.itemId);
-                return this.item;
-            }
-        }
 
         // mainly to allow overriding the name (for things like owo)
         // TODO: even though this is present in some item links, it may not really have a use at all
         //   For things like owo, changing the text payload is probably correct, whereas changing the
         //   actual embedded name might not work properly.
         private string displayName = null;
+
+        [JsonProperty]
+        private uint itemId;
+
         /// <summary>
-        /// The displayed name for this item link.  Note that incoming links only sometimes have names embedded,
+        /// Initializes a new instance of the <see cref="ItemPayload"/> class.
+        /// Creates a payload representing an interactable item link for the specified item.
+        /// </summary>
+        /// <param name="data">DataManager instance needed to resolve game data.</param>
+        /// <param name="itemId">The id of the item.</param>
+        /// <param name="isHQ">Whether or not the link should be for the high-quality variant of the item.</param>
+        /// <param name="displayNameOverride">An optional name to include in the item link.  Typically this should
+        /// be left as null, or set to the normal item name.  Actual overrides are better done with the subsequent
+        /// TextPayload that is a part of a full item link in chat.</param>
+        public ItemPayload(DataManager data, uint itemId, bool isHQ, string displayNameOverride = null)
+        {
+            this.DataResolver = data;
+            this.itemId = itemId;
+            this.IsHQ = isHQ;
+            this.displayName = displayNameOverride;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ItemPayload"/> class.
+        /// Creates a payload representing an interactable item link for the specified item.
+        /// </summary>
+        internal ItemPayload()
+        {
+        }
+
+        /// <inheritdoc/>
+        public override PayloadType Type => PayloadType.Item;
+
+        /// <summary>
+        /// Gets or sets the displayed name for this item link.  Note that incoming links only sometimes have names embedded,
         /// often the name is only present in a following text payload.
         /// </summary>
         public string DisplayName
@@ -52,54 +68,44 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             set
             {
                 this.displayName = value;
-                Dirty = true;
+                this.Dirty = true;
             }
         }
 
         /// <summary>
-        /// Whether or not this item link is for a high-quality version of the item.
+        /// Gets the underlying Lumina Item represented by this payload.
+        /// </summary>
+        /// <remarks>
+        /// The value is evaluated lazily and cached.
+        /// </remarks>
+        [JsonIgnore]
+        public Item Item => this.item ??= this.DataResolver.GetExcelSheet<Item>().GetRow(this.itemId);
+
+        /// <summary>
+        /// Gets a value indicating whether or not this item link is for a high-quality version of the item.
         /// </summary>
         [JsonProperty]
         public bool IsHQ { get; private set; } = false;
 
-        [JsonProperty]
-        private uint itemId;
-
-        internal ItemPayload() { }
-
-        /// <summary>
-        /// Creates a payload representing an interactable item link for the specified item.
-        /// </summary>
-        /// <param name="data">DataManager instance needed to resolve game data.</param>
-        /// <param name="itemId">The id of the item.</param>
-        /// <param name="isHQ">Whether or not the link should be for the high-quality variant of the item.</param>
-        /// <param name="displayNameOverride">An optional name to include in the item link.  Typically this should
-        /// be left as null, or set to the normal item name.  Actual overrides are better done with the subsequent
-        /// TextPayload that is a part of a full item link in chat.</param>
-        public ItemPayload(DataManager data, uint itemId, bool isHQ, string displayNameOverride = null) {
-            this.DataResolver = data;
-            this.itemId = itemId;
-            this.IsHQ = isHQ;
-            this.displayName = displayNameOverride;
-        }
-
+        /// <inheritdoc/>
         public override string ToString()
         {
-            return $"{Type} - ItemId: {itemId}, IsHQ: {IsHQ}, Name: {this.displayName ?? Item.Name}";
+            return $"{this.Type} - ItemId: {this.itemId}, IsHQ: {this.IsHQ}, Name: {this.displayName ?? this.Item.Name}";
         }
 
+        /// <inheritdoc/>
         protected override byte[] EncodeImpl()
         {
-            var actualItemId = IsHQ ? this.itemId + 1000000 : this.itemId;
+            var actualItemId = this.IsHQ ? this.itemId + 1000000 : this.itemId;
             var idBytes = MakeInteger(actualItemId);
-            bool hasName = !string.IsNullOrEmpty(this.displayName);
+            var hasName = !string.IsNullOrEmpty(this.displayName);
 
             var chunkLen = idBytes.Length + 4;
             if (hasName)
             {
                 // 1 additional unknown byte compared to the nameless version, 1 byte for the name length, and then the name itself
-                chunkLen += (1 + 1 + this.displayName.Length);
-                if (IsHQ)
+                chunkLen += 1 + 1 + this.displayName.Length;
+                if (this.IsHQ)
                 {
                     chunkLen += 4;  // unicode representation of the HQ symbol is 3 bytes, preceded by a space
                 }
@@ -108,7 +114,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             var bytes = new List<byte>()
             {
                 START_BYTE,
-                (byte)SeStringChunkType.Interactable, (byte)chunkLen, (byte)EmbeddedInfoType.ItemLink
+                (byte)SeStringChunkType.Interactable, (byte)chunkLen, (byte)EmbeddedInfoType.ItemLink,
             };
             bytes.AddRange(idBytes);
             // unk
@@ -118,7 +124,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             if (hasName)
             {
                 var nameLen = this.displayName.Length + 1;
-                if (IsHQ)
+                if (this.IsHQ)
                 {
                     nameLen += 4;   // space plus 3 bytes for HQ symbol
                 }
@@ -126,11 +132,11 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
                 bytes.AddRange(new byte[]
                 {
                     0xFF,   // unk
-                    (byte)nameLen
+                    (byte)nameLen,
                 });
                 bytes.AddRange(Encoding.UTF8.GetBytes(this.displayName));
 
-                if (IsHQ)
+                if (this.IsHQ)
                 {
                     // space and HQ symbol
                     bytes.AddRange(new byte[] { 0x20, 0xEE, 0x80, 0xBC });
@@ -142,6 +148,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             return bytes.ToArray();
         }
 
+        /// <inheritdoc/>
         protected override void DecodeImpl(BinaryReader reader, long endOfStream)
         {
             this.itemId = GetInteger(reader);
@@ -149,7 +156,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             if (this.itemId > 1000000)
             {
                 this.itemId -= 1000000;
-                IsHQ = true;
+                this.IsHQ = true;
             }
 
             if (reader.BaseStream.Position + 3 < endOfStream)
@@ -167,7 +174,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
 
                 // HQ items have the HQ symbol as part of the name, but since we already recorded
                 // the HQ flag, we want just the bare name
-                if (IsHQ)
+                if (this.IsHQ)
                 {
                     itemNameBytes = itemNameBytes.Take(itemNameLen - 4).ToArray();
                 }
