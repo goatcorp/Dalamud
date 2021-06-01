@@ -347,7 +347,7 @@ namespace Dalamud.Game.Internal.Gui.Structs
     /// <summary>
     /// Extensions for the <see cref="JobFlags"/> enum.
     /// </summary>
-    public static class JobFlagsExtensions
+    public static class JobFlagsExt
     {
         /// <summary>
         /// Get the actual ClassJob from the in-game sheets for this JobFlags.
