@@ -29,7 +29,7 @@ namespace Dalamud.Game.ClientState.Actors.Types
         /// <summary>
         /// Gets the ClassJob of this Chara.
         /// </summary>
-        public ClassJob ClassJob => new ClassJob(this.ActorStruct.ClassJob, this.Dalamud);
+        public ClassJob ClassJob => new(this.ActorStruct.ClassJob, this.Dalamud);
 
         /// <summary>
         /// Gets the current HP of this Chara.

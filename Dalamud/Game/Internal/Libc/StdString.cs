@@ -1,31 +1,56 @@
 using System;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using Newtonsoft.Json.Linq;
-using Serilog;
 
-namespace Dalamud.Game.Internal.Libc {
+namespace Dalamud.Game.Internal.Libc
+{
     /// <summary>
-    /// Interation with std::string
+    /// Interation with std::string.
     /// </summary>
-    public class StdString {
-        public static StdString ReadFromPointer(IntPtr cstring) {
-            unsafe {
-                if (cstring == IntPtr.Zero) {
+    public class StdString
+    {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="StdString"/> class.
+        /// </summary>
+        private StdString()
+        {
+        }
+
+        /// <summary>
+        /// Gets the value of the cstring.
+        /// </summary>
+        public string Value { get; private set; }
+
+        /// <summary>
+        /// Gets or sets the raw byte representation of the cstring.
+        /// </summary>
+        public byte[] RawData { get; set; }
+
+        /// <summary>
+        /// Marshal a null terminated cstring from memory to a UTF-8 encoded string.
+        /// </summary>
+        /// <param name="cstring">Address of the cstring.</param>
+        /// <returns>A UTF-8 encoded string.</returns>
+        public static StdString ReadFromPointer(IntPtr cstring)
+        {
+            unsafe
+            {
+                if (cstring == IntPtr.Zero)
+                {
                     throw new ArgumentNullException(nameof(cstring));
                 }
-                
+
                 var innerAddress = Marshal.ReadIntPtr(cstring);
-                if (innerAddress == IntPtr.Zero) {
+                if (innerAddress == IntPtr.Zero)
+                {
                     throw new NullReferenceException("Inner reference to the cstring is null.");
                 }
 
-                var count = 0;
-                
                 // Count the number of chars. String is assumed to be zero-terminated.
-                while (Marshal.ReadByte(innerAddress + count) != 0) {
+
+                var count = 0;
+                while (Marshal.ReadByte(innerAddress, count) != 0)
+                {
                     count += 1;
                 }
 
@@ -33,17 +58,12 @@ namespace Dalamud.Game.Internal.Libc {
                 var rawData = new byte[count];
                 Marshal.Copy(innerAddress, rawData, 0, count);
 
-                return new StdString {
+                return new StdString
+                {
                     RawData = rawData,
-                    Value = Encoding.UTF8.GetString(rawData)
+                    Value = Encoding.UTF8.GetString(rawData),
                 };
             }
         }
-
-        private StdString() { }
-
-        public string Value { get; private set; }
-
-        public byte[] RawData { get; set; }
     }
 }

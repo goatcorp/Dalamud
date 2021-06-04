@@ -2,7 +2,6 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Text;
 
 using Dalamud.Game;
@@ -154,12 +153,16 @@ namespace Dalamud
             }
         }
 
-        [DllImport("user32.dll", SetLastError = true, CharSet= CharSet.Auto)]
-        public static extern int MessageBox(IntPtr hWnd, string text, string caption, uint type);
-
+        /// <summary>
+        /// Display an error MessageBox and exit the current process.
+        /// </summary>
+        /// <param name="message">MessageBox body.</param>
+        /// <param name="caption">MessageBox caption (title).</param>
         public static void Fatal(string message, string caption)
         {
-            MessageBox(Process.GetCurrentProcess().MainWindowHandle, message, caption, 0);
+            var flags = NativeFunctions.MessageBoxType.Ok | NativeFunctions.MessageBoxType.IconError;
+
+            NativeFunctions.MessageBox(Process.GetCurrentProcess().MainWindowHandle, message, caption, flags);
             Environment.Exit(-1);
         }
     }

@@ -1,24 +1,27 @@
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
+
 using EasyHook;
 using Newtonsoft.Json;
 
-namespace Dalamud.Injector {
-    internal static class Program {
-        static private Process process = null;
+namespace Dalamud.Injector
+{
+    /// <summary>
+    /// Application entrypoint.
+    /// </summary>
+    internal static class Program
+    {
+        private static Process process = null;
 
-        private static void Main(string[] args) {
-
-            AppDomain.CurrentDomain.UnhandledException += delegate(object sender, UnhandledExceptionEventArgs eventArgs)
+        private static void Main(string[] args)
+        {
+            AppDomain.CurrentDomain.UnhandledException += (sender, eventArgs) =>
             {
                 File.WriteAllText("InjectorException.txt", eventArgs.ExceptionObject.ToString());
 #if !DEBUG
@@ -29,13 +32,14 @@ namespace Dalamud.Injector {
                 Environment.Exit(0);
             };
 
-
             var pid = -1;
-            if (args.Length >= 1) {
+            if (args.Length >= 1)
+            {
                 pid = int.Parse(args[0]);
             }
 
-            switch (pid) {
+            switch (pid)
+            {
                 case -1:
                     process = Process.GetProcessesByName("ffxiv_dx11")[0];
                     break;
@@ -51,13 +55,16 @@ namespace Dalamud.Injector {
             }
 
             DalamudStartInfo startInfo;
-            if (args.Length <= 1) {
+            if (args.Length <= 1)
+            {
                 startInfo = GetDefaultStartInfo();
                 Console.WriteLine("\nA Dalamud start info was not found in the program arguments. One has been generated for you.");
                 Console.WriteLine("\nCopy the following contents into the program arguments:");
                 Console.WriteLine();
                 Console.WriteLine(Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(startInfo))));
-            } else {
+            }
+            else
+            {
                 startInfo = JsonConvert.DeserializeObject<DalamudStartInfo>(Encoding.UTF8.GetString(Convert.FromBase64String(args[1])));
             }
 
@@ -66,7 +73,7 @@ namespace Dalamud.Injector {
             // Seems to help with the STATUS_INTERNAL_ERROR condition
             Thread.Sleep(1000);
 
-            //Thread.Sleep(10000);
+            // Thread.Sleep(10000);
 
             // Inject to process
             Inject(process, startInfo);
@@ -75,16 +82,18 @@ namespace Dalamud.Injector {
 
 #if DEBUG
             // Inject exception handler
-            //NativeInject(process);
+            // NativeInject(process);
 #endif
         }
 
-        private static void Inject(Process process, DalamudStartInfo info) {
+        private static void Inject(Process process, DalamudStartInfo info)
+        {
             Console.WriteLine($"Injecting to {process.Id}");
 
             // File check
             var libPath = Path.GetFullPath("Dalamud.dll");
-            if (!File.Exists(libPath)) {
+            if (!File.Exists(libPath))
+            {
                 Console.WriteLine($"Can't find a dll on {libPath}");
                 return;
             }
@@ -104,12 +113,14 @@ namespace Dalamud.Injector {
             Console.WriteLine($"Injecting {libPath}...");
 
             var handle = NativeFunctions.OpenProcess(
-                NativeFunctions.ProcessAccessFlags.All,
+                NativeFunctions.ProcessAccessFlags.AllAccess,
                 false,
                 process.Id);
 
             if (handle == IntPtr.Zero)
+            {
                 throw new Win32Exception(Marshal.GetLastWin32Error(), "Could not OpenProcess");
+            }
 
             var dllMem = NativeFunctions.VirtualAllocEx(
                 handle,
@@ -119,7 +130,9 @@ namespace Dalamud.Injector {
                 NativeFunctions.MemoryProtection.ReadWrite);
 
             if (dllMem == IntPtr.Zero)
+            {
                 throw new Win32Exception(Marshal.GetLastWin32Error(), $"Could not alloc memory {Marshal.GetLastWin32Error():X}");
+            }
 
             Console.WriteLine($"dll path at {dllMem.ToInt64():X}");
 
@@ -128,9 +141,10 @@ namespace Dalamud.Injector {
                     dllMem,
                     pathBytes,
                     len,
-                    out var bytesWritten
-                ))
+                    out var bytesWritten))
+            {
                 throw new Win32Exception(Marshal.GetLastWin32Error(), "Could not write DLL");
+            }
 
             Console.WriteLine($"Wrote {bytesWritten}");
 
@@ -144,11 +158,12 @@ namespace Dalamud.Injector {
                 loadLibA,
                 dllMem,
                 0,
-                IntPtr.Zero
-            );
+                IntPtr.Zero);
 
             if (remoteThread == IntPtr.Zero)
+            {
                 throw new Win32Exception(Marshal.GetLastWin32Error(), $"Could not CreateRemoteThread");
+            }
 
             /*
             TODO kill myself
@@ -163,9 +178,11 @@ namespace Dalamud.Injector {
             NativeFunctions.CloseHandle(handle);
         }
 
-        private static DalamudStartInfo GetDefaultStartInfo() {
+        private static DalamudStartInfo GetDefaultStartInfo()
+        {
             var ffxivDir = Path.GetDirectoryName(process.MainModule.FileName);
-            var startInfo = new DalamudStartInfo {
+            var startInfo = new DalamudStartInfo
+            {
                 WorkingDirectory = null,
                 ConfigurationPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "XIVLauncher", "dalamudConfig.json"),
                 PluginDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "XIVLauncher", "installedPlugins"),
@@ -173,7 +190,7 @@ namespace Dalamud.Injector {
                 AssetDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "XIVLauncher", "dalamudAssets"),
 
                 GameVersion = File.ReadAllText(Path.Combine(ffxivDir, "ffxivgame.ver")),
-                Language = ClientLanguage.English
+                Language = ClientLanguage.English,
             };
 
             Console.WriteLine("Creating a StartInfo with:\n" +

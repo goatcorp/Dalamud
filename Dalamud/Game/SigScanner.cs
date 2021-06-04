@@ -56,7 +56,7 @@ namespace Dalamud.Game
         /// <summary>
         /// Gets the base address of the .text section search area.
         /// </summary>
-        public IntPtr TextSectionBase => new IntPtr(this.SearchBase.ToInt64() + this.TextSectionOffset);
+        public IntPtr TextSectionBase => new(this.SearchBase.ToInt64() + this.TextSectionOffset);
 
         /// <summary>
         /// Gets the offset of the .text section from the base of the module.
@@ -71,7 +71,7 @@ namespace Dalamud.Game
         /// <summary>
         /// Gets the base address of the .data section search area.
         /// </summary>
-        public IntPtr DataSectionBase => new IntPtr(this.SearchBase.ToInt64() + this.DataSectionOffset);
+        public IntPtr DataSectionBase => new(this.SearchBase.ToInt64() + this.DataSectionOffset);
 
         /// <summary>
         /// Gets the offset of the .data section from the base of the module.
@@ -86,7 +86,7 @@ namespace Dalamud.Game
         /// <summary>
         /// Gets the base address of the .rdata section search area.
         /// </summary>
-        public IntPtr RDataSectionBase => new IntPtr(this.SearchBase.ToInt64() + this.RDataSectionOffset);
+        public IntPtr RDataSectionBase => new(this.SearchBase.ToInt64() + this.RDataSectionOffset);
 
         /// <summary>
         /// Gets the offset of the .rdata section from the base of the module.
@@ -230,7 +230,7 @@ namespace Dalamud.Game
             return IntPtr.Add(sigLocation, 5 + jumpOffset);
         }
 
-        private static (byte[] needle, bool[] mask) ParseSignature(string signature)
+        private static (byte[] Needle, bool[] Mask) ParseSignature(string signature)
         {
             signature = signature.Replace(" ", string.Empty);
             if (signature.Length % 2 != 0)

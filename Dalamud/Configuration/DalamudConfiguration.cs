@@ -18,6 +18,17 @@ namespace Dalamud.Configuration
         private string configPath;
 
         /// <summary>
+        /// Delegate for the <see cref="DalamudConfiguration.OnDalamudConfigurationSaved"/> event that occurs when the dalamud configuration is saved.
+        /// </summary>
+        /// <param name="dalamudConfiguration">The current dalamud configuration.</param>
+        public delegate void DalamudConfigurationSavedDelegate(DalamudConfiguration dalamudConfiguration);
+
+        /// <summary>
+        /// Event that occurs when dalamud configuration is saved.
+        /// </summary>
+        public event DalamudConfigurationSavedDelegate OnDalamudConfigurationSaved;
+
+        /// <summary>
         /// Gets or sets a list of muted works.
         /// </summary>
         public List<string> BadWords { get; set; }
@@ -156,6 +167,7 @@ namespace Dalamud.Configuration
         public void Save()
         {
             File.WriteAllText(this.configPath, JsonConvert.SerializeObject(this, Formatting.Indented));
+            this.OnDalamudConfigurationSaved?.Invoke(this);
         }
     }
 }

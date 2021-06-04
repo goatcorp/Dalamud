@@ -13,7 +13,7 @@ namespace Dalamud.Hooking
         /// <summary>
         /// Static list of tracked and registered hooks.
         /// </summary>
-        internal static readonly List<HookInfo> TrackedHooks = new List<HookInfo>();
+        internal static readonly List<HookInfo> TrackedHooks = new();
 
         private ulong? inProcessMemory = 0;
 

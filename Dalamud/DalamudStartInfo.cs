@@ -1,5 +1,4 @@
 using System;
-#pragma warning disable SA1401 // Fields should be private
 
 namespace Dalamud
 {
@@ -50,5 +49,3 @@ namespace Dalamud
         public bool OptOutMbCollection;
     }
 }
-
-#pragma warning restore SA1401 // Fields should be private

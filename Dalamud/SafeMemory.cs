@@ -12,7 +12,7 @@ namespace Dalamud
     /// </summary>
     /// <remarks>
     /// Attention! The performance of these methods is severely worse than regular <see cref="Marshal"/> calls.
-    /// Please consider using these instead in performance-critical code.
+    /// Please consider using those instead in performance-critical code.
     /// </remarks>
     public static class SafeMemory
     {
@@ -62,7 +62,7 @@ namespace Dalamud
         }
 
         /// <summary>
-        ///     Read an object of the specified struct from the current process.
+        /// Read an object of the specified struct from the current process.
         /// </summary>
         /// <typeparam name="T">The type of the struct.</typeparam>
         /// <param name="address">The address to read from.</param>

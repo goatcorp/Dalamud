@@ -5,6 +5,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+
 using Dalamud.Game;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.Internal.DXGI;
@@ -14,8 +15,6 @@ using ImGuiNET;
 using ImGuiScene;
 using Serilog;
 using SharpDX.Direct3D11;
-
-#nullable enable
 
 // general dev notes, here because it's easiest
 /*
@@ -30,30 +29,138 @@ using SharpDX.Direct3D11;
 
 namespace Dalamud.Interface
 {
+    /// <summary>
+    /// This class manages interaction with the ImGui interface.
+    /// </summary>
     internal class InterfaceManager : IDisposable
     {
+        /// <summary>
+        /// Code that is exexuted when fonts are rebuilt.
+        /// </summary>
+        public Action OnBuildFonts;
+
+        /// <summary>
+        /// The pointer to ImGui.IO(), when it last used..
+        /// </summary>
+        public ImGuiIOPtr LastImGuiIoPtr;
+
+        private readonly Dalamud dalamud;
+
+        private readonly Hook<PresentDelegate> presentHook;
+        private readonly Hook<ResizeBuffersDelegate> resizeBuffersHook;
+        private readonly Hook<SetCursorDelegate> setCursorHook;
+
+        private ManualResetEvent fontBuildSignal;
+        private ISwapChainAddressResolver address;
+        private RawDX11Scene scene;
+
+        private string rtssPath;
+
+        // can't access imgui IO before first present call
+        private bool lastWantCapture = false;
+        private bool isRebuildingFonts = false;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="InterfaceManager"/> class.
+        /// </summary>
+        /// <param name="dalamud">The Dalamud instance.</param>
+        /// <param name="scanner">The SigScanner instance.</param>
+        public InterfaceManager(Dalamud dalamud, SigScanner scanner)
+        {
+            this.dalamud = dalamud;
+
+            this.fontBuildSignal = new ManualResetEvent(false);
+
+            try
+            {
+                var sigResolver = new SwapChainSigResolver();
+                sigResolver.Setup(scanner);
+
+                Log.Verbose("Found SwapChain via signatures.");
+
+                this.address = sigResolver;
+            }
+            catch (Exception ex)
+            {
+                // The SigScanner method fails on wine/proton since DXGI is not a real DLL. We fall back to vtable to detect our Present function address.
+                Log.Debug(ex, "Could not get SwapChain address via sig method, falling back to vtable...");
+
+                var vtableResolver = new SwapChainVtableResolver();
+                vtableResolver.Setup(scanner);
+
+                Log.Verbose("Found SwapChain via vtable.");
+
+                this.address = vtableResolver;
+            }
+
+            try
+            {
+                var rtss = NativeFunctions.GetModuleHandle("RTSSHooks64.dll");
+
+                if (rtss != IntPtr.Zero)
+                {
+                    var fileName = new StringBuilder(255);
+                    NativeFunctions.GetModuleFileName(rtss, fileName, fileName.Capacity);
+                    this.rtssPath = fileName.ToString();
+                    Log.Verbose("RTSS at {0}", this.rtssPath);
+
+                    if (!NativeFunctions.FreeLibrary(rtss))
+                        throw new Win32Exception();
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "RTSS Free failed");
+            }
+
+            var setCursorAddr = LocalHook.GetProcAddress("user32.dll", "SetCursor");
+
+            Log.Verbose("===== S W A P C H A I N =====");
+            Log.Verbose("SetCursor address {SetCursor}", setCursorAddr);
+            Log.Verbose("Present address {Present}", this.address.Present);
+            Log.Verbose("ResizeBuffers address {ResizeBuffers}", this.address.ResizeBuffers);
+
+            this.setCursorHook = new Hook<SetCursorDelegate>(setCursorAddr, new SetCursorDelegate(this.SetCursorDetour), this);
+
+            this.presentHook = new Hook<PresentDelegate>(this.address.Present, new PresentDelegate(this.PresentDetour), this);
+
+            this.resizeBuffersHook = new Hook<ResizeBuffersDelegate>(this.address.ResizeBuffers, new ResizeBuffersDelegate(this.ResizeBuffersDetour), this);
+        }
+
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         private delegate IntPtr PresentDelegate(IntPtr swapChain, uint syncInterval, uint presentFlags);
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         private delegate IntPtr ResizeBuffersDelegate(IntPtr swapChain, uint bufferCount, uint width, uint height, uint newFormat, uint swapChainFlags);
 
-        private readonly Hook<PresentDelegate> presentHook;
-        private readonly Hook<ResizeBuffersDelegate> resizeBuffersHook;
-
-        private readonly Hook<SetCursorDelegate> setCursorHook;
-
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         private delegate IntPtr SetCursorDelegate(IntPtr hCursor);
 
-        private ManualResetEvent fontBuildSignal;
+        private delegate void InstallRTSSHook();
 
-        private ISwapChainAddressResolver Address { get; }
+        /// <summary>
+        /// This event gets called by a plugin UiBuilder when read
+        /// </summary>
+        public event RawDX11Scene.BuildUIDelegate OnDraw;
 
-        private Dalamud dalamud;
-        private RawDX11Scene scene;
+        /// <summary>
+        /// Gets the default ImGui font.
+        /// </summary>
+        public static ImFontPtr DefaultFont { get; private set; }
 
+        /// <summary>
+        /// Gets an included FontAwesome icon font.
+        /// </summary>
+        public static ImFontPtr IconFont { get; private set; }
+
+        /// <summary>
+        /// Gets the D3D11 device instance.
+        /// </summary>
         public Device Device => this.scene.Device;
+
+        /// <summary>
+        /// Gets the address handle to the main process window.
+        /// </summary>
         public IntPtr WindowHandlePtr => this.scene.WindowHandlePtr;
 
         /// <summary>
@@ -65,111 +172,45 @@ namespace Dalamud.Interface
             set => this.scene.UpdateCursor = value;
         }
 
-        private delegate void InstallRTSSHook();
-        private string rtssPath;
-
-        public ImGuiIOPtr LastImGuiIoPtr;
-
-        public Action OnBuildFonts;
-        private bool isRebuildingFonts = false;
-
         /// <summary>
-        /// This event gets called by a plugin UiBuilder when read
+        /// Gets or sets a value indicating whether the fonts are built and ready to use.
         /// </summary>
-        public event RawDX11Scene.BuildUIDelegate OnDraw;
-
         public bool FontsReady { get; set; } = false;
 
+        /// <summary>
+        /// Gets a value indicating whether the Dalamud interface ready to use.
+        /// </summary>
         public bool IsReady => this.scene != null;
 
-        public InterfaceManager(Dalamud dalamud, SigScanner scanner)
-        {
-            this.dalamud = dalamud;
-
-            this.fontBuildSignal = new ManualResetEvent(false);
-
-            try {
-                var sigResolver = new SwapChainSigResolver();
-                sigResolver.Setup(scanner);
-
-                Log.Verbose("Found SwapChain via signatures.");
-
-                Address = sigResolver;
-            } catch (Exception ex) {
-                // The SigScanner method fails on wine/proton since DXGI is not a real DLL. We fall back to vtable to detect our Present function address.
-                Log.Debug(ex, "Could not get SwapChain address via sig method, falling back to vtable...");
-
-                var vtableResolver = new SwapChainVtableResolver();
-                vtableResolver.Setup(scanner);
-
-                Log.Verbose("Found SwapChain via vtable.");
-
-                Address = vtableResolver;
-            }
-
-            try {
-                var rtss = NativeFunctions.GetModuleHandle("RTSSHooks64.dll");
-
-                if (rtss != IntPtr.Zero) {
-                    var fileName = new StringBuilder(255);
-                    NativeFunctions.GetModuleFileName(rtss, fileName, fileName.Capacity);
-                    this.rtssPath = fileName.ToString();
-                    Log.Verbose("RTSS at {0}", this.rtssPath);
-
-                    if (!NativeFunctions.FreeLibrary(rtss))
-                        throw new Win32Exception();
-                }
-            } catch (Exception e) {
-                Log.Error(e, "RTSS Free failed");
-            }
-            
-
-            var setCursorAddr = LocalHook.GetProcAddress("user32.dll", "SetCursor");
-
-            Log.Verbose("===== S W A P C H A I N =====");
-            Log.Verbose("SetCursor address {SetCursor}", setCursorAddr);
-            Log.Verbose("Present address {Present}", Address.Present);
-            Log.Verbose("ResizeBuffers address {ResizeBuffers}", Address.ResizeBuffers);
-
-            this.setCursorHook = new Hook<SetCursorDelegate>(setCursorAddr, new SetCursorDelegate(SetCursorDetour), this);
-
-            this.presentHook =
-                new Hook<PresentDelegate>(Address.Present, 
-                    new PresentDelegate(PresentDetour),
-                    this);
-
-            this.resizeBuffersHook =
-                new Hook<ResizeBuffersDelegate>(Address.ResizeBuffers,
-                    new ResizeBuffersDelegate(ResizeBuffersDetour),
-                    this);
-        }
-
+        /// <summary>
+        /// Enable this module.
+        /// </summary>
         public void Enable()
         {
             this.setCursorHook.Enable();
             this.presentHook.Enable();
             this.resizeBuffersHook.Enable();
 
-            try {
-                if (!string.IsNullOrEmpty(this.rtssPath)) {
+            try
+            {
+                if (!string.IsNullOrEmpty(this.rtssPath))
+                {
                     NativeFunctions.LoadLibrary(this.rtssPath);
 
                     var installAddr = LocalHook.GetProcAddress("RTSSHooks64.dll", "InstallRTSSHook");
                     var installDele = Marshal.GetDelegateForFunctionPointer<InstallRTSSHook>(installAddr);
                     installDele.Invoke();
                 }
-            } catch (Exception ex) {
+            }
+            catch (Exception ex)
+            {
                 Log.Error(ex, "Could not reload RTSS");
             }
         }
 
-        private void Disable()
-        {
-            this.setCursorHook.Disable();
-            this.presentHook.Disable();
-            this.resizeBuffersHook.Disable();
-        }
-
+        /// <summary>
+        /// Dispose of managed and unmanaged resources.
+        /// </summary>
         public void Dispose()
         {
             // HACK: this is usually called on a separate thread from PresentDetour (likely on a dedicated render thread)
@@ -179,15 +220,22 @@ namespace Dalamud.Interface
             // calls to PresentDetour have finished (and Disable means no new ones will start), before we try to cleanup
             // So... not great, but much better than constantly crashing on unload
             this.Disable();
-            System.Threading.Thread.Sleep(500);
-            
+            Thread.Sleep(500);
+
             this.scene?.Dispose();
             this.setCursorHook.Dispose();
             this.presentHook.Dispose();
             this.resizeBuffersHook.Dispose();
         }
 
-        public TextureWrap LoadImage(string filePath)
+#nullable enable
+
+        /// <summary>
+        /// Load an image from disk.
+        /// </summary>
+        /// <param name="filePath">The filepath to load.</param>
+        /// <returns>A texture, ready to use in ImGui.</returns>
+        public TextureWrap? LoadImage(string filePath)
         {
             try
             {
@@ -197,10 +245,16 @@ namespace Dalamud.Interface
             {
                 Log.Error(ex, $"Failed to load image from {filePath}");
             }
+
             return null;
         }
 
-        public TextureWrap LoadImage(byte[] imageData)
+        /// <summary>
+        /// Load an image from an array of bytes.
+        /// </summary>
+        /// <param name="imageData">The data to load.</param>
+        /// <returns>A texture, ready to use in ImGui.</returns>
+        public TextureWrap? LoadImage(byte[] imageData)
         {
             try
             {
@@ -210,10 +264,19 @@ namespace Dalamud.Interface
             {
                 Log.Error(ex, "Failed to load image from memory");
             }
+
             return null;
         }
 
-        public TextureWrap LoadImageRaw(byte[] imageData, int width, int height, int numChannels)
+        /// <summary>
+        /// Load an image from an array of bytes.
+        /// </summary>
+        /// <param name="imageData">The data to load.</param>
+        /// <param name="width">The width in pixels.</param>
+        /// <param name="height">The height in pixels.</param>
+        /// <param name="numChannels">The number of channels.</param>
+        /// <returns>A texture, ready to use in ImGui.</returns>
+        public TextureWrap? LoadImageRaw(byte[] imageData, int width, int height, int numChannels)
         {
             try
             {
@@ -223,10 +286,15 @@ namespace Dalamud.Interface
             {
                 Log.Error(ex, "Failed to load image from raw data");
             }
+
             return null;
         }
 
-        // Sets up a deferred invocation of font rebuilding, before the next render frame
+#nullable restore
+
+        /// <summary>
+        /// Sets up a deferred invocation of font rebuilding, before the next render frame.
+        /// </summary>
         public void RebuildFonts()
         {
             Log.Verbose("[FONT] RebuildFonts() called");
@@ -237,21 +305,36 @@ namespace Dalamud.Interface
                 Log.Verbose("[FONT] RebuildFonts() trigger");
 
                 this.isRebuildingFonts = true;
-                this.scene.OnNewRenderFrame += RebuildFontsInternal;
+                this.scene.OnNewRenderFrame += this.RebuildFontsInternal;
             }
+        }
+
+        /// <summary>
+        /// Wait for the rebuilding fonts to complete.
+        /// </summary>
+        public void WaitForFontRebuild()
+        {
+            this.fontBuildSignal.WaitOne();
+        }
+
+        private static void ShowFontError(string path)
+        {
+            Util.Fatal(
+                $"One or more files required by XIVLauncher were not found.\nPlease restart and report this error if it occurs again.\n\n{path}",
+                "Error");
         }
 
         private IntPtr PresentDetour(IntPtr swapChain, uint syncInterval, uint presentFlags)
         {
-            if (this.scene == null) {
-            
+            if (this.scene == null)
+            {
                 this.scene = new RawDX11Scene(swapChain);
 
                 this.scene.ImGuiIniPath = Path.Combine(Path.GetDirectoryName(this.dalamud.StartInfo.ConfigurationPath), "dalamudUI.ini");
-                this.scene.OnBuildUI += Display;
-                this.scene.OnNewInputFrame += OnNewInputFrame;
+                this.scene.OnBuildUI += this.Display;
+                this.scene.OnNewInputFrame += this.OnNewInputFrame;
 
-                SetupFonts();
+                this.SetupFonts();
 
                 ImGui.GetStyle().GrabRounding = 3f;
                 ImGui.GetStyle().FrameRounding = 4f;
@@ -260,26 +343,26 @@ namespace Dalamud.Interface
                 ImGui.GetStyle().WindowMenuButtonPosition = ImGuiDir.Right;
                 ImGui.GetStyle().ScrollbarSize = 16f;
 
-                ImGui.GetStyle().Colors[(int) ImGuiCol.WindowBg] = new Vector4(0.06f, 0.06f, 0.06f, 0.87f);
-                ImGui.GetStyle().Colors[(int) ImGuiCol.FrameBg] = new Vector4(0.29f, 0.29f, 0.29f, 0.54f);
-                ImGui.GetStyle().Colors[(int) ImGuiCol.FrameBgHovered] = new Vector4(0.54f, 0.54f, 0.54f, 0.40f);
-                ImGui.GetStyle().Colors[(int) ImGuiCol.FrameBgActive] = new Vector4(0.64f, 0.64f, 0.64f, 0.67f);
-                ImGui.GetStyle().Colors[(int) ImGuiCol.TitleBgActive] = new Vector4(0.29f, 0.29f, 0.29f, 1.00f);
-                ImGui.GetStyle().Colors[(int) ImGuiCol.CheckMark] = new Vector4(0.86f, 0.86f, 0.86f, 1.00f);
-                ImGui.GetStyle().Colors[(int) ImGuiCol.SliderGrab] = new Vector4(0.54f, 0.54f, 0.54f, 1.00f);
-                ImGui.GetStyle().Colors[(int) ImGuiCol.SliderGrabActive] = new Vector4(0.67f, 0.67f, 0.67f, 1.00f);
-                ImGui.GetStyle().Colors[(int) ImGuiCol.Button] = new Vector4(0.71f, 0.71f, 0.71f, 0.40f);
-                ImGui.GetStyle().Colors[(int) ImGuiCol.ButtonHovered] = new Vector4(0.47f, 0.47f, 0.47f, 1.00f);
-                ImGui.GetStyle().Colors[(int) ImGuiCol.ButtonActive] = new Vector4(0.74f, 0.74f, 0.74f, 1.00f);
-                ImGui.GetStyle().Colors[(int) ImGuiCol.Header] = new Vector4(0.59f, 0.59f, 0.59f, 0.31f);
-                ImGui.GetStyle().Colors[(int) ImGuiCol.HeaderHovered] = new Vector4(0.50f, 0.50f, 0.50f, 0.80f);
-                ImGui.GetStyle().Colors[(int) ImGuiCol.HeaderActive] = new Vector4(0.60f, 0.60f, 0.60f, 1.00f);
-                ImGui.GetStyle().Colors[(int) ImGuiCol.ResizeGrip] = new Vector4(0.79f, 0.79f, 0.79f, 0.25f);
-                ImGui.GetStyle().Colors[(int) ImGuiCol.ResizeGripHovered] = new Vector4(0.78f, 0.78f, 0.78f, 0.67f);
-                ImGui.GetStyle().Colors[(int) ImGuiCol.ResizeGripActive] = new Vector4(0.88f, 0.88f, 0.88f, 0.95f);
-                ImGui.GetStyle().Colors[(int) ImGuiCol.Tab] = new Vector4(0.23f, 0.23f, 0.23f, 0.86f);
-                ImGui.GetStyle().Colors[(int) ImGuiCol.TabHovered] = new Vector4(0.71f, 0.71f, 0.71f, 0.80f);
-                ImGui.GetStyle().Colors[(int) ImGuiCol.TabActive] = new Vector4(0.36f, 0.36f, 0.36f, 1.00f);
+                ImGui.GetStyle().Colors[(int)ImGuiCol.WindowBg] = new Vector4(0.06f, 0.06f, 0.06f, 0.87f);
+                ImGui.GetStyle().Colors[(int)ImGuiCol.FrameBg] = new Vector4(0.29f, 0.29f, 0.29f, 0.54f);
+                ImGui.GetStyle().Colors[(int)ImGuiCol.FrameBgHovered] = new Vector4(0.54f, 0.54f, 0.54f, 0.40f);
+                ImGui.GetStyle().Colors[(int)ImGuiCol.FrameBgActive] = new Vector4(0.64f, 0.64f, 0.64f, 0.67f);
+                ImGui.GetStyle().Colors[(int)ImGuiCol.TitleBgActive] = new Vector4(0.29f, 0.29f, 0.29f, 1.00f);
+                ImGui.GetStyle().Colors[(int)ImGuiCol.CheckMark] = new Vector4(0.86f, 0.86f, 0.86f, 1.00f);
+                ImGui.GetStyle().Colors[(int)ImGuiCol.SliderGrab] = new Vector4(0.54f, 0.54f, 0.54f, 1.00f);
+                ImGui.GetStyle().Colors[(int)ImGuiCol.SliderGrabActive] = new Vector4(0.67f, 0.67f, 0.67f, 1.00f);
+                ImGui.GetStyle().Colors[(int)ImGuiCol.Button] = new Vector4(0.71f, 0.71f, 0.71f, 0.40f);
+                ImGui.GetStyle().Colors[(int)ImGuiCol.ButtonHovered] = new Vector4(0.47f, 0.47f, 0.47f, 1.00f);
+                ImGui.GetStyle().Colors[(int)ImGuiCol.ButtonActive] = new Vector4(0.74f, 0.74f, 0.74f, 1.00f);
+                ImGui.GetStyle().Colors[(int)ImGuiCol.Header] = new Vector4(0.59f, 0.59f, 0.59f, 0.31f);
+                ImGui.GetStyle().Colors[(int)ImGuiCol.HeaderHovered] = new Vector4(0.50f, 0.50f, 0.50f, 0.80f);
+                ImGui.GetStyle().Colors[(int)ImGuiCol.HeaderActive] = new Vector4(0.60f, 0.60f, 0.60f, 1.00f);
+                ImGui.GetStyle().Colors[(int)ImGuiCol.ResizeGrip] = new Vector4(0.79f, 0.79f, 0.79f, 0.25f);
+                ImGui.GetStyle().Colors[(int)ImGuiCol.ResizeGripHovered] = new Vector4(0.78f, 0.78f, 0.78f, 0.67f);
+                ImGui.GetStyle().Colors[(int)ImGuiCol.ResizeGripActive] = new Vector4(0.88f, 0.88f, 0.88f, 0.95f);
+                ImGui.GetStyle().Colors[(int)ImGuiCol.Tab] = new Vector4(0.23f, 0.23f, 0.23f, 0.86f);
+                ImGui.GetStyle().Colors[(int)ImGuiCol.TabHovered] = new Vector4(0.71f, 0.71f, 0.71f, 0.80f);
+                ImGui.GetStyle().Colors[(int)ImGuiCol.TabActive] = new Vector4(0.36f, 0.36f, 0.36f, 1.00f);
 
                 ImGui.GetIO().FontGlobalScale = this.dalamud.Configuration.GlobalUiScale;
 
@@ -334,16 +417,6 @@ namespace Dalamud.Interface
             ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;
         }
 
-        public static ImFontPtr DefaultFont { get; private set; }
-        public static ImFontPtr IconFont { get; private set; }
-
-        private static void ShowFontError(string path)
-        {
-            Util.Fatal(
-                $"One or more files required by XIVLauncher were not found.\nPlease restart and report this error if it occurs again.\n\n{path}",
-                "Error");
-        }
-
         private unsafe void SetupFonts()
         {
             this.fontBuildSignal.Reset();
@@ -368,12 +441,14 @@ namespace Dalamud.Interface
             if (!File.Exists(fontPathGame))
                 ShowFontError(fontPathGame);
 
-            var gameRangeHandle = GCHandle.Alloc(new ushort[]
-            {
-                0xE020,
-                0xE0DB,
-                0
-            }, GCHandleType.Pinned);
+            var gameRangeHandle = GCHandle.Alloc(
+                new ushort[]
+                {
+                    0xE020,
+                    0xE0DB,
+                    0,
+                },
+                GCHandleType.Pinned);
 
             ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPathGame, 17.0f, fontConfig, gameRangeHandle.AddrOfPinnedObject());
 
@@ -382,19 +457,22 @@ namespace Dalamud.Interface
             if (!File.Exists(fontPathIcon))
                 ShowFontError(fontPathIcon);
 
-            var iconRangeHandle = GCHandle.Alloc(new ushort[]
-            {
-                0xE000,
-                0xF8FF,
-                0
-            }, GCHandleType.Pinned);
+            var iconRangeHandle = GCHandle.Alloc(
+                new ushort[]
+                {
+                    0xE000,
+                    0xF8FF,
+                    0,
+                },
+                GCHandleType.Pinned);
             IconFont = ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPathIcon, 17.0f, null, iconRangeHandle.AddrOfPinnedObject());
 
             Log.Verbose("[FONT] Invoke OnBuildFonts");
             this.OnBuildFonts?.Invoke();
             Log.Verbose("[FONT] OnBuildFonts OK!");
 
-            for (var i = 0; i < ImGui.GetIO().Fonts.Fonts.Size; i++) {
+            for (var i = 0; i < ImGui.GetIO().Fonts.Fonts.Size; i++)
+            {
                 Log.Verbose("{0} - {1}", i, ImGui.GetIO().Fonts.Fonts[i].GetDebugName());
             }
 
@@ -412,18 +490,21 @@ namespace Dalamud.Interface
             this.FontsReady = true;
         }
 
-        public void WaitForFontRebuild() {
-            this.fontBuildSignal.WaitOne();
+        private void Disable()
+        {
+            this.setCursorHook.Disable();
+            this.presentHook.Disable();
+            this.resizeBuffersHook.Disable();
         }
 
         // This is intended to only be called as a handler attached to scene.OnNewRenderFrame
         private void RebuildFontsInternal()
         {
             Log.Verbose("[FONT] RebuildFontsInternal() called");
-            SetupFonts();
+            this.SetupFonts();
 
             Log.Verbose("[FONT] RebuildFontsInternal() detaching");
-            this.scene.OnNewRenderFrame -= RebuildFontsInternal;
+            this.scene.OnNewRenderFrame -= this.RebuildFontsInternal;
             this.scene.InvalidateFonts();
 
             Log.Verbose("[FONT] Font Rebuild OK!");
@@ -440,7 +521,7 @@ namespace Dalamud.Interface
             // We have to ensure we're working with the main swapchain,
             // as viewports might be resizing as well
             if (this.scene == null || swapChain != this.scene.SwapChain.NativePointer)
-                return resizeBuffersHook.Original(swapChain, bufferCount, width, height, newFormat, swapChainFlags);
+                return this.resizeBuffersHook.Original(swapChain, bufferCount, width, height, newFormat, swapChainFlags);
 
             this.scene?.OnPreResize();
 
@@ -455,11 +536,9 @@ namespace Dalamud.Interface
             return ret;
         }
 
-        // can't access imgui IO before first present call
-        private bool lastWantCapture = false;
-
-        private IntPtr SetCursorDetour(IntPtr hCursor) {
-            if (this.lastWantCapture == true && (!scene?.IsImGuiCursor(hCursor) ?? false) && this.OverrideGameCursor)
+        private IntPtr SetCursorDetour(IntPtr hCursor)
+        {
+            if (this.lastWantCapture == true && (!this.scene?.IsImGuiCursor(hCursor) ?? false) && this.OverrideGameCursor)
                 return IntPtr.Zero;
 
             return this.setCursorHook.Original(hCursor);
@@ -527,11 +606,11 @@ namespace Dalamud.Interface
             // If the player has the game software cursor enabled, we can't really do anything about that and
             // they will see both cursors.
             // Doing this here because it's somewhat application-specific behavior
-            //ImGui.GetIO().MouseDrawCursor = ImGui.GetIO().WantCaptureMouse;
+            // ImGui.GetIO().MouseDrawCursor = ImGui.GetIO().WantCaptureMouse;
             this.LastImGuiIoPtr = ImGui.GetIO();
             this.lastWantCapture = this.LastImGuiIoPtr.WantCaptureMouse;
 
-            OnDraw?.Invoke();
+            this.OnDraw?.Invoke();
         }
     }
 }

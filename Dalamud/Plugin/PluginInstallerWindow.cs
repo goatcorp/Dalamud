@@ -72,6 +72,9 @@ namespace Dalamud.Plugin
             LastUpdate,
         }
 
+        /// <summary>
+        /// Code to be executed when the window is opened.
+        /// </summary>
         public override void OnOpen()
         {
             base.OnOpen();
@@ -466,13 +469,13 @@ namespace Dalamud.Plugin
 
                                 Task.Run(() => this.dalamud.PluginRepository.InstallPlugin(pluginDefinition, true, false, isTestingAvailable)).ContinueWith(t =>
                                 {
-                                                 this.installStatus =
-                                                 t.Result ? PluginInstallStatus.Success : PluginInstallStatus.Fail;
-                                                 this.installStatus =
-                                                 t.IsFaulted ? PluginInstallStatus.Fail : this.installStatus;
+                                    this.installStatus =
+                                    t.Result ? PluginInstallStatus.Success : PluginInstallStatus.Fail;
+                                    this.installStatus =
+                                    t.IsFaulted ? PluginInstallStatus.Fail : this.installStatus;
 
-                                                 this.errorModalDrawing = this.installStatus == PluginInstallStatus.Fail;
-                                                 this.errorModalOnNextFrame = this.installStatus == PluginInstallStatus.Fail;
+                                    this.errorModalDrawing = this.installStatus == PluginInstallStatus.Fail;
+                                    this.errorModalOnNextFrame = this.installStatus == PluginInstallStatus.Fail;
                                 });
                             }
                         }

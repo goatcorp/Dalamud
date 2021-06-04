@@ -40,7 +40,7 @@ namespace Dalamud.Interface
                 0xFFFFFFFF,
                 Loc.Localize(
                     "DalamudGamepadModeNotifierText",
-                    "Gamepad mode is ON. Press R1+L3 to deactivate, press R3 to toggle PluginInstaller."));
+                    "Gamepad mode is ON. Press L1+L3 to deactivate, press R3 to toggle PluginInstaller."));
             drawList.PopClipRect();
         }
     }
