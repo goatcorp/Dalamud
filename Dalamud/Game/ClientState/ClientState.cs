@@ -98,7 +98,7 @@ namespace Dalamud.Game.ClientState
 
             this.Actors = new ActorTable(dalamud, this.address);
 
-            this.Fates = new FateTable(dalamud, this, Address);
+            this.Fates = new FateTable(dalamud, this, this.address);
 
             this.PartyList = new PartyList(dalamud, this.address);
 
