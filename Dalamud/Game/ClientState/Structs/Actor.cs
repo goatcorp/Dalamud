@@ -235,7 +235,7 @@ namespace Dalamud.Game.ClientState.Structs
         /// The array of status effects that the actor is currently affected by.
         /// </summary>
         [FieldOffset(ActorOffsets.UIStatusEffects)]
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 20)]
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 30)]
         public StatusEffect[] UIStatusEffects;
     }
 
