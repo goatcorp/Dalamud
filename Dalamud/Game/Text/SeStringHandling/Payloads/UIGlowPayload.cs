@@ -1,8 +1,8 @@
-using Lumina.Excel.GeneratedSheets;
-using System;
 using System.Collections.Generic;
 using System.IO;
+
 using Dalamud.Data;
+using Lumina.Excel.GeneratedSheets;
 using Newtonsoft.Json;
 
 namespace Dalamud.Game.Text.SeStringHandling.Payloads
@@ -12,83 +12,86 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
     /// </summary>
     public class UIGlowPayload : Payload
     {
-        /// <summary>
-        /// Payload representing disabling glow color on following text.
-        /// </summary>
-        // TODO Make this work with DI
-        public static UIGlowPayload UIGlowOff => new UIGlowPayload(null, 0);
-
-        public override PayloadType Type => PayloadType.UIGlow;
-
-        /// <summary>
-        /// Whether or not this payload represents applying a glow color, or disabling one.
-        /// </summary>
-        public bool IsEnabled => ColorKey != 0;
-
         private UIColor color;
-        /// <summary>
-        /// A Lumina UIColor object representing this payload.  The actual color data is at UIColor.UIGlow
-        /// </summary>
-        /// <remarks>
-        /// Value is evaluated lazily and cached.
-        /// </remarks>
-        [JsonIgnore]
-        public UIColor UIColor
-        {
-            get
-            {
-                this.color ??= this.DataResolver.GetExcelSheet<UIColor>().GetRow(this.colorKey);
-                return this.color;
-            }
-        }
-
-        /// <summary>
-        /// The color key used as a lookup in the UIColor table for this glow color.
-        /// </summary>
-        [JsonIgnore]
-        public ushort ColorKey
-        {
-            get { return this.colorKey; }
-            set
-            {
-                this.colorKey = value;
-                this.color = null;
-                Dirty = true;
-            }
-        }
-
-        /// <summary>
-        /// The Red/Green/Blue values for this glow color, encoded as a typical hex color.
-        /// </summary>
-        [JsonIgnore]
-        public uint RGB
-        {
-            get
-            {
-                return (UIColor.UIGlow & 0xFFFFFF);
-            }
-        }
 
         [JsonProperty]
         private ushort colorKey;
 
-        internal UIGlowPayload() { }
-
         /// <summary>
+        /// Initializes a new instance of the <see cref="UIGlowPayload"/> class.
         /// Creates a new UIForegroundPayload for the given UIColor key.
         /// </summary>
         /// <param name="data">DataManager instance needed to resolve game data.</param>
-        /// <param name="colorKey"></param>
-        public UIGlowPayload(DataManager data, ushort colorKey) {
+        /// <param name="colorKey">A UIColor key.</param>
+        public UIGlowPayload(DataManager data, ushort colorKey)
+        {
             this.DataResolver = data;
             this.colorKey = colorKey;
         }
 
-        public override string ToString()
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UIGlowPayload"/> class.
+        /// Creates a new UIForegroundPayload for the given UIColor key.
+        /// </summary>
+        internal UIGlowPayload()
         {
-            return $"{Type} - UIColor: {colorKey} color: {(IsEnabled ? RGB : 0)}";
         }
 
+        /// <summary>
+        /// Gets a payload representing disabling glow color on following text.
+        /// </summary>
+        // TODO Make this work with DI
+        public static UIGlowPayload UIGlowOff => new(null, 0);
+
+        /// <inheritdoc/>
+        public override PayloadType Type => PayloadType.UIGlow;
+
+        /// <summary>
+        /// Gets or sets the color key used as a lookup in the UIColor table for this glow color.
+        /// </summary>
+        [JsonIgnore]
+        public ushort ColorKey
+        {
+            get
+            {
+                return this.colorKey;
+            }
+
+            set
+            {
+                this.colorKey = value;
+                this.color = null;
+                this.Dirty = true;
+            }
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether or not this payload represents applying a glow color, or disabling one.
+        /// </summary>
+        public bool IsEnabled => this.ColorKey != 0;
+
+        /// <summary>
+        /// Gets the Red/Green/Blue values for this glow color, encoded as a typical hex color.
+        /// </summary>
+        [JsonIgnore]
+        public uint RGB => this.UIColor.UIGlow & 0xFFFFFF;
+
+        /// <summary>
+        /// Gets a Lumina UIColor object representing this payload.  The actual color data is at UIColor.UIGlow.
+        /// </summary>
+        /// <remarks>
+        /// The value is evaluated lazily and cached.
+        /// </remarks>
+        [JsonIgnore]
+        public UIColor UIColor => this.color ??= this.DataResolver.GetExcelSheet<UIColor>().GetRow(this.colorKey);
+
+        /// <inheritdoc/>
+        public override string ToString()
+        {
+            return $"{this.Type} - UIColor: {this.colorKey} color: {(this.IsEnabled ? this.RGB : 0)}";
+        }
+
+        /// <inheritdoc/>
         protected override byte[] EncodeImpl()
         {
             var colorBytes = MakeInteger(this.colorKey);
@@ -96,7 +99,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
 
             var bytes = new List<byte>(new byte[]
             {
-                START_BYTE, (byte)SeStringChunkType.UIGlow, (byte)chunkLen
+                START_BYTE, (byte)SeStringChunkType.UIGlow, (byte)chunkLen,
             });
 
             bytes.AddRange(colorBytes);
@@ -105,6 +108,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             return bytes.ToArray();
         }
 
+        /// <inheritdoc/>
         protected override void DecodeImpl(BinaryReader reader, long endOfStream)
         {
             this.colorKey = (ushort)GetInteger(reader);

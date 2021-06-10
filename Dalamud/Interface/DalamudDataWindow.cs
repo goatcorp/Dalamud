@@ -248,7 +248,7 @@ namespace Dalamud.Interface
                         // Condition
                         case 6:
 #if DEBUG
-                            ImGui.Text($"ptr: {this.dalamud.ClientState.Condition.conditionArrayBase.ToString("X16")}");
+                            ImGui.Text($"ptr: {this.dalamud.ClientState.Condition.ConditionArrayBase.ToString("X16")}");
 #endif
 
                             ImGui.Text("Current Conditions:");
@@ -294,11 +294,9 @@ namespace Dalamud.Interface
 
                         // Addon Inspector
                         case 10:
-                        {
                             this.addonInspector ??= new UIDebug(this.dalamud);
                             this.addonInspector.Draw();
                             break;
-                        }
 
                         // StartInfo
                         case 11:
@@ -478,18 +476,13 @@ namespace Dalamud.Interface
             }
             else
             {
-                stateString +=
-                    $"FrameworkBase: {this.dalamud.Framework.Address.BaseAddress.ToInt64():X}\n";
-
+                stateString += $"FrameworkBase: {this.dalamud.Framework.Address.BaseAddress.ToInt64():X}\n";
                 stateString += $"ActorTableLen: {this.dalamud.ClientState.Actors.Length}\n";
                 stateString += $"LocalPlayerName: {this.dalamud.ClientState.LocalPlayer.Name}\n";
-                stateString +=
-                    $"CurrentWorldName: {(this.resolveGameData ? this.dalamud.ClientState.LocalPlayer.CurrentWorld.GameData.Name : this.dalamud.ClientState.LocalPlayer.CurrentWorld.Id.ToString())}\n";
-                stateString +=
-                    $"HomeWorldName: {(this.resolveGameData ? this.dalamud.ClientState.LocalPlayer.HomeWorld.GameData.Name : this.dalamud.ClientState.LocalPlayer.HomeWorld.Id.ToString())}\n";
+                stateString += $"CurrentWorldName: {(this.resolveGameData ? this.dalamud.ClientState.LocalPlayer.CurrentWorld.GameData.Name : this.dalamud.ClientState.LocalPlayer.CurrentWorld.Id.ToString())}\n";
+                stateString += $"HomeWorldName: {(this.resolveGameData ? this.dalamud.ClientState.LocalPlayer.HomeWorld.GameData.Name : this.dalamud.ClientState.LocalPlayer.HomeWorld.Id.ToString())}\n";
                 stateString += $"LocalCID: {this.dalamud.ClientState.LocalContentId:X}\n";
-                stateString +=
-                    $"LastLinkedItem: {this.dalamud.Framework.Gui.Chat.LastLinkedItemId.ToString()}\n";
+                stateString += $"LastLinkedItem: {this.dalamud.Framework.Gui.Chat.LastLinkedItemId}\n";
                 stateString += $"TerritoryType: {this.dalamud.ClientState.TerritoryType}\n\n";
 
                 ImGui.TextUnformatted(stateString);
@@ -532,17 +525,17 @@ namespace Dalamud.Interface
 
                         ImGui.SetNextWindowPos(new Vector2(screenCoords.X, screenCoords.Y));
 
-                        ImGui.SetNextWindowBgAlpha(Math.Max(1f - actor.YalmDistanceX / this.maxActorDrawDistance,
-                                                            0.2f));
-                        if (ImGui.Begin($"Actor{i}##ActorWindow{i}",
-                                        ImGuiWindowFlags.NoDecoration |
-                                        ImGuiWindowFlags.AlwaysAutoResize |
-                                        ImGuiWindowFlags.NoSavedSettings |
-                                        ImGuiWindowFlags.NoMove |
-                                        ImGuiWindowFlags.NoMouseInputs |
-                                        ImGuiWindowFlags.NoDocking |
-                                        ImGuiWindowFlags.NoFocusOnAppearing |
-                                        ImGuiWindowFlags.NoNav))
+                        ImGui.SetNextWindowBgAlpha(Math.Max(1f - (actor.YalmDistanceX / this.maxActorDrawDistance), 0.2f));
+                        if (ImGui.Begin(
+                                $"Actor{i}##ActorWindow{i}",
+                                ImGuiWindowFlags.NoDecoration |
+                                ImGuiWindowFlags.AlwaysAutoResize |
+                                ImGuiWindowFlags.NoSavedSettings |
+                                ImGuiWindowFlags.NoMove |
+                                ImGuiWindowFlags.NoMouseInputs |
+                                ImGuiWindowFlags.NoDocking |
+                                ImGuiWindowFlags.NoFocusOnAppearing |
+                                ImGuiWindowFlags.NoNav))
                             ImGui.Text(actorText);
                         ImGui.End();
                     }
@@ -550,6 +543,7 @@ namespace Dalamud.Interface
             }
         }
 
+#pragma warning disable CS0618 // Type or member is obsolete
         private void DrawIpcDebug()
         {
             var i1 = new DalamudPluginInterface(this.dalamud, "DalamudTestSub", null, PluginLoadReason.Boot);
@@ -573,9 +567,11 @@ namespace Dalamud.Interface
                 });
             }
 
-            if (ImGui.Button("Remove test sub")) i1.Unsubscribe("DalamudTestPub");
+            if (ImGui.Button("Remove test sub"))
+                i1.Unsubscribe("DalamudTestPub");
 
-            if (ImGui.Button("Remove test sub any")) i1.UnsubscribeAny();
+            if (ImGui.Button("Remove test sub any"))
+                i1.UnsubscribeAny();
 
             if (ImGui.Button("Send test message"))
             {
@@ -592,9 +588,10 @@ namespace Dalamud.Interface
                 i2.SendMessage("DalamudTestSub", testMsg);
             }
 
-            foreach (var sub in this.dalamud.PluginManager.IpcSubscriptions)
-                ImGui.Text($"Source:{sub.SourcePluginName} Sub:{sub.SubPluginName}");
+            foreach (var (sourcePluginName, subPluginName, subAction) in this.dalamud.PluginManager.IpcSubscriptions)
+                ImGui.Text($"Source:{sourcePluginName} Sub:{subPluginName}");
         }
+#pragma warning restore CS0618 // Type or member is obsolete
 
         private void DrawAddonDebug()
         {

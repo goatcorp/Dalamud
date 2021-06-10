@@ -3,15 +3,16 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Dalamud.Configuration;
 using Dalamud.Data;
 using Dalamud.Game;
 using Dalamud.Game.Addon;
-using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.Command;
 using Dalamud.Game.Internal;
 using Dalamud.Game.Network;
+using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Interface;
 using Dalamud.Plugin;
 using Serilog;
@@ -182,12 +183,15 @@ namespace Dalamud
         /// </summary>
         internal bool IsReady { get; private set; }
 
+        /// <summary>
+        /// Gets a value indicating whether the plugin system is loaded.
+        /// </summary>
         internal bool IsLoadedPluginSystem => this.PluginManager != null;
 
         /// <summary>
         /// Gets location of stored assets.
         /// </summary>
-        internal DirectoryInfo AssetDirectory => new DirectoryInfo(this.StartInfo.AssetDirectory);
+        internal DirectoryInfo AssetDirectory => new(this.StartInfo.AssetDirectory);
 
         /// <summary>
         /// Runs tier 1 of the Dalamud initialization process.
@@ -230,7 +234,6 @@ namespace Dalamud
 #endif
 
                 Log.Information("[T2] AntiDebug OK!");
-
 
                 this.WinSock2 = new WinSockHandlers();
 
@@ -384,7 +387,7 @@ namespace Dalamud
         }
 
         /// <summary>
-        ///     Wait for a queued unload to be finalized.
+        /// Wait for a queued unload to be finalized.
         /// </summary>
         public void WaitForUnloadFinish()
         {
@@ -417,7 +420,7 @@ namespace Dalamud
         }
 
         /// <summary>
-        ///     Dispose Dalamud subsystems.
+        /// Dispose Dalamud subsystems.
         /// </summary>
         public void Dispose()
         {
@@ -453,12 +456,11 @@ namespace Dalamud
         }
 
         /// <summary>
-        ///     Replace the built-in exception handler with a debug one.
+        /// Replace the built-in exception handler with a debug one.
         /// </summary>
         internal void ReplaceExceptionHandler()
         {
-            var releaseFilter = this.SigScanner.ScanText(
-                "40 55 53 56 48 8D AC 24 ?? ?? ?? ?? B8 ?? ?? ?? ?? E8 ?? ?? ?? ?? 48 2B E0 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 85 ?? ?? ?? ?? 48 83 3D ?? ?? ?? ?? ??");
+            var releaseFilter = this.SigScanner.ScanText("40 55 53 56 48 8D AC 24 ?? ?? ?? ?? B8 ?? ?? ?? ?? E8 ?? ?? ?? ?? 48 2B E0 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 85 ?? ?? ?? ?? 48 83 3D ?? ?? ?? ?? ??");
             Log.Debug($"SE debug filter at {releaseFilter.ToInt64():X}");
 
             var oldFilter = NativeFunctions.SetUnhandledExceptionFilter(releaseFilter);

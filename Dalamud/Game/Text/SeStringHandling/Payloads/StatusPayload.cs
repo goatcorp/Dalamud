@@ -1,8 +1,8 @@
-using Lumina.Excel.GeneratedSheets;
-using System;
 using System.Collections.Generic;
 using System.IO;
+
 using Dalamud.Data;
+using Lumina.Excel.GeneratedSheets;
 using Newtonsoft.Json;
 
 namespace Dalamud.Game.Text.SeStringHandling.Payloads
@@ -12,45 +12,50 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
     /// </summary>
     public class StatusPayload : Payload
     {
-        public override PayloadType Type => PayloadType.Status;
-
         private Status status;
-        /// <summary>
-        /// The Lumina Status object represented by this payload.
-        /// </summary>
-        /// <remarks>
-        /// Value is evaluated lazily and cached.
-        /// </remarks>
-        [JsonIgnore]
-        public Status Status
-        {
-            get
-            {
-                status ??= this.DataResolver.GetExcelSheet<Status>().GetRow(this.statusId);
-                return status;
-            }
-        }
 
         [JsonProperty]
         private uint statusId;
 
-        internal StatusPayload() { }
-
         /// <summary>
+        /// Initializes a new instance of the <see cref="StatusPayload"/> class.
         /// Creates a new StatusPayload for the given status id.
         /// </summary>
         /// <param name="data">DataManager instance needed to resolve game data.</param>
         /// <param name="statusId">The id of the Status for this link.</param>
-        public StatusPayload(DataManager data, uint statusId) {
+        public StatusPayload(DataManager data, uint statusId)
+        {
             this.DataResolver = data;
             this.statusId = statusId;
         }
 
-        public override string ToString()
+        /// <summary>
+        /// Initializes a new instance of the <see cref="StatusPayload"/> class.
+        /// Creates a new StatusPayload for the given status id.
+        /// </summary>
+        internal StatusPayload()
         {
-            return $"{Type} - StatusId: {statusId}, Name: {Status.Name}";
         }
 
+        /// <inheritdoc/>
+        public override PayloadType Type => PayloadType.Status;
+
+        /// <summary>
+        /// Gets the Lumina Status object represented by this payload.
+        /// </summary>
+        /// <remarks>
+        /// The value is evaluated lazily and cached.
+        /// </remarks>
+        [JsonIgnore]
+        public Status Status => this.status ??= this.DataResolver.GetExcelSheet<Status>().GetRow(this.statusId);
+
+        /// <inheritdoc/>
+        public override string ToString()
+        {
+            return $"{this.Type} - StatusId: {this.statusId}, Name: {this.Status.Name}";
+        }
+
+        /// <inheritdoc/>
         protected override byte[] EncodeImpl()
         {
             var idBytes = MakeInteger(this.statusId);
@@ -58,7 +63,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             var chunkLen = idBytes.Length + 7;
             var bytes = new List<byte>()
             {
-                START_BYTE, (byte)SeStringChunkType.Interactable, (byte)chunkLen, (byte)EmbeddedInfoType.Status
+                START_BYTE, (byte)SeStringChunkType.Interactable, (byte)chunkLen, (byte)EmbeddedInfoType.Status,
             };
 
             bytes.AddRange(idBytes);
@@ -68,6 +73,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             return bytes.ToArray();
         }
 
+        /// <inheritdoc/>
         protected override void DecodeImpl(BinaryReader reader, long endOfStream)
         {
             this.statusId = GetInteger(reader);

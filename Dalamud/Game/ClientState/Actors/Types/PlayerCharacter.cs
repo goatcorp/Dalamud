@@ -31,12 +31,12 @@ namespace Dalamud.Game.ClientState.Actors.Types
         /// <summary>
         /// Gets the current <see cref="World">world</see> of the character.
         /// </summary>
-        public World CurrentWorld => new World(this.ActorStruct.CurrentWorld, this.Dalamud);
+        public World CurrentWorld => new(this.ActorStruct.CurrentWorld, this.Dalamud);
 
         /// <summary>
         /// Gets the home <see cref="World">world</see> of the character.
         /// </summary>
-        public World HomeWorld => new World(this.ActorStruct.HomeWorld, this.Dalamud);
+        public World HomeWorld => new(this.ActorStruct.HomeWorld, this.Dalamud);
 
         /// <summary>
         /// Gets the Free Company tag of this player.

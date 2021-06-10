@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
+
 using Dalamud.Data;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Serilog;
@@ -19,35 +19,8 @@ namespace Dalamud.Game.Text.SeStringHandling
     /// <summary>
     /// This class represents a parsed SeString payload.
     /// </summary>
-    public abstract class Payload
+    public abstract partial class Payload
     {
-        /// <summary>
-        /// The type of this payload.
-        /// </summary>
-        public abstract PayloadType Type { get; }
-
-        /// <summary>
-        /// Whether this payload has been modified since the last Encode().
-        /// </summary>
-        public bool Dirty { get; protected set; } = true;
-
-        /// <summary>
-        /// Encodes the internal state of this payload into a byte[] suitable for sending to in-game
-        /// handlers such as the chat log.
-        /// </summary>
-        /// <returns>Encoded binary payload data suitable for use with in-game handlers.</returns>
-        protected abstract byte[] EncodeImpl();
-
-        // TODO: endOfStream is somewhat legacy now that payload length is always handled correctly.
-        // This could be changed to just take a straight byte[], but that would complicate reading
-        // but we could probably at least remove the end param
-        /// <summary>
-        /// Decodes a byte stream from the game into a payload object.
-        /// </summary>
-        /// <param name="reader">A BinaryReader containing at least all the data for this payload.</param>
-        /// <param name="endOfStream">The location holding the end of the data for this payload.</param>
-        protected abstract void DecodeImpl(BinaryReader reader, long endOfStream);
-
         /// <summary>
         /// The Lumina instance to use for any necessary data lookups.
         /// </summary>
@@ -58,31 +31,26 @@ namespace Dalamud.Game.Text.SeStringHandling
         private byte[] encodedData;
 
         /// <summary>
-        /// Encode this payload object into a byte[] useable in-game for things like the chat log.
+        /// Gets the type of this payload.
         /// </summary>
-        /// <param name="force">If true, ignores any cached value and forcibly reencodes the payload from its internal representation.</param>
-        /// <returns>A byte[] suitable for use with in-game handlers such as the chat log.</returns>
-        public byte[] Encode(bool force = false)
-        {
-            if (Dirty || force)
-            {
-                this.encodedData = EncodeImpl();
-                Dirty = false;
-            }
+        public abstract PayloadType Type { get; }
 
-            return this.encodedData;
-        }
+        /// <summary>
+        /// Gets or sets a value indicating whether whether this payload has been modified since the last Encode().
+        /// </summary>
+        public bool Dirty { get; protected set; } = true;
 
         /// <summary>
         /// Decodes a binary representation of a payload into its corresponding nice object payload.
         /// </summary>
         /// <param name="reader">A reader positioned at the start of the payload, and containing at least one entire payload.</param>
+        /// <param name="data">The DataManager instance.</param>
         /// <returns>The constructed Payload-derived object that was decoded from the binary data.</returns>
         public static Payload Decode(BinaryReader reader, DataManager data)
         {
             var payloadStartPos = reader.BaseStream.Position;
 
-            Payload payload = null;
+            Payload payload;
 
             var initialByte = reader.ReadByte();
             reader.BaseStream.Position--;
@@ -112,6 +80,39 @@ namespace Dalamud.Game.Text.SeStringHandling
 
             return payload;
         }
+
+        /// <summary>
+        /// Encode this payload object into a byte[] useable in-game for things like the chat log.
+        /// </summary>
+        /// <param name="force">If true, ignores any cached value and forcibly reencodes the payload from its internal representation.</param>
+        /// <returns>A byte[] suitable for use with in-game handlers such as the chat log.</returns>
+        public byte[] Encode(bool force = false)
+        {
+            if (this.Dirty || force)
+            {
+                this.encodedData = this.EncodeImpl();
+                this.Dirty = false;
+            }
+
+            return this.encodedData;
+        }
+
+        /// <summary>
+        /// Encodes the internal state of this payload into a byte[] suitable for sending to in-game
+        /// handlers such as the chat log.
+        /// </summary>
+        /// <returns>Encoded binary payload data suitable for use with in-game handlers.</returns>
+        protected abstract byte[] EncodeImpl();
+
+        /// <summary>
+        /// Decodes a byte stream from the game into a payload object.
+        /// </summary>
+        /// <param name="reader">A BinaryReader containing at least all the data for this payload.</param>
+        /// <param name="endOfStream">The location holding the end of the data for this payload.</param>
+        // TODO: endOfStream is somewhat legacy now that payload length is always handled correctly.
+        // This could be changed to just take a straight byte[], but that would complicate reading
+        // but we could probably at least remove the end param
+        protected abstract void DecodeImpl(BinaryReader reader, long endOfStream);
 
         private static Payload DecodeChunk(BinaryReader reader)
         {
@@ -164,18 +165,20 @@ namespace Dalamud.Game.Text.SeStringHandling
                                 break;
 
                             case EmbeddedInfoType.LinkTerminator:
-                                // this has no custom handling and so needs to fallthrough to ensure it is captured
+                            // this has no custom handling and so needs to fallthrough to ensure it is captured
                             default:
                                 // but I'm also tired of this log
                                 if (subType != EmbeddedInfoType.LinkTerminator)
                                 {
                                     Log.Verbose("Unhandled EmbeddedInfoType: {0}", subType);
                                 }
+
                                 // rewind so we capture the Interactable byte in the raw data
                                 reader.BaseStream.Seek(-1, SeekOrigin.Current);
                                 break;
                         }
                     }
+
                     break;
 
                 case SeStringChunkType.AutoTranslateKey:
@@ -216,43 +219,126 @@ namespace Dalamud.Game.Text.SeStringHandling
 
             return payload;
         }
+    }
 
-        #region parse constants and helpers
-
+    /// <summary>
+    /// Parsing helpers.
+    /// </summary>
+    public abstract partial class Payload
+    {
+        /// <summary>
+        /// The start byte of a payload.
+        /// </summary>
         protected const byte START_BYTE = 0x02;
+
+        /// <summary>
+        /// The end byte of a payload.
+        /// </summary>
         protected const byte END_BYTE = 0x03;
 
-        protected enum SeStringChunkType
-        {
-            Icon = 0x12,
-            EmphasisItalic = 0x1A,
-            SeHyphen = 0x1F,
-            Interactable = 0x27,
-            AutoTranslateKey = 0x2E,
-            UIForeground = 0x48,
-            UIGlow = 0x49
-        }
-
+        /// <summary>
+        /// This represents the type of embedded info in a payload.
+        /// </summary>
         public enum EmbeddedInfoType
         {
+            /// <summary>
+            /// A player's name.
+            /// </summary>
             PlayerName = 0x01,
+
+            /// <summary>
+            /// The link to an iteme.
+            /// </summary>
             ItemLink = 0x03,
+
+            /// <summary>
+            /// The link to a map position.
+            /// </summary>
             MapPositionLink = 0x04,
+
+            /// <summary>
+            /// The link to a quest.
+            /// </summary>
             QuestLink = 0x05,
+
+            /// <summary>
+            /// A status effect.
+            /// </summary>
             Status = 0x09,
 
-            DalamudLink = 0x0F, // Dalamud Custom
+            /// <summary>
+            /// A custom Dalamud link.
+            /// </summary>
+            DalamudLink = 0x0F,
 
-            LinkTerminator = 0xCF // not clear but seems to always follow a link
+            /// <summary>
+            /// A link terminator.
+            /// </summary>
+            /// <remarks>
+            /// It is not exactly clear what this is, but seems to always follow a link.
+            /// </remarks>
+            LinkTerminator = 0xCF,
         }
 
+        /// <summary>
+        /// This represents the type of payload and how it should be encoded.
+        /// </summary>
+        protected enum SeStringChunkType
+        {
+            /// <summary>
+            /// See the <see cref="IconPayload"/> class.
+            /// </summary>
+            Icon = 0x12,
 
+            /// <summary>
+            /// See the <see cref="EmphasisItalicPayload"/> class.
+            /// </summary>
+            EmphasisItalic = 0x1A,
+
+            /// <summary>
+            /// See the <see cref="SeHyphenPayload"/> class.
+            /// </summary>
+            SeHyphen = 0x1F,
+
+            /// <summary>
+            /// See any of the link-type classes:
+            /// <see cref="PlayerPayload"/>,
+            /// <see cref="ItemPayload"/>,
+            /// <see cref="MapLinkPayload"/>,
+            /// <see cref="StatusPayload"/>,
+            /// <see cref="QuestPayload"/>,
+            /// <see cref="DalamudLinkPayload"/>.
+            /// </summary>
+            Interactable = 0x27,
+
+            /// <summary>
+            /// See the <see cref="AutoTranslatePayload"/> class.
+            /// </summary>
+            AutoTranslateKey = 0x2E,
+
+            /// <summary>
+            /// See the <see cref="UIForegroundPayload"/> class.
+            /// </summary>
+            UIForeground = 0x48,
+
+            /// <summary>
+            /// See the <see cref="UIGlowPayload"/> class.
+            /// </summary>
+            UIGlow = 0x49,
+        }
+
+        /// <summary>
+        /// Retrieve the packed integer from SE's native data format.
+        /// </summary>
+        /// <param name="input">The BinaryReader instance.</param>
+        /// <returns>An integer.</returns>
         // made protected, unless we actually want to use it externally
         // in which case it should probably go live somewhere else
         protected static uint GetInteger(BinaryReader input)
         {
             uint marker = input.ReadByte();
-            if (marker < 0xD0) return marker - 1;
+            if (marker < 0xD0)
+                return marker - 1;
 
             // the game adds 0xF0 marker for values >= 0xCF
             // uasge of 0xD0-0xEF is unknown, should we throw here?
@@ -269,6 +355,11 @@ namespace Dalamud.Game.Text.SeStringHandling
             return BitConverter.ToUInt32(ret, 0);
         }
 
+        /// <summary>
+        /// Create a packed integer in Se's native data format.
+        /// </summary>
+        /// <param name="value">The value to pack.</param>
+        /// <returns>A packed integer.</returns>
         protected static byte[] MakeInteger(uint value)
         {
             if (value < 0xCF)
@@ -287,22 +378,33 @@ namespace Dalamud.Game.Text.SeStringHandling
                     ret[0] |= (byte)(1 << i);
                 }
             }
+
             ret[0] -= 1;
 
             return ret.ToArray();
         }
 
-        protected static (uint, uint) GetPackedIntegers(BinaryReader input)
+        /// <summary>
+        /// From a binary packed integer, get the high and low bytes.
+        /// </summary>
+        /// <param name="input">The BinaryReader instance.</param>
+        /// <returns>The high and low bytes.</returns>
+        protected static (uint High, uint Low) GetPackedIntegers(BinaryReader input)
         {
             var value = GetInteger(input);
             return (value >> 16, value & 0xFFFF);
         }
 
-        protected static byte[] MakePackedInteger(uint val1, uint val2)
+        /// <summary>
+        /// Create a packed integer from the given high and low bytes.
+        /// </summary>
+        /// <param name="high">The high order bytes.</param>
+        /// <param name="low">The low order bytes.</param>
+        /// <returns>A packed integer.</returns>
+        protected static byte[] MakePackedInteger(uint high, uint low)
         {
-            var value = (val1 << 16) | (val2 & 0xFFFF);
+            var value = (high << 16) | (low & 0xFFFF);
             return MakeInteger(value);
         }
-        #endregion
     }
 }
