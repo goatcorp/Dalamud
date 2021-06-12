@@ -97,15 +97,16 @@ namespace Dalamud.Plugin
                 var repos = this.dalamud.Configuration.ThirdRepoList.Where(x => x.IsEnabled).Select(x => x.Url)
                                 .Prepend(PluginMasterUrl).ToArray();
 
-                try
+                using var client = new WebClient();
+
+                var repoNumber = 0;
+                var anyError = false;
+                foreach (var repo in repos)
                 {
-                    using var client = new WebClient();
+                    Log.Information("[PLUGINR] Fetching repo: {0}", repo);
 
-                    var repoNumber = 0;
-                    foreach (var repo in repos)
+                    try
                     {
-                        Log.Information("[PLUGINR] Fetching repo: {0}", repo);
-
                         var data = client.DownloadString(repo);
 
                         var unsortedPluginMaster = JsonConvert.DeserializeObject<List<PluginDefinition>>(data);
@@ -116,18 +117,23 @@ namespace Dalamud.Plugin
                         }
 
                         allPlugins.AddRange(unsortedPluginMaster);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, "Could not download PluginMaster");
 
-                        repoNumber++;
+                        this.State = repos.Length > 1 ? InitializationState.FailThirdRepo : InitializationState.Fail;
+
+                        anyError = true;
                     }
 
-                    this.PluginMaster = allPlugins.AsReadOnly();
-                    this.State = InitializationState.Success;
+                    repoNumber++;
                 }
-                catch (Exception ex)
-                {
-                    Log.Error(ex, "Could not download PluginMaster");
 
-                    this.State = repos.Length > 1 ? InitializationState.FailThirdRepo : InitializationState.Fail;
+                this.PluginMaster = allPlugins.AsReadOnly();
+                if (!anyError)
+                {
+                    this.State = InitializationState.Success;
                 }
             }).ContinueWith(t =>
             {

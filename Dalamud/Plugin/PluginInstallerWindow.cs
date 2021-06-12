@@ -142,24 +142,25 @@ namespace Dalamud.Plugin
 
             ImGui.SetCursorPosY(ImGui.GetCursorPosY() - (5 * ImGui.GetIO().FontGlobalScale));
 
-            string initializationStatusText = null;
+            (string Text, Vector4 Color) initializationStatusText = (null, ImGuiColors.DalamudGrey);
             if (this.dalamud.PluginRepository.State == PluginRepository.InitializationState.InProgress)
             {
-                initializationStatusText = Loc.Localize("InstallerLoading", "Loading plugins...");
+                initializationStatusText.Text = Loc.Localize("InstallerLoading", "Loading plugins...");
                 this.pluginListAvailable = null;
             }
             else if (this.dalamud.PluginRepository.State == PluginRepository.InitializationState.Fail)
             {
-                initializationStatusText = Loc.Localize("InstallerDownloadFailed", "Download failed.");
-                this.pluginListAvailable = null;
-            }
-            else if (this.dalamud.PluginRepository.State == PluginRepository.InitializationState.FailThirdRepo)
-            {
-                initializationStatusText = Loc.Localize("InstallerDownloadFailedThird", "One of your third party repos is unreachable or there is no internet connection.");
+                initializationStatusText.Text = Loc.Localize("InstallerDownloadFailed", "Download failed.");
                 this.pluginListAvailable = null;
             }
             else
             {
+                if (this.dalamud.PluginRepository.State == PluginRepository.InitializationState.FailThirdRepo)
+                {
+                    initializationStatusText.Text = Loc.Localize("InstallerDownloadFailedThird", "One of your third party repos is unreachable or there is no internet connection.");
+                    initializationStatusText.Color = ImGuiColors.DalamudRed;
+                }
+
                 if (this.pluginListAvailable == null)
                 {
                     this.RefetchPlugins();
@@ -310,9 +311,6 @@ namespace Dalamud.Plugin
 
         private void ResortPlugins()
         {
-            if (this.dalamud.PluginRepository.State != PluginRepository.InitializationState.Success)
-                return;
-
             var availableDefs = this.dalamud.PluginRepository.PluginMaster.Where(
                                         x => this.pluginListInstalled.All(y => x.InternalName != y.InternalName))
                                     .GroupBy(x => new { x.InternalName, x.AssemblyVersion })
@@ -337,7 +335,7 @@ namespace Dalamud.Plugin
             }
         }
 
-        private void DrawTab(bool installed, string statusText)
+        private void DrawTab(bool installed, (string Text, Vector4 Color) statusText)
         {
             if (ImGui.BeginTabItem(installed ? Loc.Localize("InstallerInstalledPluginList", "Installed Plugins")
                                        : Loc.Localize("InstallerAvailablePluginList", "Available Plugins")))
@@ -349,10 +347,13 @@ namespace Dalamud.Plugin
                     ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.NoBackground);
                 ImGui.SetCursorPosY(ImGui.GetCursorPosY() - 5);
 
-                if (statusText != null)
-                    ImGui.TextColored(ImGuiColors.DalamudGrey, statusText);
-                else
-                    this.DrawPluginList(installed ? this.pluginListInstalled : this.pluginListAvailable, installed);
+                if (statusText.Text != null)
+                    ImGui.TextColored(statusText.Color, statusText.Text);
+                var list = installed ? this.pluginListInstalled : this.pluginListAvailable;
+                if (list != null)
+                {
+                    this.DrawPluginList(list, installed);
+                }
 
                 ImGui.EndChild();
                 ImGui.EndTabItem();
