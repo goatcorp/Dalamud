@@ -67,13 +67,13 @@ namespace Dalamud.Game.Internal.Gui
             this.PartyFinder = new PartyFinderGui(scanner, dalamud);
             this.Toast = new ToastGui(scanner, dalamud);
 
-            this.setGlobalBgmHook = new Hook<SetGlobalBgmDelegate>(this.address.SetGlobalBgm, new SetGlobalBgmDelegate(this.HandleSetGlobalBgmDetour), this);
-            this.handleItemHoverHook = new Hook<HandleItemHoverDelegate>(this.address.HandleItemHover, new HandleItemHoverDelegate(this.HandleItemHoverDetour), this);
+            this.setGlobalBgmHook = new Hook<SetGlobalBgmDelegate>(this.address.SetGlobalBgm, this.HandleSetGlobalBgmDetour);
+            this.handleItemHoverHook = new Hook<HandleItemHoverDelegate>(this.address.HandleItemHover, this.HandleItemHoverDetour);
 
-            this.handleItemOutHook = new Hook<HandleItemOutDelegate>(this.address.HandleItemOut, new HandleItemOutDelegate(this.HandleItemOutDetour), this);
+            this.handleItemOutHook = new Hook<HandleItemOutDelegate>(this.address.HandleItemOut, this.HandleItemOutDetour);
 
-            this.handleActionHoverHook = new Hook<HandleActionHoverDelegate>(this.address.HandleActionHover, new HandleActionHoverDelegate(this.HandleActionHoverDetour), this);
-            this.handleActionOutHook = new Hook<HandleActionOutDelegate>(this.address.HandleActionOut, new HandleActionOutDelegate(this.HandleActionOutDetour), this);
+            this.handleActionHoverHook = new Hook<HandleActionHoverDelegate>(this.address.HandleActionHover, this.HandleActionHoverDetour);
+            this.handleActionOutHook = new Hook<HandleActionOutDelegate>(this.address.HandleActionOut, this.HandleActionOutDetour);
 
             this.getUIObject = Marshal.GetDelegateForFunctionPointer<GetUIObjectDelegate>(this.address.GetUIObject);
 
@@ -81,7 +81,7 @@ namespace Dalamud.Game.Internal.Gui
 
             this.screenToWorldNative = Marshal.GetDelegateForFunctionPointer<ScreenToWorldNativeDelegate>(this.address.ScreenToWorld);
 
-            this.toggleUiHideHook = new Hook<ToggleUiHideDelegate>(this.address.ToggleUiHide, new ToggleUiHideDelegate(this.ToggleUiHideDetour), this);
+            this.toggleUiHideHook = new Hook<ToggleUiHideDelegate>(this.address.ToggleUiHide, this.ToggleUiHideDetour);
 
             this.GetBaseUIObject = Marshal.GetDelegateForFunctionPointer<GetBaseUIObjectDelegate>(this.address.GetBaseUIObject);
             this.getUIObjectByName = Marshal.GetDelegateForFunctionPointer<GetUIObjectByNameDelegate>(this.address.GetUIObjectByName);

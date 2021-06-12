@@ -120,11 +120,11 @@ namespace Dalamud.Interface
             Log.Verbose("Present address {Present}", this.address.Present);
             Log.Verbose("ResizeBuffers address {ResizeBuffers}", this.address.ResizeBuffers);
 
-            this.setCursorHook = new Hook<SetCursorDelegate>(setCursorAddr, new SetCursorDelegate(this.SetCursorDetour), this);
+            this.setCursorHook = new Hook<SetCursorDelegate>(setCursorAddr, this.SetCursorDetour);
 
-            this.presentHook = new Hook<PresentDelegate>(this.address.Present, new PresentDelegate(this.PresentDetour), this);
+            this.presentHook = new Hook<PresentDelegate>(this.address.Present, this.PresentDetour);
 
-            this.resizeBuffersHook = new Hook<ResizeBuffersDelegate>(this.address.ResizeBuffers, new ResizeBuffersDelegate(this.ResizeBuffersDetour), this);
+            this.resizeBuffersHook = new Hook<ResizeBuffersDelegate>(this.address.ResizeBuffers, this.ResizeBuffersDetour);
         }
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
