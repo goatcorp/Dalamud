@@ -106,7 +106,7 @@ namespace Dalamud.Game.ClientState
 
             Log.Verbose("SetupTerritoryType address {SetupTerritoryType}", this.address.SetupTerritoryType);
 
-            this.setupTerritoryTypeHook = new Hook<SetupTerritoryTypeDelegate>(this.address.SetupTerritoryType, new SetupTerritoryTypeDelegate(this.SetupTerritoryTypeDetour), this);
+            this.setupTerritoryTypeHook = new Hook<SetupTerritoryTypeDelegate>(this.address.SetupTerritoryType, this.SetupTerritoryTypeDetour);
 
             dalamud.Framework.OnUpdateEvent += this.FrameworkOnOnUpdateEvent;
             dalamud.NetworkHandlers.CfPop += this.NetworkHandlersOnCfPop;

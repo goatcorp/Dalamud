@@ -159,13 +159,13 @@ namespace Dalamud.Game.Internal
             // .rdata:00000001411F2000 dq offset Xiv__Framework__update
 
             var pUpdate = Marshal.ReadIntPtr(vtable, IntPtr.Size * 4);
-            this.updateHook = new Hook<OnUpdateDetour>(pUpdate, new OnUpdateDetour(this.HandleFrameworkUpdate), this);
+            this.updateHook = new Hook<OnUpdateDetour>(pUpdate, this.HandleFrameworkUpdate);
 
             var pDestroy = Marshal.ReadIntPtr(vtable, IntPtr.Size * 3);
-            this.destroyHook = new Hook<OnDestroyDetour>(pDestroy, new OnDestroyDelegate(this.HandleFrameworkDestroy), this);
+            this.destroyHook = new Hook<OnDestroyDetour>(pDestroy, this.HandleFrameworkDestroy);
 
             var pRealDestroy = Marshal.ReadIntPtr(vtable, IntPtr.Size * 2);
-            this.realDestroyHook = new Hook<OnRealDestroyDelegate>(pRealDestroy, new OnRealDestroyDelegate(this.HandleRealDestroy), this);
+            this.realDestroyHook = new Hook<OnRealDestroyDelegate>(pRealDestroy, this.HandleRealDestroy);
         }
 
         private bool HandleFrameworkUpdate(IntPtr framework)

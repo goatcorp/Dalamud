@@ -45,9 +45,9 @@ namespace Dalamud.Game.Internal.Gui
 
             Log.Verbose("Chat manager address {ChatManager}", this.address.BaseAddress);
 
-            this.printMessageHook = new Hook<PrintMessageDelegate>(this.address.PrintMessage, new PrintMessageDelegate(this.HandlePrintMessageDetour), this);
-            this.populateItemLinkHook = new Hook<PopulateItemLinkDelegate>(this.address.PopulateItemLinkObject, new PopulateItemLinkDelegate(this.HandlePopulateItemLinkDetour), this);
-            this.interactableLinkClickedHook = new Hook<InteractableLinkClickedDelegate>(this.address.InteractableLinkClicked, new InteractableLinkClickedDelegate(this.InteractableLinkClickedDetour));
+            this.printMessageHook = new Hook<PrintMessageDelegate>(this.address.PrintMessage, this.HandlePrintMessageDetour);
+            this.populateItemLinkHook = new Hook<PopulateItemLinkDelegate>(this.address.PopulateItemLinkObject, this.HandlePopulateItemLinkDetour);
+            this.interactableLinkClickedHook = new Hook<InteractableLinkClickedDelegate>(this.address.InteractableLinkClicked, this.InteractableLinkClickedDetour);
         }
 
         /// <summary>

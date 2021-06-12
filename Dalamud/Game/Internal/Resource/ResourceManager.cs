@@ -35,9 +35,8 @@ namespace Dalamud.Game.Internal.File
             Log.Verbose("GetResourceAsync address {GetResourceAsync}", this.address.GetResourceAsync);
             Log.Verbose("GetResourceSync address {GetResourceSync}", this.address.GetResourceSync);
 
-            this.getResourceAsyncHook = new Hook<GetResourceAsyncDelegate>(this.address.GetResourceAsync, new GetResourceAsyncDelegate(this.GetResourceAsyncDetour), this);
-
-            this.getResourceSyncHook = new Hook<GetResourceSyncDelegate>(this.address.GetResourceSync, new GetResourceSyncDelegate(this.GetResourceSyncDetour), this);
+            this.getResourceAsyncHook = new Hook<GetResourceAsyncDelegate>(this.address.GetResourceAsync, this.GetResourceAsyncDetour);
+            this.getResourceSyncHook = new Hook<GetResourceSyncDelegate>(this.address.GetResourceSync, this.GetResourceSyncDetour);
         }
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
