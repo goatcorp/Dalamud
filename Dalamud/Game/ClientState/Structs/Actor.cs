@@ -14,8 +14,8 @@ namespace Dalamud.Game.ClientState.Structs
         /// The actor name.
         /// </summary>
         [FieldOffset(ActorOffsets.Name)]
-        [MarshalAs(UnmanagedType.LPUTF8Str, SizeConst = 30)]
-        public string Name;
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 30)]
+        public byte[] Name;
 
         /// <summary>
         /// The actor's internal id.

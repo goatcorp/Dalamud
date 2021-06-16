@@ -1,6 +1,7 @@
 using System;
-
+using System.Text;
 using Dalamud.Game.ClientState.Structs;
+using Serilog;
 
 namespace Dalamud.Game.ClientState.Actors.Types
 {
@@ -11,6 +12,8 @@ namespace Dalamud.Game.ClientState.Actors.Types
     {
         private readonly Structs.Actor actorStruct;
         private readonly Dalamud dalamud;
+
+        private string name;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Actor"/> class.
@@ -40,7 +43,33 @@ namespace Dalamud.Game.ClientState.Actors.Types
         /// <summary>
         /// Gets the displayname of this <see cref="Actor" />.
         /// </summary>
-        public string Name => this.ActorStruct.Name;
+        public string Name
+        {
+            get
+            {
+                if (this.name == null)
+                {
+                    var i = 0;
+                    for (; i < this.actorStruct.Name.Length; i++)
+                    {
+                        if (this.actorStruct.Name[i] == 0)
+                            break;
+                    }
+
+                    if (i == this.actorStruct.Name.Length)
+                    {
+                        this.name = Encoding.UTF8.GetString(this.actorStruct.Name);
+                        Log.Warning($"Warning: Actor name exceeds underlying struct array length (name={this.name})");
+                    }
+                    else
+                    {
+                        this.name = Encoding.UTF8.GetString(this.actorStruct.Name, 0, i);
+                    }
+                }
+
+                return this.name;
+            }
+        }
 
         /// <summary>
         /// Gets the actor ID of this <see cref="Actor" />.
