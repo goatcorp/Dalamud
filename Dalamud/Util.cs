@@ -165,5 +165,36 @@ namespace Dalamud
             NativeFunctions.MessageBox(Process.GetCurrentProcess().MainWindowHandle, message, caption, flags);
             Environment.Exit(-1);
         }
+
+        /// <summary>
+        /// Retrieve a UTF8 string from a null terminated byte array.
+        /// </summary>
+        /// <param name="array">A null terminated UTF8 byte array.</param>
+        /// <returns>A UTF8 encoded string.</returns>
+        public static string GetUTF8String(byte[] array)
+        {
+            var count = 0;
+            for (; count < array.Length; count++)
+            {
+                if (array[count] == 0)
+                    break;
+            }
+
+            string text;
+            if (count == array.Length)
+            {
+                text = Encoding.UTF8.GetString(array);
+                Log.Warning($"Warning: text exceeds underlying array length ({text})");
+            }
+            else
+            {
+                text = Encoding.UTF8.GetString(array, 0, count);
+            }
+
+            return text;
+        }
+
+        // TODO: Someone implement GetUTF8String with some IntPtr overloads.
+        // while(Marshal.ReadByte(0, sz) != 0) { sz++; }
     }
 }
