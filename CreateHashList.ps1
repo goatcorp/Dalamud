@@ -1,7 +1,11 @@
-$hashes = @{}
+$hashes = [ordered]@{}
 
-Get-ChildItem $args[0] -Exclude dalamud.txt,*.zip,*.pdb,*.ipdb | Foreach-Object {
-    $hashes.Add($_.Name, (Get-FileHash $_.FullName -Algorithm MD5).Hash)
+Set-Location $args[0]
+
+Get-ChildItem -File -Recurse -Exclude dalamud.txt,*.zip,*.pdb,*.ipdb | Foreach-Object {
+	$key = ($_.FullName | Resolve-Path -Relative).TrimStart(".\\")
+	$val = (Get-FileHash $_.FullName -Algorithm MD5).Hash
+    $hashes.Add($key, $val)
 }
 
-ConvertTo-Json $hashes | Out-File -FilePath (Join-Path $args[0] "hashes.json")
+$hashes | ConvertTo-Json | Out-File -FilePath "hashes.json"
