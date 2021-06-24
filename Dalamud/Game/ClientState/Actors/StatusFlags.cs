@@ -29,6 +29,11 @@ namespace Dalamud.Game.ClientState.Actors
         WeaponOut = 4,
 
         /// <summary>
+        /// Actor offhand is out.
+        /// </summary>
+        OffhandOut = 8,
+
+        /// <summary>
         /// Actor is a party member.
         /// </summary>
         PartyMember = 16,
