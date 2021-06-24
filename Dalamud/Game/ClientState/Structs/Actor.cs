@@ -232,6 +232,12 @@ namespace Dalamud.Game.ClientState.Structs
         public float TotalCastTime;
 
         /// <summary>
+        /// Actor status flags.
+        /// </summary>
+        [FieldOffset(ActorOffsets.StatusFlags)]
+        public StatusFlags StatusFlags;
+
+        /// <summary>
         /// The array of status effects that the actor is currently affected by.
         /// </summary>
         [FieldOffset(ActorOffsets.UIStatusEffects)]
@@ -284,6 +290,7 @@ namespace Dalamud.Game.ClientState.Structs
         public const int CurrentCastTargetActorId = 0x1B90;
         public const int CurrentCastTime = 0x1BB4;
         public const int TotalCastTime = 0x1BB8;
+        public const int StatusFlags = 0x19A0;
         public const int UIStatusEffects = 0x19F8;
     }
 }
