@@ -76,5 +76,10 @@ namespace Dalamud.Game.ClientState.Actors.Types
         /// Indexed by <see cref="CustomizeIndex"/>.
         /// </summary>
         public byte[] Customize => this.ActorStruct.Customize;
+
+        /// <summary>
+        /// Gets status Effects.
+        /// </summary>
+        public StatusFlags StatusFlags => this.ActorStruct.StatusFlags;
     }
 }
