@@ -23,10 +23,10 @@ namespace Dalamud.Game.Network
 
         private readonly List<MarketBoardItemRequest> marketBoardRequests = new();
 
-        private MarketBoardPurchaseHandler marketBoardPurchaseHandler;
-
         private readonly bool optOutMbUploads;
         private readonly IMarketBoardUploader uploader;
+
+        private MarketBoardPurchaseHandler marketBoardPurchaseHandler;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="NetworkHandlers"/> class.
@@ -282,6 +282,7 @@ namespace Dalamud.Game.Network
                             || purchase.CatalogId == this.marketBoardPurchaseHandler.CatalogId + 1000000))
                     { // HQ
                         Log.Information("Bought " + purchase.ItemQuantity + "x " + this.marketBoardPurchaseHandler.CatalogId + " for " + (this.marketBoardPurchaseHandler.PricePerUnit * purchase.ItemQuantity) + " gils, listing id is " + this.marketBoardPurchaseHandler.ListingId);
+                        Task.Run(() => this.uploader.UploadPurchase(purchase));
                     }
 
                     this.marketBoardPurchaseHandler = null;
