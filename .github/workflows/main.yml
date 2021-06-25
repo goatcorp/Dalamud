@@ -31,7 +31,7 @@ jobs:
           .\MSBuild.exe $Env:GITHUB_WORKSPACE\Dalamud.sln /t:Build /p:Configuration=Release /p:DefineConstants=XL_NOAUTOUPDATE
       - name: Run xUnit Tests
         run: |
-          ${{github.workspace}}\packages\xunit.runner.console.2.4.1\tools\net472\xunit.console.exe ${{github.workspace}}\Dalamud.Test\bin\Release\Dalamud.Test.dll
+          &"$env:UserProfile\.nuget\packages\xunit.runner.console\2.4.1\tools\net472\xunit.console.exe" ${{github.workspace}}\Dalamud.Test\bin\Release\Dalamud.Test.dll
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
