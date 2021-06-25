@@ -17,8 +17,8 @@ namespace Dalamud.Interface.Internal.Windows
     internal class ScratchpadWindow : Window, IDisposable
     {
         private readonly Dalamud dalamud;
-        private List<ScratchpadDocument> documents = new();
-        private ScratchFileWatcher watcher = new();
+        private readonly List<ScratchpadDocument> documents = new();
+        private readonly ScratchFileWatcher watcher = new();
         private string pathInput = string.Empty;
 
         /// <summary>
