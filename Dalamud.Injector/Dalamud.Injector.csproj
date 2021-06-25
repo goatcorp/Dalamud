@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup Label="Target">
         <TargetFramework>net48</TargetFramework>
         <LangVersion>9.0</LangVersion>
@@ -52,6 +52,10 @@
         <Reference Include="System.Windows.Forms" />
     </ItemGroup>
     <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(Configuration)'=='Release'">
-        <Exec Command="powershell -ExecutionPolicy Unrestricted $(SolutionDir)CreateHashList.ps1 $(OutputPath)" />
+        <PropertyGroup>
+            <PowerShell Condition=" $(GITHUB_ACTIONS) == '' ">powershell</PowerShell>
+            <PowerShell Condition=" $(GITHUB_ACTIONS) != '' ">pwsh</PowerShell>
+        </PropertyGroup>
+        <Exec Command="$(PowerShell) -ExecutionPolicy Unrestricted $(SolutionDir)CreateHashList.ps1 $(OutputPath)"  />
     </Target>
 </Project>
