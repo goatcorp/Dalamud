@@ -1,6 +1,6 @@
 using System;
 
-namespace Dalamud.Plugin
+namespace Dalamud
 {
     /// <summary>
     /// Class offering various methods to allow for logging in Dalamud modules.
