@@ -128,7 +128,8 @@ namespace Dalamud.Game.Command
         /// <returns>If adding was successful.</returns>
         public bool AddHandler(string command, CommandInfo info)
         {
-            if (info == null) throw new ArgumentNullException(nameof(info), "Command handler is null.");
+            if (info == null)
+                throw new ArgumentNullException(nameof(info), "Command handler is null.");
 
             try
             {

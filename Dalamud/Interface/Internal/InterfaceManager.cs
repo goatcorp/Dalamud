@@ -10,7 +10,6 @@ using Dalamud.Game;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.Internal.DXGI;
 using Dalamud.Hooking;
-using EasyHook;
 using ImGuiNET;
 using ImGuiScene;
 using Serilog;
@@ -27,34 +26,23 @@ using SharpDX.Direct3D11;
  * - Might eventually want to render to a separate target and composite, especially with reshade etc in the mix.
  */
 
-namespace Dalamud.Interface
+namespace Dalamud.Interface.Internal
 {
     /// <summary>
     /// This class manages interaction with the ImGui interface.
     /// </summary>
     internal class InterfaceManager : IDisposable
     {
-        /// <summary>
-        /// Code that is exexuted when fonts are rebuilt.
-        /// </summary>
-        public Action OnBuildFonts;
-
-        /// <summary>
-        /// The pointer to ImGui.IO(), when it last used..
-        /// </summary>
-        public ImGuiIOPtr LastImGuiIoPtr;
-
         private readonly Dalamud dalamud;
+        private readonly string rtssPath;
 
         private readonly Hook<PresentDelegate> presentHook;
         private readonly Hook<ResizeBuffersDelegate> resizeBuffersHook;
         private readonly Hook<SetCursorDelegate> setCursorHook;
 
-        private ManualResetEvent fontBuildSignal;
-        private ISwapChainAddressResolver address;
+        private readonly ManualResetEvent fontBuildSignal;
+        private readonly ISwapChainAddressResolver address;
         private RawDX11Scene scene;
-
-        private string rtssPath;
 
         // can't access imgui IO before first present call
         private bool lastWantCapture = false;
@@ -95,12 +83,12 @@ namespace Dalamud.Interface
 
             try
             {
-                var rtss = NativeFunctions.GetModuleHandle("RTSSHooks64.dll");
+                var rtss = NativeFunctions.GetModuleHandleW("RTSSHooks64.dll");
 
                 if (rtss != IntPtr.Zero)
                 {
                     var fileName = new StringBuilder(255);
-                    NativeFunctions.GetModuleFileName(rtss, fileName, fileName.Capacity);
+                    _ = NativeFunctions.GetModuleFileNameW(rtss, fileName, fileName.Capacity);
                     this.rtssPath = fileName.ToString();
                     Log.Verbose("RTSS at {0}", this.rtssPath);
 
@@ -113,17 +101,16 @@ namespace Dalamud.Interface
                 Log.Error(e, "RTSS Free failed");
             }
 
-            var setCursorAddr = LocalHook.GetProcAddress("user32.dll", "SetCursor");
+            var user32 = NativeFunctions.GetModuleHandleW("user32.dll");
+            var setCursorAddr = NativeFunctions.GetProcAddress(user32, "SetCursor");
 
             Log.Verbose("===== S W A P C H A I N =====");
-            Log.Verbose("SetCursor address {SetCursor}", setCursorAddr);
-            Log.Verbose("Present address {Present}", this.address.Present);
-            Log.Verbose("ResizeBuffers address {ResizeBuffers}", this.address.ResizeBuffers);
+            Log.Verbose($"SetCursor address 0x{setCursorAddr.ToInt64():X}");
+            Log.Verbose($"Present address 0x{this.address.Present.ToInt64():X}");
+            Log.Verbose($"ResizeBuffers address 0x{this.address.ResizeBuffers.ToInt64():X}");
 
             this.setCursorHook = new Hook<SetCursorDelegate>(setCursorAddr, this.SetCursorDetour);
-
             this.presentHook = new Hook<PresentDelegate>(this.address.Present, this.PresentDetour);
-
             this.resizeBuffersHook = new Hook<ResizeBuffersDelegate>(this.address.ResizeBuffers, this.ResizeBuffersDetour);
         }
 
@@ -152,6 +139,16 @@ namespace Dalamud.Interface
         /// Gets an included FontAwesome icon font.
         /// </summary>
         public static ImFontPtr IconFont { get; private set; }
+
+        /// <summary>
+        /// Gets or sets an action that is exexuted when fonts are rebuilt.
+        /// </summary>
+        public Action OnBuildFonts { get; set; }
+
+        /// <summary>
+        /// Gets or sets the pointer to ImGui.IO(), when it was last used.
+        /// </summary>
+        public ImGuiIOPtr LastImGuiIoPtr { get; set; }
 
         /// <summary>
         /// Gets the D3D11 device instance.
@@ -195,11 +192,11 @@ namespace Dalamud.Interface
             {
                 if (!string.IsNullOrEmpty(this.rtssPath))
                 {
-                    NativeFunctions.LoadLibrary(this.rtssPath);
+                    NativeFunctions.LoadLibraryW(this.rtssPath);
+                    var rtssModule = NativeFunctions.GetModuleHandleW("RTSSHooks64.dll");
+                    var installAddr = NativeFunctions.GetProcAddress(rtssModule, "InstallRTSSHook");
 
-                    var installAddr = LocalHook.GetProcAddress("RTSSHooks64.dll", "InstallRTSSHook");
-                    var installDele = Marshal.GetDelegateForFunctionPointer<InstallRTSSHook>(installAddr);
-                    installDele.Invoke();
+                    Marshal.GetDelegateForFunctionPointer<InstallRTSSHook>(installAddr).Invoke();
                 }
             }
             catch (Exception ex)
@@ -567,7 +564,7 @@ namespace Dalamud.Interface
             {
                 ImGui.GetIO().ConfigFlags ^= ImGuiConfigFlags.NavEnableGamepad;
                 this.dalamud.ClientState.GamepadState.NavEnableGamepad ^= true;
-                this.dalamud.DalamudUi.ToggleGamePadNotifierWindow();
+                this.dalamud.DalamudUi.ToggleGamepadModeNotifierWindow();
             }
 
             if (gamepadEnabled
@@ -592,7 +589,7 @@ namespace Dalamud.Interface
 
                 if (this.dalamud.ClientState.GamepadState.Pressed(GamepadButtons.R3) > 0)
                 {
-                    this.dalamud.DalamudUi.TogglePluginInstaller();
+                    this.dalamud.DalamudUi.TogglePluginInstallerWindow();
                 }
             }
         }

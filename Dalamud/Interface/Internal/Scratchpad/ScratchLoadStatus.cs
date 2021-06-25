@@ -1,4 +1,4 @@
-namespace Dalamud.Interface.Scratchpad
+namespace Dalamud.Interface.Internal.Scratchpad
 {
     /// <summary>
     /// The load status of a <see cref="ScratchpadDocument"/> class.

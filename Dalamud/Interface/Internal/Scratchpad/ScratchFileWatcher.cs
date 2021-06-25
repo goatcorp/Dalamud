@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 
-namespace Dalamud.Interface.Scratchpad
+namespace Dalamud.Interface.Internal.Scratchpad
 {
     /// <summary>
     /// A file watcher for <see cref="ScratchpadDocument"/> classes.

@@ -12,7 +12,6 @@ using Dalamud.Game.Internal;
 using Dalamud.Game.Internal.Gui.Addon;
 using Dalamud.Game.Internal.Gui.Toast;
 using Dalamud.Game.Text;
-using Dalamud.Interface.Colors;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
 using ImGuiNET;
@@ -20,24 +19,24 @@ using ImGuiScene;
 using Newtonsoft.Json;
 using Serilog;
 
-namespace Dalamud.Interface
+namespace Dalamud.Interface.Internal.Windows
 {
     /// <summary>
     /// Class responsible for drawing the data/debug window.
     /// </summary>
-    internal class DalamudDataWindow : Window
+    internal class DataWindow : Window
     {
         private readonly Dalamud dalamud;
 
-        private bool wasReady;
-        private string serverOpString;
-
-        private int currentKind;
-        private string[] dataKinds = new[]
+        private readonly string[] dataKinds = new[]
         {
             "ServerOpCode", "Address", "Actor Table", "Font Test", "Party List", "Plugin IPC", "Condition",
             "Gauge", "Command", "Addon", "Addon Inspector", "StartInfo", "Target", "Toast", "ImGui", "Tex", "Gamepad",
         };
+
+        private int currentKind;
+        private bool wasReady;
+        private string serverOpString;
 
         private bool drawActors = false;
         private float maxActorDrawDistance = 20;
@@ -73,10 +72,10 @@ namespace Dalamud.Interface
         private uint copyButtonIndex = 0;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DalamudDataWindow"/> class.
+        /// Initializes a new instance of the <see cref="DataWindow"/> class.
         /// </summary>
         /// <param name="dalamud">The Dalamud instance to access data of.</param>
-        public DalamudDataWindow(Dalamud dalamud)
+        public DataWindow(Dalamud dalamud)
             : base("Dalamud Data")
         {
             this.dalamud = dalamud;
@@ -202,7 +201,7 @@ namespace Dalamud.Interface
                                 ImGui.Text(((int)fontAwesomeIcon.ToIconChar()).ToString("X") + " - ");
                                 ImGui.SameLine();
 
-                                ImGui.PushFont(InterfaceManager.IconFont);
+                                ImGui.PushFont(UiBuilder.IconFont);
                                 ImGui.Text(fontAwesomeIcon.ToIconString());
                                 ImGui.PopFont();
                             }
@@ -588,8 +587,8 @@ namespace Dalamud.Interface
                 i2.SendMessage("DalamudTestSub", testMsg);
             }
 
-            foreach (var (sourcePluginName, subPluginName, subAction) in this.dalamud.PluginManager.IpcSubscriptions)
-                ImGui.Text($"Source:{sourcePluginName} Sub:{subPluginName}");
+            foreach (var ipc in this.dalamud.PluginManager.IpcSubscriptions)
+                ImGui.Text($"Source:{ipc.SourcePluginName} Sub:{ipc.SubPluginName}");
         }
 #pragma warning restore CS0618 // Type or member is obsolete
 

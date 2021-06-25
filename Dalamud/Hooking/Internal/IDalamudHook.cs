@@ -1,6 +1,6 @@
 using System;
 
-namespace Dalamud.Hooking
+namespace Dalamud.Hooking.Internal
 {
     /// <summary>
     /// Interface describing a generic hook.

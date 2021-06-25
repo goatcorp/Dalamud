@@ -12,20 +12,38 @@ namespace Dalamud.Interface.Components
         /// <summary>
         /// IconButton component to use an icon as a button.
         /// </summary>
+        /// <param name="icon">The icon for the button.</param>
+        /// <returns>Indicator if button is clicked.</returns>
+        public static bool IconButton(FontAwesomeIcon icon)
+            => IconButton(icon, null, null, null);
+
+        /// <summary>
+        /// IconButton component to use an icon as a button.
+        /// </summary>
         /// <param name="id">The ID of the button.</param>
         /// <param name="icon">The icon for the button.</param>
         /// <returns>Indicator if button is clicked.</returns>
         public static bool IconButton(int id, FontAwesomeIcon icon)
-        {
-            ImGui.PushStyleColor(ImGuiCol.Button, Vector4.Zero);
-            ImGui.PushStyleColor(ImGuiCol.ButtonActive, Vector4.Zero);
-            ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Vector4.Zero);
-            ImGui.PushFont(UiBuilder.IconFont);
-            var button = ImGui.Button($"{icon.ToIconString()}{id}");
-            ImGui.PopFont();
-            ImGui.PopStyleColor(3);
-            return button;
-        }
+            => IconButton(id, icon, null, null, null);
+
+        /// <summary>
+        /// IconButton component to use an icon as a button.
+        /// </summary>
+        /// <param name="iconText">Text already containing the icon string.</param>
+        /// <returns>Indicator if button is clicked.</returns>
+        public static bool IconButton(string iconText)
+            => IconButton(iconText, null, null, null);
+
+        /// <summary>
+        /// IconButton component to use an icon as a button.
+        /// </summary>
+        /// <param name="icon">The icon for the button.</param>
+        /// <param name="defaultColor">The default color of the button.</param>
+        /// <param name="activeColor">The color of the button when active.</param>
+        /// <param name="hoveredColor">The color of the button when hovered.</param>
+        /// <returns>Indicator if button is clicked.</returns>
+        public static bool IconButton(FontAwesomeIcon icon, Vector4? defaultColor = null, Vector4? activeColor = null, Vector4? hoveredColor = null)
+            => IconButton($"{icon.ToIconString()}", defaultColor, activeColor, hoveredColor);
 
         /// <summary>
         /// IconButton component to use an icon as a button with color options.
@@ -36,15 +54,48 @@ namespace Dalamud.Interface.Components
         /// <param name="activeColor">The color of the button when active.</param>
         /// <param name="hoveredColor">The color of the button when hovered.</param>
         /// <returns>Indicator if button is clicked.</returns>
-        public static bool IconButton(int id, FontAwesomeIcon icon, Vector4 defaultColor, Vector4 activeColor, Vector4 hoveredColor)
+        public static bool IconButton(int id, FontAwesomeIcon icon, Vector4? defaultColor = null, Vector4? activeColor = null, Vector4? hoveredColor = null)
+            => IconButton($"{icon.ToIconString()}{id}", defaultColor, activeColor, hoveredColor);
+
+        /// <summary>
+        /// IconButton component to use an icon as a button with color options.
+        /// </summary>
+        /// <param name="iconText">Text already containing the icon string.</param>
+        /// <param name="defaultColor">The default color of the button.</param>
+        /// <param name="activeColor">The color of the button when active.</param>
+        /// <param name="hoveredColor">The color of the button when hovered.</param>
+        /// <returns>Indicator if button is clicked.</returns>
+        public static bool IconButton(string iconText, Vector4? defaultColor = null, Vector4? activeColor = null, Vector4? hoveredColor = null)
         {
-            ImGui.PushStyleColor(ImGuiCol.Button, defaultColor);
-            ImGui.PushStyleColor(ImGuiCol.ButtonActive, activeColor);
-            ImGui.PushStyleColor(ImGuiCol.ButtonHovered, hoveredColor);
+            var numColors = 0;
+
+            if (defaultColor.HasValue)
+            {
+                ImGui.PushStyleColor(ImGuiCol.Button, defaultColor.Value);
+                numColors++;
+            }
+
+            if (activeColor.HasValue)
+            {
+                ImGui.PushStyleColor(ImGuiCol.ButtonActive, activeColor.Value);
+                numColors++;
+            }
+
+            if (hoveredColor.HasValue)
+            {
+                ImGui.PushStyleColor(ImGuiCol.ButtonHovered, hoveredColor.Value);
+                numColors++;
+            }
+
             ImGui.PushFont(UiBuilder.IconFont);
-            var button = ImGui.Button($"{icon.ToIconString()}{id}");
+
+            var button = ImGui.Button(iconText);
+
             ImGui.PopFont();
-            ImGui.PopStyleColor(3);
+
+            if (numColors > 0)
+                ImGui.PopStyleColor(numColors);
+
             return button;
         }
     }

@@ -13,7 +13,8 @@ using Dalamud.Game.Command;
 using Dalamud.Game.Internal;
 using Dalamud.Game.Network;
 using Dalamud.Game.Text.SeStringHandling;
-using Dalamud.Interface;
+using Dalamud.Hooking.Internal;
+using Dalamud.Interface.Internal;
 using Dalamud.Plugin;
 using Serilog;
 using Serilog.Core;
@@ -31,8 +32,6 @@ namespace Dalamud
 
         private readonly ManualResetEvent finishUnloadSignal;
 
-        private readonly string baseDirectory;
-
         private bool hasDisposedPlugins = false;
 
         #endregion
@@ -48,7 +47,7 @@ namespace Dalamud
             this.StartInfo = info;
             this.LogLevelSwitch = loggingLevelSwitch;
 
-            this.baseDirectory = info.WorkingDirectory;
+            // this.baseDirectory = info.WorkingDirectory;
 
             this.unloadSignal = new ManualResetEvent(false);
             this.unloadSignal.Reset();
@@ -73,6 +72,11 @@ namespace Dalamud
         /// Gets WinSock optimization subsystem.
         /// </summary>
         internal WinSockHandlers WinSock2 { get; private set; }
+
+        /// <summary>
+        /// Gets Hook management subsystem.
+        /// </summary>
+        internal HookManager HookManager { get; private set; }
 
         /// <summary>
         /// Gets ImGui Interface subsystem.
@@ -203,6 +207,7 @@ namespace Dalamud
                 // Initialize the process information.
                 this.TargetModule = Process.GetCurrentProcess().MainModule;
                 this.SigScanner = new SigScanner(this.TargetModule, true);
+                this.HookManager = new HookManager(this);
 
                 // Initialize game subsystem
                 this.Framework = new Framework(this.SigScanner, this);
@@ -324,8 +329,7 @@ namespace Dalamud
             {
                 Log.Information("[T3] START!");
 
-                this.PluginRepository =
-                    new PluginRepository(this, this.StartInfo.PluginDirectory, this.StartInfo.GameVersion);
+                this.PluginRepository = new PluginRepository(this, this.StartInfo.PluginDirectory);
 
                 Log.Information("[T3] PREPO OK!");
 
@@ -354,8 +358,6 @@ namespace Dalamud
                 }
 
                 this.DalamudUi = new DalamudInterface(this);
-                this.InterfaceManager.OnDraw += this.DalamudUi.Draw;
-
                 Log.Information("[T3] DUI OK!");
 
                 Troubleshooting.LogTroubleshooting(this, this.InterfaceManager != null);
@@ -433,19 +435,22 @@ namespace Dalamud
                 }
 
                 this.Framework?.Dispose();
+
                 this.ClientState?.Dispose();
 
                 this.unloadSignal?.Dispose();
 
                 this.WinSock2?.Dispose();
 
-                this.SigScanner?.Dispose();
-
                 this.Data?.Dispose();
 
                 this.AntiDebug?.Dispose();
 
                 this.SystemMenu?.Dispose();
+
+                this.HookManager?.Dispose();
+
+                this.SigScanner?.Dispose();
 
                 Log.Debug("Dalamud::Dispose() OK!");
             }

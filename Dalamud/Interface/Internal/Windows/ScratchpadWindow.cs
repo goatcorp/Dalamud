@@ -4,11 +4,12 @@ using System.Linq;
 using System.Numerics;
 
 using Dalamud.Interface.Colors;
+using Dalamud.Interface.Internal.Scratchpad;
 using Dalamud.Interface.Windowing;
 using ImGuiNET;
 using Serilog;
 
-namespace Dalamud.Interface.Scratchpad
+namespace Dalamud.Interface.Internal.Windows
 {
     /// <summary>
     /// This class facilitates interacting with the ScratchPad window.
@@ -138,7 +139,7 @@ namespace Dalamud.Interface.Scratchpad
 
                         if (ImGui.Button("Toggle Log"))
                         {
-                            this.dalamud.DalamudUi.ToggleLog();
+                            this.dalamud.DalamudUi.ToggleLogWindow();
                         }
 
                         ImGui.SameLine();

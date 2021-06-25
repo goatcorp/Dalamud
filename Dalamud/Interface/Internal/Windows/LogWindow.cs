@@ -10,12 +10,12 @@ using ImGuiNET;
 using Serilog;
 using Serilog.Events;
 
-namespace Dalamud.Interface
+namespace Dalamud.Interface.Internal.Windows
 {
     /// <summary>
     /// The window that displays the Dalamud log file in-game.
     /// </summary>
-    internal class DalamudLogWindow : Window, IDisposable
+    internal class LogWindow : Window, IDisposable
     {
         private readonly CommandManager commandManager;
         private readonly DalamudConfiguration configuration;
@@ -27,18 +27,17 @@ namespace Dalamud.Interface
         private string commandText = string.Empty;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DalamudLogWindow"/> class.
+        /// Initializes a new instance of the <see cref="LogWindow"/> class.
         /// </summary>
-        /// <param name="commandManager">The CommandManager instance.</param>
-        /// <param name="configuration">The DalamudConfiguration instance.</param>
-        public DalamudLogWindow(CommandManager commandManager, DalamudConfiguration configuration)
+        /// <param name="dalamud">The Dalamud instance.</param>
+        public LogWindow(Dalamud dalamud)
             : base("Dalamud LOG")
         {
-            this.commandManager = commandManager;
-            this.configuration = configuration;
-            this.autoScroll = configuration.LogAutoScroll;
-            this.openAtStartup = configuration.LogOpenAtStartup;
-            SerilogEventSink.Instance.OnLogLine += this.Serilog_OnLogLine;
+            this.commandManager = dalamud.CommandManager;
+            this.configuration = dalamud.Configuration;
+            this.autoScroll = this.configuration.LogAutoScroll;
+            this.openAtStartup = this.configuration.LogOpenAtStartup;
+            SerilogEventSink.Instance.OnLogLine += this.OnLogLine;
 
             this.Size = new Vector2(500, 400);
             this.SizeCondition = ImGuiCond.FirstUseEver;
@@ -49,7 +48,7 @@ namespace Dalamud.Interface
         /// </summary>
         public void Dispose()
         {
-            SerilogEventSink.Instance.OnLogLine -= this.Serilog_OnLogLine;
+            SerilogEventSink.Instance.OnLogLine -= this.OnLogLine;
         }
 
         /// <summary>
@@ -100,15 +99,19 @@ namespace Dalamud.Interface
             // Main window
             if (ImGui.Button("Options"))
                 ImGui.OpenPopup("Options");
+
             ImGui.SameLine();
             var clear = ImGui.Button("Clear");
+
             ImGui.SameLine();
             var copy = ImGui.Button("Copy");
 
             ImGui.Text("Enter command: ");
             ImGui.SameLine();
+
             ImGui.InputText("##commandbox", ref this.commandText, 255);
             ImGui.SameLine();
+
             if (ImGui.Button("Send"))
             {
                 if (this.commandManager.ProcessCommand(this.commandText))
@@ -117,18 +120,23 @@ namespace Dalamud.Interface
                 }
                 else
                 {
-                    Log.Information("Command {0} not registered.", this.commandText);
+                    Log.Information($"Command {this.commandText} is not registered.");
                 }
             }
 
             ImGui.BeginChild("scrolling", new Vector2(0, 0), false, ImGuiWindowFlags.HorizontalScrollbar);
 
             if (clear)
+            {
                 this.Clear();
-            if (copy)
-                ImGui.LogToClipboard();
+            }
 
-            ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(0, 0));
+            if (copy)
+            {
+                ImGui.LogToClipboard();
+            }
+
+            ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, Vector2.Zero);
 
             lock (this.renderLock)
             {
@@ -141,12 +149,14 @@ namespace Dalamud.Interface
             ImGui.PopStyleVar();
 
             if (this.autoScroll && ImGui.GetScrollY() >= ImGui.GetScrollMaxY())
+            {
                 ImGui.SetScrollHereY(1.0f);
+            }
 
             ImGui.EndChild();
         }
 
-        private void Serilog_OnLogLine(object sender, (string Line, LogEventLevel Level) logEvent)
+        private void OnLogLine(object sender, (string Line, LogEventLevel Level) logEvent)
         {
             var color = logEvent.Level switch
             {
@@ -156,7 +166,7 @@ namespace Dalamud.Interface
                 LogEventLevel.Information => ImGuiColors.DalamudWhite,
                 LogEventLevel.Warning => ImGuiColors.DalamudOrange,
                 LogEventLevel.Fatal => ImGuiColors.DalamudRed,
-                _ => throw new ArgumentOutOfRangeException(),
+                _ => throw new ArgumentOutOfRangeException(logEvent.Level.ToString(), "Invalid LogEventLevel"),
             };
 
             this.AddLog(logEvent.Line, color);

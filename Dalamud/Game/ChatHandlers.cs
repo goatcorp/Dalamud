@@ -11,7 +11,7 @@ using CheapLoc;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
-using Dalamud.Interface;
+using Dalamud.Interface.Internal.Windows;
 using Serilog;
 
 namespace Dalamud.Game
@@ -21,39 +21,39 @@ namespace Dalamud.Game
     /// </summary>
     public class ChatHandlers
     {
-        private static readonly Dictionary<string, string> UnicodeToDiscordEmojiDict = new()
-        {
-            { "", "<:ffxive071:585847382210642069>" },
-            { "", "<:ffxive083:585848592699490329>" },
-        };
+        // private static readonly Dictionary<string, string> UnicodeToDiscordEmojiDict = new()
+        // {
+        //     { "", "<:ffxive071:585847382210642069>" },
+        //     { "", "<:ffxive083:585848592699490329>" },
+        // };
 
-        private readonly Dictionary<XivChatType, Color> handledChatTypeColors = new()
-        {
-            { XivChatType.CrossParty, Color.DodgerBlue },
-            { XivChatType.Party, Color.DodgerBlue },
-            { XivChatType.FreeCompany, Color.DeepSkyBlue },
-            { XivChatType.CrossLinkShell1, Color.ForestGreen },
-            { XivChatType.CrossLinkShell2, Color.ForestGreen },
-            { XivChatType.CrossLinkShell3, Color.ForestGreen },
-            { XivChatType.CrossLinkShell4, Color.ForestGreen },
-            { XivChatType.CrossLinkShell5, Color.ForestGreen },
-            { XivChatType.CrossLinkShell6, Color.ForestGreen },
-            { XivChatType.CrossLinkShell7, Color.ForestGreen },
-            { XivChatType.CrossLinkShell8, Color.ForestGreen },
-            { XivChatType.Ls1, Color.ForestGreen },
-            { XivChatType.Ls2, Color.ForestGreen },
-            { XivChatType.Ls3, Color.ForestGreen },
-            { XivChatType.Ls4, Color.ForestGreen },
-            { XivChatType.Ls5, Color.ForestGreen },
-            { XivChatType.Ls6, Color.ForestGreen },
-            { XivChatType.Ls7, Color.ForestGreen },
-            { XivChatType.Ls8, Color.ForestGreen },
-            { XivChatType.TellIncoming, Color.HotPink },
-            { XivChatType.PvPTeam, Color.SandyBrown },
-            { XivChatType.Urgent, Color.DarkViolet },
-            { XivChatType.NoviceNetwork, Color.SaddleBrown },
-            { XivChatType.Echo, Color.Gray },
-        };
+        // private readonly Dictionary<XivChatType, Color> handledChatTypeColors = new()
+        // {
+        //     { XivChatType.CrossParty, Color.DodgerBlue },
+        //     { XivChatType.Party, Color.DodgerBlue },
+        //     { XivChatType.FreeCompany, Color.DeepSkyBlue },
+        //     { XivChatType.CrossLinkShell1, Color.ForestGreen },
+        //     { XivChatType.CrossLinkShell2, Color.ForestGreen },
+        //     { XivChatType.CrossLinkShell3, Color.ForestGreen },
+        //     { XivChatType.CrossLinkShell4, Color.ForestGreen },
+        //     { XivChatType.CrossLinkShell5, Color.ForestGreen },
+        //     { XivChatType.CrossLinkShell6, Color.ForestGreen },
+        //     { XivChatType.CrossLinkShell7, Color.ForestGreen },
+        //     { XivChatType.CrossLinkShell8, Color.ForestGreen },
+        //     { XivChatType.Ls1, Color.ForestGreen },
+        //     { XivChatType.Ls2, Color.ForestGreen },
+        //     { XivChatType.Ls3, Color.ForestGreen },
+        //     { XivChatType.Ls4, Color.ForestGreen },
+        //     { XivChatType.Ls5, Color.ForestGreen },
+        //     { XivChatType.Ls6, Color.ForestGreen },
+        //     { XivChatType.Ls7, Color.ForestGreen },
+        //     { XivChatType.Ls8, Color.ForestGreen },
+        //     { XivChatType.TellIncoming, Color.HotPink },
+        //     { XivChatType.PvPTeam, Color.SandyBrown },
+        //     { XivChatType.Urgent, Color.DarkViolet },
+        //     { XivChatType.NoviceNetwork, Color.SaddleBrown },
+        //     { XivChatType.Echo, Color.Gray },
+        // };
 
         private readonly Regex rmtRegex = new(
                 @"4KGOLD|We have sufficient stock|VPK\.OM|Gil for free|www\.so9\.com|Fast & Convenient|Cheap & Safety Guarantee|【Code|A O A U E|igfans|4KGOLD\.COM|Cheapest Gil with|pvp and bank on google|Selling Cheap GIL|ff14mogstation\.com|Cheap Gil 1000k|gilsforyou|server 1000K =|gils_selling|E A S Y\.C O M|bonus code|mins delivery guarantee|Sell cheap|Salegm\.com|cheap Mog|Off Code:|FF14Mog.com|使用する5％オ|Off Code( *):|offers Fantasia",
@@ -96,7 +96,7 @@ namespace Dalamud.Game
         private readonly Regex urlRegex = new(@"(http|ftp|https)://([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?", RegexOptions.Compiled);
 
         private readonly Dalamud dalamud;
-        private DalamudLinkPayload openInstallerWindowLink;
+        private readonly DalamudLinkPayload openInstallerWindowLink;
         private bool hasSeenLoadingMsg;
 
         /// <summary>
@@ -121,24 +121,24 @@ namespace Dalamud.Game
         /// </summary>
         public string LastLink { get; private set; }
 
-        /// <summary>
-        /// Convert a string to SeString and wrap in italics payloads.
-        /// </summary>
-        /// <param name="text">Text to convert.</param>
-        /// <returns>SeString payload of italicized text.</returns>
-        private static SeString MakeItalics(string text)
-        {
-            // TODO: when the code OnCharMessage is switched to SeString, this can be a straight insertion of the
-            // italics payloads only, and be a lot cleaner
-            var italicString = new SeString(new List<Payload>(new Payload[]
-            {
-                EmphasisItalicPayload.ItalicsOn,
-                new TextPayload(text),
-                EmphasisItalicPayload.ItalicsOff,
-            }));
-
-            return italicString;
-        }
+        // /// <summary>
+        // /// Convert a string to SeString and wrap in italics payloads.
+        // /// </summary>
+        // /// <param name="text">Text to convert.</param>
+        // /// <returns>SeString payload of italicized text.</returns>
+        // private static SeString MakeItalics(string text)
+        // {
+        //     // TODO: when the code OnCharMessage is switched to SeString, this can be a straight insertion of the
+        //     // italics payloads only, and be a lot cleaner
+        //     var italicString = new SeString(new List<Payload>(new Payload[]
+        //     {
+        //         EmphasisItalicPayload.ItalicsOn,
+        //         new TextPayload(text),
+        //         EmphasisItalicPayload.ItalicsOff,
+        //     }));
+        //
+        //     return italicString;
+        // }
 
         private void OnCheckMessageHandled(XivChatType type, uint senderid, ref SeString sender, ref SeString message, ref bool isHandled)
         {
@@ -261,9 +261,9 @@ namespace Dalamud.Game
                     Type = XivChatType.Notice,
                 });
 
-                if (DalamudChangelogWindow.WarrantsChangelog)
+                if (ChangelogWindow.WarrantsChangelog)
 #pragma warning disable CS0162 // Unreachable code detected
-                    this.dalamud.DalamudUi.OpenChangelog();
+                    this.dalamud.DalamudUi.OpenChangelogWindow();
 #pragma warning restore CS0162 // Unreachable code detected
 
                 this.dalamud.Configuration.LastVersion = assemblyVersion;

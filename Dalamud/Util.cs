@@ -1,8 +1,8 @@
 using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Windows.Forms;
 
 using Dalamud.Game;
 using Dalamud.Interface;
@@ -160,9 +160,7 @@ namespace Dalamud
         /// <param name="caption">MessageBox caption (title).</param>
         public static void Fatal(string message, string caption)
         {
-            var flags = NativeFunctions.MessageBoxType.Ok | NativeFunctions.MessageBoxType.IconError;
-
-            NativeFunctions.MessageBox(Process.GetCurrentProcess().MainWindowHandle, message, caption, flags);
+            MessageBox.Show(message, caption, MessageBoxButtons.OK, MessageBoxIcon.Error);
             Environment.Exit(-1);
         }
 

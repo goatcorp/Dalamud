@@ -7,7 +7,7 @@ using CheapLoc;
 using Dalamud.Game.Command;
 using Serilog;
 
-namespace Dalamud
+namespace Dalamud.Interface.Internal
 {
     /// <summary>
     /// Class handling Dalamud core commands.
@@ -226,20 +226,20 @@ namespace Dalamud
 
         private void OnDebugDrawDevMenu(string command, string arguments)
         {
-            this.dalamud.DalamudUi.IsDevMenu = !this.dalamud.DalamudUi.IsDevMenu;
+            this.dalamud.DalamudUi.ToggleDevMenu();
         }
 
         private void OnDebugDrawDataMenu(string command, string arguments)
         {
             if (string.IsNullOrEmpty(arguments))
-                this.dalamud.DalamudUi.ToggleData();
+                this.dalamud.DalamudUi.ToggleDataWindow();
             else
-                this.dalamud.DalamudUi.ToggleData(arguments);
+                this.dalamud.DalamudUi.ToggleDataWindow(arguments);
         }
 
         private void OnOpenLog(string command, string arguments)
         {
-            this.dalamud.DalamudUi.ToggleLog();
+            this.dalamud.DalamudUi.ToggleLogWindow();
         }
 
         private void OnDebugImInfoCommand(string command, string arguments)
@@ -267,12 +267,12 @@ namespace Dalamud
 
         private void OnOpenInstallerCommand(string command, string arguments)
         {
-            this.dalamud.DalamudUi.TogglePluginInstaller();
+            this.dalamud.DalamudUi.TogglePluginInstallerWindow();
         }
 
         private void OnOpenCreditsCommand(string command, string arguments)
         {
-            this.dalamud.DalamudUi.ToggleCredits();
+            this.dalamud.DalamudUi.ToggleCreditsWindow();
         }
 
         private void OnSetLanguageCommand(string command, string arguments)
@@ -299,7 +299,7 @@ namespace Dalamud
 
         private void OnOpenSettingsCommand(string command, string arguments)
         {
-            this.dalamud.DalamudUi.ToggleSettings();
+            this.dalamud.DalamudUi.ToggleSettingsWindow();
         }
     }
 }

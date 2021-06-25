@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 namespace Dalamud.Game.Internal.Gui.Structs
@@ -10,6 +11,8 @@ namespace Dalamud.Game.Internal.Gui.Structs
     /// This is copied from https://github.com/aers/FFXIVClientStructs/blob/main/Component/GUI/AtkResNode.cs.
     /// If you need newer features, include FFXIVClientStructs and ILMerge the assembly.
     /// </remarks>
+    [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "Match ClientStructs documentation")]
+    [SuppressMessage("StyleCop.CSharp.NamingRules", "SA1310:Field names should not contain underscore", Justification = "Match ClientStructs naming")]
     [StructLayout(LayoutKind.Explicit, Size = 0xA8)]
     public unsafe struct AtkResNode
     {

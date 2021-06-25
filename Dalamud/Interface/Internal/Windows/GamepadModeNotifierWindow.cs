@@ -1,10 +1,10 @@
-﻿using System.Numerics;
+using System.Numerics;
 
 using CheapLoc;
 using Dalamud.Interface.Windowing;
 using ImGuiNET;
 
-namespace Dalamud.Interface
+namespace Dalamud.Interface.Internal.Windows
 {
     /// <summary>
     /// Class responsible for drawing a notifier on screen that gamepad mode is active.

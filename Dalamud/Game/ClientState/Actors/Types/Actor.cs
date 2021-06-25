@@ -1,7 +1,6 @@
 using System;
-using System.Text;
+
 using Dalamud.Game.ClientState.Structs;
-using Serilog;
 
 namespace Dalamud.Game.ClientState.Actors.Types
 {

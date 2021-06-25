@@ -7,6 +7,7 @@ using System.Threading;
 
 using Dalamud.Data.LuminaExtensions;
 using Dalamud.Interface;
+using Dalamud.Interface.Internal;
 using ImGuiScene;
 using JetBrains.Annotations;
 using Lumina;

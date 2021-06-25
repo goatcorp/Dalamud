@@ -24,15 +24,14 @@ namespace Dalamud.Plugin
         private const string PluginMasterUrl = "https://raw.githubusercontent.com/goatcorp/DalamudPlugins/master/pluginmaster.json";
 
         private readonly Dalamud dalamud;
-        private string pluginDirectory;
+        private readonly string pluginDirectory;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PluginRepository"/> class.
         /// </summary>
         /// <param name="dalamud">The Dalamud instance.</param>
         /// <param name="pluginDirectory">The plugin directory path.</param>
-        /// <param name="gameVersion">The current game version.</param>
-        public PluginRepository(Dalamud dalamud, string pluginDirectory, string gameVersion)
+        public PluginRepository(Dalamud dalamud, string pluginDirectory)
         {
             this.dalamud = dalamud;
             this.pluginDirectory = pluginDirectory;

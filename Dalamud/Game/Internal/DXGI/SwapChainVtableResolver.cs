@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
+using Dalamud.Game.Internal.DXGI.Definitions;
 using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
 using SharpDX.DXGI;
@@ -19,9 +20,6 @@ namespace Dalamud.Game.Internal.DXGI
     /// </remarks>
     public class SwapChainVtableResolver : BaseAddressResolver, ISwapChainAddressResolver
     {
-        private const int DxgiSwapchainMethodCount = 18;
-        private const int D3D11DeviceMethodCount = 43;
-
         private List<IntPtr> d3d11VTblAddresses;
         private List<IntPtr> dxgiSwapChainVTblAddresses;
 
@@ -48,16 +46,16 @@ namespace Dalamud.Game.Internal.DXGI
 
                 if (device != null && swapChain != null)
                 {
-                    this.d3d11VTblAddresses = this.GetVTblAddresses(device.NativePointer, D3D11DeviceMethodCount);
-                    this.dxgiSwapChainVTblAddresses = this.GetVTblAddresses(swapChain.NativePointer, DxgiSwapchainMethodCount);
+                    this.d3d11VTblAddresses = GetVTblAddresses(device.NativePointer, Enum.GetValues(typeof(ID3D11DeviceVtbl)).Length);
+                    this.dxgiSwapChainVTblAddresses = GetVTblAddresses(swapChain.NativePointer, Enum.GetValues(typeof(IDXGISwapChainVtbl)).Length);
                 }
 
                 device?.Dispose();
                 swapChain?.Dispose();
             }
 
-            this.Present = this.dxgiSwapChainVTblAddresses[8];
-            this.ResizeBuffers = this.dxgiSwapChainVTblAddresses[13];
+            this.Present = this.dxgiSwapChainVTblAddresses[(int)IDXGISwapChainVtbl.Present];
+            this.ResizeBuffers = this.dxgiSwapChainVTblAddresses[(int)IDXGISwapChainVtbl.ResizeBuffers];
         }
 
         private static SwapChainDescription CreateSwapChainDescription(IntPtr renderForm)
@@ -75,12 +73,12 @@ namespace Dalamud.Game.Internal.DXGI
             };
         }
 
-        private List<IntPtr> GetVTblAddresses(IntPtr pointer, int numberOfMethods)
+        private static List<IntPtr> GetVTblAddresses(IntPtr pointer, int numberOfMethods)
         {
-            return this.GetVTblAddresses(pointer, 0, numberOfMethods);
+            return GetVTblAddresses(pointer, 0, numberOfMethods);
         }
 
-        private List<IntPtr> GetVTblAddresses(IntPtr pointer, int startIndex, int numberOfMethods)
+        private static List<IntPtr> GetVTblAddresses(IntPtr pointer, int startIndex, int numberOfMethods)
         {
             var vtblAddresses = new List<IntPtr>();
             var vTable = Marshal.ReadIntPtr(pointer);

@@ -104,7 +104,7 @@ namespace Dalamud.Game.ClientState
 
             this.Targets = new Targets(dalamud, this.address);
 
-            Log.Verbose("SetupTerritoryType address {SetupTerritoryType}", this.address.SetupTerritoryType);
+            Log.Verbose($"SetupTerritoryType address 0x{this.address.SetupTerritoryType.ToInt64():X}");
 
             this.setupTerritoryTypeHook = new Hook<SetupTerritoryTypeDelegate>(this.address.SetupTerritoryType, this.SetupTerritoryTypeDetour);
 

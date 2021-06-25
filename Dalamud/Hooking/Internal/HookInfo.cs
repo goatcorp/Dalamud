@@ -1,20 +1,14 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 
-namespace Dalamud.Hooking
+namespace Dalamud.Hooking.Internal
 {
     /// <summary>
     /// Class containing information about registered hooks.
     /// </summary>
     internal class HookInfo
     {
-        /// <summary>
-        /// Static list of tracked and registered hooks.
-        /// </summary>
-        internal static readonly List<HookInfo> TrackedHooks = new();
-
         private ulong? inProcessMemory = 0;
 
         /// <summary>

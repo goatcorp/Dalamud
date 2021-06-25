@@ -14,7 +14,7 @@ using AlignmentType = FFXIVClientStructs.FFXIV.Component.GUI.AlignmentType;
 
 // Customised version of https://github.com/aers/FFXIVUIDebug
 
-namespace Dalamud.Interface
+namespace Dalamud.Interface.Internal
 {
     /// <summary>
     /// This class displays a debug window to inspect native addons.

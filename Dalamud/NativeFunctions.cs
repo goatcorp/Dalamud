@@ -50,188 +50,6 @@ namespace Dalamud
         }
 
         /// <summary>
-        /// MB_* from winuser.
-        /// </summary>
-        public enum MessageBoxType : uint
-        {
-            // To indicate the buttons displayed in the message box, specify one of the following values.
-
-            /// <summary>
-            /// The message box contains three push buttons: Abort, Retry, and Ignore.
-            /// </summary>
-            AbortRetryIgnore = 0x2,
-
-            /// <summary>
-            /// The message box contains three push buttons: Cancel, Try Again, Continue. Use this message box type instead
-            /// of MB_ABORTRETRYIGNORE.
-            /// </summary>
-            CancelTryContinue = 0x6,
-
-            /// <summary>
-            /// Adds a Help button to the message box. When the user clicks the Help button or presses F1, the system sends
-            /// a WM_HELP message to the owner.
-            /// </summary>
-            Help = 0x4000,
-
-            /// <summary>
-            /// The message box contains one push button: OK. This is the default.
-            /// </summary>
-            Ok = 0x0,
-
-            /// <summary>
-            /// The message box contains two push buttons: OK and Cancel.
-            /// </summary>
-            OkCancel = 0x1,
-
-            /// <summary>
-            /// The message box contains two push buttons: Retry and Cancel.
-            /// </summary>
-            RetryCancel = 0x5,
-
-            /// <summary>
-            /// The message box contains two push buttons: Yes and No.
-            /// </summary>
-            YesNo = 0x4,
-
-            /// <summary>
-            /// The message box contains three push buttons: Yes, No, and Cancel.
-            /// </summary>
-            YesNoCancel = 0x3,
-
-            // To display an icon in the message box, specify one of the following values.
-
-            /// <summary>
-            /// An exclamation-point icon appears in the message box.
-            /// </summary>
-            IconExclamation = 0x30,
-
-            /// <summary>
-            /// An exclamation-point icon appears in the message box.
-            /// </summary>
-            IconWarning = 0x30,
-
-            /// <summary>
-            /// An icon consisting of a lowercase letter i in a circle appears in the message box.
-            /// </summary>
-            IconInformation = 0x40,
-
-            /// <summary>
-            /// An icon consisting of a lowercase letter i in a circle appears in the message box.
-            /// </summary>
-            IconAsterisk = 0x40,
-
-            /// <summary>
-            /// A question-mark icon appears in the message box.
-            /// The question-mark message icon is no longer recommended because it does not clearly represent a specific type
-            /// of message and because the phrasing of a message as a question could apply to any message type. In addition,
-            /// users can confuse the message symbol question mark with Help information. Therefore, do not use this question
-            /// mark message symbol in your message boxes. The system continues to support its inclusion only for backward
-            /// compatibility.
-            /// </summary>
-            IconQuestion = 0x20,
-
-            /// <summary>
-            /// A stop-sign icon appears in the message box.
-            /// </summary>
-            IconStop = 0x10,
-
-            /// <summary>
-            /// A stop-sign icon appears in the message box.
-            /// </summary>
-            IconError = 0x10,
-
-            /// <summary>
-            /// A stop-sign icon appears in the message box.
-            /// </summary>
-            IconHand = 0x10,
-
-            // To indicate the default button, specify one of the following values.
-
-            /// <summary>
-            /// The first button is the default button.
-            /// MB_DEFBUTTON1 is the default unless MB_DEFBUTTON2, MB_DEFBUTTON3, or MB_DEFBUTTON4 is specified.
-            /// </summary>
-            DefButton1 = 0x0,
-
-            /// <summary>
-            /// The second button is the default button.
-            /// </summary>
-            DefButton2 = 0x100,
-
-            /// <summary>
-            /// The third button is the default button.
-            /// </summary>
-            DefButton3 = 0x200,
-
-            /// <summary>
-            /// The fourth button is the default button.
-            /// </summary>
-            DefButton4 = 0x300,
-
-            // To indicate the modality of the dialog box, specify one of the following values.
-
-            /// <summary>
-            /// The user must respond to the message box before continuing work in the window identified by the hWnd parameter.
-            /// However, the user can move to the windows of other threads and work in those windows. Depending on the hierarchy
-            /// of windows in the application, the user may be able to move to other windows within the thread. All child windows
-            /// of the parent of the message box are automatically disabled, but pop-up windows are not. MB_APPLMODAL is the
-            /// default if neither MB_SYSTEMMODAL nor MB_TASKMODAL is specified.
-            /// </summary>
-            ApplModal = 0x0,
-
-            /// <summary>
-            /// Same as MB_APPLMODAL except that the message box has the WS_EX_TOPMOST style.
-            /// Use system-modal message boxes to notify the user of serious, potentially damaging errors that require immediate
-            /// attention (for example, running out of memory). This flag has no effect on the user's ability to interact with
-            /// windows other than those associated with hWnd.
-            /// </summary>
-            SystemModal = 0x1000,
-
-            /// <summary>
-            /// Same as MB_APPLMODAL except that all the top-level windows belonging to the current thread are disabled if the
-            /// hWnd parameter is NULL. Use this flag when the calling application or library does not have a window handle
-            /// available but still needs to prevent input to other windows in the calling thread without suspending other threads.
-            /// </summary>
-            TaskModal = 0x2000,
-
-            // To specify other options, use one or more of the following values.
-
-            /// <summary>
-            /// Same as desktop of the interactive window station. For more information, see Window Stations. If the current
-            /// input desktop is not the default desktop, MessageBox does not return until the user switches to the default
-            /// desktop.
-            /// </summary>
-            DefaultDesktopOnly = 0x20000,
-
-            /// <summary>
-            /// The text is right-justified.
-            /// </summary>
-            Right = 0x80000,
-
-            /// <summary>
-            /// Displays message and caption text using right-to-left reading order on Hebrew and Arabic systems.
-            /// </summary>
-            RtlReading = 0x100000,
-
-            /// <summary>
-            /// The message box becomes the foreground window. Internally, the system calls the SetForegroundWindow function
-            /// for the message box.
-            /// </summary>
-            SetForeground = 0x10000,
-
-            /// <summary>
-            /// The message box is created with the WS_EX_TOPMOST window style.
-            /// </summary>
-            Topmost = 0x40000,
-
-            /// <summary>
-            /// The caller is a service notifying the user of an event. The function displays a message box on the current active
-            /// desktop, even if there is no user logged on to the computer.
-            /// </summary>
-            ServiceNotification = 0x200000,
-        }
-
-        /// <summary>
         /// Returns true if the current application has focus, false otherwise.
         /// </summary>
         /// <returns>
@@ -241,14 +59,13 @@ namespace Dalamud
         {
             var activatedHandle = GetForegroundWindow();
             if (activatedHandle == IntPtr.Zero)
-            {
                 return false; // No window is currently activated
-            }
 
-            var procId = Process.GetCurrentProcess().Id;
-            GetWindowThreadProcessId(activatedHandle, out var activeProcId);
+            _ = GetWindowThreadProcessId(activatedHandle, out var activeProcId);
+            if (Marshal.GetLastWin32Error() != 0)
+                return false;
 
-            return activeProcId == procId;
+            return activeProcId == Process.GetCurrentProcess().Id;
         }
 
         /// <summary>
@@ -295,35 +112,6 @@ namespace Dalamud
         public static extern int GetWindowThreadProcessId(IntPtr handle, out int processId);
 
         /// <summary>
-        /// Displays a modal dialog box that contains a system icon, a set of buttons, and a brief application-specific message,
-        /// such as status or error information. The message box returns an integer value that indicates which button the user
-        /// clicked.
-        /// </summary>
-        /// <param name="hWnd">
-        /// A handle to the owner window of the message box to be created. If this parameter is NULL, the message box has no
-        /// owner window.
-        /// </param>
-        /// <param name="text">
-        /// The message to be displayed. If the string consists of more than one line, you can separate the lines using a carriage
-        /// return and/or linefeed character between each line.
-        /// </param>
-        /// <param name="caption">
-        /// The dialog box title. If this parameter is NULL, the default title is Error.</param>
-        /// <param name="type">
-        /// The contents and behavior of the dialog box. This parameter can be a combination of flags from the following groups
-        /// of flags.
-        /// </param>
-        /// <returns>
-        /// If a message box has a Cancel button, the function returns the IDCANCEL value if either the ESC key is pressed or
-        /// the Cancel button is selected. If the message box has no Cancel button, pressing ESC will no effect - unless an
-        /// MB_OK button is present. If an MB_OK button is displayed and the user presses ESC, the return value will be IDOK.
-        /// If the function fails, the return value is zero.To get extended error information, call GetLastError. If the function
-        /// succeeds, the return value is one of the ID* enum values.
-        /// </returns>
-        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
-        public static extern int MessageBox(IntPtr hWnd, string text, string caption, MessageBoxType type);
-
-        /// <summary>
         /// See https://docs.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-flashwinfo.
         /// Contains the flash status for a window and the number of times the system should flash the window.
         /// </summary>
@@ -333,28 +121,28 @@ namespace Dalamud
             /// <summary>
             /// The size of the structure, in bytes.
             /// </summary>
-            public uint cbSize;
+            public uint Size;
 
             /// <summary>
             /// A handle to the window to be flashed. The window can be either opened or minimized.
             /// </summary>
-            public IntPtr hwnd;
+            public IntPtr Hwnd;
 
             /// <summary>
             /// The flash status. This parameter can be one or more of the FlashWindow enum values.
             /// </summary>
-            public FlashWindow dwFlags;
+            public FlashWindow Flags;
 
             /// <summary>
             /// The number of times to flash the window.
             /// </summary>
-            public uint uCount;
+            public uint Count;
 
             /// <summary>
             /// The rate at which the window is to be flashed, in milliseconds. If dwTimeout is zero, the function uses the
             /// default cursor blink rate.
             /// </summary>
-            public uint dwTimeout;
+            public uint Timeout;
         }
     }
 
@@ -402,22 +190,6 @@ namespace Dalamud
         }
 
         /// <summary>
-        /// See https://docs.microsoft.com/en-us/windows/win32/api/debugapi/nf-debugapi-debugactiveprocess.
-        /// Enables a debugger to attach to an active process and debug it.
-        /// </summary>
-        /// <param name="dwProcessId">
-        /// The identifier for the process to be debugged. The debugger is granted debugging access to the process as if it
-        /// created the process with the DEBUG_ONLY_THIS_PROCESS flag. For more information, see the Remarks section of this
-        /// topic.
-        /// </param>
-        /// <returns>
-        /// If the function succeeds, the return value is nonzero. If the function fails, the return value is 0 (zero). To get
-        /// extended error information, call GetLastError.
-        /// </returns>
-        [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern bool DebugActiveProcess(uint dwProcessId);
-
-        /// <summary>
         /// See https://docs.microsoft.com/en-us/windows/win32/api/libloaderapi/nf-libloaderapi-freelibrary.
         /// Frees the loaded dynamic-link library (DLL) module and, if necessary, decrements its reference count. When the reference
         /// count reaches zero, the module is unloaded from the address space of the calling process and the handle is no longer
@@ -463,9 +235,9 @@ namespace Dalamud
         /// code is ERROR_SUCCESS. If the function fails, the return value is 0 (zero). To get extended error information, call
         /// GetLastError.
         /// </returns>
-        [DllImport("kernel32.dll", SetLastError = true)]
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         [PreserveSig]
-        public static extern uint GetModuleFileName(
+        public static extern uint GetModuleFileNameW(
             [In] IntPtr hModule,
             [Out] StringBuilder lpFilename,
             [In][MarshalAs(UnmanagedType.U4)] int nSize);
@@ -488,8 +260,27 @@ namespace Dalamud
         /// If the function succeeds, the return value is a handle to the specified module. If the function fails, the return
         /// value is NULL.To get extended error information, call GetLastError.
         /// </returns>
-        [DllImport("kernel32.dll", CharSet = CharSet.Auto)]
-        public static extern IntPtr GetModuleHandle(string lpModuleName);
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, ExactSpelling = true, SetLastError = true)]
+        public static extern IntPtr GetModuleHandleW(string lpModuleName);
+
+        /// <summary>
+        /// Retrieves the address of an exported function or variable from the specified dynamic-link library (DLL).
+        /// </summary>
+        /// <param name="hModule">
+        /// A handle to the DLL module that contains the function or variable. The LoadLibrary, LoadLibraryEx, LoadPackagedLibrary,
+        /// or GetModuleHandle function returns this handle. The GetProcAddress function does not retrieve addresses from modules
+        /// that were loaded using the LOAD_LIBRARY_AS_DATAFILE flag.For more information, see LoadLibraryEx.
+        /// </param>
+        /// <param name="procName">
+        /// The function or variable name, or the function's ordinal value. If this parameter is an ordinal value, it must be
+        /// in the low-order word; the high-order word must be zero.
+        /// </param>
+        /// <returns>
+        /// If the function succeeds, the return value is the address of the exported function or variable. If the function
+        /// fails, the return value is NULL.To get extended error information, call GetLastError.
+        /// </returns>
+        [DllImport("kernel32", CharSet = CharSet.Ansi, ExactSpelling = true, SetLastError = true)]
+        public static extern IntPtr GetProcAddress(IntPtr hModule, string procName);
 
         /// <summary>
         /// See https://docs.microsoft.com/en-us/windows/win32/api/libloaderapi/nf-libloaderapi-loadlibraryw.
@@ -512,8 +303,8 @@ namespace Dalamud
         /// If the function succeeds, the return value is a handle to the module. If the function fails, the return value is
         /// NULL.To get extended error information, call GetLastError.
         /// </returns>
-        [DllImport("kernel32", SetLastError = true, CharSet = CharSet.Ansi)]
-        public static extern IntPtr LoadLibrary([MarshalAs(UnmanagedType.LPStr)] string lpFileName);
+        [DllImport("kernel32", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern IntPtr LoadLibraryW([MarshalAs(UnmanagedType.LPWStr)] string lpFileName);
 
         /// <summary>
         /// ReadProcessMemory copies the data in the specified address range from the address space of the specified process

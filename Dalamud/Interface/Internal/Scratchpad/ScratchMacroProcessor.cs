@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 using Dalamud.Plugin;
 
-namespace Dalamud.Interface.Scratchpad
+namespace Dalamud.Interface.Internal.Scratchpad
 {
     /// <summary>
     /// This class converts ScratchPad macros into runnable scripts.

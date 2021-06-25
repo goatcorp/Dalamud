@@ -88,7 +88,7 @@ namespace Dalamud.Injector
             /// the specified address range is intact. If the function fails, at least some of the data in the address range
             /// has been replaced with zeroes. This value cannot be used with any other value. If MEM_RESET_UNDO is called on
             /// an address range which was not MEM_RESET earlier, the behavior is undefined. When you specify MEM_RESET, the
-            /// VirtualAllocEx function ignores the value of flProtect. However, you must still set flProtect to a valid 
+            /// VirtualAllocEx function ignores the value of flProtect. However, you must still set flProtect to a valid
             /// protection value, such as PAGE_NOACCESS.
             /// </summary>
             ResetUndo = 0x1000000,

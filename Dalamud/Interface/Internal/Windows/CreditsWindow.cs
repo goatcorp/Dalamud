@@ -3,17 +3,16 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 
-using Dalamud.Game.Internal;
 using Dalamud.Interface.Windowing;
 using ImGuiNET;
 using ImGuiScene;
 
-namespace Dalamud.Interface
+namespace Dalamud.Interface.Internal.Windows
 {
     /// <summary>
     /// A window documenting contributors to the project.
     /// </summary>
-    internal class DalamudCreditsWindow : Window, IDisposable
+    internal class CreditsWindow : Window, IDisposable
     {
         private const string CreditsTextTempl = @"
 Dalamud
@@ -103,22 +102,19 @@ Thank you for using XIVLauncher and Dalamud!
 ";
 
         private readonly Dalamud dalamud;
-        private TextureWrap logoTexture;
-        private Framework framework;
+        private readonly TextureWrap logoTexture;
 
         private string creditsText;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DalamudCreditsWindow"/> class.
+        /// Initializes a new instance of the <see cref="CreditsWindow"/> class.
         /// </summary>
         /// <param name="dalamud">The Dalamud instance.</param>
-        public DalamudCreditsWindow(Dalamud dalamud)
+        public CreditsWindow(Dalamud dalamud)
             : base("Dalamud Credits", ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize, true)
         {
             this.dalamud = dalamud;
-            this.logoTexture = this.dalamud.InterfaceManager.LoadImage(
-                                       Path.Combine(this.dalamud.AssetDirectory.FullName, "UIRes", "logo.png"));
-            this.framework = dalamud.Framework;
+            this.logoTexture = this.dalamud.InterfaceManager.LoadImage(Path.Combine(this.dalamud.AssetDirectory.FullName, "UIRes", "logo.png"));
 
             this.Size = new Vector2(500, 400);
             this.SizeCondition = ImGuiCond.Always;
@@ -131,22 +127,20 @@ Thank you for using XIVLauncher and Dalamud!
         /// <inheritdoc/>
         public override void OnOpen()
         {
-            base.OnOpen();
+            var pluginCredits = this.dalamud.PluginManager.Plugins
+                .Where(plugin => plugin.Definition != null)
+                .Select(plugin => $"{plugin.Definition.Name} by {plugin.Definition.Author}\n")
+                .Aggregate(string.Empty, (current, next) => $"{current}{next}");
 
-            var pluginCredits = this.dalamud.PluginManager.Plugins.Where(x => x.Definition != null).Aggregate(string.Empty, (current, plugin) => current + $"{plugin.Definition.Name} by {plugin.Definition.Author}\n");
+            this.creditsText = string.Format(CreditsTextTempl, typeof(Dalamud).Assembly.GetName().Version, pluginCredits);
 
-            this.creditsText =
-                string.Format(CreditsTextTempl, typeof(Dalamud).Assembly.GetName().Version, pluginCredits);
-
-            this.framework.Gui.SetBgm(132);
+            this.dalamud.Framework.Gui.SetBgm(132);
         }
 
         /// <inheritdoc/>
         public override void OnClose()
         {
-            base.OnClose();
-
-            this.framework.Gui.SetBgm(9999);
+            this.dalamud.Framework.Gui.SetBgm(9999);
         }
 
         /// <inheritdoc/>
@@ -155,19 +149,19 @@ Thank you for using XIVLauncher and Dalamud!
             var screenSize = ImGui.GetMainViewport().Size;
             var windowSize = ImGui.GetWindowSize();
 
-            this.Position = new Vector2((screenSize.X / 2) - (windowSize.X / 2), (screenSize.Y / 2) - (windowSize.Y / 2));
+            this.Position = (screenSize - windowSize) / 2;
 
-            ImGui.BeginChild("scrolling", new Vector2(0, 0), false, ImGuiWindowFlags.NoScrollbar);
+            ImGui.BeginChild("scrolling", Vector2.Zero, false, ImGuiWindowFlags.NoScrollbar);
 
-            ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(0, 0));
+            ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, Vector2.Zero);
 
-            ImGui.Dummy(new Vector2(0, 340f) * ImGui.GetIO().FontGlobalScale);
+            ImGuiHelpers.ScaledDummy(0, 340f);
             ImGui.Text(string.Empty);
 
             ImGui.SameLine(150f);
-            ImGui.Image(this.logoTexture.ImGuiHandle, new Vector2(190f, 190f) * ImGui.GetIO().FontGlobalScale);
+            ImGui.Image(this.logoTexture.ImGuiHandle, ImGuiHelpers.ScaledVector2(190f, 190f));
 
-            ImGui.Dummy(new Vector2(0, 20f) * ImGui.GetIO().FontGlobalScale);
+            ImGuiHelpers.ScaledDummy(0, 20f);
 
             var windowX = ImGui.GetWindowSize().X;
 

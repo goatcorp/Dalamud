@@ -3,17 +3,18 @@ using System.Collections.Generic;
 using System.Numerics;
 
 using Dalamud.Interface.Colors;
+using Dalamud.Interface.Components;
 using Dalamud.Interface.Windowing;
 using ImGuiNET;
 
-namespace Dalamud.Interface.Components
+namespace Dalamud.Interface.Internal.Windows
 {
     /// <summary>
     /// Component Demo Window to view custom ImGui components.
     /// </summary>
-    internal class ComponentDemoWindow : Window
+    internal sealed class ComponentDemoWindow : Window
     {
-        private readonly List<KeyValuePair<string, Action>> componentDemos;
+        private readonly List<(string Name, Action Demo)> componentDemos;
         private Vector4 defaultColor = ImGuiColors.DalamudOrange;
 
         /// <summary>
@@ -24,33 +25,31 @@ namespace Dalamud.Interface.Components
         {
             this.Size = new Vector2(600, 500);
             this.SizeCondition = ImGuiCond.FirstUseEver;
-            this.componentDemos = new List<KeyValuePair<string, Action>>
+
+            this.componentDemos = new()
             {
-                Demo("Test", ImGuiComponents.Test),
-                Demo("HelpMarker", HelpMarkerDemo),
-                Demo("IconButton", IconButtonDemo),
-                Demo("TextWithLabel", TextWithLabelDemo),
-                Demo("ColorPickerWithPalette", this.ColorPickerWithPaletteDemo),
+                ("Test", ImGuiComponents.Test),
+                ("HelpMarker", HelpMarkerDemo),
+                ("IconButton", IconButtonDemo),
+                ("TextWithLabel", TextWithLabelDemo),
+                ("ColorPickerWithPalette", this.ColorPickerWithPaletteDemo),
             };
         }
 
         /// <inheritdoc/>
         public override void Draw()
         {
-            ImGui.BeginChild("comp_scrolling", new Vector2(0, 0), false, ImGuiWindowFlags.AlwaysVerticalScrollbar | ImGuiWindowFlags.HorizontalScrollbar);
             ImGui.Text("This is a collection of UI components you can use in your plugin.");
 
             for (var i = 0; i < this.componentDemos.Count; i++)
             {
                 var componentDemo = this.componentDemos[i];
 
-                if (ImGui.CollapsingHeader($"{componentDemo.Key}###comp{i}"))
+                if (ImGui.CollapsingHeader($"{componentDemo.Name}###comp{i}"))
                 {
-                    componentDemo.Value();
+                    componentDemo.Demo();
                 }
             }
-
-            ImGui.EndChild();
         }
 
         private static void HelpMarkerDemo()
@@ -78,11 +77,6 @@ namespace Dalamud.Interface.Components
         private static void TextWithLabelDemo()
         {
             ImGuiComponents.TextWithLabel("Label", "Hover to see more", "more");
-        }
-
-        private static KeyValuePair<string, Action> Demo(string name, Action func)
-        {
-            return new KeyValuePair<string, Action>(name, func);
         }
 
         private void ColorPickerWithPaletteDemo()

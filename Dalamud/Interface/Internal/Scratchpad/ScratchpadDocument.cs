@@ -1,6 +1,6 @@
 using System;
 
-namespace Dalamud.Interface.Scratchpad
+namespace Dalamud.Interface.Internal.Scratchpad
 {
     /// <summary>
     /// This class represents a single document in the ScratchPad.

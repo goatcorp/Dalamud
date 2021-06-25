@@ -84,11 +84,11 @@ namespace Dalamud.Game.Network
                 {
                     var flashInfo = new NativeFunctions.FlashWindowInfo
                     {
-                        cbSize = (uint)Marshal.SizeOf<NativeFunctions.FlashWindowInfo>(),
-                        uCount = uint.MaxValue,
-                        dwTimeout = 0,
-                        dwFlags = NativeFunctions.FlashWindow.All | NativeFunctions.FlashWindow.TimerNoFG,
-                        hwnd = Process.GetCurrentProcess().MainWindowHandle,
+                        Size = (uint)Marshal.SizeOf<NativeFunctions.FlashWindowInfo>(),
+                        Count = uint.MaxValue,
+                        Timeout = 0,
+                        Flags = NativeFunctions.FlashWindow.All | NativeFunctions.FlashWindow.TimerNoFG,
+                        Hwnd = Process.GetCurrentProcess().MainWindowHandle,
                     };
                     NativeFunctions.FlashWindowEx(ref flashInfo);
                 }

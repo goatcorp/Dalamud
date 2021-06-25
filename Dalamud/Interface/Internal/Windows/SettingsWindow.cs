@@ -9,16 +9,16 @@ using CheapLoc;
 using Dalamud.Configuration;
 using Dalamud.Game.Text;
 using Dalamud.Interface.Colors;
+using Dalamud.Interface.Components;
 using Dalamud.Interface.Windowing;
 using ImGuiNET;
-using Serilog;
 
-namespace Dalamud.Interface
+namespace Dalamud.Interface.Internal.Windows
 {
     /// <summary>
     /// The window that allows for general configuration of Dalamud itself.
     /// </summary>
-    internal class DalamudSettingsWindow : Window
+    internal class SettingsWindow : Window
     {
         private const float MinScale = 0.3f;
         private const float MaxScale = 2.0f;
@@ -60,10 +60,10 @@ namespace Dalamud.Interface
         #endregion
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DalamudSettingsWindow"/> class.
+        /// Initializes a new instance of the <see cref="SettingsWindow"/> class.
         /// </summary>
         /// <param name="dalamud">The Dalamud Instance.</param>
-        public DalamudSettingsWindow(Dalamud dalamud)
+        public SettingsWindow(Dalamud dalamud)
             : base(Loc.Localize("DalamudSettingsHeader", "Dalamud Settings") + "###XlSettings2", ImGuiWindowFlags.NoCollapse)
         {
             this.dalamud = dalamud;
@@ -142,31 +142,21 @@ namespace Dalamud.Interface
         /// <inheritdoc/>
         public override void OnOpen()
         {
-            base.OnOpen();
-
-            Log.Information("OnOpen start");
-
-            Log.Information("OnOpen end");
         }
 
         /// <inheritdoc/>
         public override void OnClose()
         {
-            base.OnClose();
-
-            Log.Information("OnClose start");
-
             ImGui.GetIO().FontGlobalScale = this.dalamud.Configuration.GlobalUiScale;
-            this.thirdRepoList = this.dalamud.Configuration.ThirdRepoList.Select(x => x.Clone()).ToList();
 
-            Log.Information("OnClose end");
+            this.thirdRepoList = this.dalamud.Configuration.ThirdRepoList.Select(x => x.Clone()).ToList();
         }
 
         /// <inheritdoc/>
         public override void Draw()
         {
             var windowSize = ImGui.GetWindowSize();
-            ImGui.BeginChild("scrolling", new Vector2(windowSize.X - 5 - (5 * ImGui.GetIO().FontGlobalScale), windowSize.Y - 35 - (35 * ImGui.GetIO().FontGlobalScale)), false, ImGuiWindowFlags.HorizontalScrollbar);
+            ImGui.BeginChild("scrolling", new Vector2(windowSize.X - 5 - (5 * ImGuiHelpers.GlobalScale), windowSize.Y - 35 - (35 * ImGuiHelpers.GlobalScale)), false, ImGuiWindowFlags.HorizontalScrollbar);
 
             if (ImGui.BeginTabBar("SetTabBar"))
             {
@@ -176,7 +166,7 @@ namespace Dalamud.Interface
                     ImGui.Combo("##XlLangCombo", ref this.langIndex, this.locLanguages, this.locLanguages.Length);
                     ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingsLanguageHint", "Select the language Dalamud will be displayed in."));
 
-                    ImGui.Dummy(new Vector2(5f, 5f) * ImGui.GetIO().FontGlobalScale);
+                    ImGuiHelpers.ScaledDummy(5);
 
                     ImGui.Text(Loc.Localize("DalamudSettingsChannel", "General Chat Channel"));
                     if (ImGui.BeginCombo("##XlChatTypeCombo", this.dalamudMessagesChatType.ToString()))
@@ -194,7 +184,7 @@ namespace Dalamud.Interface
 
                     ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingsChannelHint", "Select the chat channel that is to be used for general Dalamud messages."));
 
-                    ImGui.Dummy(new Vector2(5f, 5f) * ImGui.GetIO().FontGlobalScale);
+                    ImGuiHelpers.ScaledDummy(5);
 
                     ImGui.Checkbox(Loc.Localize("DalamudSettingsFlash", "Flash FFXIV window on duty pop"), ref this.doCfTaskBarFlash);
                     ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingsFlashHint", "Flash the FFXIV window in your task bar when a duty is ready."));
@@ -231,7 +221,7 @@ namespace Dalamud.Interface
 
                     ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingsGlobalUiScaleHint", "Scale all XIVLauncher UI elements - useful for 4K displays."));
 
-                    ImGui.Dummy(new Vector2(10f, 16f) * ImGui.GetIO().FontGlobalScale);
+                    ImGuiHelpers.ScaledDummy(10, 16);
 
                     ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingToggleUiHideOptOutNote", "Plugins may independently opt out of the settings below."));
 
@@ -244,7 +234,7 @@ namespace Dalamud.Interface
                     ImGui.Checkbox(Loc.Localize("DalamudSettingToggleUiHideDuringGpose", "Hide plugin UI while gpose is active"), ref this.doToggleUiHideDuringGpose);
                     ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingToggleUiHideDuringGposeHint", "Hide any open windows by plugins while gpose is active."));
 
-                    ImGui.Dummy(new Vector2(10f, 16f) * ImGui.GetIO().FontGlobalScale);
+                    ImGuiHelpers.ScaledDummy(10, 16);
 
                     ImGui.Checkbox(Loc.Localize("DalamudSettingToggleViewports", "Enable multi-monitor windows"), ref this.doViewport);
                     ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingToggleViewportsHint", "This will allow you move plugin windows onto other monitors.\nWill only work in Borderless Window or Windowed mode."));
@@ -264,27 +254,30 @@ namespace Dalamud.Interface
                     ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingsPluginTestHint", "Receive testing prereleases for plugins."));
                     ImGui.TextColored(this.warnTextColor, Loc.Localize("DalamudSettingsPluginTestWarning", "Testing plugins may not have been vetted before being published. Please only enable this if you are aware of the risks."));
 
-                    ImGui.Dummy(new Vector2(12f, 12f) * ImGui.GetIO().FontGlobalScale);
+                    ImGuiHelpers.ScaledDummy(12);
 
                     if (ImGui.Button(Loc.Localize("DalamudSettingsClearHidden", "Clear hidden plugins")))
+                    {
                         this.dalamud.Configuration.HiddenPluginInternalName.Clear();
+                    }
+
                     ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingsClearHiddenHint", "Restore plugins you have previously hidden from the plugin installer."));
 
-                    ImGui.Dummy(new Vector2(12f, 12f) * ImGui.GetIO().FontGlobalScale);
+                    ImGuiHelpers.ScaledDummy(12);
 
-                    ImGui.Dummy(new Vector2(12f, 12f) * ImGui.GetIO().FontGlobalScale);
+                    ImGuiHelpers.ScaledDummy(12);
 
                     ImGui.Text(Loc.Localize("DalamudSettingsCustomRepo", "Custom Plugin Repositories"));
                     ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingCustomRepoHint", "Add custom plugin repositories."));
                     ImGui.TextColored(this.warnTextColor, Loc.Localize("DalamudSettingCustomRepoWarning", "We cannot take any responsibility for third-party plugins and repositories.\nTake care when installing third-party plugins from untrusted sources."));
 
-                    ImGui.Dummy(new Vector2(5f, 5f) * ImGui.GetIO().FontGlobalScale);
+                    ImGuiHelpers.ScaledDummy(5);
 
                     ImGui.Columns(4);
-                    ImGui.SetColumnWidth(0, 18 + (5 * ImGui.GetIO().FontGlobalScale));
-                    ImGui.SetColumnWidth(1, ImGui.GetWindowWidth() - (18 + 16 + 14) - ((5 + 45 + 26) * ImGui.GetIO().FontGlobalScale));
-                    ImGui.SetColumnWidth(2, 16 + (45 * ImGui.GetIO().FontGlobalScale));
-                    ImGui.SetColumnWidth(3, 14 + (26 * ImGui.GetIO().FontGlobalScale));
+                    ImGui.SetColumnWidth(0, 18 + (5 * ImGuiHelpers.GlobalScale));
+                    ImGui.SetColumnWidth(1, ImGui.GetWindowWidth() - (18 + 16 + 14) - ((5 + 45 + 26) * ImGuiHelpers.GlobalScale));
+                    ImGui.SetColumnWidth(2, 16 + (45 * ImGuiHelpers.GlobalScale));
+                    ImGui.SetColumnWidth(3, 14 + (26 * ImGuiHelpers.GlobalScale));
 
                     ImGui.Separator();
 
@@ -323,17 +316,15 @@ namespace Dalamud.Interface
                         ImGui.TextWrapped(thirdRepoSetting.Url);
                         ImGui.NextColumn();
 
-                        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (ImGui.GetColumnWidth() / 2) - 7 - (12 * ImGui.GetIO().FontGlobalScale));
+                        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (ImGui.GetColumnWidth() / 2) - 7 - (12 * ImGuiHelpers.GlobalScale));
                         ImGui.Checkbox("##thirdRepoCheck", ref isEnabled);
                         ImGui.NextColumn();
 
-                        ImGui.PushFont(InterfaceManager.IconFont);
-                        if (ImGui.Button(FontAwesomeIcon.Trash.ToIconString()))
+                        if (ImGuiComponents.IconButton(FontAwesomeIcon.Trash))
                         {
                             toRemove = thirdRepoSetting;
                         }
 
-                        ImGui.PopFont();
                         ImGui.NextColumn();
                         ImGui.Separator();
 
@@ -353,9 +344,9 @@ namespace Dalamud.Interface
                     ImGui.SetNextItemWidth(-1);
                     ImGui.InputText("##thirdRepoUrlInput", ref this.thirdRepoTempUrl, 300);
                     ImGui.NextColumn();
+                    // Enabled button
                     ImGui.NextColumn();
-                    ImGui.PushFont(InterfaceManager.IconFont);
-                    if (!string.IsNullOrEmpty(this.thirdRepoTempUrl) && ImGui.Button(FontAwesomeIcon.Plus.ToIconString()))
+                    if (!string.IsNullOrEmpty(this.thirdRepoTempUrl) && ImGuiComponents.IconButton(FontAwesomeIcon.Plus))
                     {
                         if (this.thirdRepoList.Any(r => string.Equals(r.Url, this.thirdRepoTempUrl, StringComparison.InvariantCultureIgnoreCase)))
                         {
@@ -364,7 +355,7 @@ namespace Dalamud.Interface
                         }
                         else
                         {
-                            this.thirdRepoList.Add(new ThirdRepoSetting
+                            this.thirdRepoList.Add(new()
                             {
                                 Url = this.thirdRepoTempUrl,
                                 IsEnabled = true,
@@ -374,7 +365,6 @@ namespace Dalamud.Interface
                         }
                     }
 
-                    ImGui.PopFont();
                     ImGui.Columns(1);
 
                     ImGui.EndTabItem();

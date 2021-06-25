@@ -25,7 +25,7 @@ namespace Dalamud.Game.ClientState
         {
             this.bufferBase = moduleBaseAddress + Marshal.ReadInt32(addressResolver.KeyboardState);
 
-            Log.Verbose($"Keyboard state buffer address {this.bufferBase}");
+            Log.Verbose($"Keyboard state buffer address 0x{this.bufferBase.ToInt64():X}");
         }
 
         /// <summary>

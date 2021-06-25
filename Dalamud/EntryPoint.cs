@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Interface;
+using Dalamud.Interface.Internal;
 using EasyHook;
 using Serilog;
 using Serilog.Core;

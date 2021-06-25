@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
 using Serilog;
 
-namespace Dalamud.Interface.Scratchpad
+namespace Dalamud.Interface.Internal.Scratchpad
 {
     /// <summary>
     /// This class manages the execution of <see cref="ScratchpadDocument"/> classes.

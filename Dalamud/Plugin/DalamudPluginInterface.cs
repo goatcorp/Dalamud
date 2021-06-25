@@ -22,7 +22,7 @@ namespace Dalamud.Plugin
     /// <summary>
     /// This class acts as an interface to various objects needed to interact with Dalamud and the game.
     /// </summary>
-    public class DalamudPluginInterface : IDisposable
+    public sealed class DalamudPluginInterface : IDisposable
     {
         private readonly Dalamud dalamud;
         private readonly string pluginName;
@@ -38,7 +38,6 @@ namespace Dalamud.Plugin
         /// <param name="reason">The reason this plugin was loaded.</param>
         internal DalamudPluginInterface(Dalamud dalamud, string pluginName, PluginConfigurations configs, PluginLoadReason reason)
         {
-            this.Reason = reason;
             this.CommandManager = dalamud.CommandManager;
             this.Framework = dalamud.Framework;
             this.ClientState = dalamud.ClientState;
@@ -50,6 +49,7 @@ namespace Dalamud.Plugin
             this.dalamud = dalamud;
             this.pluginName = pluginName;
             this.configs = configs;
+            this.Reason = reason;
 
             this.GeneralChatType = this.dalamud.Configuration.GeneralChatType;
             this.Sanitizer = new Sanitizer(this.Data.Language);
@@ -142,7 +142,7 @@ namespace Dalamud.Plugin
 #if DEBUG
         public bool IsDebugging => true;
 #else
-        public bool IsDebugging => this.dalamud.DalamudUi.IsDevMenu;
+        public bool IsDebugging => this.dalamud.DalamudUi.IsDevMenuOpen;
 #endif
 
         /// <summary>
@@ -273,7 +273,7 @@ namespace Dalamud.Plugin
             if (this.dalamud.PluginManager.IpcSubscriptions.Any(x => x.SourcePluginName == this.pluginName && x.SubPluginName == pluginName))
                 throw new InvalidOperationException("Can't add multiple subscriptions for the same plugin.");
 
-            this.dalamud.PluginManager.IpcSubscriptions.Add((this.pluginName, pluginName, action));
+            this.dalamud.PluginManager.IpcSubscriptions.Add(new(this.pluginName, pluginName, action));
         }
 
         /// <summary>
@@ -325,12 +325,16 @@ namespace Dalamud.Plugin
         [Obsolete("The current IPC mechanism is obsolete and scheduled to be replaced after API level 3.")]
         public bool SendMessage(string pluginName, ExpandoObject message)
         {
-            var (_, _, pluginInterface, _) = this.dalamud.PluginManager.Plugins.FirstOrDefault(x => x.Definition.InternalName == pluginName);
+            var plugin = this.dalamud.PluginManager.Plugins.FirstOrDefault(x => x.Definition.InternalName == pluginName);
 
-            if (pluginInterface?.AnyPluginIpcAction == null)
+            if (plugin == default)
                 return false;
 
-            pluginInterface.AnyPluginIpcAction.Invoke(this.pluginName, message);
+            if (plugin.PluginInterface?.AnyPluginIpcAction == null)
+                return false;
+
+            plugin.PluginInterface.AnyPluginIpcAction.Invoke(this.pluginName, message);
+
             return true;
         }
 
@@ -343,22 +347,16 @@ namespace Dalamud.Plugin
         /// </summary>
         /// <param name="messageTemplate">The message template.</param>
         /// <param name="values">Values to log.</param>
-        [Obsolete]
-        public void Log(string messageTemplate, params object[] values)
-        {
-            Serilog.Log.Information(messageTemplate, values);
-        }
+        [Obsolete("Use PluginLog")]
+        public void Log(string messageTemplate, params object[] values) => Serilog.Log.Information(messageTemplate, values);
 
         /// <summary>
         /// Log a templated error message to the in-game debug log.
         /// </summary>
         /// <param name="messageTemplate">The message template.</param>
         /// <param name="values">Values to log.</param>
-        [Obsolete]
-        public void LogError(string messageTemplate, params object[] values)
-        {
-            Serilog.Log.Error(messageTemplate, values);
-        }
+        [Obsolete("Use PluginLog")]
+        public void LogError(string messageTemplate, params object[] values) => Serilog.Log.Error(messageTemplate, values);
 
         /// <summary>
         /// Log a templated error message to the in-game debug log.
@@ -366,11 +364,8 @@ namespace Dalamud.Plugin
         /// <param name="exception">The exception that caused the error.</param>
         /// <param name="messageTemplate">The message template.</param>
         /// <param name="values">Values to log.</param>
-        [Obsolete]
-        public void LogError(Exception exception, string messageTemplate, params object[] values)
-        {
-            Serilog.Log.Error(exception, messageTemplate, values);
-        }
+        [Obsolete("Use PluginLog")]
+        public void LogError(Exception exception, string messageTemplate, params object[] values) => Serilog.Log.Error(exception, messageTemplate, values);
 
         #endregion
 

@@ -6,13 +6,13 @@ using System.Numerics;
 using System.Threading.Tasks;
 
 using CheapLoc;
-using Dalamud.Interface;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Windowing;
+using Dalamud.Plugin;
 using ImGuiNET;
 using Serilog;
 
-namespace Dalamud.Plugin
+namespace Dalamud.Interface.Internal.Windows
 {
     /// <summary>
     /// Class responsible for drawing the plugin installer.
@@ -20,8 +20,7 @@ namespace Dalamud.Plugin
     internal class PluginInstallerWindow : Window
     {
         private readonly Dalamud dalamud;
-
-        private string gameVersion;
+        private readonly string gameVersion;
 
         private bool errorModalDrawing = true;
         private bool errorModalOnNextFrame = false;
@@ -483,7 +482,7 @@ namespace Dalamud.Plugin
 
                         if (!string.IsNullOrEmpty(pluginDefinition.RepoUrl))
                         {
-                            ImGui.PushFont(InterfaceManager.IconFont);
+                            ImGui.PushFont(UiBuilder.IconFont);
 
                             ImGui.SameLine();
                             if (ImGui.Button(FontAwesomeIcon.Globe.ToIconString()) &&

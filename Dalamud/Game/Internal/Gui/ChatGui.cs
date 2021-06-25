@@ -252,7 +252,7 @@ namespace Dalamud.Game.Internal.Gui
                 var senderRaw = Encoding.UTF8.GetBytes(chat.Name ?? string.Empty);
                 using var senderOwned = framework.Libc.NewString(senderRaw);
 
-                var messageRaw = chat.MessageBytes ?? new byte[0];
+                var messageRaw = chat.MessageBytes ?? Array.Empty<byte>();
                 using var messageOwned = framework.Libc.NewString(messageRaw);
 
                 this.HandlePrintMessageDetour(this.baseAddress, chat.Type, senderOwned.Address, messageOwned.Address, chat.SenderId, chat.Parameters);

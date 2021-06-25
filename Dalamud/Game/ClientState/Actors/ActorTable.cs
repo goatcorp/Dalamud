@@ -41,7 +41,7 @@ namespace Dalamud.Game.ClientState.Actors
 
             dalamud.Framework.OnUpdateEvent += this.Framework_OnUpdateEvent;
 
-            Log.Verbose("Actor table address {ActorTable}", this.address.ActorTable);
+            Log.Verbose($"Actor table address 0x{this.address.ActorTable.ToInt64():X}");
         }
 
         /// <summary>

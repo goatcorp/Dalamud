@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 
 using Dalamud.Configuration;
+using Dalamud.Plugin.Internal.Types;
 using Newtonsoft.Json;
 using Serilog;
 
@@ -27,8 +28,6 @@ namespace Dalamud.Plugin
 
         private readonly PluginConfigurations pluginConfigs;
 
-        private readonly Type interfaceType = typeof(IDalamudPlugin);
-
         private readonly List<BannedPlugin> bannedPlugins;
 
         private IEnumerable<(FileInfo DllFile, PluginDefinition Definition, bool IsRaw)> deferredPlugins;
@@ -46,7 +45,6 @@ namespace Dalamud.Plugin
             this.devPluginDirectory = devPluginDirectory;
 
             this.Plugins = new List<(IDalamudPlugin Plugin, PluginDefinition Definition, DalamudPluginInterface PluginInterface, bool IsRaw)>();
-            this.IpcSubscriptions = new List<(string SourcePluginName, string SubPluginName, Action<ExpandoObject> SubAction)>();
 
             this.pluginConfigs = new PluginConfigurations(Path.Combine(Path.GetDirectoryName(dalamud.StartInfo.ConfigurationPath), "pluginConfigs"));
 
@@ -91,7 +89,7 @@ namespace Dalamud.Plugin
         /// <summary>
         /// Gets a list of all IPC subscriptions.
         /// </summary>
-        public List<(string SourcePluginName, string SubPluginName, Action<ExpandoObject> SubAction)> IpcSubscriptions { get; private set; }
+        public List<IpcSubscription> IpcSubscriptions { get; } = new();
 
         /// <summary>
         /// Unload all plugins.
@@ -326,7 +324,7 @@ namespace Dalamud.Plugin
                     continue;
                 }
 
-                if (type.GetInterface(this.interfaceType.FullName) != null)
+                if (type.GetInterface(typeof(IDalamudPlugin).FullName) != null)
                 {
                     if (this.Plugins.Any(x => x.Plugin.GetType().Assembly.GetName().Name == type.Assembly.GetName().Name))
                     {

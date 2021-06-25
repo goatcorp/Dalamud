@@ -1,13 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 using Dalamud.Configuration;
 using Dalamud.Plugin;
 using Newtonsoft.Json;
 using Serilog;
-
-using Encoding = System.Text.Encoding;
 
 namespace Dalamud
 {
