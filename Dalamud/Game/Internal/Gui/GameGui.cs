@@ -6,6 +6,8 @@ using Dalamud.Hooking;
 using Dalamud.Interface;
 using Serilog;
 using SharpDX;
+using ImGuiNET;
+
 
 namespace Dalamud.Game.Internal.Gui
 {
