@@ -29,7 +29,7 @@ namespace Dalamud.Game.ClientState.Actors.Types
         /// <summary>
         /// Gets the ClassJob of this Chara.
         /// </summary>
-        public ClassJob ClassJob => new ClassJob(this.ActorStruct.ClassJob, this.Dalamud);
+        public ClassJob ClassJob => new(this.ActorStruct.ClassJob, this.Dalamud);
 
         /// <summary>
         /// Gets the current HP of this Chara.
@@ -76,5 +76,10 @@ namespace Dalamud.Game.ClientState.Actors.Types
         /// Indexed by <see cref="CustomizeIndex"/>.
         /// </summary>
         public byte[] Customize => this.ActorStruct.Customize;
+
+        /// <summary>
+        /// Gets status Effects.
+        /// </summary>
+        public StatusFlags StatusFlags => this.ActorStruct.StatusFlags;
     }
 }

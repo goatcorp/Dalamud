@@ -88,6 +88,15 @@ namespace Dalamud.Interface
         public bool DisableGposeUiHide { get; set; } = false;
 
         /// <summary>
+        /// Gets or sets a value indicating whether or not the game's cursor should be overridden with the ImGui cursor.
+        /// </summary>
+        public bool OverrideGameCursor
+        {
+            get => this.dalamud.InterfaceManager.OverrideGameCursor;
+            set => this.dalamud.InterfaceManager.OverrideGameCursor = value;
+        }
+
+        /// <summary>
         /// Gets or sets an action that is called any time ImGui fonts need to be rebuilt.<br/>
         /// Any ImFontPtr objects that you store <strong>can be invalidated</strong> when fonts are rebuilt
         /// (at any time), so you should both reload your custom fonts and restore those
@@ -195,6 +204,9 @@ namespace Dalamud.Interface
             if ((this.dalamud.Framework.Gui.GameUiHidden && this.dalamud.Configuration.ToggleUiHide && !(this.DisableUserUiHide || this.DisableAutomaticUiHide)) ||
                 (this.CutsceneActive && this.dalamud.Configuration.ToggleUiHideDuringCutscenes && !(this.DisableCutsceneUiHide || this.DisableAutomaticUiHide)) ||
                 (this.GposeActive && this.dalamud.Configuration.ToggleUiHideDuringGpose && !(this.DisableGposeUiHide || this.DisableAutomaticUiHide)))
+                return;
+
+            if (!this.dalamud.InterfaceManager.FontsReady)
                 return;
 
             ImGui.PushID(this.namespaceName);

@@ -80,11 +80,35 @@
     <div class="level0"><span class="xref">System.Object</span></div>
     <div class="level1"><span class="xref">SanitizerTests</span></div>
   </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <span class="xref">System.Object.ToString()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+  </div>
   <h6><strong>Namespace</strong>: <a class="xref" href="Dalamud.Test.Game.Text.Sanitizer.html">Dalamud.Test.Game.Text.Sanitizer</a></h6>
   <h6><strong>Assembly</strong>: Dalamud.Test.dll</h6>
   <h5 id="Dalamud_Test_Game_Text_Sanitizer_SanitizerTests_syntax">Syntax</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public class SanitizerTests : object</code></pre>
+    <pre><code class="lang-csharp hljs">public class SanitizerTests</code></pre>
   </div>
   <h3 id="methods">Methods
   </h3>
@@ -101,7 +125,14 @@
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public void StringsAreSanitizedCorrectly(ClientLanguage clientLanguage, string unsanitizedString, string sanitizedString)</code></pre>
+    <pre><code class="lang-csharp hljs">[Theory]
+[InlineData(new object[]{ClientLanguage.English, &quot;Pixie Cotton Hood of Healing&quot;, &quot;Pixie Cotton Hood of Healing&quot;})]
+[InlineData(new object[]{ClientLanguage.Japanese, &quot;&#12450;&#12521;&#12460;&#12531;&#12488;&#12540;&#12512;&#12473;&#12488;&#12540;&#12531;:&#30495;&#29702;&quot;, &quot;&#12450;&#12521;&#12460;&#12531;&#12488;&#12540;&#12512;&#12473;&#12488;&#12540;&#12531;:&#30495;&#29702;&quot;})]
+[InlineData(new object[]{ClientLanguage.German, &quot;Anemos-Pan\u0002\u0016\u0001\u0003zer\u0002\u0016\u0001\u0003hand\u0002\u0016\u0001\u0003schu\u0002\u0016\u0001\u0003he des Drachenbluts&quot;, &quot;Anemos-Panzerhandschuhe des Drachenbluts&quot;})]
+[InlineData(new object[]{ClientLanguage.German, &quot;Bienen-Spatha &#8224;&quot;, &quot;Bienen-Spatha&quot;})]
+[InlineData(new object[]{ClientLanguage.French, &quot;Le Diademe\u0002\u001d\u0001\u0003: terrains de chasse|Le Diademe\u0002\u001d\u0001\u0003: terrains de chasse&quot;, &quot;Le Diademe: terrains de chasse|Le Diademe: terrains de chasse&quot;})]
+[InlineData(new object[]{ClientLanguage.French, &quot;Cuir de b&#339;uf&quot;, &quot;Cuir de boeuf&quot;})]
+public void StringsAreSanitizedCorrectly(ClientLanguage clientLanguage, string unsanitizedString, string sanitizedString)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">

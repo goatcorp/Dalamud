@@ -1,7 +1,6 @@
 using System.Numerics;
 
 using ImGuiNET;
-using Serilog;
 
 namespace Dalamud.Interface.Windowing
 {
@@ -12,7 +11,6 @@ namespace Dalamud.Interface.Windowing
     {
         private bool internalLastIsOpen = false;
         private bool internalIsOpen = false;
-        private bool mainIsOpen = false;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Window"/> class.
@@ -30,6 +28,9 @@ namespace Dalamud.Interface.Windowing
             this.ForceMainWindow = forceMainWindow;
         }
 
+        /// <summary>
+        /// Gets or sets the namespace of the window.
+        /// </summary>
         public string Namespace { get; set; }
 
         /// <summary>
@@ -99,39 +100,62 @@ namespace Dalamud.Interface.Windowing
         /// </summary>
         public bool IsOpen
         {
-            get => this.mainIsOpen;
+            get => this.internalIsOpen;
             set
             {
-                if (!value)
-                    this.internalIsOpen = true;
-
-                this.mainIsOpen = value;
+                this.internalIsOpen = value;
             }
         }
 
         /// <summary>
+        /// Toggle window is open state.
+        /// </summary>
+        public void Toggle()
+        {
+            this.IsOpen ^= true;
+        }
+
+        /// <summary>
+        /// Code to be executed every time the window renders.
+        /// </summary>
+        /// <remarks>
         /// In this method, implement your drawing code.
         /// You do NOT need to ImGui.Begin your window.
-        /// </summary>
+        /// </remarks>
         public abstract void Draw();
 
         /// <summary>
         /// Code to be executed when the window is opened.
         /// </summary>
-        public virtual void OnOpen() { }
+        public virtual void OnOpen()
+        {
+        }
 
         /// <summary>
         /// Code to be executed when the window is closed.
         /// </summary>
-        public virtual void OnClose() { }
+        public virtual void OnClose()
+        {
+        }
 
         /// <summary>
         /// Draw the window via ImGui.
         /// </summary>
         internal void DrawInternal()
         {
+            // if (WindowName.Contains("Credits"))
+            //     Log.Information($"Draw: {IsOpen} {this.internalIsOpen} {this.internalLastIsOpen}");
+
             if (!this.IsOpen)
+            {
+                if (this.internalIsOpen != this.internalLastIsOpen)
+                {
+                    this.internalLastIsOpen = this.internalIsOpen;
+                    this.OnClose();
+                }
+
                 return;
+            }
 
             var hasNamespace = !string.IsNullOrEmpty(this.Namespace);
 
@@ -143,6 +167,12 @@ namespace Dalamud.Interface.Windowing
             if (this.ForceMainWindow)
                 ImGuiHelpers.ForceNextWindowMainViewport();
 
+            if (this.internalLastIsOpen != this.internalIsOpen && this.internalIsOpen)
+            {
+                this.internalLastIsOpen = this.internalIsOpen;
+                this.OnOpen();
+            }
+
             if (ImGui.Begin(this.WindowName, ref this.internalIsOpen, this.Flags))
             {
                 // Draw the actual window contents
@@ -153,7 +183,10 @@ namespace Dalamud.Interface.Windowing
 
             if (hasNamespace)
                 ImGui.PopID();
+        }
 
+        private void CheckState()
+        {
             if (this.internalLastIsOpen != this.internalIsOpen)
             {
                 if (this.internalIsOpen)
@@ -165,11 +198,6 @@ namespace Dalamud.Interface.Windowing
                     this.OnClose();
                 }
             }
-
-            this.internalLastIsOpen = this.internalIsOpen;
-
-            if (this.internalIsOpen != true)
-                this.IsOpen = false;
         }
 
         private void ApplyConditionals()

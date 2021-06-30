@@ -16,6 +16,7 @@ using Dalamud.Interface.Colors;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
 using ImGuiNET;
+using ImGuiScene;
 using Newtonsoft.Json;
 using Serilog;
 
@@ -35,7 +36,7 @@ namespace Dalamud.Interface
         private string[] dataKinds = new[]
         {
             "ServerOpCode", "Address", "Actor Table", "Font Test", "Party List", "Plugin IPC", "Condition",
-            "Gauge", "Command", "Addon", "Addon Inspector", "StartInfo", "Target", "Toast", "ImGui"
+            "Gauge", "Command", "Addon", "Addon Inspector", "StartInfo", "Target", "Toast", "ImGui", "Tex", "Gamepad",
         };
 
         private bool drawActors = false;
@@ -61,6 +62,13 @@ namespace Dalamud.Interface
         private bool questToastSound = false;
         private int questToastIconId = 0;
         private bool questToastCheckmark = false;
+
+        private string inputTexPath = string.Empty;
+        private TextureWrap debugTex = null;
+        private Vector2 inputTexUv0 = Vector2.Zero;
+        private Vector2 inputTexUv1 = Vector2.One;
+        private Vector4 inputTintCol = Vector4.One;
+        private Vector2 inputTexScale = Vector2.Zero;
 
         private uint copyButtonIndex = 0;
 
@@ -240,7 +248,7 @@ namespace Dalamud.Interface
                         // Condition
                         case 6:
 #if DEBUG
-                            ImGui.Text($"ptr: {this.dalamud.ClientState.Condition.conditionArrayBase.ToString("X16")}");
+                            ImGui.Text($"ptr: {this.dalamud.ClientState.Condition.ConditionArrayBase.ToString("X16")}");
 #endif
 
                             ImGui.Text("Current Conditions:");
@@ -286,11 +294,9 @@ namespace Dalamud.Interface
 
                         // Addon Inspector
                         case 10:
-                        {
                             this.addonInspector ??= new UIDebug(this.dalamud);
                             this.addonInspector.Draw();
                             break;
-                        }
 
                         // StartInfo
                         case 11:
@@ -345,7 +351,97 @@ namespace Dalamud.Interface
                         // ImGui
                         case 14:
                             ImGui.Text("Monitor count: " + ImGui.GetPlatformIO().Monitors.Size);
+                            ImGui.Text("OverrideGameCursor: " + this.dalamud.InterfaceManager.OverrideGameCursor);
 
+                            ImGui.Button("THIS IS A BUTTON###hoverTestButton");
+                            this.dalamud.InterfaceManager.OverrideGameCursor = !ImGui.IsItemHovered();
+
+                            break;
+
+                        // Tex
+                        case 15:
+                            ImGui.InputText("Tex Path", ref this.inputTexPath, 255);
+                            ImGui.InputFloat2("UV0", ref this.inputTexUv0);
+                            ImGui.InputFloat2("UV1", ref this.inputTexUv1);
+                            ImGui.InputFloat4("Tint", ref this.inputTintCol);
+                            ImGui.InputFloat2("Scale", ref this.inputTexScale);
+
+                            if (ImGui.Button("Load Tex"))
+                            {
+                                try
+                                {
+                                    this.debugTex = this.dalamud.Data.GetImGuiTexture(this.inputTexPath);
+                                    this.inputTexScale = new Vector2(this.debugTex.Width, this.debugTex.Height);
+                                }
+                                catch (Exception ex)
+                                {
+                                    Log.Error(ex, "Could not load tex.");
+                                }
+                            }
+
+                            ImGuiHelpers.ScaledDummy(10);
+
+                            if (this.debugTex != null)
+                            {
+                                ImGui.Image(this.debugTex.ImGuiHandle, this.inputTexScale, this.inputTexUv0, this.inputTexUv1, this.inputTintCol);
+                                ImGuiHelpers.ScaledDummy(5);
+                                Util.ShowObject(this.debugTex);
+                            }
+
+                            break;
+
+                        // Gamepad
+                        case 16:
+                            Action<string, uint, Func<GamepadButtons, float>> helper = (text, mask, resolve) =>
+                            {
+                                ImGui.Text($"{text} {mask:X4}");
+                                ImGui.Text($"DPadLeft {resolve(GamepadButtons.DpadLeft)} " +
+                                           $"DPadUp {resolve(GamepadButtons.DpadUp)} " +
+                                           $"DPadRight {resolve(GamepadButtons.DpadRight)} " +
+                                           $"DPadDown {resolve(GamepadButtons.DpadDown)} ");
+                                ImGui.Text($"West {resolve(GamepadButtons.West)} " +
+                                           $"North {resolve(GamepadButtons.North)} " +
+                                           $"East {resolve(GamepadButtons.East)} " +
+                                           $"South {resolve(GamepadButtons.South)} ");
+                                ImGui.Text($"L1 {resolve(GamepadButtons.L1)} " +
+                                           $"L2 {resolve(GamepadButtons.L2)} " +
+                                           $"R1 {resolve(GamepadButtons.R1)} " +
+                                           $"R2 {resolve(GamepadButtons.R2)} ");
+                                ImGui.Text($"Select {resolve(GamepadButtons.Select)} " +
+                                           $"Start {resolve(GamepadButtons.Start)} " +
+                                           $"L3 {resolve(GamepadButtons.L3)} " +
+                                           $"R3 {resolve(GamepadButtons.R3)} ");
+                            };
+#if DEBUG
+                            ImGui.Text($"GamepadInput {this.dalamud.ClientState.GamepadState.GamepadInput.ToString("X")}");
+                            if (ImGui.IsItemHovered()) ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
+                            if (ImGui.IsItemClicked()) ImGui.SetClipboardText($"{this.dalamud.ClientState.GamepadState.GamepadInput.ToString("X")}");
+#endif
+
+                            helper(
+                                "Buttons Raw",
+                                this.dalamud.ClientState.GamepadState.ButtonsRaw,
+                                this.dalamud.ClientState.GamepadState.Raw);
+                            helper(
+                                "Buttons Pressed",
+                                this.dalamud.ClientState.GamepadState.ButtonsPressed,
+                                this.dalamud.ClientState.GamepadState.Pressed);
+                            helper(
+                                "Buttons Repeat",
+                                this.dalamud.ClientState.GamepadState.ButtonsRepeat,
+                                this.dalamud.ClientState.GamepadState.Repeat);
+                            helper(
+                                "Buttons Released",
+                                this.dalamud.ClientState.GamepadState.ButtonsReleased,
+                                this.dalamud.ClientState.GamepadState.Released);
+                            ImGui.Text($"LeftStickLeft {this.dalamud.ClientState.GamepadState.LeftStickLeft:0.00} " +
+                                       $"LeftStickUp {this.dalamud.ClientState.GamepadState.LeftStickUp:0.00} " +
+                                       $"LeftStickRight {this.dalamud.ClientState.GamepadState.LeftStickRight:0.00} " +
+                                       $"LeftStickDown {this.dalamud.ClientState.GamepadState.LeftStickDown:0.00} ");
+                            ImGui.Text($"RightStickLeft {this.dalamud.ClientState.GamepadState.RightStickLeft:0.00} " +
+                                       $"RightStickUp {this.dalamud.ClientState.GamepadState.RightStickUp:0.00} " +
+                                       $"RightStickRight {this.dalamud.ClientState.GamepadState.RightStickRight:0.00} " +
+                                       $"RightStickDown {this.dalamud.ClientState.GamepadState.RightStickDown:0.00} ");
                             break;
                     }
                 }
@@ -380,18 +476,13 @@ namespace Dalamud.Interface
             }
             else
             {
-                stateString +=
-                    $"FrameworkBase: {this.dalamud.Framework.Address.BaseAddress.ToInt64():X}\n";
-
+                stateString += $"FrameworkBase: {this.dalamud.Framework.Address.BaseAddress.ToInt64():X}\n";
                 stateString += $"ActorTableLen: {this.dalamud.ClientState.Actors.Length}\n";
                 stateString += $"LocalPlayerName: {this.dalamud.ClientState.LocalPlayer.Name}\n";
-                stateString +=
-                    $"CurrentWorldName: {(this.resolveGameData ? this.dalamud.ClientState.LocalPlayer.CurrentWorld.GameData.Name : this.dalamud.ClientState.LocalPlayer.CurrentWorld.Id.ToString())}\n";
-                stateString +=
-                    $"HomeWorldName: {(this.resolveGameData ? this.dalamud.ClientState.LocalPlayer.HomeWorld.GameData.Name : this.dalamud.ClientState.LocalPlayer.HomeWorld.Id.ToString())}\n";
+                stateString += $"CurrentWorldName: {(this.resolveGameData ? this.dalamud.ClientState.LocalPlayer.CurrentWorld.GameData.Name : this.dalamud.ClientState.LocalPlayer.CurrentWorld.Id.ToString())}\n";
+                stateString += $"HomeWorldName: {(this.resolveGameData ? this.dalamud.ClientState.LocalPlayer.HomeWorld.GameData.Name : this.dalamud.ClientState.LocalPlayer.HomeWorld.Id.ToString())}\n";
                 stateString += $"LocalCID: {this.dalamud.ClientState.LocalContentId:X}\n";
-                stateString +=
-                    $"LastLinkedItem: {this.dalamud.Framework.Gui.Chat.LastLinkedItemId.ToString()}\n";
+                stateString += $"LastLinkedItem: {this.dalamud.Framework.Gui.Chat.LastLinkedItemId}\n";
                 stateString += $"TerritoryType: {this.dalamud.ClientState.TerritoryType}\n\n";
 
                 ImGui.TextUnformatted(stateString);
@@ -434,17 +525,17 @@ namespace Dalamud.Interface
 
                         ImGui.SetNextWindowPos(new Vector2(screenCoords.X, screenCoords.Y));
 
-                        ImGui.SetNextWindowBgAlpha(Math.Max(1f - actor.YalmDistanceX / this.maxActorDrawDistance,
-                                                            0.2f));
-                        if (ImGui.Begin($"Actor{i}##ActorWindow{i}",
-                                        ImGuiWindowFlags.NoDecoration |
-                                        ImGuiWindowFlags.AlwaysAutoResize |
-                                        ImGuiWindowFlags.NoSavedSettings |
-                                        ImGuiWindowFlags.NoMove |
-                                        ImGuiWindowFlags.NoMouseInputs |
-                                        ImGuiWindowFlags.NoDocking |
-                                        ImGuiWindowFlags.NoFocusOnAppearing |
-                                        ImGuiWindowFlags.NoNav))
+                        ImGui.SetNextWindowBgAlpha(Math.Max(1f - (actor.YalmDistanceX / this.maxActorDrawDistance), 0.2f));
+                        if (ImGui.Begin(
+                                $"Actor{i}##ActorWindow{i}",
+                                ImGuiWindowFlags.NoDecoration |
+                                ImGuiWindowFlags.AlwaysAutoResize |
+                                ImGuiWindowFlags.NoSavedSettings |
+                                ImGuiWindowFlags.NoMove |
+                                ImGuiWindowFlags.NoMouseInputs |
+                                ImGuiWindowFlags.NoDocking |
+                                ImGuiWindowFlags.NoFocusOnAppearing |
+                                ImGuiWindowFlags.NoNav))
                             ImGui.Text(actorText);
                         ImGui.End();
                     }
@@ -452,6 +543,7 @@ namespace Dalamud.Interface
             }
         }
 
+#pragma warning disable CS0618 // Type or member is obsolete
         private void DrawIpcDebug()
         {
             var i1 = new DalamudPluginInterface(this.dalamud, "DalamudTestSub", null, PluginLoadReason.Boot);
@@ -475,9 +567,11 @@ namespace Dalamud.Interface
                 });
             }
 
-            if (ImGui.Button("Remove test sub")) i1.Unsubscribe("DalamudTestPub");
+            if (ImGui.Button("Remove test sub"))
+                i1.Unsubscribe("DalamudTestPub");
 
-            if (ImGui.Button("Remove test sub any")) i1.UnsubscribeAny();
+            if (ImGui.Button("Remove test sub any"))
+                i1.UnsubscribeAny();
 
             if (ImGui.Button("Send test message"))
             {
@@ -494,9 +588,10 @@ namespace Dalamud.Interface
                 i2.SendMessage("DalamudTestSub", testMsg);
             }
 
-            foreach (var sub in this.dalamud.PluginManager.IpcSubscriptions)
-                ImGui.Text($"Source:{sub.SourcePluginName} Sub:{sub.SubPluginName}");
+            foreach (var (sourcePluginName, subPluginName, subAction) in this.dalamud.PluginManager.IpcSubscriptions)
+                ImGui.Text($"Source:{sourcePluginName} Sub:{subPluginName}");
         }
+#pragma warning restore CS0618 // Type or member is obsolete
 
         private void DrawAddonDebug()
         {
@@ -601,7 +696,7 @@ namespace Dalamud.Interface
             if (actor is Chara chara)
             {
                 actorString +=
-                    $"       Level: {chara.Level} ClassJob: {(this.resolveGameData ? chara.ClassJob.GameData.Name : chara.ClassJob.Id.ToString())} CHP: {chara.CurrentHp} MHP: {chara.MaxHp} CMP: {chara.CurrentMp} MMP: {chara.MaxMp}\n       Customize: {BitConverter.ToString(chara.Customize).Replace("-", " ")}\n";
+                    $"       Level: {chara.Level} ClassJob: {(this.resolveGameData ? chara.ClassJob.GameData.Name : chara.ClassJob.Id.ToString())} CHP: {chara.CurrentHp} MHP: {chara.MaxHp} CMP: {chara.CurrentMp} MMP: {chara.MaxMp}\n       Customize: {BitConverter.ToString(chara.Customize).Replace("-", " ")} StatusFlags: {chara.StatusFlags}\n";
             }
 
             if (actor is PlayerCharacter pc)

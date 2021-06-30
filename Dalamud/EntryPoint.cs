@@ -57,7 +57,7 @@ namespace Dalamud
                 Log.Information("Starting a session..");
 
                 // Run session
-                dalamud.Start();
+                dalamud.LoadTier1();
                 dalamud.WaitForUnload();
 
                 dalamud.Dispose();
@@ -77,7 +77,7 @@ namespace Dalamud
             }
         }
 
-        private (Logger logger, LoggingLevelSwitch levelSwitch) NewLogger(string baseDirectory)
+        private (Logger Logger, LoggingLevelSwitch LevelSwitch) NewLogger(string baseDirectory)
         {
 #if DEBUG
             var logPath = Path.Combine(baseDirectory, "dalamud.log");
@@ -95,7 +95,7 @@ namespace Dalamud
 
             var newLogger = new LoggerConfiguration()
                    .WriteTo.Async(a => a.File(logPath))
-                   .WriteTo.EventSink()
+                   .WriteTo.Sink(SerilogEventSink.Instance)
                    .MinimumLevel.ControlledBy(levelSwitch)
                    .CreateLogger();
 

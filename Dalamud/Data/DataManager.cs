@@ -5,6 +5,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 
+using Dalamud.Data.LuminaExtensions;
+using Dalamud.Interface;
+using ImGuiScene;
 using JetBrains.Annotations;
 using Lumina;
 using Lumina.Data;
@@ -21,6 +24,7 @@ namespace Dalamud.Data
     public class DataManager : IDisposable
     {
         private const string IconFileFormat = "ui/icon/{0:D3}000/{1}{2:D6}.tex";
+        private readonly InterfaceManager interfaceManager;
 
         /// <summary>
         /// A <see cref="Lumina"/> object which gives access to any excel/game data.
@@ -33,8 +37,10 @@ namespace Dalamud.Data
         /// Initializes a new instance of the <see cref="DataManager"/> class.
         /// </summary>
         /// <param name="language">The language to load data with by default.</param>
-        public DataManager(ClientLanguage language)
+        /// <param name="interfaceManager">An <see cref="InterfaceManager"/> instance to parse the data with.</param>
+        internal DataManager(ClientLanguage language, InterfaceManager interfaceManager)
         {
+            this.interfaceManager = interfaceManager;
             // Set up default values so plugins do not null-reference when data is being loaded.
             this.ServerOpCodes = new ReadOnlyDictionary<string, ushort>(new Dictionary<string, ushort>());
 
@@ -67,87 +73,6 @@ namespace Dalamud.Data
         /// </summary>
         public bool IsDataReady { get; private set; }
 
-        /// <summary>
-        /// Initialize this data manager.
-        /// </summary>
-        /// <param name="baseDir">The directory to load data from.</param>
-        public void Initialize(string baseDir)
-        {
-            try
-            {
-                Log.Verbose("Starting data load...");
-
-                var zoneOpCodeDict =
-                    JsonConvert.DeserializeObject<Dictionary<string, ushort>>(File.ReadAllText(Path.Combine(baseDir, "UIRes", "serveropcode.json")));
-                this.ServerOpCodes = new ReadOnlyDictionary<string, ushort>(zoneOpCodeDict);
-
-                Log.Verbose("Loaded {0} ServerOpCodes.", zoneOpCodeDict.Count);
-
-                var clientOpCodeDict =
-                    JsonConvert.DeserializeObject<Dictionary<string, ushort>>(File.ReadAllText(Path.Combine(baseDir, "UIRes", "clientopcode.json")));
-                this.ClientOpCodes = new ReadOnlyDictionary<string, ushort>(clientOpCodeDict);
-
-                Log.Verbose("Loaded {0} ClientOpCodes.", clientOpCodeDict.Count);
-
-                var luminaOptions = new LuminaOptions
-                {
-                    CacheFileResources = true,
-
-#if DEBUG
-                    PanicOnSheetChecksumMismatch = true,
-#else
-                    PanicOnSheetChecksumMismatch = false,
-#endif
-
-                    DefaultExcelLanguage = this.Language switch {
-                        ClientLanguage.Japanese => Lumina.Data.Language.Japanese,
-                        ClientLanguage.English => Lumina.Data.Language.English,
-                        ClientLanguage.German => Lumina.Data.Language.German,
-                        ClientLanguage.French => Lumina.Data.Language.French,
-                        _ => throw new ArgumentOutOfRangeException(
-                                 nameof(this.Language),
-                                 @"Unknown Language: " + this.Language),
-                    },
-                };
-
-                var processModule = Process.GetCurrentProcess().MainModule;
-                if (processModule != null)
-                {
-                    this.gameData =
-                        new GameData(
-                            Path.Combine(
-                                Path.GetDirectoryName(processModule.FileName) !,
-                                "sqpack"), luminaOptions);
-                }
-
-                Log.Information("Lumina is ready: {0}", this.gameData.DataPath);
-
-                this.IsDataReady = true;
-
-                this.luminaResourceThread = new Thread(() =>
-                {
-                    while (true)
-                    {
-                        if (this.gameData.FileHandleManager.HasPendingFileLoads)
-                        {
-                            this.gameData.ProcessFileHandleQueue();
-                        }
-                        else
-                        {
-                            Thread.Sleep(5);
-                        }
-                    }
-
-                    // ReSharper disable once FunctionNeverReturns
-                });
-                this.luminaResourceThread.Start();
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Could not download data.");
-            }
-        }
-
         #region Lumina Wrappers
 
         /// <summary>
@@ -168,12 +93,13 @@ namespace Dalamud.Data
         /// <returns>The <see cref="ExcelSheet{T}"/>, giving access to game rows.</returns>
         public ExcelSheet<T> GetExcelSheet<T>(ClientLanguage language) where T : ExcelRow
         {
-            var lang = language switch {
+            var lang = language switch
+            {
                 ClientLanguage.Japanese => Lumina.Data.Language.Japanese,
                 ClientLanguage.English => Lumina.Data.Language.English,
                 ClientLanguage.German => Lumina.Data.Language.German,
                 ClientLanguage.French => Lumina.Data.Language.French,
-                _ => throw new ArgumentOutOfRangeException(nameof(this.Language), @"Unknown Language: " + this.Language)
+                _ => throw new ArgumentOutOfRangeException(nameof(this.Language), $"Unknown Language: {this.Language}"),
             };
             return this.Excel.GetSheet<T>(lang);
         }
@@ -199,7 +125,7 @@ namespace Dalamud.Data
             var filePath = GameData.ParseFilePath(path);
             if (filePath == null)
                 return default;
-            return this.gameData.Repositories.TryGetValue(filePath.Repository, out var repository) ? repository.GetFile<T>(filePath.Category, filePath) : default(T);
+            return this.gameData.Repositories.TryGetValue(filePath.Repository, out var repository) ? repository.GetFile<T>(filePath.Category, filePath) : default;
         }
 
         /// <summary>
@@ -230,12 +156,13 @@ namespace Dalamud.Data
         /// <returns>The <see cref="TexFile"/> containing the icon.</returns>
         public TexFile GetIcon(ClientLanguage iconLanguage, int iconId)
         {
-            var type = iconLanguage switch {
+            var type = iconLanguage switch
+            {
                 ClientLanguage.Japanese => "ja/",
                 ClientLanguage.English => "en/",
                 ClientLanguage.German => "de/",
                 ClientLanguage.French => "fr/",
-                _ => throw new ArgumentOutOfRangeException(nameof(this.Language), @"Unknown Language: " + this.Language)
+                _ => throw new ArgumentOutOfRangeException(nameof(this.Language), $"Unknown Language: {this.Language}"),
             };
 
             return this.GetIcon(type, iconId);
@@ -264,6 +191,40 @@ namespace Dalamud.Data
             return file;
         }
 
+        /// <summary>
+        /// Get the passed <see cref="TexFile"/> as a drawable ImGui TextureWrap.
+        /// </summary>
+        /// <param name="tex">The Lumina <see cref="TexFile"/>.</param>
+        /// <returns>A <see cref="TextureWrap"/> that can be used to draw the texture.</returns>
+        public TextureWrap GetImGuiTexture(TexFile tex)
+            => this.interfaceManager.LoadImageRaw(tex.GetRgbaImageData(), tex.Header.Width, tex.Header.Height, 4);
+
+        /// <summary>
+        /// Get the passed texture path as a drawable ImGui TextureWrap.
+        /// </summary>
+        /// <param name="path">The internal path to the texture.</param>
+        /// <returns>A <see cref="TextureWrap"/> that can be used to draw the texture.</returns>
+        public TextureWrap GetImGuiTexture(string path)
+            => this.GetImGuiTexture(this.GetFile<TexFile>(path));
+
+        /// <summary>
+        /// Get a <see cref="TextureWrap"/> containing the icon with the given ID, of the given language.
+        /// </summary>
+        /// <param name="iconLanguage">The requested language.</param>
+        /// <param name="iconId">The icon ID.</param>
+        /// <returns>The <see cref="TextureWrap"/> containing the icon.</returns>
+        public TextureWrap GetImGuiTextureIcon(ClientLanguage iconLanguage, int iconId)
+            => this.GetImGuiTexture(this.GetIcon(iconLanguage, iconId));
+
+        /// <summary>
+        /// Get a <see cref="TextureWrap"/> containing the icon with the given ID, of the given type.
+        /// </summary>
+        /// <param name="type">The type of the icon (e.g. 'hq' to get the HQ variant of an item icon).</param>
+        /// <param name="iconId">The icon ID.</param>
+        /// <returns>The <see cref="TextureWrap"/> containing the icon.</returns>
+        public TextureWrap GetImGuiTextureIcon(string type, int iconId)
+            => this.GetImGuiTexture(this.GetIcon(type, iconId));
+
         #endregion
 
         /// <summary>
@@ -272,6 +233,84 @@ namespace Dalamud.Data
         public void Dispose()
         {
             this.luminaResourceThread.Abort();
+        }
+
+        /// <summary>
+        /// Initialize this data manager.
+        /// </summary>
+        /// <param name="baseDir">The directory to load data from.</param>
+        internal void Initialize(string baseDir)
+        {
+            try
+            {
+                Log.Verbose("Starting data load...");
+
+                var zoneOpCodeDict =
+                    JsonConvert.DeserializeObject<Dictionary<string, ushort>>(File.ReadAllText(Path.Combine(baseDir, "UIRes", "serveropcode.json")));
+                this.ServerOpCodes = new ReadOnlyDictionary<string, ushort>(zoneOpCodeDict);
+
+                Log.Verbose("Loaded {0} ServerOpCodes.", zoneOpCodeDict.Count);
+
+                var clientOpCodeDict =
+                    JsonConvert.DeserializeObject<Dictionary<string, ushort>>(File.ReadAllText(Path.Combine(baseDir, "UIRes", "clientopcode.json")));
+                this.ClientOpCodes = new ReadOnlyDictionary<string, ushort>(clientOpCodeDict);
+
+                Log.Verbose("Loaded {0} ClientOpCodes.", clientOpCodeDict.Count);
+
+                var luminaOptions = new LuminaOptions
+                {
+                    CacheFileResources = true,
+
+#if DEBUG
+                    PanicOnSheetChecksumMismatch = true,
+#else
+                    PanicOnSheetChecksumMismatch = false,
+#endif
+
+                    DefaultExcelLanguage = this.Language switch
+                    {
+                        ClientLanguage.Japanese => Lumina.Data.Language.Japanese,
+                        ClientLanguage.English => Lumina.Data.Language.English,
+                        ClientLanguage.German => Lumina.Data.Language.German,
+                        ClientLanguage.French => Lumina.Data.Language.French,
+                        _ => throw new ArgumentOutOfRangeException(
+                                 nameof(this.Language),
+                                 @"Unknown Language: " + this.Language),
+                    },
+                };
+
+                var processModule = Process.GetCurrentProcess().MainModule;
+                if (processModule != null)
+                {
+                    this.gameData = new GameData(Path.Combine(Path.GetDirectoryName(processModule.FileName), "sqpack"), luminaOptions);
+                }
+
+                Log.Information("Lumina is ready: {0}", this.gameData.DataPath);
+
+                this.IsDataReady = true;
+
+                this.luminaResourceThread = new Thread(() =>
+                {
+                    while (true)
+                    {
+                        if (this.gameData.FileHandleManager.HasPendingFileLoads)
+                        {
+                            this.gameData.ProcessFileHandleQueue();
+                        }
+                        else
+                        {
+                            Thread.Sleep(5);
+                        }
+                    }
+
+                    // ReSharper disable once FunctionNeverReturns
+                });
+                this.luminaResourceThread.Start();
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Could not download data.");
+            }
         }
     }
 }

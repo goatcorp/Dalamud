@@ -2,15 +2,19 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+
 using Dalamud.Game.Internal;
 using Dalamud.Interface.Windowing;
 using ImGuiNET;
 using ImGuiScene;
-using Serilog;
 
 namespace Dalamud.Interface
 {
-    class DalamudCreditsWindow : Window, IDisposable {
+    /// <summary>
+    /// A window documenting contributors to the project.
+    /// </summary>
+    internal class DalamudCreditsWindow : Window, IDisposable
+    {
         private const string CreditsTextTempl = @"
 Dalamud
 A FFXIV Hooking Framework
@@ -104,6 +108,10 @@ Thank you for using XIVLauncher and Dalamud!
 
         private string creditsText;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DalamudCreditsWindow"/> class.
+        /// </summary>
+        /// <param name="dalamud">The Dalamud instance.</param>
         public DalamudCreditsWindow(Dalamud dalamud)
             : base("Dalamud Credits", ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize, true)
         {
@@ -111,11 +119,6 @@ Thank you for using XIVLauncher and Dalamud!
             this.logoTexture = this.dalamud.InterfaceManager.LoadImage(
                                        Path.Combine(this.dalamud.AssetDirectory.FullName, "UIRes", "logo.png"));
             this.framework = dalamud.Framework;
-
-            var pluginCredits = dalamud.PluginManager.Plugins.Where(x => x.Definition != null).Aggregate(string.Empty, (current, plugin) => current + $"{plugin.Definition.Name} by {plugin.Definition.Author}\n");
-
-            this.creditsText =
-                string.Format(CreditsTextTempl, typeof(Dalamud).Assembly.GetName().Version, pluginCredits);
 
             this.Size = new Vector2(500, 400);
             this.SizeCondition = ImGuiCond.Always;
@@ -125,13 +128,20 @@ Thank you for using XIVLauncher and Dalamud!
             this.BgAlpha = 0.5f;
         }
 
+        /// <inheritdoc/>
         public override void OnOpen()
         {
             base.OnOpen();
 
+            var pluginCredits = this.dalamud.PluginManager.Plugins.Where(x => x.Definition != null).Aggregate(string.Empty, (current, plugin) => current + $"{plugin.Definition.Name} by {plugin.Definition.Author}\n");
+
+            this.creditsText =
+                string.Format(CreditsTextTempl, typeof(Dalamud).Assembly.GetName().Version, pluginCredits);
+
             this.framework.Gui.SetBgm(132);
         }
 
+        /// <inheritdoc/>
         public override void OnClose()
         {
             base.OnClose();
@@ -139,22 +149,20 @@ Thank you for using XIVLauncher and Dalamud!
             this.framework.Gui.SetBgm(9999);
         }
 
-        public void Dispose() {
-            this.logoTexture.Dispose();
-        }
-
-        public override void Draw() {
+        /// <inheritdoc/>
+        public override void Draw()
+        {
             var screenSize = ImGui.GetMainViewport().Size;
             var windowSize = ImGui.GetWindowSize();
 
-            this.Position = new Vector2((screenSize.X / 2) - windowSize.X / 2, (screenSize.Y / 2) - windowSize.Y / 2);
+            this.Position = new Vector2((screenSize.X / 2) - (windowSize.X / 2), (screenSize.Y / 2) - (windowSize.Y / 2));
 
             ImGui.BeginChild("scrolling", new Vector2(0, 0), false, ImGuiWindowFlags.NoScrollbar);
 
             ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(0, 0));
 
             ImGui.Dummy(new Vector2(0, 340f) * ImGui.GetIO().FontGlobalScale);
-            ImGui.Text("");
+            ImGui.Text(string.Empty);
 
             ImGui.SameLine(150f);
             ImGui.Image(this.logoTexture.ImGuiHandle, new Vector2(190f, 190f) * ImGui.GetIO().FontGlobalScale);
@@ -163,10 +171,11 @@ Thank you for using XIVLauncher and Dalamud!
 
             var windowX = ImGui.GetWindowSize().X;
 
-            foreach (var creditsLine in this.creditsText.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None)) {
+            foreach (var creditsLine in this.creditsText.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None))
+            {
                 var lineLenX = ImGui.CalcTextSize(creditsLine).X;
 
-                ImGui.Dummy(new Vector2((windowX / 2) - lineLenX / 2, 0f));
+                ImGui.Dummy(new Vector2((windowX / 2) - (lineLenX / 2), 0f));
                 ImGui.SameLine();
                 ImGui.TextUnformatted(creditsLine);
             }
@@ -182,6 +191,14 @@ Thank you for using XIVLauncher and Dalamud!
             }
 
             ImGui.EndChild();
+        }
+
+        /// <summary>
+        /// Disposes of managed and unmanaged resources.
+        /// </summary>
+        public void Dispose()
+        {
+            this.logoTexture?.Dispose();
         }
     }
 }

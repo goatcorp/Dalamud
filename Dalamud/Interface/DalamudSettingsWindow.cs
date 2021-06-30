@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
-using System.Windows.Forms.VisualStyles;
+
 using CheapLoc;
 using Dalamud.Configuration;
 using Dalamud.Game.Text;
@@ -15,15 +15,60 @@ using Serilog;
 
 namespace Dalamud.Interface
 {
-    internal class DalamudSettingsWindow : Window {
+    /// <summary>
+    /// The window that allows for general configuration of Dalamud itself.
+    /// </summary>
+    internal class DalamudSettingsWindow : Window
+    {
+        private const float MinScale = 0.3f;
+        private const float MaxScale = 2.0f;
+
         private readonly Dalamud dalamud;
 
-        public DalamudSettingsWindow(Dalamud dalamud) 
+        private string[] languages;
+        private string[] locLanguages;
+        private int langIndex;
+
+        private Vector4 hintTextColor = ImGuiColors.DalamudGrey;
+        private Vector4 warnTextColor = ImGuiColors.DalamudRed;
+
+        private XivChatType dalamudMessagesChatType;
+
+        private bool doCfTaskBarFlash;
+        private bool doCfChatMessage;
+
+        private float globalUiScale;
+        private bool doToggleUiHide;
+        private bool doToggleUiHideDuringCutscenes;
+        private bool doToggleUiHideDuringGpose;
+        private bool doDocking;
+        private bool doViewport;
+        private bool doGamepad;
+        private List<ThirdRepoSetting> thirdRepoList;
+
+        private bool printPluginsWelcomeMsg;
+        private bool autoUpdatePlugins;
+        private bool doButtonsSystemMenu;
+
+        private string thirdRepoTempUrl = string.Empty;
+        private string thirdRepoAddError = string.Empty;
+
+        #region Experimental
+
+        private bool doPluginTest;
+
+        #endregion
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DalamudSettingsWindow"/> class.
+        /// </summary>
+        /// <param name="dalamud">The Dalamud Instance.</param>
+        public DalamudSettingsWindow(Dalamud dalamud)
             : base(Loc.Localize("DalamudSettingsHeader", "Dalamud Settings") + "###XlSettings2", ImGuiWindowFlags.NoCollapse)
         {
             this.dalamud = dalamud;
 
-            this.Size = new Vector2(740, 500);
+            this.Size = new Vector2(740, 550);
             this.SizeCondition = ImGuiCond.FirstUseEver;
 
             this.dalamudMessagesChatType = this.dalamud.Configuration.GeneralChatType;
@@ -38,12 +83,14 @@ namespace Dalamud.Interface
 
             this.doDocking = this.dalamud.Configuration.IsDocking;
             this.doViewport = !this.dalamud.Configuration.IsDisableViewport;
+            this.doGamepad = this.dalamud.Configuration.IsGamepadNavigationEnabled;
 
             this.doPluginTest = this.dalamud.Configuration.DoPluginTest;
             this.thirdRepoList = this.dalamud.Configuration.ThirdRepoList.Select(x => x.Clone()).ToList();
 
             this.printPluginsWelcomeMsg = this.dalamud.Configuration.PrintPluginsWelcomeMsg;
             this.autoUpdatePlugins = this.dalamud.Configuration.AutoUpdatePlugins;
+            this.doButtonsSystemMenu = this.dalamud.Configuration.DoButtonsSystemMenu;
 
             this.languages = Localization.ApplicableLangCodes.Prepend("en").ToArray();
             try
@@ -69,20 +116,21 @@ namespace Dalamud.Interface
 
             try
             {
-                List<string> locLanguagesList = new List<string>();
+                var locLanguagesList = new List<string>();
                 string locLanguage;
                 foreach (var language in this.languages)
                 {
                     if (language != "ko")
                     {
                         locLanguage = CultureInfo.GetCultureInfo(language).NativeName;
-                        locLanguagesList.Add(char.ToUpper(locLanguage[0]) + locLanguage.Substring(1));
+                        locLanguagesList.Add(char.ToUpper(locLanguage[0]) + locLanguage[1..]);
                     }
                     else
                     {
                         locLanguagesList.Add("Korean");
                     }
                 }
+
                 this.locLanguages = locLanguagesList.ToArray();
             }
             catch (Exception)
@@ -91,6 +139,7 @@ namespace Dalamud.Interface
             }
         }
 
+        /// <inheritdoc/>
         public override void OnOpen()
         {
             base.OnOpen();
@@ -100,6 +149,7 @@ namespace Dalamud.Interface
             Log.Information("OnOpen end");
         }
 
+        /// <inheritdoc/>
         public override void OnClose()
         {
             base.OnClose();
@@ -112,62 +162,36 @@ namespace Dalamud.Interface
             Log.Information("OnClose end");
         }
 
-        private string[] languages;
-        private string[] locLanguages;
-        private int langIndex;
-
-        private Vector4 hintTextColor = ImGuiColors.DalamudGrey;
-        private Vector4 warnTextColor = ImGuiColors.DalamudRed;
-
-        private XivChatType dalamudMessagesChatType;
-
-        private bool doCfTaskBarFlash;
-        private bool doCfChatMessage;
-
-        private const float MinScale = 0.3f;
-        private const float MaxScale = 2.0f;
-        private float globalUiScale;
-        private bool doToggleUiHide;
-        private bool doToggleUiHideDuringCutscenes;
-        private bool doToggleUiHideDuringGpose;
-        private bool doDocking;
-        private bool doViewport;
-        private List<ThirdRepoSetting> thirdRepoList;
-
-        private bool printPluginsWelcomeMsg;
-        private bool autoUpdatePlugins;
-
-        private string thirdRepoTempUrl = string.Empty;
-        private string thirdRepoAddError = string.Empty;
-
-        #region Experimental
-
-        private bool doPluginTest;
-
-        #endregion
-
-        public override void Draw() {
+        /// <inheritdoc/>
+        public override void Draw()
+        {
             var windowSize = ImGui.GetWindowSize();
             ImGui.BeginChild("scrolling", new Vector2(windowSize.X - 5 - (5 * ImGui.GetIO().FontGlobalScale), windowSize.Y - 35 - (35 * ImGui.GetIO().FontGlobalScale)), false, ImGuiWindowFlags.HorizontalScrollbar);
 
-            if (ImGui.BeginTabBar("SetTabBar")) {
-                if (ImGui.BeginTabItem(Loc.Localize("DalamudSettingsGeneral", "General"))) {
-                    ImGui.Text(Loc.Localize("DalamudSettingsLanguage","Language"));
-                    ImGui.Combo("##XlLangCombo", ref this.langIndex, this.locLanguages,
-                                this.locLanguages.Length);
+            if (ImGui.BeginTabBar("SetTabBar"))
+            {
+                if (ImGui.BeginTabItem(Loc.Localize("DalamudSettingsGeneral", "General")))
+                {
+                    ImGui.Text(Loc.Localize("DalamudSettingsLanguage", "Language"));
+                    ImGui.Combo("##XlLangCombo", ref this.langIndex, this.locLanguages, this.locLanguages.Length);
                     ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingsLanguageHint", "Select the language Dalamud will be displayed in."));
 
                     ImGui.Dummy(new Vector2(5f, 5f) * ImGui.GetIO().FontGlobalScale);
 
                     ImGui.Text(Loc.Localize("DalamudSettingsChannel", "General Chat Channel"));
-                    if (ImGui.BeginCombo("##XlChatTypeCombo", this.dalamudMessagesChatType.ToString())) {
-                        foreach (var type in Enum.GetValues(typeof(XivChatType)).Cast<XivChatType>()) {
-                            if (ImGui.Selectable(type.ToString(), type == this.dalamudMessagesChatType)) {
+                    if (ImGui.BeginCombo("##XlChatTypeCombo", this.dalamudMessagesChatType.ToString()))
+                    {
+                        foreach (var type in Enum.GetValues(typeof(XivChatType)).Cast<XivChatType>())
+                        {
+                            if (ImGui.Selectable(type.ToString(), type == this.dalamudMessagesChatType))
+                            {
                                 this.dalamudMessagesChatType = type;
                             }
                         }
+
                         ImGui.EndCombo();
                     }
+
                     ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingsChannelHint", "Select the chat channel that is to be used for general Dalamud messages."));
 
                     ImGui.Dummy(new Vector2(5f, 5f) * ImGui.GetIO().FontGlobalScale);
@@ -184,15 +208,20 @@ namespace Dalamud.Interface
                     ImGui.Checkbox(Loc.Localize("DalamudSettingsAutoUpdatePlugins", "Auto-update plugins"), ref this.autoUpdatePlugins);
                     ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingsAutoUpdatePluginsMsgHint", "Automatically update plugins when logging in with a character."));
 
+                    ImGui.Checkbox(Loc.Localize("DalamudSettingsSystemMenu", "Dalamud buttons in system menu"), ref this.doButtonsSystemMenu);
+                    ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingsSystemMenuMsgHint", "Add buttons for Dalamud plugins and settings to the system menu."));
+
                     ImGui.EndTabItem();
                 }
 
-                if (ImGui.BeginTabItem(Loc.Localize("DalamudSettingsVisual", "Look & Feel"))) {
+                if (ImGui.BeginTabItem(Loc.Localize("DalamudSettingsVisual", "Look & Feel")))
+                {
                     ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 3);
                     ImGui.Text(Loc.Localize("DalamudSettingsGlobalUiScale", "Global UI Scale"));
                     ImGui.SameLine();
                     ImGui.SetCursorPosY(ImGui.GetCursorPosY() - 3);
-                    if (ImGui.Button("Reset")) {
+                    if (ImGui.Button("Reset"))
+                    {
                         this.globalUiScale = 1.0f;
                         ImGui.GetIO().FontGlobalScale = this.globalUiScale;
                     }
@@ -223,10 +252,14 @@ namespace Dalamud.Interface
                     ImGui.Checkbox(Loc.Localize("DalamudSettingToggleDocking", "Enable window docking"), ref this.doDocking);
                     ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingToggleDockingHint", "This will allow you to fuse and tab plugin windows."));
 
+                    ImGui.Checkbox(Loc.Localize("DalamudSettingToggleGamepadNavigation", "Enable navigation of ImGui windows via gamepad."), ref this.doGamepad);
+                    ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingToggleGamepadNavigationHint", "This will allow you to toggle between game and ImGui navigation via L1+L3.\nToggle the PluginInstaller window via R3 if ImGui navigation is enabled."));
+
                     ImGui.EndTabItem();
                 }
 
-                if (ImGui.BeginTabItem(Loc.Localize("DalamudSettingsExperimental", "Experimental"))) {
+                if (ImGui.BeginTabItem(Loc.Localize("DalamudSettingsExperimental", "Experimental")))
+                {
                     ImGui.Checkbox(Loc.Localize("DalamudSettingsPluginTest", "Get plugin testing builds"), ref this.doPluginTest);
                     ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingsPluginTestHint", "Receive testing prereleases for plugins."));
                     ImGui.TextColored(this.warnTextColor, Loc.Localize("DalamudSettingsPluginTestWarning", "Testing plugins may not have been vetted before being published. Please only enable this if you are aware of the risks."));
@@ -248,8 +281,8 @@ namespace Dalamud.Interface
                     ImGui.Dummy(new Vector2(5f, 5f) * ImGui.GetIO().FontGlobalScale);
 
                     ImGui.Columns(4);
-                    ImGui.SetColumnWidth(0, 18 + 5 * ImGui.GetIO().FontGlobalScale);
-                    ImGui.SetColumnWidth(1, ImGui.GetWindowWidth() - (18 + 16 + 14) - (5 + 45 + 26) * ImGui.GetIO().FontGlobalScale);
+                    ImGui.SetColumnWidth(0, 18 + (5 * ImGui.GetIO().FontGlobalScale));
+                    ImGui.SetColumnWidth(1, ImGui.GetWindowWidth() - (18 + 16 + 14) - ((5 + 45 + 26) * ImGui.GetIO().FontGlobalScale));
                     ImGui.SetColumnWidth(2, 16 + (45 * ImGui.GetIO().FontGlobalScale));
                     ImGui.SetColumnWidth(3, 14 + (26 * ImGui.GetIO().FontGlobalScale));
 
@@ -261,7 +294,7 @@ namespace Dalamud.Interface
                     ImGui.NextColumn();
                     ImGui.Text("Enabled");
                     ImGui.NextColumn();
-                    ImGui.Text("");
+                    ImGui.Text(string.Empty);
                     ImGui.NextColumn();
 
                     ImGui.Separator();
@@ -277,7 +310,8 @@ namespace Dalamud.Interface
                     ThirdRepoSetting toRemove = null;
 
                     var repoNumber = 1;
-                    foreach (var thirdRepoSetting in this.thirdRepoList) {
+                    foreach (var thirdRepoSetting in this.thirdRepoList)
+                    {
                         var isEnabled = thirdRepoSetting.IsEnabled;
 
                         ImGui.PushID($"thirdRepo_{thirdRepoSetting.Url}");
@@ -289,14 +323,16 @@ namespace Dalamud.Interface
                         ImGui.TextWrapped(thirdRepoSetting.Url);
                         ImGui.NextColumn();
 
-                        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (ImGui.GetColumnWidth() / 2) - 7 - 12 * ImGui.GetIO().FontGlobalScale);
+                        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (ImGui.GetColumnWidth() / 2) - 7 - (12 * ImGui.GetIO().FontGlobalScale));
                         ImGui.Checkbox("##thirdRepoCheck", ref isEnabled);
                         ImGui.NextColumn();
 
                         ImGui.PushFont(InterfaceManager.IconFont);
-                        if (ImGui.Button(FontAwesomeIcon.Trash.ToIconString())) {
+                        if (ImGui.Button(FontAwesomeIcon.Trash.ToIconString()))
+                        {
                             toRemove = thirdRepoSetting;
                         }
+
                         ImGui.PopFont();
                         ImGui.NextColumn();
                         ImGui.Separator();
@@ -306,7 +342,8 @@ namespace Dalamud.Interface
                         repoNumber++;
                     }
 
-                    if (toRemove != null) {
+                    if (toRemove != null)
+                    {
                         this.thirdRepoList.Remove(toRemove);
                     }
 
@@ -318,25 +355,32 @@ namespace Dalamud.Interface
                     ImGui.NextColumn();
                     ImGui.NextColumn();
                     ImGui.PushFont(InterfaceManager.IconFont);
-                    if (!string.IsNullOrEmpty(this.thirdRepoTempUrl) && ImGui.Button(FontAwesomeIcon.Plus.ToIconString())) {
-                        if (this.thirdRepoList.Any(r => string.Equals(r.Url, this.thirdRepoTempUrl, StringComparison.InvariantCultureIgnoreCase))) {
+                    if (!string.IsNullOrEmpty(this.thirdRepoTempUrl) && ImGui.Button(FontAwesomeIcon.Plus.ToIconString()))
+                    {
+                        if (this.thirdRepoList.Any(r => string.Equals(r.Url, this.thirdRepoTempUrl, StringComparison.InvariantCultureIgnoreCase)))
+                        {
                             this.thirdRepoAddError = Loc.Localize("DalamudThirdRepoExists", "Repo already exists.");
                             Task.Delay(5000).ContinueWith(t => this.thirdRepoAddError = string.Empty);
-                        } else {
-                            this.thirdRepoList.Add(new ThirdRepoSetting {
+                        }
+                        else
+                        {
+                            this.thirdRepoList.Add(new ThirdRepoSetting
+                            {
                                 Url = this.thirdRepoTempUrl,
-                                IsEnabled = true
+                                IsEnabled = true,
                             });
 
                             this.thirdRepoTempUrl = string.Empty;
                         }
                     }
+
                     ImGui.PopFont();
                     ImGui.Columns(1);
 
                     ImGui.EndTabItem();
 
-                    if (!string.IsNullOrEmpty(this.thirdRepoAddError)) {
+                    if (!string.IsNullOrEmpty(this.thirdRepoAddError))
+                    {
                         ImGui.TextColored(new Vector4(1, 0, 0, 1), this.thirdRepoAddError);
                     }
                 }
@@ -346,19 +390,22 @@ namespace Dalamud.Interface
 
             ImGui.EndChild();
 
-            if (ImGui.Button(Loc.Localize("Save", "Save"))) {
-                Save();
+            if (ImGui.Button(Loc.Localize("Save", "Save")))
+            {
+                this.Save();
             }
 
             ImGui.SameLine();
 
-            if (ImGui.Button(Loc.Localize("SaveAndClose", "Save and Close"))) {
-                Save();
+            if (ImGui.Button(Loc.Localize("SaveAndClose", "Save and Close")))
+            {
+                this.Save();
                 this.IsOpen = false;
             }
         }
 
-        private void Save() {
+        private void Save()
+        {
             this.dalamud.LocalizationManager.SetupWithLangCode(this.languages[this.langIndex]);
             this.dalamud.Configuration.LanguageOverride = this.languages[this.langIndex];
 
@@ -373,6 +420,7 @@ namespace Dalamud.Interface
             this.dalamud.Configuration.ToggleUiHideDuringGpose = this.doToggleUiHideDuringGpose;
 
             this.dalamud.Configuration.IsDocking = this.doDocking;
+            this.dalamud.Configuration.IsGamepadNavigationEnabled = this.doGamepad;
 
             // This is applied every frame in InterfaceManager::CheckViewportState()
             this.dalamud.Configuration.IsDisableViewport = !this.doViewport;
@@ -387,11 +435,24 @@ namespace Dalamud.Interface
                 ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.DockingEnable;
             }
 
+            // NOTE (Chiv) Toggle gamepad navigation via setting
+            if (!this.dalamud.Configuration.IsGamepadNavigationEnabled)
+            {
+                ImGui.GetIO().BackendFlags &= ~ImGuiBackendFlags.HasGamepad;
+                ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.NavEnableSetMousePos;
+            }
+            else
+            {
+                ImGui.GetIO().BackendFlags |= ImGuiBackendFlags.HasGamepad;
+                ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.NavEnableSetMousePos;
+            }
+
             this.dalamud.Configuration.DoPluginTest = this.doPluginTest;
             this.dalamud.Configuration.ThirdRepoList = this.thirdRepoList.Select(x => x.Clone()).ToList();
 
             this.dalamud.Configuration.PrintPluginsWelcomeMsg = this.printPluginsWelcomeMsg;
             this.dalamud.Configuration.AutoUpdatePlugins = this.autoUpdatePlugins;
+            this.dalamud.Configuration.DoButtonsSystemMenu = this.doButtonsSystemMenu;
 
             this.dalamud.Configuration.Save();
 

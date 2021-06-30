@@ -1,41 +1,28 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
 
 namespace Dalamud.Game.Network.MarketBoardUploaders.Universalis
 {
-    class UniversalisTaxUploadRequest
+    /// <summary>
+    /// A Universalis API structure.
+    /// </summary>
+    internal class UniversalisTaxUploadRequest
     {
+        /// <summary>
+        /// Gets or sets the uploader's ID.
+        /// </summary>
         [JsonProperty("uploaderID")]
-        public ulong UploaderId { get; set; }
+        public string UploaderId { get; set; }
 
+        /// <summary>
+        /// Gets or sets the world to retrieve data from.
+        /// </summary>
         [JsonProperty("worldID")]
         public uint WorldId { get; set; }
 
+        /// <summary>
+        /// Gets or sets tax data for each city's market.
+        /// </summary>
         [JsonProperty("marketTaxRates")]
         public UniversalisTaxData TaxData { get; set; }
-    }
-
-    class UniversalisTaxData {
-        [JsonProperty("limsaLominsa")]
-        public uint LimsaLominsa { get; set; }
-
-        [JsonProperty("gridania")]
-        public uint Gridania { get; set; }
-
-        [JsonProperty("uldah")]
-        public uint Uldah { get; set; }
-
-        [JsonProperty("ishgard")]
-        public uint Ishgard { get; set; }
-
-        [JsonProperty("kugane")]
-        public uint Kugane { get; set; }
-
-        [JsonProperty("crystarium")]
-        public uint Crystarium { get; set; }
     }
 }

@@ -6,7 +6,8 @@ namespace Dalamud.Game.ClientState
     /// These come from LogMessage (somewhere) and directly map to each state field managed by the client. As of 5.25, it maps to
     /// LogMessage row 7700 and onwards, which can be checked by looking at the Condition sheet and looking at what column 2 maps to.
     /// </summary>
-    public enum ConditionFlag {
+    public enum ConditionFlag
+    {
         /// <summary>
         /// Unused.
         /// </summary>
@@ -27,9 +28,6 @@ namespace Dalamud.Game.ClientState
         /// </summary>
         Emoting = 3,
 
-        /// <summary>
-        /// Unable to execute command while mounted.
-        /// </summary>
         /// <summary>
         /// Unable to execute command while mounted.
         /// </summary>
@@ -94,15 +92,15 @@ namespace Dalamud.Game.ClientState
         /// Unable to execute command while performing.
         /// </summary>
         Performing = 16,
-        
-        //Unknown17 = 17,
-        //Unknown18 = 18,
-        //Unknown19 = 19,
-        //Unknown20 = 20,
-        //Unknown21 = 21,
-        //Unknown22 = 22,
-        //Unknown23 = 23,
-        //Unknown24 = 24,
+
+        // Unknown17 = 17,
+        // Unknown18 = 18,
+        // Unknown19 = 19,
+        // Unknown20 = 20,
+        // Unknown21 = 21,
+        // Unknown22 = 22,
+        // Unknown23 = 23,
+        // Unknown24 = 24,
 
         /// <summary>
         /// Unable to execute command while occupied.
@@ -199,8 +197,8 @@ namespace Dalamud.Game.ClientState
         /// Unable to execute command while fishing.
         /// </summary>
         Fishing = 43,
-        
-        //Unknown44 = 44,
+
+        // Unknown44 = 44,
 
         /// <summary>
         /// Unable to execute command while between areas.
@@ -211,8 +209,8 @@ namespace Dalamud.Game.ClientState
         /// Unable to execute command while stealthed.
         /// </summary>
         Stealthed = 46,
-        
-        //Unknown47 = 47,
+
+        // Unknown47 = 47,
 
         /// <summary>
         /// Unable to execute command while jumping.
@@ -399,8 +397,8 @@ namespace Dalamud.Game.ClientState
         /// Unable to execute command while participating in a cross-world party or alliance.
         /// </summary>
         ParticipatingInCrossWorldPartyOrAlliance = 84,
-        
-        //Unknown85 = 85,
+
+        // Unknown85 = 85,
 
         /// <summary>
         /// Unable to execute command while playing duty record.

@@ -1,16 +1,29 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Dalamud.Game.ClientState.Structs.JobGauge {
-
+namespace Dalamud.Game.ClientState.Structs.JobGauge
+{
+    /// <summary>
+    /// In-memory GNB job gauge.
+    /// </summary>
     [StructLayout(LayoutKind.Explicit)]
-    public struct GNBGauge {
-        [FieldOffset(0)] public byte NumAmmo;
-        [FieldOffset(2)] public short MaxTimerDuration;
-        [FieldOffset(4)] public byte AmmoComboStepNumber;
+    public struct GNBGauge
+    {
+        /// <summary>
+        /// Gets the amount of ammo available.
+        /// </summary>
+        [FieldOffset(0)]
+        public byte NumAmmo;
+
+        /// <summary>
+        /// Gets the max combo time of the Gnashing Fang combo.
+        /// </summary>
+        [FieldOffset(2)]
+        public short MaxTimerDuration;
+
+        /// <summary>
+        /// Gets the current step of the Gnashing Fang combo.
+        /// </summary>
+        [FieldOffset(4)]
+        public byte AmmoComboStepNumber;
     }
 }

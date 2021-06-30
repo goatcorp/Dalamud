@@ -1,18 +1,19 @@
 using System;
-
+using System.Text;
 using Dalamud.Game.ClientState.Structs;
+using Serilog;
 
 namespace Dalamud.Game.ClientState.Actors.Types
 {
     /// <summary>
-    ///     This class represents a basic FFXIV actor.
+    /// This class represents a basic FFXIV actor.
     /// </summary>
     public class Actor : IEquatable<Actor>
     {
         private readonly Structs.Actor actorStruct;
-        // This is a breaking change. StyleCop demands it.
-        // private readonly IntPtr address;
         private readonly Dalamud dalamud;
+
+        private string name;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Actor"/> class.
@@ -42,7 +43,7 @@ namespace Dalamud.Game.ClientState.Actors.Types
         /// <summary>
         /// Gets the displayname of this <see cref="Actor" />.
         /// </summary>
-        public string Name => this.ActorStruct.Name;
+        public string Name => this.name ??= Util.GetUTF8String(this.actorStruct.Name);
 
         /// <summary>
         /// Gets the actor ID of this <see cref="Actor" />.
@@ -83,8 +84,6 @@ namespace Dalamud.Game.ClientState.Actors.Types
         /// <summary>
         /// Gets the address of this actor in memory.
         /// </summary>
-        // TODO: This is a breaking change, StyleCop demands it.
-        // public IntPtr Address => this.address;
         public readonly IntPtr Address;
 
         /// <summary>

@@ -18,6 +18,17 @@ namespace Dalamud.Configuration
         private string configPath;
 
         /// <summary>
+        /// Delegate for the <see cref="DalamudConfiguration.OnDalamudConfigurationSaved"/> event that occurs when the dalamud configuration is saved.
+        /// </summary>
+        /// <param name="dalamudConfiguration">The current dalamud configuration.</param>
+        public delegate void DalamudConfigurationSavedDelegate(DalamudConfiguration dalamudConfiguration);
+
+        /// <summary>
+        /// Event that occurs when dalamud configuration is saved.
+        /// </summary>
+        public event DalamudConfigurationSavedDelegate OnDalamudConfigurationSaved;
+
+        /// <summary>
         /// Gets or sets a list of muted works.
         /// </summary>
         public List<string> BadWords { get; set; }
@@ -98,6 +109,11 @@ namespace Dalamud.Configuration
         public bool AutoUpdatePlugins { get; set; }
 
         /// <summary>
+        /// Gets or sets a value indicating whether or not Dalamud should add buttons to the system menu.
+        /// </summary>
+        public bool DoButtonsSystemMenu { get; set; } = true;
+
+        /// <summary>
         /// Gets or sets a value indicating whether or not the debug log should scroll automatically.
         /// </summary>
         public bool LogAutoScroll { get; set; } = true;
@@ -116,6 +132,11 @@ namespace Dalamud.Configuration
         /// Gets or sets a value indicating whether viewports should always be disabled.
         /// </summary>
         public bool IsDisableViewport { get; set; } = true;
+
+        /// <summary>
+        /// Gets or sets a value indicating whether or not navigation via a gamepad should be globally enabled in ImGui.
+        /// </summary>
+        public bool IsGamepadNavigationEnabled { get; set; } = true;
 
         /// <summary>
         /// Load a configuration from the provided path.
@@ -146,6 +167,7 @@ namespace Dalamud.Configuration
         public void Save()
         {
             File.WriteAllText(this.configPath, JsonConvert.SerializeObject(this, Formatting.Indented));
+            this.OnDalamudConfigurationSaved?.Invoke(this);
         }
     }
 }

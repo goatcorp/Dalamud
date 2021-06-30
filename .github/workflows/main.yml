@@ -1,5 +1,6 @@
 name: Build Dalamud
 on: [push, pull_request, workflow_dispatch]
+concurrency: build_dalamud
 
 jobs:
   build:

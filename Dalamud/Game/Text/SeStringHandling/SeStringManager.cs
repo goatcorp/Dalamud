@@ -1,22 +1,27 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
+
 using Dalamud.Data;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Lumina.Excel.GeneratedSheets;
 
 namespace Dalamud.Game.Text.SeStringHandling
 {
+    /// <summary>
+    /// This class facilitates creating new SeStrings and breaking down existing ones into their individual payload components.
+    /// </summary>
     public class SeStringManager
     {
         private readonly DataManager data;
 
-        public SeStringManager(DataManager Data) {
-            this.data = Data;
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SeStringManager"/> class.
+        /// </summary>
+        /// <param name="data">The DataManager instance.</param>
+        public SeStringManager(DataManager data)
+        {
+            this.data = data;
         }
 
         /// <summary>
@@ -51,7 +56,7 @@ namespace Dalamud.Game.Text.SeStringHandling
         /// <returns>An SeString containing all the payloads necessary to display an item link in the chat log.</returns>
         public SeString CreateItemLink(uint itemId, bool isHQ, string displayNameOverride = null)
         {
-            string displayName = displayNameOverride ?? this.data.GetExcelSheet<Item>().GetRow(itemId).Name;
+            var displayName = displayNameOverride ?? this.data.GetExcelSheet<Item>().GetRow(itemId).Name;
             if (isHQ)
             {
                 displayName += $" {(char)SeIconChar.HighQuality}";
@@ -65,11 +70,11 @@ namespace Dalamud.Game.Text.SeStringHandling
                 new ItemPayload(this.data, itemId, isHQ),
                 // arrow goes here
                 new TextPayload(displayName),
-                RawPayload.LinkTerminator
+                RawPayload.LinkTerminator,
                 // sometimes there is another set of uiglow/foreground off payloads here
                 // might be necessary when including additional text after the item name
             });
-            payloads.InsertRange(3, TextArrowPayloads());
+            payloads.InsertRange(3, this.TextArrowPayloads());
 
             return new SeString(payloads);
         }
@@ -83,9 +88,17 @@ namespace Dalamud.Game.Text.SeStringHandling
         /// <returns>An SeString containing all the payloads necessary to display an item link in the chat log.</returns>
         public SeString CreateItemLink(Item item, bool isHQ, string displayNameOverride = null)
         {
-            return CreateItemLink((uint)item.RowId, isHQ, displayNameOverride ?? item.Name);
+            return this.CreateItemLink((uint)item.RowId, isHQ, displayNameOverride ?? item.Name);
         }
 
+        /// <summary>
+        /// Creates an SeString representing an entire Payload chain that can be used to link a map position in the chat log.
+        /// </summary>
+        /// <param name="territoryId">The id of the TerritoryType for this map link.</param>
+        /// <param name="mapId">The id of the Map for this map link.</param>
+        /// <param name="rawX">The raw x-coordinate for this link.</param>
+        /// <param name="rawY">The raw y-coordinate for this link..</param>
+        /// <returns>An SeString containing all of the payloads necessary to display a map link in the chat log.</returns>
         public SeString CreateMapLink(uint territoryId, uint mapId, int rawX, int rawY)
         {
             var mapPayload = new MapLinkPayload(this.data, territoryId, mapId, rawX, rawY);
@@ -96,9 +109,9 @@ namespace Dalamud.Game.Text.SeStringHandling
                 mapPayload,
                 // arrow goes here
                 new TextPayload(nameString),
-                RawPayload.LinkTerminator
+                RawPayload.LinkTerminator,
             });
-            payloads.InsertRange(1, TextArrowPayloads());
+            payloads.InsertRange(1, this.TextArrowPayloads());
 
             return new SeString(payloads);
         }
@@ -122,9 +135,9 @@ namespace Dalamud.Game.Text.SeStringHandling
                 mapPayload,
                 // arrow goes here
                 new TextPayload(nameString),
-                RawPayload.LinkTerminator
+                RawPayload.LinkTerminator,
             });
-            payloads.InsertRange(1, TextArrowPayloads());
+            payloads.InsertRange(1, this.TextArrowPayloads());
 
             return new SeString(payloads);
         }
@@ -147,10 +160,10 @@ namespace Dalamud.Game.Text.SeStringHandling
 
             foreach (var place in matches)
             {
-                var map = mapSheet.GetRows().FirstOrDefault(row => row.PlaceName.Row == place.RowId);
+                var map = mapSheet.FirstOrDefault(row => row.PlaceName.Row == place.RowId);
                 if (map != null)
                 {
-                    return CreateMapLink(map.TerritoryType.Row, (uint)map.RowId, xCoord, yCoord);
+                    return this.CreateMapLink(map.TerritoryType.Row, map.RowId, xCoord, yCoord, fudgeFactor);
                 }
             }
 
@@ -171,7 +184,7 @@ namespace Dalamud.Game.Text.SeStringHandling
                 new UIGlowPayload(this.data, 0x01F5),
                 new TextPayload($"{(char)SeIconChar.LinkMarker}"),
                 UIGlowPayload.UIGlowOff,
-                UIForegroundPayload.UIForegroundOff
+                UIForegroundPayload.UIForegroundOff,
             });
         }
     }

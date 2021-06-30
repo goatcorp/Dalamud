@@ -26,13 +26,25 @@ namespace Dalamud.Hooking
         /// </summary>
         /// <param name="address">A memory address to install a hook.</param>
         /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
-        /// <param name="callbackParam">A callback object which can be accessed within the detour.</param>
-        public Hook(IntPtr address, Delegate detour, object callbackParam = null)
+        public Hook(IntPtr address, T detour)
         {
-            this.hookInfo = LocalHook.Create(address, detour, callbackParam); // Installs a hook here
+            this.hookInfo = LocalHook.Create(address, detour, null); // Installs a hook here
             this.address = address;
             this.original = Marshal.GetDelegateForFunctionPointer<T>(this.hookInfo.HookBypassAddress);
             HookInfo.TrackedHooks.Add(new HookInfo() { Delegate = detour, Hook = this, Assembly = Assembly.GetCallingAssembly() });
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Hook{T}"/> class.
+        /// Hook is not activated until Enable() method is called.
+        /// </summary>
+        /// <param name="address">A memory address to install a hook.</param>
+        /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
+        /// <param name="callbackParam">A callback object which can be accessed within the detour.</param>
+        [Obsolete("There is no need to specify new YourDelegateType or callbackParam", true)]
+        public Hook(IntPtr address, Delegate detour, object callbackParam = null)
+            : this(address, detour as T)
+        {
         }
 
         /// <summary>
@@ -87,15 +99,26 @@ namespace Dalamud.Hooking
         /// <param name="moduleName">A name of the module currently loaded in the memory. (e.g. ws2_32.dll).</param>
         /// <param name="exportName">A name of the exported function name (e.g. send).</param>
         /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
-        /// <param name="callbackParam">A callback object which can be accessed within the detour.</param>
         /// <returns>The hook with the supplied parameters.</returns>
-        public static Hook<T> FromSymbol(string moduleName, string exportName, Delegate detour, object callbackParam = null)
+        public static Hook<T> FromSymbol(string moduleName, string exportName, T detour)
         {
             // Get a function address from the symbol name.
             var address = LocalHook.GetProcAddress(moduleName, exportName);
 
-            return new Hook<T>(address, detour, callbackParam);
+            return new Hook<T>(address, detour);
         }
+
+        /// <summary>
+        /// Creates a hook. Hooking address is inferred by calling to GetProcAddress() function.
+        /// Hook is not activated until Enable() method is called.
+        /// </summary>
+        /// <param name="moduleName">A name of the module currently loaded in the memory. (e.g. ws2_32.dll).</param>
+        /// <param name="exportName">A name of the exported function name (e.g. send).</param>
+        /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
+        /// <param name="callbackParam">A callback object which can be accessed within the detour.</param>
+        /// <returns>The hook with the supplied parameters.</returns>
+        [Obsolete("There is no need to specify new YourDelegateType or callbackParam", true)]
+        public static Hook<T> FromSymbol(string moduleName, string exportName, Delegate detour, object callbackParam = null) => FromSymbol(moduleName, exportName, detour as T);
 
         /// <summary>
         /// Remove a hook from the current process.

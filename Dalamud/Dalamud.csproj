@@ -2,7 +2,7 @@
     <PropertyGroup Label="Target">
         <PlatformTarget>AnyCPU</PlatformTarget>
         <TargetFramework>net472</TargetFramework>
-        <LangVersion>8.0</LangVersion>
+        <LangVersion>9.0</LangVersion>
         <Platforms>AnyCPU;x64</Platforms>
     </PropertyGroup>
     <PropertyGroup Label="Build">
@@ -14,7 +14,7 @@
         <DocumentationFile>$(SolutionDir)\bin\Dalamud.xml</DocumentationFile>
     </PropertyGroup>
     <PropertyGroup Label="Feature">
-        <DalamudVersion>5.2.5.6</DalamudVersion>
+        <DalamudVersion>5.2.6.1</DalamudVersion>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <AssemblyVersion>$(DalamudVersion)</AssemblyVersion>
         <Version>$(DalamudVersion)</Version>
@@ -34,6 +34,18 @@
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
         <DefineConstants>DEBUG;TRACE</DefineConstants>
     </PropertyGroup>
+    <PropertyGroup>
+        <NoWarn>IDE0017;IDE0044;IDE0047;IDE0048;IDE1006;CS1573;CS1591;CS1701;CS1702</NoWarn>
+        <!-- IDE0017 - Use object initializers -->
+        <!-- IDE0044 - Add readonly modifier -->
+        <!-- IDE0047 - Parentheses preferences -->
+        <!-- IDE0048 - Parentheses preferences -->
+        <!-- IDE1006 - Naming preferences -->
+        <!-- CS1573  - Parameter has no matching param tag in the XML comment -->
+        <!-- CS1591  - Missing XML comment for publicly visible type or member -->
+        <!-- CS1701  - Runtime policy may be needed -->
+        <!-- CS1702  - Runtime policy may be needed -->
+    </PropertyGroup>
     <ItemGroup>
         <None Remove="Resources\Lumina.Generated.dll" />
         <None Remove="stylecop.json" />
@@ -46,6 +58,7 @@
         <PackageReference Include="JetBrains.Annotations" Version="2020.3.0" />
         <PackageReference Include="Lumina" Version="3.1.0" />
         <PackageReference Include="Lumina.Excel" Version="5.50.0" />
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="3.0.0" />
         <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
         <PackageReference Include="PropertyChanged.Fody" Version="2.6.1" />
         <PackageReference Include="Serilog" Version="2.6.0" />
@@ -53,7 +66,7 @@
         <PackageReference Include="Serilog.Sinks.File" Version="4.0.0" />
         <PackageReference Include="EasyHook" Version="2.7.6270" />
         <PackageReference Include="SharpDX.Desktop" Version="4.2.0" />
-        <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
+        <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.333">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>

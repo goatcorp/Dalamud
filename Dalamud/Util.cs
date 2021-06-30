@@ -2,7 +2,6 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Text;
 
 using Dalamud.Game;
@@ -50,9 +49,15 @@ namespace Dalamud
         /// <param name="len">The length to read.</param>
         public static void DumpMemory(IntPtr offset, int len = 512)
         {
-            var data = new byte[len];
-            Marshal.Copy(offset, data, 0, len);
-            Log.Information(ByteArrayToHex(data));
+            try
+            {
+                SafeMemory.ReadBytes(offset, len, out var data);
+                Log.Information(ByteArrayToHex(data));
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Read failed");
+            }
         }
 
         /// <summary>
@@ -148,13 +153,48 @@ namespace Dalamud
             }
         }
 
-        [DllImport("user32.dll", SetLastError = true, CharSet= CharSet.Auto)]
-        public static extern int MessageBox(IntPtr hWnd, string text, string caption, uint type);
-
+        /// <summary>
+        /// Display an error MessageBox and exit the current process.
+        /// </summary>
+        /// <param name="message">MessageBox body.</param>
+        /// <param name="caption">MessageBox caption (title).</param>
         public static void Fatal(string message, string caption)
         {
-            MessageBox(Process.GetCurrentProcess().MainWindowHandle, message, caption, 0);
+            var flags = NativeFunctions.MessageBoxType.Ok | NativeFunctions.MessageBoxType.IconError;
+
+            NativeFunctions.MessageBox(Process.GetCurrentProcess().MainWindowHandle, message, caption, flags);
             Environment.Exit(-1);
         }
+
+        /// <summary>
+        /// Retrieve a UTF8 string from a null terminated byte array.
+        /// </summary>
+        /// <param name="array">A null terminated UTF8 byte array.</param>
+        /// <returns>A UTF8 encoded string.</returns>
+        public static string GetUTF8String(byte[] array)
+        {
+            var count = 0;
+            for (; count < array.Length; count++)
+            {
+                if (array[count] == 0)
+                    break;
+            }
+
+            string text;
+            if (count == array.Length)
+            {
+                text = Encoding.UTF8.GetString(array);
+                Log.Warning($"Warning: text exceeds underlying array length ({text})");
+            }
+            else
+            {
+                text = Encoding.UTF8.GetString(array, 0, count);
+            }
+
+            return text;
+        }
+
+        // TODO: Someone implement GetUTF8String with some IntPtr overloads.
+        // while(Marshal.ReadByte(0, sz) != 0) { sz++; }
     }
 }

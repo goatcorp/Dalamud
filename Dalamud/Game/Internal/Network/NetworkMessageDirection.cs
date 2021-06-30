@@ -1,6 +1,18 @@
-namespace Dalamud.Game.Internal.Network {
-    public enum NetworkMessageDirection {
+namespace Dalamud.Game.Internal.Network
+{
+    /// <summary>
+    /// This represents the direction of a network message.
+    /// </summary>
+    public enum NetworkMessageDirection
+    {
+        /// <summary>
+        /// A zone down message.
+        /// </summary>
         ZoneDown,
-        ZoneUp
+
+        /// <summary>
+        /// A zone up message.
+        /// </summary>
+        ZoneUp,
     }
 }
