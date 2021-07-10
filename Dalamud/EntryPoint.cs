@@ -4,6 +4,7 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Dalamud.Configuration;
 using Dalamud.Interface;
 using EasyHook;
 using Serilog;
@@ -34,8 +35,11 @@ namespace Dalamud
         /// <param name="info">The <see cref="DalamudStartInfo"/> containing information needed to initialize Dalamud.</param>
         public void Run(RemoteHooking.IContext ctx, DalamudStartInfo info)
         {
+            // Load configuration first to get some early persistent state, like log level
+            var configuration = DalamudConfiguration.Load(info.ConfigurationPath);
+
             // Setup logger
-            var (logger, levelSwitch) = this.NewLogger(info.WorkingDirectory);
+            var (logger, levelSwitch) = this.NewLogger(info.WorkingDirectory, configuration.LogLevel);
             Log.Logger = logger;
 
             var finishSignal = new ManualResetEvent(false);
@@ -53,7 +57,7 @@ namespace Dalamud
                 AppDomain.CurrentDomain.UnhandledException += this.OnUnhandledException;
                 TaskScheduler.UnobservedTaskException += this.OnUnobservedTaskException;
 
-                var dalamud = new Dalamud(info, levelSwitch, finishSignal);
+                var dalamud = new Dalamud(info, levelSwitch, finishSignal, configuration);
                 Log.Information("Starting a session..");
 
                 // Run session
@@ -77,7 +81,7 @@ namespace Dalamud
             }
         }
 
-        private (Logger Logger, LoggingLevelSwitch LevelSwitch) NewLogger(string baseDirectory)
+        private (Logger Logger, LoggingLevelSwitch LevelSwitch) NewLogger(string baseDirectory, LogEventLevel logLevel)
         {
 #if DEBUG
             var logPath = Path.Combine(baseDirectory, "dalamud.log");
@@ -90,7 +94,7 @@ namespace Dalamud
 #if DEBUG
             levelSwitch.MinimumLevel = LogEventLevel.Verbose;
 #else
-            levelSwitch.MinimumLevel = LogEventLevel.Information;
+            levelSwitch.MinimumLevel = logLevel;
 #endif
 
             var newLogger = new LoggerConfiguration()

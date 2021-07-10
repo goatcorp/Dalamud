@@ -190,6 +190,8 @@ namespace Dalamud.Interface
                                 if (ImGui.MenuItem(logLevel + "##logLevelSwitch", string.Empty, this.dalamud.LogLevelSwitch.MinimumLevel == logLevel))
                                 {
                                     this.dalamud.LogLevelSwitch.MinimumLevel = logLevel;
+                                    this.dalamud.Configuration.LogLevel = logLevel;
+                                    this.dalamud.Configuration.Save();
                                 }
                             }
 
