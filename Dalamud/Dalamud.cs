@@ -229,8 +229,11 @@ namespace Dalamud
                 this.Configuration = DalamudConfiguration.Load(this.StartInfo.ConfigurationPath);
 
                 this.AntiDebug = new AntiDebug(this.SigScanner);
+                if (this.Configuration.IsAntiAntiDebugEnabled)
+                    this.AntiDebug.Enable();
 #if DEBUG
-                this.AntiDebug.Enable();
+                if (!this.AntiDebug.IsEnabled)
+                    this.AntiDebug.Enable();
 #endif
 
                 Log.Information("[T2] AntiDebug OK!");

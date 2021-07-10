@@ -35,7 +35,7 @@ namespace Dalamud.Game.Internal
         /// <summary>
         /// Gets a value indicating whether the anti-debugging is enabled.
         /// </summary>
-        public bool IsEnabled { get; private set; }
+        public bool IsEnabled { get; private set; } = false;
 
         /// <summary>
         /// Enables the anti-debugging by overwriting code in memory.
