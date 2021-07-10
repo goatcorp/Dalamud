@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Numerics;
@@ -15,6 +16,7 @@ namespace Dalamud.Interface
     /// </summary>
     internal class DalamudCreditsWindow : Window, IDisposable
     {
+        private const float CreditFPS = 60.0f;
         private const string CreditsTextTempl = @"
 Dalamud
 A FFXIV Hooking Framework
@@ -107,6 +109,7 @@ Thank you for using XIVLauncher and Dalamud!
         private Framework framework;
 
         private string creditsText;
+        private Stopwatch creditsThrottler;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DalamudCreditsWindow"/> class.
@@ -119,6 +122,7 @@ Thank you for using XIVLauncher and Dalamud!
             this.logoTexture = this.dalamud.InterfaceManager.LoadImage(
                                        Path.Combine(this.dalamud.AssetDirectory.FullName, "UIRes", "logo.png"));
             this.framework = dalamud.Framework;
+            this.creditsThrottler = new Stopwatch();
 
             this.Size = new Vector2(500, 400);
             this.SizeCondition = ImGuiCond.Always;
@@ -139,11 +143,13 @@ Thank you for using XIVLauncher and Dalamud!
                 string.Format(CreditsTextTempl, typeof(Dalamud).Assembly.GetName().Version, pluginCredits);
 
             this.framework.Gui.SetBgm(132);
+            this.creditsThrottler.Restart();
         }
 
         /// <inheritdoc/>
         public override void OnClose()
         {
+            this.creditsThrottler.Reset();
             base.OnClose();
 
             this.framework.Gui.SetBgm(9999);
@@ -185,9 +191,13 @@ Thank you for using XIVLauncher and Dalamud!
             var curY = ImGui.GetScrollY();
             var maxY = ImGui.GetScrollMaxY();
 
-            if (curY < maxY - 1)
+            if (this.creditsThrottler.Elapsed.TotalMilliseconds > (1000.0f / CreditFPS))
             {
-                ImGui.SetScrollY(curY + 1);
+                this.creditsThrottler.Restart();
+                if (curY < maxY - 1)
+                {
+                    ImGui.SetScrollY(curY + 1);
+                }
             }
 
             ImGui.EndChild();
