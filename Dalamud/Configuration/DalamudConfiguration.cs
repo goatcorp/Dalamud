@@ -139,6 +139,11 @@ namespace Dalamud.Configuration
         public bool IsGamepadNavigationEnabled { get; set; } = true;
 
         /// <summary>
+        /// Gets or sets a value indicating whether or not the anti-anti-debug check is enabled on startup.
+        /// </summary>
+        public bool IsAntiAntiDebugEnabled { get; set; } = false;
+
+        /// <summary>
         /// Load a configuration from the provided path.
         /// </summary>
         /// <param name="path">The path to load the configuration file from.</param>
