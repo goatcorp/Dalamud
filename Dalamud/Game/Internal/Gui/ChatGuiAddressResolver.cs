@@ -10,10 +10,10 @@ namespace Dalamud.Game.Internal.Gui
         /// <summary>
         /// Initializes a new instance of the <see cref="ChatGuiAddressResolver"/> class.
         /// </summary>
-        /// <param name="baseAddres">The base address of the native ChatManager class.</param>
-        public ChatGuiAddressResolver(IntPtr baseAddres)
+        /// <param name="baseAddress">The base address of the native ChatManager class.</param>
+        public ChatGuiAddressResolver(IntPtr baseAddress)
         {
-            this.BaseAddress = baseAddres;
+            this.BaseAddress = baseAddress;
         }
 
         /// <summary>

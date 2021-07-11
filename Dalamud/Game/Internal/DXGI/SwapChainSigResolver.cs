@@ -22,7 +22,7 @@ namespace Dalamud.Game.Internal.DXGI
         {
             var module = Process.GetCurrentProcess().Modules.Cast<ProcessModule>().First(m => m.ModuleName == "dxgi.dll");
 
-            Log.Debug($"Found DXGI: {module.BaseAddress.ToInt64():X}");
+            Log.Debug($"Found DXGI: 0x{module.BaseAddress.ToInt64():X}");
 
             var scanner = new SigScanner(module);
 

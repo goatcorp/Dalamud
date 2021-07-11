@@ -1,7 +1,6 @@
 using System;
-using System.Text;
+
 using Dalamud.Game.ClientState.Structs;
-using Serilog;
 
 namespace Dalamud.Game.ClientState.Actors.Types
 {
@@ -22,7 +21,7 @@ namespace Dalamud.Game.ClientState.Actors.Types
         /// <param name="actorStruct">The memory representation of the base actor.</param>
         /// <param name="dalamud">A dalamud reference needed to access game data in Resolvers.</param>
         /// <param name="address">The address of this actor in memory.</param>
-        public Actor(IntPtr address, Structs.Actor actorStruct, Dalamud dalamud)
+        internal Actor(IntPtr address, Structs.Actor actorStruct, Dalamud dalamud)
         {
             this.actorStruct = actorStruct;
             this.dalamud = dalamud;
@@ -94,7 +93,7 @@ namespace Dalamud.Game.ClientState.Actors.Types
         /// <summary>
         /// Gets the <see cref="Dalamud"/> backing instance.
         /// </summary>
-        protected Dalamud Dalamud => this.dalamud;
+        internal Dalamud Dalamud => this.dalamud;
 
         /// <inheritdoc/>
         bool IEquatable<Actor>.Equals(Actor other) => this.ActorId == other.ActorId;

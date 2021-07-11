@@ -32,6 +32,7 @@ namespace Dalamud.Game.ClientState.Structs.JobGauge
         /// <summary>
         /// Gets the next step in the current dance.
         /// </summary>
+        /// <returns>The next dance step action ID.</returns>
         public ulong NextStep() => (ulong)(15999 + this.stepOrder[this.NumCompleteSteps] - 1);
 
         /// <summary>

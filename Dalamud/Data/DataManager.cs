@@ -7,6 +7,7 @@ using System.Threading;
 
 using Dalamud.Data.LuminaExtensions;
 using Dalamud.Interface;
+using Dalamud.Interface.Internal;
 using ImGuiScene;
 using JetBrains.Annotations;
 using Lumina;
@@ -21,7 +22,7 @@ namespace Dalamud.Data
     /// <summary>
     /// This class provides data for Dalamud-internal features, but can also be used by plugins if needed.
     /// </summary>
-    public class DataManager : IDisposable
+    public sealed class DataManager : IDisposable
     {
         private const string IconFileFormat = "ui/icon/{0:D3}000/{1}{2:D6}.tex";
         private readonly InterfaceManager interfaceManager;
@@ -32,6 +33,7 @@ namespace Dalamud.Data
         private GameData gameData;
 
         private Thread luminaResourceThread;
+        private CancellationTokenSource luminaCancellationTokenSource;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DataManager"/> class.
@@ -41,8 +43,9 @@ namespace Dalamud.Data
         internal DataManager(ClientLanguage language, InterfaceManager interfaceManager)
         {
             this.interfaceManager = interfaceManager;
+
             // Set up default values so plugins do not null-reference when data is being loaded.
-            this.ServerOpCodes = new ReadOnlyDictionary<string, ushort>(new Dictionary<string, ushort>());
+            this.ClientOpCodes = this.ServerOpCodes = new ReadOnlyDictionary<string, ushort>(new Dictionary<string, ushort>());
 
             this.Language = language;
         }
@@ -99,7 +102,7 @@ namespace Dalamud.Data
                 ClientLanguage.English => Lumina.Data.Language.English,
                 ClientLanguage.German => Lumina.Data.Language.German,
                 ClientLanguage.French => Lumina.Data.Language.French,
-                _ => throw new ArgumentOutOfRangeException(nameof(this.Language), $"Unknown Language: {this.Language}"),
+                _ => throw new ArgumentOutOfRangeException(nameof(language), $"Unknown Language: {language}"),
             };
             return this.Excel.GetSheet<T>(lang);
         }
@@ -162,7 +165,7 @@ namespace Dalamud.Data
                 ClientLanguage.English => "en/",
                 ClientLanguage.German => "de/",
                 ClientLanguage.French => "fr/",
-                _ => throw new ArgumentOutOfRangeException(nameof(this.Language), $"Unknown Language: {this.Language}"),
+                _ => throw new ArgumentOutOfRangeException(nameof(iconLanguage), $"Unknown Language: {iconLanguage}"),
             };
 
             return this.GetIcon(type, iconId);
@@ -232,7 +235,7 @@ namespace Dalamud.Data
         /// </summary>
         public void Dispose()
         {
-            this.luminaResourceThread.Abort();
+            this.luminaCancellationTokenSource.Cancel();
         }
 
         /// <summary>
@@ -245,14 +248,14 @@ namespace Dalamud.Data
             {
                 Log.Verbose("Starting data load...");
 
-                var zoneOpCodeDict =
-                    JsonConvert.DeserializeObject<Dictionary<string, ushort>>(File.ReadAllText(Path.Combine(baseDir, "UIRes", "serveropcode.json")));
+                var zoneOpCodeDict = JsonConvert.DeserializeObject<Dictionary<string, ushort>>(
+                    File.ReadAllText(Path.Combine(baseDir, "UIRes", "serveropcode.json")));
                 this.ServerOpCodes = new ReadOnlyDictionary<string, ushort>(zoneOpCodeDict);
 
                 Log.Verbose("Loaded {0} ServerOpCodes.", zoneOpCodeDict.Count);
 
-                var clientOpCodeDict =
-                    JsonConvert.DeserializeObject<Dictionary<string, ushort>>(File.ReadAllText(Path.Combine(baseDir, "UIRes", "clientopcode.json")));
+                var clientOpCodeDict = JsonConvert.DeserializeObject<Dictionary<string, ushort>>(
+                    File.ReadAllText(Path.Combine(baseDir, "UIRes", "clientopcode.json")));
                 this.ClientOpCodes = new ReadOnlyDictionary<string, ushort>(clientOpCodeDict);
 
                 Log.Verbose("Loaded {0} ClientOpCodes.", clientOpCodeDict.Count);
@@ -273,9 +276,7 @@ namespace Dalamud.Data
                         ClientLanguage.English => Lumina.Data.Language.English,
                         ClientLanguage.German => Lumina.Data.Language.German,
                         ClientLanguage.French => Lumina.Data.Language.French,
-                        _ => throw new ArgumentOutOfRangeException(
-                                 nameof(this.Language),
-                                 @"Unknown Language: " + this.Language),
+                        _ => throw new ArgumentOutOfRangeException(nameof(this.Language), $"Unknown Language: {this.Language}"),
                     },
                 };
 
@@ -289,9 +290,12 @@ namespace Dalamud.Data
 
                 this.IsDataReady = true;
 
-                this.luminaResourceThread = new Thread(() =>
+                this.luminaCancellationTokenSource = new();
+
+                var luminaCancellationToken = this.luminaCancellationTokenSource.Token;
+                this.luminaResourceThread = new(() =>
                 {
-                    while (true)
+                    while (!luminaCancellationToken.IsCancellationRequested)
                     {
                         if (this.gameData.FileHandleManager.HasPendingFileLoads)
                         {
@@ -302,8 +306,6 @@ namespace Dalamud.Data
                             Thread.Sleep(5);
                         }
                     }
-
-                    // ReSharper disable once FunctionNeverReturns
                 });
                 this.luminaResourceThread.Start();
             }

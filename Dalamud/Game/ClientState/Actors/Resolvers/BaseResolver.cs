@@ -11,7 +11,7 @@ namespace Dalamud.Game.ClientState.Actors.Resolvers
         /// Initializes a new instance of the <see cref="BaseResolver"/> class.
         /// </summary>
         /// <param name="dalamud">The Dalamud instance.</param>
-        public BaseResolver(Dalamud dalamud)
+        internal BaseResolver(Dalamud dalamud)
         {
             this.dalamud = dalamud;
         }
@@ -19,6 +19,6 @@ namespace Dalamud.Game.ClientState.Actors.Resolvers
         /// <summary>
         /// Gets the Dalamud instance.
         /// </summary>
-        protected Dalamud Dalamud => this.dalamud;
+        internal Dalamud Dalamud => this.dalamud;
     }
 }

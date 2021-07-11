@@ -25,7 +25,7 @@ namespace Dalamud.Game.ClientState
         /// </summary>
         /// <param name="dalamud">The Dalamud instance.</param>
         /// <param name="addressResolver">The ClientStateAddressResolver instance.</param>
-        public PartyList(Dalamud dalamud, ClientStateAddressResolver addressResolver)
+        internal PartyList(Dalamud dalamud, ClientStateAddressResolver addressResolver)
         {
             this.address = addressResolver;
             this.dalamud = dalamud;

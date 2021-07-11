@@ -47,7 +47,7 @@ namespace Dalamud.Game.Internal.Gui
         /// <param name="baseAddress">The base address of the native GuiManager class.</param>
         /// <param name="scanner">The SigScanner instance.</param>
         /// <param name="dalamud">The Dalamud instance.</param>
-        public GameGui(IntPtr baseAddress, SigScanner scanner, Dalamud dalamud)
+        internal GameGui(IntPtr baseAddress, SigScanner scanner, Dalamud dalamud)
         {
             this.dalamud = dalamud;
 
@@ -56,12 +56,12 @@ namespace Dalamud.Game.Internal.Gui
 
             Log.Verbose("===== G A M E G U I =====");
 
-            Log.Verbose("GameGuiManager address {Address:X}", this.address.BaseAddress.ToInt64());
-            Log.Verbose("SetGlobalBgm address {Address:X}", this.address.SetGlobalBgm.ToInt64());
-            Log.Verbose("HandleItemHover address {Address:X}", this.address.HandleItemHover.ToInt64());
-            Log.Verbose("HandleItemOut address {Address:X}", this.address.HandleItemOut.ToInt64());
-            Log.Verbose("GetUIObject address {Address:X}", this.address.GetUIObject.ToInt64());
-            Log.Verbose("GetAgentModule address {Address:X}", this.address.GetAgentModule.ToInt64());
+            Log.Verbose($"GameGuiManager address 0x{this.address.BaseAddress.ToInt64():X}");
+            Log.Verbose($"SetGlobalBgm address 0x{this.address.SetGlobalBgm.ToInt64():X}");
+            Log.Verbose($"HandleItemHover address 0x{this.address.HandleItemHover.ToInt64():X}");
+            Log.Verbose($"HandleItemOut address 0x{this.address.HandleItemOut.ToInt64():X}");
+            Log.Verbose($"GetUIObject address 0x{this.address.GetUIObject.ToInt64():X}");
+            Log.Verbose($"GetAgentModule address 0x{this.address.GetAgentModule.ToInt64():X}");
 
             this.Chat = new ChatGui(this.address.ChatManager, scanner, dalamud);
             this.PartyFinder = new PartyFinderGui(scanner, dalamud);

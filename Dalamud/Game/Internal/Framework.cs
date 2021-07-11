@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 using Dalamud.Game.Internal.Gui;
 using Dalamud.Game.Internal.Libc;
@@ -29,13 +30,13 @@ namespace Dalamud.Game.Internal
         /// </summary>
         /// <param name="scanner">The SigScanner instance.</param>
         /// <param name="dalamud">The Dalamud instance.</param>
-        public Framework(SigScanner scanner, Dalamud dalamud)
+        internal Framework(SigScanner scanner, Dalamud dalamud)
         {
             this.dalamud = dalamud;
             this.Address = new FrameworkAddressResolver();
             this.Address.Setup(scanner);
 
-            Log.Verbose("Framework address {FrameworkAddress}", this.Address.BaseAddress);
+            Log.Verbose($"Framework address 0x{this.Address.BaseAddress.ToInt64():X}");
             if (this.Address.BaseAddress == IntPtr.Zero)
             {
                 throw new InvalidOperationException("Framework is not initalized yet.");
@@ -142,6 +143,11 @@ namespace Dalamud.Game.Internal
         {
             this.Gui.Dispose();
             this.Network.Dispose();
+
+            this.updateHook.Disable();
+            this.destroyHook.Disable();
+            this.realDestroyHook.Disable();
+            Thread.Sleep(500);
 
             this.updateHook.Dispose();
             this.destroyHook.Dispose();

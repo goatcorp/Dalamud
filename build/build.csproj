@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net5.0</TargetFramework>
+        <Nullable>disable</Nullable>
+        <RootNamespace></RootNamespace>
+        <NoWarn>IDE0002;IDE0051;IDE1006;CS0649;CS0169</NoWarn>
+        <NukeRootDirectory>..</NukeRootDirectory>
+        <NukeScriptDirectory>..</NukeScriptDirectory>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="Nuke.Common" Version="5.1.3" />
+    </ItemGroup>
+</Project>

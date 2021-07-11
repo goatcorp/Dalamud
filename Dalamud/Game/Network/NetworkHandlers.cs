@@ -31,7 +31,7 @@ namespace Dalamud.Game.Network
         /// </summary>
         /// <param name="dalamud">The Dalamud instance.</param>
         /// <param name="optOutMbUploads">Whether the client should opt out of marketboard uploads.</param>
-        public NetworkHandlers(Dalamud dalamud, bool optOutMbUploads)
+        internal NetworkHandlers(Dalamud dalamud, bool optOutMbUploads)
         {
             this.dalamud = dalamud;
             this.optOutMbUploads = optOutMbUploads;
@@ -84,11 +84,11 @@ namespace Dalamud.Game.Network
                 {
                     var flashInfo = new NativeFunctions.FlashWindowInfo
                     {
-                        cbSize = (uint)Marshal.SizeOf<NativeFunctions.FlashWindowInfo>(),
-                        uCount = uint.MaxValue,
-                        dwTimeout = 0,
-                        dwFlags = NativeFunctions.FlashWindow.All | NativeFunctions.FlashWindow.TimerNoFG,
-                        hwnd = Process.GetCurrentProcess().MainWindowHandle,
+                        Size = (uint)Marshal.SizeOf<NativeFunctions.FlashWindowInfo>(),
+                        Count = uint.MaxValue,
+                        Timeout = 0,
+                        Flags = NativeFunctions.FlashWindow.All | NativeFunctions.FlashWindow.TimerNoFG,
+                        Hwnd = Process.GetCurrentProcess().MainWindowHandle,
                     };
                     NativeFunctions.FlashWindowEx(ref flashInfo);
                 }

@@ -7,7 +7,7 @@ namespace Dalamud.Configuration
     /// <summary>
     /// Configuration to store settings for a dalamud plugin.
     /// </summary>
-    public class PluginConfigurations
+    public sealed class PluginConfigurations
     {
         private readonly DirectoryInfo configDirectory;
 
