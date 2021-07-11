@@ -5,6 +5,7 @@ using System.IO;
 using Dalamud.Game.Text;
 using Newtonsoft.Json;
 using Serilog;
+using Serilog.Events;
 
 namespace Dalamud.Configuration
 {
@@ -12,7 +13,7 @@ namespace Dalamud.Configuration
     /// Class containing Dalamud settings.
     /// </summary>
     [Serializable]
-    internal class DalamudConfiguration
+    public class DalamudConfiguration
     {
         [JsonIgnore]
         private string configPath;
@@ -112,6 +113,11 @@ namespace Dalamud.Configuration
         /// Gets or sets a value indicating whether or not Dalamud should add buttons to the system menu.
         /// </summary>
         public bool DoButtonsSystemMenu { get; set; } = true;
+
+        /// <summary>
+        /// Gets or sets the default Dalamud debug log level on startup.
+        /// </summary>
+        public LogEventLevel LogLevel { get; set; } = LogEventLevel.Information;
 
         /// <summary>
         /// Gets or sets a value indicating whether or not the debug log should scroll automatically.
