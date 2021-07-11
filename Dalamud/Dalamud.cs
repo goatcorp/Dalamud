@@ -43,10 +43,12 @@ namespace Dalamud
         /// <param name="info">DalamudStartInfo instance.</param>
         /// <param name="loggingLevelSwitch">LoggingLevelSwitch to control Serilog level.</param>
         /// <param name="finishSignal">Signal signalling shutdown.</param>
-        public Dalamud(DalamudStartInfo info, LoggingLevelSwitch loggingLevelSwitch, ManualResetEvent finishSignal)
+        /// <param name="configuration">The Dalamud configuration.</param>
+        public Dalamud(DalamudStartInfo info, LoggingLevelSwitch loggingLevelSwitch, ManualResetEvent finishSignal, DalamudConfiguration configuration)
         {
             this.StartInfo = info;
             this.LogLevelSwitch = loggingLevelSwitch;
+            this.Configuration = configuration;
 
             this.baseDirectory = info.WorkingDirectory;
 
@@ -226,8 +228,6 @@ namespace Dalamud
         {
             try
             {
-                this.Configuration = DalamudConfiguration.Load(this.StartInfo.ConfigurationPath);
-
                 this.AntiDebug = new AntiDebug(this.SigScanner);
                 if (this.Configuration.IsAntiAntiDebugEnabled)
                     this.AntiDebug.Enable();

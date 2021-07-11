@@ -3,7 +3,7 @@ namespace Dalamud.Configuration
     /// <summary>
     /// Third party repository for dalamud plugins.
     /// </summary>
-    internal class ThirdRepoSetting
+    public class ThirdRepoSetting
     {
         /// <summary>
         /// Gets or sets the third party repo url.
