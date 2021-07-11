@@ -53,6 +53,11 @@ namespace Dalamud.Game.Internal.Gui
         public IntPtr HandleActionOut { get; private set; }
 
         /// <summary>
+        /// Gets the address of the native HandleImm method.
+        /// </summary>
+        public IntPtr HandleImm { get; private set; }
+
+        /// <summary>
         /// Gets the address of the native GetUIObject method.
         /// </summary>
         public IntPtr GetUIObject { get; private set; }
@@ -100,6 +105,7 @@ namespace Dalamud.Game.Internal.Gui
             this.HandleItemOut = sig.ScanText("48 89 5C 24 ?? 57 48 83 EC 20 48 8B FA 48 8B D9 4D");
             this.HandleActionHover = sig.ScanText("E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 83 F8 0F");
             this.HandleActionOut = sig.ScanText("48 89 5C 24 ?? 57 48 83 EC 20 48 8B DA 48 8B F9 4D 85 C0 74 1F");
+            this.HandleImm = sig.ScanText("E8 ?? ?? ?? ?? 84 C0 75 10 48 83 FF 09");
             this.GetUIObject = sig.ScanText("E8 ?? ?? ?? ?? 48 8B C8 48 8B 10 FF 52 40 80 88 ?? ?? ?? ?? 01 E9");
             this.GetMatrixSingleton = sig.ScanText("E8 ?? ?? ?? ?? 48 8D 4C 24 ?? 48 89 4c 24 ?? 4C 8D 4D ?? 4C 8D 44 24 ??");
             this.ScreenToWorld = sig.ScanText("48 83 EC 48 48 8B 05 ?? ?? ?? ?? 4D 8B D1");

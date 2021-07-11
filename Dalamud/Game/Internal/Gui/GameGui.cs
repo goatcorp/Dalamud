@@ -6,6 +6,8 @@ using Dalamud.Hooking;
 using Dalamud.Interface;
 using Serilog;
 using SharpDX;
+using ImGuiNET;
+
 
 namespace Dalamud.Game.Internal.Gui
 {
@@ -34,6 +36,7 @@ namespace Dalamud.Game.Internal.Gui
         private readonly Hook<HandleItemHoverDelegate> handleItemHoverHook;
         private readonly Hook<HandleItemOutDelegate> handleItemOutHook;
         private readonly Hook<HandleActionHoverDelegate> handleActionHoverHook;
+        private readonly Hook<HandleImmDelegate> handleImmHook;
         private readonly Hook<HandleActionOutDelegate> handleActionOutHook;
         private readonly Hook<ToggleUiHideDelegate> toggleUiHideHook;
 
@@ -74,6 +77,8 @@ namespace Dalamud.Game.Internal.Gui
 
             this.handleActionHoverHook = new Hook<HandleActionHoverDelegate>(this.address.HandleActionHover, this.HandleActionHoverDetour);
             this.handleActionOutHook = new Hook<HandleActionOutDelegate>(this.address.HandleActionOut, this.HandleActionOutDetour);
+            
+            this.handleImmHook = new Hook<HandleImmDelegate>(this.address.HandleImm, this.HandleImmDetour);
 
             this.getUIObject = Marshal.GetDelegateForFunctionPointer<GetUIObjectDelegate>(this.address.GetUIObject);
 
@@ -137,6 +142,9 @@ namespace Dalamud.Game.Internal.Gui
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         private delegate IntPtr HandleActionOutDelegate(IntPtr agentActionDetail, IntPtr a2, IntPtr a3, int a4);
+        
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        private delegate char HandleImmDelegate(Int64 a1, char a2, byte a3);
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         private delegate IntPtr ToggleUiHideDelegate(IntPtr thisPtr, byte unknownByte);
@@ -459,6 +467,7 @@ namespace Dalamud.Game.Internal.Gui
             this.toggleUiHideHook.Enable();
             this.handleActionHoverHook.Enable();
             this.handleActionOutHook.Enable();
+            this.handleImmHook.Enable();
         }
 
         /// <summary>
@@ -475,6 +484,7 @@ namespace Dalamud.Game.Internal.Gui
             this.toggleUiHideHook.Dispose();
             this.handleActionHoverHook.Dispose();
             this.handleActionOutHook.Dispose();
+            this.handleImmHook.Dispose();
         }
 
         private IntPtr HandleSetGlobalBgmDetour(ushort bgmKey, byte a2, uint a3, uint a4, uint a5, byte a6)
@@ -602,6 +612,12 @@ namespace Dalamud.Game.Internal.Gui
             Log.Debug("UiHide toggled: {0}", this.GameUiHidden);
 
             return this.toggleUiHideHook.Original(thisPtr, unknownByte);
+        }
+
+        private char HandleImmDetour(Int64 a1, char a2, byte a3)
+        {
+            char ret = this.handleImmHook.Original(a1, a2, a3);
+            return (char)(ImGui.GetIO().WantTextInput ? 0 : ret);
         }
     }
 }
