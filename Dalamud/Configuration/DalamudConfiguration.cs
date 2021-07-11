@@ -144,6 +144,11 @@ namespace Dalamud.Configuration
         public bool IsAntiAntiDebugEnabled { get; set; } = false;
 
         /// <summary>
+        /// Specifies the kind of beta to download when <see cref="DoDalamudTest"/> is set to true.
+        /// </summary>
+        public string DalamudBetaKind { get; set; }
+
+        /// <summary>
         /// Load a configuration from the provided path.
         /// </summary>
         /// <param name="path">The path to load the configuration file from.</param>
