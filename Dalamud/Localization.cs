@@ -112,6 +112,7 @@ namespace Dalamud
             }
 
             this.OnLocalizationChanged?.Invoke(langCode);
+
             try
             {
                 Loc.Setup(this.ReadLocData(langCode), this.assembly);
@@ -135,9 +136,10 @@ namespace Dalamud
         {
             if (this.useEmbedded)
             {
-                var resourceStream =
-                    this.assembly.GetManifestResourceStream($"{this.locResourceDirectory}{this.locResourcePrefix}{langCode}.json");
-                if (resourceStream == null) return null;
+                var resourceStream = this.assembly.GetManifestResourceStream($"{this.locResourceDirectory}{this.locResourcePrefix}{langCode}.json");
+                if (resourceStream == null)
+                    return null;
+
                 using var reader = new StreamReader(resourceStream);
                 return reader.ReadToEnd();
             }

@@ -34,8 +34,8 @@ namespace Dalamud.Game
             if (this.IsCopy)
                 this.SetupCopiedSegments();
 
-            Log.Verbose("Module base: {Address}", this.TextSectionBase);
-            Log.Verbose("Module size: {Size}", this.TextSectionSize);
+            Log.Verbose($"Module base: 0x{this.TextSectionBase.ToInt64():X}");
+            Log.Verbose($"Module size: 0x{this.TextSectionSize:X}");
         }
 
         /// <summary>
@@ -206,7 +206,7 @@ namespace Dalamud.Game
             var insnByte = Marshal.ReadByte(scanRet);
 
             if (insnByte == 0xE8 || insnByte == 0xE9)
-                return ReadCallSig(scanRet);
+                return ReadJmpCallSig(scanRet);
 
             return scanRet;
         }
@@ -220,13 +220,13 @@ namespace Dalamud.Game
         }
 
         /// <summary>
-        /// Helper for ScanText to get the correct address for IDA sigs that mark the first CALL location.
+        /// Helper for ScanText to get the correct address for IDA sigs that mark the first JMP or CALL location.
         /// </summary>
-        /// <param name="sigLocation">The address the CALL sig resolved to.</param>
+        /// <param name="sigLocation">The address the JMP or CALL sig resolved to.</param>
         /// <returns>The real offset of the signature.</returns>
-        private static IntPtr ReadCallSig(IntPtr sigLocation)
+        private static IntPtr ReadJmpCallSig(IntPtr sigLocation)
         {
-            var jumpOffset = Marshal.ReadInt32(IntPtr.Add(sigLocation, 1));
+            var jumpOffset = Marshal.ReadInt32(sigLocation, 1);
             return IntPtr.Add(sigLocation, 5 + jumpOffset);
         }
 
@@ -235,6 +235,7 @@ namespace Dalamud.Game
             signature = signature.Replace(" ", string.Empty);
             if (signature.Length % 2 != 0)
                 throw new ArgumentException("Signature without whitespaces must be divisible by two.", nameof(signature));
+
             var needleLength = signature.Length / 2;
             var needle = new byte[needleLength];
             var mask = new bool[needleLength];

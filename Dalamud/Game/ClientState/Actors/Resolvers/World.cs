@@ -16,7 +16,7 @@ namespace Dalamud.Game.ClientState.Actors.Resolvers
         /// </summary>
         /// <param name="id">The ID of the world.</param>
         /// <param name="dalamud">The Dalamud instance.</param>
-        public World(ushort id, Dalamud dalamud)
+        internal World(ushort id, Dalamud dalamud)
             : base(dalamud)
         {
             this.Id = id;

@@ -34,14 +34,14 @@ namespace Dalamud.Game.ClientState.Actors
         /// </summary>
         /// <param name="dalamud">The Dalamud instance.</param>
         /// <param name="addressResolver">The ClientStateAddressResolver instance.</param>
-        public ActorTable(Dalamud dalamud, ClientStateAddressResolver addressResolver)
+        internal ActorTable(Dalamud dalamud, ClientStateAddressResolver addressResolver)
         {
             this.address = addressResolver;
             this.dalamud = dalamud;
 
             dalamud.Framework.OnUpdateEvent += this.Framework_OnUpdateEvent;
 
-            Log.Verbose("Actor table address {ActorTable}", this.address.ActorTable);
+            Log.Verbose($"Actor table address 0x{this.address.ActorTable.ToInt64():X}");
         }
 
         /// <summary>

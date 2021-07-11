@@ -15,7 +15,7 @@ namespace Dalamud.Game.ClientState
     /// <summary>
     /// This class represents the state of the game client at the time of access.
     /// </summary>
-    public class ClientState : INotifyPropertyChanged, IDisposable
+    public sealed class ClientState : INotifyPropertyChanged, IDisposable
     {
         /// <summary>
         /// The table of all present actors.
@@ -80,7 +80,7 @@ namespace Dalamud.Game.ClientState
         /// <param name="dalamud">Dalamud instance.</param>
         /// <param name="startInfo">StartInfo of the current Dalamud launch.</param>
         /// <param name="scanner">Sig scanner.</param>
-        public ClientState(Dalamud dalamud, DalamudStartInfo startInfo, SigScanner scanner)
+        internal ClientState(Dalamud dalamud, DalamudStartInfo startInfo, SigScanner scanner)
         {
             this.dalamud = dalamud;
             this.address = new ClientStateAddressResolver();
@@ -104,7 +104,7 @@ namespace Dalamud.Game.ClientState
 
             this.Targets = new Targets(dalamud, this.address);
 
-            Log.Verbose("SetupTerritoryType address {SetupTerritoryType}", this.address.SetupTerritoryType);
+            Log.Verbose($"SetupTerritoryType address 0x{this.address.SetupTerritoryType.ToInt64():X}");
 
             this.setupTerritoryTypeHook = new Hook<SetupTerritoryTypeDelegate>(this.address.SetupTerritoryType, this.SetupTerritoryTypeDetour);
 

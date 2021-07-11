@@ -12,7 +12,7 @@ jobs:
 
     steps:
     - name: Remove old artifacts
-      uses: c-hive/gha-remove-artifacts@24dc23384a1fa6a058b79c73727ae0cb2200ca4c
+      uses: c-hive/gha-remove-artifacts@v1.2.0
       with:
         age: '1 month'
         skip-tags: true

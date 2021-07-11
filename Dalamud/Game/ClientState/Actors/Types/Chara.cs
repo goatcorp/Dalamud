@@ -16,7 +16,7 @@ namespace Dalamud.Game.ClientState.Actors.Types
         /// <param name="actorStruct">The memory representation of the base actor.</param>
         /// <param name="dalamud">A dalamud reference needed to access game data in Resolvers.</param>
         /// <param name="address">The address of this actor in memory.</param>
-        protected Chara(IntPtr address, Structs.Actor actorStruct, Dalamud dalamud)
+        internal Chara(IntPtr address, Structs.Actor actorStruct, Dalamud dalamud)
             : base(address, actorStruct, dalamud)
         {
         }

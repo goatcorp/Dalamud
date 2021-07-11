@@ -16,7 +16,7 @@ namespace Dalamud.Game.ClientState.Actors.Resolvers
         /// </summary>
         /// <param name="id">The ID of the classJob.</param>
         /// <param name="dalamud">The Dalamud instance.</param>
-        public ClassJob(byte id, Dalamud dalamud)
+        internal ClassJob(byte id, Dalamud dalamud)
             : base(dalamud)
         {
             this.Id = id;

@@ -25,7 +25,7 @@ namespace Dalamud.Game.Internal.File
         /// </summary>
         /// <param name="dalamud">The Dalamud instance.</param>
         /// <param name="scanner">The SigScanner instance.</param>
-        public ResourceManager(Dalamud dalamud, SigScanner scanner)
+        internal ResourceManager(Dalamud dalamud, SigScanner scanner)
         {
             this.dalamud = dalamud;
             this.address = new ResourceManagerAddressResolver();
