@@ -1,18 +1,7 @@
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Linq;
 using System.Numerics;
-using System.Threading.Tasks;
 
-using Dalamud.Interface;
-using Dalamud.Interface.Colors;
-using Dalamud.Interface.Components;
 using Dalamud.Interface.Windowing;
-using Dalamud.Plugin.Internal;
-using Dalamud.Plugin.Internal.Exceptions;
-using Dalamud.Plugin.Internal.Types;
 using ImGuiNET;
 
 namespace Dalamud.CorePlugin

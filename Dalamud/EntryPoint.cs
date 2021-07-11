@@ -47,7 +47,7 @@ namespace Dalamud
             var configuration = DalamudConfiguration.Load(info.ConfigurationPath);
 
             // Setup logger
-            var levelSwitch = InitLogging(info.WorkingDirectory);
+            var levelSwitch = InitLogging(info.WorkingDirectory, configuration);
 
             // Log any unhandled exception.
             AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
@@ -88,7 +88,7 @@ namespace Dalamud
             }
         }
 
-        private static LoggingLevelSwitch InitLogging(string baseDirectory)
+        private static LoggingLevelSwitch InitLogging(string baseDirectory, DalamudConfiguration configuration)
         {
 #if DEBUG
             var logPath = Path.Combine(baseDirectory, "dalamud.log");
@@ -101,7 +101,7 @@ namespace Dalamud
 #if DEBUG
             levelSwitch.MinimumLevel = LogEventLevel.Verbose;
 #else
-            levelSwitch.MinimumLevel = logLevel;
+            levelSwitch.MinimumLevel = configuration.LogLevel;
 #endif
             Log.Logger = new LoggerConfiguration()
                    .WriteTo.Async(a => a.File(logPath))
