@@ -229,6 +229,10 @@ namespace Dalamud
 
                 this.Framework.Enable();
                 Log.Information("[T1] Framework ENABLE!");
+
+                // Initialize FFXIVClientStructs function resolver
+                FFXIVClientStructs.Resolver.Initialize();
+                Log.Information("[T1] FFXIVClientStructs initialized!");
             }
             catch (Exception ex)
             {
