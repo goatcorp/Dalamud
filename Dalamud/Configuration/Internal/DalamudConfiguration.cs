@@ -165,6 +165,11 @@ namespace Dalamud.Configuration.Internal
         public string DalamudBetaKind { get; set; }
 
         /// <summary>
+        /// Gets or sets a value indicating whether or not all plugins, regardless of API level, should be loaded.
+        /// </summary>
+        public bool LoadAllApiLevels { get; set; }
+
+        /// <summary>
         /// Load a configuration from the provided path.
         /// </summary>
         /// <param name="path">The path to load the configuration file from.</param>

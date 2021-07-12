@@ -465,6 +465,14 @@ namespace Dalamud.Interface.Internal
                         }
 
                         ImGui.Separator();
+
+                        if (ImGui.MenuItem("Load all API levels", null, this.dalamud.Configuration.LoadAllApiLevels))
+                        {
+                            this.dalamud.Configuration.LoadAllApiLevels = !this.dalamud.Configuration.LoadAllApiLevels;
+                            this.dalamud.Configuration.Save();
+                        }
+
+                        ImGui.Separator();
                         ImGui.MenuItem("API Level:" + PluginManager.DalamudApiLevel, false);
                         ImGui.MenuItem("Loaded plugins:" + this.dalamud.PluginManager?.InstalledPlugins.Count, false);
                         ImGui.EndMenu();

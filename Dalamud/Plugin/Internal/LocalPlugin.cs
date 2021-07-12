@@ -207,7 +207,7 @@ namespace Dalamud.Plugin.Internal
             if (this.Manifest.ApplicableVersion < this.dalamud.StartInfo.GameVersion)
                 throw new InvalidPluginOperationException($"Unable to load {this.Name}, no applicable version");
 
-            if (this.Manifest.DalamudApiLevel < PluginManager.DalamudApiLevel)
+            if (this.Manifest.DalamudApiLevel < PluginManager.DalamudApiLevel && !this.dalamud.Configuration.LoadAllApiLevels)
                 throw new InvalidPluginOperationException($"Unable to load {this.Name}, incompatible API level");
 
             if (this.Manifest.Disabled)
