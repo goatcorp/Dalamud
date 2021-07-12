@@ -36,7 +36,8 @@ namespace Dalamud.Plugin
         /// <param name="dalamud">The dalamud instance to expose.</param>
         /// <param name="pluginName">The internal name of the plugin.</param>
         /// <param name="assemblyLocation">The equivalent of what Assembly.GetExecutingAssembly().Location should return.</param>
-        internal DalamudPluginInterface(Dalamud dalamud, string pluginName, string assemblyLocation)
+        /// <param name="reason">The reason the plugin was loaded.</param>
+        internal DalamudPluginInterface(Dalamud dalamud, string pluginName, string assemblyLocation, PluginLoadReason reason)
         {
             this.CommandManager = dalamud.CommandManager;
             this.Framework = dalamud.Framework;
@@ -50,6 +51,7 @@ namespace Dalamud.Plugin
             this.pluginName = pluginName;
             this.configs = dalamud.PluginManager.PluginConfigs;
             this.AssemblyLocation = assemblyLocation;
+            this.Reason = reason;
 
             this.GeneralChatType = this.dalamud.Configuration.GeneralChatType;
             this.Sanitizer = new Sanitizer(this.Data.Language);
@@ -80,6 +82,11 @@ namespace Dalamud.Plugin
         /// Event that gets fired when loc is changed
         /// </summary>
         public event LanguageChangedDelegate OnLanguageChanged;
+
+        /// <summary>
+        /// Gets the reason this plugin was loaded.
+        /// </summary>
+        public PluginLoadReason Reason { get; }
 
         /// <summary>
         /// Gets the plugin assembly location.

@@ -12,6 +12,7 @@ using CheapLoc;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Windowing;
+using Dalamud.Plugin;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Exceptions;
 using Dalamud.Plugin.Internal.Types;
@@ -526,7 +527,7 @@ namespace Dalamud.Interface.Internal.Windows
                     {
                         this.installStatus = OperationStatus.InProgress;
 
-                        Task.Run(() => this.dalamud.PluginManager.InstallPlugin(manifest, useTesting))
+                        Task.Run(() => this.dalamud.PluginManager.InstallPlugin(manifest, useTesting, PluginLoadReason.Installer))
                             .ContinueWith(task =>
                             {
                                 // There is no need to set as Complete for an individual plugin installation
@@ -743,7 +744,7 @@ namespace Dalamud.Interface.Internal.Windows
                             if (!enableTask.Result)
                                 return;
 
-                            var loadTask = Task.Run(() => plugin.Load())
+                            var loadTask = Task.Run(() => plugin.Load(PluginLoadReason.Installer))
                                 .ContinueWith(this.DisplayErrorContinuation, Locs.ErrorModal_LoadFail(plugin.Name));
 
                             loadTask.Wait();
