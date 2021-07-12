@@ -192,7 +192,7 @@ namespace Dalamud.Plugin.Internal
                 {
                     try
                     {
-                        this.LoadPlugin(pluginDef.DllFile, pluginDef.Manifest, pluginDef.IsDev, isBoot: true);
+                        this.LoadPlugin(pluginDef.DllFile, pluginDef.Manifest, PluginLoadReason.Boot, pluginDef.IsDev, isBoot: true);
                     }
                     catch (InvalidPluginException)
                     {
@@ -230,8 +230,7 @@ namespace Dalamud.Plugin.Internal
                 {
                     try
                     {
-                        plugin.Unload();
-                        plugin.Load();
+                        plugin.Reload();
                     }
                     catch (Exception ex)
                     {
@@ -300,7 +299,7 @@ namespace Dalamud.Plugin.Internal
                 try
                 {
                     // Add them to the list and let the user decide, nothing is auto-loaded.
-                    this.LoadPlugin(dllFile, manifest, isDev: true, doNotLoad: true);
+                    this.LoadPlugin(dllFile, manifest, PluginLoadReason.Installer, isDev: true, doNotLoad: true);
                     listChanged = true;
                 }
                 catch (InvalidPluginException)
@@ -322,7 +321,8 @@ namespace Dalamud.Plugin.Internal
         /// </summary>
         /// <param name="repoManifest">The plugin definition.</param>
         /// <param name="useTesting">If the testing version should be used.</param>
-        public void InstallPlugin(RemotePluginManifest repoManifest, bool useTesting)
+        /// <param name="reason">The reason this plugin was loaded.</param>
+        public void InstallPlugin(RemotePluginManifest repoManifest, bool useTesting, PluginLoadReason reason)
         {
             Log.Debug($"Installing plugin {repoManifest.Name} (testing={useTesting})");
 
@@ -413,7 +413,7 @@ namespace Dalamud.Plugin.Internal
 
             Log.Information($"Installed plugin {manifest.Name} (testing={useTesting})");
 
-            this.LoadPlugin(dllFile, manifest);
+            this.LoadPlugin(dllFile, manifest, reason);
 
             this.NotifyInstalledPluginsChanged();
         }
@@ -423,10 +423,11 @@ namespace Dalamud.Plugin.Internal
         /// </summary>
         /// <param name="dllFile">The <see cref="FileInfo"/> associated with the main assembly of this plugin.</param>
         /// <param name="manifest">The already loaded definition, if available.</param>
+        /// <param name="reason">The reason this plugin was loaded.</param>
         /// <param name="isDev">If this plugin should support development features.</param>
         /// <param name="isBoot">If this plugin is being loaded at boot.</param>
         /// <param name="doNotLoad">Don't load the plugin, just don't do it.</param>
-        public void LoadPlugin(FileInfo dllFile, LocalPluginManifest manifest, bool isDev = false, bool isBoot = false, bool doNotLoad = false)
+        public void LoadPlugin(FileInfo dllFile, LocalPluginManifest manifest, PluginLoadReason reason, bool isDev = false, bool isBoot = false, bool doNotLoad = false)
         {
             var name = manifest?.Name ?? dllFile.Name;
             var loadPlugin = !doNotLoad;
@@ -454,7 +455,7 @@ namespace Dalamud.Plugin.Internal
                     if (plugin.IsDisabled)
                         plugin.Enable();
 
-                    plugin.Load();
+                    plugin.Load(reason);
                 }
                 catch (InvalidPluginException)
                 {
@@ -653,7 +654,7 @@ namespace Dalamud.Plugin.Internal
 
                     try
                     {
-                        this.InstallPlugin(metadata.UpdateManifest, metadata.UseTesting);
+                        this.InstallPlugin(metadata.UpdateManifest, metadata.UseTesting, PluginLoadReason.Update);
                         listChanged = true;
                     }
                     catch (Exception ex)

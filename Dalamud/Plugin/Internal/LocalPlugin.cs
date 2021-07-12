@@ -140,7 +140,7 @@ namespace Dalamud.Plugin.Internal
         public PluginState State { get; protected set; } = PluginState.Unloaded;
 
         /// <summary>
-        /// Gets the AssemblyName plugin, populated during <see cref="Load(bool)"/>.
+        /// Gets the AssemblyName plugin, populated during <see cref="Load(PluginLoadReason, bool)"/>.
         /// </summary>
         /// <returns>Plugin type.</returns>
         public AssemblyName AssemblyName { get; private set; } = null;
@@ -188,8 +188,9 @@ namespace Dalamud.Plugin.Internal
         /// <summary>
         /// Load this plugin.
         /// </summary>
+        /// <param name="reason">The reason why this plugin is being loaded.</param>
         /// <param name="reloading">Load while reloading.</param>
-        public void Load(bool reloading = false)
+        public void Load(PluginLoadReason reason, bool reloading = false)
         {
             // Allowed: Unloaded
             switch (this.State)
@@ -271,7 +272,7 @@ namespace Dalamud.Plugin.Internal
                     this.Manifest.Save(this.manifestFile);
                 }
 
-                this.DalamudInterface = new DalamudPluginInterface(this.dalamud, this.pluginAssembly.GetName().Name, this.DllFile.FullName);
+                this.DalamudInterface = new DalamudPluginInterface(this.dalamud, this.pluginAssembly.GetName().Name, this.DllFile.FullName, reason);
 
                 if (this.IsDev)
                 {
@@ -365,7 +366,7 @@ namespace Dalamud.Plugin.Internal
         public void Reload()
         {
             this.Unload(true);
-            this.Load(true);
+            this.Load(PluginLoadReason.Reload, true);
         }
 
         /// <summary>
