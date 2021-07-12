@@ -104,7 +104,7 @@ namespace Dalamud
             levelSwitch.MinimumLevel = configuration.LogLevel;
 #endif
             Log.Logger = new LoggerConfiguration()
-                   .WriteTo.Async(a => a.File(logPath))
+                   .WriteTo.Async(a => a.File(logPath, fileSizeLimitBytes: 5 * 1024 * 1024, rollOnFileSizeLimit: true))
                    .WriteTo.Sink(SerilogEventSink.Instance)
                    .MinimumLevel.ControlledBy(levelSwitch)
                    .CreateLogger();
