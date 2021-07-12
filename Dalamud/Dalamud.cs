@@ -353,6 +353,9 @@ namespace Dalamud
                     try
                     {
                         this.PluginManager = new PluginManager(this);
+                        this.PluginManager.OnInstalledPluginsChanged += () =>
+                            Troubleshooting.LogTroubleshooting(this, this.InterfaceManager.IsReady);
+
                         Log.Information("[T3] PM OK!");
 
                         this.PluginManager.CleanupPlugins();
@@ -370,7 +373,7 @@ namespace Dalamud
                 this.DalamudUi = new DalamudInterface(this);
                 Log.Information("[T3] DUI OK!");
 
-                Troubleshooting.LogTroubleshooting(this, this.InterfaceManager != null);
+                Troubleshooting.LogTroubleshooting(this, this.InterfaceManager.IsReady);
 
                 Log.Information("Dalamud is ready.");
             }
