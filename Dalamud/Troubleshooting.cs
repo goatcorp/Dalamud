@@ -29,6 +29,7 @@ namespace Dalamud
                 {
                     LoadedPlugins = dalamud.PluginManager.InstalledPlugins.Select(x => x.Manifest).ToArray(),
                     DalamudVersion = Util.AssemblyVersion,
+                    DalamudGitHash = Util.GetGitHash(),
                     GameVersion = dalamud.StartInfo.GameVersion.ToString(),
                     Language = dalamud.StartInfo.Language.ToString(),
                     DoDalamudTest = dalamud.Configuration.DoDalamudTest,
@@ -51,6 +52,8 @@ namespace Dalamud
             public PluginManifest[] LoadedPlugins { get; set; }
 
             public string DalamudVersion { get; set; }
+            
+            public string DalamudGitHash { get; set; }
 
             public string GameVersion { get; set; }
 
