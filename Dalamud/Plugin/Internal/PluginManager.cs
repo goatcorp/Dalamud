@@ -765,7 +765,7 @@ namespace Dalamud.Plugin.Internal
                 return false;
 
             // API level
-            if (manifest.DalamudApiLevel < DalamudApiLevel)
+            if (manifest.DalamudApiLevel < DalamudApiLevel && !this.dalamud.Configuration.LoadAllApiLevels)
                 return false;
 
             // Banned
