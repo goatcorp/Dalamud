@@ -221,7 +221,15 @@ namespace Dalamud.Interface.Internal
 
         private void OnBgmSetCommand(string command, string arguments)
         {
-            this.dalamud.Framework.Gui.SetBgm(ushort.Parse(arguments));
+            if (ushort.TryParse(arguments, out var value))
+            {
+                this.dalamud.Framework.Gui.SetBgm(value);
+            }
+            else
+            {
+                // Revert to the original BGM by specifying an invalid one
+                this.dalamud.Framework.Gui.SetBgm(9999);
+            }
         }
 
         private void OnDebugDrawDevMenu(string command, string arguments)
