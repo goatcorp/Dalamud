@@ -514,7 +514,7 @@ namespace Dalamud.Plugin.Internal
                             if (!isVersion)
                             {
                                 Log.Debug($"Not a version, cleaning up {dir.FullName}");
-                                dir.Delete();
+                                dir.Delete(true);
                             }
 
                             return version;
