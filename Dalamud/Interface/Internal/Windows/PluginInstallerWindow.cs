@@ -523,7 +523,8 @@ namespace Dalamud.Interface.Internal.Windows
                 }
                 else
                 {
-                    if (ImGui.Button(Locs.PluginButton_InstallVersion(versionString)))
+                    var buttonText = Locs.PluginButton_InstallVersion(versionString);
+                    if (ImGui.Button($"{buttonText}##{buttonText}{index}"))
                     {
                         this.installStatus = OperationStatus.InProgress;
 
