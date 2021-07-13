@@ -198,9 +198,10 @@ namespace Dalamud.Plugin.Internal
                     {
                         // Not a plugin
                     }
-                    catch (Exception ex)
+                    catch
                     {
-                        Log.Error(ex, "During boot plugin load, an unexpected error occurred");
+                        // The error should already be printed. This is just to signify which DLL it came from.
+                        Log.Error($"During boot plugin load, an unexpected error occurred: {pluginDef.DllFile}");
                     }
                 }
             }
