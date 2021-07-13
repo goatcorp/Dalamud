@@ -52,7 +52,7 @@ namespace Dalamud
             public PluginManifest[] LoadedPlugins { get; set; }
 
             public string DalamudVersion { get; set; }
-            
+
             public string DalamudGitHash { get; set; }
 
             public string GameVersion { get; set; }
