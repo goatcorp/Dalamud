@@ -514,7 +514,7 @@ namespace Dalamud.Plugin.Internal
                             if (!isVersion)
                             {
                                 Log.Debug($"Not a version, cleaning up {dir.FullName}");
-                                dir.Delete();
+                                dir.Delete(true);
                             }
 
                             return version;
@@ -558,7 +558,7 @@ namespace Dalamud.Plugin.Internal
                                     continue;
                                 }
 
-                                if (manifest.DalamudApiLevel < DalamudApiLevel)
+                                if (manifest.DalamudApiLevel < DalamudApiLevel && !this.dalamud.Configuration.LoadAllApiLevels)
                                 {
                                     Log.Information($"Lower API: cleaning up {versionDir.FullName}");
                                     versionDir.Delete(true);
