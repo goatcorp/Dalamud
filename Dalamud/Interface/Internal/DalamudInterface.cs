@@ -34,6 +34,7 @@ namespace Dalamud.Interface.Internal
         private readonly PluginInstallerWindow pluginWindow;
         private readonly ScratchpadWindow scratchpadWindow;
         private readonly SettingsWindow settingsWindow;
+        private readonly DisableAutoLoginWindow disableAutoLoginWindow;
 
         private ulong frameCount = 0;
 
@@ -65,6 +66,7 @@ namespace Dalamud.Interface.Internal
             this.pluginWindow = new PluginInstallerWindow(dalamud) { IsOpen = false };
             this.scratchpadWindow = new ScratchpadWindow(dalamud) { IsOpen = false };
             this.settingsWindow = new SettingsWindow(dalamud) { IsOpen = false };
+            this.disableAutoLoginWindow = new DisableAutoLoginWindow(dalamud) { IsOpen = true };
 
             this.windowSystem.AddWindow(this.changelogWindow);
             this.windowSystem.AddWindow(this.colorDemoWindow);
@@ -77,6 +79,7 @@ namespace Dalamud.Interface.Internal
             this.windowSystem.AddWindow(this.pluginWindow);
             this.windowSystem.AddWindow(this.scratchpadWindow);
             this.windowSystem.AddWindow(this.settingsWindow);
+            this.windowSystem.AddWindow(this.disableAutoLoginWindow);
 
             this.dalamud.InterfaceManager.OnDraw += this.OnDraw;
 
