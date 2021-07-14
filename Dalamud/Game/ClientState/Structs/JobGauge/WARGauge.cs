@@ -8,10 +8,12 @@ namespace Dalamud.Game.ClientState.Structs.JobGauge
     [StructLayout(LayoutKind.Explicit)]
     public struct WARGauge
     {
+        [FieldOffset(0)]
+        private byte beastGaugeAmount;
+
         /// <summary>
         /// Gets the amount of wrath in the Beast gauge.
         /// </summary>
-        [FieldOffset(0)]
-        public byte BeastGaugeAmount;
+        public byte BeastGaugeAmount => this.beastGaugeAmount;
     }
 }

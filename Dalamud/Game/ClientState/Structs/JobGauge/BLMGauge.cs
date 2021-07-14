@@ -8,35 +8,43 @@ namespace Dalamud.Game.ClientState.Structs.JobGauge
     [StructLayout(LayoutKind.Explicit)]
     public struct BLMGauge
     {
-        /// <summary>
-        /// Gets the time until the next Polyglot stack in milliseconds.
-        /// </summary>
         [FieldOffset(0)]
-        public short TimeUntilNextPolyglot;  // enochian timer
+        private short timeUntilNextPolyglot;  // enochian timer
 
-        /// <summary>
-        /// Gets the time remaining for Astral Fire or Umbral Ice in milliseconds.
-        /// </summary>
         [FieldOffset(2)]
-        public short ElementTimeRemaining;  // umbral ice and astral fire timer
+        private short elementTimeRemaining;  // umbral ice and astral fire timer
 
         [FieldOffset(4)]
         private byte elementStance; // umbral ice or astral fire
 
-        /// <summary>
-        /// Gets the number of Umbral Hearts remaining.
-        /// </summary>
         [FieldOffset(5)]
-        public byte NumUmbralHearts;
+        private byte numUmbralHearts;
+
+        [FieldOffset(6)]
+        private byte numPolyglotStacks;
+
+        [FieldOffset(7)]
+        private byte enochianState;
+
+        /// <summary>
+        /// Gets the time until the next Polyglot stack in milliseconds.
+        /// </summary>
+        public short TimeUntilNextPolyglot => this.timeUntilNextPolyglot;
+
+        /// <summary>
+        /// Gets the time remaining for Astral Fire or Umbral Ice in milliseconds.
+        /// </summary>
+        public short ElementTimeRemaining => this.elementTimeRemaining;
 
         /// <summary>
         /// Gets the number of Polyglot stacks remaining.
         /// </summary>
-        [FieldOffset(6)]
-        public byte NumPolyglotStacks;
+        public byte NumPolyglotStacks => this.numPolyglotStacks;
 
-        [FieldOffset(7)]
-        private byte enochianState;
+        /// <summary>
+        /// Gets the number of Umbral Hearts remaining.
+        /// </summary>
+        public byte NumUmbralHearts => this.numUmbralHearts;
 
         /// <summary>
         /// Gets if the player is in Umbral Ice.

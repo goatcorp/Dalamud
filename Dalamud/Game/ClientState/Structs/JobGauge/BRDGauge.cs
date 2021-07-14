@@ -8,28 +8,36 @@ namespace Dalamud.Game.ClientState.Structs.JobGauge
     [StructLayout(LayoutKind.Explicit)]
     public struct BRDGauge
     {
+        [FieldOffset(0)]
+        private short songTimer;
+
+        [FieldOffset(2)]
+        private byte numSongStacks;
+
+        [FieldOffset(3)]
+        private byte soulVoiceValue;
+
+        [FieldOffset(4)]
+        private CurrentSong activeSong;
+
         /// <summary>
         /// Gets the current song timer in milliseconds.
         /// </summary>
-        [FieldOffset(0)]
-        public short SongTimer;
+        public short SongTimer => this.songTimer;
 
         /// <summary>
         /// Gets the number of stacks for the current song.
         /// </summary>
-        [FieldOffset(2)]
-        public byte NumSongStacks;
+        public byte NumSongStacks => this.numSongStacks;
 
         /// <summary>
         /// Gets the amount of Soul Voice accumulated.
         /// </summary>
-        [FieldOffset(3)]
-        public byte SoulVoiceValue;
+        public byte SoulVoiceValue => this.soulVoiceValue;
 
         /// <summary>
         /// Gets the type of song that is active.
         /// </summary>
-        [FieldOffset(4)]
-        public CurrentSong ActiveSong;
+        public CurrentSong ActiveSong => this.activeSong;
     }
 }
