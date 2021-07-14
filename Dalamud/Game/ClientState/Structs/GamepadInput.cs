@@ -1,4 +1,4 @@
-﻿using System.Runtime.InteropServices;
+using System.Runtime.InteropServices;
 
 namespace Dalamud.Game.ClientState.Structs
 {
@@ -40,25 +40,37 @@ namespace Dalamud.Game.ClientState.Structs
         /// <summary>
         /// Raw input, set the whole time while a button is held. See <see cref="GamepadButtons"/> for the mapping.
         /// </summary>
+        /// <remarks>
+        /// This is a bitfield.
+        /// </remarks>
         [FieldOffset(0x98)]
-        public ushort ButtonsRaw; // bitfield
+        public ushort ButtonsRaw;
 
         /// <summary>
         /// Button pressed, set once when the button is pressed. See <see cref="GamepadButtons"/> for the mapping.
         /// </summary>
+        /// <remarks>
+        /// This is a bitfield.
+        /// </remarks>
         [FieldOffset(0x9C)]
-        public ushort ButtonsPressed; // bitfield
+        public ushort ButtonsPressed;
 
         /// <summary>
         /// Button released input, set once right after the button is not hold anymore. See <see cref="GamepadButtons"/> for the mapping.
         /// </summary>
+        /// <remarks>
+        /// This is a bitfield.
+        /// </remarks>
         [FieldOffset(0xA0)]
-        public ushort ButtonsReleased; // bitfield
+        public ushort ButtonsReleased;
 
         /// <summary>
         /// Repeatedly emits the held button input in fixed intervals. See <see cref="GamepadButtons"/> for the mapping.
         /// </summary>
+        /// <remarks>
+        /// This is a bitfield.
+        /// </remarks>
         [FieldOffset(0xA4)]
-        public ushort ButtonsRepeat; // bitfield
+        public ushort ButtonsRepeat;
     }
 }

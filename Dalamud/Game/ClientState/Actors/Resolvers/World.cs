@@ -6,11 +6,6 @@ namespace Dalamud.Game.ClientState.Actors.Resolvers
     public class World : BaseResolver
     {
         /// <summary>
-        /// ID of the world.
-        /// </summary>
-        public readonly uint Id;
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="World"/> class.
         /// Set up the world resolver with the provided ID.
         /// </summary>
@@ -21,6 +16,11 @@ namespace Dalamud.Game.ClientState.Actors.Resolvers
         {
             this.Id = id;
         }
+
+        /// <summary>
+        /// Gets the ID of the world.
+        /// </summary>
+        public uint Id { get; }
 
         /// <summary>
         /// Gets GameData linked to this world.

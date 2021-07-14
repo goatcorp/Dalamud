@@ -693,7 +693,7 @@ namespace Dalamud.Interface.Internal.Windows
                 $"{actor.Address.ToInt64():X}:{actor.ActorId:X}[{tag}] - {actor.ObjectKind} - {actor.Name} - X{actor.Position.X} Y{actor.Position.Y} Z{actor.Position.Z} D{actor.YalmDistanceX} R{actor.Rotation} - Target: {actor.TargetActorID:X}\n";
 
             if (actor is Npc npc)
-                actorString += $"       DataId: {npc.DataId}  NameId:{npc.NameId}\n";
+                actorString += $"       DataId: {npc.BaseId}  NameId:{npc.NameId}\n";
 
             if (actor is Chara chara)
             {

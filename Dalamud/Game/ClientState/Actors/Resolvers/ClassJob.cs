@@ -6,11 +6,6 @@ namespace Dalamud.Game.ClientState.Actors.Resolvers
     public class ClassJob : BaseResolver
     {
         /// <summary>
-        /// ID of the ClassJob.
-        /// </summary>
-        public readonly uint Id;
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="ClassJob"/> class.
         /// Set up the ClassJob resolver with the provided ID.
         /// </summary>
@@ -21,6 +16,11 @@ namespace Dalamud.Game.ClientState.Actors.Resolvers
         {
             this.Id = id;
         }
+
+        /// <summary>
+        /// Gets the ID of the ClassJob.
+        /// </summary>
+        public uint Id { get; }
 
         /// <summary>
         /// Gets GameData linked to this ClassJob.

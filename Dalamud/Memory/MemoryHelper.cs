@@ -79,7 +79,7 @@ namespace Dalamud.Memory
         /// <returns>The read in struct array.</returns>
         public static T[] Read<T>(IntPtr memoryAddress, int arrayLength, bool marshal)
         {
-            var structSize = SizeOf<T>();
+            var structSize = SizeOf<T>(marshal);
             var value = new T[arrayLength];
 
             for (var i = 0; i < arrayLength; i++)
@@ -223,7 +223,18 @@ namespace Dalamud.Memory
         public static SeString ReadSeString(IntPtr memoryAddress, int maxLength)
         {
             ReadRaw(memoryAddress, maxLength, out var buffer);
-            return seStringManager.Parse(buffer);
+
+            var eos = Array.IndexOf(buffer, (byte)0);
+            if (eos < 0)
+            {
+                return seStringManager.Parse(buffer);
+            }
+            else
+            {
+                var newBuffer = new byte[eos];
+                Buffer.BlockCopy(buffer, 0, newBuffer, 0, eos);
+                return seStringManager.Parse(newBuffer);
+            }
         }
 
         #endregion

@@ -17,56 +17,6 @@ namespace Dalamud.Game.ClientState
     /// </summary>
     public sealed class ClientState : INotifyPropertyChanged, IDisposable
     {
-        /// <summary>
-        /// The table of all present actors.
-        /// </summary>
-        public readonly ActorTable Actors;
-
-        /// <summary>
-        /// Gets the language of the client.
-        /// </summary>
-        public readonly ClientLanguage ClientLanguage;
-
-        /// <summary>
-        /// The current Territory the player resides in.
-        /// </summary>
-        public ushort TerritoryType;
-
-        /// <summary>
-        /// The class facilitating Job Gauge data access.
-        /// </summary>
-        public JobGauges JobGauges;
-
-        /// <summary>
-        /// The class facilitating party list data access.
-        /// </summary>
-        public PartyList PartyList;
-
-        /// <summary>
-        /// Provides access to the keypress state of keyboard keys in game.
-        /// </summary>
-        public KeyState KeyState;
-
-        /// <summary>
-        /// Provides access to the button state of gamepad buttons in game.
-        /// </summary>
-        public GamepadState GamepadState;
-
-        /// <summary>
-        /// Provides access to client conditions/player state. Allows you to check if a player is in a duty, mounted, etc.
-        /// </summary>
-        public Condition Condition;
-
-        /// <summary>
-        /// The class facilitating target data access.
-        /// </summary>
-        public Targets Targets;
-
-        /// <summary>
-        /// Event that gets fired when the current Territory changes.
-        /// </summary>
-        public EventHandler<ushort> TerritoryChanged;
-
         private readonly Dalamud dalamud;
         private readonly ClientStateAddressResolver address;
         private readonly Hook<SetupTerritoryTypeDelegate> setupTerritoryTypeHook;
@@ -123,6 +73,11 @@ namespace Dalamud.Game.ClientState
 #pragma warning restore
 
         /// <summary>
+        /// Event that gets fired when the current Territory changes.
+        /// </summary>
+        public event EventHandler<ushort> TerritoryChanged;
+
+        /// <summary>
         /// Event that fires when a character is logging in.
         /// </summary>
         public event EventHandler OnLogin;
@@ -138,21 +93,55 @@ namespace Dalamud.Game.ClientState
         public event EventHandler<ContentFinderCondition> CfPop;
 
         /// <summary>
+        /// Gets the table of all present actors.
+        /// </summary>
+        public ActorTable Actors { get; }
+
+        /// <summary>
+        /// Gets the language of the client.
+        /// </summary>
+        public ClientLanguage ClientLanguage { get; }
+
+        /// <summary>
+        /// Gets the class facilitating Job Gauge data access.
+        /// </summary>
+        public JobGauges JobGauges { get; }
+
+        /// <summary>
+        /// Gets the class facilitating party list data access.
+        /// </summary>
+        public PartyList PartyList { get; }
+
+        /// <summary>
+        /// Gets access to the keypress state of keyboard keys in game.
+        /// </summary>
+        public KeyState KeyState { get; }
+
+        /// <summary>
+        /// Gets access to the button state of gamepad buttons in game.
+        /// </summary>
+        public GamepadState GamepadState { get; }
+
+        /// <summary>
+        /// Gets access to client conditions/player state. Allows you to check if a player is in a duty, mounted, etc.
+        /// </summary>
+        public Condition Condition { get; }
+
+        /// <summary>
+        /// Gets the class facilitating target data access.
+        /// </summary>
+        public Targets Targets { get; }
+
+        /// <summary>
+        /// Gets the current Territory the player resides in.
+        /// </summary>
+        public ushort TerritoryType { get; private set; }
+
+        /// <summary>
         /// Gets the local player character, if one is present.
         /// </summary>
         [CanBeNull]
-        public PlayerCharacter LocalPlayer
-        {
-            get
-            {
-                var actor = this.Actors[0];
-
-                if (actor is PlayerCharacter pc)
-                    return pc;
-
-                return null;
-            }
-        }
+        public PlayerCharacter LocalPlayer => this.Actors[0] as PlayerCharacter;
 
         /// <summary>
         /// Gets the content ID of the local character.
