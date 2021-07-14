@@ -181,7 +181,6 @@ namespace Dalamud.Game.ClientState
         {
             this.PartyList.Dispose();
             this.setupTerritoryTypeHook.Dispose();
-            this.Actors.Dispose();
             this.GamepadState.Dispose();
 
             this.dalamud.Framework.OnUpdateEvent -= this.FrameworkOnOnUpdateEvent;

@@ -2,6 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 
 using Dalamud.Game.ClientState.Actors.Types;
+using JetBrains.Annotations;
 
 namespace Dalamud.Game.ClientState.Actors
 {
@@ -91,6 +92,7 @@ namespace Dalamud.Game.ClientState.Actors
             Marshal.WriteIntPtr(this.address.TargetManager, offset, actorAddress);
         }
 
+        [CanBeNull]
         private Actor GetActorByOffset(int offset)
         {
             if (this.address.TargetManager == IntPtr.Zero)
@@ -100,7 +102,7 @@ namespace Dalamud.Game.ClientState.Actors
             if (actorAddress == IntPtr.Zero)
                 return null;
 
-            return this.dalamud.ClientState.Actors.ReadActorFromMemory(actorAddress);
+            return this.dalamud.ClientState.Actors.CreateActorReference(actorAddress);
         }
     }
 
