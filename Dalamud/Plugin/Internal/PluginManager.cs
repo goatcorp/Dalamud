@@ -558,7 +558,7 @@ namespace Dalamud.Plugin.Internal
                                     continue;
                                 }
 
-                                if (manifest.DalamudApiLevel < DalamudApiLevel && !this.dalamud.Configuration.LoadAllApiLevels)
+                                if (manifest.DalamudApiLevel < DalamudApiLevel - 1 && !this.dalamud.Configuration.LoadAllApiLevels)
                                 {
                                     Log.Information($"Lower API: cleaning up {versionDir.FullName}");
                                     versionDir.Delete(true);
