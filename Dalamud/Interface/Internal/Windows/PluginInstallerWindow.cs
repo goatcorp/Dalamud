@@ -699,7 +699,7 @@ namespace Dalamud.Interface.Internal.Windows
             var disabled = this.updateStatus == OperationStatus.InProgress || this.installStatus == OperationStatus.InProgress;
 
             // Disable everything if the plugin is outdated
-            disabled = disabled || plugin.Manifest.DalamudApiLevel < PluginManager.DalamudApiLevel;
+            disabled = disabled || (plugin.Manifest.DalamudApiLevel < PluginManager.DalamudApiLevel && !this.dalamud.Configuration.LoadAllApiLevels);
 
             if (plugin.State == PluginState.InProgress)
             {
