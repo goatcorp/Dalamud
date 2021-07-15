@@ -787,7 +787,22 @@ namespace Dalamud.Interface.Internal.Windows
 
             if (ImGuiComponents.IconButton(FontAwesomeIcon.Download))
             {
-                this.dalamud.PluginManager.UpdateSinglePlugin(update, false);
+                this.installStatus = OperationStatus.InProgress;
+
+                Task.Run(() => this.dalamud.PluginManager.UpdateSinglePlugin(update, false))
+                    .ContinueWith(task =>
+                    {
+                        // There is no need to set as Complete for an individual plugin installation
+                        this.installStatus = OperationStatus.Idle;
+
+                        var errorMessage = Locs.ErrorModal_SingleUpdateFail(update.UpdateManifest.Name);
+                        this.DisplayErrorContinuation(task, errorMessage);
+
+                        if (!task.Result.WasUpdated)
+                        {
+                            ShowErrorModal(errorMessage);
+                        }
+                    });
             }
 
             if (ImGui.IsItemHovered())
@@ -986,7 +1001,7 @@ namespace Dalamud.Interface.Internal.Windows
         {
             if (task.IsFaulted)
             {
-                this.errorModalMessage = state as string;
+                var errorModalMessage = state as string;
 
                 foreach (var ex in task.Exception.InnerExceptions)
                 {
@@ -995,7 +1010,7 @@ namespace Dalamud.Interface.Internal.Windows
                         Log.Error(ex, "Plugin installer threw an error");
 #if DEBUG
                         if (!string.IsNullOrEmpty(ex.Message))
-                            this.errorModalMessage += $"\n\n{ex.Message}";
+                            errorModalMessage += $"\n\n{ex.Message}";
 #endif
                     }
                     else
@@ -1003,18 +1018,24 @@ namespace Dalamud.Interface.Internal.Windows
                         Log.Error(ex, "Plugin installer threw an unexpected error");
 #if DEBUG
                         if (!string.IsNullOrEmpty(ex.Message))
-                            this.errorModalMessage += $"\n\n{ex.Message}";
+                            errorModalMessage += $"\n\n{ex.Message}";
 #endif
                     }
                 }
 
-                this.errorModalDrawing = true;
-                this.errorModalOnNextFrame = true;
+                this.ShowErrorModal(errorModalMessage);
 
                 return false;
             }
 
             return true;
+        }
+
+        private void ShowErrorModal(string message)
+        {
+            this.errorModalMessage = message;
+            this.errorModalDrawing = true;
+            this.errorModalOnNextFrame = true;
         }
 
         [SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1201:Elements should appear in the correct order", Justification = "Disregard here")]
@@ -1175,6 +1196,8 @@ namespace Dalamud.Interface.Internal.Windows
             public static string ErrorModal_Title => Loc.Localize("InstallerError", "Installer Error");
 
             public static string ErrorModal_InstallFail(string name) => Loc.Localize("InstallerInstallFail", "Failed to install plugin {0}.").Format(name);
+
+            public static string ErrorModal_SingleUpdateFail(string name) => Loc.Localize("InstallerSingleUpdateFail", "Failed to update plugin {0}.").Format(name);
 
             public static string ErrorModal_EnableFail(string name) => Loc.Localize("InstallerEnableFail", "Failed to enable plugin {0}.").Format(name);
 

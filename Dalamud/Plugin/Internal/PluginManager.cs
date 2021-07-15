@@ -635,7 +635,7 @@ namespace Dalamud.Plugin.Internal
             {
                 InternalName = plugin.Manifest.InternalName,
                 Name = plugin.Manifest.Name,
-                Version = metadata.UseTesting ? metadata.UpdateManifest.TestingAssemblyVersion : metadata.UpdateManifest.AssemblyVersion
+                Version = metadata.UseTesting ? metadata.UpdateManifest.TestingAssemblyVersion : metadata.UpdateManifest.AssemblyVersion,
             };
 
             if (dryRun)
