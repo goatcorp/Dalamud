@@ -17,7 +17,7 @@
 
     <PropertyGroup Label="Output">
         <OutputType>Library</OutputType>
-        <OutputPath>..\bin\$(Configuration)\</OutputPath>
+        <OutputPath>..\..\bin\$(Configuration)\</OutputPath>
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
         <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
         <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>

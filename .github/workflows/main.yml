@@ -27,7 +27,7 @@ jobs:
       - name: Test Dalamud
         run: .\build.ps1 test
       - name: Create hashlist
-        run: .\CreateHashList.ps1 .\bin\Release
+        run: .\src\CreateHashList.ps1 .\bin\Release
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:

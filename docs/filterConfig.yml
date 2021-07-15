@@ -1,0 +1,5 @@
+apiRules:
+- exclude:
+    uidRegex: ^Dalamud\.Plugin\.PluginManager$
+- exclude:
+    uidRegex: AddressResolver$

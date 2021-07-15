@@ -26,24 +26,24 @@ public class DalamudBuild : NukeBuild
     [Solution] Solution Solution;
     [GitRepository] GitRepository GitRepository;
 
-    AbsolutePath DalamudProjectDir => RootDirectory / "Dalamud";
+    AbsolutePath DalamudProjectDir => RootDirectory / "src" / "Dalamud";
     AbsolutePath DalamudProjectFile => DalamudProjectDir / "Dalamud.csproj";
 
-    AbsolutePath DalamudBootProjectDir => RootDirectory / "Dalamud.Boot";
+    AbsolutePath DalamudBootProjectDir => RootDirectory / "src" / "Dalamud.Boot";
     AbsolutePath DalamudBootProjectFile => DalamudBootProjectDir / "Dalamud.Boot.vcxproj";
 
-    AbsolutePath InjectorProjectDir => RootDirectory / "Dalamud.Injector";
+    AbsolutePath InjectorProjectDir => RootDirectory / "src" / "Dalamud.Injector";
     AbsolutePath InjectorProjectFile => InjectorProjectDir / "Dalamud.Injector.csproj";
 
-    AbsolutePath InjectorBootProjectDir => RootDirectory / "Dalamud.Injector.Boot";
+    AbsolutePath InjectorBootProjectDir => RootDirectory / "src" / "Dalamud.Injector.Boot";
     AbsolutePath InjectorBootProjectFile => InjectorBootProjectDir / "Dalamud.Injector.Boot.vcxproj";
 
-    AbsolutePath TestProjectDir => RootDirectory / "Dalamud.Test";
+    AbsolutePath TestProjectDir => RootDirectory / "src" / "Dalamud.Test";
     AbsolutePath TestProjectFile => TestProjectDir / "Dalamud.Test.csproj";
 
     AbsolutePath ArtifactsDirectory => RootDirectory / "bin" / Configuration;
 
-    private static AbsolutePath LibraryDirectory => RootDirectory / "lib";
+    private static AbsolutePath LibraryDirectory => RootDirectory / "src" / "lib";
 
     private static Dictionary<string, string> EnvironmentVariables => new(EnvironmentInfo.Variables);
 
