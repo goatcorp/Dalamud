@@ -131,6 +131,10 @@ namespace Dalamud.Game.Text.SeStringHandling
                     payload = new EmphasisItalicPayload();
                     break;
 
+                case SeStringChunkType.NewLine:
+                    payload = NewLinePayload.Payload;
+                    break;
+
                 case SeStringChunkType.SeHyphen:
                     payload = SeHyphenPayload.Payload;
                     break;
@@ -294,6 +298,11 @@ namespace Dalamud.Game.Text.SeStringHandling
             /// See the <see cref="EmphasisItalicPayload"/> class.
             /// </summary>
             EmphasisItalic = 0x1A,
+
+            /// <summary>
+            /// See the <see cref="NewLinePayload"/>
+            /// </summary>
+            NewLine = 0x10,
 
             /// <summary>
             /// See the <see cref="SeHyphenPayload"/> class.
