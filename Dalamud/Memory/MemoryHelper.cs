@@ -7,6 +7,7 @@ using System.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Memory.Exceptions;
 using FFXIVClientStructs.FFXIV.Client.System.String;
+
 using static Dalamud.NativeFunctions;
 
 // Heavily inspired from Reloaded (https://github.com/Reloaded-Project/Reloaded.Memory)
