@@ -789,7 +789,7 @@ namespace Dalamud.Interface.Internal.Windows
             {
                 this.installStatus = OperationStatus.InProgress;
 
-                Task.Run(() => this.dalamud.PluginManager.UpdateSinglePlugin(update, false))
+                Task.Run(() => this.dalamud.PluginManager.UpdateSinglePlugin(update, true, false))
                     .ContinueWith(task =>
                     {
                         // There is no need to set as Complete for an individual plugin installation

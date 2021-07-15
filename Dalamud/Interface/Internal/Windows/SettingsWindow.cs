@@ -45,6 +45,7 @@ namespace Dalamud.Interface.Internal.Windows
         private bool doViewport;
         private bool doGamepad;
         private List<ThirdPartyRepoSettings> thirdRepoList;
+        private bool thirdRepoListChanged;
 
         private bool printPluginsWelcomeMsg;
         private bool autoUpdatePlugins;
@@ -142,6 +143,7 @@ namespace Dalamud.Interface.Internal.Windows
         /// <inheritdoc/>
         public override void OnOpen()
         {
+            this.thirdRepoListChanged = false;
         }
 
         /// <inheritdoc/>
@@ -337,6 +339,7 @@ namespace Dalamud.Interface.Internal.Windows
                     if (toRemove != null)
                     {
                         this.thirdRepoList.Remove(toRemove);
+                        this.thirdRepoListChanged = true;
                     }
 
                     ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (ImGui.GetColumnWidth() / 2) - 8 - (ImGui.CalcTextSize(repoNumber.ToString()).X / 2));
@@ -361,7 +364,7 @@ namespace Dalamud.Interface.Internal.Windows
                                 Url = this.thirdRepoTempUrl,
                                 IsEnabled = true,
                             });
-
+                            this.thirdRepoListChanged = true;
                             this.thirdRepoTempUrl = string.Empty;
                         }
                     }
@@ -384,6 +387,12 @@ namespace Dalamud.Interface.Internal.Windows
             if (ImGui.Button(Loc.Localize("Save", "Save")))
             {
                 this.Save();
+
+                if (this.thirdRepoListChanged)
+                {
+                    this.dalamud.PluginManager.SetPluginReposFromConfig(true);
+                    this.thirdRepoListChanged = false;
+                }
             }
 
             ImGui.SameLine();
@@ -391,6 +400,13 @@ namespace Dalamud.Interface.Internal.Windows
             if (ImGui.Button(Loc.Localize("SaveAndClose", "Save and Close")))
             {
                 this.Save();
+
+                if (this.thirdRepoListChanged)
+                {
+                    this.dalamud.PluginManager.SetPluginReposFromConfig(true);
+                    this.thirdRepoListChanged = false;
+                }
+
                 this.IsOpen = false;
             }
         }
