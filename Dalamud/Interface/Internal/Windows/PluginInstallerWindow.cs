@@ -679,7 +679,7 @@ namespace Dalamud.Interface.Internal.Windows
                 this.DrawVisitRepoUrlButton(plugin.Manifest.RepoUrl);
 
                 if (availablePluginUpdate != default)
-                    this.DrawUpdateSinglePluginButton(plugin, availablePluginUpdate);
+                    this.DrawUpdateSinglePluginButton(availablePluginUpdate);
 
                 ImGui.SameLine();
                 ImGui.TextColored(ImGuiColors.DalamudGrey3, $" v{plugin.Manifest.AssemblyVersion}");
@@ -781,7 +781,7 @@ namespace Dalamud.Interface.Internal.Windows
             }
         }
 
-        private void DrawUpdateSinglePluginButton(LocalPlugin plugin, AvailablePluginUpdate update)
+        private void DrawUpdateSinglePluginButton(AvailablePluginUpdate update)
         {
             ImGui.SameLine();
 
@@ -800,7 +800,7 @@ namespace Dalamud.Interface.Internal.Windows
 
                         if (!task.Result.WasUpdated)
                         {
-                            ShowErrorModal(errorMessage);
+                            this.ShowErrorModal(errorMessage);
                         }
                     });
             }
