@@ -657,6 +657,7 @@ namespace Dalamud.Plugin.Internal
                     {
                         Log.Error(ex, "Error during unload (update)");
                         updateStatus.WasUpdated = false;
+                        return updateStatus;
                     }
                 }
 
@@ -669,6 +670,7 @@ namespace Dalamud.Plugin.Internal
                 {
                     Log.Error(ex, "Error during disable (update)");
                     updateStatus.WasUpdated = false;
+                    return updateStatus;
                 }
 
                 try
@@ -679,6 +681,7 @@ namespace Dalamud.Plugin.Internal
                 {
                     Log.Error(ex, "Error during install (update)");
                     updateStatus.WasUpdated = false;
+                    return updateStatus;
                 }
             }
 
