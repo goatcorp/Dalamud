@@ -800,24 +800,15 @@ namespace Dalamud.Plugin.Internal
         {
             var updatablePlugins = new List<AvailablePluginUpdate>();
 
-            if (!this.ReposReady)
-                throw new Exception("Plugin updates can only be detected when repos are available.");
-
-            // Collect all outdated and current plugin manifests
-            var remoteManifests =
-                this.Repos.SelectMany(x => x.PluginMaster).Where(x => x.DalamudApiLevel <= DalamudApiLevel).ToList();
-
             for (var i = 0; i < this.installedPlugins.Count; i++)
             {
                 var plugin = this.installedPlugins[i];
-
-                Log.Debug($"Checking plugin updates for {plugin.Manifest.InternalName}");
 
                 var installedVersion = plugin.IsTesting
                     ? plugin.Manifest.TestingAssemblyVersion
                     : plugin.Manifest.AssemblyVersion;
 
-                var updates = remoteManifests
+                var updates = this.availablePlugins
                     .Where(remoteManifest => plugin.Manifest.InternalName == remoteManifest.InternalName)
                     .Select(remoteManifest =>
                     {
@@ -826,8 +817,6 @@ namespace Dalamud.Plugin.Internal
                             ? remoteManifest.TestingAssemblyVersion
                             : remoteManifest.AssemblyVersion;
                         var isUpdate = candidateVersion > installedVersion;
-
-                        Log.Debug($"   => {remoteManifest.InternalName} from {remoteManifest.SourceRepo.PluginMasterUrl} - candidate: {candidateVersion} installed: {installedVersion}");
 
                         return (isUpdate, useTesting, candidateVersion, remoteManifest);
                     })
