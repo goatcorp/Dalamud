@@ -17,6 +17,7 @@ using Dalamud.Game.Text;
 using Dalamud.Plugin.Internal.Exceptions;
 using Dalamud.Plugin.Internal.Types;
 using HarmonyLib;
+using JetBrains.Annotations;
 using Newtonsoft.Json;
 
 namespace Dalamud.Plugin.Internal
@@ -198,9 +199,9 @@ namespace Dalamud.Plugin.Internal
                     {
                         // Not a plugin
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
-                        Log.Error(ex, "During boot plugin load, an unexpected error occurred");
+                        Log.Error("During boot plugin load, an unexpected error occurred");
                     }
                 }
             }
@@ -469,6 +470,10 @@ namespace Dalamud.Plugin.Internal
                     {
                         Log.Information(ex, $"Dev plugin failed to load, adding anyways:  {dllFile.Name}");
                     }
+                    else if (plugin.Manifest.DalamudApiLevel < DalamudApiLevel)
+                    {
+                        Log.Information(ex, $"Plugin was outdated, adding anyways:  {dllFile.Name}");
+                    }
                     else
                     {
                         PluginLocations.Remove(plugin.AssemblyName.FullName);
@@ -492,6 +497,7 @@ namespace Dalamud.Plugin.Internal
             this.installedPlugins.Remove(plugin);
             PluginLocations.Remove(plugin.AssemblyName.FullName);
 
+            this.NotifyAvailablePluginsChanged();
             this.NotifyInstalledPluginsChanged();
         }
 
@@ -558,7 +564,7 @@ namespace Dalamud.Plugin.Internal
                                     continue;
                                 }
 
-                                if (manifest.DalamudApiLevel < DalamudApiLevel && !this.dalamud.Configuration.LoadAllApiLevels)
+                                if (manifest.DalamudApiLevel < DalamudApiLevel - 1 && !this.dalamud.Configuration.LoadAllApiLevels)
                                 {
                                     Log.Information($"Lower API: cleaning up {versionDir.FullName}");
                                     versionDir.Delete(true);
@@ -595,82 +601,91 @@ namespace Dalamud.Plugin.Internal
         {
             Log.Information("Starting plugin update");
 
-            var listChanged = false;
-
             var updatedList = new List<PluginUpdateStatus>();
 
             // Prevent collection was modified errors
             for (var i = 0; i < this.updatablePlugins.Count; i++)
             {
-                var metadata = this.updatablePlugins[i];
-
-                var plugin = metadata.InstalledPlugin;
-
-                // Can't update that!
-                if (plugin is LocalDevPlugin)
-                    continue;
-
-                var updateStatus = new PluginUpdateStatus()
-                {
-                    InternalName = plugin.Manifest.InternalName,
-                    Name = plugin.Manifest.Name,
-                    Version = metadata.UseTesting
-                        ? metadata.UpdateManifest.TestingAssemblyVersion
-                        : metadata.UpdateManifest.AssemblyVersion,
-                };
-
-                if (dryRun)
-                {
-                    updateStatus.WasUpdated = true;
-                    updatedList.Add(updateStatus);
-                }
-                else
-                {
-                    // Unload if loaded
-                    if (plugin.State == PluginState.Loaded || plugin.State == PluginState.LoadError)
-                    {
-                        try
-                        {
-                            plugin.Unload();
-                        }
-                        catch (Exception ex)
-                        {
-                            Log.Error(ex, "Error during unload (update)");
-                            continue;
-                        }
-                    }
-
-                    try
-                    {
-                        plugin.Disable();
-                        this.installedPlugins.Remove(plugin);
-                        listChanged = true;
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Error(ex, "Error during disable (update)");
-                        continue;
-                    }
-
-                    try
-                    {
-                        this.InstallPlugin(metadata.UpdateManifest, metadata.UseTesting, PluginLoadReason.Update);
-                        listChanged = true;
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Error(ex, "Error during install (update)");
-                        continue;
-                    }
-                }
+                updatedList.Add(this.UpdateSinglePlugin(this.updatablePlugins[i], dryRun));
             }
 
-            if (listChanged)
-                this.NotifyInstalledPluginsChanged();
+            this.NotifyInstalledPluginsChanged();
 
             Log.Information("Plugin update OK.");
 
             return updatedList;
+        }
+
+        /// <summary>
+        /// Update a single plugin, provided a valid <see cref="AvailablePluginUpdate"/>.
+        /// </summary>
+        /// <param name="metadata">The available plugin update.</param>
+        /// <param name="dryRun">Whether or not to actually perform the update, or just indicate success.</param>
+        /// <returns>The status of the update.</returns>
+        [CanBeNull]
+        public PluginUpdateStatus UpdateSinglePlugin(AvailablePluginUpdate metadata, bool dryRun)
+        {
+            var plugin = metadata.InstalledPlugin;
+
+            // Can't update that!
+            if (plugin is LocalDevPlugin)
+                return null;
+
+            var updateStatus = new PluginUpdateStatus
+            {
+                InternalName = plugin.Manifest.InternalName,
+                Name = plugin.Manifest.Name,
+                Version = metadata.UseTesting ? metadata.UpdateManifest.TestingAssemblyVersion : metadata.UpdateManifest.AssemblyVersion,
+            };
+
+            if (dryRun)
+            {
+                updateStatus.WasUpdated = true;
+            }
+            else
+            {
+                updateStatus.WasUpdated = true;
+
+                // Unload if loaded
+                if (plugin.State == PluginState.Loaded || plugin.State == PluginState.LoadError)
+                {
+                    try
+                    {
+                        plugin.Unload();
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, "Error during unload (update)");
+                        updateStatus.WasUpdated = false;
+                        return updateStatus;
+                    }
+                }
+
+                try
+                {
+                    plugin.Disable();
+                    this.installedPlugins.Remove(plugin);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Error during disable (update)");
+                    updateStatus.WasUpdated = false;
+                    return updateStatus;
+                }
+
+                try
+                {
+                    this.InstallPlugin(metadata.UpdateManifest, metadata.UseTesting, PluginLoadReason.Update);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Error during install (update)");
+                    updateStatus.WasUpdated = false;
+                    return updateStatus;
+                }
+            }
+
+            return updateStatus;
         }
 
         /// <summary>

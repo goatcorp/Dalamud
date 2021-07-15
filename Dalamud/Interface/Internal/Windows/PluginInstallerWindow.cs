@@ -523,7 +523,8 @@ namespace Dalamud.Interface.Internal.Windows
                 }
                 else
                 {
-                    if (ImGui.Button(Locs.PluginButton_InstallVersion(versionString)))
+                    var buttonText = Locs.PluginButton_InstallVersion(versionString);
+                    if (ImGui.Button($"{buttonText}##{buttonText}{index}"))
                     {
                         this.installStatus = OperationStatus.InProgress;
 
@@ -591,8 +592,9 @@ namespace Dalamud.Interface.Internal.Windows
                 label += Locs.PluginTitleMod_UnloadError;
             }
 
+            var availablePluginUpdate = this.pluginListUpdatable.FirstOrDefault(up => up.InstalledPlugin == plugin);
             // Update available
-            if (this.pluginListUpdatable.FirstOrDefault(up => up.InstalledPlugin == plugin) != default)
+            if (availablePluginUpdate != default)
             {
                 label += Locs.PluginTitleMod_HasUpdate;
             }
@@ -612,6 +614,12 @@ namespace Dalamud.Interface.Internal.Windows
                         label += Locs.PluginTitleMod_UpdateFailed;
                     }
                 }
+            }
+
+            // Outdated API level
+            if (plugin.Manifest.DalamudApiLevel < PluginManager.DalamudApiLevel)
+            {
+                label += Locs.PluginTitleMod_OutdatedError;
             }
 
             if (ImGui.CollapsingHeader($"{label}###Header{index}{plugin.Manifest.InternalName}"))
@@ -644,6 +652,13 @@ namespace Dalamud.Interface.Internal.Windows
                     ImGui.TextWrapped(manifest.Description);
                 }
 
+                if (plugin.Manifest.DalamudApiLevel < PluginManager.DalamudApiLevel)
+                {
+                    ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
+                    ImGui.TextWrapped(Locs.PluginBody_Outdated);
+                    ImGui.PopStyleColor();
+                }
+
                 // Available commands (if loaded)
                 if (plugin.IsLoaded)
                 {
@@ -663,6 +678,9 @@ namespace Dalamud.Interface.Internal.Windows
                 this.DrawDevPluginButtons(plugin);
                 this.DrawVisitRepoUrlButton(plugin.Manifest.RepoUrl);
 
+                if (availablePluginUpdate != default)
+                    this.DrawUpdateSinglePluginButton(plugin, availablePluginUpdate);
+
                 ImGui.SameLine();
                 ImGui.TextColored(ImGuiColors.DalamudGrey3, $" v{plugin.Manifest.AssemblyVersion}");
 
@@ -680,6 +698,9 @@ namespace Dalamud.Interface.Internal.Windows
         {
             // Disable everything if the updater is running or another plugin is operating
             var disabled = this.updateStatus == OperationStatus.InProgress || this.installStatus == OperationStatus.InProgress;
+
+            // Disable everything if the plugin is outdated
+            disabled = disabled || (plugin.Manifest.DalamudApiLevel < PluginManager.DalamudApiLevel && !this.dalamud.Configuration.LoadAllApiLevels);
 
             if (plugin.State == PluginState.InProgress)
             {
@@ -758,6 +779,34 @@ namespace Dalamud.Interface.Internal.Windows
             {
                 ImGuiComponents.DisabledButton(FontAwesomeIcon.Frown);
             }
+        }
+
+        private void DrawUpdateSinglePluginButton(LocalPlugin plugin, AvailablePluginUpdate update)
+        {
+            ImGui.SameLine();
+
+            if (ImGuiComponents.IconButton(FontAwesomeIcon.Download))
+            {
+                this.installStatus = OperationStatus.InProgress;
+
+                Task.Run(() => this.dalamud.PluginManager.UpdateSinglePlugin(update, false))
+                    .ContinueWith(task =>
+                    {
+                        // There is no need to set as Complete for an individual plugin installation
+                        this.installStatus = OperationStatus.Idle;
+
+                        var errorMessage = Locs.ErrorModal_SingleUpdateFail(update.UpdateManifest.Name);
+                        this.DisplayErrorContinuation(task, errorMessage);
+
+                        if (!task.Result.WasUpdated)
+                        {
+                            ShowErrorModal(errorMessage);
+                        }
+                    });
+            }
+
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip(Locs.PluginButtonToolTip_UpdateSingle(update.UpdateManifest.AssemblyVersion.ToString()));
         }
 
         private void DrawOpenPluginSettingsButton(LocalPlugin plugin)
@@ -952,7 +1001,7 @@ namespace Dalamud.Interface.Internal.Windows
         {
             if (task.IsFaulted)
             {
-                this.errorModalMessage = state as string;
+                var errorModalMessage = state as string;
 
                 foreach (var ex in task.Exception.InnerExceptions)
                 {
@@ -961,7 +1010,7 @@ namespace Dalamud.Interface.Internal.Windows
                         Log.Error(ex, "Plugin installer threw an error");
 #if DEBUG
                         if (!string.IsNullOrEmpty(ex.Message))
-                            this.errorModalMessage += $"\n\n{ex.Message}";
+                            errorModalMessage += $"\n\n{ex.Message}";
 #endif
                     }
                     else
@@ -969,18 +1018,24 @@ namespace Dalamud.Interface.Internal.Windows
                         Log.Error(ex, "Plugin installer threw an unexpected error");
 #if DEBUG
                         if (!string.IsNullOrEmpty(ex.Message))
-                            this.errorModalMessage += $"\n\n{ex.Message}";
+                            errorModalMessage += $"\n\n{ex.Message}";
 #endif
                     }
                 }
 
-                this.errorModalDrawing = true;
-                this.errorModalOnNextFrame = true;
+                this.ShowErrorModal(errorModalMessage);
 
                 return false;
             }
 
             return true;
+        }
+
+        private void ShowErrorModal(string message)
+        {
+            this.errorModalMessage = message;
+            this.errorModalDrawing = true;
+            this.errorModalOnNextFrame = true;
         }
 
         [SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1201:Elements should appear in the correct order", Justification = "Disregard here")]
@@ -1062,6 +1117,8 @@ namespace Dalamud.Interface.Internal.Windows
 
             public static string PluginTitleMod_UnloadError => Loc.Localize("InstallerUnloadError", " (unload error)");
 
+            public static string PluginTitleMod_OutdatedError => Loc.Localize("InstallerOutdatedError", " (outdated)");
+
             #endregion
 
             #region Plugin context menu
@@ -1081,6 +1138,8 @@ namespace Dalamud.Interface.Internal.Windows
             public static string PluginBody_AvailableDevPlugin => Loc.Localize("InstallerDevPlugin", " This plugin is available in one of your repos, please remove it from the devPlugins folder.");
 
             public static string PluginBody_DeleteDevPlugin => Loc.Localize("InstallerDeleteDevPlugin ", " To delete this plugin, please remove it from the devPlugins folder.");
+
+            public static string PluginBody_Outdated => Loc.Localize("InstallerOutdatedPluginBody ", "This plugin is outdated and incompatible at the moment. Please wait for it to be updated by its author.");
 
             #endregion
 
@@ -1110,6 +1169,8 @@ namespace Dalamud.Interface.Internal.Windows
 
             public static string PluginButtonToolTip_VisitPluginUrl => Loc.Localize("InstallerVisitPluginUrl", "Visit plugin URL");
 
+            public static string PluginButtonToolTip_UpdateSingle(string version) => Loc.Localize("InstallerUpdateSingle", "Update to {0}").Format(version);
+
             #endregion
 
             #region Footer
@@ -1135,6 +1196,8 @@ namespace Dalamud.Interface.Internal.Windows
             public static string ErrorModal_Title => Loc.Localize("InstallerError", "Installer Error");
 
             public static string ErrorModal_InstallFail(string name) => Loc.Localize("InstallerInstallFail", "Failed to install plugin {0}.").Format(name);
+
+            public static string ErrorModal_SingleUpdateFail(string name) => Loc.Localize("InstallerSingleUpdateFail", "Failed to update plugin {0}.").Format(name);
 
             public static string ErrorModal_EnableFail(string name) => Loc.Localize("InstallerEnableFail", "Failed to enable plugin {0}.").Format(name);
 
