@@ -591,8 +591,9 @@ namespace Dalamud.Interface.Internal.Windows
                 label += Locs.PluginTitleMod_UnloadError;
             }
 
+            var availablePluginUpdate = this.pluginListUpdatable.FirstOrDefault(up => up.InstalledPlugin == plugin);
             // Update available
-            if (this.pluginListUpdatable.FirstOrDefault(up => up.InstalledPlugin == plugin) != default)
+            if (availablePluginUpdate != default)
             {
                 label += Locs.PluginTitleMod_HasUpdate;
             }
@@ -675,6 +676,9 @@ namespace Dalamud.Interface.Internal.Windows
                 this.DrawPluginControlButton(plugin);
                 this.DrawDevPluginButtons(plugin);
                 this.DrawVisitRepoUrlButton(plugin.Manifest.RepoUrl);
+
+                if (availablePluginUpdate != default)
+                    this.DrawUpdateSinglePluginButton(plugin, availablePluginUpdate);
 
                 ImGui.SameLine();
                 ImGui.TextColored(ImGuiColors.DalamudGrey3, $" v{plugin.Manifest.AssemblyVersion}");
@@ -774,6 +778,19 @@ namespace Dalamud.Interface.Internal.Windows
             {
                 ImGuiComponents.DisabledButton(FontAwesomeIcon.Frown);
             }
+        }
+
+        private void DrawUpdateSinglePluginButton(LocalPlugin plugin, AvailablePluginUpdate update)
+        {
+            ImGui.SameLine();
+
+            if (ImGuiComponents.IconButton(FontAwesomeIcon.Download))
+            {
+                this.dalamud.PluginManager.UpdateSinglePlugin(update, false);
+            }
+
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip(Locs.PluginButtonToolTip_UpdateSingle(update.UpdateManifest.AssemblyVersion.ToString()));
         }
 
         private void DrawOpenPluginSettingsButton(LocalPlugin plugin)
@@ -1129,6 +1146,8 @@ namespace Dalamud.Interface.Internal.Windows
             public static string PluginButtonToolTip_DeletePlugin => Loc.Localize("InstallerDeletePlugin ", "Delete plugin");
 
             public static string PluginButtonToolTip_VisitPluginUrl => Loc.Localize("InstallerVisitPluginUrl", "Visit plugin URL");
+
+            public static string PluginButtonToolTip_UpdateSingle(string version) => Loc.Localize("InstallerUpdateSingle", "Update to {0}").Format(version);
 
             #endregion
 
