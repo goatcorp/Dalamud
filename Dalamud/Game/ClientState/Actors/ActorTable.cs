@@ -17,6 +17,7 @@ namespace Dalamud.Game.ClientState.Actors
         private const int ActorTableLength = 424;
 
         private readonly Dalamud dalamud;
+        private readonly ClientStateAddressResolver address;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ActorTable"/> class.
@@ -25,10 +26,10 @@ namespace Dalamud.Game.ClientState.Actors
         /// <param name="addressResolver">Client state address resolver.</param>
         internal ActorTable(Dalamud dalamud, ClientStateAddressResolver addressResolver)
         {
-            this.Address = addressResolver;
             this.dalamud = dalamud;
+            this.address = addressResolver;
 
-            Log.Verbose("Actor table address {ActorTable}", this.Address.ActorTable);
+            Log.Verbose($"Actor table address 0x{this.address.ActorTable.ToInt64():X}");
         }
 
         /// <summary>
@@ -52,13 +53,11 @@ namespace Dalamud.Game.ClientState.Actors
             }
         }
 
-        private ClientStateAddressResolver Address { get; }
-
         /// <summary>
         /// Get an actor at the specified spawn index.
         /// </summary>
         /// <param name="index">Spawn index.</param>
-        /// <returns>An <see cref="Actor" /> at the specified spawn index.</returns>
+        /// <returns>An <see cref="Actor"/> at the specified spawn index.</returns>
         [CanBeNull]
         public Actor this[int index]
         {
@@ -73,7 +72,7 @@ namespace Dalamud.Game.ClientState.Actors
         /// Get an actor at the specified address.
         /// </summary>
         /// <param name="address">The actor address.</param>
-        /// <returns>An <see cref="Actor" /> at the specified address.</returns>
+        /// <returns>An <see cref="Actor"/> at the specified address.</returns>
         public Actor this[IntPtr address]
         {
             get
@@ -93,11 +92,9 @@ namespace Dalamud.Game.ClientState.Actors
         public unsafe IntPtr GetActorAddress(int index)
         {
             if (index >= ActorTableLength)
-            {
                 return IntPtr.Zero;
-            }
 
-            return *(IntPtr*)(this.Address.ActorTable + (8 * index));
+            return *(IntPtr*)(this.address.ActorTable + (8 * index));
         }
 
         /// <summary>
@@ -109,12 +106,12 @@ namespace Dalamud.Game.ClientState.Actors
         internal unsafe Actor CreateActorReference(IntPtr offset)
         {
             if (this.dalamud.ClientState.LocalContentId == 0)
-            {
                 return null;
-            }
+
+            if (offset == IntPtr.Zero)
+                return null;
 
             var objKind = *(ObjectKind*)(offset + ActorOffsets.ObjectKind);
-
             return objKind switch
             {
                 ObjectKind.Player => new PlayerCharacter(offset, this.dalamud),

@@ -1,6 +1,6 @@
 using System;
 
-using Dalamud.Game.ClientState.Actors.Resolvers;
+using Dalamud.Game.ClientState.Resolvers;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Memory;
 
@@ -23,14 +23,14 @@ namespace Dalamud.Game.ClientState.Actors.Types
         }
 
         /// <summary>
-        /// Gets the current <see cref="World">world</see> of the character.
+        /// Gets the current <see cref="WorldResolver">world</see> of the character.
         /// </summary>
-        public World CurrentWorld => new(*(ushort*)(this.Address + ActorOffsets.CurrentWorld), this.Dalamud);
+        public WorldResolver CurrentWorld => new(*(ushort*)(this.Address + ActorOffsets.CurrentWorld), this.Dalamud);
 
         /// <summary>
-        /// Gets the home <see cref="World">world</see> of the character.
+        /// Gets the home <see cref="WorldResolver">world</see> of the character.
         /// </summary>
-        public World HomeWorld => new(*(ushort*)(this.Address + ActorOffsets.HomeWorld), this.Dalamud);
+        public WorldResolver HomeWorld => new(*(ushort*)(this.Address + ActorOffsets.HomeWorld), this.Dalamud);
 
         /// <summary>
         /// Gets the Free Company tag of this player.

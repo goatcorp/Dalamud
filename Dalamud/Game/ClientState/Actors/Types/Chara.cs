@@ -1,6 +1,6 @@
 using System;
 
-using Dalamud.Game.ClientState.Actors.Resolvers;
+using Dalamud.Game.ClientState.Resolvers;
 using Dalamud.Game.ClientState.Structs;
 using Dalamud.Memory;
 
@@ -65,7 +65,7 @@ namespace Dalamud.Game.ClientState.Actors.Types
         /// <summary>
         /// Gets the ClassJob of this Chara.
         /// </summary>
-        public ClassJob ClassJob => new(*(byte*)(this.Address + ActorOffsets.ClassJob), this.Dalamud);
+        public ClassJobResolver ClassJob => new(*(byte*)(this.Address + ActorOffsets.ClassJob), this.Dalamud);
 
         /// <summary>
         /// Gets the level of this Chara.

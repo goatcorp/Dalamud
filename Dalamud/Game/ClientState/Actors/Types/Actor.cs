@@ -40,6 +40,16 @@ namespace Dalamud.Game.ClientState.Actors.Types
         /// <returns>True or false.</returns>
         public static implicit operator bool(Actor actor) => IsValid(actor);
 
+        public static bool operator ==(Actor actor1, Actor actor2)
+        {
+            if (actor1 is null || actor2 is null)
+                return Equals(actor1, actor2);
+
+            return actor1.Equals(actor2);
+        }
+
+        public static bool operator !=(Actor actor1, Actor actor2) => !(actor1 == actor2);
+
         /// <summary>
         /// Gets a value indicating whether this actor is still valid in memory.
         /// </summary>
@@ -69,7 +79,7 @@ namespace Dalamud.Game.ClientState.Actors.Types
         public override bool Equals(object obj) => ((IEquatable<Actor>)this).Equals(obj as Actor);
 
         /// <inheritdoc/>
-        public override int GetHashCode() => base.GetHashCode();
+        public override int GetHashCode() => this.ActorId.GetHashCode();
     }
 
     /// <summary>
