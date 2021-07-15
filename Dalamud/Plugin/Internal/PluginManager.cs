@@ -606,7 +606,7 @@ namespace Dalamud.Plugin.Internal
             // Prevent collection was modified errors
             for (var i = 0; i < this.updatablePlugins.Count; i++)
             {
-                updatedList.Add(this.UpdateSinglePlugin(this.updatablePlugins[i], dryRun));
+                updatedList.Add(this.UpdateSinglePlugin(this.updatablePlugins[i], false, dryRun));
             }
 
             this.NotifyInstalledPluginsChanged();
@@ -620,10 +620,11 @@ namespace Dalamud.Plugin.Internal
         /// Update a single plugin, provided a valid <see cref="AvailablePluginUpdate"/>.
         /// </summary>
         /// <param name="metadata">The available plugin update.</param>
+        /// <param name="notify">Whether to notify that installed plugins have changed afterwards.</param>
         /// <param name="dryRun">Whether or not to actually perform the update, or just indicate success.</param>
         /// <returns>The status of the update.</returns>
         [CanBeNull]
-        public PluginUpdateStatus UpdateSinglePlugin(AvailablePluginUpdate metadata, bool dryRun)
+        public PluginUpdateStatus UpdateSinglePlugin(AvailablePluginUpdate metadata, bool notify, bool dryRun)
         {
             var plugin = metadata.InstalledPlugin;
 
@@ -684,6 +685,9 @@ namespace Dalamud.Plugin.Internal
                     return updateStatus;
                 }
             }
+
+            if (notify && updateStatus.WasUpdated)
+                this.NotifyInstalledPluginsChanged();
 
             return updateStatus;
         }
