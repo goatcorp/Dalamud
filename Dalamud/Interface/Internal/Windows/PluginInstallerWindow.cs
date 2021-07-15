@@ -614,6 +614,12 @@ namespace Dalamud.Interface.Internal.Windows
                 }
             }
 
+            // Outdated API level
+            if (plugin.Manifest.DalamudApiLevel < PluginManager.DalamudApiLevel)
+            {
+                label += Locs.PluginTitleMod_OutdatedError;
+            }
+
             if (ImGui.CollapsingHeader($"{label}###Header{index}{plugin.Manifest.InternalName}"))
             {
                 var manifest = plugin.Manifest;
@@ -642,6 +648,13 @@ namespace Dalamud.Interface.Internal.Windows
                 if (!string.IsNullOrWhiteSpace(manifest.Description))
                 {
                     ImGui.TextWrapped(manifest.Description);
+                }
+
+                if (plugin.Manifest.DalamudApiLevel < PluginManager.DalamudApiLevel)
+                {
+                    ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
+                    ImGui.TextWrapped(Locs.PluginBody_Outdated);
+                    ImGui.PopStyleColor();
                 }
 
                 // Available commands (if loaded)
@@ -680,6 +693,9 @@ namespace Dalamud.Interface.Internal.Windows
         {
             // Disable everything if the updater is running or another plugin is operating
             var disabled = this.updateStatus == OperationStatus.InProgress || this.installStatus == OperationStatus.InProgress;
+
+            // Disable everything if the plugin is outdated
+            disabled = disabled || plugin.Manifest.DalamudApiLevel < PluginManager.DalamudApiLevel;
 
             if (plugin.State == PluginState.InProgress)
             {
@@ -1062,6 +1078,8 @@ namespace Dalamud.Interface.Internal.Windows
 
             public static string PluginTitleMod_UnloadError => Loc.Localize("InstallerUnloadError", " (unload error)");
 
+            public static string PluginTitleMod_OutdatedError => Loc.Localize("InstallerOutdatedError", " (outdated)");
+
             #endregion
 
             #region Plugin context menu
@@ -1081,6 +1099,8 @@ namespace Dalamud.Interface.Internal.Windows
             public static string PluginBody_AvailableDevPlugin => Loc.Localize("InstallerDevPlugin", " This plugin is available in one of your repos, please remove it from the devPlugins folder.");
 
             public static string PluginBody_DeleteDevPlugin => Loc.Localize("InstallerDeleteDevPlugin ", " To delete this plugin, please remove it from the devPlugins folder.");
+
+            public static string PluginBody_Outdated => Loc.Localize("InstallerOutdatedPluginBody ", "This plugin is outdated and incompatible at the moment. Please wait for it to be updated by its author.");
 
             #endregion
 

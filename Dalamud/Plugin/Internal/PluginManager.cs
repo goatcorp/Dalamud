@@ -469,6 +469,10 @@ namespace Dalamud.Plugin.Internal
                     {
                         Log.Information(ex, $"Dev plugin failed to load, adding anyways:  {dllFile.Name}");
                     }
+                    else if (plugin.Manifest.DalamudApiLevel < DalamudApiLevel)
+                    {
+                        Log.Information(ex, $"Plugin was outdated, adding anyways:  {dllFile.Name}");
+                    }
                     else
                     {
                         PluginLocations.Remove(plugin.AssemblyName.FullName);
