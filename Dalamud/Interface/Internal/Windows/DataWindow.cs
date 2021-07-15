@@ -86,6 +86,7 @@ namespace Dalamud.Interface.Internal.Windows
             Server_OpCode,
             Address,
             Actor_Table,
+            Fate_Table,
             Font_Test,
             Party_List,
             Plugin_IPC,
@@ -177,6 +178,8 @@ namespace Dalamud.Interface.Internal.Windows
                             this.DrawActorTable();
                             break;
 
+                        case DataKind.Fate_Table:
+                            this.DrawFateTable();
                             break;
 
                         case DataKind.Font_Test:
@@ -368,6 +371,46 @@ namespace Dalamud.Interface.Internal.Windows
                                 ImGuiWindowFlags.NoNav))
                             ImGui.Text(actorText);
                         ImGui.End();
+                    }
+                }
+            }
+        }
+
+        private void DrawFateTable()
+        {
+            var stateString = string.Empty;
+            if (this.dalamud.ClientState.Fates.Length == 0)
+            {
+                ImGui.TextUnformatted("No fates or data not ready.");
+            }
+            else
+            {
+                stateString += $"FrameworkBase: {this.dalamud.Framework.Address.BaseAddress.ToInt64():X}\n";
+                stateString += $"FateTableLen: {this.dalamud.ClientState.Fates.Length}\n";
+
+                ImGui.TextUnformatted(stateString);
+
+                for (var i = 0; i < this.dalamud.ClientState.Fates.Length; i++)
+                {
+                    var fate = this.dalamud.ClientState.Fates[i];
+                    if (fate == null)
+                        continue;
+
+                    var fateString = $"{fate.Address.ToInt64():X}:[{i}]" +
+                        $" - Lv.{fate.Level} {fate.Name} ({fate.Progress}%)" +
+                        $" - X{fate.Position.X} Y{fate.Position.Y} Z{fate.Position.Z}" +
+                        $" - Territory {(this.resolveGameData ? (fate.TerritoryType.GameData?.Name ?? fate.TerritoryType.Id.ToString()) : fate.TerritoryType.Id.ToString())}\n";
+
+                    fateString += $"       StartTimeEpoch: {fate.StartTimeEpoch}" +
+                        $" - Duration: {fate.Duration}" +
+                        $" - State: {fate.State}" +
+                        $" - GameData name: {(this.resolveGameData ? (fate.GameData?.Name ?? fate.FateId.ToString()) : fate.FateId.ToString())}";
+
+                    ImGui.TextUnformatted(fateString);
+                    ImGui.SameLine();
+                    if (ImGui.Button("C"))
+                    {
+                        ImGui.SetClipboardText(fate.Address.ToString("X"));
                     }
                 }
             }

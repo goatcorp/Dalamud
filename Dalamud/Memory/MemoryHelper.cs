@@ -6,7 +6,7 @@ using System.Text;
 
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Memory.Exceptions;
-
+using FFXIVClientStructs.FFXIV.Client.System.String;
 using static Dalamud.NativeFunctions;
 
 // Heavily inspired from Reloaded (https://github.com/Reloaded-Project/Reloaded.Memory)
@@ -237,6 +237,25 @@ namespace Dalamud.Memory
             }
         }
 
+        /// <summary>
+        /// Read an SeString from a specified Utf8String structure.
+        /// </summary>
+        /// <param name="utf8String">The memory address to read from.</param>
+        /// <returns>The read in string.</returns>
+        public static unsafe SeString ReadSeString(Utf8String* utf8String)
+        {
+            if (utf8String == null)
+                return string.Empty;
+
+            var ptr = utf8String->StringPtr;
+            if (ptr == null)
+                return string.Empty;
+
+            var len = Math.Max(utf8String->BufUsed, utf8String->StringLength);
+
+            return ReadSeString((IntPtr)ptr, (int)len);
+        }
+
         #endregion
 
         #region ReadString(out)
@@ -305,6 +324,14 @@ namespace Dalamud.Memory
         /// <param name="value">The read in SeString.</param>
         public static void ReadSeString(IntPtr memoryAddress, int maxLength, out SeString value)
             => value = ReadSeString(memoryAddress, maxLength);
+
+        /// <summary>
+        /// Read an SeString from a specified Utf8String structure.
+        /// </summary>
+        /// <param name="utf8String">The memory address to read from.</param>
+        /// <param name="value">The read in string.</param>
+        public static unsafe void ReadSeString(Utf8String* utf8String, out SeString value)
+            => value = ReadSeString(utf8String);
 
         #endregion
 

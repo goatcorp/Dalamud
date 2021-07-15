@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 
 using Dalamud.Game.ClientState.Actors;
 using Dalamud.Game.ClientState.Actors.Types;
+using Dalamud.Game.ClientState.Fates;
 using Dalamud.Game.Internal;
 using Dalamud.Hooking;
 using JetBrains.Annotations;
@@ -41,6 +42,8 @@ namespace Dalamud.Game.ClientState
             this.ClientLanguage = startInfo.Language;
 
             this.Actors = new ActorTable(dalamud, this.address);
+
+            this.Fates = new FateTable(dalamud, this.address);
 
             this.PartyList = new PartyList(dalamud, this.address);
 
@@ -96,6 +99,11 @@ namespace Dalamud.Game.ClientState
         /// Gets the table of all present actors.
         /// </summary>
         public ActorTable Actors { get; }
+
+        /// <summary>
+        /// Gets the table of all present fates.
+        /// </summary>
+        public FateTable Fates { get; }
 
         /// <summary>
         /// Gets the language of the client.

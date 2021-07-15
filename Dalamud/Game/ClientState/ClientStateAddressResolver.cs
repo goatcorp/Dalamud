@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.InteropServices;
 
 using Dalamud.Game.Internal;
 
@@ -9,12 +10,22 @@ namespace Dalamud.Game.ClientState
     /// </summary>
     public sealed class ClientStateAddressResolver : BaseAddressResolver
     {
+        private delegate IntPtr GetFateTableDelegate();
+
         // Static offsets
 
         /// <summary>
         /// Gets the address of the actor table.
         /// </summary>
         public IntPtr ActorTable { get; private set; }
+
+        /// <summary>
+        /// Gets the address of the fate table pointer.
+        /// </summary>
+        /// <remarks>
+        /// This is a static address into the table, not the address of the table itself.
+        /// </remarks>
+        public IntPtr FateTablePtr { get; private set; }
 
         // public IntPtr ViewportActorTable { get; private set; }
 
@@ -68,7 +79,12 @@ namespace Dalamud.Game.ClientState
             // We don't need those anymore, but maybe someone else will - let's leave them here for good measure
             // ViewportActorTable = sig.GetStaticAddressFromSig("48 8D 0D ?? ?? ?? ?? 85 ED", 0) + 0x148;
             // SomeActorTableAccess = sig.ScanText("E8 ?? ?? ?? ?? 48 8D 55 A0 48 8D 8E ?? ?? ?? ??");
+
             this.ActorTable = sig.GetStaticAddressFromSig("48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 44 0F B6 83");
+
+            var getFateTableAddr = sig.ScanText("E8 ?? ?? ?? ?? 48 8B C8 E8 ?? ?? ?? ?? 80 BF ?? ?? ?? ?? ??");
+            var getFateTable = Marshal.GetDelegateForFunctionPointer<GetFateTableDelegate>(getFateTableAddr);
+            this.FateTablePtr = getFateTable();
 
             this.LocalContentId = sig.GetStaticAddressFromSig("48 0F 44 05 ?? ?? ?? ?? 48 39 07");
             this.JobGaugeData = sig.GetStaticAddressFromSig("E8 ?? ?? ?? ?? FF C6 48 8D 5B 0C", 0xB9) + 0x10;
