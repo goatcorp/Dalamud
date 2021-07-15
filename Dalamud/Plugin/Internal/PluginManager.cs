@@ -64,9 +64,7 @@ namespace Dalamud.Plugin.Internal
             var bannedPluginsJson = File.ReadAllText(Path.Combine(this.dalamud.StartInfo.AssetDirectory, "UIRes", "bannedplugin.json"));
             this.bannedPlugins = JsonConvert.DeserializeObject<BannedPlugin[]>(bannedPluginsJson);
 
-            this.Repos.Add(PluginRepository.MainRepo);
-            this.Repos.AddRange(this.dalamud.Configuration.ThirdRepoList
-                .Select(repo => new PluginRepository(repo.Url, repo.IsEnabled)));
+            this.SetPluginReposFromConfig(false);
 
             this.ApplyPatches();
         }
@@ -99,7 +97,7 @@ namespace Dalamud.Plugin.Internal
         /// <summary>
         /// Gets a list of all plugin repositories. The main repo should always be first.
         /// </summary>
-        public List<PluginRepository> Repos { get; } = new();
+        public List<PluginRepository> Repos { get; private set; } = new();
 
         /// <summary>
         /// Gets a value indicating whether plugins are not still loading from boot.
@@ -135,6 +133,22 @@ namespace Dalamud.Plugin.Internal
                     Log.Error(ex, $"Error disposing {plugin.Name}");
                 }
             }
+        }
+
+        /// <summary>
+        /// Set the list of repositories to use. Should be called when the Settings window has been updated or at instantiation.
+        /// </summary>
+        /// <param name="notify">Whether the available plugins changed should be evented after.</param>
+        public void SetPluginReposFromConfig(bool notify)
+        {
+            var repos = new List<PluginRepository>() { PluginRepository.MainRepo };
+            repos.AddRange(this.dalamud.Configuration.ThirdRepoList
+                .Select(repo => new PluginRepository(repo.Url, repo.IsEnabled)));
+
+            this.Repos = repos;
+
+            if (notify)
+                this.NotifyAvailablePluginsChanged();
         }
 
         /// <summary>
@@ -606,7 +620,7 @@ namespace Dalamud.Plugin.Internal
             // Prevent collection was modified errors
             for (var i = 0; i < this.updatablePlugins.Count; i++)
             {
-                updatedList.Add(this.UpdateSinglePlugin(this.updatablePlugins[i], dryRun));
+                updatedList.Add(this.UpdateSinglePlugin(this.updatablePlugins[i], false, dryRun));
             }
 
             this.NotifyInstalledPluginsChanged();
@@ -620,10 +634,11 @@ namespace Dalamud.Plugin.Internal
         /// Update a single plugin, provided a valid <see cref="AvailablePluginUpdate"/>.
         /// </summary>
         /// <param name="metadata">The available plugin update.</param>
+        /// <param name="notify">Whether to notify that installed plugins have changed afterwards.</param>
         /// <param name="dryRun">Whether or not to actually perform the update, or just indicate success.</param>
         /// <returns>The status of the update.</returns>
         [CanBeNull]
-        public PluginUpdateStatus UpdateSinglePlugin(AvailablePluginUpdate metadata, bool dryRun)
+        public PluginUpdateStatus UpdateSinglePlugin(AvailablePluginUpdate metadata, bool notify, bool dryRun)
         {
             var plugin = metadata.InstalledPlugin;
 
@@ -684,6 +699,9 @@ namespace Dalamud.Plugin.Internal
                     return updateStatus;
                 }
             }
+
+            if (notify && updateStatus.WasUpdated)
+                this.NotifyInstalledPluginsChanged();
 
             return updateStatus;
         }
