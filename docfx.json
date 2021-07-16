@@ -4,14 +4,14 @@
       "src": [
         {
           "files": [
-            "Dalamud.sln"
+            "src/Dalamud.sln"
           ],
         }
       ],
       "dest": "api",
       "disableGitFeatures": false,
       "disableDefaultFilter": false,
-      "filter": "filterConfig.yml"
+      "filter": "docs/filterConfig.yml"
     }
   ],
   "build": {

@@ -1,9 +1,9 @@
-[submodule "lib/ImGuiScene"]
-	path = lib/ImGuiScene
+[submodule "src/lib/ImGuiScene"]
+	path = src/lib/ImGuiScene
 	url = https://github.com/goatcorp/ImGuiScene
-[submodule "lib/FFXIVClientStructs"]
-	path = lib/FFXIVClientStructs
+[submodule "src/lib/FFXIVClientStructs"]
+	path = src/lib/FFXIVClientStructs
 	url = https://github.com/goatcorp/FFXIVClientStructs.git
-[submodule "lib/SharpDX.Desktop"]
-	path = lib/SharpDX.Desktop
+[submodule "src/lib/SharpDX.Desktop"]
+	path = src/lib/SharpDX.Desktop
 	url = https://github.com/goatcorp/SharpDX.Desktop.git
