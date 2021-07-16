@@ -714,12 +714,10 @@ namespace Dalamud.Plugin.Internal
         }
 
         /// <summary>
-        /// Update a single plugin, provided a valid <see cref="AvailablePluginUpdate"/>.
+        /// Unload the plugin, delete its configuration, and reload it.
         /// </summary>
-        /// <param name="metadata">The available plugin update.</param>
-        /// <param name="notify">Whether to notify that installed plugins have changed afterwards.</param>
-        /// <param name="dryRun">Whether or not to actually perform the update, or just indicate success.</param>
-        /// <returns>The status of the update.</returns>
+        /// <param name="plugin">The plugin.</param>
+        /// <exception cref="Exception">Throws if the plugin is still loading/unloading.</exception>
         public void DeleteConfiguration(LocalPlugin plugin)
         {
             if (plugin.State == PluginState.InProgress)
