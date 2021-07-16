@@ -17,6 +17,15 @@ namespace Dalamud.Game.Text.SeStringHandling
         /// Initializes a new instance of the <see cref="SeString"/> class.
         /// Creates a new SeString from an ordered list of payloads.
         /// </summary>
+        public SeString()
+        {
+            this.Payloads = new List<Payload>();
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SeString"/> class.
+        /// Creates a new SeString from an ordered list of payloads.
+        /// </summary>
         /// <param name="payloads">The Payload objects to make up this string.</param>
         [JsonConstructor]
         public SeString(List<Payload> payloads)
