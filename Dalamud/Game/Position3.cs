@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 
-namespace Dalamud.Game.ClientState.Actors
+namespace Dalamud.Game
 {
     /// <summary>
     /// A game native equivalent of a Vector3.

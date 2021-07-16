@@ -1,26 +1,23 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 
 using Dalamud.Game.ClientState.Actors.Types;
 using Dalamud.Game.ClientState.Actors.Types.NonPlayer;
-using Dalamud.Game.ClientState.Structs;
 using JetBrains.Annotations;
 using Serilog;
-
-using Actor = Dalamud.Game.ClientState.Actors.Types.Actor;
 
 namespace Dalamud.Game.ClientState.Actors
 {
     /// <summary>
-    ///     This collection represents the currently spawned FFXIV actors.
+    /// This collection represents the currently spawned FFXIV actors.
     /// </summary>
-    public class ActorTable : IReadOnlyCollection<Actor>, ICollection
+    public sealed partial class ActorTable
     {
         private const int ActorTableLength = 424;
 
         private readonly Dalamud dalamud;
+        private readonly ClientStateAddressResolver address;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ActorTable"/> class.
@@ -29,10 +26,10 @@ namespace Dalamud.Game.ClientState.Actors
         /// <param name="addressResolver">Client state address resolver.</param>
         internal ActorTable(Dalamud dalamud, ClientStateAddressResolver addressResolver)
         {
-            this.Address = addressResolver;
             this.dalamud = dalamud;
+            this.address = addressResolver;
 
-            Log.Verbose("Actor table address {ActorTable}", this.Address.ActorTable);
+            Log.Verbose($"Actor table address 0x{this.address.ActorTable.ToInt64():X}");
         }
 
         /// <summary>
@@ -56,6 +53,65 @@ namespace Dalamud.Game.ClientState.Actors
             }
         }
 
+        /// <summary>
+        /// Get an actor at the specified spawn index.
+        /// </summary>
+        /// <param name="index">Spawn index.</param>
+        /// <returns>An <see cref="Actor"/> at the specified spawn index.</returns>
+        [CanBeNull]
+        public Actor this[int index]
+        {
+            get
+            {
+                var address = this.GetActorAddress(index);
+                return this.CreateActorReference(address);
+            }
+        }
+
+        /// <summary>
+        /// Gets the address of the actor at the specified index of the actor table.
+        /// </summary>
+        /// <param name="index">The index of the actor.</param>
+        /// <returns>The memory address of the actor.</returns>
+        public unsafe IntPtr GetActorAddress(int index)
+        {
+            if (index >= ActorTableLength)
+                return IntPtr.Zero;
+
+            return *(IntPtr*)(this.address.ActorTable + (8 * index));
+        }
+
+        /// <summary>
+        /// Create a reference to a FFXIV actor.
+        /// </summary>
+        /// <param name="address">The address of the actor in memory.</param>
+        /// <returns><see cref="Actor"/> object or inheritor containing requested data.</returns>
+        [CanBeNull]
+        public unsafe Actor CreateActorReference(IntPtr address)
+        {
+            if (this.dalamud.ClientState.LocalContentId == 0)
+                return null;
+
+            if (address == IntPtr.Zero)
+                return null;
+
+            var objKind = *(ObjectKind*)(address + ActorOffsets.ObjectKind);
+            return objKind switch
+            {
+                ObjectKind.Player => new PlayerCharacter(address, this.dalamud),
+                ObjectKind.BattleNpc => new BattleNpc(address, this.dalamud),
+                ObjectKind.EventObj => new EventObj(address, this.dalamud),
+                ObjectKind.Companion => new Npc(address, this.dalamud),
+                _ => new Actor(address, this.dalamud),
+            };
+        }
+    }
+
+    /// <summary>
+    /// This collection represents the currently spawned FFXIV actors.
+    /// </summary>
+    public sealed partial class ActorTable : IReadOnlyCollection<Actor>, ICollection
+    {
         /// <inheritdoc/>
         int IReadOnlyCollection<Actor>.Count => this.Length;
 
@@ -68,43 +124,6 @@ namespace Dalamud.Game.ClientState.Actors
         /// <inheritdoc/>
         object ICollection.SyncRoot => this;
 
-        private ClientStateAddressResolver Address { get; }
-
-        /// <summary>
-        ///     Get an actor at the specified spawn index.
-        /// </summary>
-        /// <param name="index">Spawn index.</param>
-        /// <returns><see cref="Actor" /> at the specified spawn index.</returns>
-        [CanBeNull]
-        public Actor this[int index]
-        {
-            get
-            {
-                var ptr = this.GetActorAddress(index);
-                if (ptr != IntPtr.Zero)
-                {
-                    return this.CreateActorReference(ptr);
-                }
-
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Gets the address of the actor at the specified index of the actor table.
-        /// </summary>
-        /// <param name="index">The index of the actor.</param>
-        /// <returns>The memory address of the actor.</returns>
-        public unsafe IntPtr GetActorAddress(int index)
-        {
-            if (index >= ActorTableLength)
-            {
-                return IntPtr.Zero;
-            }
-
-            return *(IntPtr*)(this.Address.ActorTable + (8 * index));
-        }
-
         /// <inheritdoc/>
         public IEnumerator<Actor> GetEnumerator()
         {
@@ -115,10 +134,7 @@ namespace Dalamud.Game.ClientState.Actors
         }
 
         /// <inheritdoc/>
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return this.GetEnumerator();
-        }
+        IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
 
         /// <inheritdoc/>
         void ICollection.CopyTo(Array array, int index)
@@ -128,34 +144,6 @@ namespace Dalamud.Game.ClientState.Actors
                 array.SetValue(this[i], index);
                 index++;
             }
-        }
-
-        /// <summary>
-        /// Create a reference to a FFXIV actor.
-        /// </summary>
-        /// <param name="offset">The offset of the actor in memory.</param>
-        /// <returns><see cref="Actor"/> object or inheritor containing requested data.</returns>
-        [CanBeNull]
-        internal unsafe Actor CreateActorReference(IntPtr offset)
-        {
-            if (this.dalamud.ClientState.LocalContentId == 0)
-            {
-                return null;
-            }
-
-            var objKind = *(ObjectKind*)(offset + ActorOffsets.ObjectKind);
-
-            // TODO: This is for compatibility with legacy actor classes - superseded once ready
-            var actorStruct = Marshal.PtrToStructure<Structs.Actor>(offset);
-
-            return objKind switch
-            {
-                ObjectKind.Player => new PlayerCharacter(offset, actorStruct, this.dalamud),
-                ObjectKind.BattleNpc => new BattleNpc(offset, actorStruct, this.dalamud),
-                ObjectKind.EventObj => new EventObj(offset, actorStruct, this.dalamud),
-                ObjectKind.Companion => new Npc(offset, actorStruct, this.dalamud),
-                _ => new Actor(offset, actorStruct, this.dalamud),
-            };
         }
     }
 }

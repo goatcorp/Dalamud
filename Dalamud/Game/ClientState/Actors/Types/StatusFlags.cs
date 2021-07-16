@@ -1,6 +1,6 @@
 using System;
 
-namespace Dalamud.Game.ClientState.Actors
+namespace Dalamud.Game.ClientState.Actors.Types
 {
     /// <summary>
     /// Enum describing possible status flags.

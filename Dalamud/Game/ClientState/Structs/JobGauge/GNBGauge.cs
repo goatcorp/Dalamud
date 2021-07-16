@@ -8,22 +8,28 @@ namespace Dalamud.Game.ClientState.Structs.JobGauge
     [StructLayout(LayoutKind.Explicit)]
     public struct GNBGauge
     {
+        [FieldOffset(0)]
+        private byte numAmmo;
+
+        [FieldOffset(2)]
+        private short maxTimerDuration;
+
+        [FieldOffset(4)]
+        private byte ammoComboStepNumber;
+
         /// <summary>
         /// Gets the amount of ammo available.
         /// </summary>
-        [FieldOffset(0)]
-        public byte NumAmmo;
+        public byte NumAmmo => this.numAmmo;
 
         /// <summary>
         /// Gets the max combo time of the Gnashing Fang combo.
         /// </summary>
-        [FieldOffset(2)]
-        public short MaxTimerDuration;
+        public short MaxTimerDuration => this.maxTimerDuration;
 
         /// <summary>
         /// Gets the current step of the Gnashing Fang combo.
         /// </summary>
-        [FieldOffset(4)]
-        public byte AmmoComboStepNumber;
+        public byte AmmoComboStepNumber => this.ammoComboStepNumber;
     }
 }

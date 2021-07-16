@@ -1,4 +1,4 @@
-namespace Dalamud.Game.ClientState.Actors
+namespace Dalamud.Game.ClientState.Actors.Types
 {
     /// <summary>
     /// This enum describes the indices of the Customize array.

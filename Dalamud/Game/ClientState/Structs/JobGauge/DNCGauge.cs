@@ -8,26 +8,32 @@ namespace Dalamud.Game.ClientState.Structs.JobGauge
     [StructLayout(LayoutKind.Explicit)]
     public unsafe struct DNCGauge
     {
-        /// <summary>
-        /// Gets the number of feathers available.
-        /// </summary>
         [FieldOffset(0)]
-        public byte NumFeathers;
+        private byte numFeathers;
 
-        /// <summary>
-        /// Gets the amount of Espirit available.
-        /// </summary>
         [FieldOffset(1)]
-        public byte Esprit;
+        private byte esprit;
 
         [FieldOffset(2)]
         private fixed byte stepOrder[4];
 
+        [FieldOffset(6)]
+        private byte numCompleteSteps;
+
+        /// <summary>
+        /// Gets the number of feathers available.
+        /// </summary>
+        public byte NumFeathers => this.numFeathers;
+
+        /// <summary>
+        /// Gets the amount of Espirit available.
+        /// </summary>
+        public byte Esprit => this.esprit;
+
         /// <summary>
         /// Gets the number of steps completed for the current dance.
         /// </summary>
-        [FieldOffset(6)]
-        public byte NumCompleteSteps;
+        public byte NumCompleteSteps => this.numCompleteSteps;
 
         /// <summary>
         /// Gets the next step in the current dance.

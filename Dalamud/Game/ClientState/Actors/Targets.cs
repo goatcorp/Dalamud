@@ -11,8 +11,8 @@ namespace Dalamud.Game.ClientState.Actors
     /// </summary>
     public sealed class Targets
     {
-        private Dalamud dalamud;
-        private ClientStateAddressResolver address;
+        private readonly Dalamud dalamud;
+        private readonly ClientStateAddressResolver address;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Targets"/> class.

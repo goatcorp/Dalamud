@@ -8,28 +8,36 @@ namespace Dalamud.Game.ClientState.Structs.JobGauge
     [StructLayout(LayoutKind.Explicit)]
     public struct SCHGauge
     {
+        [FieldOffset(2)]
+        private byte numAetherflowStacks;
+
+        [FieldOffset(3)]
+        private byte fairyGaugeAmount;
+
+        [FieldOffset(4)]
+        private short seraphTimer;
+
+        [FieldOffset(6)]
+        private DismissedFairy dismissedFairy;
+
         /// <summary>
         /// Gets the amount of Aetherflow stacks available.
         /// </summary>
-        [FieldOffset(2)]
-        public byte NumAetherflowStacks;
+        public byte NumAetherflowStacks => this.numAetherflowStacks;
 
         /// <summary>
         /// Gets the current level of the Fairy Gauge.
         /// </summary>
-        [FieldOffset(3)]
-        public byte FairyGaugeAmount;
+        public byte FairyGaugeAmount => this.fairyGaugeAmount;
 
         /// <summary>
         /// Gets the Seraph time remaining in milliseconds.
         /// </summary>
-        [FieldOffset(4)]
-        public short SeraphTimer;
+        public short SeraphTimer => this.seraphTimer;
 
         /// <summary>
         /// Gets the last dismissed fairy.
         /// </summary>
-        [FieldOffset(6)]
-        public DismissedFairy DismissedFairy;
+        public DismissedFairy DismissedFairy => this.dismissedFairy;
     }
 }

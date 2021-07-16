@@ -6,6 +6,7 @@ using System.Text;
 
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Memory.Exceptions;
+using FFXIVClientStructs.FFXIV.Client.System.String;
 
 using static Dalamud.NativeFunctions;
 
@@ -79,7 +80,7 @@ namespace Dalamud.Memory
         /// <returns>The read in struct array.</returns>
         public static T[] Read<T>(IntPtr memoryAddress, int arrayLength, bool marshal)
         {
-            var structSize = SizeOf<T>();
+            var structSize = SizeOf<T>(marshal);
             var value = new T[arrayLength];
 
             for (var i = 0; i < arrayLength; i++)
@@ -223,7 +224,37 @@ namespace Dalamud.Memory
         public static SeString ReadSeString(IntPtr memoryAddress, int maxLength)
         {
             ReadRaw(memoryAddress, maxLength, out var buffer);
-            return seStringManager.Parse(buffer);
+
+            var eos = Array.IndexOf(buffer, (byte)0);
+            if (eos < 0)
+            {
+                return seStringManager.Parse(buffer);
+            }
+            else
+            {
+                var newBuffer = new byte[eos];
+                Buffer.BlockCopy(buffer, 0, newBuffer, 0, eos);
+                return seStringManager.Parse(newBuffer);
+            }
+        }
+
+        /// <summary>
+        /// Read an SeString from a specified Utf8String structure.
+        /// </summary>
+        /// <param name="utf8String">The memory address to read from.</param>
+        /// <returns>The read in string.</returns>
+        public static unsafe SeString ReadSeString(Utf8String* utf8String)
+        {
+            if (utf8String == null)
+                return string.Empty;
+
+            var ptr = utf8String->StringPtr;
+            if (ptr == null)
+                return string.Empty;
+
+            var len = Math.Max(utf8String->BufUsed, utf8String->StringLength);
+
+            return ReadSeString((IntPtr)ptr, (int)len);
         }
 
         #endregion
@@ -294,6 +325,14 @@ namespace Dalamud.Memory
         /// <param name="value">The read in SeString.</param>
         public static void ReadSeString(IntPtr memoryAddress, int maxLength, out SeString value)
             => value = ReadSeString(memoryAddress, maxLength);
+
+        /// <summary>
+        /// Read an SeString from a specified Utf8String structure.
+        /// </summary>
+        /// <param name="utf8String">The memory address to read from.</param>
+        /// <param name="value">The read in string.</param>
+        public static unsafe void ReadSeString(Utf8String* utf8String, out SeString value)
+            => value = ReadSeString(utf8String);
 
         #endregion
 

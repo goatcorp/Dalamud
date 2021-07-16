@@ -32,7 +32,7 @@ namespace Dalamud.CorePlugin
 
                 this.Interface = pluginInterface;
 
-                // this.windowSystem.AddWindow(your_window);
+                this.windowSystem.AddWindow(new PluginWindow(Dalamud.Instance));
 
                 this.Interface.UiBuilder.OnBuildUi += this.OnDraw;
                 this.Interface.UiBuilder.OnOpenConfigUi += this.OnOpenConfigUi;
