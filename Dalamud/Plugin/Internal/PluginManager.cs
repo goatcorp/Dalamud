@@ -455,6 +455,10 @@ namespace Dalamud.Plugin.Internal
                 var devPlugin = new LocalDevPlugin(this.dalamud, dllFile, manifest);
                 loadPlugin &= !isBoot || devPlugin.StartOnBoot;
 
+                // If we're not loading it, make sure it's disabled
+                if (!loadPlugin && !devPlugin.IsDisabled)
+                    devPlugin.Disable();
+
                 plugin = devPlugin;
             }
             else
@@ -479,14 +483,17 @@ namespace Dalamud.Plugin.Internal
                 }
                 catch (Exception ex)
                 {
-                    // Dev plugins always get added to the list so they can be fiddled with in the UI
                     if (plugin.IsDev)
                     {
+                        // Dev plugins always get added to the list so they can be fiddled with in the UI
                         Log.Information(ex, $"Dev plugin failed to load, adding anyways:  {dllFile.Name}");
+                        plugin.Disable(); // Disable here, otherwise you can't enable+load later
                     }
                     else if (plugin.Manifest.DalamudApiLevel < DalamudApiLevel)
                     {
+                        // Out of date plugins get added so they can be updated.
                         Log.Information(ex, $"Plugin was outdated, adding anyways:  {dllFile.Name}");
+                        // plugin.Disable(); // Don't disable, or it gets deleted next boot.
                     }
                     else
                     {

@@ -33,17 +33,11 @@ namespace Dalamud.Plugin.Internal
         public LocalDevPlugin(Dalamud dalamud, FileInfo dllFile, LocalPluginManifest manifest)
             : base(dalamud, dllFile, manifest)
         {
-            // base is called first, ensuring that this is a valid plugin assembly
-            var devSettings = dalamud.Configuration.DevPluginSettings.FirstOrDefault(cfg => cfg.DllFile == dllFile.FullName);
-
-            if (devSettings == default)
+            if (!dalamud.Configuration.DevPluginSettings.TryGetValue(dllFile.FullName, out this.devSettings))
             {
-                devSettings = new DevPluginSettings(dllFile.FullName);
-                dalamud.Configuration.DevPluginSettings.Add(devSettings);
+                dalamud.Configuration.DevPluginSettings[dllFile.FullName] = this.devSettings = new DevPluginSettings();
                 dalamud.Configuration.Save();
             }
-
-            this.devSettings = devSettings;
 
             if (this.AutomaticReload)
             {

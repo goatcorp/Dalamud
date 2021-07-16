@@ -85,9 +85,12 @@ namespace Dalamud.Configuration.Internal
         public List<string> HiddenPluginInternalName { get; set; } = new();
 
         /// <summary>
-        /// Gets or sets a list of additional settings for devPlugins.
+        /// Gets or sets a list of additional settings for devPlugins. The key is the absolute path
+        /// to the plugin DLL. This is automatically generated for any plugins in the devPlugins folder.
+        /// However by specifiying this value manually, you can add arbitrary files outside the normal
+        /// file paths.
         /// </summary>
-        public List<DevPluginSettings> DevPluginSettings { get; set; } = new();
+        public Dictionary<string, DevPluginSettings> DevPluginSettings { get; set; } = new();
 
         /// <summary>
         /// Gets or sets the global UI scale.
