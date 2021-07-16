@@ -1,5 +1,7 @@
 using System;
 
+using Dalamud.Game.Text.SeStringHandling;
+
 namespace Dalamud.Game.Text
 {
     /// <summary>
@@ -20,12 +22,12 @@ namespace Dalamud.Game.Text
         /// <summary>
         /// Gets or sets the sender name.
         /// </summary>
-        public string Name { get; set; } = string.Empty;
+        public SeString Name { get; set; } = string.Empty;
 
         /// <summary>
-        /// Gets or sets the message bytes.
+        /// Gets or sets the message.
         /// </summary>
-        public byte[] MessageBytes { get; set; }
+        public SeString Message { get; set; } = string.Empty;
 
         /// <summary>
         /// Gets or sets the message parameters.

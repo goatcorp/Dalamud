@@ -300,7 +300,7 @@ namespace Dalamud.Game.Text.SeStringHandling
             EmphasisItalic = 0x1A,
 
             /// <summary>
-            /// See the <see cref="NewLinePayload"/>
+            /// See the <see cref="NewLinePayload"/>.
             /// </summary>
             NewLine = 0x10,
 

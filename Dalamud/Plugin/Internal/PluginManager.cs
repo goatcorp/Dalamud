@@ -727,7 +727,7 @@ namespace Dalamud.Plugin.Internal
                     {
                         this.dalamud.Framework.Gui.Chat.PrintChat(new XivChatEntry
                         {
-                            MessageBytes = Encoding.UTF8.GetBytes(Locs.DalamudPluginUpdateFailed(metadata.Name, metadata.Version)),
+                            Message = Locs.DalamudPluginUpdateFailed(metadata.Name, metadata.Version),
                             Type = XivChatType.Urgent,
                         });
                     }
