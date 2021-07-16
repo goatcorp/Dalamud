@@ -64,22 +64,6 @@ namespace Dalamud.Game.ClientState.Actors
             get
             {
                 var address = this.GetActorAddress(index);
-                return this[address];
-            }
-        }
-
-        /// <summary>
-        /// Get an actor at the specified address.
-        /// </summary>
-        /// <param name="address">The actor address.</param>
-        /// <returns>An <see cref="Actor"/> at the specified address.</returns>
-        public Actor this[IntPtr address]
-        {
-            get
-            {
-                if (address == IntPtr.Zero)
-                    return null;
-
                 return this.CreateActorReference(address);
             }
         }
@@ -100,25 +84,25 @@ namespace Dalamud.Game.ClientState.Actors
         /// <summary>
         /// Create a reference to a FFXIV actor.
         /// </summary>
-        /// <param name="offset">The offset of the actor in memory.</param>
+        /// <param name="address">The address of the actor in memory.</param>
         /// <returns><see cref="Actor"/> object or inheritor containing requested data.</returns>
         [CanBeNull]
-        internal unsafe Actor CreateActorReference(IntPtr offset)
+        public unsafe Actor CreateActorReference(IntPtr address)
         {
             if (this.dalamud.ClientState.LocalContentId == 0)
                 return null;
 
-            if (offset == IntPtr.Zero)
+            if (address == IntPtr.Zero)
                 return null;
 
-            var objKind = *(ObjectKind*)(offset + ActorOffsets.ObjectKind);
+            var objKind = *(ObjectKind*)(address + ActorOffsets.ObjectKind);
             return objKind switch
             {
-                ObjectKind.Player => new PlayerCharacter(offset, this.dalamud),
-                ObjectKind.BattleNpc => new BattleNpc(offset, this.dalamud),
-                ObjectKind.EventObj => new EventObj(offset, this.dalamud),
-                ObjectKind.Companion => new Npc(offset, this.dalamud),
-                _ => new Actor(offset, this.dalamud),
+                ObjectKind.Player => new PlayerCharacter(address, this.dalamud),
+                ObjectKind.BattleNpc => new BattleNpc(address, this.dalamud),
+                ObjectKind.EventObj => new EventObj(address, this.dalamud),
+                ObjectKind.Companion => new Npc(address, this.dalamud),
+                _ => new Actor(address, this.dalamud),
             };
         }
     }

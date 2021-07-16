@@ -10,8 +10,6 @@ namespace Dalamud.Game.ClientState
     /// </summary>
     public sealed class ClientStateAddressResolver : BaseAddressResolver
     {
-        private delegate IntPtr GetFateTableDelegate();
-
         // Static offsets
 
         /// <summary>
@@ -23,7 +21,7 @@ namespace Dalamud.Game.ClientState
         /// Gets the address of the fate table pointer.
         /// </summary>
         /// <remarks>
-        /// This is a static address into the table, not the address of the table itself.
+        /// This is a static address to a pointer, not the address of the table itself.
         /// </remarks>
         public IntPtr FateTablePtr { get; private set; }
 
@@ -61,9 +59,6 @@ namespace Dalamud.Game.ClientState
         /// </summary>
         public IntPtr SetupTerritoryType { get; private set; }
 
-        // public IntPtr SomeActorTableAccess { get; private set; }
-        // public IntPtr PartyListUpdate { get; private set; }
-
         /// <summary>
         /// Gets the address of the method which polls the gamepads for data.
         /// Called every frame, even when `Enable Gamepad` is off in the settings.
@@ -82,16 +77,15 @@ namespace Dalamud.Game.ClientState
 
             this.ActorTable = sig.GetStaticAddressFromSig("48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 44 0F B6 83");
 
-            var getFateTableAddr = sig.ScanText("E8 ?? ?? ?? ?? 48 8B C8 E8 ?? ?? ?? ?? 80 BF ?? ?? ?? ?? ??");
-            var getFateTable = Marshal.GetDelegateForFunctionPointer<GetFateTableDelegate>(getFateTableAddr);
-            this.FateTablePtr = getFateTable();
+            this.FateTablePtr = sig.GetStaticAddressFromSig("48 8B 15 ?? ?? ?? ?? 48 8B F9 44 0F B7 41 ??");
 
             this.LocalContentId = sig.GetStaticAddressFromSig("48 0F 44 05 ?? ?? ?? ?? 48 39 07");
             this.JobGaugeData = sig.GetStaticAddressFromSig("E8 ?? ?? ?? ?? FF C6 48 8D 5B 0C", 0xB9) + 0x10;
 
             this.SetupTerritoryType = sig.ScanText("48 89 5C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 48 8B F9 66 89 91 ?? ?? ?? ??");
 
-            // This resolves to a fixed offset only, without the base address added in, so GetStaticAddressFromSig() can't be used
+            // This resolves to a fixed offset only, without the base address added in,
+            // so GetStaticAddressFromSig() can't be used. lea rcx, ds:1DB9F74h[rax*4]
             this.KeyboardState = sig.ScanText("48 8D 0C 85 ?? ?? ?? ?? 8B 04 31 85 C2 0F 85") + 0x4;
 
             // PartyListUpdate = sig.ScanText("E8 ?? ?? ?? ?? 49 8B D7 4C 8D 86 ?? ?? ?? ??");
