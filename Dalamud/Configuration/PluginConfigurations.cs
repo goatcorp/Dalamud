@@ -61,6 +61,22 @@ namespace Dalamud.Configuration
         }
 
         /// <summary>
+        /// Delete the configuration file and folder for the specified plugin.
+        /// This will throw an <see cref="IOException"/> if the plugin did not correctly close its handles.
+        /// </summary>
+        /// <param name="pluginName">The name of the plugin.</param>
+        public void Delete(string pluginName)
+        {
+            var directory = this.GetDirectoryPath(pluginName);
+            if (directory.Exists)
+                directory.Delete(true);
+
+            var file = this.GetConfigFile(pluginName);
+            if (file.Exists)
+                file.Delete();
+        }
+
+        /// <summary>
         /// Get plugin directory.
         /// </summary>
         /// <param name="pluginName">Plugin name.</param>

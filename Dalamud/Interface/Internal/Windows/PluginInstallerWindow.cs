@@ -692,6 +692,25 @@ namespace Dalamud.Interface.Internal.Windows
 
                 ImGui.Unindent();
             }
+
+            if (ImGui.BeginPopupContextItem("InstalledItemContextMenu"))
+            {
+                if (ImGui.Selectable(Locs.PluginContext_DeletePluginConfig))
+                {
+                    Log.Debug($"Deleting config for {plugin.Manifest.InternalName}");
+
+                    Task.Run(() => this.dalamud.PluginManager.DeleteConfiguration(plugin))
+                        .ContinueWith(task =>
+                        {
+                            // There is no need to set as Complete for an individual plugin installation
+                            this.installStatus = OperationStatus.Idle;
+
+                            this.DisplayErrorContinuation(task, Locs.ErrorModal_DeleteConfigFail(plugin.Name));
+                        });
+                }
+
+                ImGui.EndPopup();
+            }
         }
 
         private void DrawPluginControlButton(LocalPlugin plugin)
@@ -1125,6 +1144,8 @@ namespace Dalamud.Interface.Internal.Windows
 
             public static string PluginContext_HidePlugin => Loc.Localize("InstallerHidePlugin", "Hide from installer");
 
+            public static string PluginContext_DeletePluginConfig => Loc.Localize("InstallerDeletePluginConfig", "Delete configuration data & reload");
+
             #endregion
 
             #region Plugin body
@@ -1198,6 +1219,8 @@ namespace Dalamud.Interface.Internal.Windows
             public static string ErrorModal_InstallFail(string name) => Loc.Localize("InstallerInstallFail", "Failed to install plugin {0}.").Format(name);
 
             public static string ErrorModal_SingleUpdateFail(string name) => Loc.Localize("InstallerSingleUpdateFail", "Failed to update plugin {0}.").Format(name);
+
+            public static string ErrorModal_DeleteConfigFail(string name) => Loc.Localize("InstallerDeleteConfigFail", "Failed to reset the plugin {0}.\n\nThe plugin may not support this action. You can try deleting the configuration manually while the game is shut down - please see the FAQ.").Format(name);
 
             public static string ErrorModal_EnableFail(string name) => Loc.Localize("InstallerEnableFail", "Failed to enable plugin {0}.").Format(name);
 

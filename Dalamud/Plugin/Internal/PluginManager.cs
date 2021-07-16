@@ -8,7 +8,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Reflection;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 using CheapLoc;
@@ -711,6 +711,32 @@ namespace Dalamud.Plugin.Internal
                 this.NotifyInstalledPluginsChanged();
 
             return updateStatus;
+        }
+
+        /// <summary>
+        /// Update a single plugin, provided a valid <see cref="AvailablePluginUpdate"/>.
+        /// </summary>
+        /// <param name="metadata">The available plugin update.</param>
+        /// <param name="notify">Whether to notify that installed plugins have changed afterwards.</param>
+        /// <param name="dryRun">Whether or not to actually perform the update, or just indicate success.</param>
+        /// <returns>The status of the update.</returns>
+        public void DeleteConfiguration(LocalPlugin plugin)
+        {
+            if (plugin.State == PluginState.InProgress)
+                throw new Exception("Cannot delete configuration for a loading/unloading plugin");
+
+            if (plugin.IsLoaded)
+                plugin.Unload();
+
+            // Let's wait so any handles on files in plugin configurations can be closed
+            Thread.Sleep(500);
+
+            this.PluginConfigs.Delete(plugin.Name);
+
+            Thread.Sleep(500);
+
+            // Let's indicate "installer" here since this is supposed to be a fresh install
+            plugin.Load(PluginLoadReason.Installer);
         }
 
         /// <summary>
