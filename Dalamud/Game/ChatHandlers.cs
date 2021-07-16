@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -11,7 +10,6 @@ using CheapLoc;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
-using Dalamud.Interface.Internal.Windows;
 using Serilog;
 
 namespace Dalamud.Game
@@ -121,24 +119,21 @@ namespace Dalamud.Game
         /// </summary>
         public string LastLink { get; private set; }
 
-        // /// <summary>
-        // /// Convert a string to SeString and wrap in italics payloads.
-        // /// </summary>
-        // /// <param name="text">Text to convert.</param>
-        // /// <returns>SeString payload of italicized text.</returns>
-        // private static SeString MakeItalics(string text)
-        // {
-        //     // TODO: when the code OnCharMessage is switched to SeString, this can be a straight insertion of the
-        //     // italics payloads only, and be a lot cleaner
-        //     var italicString = new SeString(new List<Payload>(new Payload[]
-        //     {
-        //         EmphasisItalicPayload.ItalicsOn,
-        //         new TextPayload(text),
-        //         EmphasisItalicPayload.ItalicsOff,
-        //     }));
-        //
-        //     return italicString;
-        // }
+        /// <summary>
+        /// Convert a TextPayload to SeString and wrap in italics payloads.
+        /// </summary>
+        /// <param name="text">Text to convert.</param>
+        /// <returns>SeString payload of italicized text.</returns>
+        public static SeString MakeItalics(string text)
+            => MakeItalics(new TextPayload(text));
+
+        /// <summary>
+        /// Convert a TextPayload to SeString and wrap in italics payloads.
+        /// </summary>
+        /// <param name="text">Text to convert.</param>
+        /// <returns>SeString payload of italicized text.</returns>
+        public static SeString MakeItalics(TextPayload text)
+            => new(EmphasisItalicPayload.ItalicsOn, text, EmphasisItalicPayload.ItalicsOff);
 
         private void OnCheckMessageHandled(XivChatType type, uint senderid, ref SeString sender, ref SeString message, ref bool isHandled)
         {

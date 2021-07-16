@@ -38,7 +38,7 @@ namespace Dalamud.Game.Text.SeStringHandling
         /// Creates a new SeString from an ordered list of payloads.
         /// </summary>
         /// <param name="payloads">The Payload objects to make up this string.</param>
-        public SeString(Payload[] payloads)
+        public SeString(params Payload[] payloads)
         {
             this.Payloads = new List<Payload>(payloads);
         }
@@ -70,7 +70,7 @@ namespace Dalamud.Game.Text.SeStringHandling
         /// </summary>
         /// <param name="str">string to convert.</param>
         /// <returns>Equivalent SeString.</returns>
-        public static implicit operator SeString(string str) => new(new Payload[] { new TextPayload(str) });
+        public static implicit operator SeString(string str) => new(new TextPayload(str));
 
         /// <summary>
         /// Creates a SeString from a json. (For testing - not recommended for production use.)
