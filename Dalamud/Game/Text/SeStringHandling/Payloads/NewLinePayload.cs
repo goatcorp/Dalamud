@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 
 namespace Dalamud.Game.Text.SeStringHandling.Payloads
@@ -16,7 +16,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         public static NewLinePayload Payload => new();
 
         /// <summary>
-        /// Gets the text of this payload, evaluates to <c>Environment.NewLine</c>
+        /// Gets the text of this payload, evaluates to <c>Environment.NewLine</c>.
         /// </summary>
         public string Text => Environment.NewLine;
 
