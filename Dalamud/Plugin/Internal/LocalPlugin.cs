@@ -315,13 +315,11 @@ namespace Dalamud.Plugin.Internal
         /// <param name="reloading">Unload while reloading.</param>
         public void Unload(bool reloading = false)
         {
-            // Allowed: Loaded
+            // Allowed: Loaded, LoadError(we are cleaning this up while we're at it)
             switch (this.State)
             {
                 case PluginState.InProgress:
                     throw new InvalidPluginOperationException($"Unable to unload {this.Name}, already working");
-                case PluginState.LoadError:
-                    throw new InvalidPluginOperationException($"Unable to unload {this.Name}, load previously faulted, unload first");
                 case PluginState.Unloaded:
                     throw new InvalidPluginOperationException($"Unable to unload {this.Name}, already unloaded");
                 case PluginState.UnloadError:
