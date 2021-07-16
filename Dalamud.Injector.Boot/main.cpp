@@ -7,7 +7,7 @@
 
 int wmain(int argc, char** argv)
 {
-    #if defined(_DEBUG)
+    #if !defined(NDEBUG)
     ConsoleSetup(L"Dalamud Injector Boot");
     #endif
 
@@ -41,7 +41,7 @@ int wmain(int argc, char** argv)
 
     // =========================================================================== //
 
-    #if defined(_DEBUG)
+    #if !defined(NDEBUG)
     FreeConsole();
     #endif
 
