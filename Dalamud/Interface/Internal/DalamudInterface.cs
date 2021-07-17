@@ -60,7 +60,7 @@ namespace Dalamud.Interface.Internal
             this.creditsWindow = new CreditsWindow(dalamud) { IsOpen = false };
             this.dataWindow = new DataWindow(dalamud) { IsOpen = false };
             this.gamepadModeNotifierWindow = new GamepadModeNotifierWindow();
-            this.consoleWindow = new ConsoleWindow { IsOpen = this.dalamud.Configuration.LogOpenAtStartup };
+            this.consoleWindow = new ConsoleWindow(dalamud) { IsOpen = this.dalamud.Configuration.LogOpenAtStartup };
             this.pluginStatWindow = new PluginStatWindow(dalamud) { IsOpen = false };
             this.pluginWindow = new PluginInstallerWindow(dalamud) { IsOpen = false };
             this.scratchpadWindow = new ScratchpadWindow(dalamud) { IsOpen = false };
@@ -155,7 +155,7 @@ namespace Dalamud.Interface.Internal
         public void OpenGamepadModeNotifierWindow() => this.gamepadModeNotifierWindow.IsOpen = true;
 
         /// <summary>
-        /// Opens the <see cref="LogWindow"/>.
+        /// Opens the <see cref="ConsoleWindow"/>.
         /// </summary>
         public void OpenLogWindow() => this.consoleWindow.IsOpen = true;
 
@@ -227,7 +227,7 @@ namespace Dalamud.Interface.Internal
         public void ToggleGamepadModeNotifierWindow() => this.gamepadModeNotifierWindow.Toggle();
 
         /// <summary>
-        /// Toggles the <see cref="LogWindow"/>.
+        /// Toggles the <see cref="ConsoleWindow"/>.
         /// </summary>
         public void ToggleLogWindow() => this.consoleWindow.Toggle();
 

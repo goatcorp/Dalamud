@@ -20,6 +20,8 @@ namespace Dalamud.Interface.Internal.Windows
     /// </summary>
     internal class ConsoleWindow : Window, IDisposable
     {
+        private readonly Dalamud dalamud;
+
         private readonly List<LogEntry> logText = new();
         private readonly object renderLock = new();
 
@@ -44,11 +46,13 @@ namespace Dalamud.Interface.Internal.Windows
         /// Initializes a new instance of the <see cref="ConsoleWindow"/> class.
         /// </summary>
         /// <param name="dalamud">The Dalamud instance.</param>
-        public ConsoleWindow()
+        public ConsoleWindow(Dalamud dalamud)
             : base("Dalamud Console")
         {
-            this.autoScroll = Dalamud.Instance.Configuration.LogAutoScroll;
-            this.openAtStartup = Dalamud.Instance.Configuration.LogOpenAtStartup;
+            this.dalamud = dalamud;
+
+            this.autoScroll = this.dalamud.Configuration.LogAutoScroll;
+            this.openAtStartup = this.dalamud.Configuration.LogOpenAtStartup;
             SerilogEventSink.Instance.OnLogLine += this.OnLogLine;
 
             this.Size = new Vector2(500, 400);
@@ -110,22 +114,22 @@ namespace Dalamud.Interface.Internal.Windows
             {
                 if (ImGui.Checkbox("Auto-scroll", ref this.autoScroll))
                 {
-                    Dalamud.Instance.Configuration.LogAutoScroll = this.autoScroll;
-                    Dalamud.Instance.Configuration.Save();
+                    this.dalamud.Configuration.LogAutoScroll = this.autoScroll;
+                    this.dalamud.Configuration.Save();
                 }
 
                 if (ImGui.Checkbox("Open at startup", ref this.openAtStartup))
                 {
-                    Dalamud.Instance.Configuration.LogOpenAtStartup = this.openAtStartup;
-                    Dalamud.Instance.Configuration.Save();
+                    this.dalamud.Configuration.LogOpenAtStartup = this.openAtStartup;
+                    this.dalamud.Configuration.Save();
                 }
 
-                var prevLevel = (int)Dalamud.Instance.LogLevelSwitch.MinimumLevel;
+                var prevLevel = (int)this.dalamud.LogLevelSwitch.MinimumLevel;
                 if (ImGui.Combo("Log Level", ref prevLevel, Enum.GetValues(typeof(LogEventLevel)).Cast<LogEventLevel>().Select(x => x.ToString()).ToArray(), 6))
                 {
-                    Dalamud.Instance.LogLevelSwitch.MinimumLevel = (LogEventLevel)prevLevel;
-                    Dalamud.Instance.Configuration.LogLevel = (LogEventLevel)prevLevel;
-                    Dalamud.Instance.Configuration.Save();
+                    this.dalamud.LogLevelSwitch.MinimumLevel = (LogEventLevel)prevLevel;
+                    this.dalamud.Configuration.LogLevel = (LogEventLevel)prevLevel;
+                    this.dalamud.Configuration.Save();
                 }
 
                 /* TEST */
@@ -321,7 +325,6 @@ namespace Dalamud.Interface.Internal.Windows
             if (getFocus)
                 ImGui.SetKeyboardFocusHere(-1); // Auto focus previous widget
 
-
             if (hadColor)
                 ImGui.PopStyleColor();
 
@@ -353,10 +356,10 @@ namespace Dalamud.Interface.Internal.Windows
                     return;
                 }
 
-                this.lastCmdSuccess = Dalamud.Instance.CommandManager.ProcessCommand("/" + this.commandText);
+                this.lastCmdSuccess = this.dalamud.CommandManager.ProcessCommand("/" + this.commandText);
                 this.commandText = string.Empty;
 
-                //TODO: Force scroll to bottom
+                // TODO: Force scroll to bottom
             }
             catch (Exception ex)
             {
@@ -384,7 +387,7 @@ namespace Dalamud.Interface.Internal.Windows
 
                     // TODO: Improve this, add partial completion
                     // https://github.com/ocornut/imgui/blob/master/imgui_demo.cpp#L6443-L6484
-                    var candidates = Dalamud.Instance.CommandManager.Commands.Where(x => x.Key.Contains("/" + words[0])).ToList();
+                    var candidates = this.dalamud.CommandManager.Commands.Where(x => x.Key.Contains("/" + words[0])).ToList();
                     if (candidates.Count > 0)
                     {
                         ptr.DeleteChars(0, ptr.BufTextLen);
