@@ -89,7 +89,7 @@ namespace Dalamud.Game.ClientState.Actors.Types
         /// <remarks>
         /// This copies every time it is invoked, so make sure to only grab it once.
         /// </remarks>
-        public StatusEffect[] StatusEffects => MemoryHelper.Read<StatusEffect>(this.Address + ActorOffsets.UIStatusEffects, 20, true);
+        public StatusEffect[] StatusEffects => MemoryHelper.Read<StatusEffect>(this.Address + ActorOffsets.UIStatusEffects, 30, true);
 
         /// <summary>
         /// Gets a value indicating whether the actor is currently casting.
