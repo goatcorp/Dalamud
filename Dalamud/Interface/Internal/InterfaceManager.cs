@@ -141,6 +141,11 @@ namespace Dalamud.Interface.Internal
         public static ImFontPtr IconFont { get; private set; }
 
         /// <summary>
+        /// Gets an included monospaced font.
+        /// </summary>
+        public static ImFontPtr MonoFont { get; private set; }
+
+        /// <summary>
         /// Gets or sets an action that is exexuted when fonts are rebuilt.
         /// </summary>
         public Action OnBuildFonts { get; set; }
@@ -463,6 +468,13 @@ namespace Dalamud.Interface.Internal
                 },
                 GCHandleType.Pinned);
             IconFont = ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPathIcon, 17.0f, null, iconRangeHandle.AddrOfPinnedObject());
+
+            var fontPathMono = Path.Combine(this.dalamud.AssetDirectory.FullName, "UIRes", "Inconsolata-Regular.ttf");
+
+            if (!File.Exists(fontPathMono))
+                ShowFontError(fontPathMono);
+
+            MonoFont = ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPathMono, 16.0f);
 
             Log.Verbose("[FONT] Invoke OnBuildFonts");
             this.OnBuildFonts?.Invoke();

@@ -25,12 +25,7 @@ namespace Dalamud.Interface.Internal
         /// <summary>
         /// Event on a log line being emitted.
         /// </summary>
-        public event EventHandler<(string Line, LogEventLevel Level)> OnLogLine;
-
-        /// <summary>
-        /// Event on a log line being emitted.
-        /// </summary>
-        public event EventHandler<LogEvent> OnLogEvent;
+        public event EventHandler<(string Line, LogEventLevel Level, DateTimeOffset TimeStamp)> OnLogLine;
 
         /// <summary>
         /// Gets the default instance.
@@ -43,15 +38,14 @@ namespace Dalamud.Interface.Internal
         /// <param name="logEvent">Log event to be emitted.</param>
         public void Emit(LogEvent logEvent)
         {
-            var message = $"[{DateTimeOffset.Now:HH:mm:ss.fff}][{logEvent.Level}] {logEvent.RenderMessage(this.formatProvider)}";
+            var message = logEvent.RenderMessage(this.formatProvider);
 
             if (logEvent.Exception != null)
             {
                 message += "\n" + logEvent.Exception;
             }
 
-            this.OnLogEvent?.Invoke(this, logEvent);
-            this.OnLogLine?.Invoke(this, (message, logEvent.Level));
+            this.OnLogLine?.Invoke(this, (message, logEvent.Level, logEvent.Timestamp));
         }
     }
 }
