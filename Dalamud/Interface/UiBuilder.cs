@@ -60,6 +60,11 @@ namespace Dalamud.Interface
         public static ImFontPtr IconFont => InterfaceManager.IconFont;
 
         /// <summary>
+        /// Gets the default Dalamud monospaced font based on Inconsolata Regular in 16pt.
+        /// </summary>
+        public static ImFontPtr MonoFont => InterfaceManager.MonoFont;
+
+        /// <summary>
         /// Gets the game's active Direct3D device.
         /// </summary>
         public Device Device => this.dalamud.InterfaceManager.Device;
