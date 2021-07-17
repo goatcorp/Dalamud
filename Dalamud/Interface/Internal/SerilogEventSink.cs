@@ -28,6 +28,11 @@ namespace Dalamud.Interface.Internal
         public event EventHandler<(string Line, LogEventLevel Level)> OnLogLine;
 
         /// <summary>
+        /// Event on a log line being emitted.
+        /// </summary>
+        public event EventHandler<LogEvent> OnLogEvent;
+
+        /// <summary>
         /// Gets the default instance.
         /// </summary>
         public static SerilogEventSink Instance => instance ??= new SerilogEventSink(null);
@@ -45,6 +50,7 @@ namespace Dalamud.Interface.Internal
                 message += "\n" + logEvent.Exception;
             }
 
+            this.OnLogEvent?.Invoke(this, logEvent);
             this.OnLogLine?.Invoke(this, (message, logEvent.Level));
         }
     }
