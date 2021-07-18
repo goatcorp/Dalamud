@@ -3,15 +3,15 @@
 namespace Dalamud.Interface.Animation.EasingFunctions
 {
     /// <summary>
-    /// Class providing an "InOutCubic" easing animation.
+    /// Class providing an "InSine" easing animation.
     /// </summary>
-    public class InOutCubic : Easing
+    public class InSine : Easing
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="InOutCubic"/> class.
+        /// Initializes a new instance of the <see cref="InSine"/> class.
         /// </summary>
         /// <param name="duration">The duration of the animation.</param>
-        public InOutCubic(TimeSpan duration)
+        public InSine(TimeSpan duration)
             : base(duration)
         {
             // ignored
@@ -21,7 +21,7 @@ namespace Dalamud.Interface.Animation.EasingFunctions
         public override void Update()
         {
             var p = this.Progress;
-            this.Value = p < 0.5 ? 4 * p * p * p : 1 - (Math.Pow((-2 * p) + 2, 3) / 2);
+            this.Value = 1 - Math.Cos((p * Math.PI) / 2);
         }
     }
 }

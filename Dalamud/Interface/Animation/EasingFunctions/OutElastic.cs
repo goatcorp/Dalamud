@@ -3,17 +3,17 @@
 namespace Dalamud.Interface.Animation.EasingFunctions
 {
     /// <summary>
-    /// Class providing an "InOutCirc" easing animation.
+    /// Class providing an "OutElastic" easing animation.
     /// </summary>
-    public class InOutElastic : Easing
+    public class OutElastic : Easing
     {
-        private const double Constant = (2 * Math.PI) / 4.5;
+        private const double Constant = (2 * Math.PI) / 3;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="InOutElastic"/> class.
+        /// Initializes a new instance of the <see cref="OutElastic"/> class.
         /// </summary>
         /// <param name="duration">The duration of the animation.</param>
-        public InOutElastic(TimeSpan duration)
+        public OutElastic(TimeSpan duration)
             : base(duration)
         {
             // ignored
@@ -27,9 +27,7 @@ namespace Dalamud.Interface.Animation.EasingFunctions
                         ? 0
                         : p == 1
                             ? 1
-                            : p < 0.5
-                                ? -(Math.Pow(2, (20 * p) - 10) * Math.Sin(((20 * p) - 11.125) * Constant)) / 2
-                                : (Math.Pow(2, (-20 * p) + 10) * Math.Sin(((20 * p) - 11.125) * Constant) / 2) + 1;
+                            : (Math.Pow(2, -10 * p) * Math.Sin(((p * 10) - 0.75) * Constant)) + 1;
         }
     }
 }
