@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -132,43 +133,6 @@ namespace Dalamud.Interface.Internal.Windows
                     this.dalamud.Configuration.Save();
                 }
 
-                /* TEST */
-
-                if (ImGui.Button("Multiline test"))
-                {
-                    Log.Verbose("This is a test\nTruly a multi-line test\nas it has always been.\nThank you.");
-                }
-
-                if (ImGui.Button("Single line test"))
-                {
-                    Log.Debug("This is a test");
-                }
-
-                if (ImGui.Button("WARNING!!"))
-                {
-                    Log.Warning("I want to warn you");
-                }
-
-                if (ImGui.Button("Add 50000"))
-                {
-                    for (var i = 0; i < 50000; i++)
-                        Log.Debug("TEST " + i);
-                }
-
-                if (ImGui.Button("Exception"))
-                {
-                    try
-                    {
-                        var a = 0;
-                        var b = 1;
-                        var c = b / a;
-                    }
-                    catch (Exception e)
-                    {
-                        Log.Error(e, "There has been a serious problem");
-                    }
-                }
-
                 ImGui.EndPopup();
             }
 
@@ -209,6 +173,10 @@ namespace Dalamud.Interface.Internal.Windows
 
             ImGui.SameLine();
             var copy = ImGui.Button(FontAwesomeIcon.Copy.ToIconString());
+
+            ImGui.SameLine();
+            if (ImGui.Button(FontAwesomeIcon.Skull.ToIconString()))
+                Process.GetCurrentProcess().Kill();
 
             ImGui.PopFont();
 
