@@ -9,6 +9,7 @@ namespace Dalamud.Interface.Animation
     /// </summary>
     public abstract class Easing
     {
+        // TODO: Use game delta time here instead
         private readonly Stopwatch animationTimer = new();
 
         private double valueInternal;
@@ -45,7 +46,7 @@ namespace Dalamud.Interface.Animation
             get => this.valueInternal;
             protected set
             {
-                this.valueInternal = Math.Min(value, 1);
+                this.valueInternal = value;
 
                 if (this.Point1.HasValue && this.Point2.HasValue)
                     this.EasedPoint = AnimUtil.Lerp(this.Point1.Value, this.Point2.Value, (float)this.valueInternal);
@@ -56,6 +57,16 @@ namespace Dalamud.Interface.Animation
         /// Gets or sets the duration of the animation.
         /// </summary>
         public TimeSpan Duration { get; set; }
+
+        /// <summary>
+        /// Gets a value indicating whether or not the animation is running.
+        /// </summary>
+        public bool IsRunning => this.animationTimer.IsRunning;
+
+        /// <summary>
+        /// Gets a value indicating whether or not the animation is done.
+        /// </summary>
+        public bool IsDone => this.animationTimer.ElapsedMilliseconds > this.Duration.TotalMilliseconds;
 
         /// <summary>
         /// Gets the progress of the animation, from 0 to 1.
