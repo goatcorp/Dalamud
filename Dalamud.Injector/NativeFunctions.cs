@@ -583,6 +583,22 @@ namespace Dalamud.Injector
         }
 
         /// <summary>
+        /// Closes an open object handle.
+        /// </summary>
+        /// <param name="hObject">
+        /// A valid handle to an open object.
+        /// </param>
+        /// <returns>
+        /// If the function succeeds, the return value is nonzero. If the function fails, the return value is zero. To get extended error
+        /// information, call GetLastError. If the application is running under a debugger, the function will throw an exception if it receives
+        /// either a handle value that is not valid or a pseudo-handle value. This can happen if you close a handle twice, or if you call
+        /// CloseHandle on a handle returned by the FindFirstFile function instead of calling the FindClose function.
+        /// </returns>
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool CloseHandle(IntPtr hObject);
+
+        /// <summary>
         /// Creates a thread that runs in the virtual address space of another process. Use the CreateRemoteThreadEx function
         /// to create a thread that runs in the virtual address space of another process and optionally specify extended attributes.
         /// </summary>
@@ -650,6 +666,34 @@ namespace Dalamud.Injector
         [DllImport("kernel32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool GetExitCodeThread(IntPtr hThread, out uint lpExitCode);
+
+        /// <summary>
+        /// Opens an existing local process object.
+        /// </summary>
+        /// <param name="dwDesiredAccess">
+        /// The access to the process object. This access right is checked against the security descriptor for the process. This parameter can be one or
+        /// more of the process access rights. If the caller has enabled the SeDebugPrivilege privilege, the requested access is granted regardless of the
+        /// contents of the security descriptor.
+        /// </param>
+        /// <param name="bInheritHandle">
+        /// If this value is TRUE, processes created by this process will inherit the handle. Otherwise, the processes do not inherit this handle.
+        /// </param>
+        /// <param name="dwProcessId">
+        /// The identifier of the local process to be opened. If the specified process is the System Idle Process(0x00000000), the function fails and the
+        /// last error code is ERROR_INVALID_PARAMETER.If the specified process is the System process or one of the Client Server Run-Time Subsystem(CSRSS)
+        /// processes, this function fails and the last error code is ERROR_ACCESS_DENIED because their access restrictions prevent user-level code from
+        /// opening them. If you are using GetCurrentProcessId as an argument to this function, consider using GetCurrentProcess instead of OpenProcess, for
+        /// improved performance.
+        /// </param>
+        /// <returns>
+        /// If the function succeeds, the return value is an open handle to the specified process. 
+        /// If the function fails, the return value is NULL.To get extended error information, call GetLastError.
+        /// </returns>
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern IntPtr OpenProcess(
+            ProcessAccessFlags dwDesiredAccess,
+            bool bInheritHandle,
+            int dwProcessId);
 
         /// <summary>
         /// See https://docs.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-virtualallocex.
