@@ -4,6 +4,9 @@ using System.Numerics;
 
 namespace Dalamud.Interface.Animation
 {
+    /// <summary>
+    /// Base class facilitating the implementation of easing functions.
+    /// </summary>
     public abstract class Easing
     {
         private readonly Stopwatch animationTimer = new();
@@ -35,17 +38,17 @@ namespace Dalamud.Interface.Animation
         public Vector2 EasedPoint { get; private set; }
 
         /// <summary>
-        /// Gets the current value of the animation, from 0 to 1.
+        /// Gets or sets the current value of the animation, from 0 to 1.
         /// </summary>
         public double Value
         {
             get => this.valueInternal;
-            set
+            protected set
             {
                 this.valueInternal = Math.Min(value, 1);
 
-                if (Point1.HasValue && Point2.HasValue)
-                    EasedPoint = Lerp(Point1.Value, Point2.Value, (float)this.valueInternal);
+                if (this.Point1.HasValue && this.Point2.HasValue)
+                    this.EasedPoint = AnimUtil.Lerp(this.Point1.Value, this.Point2.Value, (float)this.valueInternal);
             }
         }
 
@@ -87,17 +90,5 @@ namespace Dalamud.Interface.Animation
         /// Updates the animation.
         /// </summary>
         public abstract void Update();
-
-        private static float Lerp(float firstFloat, float secondFloat, float by)
-        {
-            return (firstFloat * (1 - @by)) + (secondFloat * by);
-        }
-
-        private static Vector2 Lerp(Vector2 firstVector, Vector2 secondVector, float by)
-        {
-            var retX = Lerp(firstVector.X, secondVector.X, by);
-            var retY = Lerp(firstVector.Y, secondVector.Y, by);
-            return new Vector2(retX, retY);
-        }
     }
 }
