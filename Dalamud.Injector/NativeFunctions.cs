@@ -686,7 +686,7 @@ namespace Dalamud.Injector
         /// improved performance.
         /// </param>
         /// <returns>
-        /// If the function succeeds, the return value is an open handle to the specified process. 
+        /// If the function succeeds, the return value is an open handle to the specified process.
         /// If the function fails, the return value is NULL.To get extended error information, call GetLastError.
         /// </returns>
         [DllImport("kernel32.dll", SetLastError = true)]

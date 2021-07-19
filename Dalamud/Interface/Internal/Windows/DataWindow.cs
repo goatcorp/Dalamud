@@ -561,9 +561,7 @@ namespace Dalamud.Interface.Internal.Windows
 
             if (ImGui.Button("Get Addon"))
             {
-                this.resultAddon =
-                    this.dalamud.Framework.Gui.GetAddonByName(
-                        this.inputAddonName, this.inputAddonIndex);
+                this.resultAddon = this.dalamud.Framework.Gui.GetAddonByName(this.inputAddonName, this.inputAddonIndex);
             }
 
             if (ImGui.Button("Find Agent"))
@@ -571,14 +569,12 @@ namespace Dalamud.Interface.Internal.Windows
 
             if (this.resultAddon != null)
             {
-                ImGui.TextUnformatted(
-                    $"{this.resultAddon.Name} - 0x{this.resultAddon.Address.ToInt64():x}\n    v:{this.resultAddon.Visible} x:{this.resultAddon.X} y:{this.resultAddon.Y} s:{this.resultAddon.Scale}, w:{this.resultAddon.Width}, h:{this.resultAddon.Height}");
+                ImGui.TextUnformatted($"{this.resultAddon.Name} - 0x{this.resultAddon.Address.ToInt64():x}\n    v:{this.resultAddon.Visible} x:{this.resultAddon.X} y:{this.resultAddon.Y} s:{this.resultAddon.Scale}, w:{this.resultAddon.Width}, h:{this.resultAddon.Height}");
             }
 
             if (this.findAgentInterfacePtr != IntPtr.Zero)
             {
-                ImGui.TextUnformatted(
-                    $"Agent: 0x{this.findAgentInterfacePtr.ToInt64():x}");
+                ImGui.TextUnformatted($"Agent: 0x{this.findAgentInterfacePtr.ToInt64():x}");
                 ImGui.SameLine();
 
                 if (ImGui.Button("C"))
