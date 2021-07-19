@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace Dalamud.Game.Text
@@ -241,6 +242,8 @@ namespace Dalamud.Game.Text
     /// <summary>
     /// Extension methods for the <see cref="XivChatType"/> type.
     /// </summary>
+    [SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1402:File may only contain a single type", Justification = "Group extensions with the relevant class")]
+    [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1649:File name should match first type name", Justification = "Enum followed by an extension")]
     public static class XivChatTypeExtensions
     {
         /// <summary>
@@ -257,6 +260,8 @@ namespace Dalamud.Game.Text
     /// <summary>
     /// Storage for relevant information associated with the chat type.
     /// </summary>
+    [SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1402:File may only contain a single type", Justification = "Group attributes with the relevant class")]
+    [AttributeUsage(AttributeTargets.Field)]
     public class XivChatTypeInfoAttribute : Attribute
     {
         /// <summary>

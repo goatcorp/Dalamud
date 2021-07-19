@@ -84,12 +84,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         /// <inheritdoc/>
         public override int GetHashCode()
         {
-            // Generated random values.
-            var hashCode = 1216194372;
-            hashCode = (hashCode * -1521134295) + this.Type.GetHashCode();
-            hashCode = (hashCode * -1521134295) + this.chunkType.GetHashCode();
-            hashCode = (hashCode * -1521134295) + EqualityComparer<byte[]>.Default.GetHashCode(this.data);
-            return hashCode;
+            return HashCode.Combine(this.Type, this.chunkType, this.data);
         }
 
         /// <inheritdoc/>
@@ -105,13 +100,13 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
 
             var bytes = new List<byte>()
             {
-                START_BYTE,
+                StartByte,
                 this.chunkType,
                 (byte)chunkLen,
             };
             bytes.AddRange(this.data);
 
-            bytes.Add(END_BYTE);
+            bytes.Add(EndByte);
 
             return bytes.ToArray();
         }

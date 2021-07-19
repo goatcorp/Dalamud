@@ -12,11 +12,6 @@ namespace Dalamud.Game.Internal.Network
     /// </summary>
     public sealed class GameNetwork : IDisposable
     {
-        /// <summary>
-        /// Event that is called when a network message is sent/received.
-        /// </summary>
-        public OnNetworkMessageDelegate OnNetworkMessage;
-
         private readonly GameNetworkAddressResolver address;
         private readonly Hook<ProcessZonePacketDownDelegate> processZonePacketDownHook;
         private readonly Hook<ProcessZonePacketUpDelegate> processZonePacketUpHook;
@@ -56,6 +51,11 @@ namespace Dalamud.Game.Internal.Network
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         private delegate byte ProcessZonePacketUpDelegate(IntPtr a1, IntPtr dataPtr, IntPtr a3, byte a4);
+
+        /// <summary>
+        /// Event that is called when a network message is sent/received.
+        /// </summary>
+        public event OnNetworkMessageDelegate OnNetworkMessage;
 
         /// <summary>
         /// Enable this module.

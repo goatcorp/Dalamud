@@ -1,5 +1,7 @@
 // Font-Awesome - Version 5.0.9
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace Dalamud.Interface
 {
     /// <summary>
@@ -7051,6 +7053,8 @@ namespace Dalamud.Interface
     /// <summary>
     /// Extension methods for <see cref="FontAwesomeIcon"/>.
     /// </summary>
+    [SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1402:File may only contain a single type", Justification = "Group extensions with the relevant class")]
+    [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1649:File name should match first type name", Justification = "Enum followed by an extension")]
     public static class FontAwesomeExtensions
     {
         /// <summary>

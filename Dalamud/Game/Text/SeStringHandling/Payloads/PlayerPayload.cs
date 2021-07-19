@@ -92,7 +92,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             var chunkLen = this.playerName.Length + 7;
             var bytes = new List<byte>()
             {
-                START_BYTE,
+                StartByte,
                 (byte)SeStringChunkType.Interactable, (byte)chunkLen, (byte)EmbeddedInfoType.PlayerName,
                 /* unk */ 0x01,
                 (byte)(this.serverId + 1), // I didn't want to deal with single-byte values in MakeInteger, so we have to do the +1 manually
@@ -102,7 +102,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             };
 
             bytes.AddRange(Encoding.UTF8.GetBytes(this.playerName));
-            bytes.Add(END_BYTE);
+            bytes.Add(EndByte);
 
             // TODO: should these really be here? additional payloads should come in separately already...
 
@@ -113,9 +113,9 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             // unsure about this entire packet, but it seems to always follow a name
             bytes.AddRange(new byte[]
             {
-                START_BYTE, (byte)SeStringChunkType.Interactable, 0x07, (byte)EmbeddedInfoType.LinkTerminator,
+                StartByte, (byte)SeStringChunkType.Interactable, 0x07, (byte)EmbeddedInfoType.LinkTerminator,
                 0x01, 0x01, 0x01, 0xFF, 0x01,
-                END_BYTE,
+                EndByte,
             });
 
             return bytes.ToArray();

@@ -173,7 +173,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
 
             var bytes = new List<byte>()
             {
-                START_BYTE,
+                StartByte,
                 (byte)SeStringChunkType.Interactable, (byte)chunkLen, (byte)EmbeddedInfoType.MapPositionLink,
             };
 
@@ -182,7 +182,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             bytes.AddRange(yBytes);
 
             // unk
-            bytes.AddRange(new byte[] { 0xFF, 0x01, END_BYTE });
+            bytes.AddRange(new byte[] { 0xFF, 0x01, EndByte });
 
             return bytes.ToArray();
         }
@@ -222,7 +222,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             var c = scale / 100.0f;
             var scaledPos = pos * c / 1000.0f;
 
-            return ((41.0f / c) * ((scaledPos + 1024.0f) / 2048.0f)) + 1.0f;
+            return (41.0f / c * ((scaledPos + 1024.0f) / 2048.0f)) + 1.0f;
         }
 
         // Created as the inverse of ConvertRawPositionToMapCoordinate(), since no one seemed to have a version of that
@@ -230,7 +230,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         {
             var c = scale / 100.0f;
 
-            var scaledPos = ((((pos - 1.0f) * c / 41.0f) * 2048.0f) - 1024.0f) / c;
+            var scaledPos = (((pos - 1.0f) * c / 41.0f * 2048.0f) - 1024.0f) / c;
             scaledPos *= 1000.0f;
 
             return (int)scaledPos;

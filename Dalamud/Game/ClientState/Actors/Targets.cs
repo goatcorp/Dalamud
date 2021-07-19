@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 using Dalamud.Game.ClientState.Actors.Types;
@@ -114,6 +115,9 @@ namespace Dalamud.Game.ClientState.Actors
     /// <summary>
     /// Memory offsets for the <see cref="Targets"/> type.
     /// </summary>
+    [SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1204:Static elements should appear before instance elements", Justification = "Group offsets after their usage.")]
+    [SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1402:File may only contain a single type", Justification = "Group offsets with their usage.")]
+    [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "Document the offset usage.")]
     public static class TargetOffsets
     {
         public const int CurrentTarget = 0x80;

@@ -21,14 +21,14 @@ namespace Dalamud.Game.Text.SeStringHandling
     /// </summary>
     public abstract partial class Payload
     {
-        /// <summary>
-        /// The Lumina instance to use for any necessary data lookups.
-        /// </summary>
-        public DataManager DataResolver;
-
-        // private for now, since subclasses shouldn't interact with this
+        // private for now, since subclasses shouldn't interact with this.
         // To force-invalidate it, Dirty can be set to true
         private byte[] encodedData;
+
+        /// <summary>
+        /// Gets or sets the Lumina instance to use for any necessary data lookups.
+        /// </summary>
+        public DataManager DataResolver { get; set; }
 
         /// <summary>
         /// Gets the type of this payload.
@@ -54,7 +54,7 @@ namespace Dalamud.Game.Text.SeStringHandling
 
             var initialByte = reader.ReadByte();
             reader.BaseStream.Position--;
-            if (initialByte != START_BYTE)
+            if (initialByte != StartByte)
             {
                 payload = DecodeText(reader);
             }
@@ -233,12 +233,12 @@ namespace Dalamud.Game.Text.SeStringHandling
         /// <summary>
         /// The start byte of a payload.
         /// </summary>
-        protected const byte START_BYTE = 0x02;
+        protected const byte StartByte = 0x02;
 
         /// <summary>
         /// The end byte of a payload.
         /// </summary>
-        protected const byte END_BYTE = 0x03;
+        protected const byte EndByte = 0x03;
 
         /// <summary>
         /// This represents the type of embedded info in a payload.

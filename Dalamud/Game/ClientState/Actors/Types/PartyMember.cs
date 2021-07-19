@@ -15,20 +15,20 @@ namespace Dalamud.Game.ClientState.Actors.Types
         /// <param name="rawData">The interop data struct.</param>
         public PartyMember(ActorTable table, Structs.PartyMember rawData)
         {
-            this.CharacterName = MemoryHelper.ReadSeString(rawData.namePtr);
-            this.Unknown = rawData.unknown;
+            this.CharacterName = MemoryHelper.ReadSeString(rawData.NamePtr);
+            this.Unknown = rawData.Unknown;
             this.Actor = null;
 
             for (var i = 0; i < table.Length; i++)
             {
-                if (table[i] != null && table[i].ActorId == rawData.actorId)
+                if (table[i] != null && table[i].ActorId == rawData.ActorId)
                 {
                     this.Actor = table[i];
                     break;
                 }
             }
 
-            this.ObjectKind = rawData.objectKind;
+            this.ObjectKind = rawData.ObjectKind;
         }
 
         /// <summary>

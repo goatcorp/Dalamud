@@ -65,10 +65,10 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             var chunkLen = indexBytes.Length + 1;
             var bytes = new List<byte>(new byte[]
             {
-                START_BYTE, (byte)SeStringChunkType.Icon, (byte)chunkLen,
+                StartByte, (byte)SeStringChunkType.Icon, (byte)chunkLen,
             });
             bytes.AddRange(indexBytes);
-            bytes.Add(END_BYTE);
+            bytes.Add(EndByte);
             return bytes.ToArray();
         }
 

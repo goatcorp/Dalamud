@@ -12,15 +12,15 @@ namespace Dalamud.Game.ClientState.Structs
     public struct PartyMember
     {
         [FieldOffset(0x0)]
-        public IntPtr namePtr;
+        public IntPtr NamePtr;
 
         [FieldOffset(0x8)]
-        public long unknown;
+        public long Unknown;
 
         [FieldOffset(0x10)]
-        public int actorId;
+        public int ActorId;
 
         [FieldOffset(0x14)]
-        public ObjectKind objectKind;
+        public ObjectKind ObjectKind;
     }
 }

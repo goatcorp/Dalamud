@@ -90,7 +90,7 @@ namespace Dalamud.Game.Internal
         /// <summary>
         /// Gets the stats history mapping.
         /// </summary>
-        public static Dictionary<string, List<double>> StatsHistory = new();
+        public static Dictionary<string, List<double>> StatsHistory { get; } = new();
 
         #region Subsystems
 

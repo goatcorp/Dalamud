@@ -47,11 +47,11 @@ namespace Dalamud.Game
                     // https://linux.die.net/man/7/tcp
                     // https://assets.extrahop.com/whitepapers/TCP-Optimization-Guide-by-ExtraHop.pdf
                     var value = new IntPtr(1);
-                    NativeFunctions.SetSockOpt(socket, SocketOptionLevel.Tcp, SocketOptionName.NoDelay, ref value, 4);
+                    _ = NativeFunctions.SetSockOpt(socket, SocketOptionLevel.Tcp, SocketOptionName.NoDelay, ref value, 4);
 
                     // Enable tcp_quickack option. This option is undocumented in MSDN but it is supported in Windows 7 and onwards.
                     value = new IntPtr(1);
-                    NativeFunctions.SetSockOpt(socket, SocketOptionLevel.Tcp, SocketOptionName.AddMembership, ref value, 4);
+                    _ = NativeFunctions.SetSockOpt(socket, SocketOptionLevel.Tcp, SocketOptionName.AddMembership, ref value, 4);
                 }
             }
 
