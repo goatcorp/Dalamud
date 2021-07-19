@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
@@ -553,6 +554,28 @@ namespace Dalamud.Interface.Internal.Windows
                     this.dalamud.PluginManager.RefilterPluginMasters();
                 }
 
+                if (ImGui.Selectable(Locs.PluginContext_DeletePluginConfig))
+                {
+                    Log.Debug($"Deleting config for {manifest.InternalName}");
+
+                    this.installStatus = OperationStatus.InProgress;
+
+                    Task.Run(() =>
+                        {
+                            this.dalamud.PluginManager.PluginConfigs.Delete(manifest.InternalName);
+
+                            var path = Path.Combine(this.dalamud.StartInfo.PluginDirectory, manifest.InternalName);
+                            if (Directory.Exists(path))
+                                Directory.Delete(path, true);
+                        })
+                        .ContinueWith(task =>
+                        {
+                            this.installStatus = OperationStatus.Idle;
+
+                            this.DisplayErrorContinuation(task, Locs.ErrorModal_DeleteConfigFail(manifest.InternalName));
+                        });
+                }
+
                 ImGui.EndPopup();
             }
         }
@@ -695,14 +718,15 @@ namespace Dalamud.Interface.Internal.Windows
 
             if (ImGui.BeginPopupContextItem("InstalledItemContextMenu"))
             {
-                if (ImGui.Selectable(Locs.PluginContext_DeletePluginConfig))
+                if (ImGui.Selectable(Locs.PluginContext_DeletePluginConfigReload))
                 {
                     Log.Debug($"Deleting config for {plugin.Manifest.InternalName}");
+
+                    this.installStatus = OperationStatus.InProgress;
 
                     Task.Run(() => this.dalamud.PluginManager.DeleteConfiguration(plugin))
                         .ContinueWith(task =>
                         {
-                            // There is no need to set as Complete for an individual plugin installation
                             this.installStatus = OperationStatus.Idle;
 
                             this.DisplayErrorContinuation(task, Locs.ErrorModal_DeleteConfigFail(plugin.Name));
@@ -1144,7 +1168,9 @@ namespace Dalamud.Interface.Internal.Windows
 
             public static string PluginContext_HidePlugin => Loc.Localize("InstallerHidePlugin", "Hide from installer");
 
-            public static string PluginContext_DeletePluginConfig => Loc.Localize("InstallerDeletePluginConfig", "Reset plugin settings & reload");
+            public static string PluginContext_DeletePluginConfig => Loc.Localize("InstallerDeletePluginConfig", "Reset plugin");
+
+            public static string PluginContext_DeletePluginConfigReload => Loc.Localize("InstallerDeletePluginConfig", "Reset plugin settings & reload");
 
             #endregion
 
