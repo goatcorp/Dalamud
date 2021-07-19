@@ -1,7 +1,10 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 using Dalamud.Data;
 using Lumina.Excel.GeneratedSheets;
+
+#pragma warning disable SA1402 // File may only contain a single type
 
 namespace Dalamud.Game.Internal.Gui.Structs
 {
@@ -347,7 +350,8 @@ namespace Dalamud.Game.Internal.Gui.Structs
     /// <summary>
     /// Extensions for the <see cref="JobFlags"/> enum.
     /// </summary>
-    public static class JobFlagsExt
+    [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1649:File name should match first type name", Justification = "Group extensions with their usage.")]
+    public static class JobFlagsExtensions
     {
         /// <summary>
         /// Get the actual ClassJob from the in-game sheets for this JobFlags.
@@ -357,41 +361,12 @@ namespace Dalamud.Game.Internal.Gui.Structs
         /// <returns>A ClassJob if found or null if not.</returns>
         public static ClassJob ClassJob(this JobFlags job, DataManager data)
         {
-            var jobs = data.GetExcelSheet<ClassJob>();
-
-            uint? row = job switch
-            {
-                JobFlags.Gladiator => 1,
-                JobFlags.Pugilist => 2,
-                JobFlags.Marauder => 3,
-                JobFlags.Lancer => 4,
-                JobFlags.Archer => 5,
-                JobFlags.Conjurer => 6,
-                JobFlags.Thaumaturge => 7,
-                JobFlags.Paladin => 19,
-                JobFlags.Monk => 20,
-                JobFlags.Warrior => 21,
-                JobFlags.Dragoon => 22,
-                JobFlags.Bard => 23,
-                JobFlags.WhiteMage => 24,
-                JobFlags.BlackMage => 25,
-                JobFlags.Arcanist => 26,
-                JobFlags.Summoner => 27,
-                JobFlags.Scholar => 28,
-                JobFlags.Rogue => 29,
-                JobFlags.Ninja => 30,
-                JobFlags.Machinist => 31,
-                JobFlags.DarkKnight => 32,
-                JobFlags.Astrologian => 33,
-                JobFlags.Samurai => 34,
-                JobFlags.RedMage => 35,
-                JobFlags.BlueMage => 36,
-                JobFlags.Gunbreaker => 37,
-                JobFlags.Dancer => 38,
-                _ => null,
-            };
-
-            return row == null ? null : jobs.GetRow((uint)row);
+            var result = Math.Log2((double)job);
+            return result % 1 == 0
+                ? data.GetExcelSheet<ClassJob>().GetRow((uint)result)
+                : null;
         }
     }
 }
+
+#pragma warning restore SA1402 // File may only contain a single type

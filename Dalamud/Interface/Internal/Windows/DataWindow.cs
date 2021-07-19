@@ -9,7 +9,7 @@ using Dalamud.Game.ClientState.Actors.Types;
 using Dalamud.Game.ClientState.Actors.Types.NonPlayer;
 using Dalamud.Game.ClientState.Structs.JobGauge;
 using Dalamud.Game.Internal;
-using Dalamud.Game.Internal.Gui.Addon;
+using Dalamud.Game.Internal.Gui.Addons;
 using Dalamud.Game.Internal.Gui.Toast;
 using Dalamud.Game.Text;
 using Dalamud.Interface.Windowing;

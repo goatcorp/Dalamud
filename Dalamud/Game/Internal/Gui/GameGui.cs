@@ -2,6 +2,7 @@ using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
+using Dalamud.Game.Internal.Gui.Addons;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Hooking;
 using Dalamud.Interface;
@@ -14,12 +15,6 @@ namespace Dalamud.Game.Internal.Gui
     /// </summary>
     public sealed class GameGui : IDisposable
     {
-        /// <summary>
-        /// The delegate of the native method that gets the Client::UI::UIModule address.
-        /// </summary>
-        /// <returns>The Client::UI::UIModule address.</returns>
-        public readonly GetBaseUIObjectDelegate GetBaseUIObject;
-
         private readonly Dalamud dalamud;
         private readonly GameGuiAddressResolver address;
 
@@ -145,6 +140,12 @@ namespace Dalamud.Game.Internal.Gui
         /// Event which is fired when the game UI hiding is toggled.
         /// </summary>
         public event EventHandler<bool> OnUiHideToggled;
+
+        /// <summary>
+        /// Gets a callable delegate for the GetBaseUIObject game method.
+        /// </summary>
+        /// <returns>The Client::UI::UIModule address.</returns>
+        public GetBaseUIObjectDelegate GetBaseUIObject { get; }
 
         /// <summary>
         /// Gets the <see cref="Chat"/> instance.
@@ -429,12 +430,12 @@ namespace Dalamud.Game.Internal.Gui
         /// <param name="name">The addon name.</param>
         /// <param name="index">The index of the addon, starting at 1.</param>
         /// <returns>The native memory representation of the addon, if it exists.</returns>
-        public Addon.Addon GetAddonByName(string name, int index)
+        public Addon GetAddonByName(string name, int index)
         {
             var addonMem = this.GetUiObjectByName(name, index);
             if (addonMem == IntPtr.Zero) return null;
-            var addonStruct = Marshal.PtrToStructure<Structs.Addon>(addonMem);
-            return new Addon.Addon(addonMem, addonStruct);
+            var addonStruct = Marshal.PtrToStructure<Structs.AddonStruct>(addonMem);
+            return new Addon(addonMem, addonStruct);
         }
 
         /// <summary>
