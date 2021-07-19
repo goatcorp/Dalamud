@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Net;
+using System.Net.Http;
 
 using Dalamud.Game.Network.MarketBoardUploaders;
 using Dalamud.Game.Network.MarketBoardUploaders.Universalis;
@@ -34,9 +34,9 @@ namespace Dalamud.Game.Network.Universalis.MarketBoardUploaders
         /// <inheritdoc/>
         public void Upload(MarketBoardItemRequest request)
         {
-            using var client = new WebClient();
+            using var client = new HttpClient();
 
-            client.Headers.Add(HttpRequestHeader.ContentType, "application/json");
+            client.DefaultRequestHeaders.Add("Content-Type", "application/json");
 
             Log.Verbose("Starting Universalis upload.");
             var uploader = this.dalamud.ClientState.LocalContentId;
@@ -78,7 +78,7 @@ namespace Dalamud.Game.Network.Universalis.MarketBoardUploaders
             }
 
             var upload = JsonConvert.SerializeObject(listingsRequestObject);
-            client.UploadString(ApiBase + $"/upload/{ApiKey}", "POST", upload);
+            client.PostAsync(ApiBase + $"/upload/{ApiKey}", new StringContent(upload)).GetAwaiter().GetResult();
             Log.Verbose(upload);
 
             var historyRequestObject = new UniversalisHistoryUploadRequest();
@@ -100,10 +100,8 @@ namespace Dalamud.Game.Network.Universalis.MarketBoardUploaders
                 });
             }
 
-            client.Headers.Add(HttpRequestHeader.ContentType, "application/json");
-
             var historyUpload = JsonConvert.SerializeObject(historyRequestObject);
-            client.UploadString(ApiBase + $"/upload/{ApiKey}", "POST", historyUpload);
+            client.PostAsync(ApiBase + $"/upload/{ApiKey}", new StringContent(historyUpload)).GetAwaiter().GetResult();
             Log.Verbose(historyUpload);
 
             Log.Verbose("Universalis data upload for item#{0} completed.", request.CatalogId);
@@ -112,7 +110,9 @@ namespace Dalamud.Game.Network.Universalis.MarketBoardUploaders
         /// <inheritdoc/>
         public void UploadTax(MarketTaxRates taxRates)
         {
-            using var client = new WebClient();
+            using var client = new HttpClient();
+
+            client.DefaultRequestHeaders.Add("Content-Type", "application/json");
 
             var taxRatesRequest = new UniversalisTaxUploadRequest();
             taxRatesRequest.WorldId = this.dalamud.ClientState.LocalPlayer?.CurrentWorld.Id ?? 0;
@@ -128,10 +128,8 @@ namespace Dalamud.Game.Network.Universalis.MarketBoardUploaders
                 Crystarium = taxRates.CrystariumTax,
             };
 
-            client.Headers.Add(HttpRequestHeader.ContentType, "application/json");
-
             var historyUpload = JsonConvert.SerializeObject(taxRatesRequest);
-            client.UploadString(ApiBase + $"/upload/{ApiKey}", "POST", historyUpload);
+            client.PostAsync(ApiBase + $"/upload/{ApiKey}", new StringContent(historyUpload)).GetAwaiter().GetResult();
             Log.Verbose(historyUpload);
 
             Log.Verbose("Universalis tax upload completed.");

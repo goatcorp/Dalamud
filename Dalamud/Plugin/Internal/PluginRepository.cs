@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 using Dalamud.Plugin.Internal.Types;
@@ -74,11 +73,10 @@ namespace Dalamud.Plugin.Internal
 
             return Task.Run(() =>
             {
-                using var client = new WebClient();
-
                 Log.Information($"Fetching repo: {this.PluginMasterUrl}");
-
-                var data = client.DownloadString(this.PluginMasterUrl);
+                using var client = new HttpClient();
+                using var response = client.GetAsync(this.PluginMasterUrl).Result;
+                var data = response.Content.ReadAsStringAsync().Result;
 
                 var pluginMaster = JsonConvert.DeserializeObject<List<RemotePluginManifest>>(data);
                 pluginMaster.Sort((pm1, pm2) => pm1.Name.CompareTo(pm2.Name));
