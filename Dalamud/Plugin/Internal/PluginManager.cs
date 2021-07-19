@@ -214,9 +214,9 @@ namespace Dalamud.Plugin.Internal
                     {
                         // Not a plugin
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
-                        Log.Error("During boot plugin load, an unexpected error occurred");
+                        Log.Error(ex, "During boot plugin load, an unexpected error occurred");
                     }
                 }
             }
