@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 
+using Dalamud.Interface.Animation;
+using Dalamud.Interface.Animation.EasingFunctions;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Windowing;
@@ -14,7 +16,19 @@ namespace Dalamud.Interface.Internal.Windows
     /// </summary>
     internal sealed class ComponentDemoWindow : Window
     {
+        private static readonly TimeSpan DefaultEasingTime = new(0, 0, 0, 1700);
+
         private readonly List<(string Name, Action Demo)> componentDemos;
+        private readonly IReadOnlyList<Easing> easings = new Easing[]
+        {
+            new InSine(DefaultEasingTime), new OutSine(DefaultEasingTime), new InOutSine(DefaultEasingTime),
+            new InCubic(DefaultEasingTime), new OutCubic(DefaultEasingTime), new InOutCubic(DefaultEasingTime),
+            new InQuint(DefaultEasingTime), new OutQuint(DefaultEasingTime), new InOutQuint(DefaultEasingTime),
+            new InCirc(DefaultEasingTime), new OutCirc(DefaultEasingTime), new InOutCirc(DefaultEasingTime),
+            new InElastic(DefaultEasingTime), new OutElastic(DefaultEasingTime), new InOutElastic(DefaultEasingTime),
+        };
+
+        private int animationTimeMs = (int)DefaultEasingTime.TotalMilliseconds;
         private Vector4 defaultColor = ImGuiColors.DalamudOrange;
 
         /// <summary>
@@ -37,6 +51,24 @@ namespace Dalamud.Interface.Internal.Windows
         }
 
         /// <inheritdoc/>
+        public override void OnOpen()
+        {
+            foreach (var easing in this.easings)
+            {
+                easing.Restart();
+            }
+        }
+
+        /// <inheritdoc/>
+        public override void OnClose()
+        {
+            foreach (var easing in this.easings)
+            {
+                easing.Stop();
+            }
+        }
+
+        /// <inheritdoc/>
         public override void Draw()
         {
             ImGui.Text("This is a collection of UI components you can use in your plugin.");
@@ -49,6 +81,11 @@ namespace Dalamud.Interface.Internal.Windows
                 {
                     componentDemo.Demo();
                 }
+            }
+
+            if (ImGui.CollapsingHeader("Easing animations"))
+            {
+                this.EasingsDemo();
             }
         }
 
@@ -77,6 +114,40 @@ namespace Dalamud.Interface.Internal.Windows
         private static void TextWithLabelDemo()
         {
             ImGuiComponents.TextWithLabel("Label", "Hover to see more", "more");
+        }
+
+        private void EasingsDemo()
+        {
+            ImGui.SliderInt("Speed in MS", ref this.animationTimeMs, 200, 5000);
+
+            foreach (var easing in this.easings)
+            {
+                easing.Duration = new TimeSpan(0, 0, 0, 0, this.animationTimeMs);
+
+                if (!easing.IsRunning)
+                {
+                    easing.Start();
+                }
+
+                var cursor = ImGui.GetCursorPos();
+                var p1 = new Vector2(cursor.X + 5, cursor.Y);
+                var p2 = p1 + new Vector2(45, 0);
+                easing.Point1 = p1;
+                easing.Point2 = p2;
+                easing.Update();
+
+                if (easing.IsDone)
+                {
+                    easing.Restart();
+                }
+
+                ImGui.SetCursorPos(easing.EasedPoint);
+                ImGui.Bullet();
+
+                ImGui.SetCursorPos(cursor + new Vector2(0, 10));
+                ImGui.Text($"{easing.GetType().Name} ({easing.Value})");
+                ImGuiHelpers.ScaledDummy(5);
+            }
         }
 
         private void ColorPickerWithPaletteDemo()
