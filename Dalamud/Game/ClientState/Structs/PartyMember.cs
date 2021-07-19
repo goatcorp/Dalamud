@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 using Dalamud.Game.ClientState.Actors.Types;
@@ -8,6 +9,7 @@ namespace Dalamud.Game.ClientState.Structs
     /// <summary>
     /// This represents a native PartyMember class in memory.
     /// </summary>
+    [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "Pending rework for Actor/Fate style struct.")]
     [StructLayout(LayoutKind.Explicit)]
     public struct PartyMember
     {

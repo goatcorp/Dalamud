@@ -438,31 +438,33 @@ namespace Dalamud.Interface.Internal.Windows
 
         private void DrawPartyList()
         {
-            var partyString = string.Empty;
+            ImGui.Text($"PartyList does not currently work.");
 
-            if (this.dalamud.ClientState.PartyList.Length == 0)
-            {
-                ImGui.TextUnformatted("Data not ready.");
-            }
-            else
-            {
-                partyString += $"{this.dalamud.ClientState.PartyList.Count} Members\n";
-                for (var i = 0; i < this.dalamud.ClientState.PartyList.Count; i++)
-                {
-                    var member = this.dalamud.ClientState.PartyList[i];
-                    if (member == null)
-                    {
-                        partyString +=
-                            $"[{i}] was null\n";
-                        continue;
-                    }
-
-                    partyString +=
-                        $"[{i}] {member.CharacterName} - {member.ObjectKind} - {member.Actor.ActorId}\n";
-                }
-
-                ImGui.TextUnformatted(partyString);
-            }
+            // var partyString = string.Empty;
+            //
+            // if (this.dalamud.ClientState.PartyList.Length == 0)
+            // {
+            //     ImGui.TextUnformatted("Data not ready.");
+            // }
+            // else
+            // {
+            //     partyString += $"{this.dalamud.ClientState.PartyList.Count} Members\n";
+            //     for (var i = 0; i < this.dalamud.ClientState.PartyList.Count; i++)
+            //     {
+            //         var member = this.dalamud.ClientState.PartyList[i];
+            //         if (member == null)
+            //         {
+            //             partyString +=
+            //                 $"[{i}] was null\n";
+            //             continue;
+            //         }
+            //
+            //         partyString +=
+            //             $"[{i}] {member.CharacterName} - {member.ObjectKind} - {member.Actor.ActorId}\n";
+            //     }
+            //
+            //     ImGui.TextUnformatted(partyString);
+            // }
         }
 
         private void DrawPluginIPC()
