@@ -90,13 +90,25 @@ Kubera
 Truci
 Haplo
 Franz
+aers
 
-Everyone in the XIVLauncher Discord server
+
+We use these awesome
+FFXIV C# libraries:
+
+Lumina by Adam
+FFXIVClientStructs by aers
+
+
+
+Thanks to everyone in the XIVLauncher
+Discord server
+
 Join us at: https://discord.gg/3NMcUV5
 
 
 
-Licensed under AGPL
+Licensed under AGPL V3 or later
 Contribute at: https://github.com/goatsoft/Dalamud
 
 
