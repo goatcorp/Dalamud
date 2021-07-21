@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -67,7 +68,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             // this may change or go away
             if (string.IsNullOrEmpty(this.text))
             {
-                return new byte[] { };
+                return Array.Empty<byte>();
             }
 
             return Encoding.UTF8.GetBytes(this.text);
@@ -81,7 +82,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             while (reader.BaseStream.Position < endOfStream)
             {
                 var nextByte = reader.ReadByte();
-                if (nextByte == START_BYTE)
+                if (nextByte == StartByte)
                 {
                     // rewind since this byte isn't part of this payload
                     reader.BaseStream.Position--;

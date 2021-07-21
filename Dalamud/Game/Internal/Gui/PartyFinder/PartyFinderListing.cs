@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Dalamud.Data;
+using Dalamud.Game.Internal.Gui.Structs;
 using Dalamud.Game.Text.SeStringHandling;
 using Lumina.Excel.GeneratedSheets;
 
-namespace Dalamud.Game.Internal.Gui.Structs
+namespace Dalamud.Game.Internal.Gui.PartyFinder
 {
     /// <summary>
     /// A single listing in party finder.
@@ -31,7 +32,7 @@ namespace Dalamud.Game.Internal.Gui.Structs
         /// <param name="listing">The interop listing data.</param>
         /// <param name="dataManager">The DataManager instance.</param>
         /// <param name="seStringManager">The SeStringManager instance.</param>
-        internal PartyFinderListing(PartyFinder.Listing listing, DataManager dataManager, SeStringManager seStringManager)
+        internal PartyFinderListing(PartyFinderListingStruct listing, DataManager dataManager, SeStringManager seStringManager)
         {
             this.objective = listing.Objective;
             this.conditions = listing.Conditions;

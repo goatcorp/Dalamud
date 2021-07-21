@@ -7,6 +7,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -213,9 +214,9 @@ namespace Dalamud.Plugin.Internal
                     {
                         // Not a plugin
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
-                        Log.Error("During boot plugin load, an unexpected error occurred");
+                        Log.Error(ex, "During boot plugin load, an unexpected error occurred");
                     }
                 }
             }
@@ -358,16 +359,17 @@ namespace Dalamud.Plugin.Internal
                 // ignored, since the plugin may be loaded already
             }
 
-            using var client = new WebClient();
-
             var tempZip = new FileInfo(Path.GetTempFileName());
 
             try
             {
                 Log.Debug($"Downloading plugin to {tempZip} from {downloadUrl}");
-                client.DownloadFile(downloadUrl, tempZip.FullName);
+                using var client = new HttpClient();
+                var response = client.GetAsync(downloadUrl).Result;
+                using var fs = new FileStream(tempZip.FullName, FileMode.CreateNew);
+                response.Content.CopyToAsync(fs).GetAwaiter().GetResult();
             }
-            catch (WebException ex)
+            catch (HttpRequestException ex)
             {
                 Log.Error(ex, $"Download of plugin {repoManifest.Name} failed unexpectedly.");
                 throw;
@@ -976,26 +978,21 @@ namespace Dalamud.Plugin.Internal
         [SuppressMessage("StyleCop.CSharp.NamingRules", "SA1313:Parameter names should begin with lower-case letter", Justification = "Enforced naming for special injected parameters")]
         private static void AssemblyLocationPatch(Assembly __instance, ref string __result)
         {
-            // Assembly.GetExecutingAssembly can return this.
-            // Check for it as a special case and find the plugin.
-            if (__result.EndsWith("System.Private.CoreLib.dll", StringComparison.InvariantCultureIgnoreCase))
+            if (string.IsNullOrEmpty(__result))
             {
                 foreach (var assemblyName in GetStackFrameAssemblyNames())
                 {
                     if (PluginLocations.TryGetValue(assemblyName, out var data))
                     {
                         __result = data.Location;
-                        return;
+                        break;
                     }
                 }
             }
-            else if (string.IsNullOrEmpty(__result))
-            {
-                if (PluginLocations.TryGetValue(__instance.FullName, out var data))
-                {
-                    __result = data.Location;
-                }
-            }
+
+            __result ??= string.Empty;
+
+            Log.Verbose($"Assembly.Location // {__instance.FullName} // {__result}");
         }
 
         /// <summary>
@@ -1008,26 +1005,21 @@ namespace Dalamud.Plugin.Internal
         [SuppressMessage("StyleCop.CSharp.NamingRules", "SA1313:Parameter names should begin with lower-case letter", Justification = "Enforced naming for special injected parameters")]
         private static void AssemblyCodeBasePatch(Assembly __instance, ref string __result)
         {
-            // Assembly.GetExecutingAssembly can return this.
-            // Check for it as a special case and find the plugin.
-            if (__result.EndsWith("System.Private.CoreLib.dll"))
+            if (string.IsNullOrEmpty(__result))
             {
                 foreach (var assemblyName in GetStackFrameAssemblyNames())
                 {
                     if (PluginLocations.TryGetValue(assemblyName, out var data))
                     {
-                        __result = data.Location;
-                        return;
+                        __result = data.CodeBase;
+                        break;
                     }
                 }
             }
-            else if (string.IsNullOrEmpty(__result))
-            {
-                if (PluginLocations.TryGetValue(__instance.FullName, out var data))
-                {
-                    __result = data.Location;
-                }
-            }
+
+            __result ??= string.Empty;
+
+            Log.Verbose($"Assembly.CodeBase // {__instance.FullName} // {__result}");
         }
 
         private static IEnumerable<string> GetStackFrameAssemblyNames()

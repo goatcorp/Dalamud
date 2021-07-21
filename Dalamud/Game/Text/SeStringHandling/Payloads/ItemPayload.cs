@@ -113,7 +113,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
 
             var bytes = new List<byte>()
             {
-                START_BYTE,
+                StartByte,
                 (byte)SeStringChunkType.Interactable, (byte)chunkLen, (byte)EmbeddedInfoType.ItemLink,
             };
             bytes.AddRange(idBytes);
@@ -143,7 +143,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
                 }
             }
 
-            bytes.Add(END_BYTE);
+            bytes.Add(EndByte);
 
             return bytes.ToArray();
         }

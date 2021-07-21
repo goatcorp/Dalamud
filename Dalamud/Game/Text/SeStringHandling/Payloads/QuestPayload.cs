@@ -63,11 +63,11 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
 
             var bytes = new List<byte>()
             {
-                START_BYTE, (byte)SeStringChunkType.Interactable, (byte)chunkLen, (byte)EmbeddedInfoType.QuestLink,
+                StartByte, (byte)SeStringChunkType.Interactable, (byte)chunkLen, (byte)EmbeddedInfoType.QuestLink,
             };
 
             bytes.AddRange(idBytes);
-            bytes.AddRange(new byte[] { 0x01, 0x01, END_BYTE });
+            bytes.AddRange(new byte[] { 0x01, 0x01, EndByte });
             return bytes.ToArray();
         }
 

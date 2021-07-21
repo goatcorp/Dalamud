@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 using FFXIVClientStructs.FFXIV.Component.GUI;
@@ -8,7 +9,7 @@ namespace Dalamud.Game.Internal.Gui.Structs
     /// Native memory representation of an FFXIV UI addon.
     /// </summary>
     [StructLayout(LayoutKind.Explicit)]
-    public struct Addon
+    public struct AddonStruct
     {
         /// <summary>
         /// The name of the addon.
@@ -52,8 +53,10 @@ namespace Dalamud.Game.Internal.Gui.Structs
     }
 
     /// <summary>
-    /// Memory offsets for the <see cref="Addon"/> type.
+    /// Memory offsets for the <see cref="AddonStruct"/> type.
     /// </summary>
+    [SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1402:File may only contain a single type", Justification = "Group offsets with their usage.")]
+    [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "Document the offset usage.")]
     public static class AddonOffsets
     {
         public const int Name = 0x8;

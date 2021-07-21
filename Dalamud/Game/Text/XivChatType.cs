@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace Dalamud.Game.Text
@@ -241,6 +242,8 @@ namespace Dalamud.Game.Text
     /// <summary>
     /// Extension methods for the <see cref="XivChatType"/> type.
     /// </summary>
+    [SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1402:File may only contain a single type", Justification = "Group extensions with the relevant class")]
+    [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1649:File name should match first type name", Justification = "Enum followed by an extension")]
     public static class XivChatTypeExtensions
     {
         /// <summary>
@@ -257,6 +260,8 @@ namespace Dalamud.Game.Text
     /// <summary>
     /// Storage for relevant information associated with the chat type.
     /// </summary>
+    [SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1402:File may only contain a single type", Justification = "Group attributes with the relevant class")]
+    [AttributeUsage(AttributeTargets.Field)]
     public class XivChatTypeInfoAttribute : Attribute
     {
         /// <summary>
@@ -286,28 +291,5 @@ namespace Dalamud.Game.Text
         /// Gets the type default color.
         /// </summary>
         public uint DefaultColor { get; }
-    }
-
-    /// <summary>
-    /// Extension methods for enums.
-    /// </summary>
-    public static class EnumExtensions
-    {
-        /// <summary>
-        /// Gets an attribute on an enum.
-        /// </summary>
-        /// <typeparam name="TAttribute">The type of attribute to get.</typeparam>
-        /// <param name="value">The enum value that has an attached attribute.</param>
-        /// <returns>The attached attribute, if any.</returns>
-        public static TAttribute GetAttribute<TAttribute>(this Enum value)
-            where TAttribute : Attribute
-        {
-            var type = value.GetType();
-            var name = Enum.GetName(type, value);
-            return type.GetField(name) // I prefer to get attributes this way
-                       .GetCustomAttributes(false)
-                       .OfType<TAttribute>()
-                       .SingleOrDefault();
-        }
     }
 }

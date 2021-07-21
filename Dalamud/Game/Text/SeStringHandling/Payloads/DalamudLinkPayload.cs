@@ -44,11 +44,11 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
                 throw new Exception("Chunk is too long. Plugin name exceeds limits for DalamudLinkPayload");
             }
 
-            var bytes = new List<byte> { START_BYTE, (byte)SeStringChunkType.Interactable, (byte)chunkLen, (byte)EmbeddedInfoType.DalamudLink };
+            var bytes = new List<byte> { StartByte, (byte)SeStringChunkType.Interactable, (byte)chunkLen, (byte)EmbeddedInfoType.DalamudLink };
             bytes.Add((byte)pluginBytes.Length);
             bytes.AddRange(pluginBytes);
             bytes.AddRange(commandBytes);
-            bytes.Add(END_BYTE);
+            bytes.Add(EndByte);
             return bytes.ToArray();
         }
 

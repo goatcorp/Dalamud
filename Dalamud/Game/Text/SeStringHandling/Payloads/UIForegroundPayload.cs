@@ -99,11 +99,11 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
 
             var bytes = new List<byte>(new byte[]
             {
-                START_BYTE, (byte)SeStringChunkType.UIForeground, (byte)chunkLen,
+                StartByte, (byte)SeStringChunkType.UIForeground, (byte)chunkLen,
             });
 
             bytes.AddRange(colorBytes);
-            bytes.Add(END_BYTE);
+            bytes.Add(EndByte);
 
             return bytes.ToArray();
         }

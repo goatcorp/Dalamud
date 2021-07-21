@@ -131,7 +131,7 @@ public class ScratchPlugin : IDalamudPlugin {
                         case ParseContext.Dispose:
                             break;
                         default:
-                            throw new ArgumentOutOfRangeException();
+                            throw new ArgumentOutOfRangeException(paramName: nameof(input));
                     }
 
                     ctx = ParseContext.None;
@@ -156,7 +156,7 @@ public class ScratchPlugin : IDalamudPlugin {
                         disposeBody += line + "\n";
                         break;
                     default:
-                        throw new ArgumentOutOfRangeException();
+                        throw new ArgumentOutOfRangeException(paramName: nameof(input));
                 }
             }
 

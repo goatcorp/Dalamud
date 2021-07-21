@@ -167,7 +167,6 @@ namespace Dalamud.Game.ClientState
         public void Enable()
         {
             this.GamepadState.Enable();
-            this.PartyList.Enable();
             this.setupTerritoryTypeHook.Enable();
         }
 
@@ -176,7 +175,6 @@ namespace Dalamud.Game.ClientState
         /// </summary>
         public void Dispose()
         {
-            this.PartyList.Dispose();
             this.setupTerritoryTypeHook.Dispose();
             this.GamepadState.Dispose();
 

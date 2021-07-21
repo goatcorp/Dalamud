@@ -84,12 +84,12 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             var chunkLen = keyBytes.Length + 2;
             var bytes = new List<byte>()
             {
-                START_BYTE,
+                StartByte,
                 (byte)SeStringChunkType.AutoTranslateKey, (byte)chunkLen,
                 (byte)this.group,
             };
             bytes.AddRange(keyBytes);
-            bytes.Add(END_BYTE);
+            bytes.Add(EndByte);
 
             return bytes.ToArray();
         }

@@ -9,7 +9,7 @@ using Dalamud.Game.ClientState.Actors.Types;
 using Dalamud.Game.ClientState.Actors.Types.NonPlayer;
 using Dalamud.Game.ClientState.Structs.JobGauge;
 using Dalamud.Game.Internal;
-using Dalamud.Game.Internal.Gui.Addon;
+using Dalamud.Game.Internal.Gui.Addons;
 using Dalamud.Game.Internal.Gui.Toast;
 using Dalamud.Game.Text;
 using Dalamud.Interface.Windowing;
@@ -285,11 +285,11 @@ namespace Dalamud.Interface.Internal.Windows
                 foreach (var valueTuple in debugScannedValue.Value)
                 {
                     ImGui.TextUnformatted(
-                        $"      {valueTuple.Item1} - 0x{valueTuple.Item2.ToInt64():x}");
+                        $"      {valueTuple.ClassName} - 0x{valueTuple.Address.ToInt64():x}");
                     ImGui.SameLine();
 
                     if (ImGui.Button($"C##copyAddress{this.copyButtonIndex++}"))
-                        ImGui.SetClipboardText(valueTuple.Item2.ToInt64().ToString("x"));
+                        ImGui.SetClipboardText(valueTuple.Address.ToInt64().ToString("x"));
                 }
             }
         }
@@ -438,31 +438,33 @@ namespace Dalamud.Interface.Internal.Windows
 
         private void DrawPartyList()
         {
-            var partyString = string.Empty;
+            ImGui.Text($"PartyList does not currently work.");
 
-            if (this.dalamud.ClientState.PartyList.Length == 0)
-            {
-                ImGui.TextUnformatted("Data not ready.");
-            }
-            else
-            {
-                partyString += $"{this.dalamud.ClientState.PartyList.Count} Members\n";
-                for (var i = 0; i < this.dalamud.ClientState.PartyList.Count; i++)
-                {
-                    var member = this.dalamud.ClientState.PartyList[i];
-                    if (member == null)
-                    {
-                        partyString +=
-                            $"[{i}] was null\n";
-                        continue;
-                    }
-
-                    partyString +=
-                        $"[{i}] {member.CharacterName} - {member.ObjectKind} - {member.Actor.ActorId}\n";
-                }
-
-                ImGui.TextUnformatted(partyString);
-            }
+            // var partyString = string.Empty;
+            //
+            // if (this.dalamud.ClientState.PartyList.Length == 0)
+            // {
+            //     ImGui.TextUnformatted("Data not ready.");
+            // }
+            // else
+            // {
+            //     partyString += $"{this.dalamud.ClientState.PartyList.Count} Members\n";
+            //     for (var i = 0; i < this.dalamud.ClientState.PartyList.Count; i++)
+            //     {
+            //         var member = this.dalamud.ClientState.PartyList[i];
+            //         if (member == null)
+            //         {
+            //             partyString +=
+            //                 $"[{i}] was null\n";
+            //             continue;
+            //         }
+            //
+            //         partyString +=
+            //             $"[{i}] {member.CharacterName} - {member.ObjectKind} - {member.Actor.ActorId}\n";
+            //     }
+            //
+            //     ImGui.TextUnformatted(partyString);
+            // }
         }
 
         private void DrawPluginIPC()
@@ -561,9 +563,7 @@ namespace Dalamud.Interface.Internal.Windows
 
             if (ImGui.Button("Get Addon"))
             {
-                this.resultAddon =
-                    this.dalamud.Framework.Gui.GetAddonByName(
-                        this.inputAddonName, this.inputAddonIndex);
+                this.resultAddon = this.dalamud.Framework.Gui.GetAddonByName(this.inputAddonName, this.inputAddonIndex);
             }
 
             if (ImGui.Button("Find Agent"))
@@ -571,14 +571,12 @@ namespace Dalamud.Interface.Internal.Windows
 
             if (this.resultAddon != null)
             {
-                ImGui.TextUnformatted(
-                    $"{this.resultAddon.Name} - 0x{this.resultAddon.Address.ToInt64():x}\n    v:{this.resultAddon.Visible} x:{this.resultAddon.X} y:{this.resultAddon.Y} s:{this.resultAddon.Scale}, w:{this.resultAddon.Width}, h:{this.resultAddon.Height}");
+                ImGui.TextUnformatted($"{this.resultAddon.Name} - 0x{this.resultAddon.Address.ToInt64():x}\n    v:{this.resultAddon.Visible} x:{this.resultAddon.X} y:{this.resultAddon.Y} s:{this.resultAddon.Scale}, w:{this.resultAddon.Width}, h:{this.resultAddon.Height}");
             }
 
             if (this.findAgentInterfacePtr != IntPtr.Zero)
             {
-                ImGui.TextUnformatted(
-                    $"Agent: 0x{this.findAgentInterfacePtr.ToInt64():x}");
+                ImGui.TextUnformatted($"Agent: 0x{this.findAgentInterfacePtr.ToInt64():x}");
                 ImGui.SameLine();
 
                 if (ImGui.Button("C"))

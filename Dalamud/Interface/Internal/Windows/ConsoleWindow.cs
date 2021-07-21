@@ -307,7 +307,7 @@ namespace Dalamud.Interface.Internal.Windows
             try
             {
                 this.historyPos = -1;
-                for (int i = this.history.Count - 1; i >= 0; i--)
+                for (var i = this.history.Count - 1; i >= 0; i--)
                 {
                     if (this.history[i] == this.commandText)
                     {

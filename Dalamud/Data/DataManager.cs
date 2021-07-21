@@ -96,15 +96,7 @@ namespace Dalamud.Data
         /// <returns>The <see cref="ExcelSheet{T}"/>, giving access to game rows.</returns>
         public ExcelSheet<T> GetExcelSheet<T>(ClientLanguage language) where T : ExcelRow
         {
-            var lang = language switch
-            {
-                ClientLanguage.Japanese => Lumina.Data.Language.Japanese,
-                ClientLanguage.English => Lumina.Data.Language.English,
-                ClientLanguage.German => Lumina.Data.Language.German,
-                ClientLanguage.French => Lumina.Data.Language.French,
-                _ => throw new ArgumentOutOfRangeException(nameof(language), $"Unknown Language: {language}"),
-            };
-            return this.Excel.GetSheet<T>(lang);
+            return this.Excel.GetSheet<T>(language.ToLumina());
         }
 
         /// <summary>
@@ -263,21 +255,12 @@ namespace Dalamud.Data
                 var luminaOptions = new LuminaOptions
                 {
                     CacheFileResources = true,
-
 #if DEBUG
                     PanicOnSheetChecksumMismatch = true,
 #else
                     PanicOnSheetChecksumMismatch = false,
 #endif
-
-                    DefaultExcelLanguage = this.Language switch
-                    {
-                        ClientLanguage.Japanese => Lumina.Data.Language.Japanese,
-                        ClientLanguage.English => Lumina.Data.Language.English,
-                        ClientLanguage.German => Lumina.Data.Language.German,
-                        ClientLanguage.French => Lumina.Data.Language.French,
-                        _ => throw new ArgumentOutOfRangeException(nameof(this.Language), $"Unknown Language: {this.Language}"),
-                    },
+                    DefaultExcelLanguage = this.Language.ToLumina(),
                 };
 
                 var processModule = Process.GetCurrentProcess().MainModule;
