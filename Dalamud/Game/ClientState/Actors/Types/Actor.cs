@@ -38,9 +38,9 @@ namespace Dalamud.Game.ClientState.Actors.Types
         /// </summary>
         /// <param name="actor">The actor to check.</param>
         /// <returns>True or false.</returns>
-        public static implicit operator bool(Actor actor) => IsValid(actor);
+        public static implicit operator bool(Actor? actor) => IsValid(actor);
 
-        public static bool operator ==(Actor actor1, Actor actor2)
+        public static bool operator ==(Actor? actor1, Actor? actor2)
         {
             if (actor1 is null || actor2 is null)
                 return Equals(actor1, actor2);
@@ -48,16 +48,16 @@ namespace Dalamud.Game.ClientState.Actors.Types
             return actor1.Equals(actor2);
         }
 
-        public static bool operator !=(Actor actor1, Actor actor2) => !(actor1 == actor2);
+        public static bool operator !=(Actor? actor1, Actor? actor2) => !(actor1 == actor2);
 
         /// <summary>
         /// Gets a value indicating whether this actor is still valid in memory.
         /// </summary>
         /// <param name="actor">The actor to check.</param>
         /// <returns>True or false.</returns>
-        public static bool IsValid(Actor actor)
+        public static bool IsValid(Actor? actor)
         {
-            if (actor == null)
+            if (actor is null)
                 return false;
 
             if (actor.Dalamud.ClientState.LocalContentId == 0)
