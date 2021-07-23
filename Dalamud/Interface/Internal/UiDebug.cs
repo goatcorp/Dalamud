@@ -273,8 +273,11 @@ namespace Dalamud.Interface.Internal
                                 ImGui.Text($"texture type: {texType} part_id={imageNode->PartId} part_id_count={imageNode->PartsList->PartCount}");
                                 if (texType == TextureType.Resource)
                                 {
-                                    var texFileNamePtr = textureInfo->AtkTexture.Resource->TexFileResourceHandle->ResourceHandle.FileName;
-                                    var texString = Marshal.PtrToStringAnsi(new IntPtr(texFileNamePtr));
+                                    var texFileNameStdString = &textureInfo->AtkTexture.Resource->TexFileResourceHandle->ResourceHandle.FileName;
+                                    var texString = texFileNameStdString->Length < 16
+                                        ? Marshal.PtrToStringAnsi((IntPtr)texFileNameStdString->Buffer)
+                                        : Marshal.PtrToStringAnsi((IntPtr)texFileNameStdString->BufferPtr);
+
                                     ImGui.Text($"texture path: {texString}");
                                     var kernelTexture = textureInfo->AtkTexture.Resource->KernelTextureObject;
 
@@ -327,7 +330,7 @@ namespace Dalamud.Interface.Internal
 
             var childCount = componentInfo.NodeListCount;
 
-            var objectInfo = (ULDComponentInfo*)componentInfo.Objects;
+            var objectInfo = (AtkUldComponentInfo*)componentInfo.Objects;
             if (ImGui.TreeNode($"{treePrefix}{objectInfo->ComponentType} Component Node (ptr = {(long)node:X}, component ptr = {(long)compNode->Component:X}) child count = {childCount}  ###{(long)node}"))
             {
                 if (ImGui.IsItemHovered())
