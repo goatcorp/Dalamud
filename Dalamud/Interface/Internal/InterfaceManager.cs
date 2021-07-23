@@ -10,6 +10,7 @@ using Dalamud.Game;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.Internal.DXGI;
 using Dalamud.Hooking;
+using Dalamud.Utility;
 using ImGuiNET;
 using ImGuiScene;
 using Serilog;

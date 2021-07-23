@@ -16,6 +16,7 @@ using Dalamud.Configuration;
 using Dalamud.Game.Text;
 using Dalamud.Plugin.Internal.Exceptions;
 using Dalamud.Plugin.Internal.Types;
+using Dalamud.Utility;
 using HarmonyLib;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
