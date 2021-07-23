@@ -222,7 +222,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             var c = scale / 100.0f;
             var scaledPos = pos * c / 1000.0f;
 
-            return ((41.0f / c) * ((scaledPos + 1024.0f) / 2048.0f)) + 1.0f;
+            return (41.0f / c * ((scaledPos + 1024.0f) / 2048.0f)) + 1.0f;
         }
 
         // Created as the inverse of ConvertRawPositionToMapCoordinate(), since no one seemed to have a version of that
@@ -230,7 +230,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         {
             var c = scale / 100.0f;
 
-            var scaledPos = ((((pos - 1.0f) * c / 41.0f) * 2048.0f) - 1024.0f) / c;
+            var scaledPos = (((pos - 1.0f) * c / 41.0f * 2048.0f) - 1024.0f) / c;
             scaledPos *= 1000.0f;
 
             return (int)scaledPos;

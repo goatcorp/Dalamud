@@ -21,14 +21,14 @@ namespace Dalamud.Game.Text.SeStringHandling
     /// </summary>
     public abstract partial class Payload
     {
-        /// <summary>
-        /// The Lumina instance to use for any necessary data lookups.
-        /// </summary>
-        public DataManager DataResolver;
-
-        // private for now, since subclasses shouldn't interact with this
+        // private for now, since subclasses shouldn't interact with this.
         // To force-invalidate it, Dirty can be set to true
         private byte[] encodedData;
+
+        /// <summary>
+        /// Gets or sets the Lumina instance to use for any necessary data lookups.
+        /// </summary>
+        public DataManager DataResolver { get; set; }
 
         /// <summary>
         /// Gets the type of this payload.
