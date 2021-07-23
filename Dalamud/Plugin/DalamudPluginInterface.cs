@@ -35,9 +35,8 @@ namespace Dalamud.Plugin
         /// </summary>
         /// <param name="dalamud">The dalamud instance to expose.</param>
         /// <param name="pluginName">The internal name of the plugin.</param>
-        /// <param name="assemblyLocation">The equivalent of what Assembly.GetExecutingAssembly().Location should return.</param>
         /// <param name="reason">The reason the plugin was loaded.</param>
-        internal DalamudPluginInterface(Dalamud dalamud, string pluginName, string assemblyLocation, PluginLoadReason reason)
+        internal DalamudPluginInterface(Dalamud dalamud, string pluginName, PluginLoadReason reason)
         {
             this.CommandManager = dalamud.CommandManager;
             this.Framework = dalamud.Framework;
@@ -50,7 +49,6 @@ namespace Dalamud.Plugin
             this.dalamud = dalamud;
             this.pluginName = pluginName;
             this.configs = dalamud.PluginManager.PluginConfigs;
-            this.AssemblyLocation = assemblyLocation;
             this.Reason = reason;
 
             this.GeneralChatType = this.dalamud.Configuration.GeneralChatType;
@@ -87,11 +85,6 @@ namespace Dalamud.Plugin
         /// Gets the reason this plugin was loaded.
         /// </summary>
         public PluginLoadReason Reason { get; }
-
-        /// <summary>
-        /// Gets the plugin assembly location.
-        /// </summary>
-        public string AssemblyLocation { get; private set; }
 
         /// <summary>
         /// Gets the directory Dalamud assets are stored in.
