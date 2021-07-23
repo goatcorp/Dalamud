@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 
 using Dalamud.Game.ClientState.Actors;
 using Dalamud.Game.ClientState.Actors.Types;
+using Dalamud.Game.ClientState.Buddy;
 using Dalamud.Game.ClientState.Fates;
 using Dalamud.Game.Internal;
 using Dalamud.Hooking;
@@ -46,6 +47,8 @@ namespace Dalamud.Game.ClientState
             this.Fates = new FateTable(dalamud, this.address);
 
             this.PartyList = new PartyList(dalamud, this.address);
+
+            this.BuddyList = new BuddyList(dalamud, this.address);
 
             this.JobGauges = new JobGauges(this.address);
 
@@ -119,6 +122,11 @@ namespace Dalamud.Game.ClientState
         /// Gets the class facilitating party list data access.
         /// </summary>
         public PartyList PartyList { get; }
+
+        /// <summary>
+        /// Gets the class facilitating buddy list data access.
+        /// </summary>
+        public BuddyList BuddyList { get; }
 
         /// <summary>
         /// Gets access to the keypress state of keyboard keys in game.

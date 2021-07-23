@@ -46,6 +46,7 @@ namespace Dalamud.Interface.Internal.Windows
         private IntPtr findAgentInterfacePtr;
 
         private bool resolveGameData = false;
+        private bool resolveActors = false;
 
         private UIDebug addonInspector = null;
 
@@ -89,6 +90,7 @@ namespace Dalamud.Interface.Internal.Windows
             Fate_Table,
             Font_Test,
             Party_List,
+            Buddy_List,
             Plugin_IPC,
             Condition,
             Gauge,
@@ -188,6 +190,10 @@ namespace Dalamud.Interface.Internal.Windows
 
                         case DataKind.Party_List:
                             this.DrawPartyList();
+                            break;
+
+                        case DataKind.Buddy_List:
+                            this.DrawBuddyList();
                             break;
 
                         case DataKind.Plugin_IPC:
@@ -444,24 +450,87 @@ namespace Dalamud.Interface.Internal.Windows
             {
                 ImGui.TextUnformatted("Data not ready.");
             }
-            else
+        }
+
+        private void DrawBuddyList()
+        {
+            ImGui.Checkbox("Resolve Actors", ref this.resolveActors);
+
+            ImGui.Text($"BuddyList: {this.dalamud.ClientState.BuddyList.BuddyListAddress.ToInt64():X}");
             {
-                partyString += $"{this.dalamud.ClientState.PartyList.Count} Members\n";
-                for (var i = 0; i < this.dalamud.ClientState.PartyList.Count; i++)
+                var member = this.dalamud.ClientState.BuddyList.CompanionBuddy;
+                if (member == null)
                 {
-                    var member = this.dalamud.ClientState.PartyList[i];
-                    if (member == null)
-                    {
-                        partyString +=
-                            $"[{i}] was null\n";
-                        continue;
-                    }
-
-                    partyString +=
-                        $"[{i}] {member.CharacterName} - {member.ObjectKind} - {member.Actor.ActorId}\n";
+                    ImGui.Text("[Companion] null");
                 }
+                else
+                {
+                    ImGui.Text($"[Companion] {member.Address.ToInt64():X} - {member.ActorID} - {member.DataID}");
+                    if (this.resolveActors)
+                    {
+                        var actor = member.Actor;
+                        if (actor == null)
+                        {
+                            ImGui.Text("Actor was null");
+                        }
+                        else
+                        {
+                            this.PrintActor(actor, "-");
+                        }
+                    }
+                }
+            }
 
-                ImGui.TextUnformatted(partyString);
+            {
+                var member = this.dalamud.ClientState.BuddyList.PetBuddy;
+                if (member == null)
+                {
+                    ImGui.Text("[Pet] null");
+                }
+                else
+                {
+                    ImGui.Text($"[Pet] {member.Address.ToInt64():X} - {member.ActorID} - {member.DataID}");
+                    if (this.resolveActors)
+                    {
+                        var actor = member.Actor;
+                        if (actor == null)
+                        {
+                            ImGui.Text("Actor was null");
+                        }
+                        else
+                        {
+                            this.PrintActor(actor, "-");
+                        }
+                    }
+                }
+            }
+
+            {
+                var count = this.dalamud.ClientState.BuddyList.Length;
+                if (count == 0)
+                {
+                    ImGui.Text("[BattleBuddy] None present");
+                }
+                else
+                {
+                    for (var i = 0; i < count; i++)
+                    {
+                        var member = this.dalamud.ClientState.BuddyList[i];
+                        ImGui.Text($"[BattleBuddy] [{i}] {member.Address.ToInt64():X} - {member.ActorID} - {member.DataID}");
+                        if (this.resolveActors)
+                        {
+                            var actor = member.Actor;
+                            if (actor == null)
+                            {
+                                ImGui.Text("Actor was null");
+                            }
+                            else
+                            {
+                                this.PrintActor(actor, "-");
+                            }
+                        }
+                    }
+                }
             }
         }
 
