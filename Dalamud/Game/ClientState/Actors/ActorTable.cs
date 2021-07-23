@@ -129,7 +129,9 @@ namespace Dalamud.Game.ClientState.Actors
         {
             for (var i = 0; i < ActorTableLength; i++)
             {
-                yield return this[i];
+                var actor = this[i];
+                if (actor is not null)
+                    yield return this[i];
             }
         }
 
