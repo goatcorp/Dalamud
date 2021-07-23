@@ -7,6 +7,7 @@ using System.Numerics;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Actors.Types;
 using Dalamud.Game.ClientState.Actors.Types.NonPlayer;
+using Dalamud.Game.ClientState.GamePad;
 using Dalamud.Game.ClientState.Structs.JobGauge;
 using Dalamud.Game.Internal;
 using Dalamud.Game.Internal.Gui.Addon;
@@ -749,14 +750,15 @@ namespace Dalamud.Interface.Internal.Windows
                            $"L3 {resolve(GamepadButtons.L3)} " +
                            $"R3 {resolve(GamepadButtons.R3)} ");
             }
-#if DEBUG
-            ImGui.Text($"GamepadInput 0x{this.dalamud.ClientState.GamepadState.GamepadInput.ToInt64():X}");
 
+            ImGui.Text($"GamepadInput 0x{this.dalamud.ClientState.GamepadState.GamepadInputAddress.ToInt64():X}");
+
+#if DEBUG
             if (ImGui.IsItemHovered())
                 ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
 
             if (ImGui.IsItemClicked())
-                ImGui.SetClipboardText($"0x{this.dalamud.ClientState.GamepadState.GamepadInput.ToInt64():X}");
+                ImGui.SetClipboardText($"0x{this.dalamud.ClientState.GamepadState.GamepadInputAddress.ToInt64():X}");
 #endif
 
             DrawHelper(
