@@ -69,6 +69,26 @@ namespace Dalamud.Game.ClientState.Actors
         }
 
         /// <summary>
+        /// Search for an actor by their Object ID.
+        /// </summary>
+        /// <param name="objectID">Object ID to find.</param>
+        /// <returns>An actor or null.</returns>
+        [CanBeNull]
+        public Actor SearchByID(uint objectID)
+        {
+            foreach (var actor in this)
+            {
+                if (actor is null)
+                    continue;
+
+                if (actor.ActorId == objectID)
+                    return actor;
+            }
+
+            return null;
+        }
+
+        /// <summary>
         /// Gets the address of the actor at the specified index of the actor table.
         /// </summary>
         /// <param name="index">The index of the actor.</param>
@@ -82,10 +102,10 @@ namespace Dalamud.Game.ClientState.Actors
         }
 
         /// <summary>
-        /// Create a reference to a FFXIV actor.
+        /// Create a reference to an FFXIV actor.
         /// </summary>
         /// <param name="address">The address of the actor in memory.</param>
-        /// <returns><see cref="Actor"/> object or inheritor containing requested data.</returns>
+        /// <returns><see cref="Actor"/> object or inheritor containing the requested data.</returns>
         [CanBeNull]
         public unsafe Actor CreateActorReference(IntPtr address)
         {
@@ -129,7 +149,9 @@ namespace Dalamud.Game.ClientState.Actors
         {
             for (var i = 0; i < ActorTableLength; i++)
             {
-                yield return this[i];
+                var actor = this[i];
+                if (actor is not null)
+                    yield return this[i];
             }
         }
 

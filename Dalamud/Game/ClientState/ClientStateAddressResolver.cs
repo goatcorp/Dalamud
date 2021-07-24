@@ -1,5 +1,4 @@
 using System;
-using System.Runtime.InteropServices;
 
 using Dalamud.Game.Internal;
 
@@ -25,7 +24,10 @@ namespace Dalamud.Game.ClientState
         /// </remarks>
         public IntPtr FateTablePtr { get; private set; }
 
-        // public IntPtr ViewportActorTable { get; private set; }
+        /// <summary>
+        /// Gets the address of the Group Manager.
+        /// </summary>
+        public IntPtr GroupManager { get; private set; }
 
         /// <summary>
         /// Gets the address of the local content id.
@@ -79,6 +81,8 @@ namespace Dalamud.Game.ClientState
 
             this.FateTablePtr = sig.GetStaticAddressFromSig("48 8B 15 ?? ?? ?? ?? 48 8B F9 44 0F B7 41 ??");
 
+            this.GroupManager = sig.GetStaticAddressFromSig("48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 80 B8 ?? ?? ?? ?? ?? 76 50");
+
             this.LocalContentId = sig.GetStaticAddressFromSig("48 0F 44 05 ?? ?? ?? ?? 48 39 07");
             this.JobGaugeData = sig.GetStaticAddressFromSig("E8 ?? ?? ?? ?? FF C6 48 8D 5B 0C", 0xB9) + 0x10;
 
@@ -87,8 +91,6 @@ namespace Dalamud.Game.ClientState
             // This resolves to a fixed offset only, without the base address added in,
             // so GetStaticAddressFromSig() can't be used. lea rcx, ds:1DB9F74h[rax*4]
             this.KeyboardState = sig.ScanText("48 8D 0C 85 ?? ?? ?? ?? 8B 04 31 85 C2 0F 85") + 0x4;
-
-            // PartyListUpdate = sig.ScanText("E8 ?? ?? ?? ?? 49 8B D7 4C 8D 86 ?? ?? ?? ??");
 
             this.ConditionFlags = sig.GetStaticAddressFromSig("48 8D 0D ?? ?? ?? ?? BA ?? ?? ?? ?? E8 ?? ?? ?? ?? B0 01 48 83 C4 30");
 

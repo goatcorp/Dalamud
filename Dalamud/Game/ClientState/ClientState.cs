@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using Dalamud.Game.ClientState.Actors;
 using Dalamud.Game.ClientState.Actors.Types;
 using Dalamud.Game.ClientState.Fates;
+using Dalamud.Game.ClientState.Party;
 using Dalamud.Game.Internal;
 using Dalamud.Hooking;
 using JetBrains.Annotations;
@@ -167,7 +168,6 @@ namespace Dalamud.Game.ClientState
         public void Enable()
         {
             this.GamepadState.Enable();
-            this.PartyList.Enable();
             this.setupTerritoryTypeHook.Enable();
         }
 
@@ -176,7 +176,6 @@ namespace Dalamud.Game.ClientState
         /// </summary>
         public void Dispose()
         {
-            this.PartyList.Dispose();
             this.setupTerritoryTypeHook.Dispose();
             this.GamepadState.Dispose();
 

@@ -46,6 +46,7 @@ namespace Dalamud.Interface.Internal.Windows
         private IntPtr findAgentInterfacePtr;
 
         private bool resolveGameData = false;
+        private bool resolveActors = false;
 
         private UIDebug addonInspector = null;
 
@@ -438,30 +439,36 @@ namespace Dalamud.Interface.Internal.Windows
 
         private void DrawPartyList()
         {
-            var partyString = string.Empty;
+            ImGui.Checkbox("Resolve Actors", ref this.resolveActors);
 
-            if (this.dalamud.ClientState.PartyList.Length == 0)
+            ImGui.Text($"GroupManager: {this.dalamud.ClientState.PartyList.GroupManagerAddress.ToInt64():X}");
+            ImGui.Text($"GroupList: {this.dalamud.ClientState.PartyList.GroupListAddress.ToInt64():X}");
+            ImGui.Text($"AllianceList: {this.dalamud.ClientState.PartyList.AllianceListAddress.ToInt64():X}");
+
+            ImGui.Text($"{this.dalamud.ClientState.PartyList.Length} Members");
+
+            for (var i = 0; i < this.dalamud.ClientState.PartyList.Length; i++)
             {
-                ImGui.TextUnformatted("Data not ready.");
-            }
-            else
-            {
-                partyString += $"{this.dalamud.ClientState.PartyList.Count} Members\n";
-                for (var i = 0; i < this.dalamud.ClientState.PartyList.Count; i++)
+                var member = this.dalamud.ClientState.PartyList[i];
+                if (member == null)
                 {
-                    var member = this.dalamud.ClientState.PartyList[i];
-                    if (member == null)
-                    {
-                        partyString +=
-                            $"[{i}] was null\n";
-                        continue;
-                    }
-
-                    partyString +=
-                        $"[{i}] {member.CharacterName} - {member.ObjectKind} - {member.Actor.ActorId}\n";
+                    ImGui.Text($"[{i}] was null");
+                    continue;
                 }
 
-                ImGui.TextUnformatted(partyString);
+                ImGui.Text($"[{i}] {member.Address.ToInt64():X} - {member.Name} - {member.Actor.ActorId}");
+                if (this.resolveActors)
+                {
+                    var actor = member.Actor;
+                    if (actor == null)
+                    {
+                        ImGui.Text("Actor was null");
+                    }
+                    else
+                    {
+                        this.PrintActor(actor, "-");
+                    }
+                }
             }
         }
 
