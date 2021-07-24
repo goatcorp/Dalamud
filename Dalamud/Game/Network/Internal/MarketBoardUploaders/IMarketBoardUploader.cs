@@ -1,6 +1,6 @@
 using Dalamud.Game.Network.Structures;
 
-namespace Dalamud.Game.Network.MarketBoardUploaders
+namespace Dalamud.Game.Network.Internal.MarketBoardUploaders
 {
     /// <summary>
     /// An interface binding for the Universalis uploader.

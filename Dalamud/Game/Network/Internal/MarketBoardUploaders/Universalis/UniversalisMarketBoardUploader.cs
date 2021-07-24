@@ -2,13 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 
-using Dalamud.Game.Network.MarketBoardUploaders;
-using Dalamud.Game.Network.MarketBoardUploaders.Universalis;
+using Dalamud.Game.Network.Internal.MarketBoardUploaders.Universalis.Types;
 using Dalamud.Game.Network.Structures;
 using Newtonsoft.Json;
 using Serilog;
 
-namespace Dalamud.Game.Network.Universalis.MarketBoardUploaders
+namespace Dalamud.Game.Network.Internal.MarketBoardUploaders.Universalis
 {
     /// <summary>
     /// This class represents an uploader for contributing data to Universalis.
@@ -16,8 +15,8 @@ namespace Dalamud.Game.Network.Universalis.MarketBoardUploaders
     internal class UniversalisMarketBoardUploader : IMarketBoardUploader
     {
         private const string ApiBase = "https://universalis.app";
-
         // private const string ApiBase = "https://127.0.0.1:443";
+
         private const string ApiKey = "GGD6RdSfGyRiHM5WDnAo0Nj9Nv7aC5NDhMj3BebT";
 
         private readonly Dalamud dalamud;

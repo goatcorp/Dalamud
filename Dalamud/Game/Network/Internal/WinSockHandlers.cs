@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 using Dalamud.Hooking;
 
-namespace Dalamud.Game
+namespace Dalamud.Game.Network.Internal
 {
     /// <summary>
     /// This class enables TCP optimizations in the game socket for better performance.

@@ -6,9 +6,10 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 using Dalamud.Game.Internal.Network;
-using Dalamud.Game.Network.MarketBoardUploaders;
+using Dalamud.Game.Network.Internal;
+using Dalamud.Game.Network.Internal.MarketBoardUploaders;
+using Dalamud.Game.Network.Internal.MarketBoardUploaders.Universalis;
 using Dalamud.Game.Network.Structures;
-using Dalamud.Game.Network.Universalis.MarketBoardUploaders;
 using Lumina.Excel.GeneratedSheets;
 using Serilog;
 
@@ -129,7 +130,7 @@ namespace Dalamud.Game.Network
 
                     var request = this.marketBoardRequests.LastOrDefault(r => r.CatalogId == listing.ItemListings[0].CatalogId && !r.IsDone);
 
-                    if (request == null)
+                    if (request == default)
                     {
                         Log.Error($"Market Board data arrived without a corresponding request: item#{listing.ItemListings[0].CatalogId}");
                         return;
@@ -195,17 +196,15 @@ namespace Dalamud.Game.Network
 
                     var request = this.marketBoardRequests.LastOrDefault(r => r.CatalogId == listing.CatalogId);
 
-                    if (request == null)
+                    if (request == default)
                     {
-                        Log.Error(
-                            $"Market Board data arrived without a corresponding request: item#{listing.CatalogId}");
+                        Log.Error($"Market Board data arrived without a corresponding request: item#{listing.CatalogId}");
                         return;
                     }
 
                     if (request.ListingsRequestId != -1)
                     {
-                        Log.Error(
-                            $"Market Board data history sequence break: {request.ListingsRequestId}, {request.Listings.Count}");
+                        Log.Error($"Market Board data history sequence break: {request.ListingsRequestId}, {request.Listings.Count}");
                         return;
                     }
 
@@ -231,6 +230,7 @@ namespace Dalamud.Game.Network
                 if (opCode == this.dalamud.Data.ServerOpCodes["MarketTaxRates"])
                 {
                     var category = (uint)Marshal.ReadInt32(dataPtr);
+
                     // Result dialog packet does not contain market tax rates
                     if (category != 720905)
                     {

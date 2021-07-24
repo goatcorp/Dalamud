@@ -70,14 +70,3 @@ using System.Diagnostics.CodeAnalysis;
 [assembly: SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1401:Fields should be private", Justification = "breaking api change", Scope = "member", Target = "~F:Dalamud.Game.Internal.Framework.StatsHistory")]
 [assembly: SuppressMessage("Usage", "CA2211:Non-constant fields should not be visible", Justification = "breaking api change", Scope = "member", Target = "~F:Dalamud.Game.Internal.Framework.StatsHistory")]
 [assembly: SuppressMessage("Usage", "CA2208:Instantiate argument exceptions correctly", Justification = "Appears to be a bug, it is being used correctly", Scope = "member", Target = "~M:Dalamud.Data.DataManager.Initialize(System.String)")]
-
-// I mostly didnt care to do these.
-[assembly: SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1401:Fields should be private", Justification = "breaking api change", Scope = "member", Target = "~F:Dalamud.Game.Internal.Network.GameNetwork.OnNetworkMessage")]
-[assembly: SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "breaking api change.", Scope = "type", Target = "~T:Dalamud.Game.Network.Structures.MarketBoardCurrentOfferings")]
-[assembly: SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1401:Fields should be private", Justification = "breaking api change.", Scope = "type", Target = "~T:Dalamud.Game.Network.Structures.MarketBoardCurrentOfferings")]
-[assembly: SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "breaking api change.", Scope = "type", Target = "~T:Dalamud.Game.Network.Structures.MarketBoardHistory")]
-[assembly: SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1401:Fields should be private", Justification = "breaking api change.", Scope = "type", Target = "~T:Dalamud.Game.Network.Structures.MarketBoardHistory")]
-[assembly: SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "breaking api change.", Scope = "type", Target = "~T:Dalamud.Game.Network.Structures.MarketTaxRates")]
-[assembly: SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1401:Fields should be private", Justification = "breaking api change.", Scope = "type", Target = "~T:Dalamud.Game.Network.Structures.MarketTaxRates")]
-[assembly: SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "breaking api change.", Scope = "type", Target = "~T:Dalamud.Game.Network.MarketBoardItemRequest")]
-[assembly: SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1401:Fields should be private", Justification = "breaking api change.", Scope = "type", Target = "~T:Dalamud.Game.Network.MarketBoardItemRequest")]
