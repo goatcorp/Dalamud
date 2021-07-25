@@ -157,7 +157,7 @@ namespace Dalamud.Game.Network.Universalis.MarketBoardUploaders
             };
 
             var purchaseUpload = JsonConvert.SerializeObject(purchaseRequest);
-            client.UploadString(ApiBase + $"/{itemId}/{worldId}/delete", "POST", purchaseUpload);
+            client.UploadString(ApiBase + $"/{worldId}/{itemId}/delete", "POST", purchaseUpload);
             Log.Verbose(purchaseUpload);
 
             Log.Verbose("Universalis purchase upload completed.");
