@@ -41,12 +41,14 @@ namespace Dalamud.Game.Network.Universalis.MarketBoardUploaders
             Log.Verbose("Starting Universalis upload.");
             var uploader = this.dalamud.ClientState.LocalContentId;
 
-            var listingsRequestObject = new UniversalisItemListingsUploadRequest();
-            listingsRequestObject.WorldId = this.dalamud.ClientState.LocalPlayer?.CurrentWorld.Id ?? 0;
-            listingsRequestObject.UploaderId = uploader.ToString();
-            listingsRequestObject.ItemId = request.CatalogId;
+            var listingsRequestObject = new UniversalisItemListingsUploadRequest
+            {
+                WorldId = this.dalamud.ClientState.LocalPlayer?.CurrentWorld.Id ?? 0,
+                UploaderId = uploader.ToString(),
+                ItemId = request.CatalogId,
+                Listings = new List<UniversalisItemListingsEntry>(),
+            };
 
-            listingsRequestObject.Listings = new List<UniversalisItemListingsEntry>();
             foreach (var marketBoardItemListing in request.Listings)
             {
                 var universalisListing = new UniversalisItemListingsEntry
@@ -62,9 +64,9 @@ namespace Dalamud.Game.Network.Universalis.MarketBoardUploaders
                     PricePerUnit = marketBoardItemListing.PricePerUnit,
                     Quantity = marketBoardItemListing.ItemQuantity,
                     RetainerCity = marketBoardItemListing.RetainerCityId,
+                    Materia = new List<UniversalisItemMateria>(),
                 };
 
-                universalisListing.Materia = new List<UniversalisItemMateria>();
                 foreach (var itemMateria in marketBoardItemListing.Materia)
                 {
                     universalisListing.Materia.Add(new UniversalisItemMateria
@@ -81,12 +83,14 @@ namespace Dalamud.Game.Network.Universalis.MarketBoardUploaders
             Log.Verbose(upload);
             client.UploadString(ApiBase + $"/upload/{ApiKey}", "POST", upload);
 
-            var historyRequestObject = new UniversalisHistoryUploadRequest();
-            historyRequestObject.WorldId = this.dalamud.ClientState.LocalPlayer?.CurrentWorld.Id ?? 0;
-            historyRequestObject.UploaderId = uploader.ToString();
-            historyRequestObject.ItemId = request.CatalogId;
+            var historyRequestObject = new UniversalisHistoryUploadRequest
+            {
+                WorldId = this.dalamud.ClientState.LocalPlayer?.CurrentWorld.Id ?? 0,
+                UploaderId = uploader.ToString(),
+                ItemId = request.CatalogId,
+                Entries = new List<UniversalisHistoryEntry>(),
+            };
 
-            historyRequestObject.Entries = new List<UniversalisHistoryEntry>();
             foreach (var marketBoardHistoryListing in request.History)
             {
                 historyRequestObject.Entries.Add(new UniversalisHistoryEntry
@@ -114,18 +118,19 @@ namespace Dalamud.Game.Network.Universalis.MarketBoardUploaders
         {
             using var client = new WebClient();
 
-            var taxRatesRequest = new UniversalisTaxUploadRequest();
-            taxRatesRequest.WorldId = this.dalamud.ClientState.LocalPlayer?.CurrentWorld.Id ?? 0;
-            taxRatesRequest.UploaderId = this.dalamud.ClientState.LocalContentId.ToString();
-
-            taxRatesRequest.TaxData = new UniversalisTaxData
+            var taxRatesRequest = new UniversalisTaxUploadRequest
             {
-                LimsaLominsa = taxRates.LimsaLominsaTax,
-                Gridania = taxRates.GridaniaTax,
-                Uldah = taxRates.UldahTax,
-                Ishgard = taxRates.IshgardTax,
-                Kugane = taxRates.KuganeTax,
-                Crystarium = taxRates.CrystariumTax,
+                WorldId = this.dalamud.ClientState.LocalPlayer?.CurrentWorld.Id ?? 0,
+                UploaderId = this.dalamud.ClientState.LocalContentId.ToString(),
+                TaxData = new UniversalisTaxData
+                {
+                    LimsaLominsa = taxRates.LimsaLominsaTax,
+                    Gridania = taxRates.GridaniaTax,
+                    Uldah = taxRates.UldahTax,
+                    Ishgard = taxRates.IshgardTax,
+                    Kugane = taxRates.KuganeTax,
+                    Crystarium = taxRates.CrystariumTax,
+                },
             };
 
             client.Headers.Add(HttpRequestHeader.ContentType, "application/json");
