@@ -282,7 +282,8 @@ namespace Dalamud.Game.Network
                             || purchase.CatalogId == this.marketBoardPurchaseHandler.CatalogId + 1000000))
                     { // HQ
                         Log.Information("Bought " + purchase.ItemQuantity + "x " + this.marketBoardPurchaseHandler.CatalogId + " for " + (this.marketBoardPurchaseHandler.PricePerUnit * purchase.ItemQuantity) + " gils, listing id is " + this.marketBoardPurchaseHandler.ListingId);
-                        Task.Run(() => this.uploader.UploadPurchase(this.marketBoardPurchaseHandler));
+                        var handler = this.marketBoardPurchaseHandler; // Capture the object so that we don't pass in a null one when the task starts.
+                        Task.Run(() => this.uploader.UploadPurchase(handler));
                     }
 
                     this.marketBoardPurchaseHandler = null;
