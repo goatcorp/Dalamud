@@ -20,12 +20,6 @@ namespace Dalamud.Game.Network.MarketBoardUploaders.Universalis
         public string ListingId { get; set; }
 
         /// <summary>
-        /// Gets or sets the item ID of the item that was purchased.
-        /// </summary>
-        [JsonProperty("itemID")]
-        public uint ItemId { get; set; }
-
-        /// <summary>
         /// Gets or sets the quantity of the item that was purchased.
         /// </summary>
         [JsonProperty("quantity")]

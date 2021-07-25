@@ -149,7 +149,6 @@ namespace Dalamud.Game.Network.Universalis.MarketBoardUploaders
 
             var purchaseRequest = new UniversalisItemListingDeleteRequest
             {
-                ItemId = itemId,
                 PricePerUnit = purchaseHandler.PricePerUnit,
                 Quantity = purchaseHandler.ItemQuantity,
                 ListingId = purchaseHandler.ListingId.ToString(),
