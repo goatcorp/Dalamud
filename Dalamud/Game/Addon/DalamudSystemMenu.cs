@@ -16,11 +16,11 @@ namespace Dalamud.Game.Addon
     internal sealed unsafe partial class DalamudSystemMenu
     {
         private readonly Dalamud dalamud;
-        private AtkValueChangeType atkValueChangeType;
-        private AtkValueSetString atkValueSetString;
-        private Hook<AgentHudOpenSystemMenuPrototype> hookAgentHudOpenSystemMenu;
+        private readonly AtkValueChangeType atkValueChangeType;
+        private readonly AtkValueSetString atkValueSetString;
+        private readonly Hook<AgentHudOpenSystemMenuPrototype> hookAgentHudOpenSystemMenu;
         // TODO: Make this into events in Framework.Gui
-        private Hook<UiModuleRequestMainCommand> hookUiModuleRequestMainCommand;
+        private readonly Hook<UiModuleRequestMainCommand> hookUiModuleRequestMainCommand;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DalamudSystemMenu"/> class.
@@ -34,13 +34,10 @@ namespace Dalamud.Game.Addon
 
             this.hookAgentHudOpenSystemMenu = new Hook<AgentHudOpenSystemMenuPrototype>(openSystemMenuAddress, this.AgentHudOpenSystemMenuDetour);
 
-            var atkValueChangeTypeAddress =
-                this.dalamud.SigScanner.ScanText("E8 ?? ?? ?? ?? 45 84 F6 48 8D 4C 24 ??");
-            this.atkValueChangeType =
-                Marshal.GetDelegateForFunctionPointer<AtkValueChangeType>(atkValueChangeTypeAddress);
+            var atkValueChangeTypeAddress = this.dalamud.SigScanner.ScanText("E8 ?? ?? ?? ?? 45 84 F6 48 8D 4C 24 ??");
+            this.atkValueChangeType = Marshal.GetDelegateForFunctionPointer<AtkValueChangeType>(atkValueChangeTypeAddress);
 
-            var atkValueSetStringAddress =
-                this.dalamud.SigScanner.ScanText("E8 ?? ?? ?? ?? 41 03 ED");
+            var atkValueSetStringAddress = this.dalamud.SigScanner.ScanText("E8 ?? ?? ?? ?? 41 03 ED");
             this.atkValueSetString = Marshal.GetDelegateForFunctionPointer<AtkValueSetString>(atkValueSetStringAddress);
 
             var uiModuleRequestMainCommandAddress = this.dalamud.SigScanner.ScanText("40 53 56 48 81 EC ?? ?? ?? ?? 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 84 24 ?? ?? ?? ?? 48 8B 01 8B DA 48 8B F1 FF 90 ?? ?? ?? ??");
@@ -140,10 +137,10 @@ namespace Dalamud.Game.Addon
             switch (commandId)
             {
                 case 69420:
-                    this.dalamud.DalamudUi.TogglePluginInstaller();
+                    this.dalamud.DalamudUi.TogglePluginInstallerWindow();
                     break;
                 case 69421:
-                    this.dalamud.DalamudUi.ToggleSettings();
+                    this.dalamud.DalamudUi.ToggleSettingsWindow();
                     break;
                 default:
                     this.hookUiModuleRequestMainCommand.Original(thisPtr, commandId);

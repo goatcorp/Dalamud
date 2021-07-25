@@ -6,14 +6,8 @@
 using System.Diagnostics.CodeAnalysis;
 
 // General
-[assembly: SuppressMessage("StyleCop.CSharp.ReadabilityRules", "SA1118:Parameter should not span multiple lines", Justification = "Preventing long lines", Scope = "namespaceanddescendants", Target = "~N:Dalamud")]
-[assembly: SuppressMessage("StyleCop.CSharp.ReadabilityRules", "SA1124:Do not use regions", Justification = "I like regions", Scope = "namespaceanddescendants", Target = "~N:Dalamud")]
-[assembly: SuppressMessage("StyleCop.CSharp.ReadabilityRules", "SA1123:Do not place regions within elements", Justification = "I like regions in elements too", Scope = "namespaceanddescendants", Target = "~N:Dalamud")]
+[assembly: SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1633:File should have header", Justification = "We don't do those yet")]
 [assembly: SuppressMessage("StyleCop.CSharp.LayoutRules", "SA1503:Braces should not be omitted", Justification = "This is annoying", Scope = "namespaceanddescendants", Target = "~N:Dalamud")]
 [assembly: SuppressMessage("StyleCop.CSharp.LayoutRules", "SA1512:Single-line comments should not be followed by blank line", Justification = "I like this better", Scope = "namespaceanddescendants", Target = "~N:Dalamud")]
 [assembly: SuppressMessage("StyleCop.CSharp.LayoutRules", "SA1515:Single-line comment should be preceded by blank line", Justification = "I like this better", Scope = "namespaceanddescendants", Target = "~N:Dalamud")]
-[assembly: SuppressMessage("StyleCop.CSharp.ReadabilityRules", "SA1127:Generic type constraints should be on their own line", Justification = "I like this better", Scope = "namespaceanddescendants", Target = "~N:Dalamud")]
-[assembly: SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1633:File should have header", Justification = "We don't do those yet")]
-
-// Program.cs
-[assembly: SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Used during #if DEBUG", Scope = "member", Target = "~M:Dalamud.Injector.Program.NativeInject(System.Diagnostics.Process)")]
+[assembly: SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "I'll make what I want static", Scope = "namespaceanddescendants", Target = "~N:Dalamud")]

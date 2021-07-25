@@ -18,6 +18,15 @@ If you need any support regarding the API or usage of Dalamud, please [join our 
 
 Thanks to Mino, whose work has made this possible!
 
+## Branches
+
+We are currently working from the following branches.
+
+| Name | Purpose | .NET Version |
+|---|---|---|
+| *master* | .NET Core rework, in-development, will replace stable | .NET 5.0.6 (May 2021) |
+| *api3* | Legacy, current stable version, to be replaced in November | .NET 4.7.5 (April 2017) |
+
 <br>
 
 ##### Final Fantasy XIV © 2010-2021 SQUARE ENIX CO., LTD. All Rights Reserved. We are not affiliated with SQUARE ENIX CO., LTD. in any way.

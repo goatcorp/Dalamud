@@ -1,8 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
 
 using Dalamud.Game.ClientState.Actors.Types;
 using Dalamud.Game.ClientState.Actors.Types.NonPlayer;
@@ -14,204 +12,131 @@ namespace Dalamud.Game.ClientState.Actors
     /// <summary>
     /// This collection represents the currently spawned FFXIV actors.
     /// </summary>
-    public sealed partial class ActorTable : IReadOnlyCollection<Actor>, ICollection, IDisposable
+    public sealed partial class ActorTable
     {
         private const int ActorTableLength = 424;
 
-        #region ReadProcessMemory Hack
-        private static readonly int ActorMemSize = Marshal.SizeOf(typeof(Structs.Actor));
-        private static readonly IntPtr ActorMem = Marshal.AllocHGlobal(ActorMemSize);
-        private static readonly IntPtr CurrentProcessHandle = new(-1);
-        #endregion
-
-        private Dalamud dalamud;
-        private ClientStateAddressResolver address;
-        private List<Actor> actorsCache;
+        private readonly Dalamud dalamud;
+        private readonly ClientStateAddressResolver address;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ActorTable"/> class.
-        /// Set up the actor table collection.
         /// </summary>
-        /// <param name="dalamud">The Dalamud instance.</param>
-        /// <param name="addressResolver">The ClientStateAddressResolver instance.</param>
-        public ActorTable(Dalamud dalamud, ClientStateAddressResolver addressResolver)
+        /// <param name="dalamud">The <see cref="dalamud"/> instance.</param>
+        /// <param name="addressResolver">Client state address resolver.</param>
+        internal ActorTable(Dalamud dalamud, ClientStateAddressResolver addressResolver)
         {
-            this.address = addressResolver;
             this.dalamud = dalamud;
+            this.address = addressResolver;
 
-            dalamud.Framework.OnUpdateEvent += this.Framework_OnUpdateEvent;
-
-            Log.Verbose("Actor table address {ActorTable}", this.address.ActorTable);
+            Log.Verbose($"Actor table address 0x{this.address.ActorTable.ToInt64():X}");
         }
 
         /// <summary>
         /// Gets the amount of currently spawned actors.
         /// </summary>
-        public int Length => this.ActorsCache.Count;
+        public int Length
+        {
+            get
+            {
+                var count = 0;
+                for (var i = 0; i < ActorTableLength; i++)
+                {
+                    var ptr = this.GetActorAddress(i);
+                    if (ptr != IntPtr.Zero)
+                    {
+                        count++;
+                    }
+                }
 
-        private List<Actor> ActorsCache => this.actorsCache ??= this.GetActorTable();
+                return count;
+            }
+        }
 
         /// <summary>
         /// Get an actor at the specified spawn index.
         /// </summary>
         /// <param name="index">Spawn index.</param>
-        /// <returns><see cref="Actor" /> at the specified spawn index.</returns>
+        /// <returns>An <see cref="Actor"/> at the specified spawn index.</returns>
         [CanBeNull]
-        public Actor this[int index] => this.ActorsCache[index];
+        public Actor this[int index]
+        {
+            get
+            {
+                var address = this.GetActorAddress(index);
+                return this.CreateActorReference(address);
+            }
+        }
 
         /// <summary>
-        /// Read an actor struct from memory and create the appropriate <see cref="ObjectKind"/> type of actor.
+        /// Gets the address of the actor at the specified index of the actor table.
         /// </summary>
-        /// <param name="offset">Offset of the actor in the actor table.</param>
-        /// <returns>An instantiated actor.</returns>
-        internal Actor ReadActorFromMemory(IntPtr offset)
+        /// <param name="index">The index of the actor.</param>
+        /// <returns>The memory address of the actor.</returns>
+        public unsafe IntPtr GetActorAddress(int index)
         {
-            try
-            {
-                // FIXME: hack workaround for trying to access the player on logout, after the main object has been deleted
-                if (!NativeFunctions.ReadProcessMemory(CurrentProcessHandle, offset, ActorMem, ActorMemSize, out _))
-                {
-                    Log.Debug("ActorTable - ReadProcessMemory failed: likely player deletion during logout");
-                    return null;
-                }
+            if (index >= ActorTableLength)
+                return IntPtr.Zero;
 
-                var actorStruct = Marshal.PtrToStructure<Structs.Actor>(ActorMem);
+            return *(IntPtr*)(this.address.ActorTable + (8 * index));
+        }
 
-                return actorStruct.ObjectKind switch
-                {
-                    ObjectKind.Player => new PlayerCharacter(offset, actorStruct, this.dalamud),
-                    ObjectKind.BattleNpc => new BattleNpc(offset, actorStruct, this.dalamud),
-                    ObjectKind.EventObj => new EventObj(offset, actorStruct, this.dalamud),
-                    ObjectKind.Companion => new Npc(offset, actorStruct, this.dalamud),
-                    _ => new Actor(offset, actorStruct, this.dalamud),
-                };
-            }
-            catch (Exception e)
-            {
-                Log.Error(e, "Could not read actor from memory.");
+        /// <summary>
+        /// Create a reference to a FFXIV actor.
+        /// </summary>
+        /// <param name="address">The address of the actor in memory.</param>
+        /// <returns><see cref="Actor"/> object or inheritor containing requested data.</returns>
+        [CanBeNull]
+        public unsafe Actor CreateActorReference(IntPtr address)
+        {
+            if (this.dalamud.ClientState.LocalContentId == 0)
                 return null;
-            }
-        }
 
-        private void ResetCache() => this.actorsCache = null;
+            if (address == IntPtr.Zero)
+                return null;
 
-        private void Framework_OnUpdateEvent(Internal.Framework framework)
-        {
-            this.ResetCache();
-        }
-
-        private IntPtr[] GetPointerTable()
-        {
-            var ret = new IntPtr[ActorTableLength];
-            Marshal.Copy(this.address.ActorTable, ret, 0, ActorTableLength);
-            return ret;
-        }
-
-        private List<Actor> GetActorTable()
-        {
-            var actors = new List<Actor>();
-            var ptrTable = this.GetPointerTable();
-            for (var i = 0; i < ActorTableLength; i++)
+            var objKind = *(ObjectKind*)(address + ActorOffsets.ObjectKind);
+            return objKind switch
             {
-                actors.Add(ptrTable[i] != IntPtr.Zero ? this.ReadActorFromMemory(ptrTable[i]) : null);
-            }
-
-            return actors;
+                ObjectKind.Player => new PlayerCharacter(address, this.dalamud),
+                ObjectKind.BattleNpc => new BattleNpc(address, this.dalamud),
+                ObjectKind.EventObj => new EventObj(address, this.dalamud),
+                ObjectKind.Companion => new Npc(address, this.dalamud),
+                _ => new Actor(address, this.dalamud),
+            };
         }
     }
 
     /// <summary>
-    /// Implementing IDisposable.
+    /// This collection represents the currently spawned FFXIV actors.
     /// </summary>
-    public sealed partial class ActorTable : IDisposable
+    public sealed partial class ActorTable : IReadOnlyCollection<Actor>, ICollection
     {
-        private bool disposed = false;
-
-        /// <summary>
-        /// Finalizes an instance of the <see cref="ActorTable"/> class.
-        /// </summary>
-        ~ActorTable() => this.Dispose(false);
-
-        /// <summary>
-        /// Disposes of managed and unmanaged resources.
-        /// </summary>
-        public void Dispose()
-        {
-            this.Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        private void Dispose(bool disposing)
-        {
-            if (this.disposed)
-                return;
-
-            if (disposing)
-            {
-                this.dalamud.Framework.OnUpdateEvent -= this.Framework_OnUpdateEvent;
-                Marshal.FreeHGlobal(ActorMem);
-            }
-
-            this.disposed = true;
-        }
-    }
-
-    /// <summary>
-    /// Implementing IReadOnlyCollection, IEnumerable, and Enumerable.
-    /// </summary>
-    public sealed partial class ActorTable : IReadOnlyCollection<Actor>
-    {
-        /// <summary>
-        /// Gets the number of elements in the collection.
-        /// </summary>
-        /// <returns>The number of elements in the collection.</returns>
+        /// <inheritdoc/>
         int IReadOnlyCollection<Actor>.Count => this.Length;
 
-        /// <summary>
-        /// Gets an enumerator capable of iterating through the actor table.
-        /// </summary>
-        /// <returns>An actor enumerable.</returns>
-        public IEnumerator<Actor> GetEnumerator() => this.ActorsCache.Where(a => a != null).GetEnumerator();
-
-        /// <summary>
-        /// Gets an enumerator capable of iterating through the actor table.
-        /// </summary>
-        /// <returns>An actor enumerable.</returns>
-        IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
-    }
-
-    /// <summary>
-    /// Implementing ICollection.
-    /// </summary>
-    public sealed partial class ActorTable : ICollection
-    {
-        /// <summary>
-        /// Gets the number of elements in the collection.
-        /// </summary>
-        /// <returns>The number of elements in the collection.</returns>
+        /// <inheritdoc/>
         int ICollection.Count => this.Length;
 
-        /// <summary>
-        /// Gets a value indicating whether access to the collection is synchronized (thread safe).
-        /// </summary>
-        /// <returns>Whether access is synchronized (thread safe) or not.</returns>
+        /// <inheritdoc/>
         bool ICollection.IsSynchronized => false;
 
-        /// <summary>
-        /// Gets an object that can be used to synchronize access to the collection.
-        /// </summary>
-        /// <returns>An object that can be used to synchronize access to the collection.</returns>
+        /// <inheritdoc/>
         object ICollection.SyncRoot => this;
 
-        /// <summary>
-        /// Copies the elements of the collection to an array, starting at a particular index.
-        /// </summary>
-        /// <param name="array">
-        /// The one-dimensional array that is the destination of the elements copied from the collection. The array must have zero-based indexing.
-        /// </param>
-        /// <param name="index">
-        /// The zero-based index in array at which copying begins.
-        /// </param>
+        /// <inheritdoc/>
+        public IEnumerator<Actor> GetEnumerator()
+        {
+            for (var i = 0; i < ActorTableLength; i++)
+            {
+                yield return this[i];
+            }
+        }
+
+        /// <inheritdoc/>
+        IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
+
+        /// <inheritdoc/>
         void ICollection.CopyTo(Array array, int index)
         {
             for (var i = 0; i < this.Length; i++)

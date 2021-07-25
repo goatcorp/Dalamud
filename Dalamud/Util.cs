@@ -161,8 +161,8 @@ namespace Dalamud
         public static void Fatal(string message, string caption)
         {
             var flags = NativeFunctions.MessageBoxType.Ok | NativeFunctions.MessageBoxType.IconError;
+            _ = NativeFunctions.MessageBoxW(Process.GetCurrentProcess().MainWindowHandle, message, caption, flags);
 
-            NativeFunctions.MessageBox(Process.GetCurrentProcess().MainWindowHandle, message, caption, flags);
             Environment.Exit(-1);
         }
 
@@ -196,5 +196,13 @@ namespace Dalamud
 
         // TODO: Someone implement GetUTF8String with some IntPtr overloads.
         // while(Marshal.ReadByte(0, sz) != 0) { sz++; }
+
+        /// <summary>
+        /// An extension method to chain usage of string.Format.
+        /// </summary>
+        /// <param name="format">Format string.</param>
+        /// <param name="args">Format arguments.</param>
+        /// <returns>Formatted string.</returns>
+        public static string Format(this string format, params object[] args) => string.Format(format, args);
     }
 }

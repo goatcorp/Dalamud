@@ -1,12 +1,15 @@
 using System;
 
+using Dalamud.Game;
+using Newtonsoft.Json;
+
 namespace Dalamud
 {
     /// <summary>
-    /// Class containing information needed to initialize Dalamud.
+    /// Struct containing information needed to initialize Dalamud.
     /// </summary>
     [Serializable]
-    public sealed class DalamudStartInfo
+    public struct DalamudStartInfo
     {
         /// <summary>
         /// The working directory of the XIVLauncher installations.
@@ -41,7 +44,8 @@ namespace Dalamud
         /// <summary>
         /// The current game version code.
         /// </summary>
-        public string GameVersion;
+        [JsonConverter(typeof(GameVersionConverter))]
+        public GameVersion GameVersion;
 
         /// <summary>
         /// Whether or not market board information should be uploaded by default.

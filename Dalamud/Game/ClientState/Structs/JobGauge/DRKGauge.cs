@@ -8,26 +8,32 @@ namespace Dalamud.Game.ClientState.Structs.JobGauge
     [StructLayout(LayoutKind.Explicit)]
     public struct DRKGauge
     {
-        /// <summary>
-        /// Gets the amount of blood accumulated.
-        /// </summary>
         [FieldOffset(0)]
-        public byte Blood;
+        private byte blood;
 
-        /// <summary>
-        /// Gets the Darkside time remaining in milliseconds.
-        /// </summary>
         [FieldOffset(2)]
-        public ushort DarksideTimeRemaining;
+        private ushort darksideTimeRemaining;
 
         [FieldOffset(4)]
         private byte darkArtsState;
 
+        [FieldOffset(6)]
+        private ushort shadowTimeRemaining;
+
+        /// <summary>
+        /// Gets the amount of blood accumulated.
+        /// </summary>
+        public byte Blood => this.blood;
+
+        /// <summary>
+        /// Gets the Darkside time remaining in milliseconds.
+        /// </summary>
+        public ushort DarksideTimeRemaining => this.darksideTimeRemaining;
+
         /// <summary>
         /// Gets the Shadow time remaining in milliseconds.
         /// </summary>
-        [FieldOffset(6)]
-        public ushort ShadowTimeRemaining;
+        public ushort ShadowTimeRemaining => this.shadowTimeRemaining;
 
         /// <summary>
         /// Gets if the player has Dark Arts or not.

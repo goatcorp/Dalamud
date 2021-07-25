@@ -21,6 +21,24 @@ namespace Dalamud.Interface
         public static float GlobalScale { get; private set; }
 
         /// <summary>
+        /// Gets a <see cref="Vector2"/> that is pre-scaled with the <see cref="GlobalScale"/> multiplier.
+        /// </summary>
+        /// <param name="x">Vector2 X parameter.</param>
+        /// <param name="y">Vector2 Y parameter.</param>
+        /// <returns>A scaled Vector2.</returns>
+        public static Vector2 ScaledVector2(float x, float y) => new Vector2(x, y) * GlobalScale;
+
+        /// <summary>
+        /// Gets a <see cref="Vector4"/> that is pre-scaled with the <see cref="GlobalScale"/> multiplier.
+        /// </summary>
+        /// <param name="x">Vector4 X parameter.</param>
+        /// <param name="y">Vector4 Y parameter.</param>
+        /// <param name="z">Vector4 Z parameter.</param>
+        /// <param name="w">Vector4 W parameter.</param>
+        /// <returns>A scaled Vector2.</returns>
+        public static Vector4 ScaledVector4(float x, float y, float z, float w) => new Vector4(x, y, z, w) * GlobalScale;
+
+        /// <summary>
         /// Force the next ImGui window to stay inside the main game window.
         /// </summary>
         public static void ForceNextWindowMainViewport() => ImGui.SetNextWindowViewport(MainViewport.ID);
@@ -29,7 +47,14 @@ namespace Dalamud.Interface
         /// Create a dummy scaled by the global Dalamud scale.
         /// </summary>
         /// <param name="size">The size of the dummy.</param>
-        public static void ScaledDummy(float size) => ImGui.Dummy(new Vector2(size * GlobalScale, size * GlobalScale));
+        public static void ScaledDummy(float size) => ScaledDummy(size, size);
+
+        /// <summary>
+        /// Create a dummy scaled by the global Dalamud scale.
+        /// </summary>
+        /// <param name="x">Vector2 X parameter.</param>
+        /// <param name="y">Vector2 Y parameter.</param>
+        public static void ScaledDummy(float x, float y) => ScaledDummy(new Vector2(x, y));
 
         /// <summary>
         /// Create a dummy scaled by the global Dalamud scale.

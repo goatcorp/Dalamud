@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 using Dalamud.Game.ClientState;
+using Dalamud.Interface.Internal;
 using ImGuiNET;
 using ImGuiScene;
 using Serilog;
@@ -13,11 +15,11 @@ namespace Dalamud.Interface
     /// This class represents the Dalamud UI that is drawn on top of the game.
     /// It can be used to draw custom windows and overlays.
     /// </summary>
-    public class UiBuilder : IDisposable
+    public sealed class UiBuilder : IDisposable
     {
-        private readonly string namespaceName;
         private readonly Dalamud dalamud;
-        private readonly System.Diagnostics.Stopwatch stopwatch;
+        private readonly Stopwatch stopwatch;
+        private readonly string namespaceName;
 
         private bool hasErrorWindow;
 
@@ -29,11 +31,11 @@ namespace Dalamud.Interface
         /// <param name="namespaceName">The plugin namespace.</param>
         internal UiBuilder(Dalamud dalamud, string namespaceName)
         {
+            this.dalamud = dalamud;
+            this.stopwatch = new Stopwatch();
             this.namespaceName = namespaceName;
 
-            this.dalamud = dalamud;
             this.dalamud.InterfaceManager.OnDraw += this.OnDraw;
-            this.stopwatch = new System.Diagnostics.Stopwatch();
         }
 
         /// <summary>
@@ -56,6 +58,11 @@ namespace Dalamud.Interface
         /// Gets the default Dalamud icon font based on FontAwesome 5 Free solid in 17pt.
         /// </summary>
         public static ImFontPtr IconFont => InterfaceManager.IconFont;
+
+        /// <summary>
+        /// Gets the default Dalamud monospaced font based on Inconsolata Regular in 16pt.
+        /// </summary>
+        public static ImFontPtr MonoFont => InterfaceManager.MonoFont;
 
         /// <summary>
         /// Gets the game's active Direct3D device.
@@ -217,8 +224,7 @@ namespace Dalamud.Interface
 
             if (this.hasErrorWindow && ImGui.Begin($"{this.namespaceName} Error", ref this.hasErrorWindow, ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize))
             {
-                ImGui.Text(
-                    $"The plugin {this.namespaceName} ran into an error.\nContact the plugin developer for support.\n\nPlease try restarting your game.");
+                ImGui.Text($"The plugin {this.namespaceName} ran into an error.\nContact the plugin developer for support.\n\nPlease try restarting your game.");
                 ImGui.Spacing();
 
                 if (ImGui.Button("OK"))

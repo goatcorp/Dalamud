@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-using Dalamud.Game.ClientState.Actors;
+using Dalamud.Game.ClientState.Actors.Types;
 
 namespace Dalamud.Game.ClientState.Structs
 {

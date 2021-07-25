@@ -1,14 +1,234 @@
 using System;
-using System.Runtime.ConstrainedExecution;
 using System.Runtime.InteropServices;
-using System.Security;
 
 namespace Dalamud.Injector
 {
     /// <summary>
-    /// Native functions.
+    /// Native user32 functions.
     /// </summary>
-    internal static class NativeFunctions
+    internal static partial class NativeFunctions
+    {
+        /// <summary>
+        /// MB_* from winuser.
+        /// </summary>
+        public enum MessageBoxType : uint
+        {
+            /// <summary>
+            /// The default value for any of the various subtypes.
+            /// </summary>
+            DefaultValue = 0x0,
+
+            // To indicate the buttons displayed in the message box, specify one of the following values.
+
+            /// <summary>
+            /// The message box contains three push buttons: Abort, Retry, and Ignore.
+            /// </summary>
+            AbortRetryIgnore = 0x2,
+
+            /// <summary>
+            /// The message box contains three push buttons: Cancel, Try Again, Continue. Use this message box type instead
+            /// of MB_ABORTRETRYIGNORE.
+            /// </summary>
+            CancelTryContinue = 0x6,
+
+            /// <summary>
+            /// Adds a Help button to the message box. When the user clicks the Help button or presses F1, the system sends
+            /// a WM_HELP message to the owner.
+            /// </summary>
+            Help = 0x4000,
+
+            /// <summary>
+            /// The message box contains one push button: OK. This is the default.
+            /// </summary>
+            Ok = DefaultValue,
+
+            /// <summary>
+            /// The message box contains two push buttons: OK and Cancel.
+            /// </summary>
+            OkCancel = 0x1,
+
+            /// <summary>
+            /// The message box contains two push buttons: Retry and Cancel.
+            /// </summary>
+            RetryCancel = 0x5,
+
+            /// <summary>
+            /// The message box contains two push buttons: Yes and No.
+            /// </summary>
+            YesNo = 0x4,
+
+            /// <summary>
+            /// The message box contains three push buttons: Yes, No, and Cancel.
+            /// </summary>
+            YesNoCancel = 0x3,
+
+            // To display an icon in the message box, specify one of the following values.
+
+            /// <summary>
+            /// An exclamation-point icon appears in the message box.
+            /// </summary>
+            IconExclamation = 0x30,
+
+            /// <summary>
+            /// An exclamation-point icon appears in the message box.
+            /// </summary>
+            IconWarning = IconExclamation,
+
+            /// <summary>
+            /// An icon consisting of a lowercase letter i in a circle appears in the message box.
+            /// </summary>
+            IconInformation = 0x40,
+
+            /// <summary>
+            /// An icon consisting of a lowercase letter i in a circle appears in the message box.
+            /// </summary>
+            IconAsterisk = IconInformation,
+
+            /// <summary>
+            /// A question-mark icon appears in the message box.
+            /// The question-mark message icon is no longer recommended because it does not clearly represent a specific type
+            /// of message and because the phrasing of a message as a question could apply to any message type. In addition,
+            /// users can confuse the message symbol question mark with Help information. Therefore, do not use this question
+            /// mark message symbol in your message boxes. The system continues to support its inclusion only for backward
+            /// compatibility.
+            /// </summary>
+            IconQuestion = 0x20,
+
+            /// <summary>
+            /// A stop-sign icon appears in the message box.
+            /// </summary>
+            IconStop = 0x10,
+
+            /// <summary>
+            /// A stop-sign icon appears in the message box.
+            /// </summary>
+            IconError = IconStop,
+
+            /// <summary>
+            /// A stop-sign icon appears in the message box.
+            /// </summary>
+            IconHand = IconStop,
+
+            // To indicate the default button, specify one of the following values.
+
+            /// <summary>
+            /// The first button is the default button.
+            /// MB_DEFBUTTON1 is the default unless MB_DEFBUTTON2, MB_DEFBUTTON3, or MB_DEFBUTTON4 is specified.
+            /// </summary>
+            DefButton1 = DefaultValue,
+
+            /// <summary>
+            /// The second button is the default button.
+            /// </summary>
+            DefButton2 = 0x100,
+
+            /// <summary>
+            /// The third button is the default button.
+            /// </summary>
+            DefButton3 = 0x200,
+
+            /// <summary>
+            /// The fourth button is the default button.
+            /// </summary>
+            DefButton4 = 0x300,
+
+            // To indicate the modality of the dialog box, specify one of the following values.
+
+            /// <summary>
+            /// The user must respond to the message box before continuing work in the window identified by the hWnd parameter.
+            /// However, the user can move to the windows of other threads and work in those windows. Depending on the hierarchy
+            /// of windows in the application, the user may be able to move to other windows within the thread. All child windows
+            /// of the parent of the message box are automatically disabled, but pop-up windows are not. MB_APPLMODAL is the
+            /// default if neither MB_SYSTEMMODAL nor MB_TASKMODAL is specified.
+            /// </summary>
+            ApplModal = DefaultValue,
+
+            /// <summary>
+            /// Same as MB_APPLMODAL except that the message box has the WS_EX_TOPMOST style.
+            /// Use system-modal message boxes to notify the user of serious, potentially damaging errors that require immediate
+            /// attention (for example, running out of memory). This flag has no effect on the user's ability to interact with
+            /// windows other than those associated with hWnd.
+            /// </summary>
+            SystemModal = 0x1000,
+
+            /// <summary>
+            /// Same as MB_APPLMODAL except that all the top-level windows belonging to the current thread are disabled if the
+            /// hWnd parameter is NULL. Use this flag when the calling application or library does not have a window handle
+            /// available but still needs to prevent input to other windows in the calling thread without suspending other threads.
+            /// </summary>
+            TaskModal = 0x2000,
+
+            // To specify other options, use one or more of the following values.
+
+            /// <summary>
+            /// Same as desktop of the interactive window station. For more information, see Window Stations. If the current
+            /// input desktop is not the default desktop, MessageBox does not return until the user switches to the default
+            /// desktop.
+            /// </summary>
+            DefaultDesktopOnly = 0x20000,
+
+            /// <summary>
+            /// The text is right-justified.
+            /// </summary>
+            Right = 0x80000,
+
+            /// <summary>
+            /// Displays message and caption text using right-to-left reading order on Hebrew and Arabic systems.
+            /// </summary>
+            RtlReading = 0x100000,
+
+            /// <summary>
+            /// The message box becomes the foreground window. Internally, the system calls the SetForegroundWindow function
+            /// for the message box.
+            /// </summary>
+            SetForeground = 0x10000,
+
+            /// <summary>
+            /// The message box is created with the WS_EX_TOPMOST window style.
+            /// </summary>
+            Topmost = 0x40000,
+
+            /// <summary>
+            /// The caller is a service notifying the user of an event. The function displays a message box on the current active
+            /// desktop, even if there is no user logged on to the computer.
+            /// </summary>
+            ServiceNotification = 0x200000,
+        }
+
+        /// <summary>
+        /// Displays a modal dialog box that contains a system icon, a set of buttons, and a brief application-specific message,
+        /// such as status or error information. The message box returns an integer value that indicates which button the user
+        /// clicked.
+        /// </summary>
+        /// <param name="hWnd">
+        /// A handle to the owner window of the message box to be created. If this parameter is NULL, the message box has no
+        /// owner window.
+        /// </param>
+        /// <param name="text">
+        /// The message to be displayed. If the string consists of more than one line, you can separate the lines using a carriage
+        /// return and/or linefeed character between each line.
+        /// </param>
+        /// <param name="caption">
+        /// The dialog box title. If this parameter is NULL, the default title is Error.</param>
+        /// <param name="type">
+        /// The contents and behavior of the dialog box. This parameter can be a combination of flags from the following groups
+        /// of flags.
+        /// </param>
+        /// <returns>
+        /// If a message box has a Cancel button, the function returns the IDCANCEL value if either the ESC key is pressed or
+        /// the Cancel button is selected. If the message box has no Cancel button, pressing ESC will no effect - unless an
+        /// MB_OK button is present. If an MB_OK button is displayed and the user presses ESC, the return value will be IDOK.
+        /// If the function fails, the return value is zero.To get extended error information, call GetLastError. If the function
+        /// succeeds, the return value is one of the ID* enum values.
+        /// </returns>
+        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern int MessageBoxW(IntPtr hWnd, string text, string caption, MessageBoxType type);
+    }
+
+    /// <summary>
+    /// Native kernel32 functions.
+    /// </summary>
+    internal static partial class NativeFunctions
     {
         /// <summary>
         /// MEM_* from memoryapi.
@@ -20,14 +240,14 @@ namespace Dalamud.Injector
             /// To coalesce two adjacent placeholders, specify MEM_RELEASE | MEM_COALESCE_PLACEHOLDERS. When you coalesce
             /// placeholders, lpAddress and dwSize must exactly match those of the placeholder.
             /// </summary>
-            CoalescePlaceholders = 0x00000001,
+            CoalescePlaceholders = 0x1,
 
             /// <summary>
             /// Frees an allocation back to a placeholder (after you've replaced a placeholder with a private allocation using
             /// VirtualAlloc2 or Virtual2AllocFromApp). To split a placeholder into two placeholders, specify
             /// MEM_RELEASE | MEM_PRESERVE_PLACEHOLDER.
             /// </summary>
-            PreservePlaceholder = 0x00000002,
+            PreservePlaceholder = 0x2,
 
             /// <summary>
             /// Allocates memory charges (from the overall size of memory and the paging files on disk) for the specified reserved
@@ -88,7 +308,7 @@ namespace Dalamud.Injector
             /// the specified address range is intact. If the function fails, at least some of the data in the address range
             /// has been replaced with zeroes. This value cannot be used with any other value. If MEM_RESET_UNDO is called on
             /// an address range which was not MEM_RESET earlier, the behavior is undefined. When you specify MEM_RESET, the
-            /// VirtualAllocEx function ignores the value of flProtect. However, you must still set flProtect to a valid 
+            /// VirtualAllocEx function ignores the value of flProtect. However, you must still set flProtect to a valid
             /// protection value, such as PAGE_NOACCESS.
             /// </summary>
             ResetUndo = 0x1000000,
@@ -120,6 +340,28 @@ namespace Dalamud.Injector
             /// MEM_RESERVE and MEM_COMMIT.
             /// </summary>
             LargePages = 0x20000000,
+        }
+
+        /// <summary>
+        /// Unprefixed flags from CreateRemoteThread.
+        /// </summary>
+        [Flags]
+        public enum CreateThreadFlags
+        {
+            /// <summary>
+            /// The thread runs immediately after creation.
+            /// </summary>
+            RunImmediately = 0x0,
+
+            /// <summary>
+            /// The thread is created in a suspended state, and does not run until the ResumeThread function is called.
+            /// </summary>
+            CreateSuspended = 0x4,
+
+            /// <summary>
+            /// The dwStackSize parameter specifies the initial reserve size of the stack. If this flag is not specified, dwStackSize specifies the commit size.
+            /// </summary>
+            StackSizeParamIsReservation = 0x10000,
         }
 
         /// <summary>
@@ -198,7 +440,7 @@ namespace Dalamud.Injector
             /// The default behavior for VirtualProtect protection change to executable is to mark all locations as valid call
             /// targets for CFG.
             /// </summary>
-            TargetsNoUpdate = 0x40000000,
+            TargetsNoUpdate = TargetsInvalid,
 
             /// <summary>
             /// Pages in the region become guard pages. Any attempt to access a guard page causes the system to raise a
@@ -312,23 +554,33 @@ namespace Dalamud.Injector
         }
 
         /// <summary>
-        /// Closes an open object handle.
+        /// WAIT_* from synchapi.
         /// </summary>
-        /// <param name="hObject">
-        /// A valid handle to an open object.
-        /// </param>
-        /// <returns>
-        /// If the function succeeds, the return value is nonzero. If the function fails, the return value is zero.To get extended
-        /// error information, call GetLastError. If the application is running under a debugger, the function will throw an
-        /// exception if it receives either a handle value that is not valid or a pseudo-handle value. This can happen if you
-        /// close a handle twice, or if you call CloseHandle on a handle returned by the FindFirstFile function instead of calling
-        /// the FindClose function.
-        /// </returns>
-        [DllImport("kernel32.dll", SetLastError = true)]
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
-        [SuppressUnmanagedCodeSecurity]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool CloseHandle(IntPtr hObject);
+        public enum WaitResult
+        {
+            /// <summary>
+            /// The specified object is a mutex object that was not released by the thread that owned the mutex object
+            /// before the owning thread terminated.Ownership of the mutex object is granted to the calling thread and
+            /// the mutex state is set to nonsignaled. If the mutex was protecting persistent state information, you
+            /// should check it for consistency.
+            /// </summary>
+            Abandoned = 0x80,
+
+            /// <summary>
+            /// The state of the specified object is signaled.
+            /// </summary>
+            Object0 = 0x0,
+
+            /// <summary>
+            /// The time-out interval elapsed, and the object's state is nonsignaled.
+            /// </summary>
+            Timeout = 0x102,
+
+            /// <summary>
+            /// The function has failed. To get extended error information, call GetLastError.
+            /// </summary>
+            WAIT_FAILED = 0xFFFFFFF,
+        }
 
         /// <summary>
         /// Creates a thread that runs in the virtual address space of another process. Use the CreateRemoteThreadEx function
@@ -336,23 +588,23 @@ namespace Dalamud.Injector
         /// </summary>
         /// <param name="hProcess">
         /// A handle to the process in which the thread is to be created. The handle must have the PROCESS_CREATE_THREAD,
-        /// PROCESS_QUERY_INFORMATION, PROCESS_VM_OPERATION, PROCESS_VM_WRITE, and PROCESS_VM_READ access rights, and may fail
-        /// without these rights on certain platforms. For more information, see Process Security and Access Rights.
+        /// PROCESS_QUERY_INFORMATION, PROCESS_VM_OPERATION, PROCESS_VM_WRITE, and PROCESS_VM_READ access rights, and may fail without
+        /// these rights on certain platforms. For more information, see Process Security and Access Rights.
         /// </param>
         /// <param name="lpThreadAttributes">
-        /// A pointer to a SECURITY_ATTRIBUTES structure that specifies a security descriptor for the new thread and determines
-        /// whether child processes can inherit the returned handle. If lpThreadAttributes is NULL, the thread gets a default
-        /// security descriptor and the handle cannot be inherited. The access control lists (ACL) in the default security descriptor
-        /// for a thread come from the primary token of the creator.
+        /// A pointer to a SECURITY_ATTRIBUTES structure that specifies a security descriptor for the new thread and determines whether
+        /// child processes can inherit the returned handle. If lpThreadAttributes is NULL, the thread gets a default security descriptor
+        /// and the handle cannot be inherited. The access control lists (ACL) in the default security descriptor for a thread come from
+        /// the primary token of the creator.
         /// </param>
         /// <param name="dwStackSize">
-        /// The initial size of the stack, in bytes. The system rounds this value to the nearest page. If this parameter is
-        /// 0 (zero), the new thread uses the default size for the executable. For more information, see Thread Stack Size.
+        /// The initial size of the stack, in bytes. The system rounds this value to the nearest page. If this parameter is 0 (zero), the
+        /// new thread uses the default size for the executable. For more information, see Thread Stack Size.
         /// </param>
         /// <param name="lpStartAddress">
-        /// A pointer to the application-defined function of type LPTHREAD_START_ROUTINE to be executed by the thread and
-        /// represents the starting address of the thread in the remote process. The function must exist in the remote process.
-        /// For more information, see ThreadProc.
+        /// A pointer to the application-defined function of type LPTHREAD_START_ROUTINE to be executed by the thread and represents the
+        /// starting address of the thread in the remote process. The function must exist in the remote process. For more information,
+        /// see ThreadProc.
         /// </param>
         /// <param name="lpParameter">
         /// A pointer to a variable to be passed to the thread function.
@@ -361,92 +613,43 @@ namespace Dalamud.Injector
         /// The flags that control the creation of the thread.
         /// </param>
         /// <param name="lpThreadId">
-        /// A pointer to a variable that receives the thread identifier. If this parameter is NULL, the thread identifier is
-        /// not returned.
+        /// A pointer to a variable that receives the thread identifier. If this parameter is NULL, the thread identifier is not returned.
         /// </param>
         /// <returns>
-        /// If the function succeeds, the return value is a handle to the new thread. If the function fails, the return value
-        /// is NULL.To get extended error information, call GetLastError. Note that CreateRemoteThread may succeed even if
-        /// lpStartAddress points to data, code, or is not accessible. If the start address is invalid when the thread runs,
-        /// an exception occurs, and the thread terminates. Thread termination due to a invalid start address is handled as
-        /// an error exit for the thread's process. This behavior is similar to the asynchronous nature of CreateProcess, where
-        /// the process is created even if it refers to invalid or missing dynamic-link libraries (DLL).
+        /// If the function succeeds, the return value is a handle to the new thread. If the function fails, the return value is
+        /// NULL.To get extended error information, call GetLastError. Note that CreateRemoteThread may succeed even if lpStartAddress
+        /// points to data, code, or is not accessible. If the start address is invalid when the thread runs, an exception occurs, and
+        /// the thread terminates. Thread termination due to a invalid start address is handled as an error exit for the thread's process.
+        /// This behavior is similar to the asynchronous nature of CreateProcess, where the process is created even if it refers to
+        /// invalid or missing dynamic-link libraries (DLL).
         /// </returns>
-        [DllImport("kernel32.dll")]
+        [DllImport("kernel32.dll", SetLastError = true)]
         public static extern IntPtr CreateRemoteThread(
             IntPtr hProcess,
             IntPtr lpThreadAttributes,
-            uint dwStackSize,
+            UIntPtr dwStackSize,
             IntPtr lpStartAddress,
             IntPtr lpParameter,
-            uint dwCreationFlags,
-            IntPtr lpThreadId);
+            CreateThreadFlags dwCreationFlags,
+            out uint lpThreadId);
 
         /// <summary>
-        /// See https://docs.microsoft.com/en-us/windows/win32/api/libloaderapi/nf-libloaderapi-getmodulehandlew.
-        /// Retrieves a module handle for the specified module. The module must have been loaded by the calling process. To
-        /// avoid the race conditions described in the Remarks section, use the GetModuleHandleEx function.
+        /// Retrieves the termination status of the specified thread.
         /// </summary>
-        /// <param name="lpModuleName">
-        /// The name of the loaded module (either a .dll or .exe file). If the file name extension is omitted, the default library
-        /// extension .dll is appended. The file name string can include a trailing point character (.) to indicate that the
-        /// module name has no extension. The string does not have to specify a path. When specifying a path, be sure to use
-        /// backslashes (\), not forward slashes (/). The name is compared (case independently) to the names of modules currently
-        /// mapped into the address space of the calling process. If this parameter is NULL, GetModuleHandle returns a handle
-        /// to the file used to create the calling process (.exe file). The GetModuleHandle function does not retrieve handles
-        /// for modules that were loaded using the LOAD_LIBRARY_AS_DATAFILE flag.For more information, see LoadLibraryEx.
+        /// <param name="hThread">
+        /// A handle to the thread. The handle must have the THREAD_QUERY_INFORMATION or THREAD_QUERY_LIMITED_INFORMATION
+        /// access right.For more information, see Thread Security and Access Rights.
+        /// </param>
+        /// <param name="lpExitCode">
+        /// A pointer to a variable to receive the thread termination status.
         /// </param>
         /// <returns>
-        /// If the function succeeds, the return value is a handle to the specified module. If the function fails, the return
-        /// value is NULL.To get extended error information, call GetLastError.
-        /// </returns>
-        [DllImport("kernel32.dll", CharSet = CharSet.Auto)]
-        public static extern IntPtr GetModuleHandle(string lpModuleName);
-
-        /// <summary>
-        /// Retrieves the address of an exported function or variable from the specified dynamic-link library (DLL).
-        /// </summary>
-        /// <param name="hModule">
-        /// A handle to the DLL module that contains the function or variable. The LoadLibrary, LoadLibraryEx, LoadPackagedLibrary,
-        /// or GetModuleHandle function returns this handle. The GetProcAddress function does not retrieve addresses from modules
-        /// that were loaded using the LOAD_LIBRARY_AS_DATAFILE flag.For more information, see LoadLibraryEx.
-        /// </param>
-        /// <param name="procName">
-        /// The function or variable name, or the function's ordinal value. If this parameter is an ordinal value, it must be
-        /// in the low-order word; the high-order word must be zero.
-        /// </param>
-        /// <returns>
-        /// If the function succeeds, the return value is the address of the exported function or variable. If the function
-        /// fails, the return value is NULL.To get extended error information, call GetLastError.
-        /// </returns>
-        [DllImport("kernel32", CharSet = CharSet.Ansi, ExactSpelling = true, SetLastError = true)]
-        public static extern IntPtr GetProcAddress(IntPtr hModule, string procName);
-
-        /// <summary>
-        /// See https://docs.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-openprocess.
-        /// Opens an existing local process object.
-        /// </summary>
-        /// <param name="processAccess">
-        /// The access to the process object. This access right is checked against the security descriptor for the process.
-        /// This parameter can be one or more of the process access rights. If the caller has enabled the SeDebugPrivilege
-        /// privilege, the requested access is granted regardless of the contents of the security descriptor.
-        /// </param>
-        /// <param name="bInheritHandle">
-        /// If this value is TRUE, processes created by this process will inherit the handle. Otherwise, the processes do
-        /// not inherit this handle.
-        /// </param>
-        /// <param name="processId">
-        /// The identifier of the local process to be opened.
-        /// </param>
-        /// <returns>
-        /// If the function succeeds, the return value is an open handle to the specified process. If the function fails, the
-        /// return value is NULL.To get extended error information, call GetLastError.
+        /// If the function succeeds, the return value is nonzero. If the function fails, the return value is zero. To get
+        /// extended error information, call GetLastError.
         /// </returns>
         [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern IntPtr OpenProcess(
-            ProcessAccessFlags processAccess,
-            bool bInheritHandle,
-            int processId);
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool GetExitCodeThread(IntPtr hThread, out uint lpExitCode);
 
         /// <summary>
         /// See https://docs.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-virtualallocex.
@@ -529,6 +732,27 @@ namespace Dalamud.Injector
             IntPtr lpAddress,
             int dwSize,
             AllocationType dwFreeType);
+
+        /// <summary>
+        /// Waits until the specified object is in the signaled state or the time-out interval elapses. To enter an alertable wait
+        /// state, use the WaitForSingleObjectEx function.To wait for multiple objects, use WaitForMultipleObjects.
+        /// </summary>
+        /// <param name="hHandle">
+        /// A handle to the object. For a list of the object types whose handles can be specified, see the following Remarks section.
+        /// If this handle is closed while the wait is still pending, the function's behavior is undefined. The handle must have the
+        /// SYNCHRONIZE access right. For more information, see Standard Access Rights.
+        /// </param>
+        /// <param name="dwMilliseconds">
+        /// The time-out interval, in milliseconds. If a nonzero value is specified, the function waits until the object is signaled
+        /// or the interval elapses. If dwMilliseconds is zero, the function does not enter a wait state if the object is not signaled;
+        /// it always returns immediately. If dwMilliseconds is INFINITE, the function will return only when the object is signaled.
+        /// </param>
+        /// <returns>
+        /// If the function succeeds, the return value indicates the event that caused the function to return.
+        /// It can be one of the WaitResult values.
+        /// </returns>
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern uint WaitForSingleObject(IntPtr hHandle, uint dwMilliseconds);
 
         /// <summary>
         /// Writes data to an area of memory in a specified process. The entire area to be written to must be accessible or
