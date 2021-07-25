@@ -11,13 +11,13 @@ namespace Dalamud.Game.Network.MarketBoardUploaders.Universalis
         /// Gets or sets the object ID of the retainer associated with the sale.
         /// </summary>
         [JsonProperty("retainerID")]
-        public ulong RetainerId { get; set; }
+        public string RetainerId { get; set; }
 
         /// <summary>
         /// Gets or sets the object ID of the item listing.
         /// </summary>
         [JsonProperty("listingID")]
-        public ulong ListingId { get; set; }
+        public string ListingId { get; set; }
 
         /// <summary>
         /// Gets or sets the item ID of the item that was purchased.

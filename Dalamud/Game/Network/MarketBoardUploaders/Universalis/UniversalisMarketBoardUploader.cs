@@ -152,8 +152,8 @@ namespace Dalamud.Game.Network.Universalis.MarketBoardUploaders
                 ItemId = itemId,
                 PricePerUnit = purchaseHandler.PricePerUnit,
                 Quantity = purchaseHandler.ItemQuantity,
-                ListingId = purchaseHandler.ListingId,
-                RetainerId = purchaseHandler.RetainerId,
+                ListingId = purchaseHandler.ListingId.ToString(),
+                RetainerId = purchaseHandler.RetainerId.ToString(),
                 UploaderId = this.dalamud.ClientState.LocalContentId.ToString(),
             };
 
