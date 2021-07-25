@@ -22,7 +22,7 @@ namespace Dalamud.Game.Network.MarketBoardUploaders
         /// <summary>
         /// Upload information about a purchase this client has made.
         /// </summary>
-        /// <param name="purchase">That thing with Louisiana.</param>
-        void UploadPurchase(MarketBoardPurchase purchase);
+        /// <param name="purchaseHandler">The purchase handler data associated with the sale.</param>
+        void UploadPurchase(MarketBoardPurchaseHandler purchaseHandler);
     }
 }
