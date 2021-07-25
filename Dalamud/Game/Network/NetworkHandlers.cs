@@ -17,7 +17,7 @@ namespace Dalamud.Game.Network
     /// <summary>
     /// This class handles network notifications and uploading market board data.
     /// </summary>
-    public class NetworkHandlers
+    internal class NetworkHandlers
     {
         private readonly Dalamud dalamud;
 
