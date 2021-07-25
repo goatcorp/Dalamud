@@ -78,8 +78,8 @@ namespace Dalamud.Game.Network.Universalis.MarketBoardUploaders
             }
 
             var upload = JsonConvert.SerializeObject(listingsRequestObject);
-            client.UploadString(ApiBase + $"/upload/{ApiKey}", "POST", upload);
             Log.Verbose(upload);
+            client.UploadString(ApiBase + $"/upload/{ApiKey}", "POST", upload);
 
             var historyRequestObject = new UniversalisHistoryUploadRequest();
             historyRequestObject.WorldId = this.dalamud.ClientState.LocalPlayer?.CurrentWorld.Id ?? 0;
@@ -103,8 +103,8 @@ namespace Dalamud.Game.Network.Universalis.MarketBoardUploaders
             client.Headers.Add(HttpRequestHeader.ContentType, "application/json");
 
             var historyUpload = JsonConvert.SerializeObject(historyRequestObject);
-            client.UploadString(ApiBase + $"/upload/{ApiKey}", "POST", historyUpload);
             Log.Verbose(historyUpload);
+            client.UploadString(ApiBase + $"/upload/{ApiKey}", "POST", historyUpload);
 
             Log.Verbose("Universalis data upload for item#{0} completed.", request.CatalogId);
         }
@@ -131,8 +131,8 @@ namespace Dalamud.Game.Network.Universalis.MarketBoardUploaders
             client.Headers.Add(HttpRequestHeader.ContentType, "application/json");
 
             var historyUpload = JsonConvert.SerializeObject(taxRatesRequest);
-            client.UploadString(ApiBase + $"/upload/{ApiKey}", "POST", historyUpload);
             Log.Verbose(historyUpload);
+            client.UploadString(ApiBase + $"/upload/{ApiKey}", "POST", historyUpload);
 
             Log.Verbose("Universalis tax upload completed.");
         }
@@ -156,9 +156,11 @@ namespace Dalamud.Game.Network.Universalis.MarketBoardUploaders
                 UploaderId = this.dalamud.ClientState.LocalContentId.ToString(),
             };
 
+            var requestPath = ApiBase + $"/api/{worldId}/{itemId}/delete";
             var purchaseUpload = JsonConvert.SerializeObject(purchaseRequest);
-            client.UploadString(ApiBase + $"/api/{worldId}/{itemId}/delete", "POST", purchaseUpload);
+            Log.Verbose($"Making request to {requestPath}");
             Log.Verbose(purchaseUpload);
+            client.UploadString(requestPath, "POST", purchaseUpload);
 
             Log.Verbose("Universalis purchase upload completed.");
         }
