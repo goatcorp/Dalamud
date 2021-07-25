@@ -138,21 +138,30 @@ namespace Dalamud.Game.Network.Universalis.MarketBoardUploaders
         }
 
         /// <inheritdoc/>
-        public void UploadPurchase(MarketBoardPurchase purchase)
+        public void UploadPurchase(MarketBoardPurchaseHandler purchaseHandler)
         {
             using var client = new WebClient();
             client.Headers.Add(HttpRequestHeader.ContentType, "application/json");
             client.Headers.Add(HttpRequestHeader.Authorization, ApiKey);
 
-            var purchaseRequest = new UniversalisMarketBoardPurchaseRequest();
-
+            var itemId = purchaseHandler.CatalogId;
             var worldId = this.dalamud.ClientState.LocalPlayer?.CurrentWorld.Id ?? 0;
 
+            var purchaseRequest = new UniversalisItemListingDeleteRequest
+            {
+                ItemId = itemId,
+                PricePerUnit = purchaseHandler.PricePerUnit,
+                Quantity = purchaseHandler.ItemQuantity,
+                ListingId = purchaseHandler.ListingId,
+                RetainerId = purchaseHandler.RetainerId,
+                UploaderId = this.dalamud.ClientState.LocalContentId.ToString(),
+            };
+
             var purchaseUpload = JsonConvert.SerializeObject(purchaseRequest);
-            client.UploadString(ApiBase + $"/{purchase.CatalogId}/{worldId}/delete", "POST", purchaseUpload);
+            client.UploadString(ApiBase + $"/{itemId}/{worldId}/delete", "POST", purchaseUpload);
             Log.Verbose(purchaseUpload);
 
-            Log.Verbose("Universalis tax upload completed.");
+            Log.Verbose("Universalis purchase upload completed.");
         }
     }
 }
