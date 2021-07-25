@@ -18,25 +18,14 @@ using System.Diagnostics.CodeAnalysis;
 // Extensions
 [assembly: SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1402:File may only contain a single type", Justification = "Group extensions with the relevant class", Scope = "type", Target = "~T:Dalamud.Interface.FontAwesomeExtensions")]
 [assembly: SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1649:File name should match first type name", Justification = "Enum followed by an extension", Scope = "type", Target = "~T:Dalamud.Interface.FontAwesomeExtensions")]
-[assembly: SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1402:File may only contain a single type", Justification = "Group extensions with the relevant class", Scope = "type", Target = "~T:Dalamud.Game.Internal.Gui.Structs.JobFlagsExtensions")]
-[assembly: SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1649:File name should match first type name", Justification = "Enum followed by an extension", Scope = "type", Target = "~T:Dalamud.Game.Internal.Gui.Structs.JobFlagsExtensions")]
+[assembly: SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1402:File may only contain a single type", Justification = "Group extensions with the relevant class", Scope = "type", Target = "~T:Dalamud.Game.Internal.Gui.Structs.JobFlagsExt")]
+[assembly: SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1649:File name should match first type name", Justification = "Enum followed by an extension", Scope = "type", Target = "~T:Dalamud.Game.Internal.Gui.Structs.JobFlagsExt")]
 [assembly: SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1402:File may only contain a single type", Justification = "Group extensions with the relevant class", Scope = "type", Target = "~T:Dalamud.Game.Text.XivChatTypeExtensions")]
 [assembly: SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1649:File name should match first type name", Justification = "Enum followed by an extension", Scope = "type", Target = "~T:Dalamud.Game.Text.XivChatTypeExtensions")]
 [assembly: SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1402:File may only contain a single type", Justification = "Group attributes with the relevant class", Scope = "type", Target = "~T:Dalamud.Game.Text.XivChatTypeInfoAttribute")]
 
-// NativeFunctions.cs
-[assembly: SuppressMessage("StyleCop.CSharp.NamingRules", "SA1307:Accessible fields should begin with upper-case letter", Justification = "Default Microsoft naming", Scope = "type", Target = "~T:Dalamud.NativeFunctions.FlashWindowInfo")]
-
-// EntryPoint.cs
-[assembly: SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Required by EasyHook", Scope = "member", Target = "~M:Dalamud.EntryPoint.#ctor(EasyHook.RemoteHooking.IContext,Dalamud.DalamudStartInfo)")]
-[assembly: SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Required by EasyHook", Scope = "member", Target = "~M:Dalamud.EntryPoint.Run(EasyHook.RemoteHooking.IContext,Dalamud.DalamudStartInfo)")]
-
 // DalamudStartInfo.cs
 [assembly: SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1401:Fields should be private", Justification = "Interop", Scope = "type", Target = "~T:Dalamud.DalamudStartInfo")]
-
-// AtkResNode.cs
-[assembly: SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "Inherit documentation or lack thereof from FFXIVClientStructs", Scope = "type", Target = "~T:Dalamud.Game.Internal.Gui.Structs.AtkResNode")]
-[assembly: SuppressMessage("StyleCop.CSharp.NamingRules", "SA1310:Field names should not contain underscore", Justification = "Inherit naming from FFXIVClientStructs", Scope = "type", Target = "~T:Dalamud.Game.Internal.Gui.Structs.AtkResNode")]
 
 // PartyFinder
 [assembly: SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1202:Elements should be ordered by access", Justification = "Explicit struct layout", Scope = "type", Target = "~T:Dalamud.Game.Internal.Gui.Structs.PartyFinder.Packet")]
@@ -48,10 +37,8 @@ using System.Diagnostics.CodeAnalysis;
 // <type>Offsets.cs
 [assembly: SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1204:Static elements should appear before instance elements", Justification = "Offset classes goto the end of file.", Scope = "type", Target = "~T:Dalamud.Game.ClientState.Actors.TargetOffsets")]
 [assembly: SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1402:File may only contain a single type", Justification = "Group offset classes with the relevant class.", Scope = "type", Target = "~T:Dalamud.Game.ClientState.Actors.TargetOffsets")]
-[assembly: SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1402:File may only contain a single type", Justification = "Group offset classes with the relevant class.", Scope = "type", Target = "~T:Dalamud.Game.ClientState.Structs.ActorOffsets")]
 [assembly: SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1402:File may only contain a single type", Justification = "Group offset classes with the relevant class.", Scope = "type", Target = "~T:Dalamud.Game.Internal.Gui.Structs.AddonOffsets")]
 [assembly: SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "Document the offset usage instead.", Scope = "type", Target = "~T:Dalamud.Game.ClientState.Actors.TargetOffsets")]
-[assembly: SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "Document the offset usage instead.", Scope = "type", Target = "~T:Dalamud.Game.ClientState.Structs.ActorOffsets")]
 [assembly: SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "Document the offset usage instead.", Scope = "type", Target = "~T:Dalamud.Game.Internal.Gui.Structs.AddonOffsets")]
 
 // Breaking api changes: these should be split into a PartyFinder subdirectory
@@ -68,39 +55,21 @@ using System.Diagnostics.CodeAnalysis;
 [assembly: SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "breaking api change", Scope = "member", Target = "~E:Dalamud.Game.Internal.Gui.PartyFinderGui.ReceiveListing")]
 
 // Breaking api changes
-[assembly: SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1401:Fields should be private", Justification = "breaking api change", Scope = "member", Target = "~F:Dalamud.Game.ClientState.Actors.Resolvers.ClassJob.Id")]
-[assembly: SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1401:Fields should be private", Justification = "breaking api change", Scope = "member", Target = "~F:Dalamud.Game.ClientState.Actors.Resolvers.World.Id")]
-[assembly: SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1401:Fields should be private", Justification = "breaking api change", Scope = "member", Target = "~F:Dalamud.Game.ClientState.Actors.Types.Actor.Address")]
 [assembly: SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1401:Fields should be private", Justification = "breaking api change", Scope = "member", Target = "~F:Dalamud.Game.Internal.BaseAddressResolver.DebugScannedValues")]
 [assembly: SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1401:Fields should be private", Justification = "breaking api change", Scope = "member", Target = "~F:Dalamud.Game.Internal.Gui.Addon.Addon.Address")]
 [assembly: SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1401:Fields should be private", Justification = "breaking api change", Scope = "member", Target = "~F:Dalamud.Game.Internal.Gui.Addon.Addon.addonStruct")]
 [assembly: SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1401:Fields should be private", Justification = "breaking api change", Scope = "member", Target = "~F:Dalamud.Game.Internal.Gui.GameGui.GetBaseUIObject")]
 [assembly: SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1401:Fields should be private", Justification = "breaking api change", Scope = "member", Target = "~F:Dalamud.Game.Text.SeStringHandling.Payload.DataResolver")]
-[assembly: SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1401:Fields should be private", Justification = "breaking api change", Scope = "member", Target = "~F:Dalamud.Game.ClientState.ClientState.Actors")]
-[assembly: SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1401:Fields should be private", Justification = "breaking api change", Scope = "member", Target = "~F:Dalamud.Game.ClientState.ClientState.TerritoryType")]
-[assembly: SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1401:Fields should be private", Justification = "breaking api change", Scope = "member", Target = "~F:Dalamud.Game.ClientState.ClientState.TerritoryChanged")]
-[assembly: SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1401:Fields should be private", Justification = "breaking api change", Scope = "member", Target = "~F:Dalamud.Game.ClientState.ClientState.ClientLanguage")]
-[assembly: SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1401:Fields should be private", Justification = "breaking api change", Scope = "member", Target = "~F:Dalamud.Game.ClientState.ClientState.JobGauges")]
-[assembly: SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1401:Fields should be private", Justification = "breaking api change", Scope = "member", Target = "~F:Dalamud.Game.ClientState.ClientState.PartyList")]
-[assembly: SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1401:Fields should be private", Justification = "breaking api change", Scope = "member", Target = "~F:Dalamud.Game.ClientState.ClientState.KeyState")]
-[assembly: SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1401:Fields should be private", Justification = "breaking api change", Scope = "member", Target = "~F:Dalamud.Game.ClientState.ClientState.GamepadState")]
-[assembly: SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1401:Fields should be private", Justification = "breaking api change", Scope = "member", Target = "~F:Dalamud.Game.ClientState.ClientState.Condition")]
-[assembly: SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1401:Fields should be private", Justification = "breaking api change", Scope = "member", Target = "~F:Dalamud.Game.ClientState.ClientState.Targets")]
-[assembly: SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1401:Fields should be private", Justification = "breaking api change", Scope = "member", Target = "~F:Dalamud.Interface.InterfaceManager.LastImGuiIoPtr")]
 [assembly: SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1401:Fields should be private", Justification = "breaking api change", Scope = "type", Target = "~T:Dalamud.Game.ClientState.Actors.Types.PartyMember")]
-[assembly: SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1401:Fields should be private", Justification = "breaking api change", Scope = "member", Target = "~F:Dalamud.Interface.InterfaceManager.OnBuildFonts")]
-[assembly: SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1201:Elements should appear in the correct order", Justification = "breaking api change", Scope = "member", Target = "~F:Dalamud.Game.ClientState.Actors.Types.Actor.Address")]
-[assembly: SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1202:Elements should be ordered by access", Justification = "breaking api change", Scope = "member", Target = "~F:Dalamud.Game.ClientState.Structs.JobGauge.BLMGauge.NumUmbralHearts")]
-[assembly: SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1202:Elements should be ordered by access", Justification = "breaking api change", Scope = "member", Target = "~F:Dalamud.Game.ClientState.Structs.JobGauge.DNCGauge.NumCompleteSteps")]
-[assembly: SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1202:Elements should be ordered by access", Justification = "breaking api change", Scope = "member", Target = "~F:Dalamud.Game.ClientState.Structs.JobGauge.DRKGauge.ShadowTimeRemaining")]
 [assembly: SuppressMessage("StyleCop.CSharp.NamingRules", "SA1310:Field names should not contain underscore", Justification = "breaking api change", Scope = "member", Target = "~F:Dalamud.Game.Text.SeStringHandling.Payload.START_BYTE")]
 [assembly: SuppressMessage("StyleCop.CSharp.NamingRules", "SA1310:Field names should not contain underscore", Justification = "breaking api change", Scope = "member", Target = "~F:Dalamud.Game.Text.SeStringHandling.Payload.END_BYTE")]
 [assembly: SuppressMessage("CodeQuality", "IDE0052:Remove unread private members", Justification = "Unused, but eventually, maybe.", Scope = "member", Target = "~F:Dalamud.Game.ClientState.PartyList.address")]
-[assembly: SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "breaking api change", Scope = "member", Target = "~E:Dalamud.Game.ClientState.ClientState.CfPop")]
-[assembly: SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1401:Fields should be private", Justification = "breaking api change", Scope = "member", Target = "~F:Dalamud.Game.Internal.Framework.StatsHistory")]
-[assembly: SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1201:Elements should appear in the correct order", Justification = "breaking api change", Scope = "member", Target = "~F:Dalamud.Game.Internal.Framework.StatsHistory")]
 [assembly: SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1204:Static elements should appear before instance elements", Justification = "breaking api change, move to util", Scope = "type", Target = "~T:Dalamud.Game.Text.EnumExtensions")]
 [assembly: SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1402:File may only contain a single type", Justification = "breaking api change, move to util", Scope = "type", Target = "~T:Dalamud.Game.Text.EnumExtensions")]
+[assembly: SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1201:Elements should appear in the correct order", Justification = "breaking api change", Scope = "member", Target = "~F:Dalamud.Game.Internal.Framework.StatsHistory")]
+[assembly: SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1401:Fields should be private", Justification = "breaking api change", Scope = "member", Target = "~F:Dalamud.Game.Internal.Framework.StatsHistory")]
+[assembly: SuppressMessage("Usage", "CA2211:Non-constant fields should not be visible", Justification = "breaking api change", Scope = "member", Target = "~F:Dalamud.Game.Internal.Framework.StatsHistory")]
+[assembly: SuppressMessage("Usage", "CA2208:Instantiate argument exceptions correctly", Justification = "Appears to be a bug, it is being used correctly", Scope = "member", Target = "~M:Dalamud.Data.DataManager.Initialize(System.String)")]
 
 // I mostly didnt care to do these.
 [assembly: SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1401:Fields should be private", Justification = "breaking api change", Scope = "member", Target = "~F:Dalamud.Game.Internal.Network.GameNetwork.OnNetworkMessage")]

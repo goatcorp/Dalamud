@@ -16,6 +16,16 @@ namespace Dalamud.Plugin
         Installer,
 
         /// <summary>
+        /// This plugin was loaded because it was just updated.
+        /// </summary>
+        Update,
+
+        /// <summary>
+        /// This plugin was loaded because it was told to reload.
+        /// </summary>
+        Reload,
+
+        /// <summary>
         /// This plugin was loaded because the game was started or Dalamud was reinjected.
         /// </summary>
         Boot,

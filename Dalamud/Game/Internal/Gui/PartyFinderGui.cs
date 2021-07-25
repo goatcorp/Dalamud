@@ -23,7 +23,7 @@ namespace Dalamud.Game.Internal.Gui
         /// </summary>
         /// <param name="scanner">The SigScanner instance.</param>
         /// <param name="dalamud">The Dalamud instance.</param>
-        public PartyFinderGui(SigScanner scanner, Dalamud dalamud)
+        internal PartyFinderGui(SigScanner scanner, Dalamud dalamud)
         {
             this.dalamud = dalamud;
 

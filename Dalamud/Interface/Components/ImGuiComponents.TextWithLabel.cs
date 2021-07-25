@@ -13,8 +13,7 @@ namespace Dalamud.Interface.Components
         /// <param name="label">The label for text.</param>
         /// <param name="value">The text value.</param>
         /// <param name="hint">The hint to show on hover.</param>
-        public static void TextWithLabel(
-            string label, string value, string hint = "")
+        public static void TextWithLabel(string label, string value, string hint = "")
         {
             ImGui.Text(label + ": ");
             ImGui.SameLine();

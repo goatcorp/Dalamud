@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 using Dalamud.Configuration;
 using Dalamud.Plugin;
+using Dalamud.Plugin.Internal.Types;
 using Newtonsoft.Json;
 using Serilog;
-
-using Encoding = System.Text.Encoding;
 
 namespace Dalamud
 {
@@ -27,9 +27,10 @@ namespace Dalamud
             {
                 var payload = new TroubleshootingPayload
                 {
-                    LoadedPlugins = dalamud.PluginManager.Plugins.Select(x => x.Definition).ToArray(),
+                    LoadedPlugins = dalamud.PluginManager.InstalledPlugins.Select(x => x.Manifest).ToArray(),
                     DalamudVersion = Util.AssemblyVersion,
-                    GameVersion = dalamud.StartInfo.GameVersion,
+                    DalamudGitHash = Util.GetGitHash(),
+                    GameVersion = dalamud.StartInfo.GameVersion.ToString(),
                     Language = dalamud.StartInfo.Language.ToString(),
                     DoDalamudTest = dalamud.Configuration.DoDalamudTest,
                     DoPluginTest = dalamud.Configuration.DoPluginTest,
@@ -48,9 +49,11 @@ namespace Dalamud
 
         private class TroubleshootingPayload
         {
-            public PluginDefinition[] LoadedPlugins { get; set; }
+            public PluginManifest[] LoadedPlugins { get; set; }
 
             public string DalamudVersion { get; set; }
+
+            public string DalamudGitHash { get; set; }
 
             public string GameVersion { get; set; }
 
@@ -62,7 +65,7 @@ namespace Dalamud
 
             public bool InterfaceLoaded { get; set; }
 
-            public List<ThirdRepoSetting> ThirdRepo { get; set; }
+            public List<ThirdPartyRepoSettings> ThirdRepo { get; set; }
         }
     }
 }

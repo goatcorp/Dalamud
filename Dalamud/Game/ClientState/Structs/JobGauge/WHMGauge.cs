@@ -8,22 +8,28 @@ namespace Dalamud.Game.ClientState.Structs.JobGauge
     [StructLayout(LayoutKind.Explicit)]
     public struct WHMGauge
     {
+        [FieldOffset(2)]
+        private short lilyTimer;
+
+        [FieldOffset(4)]
+        private byte numLilies;
+
+        [FieldOffset(5)]
+        private byte numBloodLily;
+
         /// <summary>
         /// Gets the time to next lily in milliseconds.
         /// </summary>
-        [FieldOffset(2)]
-        public short LilyTimer;
+        public short LilyTimer => this.lilyTimer;
 
         /// <summary>
         /// Gets the number of Lilies.
         /// </summary>
-        [FieldOffset(4)]
-        public byte NumLilies;
+        public byte NumLilies => this.numLilies;
 
         /// <summary>
         /// Gets the number of times the blood lily has been nourished.
         /// </summary>
-        [FieldOffset(5)]
-        public byte NumBloodLily;
+        public byte NumBloodLily => this.numBloodLily;
     }
 }

@@ -3,7 +3,8 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-using EasyHook;
+using CoreHook;
+using Dalamud.Hooking.Internal;
 
 namespace Dalamud.Hooking
 {
@@ -30,8 +31,8 @@ namespace Dalamud.Hooking
         {
             this.hookInfo = LocalHook.Create(address, detour, null); // Installs a hook here
             this.address = address;
-            this.original = Marshal.GetDelegateForFunctionPointer<T>(this.hookInfo.HookBypassAddress);
-            HookInfo.TrackedHooks.Add(new HookInfo() { Delegate = detour, Hook = this, Assembly = Assembly.GetCallingAssembly() });
+            this.original = Marshal.GetDelegateForFunctionPointer<T>(this.hookInfo.OriginalAddress);
+            HookManager.TrackedHooks.Add(new HookInfo() { Delegate = detour, Hook = this, Assembly = Assembly.GetCallingAssembly() });
         }
 
         /// <summary>
@@ -130,9 +131,8 @@ namespace Dalamud.Hooking
                 return;
             }
 
-            this.hookInfo.Dispose();
-
             this.IsDisposed = true;
+            this.hookInfo.Dispose();
         }
 
         /// <summary>

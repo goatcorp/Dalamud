@@ -1,5 +1,7 @@
 using System.Runtime.InteropServices;
 
+using FFXIVClientStructs.FFXIV.Component.GUI;
+
 namespace Dalamud.Game.Internal.Gui.Structs
 {
     /// <summary>

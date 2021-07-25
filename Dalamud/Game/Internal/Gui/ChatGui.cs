@@ -36,14 +36,14 @@ namespace Dalamud.Game.Internal.Gui
         /// <param name="baseAddress">The base address of the ChatManager.</param>
         /// <param name="scanner">The SigScanner instance.</param>
         /// <param name="dalamud">The Dalamud instance.</param>
-        public ChatGui(IntPtr baseAddress, SigScanner scanner, Dalamud dalamud)
+        internal ChatGui(IntPtr baseAddress, SigScanner scanner, Dalamud dalamud)
         {
             this.dalamud = dalamud;
 
             this.address = new ChatGuiAddressResolver(baseAddress);
             this.address.Setup(scanner);
 
-            Log.Verbose("Chat manager address {ChatManager}", this.address.BaseAddress);
+            Log.Verbose($"Chat manager address 0x{this.address.BaseAddress.ToInt64():X}");
 
             this.printMessageHook = new Hook<PrintMessageDelegate>(this.address.PrintMessage, this.HandlePrintMessageDetour);
             this.populateItemLinkHook = new Hook<PopulateItemLinkDelegate>(this.address.PopulateItemLinkObject, this.HandlePopulateItemLinkDetour);
@@ -184,7 +184,7 @@ namespace Dalamud.Game.Internal.Gui
             Log.Verbose("[CHATGUI PRINT REGULAR]{0}", message);
             this.PrintChat(new XivChatEntry
             {
-                MessageBytes = Encoding.UTF8.GetBytes(message),
+                Message = message,
                 Type = this.dalamud.Configuration.GeneralChatType,
             });
         }
@@ -199,7 +199,7 @@ namespace Dalamud.Game.Internal.Gui
             Log.Verbose("[CHATGUI PRINT SESTRING]{0}", message.TextValue);
             this.PrintChat(new XivChatEntry
             {
-                MessageBytes = message.Encode(),
+                Message = message,
                 Type = this.dalamud.Configuration.GeneralChatType,
             });
         }
@@ -214,7 +214,7 @@ namespace Dalamud.Game.Internal.Gui
             Log.Verbose("[CHATGUI PRINT REGULAR ERROR]{0}", message);
             this.PrintChat(new XivChatEntry
             {
-                MessageBytes = Encoding.UTF8.GetBytes(message),
+                Message = message,
                 Type = XivChatType.Urgent,
             });
         }
@@ -229,7 +229,7 @@ namespace Dalamud.Game.Internal.Gui
             Log.Verbose("[CHATGUI PRINT SESTRING ERROR]{0}", message.TextValue);
             this.PrintChat(new XivChatEntry
             {
-                MessageBytes = message.Encode(),
+                Message = message,
                 Type = XivChatType.Urgent,
             });
         }
@@ -249,10 +249,10 @@ namespace Dalamud.Game.Internal.Gui
                     continue;
                 }
 
-                var senderRaw = Encoding.UTF8.GetBytes(chat.Name ?? string.Empty);
+                var senderRaw = (chat.Name ?? string.Empty).Encode();
                 using var senderOwned = framework.Libc.NewString(senderRaw);
 
-                var messageRaw = chat.MessageBytes ?? new byte[0];
+                var messageRaw = (chat.Message ?? string.Empty).Encode();
                 using var messageOwned = framework.Libc.NewString(messageRaw);
 
                 this.HandlePrintMessageDetour(this.baseAddress, chat.Type, senderOwned.Address, messageOwned.Address, chat.SenderId, chat.Parameters);

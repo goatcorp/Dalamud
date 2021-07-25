@@ -7,15 +7,12 @@ jobs:
     name: Build on Windows
     runs-on: windows-2019
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout Dalamud
+        uses: actions/checkout@v2
         with:
           submodules: recursive
-      - name: Setup Nuget
-        uses: nuget/setup-nuget@v1
-        with:
-          nuget-version: latest
-      - name: Restore Nuget Packages
-        run: nuget restore Dalamud.sln
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v1.0.2
       - name: Define VERSION
         run: |
           $env:COMMIT = $env:GITHUB_SHA.Substring(0, 7)
@@ -25,18 +22,17 @@ jobs:
           ($env:REPO_NAME) >> VERSION
           ($env:BRANCH) >> VERSION
           ($env:COMMIT) >> VERSION
-      - name: Build DotNet4
-        run: |
-          cd "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\"
-          .\MSBuild.exe $Env:GITHUB_WORKSPACE\Dalamud.sln /t:Build /p:Configuration=Release /p:DefineConstants=XL_NOAUTOUPDATE
-      - name: Run xUnit Tests
-        run: |
-          ${{github.workspace}}\packages\xunit.runner.console.2.4.1\tools\net472\xunit.console.exe ${{github.workspace}}\Dalamud.Test\bin\Release\Dalamud.Test.dll
+      - name: Build Dalamud
+        run: .\build.ps1 compile
+      - name: Test Dalamud
+        run: .\build.ps1 test
+      - name: Create hashlist
+        run: .\CreateHashList.ps1 .\bin\Release
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
           name: dalamud-artifact
-          path: bin\
+          path: bin\Release
   
   deploy_stg:
     name: Deploy dalamud-distrib staging
@@ -54,7 +50,7 @@ jobs:
         path: .\scratch
 
     - name: Generate dalamud-distrib version file
-      shell: powershell
+      shell: pwsh
       run: |
         Compress-Archive .\scratch\* .\canary.zip  # Recreate the release zip
         

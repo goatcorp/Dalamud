@@ -8,10 +8,12 @@ namespace Dalamud.Game.ClientState.Structs.JobGauge
     [StructLayout(LayoutKind.Explicit)]
     public struct PLDGauge
     {
+        [FieldOffset(0)]
+        private byte gaugeAmount;
+
         /// <summary>
         /// Gets the current level of the Oath gauge.
         /// </summary>
-        [FieldOffset(0)]
-        public byte GaugeAmount;
+        public byte GaugeAmount => this.gaugeAmount;
     }
 }

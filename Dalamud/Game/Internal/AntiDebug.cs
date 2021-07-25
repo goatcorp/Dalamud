@@ -29,13 +29,13 @@ namespace Dalamud.Game.Internal
                 this.debugCheckAddress = IntPtr.Zero;
             }
 
-            Log.Verbose("DebugCheck address {DebugCheckAddress}", this.debugCheckAddress);
+            Log.Verbose($"Debug check address 0x{this.debugCheckAddress.ToInt64():X}");
         }
 
         /// <summary>
         /// Gets a value indicating whether the anti-debugging is enabled.
         /// </summary>
-        public bool IsEnabled { get; private set; }
+        public bool IsEnabled { get; private set; } = false;
 
         /// <summary>
         /// Enables the anti-debugging by overwriting code in memory.
@@ -45,7 +45,7 @@ namespace Dalamud.Game.Internal
             this.original = new byte[this.nop.Length];
             if (this.debugCheckAddress != IntPtr.Zero && !this.IsEnabled)
             {
-                Log.Information($"Overwriting debug check @ 0x{this.debugCheckAddress.ToInt64():X}");
+                Log.Information($"Overwriting debug check at 0x{this.debugCheckAddress.ToInt64():X}");
                 SafeMemory.ReadBytes(this.debugCheckAddress, this.nop.Length, out this.original);
                 SafeMemory.WriteBytes(this.debugCheckAddress, this.nop);
             }
@@ -64,7 +64,7 @@ namespace Dalamud.Game.Internal
         {
             if (this.debugCheckAddress != IntPtr.Zero && this.original != null)
             {
-                Log.Information($"Reverting debug check @ 0x{this.debugCheckAddress.ToInt64():X}");
+                Log.Information($"Reverting debug check at 0x{this.debugCheckAddress.ToInt64():X}");
                 SafeMemory.WriteBytes(this.debugCheckAddress, this.original);
             }
             else
@@ -110,9 +110,11 @@ namespace Dalamud.Game.Internal
             {
                 // If anti-debug is enabled and is being disposed, odds are either the game is exiting, or Dalamud is being reloaded.
                 // If it is the latter, there's half a chance a debugger is currently attached. There's no real need to disable the
-                // check in either situation anyways.
-                // this.Disable();
+                // check in either situation anyways. However if Dalamud is being reloaded, the sig may fail so may as well undo it.
+                this.Disable();
             }
+
+            this.disposed = true;
         }
     }
 }

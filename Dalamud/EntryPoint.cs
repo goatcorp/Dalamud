@@ -1,11 +1,13 @@
 using System;
 using System.IO;
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Dalamud.Interface;
-using EasyHook;
+using Dalamud.Configuration.Internal;
+using Dalamud.Interface.Internal;
+using Newtonsoft.Json;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
@@ -15,28 +17,41 @@ namespace Dalamud
     /// <summary>
     /// The main entrypoint for the Dalamud system.
     /// </summary>
-    public sealed class EntryPoint : IEntryPoint
+    public sealed class EntryPoint
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="EntryPoint"/> class.
+        /// A delegate used during initialization of the CLR from Dalamud.Boot.
         /// </summary>
-        /// <param name="ctx">The <see cref="RemoteHooking.IContext"/> used to load the DLL.</param>
-        /// <param name="info">The <see cref="DalamudStartInfo"/> containing information needed to initialize Dalamud.</param>
-        public EntryPoint(RemoteHooking.IContext ctx, DalamudStartInfo info)
+        /// <param name="infoPtr">Pointer to a serialized <see cref="DalamudStartInfo"/> data.</param>
+        public delegate void InitDelegate(IntPtr infoPtr);
+
+        /// <summary>
+        /// Initialize Dalamud.
+        /// </summary>
+        /// <param name="infoPtr">Pointer to a serialized <see cref="DalamudStartInfo"/> data.</param>
+        public static void Initialize(IntPtr infoPtr)
         {
-            // Required by EasyHook
+            var infoStr = Marshal.PtrToStringAnsi(infoPtr);
+            var info = JsonConvert.DeserializeObject<DalamudStartInfo>(infoStr);
+
+            new Thread(() => RunThread(info)).Start();
         }
 
         /// <summary>
         /// Initialize all Dalamud subsystems and start running on the main thread.
         /// </summary>
-        /// <param name="ctx">The <see cref="RemoteHooking.IContext"/> used to load the DLL.</param>
         /// <param name="info">The <see cref="DalamudStartInfo"/> containing information needed to initialize Dalamud.</param>
-        public void Run(RemoteHooking.IContext ctx, DalamudStartInfo info)
+        private static void RunThread(DalamudStartInfo info)
         {
+            // Load configuration first to get some early persistent state, like log level
+            var configuration = DalamudConfiguration.Load(info.ConfigurationPath);
+
             // Setup logger
-            var (logger, levelSwitch) = this.NewLogger(info.WorkingDirectory);
-            Log.Logger = logger;
+            var levelSwitch = InitLogging(info.WorkingDirectory, configuration);
+
+            // Log any unhandled exception.
+            AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
+            TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
 
             var finishSignal = new ManualResetEvent(false);
 
@@ -46,14 +61,9 @@ namespace Dalamud
                 Log.Information("Initializing a session..");
 
                 // This is due to GitHub not supporting TLS 1.0, so we enable all TLS versions globally
-                System.Net.ServicePointManager.SecurityProtocol =
-                    SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12 | SecurityProtocolType.Tls | SecurityProtocolType.Ssl3;
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12 | SecurityProtocolType.Tls;
 
-                // Log any unhandled exception.
-                AppDomain.CurrentDomain.UnhandledException += this.OnUnhandledException;
-                TaskScheduler.UnobservedTaskException += this.OnUnobservedTaskException;
-
-                var dalamud = new Dalamud(info, levelSwitch, finishSignal);
+                var dalamud = new Dalamud(info, levelSwitch, finishSignal, configuration);
                 Log.Information("Starting a session..");
 
                 // Run session
@@ -68,7 +78,8 @@ namespace Dalamud
             }
             finally
             {
-                AppDomain.CurrentDomain.UnhandledException -= this.OnUnhandledException;
+                TaskScheduler.UnobservedTaskException -= OnUnobservedTaskException;
+                AppDomain.CurrentDomain.UnhandledException -= OnUnhandledException;
 
                 Log.Information("Session has ended.");
                 Log.CloseAndFlush();
@@ -77,7 +88,7 @@ namespace Dalamud
             }
         }
 
-        private (Logger Logger, LoggingLevelSwitch LevelSwitch) NewLogger(string baseDirectory)
+        private static LoggingLevelSwitch InitLogging(string baseDirectory, DalamudConfiguration configuration)
         {
 #if DEBUG
             var logPath = Path.Combine(baseDirectory, "dalamud.log");
@@ -90,35 +101,34 @@ namespace Dalamud
 #if DEBUG
             levelSwitch.MinimumLevel = LogEventLevel.Verbose;
 #else
-            levelSwitch.MinimumLevel = LogEventLevel.Information;
+            levelSwitch.MinimumLevel = configuration.LogLevel;
 #endif
-
-            var newLogger = new LoggerConfiguration()
-                   .WriteTo.Async(a => a.File(logPath))
+            Log.Logger = new LoggerConfiguration()
+                   .WriteTo.Async(a => a.File(logPath, fileSizeLimitBytes: 5 * 1024 * 1024, rollOnFileSizeLimit: true))
                    .WriteTo.Sink(SerilogEventSink.Instance)
                    .MinimumLevel.ControlledBy(levelSwitch)
                    .CreateLogger();
 
-            return (newLogger, levelSwitch);
+            return levelSwitch;
         }
 
-        private void OnUnhandledException(object sender, UnhandledExceptionEventArgs arg)
+        private static void OnUnhandledException(object sender, UnhandledExceptionEventArgs args)
         {
-            switch (arg.ExceptionObject)
+            switch (args.ExceptionObject)
             {
                 case Exception ex:
                     Log.Fatal(ex, "Unhandled exception on AppDomain");
                     break;
                 default:
-                    Log.Fatal("Unhandled SEH object on AppDomain: {Object}", arg.ExceptionObject);
+                    Log.Fatal("Unhandled SEH object on AppDomain: {Object}", args.ExceptionObject);
                     break;
             }
         }
 
-        private void OnUnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
+        private static void OnUnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs args)
         {
-            if (!e.Observed)
-                Log.Error(e.Exception, "Unobserved exception in Task.");
+            if (!args.Observed)
+                Log.Error(args.Exception, "Unobserved exception in Task.");
         }
     }
 }

@@ -1,10 +1,10 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Threading;
-using System.Threading.Tasks;
 
-using Dalamud.Configuration;
+using Dalamud.Configuration.Internal;
 using Dalamud.Data;
 using Dalamud.Game;
 using Dalamud.Game.Addon;
@@ -13,25 +13,30 @@ using Dalamud.Game.Command;
 using Dalamud.Game.Internal;
 using Dalamud.Game.Network;
 using Dalamud.Game.Text.SeStringHandling;
-using Dalamud.Interface;
-using Dalamud.Plugin;
+using Dalamud.Hooking.Internal;
+using Dalamud.Interface.Internal;
+using Dalamud.Memory;
+using Dalamud.Plugin.Internal;
 using Serilog;
 using Serilog.Core;
+
+#if DEBUG
+// This allows for rapid prototyping of Dalamud modules with access to internal objects.
+[assembly: InternalsVisibleTo("Dalamud.CorePlugin")]
+#endif
 
 namespace Dalamud
 {
     /// <summary>
     /// The main Dalamud class containing all subsystems.
     /// </summary>
-    public sealed class Dalamud : IDisposable
+    internal sealed class Dalamud : IDisposable
     {
         #region Internals
 
         private readonly ManualResetEvent unloadSignal;
 
         private readonly ManualResetEvent finishUnloadSignal;
-
-        private readonly string baseDirectory;
 
         private bool hasDisposedPlugins = false;
 
@@ -43,12 +48,17 @@ namespace Dalamud
         /// <param name="info">DalamudStartInfo instance.</param>
         /// <param name="loggingLevelSwitch">LoggingLevelSwitch to control Serilog level.</param>
         /// <param name="finishSignal">Signal signalling shutdown.</param>
-        public Dalamud(DalamudStartInfo info, LoggingLevelSwitch loggingLevelSwitch, ManualResetEvent finishSignal)
+        /// <param name="configuration">The Dalamud configuration.</param>
+        public Dalamud(DalamudStartInfo info, LoggingLevelSwitch loggingLevelSwitch, ManualResetEvent finishSignal, DalamudConfiguration configuration)
         {
+#if DEBUG
+            Instance = this;
+#endif
             this.StartInfo = info;
             this.LogLevelSwitch = loggingLevelSwitch;
+            this.Configuration = configuration;
 
-            this.baseDirectory = info.WorkingDirectory;
+            // this.baseDirectory = info.WorkingDirectory;
 
             this.unloadSignal = new ManualResetEvent(false);
             this.unloadSignal.Reset();
@@ -56,6 +66,13 @@ namespace Dalamud
             this.finishUnloadSignal = finishSignal;
             this.finishUnloadSignal.Reset();
         }
+
+#if DEBUG
+        /// <summary>
+        /// Gets the Dalamud singleton instance.
+        /// </summary>
+        internal static Dalamud Instance { get; private set; }
+#endif
 
         #region Native Game Subsystems
 
@@ -75,6 +92,11 @@ namespace Dalamud
         internal WinSockHandlers WinSock2 { get; private set; }
 
         /// <summary>
+        /// Gets Hook management subsystem.
+        /// </summary>
+        internal HookManager HookManager { get; private set; }
+
+        /// <summary>
         /// Gets ImGui Interface subsystem.
         /// </summary>
         internal InterfaceManager InterfaceManager { get; private set; }
@@ -92,11 +114,6 @@ namespace Dalamud
         /// Gets Plugin Manager subsystem.
         /// </summary>
         internal PluginManager PluginManager { get; private set; }
-
-        /// <summary>
-        /// Gets Plugin Repository subsystem.
-        /// </summary>
-        internal PluginRepository PluginRepository { get; private set; }
 
         /// <summary>
         /// Gets Data provider subsystem.
@@ -203,6 +220,7 @@ namespace Dalamud
                 // Initialize the process information.
                 this.TargetModule = Process.GetCurrentProcess().MainModule;
                 this.SigScanner = new SigScanner(this.TargetModule, true);
+                this.HookManager = new HookManager(this);
 
                 // Initialize game subsystem
                 this.Framework = new Framework(this.SigScanner, this);
@@ -211,6 +229,10 @@ namespace Dalamud
 
                 this.Framework.Enable();
                 Log.Information("[T1] Framework ENABLE!");
+
+                // Initialize FFXIVClientStructs function resolver
+                FFXIVClientStructs.Resolver.Initialize();
+                Log.Information("[T1] FFXIVClientStructs initialized!");
             }
             catch (Exception ex)
             {
@@ -226,11 +248,12 @@ namespace Dalamud
         {
             try
             {
-                this.Configuration = DalamudConfiguration.Load(this.StartInfo.ConfigurationPath);
-
                 this.AntiDebug = new AntiDebug(this.SigScanner);
+                if (this.Configuration.IsAntiAntiDebugEnabled)
+                    this.AntiDebug.Enable();
 #if DEBUG
-                this.AntiDebug.Enable();
+                if (!this.AntiDebug.IsEnabled)
+                    this.AntiDebug.Enable();
 #endif
 
                 Log.Information("[T2] AntiDebug OK!");
@@ -286,6 +309,7 @@ namespace Dalamud
                 Log.Information("[T2] Data OK!");
 
                 this.SeStringManager = new SeStringManager(this.Data);
+                MemoryHelper.Initialize(this);  // For SeString handling
 
                 Log.Information("[T2] SeString OK!");
 
@@ -324,28 +348,21 @@ namespace Dalamud
             {
                 Log.Information("[T3] START!");
 
-                this.PluginRepository =
-                    new PluginRepository(this, this.StartInfo.PluginDirectory, this.StartInfo.GameVersion);
-
-                Log.Information("[T3] PREPO OK!");
-
                 if (!bool.Parse(Environment.GetEnvironmentVariable("DALAMUD_NOT_HAVE_PLUGINS") ?? "false"))
                 {
                     try
                     {
-                        this.PluginRepository.CleanupPlugins();
-
-                        Log.Information("[T3] PRC OK!");
-
-                        this.PluginManager = new PluginManager(
-                            this,
-                            this.StartInfo.PluginDirectory,
-                            this.StartInfo.DefaultPluginDirectory);
-                        this.PluginManager.LoadSynchronousPlugins();
-
-                        Task.Run(() => this.PluginManager.LoadDeferredPlugins());
+                        this.PluginManager = new PluginManager(this);
+                        this.PluginManager.OnInstalledPluginsChanged += () =>
+                            Troubleshooting.LogTroubleshooting(this, this.InterfaceManager.IsReady);
 
                         Log.Information("[T3] PM OK!");
+
+                        this.PluginManager.CleanupPlugins();
+                        Log.Information("[T3] PMC OK!");
+
+                        this.PluginManager.LoadAllPlugins();
+                        Log.Information("[T3] PML OK!");
                     }
                     catch (Exception ex)
                     {
@@ -354,11 +371,9 @@ namespace Dalamud
                 }
 
                 this.DalamudUi = new DalamudInterface(this);
-                this.InterfaceManager.OnDraw += this.DalamudUi.Draw;
-
                 Log.Information("[T3] DUI OK!");
 
-                Troubleshooting.LogTroubleshooting(this, this.InterfaceManager != null);
+                Troubleshooting.LogTroubleshooting(this, this.InterfaceManager.IsReady);
 
                 Log.Information("Dalamud is ready.");
             }
@@ -407,16 +422,9 @@ namespace Dalamud
             // use any resources that it freed in its own Dispose method
             this.InterfaceManager?.Dispose();
 
-            try
-            {
-                this.PluginManager.UnloadPlugins();
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Plugin unload failed.");
-            }
-
             this.DalamudUi?.Dispose();
+
+            this.PluginManager?.Dispose();
         }
 
         /// <summary>
@@ -433,19 +441,22 @@ namespace Dalamud
                 }
 
                 this.Framework?.Dispose();
+
                 this.ClientState?.Dispose();
 
                 this.unloadSignal?.Dispose();
 
                 this.WinSock2?.Dispose();
 
-                this.SigScanner?.Dispose();
-
                 this.Data?.Dispose();
 
                 this.AntiDebug?.Dispose();
 
                 this.SystemMenu?.Dispose();
+
+                this.HookManager?.Dispose();
+
+                this.SigScanner?.Dispose();
 
                 Log.Debug("Dalamud::Dispose() OK!");
             }

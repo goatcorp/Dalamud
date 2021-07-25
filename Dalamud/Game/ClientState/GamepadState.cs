@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 using Dalamud.Game.ClientState.Structs;
 using Dalamud.Hooking;
@@ -12,7 +12,7 @@ namespace Dalamud.Game.ClientState
     ///
     /// Will block game's gamepad input if <see cref="ImGuiConfigFlags.NavEnableGamepad"/> is set.
     /// </summary>
-    public unsafe class GamepadState
+    public unsafe class GamepadState : IDisposable
     {
         private readonly Hook<ControllerPoll> gamepadPoll;
 
@@ -29,12 +29,8 @@ namespace Dalamud.Game.ClientState
         /// <param name="resolver">Resolver knowing the pointer to the GamepadPoll function.</param>
         public GamepadState(ClientStateAddressResolver resolver)
         {
-#if DEBUG
-            Log.Verbose("GamepadPoll address {GamepadPoll}", resolver.GamepadPoll);
-#endif
-            this.gamepadPoll = new Hook<ControllerPoll>(
-                resolver.GamepadPoll,
-                (ControllerPoll)this.GamepadPollDetour);
+            Log.Verbose($"GamepadPoll address 0x{resolver.GamepadPoll.ToInt64():X}");
+            this.gamepadPoll = new Hook<ControllerPoll>(resolver.GamepadPoll, this.GamepadPollDetour);
         }
 
         /// <summary>

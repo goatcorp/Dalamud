@@ -2,6 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 
 using Dalamud.Game.ClientState.Actors.Types;
+using JetBrains.Annotations;
 
 namespace Dalamud.Game.ClientState.Actors
 {
@@ -10,8 +11,8 @@ namespace Dalamud.Game.ClientState.Actors
     /// </summary>
     public sealed class Targets
     {
-        private Dalamud dalamud;
-        private ClientStateAddressResolver address;
+        private readonly Dalamud dalamud;
+        private readonly ClientStateAddressResolver address;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Targets"/> class.
@@ -27,26 +28,31 @@ namespace Dalamud.Game.ClientState.Actors
         /// <summary>
         /// Gets the current target.
         /// </summary>
+        [CanBeNull]
         public Actor CurrentTarget => this.GetActorByOffset(TargetOffsets.CurrentTarget);
 
         /// <summary>
         /// Gets the mouseover target.
         /// </summary>
+        [CanBeNull]
         public Actor MouseOverTarget => this.GetActorByOffset(TargetOffsets.MouseOverTarget);
 
         /// <summary>
         /// Gets the focus target.
         /// </summary>
+        [CanBeNull]
         public Actor FocusTarget => this.GetActorByOffset(TargetOffsets.FocusTarget);
 
         /// <summary>
         /// Gets the previous target.
         /// </summary>
+        [CanBeNull]
         public Actor PreviousTarget => this.GetActorByOffset(TargetOffsets.PreviousTarget);
 
         /// <summary>
         /// Gets the soft target.
         /// </summary>
+        [CanBeNull]
         public Actor SoftTarget => this.GetActorByOffset(TargetOffsets.SoftTarget);
 
         /// <summary>
@@ -91,6 +97,7 @@ namespace Dalamud.Game.ClientState.Actors
             Marshal.WriteIntPtr(this.address.TargetManager, offset, actorAddress);
         }
 
+        [CanBeNull]
         private Actor GetActorByOffset(int offset)
         {
             if (this.address.TargetManager == IntPtr.Zero)
@@ -100,7 +107,7 @@ namespace Dalamud.Game.ClientState.Actors
             if (actorAddress == IntPtr.Zero)
                 return null;
 
-            return this.dalamud.ClientState.Actors.ReadActorFromMemory(actorAddress);
+            return this.dalamud.ClientState.Actors.CreateActorReference(actorAddress);
         }
     }
 

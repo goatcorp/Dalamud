@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -17,12 +16,10 @@ namespace Dalamud
     public static class SafeMemory
     {
         private static readonly IntPtr Handle;
-        private static readonly IntPtr MainModule;
 
         static SafeMemory()
         {
             Handle = Imports.GetCurrentProcess();
-            MainModule = Process.GetCurrentProcess().MainModule?.BaseAddress ?? IntPtr.Zero;
         }
 
         /// <summary>

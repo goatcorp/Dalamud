@@ -6,6 +6,11 @@ namespace Dalamud.Game.Text.SeStringHandling
     public enum PayloadType
     {
         /// <summary>
+        /// An unknown SeString.
+        /// </summary>
+        Unknown,
+
+        /// <summary>
         /// An SeString payload representing a player link.
         /// </summary>
         Player,
@@ -66,9 +71,9 @@ namespace Dalamud.Game.Text.SeStringHandling
         DalamudLink,
 
         /// <summary>
-        /// An SeString payload representing any data we don't handle.
+        /// An SeString payload representing a newline character.
         /// </summary>
-        Unknown,
+        NewLine,
 
         /// <summary>
         /// An SeString payload representing a doublewide SE hypen.

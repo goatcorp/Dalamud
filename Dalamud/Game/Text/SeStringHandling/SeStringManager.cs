@@ -88,7 +88,7 @@ namespace Dalamud.Game.Text.SeStringHandling
         /// <returns>An SeString containing all the payloads necessary to display an item link in the chat log.</returns>
         public SeString CreateItemLink(Item item, bool isHQ, string displayNameOverride = null)
         {
-            return this.CreateItemLink((uint)item.RowId, isHQ, displayNameOverride ?? item.Name);
+            return this.CreateItemLink(item.RowId, isHQ, displayNameOverride ?? item.Name);
         }
 
         /// <summary>

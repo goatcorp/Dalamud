@@ -27,7 +27,7 @@ namespace Dalamud.Game.Command
         /// </summary>
         /// <param name="dalamud">The Dalamud instance.</param>
         /// <param name="language">The client language requested.</param>
-        public CommandManager(Dalamud dalamud, ClientLanguage language)
+        internal CommandManager(Dalamud dalamud, ClientLanguage language)
         {
             this.dalamud = dalamud;
 
@@ -128,7 +128,8 @@ namespace Dalamud.Game.Command
         /// <returns>If adding was successful.</returns>
         public bool AddHandler(string command, CommandInfo info)
         {
-            if (info == null) throw new ArgumentNullException(nameof(info), "Command handler is null.");
+            if (info == null)
+                throw new ArgumentNullException(nameof(info), "Command handler is null.");
 
             try
             {

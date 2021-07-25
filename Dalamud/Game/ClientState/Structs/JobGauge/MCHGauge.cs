@@ -8,38 +8,48 @@ namespace Dalamud.Game.ClientState.Structs.JobGauge
     [StructLayout(LayoutKind.Explicit)]
     public struct MCHGauge
     {
+        [FieldOffset(0)]
+        private short overheatTimeRemaining;
+
+        [FieldOffset(2)]
+        private short robotTimeRemaining;
+
+        [FieldOffset(4)]
+        private byte heat;
+
+        [FieldOffset(5)]
+        private byte battery;
+
+        [FieldOffset(6)]
+        private byte lastRobotBatteryPower;
+
+        [FieldOffset(7)]
+        private byte timerActive;
+
         /// <summary>
         /// Gets the time time remaining for Overheat in milliseconds.
         /// </summary>
-        [FieldOffset(0)]
-        public short OverheatTimeRemaining;
+        public short OverheatTimeRemaining => this.overheatTimeRemaining;
 
         /// <summary>
         /// Gets the time remaining for the Rook or Queen in milliseconds.
         /// </summary>
-        [FieldOffset(2)]
-        public short RobotTimeRemaining;
+        public short RobotTimeRemaining => this.robotTimeRemaining;
 
         /// <summary>
         /// Gets the current Heat level.
         /// </summary>
-        [FieldOffset(4)]
-        public byte Heat;
+        public byte Heat => this.heat;
 
         /// <summary>
         /// Gets the current Battery level.
         /// </summary>
-        [FieldOffset(5)]
-        public byte Battery;
+        public byte Battery => this.battery;
 
         /// <summary>
         /// Gets the battery level of the last Robot.
         /// </summary>
-        [FieldOffset(6)]
-        public byte LastRobotBatteryPower;
-
-        [FieldOffset(7)]
-        private byte timerActive;
+        public byte LastRobotBatteryPower => this.lastRobotBatteryPower;
 
         /// <summary>
         /// Gets if the player is currently Overheated.

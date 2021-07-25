@@ -143,9 +143,6 @@ namespace Dalamud.Interface.Windowing
         /// </summary>
         internal void DrawInternal()
         {
-            // if (WindowName.Contains("Credits"))
-            //     Log.Information($"Draw: {IsOpen} {this.internalIsOpen} {this.internalLastIsOpen}");
-
             if (!this.IsOpen)
             {
                 if (this.internalIsOpen != this.internalLastIsOpen)
