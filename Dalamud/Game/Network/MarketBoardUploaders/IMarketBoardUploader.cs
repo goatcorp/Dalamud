@@ -18,5 +18,11 @@ namespace Dalamud.Game.Network.MarketBoardUploaders
         /// </summary>
         /// <param name="taxRates">The tax rate data being uploaded.</param>
         void UploadTax(MarketTaxRates taxRates);
+
+        /// <summary>
+        /// Upload information about a purchase this client has made.
+        /// </summary>
+        /// <param name="purchaseHandler">The purchase handler data associated with the sale.</param>
+        void UploadPurchase(MarketBoardPurchaseHandler purchaseHandler);
     }
 }

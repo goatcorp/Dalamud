@@ -15,9 +15,9 @@ using Serilog;
 namespace Dalamud.Game.Network
 {
     /// <summary>
-    /// This class handles network notifications and uploading Marketboard data.
+    /// This class handles network notifications and uploading market board data.
     /// </summary>
-    public class NetworkHandlers
+    internal class NetworkHandlers
     {
         private readonly Dalamud dalamud;
 
@@ -26,12 +26,14 @@ namespace Dalamud.Game.Network
         private readonly bool optOutMbUploads;
         private readonly IMarketBoardUploader uploader;
 
+        private MarketBoardPurchaseHandler marketBoardPurchaseHandler;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="NetworkHandlers"/> class.
         /// </summary>
         /// <param name="dalamud">The Dalamud instance.</param>
-        /// <param name="optOutMbUploads">Whether the client should opt out of marketboard uploads.</param>
-        internal NetworkHandlers(Dalamud dalamud, bool optOutMbUploads)
+        /// <param name="optOutMbUploads">Whether the client should opt out of market board uploads.</param>
+        public NetworkHandlers(Dalamud dalamud, bool optOutMbUploads)
         {
             this.dalamud = dalamud;
             this.optOutMbUploads = optOutMbUploads;
@@ -48,11 +50,21 @@ namespace Dalamud.Game.Network
 
         private void OnNetworkMessage(IntPtr dataPtr, ushort opCode, uint sourceActorId, uint targetActorId, NetworkMessageDirection direction)
         {
-            if (direction != NetworkMessageDirection.ZoneDown)
-                return;
-
             if (!this.dalamud.Data.IsDataReady)
                 return;
+
+            if (direction == NetworkMessageDirection.ZoneUp)
+            {
+                if (!this.optOutMbUploads)
+                {
+                    if (opCode == this.dalamud.Data.ClientOpCodes["MarketBoardPurchaseHandler"])
+                    {
+                        this.marketBoardPurchaseHandler = MarketBoardPurchaseHandler.Read(dataPtr);
+                    }
+                }
+
+                return;
+            }
 
             if (opCode == this.dalamud.Data.ServerOpCodes["CfNotifyPop"])
             {
@@ -255,6 +267,26 @@ namespace Dalamud.Game.Network
                     {
                         Log.Error(ex, "Market Board data upload failed.");
                     }
+                }
+
+                if (opCode == this.dalamud.Data.ServerOpCodes["MarketBoardPurchase"])
+                {
+                    if (this.marketBoardPurchaseHandler == null)
+                        return;
+
+                    var purchase = MarketBoardPurchase.Read(dataPtr);
+
+                    // Transaction succeeded
+                    if (purchase.ItemQuantity == this.marketBoardPurchaseHandler.ItemQuantity
+                        && (purchase.CatalogId == this.marketBoardPurchaseHandler.CatalogId
+                            || purchase.CatalogId == this.marketBoardPurchaseHandler.CatalogId + 1000000))
+                    { // HQ
+                        Log.Information("Bought " + purchase.ItemQuantity + "x " + this.marketBoardPurchaseHandler.CatalogId + " for " + (this.marketBoardPurchaseHandler.PricePerUnit * purchase.ItemQuantity) + " gils, listing id is " + this.marketBoardPurchaseHandler.ListingId);
+                        var handler = this.marketBoardPurchaseHandler; // Capture the object so that we don't pass in a null one when the task starts.
+                        Task.Run(() => this.uploader.UploadPurchase(handler));
+                    }
+
+                    this.marketBoardPurchaseHandler = null;
                 }
             }
         }
