@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 
 using Dalamud.Memory;
+using Microsoft.Win32;
 
 namespace Dalamud.Hooking.Internal
 {
@@ -33,8 +34,32 @@ namespace Dalamud.Hooking.Internal
             {
                 if (checkLinuxOnce)
                 {
-                    var value = Environment.GetEnvironmentVariable("XL_WINEONLINUX");
-                    isRunningLinux = value is not null;
+                    checkLinuxOnce = false;
+
+                    bool Check1()
+                    {
+                        return Environment.GetEnvironmentVariable("XL_WINEONLINUX") != null;
+                    }
+
+                    bool Check2()
+                    {
+                        var hModule = NativeFunctions.GetModuleHandleW("ntdll.dll");
+                        var proc1 = NativeFunctions.GetProcAddress(hModule, "wine_get_version");
+                        var proc2 = NativeFunctions.GetProcAddress(hModule, "wine_get_build_id");
+
+                        return proc1 != IntPtr.Zero || proc2 != IntPtr.Zero;
+                    }
+
+                    bool Check3()
+                    {
+                        return Registry.CurrentUser.OpenSubKey(@"Software\Wine") != null ||
+                               Registry.LocalMachine.OpenSubKey(@"Software\Wine") != null;
+                    }
+
+                    if (isRunningLinux = Check1() || Check2() || Check3())
+                    {
+                        Log.Information($"Dalamud detected running on Wine");
+                    }
                 }
 
                 return isRunningLinux;
@@ -47,9 +72,9 @@ namespace Dalamud.Hooking.Internal
         internal static List<HookInfo> TrackedHooks { get; } = new();
 
         /// <summary>
-        /// Gets a static list of original code for a hooked address.
+        /// Gets a static dictionary of original code for a hooked address.
         /// </summary>
-        internal static List<(IntPtr Address, byte[] Original)> Originals { get; } = new();
+        internal static Dictionary<IntPtr, byte[]> Originals { get; } = new();
 
         /// <inheritdoc/>
         public void Dispose()
@@ -74,7 +99,7 @@ namespace Dalamud.Hooking.Internal
 
                 if (i > 0)
                 {
-                    Log.Debug($"Reverting hook at 0x{address.ToInt64():X}");
+                    Log.Verbose($"Reverting hook at 0x{address.ToInt64():X}");
                     fixed (byte* original = originalBytes)
                     {
                         MemoryHelper.ChangePermission(address, i, MemoryProtection.ExecuteReadWrite, out var oldPermissions);

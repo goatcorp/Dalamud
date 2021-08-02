@@ -60,7 +60,6 @@
 
     <ItemGroup>
         <PackageReference Include="CheapLoc" Version="1.1.5" />
-        <PackageReference Include="CoreHook" Version="1.0.4" />
         <PackageReference Include="JetBrains.Annotations" Version="2021.1.0" />
         <PackageReference Include="Lib.Harmony" Version="2.1.0" />
         <PackageReference Include="Lumina" Version="3.3.0" />
@@ -105,12 +104,6 @@
             <Generator>ResXFileCodeGenerator</Generator>
             <LastGenOutput>Resources.Designer.cs</LastGenOutput>
         </EmbeddedResource>
-    </ItemGroup>
-
-    <ItemGroup>
-        <None Include="corehook64.dll">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
     </ItemGroup>
 
     <Target Name="AddRuntimeDependenciesToContent" BeforeTargets="GetCopyToOutputDirectoryItems" DependsOnTargets="GenerateBuildDependencyFile;GenerateBuildRuntimeConfigurationFiles">

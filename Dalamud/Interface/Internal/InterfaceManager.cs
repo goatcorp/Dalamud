@@ -104,8 +104,8 @@ namespace Dalamud.Interface.Internal
 
             this.setCursorHook = HookManager.DirtyLinuxUser ? null
                 : Hook<SetCursorDelegate>.FromSymbol("user32.dll", "SetCursor", this.SetCursorDetour);
-            this.presentHook = new Hook<PresentDelegate>(this.address.Present, this.PresentDetour, true);
-            this.resizeBuffersHook = new Hook<ResizeBuffersDelegate>(this.address.ResizeBuffers, this.ResizeBuffersDetour, true);
+            this.presentHook = new Hook<PresentDelegate>(this.address.Present, this.PresentDetour);
+            this.resizeBuffersHook = new Hook<ResizeBuffersDelegate>(this.address.ResizeBuffers, this.ResizeBuffersDetour);
 
             var setCursorAddress = this.setCursorHook?.Address ?? IntPtr.Zero;
 
@@ -190,7 +190,7 @@ namespace Dalamud.Interface.Internal
         /// </summary>
         public void Enable()
         {
-            this.setCursorHook.Enable();
+            this.setCursorHook?.Enable();
             this.presentHook.Enable();
             this.resizeBuffersHook.Enable();
 
@@ -226,7 +226,7 @@ namespace Dalamud.Interface.Internal
             Thread.Sleep(500);
 
             this.scene?.Dispose();
-            this.setCursorHook.Dispose();
+            this.setCursorHook?.Dispose();
             this.presentHook.Dispose();
             this.resizeBuffersHook.Dispose();
         }
@@ -502,7 +502,7 @@ namespace Dalamud.Interface.Internal
 
         private void Disable()
         {
-            this.setCursorHook.Disable();
+            this.setCursorHook?.Disable();
             this.presentHook.Disable();
             this.resizeBuffersHook.Disable();
         }

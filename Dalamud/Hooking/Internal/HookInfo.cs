@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 
@@ -13,15 +12,33 @@ namespace Dalamud.Hooking.Internal
         private ulong? inProcessMemory = 0;
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="HookInfo"/> class.
+        /// </summary>
+        /// <param name="hook">The tracked hook.</param>
+        /// <param name="hookDelegate">The hook delegate.</param>
+        /// <param name="assembly">The assembly implementing the hook.</param>
+        public HookInfo(IDalamudHook hook, Delegate hookDelegate, Assembly assembly)
+        {
+            this.Hook = hook;
+            this.Delegate = hookDelegate;
+            this.Assembly = assembly;
+        }
+
+        /// <summary>
         /// Gets the RVA of the hook.
         /// </summary>
         internal ulong? InProcessMemory
         {
             get
             {
-                if (this.Hook.IsDisposed) return 0;
-                if (this.inProcessMemory == null) return null;
-                if (this.inProcessMemory.Value > 0) return this.inProcessMemory.Value;
+                if (this.Hook.IsDisposed)
+                    return 0;
+
+                if (this.inProcessMemory == null)
+                    return null;
+
+                if (this.inProcessMemory.Value > 0)
+                    return this.inProcessMemory.Value;
 
                 var p = Process.GetCurrentProcess().MainModule;
                 var begin = (ulong)p.BaseAddress.ToInt64();
@@ -30,30 +47,28 @@ namespace Dalamud.Hooking.Internal
 
                 if (hookAddr >= begin && hookAddr <= end)
                 {
-                    this.inProcessMemory = hookAddr - begin;
-                    return this.inProcessMemory.Value;
+                    return this.inProcessMemory = hookAddr - begin;
                 }
                 else
                 {
-                    this.inProcessMemory = null;
-                    return null;
+                    return this.inProcessMemory = null;
                 }
             }
         }
 
         /// <summary>
-        /// Gets or sets the tracked hook.
+        /// Gets the tracked hook.
         /// </summary>
-        internal IDalamudHook Hook { get; set; }
+        internal IDalamudHook Hook { get; }
 
         /// <summary>
-        /// Gets or sets the tracked delegate.
+        /// Gets the tracked delegate.
         /// </summary>
-        internal Delegate Delegate { get; set; }
+        internal Delegate Delegate { get; }
 
         /// <summary>
-        /// Gets or sets the hooked assembly.
+        /// Gets the hooked assembly.
         /// </summary>
-        internal Assembly Assembly { get; set; }
+        internal Assembly Assembly { get; }
     }
 }
