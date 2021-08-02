@@ -10,6 +10,7 @@ using Dalamud.Game;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.Internal.DXGI;
 using Dalamud.Hooking;
+using Dalamud.Hooking.Internal;
 using ImGuiNET;
 using ImGuiScene;
 using Serilog;
@@ -101,17 +102,17 @@ namespace Dalamud.Interface.Internal
                 Log.Error(e, "RTSS Free failed");
             }
 
-            var user32 = NativeFunctions.GetModuleHandleW("user32.dll");
-            var setCursorAddr = NativeFunctions.GetProcAddress(user32, "SetCursor");
+            this.setCursorHook = HookManager.DirtyLinuxUser ? null
+                : Hook<SetCursorDelegate>.FromSymbol("user32.dll", "SetCursor", this.SetCursorDetour);
+            this.presentHook = new Hook<PresentDelegate>(this.address.Present, this.PresentDetour, true);
+            this.resizeBuffersHook = new Hook<ResizeBuffersDelegate>(this.address.ResizeBuffers, this.ResizeBuffersDetour, true);
+
+            var setCursorAddress = this.setCursorHook?.Address ?? IntPtr.Zero;
 
             Log.Verbose("===== S W A P C H A I N =====");
-            Log.Verbose($"SetCursor address 0x{setCursorAddr.ToInt64():X}");
-            Log.Verbose($"Present address 0x{this.address.Present.ToInt64():X}");
-            Log.Verbose($"ResizeBuffers address 0x{this.address.ResizeBuffers.ToInt64():X}");
-
-            this.setCursorHook = new Hook<SetCursorDelegate>(setCursorAddr, this.SetCursorDetour);
-            this.presentHook = new Hook<PresentDelegate>(this.address.Present, this.PresentDetour);
-            this.resizeBuffersHook = new Hook<ResizeBuffersDelegate>(this.address.ResizeBuffers, this.ResizeBuffersDetour);
+            Log.Verbose($"SetCursor address 0x{setCursorAddress.ToInt64():X}");
+            Log.Verbose($"Present address 0x{this.presentHook.Address.ToInt64():X}");
+            Log.Verbose($"ResizeBuffers address 0x{this.resizeBuffersHook.Address.ToInt64():X}");
         }
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
