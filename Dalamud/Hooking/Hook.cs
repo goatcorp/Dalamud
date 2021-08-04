@@ -1,10 +1,13 @@
 using System;
+using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-using CoreHook;
 using Dalamud.Hooking.Internal;
+using Dalamud.Memory;
+using Iced.Intel;
+using Reloaded.Hooks;
+using Serilog;
 
 namespace Dalamud.Hooking
 {
@@ -16,10 +19,7 @@ namespace Dalamud.Hooking
     public sealed class Hook<T> : IDisposable, IDalamudHook where T : Delegate
     {
         private readonly IntPtr address;
-
-        private readonly T original;
-
-        private readonly LocalHook hookInfo;
+        private readonly Reloaded.Hooks.Definitions.IHook<T> hookImpl;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Hook{T}"/> class.
@@ -29,23 +29,19 @@ namespace Dalamud.Hooking
         /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
         public Hook(IntPtr address, T detour)
         {
-            this.hookInfo = LocalHook.Create(address, detour, null); // Installs a hook here
-            this.address = address;
-            this.original = Marshal.GetDelegateForFunctionPointer<T>(this.hookInfo.OriginalAddress);
-            HookManager.TrackedHooks.Add(new HookInfo() { Delegate = detour, Hook = this, Assembly = Assembly.GetCallingAssembly() });
-        }
+            address = FollowJmp(address);
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Hook{T}"/> class.
-        /// Hook is not activated until Enable() method is called.
-        /// </summary>
-        /// <param name="address">A memory address to install a hook.</param>
-        /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
-        /// <param name="callbackParam">A callback object which can be accessed within the detour.</param>
-        [Obsolete("There is no need to specify new YourDelegateType or callbackParam", true)]
-        public Hook(IntPtr address, Delegate detour, object callbackParam = null)
-            : this(address, detour as T)
-        {
+            var hasOtherHooks = HookManager.Originals.ContainsKey(address);
+            if (!hasOtherHooks)
+            {
+                MemoryHelper.ReadRaw(address, 0x32, out var original);
+                HookManager.Originals[address] = original;
+            }
+
+            this.address = address;
+            this.hookImpl = ReloadedHooks.Instance.CreateHook<T>(detour, address.ToInt64());
+
+            HookManager.TrackedHooks.Add(new HookInfo(this, detour, Assembly.GetCallingAssembly()));
         }
 
         /// <summary>
@@ -54,7 +50,6 @@ namespace Dalamud.Hooking
         /// <exception cref="ObjectDisposedException">Hook is already disposed.</exception>
         public IntPtr Address
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 this.CheckDisposed();
@@ -68,11 +63,10 @@ namespace Dalamud.Hooking
         /// <exception cref="ObjectDisposedException">Hook is already disposed.</exception>
         public T Original
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 this.CheckDisposed();
-                return this.original;
+                return this.hookImpl.OriginalFunction;
             }
         }
 
@@ -84,7 +78,7 @@ namespace Dalamud.Hooking
             get
             {
                 this.CheckDisposed();
-                return this.hookInfo.ThreadACL.IsExclusive;
+                return this.hookImpl.IsHookEnabled;
             }
         }
 
@@ -95,7 +89,7 @@ namespace Dalamud.Hooking
 
         /// <summary>
         /// Creates a hook. Hooking address is inferred by calling to GetProcAddress() function.
-        /// Hook is not activated until Enable() method is called.
+        /// The hook is not activated until Enable() method is called.
         /// </summary>
         /// <param name="moduleName">A name of the module currently loaded in the memory. (e.g. ws2_32.dll).</param>
         /// <param name="exportName">A name of the exported function name (e.g. send).</param>
@@ -103,23 +97,16 @@ namespace Dalamud.Hooking
         /// <returns>The hook with the supplied parameters.</returns>
         public static Hook<T> FromSymbol(string moduleName, string exportName, T detour)
         {
-            // Get a function address from the symbol name.
-            var address = LocalHook.GetProcAddress(moduleName, exportName);
+            var moduleHandle = NativeFunctions.GetModuleHandleW(moduleName);
+            if (moduleHandle == IntPtr.Zero)
+                throw new Exception($"Could not get a handle to module {moduleName}");
 
-            return new Hook<T>(address, detour);
+            var procAddress = NativeFunctions.GetProcAddress(moduleHandle, exportName);
+            if (procAddress == IntPtr.Zero)
+                throw new Exception($"Could not get the address of {moduleName}::{exportName}");
+
+            return new Hook<T>(procAddress, detour);
         }
-
-        /// <summary>
-        /// Creates a hook. Hooking address is inferred by calling to GetProcAddress() function.
-        /// Hook is not activated until Enable() method is called.
-        /// </summary>
-        /// <param name="moduleName">A name of the module currently loaded in the memory. (e.g. ws2_32.dll).</param>
-        /// <param name="exportName">A name of the exported function name (e.g. send).</param>
-        /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
-        /// <param name="callbackParam">A callback object which can be accessed within the detour.</param>
-        /// <returns>The hook with the supplied parameters.</returns>
-        [Obsolete("There is no need to specify new YourDelegateType or callbackParam", true)]
-        public static Hook<T> FromSymbol(string moduleName, string exportName, Delegate detour, object callbackParam = null) => FromSymbol(moduleName, exportName, detour as T);
 
         /// <summary>
         /// Remove a hook from the current process.
@@ -127,12 +114,12 @@ namespace Dalamud.Hooking
         public void Dispose()
         {
             if (this.IsDisposed)
-            {
                 return;
-            }
 
             this.IsDisposed = true;
-            this.hookInfo.Dispose();
+
+            if (this.hookImpl.IsHookEnabled)
+                this.hookImpl.Disable();
         }
 
         /// <summary>
@@ -142,7 +129,11 @@ namespace Dalamud.Hooking
         {
             this.CheckDisposed();
 
-            this.hookInfo.ThreadACL.SetExclusiveACL(null);
+            if (!this.hookImpl.IsHookActivated)
+                this.hookImpl.Activate();
+
+            if (!this.hookImpl.IsHookEnabled)
+                this.hookImpl.Enable();
         }
 
         /// <summary>
@@ -152,10 +143,86 @@ namespace Dalamud.Hooking
         {
             this.CheckDisposed();
 
-            this.hookInfo.ThreadACL.SetInclusiveACL(null);
+            if (!this.hookImpl.IsHookActivated)
+                return;
+
+            if (this.hookImpl.IsHookEnabled)
+                this.hookImpl.Disable();
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        /// <summary>
+        /// Follow a JMP or Jcc instruction to the next logical location.
+        /// </summary>
+        /// <param name="address">Address of the instruction.</param>
+        /// <returns>The address referenced by the jmp.</returns>
+        private static IntPtr FollowJmp(IntPtr address)
+        {
+            while (true)
+            {
+                var hasOtherHooks = HookManager.Originals.ContainsKey(address);
+                if (hasOtherHooks)
+                {
+                    // This address has been hooked already. Do not follow a jmp into a trampoline of our own making.
+                    Log.Verbose($"Detected hook trampoline at {address.ToInt64():X}, stopping jump resolution.");
+                    return address;
+                }
+
+                var bytes = MemoryHelper.ReadRaw(address, 8);
+
+                var codeReader = new ByteArrayCodeReader(bytes);
+                var decoder = Decoder.Create(64, codeReader);
+                decoder.IP = (ulong)address.ToInt64();
+                decoder.Decode(out var inst);
+
+                if (inst.Mnemonic == Mnemonic.Jmp)
+                {
+                    var kind = inst.Op0Kind;
+
+                    IntPtr newAddress;
+                    switch (inst.Op0Kind)
+                    {
+                        case OpKind.NearBranch64:
+                        case OpKind.NearBranch32:
+                        case OpKind.NearBranch16:
+                            newAddress = (IntPtr)inst.NearBranchTarget;
+                            break;
+                        case OpKind.Immediate16:
+                        case OpKind.Immediate8to16:
+                        case OpKind.Immediate8to32:
+                        case OpKind.Immediate8to64:
+                        case OpKind.Immediate32to64:
+                        case OpKind.Immediate32 when IntPtr.Size == 4:
+                        case OpKind.Immediate64:
+                            newAddress = (IntPtr)inst.GetImmediate(0);
+                            break;
+                        case OpKind.Memory when inst.IsIPRelativeMemoryOperand:
+                            newAddress = (IntPtr)inst.IPRelativeMemoryAddress;
+                            newAddress = Marshal.ReadIntPtr(newAddress);
+                            break;
+                        case OpKind.Memory:
+                            newAddress = (IntPtr)inst.MemoryDisplacement64;
+                            newAddress = Marshal.ReadIntPtr(newAddress);
+                            break;
+                        default:
+                            var debugBytes = string.Join(" ", bytes.Take(inst.Length).Select(b => $"{b:X2}"));
+                            throw new Exception($"Unknown OpKind {inst.Op0Kind} from {debugBytes}");
+                    }
+
+                    Log.Verbose($"Resolving assembly jump ({kind}) from {address.ToInt64():X} to {newAddress.ToInt64():X}");
+                    address = newAddress;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            return address;
+        }
+
+        /// <summary>
+        /// Check if this object has been disposed already.
+        /// </summary>
         private void CheckDisposed()
         {
             if (this.IsDisposed)

@@ -12,6 +12,7 @@ using Dalamud.Game.ClientState;
 using Dalamud.Game.Command;
 using Dalamud.Game.Internal;
 using Dalamud.Game.Network;
+using Dalamud.Game.Network.Internal;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Hooking.Internal;
 using Dalamud.Interface.Internal;

@@ -1,11 +1,11 @@
 using System;
 
-namespace Dalamud.Hooking.Internal
+namespace Dalamud.Hooking
 {
     /// <summary>
     /// Interface describing a generic hook.
     /// </summary>
-    internal interface IDalamudHook
+    public interface IDalamudHook
     {
         /// <summary>
         /// Gets the address to hook.
