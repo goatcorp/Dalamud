@@ -20,7 +20,7 @@ namespace Dalamud.Memory
     public static unsafe class MemoryHelper
     {
         private static SeStringManager seStringManager;
-        private static IntPtr handle;
+        // private static IntPtr handle;
 
         #region Read
 
@@ -565,7 +565,7 @@ namespace Dalamud.Memory
         public static void ReadProcessMemory(IntPtr memoryAddress, ref byte[] value)
         {
             var length = value.Length;
-            var result = NativeFunctions.ReadProcessMemory(handle, memoryAddress, value, length, out _);
+            var result = NativeFunctions.ReadProcessMemory((IntPtr)0xFFFFFFFF, memoryAddress, value, length, out _);
 
             if (!result)
                 throw new MemoryReadException($"Unable to read memory at 0x{memoryAddress.ToInt64():X} of length {length} (result={result})");
@@ -584,7 +584,7 @@ namespace Dalamud.Memory
         public static void WriteProcessMemory(IntPtr memoryAddress, byte[] data)
         {
             var length = data.Length;
-            var result = NativeFunctions.WriteProcessMemory(handle, memoryAddress, data, length, out _);
+            var result = NativeFunctions.WriteProcessMemory((IntPtr)0xFFFFFFFF, memoryAddress, data, length, out _);
 
             if (!result)
                 throw new MemoryWriteException($"Unable to write memory at 0x{memoryAddress.ToInt64():X} of length {length} (result={result})");
@@ -643,7 +643,7 @@ namespace Dalamud.Memory
         internal static void Initialize(Dalamud dalamud)
         {
             seStringManager = dalamud.SeStringManager;
-            handle = Process.GetCurrentProcess().Handle;
+            // handle = Process.GetCurrentProcess().Handle;
         }
     }
 }
