@@ -29,10 +29,10 @@ namespace Dalamud.Game
         /// Initializes a new instance of the <see cref="Framework"/> class.
         /// </summary>
         /// <param name="scanner">The SigScanner instance.</param>
-        /// <param name="dalamud">The Dalamud instance.</param>
-        internal Framework(SigScanner scanner, Dalamud dalamud)
+        internal Framework()
         {
-            this.dalamud = dalamud;
+            var scanner = Service<SigScanner>.Get();
+            this.dalamud = Service<Dalamud>.Get();
             this.Address = new FrameworkAddressResolver();
             this.Address.Setup(scanner);
 

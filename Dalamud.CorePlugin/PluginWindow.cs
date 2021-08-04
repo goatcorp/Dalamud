@@ -11,16 +11,14 @@ namespace Dalamud.CorePlugin
     /// </summary>
     internal class PluginWindow : Window, IDisposable
     {
-        private readonly Dalamud dalamud;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PluginWindow"/> class.
         /// </summary>
         /// <param name="dalamud">The Dalamud instance.</param>
-        public PluginWindow(Dalamud dalamud)
-            : base("CorePlugin")
+        public PluginWindow()
+            : base("CorePlugin", ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar)
         {
-            this.dalamud = dalamud;
             this.IsOpen = true;
 
             this.Size = new Vector2(810, 520);

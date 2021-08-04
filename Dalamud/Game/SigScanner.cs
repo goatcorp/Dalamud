@@ -39,6 +39,15 @@ namespace Dalamud.Game
         }
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="SigScanner"/> class.
+        /// </summary>
+        /// <param name="doCopy">Whether or not to copy the module upon initialization for search operations to use, as to not get disturbed by possible hooks.</param>
+        public SigScanner(bool doCopy = false)
+            : this(Process.GetCurrentProcess().MainModule!, doCopy)
+        {
+        }
+
+        /// <summary>
         /// Gets a value indicating whether or not the search on this module is performed on a copy.
         /// </summary>
         public bool IsCopy { get; }

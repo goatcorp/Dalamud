@@ -19,10 +19,8 @@ namespace Dalamud.Hooking.Internal
         /// <summary>
         /// Initializes a new instance of the <see cref="HookManager"/> class.
         /// </summary>
-        /// <param name="dalamud">Dalamud instance.</param>
-        internal HookManager(Dalamud dalamud)
+        public HookManager()
         {
-            _ = dalamud;
         }
 
         /// <summary>

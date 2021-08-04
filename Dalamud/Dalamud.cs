@@ -50,9 +50,8 @@ namespace Dalamud
         /// <param name="configuration">The Dalamud configuration.</param>
         public Dalamud(DalamudStartInfo info, LoggingLevelSwitch loggingLevelSwitch, ManualResetEvent finishSignal, DalamudConfiguration configuration)
         {
-#if DEBUG
-            Instance = this;
-#endif
+            Service<Dalamud>.Set(this);
+
             this.StartInfo = info;
             this.LogLevelSwitch = loggingLevelSwitch;
             this.Configuration = configuration;
@@ -217,12 +216,11 @@ namespace Dalamud
             try
             {
                 // Initialize the process information.
-                this.TargetModule = Process.GetCurrentProcess().MainModule;
-                this.SigScanner = new SigScanner(this.TargetModule, true);
-                this.HookManager = new HookManager(this);
+                this.SigScanner = Service<SigScanner>.Set(new SigScanner(true));
+                this.HookManager = Service<HookManager>.Set();
 
                 // Initialize game subsystem
-                this.Framework = new Framework(this.SigScanner, this);
+                this.Framework = Service<Framework>.Set();
 
                 Log.Information("[T1] Framework OK!");
 
