@@ -30,7 +30,7 @@ namespace Dalamud.Plugin.Internal
         /// <param name="dalamud">Dalamud instance.</param>
         /// <param name="dllFile">Path to the DLL file.</param>
         /// <param name="manifest">The plugin manifest.</param>
-        public LocalDevPlugin(Dalamud dalamud, FileInfo dllFile, LocalPluginManifest manifest)
+        public LocalDevPlugin(Dalamud dalamud, FileInfo dllFile, LocalPluginManifest? manifest)
             : base(dalamud, dllFile, manifest)
         {
             if (!dalamud.Configuration.DevPluginSettings.TryGetValue(dllFile.FullName, out this.devSettings))

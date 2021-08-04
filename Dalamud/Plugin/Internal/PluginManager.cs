@@ -445,7 +445,7 @@ namespace Dalamud.Plugin.Internal
         /// <param name="isDev">If this plugin should support development features.</param>
         /// <param name="isBoot">If this plugin is being loaded at boot.</param>
         /// <param name="doNotLoad">Don't load the plugin, just don't do it.</param>
-        public void LoadPlugin(FileInfo dllFile, LocalPluginManifest manifest, PluginLoadReason reason, bool isDev = false, bool isBoot = false, bool doNotLoad = false)
+        public void LoadPlugin(FileInfo dllFile, LocalPluginManifest? manifest, PluginLoadReason reason, bool isDev = false, bool isBoot = false, bool doNotLoad = false)
         {
             var name = manifest?.Name ?? dllFile.Name;
             var loadPlugin = !doNotLoad;

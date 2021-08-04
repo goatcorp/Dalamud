@@ -5,6 +5,7 @@ using System.Reflection;
 
 using Dalamud.Game;
 using Dalamud.Logging.Internal;
+using Dalamud.IOC;
 using Dalamud.Plugin.Internal.Exceptions;
 using Dalamud.Plugin.Internal.Types;
 using McMaster.NETCore.Plugins;
@@ -26,8 +27,8 @@ namespace Dalamud.Plugin.Internal
 
         private PluginLoader loader;
         private Assembly pluginAssembly;
-        private Type pluginType;
-        private IDalamudPlugin instance;
+        private Type? pluginType;
+        private IDalamudPlugin? instance;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LocalPlugin"/> class.
@@ -35,13 +36,13 @@ namespace Dalamud.Plugin.Internal
         /// <param name="dalamud">Dalamud instance.</param>
         /// <param name="dllFile">Path to the DLL file.</param>
         /// <param name="manifest">The plugin manifest.</param>
-        public LocalPlugin(Dalamud dalamud, FileInfo dllFile, LocalPluginManifest manifest)
+        public LocalPlugin(Dalamud dalamud, FileInfo dllFile, LocalPluginManifest?manifest)
         {
             this.dalamud = dalamud;
             this.DllFile = dllFile;
             this.State = PluginState.Unloaded;
 
-            this.loader ??= PluginLoader.CreateFromAssemblyFile(
+            this.loader = PluginLoader.CreateFromAssemblyFile(
                 this.DllFile.FullName,
                 config =>
                 {
@@ -55,7 +56,7 @@ namespace Dalamud.Plugin.Internal
             try
             {
                 // BadImageFormatException
-                this.pluginAssembly ??= this.loader.LoadDefaultAssembly();
+                this.pluginAssembly = this.loader.LoadDefaultAssembly();
 
                 // InvalidOperationException
                 this.pluginType = this.pluginAssembly.GetTypes().First(type => type.IsAssignableTo(typeof(IDalamudPlugin)));
@@ -262,8 +263,17 @@ namespace Dalamud.Plugin.Internal
                 // Update the location for the Location and CodeBase patches
                 PluginManager.PluginLocations[this.pluginType.Assembly.FullName] = new(this.DllFile);
 
-                // Instantiate and initialize
-                this.instance = Activator.CreateInstance(this.pluginType) as IDalamudPlugin;
+                var ioc = Service<Container>.Get();
+
+                this.DalamudInterface = new DalamudPluginInterface(this.dalamud, this.pluginAssembly.GetName().Name!, this.DllFile.FullName, reason);
+
+                this.instance = ioc.Create(this.pluginType, this.DalamudInterface) as IDalamudPlugin;
+                if (this.instance == null)
+                {
+                    this.State = PluginState.LoadError;
+                    Log.Error($"Error while loading {this.Name} - failed to bind and call plugin ctor!");
+                    return;
+                }
 
                 // In-case the manifest name was a placeholder. Can occur when no manifest was included.
                 if (this.instance.Name != this.Manifest.Name)
@@ -272,29 +282,27 @@ namespace Dalamud.Plugin.Internal
                     this.Manifest.Save(this.manifestFile);
                 }
 
-                this.DalamudInterface = new DalamudPluginInterface(this.dalamud, this.pluginAssembly.GetName().Name, reason);
+                // if (this.IsDev)
+                // {
+                //     // Inherit LPL's AssemblyLocation functionality
+                //     try
+                //     {
+                //         var bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+                //
+                //         this.instance.GetType()
+                //             ?.GetProperty("AssemblyLocation", bindingFlags)
+                //             ?.SetValue(this.instance, this.DllFile.FullName);
+                //         this.instance.GetType()
+                //             ?.GetMethod("SetLocation", bindingFlags)
+                //             ?.Invoke(this.instance, new object[] { this.DllFile.FullName });
+                //     }
+                //     catch
+                //     {
+                //         // Ignored
+                //     }
+                // }
 
-                if (this.IsDev)
-                {
-                    // Inherit LPL's AssemblyLocation functionality
-                    try
-                    {
-                        var bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
-
-                        this.instance.GetType()
-                            ?.GetProperty("AssemblyLocation", bindingFlags)
-                            ?.SetValue(this.instance, this.DllFile.FullName);
-                        this.instance.GetType()
-                            ?.GetMethod("SetLocation", bindingFlags)
-                            ?.Invoke(this.instance, new object[] { this.DllFile.FullName });
-                    }
-                    catch
-                    {
-                        // Ignored
-                    }
-                }
-
-                this.instance.Initialize(this.DalamudInterface);
+                // this.instance.Initialize(this.DalamudInterface);
 
                 this.State = PluginState.Loaded;
                 Log.Information($"Finished loading {this.DllFile.Name}");

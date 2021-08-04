@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
+using Dalamud.IOC;
 using Dalamud.Plugin;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
@@ -83,13 +83,18 @@ namespace Dalamud.Interface.Internal.Scratchpad
             {
                 var script = CSharpScript.Create(code, options);
 
-                var pi = new DalamudPluginInterface(this.dalamud, "Scratch-" + doc.Id, PluginLoadReason.Unknown);
-                var plugin = script.ContinueWith<IDalamudPlugin>("return new ScratchPlugin() as IDalamudPlugin;")
+                var pi = new DalamudPluginInterface(this.dalamud, "Scratch-" + doc.Id, null, PluginLoadReason.Unknown);
+
+                // todo: adam - what the fuck....
+                var pluginType = script.ContinueWith<Type>("return typeof(ScratchPlugin);")
                     .RunAsync().GetAwaiter().GetResult().ReturnValue;
 
-                plugin.Initialize(pi);
+                var ioc = Service<Container>.Get();
+                var plugin = ioc.Create(pluginType, pi);
 
-                this.loadedScratches[doc.Id] = plugin;
+                // plugin.Initialize(pi);
+
+                this.loadedScratches[doc.Id] = (IDalamudPlugin)plugin;
                 return ScratchLoadStatus.Success;
             }
             catch (CompilationErrorException ex)

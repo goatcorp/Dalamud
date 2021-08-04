@@ -1,8 +1,9 @@
 using System;
 using System.IO;
-
+using Dalamud.Game.Command;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging;
+using Dalamud.IOC;
 using Dalamud.Plugin;
 
 namespace Dalamud.CorePlugin
@@ -13,8 +14,20 @@ namespace Dalamud.CorePlugin
     /// </summary>
     public sealed class PluginImpl : IDalamudPlugin
     {
+        private readonly CommandManager commandManager;
         private readonly WindowSystem windowSystem = new("Dalamud.CorePlugin");
         private Localization localizationManager;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PluginImpl"/> class.
+        /// </summary>
+#pragma warning disable SA1611
+        public PluginImpl([RequiredVersion("1.0")] CommandManager commandManager)
+#pragma warning restore SA1611
+        {
+            // your constructor only gets called in the event that dalamud can satisfy all of its dependencies through the constructor
+            this.commandManager = commandManager;
+        }
 
         /// <inheritdoc/>
         public string Name => "Dalamud.CorePlugin";
@@ -38,7 +51,7 @@ namespace Dalamud.CorePlugin
                 this.Interface.UiBuilder.OnBuildUi += this.OnDraw;
                 this.Interface.UiBuilder.OnOpenConfigUi += this.OnOpenConfigUi;
 
-                this.Interface.CommandManager.AddHandler("/di", new(this.OnCommand) { HelpMessage = $"Access the {this.Name} plugin." });
+                this.commandManager.AddHandler("/di", new(this.OnCommand) { HelpMessage = $"Access the {this.Name} plugin." });
             }
             catch (Exception ex)
             {
@@ -61,15 +74,15 @@ namespace Dalamud.CorePlugin
         private void InitLoc()
         {
             // CheapLoc needs to be reinitialized here because it tracks the setup by assembly name. New assembly, new setup.
-            this.localizationManager = new Localization(Path.Combine(Dalamud.Instance.AssetDirectory.FullName, "UIRes", "loc", "dalamud"), "dalamud_");
-            if (!string.IsNullOrEmpty(Dalamud.Instance.Configuration.LanguageOverride))
-            {
-                this.localizationManager.SetupWithLangCode(Dalamud.Instance.Configuration.LanguageOverride);
-            }
-            else
-            {
-                this.localizationManager.SetupWithUiCulture();
-            }
+            // this.localizationManager = new Localization(Path.Combine(Dalamud.Instance.AssetDirectory.FullName, "UIRes", "loc", "dalamud"), "dalamud_");
+            // if (!string.IsNullOrEmpty(Dalamud.Instance.Configuration.LanguageOverride))
+            // {
+            //     this.localizationManager.SetupWithLangCode(Dalamud.Instance.Configuration.LanguageOverride);
+            // }
+            // else
+            // {
+            //     this.localizationManager.SetupWithUiCulture();
+            // }
         }
 
         private void OnDraw()

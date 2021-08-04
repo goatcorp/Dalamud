@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 
 namespace Dalamud
 {
@@ -31,14 +32,14 @@ namespace Dalamud
 
         public static T Set()
         {
-            _object = Activator.CreateInstance<T>();
+            _object = (T)Activator.CreateInstance(typeof(T), true);
 
             return _object;
         }
 
         public static T Set(params object[] args)
         {
-            var obj = (T?)Activator.CreateInstance(typeof(T), args);
+            var obj = (T?)Activator.CreateInstance(typeof(T), args, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.CreateInstance);
 
             // ReSharper disable once JoinNullCheckWithUsage
             if (obj == null)

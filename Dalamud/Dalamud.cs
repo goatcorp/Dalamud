@@ -14,6 +14,7 @@ using Dalamud.Game.Network.Internal;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Hooking.Internal;
 using Dalamud.Interface.Internal;
+using Dalamud.IOC;
 using Dalamud.Memory;
 using Dalamud.Plugin.Internal;
 using Serilog;
@@ -65,43 +66,42 @@ namespace Dalamud
             this.finishUnloadSignal.Reset();
         }
 
-#if DEBUG
-        /// <summary>
-        /// Gets the Dalamud singleton instance.
-        /// </summary>
-        internal static Dalamud Instance { get; private set; }
-#endif
-
         #region Native Game Subsystems
 
         /// <summary>
         /// Gets game framework subsystem.
         /// </summary>
+        [Obsolete("use service locator")]
         internal Framework Framework { get; private set; }
 
         /// <summary>
         /// Gets Anti-Debug detection prevention subsystem.
         /// </summary>
+        [Obsolete("use service locator")]
         internal AntiDebug AntiDebug { get; private set; }
 
         /// <summary>
         /// Gets WinSock optimization subsystem.
         /// </summary>
+        [Obsolete("use service locator")]
         internal WinSockHandlers WinSock2 { get; private set; }
 
         /// <summary>
         /// Gets Hook management subsystem.
         /// </summary>
+        [Obsolete("use service locator")]
         internal HookManager HookManager { get; private set; }
 
         /// <summary>
         /// Gets ImGui Interface subsystem.
         /// </summary>
+        [Obsolete("use service locator")]
         internal InterfaceManager InterfaceManager { get; private set; }
 
         /// <summary>
         /// Gets ClientState subsystem.
         /// </summary>
+        [Obsolete("use service locator")]
         internal ClientState ClientState { get; private set; }
 
         #endregion
@@ -111,21 +111,25 @@ namespace Dalamud
         /// <summary>
         /// Gets Plugin Manager subsystem.
         /// </summary>
+        [Obsolete("use service locator")]
         internal PluginManager PluginManager { get; private set; }
 
         /// <summary>
         /// Gets Data provider subsystem.
         /// </summary>
+        [Obsolete("use service locator")]
         internal DataManager Data { get; private set; }
 
         /// <summary>
         /// Gets Command Manager subsystem.
         /// </summary>
+        [Obsolete("use service locator")]
         internal CommandManager CommandManager { get; private set; }
 
         /// <summary>
         /// Gets Localization subsystem facilitating localization for Dalamud and plugins.
         /// </summary>
+        [Obsolete("use service locator")]
         internal Localization LocalizationManager { get; private set; }
 
         #endregion
@@ -135,16 +139,19 @@ namespace Dalamud
         /// <summary>
         /// Gets SeStringManager subsystem facilitating string parsing.
         /// </summary>
+        [Obsolete("use service locator")]
         internal SeStringManager SeStringManager { get; private set; }
 
         /// <summary>
         /// Gets copy-enabled SigScanner for target module.
         /// </summary>
+        [Obsolete("use service locator")]
         internal SigScanner SigScanner { get; private set; }
 
         /// <summary>
         /// Gets LoggingLevelSwitch for Dalamud and Plugin logs.
         /// </summary>
+        [Obsolete("use service locator")]
         internal LoggingLevelSwitch LogLevelSwitch { get; private set; }
 
         /// <summary>
@@ -164,34 +171,34 @@ namespace Dalamud
         /// <summary>
         /// Gets Dalamud base UI.
         /// </summary>
+        [Obsolete("use service locator")]
         internal DalamudInterface DalamudUi { get; private set; }
 
         /// <summary>
         /// Gets Dalamud chat commands.
         /// </summary>
+        [Obsolete("use service locator")]
         internal DalamudCommands DalamudCommands { get; private set; }
 
         /// <summary>
         /// Gets Dalamud chat-based features.
         /// </summary>
+        [Obsolete("use service locator")]
         internal ChatHandlers ChatHandlers { get; private set; }
 
         /// <summary>
         /// Gets Dalamud network-based features.
         /// </summary>
+        [Obsolete("use service locator")]
         internal NetworkHandlers NetworkHandlers { get; private set; }
 
         /// <summary>
         /// Gets subsystem responsible for adding the Dalamud menu items to the game's system menu.
         /// </summary>
+        [Obsolete("use service locator")]
         internal DalamudSystemMenu SystemMenu { get; private set; }
 
         #endregion
-
-        /// <summary>
-        /// Gets Injected process module.
-        /// </summary>
-        internal ProcessModule TargetModule { get; private set; }
 
         /// <summary>
         /// Gets a value indicating whether Dalamud was successfully loaded.
@@ -217,14 +224,19 @@ namespace Dalamud
             {
                 // Initialize the process information.
                 this.SigScanner = Service<SigScanner>.Set(new SigScanner(true));
-                this.HookManager = Service<HookManager>.Set();
+                this.HookManager = Service<HookManager>.Set(new HookManager());
+
+                var iocContainer = Service<Container>.Set(new Container());
+                iocContainer.RegisterSingleton(SigScanner);
+                iocContainer.RegisterSingleton(HookManager);
 
                 // Initialize game subsystem
-                this.Framework = Service<Framework>.Set();
+                this.Framework = Service<Framework>.Set(new Framework());
 
                 Log.Information("[T1] Framework OK!");
 
                 this.Framework.Enable();
+                iocContainer.RegisterSingleton(Framework);
                 Log.Information("[T1] Framework ENABLE!");
 
                 // Initialize FFXIVClientStructs function resolver
@@ -245,6 +257,8 @@ namespace Dalamud
         {
             try
             {
+                var iocContainer = Service<Container>.Get();
+                
                 this.AntiDebug = new AntiDebug(this.SigScanner);
                 if (this.Configuration.IsAntiAntiDebugEnabled)
                     this.AntiDebug.Enable();
@@ -312,6 +326,7 @@ namespace Dalamud
 
                 // Initialize managers. Basically handlers for the logic
                 this.CommandManager = new CommandManager(this, this.StartInfo.Language);
+                iocContainer.RegisterSingleton(CommandManager);
                 this.DalamudCommands = new DalamudCommands(this);
                 this.DalamudCommands.SetupCommands();
 
