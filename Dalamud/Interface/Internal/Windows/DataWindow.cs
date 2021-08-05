@@ -13,11 +13,11 @@ using Dalamud.Game.Internal.Gui.Addon;
 using Dalamud.Game.Internal.Gui.Toast;
 using Dalamud.Game.Text;
 using Dalamud.Interface.Windowing;
+using Dalamud.Logging.Internal;
 using Dalamud.Plugin;
 using ImGuiNET;
 using ImGuiScene;
 using Newtonsoft.Json;
-using Serilog;
 
 namespace Dalamud.Interface.Internal.Windows
 {

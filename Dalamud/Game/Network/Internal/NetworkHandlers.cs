@@ -12,7 +12,7 @@ using Dalamud.Game.Network.Universalis.MarketBoardUploaders;
 using Lumina.Excel.GeneratedSheets;
 using Serilog;
 
-namespace Dalamud.Game.Network
+namespace Dalamud.Game.Network.Internal
 {
     /// <summary>
     /// This class handles network notifications and uploading market board data.

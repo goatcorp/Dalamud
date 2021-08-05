@@ -4,10 +4,9 @@ using System.Linq;
 using System.Text;
 
 using Dalamud.Configuration;
-using Dalamud.Plugin;
+using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Newtonsoft.Json;
-using Serilog;
 
 namespace Dalamud
 {

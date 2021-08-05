@@ -59,20 +59,18 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="CheapLoc" Version="1.1.5" />
-        <PackageReference Include="JetBrains.Annotations" Version="2021.1.0" />
-        <PackageReference Include="Lib.Harmony" Version="2.1.0" />
+        <PackageReference Include="CheapLoc" Version="1.1.6" />
+        <PackageReference Include="JetBrains.Annotations" Version="2021.2.0" />
+        <PackageReference Include="Lib.Harmony" Version="2.1.1" />
         <PackageReference Include="Lumina" Version="3.3.0" />
         <PackageReference Include="Lumina.Excel" Version="5.50.0" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
         <PackageReference Include="McMaster.NETCore.Plugins" Version="1.4.0" />
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="3.10.0" />
+        <PackageReference Include="NLog" Version="4.7.10" />
         <PackageReference Include="PropertyChanged.Fody" Version="3.4.0">
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
-        <PackageReference Include="Serilog" Version="2.10.0" />
-        <PackageReference Include="Serilog.Sinks.Async" Version="1.5.0" />
-        <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
         <PackageReference Include="Reloaded.Hooks" Version="3.2.3" />
         <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.333">
             <PrivateAssets>all</PrivateAssets>

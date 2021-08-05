@@ -67,7 +67,7 @@ namespace Dalamud.Hooking.Internal
         internal Delegate Delegate { get; }
 
         /// <summary>
-        /// Gets the hooked assembly.
+        /// Gets the assembly implementing the hook.
         /// </summary>
         internal Assembly Assembly { get; }
     }

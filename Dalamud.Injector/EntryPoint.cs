@@ -8,12 +8,14 @@ using System.Text;
 using System.Threading;
 
 using Dalamud.Game;
-using Dalamud.Interface.Internal;
+using Dalamud.Logging.Internal;
 using Newtonsoft.Json;
+using NLog;
+using NLog.Config;
+using NLog.LayoutRenderers;
+using NLog.Targets;
+using NLog.Targets.Wrappers;
 using Reloaded.Memory.Buffers;
-using Serilog;
-using Serilog.Core;
-using Serilog.Events;
 
 using static Dalamud.Injector.NativeFunctions;
 
@@ -76,7 +78,7 @@ namespace Dalamud.Injector
         {
             AppDomain.CurrentDomain.UnhandledException += (sender, eventArgs) =>
             {
-                if (Log.Logger == null)
+                if (LogManager.Configuration.LoggingRules.Count == 0)
                 {
                     Console.WriteLine($"A fatal error has occurred: {eventArgs.ExceptionObject}");
                 }
@@ -121,19 +123,35 @@ namespace Dalamud.Injector
             var logPath = Path.Combine(baseDirectory, "..", "..", "..", "dalamud.injector.log");
 #endif
 
-            var levelSwitch = new LoggingLevelSwitch();
-
 #if DEBUG
-            levelSwitch.MinimumLevel = LogEventLevel.Verbose;
+            var logLevel = LogLevel.Trace;
 #else
-            levelSwitch.MinimumLevel = LogEventLevel.Information;
+            var logLevel = LogLevel.Info;
 #endif
 
-            Log.Logger = new LoggerConfiguration()
-                .WriteTo.Async(a => a.File(logPath))
-                .WriteTo.Sink(SerilogEventSink.Instance)
-                .MinimumLevel.ControlledBy(levelSwitch)
-                .CreateLogger();
+            LayoutRenderer.Register<DalamudLevelLayoutRenderer>("dalamud-level");
+            LayoutRenderer.Register<DalamudDateTimeLayoutRenderer>("dalamud-datetime");
+
+            var target = new FileTarget("injector")
+            {
+                FileName = logPath,
+                ArchiveFileName = "injector.{###}.log",
+                ArchiveNumbering = ArchiveNumberingMode.Rolling,
+                ArchiveAboveSize = 5 * 1024 * 1024,  // 5mb for Discord
+                Layout = "${dalamud-datetime} [${dalamud-level}] ${message}",
+            };
+            var asyncTarget = new AsyncTargetWrapper(target);
+
+            var rule = new LoggingRule("Dalamud");
+            rule.EnableLoggingForLevels(logLevel, LogLevel.Fatal);
+            rule.Targets.Add(asyncTarget);
+            rule.LoggerNamePattern = "*";
+
+            var config = new LoggingConfiguration();
+            config.LoggingRules.Add(rule);
+
+            LogManager.Configuration = config;
+            LogManager.AutoShutdown = true;
         }
 
         private static Process GetProcess(string arg)

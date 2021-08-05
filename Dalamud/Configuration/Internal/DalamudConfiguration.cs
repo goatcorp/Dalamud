@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 
 using Dalamud.Game.Text;
+using Dalamud.Logging.Internal;
 using Newtonsoft.Json;
-using Serilog;
-using Serilog.Events;
+using NLog;
 
 namespace Dalamud.Configuration.Internal
 {
@@ -130,7 +130,7 @@ namespace Dalamud.Configuration.Internal
         /// <summary>
         /// Gets or sets the default Dalamud debug log level on startup.
         /// </summary>
-        public LogEventLevel LogLevel { get; set; } = LogEventLevel.Information;
+        public LogLevel LogLevel { get; set; } = LogLevel.Info;
 
         /// <summary>
         /// Gets or sets a value indicating whether or not the debug log should scroll automatically.

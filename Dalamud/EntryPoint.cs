@@ -7,10 +7,13 @@ using System.Threading.Tasks;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Internal;
+using Dalamud.Logging.Internal;
 using Newtonsoft.Json;
-using Serilog;
-using Serilog.Core;
-using Serilog.Events;
+using NLog;
+using NLog.Config;
+using NLog.LayoutRenderers;
+using NLog.Targets;
+using NLog.Targets.Wrappers;
 
 namespace Dalamud
 {
@@ -47,7 +50,7 @@ namespace Dalamud
             var configuration = DalamudConfiguration.Load(info.ConfigurationPath);
 
             // Setup logger
-            var levelSwitch = InitLogging(info.WorkingDirectory, configuration);
+            InitLogging(info.WorkingDirectory, configuration);
 
             // Log any unhandled exception.
             AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
@@ -63,7 +66,7 @@ namespace Dalamud
                 // This is due to GitHub not supporting TLS 1.0, so we enable all TLS versions globally
                 ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12 | SecurityProtocolType.Tls;
 
-                var dalamud = new Dalamud(info, levelSwitch, finishSignal, configuration);
+                var dalamud = new Dalamud(info, finishSignal, configuration);
                 Log.Information("Starting a session..");
 
                 // Run session
@@ -82,13 +85,14 @@ namespace Dalamud
                 AppDomain.CurrentDomain.UnhandledException -= OnUnhandledException;
 
                 Log.Information("Session has ended.");
-                Log.CloseAndFlush();
+                LogManager.Flush();
+                LogManager.Shutdown();
 
                 finishSignal.Set();
             }
         }
 
-        private static LoggingLevelSwitch InitLogging(string baseDirectory, DalamudConfiguration configuration)
+        private static void InitLogging(string baseDirectory, DalamudConfiguration configuration)
         {
 #if DEBUG
             var logPath = Path.Combine(baseDirectory, "dalamud.log");
@@ -96,20 +100,42 @@ namespace Dalamud
             var logPath = Path.Combine(baseDirectory, "..", "..", "..", "dalamud.log");
 #endif
 
-            var levelSwitch = new LoggingLevelSwitch();
-
 #if DEBUG
-            levelSwitch.MinimumLevel = LogEventLevel.Verbose;
+            var logLevel = LogLevel.Trace;
 #else
-            levelSwitch.MinimumLevel = configuration.LogLevel;
+            var logLevel = configuration.LogLevel;
 #endif
-            Log.Logger = new LoggerConfiguration()
-                   .WriteTo.Async(a => a.File(logPath, fileSizeLimitBytes: 5 * 1024 * 1024, rollOnFileSizeLimit: true))
-                   .WriteTo.Sink(SerilogEventSink.Instance)
-                   .MinimumLevel.ControlledBy(levelSwitch)
-                   .CreateLogger();
 
-            return levelSwitch;
+            LayoutRenderer.Register<DalamudLevelLayoutRenderer>("dalamud-level");
+            LayoutRenderer.Register<DalamudDateTimeLayoutRenderer>("dalamud-datetime");
+
+            var target = new FileTarget("dalamud")
+            {
+                FileName = logPath,
+                ArchiveFileName = "dalamud.{###}.log",
+                ArchiveNumbering = ArchiveNumberingMode.Rolling,
+                ArchiveAboveSize = 5 * 1024 * 1024,  // 5mb for Discord
+                Layout = "${dalamud-datetime} [${dalamud-level}] ${message:exceptionSeparator=\r\n:withException=true}",
+            };
+
+            var asyncTarget = new AsyncTargetWrapper(target);
+
+            var rule = new LoggingRule("Dalamud");
+            rule.EnableLoggingForLevels(logLevel, LogLevel.Fatal);
+            rule.Targets.Add(asyncTarget);
+            rule.LoggerNamePattern = "*";
+
+            var eventRule = new LoggingRule("Dalamud.Event");
+            eventRule.EnableLoggingForLevels(LogLevel.Trace, LogLevel.Fatal);
+            eventRule.Targets.Add(NLogEventTarget.Instance);
+            eventRule.LoggerNamePattern = "*";
+
+            var config = new LoggingConfiguration();
+            config.LoggingRules.Add(rule);
+            config.LoggingRules.Add(eventRule);
+
+            LogManager.Configuration = config;
+            LogManager.AutoShutdown = true;
         }
 
         private static void OnUnhandledException(object sender, UnhandledExceptionEventArgs args)

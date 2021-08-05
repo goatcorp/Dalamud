@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 
+using Dalamud.Logging.Internal;
 using Dalamud.Memory;
 using Microsoft.Win32;
 

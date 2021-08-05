@@ -10,7 +10,7 @@ using CheapLoc;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
-using Serilog;
+using Dalamud.Logging.Internal;
 
 namespace Dalamud.Game
 {

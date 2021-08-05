@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Dalamud.Logging.Internal;
 using Dalamud.Plugin;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
-using Serilog;
 
 namespace Dalamud.Interface.Internal.Scratchpad
 {

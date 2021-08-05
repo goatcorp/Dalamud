@@ -6,8 +6,8 @@ using System.Numerics;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Internal.Scratchpad;
 using Dalamud.Interface.Windowing;
+using Dalamud.Logging.Internal;
 using ImGuiNET;
-using Serilog;
 
 namespace Dalamud.Interface.Internal.Windows
 {

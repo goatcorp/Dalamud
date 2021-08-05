@@ -2,6 +2,7 @@ using System;
 using System.Numerics;
 
 using Dalamud.Interface.Windowing;
+using Dalamud.Logging.Internal;
 using ImGuiNET;
 
 namespace Dalamud.CorePlugin
@@ -20,13 +21,13 @@ namespace Dalamud.CorePlugin
         /// </summary>
         /// <param name="dalamud">The Dalamud instance.</param>
         public PluginWindow(Dalamud dalamud)
-            : base("CorePlugin", ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar)
+            : base("CorePlugin")
         {
             this.dalamud = dalamud;
             this.IsOpen = true;
 
             this.Size = new Vector2(810, 520);
-            this.SizeCondition = ImGuiCond.Always;
+            this.SizeCondition = ImGuiCond.FirstUseEver;
         }
 
         /// <inheritdoc/>

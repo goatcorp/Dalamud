@@ -5,7 +5,7 @@ using System.Linq;
 
 using CheapLoc;
 using Dalamud.Game.Command;
-using Serilog;
+using Dalamud.Logging.Internal;
 
 namespace Dalamud.Interface.Internal
 {

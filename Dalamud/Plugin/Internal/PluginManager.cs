@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using CheapLoc;
 using Dalamud.Configuration;
 using Dalamud.Game.Text;
+using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Exceptions;
 using Dalamud.Plugin.Internal.Types;
 using HarmonyLib;

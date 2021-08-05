@@ -1,15 +1,15 @@
 using System;
 using System.Diagnostics;
-using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
 using Dalamud.Interface.Internal.Windows;
 using Dalamud.Interface.Windowing;
-using Dalamud.Plugin;
+using Dalamud.Logging;
+using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal;
 using ImGuiNET;
-using Serilog.Events;
+using NLog;
 
 namespace Dalamud.Interface.Internal
 {
@@ -34,6 +34,16 @@ namespace Dalamud.Interface.Internal
         private readonly PluginInstallerWindow pluginWindow;
         private readonly ScratchpadWindow scratchpadWindow;
         private readonly SettingsWindow settingsWindow;
+
+        private (LogLevel Level, string Name)[] logLevels =
+        {
+            (LogLevel.Trace, "Verbose"),
+            (LogLevel.Debug, "Debug"),
+            (LogLevel.Info, "Information"),
+            (LogLevel.Warn,  "Warning"),
+            (LogLevel.Error, "Error"),
+            (LogLevel.Fatal, "Fatal"),
+        };
 
         private ulong frameCount = 0;
 
@@ -324,11 +334,12 @@ namespace Dalamud.Interface.Internal
 
                         if (ImGui.BeginMenu("Set log level..."))
                         {
-                            foreach (var logLevel in Enum.GetValues(typeof(LogEventLevel)).Cast<LogEventLevel>())
+                            var currentLogLevel = this.dalamud.GetCurrentLogLevel();
+                            foreach (var (logLevel, levelName) in this.logLevels)
                             {
-                                if (ImGui.MenuItem(logLevel + "##logLevelSwitch", string.Empty, this.dalamud.LogLevelSwitch.MinimumLevel == logLevel))
+                                if (ImGui.MenuItem($"{levelName}##logLevelSwitch", string.Empty, currentLogLevel == logLevel))
                                 {
-                                    this.dalamud.LogLevelSwitch.MinimumLevel = logLevel;
+                                    this.dalamud.ReconfigureLogLevel(logLevel);
                                     this.dalamud.Configuration.LogLevel = logLevel;
                                     this.dalamud.Configuration.Save();
                                 }

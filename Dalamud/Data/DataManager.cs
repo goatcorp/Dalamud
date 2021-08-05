@@ -8,6 +8,7 @@ using System.Threading;
 using Dalamud.Data.LuminaExtensions;
 using Dalamud.Interface;
 using Dalamud.Interface.Internal;
+using Dalamud.Logging.Internal;
 using ImGuiScene;
 using JetBrains.Annotations;
 using Lumina;
@@ -15,7 +16,6 @@ using Lumina.Data;
 using Lumina.Data.Files;
 using Lumina.Excel;
 using Newtonsoft.Json;
-using Serilog;
 
 namespace Dalamud.Data
 {

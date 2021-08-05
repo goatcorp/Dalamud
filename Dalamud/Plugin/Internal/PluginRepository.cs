@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 
+using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Newtonsoft.Json;
 

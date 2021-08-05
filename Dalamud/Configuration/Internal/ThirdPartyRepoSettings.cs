@@ -16,11 +16,6 @@ namespace Dalamud.Configuration
         public bool IsEnabled { get; set; }
 
         /// <summary>
-        /// Gets or sets a short name for the repo url.
-        /// </summary>
-        public string Name { get; set; }
-
-        /// <summary>
         /// Clone this object.
         /// </summary>
         /// <returns>A shallow copy of this object.</returns>

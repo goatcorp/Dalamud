@@ -10,9 +10,9 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Game.Command;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Windowing;
+using Dalamud.Logging.Internal;
 using ImGuiNET;
-using Serilog;
-using Serilog.Events;
+using NLog;
 
 namespace Dalamud.Interface.Internal.Windows
 {
@@ -26,7 +26,8 @@ namespace Dalamud.Interface.Internal.Windows
         private readonly List<LogEntry> logText = new();
         private readonly object renderLock = new();
 
-        private readonly string[] logLevelStrings = new[] { "None", "Verbose", "Debug", "Information", "Warning", "Error", "Fatal" };
+        private readonly string[] logLevelStrings = { "Verbose", "Debug", "Information", "Warning", "Error", "Fatal", "None" };
+        private readonly LogLevel[] logLevels = { LogLevel.Trace, LogLevel.Debug, LogLevel.Info, LogLevel.Warn, LogLevel.Error, LogLevel.Fatal, LogLevel.Off };
 
         private List<LogEntry> filteredLogText = new();
         private bool autoScroll;
@@ -37,7 +38,7 @@ namespace Dalamud.Interface.Internal.Windows
         private string commandText = string.Empty;
 
         private string textFilter = string.Empty;
-        private LogEventLevel? levelFilter = null;
+        private LogLevel levelFilter = LogLevel.Off;
         private bool isFiltered = false;
 
         private int historyPos;
@@ -54,10 +55,12 @@ namespace Dalamud.Interface.Internal.Windows
 
             this.autoScroll = this.dalamud.Configuration.LogAutoScroll;
             this.openAtStartup = this.dalamud.Configuration.LogOpenAtStartup;
-            SerilogEventSink.Instance.OnLogLine += this.OnLogLine;
+            NLogEventTarget.Instance.OnLogLine += this.OnLogLine;
 
             this.Size = new Vector2(500, 400);
             this.SizeCondition = ImGuiCond.FirstUseEver;
+
+            this.levelFilter = this.dalamud.GetCurrentLogLevel();
         }
 
         private List<LogEntry> LogEntries => this.isFiltered ? this.filteredLogText : this.logText;
@@ -67,7 +70,7 @@ namespace Dalamud.Interface.Internal.Windows
         /// </summary>
         public void Dispose()
         {
-            SerilogEventSink.Instance.OnLogLine -= this.OnLogLine;
+            NLogEventTarget.Instance.OnLogLine -= this.OnLogLine;
         }
 
         /// <summary>
@@ -88,7 +91,7 @@ namespace Dalamud.Interface.Internal.Windows
         /// <param name="line">The line to add.</param>
         /// <param name="level">The level of the event.</param>
         /// <param name="offset">The <see cref="DateTimeOffset"/> of the event.</param>
-        public void HandleLogLine(string line, LogEventLevel level, DateTimeOffset offset)
+        public void HandleLogLine(string line, LogLevel level, DateTimeOffset offset)
         {
             if (line.IndexOfAny(new[] { '\n', '\r' }) != -1)
             {
@@ -125,11 +128,12 @@ namespace Dalamud.Interface.Internal.Windows
                     this.dalamud.Configuration.Save();
                 }
 
-                var prevLevel = (int)this.dalamud.LogLevelSwitch.MinimumLevel;
-                if (ImGui.Combo("Log Level", ref prevLevel, Enum.GetValues(typeof(LogEventLevel)).Cast<LogEventLevel>().Select(x => x.ToString()).ToArray(), 6))
+                var levelIndex = Array.IndexOf(this.logLevels, this.dalamud.GetCurrentLogLevel());
+                if (ImGui.Combo("Log Level", ref levelIndex, this.logLevelStrings, this.logLevelStrings.Length))
                 {
-                    this.dalamud.LogLevelSwitch.MinimumLevel = (LogEventLevel)prevLevel;
-                    this.dalamud.Configuration.LogLevel = (LogEventLevel)prevLevel;
+                    var newLevel = this.logLevels[levelIndex];
+                    this.dalamud.ReconfigureLogLevel(newLevel);
+                    this.dalamud.Configuration.LogLevel = newLevel;
                     this.dalamud.Configuration.Save();
                 }
 
@@ -148,10 +152,10 @@ namespace Dalamud.Interface.Internal.Windows
 
                 ImGui.TextColored(ImGuiColors.DalamudGrey, "Enter to confirm.");
 
-                var filterVal = this.levelFilter.HasValue ? (int)this.levelFilter.Value + 1 : 0;
-                if (ImGui.Combo("Level", ref filterVal, this.logLevelStrings, 7))
+                var filterVal = this.levelFilter.Ordinal;
+                if (ImGui.Combo("Level", ref filterVal, this.logLevelStrings, this.logLevelStrings.Length))
                 {
-                    this.levelFilter = (LogEventLevel)(filterVal - 1);
+                    this.levelFilter = this.logLevels[filterVal];
                     this.Refilter();
                 }
 
@@ -398,7 +402,7 @@ namespace Dalamud.Interface.Internal.Windows
             return 0;
         }
 
-        private void AddAndFilter(string line, LogEventLevel level, DateTimeOffset offset, bool isMultiline)
+        private void AddAndFilter(string line, LogLevel level, DateTimeOffset offset, bool isMultiline)
         {
             var entry = new LogEntry
             {
@@ -419,10 +423,8 @@ namespace Dalamud.Interface.Internal.Windows
 
         private bool IsFilterApplicable(LogEntry entry)
         {
-            if (this.levelFilter.HasValue)
-            {
-                return entry.Level == this.levelFilter.Value;
-            }
+            if (this.levelFilter != LogLevel.Off)
+                return entry.Level == this.levelFilter;
 
             if (!string.IsNullOrEmpty(this.textFilter))
                 return entry.Line.Contains(this.textFilter);
@@ -438,29 +440,23 @@ namespace Dalamud.Interface.Internal.Windows
             }
         }
 
-        private string GetTextForLogEventLevel(LogEventLevel level) => level switch
-        {
-            LogEventLevel.Error => "ERR",
-            LogEventLevel.Verbose => "VRB",
-            LogEventLevel.Debug => "DBG",
-            LogEventLevel.Information => "INF",
-            LogEventLevel.Warning => "WRN",
-            LogEventLevel.Fatal => "FTL",
-            _ => throw new ArgumentOutOfRangeException(level.ToString(), "Invalid LogEventLevel"),
-        };
+        private string GetTextForLogEventLevel(LogLevel level)
+            => level == LogLevel.Error ? "ERR" :
+               level == LogLevel.Trace ? "VRB" :
+               level == LogLevel.Debug ? "DBG" :
+               level == LogLevel.Info ? "INF" :
+               level == LogLevel.Warn ? "WRN" :
+               level == LogLevel.Fatal ? "FTL" : "UNK";
 
-        private uint GetColorForLogEventLevel(LogEventLevel level) => level switch
-        {
-            LogEventLevel.Error => 0x800000EE,
-            LogEventLevel.Verbose => 0x00000000,
-            LogEventLevel.Debug => 0x00000000,
-            LogEventLevel.Information => 0x00000000,
-            LogEventLevel.Warning => 0x8A0070EE,
-            LogEventLevel.Fatal => 0xFF00000A,
-            _ => throw new ArgumentOutOfRangeException(level.ToString(), "Invalid LogEventLevel"),
-        };
+        private uint GetColorForLogEventLevel(LogLevel level)
+            => level == LogLevel.Error ? 0x800000EE :
+               level == LogLevel.Trace ? 0x00000000 :
+               level == LogLevel.Debug ? 0x00000000 :
+               level == LogLevel.Info ? 0x00000000 :
+               level == LogLevel.Warn ? 0x8A0070EE :
+               level == LogLevel.Fatal ? 0xFF00000A : 0x00000000;
 
-        private void OnLogLine(object sender, (string Line, LogEventLevel Level, DateTimeOffset Offset) logEvent)
+        private void OnLogLine(object sender, (string Line, LogLevel Level, DateTimeOffset Offset) logEvent)
         {
             this.HandleLogLine(logEvent.Line, logEvent.Level, logEvent.Offset);
         }
@@ -469,7 +465,7 @@ namespace Dalamud.Interface.Internal.Windows
         {
             public string Line { get; set; }
 
-            public LogEventLevel Level { get; set; }
+            public LogLevel Level { get; set; }
 
             public DateTimeOffset TimeStamp { get; set; }
 

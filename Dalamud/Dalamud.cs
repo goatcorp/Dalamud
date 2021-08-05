@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 
@@ -14,12 +15,13 @@ using Dalamud.Game.Internal;
 using Dalamud.Game.Network;
 using Dalamud.Game.Network.Internal;
 using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Hooking;
 using Dalamud.Hooking.Internal;
 using Dalamud.Interface.Internal;
+using Dalamud.Logging.Internal;
 using Dalamud.Memory;
 using Dalamud.Plugin.Internal;
-using Serilog;
-using Serilog.Core;
+using NLog;
 
 #if DEBUG
 // This allows for rapid prototyping of Dalamud modules with access to internal objects.
@@ -47,16 +49,14 @@ namespace Dalamud
         /// Initializes a new instance of the <see cref="Dalamud"/> class.
         /// </summary>
         /// <param name="info">DalamudStartInfo instance.</param>
-        /// <param name="loggingLevelSwitch">LoggingLevelSwitch to control Serilog level.</param>
         /// <param name="finishSignal">Signal signalling shutdown.</param>
         /// <param name="configuration">The Dalamud configuration.</param>
-        public Dalamud(DalamudStartInfo info, LoggingLevelSwitch loggingLevelSwitch, ManualResetEvent finishSignal, DalamudConfiguration configuration)
+        public Dalamud(DalamudStartInfo info, ManualResetEvent finishSignal, DalamudConfiguration configuration)
         {
 #if DEBUG
             Instance = this;
 #endif
             this.StartInfo = info;
-            this.LogLevelSwitch = loggingLevelSwitch;
             this.Configuration = configuration;
 
             // this.baseDirectory = info.WorkingDirectory;
@@ -146,11 +146,6 @@ namespace Dalamud
         internal SigScanner SigScanner { get; private set; }
 
         /// <summary>
-        /// Gets LoggingLevelSwitch for Dalamud and Plugin logs.
-        /// </summary>
-        internal LoggingLevelSwitch LogLevelSwitch { get; private set; }
-
-        /// <summary>
         /// Gets StartInfo object passed from injector.
         /// </summary>
         internal DalamudStartInfo StartInfo { get; private set; }
@@ -210,6 +205,23 @@ namespace Dalamud
         /// Gets location of stored assets.
         /// </summary>
         internal DirectoryInfo AssetDirectory => new(this.StartInfo.AssetDirectory);
+
+        /// <summary>
+        /// Gets the current minimum log level.
+        /// </summary>
+        /// <returns>The current log level.</returns>
+        public LogLevel GetCurrentLogLevel() => LogManager.Configuration.FindRuleByName("Dalamud").Levels.Min();
+
+        /// <summary>
+        /// Reconfigures the current minimum log level.
+        /// </summary>
+        /// <param name="logLevel">The new log level.</param>
+        public void ReconfigureLogLevel(LogLevel logLevel)
+        {
+            LogManager.Configuration.FindRuleByName("Dalamud").SetLoggingLevels(logLevel, LogLevel.Fatal);
+            LogManager.Configuration.FindRuleByName("Dalamud.Event").SetLoggingLevels(logLevel, LogLevel.Fatal);
+            LogManager.ReconfigExistingLoggers();
+        }
 
         /// <summary>
         /// Runs tier 1 of the Dalamud initialization process.

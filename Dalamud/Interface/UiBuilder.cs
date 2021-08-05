@@ -4,9 +4,9 @@ using System.Diagnostics;
 
 using Dalamud.Game.ClientState;
 using Dalamud.Interface.Internal;
+using Dalamud.Logging.Internal;
 using ImGuiNET;
 using ImGuiScene;
-using Serilog;
 using SharpDX.Direct3D11;
 
 namespace Dalamud.Interface

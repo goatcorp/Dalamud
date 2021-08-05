@@ -3,8 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 
 using Dalamud.Game.ClientState.Fates.Types;
+using Dalamud.Logging.Internal;
 using JetBrains.Annotations;
-using Serilog;
 
 namespace Dalamud.Game.ClientState.Fates
 {

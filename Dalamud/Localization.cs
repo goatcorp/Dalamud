@@ -5,7 +5,7 @@ using System.Linq;
 using System.Reflection;
 
 using CheapLoc;
-using Serilog;
+using Dalamud.Logging.Internal;
 
 namespace Dalamud
 {
