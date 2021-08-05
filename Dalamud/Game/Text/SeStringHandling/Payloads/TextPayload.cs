@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -67,7 +68,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             // this may change or go away
             if (string.IsNullOrEmpty(this.text))
             {
-                return new byte[] { };
+                return Array.Empty<byte>();
             }
 
             return Encoding.UTF8.GetBytes(this.text);

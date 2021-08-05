@@ -1,6 +1,3 @@
-using System;
-using System.Linq;
-
 namespace Dalamud.Game.Text
 {
     /// <summary>
@@ -236,78 +233,5 @@ namespace Dalamud.Game.Text
         /// </summary>
         [XivChatTypeInfo("Crossworld Linkshell 8", "cw8", 0xFF1E90FF)]
         CrossLinkShell8 = 107,
-    }
-
-    /// <summary>
-    /// Extension methods for the <see cref="XivChatType"/> type.
-    /// </summary>
-    public static class XivChatTypeExtensions
-    {
-        /// <summary>
-        /// Get the InfoAttribute associated with this chat type.
-        /// </summary>
-        /// <param name="chatType">The chat type.</param>
-        /// <returns>The info attribute.</returns>
-        public static XivChatTypeInfoAttribute GetDetails(this XivChatType chatType)
-        {
-            return chatType.GetAttribute<XivChatTypeInfoAttribute>();
-        }
-    }
-
-    /// <summary>
-    /// Storage for relevant information associated with the chat type.
-    /// </summary>
-    public class XivChatTypeInfoAttribute : Attribute
-    {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="XivChatTypeInfoAttribute"/> class.
-        /// </summary>
-        /// <param name="fancyName">The fancy name.</param>
-        /// <param name="slug">The name slug.</param>
-        /// <param name="defaultColor">The default color.</param>
-        internal XivChatTypeInfoAttribute(string fancyName, string slug, uint defaultColor)
-        {
-            this.FancyName = fancyName;
-            this.Slug = slug;
-            this.DefaultColor = defaultColor;
-        }
-
-        /// <summary>
-        /// Gets the "fancy" name of the type.
-        /// </summary>
-        public string FancyName { get; }
-
-        /// <summary>
-        /// Gets the type name slug or short-form.
-        /// </summary>
-        public string Slug { get; }
-
-        /// <summary>
-        /// Gets the type default color.
-        /// </summary>
-        public uint DefaultColor { get; }
-    }
-
-    /// <summary>
-    /// Extension methods for enums.
-    /// </summary>
-    public static class EnumExtensions
-    {
-        /// <summary>
-        /// Gets an attribute on an enum.
-        /// </summary>
-        /// <typeparam name="TAttribute">The type of attribute to get.</typeparam>
-        /// <param name="value">The enum value that has an attached attribute.</param>
-        /// <returns>The attached attribute, if any.</returns>
-        public static TAttribute GetAttribute<TAttribute>(this Enum value)
-            where TAttribute : Attribute
-        {
-            var type = value.GetType();
-            var name = Enum.GetName(type, value);
-            return type.GetField(name) // I prefer to get attributes this way
-                       .GetCustomAttributes(false)
-                       .OfType<TAttribute>()
-                       .SingleOrDefault();
-        }
     }
 }

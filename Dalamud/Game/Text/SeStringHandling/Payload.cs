@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 
 using Dalamud.Data;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
-using Serilog;
+using Dalamud.Logging.Internal;
 
 // TODOs:
 //   - refactor integer handling now that we have multiple packed types
@@ -21,14 +22,14 @@ namespace Dalamud.Game.Text.SeStringHandling
     /// </summary>
     public abstract partial class Payload
     {
-        /// <summary>
-        /// The Lumina instance to use for any necessary data lookups.
-        /// </summary>
-        public DataManager DataResolver;
-
-        // private for now, since subclasses shouldn't interact with this
+        // private for now, since subclasses shouldn't interact with this.
         // To force-invalidate it, Dirty can be set to true
         private byte[] encodedData;
+
+        /// <summary>
+        /// Gets or sets the Lumina instance to use for any necessary data lookups.
+        /// </summary>
+        public DataManager DataResolver { get; set; }
 
         /// <summary>
         /// Gets the type of this payload.
@@ -233,11 +234,13 @@ namespace Dalamud.Game.Text.SeStringHandling
         /// <summary>
         /// The start byte of a payload.
         /// </summary>
+        [SuppressMessage("StyleCop.CSharp.NamingRules", "SA1310:Field names should not contain underscore", Justification = "This is prefered.")]
         protected const byte START_BYTE = 0x02;
 
         /// <summary>
         /// The end byte of a payload.
         /// </summary>
+        [SuppressMessage("StyleCop.CSharp.NamingRules", "SA1310:Field names should not contain underscore", Justification = "This is prefered.")]
         protected const byte END_BYTE = 0x03;
 
         /// <summary>

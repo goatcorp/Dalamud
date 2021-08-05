@@ -5,7 +5,7 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-using Serilog;
+using Dalamud.Logging.Internal;
 
 namespace Dalamud.Game
 {

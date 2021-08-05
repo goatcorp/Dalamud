@@ -2,7 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 
-using Serilog;
+using Dalamud.Logging.Internal;
 
 namespace Dalamud.Game.Internal.DXGI
 {

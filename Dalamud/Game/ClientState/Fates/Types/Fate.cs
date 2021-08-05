@@ -133,6 +133,6 @@ namespace Dalamud.Game.ClientState.Fates.Types
         /// <summary>
         /// Gets the territory this <see cref="Fate"/> is located in.
         /// </summary>
-        public TerritoryTypeResolver TerritoryType => new(*(ushort*)(this.Address + FateOffsets.Territory), this.Dalamud);
+        public ExcelResolver<Lumina.Excel.GeneratedSheets.TerritoryType> TerritoryType => new(*(ushort*)(this.Address + FateOffsets.Territory), this.Dalamud);
     }
 }

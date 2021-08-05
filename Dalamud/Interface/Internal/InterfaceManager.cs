@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Numerics;
@@ -11,9 +12,10 @@ using Dalamud.Game.ClientState;
 using Dalamud.Game.Internal.DXGI;
 using Dalamud.Hooking;
 using Dalamud.Hooking.Internal;
+using Dalamud.Logging.Internal;
+using Dalamud.Utility;
 using ImGuiNET;
 using ImGuiScene;
-using Serilog;
 using SharpDX.Direct3D11;
 
 // general dev notes, here because it's easiest
@@ -69,10 +71,10 @@ namespace Dalamud.Interface.Internal
 
                 this.address = sigResolver;
             }
-            catch (Exception ex)
+            catch (KeyNotFoundException)
             {
                 // The SigScanner method fails on wine/proton since DXGI is not a real DLL. We fall back to vtable to detect our Present function address.
-                Log.Debug(ex, "Could not get SwapChain address via sig method, falling back to vtable...");
+                Log.Debug("Could not get SwapChain address via sig method, falling back to vtable");
 
                 var vtableResolver = new SwapChainVtableResolver();
                 vtableResolver.Setup(scanner);
@@ -91,7 +93,7 @@ namespace Dalamud.Interface.Internal
                     var fileName = new StringBuilder(255);
                     _ = NativeFunctions.GetModuleFileNameW(rtss, fileName, fileName.Capacity);
                     this.rtssPath = fileName.ToString();
-                    Log.Verbose("RTSS at {0}", this.rtssPath);
+                    Log.Verbose($"RTSS at {this.rtssPath}");
 
                     if (!NativeFunctions.FreeLibrary(rtss))
                         throw new Win32Exception();

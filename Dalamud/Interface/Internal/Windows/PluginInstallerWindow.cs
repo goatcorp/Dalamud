@@ -18,6 +18,7 @@ using Dalamud.Plugin;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Exceptions;
 using Dalamud.Plugin.Internal.Types;
+using Dalamud.Utility;
 using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows
@@ -484,7 +485,9 @@ namespace Dalamud.Interface.Internal.Windows
                 label += Locs.PluginTitleMod_TestingVersion;
             }
 
-            if (ImGui.CollapsingHeader($"{label}###Header{index}{manifest.InternalName}"))
+            ImGui.PushID($"available{index}{manifest.InternalName}");
+
+            if (ImGui.CollapsingHeader($"{label}###Header"))
             {
                 ImGui.Indent();
 
@@ -579,6 +582,8 @@ namespace Dalamud.Interface.Internal.Windows
 
                 ImGui.EndPopup();
             }
+
+            ImGui.PopID();
         }
 
         private void DrawInstalledPlugin(LocalPlugin plugin, int index, bool showInstalled = false)
@@ -646,7 +651,9 @@ namespace Dalamud.Interface.Internal.Windows
                 label += Locs.PluginTitleMod_OutdatedError;
             }
 
-            if (ImGui.CollapsingHeader($"{label}###Header{index}{plugin.Manifest.InternalName}"))
+            ImGui.PushID($"installed{index}{plugin.Manifest.InternalName}");
+
+            if (ImGui.CollapsingHeader($"{label}###Header"))
             {
                 var manifest = plugin.Manifest;
 
@@ -656,7 +663,9 @@ namespace Dalamud.Interface.Internal.Windows
                 ImGui.Text(manifest.Name);
 
                 // Download count
-                var downloadText = manifest.DownloadCount > 0
+                var downloadText = plugin.IsDev
+                    ? Locs.PluginBody_AuthorWithoutDownloadCount(manifest.Author)
+                    : manifest.DownloadCount > 0
                     ? Locs.PluginBody_AuthorWithDownloadCount(manifest.Author, manifest.DownloadCount)
                     : Locs.PluginBody_AuthorWithDownloadCountUnavailable(manifest.Author);
 
@@ -664,10 +673,18 @@ namespace Dalamud.Interface.Internal.Windows
                 ImGui.TextColored(ImGuiColors.DalamudGrey3, downloadText);
 
                 // Installed from
-                if (!string.IsNullOrEmpty(manifest.InstalledFromUrl))
+                if (plugin.IsDev)
                 {
-                    var repoText = Locs.PluginBody_Plugin3rdPartyRepo(manifest.InstalledFromUrl);
-                    ImGui.TextColored(ImGuiColors.DalamudGrey3, repoText);
+                    var fileText = Locs.PluginBody_DevPluginPath(plugin.DllFile.FullName);
+                    ImGui.TextColored(ImGuiColors.DalamudGrey3, fileText);
+                }
+                else
+                {
+                    if (!string.IsNullOrEmpty(manifest.InstalledFromUrl))
+                    {
+                        var repoText = Locs.PluginBody_Plugin3rdPartyRepo(manifest.InstalledFromUrl);
+                        ImGui.TextColored(ImGuiColors.DalamudGrey3, repoText);
+                    }
                 }
 
                 // Description
@@ -736,6 +753,8 @@ namespace Dalamud.Interface.Internal.Windows
 
                 ImGui.EndPopup();
             }
+
+            ImGui.PopID();
         }
 
         private void DrawPluginControlButton(LocalPlugin plugin)
@@ -1177,9 +1196,13 @@ namespace Dalamud.Interface.Internal.Windows
 
             #region Plugin body
 
+            public static string PluginBody_AuthorWithoutDownloadCount(string author) => Loc.Localize("InstallerAuthorWithoutDownloadCount", " by {0}").Format(author);
+
             public static string PluginBody_AuthorWithDownloadCount(string author, long count) => Loc.Localize("InstallerAuthorWithDownloadCount", " by {0}, {1} downloads").Format(author, count);
 
             public static string PluginBody_AuthorWithDownloadCountUnavailable(string author) => Loc.Localize("InstallerAuthorWithDownloadCountUnavailable", " by {0}, download count unavailable").Format(author);
+
+            public static string PluginBody_DevPluginPath(string path) => Loc.Localize("InstallerDevPluginPath", "From {0}").Format(path);
 
             public static string PluginBody_Plugin3rdPartyRepo(string url) => Loc.Localize("InstallerPlugin3rdPartyRepo", "From custom plugin repository {0}").Format(url);
 

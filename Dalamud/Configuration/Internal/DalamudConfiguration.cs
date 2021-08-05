@@ -93,6 +93,13 @@ namespace Dalamud.Configuration.Internal
         public Dictionary<string, DevPluginSettings> DevPluginSettings { get; set; } = new();
 
         /// <summary>
+        /// Gets or sets a list of additional locations that dev plugins should be loaded from. This can
+        /// be either a DLL or folder, but should be the absolute path, or a path relative to the currently
+        /// injected Dalamud instance.
+        /// </summary>
+        public List<DevPluginLocationSettings> DevPluginLoadLocations { get; set; } = new();
+
+        /// <summary>
         /// Gets or sets the global UI scale.
         /// </summary>
         public float GlobalUiScale { get; set; } = 1.0f;

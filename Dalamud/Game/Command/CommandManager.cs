@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
-using Serilog;
+using Dalamud.Logging.Internal;
 
 namespace Dalamud.Game.Command
 {

@@ -6,17 +6,19 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Net;
+using System.Net.Http;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
 using CheapLoc;
 using Dalamud.Configuration;
+using Dalamud.Game;
 using Dalamud.Game.Text;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Exceptions;
 using Dalamud.Plugin.Internal.Types;
+using Dalamud.Utility;
 using HarmonyLib;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
@@ -185,7 +187,22 @@ namespace Dalamud.Plugin.Internal
             }
 
             // devPlugins are more freeform. Look for any dll and hope to get lucky.
-            var devDllFiles = this.devPluginDirectory.GetFiles("*.dll", SearchOption.AllDirectories);
+            var devDllFiles = this.devPluginDirectory.GetFiles("*.dll", SearchOption.AllDirectories).ToList();
+
+            foreach (var setting in this.dalamud.Configuration.DevPluginLoadLocations)
+            {
+                if (!setting.IsEnabled)
+                    continue;
+
+                if (Directory.Exists(setting.Path))
+                {
+                    devDllFiles.AddRange(new DirectoryInfo(setting.Path).GetFiles("*.dll", SearchOption.AllDirectories));
+                }
+                else if (File.Exists(setting.Path))
+                {
+                    devDllFiles.Add(new FileInfo(setting.Path));
+                }
+            }
 
             foreach (var dllFile in devDllFiles)
             {
@@ -298,7 +315,22 @@ namespace Dalamud.Plugin.Internal
                 this.devPluginDirectory.Create();
 
             // devPlugins are more freeform. Look for any dll and hope to get lucky.
-            var devDllFiles = this.devPluginDirectory.GetFiles("*.dll", SearchOption.AllDirectories);
+            var devDllFiles = this.devPluginDirectory.GetFiles("*.dll", SearchOption.AllDirectories).ToList();
+
+            foreach (var setting in this.dalamud.Configuration.DevPluginLoadLocations)
+            {
+                if (!setting.IsEnabled)
+                    continue;
+
+                if (Directory.Exists(setting.Path))
+                {
+                    devDllFiles.AddRange(new DirectoryInfo(setting.Path).GetFiles("*.dll", SearchOption.AllDirectories));
+                }
+                else if (File.Exists(setting.Path))
+                {
+                    devDllFiles.Add(new FileInfo(setting.Path));
+                }
+            }
 
             var listChanged = false;
 
@@ -359,16 +391,17 @@ namespace Dalamud.Plugin.Internal
                 // ignored, since the plugin may be loaded already
             }
 
-            using var client = new WebClient();
-
             var tempZip = new FileInfo(Path.GetTempFileName());
 
             try
             {
                 Log.Debug($"Downloading plugin to {tempZip} from {downloadUrl}");
-                client.DownloadFile(downloadUrl, tempZip.FullName);
+                using var client = new HttpClient();
+                var response = client.GetAsync(downloadUrl).Result;
+                using var fs = new FileStream(tempZip.FullName, FileMode.CreateNew);
+                response.Content.CopyToAsync(fs).GetAwaiter().GetResult();
             }
-            catch (WebException ex)
+            catch (HttpRequestException ex)
             {
                 Log.Error(ex, $"Download of plugin {repoManifest.Name} failed unexpectedly.");
                 throw;
@@ -593,7 +626,7 @@ namespace Dalamud.Plugin.Internal
                                     continue;
                                 }
 
-                                if (manifest.ApplicableVersion < this.dalamud.StartInfo.GameVersion)
+                                if (manifest.ApplicableVersion < this.dalamud.StartInfo.GameVersion - TimeSpan.FromDays(90))
                                 {
                                     Log.Information($"Inapplicable version: cleaning up {versionDir.FullName}");
                                     versionDir.Delete(true);
@@ -977,26 +1010,21 @@ namespace Dalamud.Plugin.Internal
         [SuppressMessage("StyleCop.CSharp.NamingRules", "SA1313:Parameter names should begin with lower-case letter", Justification = "Enforced naming for special injected parameters")]
         private static void AssemblyLocationPatch(Assembly __instance, ref string __result)
         {
-            // Assembly.GetExecutingAssembly can return this.
-            // Check for it as a special case and find the plugin.
-            if (__result.EndsWith("System.Private.CoreLib.dll", StringComparison.InvariantCultureIgnoreCase))
+            if (string.IsNullOrEmpty(__result))
             {
                 foreach (var assemblyName in GetStackFrameAssemblyNames())
                 {
                     if (PluginLocations.TryGetValue(assemblyName, out var data))
                     {
                         __result = data.Location;
-                        return;
+                        break;
                     }
                 }
             }
-            else if (string.IsNullOrEmpty(__result))
-            {
-                if (PluginLocations.TryGetValue(__instance.FullName, out var data))
-                {
-                    __result = data.Location;
-                }
-            }
+
+            __result ??= string.Empty;
+
+            Log.Verbose($"Assembly.Location // {__instance.FullName} // {__result}");
         }
 
         /// <summary>
@@ -1009,26 +1037,21 @@ namespace Dalamud.Plugin.Internal
         [SuppressMessage("StyleCop.CSharp.NamingRules", "SA1313:Parameter names should begin with lower-case letter", Justification = "Enforced naming for special injected parameters")]
         private static void AssemblyCodeBasePatch(Assembly __instance, ref string __result)
         {
-            // Assembly.GetExecutingAssembly can return this.
-            // Check for it as a special case and find the plugin.
-            if (__result.EndsWith("System.Private.CoreLib.dll"))
+            if (string.IsNullOrEmpty(__result))
             {
                 foreach (var assemblyName in GetStackFrameAssemblyNames())
                 {
                     if (PluginLocations.TryGetValue(assemblyName, out var data))
                     {
-                        __result = data.Location;
-                        return;
+                        __result = data.CodeBase;
+                        break;
                     }
                 }
             }
-            else if (string.IsNullOrEmpty(__result))
-            {
-                if (PluginLocations.TryGetValue(__instance.FullName, out var data))
-                {
-                    __result = data.Location;
-                }
-            }
+
+            __result ??= string.Empty;
+
+            Log.Verbose($"Assembly.CodeBase // {__instance.FullName} // {__result}");
         }
 
         private static IEnumerable<string> GetStackFrameAssemblyNames()

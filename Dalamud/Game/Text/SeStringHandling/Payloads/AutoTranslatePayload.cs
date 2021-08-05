@@ -4,9 +4,9 @@ using System.IO;
 using System.Linq;
 
 using Dalamud.Data;
+using Dalamud.Logging.Internal;
 using Lumina.Excel.GeneratedSheets;
 using Newtonsoft.Json;
-using Serilog;
 
 namespace Dalamud.Game.Text.SeStringHandling.Payloads
 {

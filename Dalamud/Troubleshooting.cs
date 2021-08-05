@@ -6,6 +6,7 @@ using System.Text;
 using Dalamud.Configuration;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Types;
+using Dalamud.Utility;
 using Newtonsoft.Json;
 
 namespace Dalamud

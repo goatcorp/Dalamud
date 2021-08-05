@@ -273,7 +273,7 @@ namespace Dalamud.Plugin.Internal
                     this.Manifest.Save(this.manifestFile);
                 }
 
-                this.DalamudInterface = new DalamudPluginInterface(this.dalamud, this.pluginAssembly.GetName().Name, this.DllFile.FullName, reason);
+                this.DalamudInterface = new DalamudPluginInterface(this.dalamud, this.pluginAssembly.GetName().Name, reason);
 
                 if (this.IsDev)
                 {
