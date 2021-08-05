@@ -8,7 +8,7 @@ using FFXIVClientStructs.FFXIV.Component.GUI;
 
 using ValueType = FFXIVClientStructs.FFXIV.Component.GUI.ValueType;
 
-namespace Dalamud.Game.Internal.Gui.Addons
+namespace Dalamud.Game.Internal
 {
     /// <summary>
     /// This class implements in-game Dalamud options in the in-game System menu.

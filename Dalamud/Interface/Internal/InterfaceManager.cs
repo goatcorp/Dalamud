@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading;
 
 using Dalamud.Game;
-using Dalamud.Game.ClientState;
+using Dalamud.Game.ClientState.GamePad;
 using Dalamud.Game.Internal.DXGI;
 using Dalamud.Hooking;
 using Dalamud.Hooking.Internal;

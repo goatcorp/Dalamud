@@ -6,7 +6,6 @@ using System.Runtime.InteropServices;
 using System.Threading;
 
 using Dalamud.Game.Gui;
-using Dalamud.Game.Internal.Gui;
 using Dalamud.Game.Libc;
 using Dalamud.Game.Network;
 using Dalamud.Hooking;

@@ -242,7 +242,7 @@ namespace Dalamud.Interface.Internal
             if (string.IsNullOrEmpty(arguments))
                 this.dalamud.DalamudUi.ToggleDataWindow();
             else
-                this.dalamud.DalamudUi.ToggleDataWindow(arguments);
+                this.dalamud.DalamudUi.OpenDataWindow(arguments);
         }
 
         private void OnOpenLog(string command, string arguments)
