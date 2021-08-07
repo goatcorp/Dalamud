@@ -1,16 +1,17 @@
+using System;
 using System.Reflection;
 
-namespace Dalamud.IOC
+namespace Dalamud.IoC
 {
     internal class ObjectInstance
     {
         public DependencyVersionAttribute? Version { get; }
 
-        public object Instance { get; }
+        public WeakReference Instance { get; }
 
         public ObjectInstance(object instance)
         {
-            Instance = instance;
+            Instance = new WeakReference(instance);
 
             var type = instance.GetType();
             if (type.GetCustomAttribute(typeof(DependencyVersionAttribute)) is DependencyVersionAttribute attr)

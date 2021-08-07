@@ -1,6 +1,8 @@
 using System;
 using System.Reflection;
 
+using Dalamud.IoC;
+
 namespace Dalamud
 {
     /// <summary>
@@ -27,12 +29,17 @@ namespace Dalamud
             }
 
             _object = obj;
+
+            RegisterInIoCContainer(_object);
+
             return _object;
         }
 
         public static T Set()
         {
             _object = (T)Activator.CreateInstance(typeof(T), true);
+
+            RegisterInIoCContainer(_object);
 
             return _object;
         }
@@ -49,16 +56,52 @@ namespace Dalamud
 
             _object = obj;
 
+            RegisterInIoCContainer(_object);
+
             return obj;
         }
 
+        private static void RegisterInIoCContainer(T instance)
+        {
+            var type = typeof(T);
+            var attr = type.GetCustomAttribute<PluginInterfaceAttribute>();
+
+            if (attr == null)
+            {
+                return;
+            }
+
+            // attempt to get service locator
+            var ioc = Service<Container>.GetNullable();
+            if (ioc == null)
+            {
+                return;
+            }
+
+            ioc.RegisterSingleton(instance);
+        }
+
+        /// <summary>
+        /// Attempt to pull the instance out of the service locator.
+        /// </summary>
+        /// <returns>The object if registered.</returns>
+        /// <exception cref="InvalidOperationException">Thrown when the object instance isn't present in the service locator.</exception>
         public static T Get()
         {
             if (_object == null)
             {
-                throw new InvalidOperationException($"{nameof(T)} hasn't been registered!");
+                throw new InvalidOperationException($"{nameof(T)} hasn't been registered in the service locator!");
             }
 
+            return _object;
+        }
+
+        /// <summary>
+        /// Attempt to pull the instance out of the service locator.
+        /// </summary>
+        /// <returns>The object if registered, null otherwise.</returns>
+        public static T? GetNullable()
+        {
             return _object;
         }
     }

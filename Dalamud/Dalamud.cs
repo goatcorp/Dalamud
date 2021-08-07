@@ -14,7 +14,7 @@ using Dalamud.Game.Network.Internal;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Hooking.Internal;
 using Dalamud.Interface.Internal;
-using Dalamud.IOC;
+using Dalamud.IoC;
 using Dalamud.Memory;
 using Dalamud.Plugin.Internal;
 using Serilog;

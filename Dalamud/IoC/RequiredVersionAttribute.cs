@@ -1,6 +1,6 @@
 using System;
 
-namespace Dalamud.IOC
+namespace Dalamud.IoC
 {
     [AttributeUsage(AttributeTargets.Parameter)]
     public class RequiredVersionAttribute : Attribute

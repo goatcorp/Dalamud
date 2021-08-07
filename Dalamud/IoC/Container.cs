@@ -2,9 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+
 using Serilog;
 
-namespace Dalamud.IOC
+namespace Dalamud.IoC
 {
     /// <summary>
     /// A simple singleton-only IOC container that provides (optional) version-based dependency resolution.
@@ -155,7 +156,13 @@ namespace Dalamud.IOC
 
         public object? GetService(Type serviceType)
         {
-            return this._objectInstances.TryGetValue(serviceType, out var service) ? service.Instance : null;
+            var weakRef = this._objectInstances.TryGetValue(serviceType, out var service);
+            if (weakRef && service.Instance.IsAlive)
+            {
+                return service.Instance.Target;
+            }
+
+            return null;
         }
 
         private object? GetService(Type serviceType, object[] scopedObjects)
