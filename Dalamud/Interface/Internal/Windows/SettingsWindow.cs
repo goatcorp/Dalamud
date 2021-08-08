@@ -11,6 +11,7 @@ using Dalamud.Game.Text;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Windowing;
+using Dalamud.Plugin.Internal;
 using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows
@@ -24,6 +25,7 @@ namespace Dalamud.Interface.Internal.Windows
         private const float MaxScale = 2.0f;
 
         private readonly Dalamud dalamud;
+        private readonly PluginManager pluginManager;
 
         private readonly string[] languages;
         private readonly string[] locLanguages;
@@ -63,11 +65,11 @@ namespace Dalamud.Interface.Internal.Windows
         /// <summary>
         /// Initializes a new instance of the <see cref="SettingsWindow"/> class.
         /// </summary>
-        /// <param name="dalamud">The Dalamud Instance.</param>
-        public SettingsWindow(Dalamud dalamud)
+        public SettingsWindow()
             : base(Loc.Localize("DalamudSettingsHeader", "Dalamud Settings") + "###XlSettings2", ImGuiWindowFlags.NoCollapse)
         {
-            this.dalamud = dalamud;
+            this.dalamud = Service<Dalamud>.Get();
+            this.pluginManager = Service<PluginManager>.Get();
 
             this.Size = new Vector2(740, 550);
             this.SizeCondition = ImGuiCond.FirstUseEver;
@@ -261,7 +263,7 @@ namespace Dalamud.Interface.Internal.Windows
                     if (ImGui.Button(Loc.Localize("DalamudSettingsClearHidden", "Clear hidden plugins")))
                     {
                         this.dalamud.Configuration.HiddenPluginInternalName.Clear();
-                        this.dalamud.PluginManager.RefilterPluginMasters();
+                        this.pluginManager.RefilterPluginMasters();
                     }
 
                     ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingsClearHiddenHint", "Restore plugins you have previously hidden from the plugin installer."));
@@ -390,7 +392,7 @@ namespace Dalamud.Interface.Internal.Windows
 
                 if (this.thirdRepoListChanged)
                 {
-                    this.dalamud.PluginManager.SetPluginReposFromConfig(true);
+                    this.pluginManager.SetPluginReposFromConfig(true);
                     this.thirdRepoListChanged = false;
                 }
             }
@@ -403,7 +405,7 @@ namespace Dalamud.Interface.Internal.Windows
 
                 if (this.thirdRepoListChanged)
                 {
-                    this.dalamud.PluginManager.SetPluginReposFromConfig(true);
+                    this.pluginManager.SetPluginReposFromConfig(true);
                     this.thirdRepoListChanged = false;
                 }
 
@@ -463,7 +465,7 @@ namespace Dalamud.Interface.Internal.Windows
 
             this.dalamud.Configuration.Save();
 
-            this.dalamud.PluginManager.ReloadPluginMasters();
+            this.pluginManager.ReloadPluginMasters();
         }
     }
 }

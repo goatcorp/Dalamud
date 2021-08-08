@@ -37,16 +37,14 @@ namespace Dalamud.Data
         /// <summary>
         /// Initializes a new instance of the <see cref="DataManager"/> class.
         /// </summary>
-        /// <param name="language">The language to load data with by default.</param>
-        /// <param name="interfaceManager">An <see cref="InterfaceManager"/> instance to parse the data with.</param>
-        internal DataManager(ClientLanguage language, InterfaceManager interfaceManager)
+        internal DataManager()
         {
-            this.interfaceManager = interfaceManager;
+            this.Language = Service<DalamudStartInfo>.Get().Language;
+            this.interfaceManager = Service<InterfaceManager>.Get();
 
             // Set up default values so plugins do not null-reference when data is being loaded.
             this.ClientOpCodes = this.ServerOpCodes = new ReadOnlyDictionary<string, ushort>(new Dictionary<string, ushort>());
 
-            this.Language = language;
         }
 
         /// <summary>

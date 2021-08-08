@@ -16,17 +16,16 @@ namespace Dalamud.Game.ClientState.Actors
     {
         private const int ActorTableLength = 424;
 
-        private readonly Dalamud dalamud;
         private readonly ClientStateAddressResolver address;
+        private readonly ClientState clientState;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ActorTable"/> class.
         /// </summary>
-        /// <param name="dalamud">The <see cref="dalamud"/> instance.</param>
         /// <param name="addressResolver">Client state address resolver.</param>
-        internal ActorTable(Dalamud dalamud, ClientStateAddressResolver addressResolver)
+        internal ActorTable(ClientStateAddressResolver addressResolver)
         {
-            this.dalamud = dalamud;
+            this.clientState = Service<ClientState>.Get();
             this.address = addressResolver;
 
             Log.Verbose($"Actor table address 0x{this.address.ActorTable.ToInt64():X}");
@@ -89,7 +88,7 @@ namespace Dalamud.Game.ClientState.Actors
         [CanBeNull]
         public unsafe Actor CreateActorReference(IntPtr address)
         {
-            if (this.dalamud.ClientState.LocalContentId == 0)
+            if (this.clientState.LocalContentId == 0)
                 return null;
 
             if (address == IntPtr.Zero)
@@ -98,11 +97,11 @@ namespace Dalamud.Game.ClientState.Actors
             var objKind = *(ObjectKind*)(address + ActorOffsets.ObjectKind);
             return objKind switch
             {
-                ObjectKind.Player => new PlayerCharacter(address, this.dalamud),
-                ObjectKind.BattleNpc => new BattleNpc(address, this.dalamud),
-                ObjectKind.EventObj => new EventObj(address, this.dalamud),
-                ObjectKind.Companion => new Npc(address, this.dalamud),
-                _ => new Actor(address, this.dalamud),
+                ObjectKind.Player => new PlayerCharacter(address),
+                ObjectKind.BattleNpc => new BattleNpc(address),
+                ObjectKind.EventObj => new EventObj(address),
+                ObjectKind.Companion => new Npc(address),
+                _ => new Actor(address),
             };
         }
     }

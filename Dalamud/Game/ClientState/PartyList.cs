@@ -23,12 +23,11 @@ namespace Dalamud.Game.ClientState
         /// <summary>
         /// Initializes a new instance of the <see cref="PartyList"/> class.
         /// </summary>
-        /// <param name="dalamud">The Dalamud instance.</param>
         /// <param name="addressResolver">The ClientStateAddressResolver instance.</param>
-        internal PartyList(Dalamud dalamud, ClientStateAddressResolver addressResolver)
+        internal PartyList(ClientStateAddressResolver addressResolver)
         {
             this.address = addressResolver;
-            this.dalamud = dalamud;
+            this.dalamud = Service<Dalamud>.Get();
             // this.partyListUpdateHook = new Hook<PartyListUpdateDelegate>(Address.PartyListUpdate, new PartyListUpdateDelegate(PartyListUpdateDetour), this);
         }
 

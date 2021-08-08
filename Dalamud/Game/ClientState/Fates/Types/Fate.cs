@@ -1,5 +1,6 @@
 using System;
 
+using Dalamud.Data;
 using Dalamud.Game.ClientState.Resolvers;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Memory;
@@ -12,15 +13,18 @@ namespace Dalamud.Game.ClientState.Fates.Types
     /// </summary>
     public unsafe partial class Fate : IEquatable<Fate>
     {
+        private readonly ClientState clientState;
+        private readonly DataManager data;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="Fate"/> class.
         /// </summary>
         /// <param name="address">The address of this fate in memory.</param>
-        /// <param name="dalamud">Dalamud instance.</param>
-        internal Fate(IntPtr address, Dalamud dalamud)
+        internal Fate(IntPtr address)
         {
             this.Address = address;
-            this.Dalamud = dalamud;
+            this.clientState = Service<ClientState>.Get();
+            this.data = Service<DataManager>.Get();
         }
 
         /// <summary>
@@ -53,7 +57,7 @@ namespace Dalamud.Game.ClientState.Fates.Types
             if (fate == null)
                 return false;
 
-            if (fate.Dalamud.ClientState.LocalContentId == 0)
+            if (fate.clientState.LocalContentId == 0)
                 return false;
 
             return true;
@@ -88,7 +92,7 @@ namespace Dalamud.Game.ClientState.Fates.Types
         /// <summary>
         /// Gets game data linked to this Fate.
         /// </summary>
-        public Lumina.Excel.GeneratedSheets.Fate GameData => this.Dalamud.Data.GetExcelSheet<Lumina.Excel.GeneratedSheets.Fate>().GetRow(this.FateId);
+        public Lumina.Excel.GeneratedSheets.Fate? GameData => this.data.GetExcelSheet<Lumina.Excel.GeneratedSheets.Fate>().GetRow(this.FateId);
 
         /// <summary>
         /// Gets the time this <see cref="Fate"/> started.

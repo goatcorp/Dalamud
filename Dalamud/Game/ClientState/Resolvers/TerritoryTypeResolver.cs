@@ -12,7 +12,7 @@ namespace Dalamud.Game.ClientState.Resolvers
         /// <param name="id">The ID of the territory type.</param>
         /// <param name="dalamud">The Dalamud instance.</param>
         internal TerritoryTypeResolver(ushort id, Dalamud dalamud)
-            : base(id, dalamud)
+            : base(id)
         {
         }
     }

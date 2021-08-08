@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using Dalamud.Game.ClientState.Actors;
 using Dalamud.Game.ClientState.Actors.Types;
 using Dalamud.Game.ClientState.Fates;
-using Dalamud.Game.Internal;
+using Dalamud.Game.Network.Internal;
 using Dalamud.Hooking;
 using JetBrains.Annotations;
 using Lumina.Excel.GeneratedSheets;
@@ -23,29 +23,33 @@ namespace Dalamud.Game.ClientState
         private readonly Hook<SetupTerritoryTypeDelegate> setupTerritoryTypeHook;
 
         private bool lastConditionNone = true;
+        private readonly DalamudStartInfo startInfo;
+        private readonly NetworkHandlers networkHandlers;
+        private readonly Framework framework;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ClientState"/> class.
         /// Set up client state access.
         /// </summary>
-        /// <param name="dalamud">Dalamud instance.</param>
-        /// <param name="startInfo">StartInfo of the current Dalamud launch.</param>
-        /// <param name="scanner">Sig scanner.</param>
-        internal ClientState(Dalamud dalamud, DalamudStartInfo startInfo, SigScanner scanner)
+        internal ClientState()
         {
-            this.dalamud = dalamud;
+            this.dalamud = Service<Dalamud>.Get();
+            this.framework = Service<Framework>.Get();
+            this.startInfo = Service<DalamudStartInfo>.Get();
+            this.networkHandlers = Service<NetworkHandlers>.Get();
+            var scanner = Service<SigScanner>.Get();
             this.address = new ClientStateAddressResolver();
             this.address.Setup(scanner);
 
             Log.Verbose("===== C L I E N T  S T A T E =====");
 
-            this.ClientLanguage = startInfo.Language;
+            this.ClientLanguage = this.startInfo.Language;
 
-            this.Actors = new ActorTable(dalamud, this.address);
+            this.Actors = new ActorTable(this.address);
 
-            this.Fates = new FateTable(dalamud, this.address);
+            this.Fates = new FateTable(this.address);
 
-            this.PartyList = new PartyList(dalamud, this.address);
+            this.PartyList = new PartyList(this.address);
 
             this.JobGauges = new JobGauges(this.address);
 
@@ -55,14 +59,14 @@ namespace Dalamud.Game.ClientState
 
             this.Condition = new Condition(this.address);
 
-            this.Targets = new Targets(dalamud, this.address);
+            this.Targets = new Targets(this.address);
 
             Log.Verbose($"SetupTerritoryType address 0x{this.address.SetupTerritoryType.ToInt64():X}");
 
             this.setupTerritoryTypeHook = new Hook<SetupTerritoryTypeDelegate>(this.address.SetupTerritoryType, this.SetupTerritoryTypeDetour);
 
-            dalamud.Framework.OnUpdateEvent += this.FrameworkOnOnUpdateEvent;
-            dalamud.NetworkHandlers.CfPop += this.NetworkHandlersOnCfPop;
+            this.framework.OnUpdateEvent += this.FrameworkOnOnUpdateEvent;
+            this.networkHandlers.CfPop += this.NetworkHandlersOnCfPop;
         }
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
@@ -180,8 +184,8 @@ namespace Dalamud.Game.ClientState
             this.setupTerritoryTypeHook.Dispose();
             this.GamepadState.Dispose();
 
-            this.dalamud.Framework.OnUpdateEvent -= this.FrameworkOnOnUpdateEvent;
-            this.dalamud.NetworkHandlers.CfPop += this.NetworkHandlersOnCfPop;
+            this.framework.OnUpdateEvent -= this.FrameworkOnOnUpdateEvent;
+            this.networkHandlers.CfPop += this.NetworkHandlersOnCfPop;
         }
 
         private IntPtr SetupTerritoryTypeDetour(IntPtr manager, ushort terriType)

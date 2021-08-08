@@ -83,7 +83,7 @@ namespace Dalamud.Interface.Internal.Scratchpad
             {
                 var script = CSharpScript.Create(code, options);
 
-                var pi = new DalamudPluginInterface(this.dalamud, "Scratch-" + doc.Id, null, PluginLoadReason.Unknown);
+                var pi = new DalamudPluginInterface("Scratch-" + doc.Id, null, PluginLoadReason.Unknown);
 
                 // todo: adam - what the fuck....
                 var pluginType = script.ContinueWith<Type>("return typeof(ScratchPlugin);")

@@ -9,6 +9,7 @@ using Dalamud.Game.Gui;
 using Dalamud.Game.Libc;
 using Dalamud.Game.Network;
 using Dalamud.Hooking;
+using Dalamud.Interface.Internal;
 using Serilog;
 
 namespace Dalamud.Game
@@ -28,7 +29,6 @@ namespace Dalamud.Game
         /// <summary>
         /// Initializes a new instance of the <see cref="Framework"/> class.
         /// </summary>
-        /// <param name="scanner">The SigScanner instance.</param>
         internal Framework()
         {
             var scanner = Service<SigScanner>.Get();
@@ -48,7 +48,7 @@ namespace Dalamud.Game
             // Initialize subsystems
             this.Libc = new LibcFunction(scanner);
 
-            this.Gui = new GameGui(this.Address.GuiManager, scanner, dalamud);
+            this.Gui = new GameGui(this.Address.GuiManager);
 
             this.Network = new GameNetwork(scanner);
         }
@@ -180,7 +180,7 @@ namespace Dalamud.Game
             if (!this.dalamud.IsReady)
                 this.dalamud.LoadTier2();
 
-            if (!this.dalamud.IsLoadedPluginSystem && this.dalamud.InterfaceManager.IsReady)
+            if (!this.dalamud.IsLoadedPluginSystem && Service<InterfaceManager>.GetNullable()?.IsReady == true)
                 this.dalamud.LoadTier3();
 
             try

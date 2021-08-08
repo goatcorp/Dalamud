@@ -18,18 +18,17 @@ namespace Dalamud.Game.ClientState.Fates
         private const int FirstPtrOffset = 0x90;
         private const int LastPtrOffset = 0x98;
 
-        private readonly Dalamud dalamud;
         private readonly ClientStateAddressResolver address;
+        private readonly ClientState clientState;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FateTable"/> class.
         /// </summary>
-        /// <param name="dalamud">The <see cref="dalamud"/> instance.</param>
         /// <param name="addressResolver">Client state address resolver.</param>
-        internal FateTable(Dalamud dalamud, ClientStateAddressResolver addressResolver)
+        internal FateTable(ClientStateAddressResolver addressResolver)
         {
             this.address = addressResolver;
-            this.dalamud = dalamud;
+            this.clientState = Service<ClientState>.Get();
 
             Log.Verbose($"Fate table address 0x{this.address.FateTablePtr.ToInt64():X}");
         }
@@ -126,13 +125,13 @@ namespace Dalamud.Game.ClientState.Fates
         [CanBeNull]
         internal unsafe Fate CreateFateReference(IntPtr offset)
         {
-            if (this.dalamud.ClientState.LocalContentId == 0)
+            if (this.clientState.LocalContentId == 0)
                 return null;
 
             if (offset == IntPtr.Zero)
                 return null;
 
-            return new Fate(offset, this.dalamud);
+            return new Fate(offset);
         }
     }
 

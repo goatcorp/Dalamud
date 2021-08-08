@@ -16,20 +16,19 @@ namespace Dalamud.Game.Network.Internal.MarketBoardUploaders.Universalis
     /// </summary>
     internal class UniversalisMarketBoardUploader : IMarketBoardUploader
     {
+        private readonly ClientState.ClientState clientState;
         private const string ApiBase = "https://universalis.app";
         // private const string ApiBase = "https://127.0.0.1:443";
 
         private const string ApiKey = "GGD6RdSfGyRiHM5WDnAo0Nj9Nv7aC5NDhMj3BebT";
 
-        private readonly Dalamud dalamud;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="UniversalisMarketBoardUploader"/> class.
         /// </summary>
-        /// <param name="dalamud">The Dalamud instance.</param>
-        public UniversalisMarketBoardUploader(Dalamud dalamud)
+        public UniversalisMarketBoardUploader()
         {
-            this.dalamud = dalamud;
+            this.clientState = Service<ClientState.ClientState>.Get();
         }
 
         /// <inheritdoc/>
@@ -38,13 +37,13 @@ namespace Dalamud.Game.Network.Internal.MarketBoardUploaders.Universalis
             using var client = new HttpClient();
 
             Log.Verbose("Starting Universalis upload.");
-            var uploader = this.dalamud.ClientState.LocalContentId;
+            var uploader = this.clientState.LocalContentId;
 
             // ====================================================================================
 
             var listingsUploadObject = new UniversalisItemListingsUploadRequest
             {
-                WorldId = this.dalamud.ClientState.LocalPlayer?.CurrentWorld.Id ?? 0,
+                WorldId = this.clientState.LocalPlayer?.CurrentWorld.Id ?? 0,
                 UploaderId = uploader.ToString(),
                 ItemId = request.CatalogId,
                 Listings = new List<UniversalisItemListingsEntry>(),
@@ -89,7 +88,7 @@ namespace Dalamud.Game.Network.Internal.MarketBoardUploaders.Universalis
 
             var historyUploadObject = new UniversalisHistoryUploadRequest
             {
-                WorldId = this.dalamud.ClientState.LocalPlayer?.CurrentWorld.Id ?? 0,
+                WorldId = this.clientState.LocalPlayer?.CurrentWorld.Id ?? 0,
                 UploaderId = uploader.ToString(),
                 ItemId = request.CatalogId,
                 Entries = new List<UniversalisHistoryEntry>(),
@@ -127,8 +126,8 @@ namespace Dalamud.Game.Network.Internal.MarketBoardUploaders.Universalis
 
             var taxUploadObject = new UniversalisTaxUploadRequest
             {
-                WorldId = this.dalamud.ClientState.LocalPlayer?.CurrentWorld.Id ?? 0,
-                UploaderId = this.dalamud.ClientState.LocalContentId.ToString(),
+                WorldId = this.clientState.LocalPlayer?.CurrentWorld.Id ?? 0,
+                UploaderId = this.clientState.LocalContentId.ToString(),
                 TaxData = new UniversalisTaxData
                 {
                     LimsaLominsa = taxRates.LimsaLominsaTax,
@@ -164,7 +163,7 @@ namespace Dalamud.Game.Network.Internal.MarketBoardUploaders.Universalis
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(ApiKey);
 
             var itemId = purchaseHandler.CatalogId;
-            var worldId = this.dalamud.ClientState.LocalPlayer?.CurrentWorld.Id ?? 0;
+            var worldId = this.clientState.LocalPlayer?.CurrentWorld.Id ?? 0;
 
             // ====================================================================================
 
@@ -174,7 +173,7 @@ namespace Dalamud.Game.Network.Internal.MarketBoardUploaders.Universalis
                 Quantity = purchaseHandler.ItemQuantity,
                 ListingId = purchaseHandler.ListingId.ToString(),
                 RetainerId = purchaseHandler.RetainerId.ToString(),
-                UploaderId = this.dalamud.ClientState.LocalContentId.ToString(),
+                UploaderId = this.clientState.LocalContentId.ToString(),
             };
 
             var deletePath = $"/api/{worldId}/{itemId}/delete";

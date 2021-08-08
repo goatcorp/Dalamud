@@ -16,9 +16,8 @@ namespace Dalamud.Game.ClientState.Actors.Types
         /// This represents a non-static entity.
         /// </summary>
         /// <param name="address">The address of this actor in memory.</param>
-        /// <param name="dalamud">A dalamud reference needed to access game data in Resolvers.</param>
-        internal Chara(IntPtr address, Dalamud dalamud)
-            : base(address, dalamud)
+        internal Chara(IntPtr address)
+            : base(address)
         {
         }
 

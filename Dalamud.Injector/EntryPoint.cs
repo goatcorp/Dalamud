@@ -61,8 +61,6 @@ namespace Dalamud.Injector
             var process = GetProcess(args.ElementAtOrDefault(1));
             var startInfo = GetStartInfo(args.ElementAtOrDefault(2), process);
 
-            startInfo.WorkingDirectory = Directory.GetCurrentDirectory();
-
             // This seems to help with the STATUS_INTERNAL_ERROR condition
             Thread.Sleep(1000);
 
@@ -245,7 +243,7 @@ namespace Dalamud.Injector
 
                 startInfo = new DalamudStartInfo
                 {
-                    WorkingDirectory = null,
+                    WorkingDirectory = Directory.GetCurrentDirectory(),
                     ConfigurationPath = Path.Combine(xivlauncherDir, "dalamudConfig.json"),
                     PluginDirectory = Path.Combine(xivlauncherDir, "installedPlugins"),
                     DefaultPluginDirectory = Path.Combine(xivlauncherDir, "devPlugins"),

@@ -5,18 +5,18 @@ namespace Dalamud.IoC
 {
     internal class ObjectInstance
     {
-        public DependencyVersionAttribute? Version { get; }
+        public InterfaceVersionAttribute? Version { get; }
 
         public WeakReference Instance { get; }
 
         public ObjectInstance(object instance)
         {
-            Instance = new WeakReference(instance);
+            this.Instance = new WeakReference(instance);
 
             var type = instance.GetType();
-            if (type.GetCustomAttribute(typeof(DependencyVersionAttribute)) is DependencyVersionAttribute attr)
+            if (type.GetCustomAttribute(typeof(InterfaceVersionAttribute)) is InterfaceVersionAttribute attr)
             {
-                Version = attr;
+                this.Version = attr;
             }
         }
     }

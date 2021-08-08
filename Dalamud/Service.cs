@@ -2,6 +2,7 @@ using System;
 using System.Reflection;
 
 using Dalamud.IoC;
+using Serilog;
 
 namespace Dalamud
 {
@@ -14,7 +15,7 @@ namespace Dalamud
     /// <typeparam name="T">The class you want to store in the service locator.</typeparam>
     internal static class Service<T> where T : class
     {
-        private static T? _object;
+        private static T? instance;
 
         static Service()
         {
@@ -28,20 +29,18 @@ namespace Dalamud
                 throw new ArgumentNullException($"{nameof(obj)} is null!");
             }
 
-            _object = obj;
+            SetInstanceObject(obj);
 
-            RegisterInIoCContainer(_object);
-
-            return _object;
+            return instance!;
         }
 
         public static T Set()
         {
-            _object = (T)Activator.CreateInstance(typeof(T), true);
+            var obj = (T)Activator.CreateInstance(typeof(T), true);
 
-            RegisterInIoCContainer(_object);
+            SetInstanceObject(obj!);
 
-            return _object;
+            return instance!;
         }
 
         public static T Set(params object[] args)
@@ -54,31 +53,9 @@ namespace Dalamud
                 throw new Exception("what he fuc");
             }
 
-            _object = obj;
-
-            RegisterInIoCContainer(_object);
+            SetInstanceObject(obj);
 
             return obj;
-        }
-
-        private static void RegisterInIoCContainer(T instance)
-        {
-            var type = typeof(T);
-            var attr = type.GetCustomAttribute<PluginInterfaceAttribute>();
-
-            if (attr == null)
-            {
-                return;
-            }
-
-            // attempt to get service locator
-            var ioc = Service<Container>.GetNullable();
-            if (ioc == null)
-            {
-                return;
-            }
-
-            ioc.RegisterSingleton(instance);
         }
 
         /// <summary>
@@ -88,12 +65,12 @@ namespace Dalamud
         /// <exception cref="InvalidOperationException">Thrown when the object instance isn't present in the service locator.</exception>
         public static T Get()
         {
-            if (_object == null)
+            if (instance == null)
             {
                 throw new InvalidOperationException($"{nameof(T)} hasn't been registered in the service locator!");
             }
 
-            return _object;
+            return instance;
         }
 
         /// <summary>
@@ -102,7 +79,43 @@ namespace Dalamud
         /// <returns>The object if registered, null otherwise.</returns>
         public static T? GetNullable()
         {
-            return _object;
+            return instance;
+        }
+
+        private static void SetInstanceObject(T instance)
+        {
+            Service<T>.instance = instance;
+            var availableToPlugins = RegisterInIoCContainer(instance);
+
+            if (availableToPlugins)
+            {
+                Log.Information("Registered {ObjectType} into service locator & exposed to plugins!", typeof(T).FullName);
+                return;
+            }
+
+            Log.Information("Registered {ObjectType} into service locator privately!", typeof(T).FullName);
+        }
+
+        private static bool RegisterInIoCContainer(T instance)
+        {
+            var type = typeof(T);
+            var attr = type.GetCustomAttribute<PluginInterfaceAttribute>();
+
+            if (attr == null)
+            {
+                return false;
+            }
+
+            // attempt to get service locator
+            var ioc = Service<Container>.GetNullable();
+            if (ioc == null)
+            {
+                return false;
+            }
+
+            ioc.RegisterSingleton(instance);
+
+            return true;
         }
     }
 }

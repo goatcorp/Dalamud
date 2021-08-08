@@ -639,10 +639,9 @@ namespace Dalamud.Memory
         /// <summary>
         /// Initialize with static access to Dalamud.
         /// </summary>
-        /// <param name="dalamud">The Dalamud instance.</param>
-        internal static void Initialize(Dalamud dalamud)
+        internal static void Initialize()
         {
-            seStringManager = dalamud.SeStringManager;
+            seStringManager = Service<SeStringManager>.Get();
             // handle = Process.GetCurrentProcess().Handle;
         }
     }

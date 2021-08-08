@@ -17,6 +17,8 @@ using Dalamud.Game.Text.Sanitizer;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface;
+using Dalamud.Interface.Internal;
+using Dalamud.Plugin.Internal;
 
 namespace Dalamud.Plugin
 {
@@ -33,22 +35,23 @@ namespace Dalamud.Plugin
         /// Initializes a new instance of the <see cref="DalamudPluginInterface"/> class.
         /// Set up the interface and populate all fields needed.
         /// </summary>
-        /// <param name="dalamud">The dalamud instance to expose.</param>
         /// <param name="pluginName">The internal name of the plugin.</param>
         /// <param name="reason">The reason the plugin was loaded.</param>
-        internal DalamudPluginInterface(Dalamud dalamud, string pluginName, PluginLoadReason reason)
+        internal DalamudPluginInterface(string pluginName, string assemblyLocation, PluginLoadReason reason)
         {
-            this.CommandManager = dalamud.CommandManager;
-            this.Framework = dalamud.Framework;
-            this.ClientState = dalamud.ClientState;
-            this.UiBuilder = new UiBuilder(dalamud, pluginName);
-            this.TargetModuleScanner = dalamud.SigScanner;
-            this.Data = dalamud.Data;
-            this.SeStringManager = dalamud.SeStringManager;
+            this.dalamud = Service<Dalamud>.Get();
 
-            this.dalamud = dalamud;
+            this.CommandManager = Service<CommandManager>.Get();
+            this.Framework = Service<Framework>.Get();
+            this.ClientState = Service<ClientState>.Get();
+            this.UiBuilder = new UiBuilder(pluginName);
+            this.TargetModuleScanner = Service<SigScanner>.Get();
+            this.Data = Service<DataManager>.Get();
+            this.SeStringManager = Service<SeStringManager>.Get();
+
             this.pluginName = pluginName;
-            this.configs = dalamud.PluginManager.PluginConfigs;
+            this.configs = Service<PluginManager>.Get().PluginConfigs;
+            this.AssemblyLocation = assemblyLocation;
             this.Reason = reason;
 
             this.GeneralChatType = this.dalamud.Configuration.GeneralChatType;
@@ -66,9 +69,11 @@ namespace Dalamud.Plugin
                     this.UiLanguage = "en";
             }
 
-            dalamud.LocalizationManager.OnLocalizationChanged += this.OnLocalizationChanged;
-            dalamud.Configuration.OnDalamudConfigurationSaved += this.OnDalamudConfigurationSaved;
+            this.dalamud.LocalizationManager.OnLocalizationChanged += this.OnLocalizationChanged;
+            this.dalamud.Configuration.OnDalamudConfigurationSaved += this.OnDalamudConfigurationSaved;
         }
+
+        public string AssemblyLocation { get; private set; }
 
         /// <summary>
         /// Delegate for localization change with two-letter iso lang code.
@@ -142,7 +147,7 @@ namespace Dalamud.Plugin
 #if DEBUG
         public bool IsDebugging => true;
 #else
-        public bool IsDebugging => this.dalamud.DalamudUi.IsDevMenuOpen;
+        public bool IsDebugging => Service<DalamudInterface>.Get().IsDevMenuOpen;
 #endif
 
         /// <summary>

@@ -12,9 +12,8 @@ namespace Dalamud.Game.ClientState.Actors.Types.NonPlayer
         /// Set up a new BattleNpc with the provided memory representation.
         /// </summary>
         /// <param name="address">The address of this actor in memory.</param>
-        /// <param name="dalamud">A dalamud reference needed to access game data in Resolvers.</param>
-        internal BattleNpc(IntPtr address, Dalamud dalamud)
-            : base(address, dalamud)
+        internal BattleNpc(IntPtr address)
+            : base(address)
         {
         }
 

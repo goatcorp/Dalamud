@@ -10,6 +10,7 @@ using System.Numerics;
 using System.Threading.Tasks;
 
 using CheapLoc;
+using Dalamud.Game.Command;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Windowing;
@@ -38,6 +39,11 @@ namespace Dalamud.Interface.Internal.Windows
         private static readonly ModuleLog Log = new("PLUGINW");
 
         private readonly Dalamud dalamud;
+        private readonly PluginManager pluginManager;
+        private readonly DalamudStartInfo startInfo;
+        private readonly CommandManager commandManager;
+        private readonly DalamudInterface dalamudInterface;
+        private readonly InterfaceManager interfaceManager;
 
         private readonly TextureWrap defaultIcon;
         private readonly TextureWrap troubleIcon;
@@ -78,7 +84,12 @@ namespace Dalamud.Interface.Internal.Windows
                 Locs.WindowTitle + (dalamud.Configuration.DoPluginTest ? Locs.WindowTitleMod_Testing : string.Empty) + "###XlPluginInstaller",
                 ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollbar)
         {
-            this.dalamud = dalamud;
+            this.dalamud = Service<Dalamud>.Get();
+            this.startInfo = Service<DalamudStartInfo>.Get();
+            this.commandManager = Service<CommandManager>.Get();
+            this.pluginManager = Service<PluginManager>.Get();
+            this.dalamudInterface = Service<DalamudInterface>.Get();
+            this.interfaceManager = Service<InterfaceManager>.Get();
             this.IsOpen = true;
 
             this.Size = new Vector2(830, 570);
@@ -91,22 +102,22 @@ namespace Dalamud.Interface.Internal.Windows
             };
 
             // For debugging
-            if (this.dalamud.PluginManager.PluginsReady)
+            if (this.pluginManager.PluginsReady)
                 this.OnInstalledPluginsChanged();
 
-            this.dalamud.PluginManager.OnAvailablePluginsChanged += this.OnAvailablePluginsChanged;
-            this.dalamud.PluginManager.OnInstalledPluginsChanged += this.OnInstalledPluginsChanged;
+            this.pluginManager.OnAvailablePluginsChanged += this.OnAvailablePluginsChanged;
+            this.pluginManager.OnInstalledPluginsChanged += this.OnInstalledPluginsChanged;
 
             this.defaultIcon =
-                this.dalamud.InterfaceManager.LoadImage(
+                this.interfaceManager.LoadImage(
                     Path.Combine(this.dalamud.AssetDirectory.FullName, "UIRes", "defaultIcon.png"));
 
             this.troubleIcon =
-                this.dalamud.InterfaceManager.LoadImage(
+                this.interfaceManager.LoadImage(
                     Path.Combine(this.dalamud.AssetDirectory.FullName, "UIRes", "troubleIcon.png"));
 
             this.updateIcon =
-                this.dalamud.InterfaceManager.LoadImage(
+                this.interfaceManager.LoadImage(
                     Path.Combine(this.dalamud.AssetDirectory.FullName, "UIRes", "updateIcon.png"));
         }
 
@@ -127,8 +138,8 @@ namespace Dalamud.Interface.Internal.Windows
         /// <inheritdoc/>
         public void Dispose()
         {
-            this.dalamud.PluginManager.OnAvailablePluginsChanged -= this.OnAvailablePluginsChanged;
-            this.dalamud.PluginManager.OnInstalledPluginsChanged -= this.OnInstalledPluginsChanged;
+            this.pluginManager.OnAvailablePluginsChanged -= this.OnAvailablePluginsChanged;
+            this.pluginManager.OnInstalledPluginsChanged -= this.OnInstalledPluginsChanged;
 
             this.defaultIcon.Dispose();
             this.troubleIcon.Dispose();
@@ -138,7 +149,7 @@ namespace Dalamud.Interface.Internal.Windows
         /// <inheritdoc/>
         public override void OnOpen()
         {
-            Task.Run(this.dalamud.PluginManager.ReloadPluginMasters);
+            Task.Run(this.pluginManager.ReloadPluginMasters);
 
             this.updatePluginCount = 0;
             this.updatedPlugins = null;
@@ -227,7 +238,7 @@ namespace Dalamud.Interface.Internal.Windows
             ImGui.SameLine();
             if (ImGui.Button(Locs.FooterButton_Settings))
             {
-                this.dalamud.DalamudUi.OpenSettings();
+                this.dalamudInterface.OpenSettings();
             }
 
             // If any dev plugins are installed, allow a shortcut for the /xldev menu item
@@ -236,7 +247,7 @@ namespace Dalamud.Interface.Internal.Windows
                 ImGui.SameLine();
                 if (ImGui.Button(Locs.FooterButton_ScanDevPlugins))
                 {
-                    this.dalamud.PluginManager.ScanDevPlugins();
+                    this.pluginManager.ScanDevPlugins();
                 }
             }
 
@@ -253,7 +264,7 @@ namespace Dalamud.Interface.Internal.Windows
 
         private void DrawUpdatePluginsButton()
         {
-            var ready = this.dalamud.PluginManager.PluginsReady && this.dalamud.PluginManager.ReposReady;
+            var ready = this.pluginManager.PluginsReady && this.pluginManager.ReposReady;
 
             if (!ready || this.updateStatus == OperationStatus.InProgress || this.installStatus == OperationStatus.InProgress)
             {
@@ -271,7 +282,7 @@ namespace Dalamud.Interface.Internal.Windows
                 {
                     this.updateStatus = OperationStatus.InProgress;
 
-                    Task.Run(() => this.dalamud.PluginManager.UpdatePlugins())
+                    Task.Run(() => this.pluginManager.UpdatePlugins())
                         .ContinueWith(task =>
                         {
                             this.updateStatus = OperationStatus.Complete;
@@ -306,7 +317,7 @@ namespace Dalamud.Interface.Internal.Windows
 
                                 if (this.updatePluginCount > 0)
                                 {
-                                    this.dalamud.PluginManager.PrintUpdatedPlugins(this.updatedPlugins, Locs.PluginUpdateHeader_Chatbox);
+                                    this.pluginManager.PrintUpdatedPlugins(this.updatedPlugins, Locs.PluginUpdateHeader_Chatbox);
                                 }
                             }
                         });
@@ -480,14 +491,14 @@ namespace Dalamud.Interface.Internal.Windows
 
         private bool DrawPluginListLoading()
         {
-            var ready = this.dalamud.PluginManager.PluginsReady && this.dalamud.PluginManager.ReposReady;
+            var ready = this.pluginManager.PluginsReady && this.pluginManager.ReposReady;
 
             if (!ready)
             {
                 ImGui.TextColored(ImGuiColors.DalamudGrey, Locs.TabBody_LoadingPlugins);
             }
 
-            var failedRepos = this.dalamud.PluginManager.Repos
+            var failedRepos = this.pluginManager.Repos
                 .Where(repo => repo.State == PluginRepositoryState.Fail)
                 .ToArray();
 
@@ -596,7 +607,7 @@ namespace Dalamud.Interface.Internal.Windows
 
         private void DrawAvailablePlugin(RemotePluginManifest manifest, int index)
         {
-            var useTesting = this.dalamud.PluginManager.UseTesting(manifest);
+            var useTesting = this.pluginManager.UseTesting(manifest);
 
             // Check for valid versions
             if ((useTesting && manifest.TestingAssemblyVersion == null) || manifest.AssemblyVersion == null)
@@ -655,7 +666,7 @@ namespace Dalamud.Interface.Internal.Windows
                     {
                         this.installStatus = OperationStatus.InProgress;
 
-                        Task.Run(() => this.dalamud.PluginManager.InstallPlugin(manifest, useTesting, PluginLoadReason.Installer))
+                        Task.Run(() => this.pluginManager.InstallPlugin(manifest, useTesting, PluginLoadReason.Installer))
                             .ContinueWith(task =>
                             {
                                 // There is no need to set as Complete for an individual plugin installation
@@ -682,7 +693,7 @@ namespace Dalamud.Interface.Internal.Windows
                     Log.Debug($"Adding {manifest.InternalName} to hidden plugins");
                     this.dalamud.Configuration.HiddenPluginInternalName.Add(manifest.InternalName);
                     this.dalamud.Configuration.Save();
-                    this.dalamud.PluginManager.RefilterPluginMasters();
+                    this.pluginManager.RefilterPluginMasters();
                 }
 
                 if (ImGui.Selectable(Locs.PluginContext_DeletePluginConfig))
@@ -693,9 +704,9 @@ namespace Dalamud.Interface.Internal.Windows
 
                     Task.Run(() =>
                         {
-                            this.dalamud.PluginManager.PluginConfigs.Delete(manifest.InternalName);
+                            this.pluginManager.PluginConfigs.Delete(manifest.InternalName);
 
-                            var path = Path.Combine(this.dalamud.StartInfo.PluginDirectory, manifest.InternalName);
+                            var path = Path.Combine(this.startInfo.PluginDirectory, manifest.InternalName);
                             if (Directory.Exists(path))
                                 Directory.Delete(path, true);
                         })
@@ -824,7 +835,7 @@ namespace Dalamud.Interface.Internal.Windows
                 // Available commands (if loaded)
                 if (plugin.IsLoaded)
                 {
-                    var commands = this.dalamud.CommandManager.Commands.Where(cInfo => cInfo.Value.ShowInHelp && cInfo.Value.LoaderAssemblyName == plugin.Manifest.InternalName);
+                    var commands = this.commandManager.Commands.Where(cInfo => cInfo.Value.ShowInHelp && cInfo.Value.LoaderAssemblyName == plugin.Manifest.InternalName);
                     if (commands.Any())
                     {
                         ImGui.Dummy(ImGuiHelpers.ScaledVector2(10f, 10f));
@@ -869,7 +880,7 @@ namespace Dalamud.Interface.Internal.Windows
 
                     this.installStatus = OperationStatus.InProgress;
 
-                    Task.Run(() => this.dalamud.PluginManager.DeleteConfiguration(plugin))
+                    Task.Run(() => this.pluginManager.DeleteConfiguration(plugin))
                         .ContinueWith(task =>
                         {
                             this.installStatus = OperationStatus.Idle;
@@ -922,7 +933,7 @@ namespace Dalamud.Interface.Internal.Windows
 
                             if (!plugin.IsDev)
                             {
-                                this.dalamud.PluginManager.RemovePlugin(plugin);
+                                this.pluginManager.RemovePlugin(plugin);
                             }
                         });
                     }
@@ -977,7 +988,7 @@ namespace Dalamud.Interface.Internal.Windows
             {
                 this.installStatus = OperationStatus.InProgress;
 
-                Task.Run(() => this.dalamud.PluginManager.UpdateSinglePlugin(update, true, false))
+                Task.Run(() => this.pluginManager.UpdateSinglePlugin(update, true, false))
                     .ContinueWith(task =>
                     {
                         // There is no need to set as Complete for an individual plugin installation
@@ -1074,7 +1085,7 @@ namespace Dalamud.Interface.Internal.Windows
                         try
                         {
                             plugin.DllFile.Delete();
-                            this.dalamud.PluginManager.RemovePlugin(plugin);
+                            this.pluginManager.RemovePlugin(plugin);
                         }
                         catch (Exception ex)
                         {
@@ -1214,10 +1225,10 @@ namespace Dalamud.Interface.Internal.Windows
         {
             // By removing installed plugins only when the available plugin list changes (basically when the window is
             // opened), plugins that have been newly installed remain in the available plugin list as installed.
-            this.pluginListAvailable = this.dalamud.PluginManager.AvailablePlugins
+            this.pluginListAvailable = this.pluginManager.AvailablePlugins
                 .Where(manifest => !this.IsManifestInstalled(manifest).IsInstalled)
                 .ToList();
-            this.pluginListUpdatable = this.dalamud.PluginManager.UpdatablePlugins.ToList();
+            this.pluginListUpdatable = this.pluginManager.UpdatablePlugins.ToList();
             this.ResortPlugins();
 
             this.DownloadPluginIcons();
@@ -1225,8 +1236,8 @@ namespace Dalamud.Interface.Internal.Windows
 
         private void OnInstalledPluginsChanged()
         {
-            this.pluginListInstalled = this.dalamud.PluginManager.InstalledPlugins.ToList();
-            this.pluginListUpdatable = this.dalamud.PluginManager.UpdatablePlugins.ToList();
+            this.pluginListInstalled = this.pluginManager.InstalledPlugins.ToList();
+            this.pluginListUpdatable = this.pluginManager.UpdatablePlugins.ToList();
             this.hasDevPlugins = this.pluginListInstalled.Any(plugin => plugin.IsDev);
             this.ResortPlugins();
 
@@ -1341,7 +1352,7 @@ namespace Dalamud.Interface.Internal.Windows
             {
                 var data = await client.GetAsync(manifest.IconUrl);
                 data.EnsureSuccessStatusCode();
-                var icon = this.dalamud.InterfaceManager.LoadImage(await data.Content.ReadAsByteArrayAsync());
+                var icon = this.interfaceManager.LoadImage(await data.Content.ReadAsByteArrayAsync());
 
                 if (icon != null)
                 {
@@ -1377,7 +1388,7 @@ namespace Dalamud.Interface.Internal.Windows
                 {
                     var data = await client.GetAsync(manifest.ImageUrls[i]);
                     data.EnsureSuccessStatusCode();
-                    var image = this.dalamud.InterfaceManager.LoadImage(await data.Content.ReadAsByteArrayAsync());
+                    var image = this.interfaceManager.LoadImage(await data.Content.ReadAsByteArrayAsync());
 
                     if (image == null)
                     {

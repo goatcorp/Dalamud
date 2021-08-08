@@ -15,7 +15,6 @@ namespace Dalamud.Game.Gui
     {
         private const uint QuestToastCheckmarkMagic = 60081;
 
-        private readonly Dalamud dalamud;
         private readonly ToastGuiAddressResolver address;
 
         private readonly Queue<(byte[] Message, ToastOptions Options)> normalQueue = new();
@@ -25,15 +24,17 @@ namespace Dalamud.Game.Gui
         private readonly Hook<ShowNormalToastDelegate> showNormalToastHook;
         private readonly Hook<ShowQuestToastDelegate> showQuestToastHook;
         private readonly Hook<ShowErrorToastDelegate> showErrorToastHook;
+        private readonly Framework framework;
+        private readonly SeStringManager seStringManager;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ToastGui"/> class.
         /// </summary>
-        /// <param name="scanner">The SigScanner instance.</param>
-        /// <param name="dalamud">The Dalamud instance.</param>
-        internal ToastGui(SigScanner scanner, Dalamud dalamud)
+        internal ToastGui()
         {
-            this.dalamud = dalamud;
+            this.framework = Service<Framework>.Get();
+            this.seStringManager = Service<SeStringManager>.Get();
+            var scanner = Service<SigScanner>.Get();
 
             this.address = new ToastGuiAddressResolver();
             this.address.Setup(scanner);
@@ -166,7 +167,7 @@ namespace Dalamud.Game.Gui
             }
 
             // call events
-            return this.dalamud.SeStringManager.Parse(bytes.ToArray());
+            return this.seStringManager.Parse(bytes.ToArray());
         }
     }
 
@@ -201,7 +202,7 @@ namespace Dalamud.Game.Gui
         {
             options ??= new ToastOptions();
 
-            var manager = this.dalamud.Framework.Gui.GetUIModule();
+            var manager = this.framework.Gui.GetUIModule();
 
             // terminate the string
             var terminated = Terminate(bytes);
@@ -282,7 +283,7 @@ namespace Dalamud.Game.Gui
         {
             options ??= new QuestToastOptions();
 
-            var manager = this.dalamud.Framework.Gui.GetUIModule();
+            var manager = this.framework.Gui.GetUIModule();
 
             // terminate the string
             var terminated = Terminate(bytes);
@@ -384,7 +385,7 @@ namespace Dalamud.Game.Gui
 
         private void ShowError(byte[] bytes)
         {
-            var manager = this.dalamud.Framework.Gui.GetUIModule();
+            var manager = this.framework.Gui.GetUIModule();
 
             // terminate the string
             var terminated = Terminate(bytes);

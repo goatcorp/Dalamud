@@ -116,7 +116,7 @@ namespace Dalamud.IoC
 
             var versionCheck = @params.Any(p =>
             {
-                var declVersion = p.ParameterType.GetCustomAttribute(typeof(DependencyVersionAttribute)) as DependencyVersionAttribute;
+                var declVersion = p.ParameterType.GetCustomAttribute(typeof(InterfaceVersionAttribute)) as InterfaceVersionAttribute;
 
                 // if there's no requested/required version, just ignore it
                 if (p.RequiredVersion == null || declVersion == null)

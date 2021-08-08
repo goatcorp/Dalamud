@@ -36,17 +36,18 @@ namespace Dalamud.Game.Gui
 
         private GetUIMapObjectDelegate getUIMapObject;
         private OpenMapWithFlagDelegate openMapWithFlag;
+        private readonly Framework framework;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GameGui"/> class.
         /// This class is responsible for many aspects of interacting with the native game UI.
         /// </summary>
         /// <param name="baseAddress">The base address of the native GuiManager class.</param>
-        /// <param name="scanner">The SigScanner instance.</param>
-        /// <param name="dalamud">The Dalamud instance.</param>
-        internal GameGui(IntPtr baseAddress, SigScanner scanner, Dalamud dalamud)
+        internal GameGui(IntPtr baseAddress)
         {
-            this.dalamud = dalamud;
+            this.dalamud = Service<Dalamud>.Get();
+            this.framework = Service<Framework>.Get();
+            var scanner = Service<SigScanner>.Get();
 
             this.address = new GameGuiAddressResolver(baseAddress);
             this.address.Setup(scanner);
@@ -60,9 +61,9 @@ namespace Dalamud.Game.Gui
             Log.Verbose($"GetUIObject address 0x{this.address.GetUIObject.ToInt64():X}");
             Log.Verbose($"GetAgentModule address 0x{this.address.GetAgentModule.ToInt64():X}");
 
-            this.Chat = new ChatGui(this.address.ChatManager, scanner, dalamud);
-            this.PartyFinder = new PartyFinderGui(scanner, dalamud);
-            this.Toast = new ToastGui(scanner, dalamud);
+            this.Chat = new ChatGui(this.address.ChatManager);
+            this.PartyFinder = new PartyFinderGui(scanner);
+            this.Toast = new ToastGui();
 
             this.setGlobalBgmHook = new Hook<SetGlobalBgmDelegate>(this.address.SetGlobalBgm, this.HandleSetGlobalBgmDetour);
             this.handleItemHoverHook = new Hook<HandleItemHoverDelegate>(this.address.HandleItemHover, this.HandleItemHoverDetour);
@@ -409,7 +410,7 @@ namespace Dalamud.Game.Gui
         /// Gets a pointer to the game's UI module.
         /// </summary>
         /// <returns>IntPtr pointing to UI module.</returns>
-        public IntPtr GetUIModule() => this.getUiModule(this.dalamud.Framework.Address.BaseAddress);
+        public IntPtr GetUIModule() => this.getUiModule(this.framework.Address.BaseAddress);
 
         /// <summary>
         /// Gets the pointer to the UI Object with the given name and index.
@@ -449,7 +450,7 @@ namespace Dalamud.Game.Gui
         /// <returns>A pointer to the agent interface.</returns>
         public IntPtr FindAgentInterface(string addonName)
         {
-            var addon = this.dalamud.Framework.Gui.GetUiObjectByName(addonName, 1);
+            var addon = this.framework.Gui.GetUiObjectByName(addonName, 1);
             return this.FindAgentInterface(addon);
         }
 
@@ -463,7 +464,7 @@ namespace Dalamud.Game.Gui
             if (addon == IntPtr.Zero)
                 return IntPtr.Zero;
 
-            var uiModule = this.dalamud.Framework.Gui.GetUIModule();
+            var uiModule = this.framework.Gui.GetUIModule();
             if (uiModule == IntPtr.Zero)
             {
                 return IntPtr.Zero;

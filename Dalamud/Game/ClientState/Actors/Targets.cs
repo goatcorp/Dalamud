@@ -11,18 +11,17 @@ namespace Dalamud.Game.ClientState.Actors
     /// </summary>
     public sealed class Targets
     {
-        private readonly Dalamud dalamud;
         private readonly ClientStateAddressResolver address;
+        private readonly ClientState clientState;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Targets"/> class.
         /// </summary>
-        /// <param name="dalamud">The Dalamud instance.</param>
         /// <param name="addressResolver">The ClientStateAddressResolver instance.</param>
-        internal Targets(Dalamud dalamud, ClientStateAddressResolver addressResolver)
+        internal Targets(ClientStateAddressResolver addressResolver)
         {
-            this.dalamud = dalamud;
             this.address = addressResolver;
+            this.clientState = Service<ClientState>.Get();
         }
 
         /// <summary>
@@ -107,7 +106,7 @@ namespace Dalamud.Game.ClientState.Actors
             if (actorAddress == IntPtr.Zero)
                 return null;
 
-            return this.dalamud.ClientState.Actors.CreateActorReference(actorAddress);
+            return this.clientState.Actors.CreateActorReference(actorAddress);
         }
     }
 

@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 
 using CheapLoc;
 using Dalamud.Configuration;
+using Dalamud.Game;
 using Dalamud.Game.Text;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Exceptions;
@@ -37,9 +38,12 @@ namespace Dalamud.Plugin.Internal
         private static readonly ModuleLog Log = new("PLUGINM");
 
         private readonly Dalamud dalamud;
+        private readonly DalamudStartInfo startInfo;
         private readonly DirectoryInfo pluginDirectory;
         private readonly DirectoryInfo devPluginDirectory;
         private readonly BannedPlugin[] bannedPlugins;
+        private readonly PluginManager pluginManager;
+        private readonly Framework framework;
 
         private readonly List<LocalPlugin> installedPlugins = new();
         private List<RemotePluginManifest> availablePlugins = new();
@@ -48,12 +52,14 @@ namespace Dalamud.Plugin.Internal
         /// <summary>
         /// Initializes a new instance of the <see cref="PluginManager"/> class.
         /// </summary>
-        /// <param name="dalamud">The <see cref="Dalamud"/> instance to load plugins with.</param>
-        public PluginManager(Dalamud dalamud)
+        public PluginManager()
         {
-            this.dalamud = dalamud;
-            this.pluginDirectory = new DirectoryInfo(dalamud.StartInfo.PluginDirectory);
-            this.devPluginDirectory = new DirectoryInfo(dalamud.StartInfo.DefaultPluginDirectory);
+            this.dalamud = Service<Dalamud>.Get();
+            this.framework = Service<Framework>.Get();
+            this.startInfo = Service<DalamudStartInfo>.Get();
+            this.pluginManager = Service<PluginManager>.Get();
+            this.pluginDirectory = new DirectoryInfo(this.startInfo.PluginDirectory);
+            this.devPluginDirectory = new DirectoryInfo(this.startInfo.DefaultPluginDirectory);
 
             if (!this.pluginDirectory.Exists)
                 this.pluginDirectory.Create();
@@ -61,9 +67,9 @@ namespace Dalamud.Plugin.Internal
             if (!this.devPluginDirectory.Exists)
                 this.devPluginDirectory.Create();
 
-            this.PluginConfigs = new PluginConfigurations(Path.Combine(Path.GetDirectoryName(dalamud.StartInfo.ConfigurationPath), "pluginConfigs"));
+            this.PluginConfigs = new PluginConfigurations(Path.Combine(Path.GetDirectoryName(this.startInfo.ConfigurationPath) ?? string.Empty, "pluginConfigs"));
 
-            var bannedPluginsJson = File.ReadAllText(Path.Combine(this.dalamud.StartInfo.AssetDirectory, "UIRes", "bannedplugin.json"));
+            var bannedPluginsJson = File.ReadAllText(Path.Combine(this.startInfo.AssetDirectory, "UIRes", "bannedplugin.json"));
             this.bannedPlugins = JsonConvert.DeserializeObject<BannedPlugin[]>(bannedPluginsJson);
 
             this.SetPluginReposFromConfig(false);
@@ -279,7 +285,7 @@ namespace Dalamud.Plugin.Internal
         /// </summary>
         public void RefilterPluginMasters()
         {
-            this.availablePlugins = this.dalamud.PluginManager.Repos
+            this.availablePlugins = this.pluginManager.Repos
                 .SelectMany(repo => repo.PluginMaster)
                 .Where(this.IsManifestEligible)
                 .Where(this.IsManifestVisible)
@@ -467,7 +473,7 @@ namespace Dalamud.Plugin.Internal
             else
             {
                 Log.Information($"Loading plugin {name}");
-                plugin = new LocalPlugin(this.dalamud, dllFile, manifest);
+                plugin = new LocalPlugin(dllFile, manifest);
             }
 
             if (loadPlugin)
@@ -595,7 +601,7 @@ namespace Dalamud.Plugin.Internal
                                     continue;
                                 }
 
-                                if (manifest.ApplicableVersion < this.dalamud.StartInfo.GameVersion - TimeSpan.FromDays(90))
+                                if (manifest.ApplicableVersion < this.startInfo.GameVersion)
                                 {
                                     Log.Information($"Inapplicable version: cleaning up {versionDir.FullName}");
                                     versionDir.Delete(true);
@@ -749,17 +755,17 @@ namespace Dalamud.Plugin.Internal
         {
             if (updateMetadata != null && updateMetadata.Count > 0)
             {
-                this.dalamud.Framework.Gui.Chat.Print(header);
+                this.framework.Gui.Chat.Print(header);
 
                 foreach (var metadata in updateMetadata)
                 {
                     if (metadata.WasUpdated)
                     {
-                        this.dalamud.Framework.Gui.Chat.Print(Locs.DalamudPluginUpdateSuccessful(metadata.Name, metadata.Version));
+                        this.framework.Gui.Chat.Print(Locs.DalamudPluginUpdateSuccessful(metadata.Name, metadata.Version));
                     }
                     else
                     {
-                        this.dalamud.Framework.Gui.Chat.PrintChat(new XivChatEntry
+                        this.framework.Gui.Chat.PrintChat(new XivChatEntry
                         {
                             Message = Locs.DalamudPluginUpdateFailed(metadata.Name, metadata.Version),
                             Type = XivChatType.Urgent,
@@ -829,7 +835,7 @@ namespace Dalamud.Plugin.Internal
                 return false;
 
             // Applicable version
-            if (manifest.ApplicableVersion < this.dalamud.StartInfo.GameVersion)
+            if (manifest.ApplicableVersion < this.startInfo.GameVersion)
                 return false;
 
             // API level

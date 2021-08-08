@@ -6,6 +6,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 
+using Dalamud.Game.Command;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging.Internal;
@@ -21,6 +22,7 @@ namespace Dalamud.Interface.Internal.Windows
     internal class ConsoleWindow : Window, IDisposable
     {
         private readonly Dalamud dalamud;
+        private readonly CommandManager commandManager;
 
         private readonly List<LogEntry> logText = new();
         private readonly object renderLock = new();
@@ -45,11 +47,11 @@ namespace Dalamud.Interface.Internal.Windows
         /// <summary>
         /// Initializes a new instance of the <see cref="ConsoleWindow"/> class.
         /// </summary>
-        /// <param name="dalamud">The Dalamud instance.</param>
-        public ConsoleWindow(Dalamud dalamud)
+        public ConsoleWindow()
             : base("Dalamud Console")
         {
-            this.dalamud = dalamud;
+            this.dalamud = Service<Dalamud>.Get();
+            this.commandManager = Service<CommandManager>.Get();
 
             this.autoScroll = this.dalamud.Configuration.LogAutoScroll;
             this.openAtStartup = this.dalamud.Configuration.LogOpenAtStartup;
@@ -323,7 +325,7 @@ namespace Dalamud.Interface.Internal.Windows
                     return;
                 }
 
-                this.lastCmdSuccess = this.dalamud.CommandManager.ProcessCommand("/" + this.commandText);
+                this.lastCmdSuccess = this.commandManager.ProcessCommand("/" + this.commandText);
                 this.commandText = string.Empty;
 
                 // TODO: Force scroll to bottom
@@ -354,7 +356,7 @@ namespace Dalamud.Interface.Internal.Windows
 
                     // TODO: Improve this, add partial completion
                     // https://github.com/ocornut/imgui/blob/master/imgui_demo.cpp#L6443-L6484
-                    var candidates = this.dalamud.CommandManager.Commands.Where(x => x.Key.Contains("/" + words[0])).ToList();
+                    var candidates = this.commandManager.Commands.Where(x => x.Key.Contains("/" + words[0])).ToList();
                     if (candidates.Count > 0)
                     {
                         ptr.DeleteChars(0, ptr.BufTextLen);

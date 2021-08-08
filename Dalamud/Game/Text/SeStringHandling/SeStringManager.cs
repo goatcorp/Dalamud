@@ -18,10 +18,9 @@ namespace Dalamud.Game.Text.SeStringHandling
         /// <summary>
         /// Initializes a new instance of the <see cref="SeStringManager"/> class.
         /// </summary>
-        /// <param name="data">The DataManager instance.</param>
-        public SeStringManager(DataManager data)
+        public SeStringManager()
         {
-            this.data = data;
+            this.data = Service<DataManager>.Get();
         }
 
         /// <summary>

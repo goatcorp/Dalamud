@@ -12,9 +12,8 @@ namespace Dalamud.Game.ClientState.Actors.Types.NonPlayer
         /// Set up a new EventObj with the provided memory representation.
         /// </summary>
         /// <param name="address">The address of this actor in memory.</param>
-        /// <param name="dalamud">A dalamud reference needed to access game data in Resolvers.</param>
-        internal EventObj(IntPtr address, Dalamud dalamud)
-            : base(address, dalamud)
+        internal EventObj(IntPtr address)
+            : base(address)
         {
         }
 

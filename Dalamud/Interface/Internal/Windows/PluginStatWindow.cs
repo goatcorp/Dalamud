@@ -23,11 +23,10 @@ namespace Dalamud.Interface.Internal.Windows
         /// <summary>
         /// Initializes a new instance of the <see cref="PluginStatWindow"/> class.
         /// </summary>
-        /// <param name="dalamud">The Dalamud instance.</param>
-        public PluginStatWindow(Dalamud dalamud)
+        public PluginStatWindow()
             : base("Plugin Statistics###DalamudPluginStatWindow")
         {
-            this.pluginManager = dalamud.PluginManager;
+            this.pluginManager = Service<PluginManager>.Get();
         }
 
         /// <inheritdoc/>

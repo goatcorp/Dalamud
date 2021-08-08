@@ -2,9 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Text.RegularExpressions;
-
+using Dalamud.Game.Internal;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.IoC;
 using Serilog;
 
 namespace Dalamud.Game.Command
@@ -12,9 +13,10 @@ namespace Dalamud.Game.Command
     /// <summary>
     /// This class manages registered in-game slash commands.
     /// </summary>
+    [PluginInterface]
+    [InterfaceVersion("1")]
     public sealed class CommandManager
     {
-        private readonly Dalamud dalamud;
         private readonly Dictionary<string, CommandInfo> commandMap = new();
         private readonly Regex commandRegexEn = new(@"^The command (?<command>.+) does not exist\.$", RegexOptions.Compiled);
         private readonly Regex commandRegexJp = new(@"^そのコマンドはありません。： (?<command>.+)$", RegexOptions.Compiled);
@@ -25,29 +27,21 @@ namespace Dalamud.Game.Command
         /// <summary>
         /// Initializes a new instance of the <see cref="CommandManager"/> class.
         /// </summary>
-        /// <param name="dalamud">The Dalamud instance.</param>
-        /// <param name="language">The client language requested.</param>
-        internal CommandManager(Dalamud dalamud, ClientLanguage language)
+        internal CommandManager()
         {
-            this.dalamud = dalamud;
+            var startInfo = Service<DalamudStartInfo>.Get();
+            var framework = Service<Framework>.Get();
 
-            switch (language)
+            this.currentLangCommandRegex = startInfo.Language switch
             {
-                case ClientLanguage.Japanese:
-                    this.currentLangCommandRegex = this.commandRegexJp;
-                    break;
-                case ClientLanguage.English:
-                    this.currentLangCommandRegex = this.commandRegexEn;
-                    break;
-                case ClientLanguage.German:
-                    this.currentLangCommandRegex = this.commandRegexDe;
-                    break;
-                case ClientLanguage.French:
-                    this.currentLangCommandRegex = this.commandRegexFr;
-                    break;
-            }
+                ClientLanguage.Japanese => this.commandRegexJp,
+                ClientLanguage.English => this.commandRegexEn,
+                ClientLanguage.German => this.commandRegexDe,
+                ClientLanguage.French => this.commandRegexFr,
+                _ => this.currentLangCommandRegex
+            };
 
-            dalamud.Framework.Gui.Chat.OnCheckMessageHandled += this.OnCheckMessageHandled;
+            framework.Gui.Chat.OnCheckMessageHandled += this.OnCheckMessageHandled;
         }
 
         /// <summary>

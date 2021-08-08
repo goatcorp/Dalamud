@@ -17,6 +17,7 @@ namespace Dalamud.Interface.Internal.Windows
     internal class ScratchpadWindow : Window, IDisposable
     {
         private readonly Dalamud dalamud;
+        private readonly DalamudInterface dalamudInterface;
         private readonly List<ScratchpadDocument> documents = new();
         private readonly ScratchFileWatcher watcher = new();
         private string pathInput = string.Empty;
@@ -28,7 +29,8 @@ namespace Dalamud.Interface.Internal.Windows
         public ScratchpadWindow(Dalamud dalamud)
             : base("Plugin Scratchpad", ImGuiWindowFlags.MenuBar)
         {
-            this.dalamud = dalamud;
+            this.dalamud = Service<Dalamud>.Get();
+            this.dalamudInterface = Service<DalamudInterface>.Get();
             this.documents.Add(new ScratchpadDocument());
 
             this.SizeConstraints = new WindowSizeConstraints
@@ -143,7 +145,7 @@ namespace Dalamud.Interface.Internal.Windows
 
                         if (ImGui.Button("Toggle Log"))
                         {
-                            this.dalamud.DalamudUi.ToggleLogWindow();
+                            this.dalamudInterface.ToggleLogWindow();
                         }
 
                         ImGui.SameLine();

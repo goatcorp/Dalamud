@@ -4,6 +4,9 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
+using Dalamud.Game;
+using Dalamud.Game.ClientState;
+using Dalamud.Game.Internal;
 using Dalamud.Interface.Internal.Windows;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging;
@@ -23,6 +26,7 @@ namespace Dalamud.Interface.Internal
         private static readonly ModuleLog Log = new("DUI");
 
         private readonly Dalamud dalamud;
+        private readonly DalamudStartInfo startInfo;
         private readonly WindowSystem windowSystem;
 
         private readonly ChangelogWindow changelogWindow;
@@ -36,6 +40,11 @@ namespace Dalamud.Interface.Internal
         private readonly PluginInstallerWindow pluginWindow;
         private readonly ScratchpadWindow scratchpadWindow;
         private readonly SettingsWindow settingsWindow;
+        private readonly AntiDebug antiDebug;
+        private readonly PluginManager pluginManager;
+        private readonly InterfaceManager interfaceManager;
+        private readonly Framework framework;
+        private readonly ClientState clientState;
 
         private ulong frameCount = 0;
 
@@ -50,23 +59,28 @@ namespace Dalamud.Interface.Internal
         /// <summary>
         /// Initializes a new instance of the <see cref="DalamudInterface"/> class.
         /// </summary>
-        /// <param name="dalamud">The Dalamud instance.</param>
-        public DalamudInterface(Dalamud dalamud)
+        public DalamudInterface()
         {
-            this.dalamud = dalamud;
+            this.dalamud = Service<Dalamud>.Get();
+            this.framework = Service<Framework>.Get();
+            this.startInfo = Service<DalamudStartInfo>.Get();
+            this.antiDebug = Service<AntiDebug>.Get();
+            this.pluginManager = Service<PluginManager>.Get();
+            this.clientState = Service<ClientState>.Get();
+            this.interfaceManager = Service<InterfaceManager>.Get();
             this.windowSystem = new WindowSystem("DalamudCore");
 
-            this.changelogWindow = new ChangelogWindow(dalamud) { IsOpen = false };
+            this.changelogWindow = new ChangelogWindow() { IsOpen = false };
             this.colorDemoWindow = new ColorDemoWindow() { IsOpen = false };
             this.componentDemoWindow = new ComponentDemoWindow() { IsOpen = false };
-            this.creditsWindow = new CreditsWindow(dalamud) { IsOpen = false };
-            this.dataWindow = new DataWindow(dalamud) { IsOpen = false };
+            this.creditsWindow = new CreditsWindow() { IsOpen = false };
+            this.dataWindow = new DataWindow() { IsOpen = false };
             this.gamepadModeNotifierWindow = new GamepadModeNotifierWindow();
-            this.consoleWindow = new ConsoleWindow(dalamud) { IsOpen = this.dalamud.Configuration.LogOpenAtStartup };
-            this.pluginStatWindow = new PluginStatWindow(dalamud) { IsOpen = false };
-            this.pluginWindow = new PluginInstallerWindow(dalamud) { IsOpen = false };
-            this.scratchpadWindow = new ScratchpadWindow(dalamud) { IsOpen = false };
-            this.settingsWindow = new SettingsWindow(dalamud) { IsOpen = false };
+            this.consoleWindow = new ConsoleWindow() { IsOpen = this.dalamud.Configuration.LogOpenAtStartup };
+            this.pluginStatWindow = new PluginStatWindow() { IsOpen = false };
+            this.pluginWindow = new PluginInstallerWindow(this.dalamud) { IsOpen = false };
+            this.scratchpadWindow = new ScratchpadWindow(this.dalamud) { IsOpen = false };
+            this.settingsWindow = new SettingsWindow() { IsOpen = false };
 
             this.windowSystem.AddWindow(this.changelogWindow);
             this.windowSystem.AddWindow(this.colorDemoWindow);
@@ -80,7 +94,7 @@ namespace Dalamud.Interface.Internal
             this.windowSystem.AddWindow(this.scratchpadWindow);
             this.windowSystem.AddWindow(this.settingsWindow);
 
-            this.dalamud.InterfaceManager.OnDraw += this.OnDraw;
+            this.interfaceManager.OnDraw += this.OnDraw;
 
             Log.Information("Windows added");
         }
@@ -102,7 +116,7 @@ namespace Dalamud.Interface.Internal
         /// <inheritdoc/>
         public void Dispose()
         {
-            this.dalamud.InterfaceManager.OnDraw -= this.OnDraw;
+            this.interfaceManager.OnDraw -= this.OnDraw;
 
             this.windowSystem.RemoveAllWindows();
 
@@ -264,7 +278,7 @@ namespace Dalamud.Interface.Internal
                 this.DrawHiddenDevMenuOpener();
                 this.DrawDevMenu();
 
-                if (this.dalamud.Framework.Gui.GameUiHidden)
+                if (this.framework.Gui.GameUiHidden)
                     return;
 
                 this.windowSystem.Draw();
@@ -280,7 +294,7 @@ namespace Dalamud.Interface.Internal
 
         private void DrawHiddenDevMenuOpener()
         {
-            if (!this.isImGuiDrawDevMenu && !this.dalamud.ClientState.Condition.Any())
+            if (!this.isImGuiDrawDevMenu && !this.clientState.Condition.Any())
             {
                 ImGui.PushStyleColor(ImGuiCol.Button, Vector4.Zero);
                 ImGui.PushStyleColor(ImGuiCol.ButtonActive, Vector4.Zero);
@@ -339,13 +353,13 @@ namespace Dalamud.Interface.Internal
                             ImGui.EndMenu();
                         }
 
-                        if (ImGui.MenuItem("Enable AntiDebug", null, this.dalamud.AntiDebug.IsEnabled))
+                        if (ImGui.MenuItem("Enable AntiDebug", null, this.antiDebug.IsEnabled))
                         {
-                            var newEnabled = !this.dalamud.AntiDebug.IsEnabled;
+                            var newEnabled = !this.antiDebug.IsEnabled;
                             if (newEnabled)
-                                this.dalamud.AntiDebug.Enable();
+                                this.antiDebug.Enable();
                             else
-                                this.dalamud.AntiDebug.Disable();
+                                this.antiDebug.Disable();
 
                             this.dalamud.Configuration.IsAntiAntiDebugEnabled = newEnabled;
                             this.dalamud.Configuration.Save();
@@ -410,7 +424,7 @@ namespace Dalamud.Interface.Internal
                         }
 
                         ImGui.MenuItem(Util.AssemblyVersion, false);
-                        ImGui.MenuItem(this.dalamud.StartInfo.GameVersion.ToString(), false);
+                        ImGui.MenuItem(this.startInfo.GameVersion.ToString(), false);
 
                         ImGui.EndMenu();
                     }
@@ -441,7 +455,7 @@ namespace Dalamud.Interface.Internal
 
                         if (ImGui.MenuItem("Print plugin info"))
                         {
-                            foreach (var plugin in this.dalamud.PluginManager.InstalledPlugins)
+                            foreach (var plugin in this.pluginManager.InstalledPlugins)
                             {
                                 // TODO: some more here, state maybe?
                                 PluginLog.Information($"{plugin.Name}");
@@ -452,18 +466,18 @@ namespace Dalamud.Interface.Internal
                         {
                             try
                             {
-                                this.dalamud.PluginManager.ReloadAllPlugins();
+                                this.pluginManager.ReloadAllPlugins();
                             }
                             catch (Exception ex)
                             {
-                                this.dalamud.Framework.Gui.Chat.PrintError("Reload failed.");
+                                this.framework.Gui.Chat.PrintError("Reload failed.");
                                 PluginLog.Error(ex, "Plugin reload failed.");
                             }
                         }
 
                         if (ImGui.MenuItem("Scan dev plugins"))
                         {
-                            this.dalamud.PluginManager.ScanDevPlugins();
+                            this.pluginManager.ScanDevPlugins();
                         }
 
                         ImGui.Separator();
@@ -476,7 +490,7 @@ namespace Dalamud.Interface.Internal
 
                         ImGui.Separator();
                         ImGui.MenuItem("API Level:" + PluginManager.DalamudApiLevel, false);
-                        ImGui.MenuItem("Loaded plugins:" + this.dalamud.PluginManager?.InstalledPlugins.Count, false);
+                        ImGui.MenuItem("Loaded plugins:" + this.pluginManager.InstalledPlugins.Count, false);
                         ImGui.EndMenu();
                     }
 
@@ -528,7 +542,7 @@ namespace Dalamud.Interface.Internal
                         ImGui.EndMenu();
                     }
 
-                    if (this.dalamud.Framework.Gui.GameUiHidden)
+                    if (this.framework.Gui.GameUiHidden)
                         ImGui.BeginMenu("UI is hidden...", false);
 
                     ImGui.BeginMenu(Util.GetGitHash(), false);

@@ -19,6 +19,8 @@ namespace Dalamud.Game.Gui
     {
         private readonly Dalamud dalamud;
         private readonly ChatGuiAddressResolver address;
+        private readonly SeStringManager seStringManager;
+        private readonly Framework framework;
 
         private readonly Queue<XivChatEntry> chatQueue = new();
         private readonly Dictionary<(string PluginName, uint CommandId), Action<uint, SeString>> dalamudLinkHandlers = new();
@@ -33,14 +35,13 @@ namespace Dalamud.Game.Gui
         /// Initializes a new instance of the <see cref="ChatGui"/> class.
         /// </summary>
         /// <param name="baseAddress">The base address of the ChatManager.</param>
-        /// <param name="scanner">The SigScanner instance.</param>
-        /// <param name="dalamud">The Dalamud instance.</param>
-        internal ChatGui(IntPtr baseAddress, SigScanner scanner, Dalamud dalamud)
+        internal ChatGui(IntPtr baseAddress)
         {
-            this.dalamud = dalamud;
-
+            this.dalamud = Service<Dalamud>.Get();
             this.address = new ChatGuiAddressResolver(baseAddress);
-            this.address.Setup(scanner);
+            this.address.Setup(Service<SigScanner>.Get());
+            this.seStringManager = Service<SeStringManager>.Get();
+            this.framework = Service<Framework>.Get();
 
             Log.Verbose($"Chat manager address 0x{this.address.BaseAddress.ToInt64():X}");
 
@@ -353,8 +354,8 @@ namespace Dalamud.Game.Gui
                 var sender = StdString.ReadFromPointer(pSenderName);
                 var message = StdString.ReadFromPointer(pMessage);
 
-                var parsedSender = this.dalamud.SeStringManager.Parse(sender.RawData);
-                var parsedMessage = this.dalamud.SeStringManager.Parse(message.RawData);
+                var parsedSender = this.seStringManager.Parse(sender.RawData);
+                var parsedMessage = this.seStringManager.Parse(message.RawData);
 
                 Log.Verbose("[CHATGUI][{0}][{1}]", parsedSender.TextValue, parsedMessage.TextValue);
 
@@ -386,7 +387,7 @@ namespace Dalamud.Game.Gui
 
                 if (!FastByteArrayCompare(originalMessageData, message.RawData))
                 {
-                    allocatedString = this.dalamud.Framework.Libc.NewString(message.RawData);
+                    allocatedString = this.framework.Libc.NewString(message.RawData);
                     Log.Debug(
                         $"HandlePrintMessageDetour String modified: {originalMessageData}({messagePtr}) -> {message}({allocatedString.Address})");
                     messagePtr = allocatedString.Address;
@@ -436,7 +437,7 @@ namespace Dalamud.Game.Gui
                 while (Marshal.ReadByte(payloadPtr, messageSize) != 0) messageSize++;
                 var payloadBytes = new byte[messageSize];
                 Marshal.Copy(payloadPtr, payloadBytes, 0, messageSize);
-                var seStr = this.dalamud.SeStringManager.Parse(payloadBytes);
+                var seStr = this.seStringManager.Parse(payloadBytes);
                 var terminatorIndex = seStr.Payloads.IndexOf(RawPayload.LinkTerminator);
                 var payloads = terminatorIndex >= 0 ? seStr.Payloads.Take(terminatorIndex + 1).ToList() : seStr.Payloads;
                 if (payloads.Count == 0) return;

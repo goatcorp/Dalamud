@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-
+using Dalamud.Game;
 using Dalamud.Game.ClientState;
 using Dalamud.Interface.Internal;
 using ImGuiNET;
@@ -19,23 +19,28 @@ namespace Dalamud.Interface
     {
         private readonly Dalamud dalamud;
         private readonly Stopwatch stopwatch;
+        private readonly InterfaceManager interfaceManager;
+        private readonly ClientState clientState;
         private readonly string namespaceName;
 
         private bool hasErrorWindow;
+        private readonly Framework framework;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="UiBuilder"/> class and registers it.
         /// You do not have to call this manually.
         /// </summary>
-        /// <param name="dalamud">The dalamud to register on.</param>
         /// <param name="namespaceName">The plugin namespace.</param>
-        internal UiBuilder(Dalamud dalamud, string namespaceName)
+        internal UiBuilder(string namespaceName)
         {
-            this.dalamud = dalamud;
+            this.dalamud = Service<Dalamud>.Get();
+            this.framework = Service<Framework>.Get();
+            this.interfaceManager = Service<InterfaceManager>.Get();
+            this.clientState = Service<ClientState>.Get();
             this.stopwatch = new Stopwatch();
             this.namespaceName = namespaceName;
 
-            this.dalamud.InterfaceManager.OnDraw += this.OnDraw;
+            this.interfaceManager.OnDraw += this.OnDraw;
         }
 
         /// <summary>
@@ -67,12 +72,12 @@ namespace Dalamud.Interface
         /// <summary>
         /// Gets the game's active Direct3D device.
         /// </summary>
-        public Device Device => this.dalamud.InterfaceManager.Device;
+        public Device Device => this.interfaceManager.Device;
 
         /// <summary>
         /// Gets the game's main window handle.
         /// </summary>
-        public IntPtr WindowHandlePtr => this.dalamud.InterfaceManager.WindowHandlePtr;
+        public IntPtr WindowHandlePtr => this.interfaceManager.WindowHandlePtr;
 
         /// <summary>
         /// Gets or sets a value indicating whether this plugin should hide its UI automatically when the game's UI is hidden.
@@ -99,8 +104,8 @@ namespace Dalamud.Interface
         /// </summary>
         public bool OverrideGameCursor
         {
-            get => this.dalamud.InterfaceManager.OverrideGameCursor;
-            set => this.dalamud.InterfaceManager.OverrideGameCursor = value;
+            get => this.interfaceManager.OverrideGameCursor;
+            set => this.interfaceManager.OverrideGameCursor = value;
         }
 
         /// <summary>
@@ -112,8 +117,8 @@ namespace Dalamud.Interface
         /// </summary>
         public Action OnBuildFonts
         {
-            get => this.dalamud.InterfaceManager.OnBuildFonts;
-            set => this.dalamud.InterfaceManager.OnBuildFonts = value;
+            get => this.interfaceManager.OnBuildFonts;
+            set => this.interfaceManager.OnBuildFonts = value;
         }
 
         /// <summary>
@@ -145,12 +150,12 @@ namespace Dalamud.Interface
         /// </summary>
         internal List<long> DrawTimeHistory { get; set; } = new List<long>();
 
-        private bool CutsceneActive => this.dalamud.ClientState != null &&
-                                       (this.dalamud.ClientState.Condition[ConditionFlag.OccupiedInCutSceneEvent] ||
-                                        this.dalamud.ClientState.Condition[ConditionFlag.WatchingCutscene78]);
+        private bool CutsceneActive => this.clientState != null &&
+                                       (this.clientState.Condition[ConditionFlag.OccupiedInCutSceneEvent] ||
+                                        this.clientState.Condition[ConditionFlag.WatchingCutscene78]);
 
-        private bool GposeActive => this.dalamud.ClientState != null &&
-                                    this.dalamud.ClientState.Condition[ConditionFlag.WatchingCutscene];
+        private bool GposeActive => this.clientState != null &&
+                                    this.clientState.Condition[ConditionFlag.WatchingCutscene];
 
         /// <summary>
         /// Loads an image from the specified file.
@@ -158,7 +163,7 @@ namespace Dalamud.Interface
         /// <param name="filePath">The full filepath to the image.</param>
         /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
         public TextureWrap LoadImage(string filePath) =>
-            this.dalamud.InterfaceManager.LoadImage(filePath);
+            this.interfaceManager.LoadImage(filePath);
 
         /// <summary>
         /// Loads an image from a byte stream, such as a png downloaded into memory.
@@ -166,7 +171,7 @@ namespace Dalamud.Interface
         /// <param name="imageData">A byte array containing the raw image data.</param>
         /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
         public TextureWrap LoadImage(byte[] imageData) =>
-            this.dalamud.InterfaceManager.LoadImage(imageData);
+            this.interfaceManager.LoadImage(imageData);
 
         /// <summary>
         /// Loads an image from raw unformatted pixel data, with no type or header information.  To load formatted data, use <see cref="LoadImage(byte[])"/>.
@@ -177,7 +182,7 @@ namespace Dalamud.Interface
         /// <param name="numChannels">The number of channels (bytes per pixel) of the image contained in <paramref name="imageData"/>.  This should usually be 4.</param>
         /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
         public TextureWrap LoadImageRaw(byte[] imageData, int width, int height, int numChannels) =>
-            this.dalamud.InterfaceManager.LoadImageRaw(imageData, width, height, numChannels);
+            this.interfaceManager.LoadImageRaw(imageData, width, height, numChannels);
 
         /// <summary>
         /// Call this to queue a rebuild of the font atlas.<br/>
@@ -187,7 +192,7 @@ namespace Dalamud.Interface
         public void RebuildFonts()
         {
             Log.Verbose("[FONT] {0} plugin is initiating FONT REBUILD", this.namespaceName);
-            this.dalamud.InterfaceManager.RebuildFonts();
+            this.interfaceManager.RebuildFonts();
         }
 
         /// <summary>
@@ -195,7 +200,7 @@ namespace Dalamud.Interface
         /// </summary>
         public void Dispose()
         {
-            this.dalamud.InterfaceManager.OnDraw -= this.OnDraw;
+            this.interfaceManager.OnDraw -= this.OnDraw;
         }
 
         /// <summary>
@@ -208,12 +213,12 @@ namespace Dalamud.Interface
 
         private void OnDraw()
         {
-            if ((this.dalamud.Framework.Gui.GameUiHidden && this.dalamud.Configuration.ToggleUiHide && !(this.DisableUserUiHide || this.DisableAutomaticUiHide)) ||
+            if ((this.framework.Gui.GameUiHidden && this.dalamud.Configuration.ToggleUiHide && !(this.DisableUserUiHide || this.DisableAutomaticUiHide)) ||
                 (this.CutsceneActive && this.dalamud.Configuration.ToggleUiHideDuringCutscenes && !(this.DisableCutsceneUiHide || this.DisableAutomaticUiHide)) ||
                 (this.GposeActive && this.dalamud.Configuration.ToggleUiHideDuringGpose && !(this.DisableGposeUiHide || this.DisableAutomaticUiHide)))
                 return;
 
-            if (!this.dalamud.InterfaceManager.FontsReady)
+            if (!this.interfaceManager.FontsReady)
                 return;
 
             ImGui.PushID(this.namespaceName);

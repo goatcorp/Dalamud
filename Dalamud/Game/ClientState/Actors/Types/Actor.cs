@@ -12,14 +12,15 @@ namespace Dalamud.Game.ClientState.Actors.Types
     /// </summary>
     public unsafe partial class Actor : IEquatable<Actor>
     {
+        private readonly ClientState clientState;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="Actor"/> class.
         /// </summary>
         /// <param name="address">The address of this actor in memory.</param>
-        /// <param name="dalamud">A dalamud reference needed to access game data in Resolvers.</param>
-        internal Actor(IntPtr address, Dalamud dalamud)
+        internal Actor(IntPtr address)
         {
-            this.Dalamud = dalamud;
+            this.clientState = Service<ClientState>.Get();
             this.Address = address;
         }
 
@@ -60,7 +61,7 @@ namespace Dalamud.Game.ClientState.Actors.Types
             if (actor == null)
                 return false;
 
-            if (actor.Dalamud.ClientState.LocalContentId == 0)
+            if (actor.clientState.LocalContentId == 0)
                 return false;
 
             return true;

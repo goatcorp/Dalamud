@@ -4,6 +4,9 @@ using System.Linq;
 using System.Text;
 
 using Dalamud.Configuration;
+using Dalamud.Interface.Internal;
+using Dalamud.Plugin;
+using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
 using Newtonsoft.Json;
@@ -19,22 +22,25 @@ namespace Dalamud
         /// <summary>
         /// Log troubleshooting information to Serilog.
         /// </summary>
-        /// <param name="dalamud">The <see cref="Dalamud"/> instance to read information from.</param>
-        /// <param name="isInterfaceLoaded">Whether or not the interface was loaded.</param>
-        public static void LogTroubleshooting(Dalamud dalamud, bool isInterfaceLoaded)
+        public static void LogTroubleshooting()
         {
+            var dalamud = Service<Dalamud>.Get();
+            var interfaceManager = Service<InterfaceManager>.Get();
+            var startInfo = Service<DalamudStartInfo>.Get();
+            var plguinManager = Service<PluginManager>.Get();
+            
             try
             {
                 var payload = new TroubleshootingPayload
                 {
-                    LoadedPlugins = dalamud.PluginManager.InstalledPlugins.Select(x => x.Manifest).ToArray(),
+                    LoadedPlugins = Service<PluginManager>.Get().InstalledPlugins.Select(x => x.Manifest).ToArray(),
                     DalamudVersion = Util.AssemblyVersion,
                     DalamudGitHash = Util.GetGitHash(),
-                    GameVersion = dalamud.StartInfo.GameVersion.ToString(),
-                    Language = dalamud.StartInfo.Language.ToString(),
+                    GameVersion = startInfo.GameVersion.ToString(),
+                    Language = startInfo.Language.ToString(),
                     DoDalamudTest = dalamud.Configuration.DoDalamudTest,
                     DoPluginTest = dalamud.Configuration.DoPluginTest,
-                    InterfaceLoaded = isInterfaceLoaded,
+                    InterfaceLoaded = interfaceManager.IsReady,
                     ThirdRepo = dalamud.Configuration.ThirdRepoList,
                 };
 

@@ -3,10 +3,10 @@ using System;
 namespace Dalamud.IoC
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface)]
-    internal class DependencyVersionAttribute : Attribute
+    internal class InterfaceVersionAttribute : Attribute
     {
         public readonly Version Version;
 
-        public DependencyVersionAttribute(string version) => this.Version = new(version);
+        public InterfaceVersionAttribute(string version) => this.Version = new(version);
     }
 }
