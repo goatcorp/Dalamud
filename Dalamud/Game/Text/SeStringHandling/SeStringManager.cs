@@ -13,14 +13,11 @@ namespace Dalamud.Game.Text.SeStringHandling
     /// </summary>
     public class SeStringManager
     {
-        private readonly DataManager data;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="SeStringManager"/> class.
         /// </summary>
         public SeStringManager()
         {
-            this.data = Service<DataManager>.Get();
         }
 
         /// <summary>
@@ -37,7 +34,7 @@ namespace Dalamud.Game.Text.SeStringHandling
             {
                 while (stream.Position < bytes.Length)
                 {
-                    var payload = Payload.Decode(reader, this.data);
+                    var payload = Payload.Decode(reader);
                     if (payload != null)
                         payloads.Add(payload);
                 }
@@ -55,7 +52,9 @@ namespace Dalamud.Game.Text.SeStringHandling
         /// <returns>An SeString containing all the payloads necessary to display an item link in the chat log.</returns>
         public SeString CreateItemLink(uint itemId, bool isHQ, string displayNameOverride = null)
         {
-            var displayName = displayNameOverride ?? this.data.GetExcelSheet<Item>().GetRow(itemId).Name;
+            var data = Service<DataManager>.Get();
+            
+            var displayName = displayNameOverride ?? data.GetExcelSheet<Item>().GetRow(itemId).Name;
             if (isHQ)
             {
                 displayName += $" {(char)SeIconChar.HighQuality}";
@@ -64,9 +63,9 @@ namespace Dalamud.Game.Text.SeStringHandling
             // TODO: probably a cleaner way to build these than doing the bulk+insert
             var payloads = new List<Payload>(new Payload[]
             {
-                new UIForegroundPayload(this.data, 0x0225),
-                new UIGlowPayload(this.data, 0x0226),
-                new ItemPayload(this.data, itemId, isHQ),
+                new UIForegroundPayload(data, 0x0225),
+                new UIGlowPayload(data, 0x0226),
+                new ItemPayload(data, itemId, isHQ),
                 // arrow goes here
                 new TextPayload(displayName),
                 RawPayload.LinkTerminator,
@@ -100,7 +99,7 @@ namespace Dalamud.Game.Text.SeStringHandling
         /// <returns>An SeString containing all of the payloads necessary to display a map link in the chat log.</returns>
         public SeString CreateMapLink(uint territoryId, uint mapId, int rawX, int rawY)
         {
-            var mapPayload = new MapLinkPayload(this.data, territoryId, mapId, rawX, rawY);
+            var mapPayload = new MapLinkPayload(Service<DataManager>.Get(), territoryId, mapId, rawX, rawY);
             var nameString = $"{mapPayload.PlaceName} {mapPayload.CoordinateString}";
 
             var payloads = new List<Payload>(new Payload[]
@@ -126,7 +125,7 @@ namespace Dalamud.Game.Text.SeStringHandling
         /// <returns>An SeString containing all of the payloads necessary to display a map link in the chat log.</returns>
         public SeString CreateMapLink(uint territoryId, uint mapId, float xCoord, float yCoord, float fudgeFactor = 0.05f)
         {
-            var mapPayload = new MapLinkPayload(this.data, territoryId, mapId, xCoord, yCoord, fudgeFactor);
+            var mapPayload = new MapLinkPayload(Service<DataManager>.Get(), territoryId, mapId, xCoord, yCoord, fudgeFactor);
             var nameString = $"{mapPayload.PlaceName} {mapPayload.CoordinateString}";
 
             var payloads = new List<Payload>(new Payload[]
@@ -151,9 +150,11 @@ namespace Dalamud.Game.Text.SeStringHandling
         /// <returns>An SeString containing all of the payloads necessary to display a map link in the chat log.</returns>
         public SeString CreateMapLink(string placeName, float xCoord, float yCoord, float fudgeFactor = 0.05f)
         {
-            var mapSheet = this.data.GetExcelSheet<Map>();
+            var data = Service<DataManager>.Get();
 
-            var matches = this.data.GetExcelSheet<PlaceName>()
+            var mapSheet = data.GetExcelSheet<Map>();
+
+            var matches = data.GetExcelSheet<PlaceName>()
                               .Where(row => row.Name.ToString().ToLowerInvariant() == placeName.ToLowerInvariant())
                               .ToArray();
 
@@ -177,10 +178,12 @@ namespace Dalamud.Game.Text.SeStringHandling
         /// <returns>A list of all the payloads required to insert the link marker.</returns>
         public List<Payload> TextArrowPayloads()
         {
+            var data = Service<DataManager>.Get();
+
             return new List<Payload>(new Payload[]
             {
-                new UIForegroundPayload(this.data, 0x01F4),
-                new UIGlowPayload(this.data, 0x01F5),
+                new UIForegroundPayload(data, 0x01F4),
+                new UIGlowPayload(data, 0x01F5),
                 new TextPayload($"{(char)SeIconChar.LinkMarker}"),
                 UIGlowPayload.UIGlowOff,
                 UIForegroundPayload.UIForegroundOff,
