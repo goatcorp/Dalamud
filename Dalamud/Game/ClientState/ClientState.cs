@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using Dalamud.Game.ClientState.Actors;
 using Dalamud.Game.ClientState.Actors.Types;
 using Dalamud.Game.ClientState.Fates;
+using Dalamud.Game.ClientState.JobGauge;
 using Dalamud.Game.Internal;
 using Dalamud.Hooking;
 using JetBrains.Annotations;
