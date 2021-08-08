@@ -11,7 +11,7 @@ using Dalamud.Data;
 using Dalamud.Game;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.Command;
-using Dalamud.Game.Internal;
+using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.Sanitizer;
 using Dalamud.Game.Text.SeStringHandling;
@@ -235,7 +235,7 @@ namespace Dalamud.Plugin
         /// <returns>Returns an SeString payload for the link.</returns>
         public DalamudLinkPayload AddChatLinkHandler(uint commandId, Action<uint, SeString> commandAction)
         {
-            return this.Framework.Gui.Chat.AddChatLinkHandler(this.pluginName, commandId, commandAction);
+            return Service<GameGui>.Get().Chat.AddChatLinkHandler(this.pluginName, commandId, commandAction);
         }
 
         /// <summary>
@@ -244,7 +244,7 @@ namespace Dalamud.Plugin
         /// <param name="commandId">The ID of the command.</param>
         public void RemoveChatLinkHandler(uint commandId)
         {
-            this.Framework.Gui.Chat.RemoveChatLinkHandler(this.pluginName, commandId);
+            Service<GameGui>.Get().Chat.RemoveChatLinkHandler(this.pluginName, commandId);
         }
 
         /// <summary>
@@ -252,7 +252,7 @@ namespace Dalamud.Plugin
         /// </summary>
         public void RemoveChatLinkHandler()
         {
-            this.Framework.Gui.Chat.RemoveChatLinkHandler(this.pluginName);
+            Service<GameGui>.Get().Chat.RemoveChatLinkHandler(this.pluginName);
         }
         #endregion
 
@@ -262,7 +262,7 @@ namespace Dalamud.Plugin
         public void Dispose()
         {
             this.UiBuilder.Dispose();
-            this.Framework.Gui.Chat.RemoveChatLinkHandler(this.pluginName);
+            Service<GameGui>.Get().Chat.RemoveChatLinkHandler(this.pluginName);
             this.dalamud.LocalizationManager.OnLocalizationChanged -= this.OnLocalizationChanged;
             this.dalamud.Configuration.OnDalamudConfigurationSaved -= this.OnDalamudConfigurationSaved;
         }

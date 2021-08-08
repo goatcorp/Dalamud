@@ -13,7 +13,7 @@ namespace Dalamud.Game
     /// A SigScanner facilitates searching for memory signatures in a given ProcessModule.
     /// </summary>
     [PluginInterface]
-    [InterfaceVersion("1")]
+    [InterfaceVersion("1.0")]
     public sealed class SigScanner : IDisposable
     {
         private IntPtr moduleCopyPtr;

@@ -24,7 +24,6 @@ If you note any issues or need help, please make sure to ask on our discord serv
 
         private readonly Dalamud dalamud;
         private readonly string assemblyVersion = Util.AssemblyVersion;
-        private readonly DalamudInterface dalamudInterface;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ChangelogWindow"/> class.
@@ -33,7 +32,6 @@ If you note any issues or need help, please make sure to ask on our discord serv
             : base("What's new in XIVLauncher?", ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoResize)
         {
             this.dalamud = Service<Dalamud>.Get();
-            this.dalamudInterface = Service<DalamudInterface>.Get();
 
             this.Namespace = "DalamudChangelogWindow";
 
@@ -60,7 +58,7 @@ If you note any issues or need help, please make sure to ask on our discord serv
 
             if (ImGui.Button(FontAwesomeIcon.Download.ToIconString()))
             {
-                this.dalamudInterface.OpenPluginInstaller();
+                Service<DalamudInterface>.Get().OpenPluginInstaller();
             }
 
             if (ImGui.IsItemHovered())

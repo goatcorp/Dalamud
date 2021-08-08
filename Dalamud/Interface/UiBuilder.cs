@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+
 using Dalamud.Game;
 using Dalamud.Game.ClientState;
+using Dalamud.Game.Gui;
 using Dalamud.Interface.Internal;
 using ImGuiNET;
 using ImGuiScene;
@@ -213,7 +215,7 @@ namespace Dalamud.Interface
 
         private void OnDraw()
         {
-            if ((this.framework.Gui.GameUiHidden && this.dalamud.Configuration.ToggleUiHide && !(this.DisableUserUiHide || this.DisableAutomaticUiHide)) ||
+            if ((Service<GameGui>.Get().GameUiHidden && this.dalamud.Configuration.ToggleUiHide && !(this.DisableUserUiHide || this.DisableAutomaticUiHide)) ||
                 (this.CutsceneActive && this.dalamud.Configuration.ToggleUiHideDuringCutscenes && !(this.DisableCutsceneUiHide || this.DisableAutomaticUiHide)) ||
                 (this.GposeActive && this.dalamud.Configuration.ToggleUiHideDuringGpose && !(this.DisableGposeUiHide || this.DisableAutomaticUiHide)))
                 return;

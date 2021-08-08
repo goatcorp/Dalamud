@@ -2,7 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Text.RegularExpressions;
-using Dalamud.Game.Internal;
+
+using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.IoC;
@@ -14,7 +15,7 @@ namespace Dalamud.Game.Command
     /// This class manages registered in-game slash commands.
     /// </summary>
     [PluginInterface]
-    [InterfaceVersion("1")]
+    [InterfaceVersion("1.0")]
     public sealed class CommandManager
     {
         private readonly Dictionary<string, CommandInfo> commandMap = new();
@@ -41,7 +42,7 @@ namespace Dalamud.Game.Command
                 _ => this.currentLangCommandRegex
             };
 
-            framework.Gui.Chat.OnCheckMessageHandled += this.OnCheckMessageHandled;
+            Service<GameGui>.Get().Chat.OnCheckMessageHandled += this.OnCheckMessageHandled;
         }
 
         /// <summary>

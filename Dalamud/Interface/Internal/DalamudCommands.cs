@@ -4,8 +4,8 @@ using System.Diagnostics;
 using System.Linq;
 
 using CheapLoc;
-using Dalamud.Game;
 using Dalamud.Game.Command;
+using Dalamud.Game.Gui;
 using Dalamud.Plugin.Internal;
 using Serilog;
 
@@ -18,10 +18,7 @@ namespace Dalamud.Interface.Internal
     {
         private readonly CommandManager commandManager;
         private readonly Dalamud dalamud;
-        private readonly PluginManager pluginManager;
         private readonly InterfaceManager interfaceManager;
-        private readonly Framework framework;
-        private readonly DalamudInterface dalamudInterface;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DalamudCommands"/> class.
@@ -29,11 +26,8 @@ namespace Dalamud.Interface.Internal
         public DalamudCommands()
         {
             this.dalamud = Service<Dalamud>.Get();
-            this.framework = Service<Framework>.Get();
-            this.pluginManager = Service<PluginManager>.Get();
             this.commandManager = Service<CommandManager>.Get();
             this.interfaceManager = Service<InterfaceManager>.Get();
-            this.dalamudInterface = Service<DalamudInterface>.Get();
         }
 
         /// <summary>
@@ -136,48 +130,52 @@ namespace Dalamud.Interface.Internal
 
         private void OnUnloadCommand(string command, string arguments)
         {
-            this.framework.Gui.Chat.Print("Unloading...");
+            Service<GameGui>.Get().Chat.Print("Unloading...");
             this.dalamud.Unload();
         }
 
         private void OnHelpCommand(string command, string arguments)
         {
+            var gameGui = Service<GameGui>.Get();
             var showDebug = arguments.Contains("debug");
 
-            this.framework.Gui.Chat.Print(Loc.Localize("DalamudCmdHelpAvailable", "Available commands:"));
+            gameGui.Chat.Print(Loc.Localize("DalamudCmdHelpAvailable", "Available commands:"));
             foreach (var cmd in this.commandManager.Commands)
             {
                 if (!cmd.Value.ShowInHelp && !showDebug)
                     continue;
 
-                this.framework.Gui.Chat.Print($"{cmd.Key}: {cmd.Value.HelpMessage}");
+                gameGui.Chat.Print($"{cmd.Key}: {cmd.Value.HelpMessage}");
             }
         }
 
         private void OnPluginReloadCommand(string command, string arguments)
         {
-            this.framework.Gui.Chat.Print("Reloading...");
+            var gameGui = Service<GameGui>.Get();
+            gameGui.Chat.Print("Reloading...");
 
             try
             {
-                this.pluginManager.ReloadAllPlugins();
+                Service<PluginManager>.Get().ReloadAllPlugins();
 
-                this.framework.Gui.Chat.Print("OK");
+                gameGui.Chat.Print("OK");
             }
             catch (Exception ex)
             {
-                this.framework.Gui.Chat.PrintError("Reload failed.");
+                gameGui.Chat.PrintError("Reload failed.");
                 Log.Error(ex, "Plugin reload failed.");
             }
         }
 
         private void OnBadWordsAddCommand(string command, string arguments)
         {
+            var gameGui = Service<GameGui>.Get();
+
             this.dalamud.Configuration.BadWords ??= new List<string>();
 
             if (string.IsNullOrEmpty(arguments))
             {
-                this.framework.Gui.Chat.Print(
+                gameGui.Chat.Print(
                     Loc.Localize("DalamudMuteNoArgs", "Please provide a word to mute."));
                 return;
             }
@@ -186,24 +184,25 @@ namespace Dalamud.Interface.Internal
 
             this.dalamud.Configuration.Save();
 
-            this.framework.Gui.Chat.Print(
+            gameGui.Chat.Print(
                 string.Format(Loc.Localize("DalamudMuted", "Muted \"{0}\"."), arguments));
         }
 
         private void OnBadWordsListCommand(string command, string arguments)
         {
+            var gameGui = Service<GameGui>.Get();
             this.dalamud.Configuration.BadWords ??= new List<string>();
 
             if (this.dalamud.Configuration.BadWords.Count == 0)
             {
-                this.framework.Gui.Chat.Print(Loc.Localize("DalamudNoneMuted", "No muted words or sentences."));
-                return;
+               gameGui.Chat.Print(Loc.Localize("DalamudNoneMuted", "No muted words or sentences."));
+               return;
             }
 
             this.dalamud.Configuration.Save();
 
             foreach (var word in this.dalamud.Configuration.BadWords)
-                this.framework.Gui.Chat.Print($"\"{word}\"");
+                gameGui.Chat.Print($"\"{word}\"");
         }
 
         private void OnBadWordsRemoveCommand(string command, string arguments)
@@ -214,51 +213,56 @@ namespace Dalamud.Interface.Internal
 
             this.dalamud.Configuration.Save();
 
-            this.framework.Gui.Chat.Print(
+            Service<GameGui>.Get().Chat.Print(
                 string.Format(Loc.Localize("DalamudUnmuted", "Unmuted \"{0}\"."), arguments));
         }
 
         private void OnLastLinkCommand(string command, string arguments)
         {
+            var gameGui = Service<GameGui>.Get();
             if (string.IsNullOrEmpty(this.dalamud.ChatHandlers.LastLink))
             {
-                this.framework.Gui.Chat.Print(Loc.Localize("DalamudNoLastLink", "No last link..."));
+                gameGui.Chat.Print(Loc.Localize("DalamudNoLastLink", "No last link..."));
                 return;
             }
 
-            this.framework.Gui.Chat.Print(string.Format(Loc.Localize("DalamudOpeningLink", "Opening {0}"), this.dalamud.ChatHandlers.LastLink));
+            gameGui.Chat.Print(string.Format(Loc.Localize("DalamudOpeningLink", "Opening {0}"), this.dalamud.ChatHandlers.LastLink));
             Process.Start(this.dalamud.ChatHandlers.LastLink);
         }
 
         private void OnBgmSetCommand(string command, string arguments)
         {
+            var gameGui = Service<GameGui>.Get();
+
             if (ushort.TryParse(arguments, out var value))
             {
-                this.framework.Gui.SetBgm(value);
+                gameGui.SetBgm(value);
             }
             else
             {
                 // Revert to the original BGM by specifying an invalid one
-                this.framework.Gui.SetBgm(9999);
+                gameGui.SetBgm(9999);
             }
         }
 
         private void OnDebugDrawDevMenu(string command, string arguments)
         {
-            this.dalamudInterface.ToggleDevMenu();
+            Service<DalamudInterface>.Get().ToggleDevMenu();
         }
 
         private void OnDebugDrawDataMenu(string command, string arguments)
         {
+            var dalamudInterface = Service<DalamudInterface>.Get();
+
             if (string.IsNullOrEmpty(arguments))
-                this.dalamudInterface.ToggleDataWindow();
+                dalamudInterface.ToggleDataWindow();
             else
-                this.dalamudInterface.OpenDataWindow(arguments);
+                dalamudInterface.ToggleDataWindow(arguments);
         }
 
         private void OnOpenLog(string command, string arguments)
         {
-            this.dalamudInterface.ToggleLogWindow();
+            Service<DalamudInterface>.Get().ToggleLogWindow();
         }
 
         private void OnDebugImInfoCommand(string command, string arguments)
@@ -286,22 +290,24 @@ namespace Dalamud.Interface.Internal
 
         private void OnOpenInstallerCommand(string command, string arguments)
         {
-            this.dalamudInterface.TogglePluginInstallerWindow();
+            Service<DalamudInterface>.Get().TogglePluginInstallerWindow();
         }
 
         private void OnOpenCreditsCommand(string command, string arguments)
         {
-            this.dalamudInterface.ToggleCreditsWindow();
+            Service<DalamudInterface>.Get().ToggleCreditsWindow();
         }
 
         private void OnSetLanguageCommand(string command, string arguments)
         {
+            var gameGui = Service<GameGui>.Get();
+
             if (Localization.ApplicableLangCodes.Contains(arguments.ToLower()) || arguments.ToLower() == "en")
             {
                 this.dalamud.LocalizationManager.SetupWithLangCode(arguments.ToLower());
                 this.dalamud.Configuration.LanguageOverride = arguments.ToLower();
 
-                this.framework.Gui.Chat.Print(
+                gameGui.Chat.Print(
                     string.Format(Loc.Localize("DalamudLanguageSetTo", "Language set to {0}"), arguments));
             }
             else
@@ -309,7 +315,7 @@ namespace Dalamud.Interface.Internal
                 this.dalamud.LocalizationManager.SetupWithUiCulture();
                 this.dalamud.Configuration.LanguageOverride = null;
 
-                this.framework.Gui.Chat.Print(
+                gameGui.Chat.Print(
                     string.Format(Loc.Localize("DalamudLanguageSetTo", "Language set to {0}"), "default"));
             }
 
@@ -318,7 +324,7 @@ namespace Dalamud.Interface.Internal
 
         private void OnOpenSettingsCommand(string command, string arguments)
         {
-            this.dalamudInterface.ToggleSettingsWindow();
+            Service<DalamudInterface>.Get().ToggleSettingsWindow();
         }
     }
 }

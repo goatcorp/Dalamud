@@ -10,7 +10,7 @@ namespace Dalamud.IoC
     /// <summary>
     /// A simple singleton-only IOC container that provides (optional) version-based dependency resolution.
     /// </summary>
-    internal class Container : IServiceProvider
+    internal class ServiceContainer : IServiceProvider
     {
         private readonly Dictionary<Type, ObjectInstance> _objectInstances = new();
 

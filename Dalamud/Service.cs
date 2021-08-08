@@ -45,7 +45,13 @@ namespace Dalamud
 
         public static T Set(params object[] args)
         {
-            var obj = (T?)Activator.CreateInstance(typeof(T), args, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.CreateInstance);
+            var flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.CreateInstance | BindingFlags.OptionalParamBinding;
+            var obj = (T?)Activator.CreateInstance(typeof(T), flags, null, args, null, null);
+
+            if (obj == null)
+            {
+                throw new ArgumentNullException(nameof(obj), "This should not happen");
+            }
 
             // ReSharper disable once JoinNullCheckWithUsage
             if (obj == null)
@@ -67,7 +73,7 @@ namespace Dalamud
         {
             if (instance == null)
             {
-                throw new InvalidOperationException($"{nameof(T)} hasn't been registered in the service locator!");
+                throw new InvalidOperationException($"{typeof(T).FullName} hasn't been registered in the service locator!");
             }
 
             return instance;
@@ -107,7 +113,7 @@ namespace Dalamud
             }
 
             // attempt to get service locator
-            var ioc = Service<Container>.GetNullable();
+            var ioc = Service<ServiceContainer>.GetNullable();
             if (ioc == null)
             {
                 return false;

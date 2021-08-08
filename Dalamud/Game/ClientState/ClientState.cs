@@ -18,7 +18,6 @@ namespace Dalamud.Game.ClientState
     /// </summary>
     public sealed class ClientState : INotifyPropertyChanged, IDisposable
     {
-        private readonly Dalamud dalamud;
         private readonly ClientStateAddressResolver address;
         private readonly Hook<SetupTerritoryTypeDelegate> setupTerritoryTypeHook;
 
@@ -33,10 +32,7 @@ namespace Dalamud.Game.ClientState
         /// </summary>
         internal ClientState()
         {
-            this.dalamud = Service<Dalamud>.Get();
-            this.framework = Service<Framework>.Get();
             this.startInfo = Service<DalamudStartInfo>.Get();
-            this.networkHandlers = Service<NetworkHandlers>.Get();
             var scanner = Service<SigScanner>.Get();
             this.address = new ClientStateAddressResolver();
             this.address.Setup(scanner);
@@ -65,8 +61,11 @@ namespace Dalamud.Game.ClientState
 
             this.setupTerritoryTypeHook = new Hook<SetupTerritoryTypeDelegate>(this.address.SetupTerritoryType, this.SetupTerritoryTypeDetour);
 
-            this.framework.OnUpdateEvent += this.FrameworkOnOnUpdateEvent;
-            this.networkHandlers.CfPop += this.NetworkHandlersOnCfPop;
+            var framework = Service<Framework>.Get();
+            framework.OnUpdateEvent += this.FrameworkOnOnUpdateEvent;
+
+            var networkHandlers = Service<NetworkHandlers>.Get();
+            networkHandlers.CfPop += this.NetworkHandlersOnCfPop;
         }
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]

@@ -10,6 +10,7 @@ using Dalamud.Game.ClientState.Actors.Types;
 using Dalamud.Game.ClientState.Actors.Types.NonPlayer;
 using Dalamud.Game.ClientState.Structs.JobGauge;
 using Dalamud.Game.Command;
+using Dalamud.Game.Gui;
 using Dalamud.Game.Gui.Addons;
 using Dalamud.Game.Gui.Toast;
 using Dalamud.Game.Text;
@@ -152,7 +153,7 @@ namespace Dalamud.Interface.Internal.Windows
             }
             else
             {
-                this.framework.Gui.Chat.PrintError("/xldata: Invalid Data Type");
+                Service<GameGui>.Get().Chat.PrintError("/xldata: Invalid Data Type");
             }
         }
 
@@ -321,6 +322,7 @@ namespace Dalamud.Interface.Internal.Windows
 
         private void DrawActorTable()
         {
+            var gameGui = Service<GameGui>.Get();
             var stateString = string.Empty;
 
             // LocalPlayer is null in a number of situations (at least with the current visible-actors list)
@@ -341,7 +343,7 @@ namespace Dalamud.Interface.Internal.Windows
                 stateString += $"CurrentWorldName: {(this.resolveGameData ? this.clientState.LocalPlayer.CurrentWorld.GameData.Name : this.clientState.LocalPlayer.CurrentWorld.Id.ToString())}\n";
                 stateString += $"HomeWorldName: {(this.resolveGameData ? this.clientState.LocalPlayer.HomeWorld.GameData.Name : this.clientState.LocalPlayer.HomeWorld.Id.ToString())}\n";
                 stateString += $"LocalCID: {this.clientState.LocalContentId:X}\n";
-                stateString += $"LastLinkedItem: {this.framework.Gui.Chat.LastLinkedItemId}\n";
+                stateString += $"LastLinkedItem: {gameGui.Chat.LastLinkedItemId}\n";
                 stateString += $"TerritoryType: {this.clientState.TerritoryType}\n\n";
 
                 ImGui.TextUnformatted(stateString);
@@ -358,7 +360,7 @@ namespace Dalamud.Interface.Internal.Windows
 
                     this.PrintActor(actor, i.ToString());
 
-                    if (this.drawActors && this.framework.Gui.WorldToScreen(actor.Position, out var screenCoords))
+                    if (this.drawActors && gameGui.WorldToScreen(actor.Position, out var screenCoords))
                     {
                         // So, while WorldToScreen will return false if the point is off of game client screen, to
                         // to avoid performance issues, we have to manually determine if creating a window would
@@ -581,18 +583,20 @@ namespace Dalamud.Interface.Internal.Windows
 
         private void DrawAddon()
         {
+            var gameGui = Service<GameGui>.Get();
+            
             ImGui.InputText("Addon name", ref this.inputAddonName, 256);
             ImGui.InputInt("Addon Index", ref this.inputAddonIndex);
 
             if (ImGui.Button("Get Addon"))
             {
                 this.resultAddon =
-                    this.framework.Gui.GetAddonByName(
+                    gameGui.GetAddonByName(
                         this.inputAddonName, this.inputAddonIndex);
             }
 
             if (ImGui.Button("Find Agent"))
-                this.findAgentInterfacePtr = this.framework.Gui.FindAgentInterface(this.inputAddonName);
+                this.findAgentInterfacePtr = gameGui.FindAgentInterface(this.inputAddonName);
 
             if (this.resultAddon != null)
             {
@@ -610,7 +614,7 @@ namespace Dalamud.Interface.Internal.Windows
 
             if (ImGui.Button("Get Base UI object"))
             {
-                var addr = this.framework.Gui.GetBaseUIObject().ToInt64().ToString("x");
+                var addr = gameGui.GetBaseUIObject().ToInt64().ToString("x");
                 Log.Information("{0}", addr);
                 ImGui.SetClipboardText(addr);
             }
@@ -673,6 +677,8 @@ namespace Dalamud.Interface.Internal.Windows
 
         private void DrawToast()
         {
+            var gameGui = Service<GameGui>.Get();
+            
             ImGui.InputText("Toast text", ref this.inputTextToast, 200);
 
             ImGui.Combo("Toast Position", ref this.toastPosition, new[] { "Bottom", "Top", }, 2);
@@ -686,7 +692,7 @@ namespace Dalamud.Interface.Internal.Windows
 
             if (ImGui.Button("Show toast"))
             {
-                this.framework.Gui.Toast.ShowNormal(this.inputTextToast, new ToastOptions
+                gameGui.Toast.ShowNormal(this.inputTextToast, new ToastOptions
                 {
                     Position = (ToastPosition)this.toastPosition,
                     Speed = (ToastSpeed)this.toastSpeed,
@@ -695,7 +701,7 @@ namespace Dalamud.Interface.Internal.Windows
 
             if (ImGui.Button("Show Quest toast"))
             {
-                this.framework.Gui.Toast.ShowQuest(this.inputTextToast, new QuestToastOptions
+                gameGui.Toast.ShowQuest(this.inputTextToast, new QuestToastOptions
                 {
                     Position = (QuestToastPosition)this.questToastPosition,
                     DisplayCheckmark = this.questToastCheckmark,
@@ -706,7 +712,7 @@ namespace Dalamud.Interface.Internal.Windows
 
             if (ImGui.Button("Show Error toast"))
             {
-                this.framework.Gui.Toast.ShowError(this.inputTextToast);
+                gameGui.Toast.ShowError(this.inputTextToast);
             }
         }
 

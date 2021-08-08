@@ -17,7 +17,6 @@ namespace Dalamud.Game.ClientState.Actors
         private const int ActorTableLength = 424;
 
         private readonly ClientStateAddressResolver address;
-        private readonly ClientState clientState;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ActorTable"/> class.
@@ -25,7 +24,6 @@ namespace Dalamud.Game.ClientState.Actors
         /// <param name="addressResolver">Client state address resolver.</param>
         internal ActorTable(ClientStateAddressResolver addressResolver)
         {
-            this.clientState = Service<ClientState>.Get();
             this.address = addressResolver;
 
             Log.Verbose($"Actor table address 0x{this.address.ActorTable.ToInt64():X}");
@@ -88,7 +86,9 @@ namespace Dalamud.Game.ClientState.Actors
         [CanBeNull]
         public unsafe Actor CreateActorReference(IntPtr address)
         {
-            if (this.clientState.LocalContentId == 0)
+            var clientState = Service<ClientState>.Get();
+            
+            if (clientState.LocalContentId == 0)
                 return null;
 
             if (address == IntPtr.Zero)

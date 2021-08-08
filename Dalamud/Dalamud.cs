@@ -1,7 +1,5 @@
 using System;
-using System.Diagnostics;
 using System.IO;
-using System.Runtime.CompilerServices;
 using System.Threading;
 
 using Dalamud.Configuration.Internal;
@@ -9,7 +7,9 @@ using Dalamud.Data;
 using Dalamud.Game;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.Command;
+using Dalamud.Game.Gui;
 using Dalamud.Game.Internal;
+using Dalamud.Game.Network;
 using Dalamud.Game.Network.Internal;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Hooking.Internal;
@@ -134,10 +134,14 @@ namespace Dalamud
                 // Initialize the process information.
                 Service<SigScanner>.Set(new SigScanner(true));
                 Service<HookManager>.Set();
+                Service<ServiceContainer>.Set();
 
                 // Initialize game subsystem
                 var framework = Service<Framework>.Set();
                 Log.Information("[T1] Framework OK!");
+
+                Service<GameNetwork>.Set();
+                Service<GameGui>.Set(new GameGui(Service<Framework>.Get().Address.GuiManager));
 
                 framework.Enable();
                 Log.Information("[T1] Framework ENABLE!");
@@ -217,7 +221,7 @@ namespace Dalamud
                 Log.Information("[T2] Data OK!");
 
                 Service<SeStringManager>.Set();
-                MemoryHelper.Initialize();  // For SeString handling
+                MemoryHelper.Initialize(); // For SeString handling
 
                 Log.Information("[T2] SeString OK!");
 
@@ -374,7 +378,9 @@ namespace Dalamud
         /// </summary>
         internal void ReplaceExceptionHandler()
         {
-            var releaseFilter = Service<SigScanner>.Get().ScanText("40 55 53 56 48 8D AC 24 ?? ?? ?? ?? B8 ?? ?? ?? ?? E8 ?? ?? ?? ?? 48 2B E0 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 85 ?? ?? ?? ?? 48 83 3D ?? ?? ?? ?? ??");
+            var releaseFilter = Service<SigScanner>.Get()
+                                                   .ScanText(
+                                                       "40 55 53 56 48 8D AC 24 ?? ?? ?? ?? B8 ?? ?? ?? ?? E8 ?? ?? ?? ?? 48 2B E0 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 85 ?? ?? ?? ?? 48 83 3D ?? ?? ?? ?? ??");
             Log.Debug($"SE debug filter at {releaseFilter.ToInt64():X}");
 
             var oldFilter = NativeFunctions.SetUnhandledExceptionFilter(releaseFilter);

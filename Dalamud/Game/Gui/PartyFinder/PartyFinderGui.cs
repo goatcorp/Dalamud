@@ -1,7 +1,5 @@
 using System;
 using System.Runtime.InteropServices;
-
-using Dalamud.Data;
 using Dalamud.Game.Gui.PartyFinder.Internal;
 using Dalamud.Game.Gui.PartyFinder.Types;
 using Dalamud.Game.Text.SeStringHandling;
@@ -20,7 +18,6 @@ namespace Dalamud.Game.Gui.PartyFinder
         private readonly IntPtr memory;
 
         private readonly Hook<ReceiveListingDelegate> receiveListingHook;
-        private readonly DataManager data;
         private readonly SeStringManager seStringManager;
 
         /// <summary>
@@ -30,8 +27,6 @@ namespace Dalamud.Game.Gui.PartyFinder
         internal PartyFinderGui(SigScanner scanner)
         {
             this.dalamud = Service<Dalamud>.Get();
-            this.data = Service<DataManager>.Get();
-            this.seStringManager = Service<SeStringManager>.Get();
 
             this.address = new PartyFinderAddressResolver();
             this.address.Setup(scanner);
@@ -106,7 +101,7 @@ namespace Dalamud.Game.Gui.PartyFinder
                     continue;
                 }
 
-                var listing = new PartyFinderListing(packet.Listings[i], this.data, this.seStringManager);
+                var listing = new PartyFinderListing(packet.Listings[i]);
                 var args = new PartyFinderListingEventArgs(packet.BatchNumber);
                 this.ReceiveListing?.Invoke(listing, args);
 

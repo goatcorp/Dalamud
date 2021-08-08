@@ -44,13 +44,6 @@ namespace Dalamud.Game
 
             // Hook virtual functions
             this.HookVTable();
-
-            // Initialize subsystems
-            this.Libc = new LibcFunction(scanner);
-
-            this.Gui = new GameGui(this.Address.GuiManager);
-
-            this.Network = new GameNetwork(scanner);
         }
 
         /// <summary>
@@ -94,22 +87,7 @@ namespace Dalamud.Game
 
         #region Subsystems
 
-        /// <summary>
-        /// Gets the GUI subsystem, used to access e.g. chat.
-        /// </summary>
-        public GameGui Gui { get; private set; }
-
-        /// <summary>
-        /// Gets the Network subsystem, used to access network data.
-        /// </summary>
-        public GameNetwork Network { get; private set; }
-
         // public ResourceManager Resource { get; private set; }
-
-        /// <summary>
-        /// Gets the Libc subsystem, used to facilitate interop with std::strings.
-        /// </summary>
-        public LibcFunction Libc { get; private set; }
 
         #endregion
 
@@ -128,8 +106,8 @@ namespace Dalamud.Game
         /// </summary>
         public void Enable()
         {
-            this.Gui.Enable();
-            this.Network.Enable();
+            Service<GameGui>.Get().Enable();
+            Service<GameNetwork>.Get().Enable();
 
             this.updateHook.Enable();
             this.destroyHook.Enable();
@@ -141,8 +119,8 @@ namespace Dalamud.Game
         /// </summary>
         public void Dispose()
         {
-            this.Gui.Dispose();
-            this.Network.Dispose();
+            Service<GameGui>.Get().Dispose();
+            Service<GameNetwork>.Get().Dispose();
 
             this.updateHook.Disable();
             this.destroyHook.Disable();
@@ -185,9 +163,9 @@ namespace Dalamud.Game
 
             try
             {
-                this.Gui.Chat.UpdateQueue(this);
-                this.Gui.Toast.UpdateQueue();
-                this.Network.UpdateQueue(this);
+                Service<GameGui>.Get().Chat.UpdateQueue();
+                Service<GameGui>.Get().Toast.UpdateQueue();
+                Service<GameNetwork>.Get().UpdateQueue();
             }
             catch (Exception ex)
             {

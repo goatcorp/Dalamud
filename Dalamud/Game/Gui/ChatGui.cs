@@ -19,7 +19,6 @@ namespace Dalamud.Game.Gui
     {
         private readonly Dalamud dalamud;
         private readonly ChatGuiAddressResolver address;
-        private readonly SeStringManager seStringManager;
         private readonly Framework framework;
 
         private readonly Queue<XivChatEntry> chatQueue = new();
@@ -40,7 +39,6 @@ namespace Dalamud.Game.Gui
             this.dalamud = Service<Dalamud>.Get();
             this.address = new ChatGuiAddressResolver(baseAddress);
             this.address.Setup(Service<SigScanner>.Get());
-            this.seStringManager = Service<SeStringManager>.Get();
             this.framework = Service<Framework>.Get();
 
             Log.Verbose($"Chat manager address 0x{this.address.BaseAddress.ToInt64():X}");
@@ -220,8 +218,7 @@ namespace Dalamud.Game.Gui
         /// <summary>
         /// Process a chat queue.
         /// </summary>
-        /// <param name="framework">The Framework instance.</param>
-        public void UpdateQueue(Framework framework)
+        public void UpdateQueue()
         {
             while (this.chatQueue.Count > 0)
             {
@@ -233,10 +230,10 @@ namespace Dalamud.Game.Gui
                 }
 
                 var senderRaw = (chat.Name ?? string.Empty).Encode();
-                using var senderOwned = framework.Libc.NewString(senderRaw);
+                using var senderOwned = Service<LibcFunction>.Get().NewString(senderRaw);
 
                 var messageRaw = (chat.Message ?? string.Empty).Encode();
-                using var messageOwned = framework.Libc.NewString(messageRaw);
+                using var messageOwned = Service<LibcFunction>.Get().NewString(messageRaw);
 
                 this.HandlePrintMessageDetour(this.baseAddress, chat.Type, senderOwned.Address, messageOwned.Address, chat.SenderId, chat.Parameters);
             }
@@ -354,8 +351,8 @@ namespace Dalamud.Game.Gui
                 var sender = StdString.ReadFromPointer(pSenderName);
                 var message = StdString.ReadFromPointer(pMessage);
 
-                var parsedSender = this.seStringManager.Parse(sender.RawData);
-                var parsedMessage = this.seStringManager.Parse(message.RawData);
+                var parsedSender = Service<SeStringManager>.Get().Parse(sender.RawData);
+                var parsedMessage = Service<SeStringManager>.Get().Parse(message.RawData);
 
                 Log.Verbose("[CHATGUI][{0}][{1}]", parsedSender.TextValue, parsedMessage.TextValue);
 
@@ -387,7 +384,7 @@ namespace Dalamud.Game.Gui
 
                 if (!FastByteArrayCompare(originalMessageData, message.RawData))
                 {
-                    allocatedString = this.framework.Libc.NewString(message.RawData);
+                    allocatedString = Service<LibcFunction>.Get().NewString(message.RawData);
                     Log.Debug(
                         $"HandlePrintMessageDetour String modified: {originalMessageData}({messagePtr}) -> {message}({allocatedString.Address})");
                     messagePtr = allocatedString.Address;
@@ -437,7 +434,7 @@ namespace Dalamud.Game.Gui
                 while (Marshal.ReadByte(payloadPtr, messageSize) != 0) messageSize++;
                 var payloadBytes = new byte[messageSize];
                 Marshal.Copy(payloadPtr, payloadBytes, 0, messageSize);
-                var seStr = this.seStringManager.Parse(payloadBytes);
+                var seStr = Service<SeStringManager>.Get().Parse(payloadBytes);
                 var terminatorIndex = seStr.Payloads.IndexOf(RawPayload.LinkTerminator);
                 var payloads = terminatorIndex >= 0 ? seStr.Payloads.Take(terminatorIndex + 1).ToList() : seStr.Payloads;
                 if (payloads.Count == 0) return;

@@ -1,9 +1,9 @@
 using System;
-using System.IO;
+
 using Dalamud.Game.Command;
 using Dalamud.Interface.Windowing;
+using Dalamud.IoC;
 using Dalamud.Logging;
-using Dalamud.IOC;
 using Dalamud.Plugin;
 
 namespace Dalamud.CorePlugin

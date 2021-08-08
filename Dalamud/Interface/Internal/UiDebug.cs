@@ -5,10 +5,10 @@ using System.Numerics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+
 using Dalamud.Game;
-using Dalamud.Game.Internal;
+using Dalamud.Game.Gui;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using FFXIVClientStructs.FFXIV.Component.GUI.ULD;
 using ImGuiNET;
 
 using AlignmentType = FFXIVClientStructs.FFXIV.Component.GUI.AlignmentType;
@@ -111,7 +111,7 @@ namespace Dalamud.Interface.Internal
         {
             var isVisible = (atkUnitBase->Flags & 0x20) == 0x20;
             var addonName = Marshal.PtrToStringAnsi(new IntPtr(atkUnitBase->Name));
-            var agent = this.framework.Gui.FindAgentInterface((IntPtr)atkUnitBase);
+            var agent = Service<GameGui>.Get().FindAgentInterface((IntPtr)atkUnitBase);
 
             ImGui.Text($"{addonName}");
             ImGui.SameLine();

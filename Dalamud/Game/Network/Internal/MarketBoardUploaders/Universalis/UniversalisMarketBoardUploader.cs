@@ -16,7 +16,6 @@ namespace Dalamud.Game.Network.Internal.MarketBoardUploaders.Universalis
     /// </summary>
     internal class UniversalisMarketBoardUploader : IMarketBoardUploader
     {
-        private readonly ClientState.ClientState clientState;
         private const string ApiBase = "https://universalis.app";
         // private const string ApiBase = "https://127.0.0.1:443";
 
@@ -28,22 +27,22 @@ namespace Dalamud.Game.Network.Internal.MarketBoardUploaders.Universalis
         /// </summary>
         public UniversalisMarketBoardUploader()
         {
-            this.clientState = Service<ClientState.ClientState>.Get();
         }
 
         /// <inheritdoc/>
         public void Upload(MarketBoardItemRequest request)
         {
+            var clientState = Service<ClientState.ClientState>.Get();
             using var client = new HttpClient();
 
             Log.Verbose("Starting Universalis upload.");
-            var uploader = this.clientState.LocalContentId;
+            var uploader = clientState.LocalContentId;
 
             // ====================================================================================
 
             var listingsUploadObject = new UniversalisItemListingsUploadRequest
             {
-                WorldId = this.clientState.LocalPlayer?.CurrentWorld.Id ?? 0,
+                WorldId = clientState.LocalPlayer?.CurrentWorld.Id ?? 0,
                 UploaderId = uploader.ToString(),
                 ItemId = request.CatalogId,
                 Listings = new List<UniversalisItemListingsEntry>(),
@@ -88,7 +87,7 @@ namespace Dalamud.Game.Network.Internal.MarketBoardUploaders.Universalis
 
             var historyUploadObject = new UniversalisHistoryUploadRequest
             {
-                WorldId = this.clientState.LocalPlayer?.CurrentWorld.Id ?? 0,
+                WorldId = clientState.LocalPlayer?.CurrentWorld.Id ?? 0,
                 UploaderId = uploader.ToString(),
                 ItemId = request.CatalogId,
                 Entries = new List<UniversalisHistoryEntry>(),
@@ -120,14 +119,15 @@ namespace Dalamud.Game.Network.Internal.MarketBoardUploaders.Universalis
         /// <inheritdoc/>
         public void UploadTax(MarketTaxRates taxRates)
         {
+            var clientState = Service<ClientState.ClientState>.Get();
             using var client = new HttpClient();
 
             // ====================================================================================
 
             var taxUploadObject = new UniversalisTaxUploadRequest
             {
-                WorldId = this.clientState.LocalPlayer?.CurrentWorld.Id ?? 0,
-                UploaderId = this.clientState.LocalContentId.ToString(),
+                WorldId = clientState.LocalPlayer?.CurrentWorld.Id ?? 0,
+                UploaderId = clientState.LocalContentId.ToString(),
                 TaxData = new UniversalisTaxData
                 {
                     LimsaLominsa = taxRates.LimsaLominsaTax,
@@ -158,12 +158,13 @@ namespace Dalamud.Game.Network.Internal.MarketBoardUploaders.Universalis
         /// </remarks>
         public void UploadPurchase(MarketBoardPurchaseHandler purchaseHandler)
         {
+            var clientState = Service<ClientState.ClientState>.Get();
             using var client = new HttpClient();
 
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(ApiKey);
 
             var itemId = purchaseHandler.CatalogId;
-            var worldId = this.clientState.LocalPlayer?.CurrentWorld.Id ?? 0;
+            var worldId = clientState.LocalPlayer?.CurrentWorld.Id ?? 0;
 
             // ====================================================================================
 
@@ -173,7 +174,7 @@ namespace Dalamud.Game.Network.Internal.MarketBoardUploaders.Universalis
                 Quantity = purchaseHandler.ItemQuantity,
                 ListingId = purchaseHandler.ListingId.ToString(),
                 RetainerId = purchaseHandler.RetainerId.ToString(),
-                UploaderId = this.clientState.LocalContentId.ToString(),
+                UploaderId = clientState.LocalContentId.ToString(),
             };
 
             var deletePath = $"/api/{worldId}/{itemId}/delete";

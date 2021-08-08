@@ -450,7 +450,7 @@ namespace Dalamud.Game.Gui
         /// <returns>A pointer to the agent interface.</returns>
         public IntPtr FindAgentInterface(string addonName)
         {
-            var addon = this.framework.Gui.GetUiObjectByName(addonName, 1);
+            var addon = Service<GameGui>.Get().GetUiObjectByName(addonName, 1);
             return this.FindAgentInterface(addon);
         }
 
@@ -464,7 +464,7 @@ namespace Dalamud.Game.Gui
             if (addon == IntPtr.Zero)
                 return IntPtr.Zero;
 
-            var uiModule = this.framework.Gui.GetUIModule();
+            var uiModule = Service<GameGui>.Get().GetUIModule();
             if (uiModule == IntPtr.Zero)
             {
                 return IntPtr.Zero;

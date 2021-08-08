@@ -23,6 +23,8 @@ namespace Dalamud.Game.Gui.PartyFinder.Types
         private readonly byte searchArea;
         private readonly PartyFinderSlot[] slots;
         private readonly byte[] jobsPresent;
+        private readonly DataManager dataManager;
+        private readonly SeStringManager seStringManager;
 
         #endregion
 
@@ -30,10 +32,10 @@ namespace Dalamud.Game.Gui.PartyFinder.Types
         /// Initializes a new instance of the <see cref="PartyFinderListing"/> class.
         /// </summary>
         /// <param name="listing">The interop listing data.</param>
-        /// <param name="dataManager">The DataManager instance.</param>
-        /// <param name="seStringManager">The SeStringManager instance.</param>
-        internal PartyFinderListing(PartyFinderPacketListing listing, DataManager dataManager, SeStringManager seStringManager)
+        internal PartyFinderListing(PartyFinderPacketListing listing)
         {
+            this.dataManager = Service<DataManager>.Get();
+            this.seStringManager = Service<SeStringManager>.Get();
             this.objective = listing.Objective;
             this.conditions = listing.Conditions;
             this.dutyFinderSettings = listing.DutyFinderSettings;
@@ -44,14 +46,14 @@ namespace Dalamud.Game.Gui.PartyFinder.Types
 
             this.Id = listing.Id;
             this.ContentIdLower = listing.ContentIdLower;
-            this.Name = seStringManager.Parse(listing.Name.TakeWhile(b => b != 0).ToArray());
-            this.Description = seStringManager.Parse(listing.Description.TakeWhile(b => b != 0).ToArray());
-            this.World = new Lazy<World>(() => dataManager.GetExcelSheet<World>().GetRow(listing.World));
-            this.HomeWorld = new Lazy<World>(() => dataManager.GetExcelSheet<World>().GetRow(listing.HomeWorld));
-            this.CurrentWorld = new Lazy<World>(() => dataManager.GetExcelSheet<World>().GetRow(listing.CurrentWorld));
+            this.Name = this.seStringManager.Parse(listing.Name.TakeWhile(b => b != 0).ToArray());
+            this.Description = this.seStringManager.Parse(listing.Description.TakeWhile(b => b != 0).ToArray());
+            this.World = new Lazy<World>(() => this.dataManager.GetExcelSheet<World>().GetRow(listing.World));
+            this.HomeWorld = new Lazy<World>(() => this.dataManager.GetExcelSheet<World>().GetRow(listing.HomeWorld));
+            this.CurrentWorld = new Lazy<World>(() => this.dataManager.GetExcelSheet<World>().GetRow(listing.CurrentWorld));
             this.Category = (DutyFinderCategory)listing.Category;
             this.RawDuty = listing.Duty;
-            this.Duty = new Lazy<ContentFinderCondition>(() => dataManager.GetExcelSheet<ContentFinderCondition>().GetRow(listing.Duty));
+            this.Duty = new Lazy<ContentFinderCondition>(() => this.dataManager.GetExcelSheet<ContentFinderCondition>().GetRow(listing.Duty));
             this.DutyType = (DutyType)listing.DutyType;
             this.BeginnersWelcome = listing.BeginnersWelcome == 1;
             this.SecondsRemaining = listing.SecondsRemaining;
@@ -62,7 +64,7 @@ namespace Dalamud.Game.Gui.PartyFinder.Types
                 .Select(id => new Lazy<ClassJob>(
                     () => id == 0
                         ? null
-                        : dataManager.GetExcelSheet<ClassJob>().GetRow(id)))
+                        : this.dataManager.GetExcelSheet<ClassJob>().GetRow(id)))
                 .ToArray();
         }
 

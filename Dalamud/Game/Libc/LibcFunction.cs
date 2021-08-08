@@ -16,9 +16,9 @@ namespace Dalamud.Game.Libc
         /// <summary>
         /// Initializes a new instance of the <see cref="LibcFunction"/> class.
         /// </summary>
-        /// <param name="scanner">The SigScanner instance.</param>
-        public LibcFunction(SigScanner scanner)
+        public LibcFunction()
         {
+            var scanner = Service<SigScanner>.Get();
             this.address = new LibcFunctionAddressResolver();
             this.address.Setup(scanner);
 

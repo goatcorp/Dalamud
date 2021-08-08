@@ -238,7 +238,7 @@ namespace Dalamud.Interface.Internal.Windows
             ImGui.SameLine();
             if (ImGui.Button(Locs.FooterButton_Settings))
             {
-                this.dalamudInterface.OpenSettings();
+                Service<DalamudInterface>.Get().OpenSettings();
             }
 
             // If any dev plugins are installed, allow a shortcut for the /xldev menu item

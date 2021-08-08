@@ -5,6 +5,7 @@ using System.Linq;
 using System.Numerics;
 
 using Dalamud.Game;
+using Dalamud.Game.Gui;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Internal;
 using ImGuiNET;
@@ -158,7 +159,7 @@ Thank you for using XIVLauncher and Dalamud!
 
             this.creditsText = string.Format(CreditsTextTempl, typeof(Dalamud).Assembly.GetName().Version, pluginCredits);
 
-            this.framework.Gui.SetBgm(132);
+            Service<GameGui>.Get().SetBgm(132);
             this.creditsThrottler.Restart();
         }
 
@@ -166,7 +167,7 @@ Thank you for using XIVLauncher and Dalamud!
         public override void OnClose()
         {
             this.creditsThrottler.Reset();
-            this.framework.Gui.SetBgm(9999);
+            Service<GameGui>.Get().SetBgm(9999);
         }
 
         /// <inheritdoc/>

@@ -2,13 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 using CheapLoc;
 using Dalamud.Data;
-using Dalamud.Game.Internal;
+using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
@@ -101,10 +100,6 @@ namespace Dalamud.Game
         private readonly DalamudLinkPayload openInstallerWindowLink;
         private readonly Framework framework;
         private readonly DalamudStartInfo startInfo;
-        private readonly PluginManager pluginManager;
-        private readonly DalamudInterface dalamudInterface;
-        private readonly ClientState.ClientState clientState;
-        private readonly DataManager data;
 
         private bool hasSeenLoadingMsg;
 
@@ -116,15 +111,13 @@ namespace Dalamud.Game
             this.dalamud = Service<Dalamud>.Get();
             this.framework = Service<Framework>.Get();
             this.startInfo = Service<DalamudStartInfo>.Get();
-            this.clientState = Service<ClientState.ClientState>.Get();
-            this.pluginManager = Service<PluginManager>.Get();
-            this.dalamudInterface = Service<DalamudInterface>.Get();
-            this.data = Service<DataManager>.Get();
 
-            this.framework.Gui.Chat.OnCheckMessageHandled += this.OnCheckMessageHandled;
-            this.framework.Gui.Chat.OnChatMessage += this.OnChatMessage;
+            var gameGui = Service<GameGui>.Get();
 
-            this.openInstallerWindowLink = this.framework.Gui.Chat.AddChatLinkHandler("Dalamud", 1001, (i, m) =>
+            gameGui.Chat.OnCheckMessageHandled += this.OnCheckMessageHandled;
+            gameGui.Chat.OnChatMessage += this.OnChatMessage;
+
+            this.openInstallerWindowLink = gameGui.Chat.AddChatLinkHandler("Dalamud", 1001, (i, m) =>
             {
                 Service<DalamudInterface>.Get().OpenPluginInstaller();
             });
@@ -176,11 +169,13 @@ namespace Dalamud.Game
 
         private void OnChatMessage(XivChatType type, uint senderId, ref SeString sender, ref SeString message, ref bool isHandled)
         {
+            var clientState = Service<ClientState.ClientState>.Get();
+            
             if (type == XivChatType.Notice && !this.hasSeenLoadingMsg)
                 this.PrintWelcomeMessage();
 
             // For injections while logged in
-            if (this.clientState.LocalPlayer != null && this.clientState.TerritoryType == 0 && !this.hasSeenLoadingMsg)
+            if (clientState.LocalPlayer != null && clientState.TerritoryType == 0 && !this.hasSeenLoadingMsg)
                 this.PrintWelcomeMessage();
 
 #if !DEBUG && false
@@ -251,35 +246,39 @@ namespace Dalamud.Game
 
         private void PrintWelcomeMessage()
         {
+            var gameGui = Service<GameGui>.Get();
+            var pluginManager = Service<PluginManager>.Get();
+            var dalamudInterface = Service<DalamudInterface>.Get();
+
             var assemblyVersion = Assembly.GetAssembly(typeof(ChatHandlers)).GetName().Version.ToString();
 
-            this.framework.Gui.Chat.Print(string.Format(Loc.Localize("DalamudWelcome", "Dalamud vD{0} loaded."), assemblyVersion)
-                                                + string.Format(Loc.Localize("PluginsWelcome", " {0} plugin(s) loaded."), this.pluginManager.InstalledPlugins.Count));
+            gameGui.Chat.Print(string.Format(Loc.Localize("DalamudWelcome", "Dalamud vD{0} loaded."), assemblyVersion)
+                                                + string.Format(Loc.Localize("PluginsWelcome", " {0} plugin(s) loaded."), pluginManager.InstalledPlugins.Count));
 
             if (this.dalamud.Configuration.PrintPluginsWelcomeMsg)
             {
-                foreach (var plugin in this.pluginManager.InstalledPlugins.OrderBy(plugin => plugin.Name))
+                foreach (var plugin in pluginManager.InstalledPlugins.OrderBy(plugin => plugin.Name))
                 {
-                    this.framework.Gui.Chat.Print(string.Format(Loc.Localize("DalamudPluginLoaded", "    》 {0} v{1} loaded."), plugin.Name, plugin.Manifest.AssemblyVersion));
+                    gameGui.Chat.Print(string.Format(Loc.Localize("DalamudPluginLoaded", "    》 {0} v{1} loaded."), plugin.Name, plugin.Manifest.AssemblyVersion));
                 }
             }
 
             if (string.IsNullOrEmpty(this.dalamud.Configuration.LastVersion) || !assemblyVersion.StartsWith(this.dalamud.Configuration.LastVersion))
             {
-                this.framework.Gui.Chat.PrintChat(new XivChatEntry
+                gameGui.Chat.PrintChat(new XivChatEntry
                 {
                     Message = Loc.Localize("DalamudUpdated", "The In-Game addon has been updated or was reinstalled successfully! Please check the discord for a full changelog."),
                     Type = XivChatType.Notice,
                 });
 
-                if (this.dalamudInterface.WarrantsChangelog)
-                    this.dalamudInterface.OpenChangelogWindow();
+                if (dalamudInterface.WarrantsChangelog)
+                    dalamudInterface.OpenChangelogWindow();
 
                 this.dalamud.Configuration.LastVersion = assemblyVersion;
                 this.dalamud.Configuration.Save();
             }
 
-            Task.Run(() => this.pluginManager.UpdatePlugins(!this.dalamud.Configuration.AutoUpdatePlugins))
+            Task.Run(() => pluginManager.UpdatePlugins(!this.dalamud.Configuration.AutoUpdatePlugins))
                 .ContinueWith(t =>
             {
                 if (t.IsFaulted)
@@ -294,21 +293,23 @@ namespace Dalamud.Game
                     {
                         if (this.dalamud.Configuration.AutoUpdatePlugins)
                         {
-                            this.pluginManager.PrintUpdatedPlugins(updatedPlugins, Loc.Localize("DalamudPluginAutoUpdate", "Auto-update:"));
+                            pluginManager.PrintUpdatedPlugins(updatedPlugins, Loc.Localize("DalamudPluginAutoUpdate", "Auto-update:"));
                         }
                         else
                         {
-                            this.framework.Gui.Chat.PrintChat(new XivChatEntry
+                            var data = Service<DataManager>.Get();
+                            
+                            gameGui.Chat.PrintChat(new XivChatEntry
                             {
                                 Message = new SeString(new List<Payload>()
                                 {
                                     new TextPayload(Loc.Localize("DalamudPluginUpdateRequired", "One or more of your plugins needs to be updated. Please use the /xlplugins command in-game to update them!")),
                                     new TextPayload("  ["),
-                                    new UIForegroundPayload(this.data, 500),
+                                    new UIForegroundPayload(data, 500),
                                     this.openInstallerWindowLink,
                                     new TextPayload(Loc.Localize("DalamudInstallerHelp", "Open the plugin installer")),
                                     RawPayload.LinkTerminator,
-                                    new UIForegroundPayload(this.data, 0),
+                                    new UIForegroundPayload(data, 0),
                                     new TextPayload("]"),
                                 }),
                                 Type = XivChatType.Urgent,

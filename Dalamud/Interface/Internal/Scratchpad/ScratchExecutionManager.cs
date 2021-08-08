@@ -89,7 +89,7 @@ namespace Dalamud.Interface.Internal.Scratchpad
                 var pluginType = script.ContinueWith<Type>("return typeof(ScratchPlugin);")
                     .RunAsync().GetAwaiter().GetResult().ReturnValue;
 
-                var ioc = Service<Container>.Get();
+                var ioc = Service<ServiceContainer>.Get();
                 var plugin = ioc.Create(pluginType, pi);
 
                 // plugin.Initialize(pi);

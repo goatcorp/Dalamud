@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 using CheapLoc;
 using Dalamud.Configuration;
-using Dalamud.Game;
+using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Exceptions;
@@ -42,8 +42,6 @@ namespace Dalamud.Plugin.Internal
         private readonly DirectoryInfo pluginDirectory;
         private readonly DirectoryInfo devPluginDirectory;
         private readonly BannedPlugin[] bannedPlugins;
-        private readonly PluginManager pluginManager;
-        private readonly Framework framework;
 
         private readonly List<LocalPlugin> installedPlugins = new();
         private List<RemotePluginManifest> availablePlugins = new();
@@ -55,9 +53,7 @@ namespace Dalamud.Plugin.Internal
         public PluginManager()
         {
             this.dalamud = Service<Dalamud>.Get();
-            this.framework = Service<Framework>.Get();
             this.startInfo = Service<DalamudStartInfo>.Get();
-            this.pluginManager = Service<PluginManager>.Get();
             this.pluginDirectory = new DirectoryInfo(this.startInfo.PluginDirectory);
             this.devPluginDirectory = new DirectoryInfo(this.startInfo.DefaultPluginDirectory);
 
@@ -285,7 +281,7 @@ namespace Dalamud.Plugin.Internal
         /// </summary>
         public void RefilterPluginMasters()
         {
-            this.availablePlugins = this.pluginManager.Repos
+            this.availablePlugins = this.Repos
                 .SelectMany(repo => repo.PluginMaster)
                 .Where(this.IsManifestEligible)
                 .Where(this.IsManifestVisible)
@@ -753,19 +749,21 @@ namespace Dalamud.Plugin.Internal
         /// <param name="header">The header text to send to chat prior to any update info.</param>
         public void PrintUpdatedPlugins(List<PluginUpdateStatus> updateMetadata, string header)
         {
+            var gameGui = Service<GameGui>.Get();
+            
             if (updateMetadata != null && updateMetadata.Count > 0)
             {
-                this.framework.Gui.Chat.Print(header);
+                gameGui.Chat.Print(header);
 
                 foreach (var metadata in updateMetadata)
                 {
                     if (metadata.WasUpdated)
                     {
-                        this.framework.Gui.Chat.Print(Locs.DalamudPluginUpdateSuccessful(metadata.Name, metadata.Version));
+                        gameGui.Chat.Print(Locs.DalamudPluginUpdateSuccessful(metadata.Name, metadata.Version));
                     }
                     else
                     {
-                        this.framework.Gui.Chat.PrintChat(new XivChatEntry
+                        gameGui.Chat.PrintChat(new XivChatEntry
                         {
                             Message = Locs.DalamudPluginUpdateFailed(metadata.Name, metadata.Version),
                             Type = XivChatType.Urgent,

@@ -25,7 +25,6 @@ namespace Dalamud.Game.Gui
         private readonly Hook<ShowQuestToastDelegate> showQuestToastHook;
         private readonly Hook<ShowErrorToastDelegate> showErrorToastHook;
         private readonly Framework framework;
-        private readonly SeStringManager seStringManager;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ToastGui"/> class.
@@ -33,7 +32,6 @@ namespace Dalamud.Game.Gui
         internal ToastGui()
         {
             this.framework = Service<Framework>.Get();
-            this.seStringManager = Service<SeStringManager>.Get();
             var scanner = Service<SigScanner>.Get();
 
             this.address = new ToastGuiAddressResolver();
@@ -167,7 +165,7 @@ namespace Dalamud.Game.Gui
             }
 
             // call events
-            return this.seStringManager.Parse(bytes.ToArray());
+            return Service<SeStringManager>.Get().Parse(bytes.ToArray());
         }
     }
 
@@ -202,7 +200,7 @@ namespace Dalamud.Game.Gui
         {
             options ??= new ToastOptions();
 
-            var manager = this.framework.Gui.GetUIModule();
+            var manager = Service<GameGui>.Get().GetUIModule();
 
             // terminate the string
             var terminated = Terminate(bytes);
@@ -283,7 +281,7 @@ namespace Dalamud.Game.Gui
         {
             options ??= new QuestToastOptions();
 
-            var manager = this.framework.Gui.GetUIModule();
+            var manager = Service<GameGui>.Get().GetUIModule();
 
             // terminate the string
             var terminated = Terminate(bytes);
@@ -385,7 +383,7 @@ namespace Dalamud.Game.Gui
 
         private void ShowError(byte[] bytes)
         {
-            var manager = this.framework.Gui.GetUIModule();
+            var manager = Service<GameGui>.Get().GetUIModule();
 
             // terminate the string
             var terminated = Terminate(bytes);

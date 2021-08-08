@@ -23,7 +23,6 @@ namespace Dalamud.Game.Internal
         // TODO: Make this into events in Framework.Gui
         private readonly Hook<UiModuleRequestMainCommand> hookUiModuleRequestMainCommand;
         private readonly SigScanner sigScanner;
-        private readonly DalamudInterface dalamudInterface;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DalamudSystemMenu"/> class.
@@ -32,7 +31,6 @@ namespace Dalamud.Game.Internal
         {
             this.dalamud = Service<Dalamud>.Get();
             this.sigScanner = Service<SigScanner>.Get();
-            this.dalamudInterface = Service<DalamudInterface>.Get();
 
             var openSystemMenuAddress = this.sigScanner.ScanText("E8 ?? ?? ?? ?? 32 C0 4C 8B AC 24 ?? ?? ?? ?? 48 8B 8D ?? ?? ?? ??");
 
@@ -138,13 +136,15 @@ namespace Dalamud.Game.Internal
 
         private void UiModuleRequestMainCommandDetour(void* thisPtr, int commandId)
         {
+            var dalamudInterface = Service<DalamudInterface>.Get();
+
             switch (commandId)
             {
                 case 69420:
-                    this.dalamudInterface.TogglePluginInstallerWindow();
+                    dalamudInterface.TogglePluginInstallerWindow();
                     break;
                 case 69421:
-                    this.dalamudInterface.ToggleSettingsWindow();
+                    dalamudInterface.ToggleSettingsWindow();
                     break;
                 default:
                     this.hookUiModuleRequestMainCommand.Original(thisPtr, commandId);

@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 using Dalamud.Data;
+using Dalamud.Game.Gui;
 using Dalamud.Game.Network.Internal.MarketBoardUploaders;
 using Dalamud.Game.Network.Internal.MarketBoardUploaders.Universalis;
 using Dalamud.Game.Network.Structures;
@@ -28,7 +29,6 @@ namespace Dalamud.Game.Network.Internal
 
         private MarketBoardPurchaseHandler marketBoardPurchaseHandler;
         private readonly Framework framework;
-        private readonly DataManager data;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="NetworkHandlers"/> class.
@@ -37,12 +37,11 @@ namespace Dalamud.Game.Network.Internal
         {
             this.dalamud = Service<Dalamud>.Get();
             this.framework = Service<Framework>.Get();
-            this.data = Service<DataManager>.Get();
             this.optOutMbUploads = Service<DalamudStartInfo>.Get().OptOutMbCollection;
 
             this.uploader = new UniversalisMarketBoardUploader();
 
-            this.framework.Network.OnNetworkMessage += this.OnNetworkMessage;
+            Service<GameNetwork>.Get().OnNetworkMessage += this.OnNetworkMessage;
         }
 
         /// <summary>
@@ -52,14 +51,16 @@ namespace Dalamud.Game.Network.Internal
 
         private void OnNetworkMessage(IntPtr dataPtr, ushort opCode, uint sourceActorId, uint targetActorId, NetworkMessageDirection direction)
         {
-            if (!this.data.IsDataReady)
+            if (Service<DataManager>.GetNullable()?.IsDataReady == false)
                 return;
+
+            var dataManager = Service<DataManager>.Get();
 
             if (direction == NetworkMessageDirection.ZoneUp)
             {
                 if (!this.optOutMbUploads)
                 {
-                    if (opCode == this.data.ClientOpCodes["MarketBoardPurchaseHandler"])
+                    if (opCode == Service<DataManager>.Get().ClientOpCodes["MarketBoardPurchaseHandler"])
                     {
                         this.marketBoardPurchaseHandler = MarketBoardPurchaseHandler.Read(dataPtr);
                     }
@@ -68,7 +69,7 @@ namespace Dalamud.Game.Network.Internal
                 return;
             }
 
-            if (opCode == this.data.ServerOpCodes["CfNotifyPop"])
+            if (opCode == dataManager.ServerOpCodes["CfNotifyPop"])
             {
                 var data = new byte[64];
                 Marshal.Copy(dataPtr, data, 0, 64);
@@ -79,7 +80,7 @@ namespace Dalamud.Game.Network.Internal
                 if (notifyType != 3)
                     return;
 
-                var contentFinderCondition = this.data.GetExcelSheet<ContentFinderCondition>().GetRow(contentFinderConditionId);
+                var contentFinderCondition = dataManager.GetExcelSheet<ContentFinderCondition>().GetRow(contentFinderConditionId);
 
                 if (contentFinderCondition == null)
                 {
@@ -110,7 +111,7 @@ namespace Dalamud.Game.Network.Internal
                 Task.Run(() =>
                 {
                     if (this.dalamud.Configuration.DutyFinderChatMessage)
-                        this.framework.Gui.Chat.Print("Duty pop: " + cfcName);
+                        Service<GameGui>.Get().Chat.Print("Duty pop: " + cfcName);
 
                     this.CfPop?.Invoke(this, contentFinderCondition);
                 });
@@ -120,7 +121,7 @@ namespace Dalamud.Game.Network.Internal
 
             if (!this.optOutMbUploads)
             {
-                if (opCode == this.data.ServerOpCodes["MarketBoardItemRequestStart"])
+                if (opCode == dataManager.ServerOpCodes["MarketBoardItemRequestStart"])
                 {
                     var catalogId = (uint)Marshal.ReadInt32(dataPtr);
                     var amount = Marshal.ReadByte(dataPtr + 0xB);
@@ -137,7 +138,7 @@ namespace Dalamud.Game.Network.Internal
                     return;
                 }
 
-                if (opCode == this.data.ServerOpCodes["MarketBoardOfferings"])
+                if (opCode == dataManager.ServerOpCodes["MarketBoardOfferings"])
                 {
                     var listing = MarketBoardCurrentOfferings.Read(dataPtr);
 
@@ -203,7 +204,7 @@ namespace Dalamud.Game.Network.Internal
                     return;
                 }
 
-                if (opCode == this.data.ServerOpCodes["MarketBoardHistory"])
+                if (opCode == dataManager.ServerOpCodes["MarketBoardHistory"])
                 {
                     var listing = MarketBoardHistory.Read(dataPtr);
 
@@ -240,7 +241,7 @@ namespace Dalamud.Game.Network.Internal
                     }
                 }
 
-                if (opCode == this.data.ServerOpCodes["MarketTaxRates"])
+                if (opCode == dataManager.ServerOpCodes["MarketTaxRates"])
                 {
                     var category = (uint)Marshal.ReadInt32(dataPtr);
 
@@ -270,7 +271,7 @@ namespace Dalamud.Game.Network.Internal
                     }
                 }
 
-                if (opCode == this.data.ServerOpCodes["MarketBoardPurchase"])
+                if (opCode == dataManager.ServerOpCodes["MarketBoardPurchase"])
                 {
                     if (this.marketBoardPurchaseHandler == null)
                         return;

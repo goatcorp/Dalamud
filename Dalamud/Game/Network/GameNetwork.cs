@@ -23,11 +23,10 @@ namespace Dalamud.Game.Network
         /// <summary>
         /// Initializes a new instance of the <see cref="GameNetwork"/> class.
         /// </summary>
-        /// <param name="scanner">The SigScanner instance.</param>
-        public GameNetwork(SigScanner scanner)
+        public GameNetwork()
         {
             this.address = new GameNetworkAddressResolver();
-            this.address.Setup(scanner);
+            this.address.Setup(Service<SigScanner>.Get());
 
             Log.Verbose("===== G A M E N E T W O R K =====");
             Log.Verbose($"ProcessZonePacketDown address 0x{this.address.ProcessZonePacketDown.ToInt64():X}");
@@ -79,8 +78,7 @@ namespace Dalamud.Game.Network
         /// <summary>
         /// Process a chat queue.
         /// </summary>
-        /// <param name="framework">The Framework instance.</param>
-        public void UpdateQueue(Framework framework)
+        public void UpdateQueue()
         {
             while (this.zoneInjectQueue.Count > 0)
             {

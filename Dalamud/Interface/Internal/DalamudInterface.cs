@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 
 using Dalamud.Game;
 using Dalamud.Game.ClientState;
+using Dalamud.Game.Gui;
 using Dalamud.Game.Internal;
 using Dalamud.Interface.Internal.Windows;
 using Dalamud.Interface.Windowing;
@@ -278,7 +279,7 @@ namespace Dalamud.Interface.Internal
                 this.DrawHiddenDevMenuOpener();
                 this.DrawDevMenu();
 
-                if (this.framework.Gui.GameUiHidden)
+                if (Service<GameGui>.Get().GameUiHidden)
                     return;
 
                 this.windowSystem.Draw();
@@ -470,7 +471,7 @@ namespace Dalamud.Interface.Internal
                             }
                             catch (Exception ex)
                             {
-                                this.framework.Gui.Chat.PrintError("Reload failed.");
+                                Service<GameGui>.Get().Chat.PrintError("Reload failed.");
                                 PluginLog.Error(ex, "Plugin reload failed.");
                             }
                         }
@@ -542,7 +543,7 @@ namespace Dalamud.Interface.Internal
                         ImGui.EndMenu();
                     }
 
-                    if (this.framework.Gui.GameUiHidden)
+                    if (Service<GameGui>.Get().GameUiHidden)
                         ImGui.BeginMenu("UI is hidden...", false);
 
                     ImGui.BeginMenu(Util.GetGitHash(), false);

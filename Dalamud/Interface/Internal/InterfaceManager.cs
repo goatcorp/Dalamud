@@ -37,7 +37,6 @@ namespace Dalamud.Interface.Internal
     {
         private readonly Dalamud dalamud;
         private readonly DalamudStartInfo startInfo;
-        private readonly DalamudInterface dalamudInterface;
         private readonly ClientState clientState;
         private readonly string rtssPath;
 
@@ -61,7 +60,6 @@ namespace Dalamud.Interface.Internal
             this.dalamud = Service<Dalamud>.Get();
             var scanner = Service<SigScanner>.Get();
             this.startInfo = Service<DalamudStartInfo>.Get();
-            this.dalamudInterface = Service<DalamudInterface>.Get();
             this.clientState = Service<ClientState>.Get();
 
             this.fontBuildSignal = new ManualResetEvent(false);
@@ -561,6 +559,8 @@ namespace Dalamud.Interface.Internal
 
         private void OnNewInputFrame()
         {
+            var dalamudInterface = Service<DalamudInterface>.GetNullable();
+
             // fix for keys in game getting stuck, if you were holding a game key (like run)
             // and then clicked on an imgui textbox - imgui would swallow the keyup event,
             // so the game would think the key remained pressed continuously until you left
@@ -582,7 +582,7 @@ namespace Dalamud.Interface.Internal
             {
                 ImGui.GetIO().ConfigFlags ^= ImGuiConfigFlags.NavEnableGamepad;
                 this.clientState.GamepadState.NavEnableGamepad ^= true;
-                this.dalamudInterface.ToggleGamepadModeNotifierWindow();
+                dalamudInterface?.ToggleGamepadModeNotifierWindow();
             }
 
             if (gamepadEnabled
@@ -607,7 +607,7 @@ namespace Dalamud.Interface.Internal
 
                 if (this.clientState.GamepadState.Pressed(GamepadButtons.R3) > 0)
                 {
-                    this.dalamudInterface.TogglePluginInstallerWindow();
+                    dalamudInterface?.TogglePluginInstallerWindow();
                 }
             }
         }
