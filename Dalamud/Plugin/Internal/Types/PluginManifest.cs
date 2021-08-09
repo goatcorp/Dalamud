@@ -24,6 +24,12 @@ namespace Dalamud.Plugin.Internal.Types
         public string Name { get; set; }
 
         /// <summary>
+        /// Gets a punchline of the plugins functions.
+        /// </summary>
+        [JsonProperty]
+        public string Punchline { get; init; }
+
+        /// <summary>
         /// Gets a description of the plugins functions.
         /// </summary>
         [JsonProperty]
