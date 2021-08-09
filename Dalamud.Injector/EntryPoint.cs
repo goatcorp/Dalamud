@@ -8,7 +8,6 @@ using System.Text;
 using System.Threading;
 
 using Dalamud.Game;
-using Dalamud.Interface.Internal;
 using Newtonsoft.Json;
 using Reloaded.Memory.Buffers;
 using Serilog;
@@ -131,7 +130,6 @@ namespace Dalamud.Injector
 
             Log.Logger = new LoggerConfiguration()
                 .WriteTo.Async(a => a.File(logPath))
-                .WriteTo.Sink(SerilogEventSink.Instance)
                 .MinimumLevel.ControlledBy(levelSwitch)
                 .CreateLogger();
         }
