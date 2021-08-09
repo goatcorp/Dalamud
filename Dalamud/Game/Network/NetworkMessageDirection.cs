@@ -1,4 +1,4 @@
-namespace Dalamud.Game.Internal.Network
+namespace Dalamud.Game.Network
 {
     /// <summary>
     /// This represents the direction of a network message.

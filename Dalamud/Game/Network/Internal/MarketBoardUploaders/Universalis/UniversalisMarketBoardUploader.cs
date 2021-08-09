@@ -1,14 +1,15 @@
 using System;
 using System.Collections.Generic;
-using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
 
-using Dalamud.Game.Network.MarketBoardUploaders;
-using Dalamud.Game.Network.MarketBoardUploaders.Universalis;
+using Dalamud.Game.Network.Internal.MarketBoardUploaders.Universalis.Types;
 using Dalamud.Game.Network.Structures;
 using Newtonsoft.Json;
 using Serilog;
 
-namespace Dalamud.Game.Network.Universalis.MarketBoardUploaders
+namespace Dalamud.Game.Network.Internal.MarketBoardUploaders.Universalis
 {
     /// <summary>
     /// This class represents an uploader for contributing data to Universalis.
@@ -16,8 +17,8 @@ namespace Dalamud.Game.Network.Universalis.MarketBoardUploaders
     internal class UniversalisMarketBoardUploader : IMarketBoardUploader
     {
         private const string ApiBase = "https://universalis.app";
-
         // private const string ApiBase = "https://127.0.0.1:443";
+
         private const string ApiKey = "GGD6RdSfGyRiHM5WDnAo0Nj9Nv7aC5NDhMj3BebT";
 
         private readonly Dalamud dalamud;
@@ -34,14 +35,14 @@ namespace Dalamud.Game.Network.Universalis.MarketBoardUploaders
         /// <inheritdoc/>
         public void Upload(MarketBoardItemRequest request)
         {
-            using var client = new WebClient();
-
-            client.Headers.Add(HttpRequestHeader.ContentType, "application/json");
+            using var client = new HttpClient();
 
             Log.Verbose("Starting Universalis upload.");
             var uploader = this.dalamud.ClientState.LocalContentId;
 
-            var listingsRequestObject = new UniversalisItemListingsUploadRequest
+            // ====================================================================================
+
+            var listingsUploadObject = new UniversalisItemListingsUploadRequest
             {
                 WorldId = this.dalamud.ClientState.LocalPlayer?.CurrentWorld.Id ?? 0,
                 UploaderId = uploader.ToString(),
@@ -76,14 +77,17 @@ namespace Dalamud.Game.Network.Universalis.MarketBoardUploaders
                     });
                 }
 
-                listingsRequestObject.Listings.Add(universalisListing);
+                listingsUploadObject.Listings.Add(universalisListing);
             }
 
-            var upload = JsonConvert.SerializeObject(listingsRequestObject);
-            Log.Verbose(upload);
-            client.UploadString(ApiBase + $"/upload/{ApiKey}", "POST", upload);
+            var listingPath = "/upload";
+            var listingUpload = JsonConvert.SerializeObject(listingsUploadObject);
+            Log.Verbose($"{listingPath}: {listingUpload}");
+            client.PostAsync($"{ApiBase}{listingPath}/{ApiKey}", new StringContent(listingUpload, Encoding.UTF8, "application/json")).GetAwaiter().GetResult();
 
-            var historyRequestObject = new UniversalisHistoryUploadRequest
+            // ====================================================================================
+
+            var historyUploadObject = new UniversalisHistoryUploadRequest
             {
                 WorldId = this.dalamud.ClientState.LocalPlayer?.CurrentWorld.Id ?? 0,
                 UploaderId = uploader.ToString(),
@@ -93,7 +97,7 @@ namespace Dalamud.Game.Network.Universalis.MarketBoardUploaders
 
             foreach (var marketBoardHistoryListing in request.History)
             {
-                historyRequestObject.Entries.Add(new UniversalisHistoryEntry
+                historyUploadObject.Entries.Add(new UniversalisHistoryEntry
                 {
                     BuyerName = marketBoardHistoryListing.BuyerName,
                     Hq = marketBoardHistoryListing.IsHq,
@@ -104,11 +108,12 @@ namespace Dalamud.Game.Network.Universalis.MarketBoardUploaders
                 });
             }
 
-            client.Headers.Add(HttpRequestHeader.ContentType, "application/json");
+            var historyPath = "/upload";
+            var historyUpload = JsonConvert.SerializeObject(historyUploadObject);
+            Log.Verbose($"{historyPath}: {historyUpload}");
+            client.PostAsync($"{ApiBase}{historyPath}/{ApiKey}", new StringContent(historyUpload, Encoding.UTF8, "application/json")).GetAwaiter().GetResult();
 
-            var historyUpload = JsonConvert.SerializeObject(historyRequestObject);
-            Log.Verbose(historyUpload);
-            client.UploadString(ApiBase + $"/upload/{ApiKey}", "POST", historyUpload);
+            // ====================================================================================
 
             Log.Verbose("Universalis data upload for item#{0} completed.", request.CatalogId);
         }
@@ -116,9 +121,11 @@ namespace Dalamud.Game.Network.Universalis.MarketBoardUploaders
         /// <inheritdoc/>
         public void UploadTax(MarketTaxRates taxRates)
         {
-            using var client = new WebClient();
+            using var client = new HttpClient();
 
-            var taxRatesRequest = new UniversalisTaxUploadRequest
+            // ====================================================================================
+
+            var taxUploadObject = new UniversalisTaxUploadRequest
             {
                 WorldId = this.dalamud.ClientState.LocalPlayer?.CurrentWorld.Id ?? 0,
                 UploaderId = this.dalamud.ClientState.LocalContentId.ToString(),
@@ -133,26 +140,35 @@ namespace Dalamud.Game.Network.Universalis.MarketBoardUploaders
                 },
             };
 
-            client.Headers.Add(HttpRequestHeader.ContentType, "application/json");
+            var taxPath = "/upload";
+            var taxUpload = JsonConvert.SerializeObject(taxUploadObject);
+            Log.Verbose($"{taxPath}: {taxUpload}");
 
-            var historyUpload = JsonConvert.SerializeObject(taxRatesRequest);
-            Log.Verbose(historyUpload);
-            client.UploadString(ApiBase + $"/upload/{ApiKey}", "POST", historyUpload);
+            client.PostAsync($"{ApiBase}{taxPath}/{ApiKey}", new StringContent(taxUpload, Encoding.UTF8, "application/json")).GetAwaiter().GetResult();
+
+            // ====================================================================================
 
             Log.Verbose("Universalis tax upload completed.");
         }
 
         /// <inheritdoc/>
+        /// <remarks>
+        /// It may seem backwards that an upload only performs a delete request, however this is not trying
+        /// to track the available listings, that is done via the listings packet. All this does is remove
+        /// a listing, or delete it, when a purchase has been made.
+        /// </remarks>
         public void UploadPurchase(MarketBoardPurchaseHandler purchaseHandler)
         {
-            using var client = new WebClient();
-            client.Headers.Add(HttpRequestHeader.ContentType, "application/json");
-            client.Headers.Add(HttpRequestHeader.Authorization, ApiKey);
+            using var client = new HttpClient();
+
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(ApiKey);
 
             var itemId = purchaseHandler.CatalogId;
             var worldId = this.dalamud.ClientState.LocalPlayer?.CurrentWorld.Id ?? 0;
 
-            var purchaseRequest = new UniversalisItemListingDeleteRequest
+            // ====================================================================================
+
+            var deleteListingObject = new UniversalisItemListingDeleteRequest
             {
                 PricePerUnit = purchaseHandler.PricePerUnit,
                 Quantity = purchaseHandler.ItemQuantity,
@@ -161,11 +177,13 @@ namespace Dalamud.Game.Network.Universalis.MarketBoardUploaders
                 UploaderId = this.dalamud.ClientState.LocalContentId.ToString(),
             };
 
-            var requestPath = ApiBase + $"/api/{worldId}/{itemId}/delete";
-            var purchaseUpload = JsonConvert.SerializeObject(purchaseRequest);
-            Log.Verbose($"Making request to {requestPath}");
-            Log.Verbose(purchaseUpload);
-            client.UploadString(requestPath, "POST", purchaseUpload);
+            var deletePath = $"/api/{worldId}/{itemId}/delete";
+            var deleteListing = JsonConvert.SerializeObject(deleteListingObject);
+            Log.Verbose($"{deletePath}: {deleteListing}");
+
+            client.PostAsync($"{ApiBase}{deletePath}", new StringContent(deleteListing, Encoding.UTF8, "application/json")).GetAwaiter().GetResult();
+
+            // ====================================================================================
 
             Log.Verbose("Universalis purchase upload completed.");
         }

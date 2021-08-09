@@ -5,13 +5,38 @@ using System.Text;
 
 namespace Dalamud.Game.Network.Structures
 {
+    /// <summary>
+    /// This class represents the market board history from a game network packet.
+    /// </summary>
     public class MarketBoardHistory
     {
-        public uint CatalogId;
-        public uint CatalogId2;
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MarketBoardHistory"/> class.
+        /// </summary>
+        internal MarketBoardHistory()
+        {
+        }
 
-        public List<MarketBoardHistoryListing> HistoryListings;
+        /// <summary>
+        /// Gets the catalog ID.
+        /// </summary>
+        public uint CatalogId { get; internal set; }
 
+        /// <summary>
+        /// Gets the second catalog ID.
+        /// </summary>
+        public uint CatalogId2 { get; internal set; }
+
+        /// <summary>
+        /// Gets the list of individual item history listings.
+        /// </summary>
+        public List<MarketBoardHistoryListing> HistoryListings { get; internal set; }
+
+        /// <summary>
+        /// Read a <see cref="MarketBoardHistory"/> object from memory.
+        /// </summary>
+        /// <param name="dataPtr">Address to read.</param>
+        /// <returns>A new <see cref="MarketBoardHistory"/> object.</returns>
         public static unsafe MarketBoardHistory Read(IntPtr dataPtr)
         {
             var output = new MarketBoardHistory();
@@ -47,16 +72,52 @@ namespace Dalamud.Game.Network.Structures
             return output;
         }
 
+        /// <summary>
+        /// This class represents the market board history of a single item from the <see cref="MarketBoardHistory"/> network packet.
+        /// </summary>
         public class MarketBoardHistoryListing
         {
-            public string BuyerName;
+            /// <summary>
+            /// Initializes a new instance of the <see cref="MarketBoardHistoryListing"/> class.
+            /// </summary>
+            internal MarketBoardHistoryListing()
+            {
+            }
 
-            public uint CatalogId;
-            public bool IsHq;
-            public bool OnMannequin;
-            public DateTime PurchaseTime;
-            public uint Quantity;
-            public uint SalePrice;
+            /// <summary>
+            /// Gets the buyer's name.
+            /// </summary>
+            public string BuyerName { get; internal set; }
+
+            /// <summary>
+            /// Gets the catalog ID.
+            /// </summary>
+            public uint CatalogId { get; internal set; }
+
+            /// <summary>
+            /// Gets a value indicating whether the item is HQ.
+            /// </summary>
+            public bool IsHq { get; internal set; }
+
+            /// <summary>
+            /// Gets a value indicating whether the item is on a mannequin.
+            /// </summary>
+            public bool OnMannequin { get; internal set; }
+
+            /// <summary>
+            /// Gets the time of purchase.
+            /// </summary>
+            public DateTime PurchaseTime { get; internal set; }
+
+            /// <summary>
+            /// Gets the quantity.
+            /// </summary>
+            public uint Quantity { get; internal set; }
+
+            /// <summary>
+            /// Gets the sale price.
+            /// </summary>
+            public uint SalePrice { get; internal set; }
         }
     }
 }
