@@ -5,9 +5,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 
-using Dalamud.Data.LuminaExtensions;
-using Dalamud.Interface;
 using Dalamud.Interface.Internal;
+using Dalamud.Utility;
 using ImGuiScene;
 using JetBrains.Annotations;
 using Lumina;

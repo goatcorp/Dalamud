@@ -1,6 +1,7 @@
 using System.Diagnostics;
 
 using Dalamud.Interface.Windowing;
+using Dalamud.Utility;
 using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows

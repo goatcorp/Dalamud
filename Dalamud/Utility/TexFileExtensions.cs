@@ -1,7 +1,7 @@
 using ImGuiScene;
 using Lumina.Data.Files;
 
-namespace Dalamud.Data.LuminaExtensions
+namespace Dalamud.Utility
 {
     /// <summary>
     /// Extensions to <see cref="TexFile"/>.
