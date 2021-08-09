@@ -1022,7 +1022,7 @@ namespace Dalamud.Interface.Internal.Windows
             ImGui.PushStyleVar(ImGuiStyleVar.ScrollbarSize, 15);
             ImGui.PushStyleColor(ImGuiCol.ScrollbarBg, Vector4.Zero);
 
-            if (ImGui.BeginChild($"plugin{index}Scrolling", new Vector2(0, (PluginImageHeight / thumbFactor) + ImGui.GetStyle().ScrollbarSize), false, ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.NoScrollWithMouse))
+            if (ImGui.BeginChild($"plugin{index}ImageScrolling", new Vector2(0, (PluginImageHeight / thumbFactor) + ImGui.GetStyle().ScrollbarSize), false, ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoBackground))
             {
                 if (images.Textures != null && images.Textures is { Length: > 0 })
                 {
@@ -1175,7 +1175,7 @@ namespace Dalamud.Interface.Internal.Windows
             this.errorModalOnNextFrame = true;
         }
 
-        private async Task DownloadPluginIcon(PluginManifest manifest)
+        private async Task DownloadPluginIconAsync(PluginManifest manifest)
         {
             var client = new HttpClient();
 
@@ -1221,26 +1221,22 @@ namespace Dalamud.Interface.Internal.Windows
                     data.EnsureSuccessStatusCode();
                     var image = this.dalamud.InterfaceManager.LoadImage(await data.Content.ReadAsByteArrayAsync());
 
-                    if (image != null)
-                    {
-                        if (image.Height != PluginImageHeight || image.Width != PluginImageWidth)
-                        {
-                            Log.Error($"Image at {manifest.ImageUrls[i]} was not of the correct resolution.");
-
-                            return;
-                        }
-
-                        pluginImages[i] = image;
-                    }
-                    else
+                    if (image == null)
                     {
                         return;
                     }
+
+                    if (image.Height != PluginImageHeight || image.Width != PluginImageWidth)
+                    {
+                        Log.Error($"Image at {manifest.ImageUrls[i]} was not of the correct resolution.");
+                        return;
+                    }
+
+                    pluginImages[i] = image;
                 }
 
                 this.pluginImagesMap[manifest.InternalName] = (true, pluginImages);
             }
-
 
             Log.Verbose($"Plugin images for {manifest.InternalName} downloaded");
         }
