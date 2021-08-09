@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Numerics;
 using System.Threading.Tasks;
 
@@ -18,6 +19,7 @@ using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Exceptions;
 using Dalamud.Plugin.Internal.Types;
 using ImGuiNET;
+using ImGuiScene;
 
 namespace Dalamud.Interface.Internal.Windows
 {
@@ -26,6 +28,12 @@ namespace Dalamud.Interface.Internal.Windows
     /// </summary>
     internal class PluginInstallerWindow : Window, IDisposable
     {
+        private const int PluginImageWidth = 750;
+        private const int PluginImageHeight = 400;
+
+        private const int PluginIconWidth = 300;
+        private const int PluginIconHeight = 300;
+
         private static readonly ModuleLog Log = new("PLUGINW");
 
         private readonly Dalamud dalamud;
@@ -41,6 +49,8 @@ namespace Dalamud.Interface.Internal.Windows
         private List<LocalPlugin> pluginListInstalled = new();
         private List<AvailablePluginUpdate> pluginListUpdatable = new();
         private bool hasDevPlugins = false;
+
+        private Dictionary<string, DownloadedPluginImages> pluginImagesMap = new();
 
         private string searchText = string.Empty;
 
@@ -541,6 +551,8 @@ namespace Dalamud.Interface.Internal.Windows
 
                 this.DrawVisitRepoUrlButton(manifest.RepoUrl);
 
+                this.DrawPluginImages(manifest);
+
                 ImGui.Unindent();
             }
 
@@ -975,6 +987,21 @@ namespace Dalamud.Interface.Internal.Windows
             }
         }
 
+        private void DrawPluginImages(PluginManifest manifest)
+        {
+            if (!this.pluginImagesMap.TryGetValue(manifest.InternalName, out var images))
+            {
+                if (images == null)
+                    return;
+
+                Task.Run(() => this.DownloadPluginImagesAsync(manifest));
+                return;
+            }
+
+            if (images.ImagesTex != null && images.ImagesTex.Length > 0)
+                ImGui.Image(images.ImagesTex[0].ImGuiHandle, new Vector2(images.ImagesTex[0].Width, images.ImagesTex[0].Height));
+        }
+
         private bool IsManifestFiltered(PluginManifest manifest)
         {
             var searchString = this.searchText.ToLowerInvariant();
@@ -1079,6 +1106,60 @@ namespace Dalamud.Interface.Internal.Windows
             this.errorModalMessage = message;
             this.errorModalDrawing = true;
             this.errorModalOnNextFrame = true;
+        }
+
+        private async Task DownloadPluginImagesAsync(PluginManifest manifest)
+        {
+            Log.Verbose($"Downloading images for {manifest.InternalName}");
+
+            this.pluginImagesMap.Add(manifest.InternalName, null);
+
+            var pluginImages = new DownloadedPluginImages();
+            var client = new HttpClient();
+
+            if (manifest.IconUrl != null)
+            {
+                var data = await client.GetAsync(manifest.IconUrl);
+                data.EnsureSuccessStatusCode();
+                var icon = this.dalamud.InterfaceManager.LoadImage(await data.Content.ReadAsByteArrayAsync());
+
+                if (icon != null)
+                {
+                    if (icon.Height != PluginIconHeight || icon.Width != PluginIconWidth)
+                    {
+                        Log.Error($"Icon at {manifest.IconUrl} was not of the correct resolution.");
+                        return;
+                    }
+
+                    pluginImages.IconTex = icon;
+                }
+            }
+
+            pluginImages.ImagesTex = new TextureWrap[manifest.ImageUrls.Count];
+            for (var i = 0; i < manifest.ImageUrls.Count; i++)
+            {
+                var data = await client.GetAsync(manifest.ImageUrls[i]);
+                data.EnsureSuccessStatusCode();
+                var image = this.dalamud.InterfaceManager.LoadImage(await data.Content.ReadAsByteArrayAsync());
+
+                if (image != null)
+                {
+                    if (image.Height != PluginImageHeight || image.Width != PluginImageWidth)
+                    {
+                        Log.Error($"Image at {manifest.ImageUrls[i]} was not of the correct resolution.");
+
+                        return;
+                    }
+
+                    pluginImages.ImagesTex[i] = image;
+                }
+                else
+                {
+                    return;
+                }
+            }
+
+            this.pluginImagesMap[manifest.InternalName] = pluginImages;
         }
 
         [SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1201:Elements should appear in the correct order", Justification = "Disregard here")]
@@ -1281,6 +1362,14 @@ namespace Dalamud.Interface.Internal.Windows
             public static string ErrorModalButton_Ok => Loc.Localize("OK", "OK");
 
             #endregion
+        }
+
+        [SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1201:Elements should appear in the correct order", Justification = "Disregard here")]
+        private class DownloadedPluginImages
+        {
+            public TextureWrap IconTex { get; set; }
+
+            public TextureWrap[] ImagesTex { get; set; }
         }
     }
 }
