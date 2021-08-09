@@ -59,9 +59,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="CheapLoc" Version="1.1.5" />
-        <PackageReference Include="JetBrains.Annotations" Version="2021.1.0" />
-        <PackageReference Include="Lib.Harmony" Version="2.1.0" />
+        <PackageReference Include="CheapLoc" Version="1.1.6" />
+        <PackageReference Include="JetBrains.Annotations" Version="2021.2.0" />
+        <PackageReference Include="Lib.Harmony" Version="2.1.1" />
         <PackageReference Include="Lumina" Version="3.3.0" />
         <PackageReference Include="Lumina.Excel" Version="5.50.0" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />

@@ -47,12 +47,12 @@ namespace Dalamud.Configuration.Internal
         /// <summary>
         /// Gets or sets the language code to load Dalamud localization with.
         /// </summary>
-        public string LanguageOverride { get; set; }
+        public string LanguageOverride { get; set; } = null;
 
         /// <summary>
         /// Gets or sets the last loaded Dalamud version.
         /// </summary>
-        public string LastVersion { get; set; }
+        public string LastVersion { get; set; } = null;
 
         /// <summary>
         /// Gets or sets the chat type used by default for plugin messages.
@@ -62,17 +62,17 @@ namespace Dalamud.Configuration.Internal
         /// <summary>
         /// Gets or sets a value indicating whether or not plugin testing builds should be shown.
         /// </summary>
-        public bool DoPluginTest { get; set; }
+        public bool DoPluginTest { get; set; } = false;
 
         /// <summary>
         /// Gets or sets a value indicating whether or not Dalamud testing builds should be used.
         /// </summary>
-        public bool DoDalamudTest { get; set; }
+        public bool DoDalamudTest { get; set; } = false;
 
         /// <summary>
         /// Gets or sets a value indicating whether or not XL should download the Dalamud .NET runtime.
         /// </summary>
-        public bool DoDalamudRuntime { get; set; }
+        public bool DoDalamudRuntime { get; set; } = false;
 
         /// <summary>
         /// Gets or sets a list of custom repos.

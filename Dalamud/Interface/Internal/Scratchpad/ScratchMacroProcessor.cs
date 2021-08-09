@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-using Dalamud.Plugin;
+using Dalamud.Logging;
 
 namespace Dalamud.Interface.Internal.Scratchpad
 {

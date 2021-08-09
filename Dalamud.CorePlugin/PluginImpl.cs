@@ -2,6 +2,7 @@ using System;
 using System.IO;
 
 using Dalamud.Interface.Windowing;
+using Dalamud.Logging;
 using Dalamud.Plugin;
 
 namespace Dalamud.CorePlugin

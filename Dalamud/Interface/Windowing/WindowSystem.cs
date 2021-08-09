@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 
 using ImGuiNET;
-using Serilog;
 
 namespace Dalamud.Interface.Windowing
 {
