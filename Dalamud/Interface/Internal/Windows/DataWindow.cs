@@ -468,8 +468,8 @@ namespace Dalamud.Interface.Internal.Windows
         private void DrawPluginIPC()
         {
 #pragma warning disable CS0618 // Type or member is obsolete
-            var i1 = new DalamudPluginInterface(this.dalamud, "DalamudTestSub", null, PluginLoadReason.Unknown);
-            var i2 = new DalamudPluginInterface(this.dalamud, "DalamudTestPub", null, PluginLoadReason.Unknown);
+            var i1 = new DalamudPluginInterface(this.dalamud, "DalamudTestSub", PluginLoadReason.Unknown);
+            var i2 = new DalamudPluginInterface(this.dalamud, "DalamudTestPub", PluginLoadReason.Unknown);
 
             if (ImGui.Button("Add test sub"))
             {
