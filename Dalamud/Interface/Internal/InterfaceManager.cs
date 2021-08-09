@@ -11,6 +11,7 @@ using Dalamud.Game.ClientState;
 using Dalamud.Game.Internal.DXGI;
 using Dalamud.Hooking;
 using Dalamud.Hooking.Internal;
+using Dalamud.Utility;
 using ImGuiNET;
 using ImGuiScene;
 using Serilog;
@@ -322,9 +323,7 @@ namespace Dalamud.Interface.Internal
 
         private static void ShowFontError(string path)
         {
-            Util.Fatal(
-                $"One or more files required by XIVLauncher were not found.\nPlease restart and report this error if it occurs again.\n\n{path}",
-                "Error");
+            Util.Fatal($"One or more files required by XIVLauncher were not found.\nPlease restart and report this error if it occurs again.\n\n{path}", "Error");
         }
 
         private IntPtr PresentDetour(IntPtr swapChain, uint syncInterval, uint presentFlags)

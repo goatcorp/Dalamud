@@ -6,6 +6,7 @@ using System.Text;
 using Dalamud.Configuration;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Internal.Types;
+using Dalamud.Utility;
 using Newtonsoft.Json;
 using Serilog;
 

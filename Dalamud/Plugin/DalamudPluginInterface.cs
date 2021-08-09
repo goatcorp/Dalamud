@@ -117,7 +117,7 @@ namespace Dalamud.Plugin
         public Framework Framework { get; private set; }
 
         /// <summary>
-        /// Gets the <see cref="UiBuilder">UiBuilder</see> instance which allows you to draw UI into the game via ImGui draw calls.
+        /// Gets the <see cref="UiBuilder"/> instance which allows you to draw UI into the game via ImGui draw calls.
         /// </summary>
         public UiBuilder UiBuilder { get; private set; }
 
@@ -164,6 +164,8 @@ namespace Dalamud.Plugin
         /// Gets the action that should be executed when any plugin sends a message.
         /// </summary>
         internal Action<string, ExpandoObject> AnyPluginIpcAction { get; private set; }
+
+        #region Configuration
 
         /// <summary>
         /// Save a plugin configuration(inheriting IPluginConfiguration).
@@ -215,6 +217,8 @@ namespace Dalamud.Plugin
         /// </summary>
         /// <returns>directory with path of AppData/XIVLauncher/pluginConfig/PluginInternalName/loc.</returns>
         public string GetPluginLocDirectory() => this.configs.GetDirectory(Path.Combine(this.pluginName, "loc"));
+
+        #endregion
 
         #region Chat Links
 
