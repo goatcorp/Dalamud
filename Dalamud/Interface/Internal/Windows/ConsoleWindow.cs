@@ -6,10 +6,9 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 
-using Dalamud.Configuration.Internal;
-using Dalamud.Game.Command;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Windowing;
+using Dalamud.Logging.Internal;
 using ImGuiNET;
 using Serilog;
 using Serilog.Events;
@@ -307,7 +306,7 @@ namespace Dalamud.Interface.Internal.Windows
             try
             {
                 this.historyPos = -1;
-                for (int i = this.history.Count - 1; i >= 0; i--)
+                for (var i = this.history.Count - 1; i >= 0; i--)
                 {
                     if (this.history[i] == this.commandText)
                     {

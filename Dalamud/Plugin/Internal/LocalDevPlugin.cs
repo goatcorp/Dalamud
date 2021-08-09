@@ -1,10 +1,10 @@
 using System;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Configuration.Internal;
+using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Types;
 
 namespace Dalamud.Plugin.Internal

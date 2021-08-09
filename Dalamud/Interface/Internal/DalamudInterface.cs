@@ -6,7 +6,8 @@ using System.Runtime.InteropServices;
 
 using Dalamud.Interface.Internal.Windows;
 using Dalamud.Interface.Windowing;
-using Dalamud.Plugin;
+using Dalamud.Logging;
+using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal;
 using ImGuiNET;
 using Serilog.Events;

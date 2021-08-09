@@ -3,7 +3,7 @@ using System;
 using Serilog.Core;
 using Serilog.Events;
 
-namespace Dalamud.Interface.Internal
+namespace Dalamud.Logging.Internal
 {
     /// <summary>
     /// Serilog event sink.

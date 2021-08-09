@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Configuration.Internal;
-using Dalamud.Interface.Internal;
+using Dalamud.Logging.Internal;
 using Newtonsoft.Json;
 using Serilog;
 using Serilog.Core;
