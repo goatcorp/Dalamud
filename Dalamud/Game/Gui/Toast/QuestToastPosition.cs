@@ -1,4 +1,4 @@
-namespace Dalamud.Game.Internal.Gui.Toast
+namespace Dalamud.Game.Gui.Toast
 {
     /// <summary>
     /// The alignment of native quest toast windows.

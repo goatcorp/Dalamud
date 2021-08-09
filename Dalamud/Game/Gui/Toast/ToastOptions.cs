@@ -1,4 +1,4 @@
-namespace Dalamud.Game.Internal.Gui.Toast
+namespace Dalamud.Game.Gui.Toast
 {
     /// <summary>
     /// This class represents options that can be used with the <see cref="ToastGui"/> class.

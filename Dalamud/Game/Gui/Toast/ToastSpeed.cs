@@ -1,4 +1,4 @@
-namespace Dalamud.Game.Internal.Gui.Toast
+namespace Dalamud.Game.Gui.Toast
 {
     /// <summary>
     /// The speed at which native toast windows will persist.

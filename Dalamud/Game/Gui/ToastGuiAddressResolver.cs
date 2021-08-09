@@ -1,6 +1,8 @@
 using System;
 
-namespace Dalamud.Game.Internal.Gui
+using Dalamud.Game.Internal;
+
+namespace Dalamud.Game.Gui
 {
     /// <summary>
     /// An address resolver for the <see cref="ToastGui"/> class.
