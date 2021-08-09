@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
+using Dalamud.Game.Network;
 using Dalamud.Hooking;
 using Serilog;
 

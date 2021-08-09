@@ -5,14 +5,43 @@ using System.Text;
 
 namespace Dalamud.Game.Network.Structures
 {
+    /// <summary>
+    /// This class represents the current market board offerings from a game network packet.
+    /// </summary>
     public class MarketBoardCurrentOfferings
     {
-        public List<MarketBoardItemListing> ItemListings;
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MarketBoardCurrentOfferings"/> class.
+        /// </summary>
+        internal MarketBoardCurrentOfferings()
+        {
+        }
 
-        public int ListingIndexEnd;
-        public int ListingIndexStart;
-        public int RequestId;
+        /// <summary>
+        /// Gets the list of individual item listings.
+        /// </summary>
+        public List<MarketBoardItemListing> ItemListings { get; internal set; }
 
+        /// <summary>
+        /// Gets the listing end index.
+        /// </summary>
+        public int ListingIndexEnd { get; internal set; }
+
+        /// <summary>
+        /// Gets the listing start index.
+        /// </summary>
+        public int ListingIndexStart { get; internal set; }
+
+        /// <summary>
+        /// Gets the request ID.
+        /// </summary>
+        public int RequestId { get; internal set; }
+
+        /// <summary>
+        /// Read a <see cref="MarketBoardCurrentOfferings"/> object from memory.
+        /// </summary>
+        /// <param name="dataPtr">Address to read.</param>
+        /// <returns>A new <see cref="MarketBoardCurrentOfferings"/> object.</returns>
         public static unsafe MarketBoardCurrentOfferings Read(IntPtr dataPtr)
         {
             var output = new MarketBoardCurrentOfferings();
@@ -80,32 +109,124 @@ namespace Dalamud.Game.Network.Structures
             return output;
         }
 
+        /// <summary>
+        /// This class represents the current market board offering of a single item from the <see cref="MarketBoardCurrentOfferings"/> network packet.
+        /// </summary>
         public class MarketBoardItemListing
         {
-            public ulong ArtisanId;
-            public uint CatalogId;
-            public bool IsHq;
-            public uint ItemQuantity;
-            public DateTime LastReviewTime;
-            public ulong ListingId;
+            /// <summary>
+            /// Initializes a new instance of the <see cref="MarketBoardItemListing"/> class.
+            /// </summary>
+            internal MarketBoardItemListing()
+            {
+            }
 
-            public List<ItemMateria> Materia;
-            public int MateriaCount;
-            public bool OnMannequin;
-            public string PlayerName;
-            public uint PricePerUnit;
-            public int RetainerCityId;
-            public ulong RetainerId;
+            /// <summary>
+            /// Gets the artisan ID.
+            /// </summary>
+            public ulong ArtisanId { get; internal set; }
 
-            public string RetainerName;
-            public ulong RetainerOwnerId;
-            public int StainId;
-            public uint TotalTax;
+            /// <summary>
+            /// Gets the catalog ID.
+            /// </summary>
+            public uint CatalogId { get; internal set; }
 
+            /// <summary>
+            /// Gets a value indicating whether the item is HQ.
+            /// </summary>
+            public bool IsHq { get; internal set; }
+
+            /// <summary>
+            /// Gets the item quantity.
+            /// </summary>
+            public uint ItemQuantity { get; internal set; }
+
+            /// <summary>
+            /// Gets the time this offering was last reviewed.
+            /// </summary>
+            public DateTime LastReviewTime { get; internal set; }
+
+            /// <summary>
+            /// Gets the listing ID.
+            /// </summary>
+            public ulong ListingId { get; internal set; }
+
+            /// <summary>
+            /// Gets the list of materia attached to this item.
+            /// </summary>
+            public List<ItemMateria> Materia { get; internal set; }
+
+            /// <summary>
+            /// Gets the amount of attached materia.
+            /// </summary>
+            public int MateriaCount { get; internal set; }
+
+            /// <summary>
+            /// Gets a value indicating whether this item is on a mannequin.
+            /// </summary>
+            public bool OnMannequin { get; internal set; }
+
+            /// <summary>
+            /// Gets the player name.
+            /// </summary>
+            public string PlayerName { get; internal set; }
+
+            /// <summary>
+            /// Gets the price per unit.
+            /// </summary>
+            public uint PricePerUnit { get; internal set; }
+
+            /// <summary>
+            /// Gets the city ID of the retainer selling the item.
+            /// </summary>
+            public int RetainerCityId { get; internal set; }
+
+            /// <summary>
+            /// Gets the ID of the retainer selling the item.
+            /// </summary>
+            public ulong RetainerId { get; internal set; }
+
+            /// <summary>
+            /// Gets the name of the retainer.
+            /// </summary>
+            public string RetainerName { get; internal set; }
+
+            /// <summary>
+            /// Gets the ID of the retainer's owner.
+            /// </summary>
+            public ulong RetainerOwnerId { get; internal set; }
+
+            /// <summary>
+            /// Gets the stain or applied dye of the item.
+            /// </summary>
+            public int StainId { get; internal set; }
+
+            /// <summary>
+            /// Gets the total tax.
+            /// </summary>
+            public uint TotalTax { get; internal set; }
+
+            /// <summary>
+            /// This represents the materia slotted to an <see cref="MarketBoardItemListing"/>.
+            /// </summary>
             public class ItemMateria
             {
-                public int Index;
-                public int MateriaId;
+                /// <summary>
+                /// Initializes a new instance of the <see cref="ItemMateria"/> class.
+                /// </summary>
+                internal ItemMateria()
+                {
+                }
+
+                /// <summary>
+                /// Gets the materia index.
+                /// </summary>
+                public int Index { get; internal set; }
+
+                /// <summary>
+                /// Gets the materia ID.
+                /// </summary>
+                public int MateriaId { get; internal set; }
             }
         }
     }

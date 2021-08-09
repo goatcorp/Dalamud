@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 
-namespace Dalamud.Game.Network.MarketBoardUploaders.Universalis
+namespace Dalamud.Game.Network.Internal.MarketBoardUploaders.Universalis.Types
 {
     /// <summary>
     /// A Universalis API structure.
