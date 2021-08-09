@@ -19,6 +19,7 @@ using Dalamud.Plugin;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Exceptions;
 using Dalamud.Plugin.Internal.Types;
+using Dalamud.Utility;
 using ImGuiNET;
 using ImGuiScene;
 
