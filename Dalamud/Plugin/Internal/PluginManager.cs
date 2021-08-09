@@ -6,17 +6,19 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Net;
+using System.Net.Http;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
 using CheapLoc;
 using Dalamud.Configuration;
+using Dalamud.Game;
 using Dalamud.Game.Text;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Exceptions;
 using Dalamud.Plugin.Internal.Types;
+using Dalamud.Utility;
 using HarmonyLib;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
@@ -624,7 +626,7 @@ namespace Dalamud.Plugin.Internal
                                     continue;
                                 }
 
-                                if (manifest.ApplicableVersion < this.dalamud.StartInfo.GameVersion)
+                                if (manifest.ApplicableVersion < this.dalamud.StartInfo.GameVersion - TimeSpan.FromDays(90))
                                 {
                                     Log.Information($"Inapplicable version: cleaning up {versionDir.FullName}");
                                     versionDir.Delete(true);
