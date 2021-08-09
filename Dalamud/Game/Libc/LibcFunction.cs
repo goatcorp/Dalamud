@@ -2,7 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace Dalamud.Game.Internal.Libc
+namespace Dalamud.Game.Libc
 {
     /// <summary>
     /// This class handles creating cstrings utilizing native game methods.

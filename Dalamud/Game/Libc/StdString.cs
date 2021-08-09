@@ -2,7 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace Dalamud.Game.Internal.Libc
+namespace Dalamud.Game.Libc
 {
     /// <summary>
     /// Interation with std::string.
