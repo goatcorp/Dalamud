@@ -978,26 +978,21 @@ namespace Dalamud.Plugin.Internal
         [SuppressMessage("StyleCop.CSharp.NamingRules", "SA1313:Parameter names should begin with lower-case letter", Justification = "Enforced naming for special injected parameters")]
         private static void AssemblyLocationPatch(Assembly __instance, ref string __result)
         {
-            // Assembly.GetExecutingAssembly can return this.
-            // Check for it as a special case and find the plugin.
-            if (__result.EndsWith("System.Private.CoreLib.dll", StringComparison.InvariantCultureIgnoreCase))
+            if (string.IsNullOrEmpty(__result))
             {
                 foreach (var assemblyName in GetStackFrameAssemblyNames())
                 {
                     if (PluginLocations.TryGetValue(assemblyName, out var data))
                     {
                         __result = data.Location;
-                        return;
+                        break;
                     }
                 }
             }
-            else if (string.IsNullOrEmpty(__result))
-            {
-                if (PluginLocations.TryGetValue(__instance.FullName, out var data))
-                {
-                    __result = data.Location;
-                }
-            }
+
+            __result ??= string.Empty;
+
+            Log.Verbose($"Assembly.Location // {__instance.FullName} // {__result}");
         }
 
         /// <summary>
@@ -1010,26 +1005,21 @@ namespace Dalamud.Plugin.Internal
         [SuppressMessage("StyleCop.CSharp.NamingRules", "SA1313:Parameter names should begin with lower-case letter", Justification = "Enforced naming for special injected parameters")]
         private static void AssemblyCodeBasePatch(Assembly __instance, ref string __result)
         {
-            // Assembly.GetExecutingAssembly can return this.
-            // Check for it as a special case and find the plugin.
-            if (__result.EndsWith("System.Private.CoreLib.dll"))
+            if (string.IsNullOrEmpty(__result))
             {
                 foreach (var assemblyName in GetStackFrameAssemblyNames())
                 {
                     if (PluginLocations.TryGetValue(assemblyName, out var data))
                     {
-                        __result = data.Location;
-                        return;
+                        __result = data.CodeBase;
+                        break;
                     }
                 }
             }
-            else if (string.IsNullOrEmpty(__result))
-            {
-                if (PluginLocations.TryGetValue(__instance.FullName, out var data))
-                {
-                    __result = data.Location;
-                }
-            }
+
+            __result ??= string.Empty;
+
+            Log.Verbose($"Assembly.CodeBase // {__instance.FullName} // {__result}");
         }
 
         private static IEnumerable<string> GetStackFrameAssemblyNames()
