@@ -29,8 +29,8 @@ namespace Dalamud.Interface.Internal.Windows
     /// </summary>
     internal class PluginInstallerWindow : Window, IDisposable
     {
-        private const int PluginImageWidth = 750;
-        private const int PluginImageHeight = 400;
+        private const int PluginImageWidth = 730;
+        private const int PluginImageHeight = 380;
 
         private const int PluginIconWidth = 300;
         private const int PluginIconHeight = 300;
@@ -51,7 +51,7 @@ namespace Dalamud.Interface.Internal.Windows
         private List<AvailablePluginUpdate> pluginListUpdatable = new();
         private bool hasDevPlugins = false;
 
-        private Dictionary<string, DownloadedPluginImages> pluginImagesMap = new();
+        private Dictionary<string, (bool IsDownloaded, TextureWrap[] Textures)> pluginImagesMap = new();
 
         private string searchText = string.Empty;
 
@@ -68,13 +68,19 @@ namespace Dalamud.Interface.Internal.Windows
         public PluginInstallerWindow(Dalamud dalamud)
             : base(
                 Locs.WindowTitle + (dalamud.Configuration.DoPluginTest ? Locs.WindowTitleMod_Testing : string.Empty) + "###XlPluginInstaller",
-                ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar)
+                ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollbar)
         {
             this.dalamud = dalamud;
             this.IsOpen = true;
 
-            this.Size = new Vector2(810, 520);
-            this.SizeCondition = ImGuiCond.Always;
+            this.Size = new Vector2(830, 570);
+            this.SizeCondition = ImGuiCond.FirstUseEver;
+
+            this.SizeConstraints = new WindowSizeConstraints
+            {
+                MinimumSize = this.Size.Value,
+                MaximumSize = new Vector2(5000, 5000),
+            };
 
             // For debugging
             if (this.dalamud.PluginManager.PluginsReady)
@@ -213,7 +219,7 @@ namespace Dalamud.Interface.Internal.Windows
             var closeText = Locs.FooterButton_Close;
             var closeButtonSize = GetButtonSize(closeText);
 
-            ImGui.SameLine(windowSize.X - closeButtonSize.X);
+            ImGui.SameLine(windowSize.X - closeButtonSize.X - 20);
             if (ImGui.Button(closeText))
             {
                 this.IsOpen = false;
@@ -335,7 +341,7 @@ namespace Dalamud.Interface.Internal.Windows
         {
             if (ImGui.BeginTabItem(title))
             {
-                ImGui.BeginChild($"Scrolling{title}", ImGuiHelpers.ScaledVector2(0, 384), true, ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.NoBackground);
+                ImGui.BeginChild($"Scrolling{title}", ImGuiHelpers.ScaledVector2(0, -30), true, ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.NoBackground);
 
                 ImGui.SetCursorPosY(ImGui.GetCursorPosY() - 5);
 
@@ -552,7 +558,11 @@ namespace Dalamud.Interface.Internal.Windows
 
                 this.DrawVisitRepoUrlButton(manifest.RepoUrl);
 
-                this.DrawPluginImages(manifest);
+                ImGuiHelpers.ScaledDummy(5);
+
+                this.DrawPluginImages(manifest, index);
+
+                ImGuiHelpers.ScaledDummy(10);
 
                 ImGui.Unindent();
             }
@@ -725,6 +735,12 @@ namespace Dalamud.Interface.Internal.Windows
                     ImGui.SameLine();
                     ImGui.TextColored(ImGuiColors.DalamudRed, Locs.PluginBody_DeleteDevPlugin);
                 }
+
+                ImGuiHelpers.ScaledDummy(5);
+
+                this.DrawPluginImages(manifest, index);
+
+                ImGuiHelpers.ScaledDummy(10);
 
                 ImGui.Unindent();
             }
@@ -988,19 +1004,69 @@ namespace Dalamud.Interface.Internal.Windows
             }
         }
 
-        private void DrawPluginImages(PluginManifest manifest)
+        private void DrawPluginImages(PluginManifest manifest, int index)
         {
             if (!this.pluginImagesMap.TryGetValue(manifest.InternalName, out var images))
             {
-                if (images == null)
-                    return;
-
-                Task.Run(() => this.DownloadPluginImagesAsync(manifest));
+                this.DownloadPluginImagesAsync(manifest);
                 return;
             }
 
-            if (images.ImagesTex != null && images.ImagesTex.Length > 0)
-                ImGui.Image(images.ImagesTex[0].ImGuiHandle, new Vector2(images.ImagesTex[0].Width, images.ImagesTex[0].Height));
+            if (!images.IsDownloaded)
+                return;
+
+            if (images.Textures == null)
+                return;
+
+            const float thumbFactor = 2.7f;
+            ImGui.PushStyleVar(ImGuiStyleVar.ScrollbarSize, 15);
+            ImGui.PushStyleColor(ImGuiCol.ScrollbarBg, Vector4.Zero);
+
+            if (ImGui.BeginChild($"plugin{index}Scrolling", new Vector2(0, (PluginImageHeight / thumbFactor) + ImGui.GetStyle().ScrollbarSize), false, ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.NoScrollWithMouse))
+            {
+                if (images.Textures != null && images.Textures is { Length: > 0 })
+                {
+                    for (var i = 0; i < images.Textures.Length; i++)
+                    {
+                        var popupId = $"plugin{index}image{i}";
+                        var image = images.Textures[i];
+
+                        ImGui.PushStyleVar(ImGuiStyleVar.PopupBorderSize, 0);
+                        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
+                        ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, Vector2.Zero);
+
+                        if (ImGui.BeginPopup(popupId))
+                        {
+                            if (ImGui.ImageButton(image.ImGuiHandle, new Vector2(image.Width, image.Height)))
+                                ImGui.CloseCurrentPopup();
+
+                            ImGui.EndPopup();
+                        }
+
+                        ImGui.PopStyleVar(3);
+
+                        ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, Vector2.Zero);
+
+                        if (ImGui.ImageButton(image.ImGuiHandle, new Vector2(image.Width / thumbFactor, image.Height / thumbFactor)))
+                        {
+                            ImGui.OpenPopup(popupId);
+                        }
+
+                        ImGui.PopStyleVar();
+
+                        if (i < images.Textures.Length - 1)
+                        {
+                            //ImGuiHelpers.ScaledDummy(5);
+                            ImGui.SameLine();
+                        }
+                    }
+                }
+
+                ImGui.EndChild();
+            }
+
+            ImGui.PopStyleVar();
+            ImGui.PopStyleColor();
         }
 
         private bool IsManifestFiltered(PluginManifest manifest)
@@ -1109,13 +1175,8 @@ namespace Dalamud.Interface.Internal.Windows
             this.errorModalOnNextFrame = true;
         }
 
-        private async Task DownloadPluginImagesAsync(PluginManifest manifest)
+        private async Task DownloadPluginIcon(PluginManifest manifest)
         {
-            Log.Verbose($"Downloading images for {manifest.InternalName}");
-
-            this.pluginImagesMap.Add(manifest.InternalName, null);
-
-            var pluginImages = new DownloadedPluginImages();
             var client = new HttpClient();
 
             if (manifest.IconUrl != null)
@@ -1132,35 +1193,56 @@ namespace Dalamud.Interface.Internal.Windows
                         return;
                     }
 
-                    pluginImages.IconTex = icon;
+                    //pluginImages.IconTex = icon;
                 }
             }
+        }
 
-            pluginImages.ImagesTex = new TextureWrap[manifest.ImageUrls.Count];
-            for (var i = 0; i < manifest.ImageUrls.Count; i++)
+        private async Task DownloadPluginImagesAsync(PluginManifest manifest)
+        {
+            Log.Verbose($"Downloading images for {manifest.InternalName}");
+
+            this.pluginImagesMap.Add(manifest.InternalName, (false, null));
+
+            var client = new HttpClient();
+
+            if (manifest.ImageUrls != null)
             {
-                var data = await client.GetAsync(manifest.ImageUrls[i]);
-                data.EnsureSuccessStatusCode();
-                var image = this.dalamud.InterfaceManager.LoadImage(await data.Content.ReadAsByteArrayAsync());
-
-                if (image != null)
+                if (manifest.ImageUrls.Count > 5)
                 {
-                    if (image.Height != PluginImageHeight || image.Width != PluginImageWidth)
-                    {
-                        Log.Error($"Image at {manifest.ImageUrls[i]} was not of the correct resolution.");
-
-                        return;
-                    }
-
-                    pluginImages.ImagesTex[i] = image;
-                }
-                else
-                {
+                    Log.Error($"Plugin {manifest.InternalName} has too many images.");
                     return;
                 }
+
+                var pluginImages = new TextureWrap[manifest.ImageUrls.Count];
+                for (var i = 0; i < manifest.ImageUrls.Count; i++)
+                {
+                    var data = await client.GetAsync(manifest.ImageUrls[i]);
+                    data.EnsureSuccessStatusCode();
+                    var image = this.dalamud.InterfaceManager.LoadImage(await data.Content.ReadAsByteArrayAsync());
+
+                    if (image != null)
+                    {
+                        if (image.Height != PluginImageHeight || image.Width != PluginImageWidth)
+                        {
+                            Log.Error($"Image at {manifest.ImageUrls[i]} was not of the correct resolution.");
+
+                            return;
+                        }
+
+                        pluginImages[i] = image;
+                    }
+                    else
+                    {
+                        return;
+                    }
+                }
+
+                this.pluginImagesMap[manifest.InternalName] = (true, pluginImages);
             }
 
-            this.pluginImagesMap[manifest.InternalName] = pluginImages;
+
+            Log.Verbose($"Plugin images for {manifest.InternalName} downloaded");
         }
 
         [SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1201:Elements should appear in the correct order", Justification = "Disregard here")]
@@ -1363,14 +1445,6 @@ namespace Dalamud.Interface.Internal.Windows
             public static string ErrorModalButton_Ok => Loc.Localize("OK", "OK");
 
             #endregion
-        }
-
-        [SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1201:Elements should appear in the correct order", Justification = "Disregard here")]
-        private class DownloadedPluginImages
-        {
-            public TextureWrap IconTex { get; set; }
-
-            public TextureWrap[] ImagesTex { get; set; }
         }
     }
 }
