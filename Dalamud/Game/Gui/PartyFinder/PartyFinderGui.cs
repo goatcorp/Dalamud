@@ -1,11 +1,12 @@
 using System;
 using System.Runtime.InteropServices;
 
-using Dalamud.Game.Internal.Gui.Structs;
+using Dalamud.Game.Gui.PartyFinder.Internal;
+using Dalamud.Game.Gui.PartyFinder.Types;
 using Dalamud.Hooking;
 using Serilog;
 
-namespace Dalamud.Game.Internal.Gui
+namespace Dalamud.Game.Gui.PartyFinder
 {
     /// <summary>
     /// This class handles interacting with the native PartyFinder window.
@@ -30,7 +31,7 @@ namespace Dalamud.Game.Internal.Gui
             this.address = new PartyFinderAddressResolver();
             this.address.Setup(scanner);
 
-            this.memory = Marshal.AllocHGlobal(PartyFinder.PacketInfo.PacketSize);
+            this.memory = Marshal.AllocHGlobal(PartyFinderPacket.PacketSize);
 
             this.receiveListingHook = new Hook<ReceiveListingDelegate>(this.address.ReceiveListing, new ReceiveListingDelegate(this.HandleReceiveListingDetour));
         }
@@ -87,7 +88,7 @@ namespace Dalamud.Game.Internal.Gui
         {
             var dataPtr = data + 0x10;
 
-            var packet = Marshal.PtrToStructure<PartyFinder.Packet>(dataPtr);
+            var packet = Marshal.PtrToStructure<PartyFinderPacket>(dataPtr);
 
             // rewriting is an expensive operation, so only do it if necessary
             var needToRewrite = false;
@@ -125,33 +126,8 @@ namespace Dalamud.Game.Internal.Gui
             // copy our new memory over the game's
             unsafe
             {
-                Buffer.MemoryCopy((void*)this.memory, (void*)dataPtr, PartyFinder.PacketInfo.PacketSize, PartyFinder.PacketInfo.PacketSize);
+                Buffer.MemoryCopy((void*)this.memory, (void*)dataPtr, PartyFinderPacket.PacketSize, PartyFinderPacket.PacketSize);
             }
         }
-    }
-
-    /// <summary>
-    /// This class represents additional arguments passed by the game.
-    /// </summary>
-    public class PartyFinderListingEventArgs
-    {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="PartyFinderListingEventArgs"/> class.
-        /// </summary>
-        /// <param name="batchNumber">The batch number.</param>
-        internal PartyFinderListingEventArgs(int batchNumber)
-        {
-            this.BatchNumber = batchNumber;
-        }
-
-        /// <summary>
-        /// Gets the batch number.
-        /// </summary>
-        public int BatchNumber { get; }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether the listing is visible.
-        /// </summary>
-        public bool Visible { get; set; } = true;
     }
 }

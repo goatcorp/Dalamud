@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Dalamud.Game.Internal.Gui.Structs
+namespace Dalamud.Game.Gui.PartyFinder.Types
 {
     /// <summary>
     /// A player slot in a Party Finder listing.
