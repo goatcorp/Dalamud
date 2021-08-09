@@ -4,11 +4,11 @@ using System.Dynamic;
 using System.Linq;
 using System.Numerics;
 
+using Dalamud.Game;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Actors.Types;
 using Dalamud.Game.ClientState.Actors.Types.NonPlayer;
 using Dalamud.Game.ClientState.Structs.JobGauge;
-using Dalamud.Game.Internal;
 using Dalamud.Game.Internal.Gui.Addon;
 using Dalamud.Game.Internal.Gui.Toast;
 using Dalamud.Game.Text;
