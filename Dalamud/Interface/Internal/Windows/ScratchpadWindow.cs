@@ -31,7 +31,11 @@ namespace Dalamud.Interface.Internal.Windows
             this.dalamud = dalamud;
             this.documents.Add(new ScratchpadDocument());
 
-            this.SizeConstraintsMin = new Vector2(400, 400);
+            this.SizeConstraints = new WindowSizeConstraints
+            {
+                MinimumSize = new Vector2(400, 400),
+                MaximumSize = new Vector2(1000, 1000),
+            };
 
             this.Execution = new ScratchExecutionManager(dalamud);
         }

@@ -61,14 +61,9 @@ namespace Dalamud.Interface.Windowing
         public ImGuiCond SizeCondition { get; set; }
 
         /// <summary>
-        /// Gets or sets the minimum size of this window.
+        /// Gets or sets the size constraints of the window.
         /// </summary>
-        public Vector2? SizeConstraintsMin { get; set; }
-
-        /// <summary>
-        /// Gets or sets the maximum size of this window.
-        /// </summary>
-        public Vector2? SizeConstraintsMax { get; set; }
+        public WindowSizeConstraints? SizeConstraints { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether or not this window is collapsed.
@@ -219,15 +214,31 @@ namespace Dalamud.Interface.Windowing
                 ImGui.SetNextWindowCollapsed(this.Collapsed.Value, this.CollapsedCondition);
             }
 
-            if (this.SizeConstraintsMin.HasValue && this.SizeConstraintsMax.HasValue)
+            if (this.SizeConstraints.HasValue)
             {
-                ImGui.SetNextWindowSizeConstraints(this.SizeConstraintsMin.Value * ImGuiHelpers.GlobalScale, this.SizeConstraintsMax.Value * ImGuiHelpers.GlobalScale);
+                ImGui.SetNextWindowSizeConstraints(this.SizeConstraints.Value.MinimumSize * ImGuiHelpers.GlobalScale, this.SizeConstraints.Value.MaximumSize * ImGuiHelpers.GlobalScale);
             }
 
             if (this.BgAlpha.HasValue)
             {
                 ImGui.SetNextWindowBgAlpha(this.BgAlpha.Value);
             }
+        }
+
+        /// <summary>
+        /// Structure detailing the size constraints of a window.
+        /// </summary>
+        public struct WindowSizeConstraints
+        {
+            /// <summary>
+            /// Gets or sets the minimum size of the window.
+            /// </summary>
+            public Vector2 MinimumSize { get; set; }
+
+            /// <summary>
+            /// Gets or sets the maximum size of the window.
+            /// </summary>
+            public Vector2 MaximumSize { get; set; }
         }
     }
 }
