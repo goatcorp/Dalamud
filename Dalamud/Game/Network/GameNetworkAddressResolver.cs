@@ -1,6 +1,8 @@
 using System;
 
-namespace Dalamud.Game.Internal.Network
+using Dalamud.Game.Internal;
+
+namespace Dalamud.Game.Network
 {
     /// <summary>
     /// The address resolver for the <see cref="GameNetwork"/> class.
