@@ -8,7 +8,7 @@ namespace Dalamud.Game.Internal
     /// <summary>
     /// This class disables anti-debug functionality in the game client.
     /// </summary>
-    public sealed partial class AntiDebug
+    internal sealed partial class AntiDebug
     {
         private readonly byte[] nop = new byte[] { 0x31, 0xC0, 0x90, 0x90, 0x90, 0x90 };
         private byte[] original;
@@ -79,7 +79,7 @@ namespace Dalamud.Game.Internal
     /// <summary>
     /// Implementing IDisposable.
     /// </summary>
-    public sealed partial class AntiDebug : IDisposable
+    internal sealed partial class AntiDebug : IDisposable
     {
         private bool disposed = false;
 
