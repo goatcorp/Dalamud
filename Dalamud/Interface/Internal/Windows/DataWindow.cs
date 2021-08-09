@@ -286,11 +286,11 @@ namespace Dalamud.Interface.Internal.Windows
                 foreach (var valueTuple in debugScannedValue.Value)
                 {
                     ImGui.TextUnformatted(
-                        $"      {valueTuple.Item1} - 0x{valueTuple.Item2.ToInt64():x}");
+                        $"      {valueTuple.ClassName} - 0x{valueTuple.Address.ToInt64():x}");
                     ImGui.SameLine();
 
                     if (ImGui.Button($"C##copyAddress{this.copyButtonIndex++}"))
-                        ImGui.SetClipboardText(valueTuple.Item2.ToInt64().ToString("x"));
+                        ImGui.SetClipboardText(valueTuple.Address.ToInt64().ToString("x"));
                 }
             }
         }
