@@ -1,4 +1,4 @@
-namespace Dalamud.Game.Internal.Gui
+namespace Dalamud.Game.Gui
 {
     /// <summary>
     /// This class represents the hotbar action currently hovered over by the cursor.
