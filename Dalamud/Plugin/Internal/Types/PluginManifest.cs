@@ -133,5 +133,15 @@ namespace Dalamud.Plugin.Internal.Types
         /// </summary>
         [JsonProperty]
         public int LoadPriority { get; init; }
+
+        /// <summary>
+        /// Gets a list of screenshot image URLs to show in the plugin installer.
+        /// </summary>
+        public List<string> ImageUrls { get; init; }
+
+        /// <summary>
+        /// Gets an URL for the plugin's icon.
+        /// </summary>
+        public string IconUrl { get; init; }
     }
 }
