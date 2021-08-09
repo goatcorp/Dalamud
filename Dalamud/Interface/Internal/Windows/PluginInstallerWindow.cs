@@ -39,6 +39,10 @@ namespace Dalamud.Interface.Internal.Windows
 
         private readonly Dalamud dalamud;
 
+        private readonly TextureWrap defaultIcon;
+        private readonly TextureWrap troubleIcon;
+        private readonly TextureWrap updateIcon;
+
         private bool errorModalDrawing = true;
         private bool errorModalOnNextFrame = false;
         private string errorModalMessage = string.Empty;
@@ -51,7 +55,9 @@ namespace Dalamud.Interface.Internal.Windows
         private List<AvailablePluginUpdate> pluginListUpdatable = new();
         private bool hasDevPlugins = false;
 
+        private bool downloadingIcons = false;
         private Dictionary<string, (bool IsDownloaded, TextureWrap[] Textures)> pluginImagesMap = new();
+        private Dictionary<string, (bool IsDownloaded, TextureWrap? Texture)> pluginIconMap = new();
 
         private string searchText = string.Empty;
 
@@ -60,6 +66,8 @@ namespace Dalamud.Interface.Internal.Windows
 
         private OperationStatus installStatus = OperationStatus.Idle;
         private OperationStatus updateStatus = OperationStatus.Idle;
+
+        private List<int> openPluginCollapsibles = new List<int>();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PluginInstallerWindow"/> class.
@@ -88,6 +96,18 @@ namespace Dalamud.Interface.Internal.Windows
 
             this.dalamud.PluginManager.OnAvailablePluginsChanged += this.OnAvailablePluginsChanged;
             this.dalamud.PluginManager.OnInstalledPluginsChanged += this.OnInstalledPluginsChanged;
+
+            this.defaultIcon =
+                this.dalamud.InterfaceManager.LoadImage(
+                    Path.Combine(this.dalamud.AssetDirectory.FullName, "UIRes", "defaultIcon.png"));
+
+            this.troubleIcon =
+                this.dalamud.InterfaceManager.LoadImage(
+                    Path.Combine(this.dalamud.AssetDirectory.FullName, "UIRes", "troubleIcon.png"));
+
+            this.updateIcon =
+                this.dalamud.InterfaceManager.LoadImage(
+                    Path.Combine(this.dalamud.AssetDirectory.FullName, "UIRes", "updateIcon.png"));
         }
 
         private enum OperationStatus
@@ -109,6 +129,10 @@ namespace Dalamud.Interface.Internal.Windows
         {
             this.dalamud.PluginManager.OnAvailablePluginsChanged -= this.OnAvailablePluginsChanged;
             this.dalamud.PluginManager.OnInstalledPluginsChanged -= this.OnInstalledPluginsChanged;
+
+            this.defaultIcon.Dispose();
+            this.troubleIcon.Dispose();
+            this.updateIcon.Dispose();
         }
 
         /// <inheritdoc/>
@@ -191,8 +215,6 @@ namespace Dalamud.Interface.Internal.Windows
 
         private void DrawFooter()
         {
-            Log.Verbose(ImGui.GetWindowSize().X.ToString());
-
             var windowSize = ImGui.GetWindowContentRegionMax();
             var placeholderButtonSize = GetButtonSize("placeholder");
 
@@ -482,6 +504,96 @@ namespace Dalamud.Interface.Internal.Windows
             return ready;
         }
 
+        private bool DrawPluginCollapsingHeader(string label, PluginManifest manifest, bool trouble, bool updateAvailable, int index)
+        {
+            ImGui.Separator();
+
+            var isOpen = this.openPluginCollapsibles.Contains(index);
+
+            var sectionSize = ImGuiHelpers.GlobalScale * 42;
+            var startCursor = ImGui.GetCursorPos();
+
+            ImGui.PushStyleColor(ImGuiCol.Button, isOpen ? new Vector4(0.5f, 0.5f, 0.5f, 0.1f) : Vector4.Zero);
+
+            ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Vector4(0.5f, 0.5f, 0.5f, 0.2f));
+            ImGui.PushStyleColor(ImGuiCol.ButtonActive, new Vector4(0.5f, 0.5f, 0.5f, 0.35f));
+            ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 0);
+
+            if (ImGui.Button($"###plugin{index}CollapsibleBtn", new Vector2(ImGui.GetWindowWidth() - (ImGuiHelpers.GlobalScale * 35), sectionSize)))
+            {
+                if (isOpen)
+                {
+                    this.openPluginCollapsibles.Remove(index);
+                }
+                else
+                {
+                    this.openPluginCollapsibles.Add(index);
+                }
+
+                isOpen = !isOpen;
+            }
+
+            ImGui.PopStyleVar();
+
+            ImGui.PopStyleColor(3);
+
+            ImGui.SetCursorPos(startCursor);
+
+            var hasIcon = this.pluginIconMap.TryGetValue(manifest.InternalName, out var icon);
+
+            var iconTex = this.defaultIcon;
+            if (hasIcon && icon.IsDownloaded && icon.Texture != null)
+            {
+                iconTex = icon.Texture;
+            }
+
+            var cursorBeforeImage = ImGui.GetCursorPos();
+            ImGui.Image(iconTex.ImGuiHandle, ImGuiHelpers.ScaledVector2(40, 40));
+            ImGui.SameLine();
+
+            if (trouble)
+            {
+                ImGui.SetCursorPos(cursorBeforeImage);
+                ImGui.Image(this.troubleIcon.ImGuiHandle, ImGuiHelpers.ScaledVector2(40, 40));
+                ImGui.SameLine();
+            }
+            else if (updateAvailable)
+            {
+                ImGui.SetCursorPos(cursorBeforeImage);
+                ImGui.Image(this.updateIcon.ImGuiHandle, ImGuiHelpers.ScaledVector2(40, 40));
+                ImGui.SameLine();
+            }
+
+            ImGuiHelpers.ScaledDummy(5);
+            ImGui.SameLine();
+
+            var cursor = ImGui.GetCursorPos();
+            // Name
+            ImGui.Text(label);
+
+            // Download count
+            var downloadCountText = manifest.DownloadCount > 0
+                                        ? Locs.PluginBody_AuthorWithDownloadCount(manifest.Author, manifest.DownloadCount)
+                                        : Locs.PluginBody_AuthorWithDownloadCountUnavailable(manifest.Author);
+
+            ImGui.SameLine();
+            ImGui.TextColored(ImGuiColors.DalamudGrey3, downloadCountText);
+
+            cursor.Y += ImGui.GetTextLineHeightWithSpacing();
+            ImGui.SetCursorPos(cursor);
+
+            // Description
+            if (!string.IsNullOrWhiteSpace(manifest.Punchline))
+            {
+                ImGui.TextWrapped(manifest.Punchline);
+            }
+
+            startCursor.Y += sectionSize;
+            ImGui.SetCursorPos(startCursor);
+
+            return isOpen;
+        }
+
         private void DrawAvailablePlugin(RemotePluginManifest manifest, int index)
         {
             var useTesting = this.dalamud.PluginManager.UseTesting(manifest);
@@ -502,26 +614,19 @@ namespace Dalamud.Interface.Internal.Windows
                 label += Locs.PluginTitleMod_TestingVersion;
             }
 
-            if (ImGui.CollapsingHeader($"{label}###Header{index}{manifest.InternalName}"))
+            if (this.DrawPluginCollapsingHeader(label, manifest, false, false, index))
             {
+                ImGuiHelpers.ScaledDummy(5);
+
                 ImGui.Indent();
-
-                // Name
-                ImGui.Text(manifest.Name);
-
-                // Download count
-                var downloadCountText = manifest.DownloadCount > 0
-                    ? Locs.PluginBody_AuthorWithDownloadCount(manifest.Author, manifest.DownloadCount)
-                    : Locs.PluginBody_AuthorWithDownloadCountUnavailable(manifest.Author);
-
-                ImGui.SameLine();
-                ImGui.TextColored(ImGuiColors.DalamudGrey3, downloadCountText);
 
                 // Installable from
                 if (manifest.SourceRepo.IsThirdParty)
                 {
                     var repoText = Locs.PluginBody_Plugin3rdPartyRepo(manifest.SourceRepo.PluginMasterUrl);
                     ImGui.TextColored(ImGuiColors.DalamudGrey3, repoText);
+
+                    ImGuiHelpers.ScaledDummy(2);
                 }
 
                 // Description
@@ -529,6 +634,8 @@ namespace Dalamud.Interface.Internal.Windows
                 {
                     ImGui.TextWrapped(manifest.Description);
                 }
+
+                ImGuiHelpers.ScaledDummy(5);
 
                 // Controls
                 var disabled = this.updateStatus == OperationStatus.InProgress || this.installStatus == OperationStatus.InProgress;
@@ -562,9 +669,8 @@ namespace Dalamud.Interface.Internal.Windows
 
                 ImGuiHelpers.ScaledDummy(5);
 
-                this.DrawPluginImages(manifest, index);
-
-                ImGuiHelpers.ScaledDummy(5);
+                if (this.DrawPluginImages(manifest, index))
+                    ImGuiHelpers.ScaledDummy(5);
 
                 ImGui.Unindent();
             }
@@ -607,6 +713,8 @@ namespace Dalamud.Interface.Internal.Windows
 
         private void DrawInstalledPlugin(LocalPlugin plugin, int index, bool showInstalled = false)
         {
+            var trouble = false;
+
             // Name
             var label = plugin.Manifest.Name;
 
@@ -626,18 +734,21 @@ namespace Dalamud.Interface.Internal.Windows
             if (plugin.IsDisabled)
             {
                 label += Locs.PluginTitleMod_Disabled;
+                trouble = true;
             }
 
             // Load error
             if (plugin.State == PluginState.LoadError)
             {
                 label += Locs.PluginTitleMod_LoadError;
+                trouble = true;
             }
 
             // Unload error
             if (plugin.State == PluginState.UnloadError)
             {
                 label += Locs.PluginTitleMod_UnloadError;
+                trouble = true;
             }
 
             var availablePluginUpdate = this.pluginListUpdatable.FirstOrDefault(up => up.InstalledPlugin == plugin);
@@ -668,9 +779,10 @@ namespace Dalamud.Interface.Internal.Windows
             if (plugin.Manifest.DalamudApiLevel < PluginManager.DalamudApiLevel)
             {
                 label += Locs.PluginTitleMod_OutdatedError;
+                trouble = true;
             }
 
-            if (ImGui.CollapsingHeader($"{label}###Header{index}{plugin.Manifest.InternalName}"))
+            if (this.DrawPluginCollapsingHeader(label, plugin.Manifest, trouble, availablePluginUpdate != default, index))
             {
                 var manifest = plugin.Manifest;
 
@@ -692,6 +804,8 @@ namespace Dalamud.Interface.Internal.Windows
                 {
                     var repoText = Locs.PluginBody_Plugin3rdPartyRepo(manifest.InstalledFromUrl);
                     ImGui.TextColored(ImGuiColors.DalamudGrey3, repoText);
+
+                    ImGuiHelpers.ScaledDummy(2);
                 }
 
                 // Description
@@ -1006,19 +1120,19 @@ namespace Dalamud.Interface.Internal.Windows
             }
         }
 
-        private void DrawPluginImages(PluginManifest manifest, int index)
+        private bool DrawPluginImages(PluginManifest manifest, int index)
         {
             if (!this.pluginImagesMap.TryGetValue(manifest.InternalName, out var images))
             {
                 this.DownloadPluginImagesAsync(manifest);
-                return;
+                return false;
             }
 
             if (!images.IsDownloaded)
-                return;
+                return false;
 
             if (images.Textures == null)
-                return;
+                return false;
 
             const float thumbFactor = 2.7f;
 
@@ -1055,14 +1169,15 @@ namespace Dalamud.Interface.Internal.Windows
                     ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, Vector2.Zero);
 
                     if (ImGui.ImageButton(image.ImGuiHandle,
-                                          new Vector2(image.Width / thumbFactor, image.Height / thumbFactor)))
+                                          ImGuiHelpers.ScaledVector2(image.Width / thumbFactor, image.Height / thumbFactor)))
                         ImGui.OpenPopup(popupId);
 
                     ImGui.PopStyleVar();
 
                     if (i < images.Textures.Length - 1)
                     {
-                        //ImGuiHelpers.ScaledDummy(5);
+                        ImGui.SameLine();
+                        ImGuiHelpers.ScaledDummy(5);
                         ImGui.SameLine();
                     }
                 }
@@ -1073,6 +1188,8 @@ namespace Dalamud.Interface.Internal.Windows
 
             ImGui.PopStyleVar();
             ImGui.PopStyleColor();
+
+            return true;
         }
 
         private bool IsManifestFiltered(PluginManifest manifest)
@@ -1103,6 +1220,8 @@ namespace Dalamud.Interface.Internal.Windows
                 .ToList();
             this.pluginListUpdatable = this.dalamud.PluginManager.UpdatablePlugins.ToList();
             this.ResortPlugins();
+
+            this.DownloadPluginIcons();
         }
 
         private void OnInstalledPluginsChanged()
@@ -1111,6 +1230,8 @@ namespace Dalamud.Interface.Internal.Windows
             this.pluginListUpdatable = this.dalamud.PluginManager.UpdatablePlugins.ToList();
             this.hasDevPlugins = this.pluginListInstalled.Any(plugin => plugin.IsDev);
             this.ResortPlugins();
+
+            this.DownloadPluginIcons();
         }
 
         private void ResortPlugins()
@@ -1181,8 +1302,40 @@ namespace Dalamud.Interface.Internal.Windows
             this.errorModalOnNextFrame = true;
         }
 
+        private void DownloadPluginIcons()
+        {
+            if (this.downloadingIcons)
+            {
+                Log.Error("Already downloading icons, skipping...");
+                return;
+            }
+
+            this.downloadingIcons = true;
+
+            Log.Verbose("Start downloading plugin icons...");
+
+            Task.Run(async () =>
+            {
+                var plugins = this.pluginListAvailable.Select(x => x as PluginManifest)
+                                  .Concat(this.pluginListInstalled.Select(x => x.Manifest)).ToList();
+
+                foreach (var pluginManifest in plugins)
+                {
+                    if (!this.pluginIconMap.ContainsKey(pluginManifest.InternalName))
+                        await this.DownloadPluginIconAsync(pluginManifest);
+                }
+            }).ContinueWith(t =>
+            {
+                Log.Verbose($"Icon download finished, faulted: {t.IsFaulted}");
+                this.downloadingIcons = false;
+            });
+        }
+
         private async Task DownloadPluginIconAsync(PluginManifest manifest)
         {
+            Log.Verbose($"Downloading icon for {manifest.InternalName}");
+            this.pluginIconMap.Add(manifest.InternalName, (false, null));
+
             var client = new HttpClient();
 
             if (manifest.IconUrl != null)
@@ -1199,7 +1352,7 @@ namespace Dalamud.Interface.Internal.Windows
                         return;
                     }
 
-                    //pluginImages.IconTex = icon;
+                    this.pluginIconMap[manifest.InternalName] = (true, icon);
                 }
             }
         }
