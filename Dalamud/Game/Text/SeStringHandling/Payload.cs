@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 
 using Dalamud.Data;
@@ -233,11 +234,13 @@ namespace Dalamud.Game.Text.SeStringHandling
         /// <summary>
         /// The start byte of a payload.
         /// </summary>
+        [SuppressMessage("StyleCop.CSharp.NamingRules", "SA1310:Field names should not contain underscore", Justification = "This is prefered.")]
         protected const byte START_BYTE = 0x02;
 
         /// <summary>
         /// The end byte of a payload.
         /// </summary>
+        [SuppressMessage("StyleCop.CSharp.NamingRules", "SA1310:Field names should not contain underscore", Justification = "This is prefered.")]
         protected const byte END_BYTE = 0x03;
 
         /// <summary>
