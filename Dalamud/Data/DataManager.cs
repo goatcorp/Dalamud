@@ -137,9 +137,21 @@ namespace Dalamud.Data
         /// </summary>
         /// <param name="iconId">The icon ID.</param>
         /// <returns>The <see cref="TexFile"/> containing the icon.</returns>
-        public TexFile GetIcon(int iconId)
+        public TexFile GetIcon(uint iconId)
         {
             return this.GetIcon(this.Language, iconId);
+        }
+
+        /// <summary>
+        /// Get a <see cref="TexFile"/> containing the icon with the given ID, of the given quality.
+        /// </summary>
+        /// <param name="isHq">A value indicating whether the icon should be HQ.</param>
+        /// <param name="iconId">The icon ID.</param>
+        /// <returns>The <see cref="TexFile"/> containing the icon.</returns>
+        public TexFile GetIcon(bool isHq, uint iconId)
+        {
+            var type = isHq ? "hq/" : string.Empty;
+            return this.GetIcon(type, iconId);
         }
 
         /// <summary>
@@ -148,7 +160,7 @@ namespace Dalamud.Data
         /// <param name="iconLanguage">The requested language.</param>
         /// <param name="iconId">The icon ID.</param>
         /// <returns>The <see cref="TexFile"/> containing the icon.</returns>
-        public TexFile GetIcon(ClientLanguage iconLanguage, int iconId)
+        public TexFile GetIcon(ClientLanguage iconLanguage, uint iconId)
         {
             var type = iconLanguage switch
             {
@@ -168,7 +180,7 @@ namespace Dalamud.Data
         /// <param name="type">The type of the icon (e.g. 'hq' to get the HQ variant of an item icon).</param>
         /// <param name="iconId">The icon ID.</param>
         /// <returns>The <see cref="TexFile"/> containing the icon.</returns>
-        public TexFile GetIcon(string type, int iconId)
+        public TexFile GetIcon(string type, uint iconId)
         {
             type ??= string.Empty;
             if (type.Length > 0 && !type.EndsWith("/"))
@@ -177,13 +189,22 @@ namespace Dalamud.Data
             var filePath = string.Format(IconFileFormat, iconId / 1000, type, iconId);
             var file = this.GetFile<TexFile>(filePath);
 
-            if (file != default(TexFile) || type.Length <= 0) return file;
+            if (type == string.Empty || file != default)
+                return file;
 
             // Couldn't get specific type, try for generic version.
             filePath = string.Format(IconFileFormat, iconId / 1000, string.Empty, iconId);
             file = this.GetFile<TexFile>(filePath);
             return file;
         }
+
+        /// <summary>
+        /// Get a <see cref="TexFile"/> containing the HQ icon with the given ID.
+        /// </summary>
+        /// <param name="iconId">The icon ID.</param>
+        /// <returns>The <see cref="TexFile"/> containing the icon.</returns>
+        public TexFile GetHqIcon(uint iconId)
+            => this.GetIcon(true, iconId);
 
         /// <summary>
         /// Get the passed <see cref="TexFile"/> as a drawable ImGui TextureWrap.
@@ -202,12 +223,29 @@ namespace Dalamud.Data
             => this.GetImGuiTexture(this.GetFile<TexFile>(path));
 
         /// <summary>
+        /// Get a <see cref="TextureWrap"/> containing the icon with the given ID.
+        /// </summary>
+        /// <param name="iconId">The icon ID.</param>
+        /// <returns>The <see cref="TextureWrap"/> containing the icon.</returns>
+        public TextureWrap GetImGuiTextureIcon(uint iconId)
+            => this.GetImGuiTexture(this.GetIcon(iconId));
+
+        /// <summary>
+        /// Get a <see cref="TextureWrap"/> containing the icon with the given ID, of the given quality.
+        /// </summary>
+        /// <param name="isHq">A value indicating whether the icon should be HQ.</param>
+        /// <param name="iconId">The icon ID.</param>
+        /// <returns>The <see cref="TextureWrap"/> containing the icon.</returns>
+        public TextureWrap GetImGuiTextureIcon(bool isHq, uint iconId)
+            => this.GetImGuiTexture(this.GetIcon(isHq, iconId));
+
+        /// <summary>
         /// Get a <see cref="TextureWrap"/> containing the icon with the given ID, of the given language.
         /// </summary>
         /// <param name="iconLanguage">The requested language.</param>
         /// <param name="iconId">The icon ID.</param>
         /// <returns>The <see cref="TextureWrap"/> containing the icon.</returns>
-        public TextureWrap GetImGuiTextureIcon(ClientLanguage iconLanguage, int iconId)
+        public TextureWrap GetImGuiTextureIcon(ClientLanguage iconLanguage, uint iconId)
             => this.GetImGuiTexture(this.GetIcon(iconLanguage, iconId));
 
         /// <summary>
@@ -216,8 +254,16 @@ namespace Dalamud.Data
         /// <param name="type">The type of the icon (e.g. 'hq' to get the HQ variant of an item icon).</param>
         /// <param name="iconId">The icon ID.</param>
         /// <returns>The <see cref="TextureWrap"/> containing the icon.</returns>
-        public TextureWrap GetImGuiTextureIcon(string type, int iconId)
+        public TextureWrap GetImGuiTextureIcon(string type, uint iconId)
             => this.GetImGuiTexture(this.GetIcon(type, iconId));
+
+        /// <summary>
+        /// Get a <see cref="TextureWrap"/> containing the HQ icon with the given ID.
+        /// </summary>
+        /// <param name="iconId">The icon ID.</param>
+        /// <returns>The <see cref="TextureWrap"/> containing the icon.</returns>
+        public TextureWrap GetImGuiTextureHqIcon(uint iconId)
+            => this.GetImGuiTexture(this.GetHqIcon(iconId));
 
         #endregion
 
