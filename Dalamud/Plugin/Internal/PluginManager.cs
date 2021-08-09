@@ -359,16 +359,17 @@ namespace Dalamud.Plugin.Internal
                 // ignored, since the plugin may be loaded already
             }
 
-            using var client = new WebClient();
-
             var tempZip = new FileInfo(Path.GetTempFileName());
 
             try
             {
                 Log.Debug($"Downloading plugin to {tempZip} from {downloadUrl}");
-                client.DownloadFile(downloadUrl, tempZip.FullName);
+                using var client = new HttpClient();
+                var response = client.GetAsync(downloadUrl).Result;
+                using var fs = new FileStream(tempZip.FullName, FileMode.CreateNew);
+                response.Content.CopyToAsync(fs).GetAwaiter().GetResult();
             }
-            catch (WebException ex)
+            catch (HttpRequestException ex)
             {
                 Log.Error(ex, $"Download of plugin {repoManifest.Name} failed unexpectedly.");
                 throw;
