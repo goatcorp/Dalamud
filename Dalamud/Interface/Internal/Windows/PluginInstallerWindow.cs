@@ -191,6 +191,8 @@ namespace Dalamud.Interface.Internal.Windows
 
         private void DrawFooter()
         {
+            Log.Verbose(ImGui.GetWindowSize().X.ToString());
+
             var windowSize = ImGui.GetWindowContentRegionMax();
             var placeholderButtonSize = GetButtonSize("placeholder");
 
@@ -562,7 +564,7 @@ namespace Dalamud.Interface.Internal.Windows
 
                 this.DrawPluginImages(manifest, index);
 
-                ImGuiHelpers.ScaledDummy(10);
+                ImGuiHelpers.ScaledDummy(5);
 
                 ImGui.Unindent();
             }
@@ -740,7 +742,7 @@ namespace Dalamud.Interface.Internal.Windows
 
                 this.DrawPluginImages(manifest, index);
 
-                ImGuiHelpers.ScaledDummy(10);
+                ImGuiHelpers.ScaledDummy(5);
 
                 ImGui.Unindent();
             }
@@ -1019,51 +1021,55 @@ namespace Dalamud.Interface.Internal.Windows
                 return;
 
             const float thumbFactor = 2.7f;
-            ImGui.PushStyleVar(ImGuiStyleVar.ScrollbarSize, 15);
+
+            var scrollBarSize = 15;
+            ImGui.PushStyleVar(ImGuiStyleVar.ScrollbarSize, scrollBarSize);
             ImGui.PushStyleColor(ImGuiCol.ScrollbarBg, Vector4.Zero);
 
-            if (ImGui.BeginChild($"plugin{index}ImageScrolling", new Vector2(0, (PluginImageHeight / thumbFactor) + ImGui.GetStyle().ScrollbarSize), false, ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoBackground))
+            var width = ImGui.GetWindowWidth();
+
+            // TODO: This doesn't work, seems like a bug
+            // if (ImGui.BeginChild($"plugin{index}ImageScrolling", new Vector2(width, (PluginImageHeight / thumbFactor) + scrollBarSize), false, ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoBackground))
+            // {
+            if (images.Textures != null && images.Textures is { Length: > 0 })
             {
-                if (images.Textures != null && images.Textures is { Length: > 0 })
+                for (var i = 0; i < images.Textures.Length; i++)
                 {
-                    for (var i = 0; i < images.Textures.Length; i++)
+                    var popupId = $"plugin{index}image{i}";
+                    var image = images.Textures[i];
+
+                    ImGui.PushStyleVar(ImGuiStyleVar.PopupBorderSize, 0);
+                    ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
+                    ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, Vector2.Zero);
+
+                    if (ImGui.BeginPopup(popupId))
                     {
-                        var popupId = $"plugin{index}image{i}";
-                        var image = images.Textures[i];
+                        if (ImGui.ImageButton(image.ImGuiHandle, new Vector2(image.Width, image.Height)))
+                            ImGui.CloseCurrentPopup();
 
-                        ImGui.PushStyleVar(ImGuiStyleVar.PopupBorderSize, 0);
-                        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
-                        ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, Vector2.Zero);
+                        ImGui.EndPopup();
+                    }
 
-                        if (ImGui.BeginPopup(popupId))
-                        {
-                            if (ImGui.ImageButton(image.ImGuiHandle, new Vector2(image.Width, image.Height)))
-                                ImGui.CloseCurrentPopup();
+                    ImGui.PopStyleVar(3);
 
-                            ImGui.EndPopup();
-                        }
+                    ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, Vector2.Zero);
 
-                        ImGui.PopStyleVar(3);
+                    if (ImGui.ImageButton(image.ImGuiHandle,
+                                          new Vector2(image.Width / thumbFactor, image.Height / thumbFactor)))
+                        ImGui.OpenPopup(popupId);
 
-                        ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, Vector2.Zero);
+                    ImGui.PopStyleVar();
 
-                        if (ImGui.ImageButton(image.ImGuiHandle, new Vector2(image.Width / thumbFactor, image.Height / thumbFactor)))
-                        {
-                            ImGui.OpenPopup(popupId);
-                        }
-
-                        ImGui.PopStyleVar();
-
-                        if (i < images.Textures.Length - 1)
-                        {
-                            //ImGuiHelpers.ScaledDummy(5);
-                            ImGui.SameLine();
-                        }
+                    if (i < images.Textures.Length - 1)
+                    {
+                        //ImGuiHelpers.ScaledDummy(5);
+                        ImGui.SameLine();
                     }
                 }
-
-                ImGui.EndChild();
             }
+
+            // ImGui.EndChild();
+            // }
 
             ImGui.PopStyleVar();
             ImGui.PopStyleColor();
