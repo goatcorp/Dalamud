@@ -347,35 +347,6 @@ namespace Dalamud.Plugin
 
         #endregion
 
-        #region Logging
-
-        /// <summary>
-        /// Log a templated message to the in-game debug log.
-        /// </summary>
-        /// <param name="messageTemplate">The message template.</param>
-        /// <param name="values">Values to log.</param>
-        [Obsolete("Use PluginLog")]
-        public void Log(string messageTemplate, params object[] values) => Serilog.Log.Information(messageTemplate, values);
-
-        /// <summary>
-        /// Log a templated error message to the in-game debug log.
-        /// </summary>
-        /// <param name="messageTemplate">The message template.</param>
-        /// <param name="values">Values to log.</param>
-        [Obsolete("Use PluginLog")]
-        public void LogError(string messageTemplate, params object[] values) => Serilog.Log.Error(messageTemplate, values);
-
-        /// <summary>
-        /// Log a templated error message to the in-game debug log.
-        /// </summary>
-        /// <param name="exception">The exception that caused the error.</param>
-        /// <param name="messageTemplate">The message template.</param>
-        /// <param name="values">Values to log.</param>
-        [Obsolete("Use PluginLog")]
-        public void LogError(Exception exception, string messageTemplate, params object[] values) => Serilog.Log.Error(exception, messageTemplate, values);
-
-        #endregion
-
         /// <summary>
         /// Unregister your plugin and dispose all references. You have to call this when your IDalamudPlugin is disposed.
         /// </summary>

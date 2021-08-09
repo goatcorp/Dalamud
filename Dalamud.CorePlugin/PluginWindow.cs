@@ -11,8 +11,6 @@ namespace Dalamud.CorePlugin
     /// </summary>
     internal class PluginWindow : Window, IDisposable
     {
-        private static readonly ModuleLog Log = new("CorePlugin");
-
         private readonly Dalamud dalamud;
 
         /// <summary>
@@ -20,13 +18,13 @@ namespace Dalamud.CorePlugin
         /// </summary>
         /// <param name="dalamud">The Dalamud instance.</param>
         public PluginWindow(Dalamud dalamud)
-            : base("CorePlugin", ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar)
+            : base("CorePlugin")
         {
             this.dalamud = dalamud;
             this.IsOpen = true;
 
             this.Size = new Vector2(810, 520);
-            this.SizeCondition = ImGuiCond.Always;
+            this.SizeCondition = ImGuiCond.FirstUseEver;
         }
 
         /// <inheritdoc/>

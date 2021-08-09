@@ -8,7 +8,6 @@ using System.Text;
 using System.Threading;
 
 using Dalamud.Game;
-using Dalamud.Interface.Internal;
 using Newtonsoft.Json;
 using Reloaded.Memory.Buffers;
 using Serilog;
@@ -129,11 +128,56 @@ namespace Dalamud.Injector
             levelSwitch.MinimumLevel = LogEventLevel.Information;
 #endif
 
+            CullLogFile(logPath, 1 * 1024 * 1024);
+
             Log.Logger = new LoggerConfiguration()
                 .WriteTo.Async(a => a.File(logPath))
-                .WriteTo.Sink(SerilogEventSink.Instance)
                 .MinimumLevel.ControlledBy(levelSwitch)
                 .CreateLogger();
+        }
+
+        private static void CullLogFile(string logPath, int cullingFileSize)
+        {
+            try
+            {
+                var bufferSize = 4096;
+
+                var logFile = new FileInfo(logPath);
+
+                if (!logFile.Exists)
+                    logFile.Create();
+
+                if (logFile.Length <= cullingFileSize)
+                    return;
+
+                var amountToCull = logFile.Length - cullingFileSize;
+
+                if (amountToCull < bufferSize)
+                    return;
+
+                using var reader = new BinaryReader(logFile.Open(FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
+                using var writer = new BinaryWriter(logFile.Open(FileMode.Open, FileAccess.Write, FileShare.ReadWrite));
+
+                reader.BaseStream.Seek(amountToCull, SeekOrigin.Begin);
+
+                var read = -1;
+                var total = 0;
+                var buffer = new byte[bufferSize];
+                while (read != 0)
+                {
+                    read = reader.Read(buffer, 0, buffer.Length);
+                    writer.Write(buffer, 0, read);
+                    total += read;
+                }
+
+                writer.BaseStream.SetLength(total);
+            }
+            catch (Exception ex)
+            {
+                var caption = "XIVLauncher Error";
+                var message = $"Log cull threw an exception: {ex.Message}\n{ex.StackTrace ?? string.Empty}";
+                _ = MessageBoxW(IntPtr.Zero, message, caption, MessageBoxType.IconError | MessageBoxType.Ok);
+            }
         }
 
         private static Process GetProcess(string arg)

@@ -3,8 +3,8 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 
-using Dalamud.Configuration.Internal;
 using Dalamud.Game;
+using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Exceptions;
 using Dalamud.Plugin.Internal.Types;
 using McMaster.NETCore.Plugins;

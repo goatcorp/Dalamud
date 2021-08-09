@@ -1,11 +1,11 @@
 using Newtonsoft.Json;
 
-namespace Dalamud.Game.Network.MarketBoardUploaders.Universalis
+namespace Dalamud.Game.Network.Internal.MarketBoardUploaders.Universalis.Types
 {
     /// <summary>
     /// Request payload for market board purchases.
     /// </summary>
-    public class UniversalisItemListingDeleteRequest
+    internal class UniversalisItemListingDeleteRequest
     {
         /// <summary>
         /// Gets or sets the object ID of the retainer associated with the sale.

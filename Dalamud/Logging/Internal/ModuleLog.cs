@@ -1,6 +1,6 @@
 using System;
 
-namespace Dalamud
+namespace Dalamud.Logging.Internal
 {
     /// <summary>
     /// Class offering various methods to allow for logging in Dalamud modules.
