@@ -1,27 +1,22 @@
 using System;
+using System.Numerics;
 using System.Runtime.InteropServices;
 
-using Dalamud.Game.Gui;
+using Dalamud.Game.Gui.Addons;
 using Dalamud.Game.Gui.PartyFinder;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Hooking;
 using Dalamud.Interface;
+using Dalamud.Utility;
 using Serilog;
-using SharpDX;
 
-namespace Dalamud.Game.Internal.Gui
+namespace Dalamud.Game.Gui
 {
     /// <summary>
     /// A class handling many aspects of the in-game UI.
     /// </summary>
     public sealed class GameGui : IDisposable
     {
-        /// <summary>
-        /// The delegate of the native method that gets the Client::UI::UIModule address.
-        /// </summary>
-        /// <returns>The Client::UI::UIModule address.</returns>
-        public readonly GetBaseUIObjectDelegate GetBaseUIObject;
-
         private readonly Dalamud dalamud;
         private readonly GameGuiAddressResolver address;
 
@@ -149,6 +144,12 @@ namespace Dalamud.Game.Internal.Gui
         public event EventHandler<bool> OnUiHideToggled;
 
         /// <summary>
+        /// Gets a callable delegate for the GetBaseUIObject game method.
+        /// </summary>
+        /// <returns>The Client::UI::UIModule address.</returns>
+        public GetBaseUIObjectDelegate GetBaseUIObject { get; }
+
+        /// <summary>
         /// Gets the <see cref="Chat"/> instance.
         /// </summary>
         public ChatGui Chat { get; private set; }
@@ -229,13 +230,13 @@ namespace Dalamud.Game.Internal.Gui
         /// <param name="worldPos">Coordinates in the world.</param>
         /// <param name="screenPos">Converted coordinates.</param>
         /// <returns>True if worldPos corresponds to a position in front of the camera.</returns>
-        public bool WorldToScreen(Vector3 worldPos, out Vector2 screenPos)
+        public bool WorldToScreen(SharpDX.Vector3 worldPos, out SharpDX.Vector2 screenPos)
         {
             // Get base object with matrices
             var matrixSingleton = this.getMatrixSingleton();
 
             // Read current ViewProjectionMatrix plus game window size
-            var viewProjectionMatrix = default(Matrix);
+            var viewProjectionMatrix = default(SharpDX.Matrix);
             float width, height;
             var windowPos = ImGuiHelpers.MainViewport.Pos;
 
@@ -250,9 +251,9 @@ namespace Dalamud.Game.Internal.Gui
                 height = *(rawMatrix + 1);
             }
 
-            Vector3.Transform(ref worldPos, ref viewProjectionMatrix, out Vector3 pCoords);
+            SharpDX.Vector3.Transform(ref worldPos, ref viewProjectionMatrix, out SharpDX.Vector3 pCoords);
 
-            screenPos = new Vector2(pCoords.X / pCoords.Z, pCoords.Y / pCoords.Z);
+            screenPos = new SharpDX.Vector2(pCoords.X / pCoords.Z, pCoords.Y / pCoords.Z);
 
             screenPos.X = (0.5f * width * (screenPos.X + 1f)) + windowPos.X;
             screenPos.Y = (0.5f * height * (1f - screenPos.Y)) + windowPos.Y;
@@ -263,13 +264,46 @@ namespace Dalamud.Game.Internal.Gui
         }
 
         /// <summary>
+        /// Converts in-world coordinates to screen coordinates (upper left corner origin).
+        /// </summary>
+        /// <param name="worldPos">Coordinates in the world.</param>
+        /// <param name="screenPos">Converted coordinates.</param>
+        /// <returns>True if worldPos corresponds to a position in front of the camera.</returns>
+        /// <remarks>
+        /// This overload requires a conversion to SharpDX vectors, however the penalty should be negligible.
+        /// </remarks>
+        public bool WorldToScreen(Vector3 worldPos, out Vector2 screenPos)
+        {
+            var result = this.WorldToScreen(worldPos.ToSharpDX(), out var sharpScreenPos);
+            screenPos = sharpScreenPos.ToSystem();
+            return result;
+        }
+
+        /// <summary>
+        /// Converts in-world coordinates to screen coordinates (upper left corner origin).
+        /// </summary>
+        /// <param name="worldPos">Coordinates in the world.</param>
+        /// <param name="screenPos">Converted coordinates.</param>
+        /// <returns>True if worldPos corresponds to a position in front of the camera.</returns>
+        /// <remarks>
+        /// This overload requires a conversion to SharpDX vectors, however the penalty should be negligible.
+        /// </remarks>
+        public bool WorldToScreen(Position3 worldPos, out Vector2 screenPos)
+        {
+            // This overload is necessary due to Positon3 implicit operators.
+            var result = this.WorldToScreen((SharpDX.Vector3)worldPos, out var sharpScreenPos);
+            screenPos = sharpScreenPos.ToSystem();
+            return result;
+        }
+
+        /// <summary>
         /// Converts screen coordinates to in-world coordinates via raycasting.
         /// </summary>
         /// <param name="screenPos">Screen coordinates.</param>
         /// <param name="worldPos">Converted coordinates.</param>
         /// <param name="rayDistance">How far to search for a collision.</param>
         /// <returns>True if successful. On false, worldPos's contents are undefined.</returns>
-        public bool ScreenToWorld(Vector2 screenPos, out Vector3 worldPos, float rayDistance = 100000.0f)
+        public bool ScreenToWorld(SharpDX.Vector2 screenPos, out SharpDX.Vector3 worldPos, float rayDistance = 100000.0f)
         {
             // The game is only visible in the main viewport, so if the cursor is outside
             // of the game window, do not bother calculating anything
@@ -287,7 +321,7 @@ namespace Dalamud.Game.Internal.Gui
             var matrixSingleton = this.getMatrixSingleton();
 
             // Read current ViewProjectionMatrix plus game window size
-            var viewProjectionMatrix = default(Matrix);
+            var viewProjectionMatrix = default(SharpDX.Matrix);
             float width, height;
             unsafe
             {
@@ -302,18 +336,18 @@ namespace Dalamud.Game.Internal.Gui
 
             viewProjectionMatrix.Invert();
 
-            var localScreenPos = new Vector2(screenPos.X - windowPos.X, screenPos.Y - windowPos.Y);
-            var screenPos3D = new Vector3
+            var localScreenPos = new SharpDX.Vector2(screenPos.X - windowPos.X, screenPos.Y - windowPos.Y);
+            var screenPos3D = new SharpDX.Vector3
             {
                 X = (localScreenPos.X / width * 2.0f) - 1.0f,
                 Y = -((localScreenPos.Y / height * 2.0f) - 1.0f),
                 Z = 0,
             };
 
-            Vector3.TransformCoordinate(ref screenPos3D, ref viewProjectionMatrix, out var camPos);
+            SharpDX.Vector3.TransformCoordinate(ref screenPos3D, ref viewProjectionMatrix, out var camPos);
 
             screenPos3D.Z = 1;
-            Vector3.TransformCoordinate(ref screenPos3D, ref viewProjectionMatrix, out var camPosOne);
+            SharpDX.Vector3.TransformCoordinate(ref screenPos3D, ref viewProjectionMatrix, out var camPosOne);
 
             var clipPos = camPosOne - camPos;
             clipPos.Normalize();
@@ -343,7 +377,7 @@ namespace Dalamud.Game.Internal.Gui
                     }
                 }
 
-                worldPos = new Vector3
+                worldPos = new SharpDX.Vector3
                 {
                     X = worldPosArray[0],
                     Y = worldPosArray[1],
@@ -352,6 +386,23 @@ namespace Dalamud.Game.Internal.Gui
             }
 
             return isSuccess;
+        }
+
+        /// <summary>
+        /// Converts screen coordinates to in-world coordinates via raycasting.
+        /// </summary>
+        /// <param name="screenPos">Screen coordinates.</param>
+        /// <param name="worldPos">Converted coordinates.</param>
+        /// <param name="rayDistance">How far to search for a collision.</param>
+        /// <returns>True if successful. On false, worldPos's contents are undefined.</returns>
+        /// <remarks>
+        /// This overload requires a conversion to SharpDX vectors, however the penalty should be negligible.
+        /// </remarks>
+        public bool ScreenToWorld(Vector2 screenPos, out Vector3 worldPos, float rayDistance = 100000.0f)
+        {
+            var result = this.ScreenToWorld(screenPos.ToSharpDX(), out var sharpworldPos);
+            worldPos = sharpworldPos.ToSystem();
+            return result;
         }
 
         /// <summary>
@@ -381,12 +432,14 @@ namespace Dalamud.Game.Internal.Gui
         /// <param name="name">The addon name.</param>
         /// <param name="index">The index of the addon, starting at 1.</param>
         /// <returns>The native memory representation of the addon, if it exists.</returns>
-        public Addon.Addon GetAddonByName(string name, int index)
+        public Addon GetAddonByName(string name, int index)
         {
-            var addonMem = this.GetUiObjectByName(name, index);
-            if (addonMem == IntPtr.Zero) return null;
-            var addonStruct = Marshal.PtrToStructure<Structs.Addon>(addonMem);
-            return new Addon.Addon(addonMem, addonStruct);
+            var address = this.GetUiObjectByName(name, index);
+
+            if (address == IntPtr.Zero)
+                return null;
+
+            return new Addon(address);
         }
 
         /// <summary>

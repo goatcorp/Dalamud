@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace Dalamud.Game.Internal.Gui
+namespace Dalamud.Game.Gui
 {
     /// <summary>
     /// The address resolver for the <see cref="GameGui"/> class.
