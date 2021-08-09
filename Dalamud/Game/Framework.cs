@@ -5,13 +5,13 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 
-using Dalamud.Game.Internal.Gui;
-using Dalamud.Game.Internal.Network;
+using Dalamud.Game.Gui;
 using Dalamud.Game.Libc;
+using Dalamud.Game.Network;
 using Dalamud.Hooking;
 using Serilog;
 
-namespace Dalamud.Game.Internal
+namespace Dalamud.Game
 {
     /// <summary>
     /// This class represents the Framework of the native game client and grants access to various subsystems.
@@ -90,7 +90,7 @@ namespace Dalamud.Game.Internal
         /// <summary>
         /// Gets the stats history mapping.
         /// </summary>
-        public static Dictionary<string, List<double>> StatsHistory = new();
+        public static Dictionary<string, List<double>> StatsHistory { get; } = new();
 
         #region Subsystems
 

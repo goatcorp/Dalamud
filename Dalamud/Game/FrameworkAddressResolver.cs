@@ -1,7 +1,9 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace Dalamud.Game.Internal
+using Dalamud.Game.Internal;
+
+namespace Dalamud.Game
 {
     /// <summary>
     /// The address resolver for the <see cref="Framework"/> class.
