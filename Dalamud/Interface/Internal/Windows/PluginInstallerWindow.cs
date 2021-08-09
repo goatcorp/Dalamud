@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -1124,7 +1123,7 @@ namespace Dalamud.Interface.Internal.Windows
         {
             if (!this.pluginImagesMap.TryGetValue(manifest.InternalName, out var images))
             {
-                this.DownloadPluginImagesAsync(manifest);
+                Task.Run(() => this.DownloadPluginImagesAsync(manifest));
                 return false;
             }
 
@@ -1168,8 +1167,7 @@ namespace Dalamud.Interface.Internal.Windows
 
                     ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, Vector2.Zero);
 
-                    if (ImGui.ImageButton(image.ImGuiHandle,
-                                          ImGuiHelpers.ScaledVector2(image.Width / thumbFactor, image.Height / thumbFactor)))
+                    if (ImGui.ImageButton(image.ImGuiHandle, ImGuiHelpers.ScaledVector2(image.Width / thumbFactor, image.Height / thumbFactor)))
                         ImGui.OpenPopup(popupId);
 
                     ImGui.PopStyleVar();
