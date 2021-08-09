@@ -1,6 +1,8 @@
 using System;
 
-namespace Dalamud.Game.Internal.Gui
+using Dalamud.Game.Internal;
+
+namespace Dalamud.Game.Gui
 {
     /// <summary>
     /// The address resolver for the <see cref="ChatGui"/> class.
@@ -102,7 +104,7 @@ namespace Dalamud.Game.Internal.Gui
         protected override void Setup64Bit(SigScanner sig)
         {
             // PrintMessage = sig.ScanText("4055 57 41 ?? 41 ?? 488DAC24D8FEFFFF 4881EC28020000 488B05???????? 4833C4 488985F0000000 4532D2 48894C2448"); LAST PART FOR 5.1???
-            this.PrintMessage = sig.ScanText("4055 53 56 4154 4157 48 8d ac 24 ?? ?? ?? ?? 48 81 ec 20 02 00 00 48 8b 05");
+            this.PrintMessage = sig.ScanText("40 55 53 56 41 54 41 57 48 8D AC 24 ?? ?? ?? ?? 48 81 EC 20 02 00 00 48 8B 05");
             // PrintMessage = sig.ScanText("4055 57 41 ?? 41 ?? 488DAC24E8FEFFFF 4881EC18020000 488B05???????? 4833C4 488985E0000000 4532D2 48894C2438"); old
 
             // PrintMessage = sig.ScanText("40 55 57 41 56 41 57 48  8D AC 24 D8 FE FF FF 48 81 EC 28 02 00 00 48 8B  05 63 47 4A 01 48 33 C4 48 89 85 F0 00 00 00 45  32 D2 48 89 4C 24 48 33");

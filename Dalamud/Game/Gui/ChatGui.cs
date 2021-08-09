@@ -10,7 +10,7 @@ using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Hooking;
 using Serilog;
 
-namespace Dalamud.Game.Internal.Gui
+namespace Dalamud.Game.Gui
 {
     /// <summary>
     /// This class handles interacting with the native chat UI.
@@ -335,7 +335,7 @@ namespace Dalamud.Game.Internal.Gui
                 this.LastLinkedItemId = Marshal.ReadInt32(itemInfoPtr, 8);
                 this.LastLinkedItemFlags = Marshal.ReadByte(itemInfoPtr, 0x14);
 
-                Log.Debug($"HandlePopulateItemLinkDetour {linkObjectPtr} {itemInfoPtr} - linked:{this.LastLinkedItemId}");
+                Log.Verbose($"HandlePopulateItemLinkDetour {linkObjectPtr} {itemInfoPtr} - linked:{this.LastLinkedItemId}");
             }
             catch (Exception ex)
             {
