@@ -1,4 +1,4 @@
-﻿using Dalamud.Utility;
+using Dalamud.Utility;
 using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
@@ -18,12 +18,12 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
         {
             ImGui.Text("Checking actor table...");
 
-            if (this.index == dalamud.ClientState.Actors.Length - 1)
+            if (this.index == dalamud.ClientState.Objects.Length - 1)
             {
                 return SelfTestStepResult.Pass;
             }
 
-            var actor = dalamud.ClientState.Actors[this.index];
+            var actor = dalamud.ClientState.Objects[this.index];
             this.index++;
 
             if (actor == null)

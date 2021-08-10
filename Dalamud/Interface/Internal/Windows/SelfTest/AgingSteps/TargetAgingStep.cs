@@ -1,5 +1,5 @@
-﻿using Dalamud.Game.ClientState.Actors.Types;
-using Dalamud.Game.ClientState.Actors.Types.NonPlayer;
+using Dalamud.Game.ClientState.Objects.SubKinds;
+using Dalamud.Game.ClientState.Objects.Types;
 using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
@@ -20,7 +20,7 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
             switch (this.step)
             {
                 case 0:
-                    dalamud.ClientState.Targets.ClearCurrentTarget();
+                    dalamud.ClientState.Targets.ClearTarget();
                     dalamud.ClientState.Targets.ClearFocusTarget();
 
                     this.step++;
@@ -30,7 +30,7 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
                 case 1:
                     ImGui.Text("Target a player...");
 
-                    var cTarget = dalamud.ClientState.Targets.CurrentTarget;
+                    var cTarget = dalamud.ClientState.Targets.Target;
                     if (cTarget is PlayerCharacter)
                     {
                         this.step++;
