@@ -42,7 +42,6 @@ namespace Dalamud.Interface.Internal.Windows
         private readonly PluginManager pluginManager;
         private readonly DalamudStartInfo startInfo;
         private readonly CommandManager commandManager;
-        private readonly DalamudInterface dalamudInterface;
         private readonly InterfaceManager interfaceManager;
 
         private readonly TextureWrap defaultIcon;
@@ -88,7 +87,6 @@ namespace Dalamud.Interface.Internal.Windows
             this.startInfo = Service<DalamudStartInfo>.Get();
             this.commandManager = Service<CommandManager>.Get();
             this.pluginManager = Service<PluginManager>.Get();
-            this.dalamudInterface = Service<DalamudInterface>.Get();
             this.interfaceManager = Service<InterfaceManager>.Get();
             this.IsOpen = true;
 
