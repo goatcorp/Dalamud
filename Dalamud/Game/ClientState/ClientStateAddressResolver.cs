@@ -1,7 +1,4 @@
 using System;
-using System.Runtime.InteropServices;
-
-using Dalamud.Game.Internal;
 
 namespace Dalamud.Game.ClientState
 {
@@ -15,17 +12,25 @@ namespace Dalamud.Game.ClientState
         /// <summary>
         /// Gets the address of the actor table.
         /// </summary>
-        public IntPtr ActorTable { get; private set; }
+        public IntPtr ObjectTable { get; private set; }
 
         /// <summary>
-        /// Gets the address of the fate table pointer.
+        /// Gets the address of the buddy list.
+        /// </summary>
+        public IntPtr BuddyList { get; private set; }
+
+        /// <summary>
+        /// Gets the address of a pointer to the fate table.
         /// </summary>
         /// <remarks>
         /// This is a static address to a pointer, not the address of the table itself.
         /// </remarks>
         public IntPtr FateTablePtr { get; private set; }
 
-        // public IntPtr ViewportActorTable { get; private set; }
+        /// <summary>
+        /// Gets the address of the Group Manager.
+        /// </summary>
+        public IntPtr GroupManager { get; private set; }
 
         /// <summary>
         /// Gets the address of the local content id.
@@ -75,12 +80,16 @@ namespace Dalamud.Game.ClientState
             // ViewportActorTable = sig.GetStaticAddressFromSig("48 8D 0D ?? ?? ?? ?? 85 ED", 0) + 0x148;
             // SomeActorTableAccess = sig.ScanText("E8 ?? ?? ?? ?? 48 8D 55 A0 48 8D 8E ?? ?? ?? ??");
 
-            this.ActorTable = sig.GetStaticAddressFromSig("48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 44 0F B6 83");
+            this.ObjectTable = sig.GetStaticAddressFromSig("48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 44 0F B6 83");
+
+            this.BuddyList = sig.GetStaticAddressFromSig("48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 45 84 E4 75 1A F6 45 12 04");
 
             this.FateTablePtr = sig.GetStaticAddressFromSig("48 8B 15 ?? ?? ?? ?? 48 8B F9 44 0F B7 41 ??");
 
+            this.GroupManager = sig.GetStaticAddressFromSig("48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 80 B8 ?? ?? ?? ?? ?? 76 50");
+
             this.LocalContentId = sig.GetStaticAddressFromSig("48 0F 44 05 ?? ?? ?? ?? 48 39 07");
-            this.JobGaugeData = sig.GetStaticAddressFromSig("48 8B 0D ?? ?? ?? ?? 48 85 C9 74 43") + 0x10;
+            this.JobGaugeData = sig.GetStaticAddressFromSig("48 8B 0D ?? ?? ?? ?? 48 85 C9 74 43") + 0x8;
 
             this.SetupTerritoryType = sig.ScanText("48 89 5C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 48 8B F9 66 89 91 ?? ?? ?? ??");
 
@@ -88,11 +97,9 @@ namespace Dalamud.Game.ClientState
             // so GetStaticAddressFromSig() can't be used. lea rcx, ds:1DB9F74h[rax*4]
             this.KeyboardState = sig.ScanText("48 8D 0C 85 ?? ?? ?? ?? 8B 04 31 85 C2 0F 85") + 0x4;
 
-            // PartyListUpdate = sig.ScanText("E8 ?? ?? ?? ?? 49 8B D7 4C 8D 86 ?? ?? ?? ??");
-
             this.ConditionFlags = sig.GetStaticAddressFromSig("48 8D 0D ?? ?? ?? ?? BA ?? ?? ?? ?? E8 ?? ?? ?? ?? B0 01 48 83 C4 30");
 
-            this.TargetManager = sig.GetStaticAddressFromSig("48 8B 05 ?? ?? ?? ?? 48 8D 0D ?? ?? ?? ?? FF 50 ?? 48 85 DB", 3);
+            this.TargetManager = sig.GetStaticAddressFromSig("48 8B 05 ?? ?? ?? ?? 48 8D 0D ?? ?? ?? ?? FF 50 ?? 48 85 DB");
 
             this.GamepadPoll = sig.ScanText("40 ?? 57 41 ?? 48 81 EC ?? ?? ?? ?? 44 0F ?? ?? ?? ?? ?? ?? ?? 48 8B");
         }

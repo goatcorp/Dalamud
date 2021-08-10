@@ -1,6 +1,6 @@
 using System;
 
-namespace Dalamud.Game.ClientState.Actors.Types
+namespace Dalamud.Game.ClientState.Objects.Enums
 {
     /// <summary>
     /// Enum describing possible status flags.
@@ -14,42 +14,42 @@ namespace Dalamud.Game.ClientState.Actors.Types
         None = 0,
 
         /// <summary>
-        /// Hostile actor.
+        /// Hostile character.
         /// </summary>
         Hostile = 1,
 
         /// <summary>
-        /// Actor in combat.
+        /// Character in combat.
         /// </summary>
         InCombat = 2,
 
         /// <summary>
-        /// Actor weapon is out.
+        /// Character weapon is out.
         /// </summary>
         WeaponOut = 4,
 
         /// <summary>
-        /// Actor offhand is out.
+        /// Character offhand is out.
         /// </summary>
         OffhandOut = 8,
 
         /// <summary>
-        /// Actor is a party member.
+        /// Character is a party member.
         /// </summary>
         PartyMember = 16,
 
         /// <summary>
-        /// Actor is a alliance member.
+        /// Character is a alliance member.
         /// </summary>
         AllianceMember = 32,
 
         /// <summary>
-        /// Actor is in friend list.
+        /// Character is in friend list.
         /// </summary>
         Friend = 64,
 
         /// <summary>
-        /// Actor is casting.
+        /// Character is casting.
         /// </summary>
         IsCasting = 128,
     }

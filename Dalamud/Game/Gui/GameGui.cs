@@ -280,23 +280,6 @@ namespace Dalamud.Game.Gui
         }
 
         /// <summary>
-        /// Converts in-world coordinates to screen coordinates (upper left corner origin).
-        /// </summary>
-        /// <param name="worldPos">Coordinates in the world.</param>
-        /// <param name="screenPos">Converted coordinates.</param>
-        /// <returns>True if worldPos corresponds to a position in front of the camera.</returns>
-        /// <remarks>
-        /// This overload requires a conversion to SharpDX vectors, however the penalty should be negligible.
-        /// </remarks>
-        public bool WorldToScreen(Position3 worldPos, out Vector2 screenPos)
-        {
-            // This overload is necessary due to Positon3 implicit operators.
-            var result = this.WorldToScreen((SharpDX.Vector3)worldPos, out var sharpScreenPos);
-            screenPos = sharpScreenPos.ToSystem();
-            return result;
-        }
-
-        /// <summary>
         /// Converts screen coordinates to in-world coordinates via raycasting.
         /// </summary>
         /// <param name="screenPos">Screen coordinates.</param>

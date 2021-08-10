@@ -1,4 +1,4 @@
-namespace Dalamud.Game.ClientState.Actors.Types.NonPlayer
+namespace Dalamud.Game.ClientState.Objects.Enums
 {
     /// <summary>
     /// An Enum describing possible BattleNpc kinds.
