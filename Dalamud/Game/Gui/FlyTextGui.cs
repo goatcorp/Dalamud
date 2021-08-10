@@ -144,8 +144,6 @@ namespace Dalamud.Game.Internal.Gui
             var strArray = atkArrayDataHolder._StringArrays[strIndex];
 
             // Write the values to the arrays using a known valid flytext region
-
-            // Whether or not to enable this set of values for displaying flytext
             numArray->IntArray[numOffset + 0] = 1;                      // Some kind of "Enabled" flag for this section
             numArray->IntArray[numOffset + 1] = (int)kind;
             numArray->IntArray[numOffset + 2] = unchecked((int)val1);
