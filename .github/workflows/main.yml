@@ -22,6 +22,8 @@ jobs:
           ($env:REPO_NAME) >> VERSION
           ($env:BRANCH) >> VERSION
           ($env:COMMIT) >> VERSION
+          
+          git status
       - name: Build Dalamud
         run: .\build.ps1 compile
       - name: Test Dalamud
