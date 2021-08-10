@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace Dalamud.Game.Internal.Libc
+namespace Dalamud.Game.Libc
 {
     /// <summary>
     /// An address wrapper around the <see cref="StdString"/> class.

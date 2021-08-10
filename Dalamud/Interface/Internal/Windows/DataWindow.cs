@@ -4,16 +4,17 @@ using System.Dynamic;
 using System.Linq;
 using System.Numerics;
 
+using Dalamud.Game;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Actors.Types;
 using Dalamud.Game.ClientState.Actors.Types.NonPlayer;
 using Dalamud.Game.ClientState.Structs.JobGauge;
-using Dalamud.Game.Internal;
 using Dalamud.Game.Internal.Gui.Addon;
 using Dalamud.Game.Internal.Gui.Toast;
 using Dalamud.Game.Text;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
+using Dalamud.Utility;
 using ImGuiNET;
 using ImGuiScene;
 using Newtonsoft.Json;
@@ -285,11 +286,11 @@ namespace Dalamud.Interface.Internal.Windows
                 foreach (var valueTuple in debugScannedValue.Value)
                 {
                     ImGui.TextUnformatted(
-                        $"      {valueTuple.Item1} - 0x{valueTuple.Item2.ToInt64():x}");
+                        $"      {valueTuple.ClassName} - 0x{valueTuple.Address.ToInt64():x}");
                     ImGui.SameLine();
 
                     if (ImGui.Button($"C##copyAddress{this.copyButtonIndex++}"))
-                        ImGui.SetClipboardText(valueTuple.Item2.ToInt64().ToString("x"));
+                        ImGui.SetClipboardText(valueTuple.Address.ToInt64().ToString("x"));
                 }
             }
         }
@@ -468,8 +469,8 @@ namespace Dalamud.Interface.Internal.Windows
         private void DrawPluginIPC()
         {
 #pragma warning disable CS0618 // Type or member is obsolete
-            var i1 = new DalamudPluginInterface(this.dalamud, "DalamudTestSub", null, PluginLoadReason.Unknown);
-            var i2 = new DalamudPluginInterface(this.dalamud, "DalamudTestPub", null, PluginLoadReason.Unknown);
+            var i1 = new DalamudPluginInterface(this.dalamud, "DalamudTestSub", PluginLoadReason.Unknown);
+            var i2 = new DalamudPluginInterface(this.dalamud, "DalamudTestPub", PluginLoadReason.Unknown);
 
             if (ImGui.Button("Add test sub"))
             {

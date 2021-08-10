@@ -35,9 +35,8 @@ namespace Dalamud.Plugin
         /// </summary>
         /// <param name="dalamud">The dalamud instance to expose.</param>
         /// <param name="pluginName">The internal name of the plugin.</param>
-        /// <param name="assemblyLocation">The equivalent of what Assembly.GetExecutingAssembly().Location should return.</param>
         /// <param name="reason">The reason the plugin was loaded.</param>
-        internal DalamudPluginInterface(Dalamud dalamud, string pluginName, string assemblyLocation, PluginLoadReason reason)
+        internal DalamudPluginInterface(Dalamud dalamud, string pluginName, PluginLoadReason reason)
         {
             this.CommandManager = dalamud.CommandManager;
             this.Framework = dalamud.Framework;
@@ -50,7 +49,6 @@ namespace Dalamud.Plugin
             this.dalamud = dalamud;
             this.pluginName = pluginName;
             this.configs = dalamud.PluginManager.PluginConfigs;
-            this.AssemblyLocation = assemblyLocation;
             this.Reason = reason;
 
             this.GeneralChatType = this.dalamud.Configuration.GeneralChatType;
@@ -89,11 +87,6 @@ namespace Dalamud.Plugin
         public PluginLoadReason Reason { get; }
 
         /// <summary>
-        /// Gets the plugin assembly location.
-        /// </summary>
-        public string AssemblyLocation { get; private set; }
-
-        /// <summary>
         /// Gets the directory Dalamud assets are stored in.
         /// </summary>
         public DirectoryInfo DalamudAssetDirectory => this.dalamud.AssetDirectory;
@@ -124,7 +117,7 @@ namespace Dalamud.Plugin
         public Framework Framework { get; private set; }
 
         /// <summary>
-        /// Gets the <see cref="UiBuilder">UiBuilder</see> instance which allows you to draw UI into the game via ImGui draw calls.
+        /// Gets the <see cref="UiBuilder"/> instance which allows you to draw UI into the game via ImGui draw calls.
         /// </summary>
         public UiBuilder UiBuilder { get; private set; }
 
@@ -171,6 +164,8 @@ namespace Dalamud.Plugin
         /// Gets the action that should be executed when any plugin sends a message.
         /// </summary>
         internal Action<string, ExpandoObject> AnyPluginIpcAction { get; private set; }
+
+        #region Configuration
 
         /// <summary>
         /// Save a plugin configuration(inheriting IPluginConfiguration).
@@ -222,6 +217,8 @@ namespace Dalamud.Plugin
         /// </summary>
         /// <returns>directory with path of AppData/XIVLauncher/pluginConfig/PluginInternalName/loc.</returns>
         public string GetPluginLocDirectory() => this.configs.GetDirectory(Path.Combine(this.pluginName, "loc"));
+
+        #endregion
 
         #region Chat Links
 

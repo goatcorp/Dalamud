@@ -1,6 +1,8 @@
 using System;
 
-namespace Dalamud.Game.Internal.Libc
+using Dalamud.Game.Internal;
+
+namespace Dalamud.Game.Libc
 {
     /// <summary>
     /// The address resolver for the <see cref="LibcFunction"/> class.

@@ -2,9 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 
-using Dalamud.Game.Internal.Libc;
+using Dalamud.Game.Libc;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
@@ -61,17 +60,6 @@ namespace Dalamud.Game.Internal.Gui
         public delegate void OnMessageDelegate(XivChatType type, uint senderId, ref SeString sender, ref SeString message, ref bool isHandled);
 
         /// <summary>
-        /// A delegate type used with the <see cref="OnChatMessageRaw"/> event.
-        /// </summary>
-        /// <param name="type">The type of chat.</param>
-        /// <param name="senderId">The sender ID.</param>
-        /// <param name="sender">The sender name.</param>
-        /// <param name="message">The message sent.</param>
-        /// <param name="isHandled">A value indicating whether the message was handled or should be propagated.</param>
-        [Obsolete("Please use OnMessageDelegate instead. For modifications, it will take precedence.")]
-        public delegate void OnMessageRawDelegate(XivChatType type, uint senderId, ref StdString sender, ref StdString message, ref bool isHandled);
-
-        /// <summary>
         /// A delegate type used with the <see cref="OnCheckMessageHandled"/> event.
         /// </summary>
         /// <param name="type">The type of chat.</param>
@@ -112,12 +100,6 @@ namespace Dalamud.Game.Internal.Gui
         /// Event that will be fired when a chat message is sent to chat by the game.
         /// </summary>
         public event OnMessageDelegate OnChatMessage;
-
-        /// <summary>
-        /// Event that will be fired when a chat message is sent by the game, containing raw, unparsed data.
-        /// </summary>
-        [Obsolete("Please use OnChatMessage instead. For modifications, it will take precedence.")]
-        public event OnMessageRawDelegate OnChatMessageRaw;
 
         /// <summary>
         /// Event that allows you to stop messages from appearing in chat by setting the isHandled parameter to true.
@@ -388,7 +370,6 @@ namespace Dalamud.Game.Internal.Gui
                 if (!isHandled)
                 {
                     this.OnChatMessage?.Invoke(chattype, senderid, ref parsedSender, ref parsedMessage, ref isHandled);
-                    this.OnChatMessageRaw?.Invoke(chattype, senderid, ref sender, ref message, ref isHandled);
                 }
 
                 var newEdited = parsedMessage.Encode();
