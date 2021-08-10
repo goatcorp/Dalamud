@@ -1,17 +1,19 @@
 using System;
+using System.Numerics;
 
 using Dalamud.Game.ClientState.Resolvers;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Memory;
-using FFXIVClientStructs.FFXIV.Client.System.String;
 
-namespace Dalamud.Game.ClientState.Fates.Types
+namespace Dalamud.Game.ClientState.Fates
 {
     /// <summary>
     /// This class represents an FFXIV Fate.
     /// </summary>
     public unsafe partial class Fate : IEquatable<Fate>
     {
+        private Dalamud dalamud;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="Fate"/> class.
         /// </summary>
@@ -20,7 +22,7 @@ namespace Dalamud.Game.ClientState.Fates.Types
         internal Fate(IntPtr address, Dalamud dalamud)
         {
             this.Address = address;
-            this.Dalamud = dalamud;
+            this.dalamud = dalamud;
         }
 
         /// <summary>
@@ -28,10 +30,7 @@ namespace Dalamud.Game.ClientState.Fates.Types
         /// </summary>
         public IntPtr Address { get; }
 
-        /// <summary>
-        /// Gets Dalamud itself.
-        /// </summary>
-        private protected Dalamud Dalamud { get; }
+        private FFXIVClientStructs.FFXIV.Client.Game.Fate.FateContext* Struct => (FFXIVClientStructs.FFXIV.Client.Game.Fate.FateContext*)this.Address;
 
         public static bool operator ==(Fate fate1, Fate fate2)
         {
@@ -53,7 +52,7 @@ namespace Dalamud.Game.ClientState.Fates.Types
             if (fate == null)
                 return false;
 
-            if (fate.Dalamud.ClientState.LocalContentId == 0)
+            if (fate.dalamud.ClientState.LocalContentId == 0)
                 return false;
 
             return true;
@@ -83,22 +82,22 @@ namespace Dalamud.Game.ClientState.Fates.Types
         /// <summary>
         /// Gets the Fate ID of this <see cref="Fate" />.
         /// </summary>
-        public ushort FateId => *(ushort*)(this.Address + FateOffsets.FateId);
+        public ushort FateId => this.Struct->FateId;
 
         /// <summary>
         /// Gets game data linked to this Fate.
         /// </summary>
-        public Lumina.Excel.GeneratedSheets.Fate GameData => this.Dalamud.Data.GetExcelSheet<Lumina.Excel.GeneratedSheets.Fate>().GetRow(this.FateId);
+        public Lumina.Excel.GeneratedSheets.Fate GameData => this.dalamud.Data.GetExcelSheet<Lumina.Excel.GeneratedSheets.Fate>().GetRow(this.FateId);
 
         /// <summary>
         /// Gets the time this <see cref="Fate"/> started.
         /// </summary>
-        public int StartTimeEpoch => *(int*)(this.Address + FateOffsets.StartTimeEpoch);
+        public int StartTimeEpoch => this.Struct->StartTimeEpoch;
 
         /// <summary>
         /// Gets how long this <see cref="Fate"/> will run.
         /// </summary>
-        public short Duration => *(short*)(this.Address + FateOffsets.Duration);
+        public short Duration => this.Struct->Duration;
 
         /// <summary>
         /// Gets the remaining time in seconds for this <see cref="Fate"/>.
@@ -108,31 +107,31 @@ namespace Dalamud.Game.ClientState.Fates.Types
         /// <summary>
         /// Gets the displayname of this <see cref="Fate" />.
         /// </summary>
-        public SeString Name => MemoryHelper.ReadSeString((Utf8String*)(this.Address + FateOffsets.Name));
+        public SeString Name => MemoryHelper.ReadSeString(&this.Struct->Name);
 
         /// <summary>
         /// Gets the state of this <see cref="Fate"/> (Running, Ended, Failed, Preparation, WaitingForEnd).
         /// </summary>
-        public FateState State => *(FateState*)(this.Address + FateOffsets.State);
+        public FateState State => (FateState)this.Struct->State;
 
         /// <summary>
         /// Gets the progress amount of this <see cref="Fate"/>.
         /// </summary>
-        public byte Progress => *(byte*)(this.Address + FateOffsets.Progress);
+        public byte Progress => this.Struct->Progress;
 
         /// <summary>
         /// Gets the level of this <see cref="Fate"/>.
         /// </summary>
-        public byte Level => *(byte*)(this.Address + FateOffsets.Level);
+        public byte Level => this.Struct->Level;
 
         /// <summary>
         /// Gets the position of this <see cref="Fate"/>.
         /// </summary>
-        public Position3 Position => *(Position3*)(this.Address + FateOffsets.Position);
+        public Vector3 Position => new(this.Struct->X, this.Struct->Y, this.Struct->Z);
 
         /// <summary>
         /// Gets the territory this <see cref="Fate"/> is located in.
         /// </summary>
-        public TerritoryTypeResolver TerritoryType => new(*(ushort*)(this.Address + FateOffsets.Territory), this.Dalamud);
+        public ExcelResolver<Lumina.Excel.GeneratedSheets.TerritoryType> TerritoryType => new(this.Struct->TerritoryID, this.dalamud);
     }
 }
