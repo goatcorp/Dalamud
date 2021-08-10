@@ -616,7 +616,7 @@ namespace Dalamud.Interface.Internal.Windows
 
             ImGui.PushID($"available{index}{manifest.InternalName}");
 
-            if (ImGui.CollapsingHeader($"{label}###Header"))
+            if (this.DrawPluginCollapsingHeader(label, manifest, false, false, index))
             {
                 ImGuiHelpers.ScaledDummy(5);
 
@@ -788,7 +788,7 @@ namespace Dalamud.Interface.Internal.Windows
 
             ImGui.PushID($"installed{index}{plugin.Manifest.InternalName}");
 
-            if (ImGui.CollapsingHeader($"{label}###Header"))
+            if (this.DrawPluginCollapsingHeader(label, plugin.Manifest, trouble, availablePluginUpdate != default, index))
             {
                 var manifest = plugin.Manifest;
 
