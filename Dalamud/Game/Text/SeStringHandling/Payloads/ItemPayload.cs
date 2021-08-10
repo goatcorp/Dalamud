@@ -73,6 +73,12 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         }
 
         /// <summary>
+        /// Gets the raw item ID of this payload.
+        /// </summary>
+        [JsonIgnore]
+        public uint ItemId => this.itemId;
+
+        /// <summary>
         /// Gets the underlying Lumina Item represented by this payload.
         /// </summary>
         /// <remarks>
