@@ -7,7 +7,7 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
     /// <summary>
     /// Test setup for the login events.
     /// </summary>
-    internal class LoginEventAgingStep : IAgingStep
+    internal class LogoutEventAgingStep : IAgingStep
     {
         private bool subscribed = false;
         private bool hasPassed = false;
@@ -18,17 +18,17 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
         /// <inheritdoc/>
         public SelfTestStepResult RunStep(Dalamud dalamud)
         {
-            ImGui.Text("Log in now...");
+            ImGui.Text("Log out now...");
 
             if (!this.subscribed)
             {
-                dalamud.ClientState.OnLogin += this.ClientStateOnOnLogin;
+                dalamud.ClientState.OnLogout += this.ClientStateOnOnLogout;
                 this.subscribed = true;
             }
 
             if (this.hasPassed)
             {
-                dalamud.ClientState.OnLogin -= this.ClientStateOnOnLogin;
+                dalamud.ClientState.OnLogout -= this.ClientStateOnOnLogout;
                 this.subscribed = false;
                 return SelfTestStepResult.Pass;
             }
@@ -41,12 +41,12 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
         {
             if (this.subscribed)
             {
-                dalamud.ClientState.OnLogin -= this.ClientStateOnOnLogin;
+                dalamud.ClientState.OnLogout -= this.ClientStateOnOnLogout;
                 this.subscribed = false;
             }
         }
 
-        private void ClientStateOnOnLogin(object sender, EventArgs e)
+        private void ClientStateOnOnLogout(object sender, EventArgs e)
         {
             this.hasPassed = true;
         }
