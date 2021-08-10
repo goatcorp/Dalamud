@@ -1,4 +1,4 @@
-namespace Dalamud.Game.ClientState
+namespace Dalamud.Game.ClientState.Conditions
 {
     /// <summary>
     /// Possible state flags (or conditions as they're called internally) that can be set on the local client.

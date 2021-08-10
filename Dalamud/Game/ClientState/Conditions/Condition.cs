@@ -1,6 +1,6 @@
 using System;
 
-namespace Dalamud.Game.ClientState
+namespace Dalamud.Game.ClientState.Conditions
 {
     /// <summary>
     /// Provides access to conditions (generally player state). You can check whether a player is in combat, mounted, etc.
@@ -37,7 +37,7 @@ namespace Dalamud.Game.ClientState
             {
                 var idx = (int)flag;
 
-                if (idx > MaxConditionEntries || idx < 0)
+                if (idx < 0 || idx >= MaxConditionEntries)
                     return false;
 
                 return *(bool*)(this.ConditionArrayBase + idx);
