@@ -5,6 +5,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 
 using Dalamud.Interface.Internal.Windows;
+using Dalamud.Interface.Internal.Windows.SelfTest;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging;
 using Dalamud.Logging.Internal;
@@ -36,6 +37,7 @@ namespace Dalamud.Interface.Internal
         private readonly PluginInstallerWindow pluginWindow;
         private readonly ScratchpadWindow scratchpadWindow;
         private readonly SettingsWindow settingsWindow;
+        private readonly SelfTestWindow selfTestWindow;
 
         private ulong frameCount = 0;
 
@@ -67,6 +69,7 @@ namespace Dalamud.Interface.Internal
             this.pluginWindow = new PluginInstallerWindow(dalamud) { IsOpen = false };
             this.scratchpadWindow = new ScratchpadWindow(dalamud) { IsOpen = false };
             this.settingsWindow = new SettingsWindow(dalamud) { IsOpen = false };
+            this.selfTestWindow = new SelfTestWindow(dalamud) { IsOpen = false };
 
             this.windowSystem.AddWindow(this.changelogWindow);
             this.windowSystem.AddWindow(this.colorDemoWindow);
@@ -79,6 +82,7 @@ namespace Dalamud.Interface.Internal
             this.windowSystem.AddWindow(this.pluginWindow);
             this.windowSystem.AddWindow(this.scratchpadWindow);
             this.windowSystem.AddWindow(this.settingsWindow);
+            this.windowSystem.AddWindow(this.selfTestWindow);
 
             this.dalamud.InterfaceManager.OnDraw += this.OnDraw;
 
@@ -181,6 +185,11 @@ namespace Dalamud.Interface.Internal
         /// </summary>
         public void OpenSettings() => this.settingsWindow.IsOpen = true;
 
+        /// <summary>
+        /// Opens the <see cref="SelfTestWindow"/>.
+        /// </summary>
+        public void OpenSelfTest() => this.selfTestWindow.IsOpen = true;
+
         #endregion
 
         #region Toggle
@@ -252,6 +261,11 @@ namespace Dalamud.Interface.Internal
         /// Toggles the <see cref="SettingsWindow"/>.
         /// </summary>
         public void ToggleSettingsWindow() => this.settingsWindow.Toggle();
+
+        /// <summary>
+        /// Toggles the <see cref="SelfTestWindow"/>.
+        /// </summary>
+        public void ToggleSelfTestWindow() => this.selfTestWindow.Toggle();
 
         #endregion
 
@@ -382,6 +396,13 @@ namespace Dalamud.Interface.Internal
                         {
                             this.OpenColorsDemoWindow();
                         }
+
+                        if (ImGui.MenuItem("Open Self-Test"))
+                        {
+                            this.OpenSelfTest();
+                        }
+
+                        ImGui.Separator();
 
                         ImGui.MenuItem("Draw ImGui demo", string.Empty, ref this.isImGuiDrawDemoWindow);
 
