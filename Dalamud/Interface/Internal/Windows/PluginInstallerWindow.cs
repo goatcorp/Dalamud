@@ -614,7 +614,9 @@ namespace Dalamud.Interface.Internal.Windows
                 label += Locs.PluginTitleMod_TestingVersion;
             }
 
-            if (this.DrawPluginCollapsingHeader(label, manifest, false, false, index))
+            ImGui.PushID($"available{index}{manifest.InternalName}");
+
+            if (ImGui.CollapsingHeader($"{label}###Header"))
             {
                 ImGuiHelpers.ScaledDummy(5);
 
@@ -709,6 +711,8 @@ namespace Dalamud.Interface.Internal.Windows
 
                 ImGui.EndPopup();
             }
+
+            ImGui.PopID();
         }
 
         private void DrawInstalledPlugin(LocalPlugin plugin, int index, bool showInstalled = false)
@@ -782,7 +786,9 @@ namespace Dalamud.Interface.Internal.Windows
                 trouble = true;
             }
 
-            if (this.DrawPluginCollapsingHeader(label, plugin.Manifest, trouble, availablePluginUpdate != default, index))
+            ImGui.PushID($"installed{index}{plugin.Manifest.InternalName}");
+
+            if (ImGui.CollapsingHeader($"{label}###Header"))
             {
                 var manifest = plugin.Manifest;
 
@@ -880,6 +886,8 @@ namespace Dalamud.Interface.Internal.Windows
 
                 ImGui.EndPopup();
             }
+
+            ImGui.PopID();
         }
 
         private void DrawPluginControlButton(LocalPlugin plugin)
