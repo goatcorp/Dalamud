@@ -23,29 +23,12 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         /// Initializes a new instance of the <see cref="IconPayload"/> class.
         /// Create a Icon payload for the specified icon.
         /// </summary>
-        /// <param name="iconIndex">Index of the icon.</param>
-        [Obsolete("IconPayload(uint) is deprecated, please use IconPayload(BitmapFontIcon).")]
-        public IconPayload(uint iconIndex)
-            : this((BitmapFontIcon)iconIndex)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="IconPayload"/> class.
-        /// Create a Icon payload for the specified icon.
-        /// </summary>
         internal IconPayload()
         {
         }
 
         /// <inheritdoc/>
         public override PayloadType Type => PayloadType.Icon;
-
-        /// <summary>
-        /// Gets the index of the icon.
-        /// </summary>
-        [Obsolete("Use IconPayload.Icon")]
-        public uint IconIndex => (uint)this.Icon;
 
         /// <summary>
         /// Gets or sets the icon the payload represents.

@@ -209,6 +209,32 @@ namespace Dalamud.Game
             return v2 <= v1;
         }
 
+        public static GameVersion operator +(GameVersion v1, TimeSpan v2)
+        {
+            if (v1 == null)
+                throw new ArgumentNullException(nameof(v1));
+
+            if (v1.Year == -1 || v1.Month == -1 || v1.Day == -1)
+                return v1;
+
+            var date = new DateTime(v1.Year, v1.Month, v1.Day) + v2;
+
+            return new GameVersion(date.Year, date.Month, date.Day, v1.Major, v1.Minor);
+        }
+
+        public static GameVersion operator -(GameVersion v1, TimeSpan v2)
+        {
+            if (v1 == null)
+                throw new ArgumentNullException(nameof(v1));
+
+            if (v1.Year == -1 || v1.Month == -1 || v1.Day == -1)
+                return v1;
+
+            var date = new DateTime(v1.Year, v1.Month, v1.Day) - v2;
+
+            return new GameVersion(date.Year, date.Month, date.Day, v1.Major, v1.Minor);
+        }
+
         /// <summary>
         /// Parse a version string. YYYY.MM.DD.majr.minr or "any".
         /// </summary>

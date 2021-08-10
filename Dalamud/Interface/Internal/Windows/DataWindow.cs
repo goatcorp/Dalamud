@@ -4,17 +4,20 @@ using System.Dynamic;
 using System.Linq;
 using System.Numerics;
 
+using Dalamud.Game;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Actors.Types;
 using Dalamud.Game.ClientState.Actors.Types.NonPlayer;
+using Dalamud.Game.ClientState.Conditions;
+using Dalamud.Game.ClientState.GamePad;
 using Dalamud.Game.ClientState.Structs.JobGauge;
-using Dalamud.Game.Internal;
+using Dalamud.Game.Gui.Addons;
+using Dalamud.Game.Gui.Toast;
 using Dalamud.Game.Internal.Gui;
-using Dalamud.Game.Internal.Gui.Addon;
-using Dalamud.Game.Internal.Gui.Toast;
 using Dalamud.Game.Text;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
+using Dalamud.Utility;
 using ImGuiNET;
 using ImGuiScene;
 using Newtonsoft.Json;
@@ -115,6 +118,17 @@ namespace Dalamud.Interface.Internal.Windows
             ImGui,
             Tex,
             Gamepad,
+        }
+
+        /// <inheritdoc/>
+        public override void OnOpen()
+        {
+        }
+
+        /// <inheritdoc/>
+        public override void OnClose()
+        {
+            this.resultAddon = null;
         }
 
         /// <summary>
@@ -303,11 +317,11 @@ namespace Dalamud.Interface.Internal.Windows
                 foreach (var valueTuple in debugScannedValue.Value)
                 {
                     ImGui.TextUnformatted(
-                        $"      {valueTuple.Item1} - 0x{valueTuple.Item2.ToInt64():x}");
+                        $"      {valueTuple.ClassName} - 0x{valueTuple.Address.ToInt64():x}");
                     ImGui.SameLine();
 
                     if (ImGui.Button($"C##copyAddress{this.copyButtonIndex++}"))
-                        ImGui.SetClipboardText(valueTuple.Item2.ToInt64().ToString("x"));
+                        ImGui.SetClipboardText(valueTuple.Address.ToInt64().ToString("x"));
                 }
             }
         }
@@ -486,8 +500,8 @@ namespace Dalamud.Interface.Internal.Windows
         private void DrawPluginIPC()
         {
 #pragma warning disable CS0618 // Type or member is obsolete
-            var i1 = new DalamudPluginInterface(this.dalamud, "DalamudTestSub", null, PluginLoadReason.Unknown);
-            var i2 = new DalamudPluginInterface(this.dalamud, "DalamudTestPub", null, PluginLoadReason.Unknown);
+            var i1 = new DalamudPluginInterface(this.dalamud, "DalamudTestSub", PluginLoadReason.Unknown);
+            var i2 = new DalamudPluginInterface(this.dalamud, "DalamudTestPub", PluginLoadReason.Unknown);
 
             if (ImGui.Button("Add test sub"))
             {
@@ -579,9 +593,7 @@ namespace Dalamud.Interface.Internal.Windows
 
             if (ImGui.Button("Get Addon"))
             {
-                this.resultAddon =
-                    this.dalamud.Framework.Gui.GetAddonByName(
-                        this.inputAddonName, this.inputAddonIndex);
+                this.resultAddon = this.dalamud.Framework.Gui.GetAddonByName(this.inputAddonName, this.inputAddonIndex);
             }
 
             if (ImGui.Button("Find Agent"))
@@ -589,14 +601,12 @@ namespace Dalamud.Interface.Internal.Windows
 
             if (this.resultAddon != null)
             {
-                ImGui.TextUnformatted(
-                    $"{this.resultAddon.Name} - 0x{this.resultAddon.Address.ToInt64():x}\n    v:{this.resultAddon.Visible} x:{this.resultAddon.X} y:{this.resultAddon.Y} s:{this.resultAddon.Scale}, w:{this.resultAddon.Width}, h:{this.resultAddon.Height}");
+                ImGui.TextUnformatted($"{this.resultAddon.Name} - 0x{this.resultAddon.Address.ToInt64():x}\n    v:{this.resultAddon.Visible} x:{this.resultAddon.X} y:{this.resultAddon.Y} s:{this.resultAddon.Scale}, w:{this.resultAddon.Width}, h:{this.resultAddon.Height}");
             }
 
             if (this.findAgentInterfacePtr != IntPtr.Zero)
             {
-                ImGui.TextUnformatted(
-                    $"Agent: 0x{this.findAgentInterfacePtr.ToInt64():x}");
+                ImGui.TextUnformatted($"Agent: 0x{this.findAgentInterfacePtr.ToInt64():x}");
                 ImGui.SameLine();
 
                 if (ImGui.Button("C"))
@@ -807,13 +817,13 @@ namespace Dalamud.Interface.Internal.Windows
                            $"R3 {resolve(GamepadButtons.R3)} ");
             }
 #if DEBUG
-            ImGui.Text($"GamepadInput 0x{this.dalamud.ClientState.GamepadState.GamepadInput.ToInt64():X}");
+            ImGui.Text($"GamepadInput 0x{this.dalamud.ClientState.GamepadState.GamepadInputAddress.ToInt64():X}");
 
             if (ImGui.IsItemHovered())
                 ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
 
             if (ImGui.IsItemClicked())
-                ImGui.SetClipboardText($"0x{this.dalamud.ClientState.GamepadState.GamepadInput.ToInt64():X}");
+                ImGui.SetClipboardText($"0x{this.dalamud.ClientState.GamepadState.GamepadInputAddress.ToInt64():X}");
 #endif
 
             DrawHelper(

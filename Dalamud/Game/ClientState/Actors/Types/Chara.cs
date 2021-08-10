@@ -65,7 +65,7 @@ namespace Dalamud.Game.ClientState.Actors.Types
         /// <summary>
         /// Gets the ClassJob of this Chara.
         /// </summary>
-        public ClassJobResolver ClassJob => new(*(byte*)(this.Address + ActorOffsets.ClassJob), this.Dalamud);
+        public ExcelResolver<Lumina.Excel.GeneratedSheets.ClassJob> ClassJob => new(*(byte*)(this.Address + ActorOffsets.ClassJob), this.Dalamud);
 
         /// <summary>
         /// Gets the level of this Chara.

@@ -142,7 +142,7 @@ namespace Dalamud
                     var oldFile = new FileInfo(oldPath);
 
                     if (!oldFile.Exists)
-                        oldFile.Create();
+                        oldFile.Create().Close();
 
                     using var reader = new BinaryReader(logFile.Open(FileMode.Open, FileAccess.Read));
                     using var writer = new BinaryWriter(oldFile.Open(FileMode.Append, FileAccess.Write));

@@ -1,14 +1,16 @@
 using System;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 using Dalamud.Game.ClientState.Actors;
 using Dalamud.Game.ClientState.Actors.Types;
+using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Fates;
-using Dalamud.Game.Internal;
+using Dalamud.Game.ClientState.GamePad;
+using Dalamud.Game.ClientState.Keys;
 using Dalamud.Hooking;
 using JetBrains.Annotations;
-using Lumina.Excel.GeneratedSheets;
 using Serilog;
 
 namespace Dalamud.Game.ClientState
@@ -93,7 +95,7 @@ namespace Dalamud.Game.ClientState
         /// <summary>
         /// Event that gets fired when a duty is ready.
         /// </summary>
-        public event EventHandler<ContentFinderCondition> CfPop;
+        public event EventHandler<Lumina.Excel.GeneratedSheets.ContentFinderCondition> CfPop;
 
         /// <summary>
         /// Gets the table of all present actors.
@@ -194,7 +196,7 @@ namespace Dalamud.Game.ClientState
             return this.setupTerritoryTypeHook.Original(manager, terriType);
         }
 
-        private void NetworkHandlersOnCfPop(object sender, ContentFinderCondition e)
+        private void NetworkHandlersOnCfPop(object sender, Lumina.Excel.GeneratedSheets.ContentFinderCondition e)
         {
             this.CfPop?.Invoke(this, e);
         }
