@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 using Serilog;
 
-namespace Dalamud.Game.ClientState
+namespace Dalamud.Game.ClientState.Keys
 {
     /// <summary>
     /// Wrapper around the game keystate buffer, which contains the pressed state for all keyboard keys, indexed by virtual vkCode.
@@ -51,6 +51,13 @@ namespace Dalamud.Game.ClientState
                 Marshal.WriteInt32(this.bufferBase + (4 * vkCode), value ? 1 : 0);
             }
         }
+
+        /// <summary>
+        /// Get or set the keypressed state for a given VirtualKey enum.
+        /// </summary>
+        /// <param name="vk">The virtual key to change.</param>
+        /// <returns>Whether the specified key is currently pressed.</returns>
+        public bool this[VirtualKey vk] => this[(int)vk];
 
         /// <summary>
         /// Clears the pressed state for all keys.

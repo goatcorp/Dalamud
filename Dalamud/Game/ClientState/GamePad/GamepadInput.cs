@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 
-namespace Dalamud.Game.ClientState.Structs
+namespace Dalamud.Game.ClientState.GamePad
 {
     /// <summary>
     /// Struct which gets populated by polling the gamepads.
