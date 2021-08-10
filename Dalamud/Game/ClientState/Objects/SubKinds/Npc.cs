@@ -1,11 +1,13 @@
 using System;
 
-namespace Dalamud.Game.ClientState.Actors.Types.NonPlayer
+using Dalamud.Game.ClientState.Objects.Types;
+
+namespace Dalamud.Game.ClientState.Objects.SubKinds
 {
     /// <summary>
     /// This class represents a NPC.
     /// </summary>
-    public unsafe class Npc : Chara
+    public unsafe class Npc : Character
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="Npc"/> class.
@@ -19,13 +21,8 @@ namespace Dalamud.Game.ClientState.Actors.Types.NonPlayer
         }
 
         /// <summary>
-        /// Gets the data ID of the NPC linking to their assoicated BNpcBase data.
-        /// </summary>
-        public uint BaseId => *(uint*)(this.Address + ActorOffsets.DataId);
-
-        /// <summary>
         /// Gets the name ID of the NPC linking to their respective game data.
         /// </summary>
-        public uint NameId => *(uint*)(this.Address + ActorOffsets.NameId);
+        public uint NameId => this.Struct->NameID;
     }
 }

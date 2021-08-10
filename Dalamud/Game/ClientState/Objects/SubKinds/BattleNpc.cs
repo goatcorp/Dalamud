@@ -1,11 +1,13 @@
 using System;
 
-namespace Dalamud.Game.ClientState.Actors.Types.NonPlayer
+using Dalamud.Game.ClientState.Objects.Enums;
+
+namespace Dalamud.Game.ClientState.Objects.Types
 {
     /// <summary>
     /// This class represents a battle NPC.
     /// </summary>
-    public unsafe class BattleNpc : Npc
+    public unsafe class BattleNpc : BattleChara
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="BattleNpc"/> class.
@@ -21,11 +23,6 @@ namespace Dalamud.Game.ClientState.Actors.Types.NonPlayer
         /// <summary>
         /// Gets the BattleNpc <see cref="BattleNpcSubKind" /> of this BattleNpc.
         /// </summary>
-        public BattleNpcSubKind BattleNpcKind => *(BattleNpcSubKind*)(this.Address + ActorOffsets.SubKind);
-
-        /// <summary>
-        /// Gets the target of the Battle NPC.
-        /// </summary>
-        public override uint TargetActorID => *(uint*)(this.Address + ActorOffsets.BattleNpcTargetActorId);
+        public BattleNpcSubKind BattleNpcKind => (BattleNpcSubKind)this.Struct->Character.GameObject.SubKind;
     }
 }

@@ -1,15 +1,14 @@
 using System;
 
+using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.ClientState.Resolvers;
-using Dalamud.Game.Text.SeStringHandling;
-using Dalamud.Memory;
 
-namespace Dalamud.Game.ClientState.Actors.Types
+namespace Dalamud.Game.ClientState.Objects.SubKinds
 {
     /// <summary>
     /// This class represents a player character.
     /// </summary>
-    public unsafe class PlayerCharacter : Chara
+    public unsafe class PlayerCharacter : BattleChara
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="PlayerCharacter"/> class.
@@ -25,21 +24,16 @@ namespace Dalamud.Game.ClientState.Actors.Types
         /// <summary>
         /// Gets the current <see cref="ExcelResolver{T}">world</see> of the character.
         /// </summary>
-        public ExcelResolver<Lumina.Excel.GeneratedSheets.World> CurrentWorld => new(*(ushort*)(this.Address + ActorOffsets.CurrentWorld), this.Dalamud);
+        public ExcelResolver<Lumina.Excel.GeneratedSheets.World> CurrentWorld => new(this.Struct->Character.CurrentWorld, this.Dalamud);
 
         /// <summary>
         /// Gets the home <see cref="ExcelResolver{T}">world</see> of the character.
         /// </summary>
-        public ExcelResolver<Lumina.Excel.GeneratedSheets.World> HomeWorld => new(*(ushort*)(this.Address + ActorOffsets.HomeWorld), this.Dalamud);
-
-        /// <summary>
-        /// Gets the Free Company tag of this player.
-        /// </summary>
-        public SeString CompanyTag => MemoryHelper.ReadSeString(this.Address + ActorOffsets.CompanyTag, 6);
+        public ExcelResolver<Lumina.Excel.GeneratedSheets.World> HomeWorld => new(this.Struct->Character.HomeWorld, this.Dalamud);
 
         /// <summary>
         /// Gets the target actor ID of the PlayerCharacter.
         /// </summary>
-        public override uint TargetActorID => *(uint*)(this.Address + ActorOffsets.PlayerCharacterTargetActorId);
+        public override uint TargetObjectId => this.Struct->Character.GameObject.TargetObjectID;
     }
 }
