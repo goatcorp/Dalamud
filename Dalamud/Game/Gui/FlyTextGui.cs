@@ -25,8 +25,6 @@ namespace Dalamud.Game.Internal.Gui
         /// </summary>
         private readonly Hook<CreateFlyTextDelegate> createFlyTextHook;
 
-        private readonly Stopwatch hookTimer;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="FlyTextGui"/> class.
         /// </summary>
@@ -35,8 +33,6 @@ namespace Dalamud.Game.Internal.Gui
         internal FlyTextGui(SigScanner scanner, Dalamud dalamud)
         {
             this.Dalamud = dalamud;
-
-            this.hookTimer = new Stopwatch();
 
             this.Address = new FlyTextGuiAddressResolver();
             this.Address.Setup(scanner);
@@ -81,7 +77,7 @@ namespace Dalamud.Game.Internal.Gui
             uint color,
             uint icon,
             IntPtr text1,
-            float unk3);
+            float yOffset);
 
         /// <summary>
         /// Private delegate for the native AddFlyText function pointer.
@@ -204,7 +200,6 @@ namespace Dalamud.Game.Internal.Gui
             var retVal = IntPtr.Zero;
             try
             {
-                this.hookTimer.Restart();
                 Log.Verbose("[FlyText] Enter CreateFlyText detour!");
 
                 var handled = false;
@@ -298,8 +293,6 @@ namespace Dalamud.Game.Internal.Gui
                         Log.Verbose(e, "[FlyText] Exception occurred freeing strings in task.");
                     }
                 });
-                this.hookTimer.Stop();
-                Log.Verbose($"[FlyText] Hook took {this.hookTimer.ElapsedTicks} ticks, {this.hookTimer.ElapsedMilliseconds}ms.");
             }
             catch (Exception e)
             {
