@@ -44,15 +44,20 @@ namespace Dalamud.Interface.Internal.Windows
         private bool doDocking;
         private bool doViewport;
         private bool doGamepad;
+
         private List<ThirdPartyRepoSettings> thirdRepoList;
         private bool thirdRepoListChanged;
+        private string thirdRepoTempUrl = string.Empty;
+        private string thirdRepoAddError = string.Empty;
+
+        private List<DevPluginLocationSettings> devPluginLocations;
+        private bool devPluginLocationsChanged;
+        private string devPluginTempLocation = string.Empty;
+        private string devPluginLocationAddError = string.Empty;
 
         private bool printPluginsWelcomeMsg;
         private bool autoUpdatePlugins;
         private bool doButtonsSystemMenu;
-
-        private string thirdRepoTempUrl = string.Empty;
-        private string thirdRepoAddError = string.Empty;
 
         #region Experimental
 
@@ -88,6 +93,7 @@ namespace Dalamud.Interface.Internal.Windows
 
             this.doPluginTest = this.dalamud.Configuration.DoPluginTest;
             this.thirdRepoList = this.dalamud.Configuration.ThirdRepoList.Select(x => x.Clone()).ToList();
+            this.devPluginLocations = this.dalamud.Configuration.DevPluginLoadLocations.Select(x => x.Clone()).ToList();
 
             this.printPluginsWelcomeMsg = this.dalamud.Configuration.PrintPluginsWelcomeMsg;
             this.autoUpdatePlugins = this.dalamud.Configuration.AutoUpdatePlugins;
@@ -144,14 +150,15 @@ namespace Dalamud.Interface.Internal.Windows
         public override void OnOpen()
         {
             this.thirdRepoListChanged = false;
+            this.devPluginLocationsChanged = false;
         }
 
         /// <inheritdoc/>
         public override void OnClose()
         {
             ImGui.GetIO().FontGlobalScale = this.dalamud.Configuration.GlobalUiScale;
-
             this.thirdRepoList = this.dalamud.Configuration.ThirdRepoList.Select(x => x.Clone()).ToList();
+            this.devPluginLocations = this.dalamud.Configuration.DevPluginLoadLocations.Select(x => x.Clone()).ToList();
         }
 
         /// <inheritdoc/>
@@ -252,11 +259,17 @@ namespace Dalamud.Interface.Internal.Windows
 
                 if (ImGui.BeginTabItem(Loc.Localize("DalamudSettingsExperimental", "Experimental")))
                 {
+                    #region Plugin testing
+
                     ImGui.Checkbox(Loc.Localize("DalamudSettingsPluginTest", "Get plugin testing builds"), ref this.doPluginTest);
                     ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingsPluginTestHint", "Receive testing prereleases for plugins."));
                     ImGui.TextColored(this.warnTextColor, Loc.Localize("DalamudSettingsPluginTestWarning", "Testing plugins may not have been vetted before being published. Please only enable this if you are aware of the risks."));
 
+                    #endregion
+
                     ImGuiHelpers.ScaledDummy(12);
+
+                    #region Hidden plugins
 
                     if (ImGui.Button(Loc.Localize("DalamudSettingsClearHidden", "Clear hidden plugins")))
                     {
@@ -266,9 +279,11 @@ namespace Dalamud.Interface.Internal.Windows
 
                     ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingsClearHiddenHint", "Restore plugins you have previously hidden from the plugin installer."));
 
-                    ImGuiHelpers.ScaledDummy(12);
+                    #endregion
 
                     ImGuiHelpers.ScaledDummy(12);
+
+                    #region Custom repos
 
                     ImGui.Text(Loc.Localize("DalamudSettingsCustomRepo", "Custom Plugin Repositories"));
                     ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingCustomRepoHint", "Add custom plugin repositories."));
@@ -278,7 +293,7 @@ namespace Dalamud.Interface.Internal.Windows
 
                     ImGui.Columns(4);
                     ImGui.SetColumnWidth(0, 18 + (5 * ImGuiHelpers.GlobalScale));
-                    ImGui.SetColumnWidth(1, ImGui.GetWindowWidth() - (18 + 16 + 14) - ((5 + 45 + 26) * ImGuiHelpers.GlobalScale));
+                    ImGui.SetColumnWidth(1, ImGui.GetWindowContentRegionWidth() - (18 + 16 + 14) - ((5 + 45 + 26) * ImGuiHelpers.GlobalScale));
                     ImGui.SetColumnWidth(2, 16 + (45 * ImGuiHelpers.GlobalScale));
                     ImGui.SetColumnWidth(3, 14 + (26 * ImGuiHelpers.GlobalScale));
 
@@ -303,7 +318,7 @@ namespace Dalamud.Interface.Internal.Windows
                     ImGui.NextColumn();
                     ImGui.Separator();
 
-                    ThirdPartyRepoSettings toRemove = null;
+                    ThirdPartyRepoSettings repoToRemove = null;
 
                     var repoNumber = 1;
                     foreach (var thirdRepoSetting in this.thirdRepoList)
@@ -325,7 +340,7 @@ namespace Dalamud.Interface.Internal.Windows
 
                         if (ImGuiComponents.IconButton(FontAwesomeIcon.Trash))
                         {
-                            toRemove = thirdRepoSetting;
+                            repoToRemove = thirdRepoSetting;
                         }
 
                         ImGui.NextColumn();
@@ -336,9 +351,9 @@ namespace Dalamud.Interface.Internal.Windows
                         repoNumber++;
                     }
 
-                    if (toRemove != null)
+                    if (repoToRemove != null)
                     {
-                        this.thirdRepoList.Remove(toRemove);
+                        this.thirdRepoList.Remove(repoToRemove);
                         this.thirdRepoListChanged = true;
                     }
 
@@ -377,6 +392,115 @@ namespace Dalamud.Interface.Internal.Windows
                     {
                         ImGui.TextColored(new Vector4(1, 0, 0, 1), this.thirdRepoAddError);
                     }
+
+                    #endregion
+
+                    ImGuiHelpers.ScaledDummy(12);
+
+                    #region Custom dev plugin load locations
+
+                    ImGui.Text(Loc.Localize("DalamudSettingsDevPluginLocation", "Dev Plugin Locations"));
+                    ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingsDevPluginLocationsHint", "Add additional dev plugin load locations.\nThese can be either the directory or DLL path."));
+
+                    ImGuiHelpers.ScaledDummy(5);
+
+                    ImGui.Columns(4);
+                    ImGui.SetColumnWidth(0, 18 + (5 * ImGuiHelpers.GlobalScale));
+                    ImGui.SetColumnWidth(1, ImGui.GetWindowContentRegionWidth() - (18 + 16 + 14) - ((5 + 45 + 26) * ImGuiHelpers.GlobalScale));
+                    ImGui.SetColumnWidth(2, 16 + (45 * ImGuiHelpers.GlobalScale));
+                    ImGui.SetColumnWidth(3, 14 + (26 * ImGuiHelpers.GlobalScale));
+
+                    ImGui.Separator();
+
+                    ImGui.Text("#");
+                    ImGui.NextColumn();
+                    ImGui.Text("Path");
+                    ImGui.NextColumn();
+                    ImGui.Text("Enabled");
+                    ImGui.NextColumn();
+                    ImGui.Text(string.Empty);
+                    ImGui.NextColumn();
+
+                    ImGui.Separator();
+
+                    DevPluginLocationSettings locationToRemove = null;
+
+                    var locNumber = 1;
+                    foreach (var devPluginLocationSetting in this.devPluginLocations)
+                    {
+                        var isEnabled = devPluginLocationSetting.IsEnabled;
+
+                        ImGui.PushID($"devPluginLocation_{devPluginLocationSetting.Path}");
+
+                        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (ImGui.GetColumnWidth() / 2) - 8 - (ImGui.CalcTextSize(repoNumber.ToString()).X / 2));
+                        ImGui.Text(locNumber.ToString());
+                        ImGui.NextColumn();
+
+                        ImGui.TextWrapped(devPluginLocationSetting.Path);
+                        ImGui.NextColumn();
+
+                        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (ImGui.GetColumnWidth() / 2) - 7 - (12 * ImGuiHelpers.GlobalScale));
+                        ImGui.Checkbox("##devPluginLocationCheck", ref isEnabled);
+                        ImGui.NextColumn();
+
+                        if (ImGuiComponents.IconButton(FontAwesomeIcon.Trash))
+                        {
+                            locationToRemove = devPluginLocationSetting;
+                        }
+
+                        ImGui.NextColumn();
+                        ImGui.Separator();
+
+                        devPluginLocationSetting.IsEnabled = isEnabled;
+
+                        locNumber++;
+                    }
+
+                    if (locationToRemove != null)
+                    {
+                        this.devPluginLocations.Remove(locationToRemove);
+                        this.devPluginLocationsChanged = true;
+                    }
+
+                    ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (ImGui.GetColumnWidth() / 2) - 8 - (ImGui.CalcTextSize(locNumber.ToString()).X / 2));
+                    ImGui.Text(locNumber.ToString());
+                    ImGui.NextColumn();
+                    ImGui.SetNextItemWidth(-1);
+                    ImGui.InputText("##devPluginLocationInput", ref this.devPluginTempLocation, 300);
+                    ImGui.NextColumn();
+                    // Enabled button
+                    ImGui.NextColumn();
+                    if (!string.IsNullOrEmpty(this.devPluginTempLocation) && ImGuiComponents.IconButton(FontAwesomeIcon.Plus))
+                    {
+                        if (this.devPluginLocations.Any(r => string.Equals(r.Path, this.devPluginTempLocation, StringComparison.InvariantCultureIgnoreCase)))
+                        {
+                            this.devPluginLocationAddError = Loc.Localize("DalamudDevPluginLocationExists", "Location already exists.");
+                            Task.Delay(5000).ContinueWith(t => this.devPluginLocationAddError = string.Empty);
+                        }
+                        else
+                        {
+                            this.devPluginLocations.Add(new DevPluginLocationSettings
+                            {
+                                Path = this.devPluginTempLocation,
+                                IsEnabled = true,
+                            });
+                            this.devPluginLocationsChanged = true;
+                            this.devPluginTempLocation = string.Empty;
+                        }
+                    }
+
+                    ImGui.Columns(1);
+
+                    ImGui.EndTabItem();
+
+                    if (!string.IsNullOrEmpty(this.devPluginLocationAddError))
+                    {
+                        ImGui.TextColored(new Vector4(1, 0, 0, 1), this.devPluginLocationAddError);
+                    }
+
+                    #endregion
+
+                    ImGuiHelpers.ScaledDummy(12);
                 }
 
                 ImGui.EndTabBar();
@@ -384,20 +508,18 @@ namespace Dalamud.Interface.Internal.Windows
 
             ImGui.EndChild();
 
-            if (ImGui.Button(Loc.Localize("Save", "Save")))
-            {
-                this.Save();
+            var buttonSave = false;
+            var buttonClose = false;
 
-                if (this.thirdRepoListChanged)
-                {
-                    this.dalamud.PluginManager.SetPluginReposFromConfig(true);
-                    this.thirdRepoListChanged = false;
-                }
-            }
+            if (ImGui.Button(Loc.Localize("Save", "Save")))
+                buttonSave = true;
 
             ImGui.SameLine();
 
             if (ImGui.Button(Loc.Localize("SaveAndClose", "Save and Close")))
+                buttonSave = buttonClose = true;
+
+            if (buttonSave)
             {
                 this.Save();
 
@@ -407,6 +529,15 @@ namespace Dalamud.Interface.Internal.Windows
                     this.thirdRepoListChanged = false;
                 }
 
+                if (this.devPluginLocationsChanged)
+                {
+                    this.dalamud.PluginManager.ScanDevPlugins();
+                    this.devPluginLocationsChanged = false;
+                }
+            }
+
+            if (buttonClose)
+            {
                 this.IsOpen = false;
             }
         }
@@ -456,6 +587,7 @@ namespace Dalamud.Interface.Internal.Windows
 
             this.dalamud.Configuration.DoPluginTest = this.doPluginTest;
             this.dalamud.Configuration.ThirdRepoList = this.thirdRepoList.Select(x => x.Clone()).ToList();
+            this.dalamud.Configuration.DevPluginLoadLocations = this.devPluginLocations.Select(x => x.Clone()).ToList();
 
             this.dalamud.Configuration.PrintPluginsWelcomeMsg = this.printPluginsWelcomeMsg;
             this.dalamud.Configuration.AutoUpdatePlugins = this.autoUpdatePlugins;
