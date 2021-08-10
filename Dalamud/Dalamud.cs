@@ -21,6 +21,8 @@ using Serilog;
 using Serilog.Core;
 
 #if DEBUG
+using System.Runtime.CompilerServices;
+
 // This allows for rapid prototyping of Dalamud modules with access to internal objects.
 [assembly: InternalsVisibleTo("Dalamud.CorePlugin")]
 #endif
