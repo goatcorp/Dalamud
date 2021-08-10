@@ -1,4 +1,4 @@
-namespace Dalamud.Game.ClientState.Fates.Types
+namespace Dalamud.Game.ClientState.Fates
 {
     /// <summary>
     /// This represents the state of a single Fate.

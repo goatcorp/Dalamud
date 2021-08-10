@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-using Dalamud.Game.ClientState.Fates.Types;
 using JetBrains.Annotations;
 using Serilog;
 
@@ -13,11 +12,6 @@ namespace Dalamud.Game.ClientState.Fates
     /// </summary>
     public sealed partial class FateTable
     {
-        // If the pointer at this offset is 0, do not scan the table
-        private const int CheckPtrOffset = 0x80;
-        private const int FirstPtrOffset = 0x90;
-        private const int LastPtrOffset = 0x98;
-
         private readonly Dalamud dalamud;
         private readonly ClientStateAddressResolver address;
 
@@ -45,12 +39,13 @@ namespace Dalamud.Game.ClientState.Fates
                 if (fateTable == IntPtr.Zero)
                     return 0;
 
-                var check = *(long*)(fateTable + CheckPtrOffset);
+                // Sonar used this to check if the table was safe to read
+                var check = Struct->Unk80.ToInt64();
                 if (check == 0)
                     return 0;
 
-                var start = *(long*)(fateTable + FirstPtrOffset);
-                var end = *(long*)(fateTable + LastPtrOffset);
+                var start = Struct->FirstFatePtr.ToInt64();
+                var end = Struct->LastFatePtr.ToInt64();
                 if (start == 0 || end == 0)
                     return 0;
 
@@ -58,7 +53,10 @@ namespace Dalamud.Game.ClientState.Fates
             }
         }
 
-        private unsafe IntPtr FateTableAddress
+        /// <summary>
+        /// Gets the address of the Fate table.
+        /// </summary>
+        internal unsafe IntPtr FateTableAddress
         {
             get
             {
@@ -68,6 +66,8 @@ namespace Dalamud.Game.ClientState.Fates
                 return *(IntPtr*)this.address.FateTablePtr;
             }
         }
+
+        private unsafe FFXIVClientStructs.FFXIV.Client.Game.Fate.FateManager* Struct => (FFXIVClientStructs.FFXIV.Client.Game.Fate.FateManager*)this.FateTableAddress;
 
         /// <summary>
         /// Get an actor at the specified spawn index.
@@ -80,22 +80,6 @@ namespace Dalamud.Game.ClientState.Fates
             get
             {
                 var address = this.GetFateAddress(index);
-                return this[address];
-            }
-        }
-
-        /// <summary>
-        /// Get a Fate at the specified address.
-        /// </summary>
-        /// <param name="address">The Fate address.</param>
-        /// <returns>A <see cref="Fate"/> at the specified address.</returns>
-        public Fate this[IntPtr address]
-        {
-            get
-            {
-                if (address == IntPtr.Zero)
-                    return null;
-
                 return this.CreateFateReference(address);
             }
         }
@@ -114,7 +98,7 @@ namespace Dalamud.Game.ClientState.Fates
             if (fateTable == IntPtr.Zero)
                 return IntPtr.Zero;
 
-            var firstFate = *(IntPtr*)(fateTable + FirstPtrOffset);
+            var firstFate = this.Struct->FirstFatePtr;
             return *(IntPtr*)(firstFate + (8 * index));
         }
 
@@ -139,19 +123,10 @@ namespace Dalamud.Game.ClientState.Fates
     /// <summary>
     /// This collection represents the currently available Fate events.
     /// </summary>
-    public sealed partial class FateTable : IReadOnlyCollection<Fate>, ICollection
+    public sealed partial class FateTable : IReadOnlyCollection<Fate>
     {
         /// <inheritdoc/>
         int IReadOnlyCollection<Fate>.Count => this.Length;
-
-        /// <inheritdoc/>
-        int ICollection.Count => this.Length;
-
-        /// <inheritdoc/>
-        bool ICollection.IsSynchronized => false;
-
-        /// <inheritdoc/>
-        object ICollection.SyncRoot => this;
 
         /// <inheritdoc/>
         public IEnumerator<Fate> GetEnumerator()
@@ -164,15 +139,5 @@ namespace Dalamud.Game.ClientState.Fates
 
         /// <inheritdoc/>
         IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
-
-        /// <inheritdoc/>
-        void ICollection.CopyTo(Array array, int index)
-        {
-            for (var i = 0; i < this.Length; i++)
-            {
-                array.SetValue(this[i], index);
-                index++;
-            }
-        }
     }
 }

@@ -3,19 +3,19 @@ using Lumina.Excel;
 namespace Dalamud.Game.ClientState.Resolvers
 {
     /// <summary>
-    /// This object represents a class or job.
+    /// This object resolves a rowID within an Excel sheet.
     /// </summary>
     /// <typeparam name="T">The type of Lumina sheet to resolve.</typeparam>
-    public class BaseResolver<T> where T : ExcelRow
+    public class ExcelResolver<T> where T : ExcelRow
     {
         private readonly Dalamud dalamud;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="BaseResolver{T}"/> class.
+        /// Initializes a new instance of the <see cref="ExcelResolver{T}"/> class.
         /// </summary>
         /// <param name="id">The ID of the classJob.</param>
         /// <param name="dalamud">The Dalamud instance.</param>
-        internal BaseResolver(uint id, Dalamud dalamud)
+        internal ExcelResolver(uint id, Dalamud dalamud)
         {
             this.dalamud = dalamud;
             this.Id = id;
