@@ -186,7 +186,22 @@ namespace Dalamud.Plugin.Internal
             }
 
             // devPlugins are more freeform. Look for any dll and hope to get lucky.
-            var devDllFiles = this.devPluginDirectory.GetFiles("*.dll", SearchOption.AllDirectories);
+            var devDllFiles = this.devPluginDirectory.GetFiles("*.dll", SearchOption.AllDirectories).ToList();
+
+            foreach (var setting in this.dalamud.Configuration.DevPluginLoadLocations)
+            {
+                if (!setting.IsEnabled)
+                    continue;
+
+                if (Directory.Exists(setting.Path))
+                {
+                    devDllFiles.AddRange(new DirectoryInfo(setting.Path).GetFiles("*.dll", SearchOption.AllDirectories));
+                }
+                else if (File.Exists(setting.Path))
+                {
+                    devDllFiles.Add(new FileInfo(setting.Path));
+                }
+            }
 
             foreach (var dllFile in devDllFiles)
             {
@@ -299,7 +314,22 @@ namespace Dalamud.Plugin.Internal
                 this.devPluginDirectory.Create();
 
             // devPlugins are more freeform. Look for any dll and hope to get lucky.
-            var devDllFiles = this.devPluginDirectory.GetFiles("*.dll", SearchOption.AllDirectories);
+            var devDllFiles = this.devPluginDirectory.GetFiles("*.dll", SearchOption.AllDirectories).ToList();
+
+            foreach (var setting in this.dalamud.Configuration.DevPluginLoadLocations)
+            {
+                if (!setting.IsEnabled)
+                    continue;
+
+                if (Directory.Exists(setting.Path))
+                {
+                    devDllFiles.AddRange(new DirectoryInfo(setting.Path).GetFiles("*.dll", SearchOption.AllDirectories));
+                }
+                else if (File.Exists(setting.Path))
+                {
+                    devDllFiles.Add(new FileInfo(setting.Path));
+                }
+            }
 
             var listChanged = false;
 
