@@ -595,7 +595,7 @@ namespace Dalamud.Plugin.Internal
                                     continue;
                                 }
 
-                                if (manifest.ApplicableVersion < this.dalamud.StartInfo.GameVersion)
+                                if (manifest.ApplicableVersion < this.dalamud.StartInfo.GameVersion - TimeSpan.FromDays(90))
                                 {
                                     Log.Information($"Inapplicable version: cleaning up {versionDir.FullName}");
                                     versionDir.Delete(true);
