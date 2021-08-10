@@ -1,11 +1,10 @@
 using System;
 
-using Dalamud.Game.ClientState.Structs;
 using Dalamud.Hooking;
 using ImGuiNET;
 using Serilog;
 
-namespace Dalamud.Game.ClientState
+namespace Dalamud.Game.ClientState.GamePad
 {
     /// <summary>
     /// Exposes the game gamepad state to dalamud.
@@ -24,7 +23,7 @@ namespace Dalamud.Game.ClientState
         private int rightStickY;
 
         /// <summary>
-        ///     Initializes a new instance of the <see cref="GamepadState" /> class.
+        /// Initializes a new instance of the <see cref="GamepadState" /> class.
         /// </summary>
         /// <param name="resolver">Resolver knowing the pointer to the GamepadPoll function.</param>
         public GamepadState(ClientStateAddressResolver resolver)
@@ -43,12 +42,10 @@ namespace Dalamud.Game.ClientState
 
         private delegate int ControllerPoll(IntPtr controllerInput);
 
-#if DEBUG
         /// <summary>
         /// Gets the pointer to the current instance of the GamepadInput struct.
         /// </summary>
-        public IntPtr GamepadInput { get; private set; }
-#endif
+        public IntPtr GamepadInputAddress { get; private set; }
 
         /// <summary>
         ///     Gets the state of the left analogue stick in the left direction between 0 (not tilted) and 1 (max tilt).
@@ -189,9 +186,7 @@ namespace Dalamud.Game.ClientState
             var original = this.gamepadPoll.Original(gamepadInput);
             try
             {
-#if DEBUG
-                this.GamepadInput = gamepadInput;
-#endif
+                this.GamepadInputAddress = gamepadInput;
                 var input = (GamepadInput*)gamepadInput;
                 this.leftStickX = input->LeftStickX;
                 this.leftStickY = input->LeftStickY;

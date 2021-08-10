@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace Dalamud.Game.ClientState
+namespace Dalamud.Game.ClientState.GamePad
 {
     /// <summary>
     /// Bitmask of the Button ushort used by the game.
