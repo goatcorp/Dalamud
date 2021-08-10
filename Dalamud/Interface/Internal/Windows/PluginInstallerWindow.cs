@@ -798,7 +798,9 @@ namespace Dalamud.Interface.Internal.Windows
                 ImGui.Text(manifest.Name);
 
                 // Download count
-                var downloadText = manifest.DownloadCount > 0
+                var downloadText = plugin.IsDev
+                    ? Locs.PluginBody_AuthorWithoutDownloadCount(manifest.Author)
+                    : manifest.DownloadCount > 0
                     ? Locs.PluginBody_AuthorWithDownloadCount(manifest.Author, manifest.DownloadCount)
                     : Locs.PluginBody_AuthorWithDownloadCountUnavailable(manifest.Author);
 
@@ -806,12 +808,15 @@ namespace Dalamud.Interface.Internal.Windows
                 ImGui.TextColored(ImGuiColors.DalamudGrey3, downloadText);
 
                 // Installed from
-                if (!string.IsNullOrEmpty(manifest.InstalledFromUrl))
+                if (plugin.IsDev)
+                {
+                    var fileText = Locs.PluginBody_DevPluginPath(plugin.DllFile.FullName);
+                    ImGui.TextColored(ImGuiColors.DalamudGrey3, fileText);
+                }
+                else if (!string.IsNullOrEmpty(manifest.InstalledFromUrl))
                 {
                     var repoText = Locs.PluginBody_Plugin3rdPartyRepo(manifest.InstalledFromUrl);
                     ImGui.TextColored(ImGuiColors.DalamudGrey3, repoText);
-
-                    ImGuiHelpers.ScaledDummy(2);
                 }
 
                 // Description
@@ -1502,9 +1507,13 @@ namespace Dalamud.Interface.Internal.Windows
 
             #region Plugin body
 
+            public static string PluginBody_AuthorWithoutDownloadCount(string author) => Loc.Localize("InstallerAuthorWithoutDownloadCount", " by {0}").Format(author);
+
             public static string PluginBody_AuthorWithDownloadCount(string author, long count) => Loc.Localize("InstallerAuthorWithDownloadCount", " by {0}, {1} downloads").Format(author, count);
 
             public static string PluginBody_AuthorWithDownloadCountUnavailable(string author) => Loc.Localize("InstallerAuthorWithDownloadCountUnavailable", " by {0}, download count unavailable").Format(author);
+
+            public static string PluginBody_DevPluginPath(string path) => Loc.Localize("InstallerDevPluginPath", "From {0}").Format(path);
 
             public static string PluginBody_Plugin3rdPartyRepo(string url) => Loc.Localize("InstallerPlugin3rdPartyRepo", "From custom plugin repository {0}").Format(url);
 
