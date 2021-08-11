@@ -84,7 +84,7 @@ namespace Dalamud.Interface.Internal
             this.windowSystem.AddWindow(this.settingsWindow);
             this.windowSystem.AddWindow(this.selfTestWindow);
 
-            this.dalamud.InterfaceManager.OnDraw += this.OnDraw;
+            this.dalamud.InterfaceManager.Draw += this.OnDraw;
 
             Log.Information("Windows added");
         }
@@ -106,7 +106,7 @@ namespace Dalamud.Interface.Internal
         /// <inheritdoc/>
         public void Dispose()
         {
-            this.dalamud.InterfaceManager.OnDraw -= this.OnDraw;
+            this.dalamud.InterfaceManager.Draw -= this.OnDraw;
 
             this.windowSystem.RemoveAllWindows();
 

@@ -131,7 +131,7 @@ namespace Dalamud.Interface.Internal
         /// <summary>
         /// This event gets called by a plugin UiBuilder when read
         /// </summary>
-        public event RawDX11Scene.BuildUIDelegate OnDraw;
+        public event RawDX11Scene.BuildUIDelegate Draw;
 
         /// <summary>
         /// Gets the default ImGui font.
@@ -620,7 +620,7 @@ namespace Dalamud.Interface.Internal
             this.LastImGuiIoPtr = ImGui.GetIO();
             this.lastWantCapture = this.LastImGuiIoPtr.WantCaptureMouse;
 
-            this.OnDraw?.Invoke();
+            this.Draw?.Invoke();
         }
     }
 }

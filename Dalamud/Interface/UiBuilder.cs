@@ -35,14 +35,14 @@ namespace Dalamud.Interface
             this.stopwatch = new Stopwatch();
             this.namespaceName = namespaceName;
 
-            this.dalamud.InterfaceManager.OnDraw += this.OnDraw;
+            this.dalamud.InterfaceManager.Draw += this.OnDraw;
         }
 
         /// <summary>
         /// The delegate that gets called when Dalamud is ready to draw your windows or overlays.
         /// When it is called, you can use static ImGui calls.
         /// </summary>
-        public event RawDX11Scene.BuildUIDelegate OnBuildUi;
+        public event RawDX11Scene.BuildUIDelegate Draw;
 
         /// <summary>
         /// Event that is fired when the plugin should open its configuration interface.
@@ -195,7 +195,7 @@ namespace Dalamud.Interface
         /// </summary>
         public void Dispose()
         {
-            this.dalamud.InterfaceManager.OnDraw -= this.OnDraw;
+            this.dalamud.InterfaceManager.Draw -= this.OnDraw;
         }
 
         /// <summary>
@@ -237,12 +237,12 @@ namespace Dalamud.Interface
 
             try
             {
-                this.OnBuildUi?.Invoke();
+                this.Draw?.Invoke();
             }
             catch (Exception ex)
             {
                 Log.Error(ex, "[{0}] UiBuilder OnBuildUi caught exception", this.namespaceName);
-                this.OnBuildUi = null;
+                this.Draw = null;
                 this.OnOpenConfigUi = null;
 
                 this.hasErrorWindow = true;
