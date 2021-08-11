@@ -85,17 +85,17 @@ namespace Dalamud.Game.Gui
         /// <summary>
         /// Event that will be fired when a toast is sent by the game or a plugin.
         /// </summary>
-        public event OnNormalToastDelegate OnToast;
+        public event OnNormalToastDelegate Toast;
 
         /// <summary>
         /// Event that will be fired when a quest toast is sent by the game or a plugin.
         /// </summary>
-        public event OnQuestToastDelegate OnQuestToast;
+        public event OnQuestToastDelegate QuestToast;
 
         /// <summary>
         /// Event that will be fired when an error toast is sent by the game or a plugin.
         /// </summary>
-        public event OnErrorToastDelegate OnErrorToast;
+        public event OnErrorToastDelegate ErrorToast;
 
         #endregion
 
@@ -231,7 +231,7 @@ namespace Dalamud.Game.Gui
                 Speed = (ToastSpeed)isFast,
             };
 
-            this.OnToast?.Invoke(ref str, ref options, ref isHandled);
+            this.Toast?.Invoke(ref str, ref options, ref isHandled);
 
             // do nothing if handled
             if (isHandled)
@@ -323,7 +323,7 @@ namespace Dalamud.Game.Gui
                 PlaySound = playSound == 1,
             };
 
-            this.OnQuestToast?.Invoke(ref str, ref options, ref isHandled);
+            this.QuestToast?.Invoke(ref str, ref options, ref isHandled);
 
             // do nothing if handled
             if (isHandled)
@@ -409,7 +409,7 @@ namespace Dalamud.Game.Gui
             var isHandled = false;
             var str = this.ParseString(text);
 
-            this.OnErrorToast?.Invoke(ref str, ref isHandled);
+            this.ErrorToast?.Invoke(ref str, ref isHandled);
 
             // do nothing if handled
             if (isHandled)

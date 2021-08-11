@@ -5,6 +5,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 
 using Dalamud.Interface.Internal.Windows;
+using Dalamud.Interface.Internal.Windows.SelfTest;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging;
 using Dalamud.Logging.Internal;
@@ -31,11 +32,13 @@ namespace Dalamud.Interface.Internal
         private readonly CreditsWindow creditsWindow;
         private readonly DataWindow dataWindow;
         private readonly GamepadModeNotifierWindow gamepadModeNotifierWindow;
+        private readonly IMEWindow imeWindow;
         private readonly ConsoleWindow consoleWindow;
         private readonly PluginStatWindow pluginStatWindow;
         private readonly PluginInstallerWindow pluginWindow;
         private readonly ScratchpadWindow scratchpadWindow;
         private readonly SettingsWindow settingsWindow;
+        private readonly SelfTestWindow selfTestWindow;
 
         private ulong frameCount = 0;
 
@@ -62,11 +65,13 @@ namespace Dalamud.Interface.Internal
             this.creditsWindow = new CreditsWindow(dalamud) { IsOpen = false };
             this.dataWindow = new DataWindow(dalamud) { IsOpen = false };
             this.gamepadModeNotifierWindow = new GamepadModeNotifierWindow();
+            this.imeWindow = new IMEWindow(dalamud);
             this.consoleWindow = new ConsoleWindow(dalamud) { IsOpen = this.dalamud.Configuration.LogOpenAtStartup };
             this.pluginStatWindow = new PluginStatWindow(dalamud) { IsOpen = false };
             this.pluginWindow = new PluginInstallerWindow(dalamud) { IsOpen = false };
             this.scratchpadWindow = new ScratchpadWindow(dalamud) { IsOpen = false };
             this.settingsWindow = new SettingsWindow(dalamud) { IsOpen = false };
+            this.selfTestWindow = new SelfTestWindow(dalamud) { IsOpen = false };
 
             this.windowSystem.AddWindow(this.changelogWindow);
             this.windowSystem.AddWindow(this.colorDemoWindow);
@@ -74,13 +79,15 @@ namespace Dalamud.Interface.Internal
             this.windowSystem.AddWindow(this.creditsWindow);
             this.windowSystem.AddWindow(this.dataWindow);
             this.windowSystem.AddWindow(this.gamepadModeNotifierWindow);
+            this.windowSystem.AddWindow(this.imeWindow);
             this.windowSystem.AddWindow(this.consoleWindow);
             this.windowSystem.AddWindow(this.pluginStatWindow);
             this.windowSystem.AddWindow(this.pluginWindow);
             this.windowSystem.AddWindow(this.scratchpadWindow);
             this.windowSystem.AddWindow(this.settingsWindow);
+            this.windowSystem.AddWindow(this.selfTestWindow);
 
-            this.dalamud.InterfaceManager.OnDraw += this.OnDraw;
+            this.dalamud.InterfaceManager.Draw += this.OnDraw;
 
             Log.Information("Windows added");
         }
@@ -102,7 +109,7 @@ namespace Dalamud.Interface.Internal
         /// <inheritdoc/>
         public void Dispose()
         {
-            this.dalamud.InterfaceManager.OnDraw -= this.OnDraw;
+            this.dalamud.InterfaceManager.Draw -= this.OnDraw;
 
             this.windowSystem.RemoveAllWindows();
 
@@ -157,6 +164,11 @@ namespace Dalamud.Interface.Internal
         public void OpenGamepadModeNotifierWindow() => this.gamepadModeNotifierWindow.IsOpen = true;
 
         /// <summary>
+        /// Opens the <see cref="IMEWindow"/>.
+        /// </summary>
+        public void OpenIMEWindow() => this.imeWindow.IsOpen = true;
+
+        /// <summary>
         /// Opens the <see cref="ConsoleWindow"/>.
         /// </summary>
         public void OpenLogWindow() => this.consoleWindow.IsOpen = true;
@@ -180,6 +192,20 @@ namespace Dalamud.Interface.Internal
         /// Opens the <see cref="SettingsWindow"/>.
         /// </summary>
         public void OpenSettings() => this.settingsWindow.IsOpen = true;
+
+        /// <summary>
+        /// Opens the <see cref="SelfTestWindow"/>.
+        /// </summary>
+        public void OpenSelfTest() => this.selfTestWindow.IsOpen = true;
+
+        #endregion
+
+        #region Close
+
+        /// <summary>
+        /// Closes the <see cref="IMEWindow"/>.
+        /// </summary>
+        public void CloseIMEWindow() => this.imeWindow.IsOpen = false;
 
         #endregion
 
@@ -229,6 +255,11 @@ namespace Dalamud.Interface.Internal
         public void ToggleGamepadModeNotifierWindow() => this.gamepadModeNotifierWindow.Toggle();
 
         /// <summary>
+        /// Toggles the <see cref="IMEWindow"/>.
+        /// </summary>
+        public void ToggleIMEWindow() => this.imeWindow.Toggle();
+
+        /// <summary>
         /// Toggles the <see cref="ConsoleWindow"/>.
         /// </summary>
         public void ToggleLogWindow() => this.consoleWindow.Toggle();
@@ -252,6 +283,11 @@ namespace Dalamud.Interface.Internal
         /// Toggles the <see cref="SettingsWindow"/>.
         /// </summary>
         public void ToggleSettingsWindow() => this.settingsWindow.Toggle();
+
+        /// <summary>
+        /// Toggles the <see cref="SelfTestWindow"/>.
+        /// </summary>
+        public void ToggleSelfTestWindow() => this.selfTestWindow.Toggle();
 
         #endregion
 
@@ -382,6 +418,13 @@ namespace Dalamud.Interface.Internal
                         {
                             this.OpenColorsDemoWindow();
                         }
+
+                        if (ImGui.MenuItem("Open Self-Test"))
+                        {
+                            this.OpenSelfTest();
+                        }
+
+                        ImGui.Separator();
 
                         ImGui.MenuItem("Draw ImGui demo", string.Empty, ref this.isImGuiDrawDemoWindow);
 

@@ -67,7 +67,7 @@ namespace Dalamud.Interface.Internal.Windows
         private OperationStatus installStatus = OperationStatus.Idle;
         private OperationStatus updateStatus = OperationStatus.Idle;
 
-        private List<int> openPluginCollapsibles = new List<int>();
+        private List<int> openPluginCollapsibles = new();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PluginInstallerWindow"/> class.
@@ -979,6 +979,9 @@ namespace Dalamud.Interface.Internal.Windows
             else if (plugin.State == PluginState.UnloadError)
             {
                 ImGuiComponents.DisabledButton(FontAwesomeIcon.Frown);
+
+                if (ImGui.IsItemHovered())
+                    ImGui.SetTooltip(Locs.PluginButtonToolTip_UnloadFailed);
             }
         }
 
@@ -1019,7 +1022,7 @@ namespace Dalamud.Interface.Internal.Windows
                 {
                     try
                     {
-                        plugin.DalamudInterface.UiBuilder.OpenConfigUi();
+                        plugin.DalamudInterface.UiBuilder.OpenConfig();
                     }
                     catch (Exception ex)
                     {
@@ -1552,6 +1555,8 @@ namespace Dalamud.Interface.Internal.Windows
             public static string PluginButtonToolTip_VisitPluginUrl => Loc.Localize("InstallerVisitPluginUrl", "Visit plugin URL");
 
             public static string PluginButtonToolTip_UpdateSingle(string version) => Loc.Localize("InstallerUpdateSingle", "Update to {0}").Format(version);
+
+            public static string PluginButtonToolTip_UnloadFailed => Loc.Localize("InstallerUnloadFailedTooltip", "Plugin unload failed, please restart your game and try again.");
 
             #endregion
 

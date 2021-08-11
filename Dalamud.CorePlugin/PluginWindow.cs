@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 
 using Dalamud.Interface.Windowing;
@@ -11,6 +12,7 @@ namespace Dalamud.CorePlugin
     /// </summary>
     internal class PluginWindow : Window, IDisposable
     {
+        [SuppressMessage("CodeQuality", "IDE0052:Remove unread private members", Justification = "This is a placeholder.")]
         private readonly Dalamud dalamud;
 
         /// <summary>

@@ -140,18 +140,28 @@ namespace Dalamud.Utility
             ImGuiHelpers.ScaledDummy(5);
 
             ImGui.TextColored(ImGuiColors.DalamudOrange, "-> Properties:");
+
+            ImGui.Indent();
+
             foreach (var propertyInfo in type.GetProperties())
             {
                 ImGui.TextColored(ImGuiColors.DalamudOrange, $"    {propertyInfo.Name}: {propertyInfo.GetValue(obj)}");
             }
 
+            ImGui.Unindent();
+
             ImGuiHelpers.ScaledDummy(5);
 
             ImGui.TextColored(ImGuiColors.HealerGreen, "-> Fields:");
+
+            ImGui.Indent();
+
             foreach (var fieldInfo in type.GetFields())
             {
                 ImGui.TextColored(ImGuiColors.HealerGreen, $"    {fieldInfo.Name}: {fieldInfo.GetValue(obj)}");
             }
+
+            ImGui.Unindent();
         }
 
         /// <summary>

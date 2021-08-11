@@ -9,6 +9,7 @@ using Dalamud.Data;
 using Dalamud.Game;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.Command;
+using Dalamud.Game.Gui.Internal;
 using Dalamud.Game.Internal;
 using Dalamud.Game.Network.Internal;
 using Dalamud.Game.Text.SeStringHandling;
@@ -99,6 +100,11 @@ namespace Dalamud
         /// Gets ImGui Interface subsystem.
         /// </summary>
         internal InterfaceManager InterfaceManager { get; private set; }
+
+        /// <summary>
+        /// Gets the Input Method subsystem.
+        /// </summary>
+        internal DalamudIME IME { get; private set; }
 
         /// <summary>
         /// Gets ClientState subsystem.
@@ -293,6 +299,16 @@ namespace Dalamud
                     }
                 }
 
+                try
+                {
+                    this.IME = new DalamudIME(this);
+                    Log.Information("[T2] IME OK!");
+                }
+                catch (Exception e)
+                {
+                    Log.Information(e, "Could not init IME.");
+                }
+
                 this.Data = new DataManager(this.StartInfo.Language, this.InterfaceManager);
                 try
                 {
@@ -414,6 +430,11 @@ namespace Dalamud
         public void DisposePlugins()
         {
             this.hasDisposedPlugins = true;
+
+            // this must be done before unloading interface manager, in order to do rebuild
+            // the correct cascaded WndProc (IME -> RawDX11Scene -> Game). Otherwise the game
+            // will not receive any windows messages
+            this.IME?.Dispose();
 
             // this must be done before unloading plugins, or it can cause a race condition
             // due to rendering happening on another thread, where a plugin might receive

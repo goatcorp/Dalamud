@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -105,8 +104,8 @@ namespace Dalamud.Game
         {
             this.dalamud = dalamud;
 
-            dalamud.Framework.Gui.Chat.OnCheckMessageHandled += this.OnCheckMessageHandled;
-            dalamud.Framework.Gui.Chat.OnChatMessage += this.OnChatMessage;
+            dalamud.Framework.Gui.Chat.CheckMessageHandled += this.OnCheckMessageHandled;
+            dalamud.Framework.Gui.Chat.ChatMessage += this.OnChatMessage;
 
             this.openInstallerWindowLink = this.dalamud.Framework.Gui.Chat.AddChatLinkHandler("Dalamud", 1001, (i, m) =>
             {

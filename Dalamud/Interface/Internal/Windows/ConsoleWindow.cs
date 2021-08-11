@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 
 using Dalamud.Interface.Colors;
+using Dalamud.Interface.Components;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging.Internal;
 using ImGuiNET;
@@ -158,26 +159,38 @@ namespace Dalamud.Interface.Internal.Windows
             }
 
             ImGui.SameLine();
-            ImGui.PushFont(InterfaceManager.IconFont);
 
-            if (ImGui.Button(FontAwesomeIcon.Cog.ToIconString()))
+            if (ImGuiComponents.IconButton(FontAwesomeIcon.Cog))
                 ImGui.OpenPopup("Options");
 
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip("Options");
+
             ImGui.SameLine();
-            if (ImGui.Button(FontAwesomeIcon.Search.ToIconString()))
+            if (ImGuiComponents.IconButton(FontAwesomeIcon.Search))
                 ImGui.OpenPopup("Filters");
 
-            ImGui.SameLine();
-            var clear = ImGui.Button(FontAwesomeIcon.Trash.ToIconString());
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip("Filters");
 
             ImGui.SameLine();
-            var copy = ImGui.Button(FontAwesomeIcon.Copy.ToIconString());
+            var clear = ImGuiComponents.IconButton(FontAwesomeIcon.Trash);
+
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip("Clear Log");
 
             ImGui.SameLine();
-            if (ImGui.Button(FontAwesomeIcon.Skull.ToIconString()))
+            var copy = ImGuiComponents.IconButton(FontAwesomeIcon.Copy);
+
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip("Copy Log");
+
+            ImGui.SameLine();
+            if (ImGuiComponents.IconButton(FontAwesomeIcon.Skull))
                 Process.GetCurrentProcess().Kill();
 
-            ImGui.PopFont();
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip("Kill game");
 
             ImGui.BeginChild("scrolling", new Vector2(0, ImGui.GetFrameHeightWithSpacing() - 55), false, ImGuiWindowFlags.HorizontalScrollbar);
 

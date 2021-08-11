@@ -5,12 +5,12 @@ using System.Linq;
 using System.Numerics;
 
 using Dalamud.Game;
-using Dalamud.Game.ClientState.Actors.Types;
-using Dalamud.Game.ClientState.Actors.Types.NonPlayer;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.GamePad;
-using Dalamud.Game.ClientState.Structs.JobGauge;
-using Dalamud.Game.Gui;
+using Dalamud.Game.ClientState.JobGauge.Enums;
+using Dalamud.Game.ClientState.JobGauge.Types;
+using Dalamud.Game.ClientState.Objects.SubKinds;
+using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.Gui.Addons;
 using Dalamud.Game.Gui.Toast;
 using Dalamud.Game.Text;
@@ -36,8 +36,8 @@ namespace Dalamud.Interface.Internal.Windows
         private string serverOpString;
         private DataKind currentKind;
 
-        private bool drawActors = false;
-        private float maxActorDrawDistance = 20;
+        private bool drawCharas = false;
+        private float maxCharaDrawDistance = 20;
 
         private string inputSig = string.Empty;
         private IntPtr sigResult = IntPtr.Zero;
@@ -49,6 +49,7 @@ namespace Dalamud.Interface.Internal.Windows
         private IntPtr findAgentInterfacePtr;
 
         private bool resolveGameData = false;
+        private bool resolveObjects = false;
 
         private UIDebug addonInspector = null;
 
@@ -100,10 +101,11 @@ namespace Dalamud.Interface.Internal.Windows
         {
             Server_OpCode,
             Address,
-            Actor_Table,
+            Object_Table,
             Fate_Table,
             Font_Test,
             Party_List,
+            Buddy_List,
             Plugin_IPC,
             Condition,
             Gauge,
@@ -139,18 +141,23 @@ namespace Dalamud.Interface.Internal.Windows
             if (string.IsNullOrEmpty(dataKind))
                 return;
 
-            if (dataKind == "ai")
-                dataKind = "Addon Inspector";
+            dataKind = dataKind switch
+            {
+                "ai" => "Addon Inspector",
+                "at" => "Object Table",  // Actor Table
+                "ot" => "Object Table",
+                _ => dataKind,
+            };
 
             dataKind = dataKind.Replace(" ", string.Empty).ToLower();
-            var dataKinds = Enum.GetValues(typeof(DataKind))
+            var matched = Enum.GetValues(typeof(DataKind))
                 .Cast<DataKind>()
-                .Where(k => nameof(k).Replace("_", string.Empty).ToLower() == dataKind)
-                .ToList();
+                .Where(k => Enum.GetName(typeof(DataKind), k).Replace("_", string.Empty).ToLower() == dataKind)
+                .FirstOrDefault();
 
-            if (dataKinds.Count > 0)
+            if (matched != default)
             {
-                this.currentKind = dataKinds.First();
+                this.currentKind = matched;
             }
             else
             {
@@ -201,8 +208,8 @@ namespace Dalamud.Interface.Internal.Windows
                             this.DrawAddress();
                             break;
 
-                        case DataKind.Actor_Table:
-                            this.DrawActorTable();
+                        case DataKind.Object_Table:
+                            this.DrawObjectTable();
                             break;
 
                         case DataKind.Fate_Table:
@@ -215,6 +222,10 @@ namespace Dalamud.Interface.Internal.Windows
 
                         case DataKind.Party_List:
                             this.DrawPartyList();
+                            break;
+
+                        case DataKind.Buddy_List:
+                            this.DrawBuddyList();
                             break;
 
                         case DataKind.Plugin_IPC:
@@ -325,24 +336,18 @@ namespace Dalamud.Interface.Internal.Windows
             }
         }
 
-        private void DrawActorTable()
+        private void DrawObjectTable()
         {
             var stateString = string.Empty;
 
-            // LocalPlayer is null in a number of situations (at least with the current visible-actors list)
-            // which would crash here.
-            if (this.dalamud.ClientState.Actors.Length == 0)
-            {
-                ImGui.TextUnformatted("Data not ready.");
-            }
-            else if (this.dalamud.ClientState.LocalPlayer == null)
+            if (this.dalamud.ClientState.LocalPlayer == null)
             {
                 ImGui.TextUnformatted("LocalPlayer null.");
             }
             else
             {
                 stateString += $"FrameworkBase: {this.dalamud.Framework.Address.BaseAddress.ToInt64():X}\n";
-                stateString += $"ActorTableLen: {this.dalamud.ClientState.Actors.Length}\n";
+                stateString += $"ObjectTableLen: {this.dalamud.ClientState.Objects.Length}\n";
                 stateString += $"LocalPlayerName: {this.dalamud.ClientState.LocalPlayer.Name}\n";
                 stateString += $"CurrentWorldName: {(this.resolveGameData ? this.dalamud.ClientState.LocalPlayer.CurrentWorld.GameData.Name : this.dalamud.ClientState.LocalPlayer.CurrentWorld.Id.ToString())}\n";
                 stateString += $"HomeWorldName: {(this.resolveGameData ? this.dalamud.ClientState.LocalPlayer.HomeWorld.GameData.Name : this.dalamud.ClientState.LocalPlayer.HomeWorld.Id.ToString())}\n";
@@ -352,29 +357,29 @@ namespace Dalamud.Interface.Internal.Windows
 
                 ImGui.TextUnformatted(stateString);
 
-                ImGui.Checkbox("Draw actors on screen", ref this.drawActors);
-                ImGui.SliderFloat("Draw Distance", ref this.maxActorDrawDistance, 2f, 40f);
+                ImGui.Checkbox("Draw characters on screen", ref this.drawCharas);
+                ImGui.SliderFloat("Draw Distance", ref this.maxCharaDrawDistance, 2f, 40f);
 
-                for (var i = 0; i < this.dalamud.ClientState.Actors.Length; i++)
+                for (var i = 0; i < this.dalamud.ClientState.Objects.Length; i++)
                 {
-                    var actor = this.dalamud.ClientState.Actors[i];
+                    var obj = this.dalamud.ClientState.Objects[i];
 
-                    if (actor == null)
+                    if (obj == null)
                         continue;
 
-                    this.PrintActor(actor, i.ToString());
+                    this.PrintGameObject(obj, i.ToString());
 
-                    if (this.drawActors && this.dalamud.Framework.Gui.WorldToScreen(actor.Position, out var screenCoords))
+                    if (this.drawCharas && this.dalamud.Framework.Gui.WorldToScreen(obj.Position, out var screenCoords))
                     {
                         // So, while WorldToScreen will return false if the point is off of game client screen, to
                         // to avoid performance issues, we have to manually determine if creating a window would
                         // produce a new viewport, and skip rendering it if so
-                        var actorText = $"{actor.Address.ToInt64():X}:{actor.ActorId:X}[{i}] - {actor.ObjectKind} - {actor.Name}";
+                        var objectText = $"{obj.Address.ToInt64():X}:{obj.ObjectId:X}[{i}] - {obj.ObjectKind} - {obj.Name}";
 
                         var screenPos = ImGui.GetMainViewport().Pos;
                         var screenSize = ImGui.GetMainViewport().Size;
 
-                        var windowSize = ImGui.CalcTextSize(actorText);
+                        var windowSize = ImGui.CalcTextSize(objectText);
 
                         // Add some extra safety padding
                         windowSize.X += ImGui.GetStyle().WindowPadding.X + 10;
@@ -384,12 +389,12 @@ namespace Dalamud.Interface.Internal.Windows
                             screenCoords.Y + windowSize.Y > screenPos.Y + screenSize.Y)
                             continue;
 
-                        if (actor.YalmDistanceX > this.maxActorDrawDistance)
+                        if (obj.YalmDistanceX > this.maxCharaDrawDistance)
                             continue;
 
                         ImGui.SetNextWindowPos(new Vector2(screenCoords.X, screenCoords.Y));
 
-                        ImGui.SetNextWindowBgAlpha(Math.Max(1f - (actor.YalmDistanceX / this.maxActorDrawDistance), 0.2f));
+                        ImGui.SetNextWindowBgAlpha(Math.Max(1f - (obj.YalmDistanceX / this.maxCharaDrawDistance), 0.2f));
                         if (ImGui.Begin(
                                 $"Actor{i}##ActorWindow{i}",
                                 ImGuiWindowFlags.NoDecoration |
@@ -400,7 +405,7 @@ namespace Dalamud.Interface.Internal.Windows
                                 ImGuiWindowFlags.NoDocking |
                                 ImGuiWindowFlags.NoFocusOnAppearing |
                                 ImGuiWindowFlags.NoNav))
-                            ImGui.Text(actorText);
+                            ImGui.Text(objectText);
                         ImGui.End();
                     }
                 }
@@ -469,30 +474,118 @@ namespace Dalamud.Interface.Internal.Windows
 
         private void DrawPartyList()
         {
-            var partyString = string.Empty;
+            ImGui.Checkbox("Resolve Actors", ref this.resolveObjects);
 
-            if (this.dalamud.ClientState.PartyList.Length == 0)
+            ImGui.Text($"GroupManager: {this.dalamud.ClientState.PartyList.GroupManagerAddress.ToInt64():X}");
+            ImGui.Text($"GroupList: {this.dalamud.ClientState.PartyList.GroupListAddress.ToInt64():X}");
+            ImGui.Text($"AllianceList: {this.dalamud.ClientState.PartyList.AllianceListAddress.ToInt64():X}");
+
+            ImGui.Text($"{this.dalamud.ClientState.PartyList.Length} Members");
+
+            for (var i = 0; i < this.dalamud.ClientState.PartyList.Length; i++)
             {
-                ImGui.TextUnformatted("Data not ready.");
-            }
-            else
-            {
-                partyString += $"{this.dalamud.ClientState.PartyList.Count} Members\n";
-                for (var i = 0; i < this.dalamud.ClientState.PartyList.Count; i++)
+                var member = this.dalamud.ClientState.PartyList[i];
+                if (member == null)
                 {
-                    var member = this.dalamud.ClientState.PartyList[i];
-                    if (member == null)
-                    {
-                        partyString +=
-                            $"[{i}] was null\n";
-                        continue;
-                    }
-
-                    partyString +=
-                        $"[{i}] {member.CharacterName} - {member.ObjectKind} - {member.Actor.ActorId}\n";
+                    ImGui.Text($"[{i}] was null");
+                    continue;
                 }
 
-                ImGui.TextUnformatted(partyString);
+                ImGui.Text($"[{i}] {member.Address.ToInt64():X} - {member.Name} - {member.GameObject.ObjectId}");
+                if (this.resolveObjects)
+                {
+                    var actor = member.GameObject;
+                    if (actor == null)
+                    {
+                        ImGui.Text("Actor was null");
+                    }
+                    else
+                    {
+                        this.PrintGameObject(actor, "-");
+                    }
+                }
+            }
+        }
+
+        private void DrawBuddyList()
+        {
+            ImGui.Checkbox("Resolve Actors", ref this.resolveObjects);
+
+            ImGui.Text($"BuddyList: {this.dalamud.ClientState.BuddyList.BuddyListAddress.ToInt64():X}");
+            {
+                var member = this.dalamud.ClientState.BuddyList.CompanionBuddy;
+                if (member == null)
+                {
+                    ImGui.Text("[Companion] null");
+                }
+                else
+                {
+                    ImGui.Text($"[Companion] {member.Address.ToInt64():X} - {member.ObjectId} - {member.DataID}");
+                    if (this.resolveObjects)
+                    {
+                        var actor = member.Actor;
+                        if (actor == null)
+                        {
+                            ImGui.Text("Actor was null");
+                        }
+                        else
+                        {
+                            this.PrintGameObject(actor, "-");
+                        }
+                    }
+                }
+            }
+
+            {
+                var member = this.dalamud.ClientState.BuddyList.PetBuddy;
+                if (member == null)
+                {
+                    ImGui.Text("[Pet] null");
+                }
+                else
+                {
+                    ImGui.Text($"[Pet] {member.Address.ToInt64():X} - {member.ObjectId} - {member.DataID}");
+                    if (this.resolveObjects)
+                    {
+                        var actor = member.Actor;
+                        if (actor == null)
+                        {
+                            ImGui.Text("Actor was null");
+                        }
+                        else
+                        {
+                            this.PrintGameObject(actor, "-");
+                        }
+                    }
+                }
+            }
+
+            {
+                var count = this.dalamud.ClientState.BuddyList.Length;
+                if (count == 0)
+                {
+                    ImGui.Text("[BattleBuddy] None present");
+                }
+                else
+                {
+                    for (var i = 0; i < count; i++)
+                    {
+                        var member = this.dalamud.ClientState.BuddyList[i];
+                        ImGui.Text($"[BattleBuddy] [{i}] {member.Address.ToInt64():X} - {member.ObjectId} - {member.DataID}");
+                        if (this.resolveObjects)
+                        {
+                            var actor = member.Actor;
+                            if (actor == null)
+                            {
+                                ImGui.Text("Actor was null");
+                            }
+                            else
+                            {
+                                this.PrintGameObject(actor, "-");
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -575,8 +668,172 @@ namespace Dalamud.Interface.Internal.Windows
 
         private void DrawGauge()
         {
-            var gauge = this.dalamud.ClientState.JobGauges.Get<ASTGauge>();
-            ImGui.Text($"Moon: {gauge.ContainsSeal(SealType.MOON)} Drawn: {gauge.DrawnCard()}");
+            var player = this.dalamud.ClientState.LocalPlayer;
+            if (player == null)
+            {
+                ImGui.Text("Player is not present");
+                return;
+            }
+
+            var jobID = player.ClassJob.Id;
+            if (jobID == 19)
+            {
+                var gauge = this.dalamud.ClientState.JobGauges.Get<PLDGauge>();
+                ImGui.Text($"Address: 0x{gauge.Address.ToInt64():X}");
+                ImGui.Text($"{nameof(gauge.OathGauge)}: {gauge.OathGauge}");
+            }
+            else if (jobID == 20)
+            {
+                var gauge = this.dalamud.ClientState.JobGauges.Get<MNKGauge>();
+                ImGui.Text($"Address: 0x{gauge.Address.ToInt64():X}");
+                ImGui.Text($"{nameof(gauge.Chakra)}: {gauge.Chakra}");
+            }
+            else if (jobID == 21)
+            {
+                var gauge = this.dalamud.ClientState.JobGauges.Get<WARGauge>();
+                ImGui.Text($"Address: 0x{gauge.Address.ToInt64():X}");
+                ImGui.Text($"{nameof(gauge.BeastGauge)}: {gauge.BeastGauge}");
+            }
+            else if (jobID == 22)
+            {
+                var gauge = this.dalamud.ClientState.JobGauges.Get<DRGGauge>();
+                ImGui.Text($"Address: 0x{gauge.Address.ToInt64():X}");
+                ImGui.Text($"{nameof(gauge.BOTDTimer)}: {gauge.BOTDTimer}");
+                ImGui.Text($"{nameof(gauge.BOTDState)}: {gauge.BOTDState}");
+                ImGui.Text($"{nameof(gauge.EyeCount)}: {gauge.EyeCount}");
+            }
+            else if (jobID == 23)
+            {
+                var gauge = this.dalamud.ClientState.JobGauges.Get<BRDGauge>();
+                ImGui.Text($"Address: 0x{gauge.Address.ToInt64():X}");
+                ImGui.Text($"{nameof(gauge.SongTimer)}: {gauge.SongTimer}");
+                ImGui.Text($"{nameof(gauge.Repertoire)}: {gauge.Repertoire}");
+                ImGui.Text($"{nameof(gauge.SoulVoice)}: {gauge.SoulVoice}");
+                ImGui.Text($"{nameof(gauge.Song)}: {gauge.Song}");
+            }
+            else if (jobID == 24)
+            {
+                var gauge = this.dalamud.ClientState.JobGauges.Get<WHMGauge>();
+                ImGui.Text($"Address: 0x{gauge.Address.ToInt64():X}");
+                ImGui.Text($"{nameof(gauge.LilyTimer)}: {gauge.LilyTimer}");
+                ImGui.Text($"{nameof(gauge.Lily)}: {gauge.Lily}");
+                ImGui.Text($"{nameof(gauge.BloodLily)}: {gauge.BloodLily}");
+            }
+            else if (jobID == 25)
+            {
+                var gauge = this.dalamud.ClientState.JobGauges.Get<BLMGauge>();
+                ImGui.Text($"Address: 0x{gauge.Address.ToInt64():X}");
+                ImGui.Text($"{nameof(gauge.EnochianTimer)}: {gauge.EnochianTimer}");
+                ImGui.Text($"{nameof(gauge.ElementTimeRemaining)}: {gauge.ElementTimeRemaining}");
+                ImGui.Text($"{nameof(gauge.PolyglotStacks)}: {gauge.PolyglotStacks}");
+                ImGui.Text($"{nameof(gauge.UmbralHearts)}: {gauge.UmbralHearts}");
+                ImGui.Text($"{nameof(gauge.UmbralIceStacks)}: {gauge.UmbralIceStacks}");
+                ImGui.Text($"{nameof(gauge.AstralFireStacks)}: {gauge.AstralFireStacks}");
+                ImGui.Text($"{nameof(gauge.InUmbralIce)}: {gauge.InUmbralIce}");
+                ImGui.Text($"{nameof(gauge.InAstralFire)}: {gauge.InAstralFire}");
+                ImGui.Text($"{nameof(gauge.IsEnochianActive)}: {gauge.IsEnochianActive}");
+            }
+            else if (jobID == 27)
+            {
+                var gauge = this.dalamud.ClientState.JobGauges.Get<SMNGauge>();
+                ImGui.Text($"Address: 0x{gauge.Address.ToInt64():X}");
+                ImGui.Text($"{nameof(gauge.TimerRemaining)}: {gauge.TimerRemaining}");
+                ImGui.Text($"{nameof(gauge.ReturnSummon)}: {gauge.ReturnSummon}");
+                ImGui.Text($"{nameof(gauge.ReturnSummonGlam)}: {gauge.ReturnSummonGlam}");
+                ImGui.Text($"{nameof(gauge.AetherFlags)}: {gauge.AetherFlags}");
+                ImGui.Text($"{nameof(gauge.IsPhoenixReady)}: {gauge.IsPhoenixReady}");
+                ImGui.Text($"{nameof(gauge.IsBahamutReady)}: {gauge.IsBahamutReady}");
+                ImGui.Text($"{nameof(gauge.HasAetherflowStacks)}: {gauge.HasAetherflowStacks}");
+            }
+            else if (jobID == 28)
+            {
+                var gauge = this.dalamud.ClientState.JobGauges.Get<SCHGauge>();
+                ImGui.Text($"Address: 0x{gauge.Address.ToInt64():X}");
+                ImGui.Text($"{nameof(gauge.Aetherflow)}: {gauge.Aetherflow}");
+                ImGui.Text($"{nameof(gauge.FairyGauge)}: {gauge.FairyGauge}");
+                ImGui.Text($"{nameof(gauge.SeraphTimer)}: {gauge.SeraphTimer}");
+                ImGui.Text($"{nameof(gauge.DismissedFairy)}: {gauge.DismissedFairy}");
+            }
+            else if (jobID == 30)
+            {
+                var gauge = this.dalamud.ClientState.JobGauges.Get<NINGauge>();
+                ImGui.Text($"Address: 0x{gauge.Address.ToInt64():X}");
+                ImGui.Text($"{nameof(gauge.HutonTimer)}: {gauge.HutonTimer}");
+                ImGui.Text($"{nameof(gauge.Ninki)}: {gauge.Ninki}");
+                ImGui.Text($"{nameof(gauge.HutonManualCasts)}: {gauge.HutonManualCasts}");
+            }
+            else if (jobID == 31)
+            {
+                var gauge = this.dalamud.ClientState.JobGauges.Get<MCHGauge>();
+                ImGui.Text($"Address: 0x{gauge.Address.ToInt64():X}");
+                ImGui.Text($"{nameof(gauge.OverheatTimeRemaining)}: {gauge.OverheatTimeRemaining}");
+                ImGui.Text($"{nameof(gauge.SummonTimeRemaining)}: {gauge.SummonTimeRemaining}");
+                ImGui.Text($"{nameof(gauge.Heat)}: {gauge.Heat}");
+                ImGui.Text($"{nameof(gauge.Battery)}: {gauge.Battery}");
+                ImGui.Text($"{nameof(gauge.LastSummonBatteryPower)}: {gauge.LastSummonBatteryPower}");
+                ImGui.Text($"{nameof(gauge.IsOverheated)}: {gauge.IsOverheated}");
+                ImGui.Text($"{nameof(gauge.IsRobotActive)}: {gauge.IsRobotActive}");
+            }
+            else if (jobID == 32)
+            {
+                var gauge = this.dalamud.ClientState.JobGauges.Get<DRKGauge>();
+                ImGui.Text($"Address: 0x{gauge.Address.ToInt64():X}");
+                ImGui.Text($"{nameof(gauge.Blood)}: {gauge.Blood}");
+                ImGui.Text($"{nameof(gauge.DarksideTimeRemaining)}: {gauge.DarksideTimeRemaining}");
+                ImGui.Text($"{nameof(gauge.ShadowTimeRemaining)}: {gauge.ShadowTimeRemaining}");
+                ImGui.Text($"{nameof(gauge.HasDarkArts)}: {gauge.HasDarkArts}");
+            }
+            else if (jobID == 33)
+            {
+                var gauge = this.dalamud.ClientState.JobGauges.Get<ASTGauge>();
+                ImGui.Text($"Address: 0x{gauge.Address.ToInt64():X}");
+                ImGui.Text($"{nameof(gauge.DrawnCard)}: {gauge.DrawnCard}");
+                foreach (var seal in Enum.GetValues(typeof(SealType)).Cast<SealType>())
+                {
+                    var sealName = Enum.GetName(typeof(SealType), seal);
+                    ImGui.Text($"{nameof(gauge.ContainsSeal)}({sealName}): {gauge.ContainsSeal(seal)}");
+                }
+            }
+            else if (jobID == 34)
+            {
+                var gauge = this.dalamud.ClientState.JobGauges.Get<SAMGauge>();
+                ImGui.Text($"Address: 0x{gauge.Address.ToInt64():X}");
+                ImGui.Text($"{nameof(gauge.Kenki)}: {gauge.Kenki}");
+                ImGui.Text($"{nameof(gauge.MeditationStacks)}: {gauge.MeditationStacks}");
+                ImGui.Text($"{nameof(gauge.Sen)}: {gauge.Sen}");
+                ImGui.Text($"{nameof(gauge.HasSetsu)}: {gauge.HasSetsu}");
+                ImGui.Text($"{nameof(gauge.HasGetsu)}: {gauge.HasGetsu}");
+                ImGui.Text($"{nameof(gauge.HasKa)}: {gauge.HasKa}");
+            }
+            else if (jobID == 35)
+            {
+                var gauge = this.dalamud.ClientState.JobGauges.Get<RDMGauge>();
+                ImGui.Text($"Address: 0x{gauge.Address.ToInt64():X}");
+                ImGui.Text($"{nameof(gauge.WhiteMana)}: {gauge.WhiteMana}");
+                ImGui.Text($"{nameof(gauge.BlackMana)}: {gauge.BlackMana}");
+            }
+            else if (jobID == 37)
+            {
+                var gauge = this.dalamud.ClientState.JobGauges.Get<GNBGauge>();
+                ImGui.Text($"Address: 0x{gauge.Address.ToInt64():X}");
+                ImGui.Text($"{nameof(gauge.Ammo)}: {gauge.Ammo}");
+                ImGui.Text($"{nameof(gauge.MaxTimerDuration)}: {gauge.MaxTimerDuration}");
+                ImGui.Text($"{nameof(gauge.AmmoComboStep)}: {gauge.AmmoComboStep}");
+            }
+            else if (jobID == 38)
+            {
+                var gauge = this.dalamud.ClientState.JobGauges.Get<DNCGauge>();
+                ImGui.Text($"Address: 0x{gauge.Address.ToInt64():X}");
+                ImGui.Text($"{nameof(gauge.Feathers)}: {gauge.Feathers}");
+                ImGui.Text($"{nameof(gauge.Esprit)}: {gauge.Esprit}");
+                ImGui.Text($"{nameof(gauge.CompletedSteps)}: {gauge.CompletedSteps}");
+                ImGui.Text($"{nameof(gauge.NextStep)}: {gauge.NextStep}");
+                ImGui.Text($"{nameof(gauge.IsDancing)}: {gauge.IsDancing}");
+            }
+            else
+            {
+                ImGui.Text("No supported gauge exists for this job.");
+            }
         }
 
         private void DrawCommand()
@@ -635,26 +892,26 @@ namespace Dalamud.Interface.Internal.Windows
         {
             var targetMgr = this.dalamud.ClientState.Targets;
 
-            if (targetMgr.CurrentTarget != null)
+            if (targetMgr.Target != null)
             {
-                this.PrintActor(targetMgr.CurrentTarget, "CurrentTarget");
-                Util.ShowObject(targetMgr.CurrentTarget);
+                this.PrintGameObject(targetMgr.Target, "CurrentTarget");
+                Util.ShowObject(targetMgr.Target);
             }
 
             if (targetMgr.FocusTarget != null)
-                this.PrintActor(targetMgr.FocusTarget, "FocusTarget");
+                this.PrintGameObject(targetMgr.FocusTarget, "FocusTarget");
 
             if (targetMgr.MouseOverTarget != null)
-                this.PrintActor(targetMgr.MouseOverTarget, "MouseOverTarget");
+                this.PrintGameObject(targetMgr.MouseOverTarget, "MouseOverTarget");
 
             if (targetMgr.PreviousTarget != null)
-                this.PrintActor(targetMgr.PreviousTarget, "PreviousTarget");
+                this.PrintGameObject(targetMgr.PreviousTarget, "PreviousTarget");
 
             if (targetMgr.SoftTarget != null)
-                this.PrintActor(targetMgr.SoftTarget, "SoftTarget");
+                this.PrintGameObject(targetMgr.SoftTarget, "SoftTarget");
 
             if (ImGui.Button("Clear CT"))
-                targetMgr.ClearCurrentTarget();
+                targetMgr.ClearTarget();
 
             if (ImGui.Button("Clear FT"))
                 targetMgr.ClearFocusTarget();
@@ -664,7 +921,7 @@ namespace Dalamud.Interface.Internal.Windows
             if (localPlayer != null)
             {
                 if (ImGui.Button("Set CT"))
-                    targetMgr.SetCurrentTarget(localPlayer);
+                    targetMgr.SetTarget(localPlayer);
 
                 if (ImGui.Button("Set FT"))
                     targetMgr.SetFocusTarget(localPlayer);
@@ -815,9 +1072,10 @@ namespace Dalamud.Interface.Internal.Windows
                            $"L3 {resolve(GamepadButtons.L3)} " +
                            $"R3 {resolve(GamepadButtons.R3)} ");
             }
-#if DEBUG
+
             ImGui.Text($"GamepadInput 0x{this.dalamud.ClientState.GamepadState.GamepadInputAddress.ToInt64():X}");
 
+#if DEBUG
             if (ImGui.IsItemHovered())
                 ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
 
@@ -860,15 +1118,15 @@ namespace Dalamud.Interface.Internal.Windows
             }
         }
 
-        private void PrintActor(Actor actor, string tag)
+        private void PrintGameObject(GameObject actor, string tag)
         {
             var actorString =
-                $"{actor.Address.ToInt64():X}:{actor.ActorId:X}[{tag}] - {actor.ObjectKind} - {actor.Name} - X{actor.Position.X} Y{actor.Position.Y} Z{actor.Position.Z} D{actor.YalmDistanceX} R{actor.Rotation} - Target: {actor.TargetActorID:X}\n";
+                $"{actor.Address.ToInt64():X}:{actor.ObjectId:X}[{tag}] - {actor.ObjectKind} - {actor.Name} - X{actor.Position.X} Y{actor.Position.Y} Z{actor.Position.Z} D{actor.YalmDistanceX} R{actor.Rotation} - Target: {actor.TargetObjectId:X}\n";
 
             if (actor is Npc npc)
-                actorString += $"       DataId: {npc.BaseId}  NameId:{npc.NameId}\n";
+                actorString += $"       DataId: {npc.DataId}  NameId:{npc.NameId}\n";
 
-            if (actor is Chara chara)
+            if (actor is Character chara)
             {
                 actorString +=
                     $"       Level: {chara.Level} ClassJob: {(this.resolveGameData ? chara.ClassJob.GameData.Name : chara.ClassJob.Id.ToString())} CHP: {chara.CurrentHp} MHP: {chara.MaxHp} CMP: {chara.CurrentMp} MMP: {chara.MaxMp}\n       Customize: {BitConverter.ToString(chara.Customize).Replace("-", " ")} StatusFlags: {chara.StatusFlags}\n";

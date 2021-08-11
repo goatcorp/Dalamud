@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Numerics;
@@ -7,7 +8,6 @@ using System.Text;
 using System.Threading;
 
 using Dalamud.Game;
-using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.GamePad;
 using Dalamud.Game.Internal.DXGI;
 using Dalamud.Hooking;
@@ -71,10 +71,10 @@ namespace Dalamud.Interface.Internal
 
                 this.address = sigResolver;
             }
-            catch (Exception ex)
+            catch (KeyNotFoundException)
             {
                 // The SigScanner method fails on wine/proton since DXGI is not a real DLL. We fall back to vtable to detect our Present function address.
-                Log.Debug(ex, "Could not get SwapChain address via sig method, falling back to vtable...");
+                Log.Debug("Could not get SwapChain address via sig method, falling back to vtable");
 
                 var vtableResolver = new SwapChainVtableResolver();
                 vtableResolver.Setup(scanner);
@@ -93,7 +93,7 @@ namespace Dalamud.Interface.Internal
                     var fileName = new StringBuilder(255);
                     _ = NativeFunctions.GetModuleFileNameW(rtss, fileName, fileName.Capacity);
                     this.rtssPath = fileName.ToString();
-                    Log.Verbose("RTSS at {0}", this.rtssPath);
+                    Log.Verbose($"RTSS at {this.rtssPath}");
 
                     if (!NativeFunctions.FreeLibrary(rtss))
                         throw new Win32Exception();
@@ -131,7 +131,7 @@ namespace Dalamud.Interface.Internal
         /// <summary>
         /// This event gets called by a plugin UiBuilder when read
         /// </summary>
-        public event RawDX11Scene.BuildUIDelegate OnDraw;
+        public event RawDX11Scene.BuildUIDelegate Draw;
 
         /// <summary>
         /// Gets the default ImGui font.
@@ -397,6 +397,8 @@ namespace Dalamud.Interface.Internal
                 ImGuiHelpers.MainViewport = ImGui.GetMainViewport();
 
                 Log.Information("[IM] Scene & ImGui setup OK!");
+
+                this.dalamud.IME.Enable();
             }
 
             // Process information needed by ImGuiHelpers each frame.
@@ -581,8 +583,7 @@ namespace Dalamud.Interface.Internal
                 this.dalamud.DalamudUi.ToggleGamepadModeNotifierWindow();
             }
 
-            if (gamepadEnabled
-                && (ImGui.GetIO().ConfigFlags & ImGuiConfigFlags.NavEnableGamepad) > 0)
+            if (gamepadEnabled && (ImGui.GetIO().ConfigFlags & ImGuiConfigFlags.NavEnableGamepad) > 0)
             {
                 ImGui.GetIO().NavInputs[(int)ImGuiNavInput.Activate] = this.dalamud.ClientState.GamepadState.Raw(GamepadButtons.South);
                 ImGui.GetIO().NavInputs[(int)ImGuiNavInput.Cancel] = this.dalamud.ClientState.GamepadState.Raw(GamepadButtons.East);
@@ -621,7 +622,7 @@ namespace Dalamud.Interface.Internal
             this.LastImGuiIoPtr = ImGui.GetIO();
             this.lastWantCapture = this.LastImGuiIoPtr.WantCaptureMouse;
 
-            this.OnDraw?.Invoke();
+            this.Draw?.Invoke();
         }
     }
 }

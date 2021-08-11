@@ -1,14 +1,15 @@
 using System;
-using System.ComponentModel;
-using System.Linq;
 using System.Runtime.InteropServices;
 
-using Dalamud.Game.ClientState.Actors;
-using Dalamud.Game.ClientState.Actors.Types;
+using Dalamud.Game.ClientState.Buddy;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Fates;
 using Dalamud.Game.ClientState.GamePad;
+using Dalamud.Game.ClientState.JobGauge;
 using Dalamud.Game.ClientState.Keys;
+using Dalamud.Game.ClientState.Objects;
+using Dalamud.Game.ClientState.Objects.SubKinds;
+using Dalamud.Game.ClientState.Party;
 using Dalamud.Hooking;
 using JetBrains.Annotations;
 using Serilog;
@@ -18,7 +19,7 @@ namespace Dalamud.Game.ClientState
     /// <summary>
     /// This class represents the state of the game client at the time of access.
     /// </summary>
-    public sealed class ClientState : INotifyPropertyChanged, IDisposable
+    public sealed class ClientState : IDisposable
     {
         private readonly Dalamud dalamud;
         private readonly ClientStateAddressResolver address;
@@ -43,11 +44,13 @@ namespace Dalamud.Game.ClientState
 
             this.ClientLanguage = startInfo.Language;
 
-            this.Actors = new ActorTable(dalamud, this.address);
+            this.Objects = new ObjectTable(dalamud, this.address);
 
             this.Fates = new FateTable(dalamud, this.address);
 
             this.PartyList = new PartyList(dalamud, this.address);
+
+            this.BuddyList = new BuddyList(dalamud, this.address);
 
             this.JobGauges = new JobGauges(this.address);
 
@@ -71,13 +74,6 @@ namespace Dalamud.Game.ClientState
         private delegate IntPtr SetupTerritoryTypeDelegate(IntPtr manager, ushort terriType);
 
         /// <summary>
-        /// Event that fires when a property changes.
-        /// </summary>
-#pragma warning disable CS0067
-        public event PropertyChangedEventHandler PropertyChanged;
-#pragma warning restore
-
-        /// <summary>
         /// Event that gets fired when the current Territory changes.
         /// </summary>
         public event EventHandler<ushort> TerritoryChanged;
@@ -85,12 +81,12 @@ namespace Dalamud.Game.ClientState
         /// <summary>
         /// Event that fires when a character is logging in.
         /// </summary>
-        public event EventHandler OnLogin;
+        public event EventHandler Login;
 
         /// <summary>
         /// Event that fires when a character is logging out.
         /// </summary>
-        public event EventHandler OnLogout;
+        public event EventHandler Logout;
 
         /// <summary>
         /// Event that gets fired when a duty is ready.
@@ -100,7 +96,7 @@ namespace Dalamud.Game.ClientState
         /// <summary>
         /// Gets the table of all present actors.
         /// </summary>
-        public ActorTable Actors { get; }
+        public ObjectTable Objects { get; }
 
         /// <summary>
         /// Gets the table of all present fates.
@@ -121,6 +117,11 @@ namespace Dalamud.Game.ClientState
         /// Gets the class facilitating party list data access.
         /// </summary>
         public PartyList PartyList { get; }
+
+        /// <summary>
+        /// Gets the class facilitating buddy list data access.
+        /// </summary>
+        public BuddyList BuddyList { get; }
 
         /// <summary>
         /// Gets access to the keypress state of keyboard keys in game.
@@ -151,7 +152,7 @@ namespace Dalamud.Game.ClientState
         /// Gets the local player character, if one is present.
         /// </summary>
         [CanBeNull]
-        public PlayerCharacter LocalPlayer => this.Actors[0] as PlayerCharacter;
+        public PlayerCharacter LocalPlayer => this.Objects[0] as PlayerCharacter;
 
         /// <summary>
         /// Gets the content ID of the local character.
@@ -169,7 +170,6 @@ namespace Dalamud.Game.ClientState
         public void Enable()
         {
             this.GamepadState.Enable();
-            this.PartyList.Enable();
             this.setupTerritoryTypeHook.Enable();
         }
 
@@ -178,7 +178,6 @@ namespace Dalamud.Game.ClientState
         /// </summary>
         public void Dispose()
         {
-            this.PartyList.Dispose();
             this.setupTerritoryTypeHook.Dispose();
             this.GamepadState.Dispose();
 
@@ -208,7 +207,7 @@ namespace Dalamud.Game.ClientState
                 Log.Debug("Is login");
                 this.lastConditionNone = false;
                 this.IsLoggedIn = true;
-                this.OnLogin?.Invoke(this, null);
+                this.Login?.Invoke(this, null);
             }
 
             if (!this.Condition.Any() && this.lastConditionNone == false)
@@ -216,7 +215,7 @@ namespace Dalamud.Game.ClientState
                 Log.Debug("Is logout");
                 this.lastConditionNone = true;
                 this.IsLoggedIn = false;
-                this.OnLogout?.Invoke(this, null);
+                this.Logout?.Invoke(this, null);
             }
         }
     }

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Interface.Internal;
 using ImGuiNET;
@@ -36,19 +35,19 @@ namespace Dalamud.Interface
             this.stopwatch = new Stopwatch();
             this.namespaceName = namespaceName;
 
-            this.dalamud.InterfaceManager.OnDraw += this.OnDraw;
+            this.dalamud.InterfaceManager.Draw += this.OnDraw;
         }
 
         /// <summary>
         /// The delegate that gets called when Dalamud is ready to draw your windows or overlays.
         /// When it is called, you can use static ImGui calls.
         /// </summary>
-        public event RawDX11Scene.BuildUIDelegate OnBuildUi;
+        public event RawDX11Scene.BuildUIDelegate Draw;
 
         /// <summary>
         /// Event that is fired when the plugin should open its configuration interface.
         /// </summary>
-        public event EventHandler OnOpenConfigUi;
+        public event EventHandler OpenConfigUi;
 
         /// <summary>
         /// Gets the default Dalamud font based on Noto Sans CJK Medium in 17pt - supporting all game languages and icons.
@@ -129,7 +128,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// Gets a value indicating whether this UiBuilder has a configuration UI registered.
         /// </summary>
-        internal bool HasConfigUi => this.OnOpenConfigUi != null;
+        internal bool HasConfigUi => this.OpenConfigUi != null;
 
         /// <summary>
         /// Gets or sets the time this plugin took to draw on the last frame.
@@ -196,15 +195,15 @@ namespace Dalamud.Interface
         /// </summary>
         public void Dispose()
         {
-            this.dalamud.InterfaceManager.OnDraw -= this.OnDraw;
+            this.dalamud.InterfaceManager.Draw -= this.OnDraw;
         }
 
         /// <summary>
         /// Open the registered configuration UI, if it exists.
         /// </summary>
-        internal void OpenConfigUi()
+        internal void OpenConfig()
         {
-            this.OnOpenConfigUi?.Invoke(this, null);
+            this.OpenConfigUi?.Invoke(this, null);
         }
 
         private void OnDraw()
@@ -238,13 +237,13 @@ namespace Dalamud.Interface
 
             try
             {
-                this.OnBuildUi?.Invoke();
+                this.Draw?.Invoke();
             }
             catch (Exception ex)
             {
                 Log.Error(ex, "[{0}] UiBuilder OnBuildUi caught exception", this.namespaceName);
-                this.OnBuildUi = null;
-                this.OnOpenConfigUi = null;
+                this.Draw = null;
+                this.OpenConfigUi = null;
 
                 this.hasErrorWindow = true;
             }
