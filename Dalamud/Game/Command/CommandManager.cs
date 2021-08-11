@@ -47,7 +47,7 @@ namespace Dalamud.Game.Command
                     break;
             }
 
-            dalamud.Framework.Gui.Chat.OnCheckMessageHandled += this.OnCheckMessageHandled;
+            dalamud.Framework.Gui.Chat.CheckMessageHandled += this.OnCheckMessageHandled;
         }
 
         /// <summary>

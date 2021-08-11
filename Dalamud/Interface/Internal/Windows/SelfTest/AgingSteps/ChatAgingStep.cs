@@ -33,12 +33,12 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
                     if (!this.subscribed)
                     {
                         this.subscribed = true;
-                        dalamud.Framework.Gui.Chat.OnChatMessage += this.ChatOnOnChatMessage;
+                        dalamud.Framework.Gui.Chat.ChatMessage += this.ChatOnOnChatMessage;
                     }
 
                     if (this.hasPassed)
                     {
-                        dalamud.Framework.Gui.Chat.OnChatMessage -= this.ChatOnOnChatMessage;
+                        dalamud.Framework.Gui.Chat.ChatMessage -= this.ChatOnOnChatMessage;
                         this.subscribed = false;
                         return SelfTestStepResult.Pass;
                     }
@@ -52,7 +52,7 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
         /// <inheritdoc/>
         public void CleanUp(Dalamud dalamud)
         {
-            dalamud.Framework.Gui.Chat.OnChatMessage -= this.ChatOnOnChatMessage;
+            dalamud.Framework.Gui.Chat.ChatMessage -= this.ChatOnOnChatMessage;
             this.subscribed = false;
         }
 
