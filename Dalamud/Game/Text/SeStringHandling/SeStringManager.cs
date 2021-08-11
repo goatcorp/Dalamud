@@ -1,8 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 
 using Dalamud.Data;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
@@ -47,24 +45,6 @@ namespace Dalamud.Game.Text.SeStringHandling
             }
 
             return new SeString(payloads);
-        }
-
-        /// <summary>
-        /// Parse a binary game message into an SeString.
-        /// </summary>
-        /// <param name="bytePtr">Pointer to a binary message payload data in SE's internal format.</param>
-        /// <returns>An SeString containing parsed Payload objects for each payload in the data.</returns>
-        public SeString Parse(IntPtr bytePtr)
-        {
-            var bytes = new List<byte>();
-            byte read = Marshal.ReadByte(bytePtr, 0);
-            for (int ofs = 1; read != 0; ofs++)
-            {
-                bytes.Add(read);
-                read = Marshal.ReadByte(bytePtr, ofs);
-            }
-
-            return this.Parse(bytes.ToArray());
         }
 
         /// <summary>

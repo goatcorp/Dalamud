@@ -3,6 +3,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 
 using Dalamud.Game.Gui.Addons;
+using Dalamud.Game.Gui.FlyText;
 using Dalamud.Game.Gui.PartyFinder;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Hooking;
