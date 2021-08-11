@@ -19,8 +19,8 @@ namespace Dalamud.Game.Gui.FlyText
         DirectHit = 1,
 
         /// <summary>
-        /// Val1 in larger serif font with exclamation, with Text2
-        /// in sans-serif as subtitle. Does a bigger bounce effect on appearance.
+        /// Val1 in larger serif font with exclamation, with Text2 in sans-serif as subtitle.
+        /// Does a bigger bounce effect on appearance.
         /// </summary>
         CriticalHit = 2,
 
@@ -75,6 +75,10 @@ namespace Dalamud.Game.Gui.FlyText
         /// Icon next to sans-serif Text1.
         /// </summary>
         NamedIcon = 12,
+
+        /// <summary>
+        /// Icon next to sans-serif Text1 (2).
+        /// </summary>
         NamedIcon2 = 13,
 
         /// <summary>
@@ -92,8 +96,19 @@ namespace Dalamud.Game.Gui.FlyText
         /// </summary>
         NamedTp = 16,
 
+        /// <summary>
+        /// AutoAttack with sans-serif Text1 to the left of the Val1 (2).
+        /// </summary>
         NamedAttack2 = 17,
+
+        /// <summary>
+        /// Sans-serif Text1 next to serif Val1 with all caps condensed font MP with Text2 in sans-serif as subtitle (2).
+        /// </summary>
         NamedMp2 = 18,
+
+        /// <summary>
+        /// Sans-serif Text1 next to serif Val1 with all caps condensed font TP with Text2 in sans-serif as subtitle (2).
+        /// </summary>
         NamedTp2 = 19,
 
         /// <summary>
@@ -122,9 +137,25 @@ namespace Dalamud.Game.Gui.FlyText
         /// AutoAttack with no Text2.
         /// </summary>
         AutoAttackNoText = 24,
+
+        /// <summary>
+        /// AutoAttack with no Text2 (2).
+        /// </summary>
         AutoAttackNoText2 = 25,
+
+        /// <summary>
+        /// Val1 in larger serif font with exclamation, with Text2 in sans-serif as subtitle. Does a bigger bounce effect on appearance (2).
+        /// </summary>
         CriticalHit2 = 26,
+
+        /// <summary>
+        /// AutoAttack with no Text2 (3).
+        /// </summary>
         AutoAttackNoText3 = 27,
+
+        /// <summary>
+        /// CriticalHit with sans-serif Text1 to the left of the Val1 (2).
+        /// </summary>
         NamedCriticalHit2 = 28,
 
         /// <summary>
@@ -148,6 +179,11 @@ namespace Dalamud.Game.Gui.FlyText
         /// Same as NamedIcon but Text1 is slightly faded. Used for buff expiration.
         /// </summary>
         NamedIconFaded = 32,
+
+        /// <summary>
+        /// Same as NamedIcon but Text1 is slightly faded (2).
+        /// Used for buff expiration.
+        /// </summary>
         NamedIconFaded2 = 33,
 
         /// <summary>
@@ -175,8 +211,19 @@ namespace Dalamud.Game.Gui.FlyText
         /// </summary>
         NamedHasNoEffect = 38,
 
+        /// <summary>
+        /// AutoAttack with sans-serif Text1 to the left of the Val1 (3).
+        /// </summary>
         NamedAttack3 = 39,
+
+        /// <summary>
+        /// Sans-serif Text1 next to serif Val1 with all caps condensed font MP with Text2 in sans-serif as subtitle (3).
+        /// </summary>
         NamedMp3 = 40,
+
+        /// <summary>
+        /// Sans-serif Text1 next to serif Val1 with all caps condensed font TP with Text2 in sans-serif as subtitle (3).
+        /// </summary>
         NamedTp3 = 41,
 
         /// <summary>
@@ -194,7 +241,15 @@ namespace Dalamud.Game.Gui.FlyText
         /// </summary>
         NamedIconWithItemOutline = 44,
 
+        /// <summary>
+        /// AutoAttack with no Text2 (4).
+        /// </summary>
         AutoAttackNoText4 = 45,
+
+        /// <summary>
+        /// Val1 in larger serif font with exclamation, with Text2 in sans-serif as subtitle (3).
+        /// Does a bigger bounce effect on appearance.
+        /// </summary>
         CriticalHit3 = 46,
 
         /// <summary>
@@ -207,8 +262,22 @@ namespace Dalamud.Game.Gui.FlyText
         /// </summary>
         Reflected = 48,
 
+        /// <summary>
+        /// Val1 in serif font, Text2 in sans-serif as subtitle (2).
+        /// Does a bounce effect on appearance.
+        /// </summary>
         DirectHit2 = 49,
-        CriticalHit5 = 50,
+
+        /// <summary>
+        /// Val1 in larger serif font with exclamation, with Text2 in sans-serif as subtitle (4).
+        /// Does a bigger bounce effect on appearance.
+        /// </summary>
+        CriticalHit4 = 50,
+
+        /// <summary>
+        /// Val1 in even larger serif font with 2 exclamations, Text2 in sans-serif as subtitle (2).
+        /// Does a large bounce effect on appearance. Does not scroll up or down the screen.
+        /// </summary>
         CriticalDirectHit2 = 51,
     }
 }
