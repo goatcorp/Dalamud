@@ -8,6 +8,7 @@ using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Hooking;
 using Dalamud.Interface;
 using Dalamud.Utility;
+using ImGuiNET;
 using Serilog;
 
 namespace Dalamud.Game.Gui
@@ -32,6 +33,7 @@ namespace Dalamud.Game.Gui
         private readonly Hook<HandleItemOutDelegate> handleItemOutHook;
         private readonly Hook<HandleActionHoverDelegate> handleActionHoverHook;
         private readonly Hook<HandleActionOutDelegate> handleActionOutHook;
+        private readonly Hook<HandleImmDelegate> handleImmHook;
         private readonly Hook<ToggleUiHideDelegate> toggleUiHideHook;
 
         private GetUIMapObjectDelegate getUIMapObject;
@@ -57,6 +59,7 @@ namespace Dalamud.Game.Gui
             Log.Verbose($"SetGlobalBgm address 0x{this.address.SetGlobalBgm.ToInt64():X}");
             Log.Verbose($"HandleItemHover address 0x{this.address.HandleItemHover.ToInt64():X}");
             Log.Verbose($"HandleItemOut address 0x{this.address.HandleItemOut.ToInt64():X}");
+            Log.Verbose($"HandleImm address 0x{this.address.HandleImm.ToInt64():X}");
             Log.Verbose($"GetUIObject address 0x{this.address.GetUIObject.ToInt64():X}");
             Log.Verbose($"GetAgentModule address 0x{this.address.GetAgentModule.ToInt64():X}");
 
@@ -65,12 +68,14 @@ namespace Dalamud.Game.Gui
             this.Toast = new ToastGui(scanner, dalamud);
 
             this.setGlobalBgmHook = new Hook<SetGlobalBgmDelegate>(this.address.SetGlobalBgm, this.HandleSetGlobalBgmDetour);
-            this.handleItemHoverHook = new Hook<HandleItemHoverDelegate>(this.address.HandleItemHover, this.HandleItemHoverDetour);
 
+            this.handleItemHoverHook = new Hook<HandleItemHoverDelegate>(this.address.HandleItemHover, this.HandleItemHoverDetour);
             this.handleItemOutHook = new Hook<HandleItemOutDelegate>(this.address.HandleItemOut, this.HandleItemOutDetour);
 
             this.handleActionHoverHook = new Hook<HandleActionHoverDelegate>(this.address.HandleActionHover, this.HandleActionHoverDetour);
             this.handleActionOutHook = new Hook<HandleActionOutDelegate>(this.address.HandleActionOut, this.HandleActionOutDetour);
+
+            this.handleImmHook = new Hook<HandleImmDelegate>(this.address.HandleImm, this.HandleImmDetour);
 
             this.getUIObject = Marshal.GetDelegateForFunctionPointer<GetUIObjectDelegate>(this.address.GetUIObject);
 
@@ -134,6 +139,9 @@ namespace Dalamud.Game.Gui
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         private delegate IntPtr HandleActionOutDelegate(IntPtr agentActionDetail, IntPtr a2, IntPtr a3, int a4);
+
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        private delegate char HandleImmDelegate(IntPtr framework, char a2, byte a3);
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         private delegate IntPtr ToggleUiHideDelegate(IntPtr thisPtr, byte unknownByte);
@@ -494,6 +502,7 @@ namespace Dalamud.Game.Gui
             this.setGlobalBgmHook.Enable();
             this.handleItemHoverHook.Enable();
             this.handleItemOutHook.Enable();
+            this.handleImmHook.Enable();
             this.toggleUiHideHook.Enable();
             this.handleActionHoverHook.Enable();
             this.handleActionOutHook.Enable();
@@ -510,6 +519,7 @@ namespace Dalamud.Game.Gui
             this.setGlobalBgmHook.Dispose();
             this.handleItemHoverHook.Dispose();
             this.handleItemOutHook.Dispose();
+            this.handleImmHook.Dispose();
             this.toggleUiHideHook.Dispose();
             this.handleActionHoverHook.Dispose();
             this.handleActionOutHook.Dispose();
@@ -640,6 +650,14 @@ namespace Dalamud.Game.Gui
             Log.Debug("UiHide toggled: {0}", this.GameUiHidden);
 
             return this.toggleUiHideHook.Original(thisPtr, unknownByte);
+        }
+
+        private char HandleImmDetour(IntPtr framework, char a2, byte a3)
+        {
+            var result = this.handleImmHook.Original(framework, a2, a3);
+            return ImGui.GetIO().WantTextInput
+                ? (char)0
+                : result;
         }
     }
 }

@@ -84,6 +84,12 @@ namespace Dalamud.Interface.Internal
                 ShowInHelp = false,
             });
 
+            this.dalamud.CommandManager.AddHandler("/xlime", new CommandInfo(this.OnDebugDrawIMEPanel)
+            {
+                HelpMessage = Loc.Localize("DalamudIMEPanelHelp", "Draw IME panel"),
+                ShowInHelp = false,
+            });
+
             this.dalamud.CommandManager.AddHandler("/xllog", new CommandInfo(this.OnOpenLog)
             {
                 HelpMessage = Loc.Localize("DalamudDevLogHelp", "Open dev log DEBUG"),
@@ -243,6 +249,11 @@ namespace Dalamud.Interface.Internal
                 this.dalamud.DalamudUi.ToggleDataWindow();
             else
                 this.dalamud.DalamudUi.OpenDataWindow(arguments);
+        }
+
+        private void OnDebugDrawIMEPanel(string command, string arguments)
+        {
+            this.dalamud.DalamudUi.OpenIMEWindow();
         }
 
         private void OnOpenLog(string command, string arguments)
