@@ -3,6 +3,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 
 using Dalamud.Game.Gui.Addons;
+using Dalamud.Game.Gui.FlyText;
 using Dalamud.Game.Gui.PartyFinder;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Hooking;
@@ -66,6 +67,7 @@ namespace Dalamud.Game.Gui
             this.Chat = new ChatGui(this.address.ChatManager, scanner, dalamud);
             this.PartyFinder = new PartyFinderGui(scanner, dalamud);
             this.Toast = new ToastGui(scanner, dalamud);
+            this.FlyText = new FlyTextGui(scanner, dalamud);
 
             this.setGlobalBgmHook = new Hook<SetGlobalBgmDelegate>(this.address.SetGlobalBgm, this.HandleSetGlobalBgmDetour);
 
@@ -171,6 +173,11 @@ namespace Dalamud.Game.Gui
         /// Gets the <see cref="Toast"/> instance.
         /// </summary>
         public ToastGui Toast { get; private set; }
+
+        /// <summary>
+        /// Gets the <see cref="FlyText"/> instance.
+        /// </summary>
+        public FlyTextGui FlyText { get; private set; }
 
         /// <summary>
         /// Gets a value indicating whether the game UI is hidden.
@@ -498,6 +505,7 @@ namespace Dalamud.Game.Gui
         {
             this.Chat.Enable();
             this.Toast.Enable();
+            this.FlyText.Enable();
             this.PartyFinder.Enable();
             this.setGlobalBgmHook.Enable();
             this.handleItemHoverHook.Enable();
@@ -515,6 +523,7 @@ namespace Dalamud.Game.Gui
         {
             this.Chat.Dispose();
             this.Toast.Dispose();
+            this.FlyText.Dispose();
             this.PartyFinder.Dispose();
             this.setGlobalBgmHook.Dispose();
             this.handleItemHoverHook.Dispose();

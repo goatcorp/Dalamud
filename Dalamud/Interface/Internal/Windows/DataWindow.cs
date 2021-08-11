@@ -12,6 +12,7 @@ using Dalamud.Game.ClientState.JobGauge.Types;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.Gui.Addons;
+using Dalamud.Game.Gui.FlyText;
 using Dalamud.Game.Gui.Toast;
 using Dalamud.Game.Text;
 using Dalamud.Interface.Windowing;
@@ -53,6 +54,7 @@ namespace Dalamud.Interface.Internal.Windows
 
         private UIDebug addonInspector = null;
 
+        // Toast fields
         private string inputTextToast = string.Empty;
         private int toastPosition = 0;
         private int toastSpeed = 0;
@@ -61,6 +63,17 @@ namespace Dalamud.Interface.Internal.Windows
         private int questToastIconId = 0;
         private bool questToastCheckmark = false;
 
+        // Fly text fields
+        private int flyActor;
+        private FlyTextKind flyKind;
+        private int flyVal1;
+        private int flyVal2;
+        private string flyText1 = string.Empty;
+        private string flyText2 = string.Empty;
+        private int flyIcon;
+        private Vector4 flyColor = new(1, 0, 0, 1);
+
+        // ImGui fields
         private string inputTexPath = string.Empty;
         private TextureWrap debugTex = null;
         private Vector2 inputTexUv0 = Vector2.Zero;
@@ -103,6 +116,7 @@ namespace Dalamud.Interface.Internal.Windows
             StartInfo,
             Target,
             Toast,
+            FlyText,
             ImGui,
             Tex,
             Gamepad,
@@ -249,6 +263,10 @@ namespace Dalamud.Interface.Internal.Windows
 
                         case DataKind.Toast:
                             this.DrawToast();
+                            break;
+
+                        case DataKind.FlyText:
+                            this.DrawFlyText();
                             break;
 
                         case DataKind.ImGui:
@@ -951,6 +969,45 @@ namespace Dalamud.Interface.Internal.Windows
             if (ImGui.Button("Show Error toast"))
             {
                 this.dalamud.Framework.Gui.Toast.ShowError(this.inputTextToast);
+            }
+        }
+
+        private void DrawFlyText()
+        {
+            if (ImGui.BeginCombo("Kind", this.flyKind.ToString()))
+            {
+                var names = Enum.GetNames(typeof(FlyTextKind));
+                for (int i = 0; i < names.Length; i++)
+                {
+                    if (ImGui.Selectable($"{names[i]} ({i})"))
+                        this.flyKind = (FlyTextKind)i;
+                }
+
+                ImGui.EndCombo();
+            }
+
+            ImGui.InputText("Text1", ref this.flyText1, 200);
+            ImGui.InputText("Text2", ref this.flyText2, 200);
+
+            ImGui.InputInt("Val1", ref this.flyVal1);
+            ImGui.InputInt("Val2", ref this.flyVal2);
+
+            ImGui.InputInt("Icon ID", ref this.flyIcon);
+            ImGui.ColorEdit4("Color", ref this.flyColor);
+            ImGui.InputInt("Actor Index", ref this.flyActor);
+            var sendColor = ImGui.ColorConvertFloat4ToU32(this.flyColor);
+
+            if (ImGui.Button("Send"))
+            {
+                this.dalamud.Framework.Gui.FlyText.AddFlyText(
+                    this.flyKind,
+                    unchecked((uint)this.flyActor),
+                    unchecked((uint)this.flyVal1),
+                    unchecked((uint)this.flyVal2),
+                    this.flyText1,
+                    this.flyText2,
+                    sendColor,
+                    unchecked((uint)this.flyIcon));
             }
         }
 
