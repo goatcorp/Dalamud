@@ -8,7 +8,7 @@ using Dalamud.Hooking;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using Serilog;
 
-namespace Dalamud.Game.Internal.Gui
+namespace Dalamud.Game.Gui
 {
     /// <summary>
     /// This class facilitates interacting with and creating native in-game "fly text".

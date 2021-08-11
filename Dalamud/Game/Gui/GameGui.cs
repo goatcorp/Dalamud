@@ -4,7 +4,6 @@ using System.Runtime.InteropServices;
 
 using Dalamud.Game.Gui.Addons;
 using Dalamud.Game.Gui.PartyFinder;
-using Dalamud.Game.Internal.Gui;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Hooking;
 using Dalamud.Interface;

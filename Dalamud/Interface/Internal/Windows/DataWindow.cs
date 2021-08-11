@@ -5,15 +5,14 @@ using System.Linq;
 using System.Numerics;
 
 using Dalamud.Game;
-using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Actors.Types;
 using Dalamud.Game.ClientState.Actors.Types.NonPlayer;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.GamePad;
 using Dalamud.Game.ClientState.Structs.JobGauge;
+using Dalamud.Game.Gui;
 using Dalamud.Game.Gui.Addons;
 using Dalamud.Game.Gui.Toast;
-using Dalamud.Game.Internal.Gui;
 using Dalamud.Game.Text;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;

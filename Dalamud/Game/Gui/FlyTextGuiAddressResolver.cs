@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Dalamud.Game.Internal.Gui
+namespace Dalamud.Game.Gui
 {
     /// <summary>
     /// An address resolver for the <see cref="FlyTextGui"/> class.

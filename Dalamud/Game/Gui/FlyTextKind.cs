@@ -1,4 +1,4 @@
-﻿namespace Dalamud.Game.Internal.Gui
+﻿namespace Dalamud.Game.Gui
 {
     /// <summary>
     /// Enum of FlyTextKind values. Members suffixed with
