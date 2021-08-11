@@ -1,6 +1,4 @@
 using System;
-using System.ComponentModel;
-using System.Linq;
 using System.Runtime.InteropServices;
 
 using Dalamud.Game.ClientState.Buddy;
@@ -21,7 +19,7 @@ namespace Dalamud.Game.ClientState
     /// <summary>
     /// This class represents the state of the game client at the time of access.
     /// </summary>
-    public sealed class ClientState : INotifyPropertyChanged, IDisposable
+    public sealed class ClientState : IDisposable
     {
         private readonly Dalamud dalamud;
         private readonly ClientStateAddressResolver address;
@@ -74,13 +72,6 @@ namespace Dalamud.Game.ClientState
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         private delegate IntPtr SetupTerritoryTypeDelegate(IntPtr manager, ushort terriType);
-
-        /// <summary>
-        /// Event that fires when a property changes.
-        /// </summary>
-#pragma warning disable CS0067
-        public event PropertyChangedEventHandler PropertyChanged;
-#pragma warning restore
 
         /// <summary>
         /// Event that gets fired when the current Territory changes.
