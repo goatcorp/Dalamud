@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
@@ -55,7 +54,7 @@ namespace Dalamud.Game.Gui.FlyText
         /// <param name="yOffset">The vertical offset to place the flytext at. 0 is default. Negative values result
         /// in text appearing higher on the screen. This does not change where the element begins to fade.</param>
         /// <param name="handled">Whether this flytext has been handled. If a subscriber sets this to true, the FlyText will not appear.</param>
-        public delegate void FlyTextDelegate(
+        public delegate void OnFlyTextDelegate(
             ref FlyTextKind kind,
             ref int val1,
             ref int val2,
@@ -98,7 +97,7 @@ namespace Dalamud.Game.Gui.FlyText
         /// <summary>
         /// The FlyText event that can be subscribed to.
         /// </summary>
-        public event FlyTextDelegate? OnFlyText;
+        public event OnFlyTextDelegate? FlyText;
 
         private Dalamud Dalamud { get; }
 
@@ -220,7 +219,7 @@ namespace Dalamud.Game.Gui.FlyText
                                          $"text1({text1.ToInt64():X}, \"{tmpText1}\") text2({text2.ToInt64():X}, \"{tmpText2}\") " +
                                          $"color({color:X}) icon({icon}) yOffset({yOffset})");
                 Log.Verbose("[FlyText] Calling flytext events!");
-                this.OnFlyText?.Invoke(
+                this.FlyText?.Invoke(
                     ref tmpKind,
                     ref tmpVal1,
                     ref tmpVal2,
