@@ -22,13 +22,13 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
 
             if (!this.subscribed)
             {
-                dalamud.ClientState.OnLogout += this.ClientStateOnOnLogout;
+                dalamud.ClientState.Logout += this.ClientStateOnOnLogout;
                 this.subscribed = true;
             }
 
             if (this.hasPassed)
             {
-                dalamud.ClientState.OnLogout -= this.ClientStateOnOnLogout;
+                dalamud.ClientState.Logout -= this.ClientStateOnOnLogout;
                 this.subscribed = false;
                 return SelfTestStepResult.Pass;
             }
@@ -41,7 +41,7 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
         {
             if (this.subscribed)
             {
-                dalamud.ClientState.OnLogout -= this.ClientStateOnOnLogout;
+                dalamud.ClientState.Logout -= this.ClientStateOnOnLogout;
                 this.subscribed = false;
             }
         }

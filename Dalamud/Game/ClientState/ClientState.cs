@@ -90,12 +90,12 @@ namespace Dalamud.Game.ClientState
         /// <summary>
         /// Event that fires when a character is logging in.
         /// </summary>
-        public event EventHandler OnLogin;
+        public event EventHandler Login;
 
         /// <summary>
         /// Event that fires when a character is logging out.
         /// </summary>
-        public event EventHandler OnLogout;
+        public event EventHandler Logout;
 
         /// <summary>
         /// Event that gets fired when a duty is ready.
@@ -216,7 +216,7 @@ namespace Dalamud.Game.ClientState
                 Log.Debug("Is login");
                 this.lastConditionNone = false;
                 this.IsLoggedIn = true;
-                this.OnLogin?.Invoke(this, null);
+                this.Login?.Invoke(this, null);
             }
 
             if (!this.Condition.Any() && this.lastConditionNone == false)
@@ -224,7 +224,7 @@ namespace Dalamud.Game.ClientState
                 Log.Debug("Is logout");
                 this.lastConditionNone = true;
                 this.IsLoggedIn = false;
-                this.OnLogout?.Invoke(this, null);
+                this.Logout?.Invoke(this, null);
             }
         }
     }
