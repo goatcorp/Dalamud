@@ -11,6 +11,11 @@
         <NoWarn>IDE0003</NoWarn>
     </PropertyGroup>
 
+    <PropertyGroup Label="Documentation">
+        <DocumentationFile></DocumentationFile>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    </PropertyGroup>
+
     <PropertyGroup Label="Build">
         <OutputPath>$(AppData)\XIVLauncher\devPlugins\Dalamud.CorePlugin</OutputPath>
         <DefineConstants>DEBUG;TRACE</DefineConstants>

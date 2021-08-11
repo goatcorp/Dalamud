@@ -67,7 +67,7 @@ namespace Dalamud.Interface.Internal.Windows
         private OperationStatus installStatus = OperationStatus.Idle;
         private OperationStatus updateStatus = OperationStatus.Idle;
 
-        private List<int> openPluginCollapsibles = new List<int>();
+        private List<int> openPluginCollapsibles = new();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PluginInstallerWindow"/> class.
