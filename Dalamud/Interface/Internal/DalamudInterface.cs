@@ -32,6 +32,7 @@ namespace Dalamud.Interface.Internal
         private readonly CreditsWindow creditsWindow;
         private readonly DataWindow dataWindow;
         private readonly GamepadModeNotifierWindow gamepadModeNotifierWindow;
+        private readonly IMEWindow imeWindow;
         private readonly ConsoleWindow consoleWindow;
         private readonly PluginStatWindow pluginStatWindow;
         private readonly PluginInstallerWindow pluginWindow;
@@ -64,6 +65,7 @@ namespace Dalamud.Interface.Internal
             this.creditsWindow = new CreditsWindow(dalamud) { IsOpen = false };
             this.dataWindow = new DataWindow(dalamud) { IsOpen = false };
             this.gamepadModeNotifierWindow = new GamepadModeNotifierWindow();
+            this.imeWindow = new IMEWindow(dalamud);
             this.consoleWindow = new ConsoleWindow(dalamud) { IsOpen = this.dalamud.Configuration.LogOpenAtStartup };
             this.pluginStatWindow = new PluginStatWindow(dalamud) { IsOpen = false };
             this.pluginWindow = new PluginInstallerWindow(dalamud) { IsOpen = false };
@@ -77,6 +79,7 @@ namespace Dalamud.Interface.Internal
             this.windowSystem.AddWindow(this.creditsWindow);
             this.windowSystem.AddWindow(this.dataWindow);
             this.windowSystem.AddWindow(this.gamepadModeNotifierWindow);
+            this.windowSystem.AddWindow(this.imeWindow);
             this.windowSystem.AddWindow(this.consoleWindow);
             this.windowSystem.AddWindow(this.pluginStatWindow);
             this.windowSystem.AddWindow(this.pluginWindow);
@@ -161,6 +164,11 @@ namespace Dalamud.Interface.Internal
         public void OpenGamepadModeNotifierWindow() => this.gamepadModeNotifierWindow.IsOpen = true;
 
         /// <summary>
+        /// Opens the <see cref="IMEWindow"/>.
+        /// </summary>
+        public void OpenIMEWindow() => this.imeWindow.IsOpen = true;
+
+        /// <summary>
         /// Opens the <see cref="ConsoleWindow"/>.
         /// </summary>
         public void OpenLogWindow() => this.consoleWindow.IsOpen = true;
@@ -189,6 +197,15 @@ namespace Dalamud.Interface.Internal
         /// Opens the <see cref="SelfTestWindow"/>.
         /// </summary>
         public void OpenSelfTest() => this.selfTestWindow.IsOpen = true;
+
+        #endregion
+
+        #region Close
+
+        /// <summary>
+        /// Closes the <see cref="IMEWindow"/>.
+        /// </summary>
+        public void CloseIMEWindow() => this.imeWindow.IsOpen = false;
 
         #endregion
 
@@ -236,6 +253,11 @@ namespace Dalamud.Interface.Internal
         /// Toggles the <see cref="GamepadModeNotifierWindow"/>.
         /// </summary>
         public void ToggleGamepadModeNotifierWindow() => this.gamepadModeNotifierWindow.Toggle();
+
+        /// <summary>
+        /// Toggles the <see cref="IMEWindow"/>.
+        /// </summary>
+        public void ToggleIMEWindow() => this.imeWindow.Toggle();
 
         /// <summary>
         /// Toggles the <see cref="ConsoleWindow"/>.

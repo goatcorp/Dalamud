@@ -51,8 +51,9 @@
     </PropertyGroup>
 
     <PropertyGroup Label="Warnings">
-        <NoWarn>IDE0003;IDE0044;IDE1006;CS1591;CS1701;CS1702</NoWarn>
+        <NoWarn>IDE0003;IDE0044;IDE1006;CA1822;CS1591;CS1701;CS1702</NoWarn>
         <!-- IDE1006 - Naming violation -->
+        <!-- CA1822  - Can be marked as static -->
         <!-- CS1591  - Missing XML comment for publicly visible type or member -->
         <!-- CS1701  - Runtime policy may be needed -->
         <!-- CS1702  - Runtime policy may be needed -->
