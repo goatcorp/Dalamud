@@ -47,7 +47,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// Event that is fired when the plugin should open its configuration interface.
         /// </summary>
-        public event EventHandler OnOpenConfigUi;
+        public event EventHandler OpenConfigUi;
 
         /// <summary>
         /// Gets the default Dalamud font based on Noto Sans CJK Medium in 17pt - supporting all game languages and icons.
@@ -128,7 +128,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// Gets a value indicating whether this UiBuilder has a configuration UI registered.
         /// </summary>
-        internal bool HasConfigUi => this.OnOpenConfigUi != null;
+        internal bool HasConfigUi => this.OpenConfigUi != null;
 
         /// <summary>
         /// Gets or sets the time this plugin took to draw on the last frame.
@@ -201,9 +201,9 @@ namespace Dalamud.Interface
         /// <summary>
         /// Open the registered configuration UI, if it exists.
         /// </summary>
-        internal void OpenConfigUi()
+        internal void OpenConfig()
         {
-            this.OnOpenConfigUi?.Invoke(this, null);
+            this.OpenConfigUi?.Invoke(this, null);
         }
 
         private void OnDraw()
@@ -243,7 +243,7 @@ namespace Dalamud.Interface
             {
                 Log.Error(ex, "[{0}] UiBuilder OnBuildUi caught exception", this.namespaceName);
                 this.Draw = null;
-                this.OnOpenConfigUi = null;
+                this.OpenConfigUi = null;
 
                 this.hasErrorWindow = true;
             }

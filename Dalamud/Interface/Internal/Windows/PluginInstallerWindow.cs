@@ -1019,7 +1019,7 @@ namespace Dalamud.Interface.Internal.Windows
                 {
                     try
                     {
-                        plugin.DalamudInterface.UiBuilder.OpenConfigUi();
+                        plugin.DalamudInterface.UiBuilder.OpenConfig();
                     }
                     catch (Exception ex)
                     {

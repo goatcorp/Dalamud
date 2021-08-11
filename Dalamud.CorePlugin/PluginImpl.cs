@@ -36,7 +36,7 @@ namespace Dalamud.CorePlugin
                 this.windowSystem.AddWindow(new PluginWindow(Dalamud.Instance));
 
                 this.Interface.UiBuilder.Draw += this.OnDraw;
-                this.Interface.UiBuilder.OnOpenConfigUi += this.OnOpenConfigUi;
+                this.Interface.UiBuilder.OpenConfigUi += this.OnOpenConfigUi;
 
                 this.Interface.CommandManager.AddHandler("/di", new(this.OnCommand) { HelpMessage = $"Access the {this.Name} plugin." });
             }
