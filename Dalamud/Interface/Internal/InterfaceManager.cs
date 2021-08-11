@@ -329,6 +329,9 @@ namespace Dalamud.Interface.Internal
 
         private IntPtr PresentDetour(IntPtr swapChain, uint syncInterval, uint presentFlags)
         {
+            if (this.scene != null && swapChain != this.scene.SwapChain.NativePointer)
+                return this.presentHook.Original(swapChain, syncInterval, presentFlags);
+
             if (this.scene == null)
             {
                 this.scene = new RawDX11Scene(swapChain);
