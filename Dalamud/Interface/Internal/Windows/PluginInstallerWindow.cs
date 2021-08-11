@@ -979,6 +979,9 @@ namespace Dalamud.Interface.Internal.Windows
             else if (plugin.State == PluginState.UnloadError)
             {
                 ImGuiComponents.DisabledButton(FontAwesomeIcon.Frown);
+
+                if (ImGui.IsItemHovered())
+                    ImGui.SetTooltip(Locs.PluginButtonToolTip_UnloadFailed);
             }
         }
 
@@ -1552,6 +1555,8 @@ namespace Dalamud.Interface.Internal.Windows
             public static string PluginButtonToolTip_VisitPluginUrl => Loc.Localize("InstallerVisitPluginUrl", "Visit plugin URL");
 
             public static string PluginButtonToolTip_UpdateSingle(string version) => Loc.Localize("InstallerUpdateSingle", "Update to {0}").Format(version);
+
+            public static string PluginButtonToolTip_UnloadFailed => Loc.Localize("InstallerUnloadFailedTooltip", "Plugin unload failed, please restart your game and try again.");
 
             #endregion
 
