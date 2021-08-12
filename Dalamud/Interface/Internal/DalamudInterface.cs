@@ -12,6 +12,7 @@ using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal;
 using Dalamud.Utility;
 using ImGuiNET;
+using ImGuiScene.ManagedAsserts;
 using Serilog.Events;
 
 namespace Dalamud.Interface.Internal
@@ -86,6 +87,8 @@ namespace Dalamud.Interface.Internal
             this.windowSystem.AddWindow(this.scratchpadWindow);
             this.windowSystem.AddWindow(this.settingsWindow);
             this.windowSystem.AddWindow(this.selfTestWindow);
+
+            ImGuiManagedAsserts.EnableAsserts = true;
 
             this.dalamud.InterfaceManager.Draw += this.OnDraw;
 
@@ -426,10 +429,6 @@ namespace Dalamud.Interface.Internal
 
                         ImGui.Separator();
 
-                        ImGui.MenuItem("Draw ImGui demo", string.Empty, ref this.isImGuiDrawDemoWindow);
-
-                        ImGui.Separator();
-
                         if (ImGui.MenuItem("Unload Dalamud"))
                         {
                             this.dalamud.Unload();
@@ -454,6 +453,17 @@ namespace Dalamud.Interface.Internal
 
                         ImGui.MenuItem(Util.AssemblyVersion, false);
                         ImGui.MenuItem(this.dalamud.StartInfo.GameVersion.ToString(), false);
+
+                        ImGui.EndMenu();
+                    }
+
+                    if (ImGui.BeginMenu("GUI"))
+                    {
+                        ImGui.MenuItem("Draw ImGui demo", string.Empty, ref this.isImGuiDrawDemoWindow);
+
+                        ImGui.Separator();
+
+                        ImGui.MenuItem("Enable Asserts", string.Empty, ref ImGuiManagedAsserts.EnableAsserts);
 
                         ImGui.EndMenu();
                     }
