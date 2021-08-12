@@ -1,4 +1,5 @@
 #define WIN32_LEAN_AND_MEAN
+#define _CRT_SECURE_NO_WARNINGS
 
 #include <cstdio>
 #include <filesystem>
@@ -35,15 +36,30 @@ int InitializeClrAndGetEntryPoint(
     CoreCLR clr;
     SetEnvironmentVariable(L"DOTNET_MULTILEVEL_LOOKUP", L"0");
 
+    char* env_path = std::getenv("DALAMUD_RUNTIME");
+    wchar_t* dotnet_path;
+
     wchar_t* _appdata;
-    result = SHGetKnownFolderPath(FOLDERID_RoamingAppData, KF_FLAG_DEFAULT, NULL, &_appdata);
-    if (result != 0)
+
+    if (!env_path)
     {
-        printf("Error: Unable to get RoamingAppData path (err=%d)\n", result);
-        return result;
+        result = SHGetKnownFolderPath(FOLDERID_RoamingAppData, KF_FLAG_DEFAULT, nullptr, &_appdata);
+
+        if (result != 0)
+        {
+            printf("Error: Unable to get RoamingAppData path (err=%d)\n", result);
+            return result;
+        }
+
+        std::filesystem::path fs_app_data(_appdata);
+        dotnet_path = _wcsdup(fs_app_data.append("XIVLauncher").append("runtime").c_str());
     }
-    std::filesystem::path fs_app_data(_appdata);
-    wchar_t* dotnet_path = _wcsdup(fs_app_data.append("XIVLauncher").append("runtime").c_str());
+    else
+    {
+        const size_t cSize = strlen(env_path)+1;
+        dotnet_path = new wchar_t[cSize];
+        mbstowcs (dotnet_path, env_path, cSize);
+    }
 
     // =========================================================================== //
 
