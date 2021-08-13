@@ -10,7 +10,7 @@ It is meant to be used in conjunction with [FFXIVQuickLauncher](https://github.c
 
 ## Plugin development
 Dalamud features a growing API for in-game plugin development with game data and chat access and overlays.
-Please see the [API documentation](https://goatcorp.github.io/Dalamud/api/index.html) for more details.
+Please see our [Developer FAQ](https://goatcorp.github.io/faq/development) and the [API documentation](https://goatcorp.github.io/Dalamud/api/index.html) for more details.
 
 If you need any support regarding the API or usage of Dalamud, please [join our discord server](https://discord.gg/3NMcUV5).
 
