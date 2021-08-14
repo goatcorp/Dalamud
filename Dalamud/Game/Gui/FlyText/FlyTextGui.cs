@@ -184,6 +184,15 @@ namespace Dalamud.Game.Gui.FlyText
             this.createFlyTextHook.Enable();
         }
 
+        private static byte[] Terminate(byte[] source)
+        {
+            var terminated = new byte[source.Length + 1];
+            Array.Copy(source, 0, terminated, 0, source.Length);
+            terminated[^1] = 0;
+
+            return terminated;
+        }
+
         private IntPtr CreateFlyTextDetour(
             IntPtr addonFlyText,
             int kind,
@@ -298,15 +307,6 @@ namespace Dalamud.Game.Gui.FlyText
             }
 
             return retVal;
-        }
-
-        private static byte[] Terminate(byte[] source)
-        {
-            var terminated = new byte[source.Length + 1];
-            Array.Copy(source, 0, terminated, 0, source.Length);
-            terminated[^1] = 0;
-
-            return terminated;
         }
     }
 }
