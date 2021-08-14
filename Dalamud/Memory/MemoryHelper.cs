@@ -48,11 +48,11 @@ namespace Dalamud.Memory
         }
 
         /// <summary>
-        /// Reads a generic type from a specified memory address.
+        /// Reads a byte array from a specified memory address.
         /// </summary>
         /// <param name="memoryAddress">The memory address to read from.</param>
         /// <param name="length">The amount of bytes to read starting from the memoryAddress.</param>
-        /// <returns>The read in struct.</returns>
+        /// <returns>The read in byte array.</returns>
         public static byte[] ReadRaw(IntPtr memoryAddress, int length)
         {
             var value = new byte[length];
@@ -91,6 +91,22 @@ namespace Dalamud.Memory
             }
 
             return value;
+        }
+
+        /// <summary>
+        /// Reads a null-terminated byte array from a specified memory address.
+        /// </summary>
+        /// <param name="memoryAddress">The memory address to read from.</param>
+        /// <returns>The read in byte array.</returns>
+        public static unsafe byte[] ReadRawNullTerminated(IntPtr memoryAddress)
+        {
+            var byteCount = 0;
+            while (*(byte*)(memoryAddress + byteCount) != 0x00)
+            {
+                byteCount++;
+            }
+
+            return ReadRaw(memoryAddress, byteCount);
         }
 
         #endregion
@@ -208,12 +224,23 @@ namespace Dalamud.Memory
         }
 
         /// <summary>
+        /// Read a null-terminated SeString from a specified memory address.
+        /// </summary>
+        /// <param name="memoryAddress">The memory address to read from.</param>
+        /// <returns>The read in string.</returns>
+        public static SeString ReadSeStringNullTerminated(IntPtr memoryAddress)
+        {
+            var buffer = ReadRawNullTerminated(memoryAddress);
+            return seStringManager.Parse(buffer);
+        }
+
+        /// <summary>
         /// Read an SeString from a specified memory address.
         /// </summary>
         /// <param name="memoryAddress">The memory address to read from.</param>
         /// <param name="maxLength">The maximum length of the string.</param>
         /// <returns>The read in string.</returns>
-        public static SeString ReadSeString(IntPtr memoryAddress, int maxLength = 256)
+        public static SeString ReadSeString(IntPtr memoryAddress, int maxLength)
         {
             ReadRaw(memoryAddress, maxLength, out var buffer);
 
@@ -302,12 +329,12 @@ namespace Dalamud.Memory
             => value = ReadString(memoryAddress, encoding, maxLength);
 
         /// <summary>
-        /// Read an SeString from a specified memory address.
+        /// Read a null-terminated SeString from a specified memory address.
         /// </summary>
         /// <param name="memoryAddress">The memory address to read from.</param>
         /// <param name="value">The read in SeString.</param>
-        public static void ReadSeString(IntPtr memoryAddress, out SeString value)
-            => value = ReadSeString(memoryAddress);
+        public static void ReadSeStringNullTerminated(IntPtr memoryAddress, out SeString value)
+            => value = ReadSeStringNullTerminated(memoryAddress);
 
         /// <summary>
         /// Read an SeString from a specified memory address.
