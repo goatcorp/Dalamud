@@ -211,17 +211,9 @@ namespace Dalamud.Memory
         /// Read an SeString from a specified memory address.
         /// </summary>
         /// <param name="memoryAddress">The memory address to read from.</param>
-        /// <returns>The read in string.</returns>
-        public static SeString ReadSeString(IntPtr memoryAddress)
-            => ReadSeString(memoryAddress, 256);
-
-        /// <summary>
-        /// Read an SeString from a specified memory address.
-        /// </summary>
-        /// <param name="memoryAddress">The memory address to read from.</param>
         /// <param name="maxLength">The maximum length of the string.</param>
         /// <returns>The read in string.</returns>
-        public static SeString ReadSeString(IntPtr memoryAddress, int maxLength)
+        public static SeString ReadSeString(IntPtr memoryAddress, int maxLength = 256)
         {
             ReadRaw(memoryAddress, maxLength, out var buffer);
 
