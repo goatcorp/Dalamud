@@ -369,7 +369,8 @@ namespace Dalamud.Plugin.Internal
         /// <param name="repoManifest">The plugin definition.</param>
         /// <param name="useTesting">If the testing version should be used.</param>
         /// <param name="reason">The reason this plugin was loaded.</param>
-        public void InstallPlugin(RemotePluginManifest repoManifest, bool useTesting, PluginLoadReason reason)
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        public async Task InstallPluginAsync(RemotePluginManifest repoManifest, bool useTesting, PluginLoadReason reason)
         {
             Log.Debug($"Installing plugin {repoManifest.Name} (testing={useTesting})");
 
@@ -390,26 +391,13 @@ namespace Dalamud.Plugin.Internal
                 // ignored, since the plugin may be loaded already
             }
 
-            var tempZip = new FileInfo(Path.GetTempFileName());
-
-            try
-            {
-                Log.Debug($"Downloading plugin to {tempZip} from {downloadUrl}");
-                using var client = new HttpClient();
-                var response = client.GetAsync(downloadUrl).Result;
-                using var fs = new FileStream(tempZip.FullName, FileMode.CreateNew);
-                response.Content.CopyToAsync(fs).GetAwaiter().GetResult();
-            }
-            catch (HttpRequestException ex)
-            {
-                Log.Error(ex, $"Download of plugin {repoManifest.Name} failed unexpectedly.");
-                throw;
-            }
+            using var client = new HttpClient();
+            var response = await client.GetAsync(downloadUrl);
 
             Log.Debug($"Extracting to {outputDir}");
             // This throws an error, even with overwrite=false
             // ZipFile.ExtractToDirectory(tempZip.FullName, outputDir.FullName, false);
-            using (var archive = ZipFile.OpenRead(tempZip.FullName))
+            using (var archive = new ZipArchive(response.Content.ReadAsStream()))
             {
                 foreach (var zipFile in archive.Entries)
                 {
@@ -437,8 +425,6 @@ namespace Dalamud.Plugin.Internal
                     }
                 }
             }
-
-            tempZip.Delete();
 
             var dllFile = LocalPluginManifest.GetPluginFile(outputDir, repoManifest);
             var manifestFile = LocalPluginManifest.GetManifestFile(dllFile);
@@ -651,7 +637,7 @@ namespace Dalamud.Plugin.Internal
         /// </summary>
         /// <param name="dryRun">Perform a dry run, don't install anything.</param>
         /// <returns>Success or failure and a list of updated plugin metadata.</returns>
-        public List<PluginUpdateStatus> UpdatePlugins(bool dryRun = false)
+        public async Task<List<PluginUpdateStatus>> UpdatePluginsAsync(bool dryRun = false)
         {
             Log.Information("Starting plugin update");
 
@@ -660,7 +646,9 @@ namespace Dalamud.Plugin.Internal
             // Prevent collection was modified errors
             for (var i = 0; i < this.updatablePlugins.Count; i++)
             {
-                updatedList.Add(this.UpdateSinglePlugin(this.updatablePlugins[i], false, dryRun));
+                var result = await this.UpdateSinglePluginAsync(this.updatablePlugins[i], false, dryRun);
+                if (result != null)
+                    updatedList.Add(result);
             }
 
             this.NotifyInstalledPluginsChanged();
@@ -678,7 +666,7 @@ namespace Dalamud.Plugin.Internal
         /// <param name="dryRun">Whether or not to actually perform the update, or just indicate success.</param>
         /// <returns>The status of the update.</returns>
         [CanBeNull]
-        public PluginUpdateStatus UpdateSinglePlugin(AvailablePluginUpdate metadata, bool notify, bool dryRun)
+        public async Task<PluginUpdateStatus?> UpdateSinglePluginAsync(AvailablePluginUpdate metadata, bool notify, bool dryRun)
         {
             var plugin = metadata.InstalledPlugin;
 
@@ -730,7 +718,7 @@ namespace Dalamud.Plugin.Internal
 
                 try
                 {
-                    this.InstallPlugin(metadata.UpdateManifest, metadata.UseTesting, PluginLoadReason.Update);
+                    await this.InstallPluginAsync(metadata.UpdateManifest, metadata.UseTesting, PluginLoadReason.Update);
                 }
                 catch (Exception ex)
                 {

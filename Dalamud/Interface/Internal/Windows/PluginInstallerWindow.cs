@@ -271,7 +271,7 @@ namespace Dalamud.Interface.Internal.Windows
                 {
                     this.updateStatus = OperationStatus.InProgress;
 
-                    Task.Run(() => this.dalamud.PluginManager.UpdatePlugins())
+                    Task.Run(() => this.dalamud.PluginManager.UpdatePluginsAsync())
                         .ContinueWith(task =>
                         {
                             this.updateStatus = OperationStatus.Complete;
@@ -657,7 +657,7 @@ namespace Dalamud.Interface.Internal.Windows
                     {
                         this.installStatus = OperationStatus.InProgress;
 
-                        Task.Run(() => this.dalamud.PluginManager.InstallPlugin(manifest, useTesting, PluginLoadReason.Installer))
+                        Task.Run(() => this.dalamud.PluginManager.InstallPluginAsync(manifest, useTesting, PluginLoadReason.Installer))
                             .ContinueWith(task =>
                             {
                                 // There is no need to set as Complete for an individual plugin installation
@@ -993,7 +993,7 @@ namespace Dalamud.Interface.Internal.Windows
             {
                 this.installStatus = OperationStatus.InProgress;
 
-                Task.Run(() => this.dalamud.PluginManager.UpdateSinglePlugin(update, true, false))
+                Task.Run(() => this.dalamud.PluginManager.UpdateSinglePluginAsync(update, true, false))
                     .ContinueWith(task =>
                     {
                         // There is no need to set as Complete for an individual plugin installation

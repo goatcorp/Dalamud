@@ -262,7 +262,7 @@ namespace Dalamud.Game
                 this.dalamud.Configuration.Save();
             }
 
-            Task.Run(() => this.dalamud.PluginManager.UpdatePlugins(!this.dalamud.Configuration.AutoUpdatePlugins))
+            Task.Run(() => this.dalamud.PluginManager.UpdatePluginsAsync(!this.dalamud.Configuration.AutoUpdatePlugins))
                 .ContinueWith(t =>
             {
                 if (t.IsFaulted)
