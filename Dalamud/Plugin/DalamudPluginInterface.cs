@@ -87,6 +87,11 @@ namespace Dalamud.Plugin
         public PluginLoadReason Reason { get; }
 
         /// <summary>
+        /// Gets the Dalamud Start Info.
+        /// </summary>
+        public DalamudStartInfo StartInfo => this.dalamud.StartInfo;
+
+        /// <summary>
         /// Gets the directory Dalamud assets are stored in.
         /// </summary>
         public DirectoryInfo DalamudAssetDirectory => this.dalamud.AssetDirectory;
