@@ -506,7 +506,7 @@ namespace Dalamud.Interface.Internal.Windows
             return ready;
         }
 
-        private bool DrawPluginCollapsingHeader(string label, PluginManifest manifest, bool trouble, bool updateAvailable, bool isNew, int index)
+        private bool DrawPluginCollapsingHeader(string label, PluginManifest manifest, bool trouble, bool updateAvailable, bool isNew, Action drawContextMenuAction, int index)
         {
             ImGui.Separator();
 
@@ -534,6 +534,8 @@ namespace Dalamud.Interface.Internal.Windows
 
                 isOpen = !isOpen;
             }
+
+            drawContextMenuAction?.Invoke();
 
             ImGui.PopStyleVar();
 
@@ -625,7 +627,7 @@ namespace Dalamud.Interface.Internal.Windows
 
             ImGui.PushID($"available{index}{manifest.InternalName}");
 
-            if (this.DrawPluginCollapsingHeader(label, manifest, false, false, !wasSeen, index))
+            if (this.DrawPluginCollapsingHeader(label, manifest, false, false, !wasSeen, () => this.DrawAvailablePluginContextMenu(manifest), index))
             {
                 if (!wasSeen)
                     this.dalamud.Configuration.SeenPluginInternalName.Add(manifest.InternalName);
@@ -689,6 +691,11 @@ namespace Dalamud.Interface.Internal.Windows
                 ImGui.Unindent();
             }
 
+            ImGui.PopID();
+        }
+
+        private void DrawAvailablePluginContextMenu(PluginManifest manifest)
+        {
             if (ImGui.BeginPopupContextItem("ItemContextMenu"))
             {
                 if (ImGui.Selectable(Locs.PluginContext_MarkAllSeen))
@@ -730,8 +737,6 @@ namespace Dalamud.Interface.Internal.Windows
 
                 ImGui.EndPopup();
             }
-
-            ImGui.PopID();
         }
 
         private void DrawInstalledPlugin(LocalPlugin plugin, int index, bool showInstalled = false)
@@ -807,7 +812,7 @@ namespace Dalamud.Interface.Internal.Windows
 
             ImGui.PushID($"installed{index}{plugin.Manifest.InternalName}");
 
-            if (this.DrawPluginCollapsingHeader(label, plugin.Manifest, trouble, availablePluginUpdate != default, false, index))
+            if (this.DrawPluginCollapsingHeader(label, plugin.Manifest, trouble, availablePluginUpdate != default, false, () => this.DrawInstalledPluginContextMenu(plugin), index))
             {
                 if (!this.WasPluginSeen(plugin.Manifest.InternalName))
                     this.dalamud.Configuration.SeenPluginInternalName.Add(plugin.Manifest.InternalName);
@@ -894,6 +899,11 @@ namespace Dalamud.Interface.Internal.Windows
                 ImGui.Unindent();
             }
 
+            ImGui.PopID();
+        }
+
+        private void DrawInstalledPluginContextMenu(LocalPlugin plugin)
+        {
             if (ImGui.BeginPopupContextItem("InstalledItemContextMenu"))
             {
                 if (ImGui.Selectable(Locs.PluginContext_DeletePluginConfigReload))
@@ -913,8 +923,6 @@ namespace Dalamud.Interface.Internal.Windows
 
                 ImGui.EndPopup();
             }
-
-            ImGui.PopID();
         }
 
         private void DrawPluginControlButton(LocalPlugin plugin)
