@@ -17,7 +17,7 @@ namespace Dalamud.Plugin.Internal
     /// </summary>
     internal class LocalPlugin : IDisposable
     {
-        private static readonly ModuleLog Log = new("PLUGIN");
+        private static readonly ModuleLog Log = new("LOCALPLUGIN");
 
         private readonly Dalamud dalamud;
         private readonly FileInfo manifestFile;
@@ -41,7 +41,7 @@ namespace Dalamud.Plugin.Internal
             this.DllFile = dllFile;
             this.State = PluginState.Unloaded;
 
-            this.loader ??= PluginLoader.CreateFromAssemblyFile(
+            this.loader = PluginLoader.CreateFromAssemblyFile(
                 this.DllFile.FullName,
                 config =>
                 {
@@ -55,20 +55,20 @@ namespace Dalamud.Plugin.Internal
             try
             {
                 // BadImageFormatException
-                this.pluginAssembly ??= this.loader.LoadDefaultAssembly();
+                this.pluginAssembly = this.loader.LoadDefaultAssembly();
 
                 // InvalidOperationException
                 this.pluginType = this.pluginAssembly.GetTypes().First(type => type.IsAssignableTo(typeof(IDalamudPlugin)));
 
                 assemblyVersion = this.pluginAssembly.GetName().Version;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 this.pluginAssembly = null;
                 this.pluginType = null;
                 this.loader.Dispose();
 
-                Log.Debug($"Not a plugin: {this.DllFile.Name}");
+                Log.Error(ex, $"Not a plugin: {this.DllFile.Name}");
                 throw new InvalidPluginException(this.DllFile);
             }
 
