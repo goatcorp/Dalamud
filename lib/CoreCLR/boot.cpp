@@ -1,5 +1,4 @@
 #define WIN32_LEAN_AND_MEAN
-#define _CRT_SECURE_NO_WARNINGS
 
 #include <cstdio>
 #include <filesystem>
@@ -36,12 +35,20 @@ int InitializeClrAndGetEntryPoint(
     CoreCLR clr;
     SetEnvironmentVariable(L"DOTNET_MULTILEVEL_LOOKUP", L"0");
 
-    char* env_path = std::getenv("DALAMUD_RUNTIME");
     wchar_t* dotnet_path;
-
     wchar_t* _appdata;
 
-    if (!env_path)
+    std::wstring buffer;
+    buffer.resize(0);
+    result = GetEnvironmentVariableW(L"DALAMUD_RUNTIME", &buffer[0], 0);
+
+    if (result)
+    {
+        buffer.resize(result); // The first pass returns the required length
+        result = GetEnvironmentVariableW(L"DALAMUD_RUNTIME", &buffer[0], result);
+        dotnet_path = _wcsdup(buffer.c_str());
+    }
+    else
     {
         result = SHGetKnownFolderPath(FOLDERID_RoamingAppData, KF_FLAG_DEFAULT, nullptr, &_appdata);
 
@@ -53,12 +60,6 @@ int InitializeClrAndGetEntryPoint(
 
         std::filesystem::path fs_app_data(_appdata);
         dotnet_path = _wcsdup(fs_app_data.append("XIVLauncher").append("runtime").c_str());
-    }
-    else
-    {
-        const size_t cSize = strlen(env_path)+1;
-        dotnet_path = new wchar_t[cSize];
-        mbstowcs (dotnet_path, env_path, cSize);
     }
 
     // =========================================================================== //
