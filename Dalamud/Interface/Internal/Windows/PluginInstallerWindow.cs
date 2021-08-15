@@ -150,6 +150,12 @@ namespace Dalamud.Interface.Internal.Windows
         }
 
         /// <inheritdoc/>
+        public override void OnClose()
+        {
+            this.dalamud.Configuration.Save();
+        }
+
+        /// <inheritdoc/>
         public override void Draw()
         {
             this.DrawHeader();
