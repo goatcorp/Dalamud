@@ -4,7 +4,7 @@ namespace Dalamud.Game.Gui.FlyText
     /// Enum of FlyTextKind values. Members suffixed with
     /// a number seem to be a duplicate, or perform duplicate behavior.
     /// </summary>
-    public enum FlyTextKind
+    public enum FlyTextKind : int
     {
         /// <summary>
         /// Val1 in serif font, Text2 in sans-serif as subtitle.
