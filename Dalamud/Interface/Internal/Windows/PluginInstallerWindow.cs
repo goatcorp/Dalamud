@@ -122,6 +122,7 @@ namespace Dalamud.Interface.Internal.Windows
             Alphabetical,
             DownloadCount,
             LastUpdate,
+            NewOrNot,
         }
 
         /// <inheritdoc/>
@@ -175,6 +176,7 @@ namespace Dalamud.Interface.Internal.Windows
                 (Locs.SortBy_Alphabetical, PluginSortKind.Alphabetical),
                 (Locs.SortBy_DownloadCounts, PluginSortKind.DownloadCount),
                 (Locs.SortBy_LastUpdate, PluginSortKind.LastUpdate),
+                (Locs.SortBy_NewOrNot, PluginSortKind.NewOrNot),
             };
             var longestSelectableWidth = sortSelectables.Select(t => ImGui.CalcTextSize(t.Localization).X).Max();
             var selectableWidth = longestSelectableWidth + (style.FramePadding.X * 2);  // This does not include the label
@@ -504,7 +506,7 @@ namespace Dalamud.Interface.Internal.Windows
             return ready;
         }
 
-        private bool DrawPluginCollapsingHeader(string label, PluginManifest manifest, bool trouble, bool updateAvailable, int index)
+        private bool DrawPluginCollapsingHeader(string label, PluginManifest manifest, bool trouble, bool updateAvailable, bool isNew, int index)
         {
             ImGui.Separator();
 
@@ -579,6 +581,12 @@ namespace Dalamud.Interface.Internal.Windows
             ImGui.SameLine();
             ImGui.TextColored(ImGuiColors.DalamudGrey3, downloadCountText);
 
+            if (isNew)
+            {
+                ImGui.SameLine();
+                ImGui.TextColored(ImGuiColors.TankBlue, Locs.PluginTitleMod_New);
+            }
+
             cursor.Y += ImGui.GetTextLineHeightWithSpacing();
             ImGui.SetCursorPos(cursor);
 
@@ -597,6 +605,7 @@ namespace Dalamud.Interface.Internal.Windows
         private void DrawAvailablePlugin(RemotePluginManifest manifest, int index)
         {
             var useTesting = this.dalamud.PluginManager.UseTesting(manifest);
+            var wasSeen = this.WasPluginSeen(manifest.InternalName);
 
             // Check for valid versions
             if ((useTesting && manifest.TestingAssemblyVersion == null) || manifest.AssemblyVersion == null)
@@ -616,8 +625,11 @@ namespace Dalamud.Interface.Internal.Windows
 
             ImGui.PushID($"available{index}{manifest.InternalName}");
 
-            if (this.DrawPluginCollapsingHeader(label, manifest, false, false, index))
+            if (this.DrawPluginCollapsingHeader(label, manifest, false, false, !wasSeen, index))
             {
+                if (!wasSeen)
+                    this.dalamud.Configuration.SeenPluginInternalName.Add(manifest.InternalName);
+
                 ImGuiHelpers.ScaledDummy(5);
 
                 ImGui.Indent();
@@ -679,6 +691,13 @@ namespace Dalamud.Interface.Internal.Windows
 
             if (ImGui.BeginPopupContextItem("ItemContextMenu"))
             {
+                if (ImGui.Selectable(Locs.PluginContext_MarkAllSeen))
+                {
+                    this.dalamud.Configuration.SeenPluginInternalName.AddRange(this.pluginListAvailable.Select(x => x.InternalName));
+                    this.dalamud.Configuration.Save();
+                    this.dalamud.PluginManager.RefilterPluginMasters();
+                }
+
                 if (ImGui.Selectable(Locs.PluginContext_HidePlugin))
                 {
                     Log.Debug($"Adding {manifest.InternalName} to hidden plugins");
@@ -788,8 +807,11 @@ namespace Dalamud.Interface.Internal.Windows
 
             ImGui.PushID($"installed{index}{plugin.Manifest.InternalName}");
 
-            if (this.DrawPluginCollapsingHeader(label, plugin.Manifest, trouble, availablePluginUpdate != default, index))
+            if (this.DrawPluginCollapsingHeader(label, plugin.Manifest, trouble, availablePluginUpdate != default, false, index))
             {
+                if (!this.WasPluginSeen(plugin.Manifest.InternalName))
+                    this.dalamud.Configuration.SeenPluginInternalName.Add(plugin.Manifest.InternalName);
+
                 var manifest = plugin.Manifest;
 
                 ImGui.Indent();
@@ -1265,10 +1287,19 @@ namespace Dalamud.Interface.Internal.Windows
                     this.pluginListAvailable.Sort((p1, p2) => p2.LastUpdate.CompareTo(p1.LastUpdate));
                     this.pluginListInstalled.Sort((p1, p2) => p2.Manifest.LastUpdate.CompareTo(p1.Manifest.LastUpdate));
                     break;
+                case PluginSortKind.NewOrNot:
+                    this.pluginListAvailable.Sort((p1, p2) => this.WasPluginSeen(p2.InternalName)
+                                                                  .CompareTo(this.WasPluginSeen(p1.InternalName)));
+                    this.pluginListInstalled.Sort((p1, p2) => this.WasPluginSeen(p2.Manifest.InternalName)
+                                                                  .CompareTo(this.WasPluginSeen(p1.Manifest.InternalName)));
+                    break;
                 default:
                     throw new InvalidEnumArgumentException("Unknown plugin sort type.");
             }
         }
+
+        private bool WasPluginSeen(string internalName) =>
+            this.dalamud.Configuration.SeenPluginInternalName.Contains(internalName);
 
         /// <summary>
         /// A continuation task that displays any errors received into the error modal.
@@ -1442,6 +1473,8 @@ namespace Dalamud.Interface.Internal.Windows
 
             public static string SortBy_LastUpdate => Loc.Localize("InstallerLastUpdate", "Last Update");
 
+            public static string SortBy_NewOrNot => Loc.Localize("InstallerNewOrNot", "New or not");
+
             public static string SortBy_Label => Loc.Localize("InstallerSortBy", "Sort By");
 
             #endregion
@@ -1496,9 +1529,13 @@ namespace Dalamud.Interface.Internal.Windows
 
             public static string PluginTitleMod_OutdatedError => Loc.Localize("InstallerOutdatedError", " (outdated)");
 
+            public static string PluginTitleMod_New => Loc.Localize("InstallerNewPlugin ", " New!");
+
             #endregion
 
             #region Plugin context menu
+
+            public static string PluginContext_MarkAllSeen => Loc.Localize("InstallerMarkAllSeen", "Mark all as seen");
 
             public static string PluginContext_HidePlugin => Loc.Localize("InstallerHidePlugin", "Hide from installer");
 
