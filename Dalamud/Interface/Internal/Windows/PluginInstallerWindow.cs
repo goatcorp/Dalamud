@@ -1296,10 +1296,10 @@ namespace Dalamud.Interface.Internal.Windows
                     this.pluginListInstalled.Sort((p1, p2) => p2.Manifest.LastUpdate.CompareTo(p1.Manifest.LastUpdate));
                     break;
                 case PluginSortKind.NewOrNot:
-                    this.pluginListAvailable.Sort((p1, p2) => this.WasPluginSeen(p2.InternalName)
-                                                                  .CompareTo(this.WasPluginSeen(p1.InternalName)));
-                    this.pluginListInstalled.Sort((p1, p2) => this.WasPluginSeen(p2.Manifest.InternalName)
-                                                                  .CompareTo(this.WasPluginSeen(p1.Manifest.InternalName)));
+                    this.pluginListAvailable.Sort((p1, p2) => this.WasPluginSeen(p1.InternalName)
+                                                                  .CompareTo(this.WasPluginSeen(p2.InternalName)));
+                    this.pluginListInstalled.Sort((p1, p2) => this.WasPluginSeen(p1.Manifest.InternalName)
+                                                                  .CompareTo(this.WasPluginSeen(p2.Manifest.InternalName)));
                     break;
                 default:
                     throw new InvalidEnumArgumentException("Unknown plugin sort type.");
