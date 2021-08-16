@@ -18,6 +18,15 @@ namespace Dalamud.Game
         private long moduleCopyOffset;
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="SigScanner"/> class using the main module of the current process.
+        /// </summary>
+        /// <param name="doCopy">Whether or not to copy the module upon initialization for search operations to use, as to not get disturbed by possible hooks.</param>
+        public SigScanner(bool doCopy = false)
+            : this(Process.GetCurrentProcess().MainModule!, doCopy)
+        {
+        }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="SigScanner"/> class.
         /// </summary>
         /// <param name="module">The ProcessModule to be used for scanning.</param>
