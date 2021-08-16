@@ -370,7 +370,7 @@ namespace Dalamud.Plugin.Internal
         /// <param name="useTesting">If the testing version should be used.</param>
         /// <param name="reason">The reason this plugin was loaded.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task InstallPluginAsync(RemotePluginManifest repoManifest, bool useTesting, PluginLoadReason reason)
+        public async Task<LocalPlugin> InstallPluginAsync(RemotePluginManifest repoManifest, bool useTesting, PluginLoadReason reason)
         {
             Log.Debug($"Installing plugin {repoManifest.Name} (testing={useTesting})");
 
@@ -447,9 +447,10 @@ namespace Dalamud.Plugin.Internal
 
             Log.Information($"Installed plugin {manifest.Name} (testing={useTesting})");
 
-            this.LoadPlugin(dllFile, manifest, reason);
+            var plugin = this.LoadPlugin(dllFile, manifest, reason);
 
             this.NotifyInstalledPluginsChanged();
+            return plugin;
         }
 
         /// <summary>
@@ -461,7 +462,7 @@ namespace Dalamud.Plugin.Internal
         /// <param name="isDev">If this plugin should support development features.</param>
         /// <param name="isBoot">If this plugin is being loaded at boot.</param>
         /// <param name="doNotLoad">Don't load the plugin, just don't do it.</param>
-        public void LoadPlugin(FileInfo dllFile, LocalPluginManifest manifest, PluginLoadReason reason, bool isDev = false, bool isBoot = false, bool doNotLoad = false)
+        public LocalPlugin LoadPlugin(FileInfo dllFile, LocalPluginManifest manifest, PluginLoadReason reason, bool isDev = false, bool isBoot = false, bool doNotLoad = false)
         {
             var name = manifest?.Name ?? dllFile.Name;
             var loadPlugin = !doNotLoad;
@@ -523,6 +524,7 @@ namespace Dalamud.Plugin.Internal
             }
 
             this.installedPlugins.Add(plugin);
+            return plugin;
         }
 
         /// <summary>

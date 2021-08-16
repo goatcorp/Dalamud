@@ -689,7 +689,15 @@ namespace Dalamud.Interface.Internal.Windows
                                 this.installStatus = OperationStatus.Idle;
                                 if (this.DisplayErrorContinuation(task, Locs.ErrorModal_InstallFail(manifest.Name)))
                                 {
-                                    this.dalamud.InterfaceManager.Notifications.AddNotification($"The plugin {manifest.Name} was successfully installed.", "Plugin installed!", Notifications.Notification.Type.Success);
+                                    if (task.Result.State == PluginState.Loaded)
+                                    {
+                                        this.dalamud.InterfaceManager.Notifications.AddNotification($"The plugin {manifest.Name} was successfully installed.", "Plugin installed!", Notifications.Notification.Type.Success);
+                                    }
+                                    else
+                                    {
+                                        this.dalamud.InterfaceManager.Notifications.AddNotification($"The plugin {manifest.Name} failed to load.", "Plugin not installed!", Notifications.Notification.Type.Error);
+                                        this.ShowErrorModal(Locs.ErrorModal_InstallFail(manifest.Name));
+                                    }
                                 }
                             });
                     }
