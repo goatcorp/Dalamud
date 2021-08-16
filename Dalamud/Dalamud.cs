@@ -35,9 +35,7 @@ namespace Dalamud
         #region Internals
 
         private readonly ManualResetEvent unloadSignal;
-
         private readonly ManualResetEvent finishUnloadSignal;
-
         private bool hasDisposedPlugins = false;
 
         #endregion
@@ -237,6 +235,7 @@ namespace Dalamud
 
                 // Initialize FFXIVClientStructs function resolver
                 FFXIVClientStructs.Resolver.Initialize();
+
                 Log.Information("[T1] FFXIVClientStructs initialized!");
             }
             catch (Exception ex)

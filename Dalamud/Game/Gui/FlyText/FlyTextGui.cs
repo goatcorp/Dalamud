@@ -133,7 +133,7 @@ namespace Dalamud.Game.Gui.FlyText
 
             // Get the UI module and flytext addon pointers
             var ui = (UIModule*)this.Dalamud.Framework.Gui.GetUIModule();
-            var flytext = this.Dalamud.Framework.Gui.GetUiObjectByName("_FlyText", 1);
+            var flytext = this.Dalamud.Framework.Gui.GetAddonByName("_FlyText", 1);
 
             if (ui == null || flytext == IntPtr.Zero)
                 return;
