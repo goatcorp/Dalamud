@@ -160,27 +160,25 @@ namespace Dalamud.Game.Network
             return this.processZonePacketUpHook.Original(a1, dataPtr, a3, a4);
         }
 
-#if DEBUG
-        private void InjectZoneProtoPacket(byte[] data)
-        {
-            this.zoneInjectQueue.Enqueue(data);
-        }
+        // private void InjectZoneProtoPacket(byte[] data)
+        // {
+        //     this.zoneInjectQueue.Enqueue(data);
+        // }
 
-        private void InjectActorControl(short cat, int param1)
-        {
-            var packetData = new byte[]
-            {
-                0x14, 0x00, 0x8D, 0x00, 0x00, 0x00, 0x0E, 0x00, 0x17, 0x7C, 0xC5, 0x5D, 0x00, 0x00, 0x00, 0x00,
-                0x05, 0x00, 0x48, 0xB2, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                0x00, 0x00, 0x00, 0x00, 0x43, 0x7F, 0x00, 0x00,
-            };
-
-            BitConverter.GetBytes((short)cat).CopyTo(packetData, 0x10);
-
-            BitConverter.GetBytes((uint)param1).CopyTo(packetData, 0x14);
-
-            this.InjectZoneProtoPacket(packetData);
-        }
-#endif
+        // private void InjectActorControl(short cat, int param1)
+        // {
+        //     var packetData = new byte[]
+        //     {
+        //         0x14, 0x00, 0x8D, 0x00, 0x00, 0x00, 0x0E, 0x00, 0x17, 0x7C, 0xC5, 0x5D, 0x00, 0x00, 0x00, 0x00,
+        //         0x05, 0x00, 0x48, 0xB2, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        //         0x00, 0x00, 0x00, 0x00, 0x43, 0x7F, 0x00, 0x00,
+        //     };
+        //
+        //     BitConverter.GetBytes((short)cat).CopyTo(packetData, 0x10);
+        //
+        //     BitConverter.GetBytes((uint)param1).CopyTo(packetData, 0x14);
+        //
+        //     this.InjectZoneProtoPacket(packetData);
+        // }
     }
 }
