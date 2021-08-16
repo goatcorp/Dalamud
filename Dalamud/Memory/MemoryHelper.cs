@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -20,7 +19,6 @@ namespace Dalamud.Memory
     public static unsafe class MemoryHelper
     {
         private static SeStringManager seStringManager;
-        private static IntPtr handle;
 
         #region Read
 
@@ -174,8 +172,23 @@ namespace Dalamud.Memory
         /// </remarks>
         /// <param name="memoryAddress">The memory address to read from.</param>
         /// <returns>The read in string.</returns>
-        public static string ReadString(IntPtr memoryAddress)
-            => ReadString(memoryAddress, 256);
+        public static string ReadStringNullTerminated(IntPtr memoryAddress)
+            => ReadStringNullTerminated(memoryAddress, Encoding.UTF8);
+
+        /// <summary>
+        /// Read a string with the given encoding from a specified memory address.
+        /// </summary>
+        /// <remarks>
+        /// Attention! If this is an SeString, use the <see cref="SeStringManager"/> to decode or the applicable helper method.
+        /// </remarks>
+        /// <param name="memoryAddress">The memory address to read from.</param>
+        /// <param name="encoding">The encoding to use to decode the string.</param>
+        /// <returns>The read in string.</returns>
+        public static string ReadStringNullTerminated(IntPtr memoryAddress, Encoding encoding)
+        {
+            var buffer = ReadRawNullTerminated(memoryAddress);
+            return encoding.GetString(buffer);
+        }
 
         /// <summary>
         /// Read a UTF-8 encoded string from a specified memory address.
@@ -188,18 +201,6 @@ namespace Dalamud.Memory
         /// <returns>The read in string.</returns>
         public static string ReadString(IntPtr memoryAddress, int maxLength)
             => ReadString(memoryAddress, Encoding.UTF8, maxLength);
-
-        /// <summary>
-        /// Read a string with the given encoding from a specified memory address.
-        /// </summary>
-        /// <remarks>
-        /// Attention! If this is an SeString, use the <see cref="SeStringManager"/> to decode or the applicable helper method.
-        /// </remarks>
-        /// <param name="memoryAddress">The memory address to read from.</param>
-        /// <param name="encoding">The encoding to use to decode the string.</param>
-        /// <returns>The read in string.</returns>
-        public static string ReadString(IntPtr memoryAddress, Encoding encoding)
-            => ReadString(memoryAddress, encoding, 256);
 
         /// <summary>
         /// Read a string with the given encoding from a specified memory address.
@@ -288,8 +289,20 @@ namespace Dalamud.Memory
         /// </remarks>
         /// <param name="memoryAddress">The memory address to read from.</param>
         /// <param name="value">The read in string.</param>
-        public static void ReadString(IntPtr memoryAddress, out string value)
-            => value = ReadString(memoryAddress);
+        public static void ReadStringNullTerminated(IntPtr memoryAddress, out string value)
+            => value = ReadStringNullTerminated(memoryAddress);
+
+        /// <summary>
+        /// Read a string with the given encoding from a specified memory address.
+        /// </summary>
+        /// <remarks>
+        /// Attention! If this is an SeString, use the <see cref="SeStringManager"/> to decode or the applicable helper method.
+        /// </remarks>
+        /// <param name="memoryAddress">The memory address to read from.</param>
+        /// <param name="encoding">The encoding to use to decode the string.</param>
+        /// <param name="value">The read in string.</param>
+        public static void ReadStringNullTerminated(IntPtr memoryAddress, Encoding encoding, out string value)
+            => value = ReadStringNullTerminated(memoryAddress, encoding);
 
         /// <summary>
         /// Read a UTF-8 encoded string from a specified memory address.
@@ -302,18 +315,6 @@ namespace Dalamud.Memory
         /// <param name="maxLength">The maximum length of the string.</param>
         public static void ReadString(IntPtr memoryAddress, out string value, int maxLength)
             => value = ReadString(memoryAddress, maxLength);
-
-        /// <summary>
-        /// Read a string with the given encoding from a specified memory address.
-        /// </summary>
-        /// <remarks>
-        /// Attention! If this is an SeString, use the <see cref="SeStringManager"/> to decode or the applicable helper method.
-        /// </remarks>
-        /// <param name="memoryAddress">The memory address to read from.</param>
-        /// <param name="encoding">The encoding to use to decode the string.</param>
-        /// <param name="value">The read in string.</param>
-        public static void ReadString(IntPtr memoryAddress, Encoding encoding, out string value)
-            => value = ReadString(memoryAddress, encoding);
 
         /// <summary>
         /// Read a string with the given encoding from a specified memory address.
@@ -584,7 +585,7 @@ namespace Dalamud.Memory
         public static void ReadProcessMemory(IntPtr memoryAddress, ref byte[] value)
         {
             var length = value.Length;
-            var result = NativeFunctions.ReadProcessMemory(handle, memoryAddress, value, length, out _);
+            var result = NativeFunctions.ReadProcessMemory((IntPtr)0xFFFFFFFF, memoryAddress, value, length, out _);
 
             if (!result)
                 throw new MemoryReadException($"Unable to read memory at 0x{memoryAddress.ToInt64():X} of length {length} (result={result})");
@@ -603,7 +604,7 @@ namespace Dalamud.Memory
         public static void WriteProcessMemory(IntPtr memoryAddress, byte[] data)
         {
             var length = data.Length;
-            var result = NativeFunctions.WriteProcessMemory(handle, memoryAddress, data, length, out _);
+            var result = NativeFunctions.WriteProcessMemory((IntPtr)0xFFFFFFFF, memoryAddress, data, length, out _);
 
             if (!result)
                 throw new MemoryWriteException($"Unable to write memory at 0x{memoryAddress.ToInt64():X} of length {length} (result={result})");
@@ -662,7 +663,6 @@ namespace Dalamud.Memory
         internal static void Initialize(Dalamud dalamud)
         {
             seStringManager = dalamud.SeStringManager;
-            handle = Process.GetCurrentProcess().Handle;
         }
     }
 }
