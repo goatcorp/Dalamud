@@ -11,11 +11,11 @@ using Dalamud.Game.ClientState.JobGauge.Enums;
 using Dalamud.Game.ClientState.JobGauge.Types;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
-using Dalamud.Game.Gui.Addons;
 using Dalamud.Game.Gui.FlyText;
 using Dalamud.Game.Gui.Toast;
 using Dalamud.Game.Text;
 using Dalamud.Interface.Windowing;
+using Dalamud.Memory;
 using Dalamud.Plugin;
 using Dalamud.Utility;
 using ImGuiNET;
@@ -45,7 +45,6 @@ namespace Dalamud.Interface.Internal.Windows
 
         private string inputAddonName = string.Empty;
         private int inputAddonIndex;
-        private Addon resultAddon;
 
         private IntPtr findAgentInterfacePtr;
 
@@ -130,7 +129,6 @@ namespace Dalamud.Interface.Internal.Windows
         /// <inheritdoc/>
         public override void OnClose()
         {
-            this.resultAddon = null;
         }
 
         /// <summary>
@@ -843,22 +841,31 @@ namespace Dalamud.Interface.Internal.Windows
                 ImGui.Text($"{command.Key}\n    -> {command.Value.HelpMessage}\n    -> In help: {command.Value.ShowInHelp}\n\n");
         }
 
-        private void DrawAddon()
+        private unsafe void DrawAddon()
         {
+            var gameGui = this.dalamud.Framework.Gui;
+
             ImGui.InputText("Addon name", ref this.inputAddonName, 256);
             ImGui.InputInt("Addon Index", ref this.inputAddonIndex);
 
-            if (ImGui.Button("Get Addon"))
+            if (this.inputAddonName.IsNullOrEmpty())
+                return;
+
+            var address = gameGui.GetAddonByName(this.inputAddonName, this.inputAddonIndex);
+
+            if (address == IntPtr.Zero)
             {
-                this.resultAddon = this.dalamud.Framework.Gui.GetAddonByName(this.inputAddonName, this.inputAddonIndex);
+                ImGui.Text("Null");
+                return;
             }
 
-            if (ImGui.Button("Find Agent"))
-                this.findAgentInterfacePtr = this.dalamud.Framework.Gui.FindAgentInterface(this.inputAddonName);
+            var addon = (FFXIVClientStructs.FFXIV.Component.GUI.AtkUnitBase*)address;
+            var name = MemoryHelper.ReadStringNullTerminated((IntPtr)addon->Name);
+            ImGui.TextUnformatted($"{name} - 0x{address.ToInt64():x}\n    v:{addon->IsVisible} x:{addon->X} y:{addon->Y} s:{addon->Scale}, w:{addon->RootNode->Width}, h:{addon->RootNode->Height}");
 
-            if (this.resultAddon != null)
+            if (ImGui.Button("Find Agent"))
             {
-                ImGui.TextUnformatted($"{this.resultAddon.Name} - 0x{this.resultAddon.Address.ToInt64():x}\n    v:{this.resultAddon.Visible} x:{this.resultAddon.X} y:{this.resultAddon.Y} s:{this.resultAddon.Scale}, w:{this.resultAddon.Width}, h:{this.resultAddon.Height}");
+                this.findAgentInterfacePtr = gameGui.FindAgentInterface(address);
             }
 
             if (this.findAgentInterfacePtr != IntPtr.Zero)
@@ -868,13 +875,6 @@ namespace Dalamud.Interface.Internal.Windows
 
                 if (ImGui.Button("C"))
                     ImGui.SetClipboardText(this.findAgentInterfacePtr.ToInt64().ToString("x"));
-            }
-
-            if (ImGui.Button("Get Base UI object"))
-            {
-                var addr = this.dalamud.Framework.Gui.GetBaseUIObject().ToInt64().ToString("x");
-                Log.Information("{0}", addr);
-                ImGui.SetClipboardText(addr);
             }
         }
 
@@ -977,7 +977,7 @@ namespace Dalamud.Interface.Internal.Windows
             if (ImGui.BeginCombo("Kind", this.flyKind.ToString()))
             {
                 var names = Enum.GetNames(typeof(FlyTextKind));
-                for (int i = 0; i < names.Length; i++)
+                for (var i = 0; i < names.Length; i++)
                 {
                     if (ImGui.Selectable($"{names[i]} ({i})"))
                         this.flyKind = (FlyTextKind)i;
