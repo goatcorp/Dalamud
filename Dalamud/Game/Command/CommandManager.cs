@@ -31,21 +31,14 @@ namespace Dalamud.Game.Command
         {
             this.dalamud = dalamud;
 
-            switch (language)
+            this.currentLangCommandRegex = language switch
             {
-                case ClientLanguage.Japanese:
-                    this.currentLangCommandRegex = this.commandRegexJp;
-                    break;
-                case ClientLanguage.English:
-                    this.currentLangCommandRegex = this.commandRegexEn;
-                    break;
-                case ClientLanguage.German:
-                    this.currentLangCommandRegex = this.commandRegexDe;
-                    break;
-                case ClientLanguage.French:
-                    this.currentLangCommandRegex = this.commandRegexFr;
-                    break;
-            }
+                ClientLanguage.Japanese => this.commandRegexJp,
+                ClientLanguage.English => this.commandRegexEn,
+                ClientLanguage.German => this.commandRegexDe,
+                ClientLanguage.French => this.commandRegexFr,
+                _ => this.currentLangCommandRegex,
+            };
 
             dalamud.Framework.Gui.Chat.CheckMessageHandled += this.OnCheckMessageHandled;
         }
