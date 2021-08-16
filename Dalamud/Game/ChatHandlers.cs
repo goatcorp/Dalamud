@@ -9,6 +9,7 @@ using CheapLoc;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
+using Dalamud.Interface.Internal;
 using Serilog;
 
 namespace Dalamud.Game
@@ -278,6 +279,7 @@ namespace Dalamud.Game
                         if (this.dalamud.Configuration.AutoUpdatePlugins)
                         {
                             this.dalamud.PluginManager.PrintUpdatedPlugins(updatedPlugins, Loc.Localize("DalamudPluginAutoUpdate", "Auto-update:"));
+                            this.dalamud.InterfaceManager.Notifications.AddNotification(Loc.Localize("NotificationUpdatedPlugins", "{0} of your plugins were updated."), Loc.Localize("NotificationAutoUpdate", "Auto-Update"), Notifications.Notification.Type.Info);
                         }
                         else
                         {

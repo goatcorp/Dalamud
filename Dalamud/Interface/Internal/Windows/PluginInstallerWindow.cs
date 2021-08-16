@@ -989,6 +989,8 @@ namespace Dalamud.Interface.Internal.Windows
                             {
                                 this.dalamud.PluginManager.RemovePlugin(plugin);
                             }
+
+                            this.dalamud.InterfaceManager.Notifications.AddNotification($"'{plugin.Manifest.Name}' was disabled.", "Plugin disabled!", Notifications.Notification.Type.Success);
                         });
                     }
                 }
