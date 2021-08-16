@@ -2,7 +2,6 @@ using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
-using Dalamud.Game.Gui.Addons;
 using Dalamud.Game.Gui.FlyText;
 using Dalamud.Game.Gui.PartyFinder;
 using Dalamud.Game.Gui.Toast;
@@ -24,10 +23,7 @@ namespace Dalamud.Game.Gui
         private readonly GameGuiAddressResolver address;
 
         private readonly GetMatrixSingletonDelegate getMatrixSingleton;
-        private readonly GetUIObjectDelegate getUIObject;
         private readonly ScreenToWorldNativeDelegate screenToWorldNative;
-        private readonly GetUIObjectByNameDelegate getUIObjectByName;
-        private readonly GetUiModuleDelegate getUiModule;
         private readonly GetAgentModuleDelegate getAgentModule;
 
         private readonly Hook<SetGlobalBgmDelegate> setGlobalBgmHook;
@@ -62,7 +58,6 @@ namespace Dalamud.Game.Gui
             Log.Verbose($"HandleItemHover address 0x{this.address.HandleItemHover.ToInt64():X}");
             Log.Verbose($"HandleItemOut address 0x{this.address.HandleItemOut.ToInt64():X}");
             Log.Verbose($"HandleImm address 0x{this.address.HandleImm.ToInt64():X}");
-            Log.Verbose($"GetUIObject address 0x{this.address.GetUIObject.ToInt64():X}");
             Log.Verbose($"GetAgentModule address 0x{this.address.GetAgentModule.ToInt64():X}");
 
             this.Chat = new ChatGui(this.address.ChatManager, scanner, dalamud);
@@ -80,43 +75,22 @@ namespace Dalamud.Game.Gui
 
             this.handleImmHook = new Hook<HandleImmDelegate>(this.address.HandleImm, this.HandleImmDetour);
 
-            this.getUIObject = Marshal.GetDelegateForFunctionPointer<GetUIObjectDelegate>(this.address.GetUIObject);
-
             this.getMatrixSingleton = Marshal.GetDelegateForFunctionPointer<GetMatrixSingletonDelegate>(this.address.GetMatrixSingleton);
 
             this.screenToWorldNative = Marshal.GetDelegateForFunctionPointer<ScreenToWorldNativeDelegate>(this.address.ScreenToWorld);
 
             this.toggleUiHideHook = new Hook<ToggleUiHideDelegate>(this.address.ToggleUiHide, this.ToggleUiHideDetour);
 
-            this.GetBaseUIObject = Marshal.GetDelegateForFunctionPointer<GetBaseUIObjectDelegate>(this.address.GetBaseUIObject);
-            this.getUIObjectByName = Marshal.GetDelegateForFunctionPointer<GetUIObjectByNameDelegate>(this.address.GetUIObjectByName);
-
-            this.getUiModule = Marshal.GetDelegateForFunctionPointer<GetUiModuleDelegate>(this.address.GetUIModule);
             this.getAgentModule = Marshal.GetDelegateForFunctionPointer<GetAgentModuleDelegate>(this.address.GetAgentModule);
         }
 
         // Marshaled delegates
 
-        /// <summary>
-        /// The delegate type of the native method that gets the Client::UI::UIModule address.
-        /// </summary>
-        /// <returns>The Client::UI::UIModule address.</returns>
-        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        public delegate IntPtr GetBaseUIObjectDelegate();
-
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate IntPtr GetMatrixSingletonDelegate();
 
-        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate IntPtr GetUIObjectDelegate();
-
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         private unsafe delegate bool ScreenToWorldNativeDelegate(float* camPos, float* clipPos, float rayDistance, float* worldPos, int* unknown);
-
-        [UnmanagedFunctionPointer(CallingConvention.ThisCall, CharSet = CharSet.Ansi)]
-        private delegate IntPtr GetUIObjectByNameDelegate(IntPtr thisPtr, string uiName, int index);
-
-        private delegate IntPtr GetUiModuleDelegate(IntPtr basePtr);
 
         private delegate IntPtr GetAgentModuleDelegate(IntPtr uiModule);
 
@@ -153,12 +127,6 @@ namespace Dalamud.Game.Gui
         /// Event which is fired when the game UI hiding is toggled.
         /// </summary>
         public event EventHandler<bool> OnUiHideToggled;
-
-        /// <summary>
-        /// Gets a callable delegate for the GetBaseUIObject game method.
-        /// </summary>
-        /// <returns>The Client::UI::UIModule address.</returns>
-        public GetBaseUIObjectDelegate GetBaseUIObject { get; }
 
         /// <summary>
         /// Gets the <see cref="Chat"/> instance.
@@ -213,19 +181,19 @@ namespace Dalamud.Game.Gui
         /// <returns>True if there were no errors and it could open the map.</returns>
         public bool OpenMapWithMapLink(MapLinkPayload mapLink)
         {
-            var uiObjectPtr = this.getUIObject();
+            var uiModule = this.GetUIModule();
 
-            if (uiObjectPtr.Equals(IntPtr.Zero))
+            if (uiModule == IntPtr.Zero)
             {
                 Log.Error("OpenMapWithMapLink: Null pointer returned from getUIObject()");
                 return false;
             }
 
-            this.getUIMapObject = this.address.GetVirtualFunction<GetUIMapObjectDelegate>(uiObjectPtr, 0, 8);
+            this.getUIMapObject = this.address.GetVirtualFunction<GetUIMapObjectDelegate>(uiModule, 0, 8);
 
-            var uiMapObjectPtr = this.getUIMapObject(uiObjectPtr);
+            var uiMapObjectPtr = this.getUIMapObject(uiModule);
 
-            if (uiMapObjectPtr.Equals(IntPtr.Zero))
+            if (uiMapObjectPtr == IntPtr.Zero)
             {
                 Log.Error("OpenMapWithMapLink: Null pointer returned from GetUIMapObject()");
                 return false;
@@ -408,37 +376,40 @@ namespace Dalamud.Game.Gui
         /// Gets a pointer to the game's UI module.
         /// </summary>
         /// <returns>IntPtr pointing to UI module.</returns>
-        public IntPtr GetUIModule() => this.getUiModule(this.dalamud.Framework.Address.BaseAddress);
-
-        /// <summary>
-        /// Gets the pointer to the UI Object with the given name and index.
-        /// </summary>
-        /// <param name="name">Name of UI to find.</param>
-        /// <param name="index">Index of UI to find (1-indexed).</param>
-        /// <returns>IntPtr.Zero if unable to find UI, otherwise IntPtr pointing to the start of the UI Object.</returns>
-        public IntPtr GetUiObjectByName(string name, int index)
+        public unsafe IntPtr GetUIModule()
         {
-            var baseUi = this.GetBaseUIObject();
-            if (baseUi == IntPtr.Zero) return IntPtr.Zero;
-            var baseUiProperties = Marshal.ReadIntPtr(baseUi, 0x20);
-            if (baseUiProperties == IntPtr.Zero) return IntPtr.Zero;
-            return this.getUIObjectByName(baseUiProperties, name, index);
+            var framework = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance();
+            if (framework == null)
+                return IntPtr.Zero;
+
+            var uiModule = framework->GetUiModule();
+            if (uiModule == null)
+                return IntPtr.Zero;
+
+            return (IntPtr)uiModule;
         }
 
         /// <summary>
-        /// Gets an Addon by it's internal name.
+        /// Gets the pointer to the Addon with the given name and index.
         /// </summary>
-        /// <param name="name">The addon name.</param>
-        /// <param name="index">The index of the addon, starting at 1.</param>
-        /// <returns>The native memory representation of the addon, if it exists.</returns>
-        public Addon GetAddonByName(string name, int index)
+        /// <param name="name">Name of addon to find.</param>
+        /// <param name="index">Index of addon to find (1-indexed).</param>
+        /// <returns>IntPtr.Zero if unable to find UI, otherwise IntPtr pointing to the start of the addon.</returns>
+        public unsafe IntPtr GetAddonByName(string name, int index)
         {
-            var address = this.GetUiObjectByName(name, index);
+            var atkStage = FFXIVClientStructs.FFXIV.Component.GUI.AtkStage.GetSingleton();
+            if (atkStage == null)
+                return IntPtr.Zero;
 
-            if (address == IntPtr.Zero)
-                return null;
+            var unitMgr = atkStage->RaptureAtkUnitManager;
+            if (unitMgr == null)
+                return IntPtr.Zero;
 
-            return new Addon(address);
+            var addon = unitMgr->GetAddonByName(name, index);
+            if (addon == null)
+                return IntPtr.Zero;
+
+            return (IntPtr)addon;
         }
 
         /// <summary>
@@ -448,7 +419,7 @@ namespace Dalamud.Game.Gui
         /// <returns>A pointer to the agent interface.</returns>
         public IntPtr FindAgentInterface(string addonName)
         {
-            var addon = this.dalamud.Framework.Gui.GetUiObjectByName(addonName, 1);
+            var addon = this.GetAddonByName(addonName, 1);
             return this.FindAgentInterface(addon);
         }
 
@@ -457,7 +428,14 @@ namespace Dalamud.Game.Gui
         /// </summary>
         /// <param name="addon">The addon address.</param>
         /// <returns>A pointer to the agent interface.</returns>
-        public IntPtr FindAgentInterface(IntPtr addon)
+        public unsafe IntPtr FindAgentInterface(void* addon) => this.FindAgentInterface((IntPtr)addon);
+
+        /// <summary>
+        /// Find the agent associated with an addon, if possible.
+        /// </summary>
+        /// <param name="addon">The addon address.</param>
+        /// <returns>A pointer to the agent interface.</returns>
+        public unsafe IntPtr FindAgentInterface(IntPtr addon)
         {
             if (addon == IntPtr.Zero)
                 return IntPtr.Zero;
@@ -474,9 +452,10 @@ namespace Dalamud.Game.Gui
                 return IntPtr.Zero;
             }
 
-            var id = Marshal.ReadInt16(addon, 0x1CE);
+            var unitBase = (FFXIVClientStructs.FFXIV.Component.GUI.AtkUnitBase*)addon;
+            var id = unitBase->ParentID;
             if (id == 0)
-                id = Marshal.ReadInt16(addon, 0x1CC);
+                id = unitBase->ID;
 
             if (id == 0)
                 return IntPtr.Zero;
