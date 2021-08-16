@@ -1018,6 +1018,38 @@ namespace Dalamud.Interface.Internal.Windows
 
             ImGui.Button("THIS IS A BUTTON###hoverTestButton");
             this.dalamud.InterfaceManager.OverrideGameCursor = !ImGui.IsItemHovered();
+
+            ImGui.Separator();
+
+            if (ImGui.Button("Add random notification"))
+            {
+                var rand = new Random();
+
+                var title = rand.Next(0, 5) switch
+                {
+                    0 => "This is a toast",
+                    1 => "Truly, a toast",
+                    2 => "I am testing this toast",
+                    3 => "I hope this looks right",
+                    4 => "Good stuff",
+                    5 => "Nice",
+                    _ => null,
+                };
+
+                var type = rand.Next(0, 4) switch
+                {
+                    0 => Notifications.Notification.Type.Error,
+                    1 => Notifications.Notification.Type.Warning,
+                    2 => Notifications.Notification.Type.Info,
+                    3 => Notifications.Notification.Type.Success,
+                    4 => Notifications.Notification.Type.None,
+                    _ => Notifications.Notification.Type.None,
+                };
+
+                var text = "Bla bla bla bla bla bla bla bla bla bla bla.\nBla bla bla bla bla bla bla bla bla bla bla bla bla bla.";
+
+                this.dalamud.InterfaceManager.Notifications.AddNotification(text, title, type);
+            }
         }
 
         private void DrawTex()

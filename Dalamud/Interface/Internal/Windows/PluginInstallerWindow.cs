@@ -315,6 +315,11 @@ namespace Dalamud.Interface.Internal.Windows
                                 if (this.updatePluginCount > 0)
                                 {
                                     this.dalamud.PluginManager.PrintUpdatedPlugins(this.updatedPlugins, Locs.PluginUpdateHeader_Chatbox);
+                                    this.dalamud.InterfaceManager.Notifications.AddNotification($"Updates for {this.updatePluginCount} of your plugins were installed.", "Updates installed!", Notifications.Notification.Type.Success);
+                                }
+                                else if (this.updatePluginCount == 0)
+                                {
+                                    this.dalamud.InterfaceManager.Notifications.AddNotification("No updates were found.", "No updates", Notifications.Notification.Type.Info);
                                 }
                             }
                         });
@@ -682,7 +687,10 @@ namespace Dalamud.Interface.Internal.Windows
                             {
                                 // There is no need to set as Complete for an individual plugin installation
                                 this.installStatus = OperationStatus.Idle;
-                                this.DisplayErrorContinuation(task, Locs.ErrorModal_InstallFail(manifest.Name));
+                                if (this.DisplayErrorContinuation(task, Locs.ErrorModal_InstallFail(manifest.Name)))
+                                {
+                                    this.dalamud.InterfaceManager.Notifications.AddNotification($"The plugin {manifest.Name} was successfully installed.", "Plugin installed!", Notifications.Notification.Type.Success);
+                                }
                             });
                     }
                 }

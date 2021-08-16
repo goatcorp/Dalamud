@@ -149,6 +149,11 @@ namespace Dalamud.Interface.Internal
         public static ImFontPtr MonoFont { get; private set; }
 
         /// <summary>
+        /// Gets the manager for notifications/toasts.
+        /// </summary>
+        public Notifications Notifications { get; init; } = new();
+
+        /// <summary>
         /// Gets or sets an action that is exexuted when fonts are rebuilt.
         /// </summary>
         public Action OnBuildFonts { get; set; }
@@ -626,6 +631,7 @@ namespace Dalamud.Interface.Internal
             this.lastWantCapture = this.LastImGuiIoPtr.WantCaptureMouse;
 
             this.Draw?.Invoke();
+            this.Notifications.Draw();
         }
     }
 }
