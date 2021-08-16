@@ -9,47 +9,47 @@ namespace Dalamud
     /// Struct containing information needed to initialize Dalamud.
     /// </summary>
     [Serializable]
-    public struct DalamudStartInfo
+    public record DalamudStartInfo
     {
         /// <summary>
-        /// The working directory of the XIVLauncher installations.
+        /// Gets the working directory of the XIVLauncher installations.
         /// </summary>
-        public string WorkingDirectory;
+        public string WorkingDirectory { get; init; }
 
         /// <summary>
-        /// The path to the configuration file.
+        /// Gets the path to the configuration file.
         /// </summary>
-        public string ConfigurationPath;
+        public string ConfigurationPath { get; init; }
 
         /// <summary>
-        /// The path to the directory for installed plugins.
+        /// Gets the path to the directory for installed plugins.
         /// </summary>
-        public string PluginDirectory;
+        public string PluginDirectory { get; init; }
 
         /// <summary>
-        /// The path to the directory for developer plugins.
+        /// Gets the path to the directory for developer plugins.
         /// </summary>
-        public string DefaultPluginDirectory;
+        public string DefaultPluginDirectory { get; init; }
 
         /// <summary>
-        /// The path to core Dalamud assets.
+        /// Gets the path to core Dalamud assets.
         /// </summary>
-        public string AssetDirectory;
+        public string AssetDirectory { get; init; }
 
         /// <summary>
-        /// The language of the game client.
+        /// Gets the language of the game client.
         /// </summary>
-        public ClientLanguage Language;
+        public ClientLanguage Language { get; init; }
 
         /// <summary>
-        /// The current game version code.
+        /// Gets the current game version code.
         /// </summary>
         [JsonConverter(typeof(GameVersionConverter))]
-        public GameVersion GameVersion;
+        public GameVersion GameVersion { get; init; }
 
         /// <summary>
-        /// Whether or not market board information should be uploaded by default.
+        /// Gets a value indicating whether or not market board information should be uploaded by default.
         /// </summary>
-        public bool OptOutMbCollection;
+        public bool OptOutMbCollection { get; init; }
     }
 }
