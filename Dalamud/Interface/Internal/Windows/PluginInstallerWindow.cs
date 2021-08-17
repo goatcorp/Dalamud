@@ -315,11 +315,11 @@ namespace Dalamud.Interface.Internal.Windows
                                 if (this.updatePluginCount > 0)
                                 {
                                     this.dalamud.PluginManager.PrintUpdatedPlugins(this.updatedPlugins, Locs.PluginUpdateHeader_Chatbox);
-                                    this.dalamud.InterfaceManager.Notifications.AddNotification($"Updates for {this.updatePluginCount} of your plugins were installed.", "Updates installed!", Notifications.Notification.Type.Success);
+                                    this.dalamud.InterfaceManager.Notifications.AddNotification(Locs.Notifications_UpdatesInstalled(this.updatePluginCount), Locs.Notifications_UpdatesInstalledTitle, Notifications.Notification.Type.Success);
                                 }
                                 else if (this.updatePluginCount == 0)
                                 {
-                                    this.dalamud.InterfaceManager.Notifications.AddNotification("No updates were found.", "No updates", Notifications.Notification.Type.Info);
+                                    this.dalamud.InterfaceManager.Notifications.AddNotification(Locs.Notifications_NoUpdatesFound, Locs.Notifications_NoUpdatesFoundTitle, Notifications.Notification.Type.Info);
                                 }
                             }
                         });
@@ -691,11 +691,11 @@ namespace Dalamud.Interface.Internal.Windows
                                 {
                                     if (task.Result.State == PluginState.Loaded)
                                     {
-                                        this.dalamud.InterfaceManager.Notifications.AddNotification($"The plugin {manifest.Name} was successfully installed.", "Plugin installed!", Notifications.Notification.Type.Success);
+                                        this.dalamud.InterfaceManager.Notifications.AddNotification(Locs.Notifications_PluginInstalled(manifest.Name), Locs.Notifications_PluginInstalledTitle, Notifications.Notification.Type.Success);
                                     }
                                     else
                                     {
-                                        this.dalamud.InterfaceManager.Notifications.AddNotification($"The plugin {manifest.Name} failed to load.", "Plugin not installed!", Notifications.Notification.Type.Error);
+                                        this.dalamud.InterfaceManager.Notifications.AddNotification(Locs.Notifications_PluginNotInstalled(manifest.Name), Locs.Notifications_PluginNotInstalledTitle, Notifications.Notification.Type.Error);
                                         this.ShowErrorModal(Locs.ErrorModal_InstallFail(manifest.Name));
                                     }
                                 }
@@ -990,7 +990,7 @@ namespace Dalamud.Interface.Internal.Windows
                                 this.dalamud.PluginManager.RemovePlugin(plugin);
                             }
 
-                            this.dalamud.InterfaceManager.Notifications.AddNotification($"'{plugin.Manifest.Name}' was disabled.", "Plugin disabled!", Notifications.Notification.Type.Success);
+                            this.dalamud.InterfaceManager.Notifications.AddNotification(Locs.Notifications_PluginDisabled(plugin.Manifest.Name), Locs.Notifications_PluginDisabledTitle, Notifications.Notification.Type.Success);
                         });
                     }
                 }
@@ -1625,6 +1625,30 @@ namespace Dalamud.Interface.Internal.Windows
             public static string PluginButtonToolTip_UpdateSingle(string version) => Loc.Localize("InstallerUpdateSingle", "Update to {0}").Format(version);
 
             public static string PluginButtonToolTip_UnloadFailed => Loc.Localize("InstallerUnloadFailedTooltip", "Plugin unload failed, please restart your game and try again.");
+
+            #endregion
+
+            #region Notifications
+
+            public static string Notifications_PluginInstalledTitle => Loc.Localize("NotificationsPluginInstalledTitle", "Plugin installed!");
+
+            public static string Notifications_PluginInstalled(string name) => Loc.Localize("NotificationsPluginInstalled", "'{0}' was successfully installed.").Format(name);
+
+            public static string Notifications_PluginNotInstalledTitle => Loc.Localize("NotificationsPluginNotInstalledTitle", "Plugin not installed!");
+
+            public static string Notifications_PluginNotInstalled(string name) => Loc.Localize("NotificationsPluginInstalled", "'{0}' failed to install.").Format(name);
+
+            public static string Notifications_NoUpdatesFoundTitle => Loc.Localize("NotificationsNoUpdatesFoundTitle", "No updates found!");
+
+            public static string Notifications_NoUpdatesFound => Loc.Localize("NotificationsNoUpdatesFound", "No updates were found.");
+
+            public static string Notifications_UpdatesInstalledTitle => Loc.Localize("NotificationsUpdatesInstalledTitle", "Updates installed!");
+
+            public static string Notifications_UpdatesInstalled(int count) => Loc.Localize("NotificationsUpdatesInstalled", "Updates for {0} of your plugins were installed.").Format(count);
+
+            public static string Notifications_PluginDisabledTitle => Loc.Localize("NotificationsPluginDisabledTitle", "Plugin disabled!");
+
+            public static string Notifications_PluginDisabled(string name) => Loc.Localize("NotificationsPluginDisabled", "'{0}' was disabled.").Format(name);
 
             #endregion
 
