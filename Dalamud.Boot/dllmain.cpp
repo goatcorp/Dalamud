@@ -174,9 +174,9 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam)
     typedef void (CORECLR_DELEGATE_CALLTYPE* custom_component_entry_point_fn)(LPVOID);
     custom_component_entry_point_fn entrypoint_fn = reinterpret_cast<custom_component_entry_point_fn>(entrypoint_vfn);
 
-    printf("Initializing exception handler...");
-    AddVectoredExceptionHandler(99, VectoredHandler);
-    printf("Done!\n");
+    // printf("Initializing exception handler...");
+    // AddVectoredExceptionHandler(99, VectoredHandler);
+    // printf("Done!\n");
 
     printf("Initializing Dalamud... ");
     entrypoint_fn(lpParam);
