@@ -50,8 +50,8 @@ LONG WINAPI VectoredHandler(struct _EXCEPTION_POINTERS* ExceptionInfo)
         auto actual_address = ex_address - base_address + 0x140000000;
 
         FILE* log_handle;
-        errno_t result = _wfopen_s(&log_handle, dalamud_log_path.c_str(), L"a");
-        if (!result)
+        errno_t log_res = _wfopen_s(&log_handle, dalamud_log_path.c_str(), L"a");
+        if (!log_res)
         {
             MessageBox(NULL, L"Could not open dalamud.log for writing.", L"Dalamud", MB_OK | MB_ICONERROR | MB_TOPMOST);
         }
