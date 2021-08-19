@@ -8,11 +8,6 @@ namespace Dalamud.Interface.Colors
     public static class ImGuiColors
     {
         /// <summary>
-        /// Gets white color.
-        /// </summary>
-        public static Vector4 White { get; } = new Vector4(255, 255, 255, 1);
-
-        /// <summary>
         /// Gets red used in dalamud.
         /// </summary>
         public static Vector4 DalamudRed { get; } = new Vector4(1f, 0f, 0f, 1f);

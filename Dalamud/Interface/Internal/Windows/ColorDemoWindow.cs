@@ -26,7 +26,6 @@ namespace Dalamud.Interface.Internal.Windows
 
             this.colors = new List<(string Name, Vector4 Color)>()
             {
-                ("White", ImGuiColors.White),
                 ("DalamudRed", ImGuiColors.DalamudRed),
                 ("DalamudGrey", ImGuiColors.DalamudGrey),
                 ("DalamudGrey2", ImGuiColors.DalamudGrey2),
