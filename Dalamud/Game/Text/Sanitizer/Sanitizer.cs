@@ -84,31 +84,16 @@ namespace Dalamud.Game.Text.Sanitizer
             };
         }
 
-        private static IEnumerable<string> SanitizeByLanguage(
-            IEnumerable<string> unsanitizedStrings, ClientLanguage clientLanguage)
+        private static IEnumerable<string> SanitizeByLanguage(IEnumerable<string> unsanitizedStrings, ClientLanguage clientLanguage)
         {
-            var sanitizedStrings = new List<string>();
-            switch (clientLanguage)
+            return clientLanguage switch
             {
-                case ClientLanguage.Japanese:
-                case ClientLanguage.English:
-                    sanitizedStrings.AddRange(unsanitizedStrings.Select(FilterUnprintableCharacters));
-                    return sanitizedStrings;
-                case ClientLanguage.German:
-                    sanitizedStrings.AddRange(
-                        unsanitizedStrings.Select(
-                            unsanitizedString =>
-                                FilterByDict(FilterUnprintableCharacters(unsanitizedString), DESanitizationDict)));
-                    return sanitizedStrings;
-                case ClientLanguage.French:
-                    sanitizedStrings.AddRange(
-                        unsanitizedStrings.Select(
-                            unsanitizedString =>
-                                FilterByDict(FilterUnprintableCharacters(unsanitizedString), FRSanitizationDict)));
-                    return sanitizedStrings;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(clientLanguage), clientLanguage, null);
-            }
+                ClientLanguage.Japanese => unsanitizedStrings.Select(FilterUnprintableCharacters),
+                ClientLanguage.English => unsanitizedStrings.Select(FilterUnprintableCharacters),
+                ClientLanguage.German => unsanitizedStrings.Select(original => FilterByDict(FilterUnprintableCharacters(original), DESanitizationDict)),
+                ClientLanguage.French => unsanitizedStrings.Select(original => FilterByDict(FilterUnprintableCharacters(original), FRSanitizationDict)),
+                _ => throw new ArgumentOutOfRangeException(nameof(clientLanguage), clientLanguage, null),
+            };
         }
 
         private static string FilterUnprintableCharacters(string str)

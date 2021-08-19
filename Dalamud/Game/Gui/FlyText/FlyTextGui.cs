@@ -70,7 +70,7 @@ namespace Dalamud.Game.Gui.FlyText
         /// </summary>
         private delegate IntPtr CreateFlyTextDelegate(
             IntPtr addonFlyText,
-            int kind,
+            FlyTextKind kind,
             int val1,
             int val2,
             IntPtr text2,
@@ -126,14 +126,14 @@ namespace Dalamud.Game.Gui.FlyText
         public unsafe void AddFlyText(FlyTextKind kind, uint actorIndex, uint val1, uint val2, SeString text1, SeString text2, uint color, uint icon)
         {
             // Known valid flytext region within the atk arrays
-            int numIndex = 28;
-            int strIndex = 25;
-            uint numOffset = 147;
-            uint strOffset = 28;
+            var numIndex = 28;
+            var strIndex = 25;
+            var numOffset = 147u;
+            var strOffset = 28u;
 
             // Get the UI module and flytext addon pointers
             var ui = (UIModule*)this.Dalamud.Framework.Gui.GetUIModule();
-            var flytext = this.Dalamud.Framework.Gui.GetUiObjectByName("_FlyText", 1);
+            var flytext = this.Dalamud.Framework.Gui.GetAddonByName("_FlyText", 1);
 
             if (ui == null || flytext == IntPtr.Zero)
                 return;
@@ -195,7 +195,7 @@ namespace Dalamud.Game.Gui.FlyText
 
         private IntPtr CreateFlyTextDetour(
             IntPtr addonFlyText,
-            int kind,
+            FlyTextKind kind,
             int val1,
             int val2,
             IntPtr text2,
@@ -211,7 +211,7 @@ namespace Dalamud.Game.Gui.FlyText
 
                 var handled = false;
 
-                var tmpKind = (FlyTextKind)kind;
+                var tmpKind = kind;
                 var tmpVal1 = val1;
                 var tmpVal2 = val2;
                 var tmpText1 = MemoryHelper.ReadSeStringNullTerminated(text1);
@@ -224,7 +224,7 @@ namespace Dalamud.Game.Gui.FlyText
                 var cmpText2 = tmpText2.ToString();
 
                 Log.Verbose($"[FlyText] Called with addonFlyText({addonFlyText.ToInt64():X}) " +
-                                         $"kind({((FlyTextKind)kind).ToString()}) val1({val1}) val2({val2}) " +
+                                         $"kind({kind}) val1({val1}) val2({val2}) " +
                                          $"text1({text1.ToInt64():X}, \"{tmpText1}\") text2({text2.ToInt64():X}, \"{tmpText2}\") " +
                                          $"color({color:X}) icon({icon}) yOffset({yOffset})");
                 Log.Verbose("[FlyText] Calling flytext events!");
@@ -250,14 +250,14 @@ namespace Dalamud.Game.Gui.FlyText
                 }
 
                 // Check if any values have changed
-                var dirty = tmpKind != (FlyTextKind)kind ||
-                                tmpVal1 != val1 ||
-                                tmpVal2 != val2 ||
-                                tmpText1.ToString() != cmpText1 ||
-                                tmpText2.ToString() != cmpText2 ||
-                                tmpColor != color ||
-                                tmpIcon != icon ||
-                                Math.Abs(tmpYOffset - yOffset) > float.Epsilon;
+                var dirty = tmpKind != kind ||
+                            tmpVal1 != val1 ||
+                            tmpVal2 != val2 ||
+                            tmpText1.ToString() != cmpText1 ||
+                            tmpText2.ToString() != cmpText2 ||
+                            tmpColor != color ||
+                            tmpIcon != icon ||
+                            Math.Abs(tmpYOffset - yOffset) > float.Epsilon;
 
                 // If not dirty, make the original call
                 if (!dirty)
@@ -276,7 +276,7 @@ namespace Dalamud.Game.Gui.FlyText
 
                 retVal = this.createFlyTextHook.Original(
                     addonFlyText,
-                    (int)tmpKind,
+                    tmpKind,
                     tmpVal1,
                     tmpVal2,
                     pText2,

@@ -4,7 +4,6 @@ using System.Linq;
 
 using Dalamud.Plugin;
 using ImGuiNET;
-using Lumina.Excel.GeneratedSheets;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
 using Serilog;
@@ -65,10 +64,10 @@ namespace Dalamud.Interface.Internal.Scratchpad
             var options = ScriptOptions.Default
                                        .AddReferences(typeof(ImGui).Assembly)
                                        .AddReferences(typeof(Dalamud).Assembly)
-                                       .AddReferences(typeof(FFXIVClientStructs.Attributes.Addon).Assembly) // FFXIVClientStructs
+                                       .AddReferences(typeof(FFXIVClientStructs.Resolver).Assembly) // FFXIVClientStructs
                                        .AddReferences(typeof(Lumina.GameData).Assembly) // Lumina
-                                       .AddReferences(typeof(TerritoryType).Assembly) // Lumina.Excel
-                                                                                      // .WithReferences(MetadataReference.CreateFromFile(typeof(ScratchExecutionManager).Assembly.Location))
+                                       .AddReferences(typeof(Lumina.Excel.GeneratedSheets.TerritoryType).Assembly) // Lumina.Excel
+                                                                                                                   // .WithReferences(MetadataReference.CreateFromFile(typeof(ScratchExecutionManager).Assembly.Location))
                                        .AddImports("System")
                                        .AddImports("System.IO")
                                        .AddImports("System.Reflection")
