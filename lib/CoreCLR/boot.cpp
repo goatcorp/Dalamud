@@ -34,6 +34,8 @@ int InitializeClrAndGetEntryPoint(
     int result;
     CoreCLR clr;
     SetEnvironmentVariable(L"DOTNET_MULTILEVEL_LOOKUP", L"0");
+    //SetEnvironmentVariable(L"COMPlus_legacyCorruptedStateExceptionsPolicy", L"1");
+    SetEnvironmentVariable(L"DOTNET_legacyCorruptedStateExceptionsPolicy", L"1");
 
     wchar_t* dotnet_path;
     wchar_t* _appdata;
