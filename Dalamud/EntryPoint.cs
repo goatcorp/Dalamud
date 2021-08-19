@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -11,6 +12,7 @@ using Dalamud.Logging.Internal;
 using Dalamud.Utility;
 using HarmonyLib;
 using Newtonsoft.Json;
+using PInvoke;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
@@ -202,11 +204,20 @@ namespace Dalamud
                             $"{ex.TargetSite.DeclaringType.Assembly.GetName().Name}, {ex.TargetSite.DeclaringType.FullName}::{ex.TargetSite.Name}";
                     }
 
-                    Util.Fatal(
+                    const MessageBoxType flags = NativeFunctions.MessageBoxType.YesNo | NativeFunctions.MessageBoxType.IconError | NativeFunctions.MessageBoxType.SystemModal;
+                    var result = MessageBoxW(
+                        Process.GetCurrentProcess().MainWindowHandle,
                         $"An internal error in a Dalamud plugin occurred.\nThe game must close.\n\nType: {ex.GetType().Name}\n{info}\n\nMore information has been recorded separately, please contact us in our Discord or on GitHub.\n\nDo you want to disable all plugins the next time you start the game?",
-                        "Dalamud");
+                        "Dalamud",
+                        flags);
 
-                    // TODO Plugin disabling
+                    if (result == (int)User32.MessageBoxResult.IDYES)
+                    {
+                        Log.Information("User chose to disable plugins on next launch...");
+                        // TODO When services are in
+                    }
+
+                    Environment.Exit(-1);
 
                     break;
                 default:
