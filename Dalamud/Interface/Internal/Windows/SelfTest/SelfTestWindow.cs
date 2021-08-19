@@ -39,6 +39,7 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest
                 new HoverAgingStep(),
                 new LuminaAgingStep<TerritoryType>(),
                 new PartyFinderAgingStep(),
+                new HandledExceptionAgingStep(),
                 new LogoutEventAgingStep(),
             };
 
