@@ -185,6 +185,12 @@ namespace Dalamud.Configuration.Internal
         public bool LoadAllApiLevels { get; set; }
 
         /// <summary>
+        /// Gets or sets a value indicating whether or not any plugin should be loaded when the game is started.
+        /// It is reset immediately when read.
+        /// </summary>
+        public bool PluginSafeMode { get; set; }
+
+        /// <summary>
         /// Load a configuration from the provided path.
         /// </summary>
         /// <param name="path">The path to load the configuration file from.</param>

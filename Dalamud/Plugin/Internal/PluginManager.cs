@@ -159,6 +159,16 @@ namespace Dalamud.Plugin.Internal
         /// </summary>
         public void LoadAllPlugins()
         {
+            if (this.dalamud.Configuration.PluginSafeMode)
+            {
+                Log.Information("PluginSafeMode was enabled, not loading any plugins.");
+
+                this.dalamud.Configuration.PluginSafeMode = false;
+                this.dalamud.Configuration.Save();
+
+                return;
+            }
+
             var pluginDefs = new List<PluginDef>();
             var devPluginDefs = new List<PluginDef>();
 
