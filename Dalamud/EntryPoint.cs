@@ -195,11 +195,18 @@ namespace Dalamud
                 case Exception ex:
                     Log.Fatal(ex, "Unhandled exception on AppDomain");
 
-                    var info = ex.StackTrace?.Split('\n').Take(4).Append("[...]").Join(delimiter: "\n");
+                    var info = "Further information could not be obtained";
+                    if (ex.TargetSite != null && ex.TargetSite.DeclaringType != null)
+                    {
+                        info =
+                            $"{ex.TargetSite.DeclaringType.Assembly.GetName().Name}, {ex.TargetSite.DeclaringType.FullName}::{ex.TargetSite.Name}";
+                    }
 
                     Util.Fatal(
-                        $"An internal error in a Dalamud plugin occurred.\nThe game must close.\n\n{ex.GetType().Name} - {ex.Message}\n{info}\n\nMore information has been recorded separately, please contact us in our Discord or on GitHub.\n\nDo you want to disable all plugins the next time you start the game?",
+                        $"An internal error in a Dalamud plugin occurred.\nThe game must close.\n\nType: {ex.GetType().Name}\n{info}\n\nMore information has been recorded separately, please contact us in our Discord or on GitHub.\n\nDo you want to disable all plugins the next time you start the game?",
                         "Dalamud");
+
+                    // TODO Plugin disabling
 
                     break;
                 default:
