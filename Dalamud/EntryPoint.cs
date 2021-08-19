@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -7,6 +8,8 @@ using System.Threading.Tasks;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Logging.Internal;
+using Dalamud.Utility;
+using HarmonyLib;
 using Newtonsoft.Json;
 using Serilog;
 using Serilog.Core;
@@ -191,6 +194,13 @@ namespace Dalamud
             {
                 case Exception ex:
                     Log.Fatal(ex, "Unhandled exception on AppDomain");
+
+                    var info = ex.StackTrace?.Split('\n').Take(4).Append("[...]").Join(delimiter: "\n");
+
+                    Util.Fatal(
+                        $"An internal error in a Dalamud plugin occurred.\nThe game must close.\n\n{ex.GetType().Name} - {ex.Message}\n{info}\n\nMore information has been recorded separately, please contact us in our Discord or on GitHub.\n\nDo you want to disable all plugins the next time you start the game?",
+                        "Dalamud");
+
                     break;
                 default:
                     Log.Fatal("Unhandled SEH object on AppDomain: {Object}", args.ExceptionObject);
