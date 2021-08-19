@@ -155,14 +155,14 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam)
     std::filesystem::path fs_module_path(_module_path);
 
     std::wstring runtimeconfig_path = _wcsdup(fs_module_path.replace_filename(L"Dalamud.runtimeconfig.json").c_str());
-    std::wstring base_path = _wcsdup(fs_module_path.replace_filename(L"Dalamud.dll").c_str());
+    std::wstring module_path = _wcsdup(fs_module_path.replace_filename(L"Dalamud.dll").c_str());
 
     // =========================================================================== //
 
     void* entrypoint_vfn;
     int result = InitializeClrAndGetEntryPoint(
         runtimeconfig_path,
-        base_path,
+        module_path,
         L"Dalamud.EntryPoint, Dalamud",
         L"Initialize",
         L"Dalamud.EntryPoint+InitDelegate, Dalamud",
@@ -175,7 +175,7 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam)
     custom_component_entry_point_fn entrypoint_fn = reinterpret_cast<custom_component_entry_point_fn>(entrypoint_vfn);
 
     printf("Initializing exception handler...");
-    //AddVectoredExceptionHandler(99, VectoredHandler);
+    AddVectoredExceptionHandler(99, VectoredHandler);
     printf("Done!\n");
 
     printf("Initializing Dalamud... ");
