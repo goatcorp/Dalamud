@@ -14,7 +14,7 @@ namespace Dalamud
         /// <summary>
         /// Gets the working directory of the XIVLauncher installations.
         /// </summary>
-        public string WorkingDirectory { get; init; }
+        public string WorkingDirectory { get; set; }
 
         /// <summary>
         /// Gets the path to the configuration file.
