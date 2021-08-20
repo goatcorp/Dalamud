@@ -225,6 +225,10 @@ namespace Dalamud
                 this.SigScanner = new SigScanner(this.TargetModule, true);
                 this.HookManager = new HookManager(this);
 
+                // Initialize FFXIVClientStructs function resolver
+                FFXIVClientStructs.Resolver.Initialize();
+                Log.Information("[T1] FFXIVClientStructs initialized!");
+
                 // Initialize game subsystem
                 this.Framework = new Framework(this.SigScanner, this);
 
@@ -232,11 +236,6 @@ namespace Dalamud
 
                 this.Framework.Enable();
                 Log.Information("[T1] Framework ENABLE!");
-
-                // Initialize FFXIVClientStructs function resolver
-                FFXIVClientStructs.Resolver.Initialize();
-
-                Log.Information("[T1] FFXIVClientStructs initialized!");
             }
             catch (Exception ex)
             {
