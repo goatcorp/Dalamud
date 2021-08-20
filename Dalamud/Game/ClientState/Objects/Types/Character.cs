@@ -4,7 +4,6 @@ using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.ClientState.Resolvers;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Memory;
-using JetBrains.Annotations;
 
 namespace Dalamud.Game.ClientState.Objects.Types
 {
@@ -18,9 +17,8 @@ namespace Dalamud.Game.ClientState.Objects.Types
         /// This represents a non-static entity.
         /// </summary>
         /// <param name="address">The address of this character in memory.</param>
-        /// <param name="dalamud">Dalamud itself.</param>
-        internal Character(IntPtr address, Dalamud dalamud)
-            : base(address, dalamud)
+        internal Character(IntPtr address)
+            : base(address)
         {
         }
 
@@ -67,7 +65,7 @@ namespace Dalamud.Game.ClientState.Objects.Types
         /// <summary>
         /// Gets the ClassJob of this Chara.
         /// </summary>
-        public ExcelResolver<Lumina.Excel.GeneratedSheets.ClassJob> ClassJob => new(this.Struct->ClassJob, this.Dalamud);
+        public ExcelResolver<Lumina.Excel.GeneratedSheets.ClassJob> ClassJob => new(this.Struct->ClassJob);
 
         /// <summary>
         /// Gets the level of this Chara.

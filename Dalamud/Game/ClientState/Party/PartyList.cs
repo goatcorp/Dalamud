@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
+using Dalamud.IoC;
+using Dalamud.IoC.Internal;
 using JetBrains.Annotations;
 using Serilog;
 
@@ -11,22 +13,21 @@ namespace Dalamud.Game.ClientState.Party
     /// <summary>
     /// This collection represents the actors present in your party or alliance.
     /// </summary>
+    [PluginInterface]
+    [InterfaceVersion("1.0")]
     public sealed unsafe partial class PartyList
     {
         private const int GroupLength = 8;
         private const int AllianceLength = 20;
 
-        private readonly Dalamud dalamud;
         private readonly ClientStateAddressResolver address;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PartyList"/> class.
         /// </summary>
-        /// <param name="dalamud">The <see cref="dalamud"/> instance.</param>
         /// <param name="addressResolver">Client state address resolver.</param>
-        internal PartyList(Dalamud dalamud, ClientStateAddressResolver addressResolver)
+        internal PartyList(ClientStateAddressResolver addressResolver)
         {
-            this.dalamud = dalamud;
             this.address = addressResolver;
 
             Log.Verbose($"Group manager address 0x{this.address.GroupManager.ToInt64():X}");
@@ -114,13 +115,15 @@ namespace Dalamud.Game.ClientState.Party
         [CanBeNull]
         public PartyMember CreatePartyMemberReference(IntPtr address)
         {
-            if (this.dalamud.ClientState.LocalContentId == 0)
+            var clientState = Service<ClientState>.Get();
+
+            if (clientState.LocalContentId == 0)
                 return null;
 
             if (address == IntPtr.Zero)
                 return null;
 
-            return new PartyMember(address, this.dalamud);
+            return new PartyMember(address);
         }
 
         /// <summary>
@@ -144,13 +147,15 @@ namespace Dalamud.Game.ClientState.Party
         [CanBeNull]
         public PartyMember CreateAllianceMemberReference(IntPtr address)
         {
-            if (this.dalamud.ClientState.LocalContentId == 0)
+            var clientState = Service<ClientState>.Get();
+
+            if (clientState.LocalContentId == 0)
                 return null;
 
             if (address == IntPtr.Zero)
                 return null;
 
-            return new PartyMember(address, this.dalamud);
+            return new PartyMember(address);
         }
     }
 

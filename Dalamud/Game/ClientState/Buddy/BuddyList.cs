@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
+using Dalamud.IoC;
+using Dalamud.IoC.Internal;
 using JetBrains.Annotations;
 using Serilog;
 
@@ -12,21 +14,20 @@ namespace Dalamud.Game.ClientState.Buddy
     /// This collection represents the buddies present in your squadron or trust party.
     /// It does not include the local player.
     /// </summary>
+    [PluginInterface]
+    [InterfaceVersion("1.0")]
     public sealed partial class BuddyList
     {
         private const uint InvalidObjectID = 0xE0000000;
 
-        private readonly Dalamud dalamud;
         private readonly ClientStateAddressResolver address;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BuddyList"/> class.
         /// </summary>
-        /// <param name="dalamud">The <see cref="dalamud"/> instance.</param>
         /// <param name="addressResolver">Client state address resolver.</param>
-        internal BuddyList(Dalamud dalamud, ClientStateAddressResolver addressResolver)
+        internal BuddyList(ClientStateAddressResolver addressResolver)
         {
-            this.dalamud = dalamud;
             this.address = addressResolver;
 
             Log.Verbose($"Buddy list address 0x{this.address.BuddyList.ToInt64():X}");
@@ -151,13 +152,15 @@ namespace Dalamud.Game.ClientState.Buddy
         [CanBeNull]
         public BuddyMember CreateBuddyMemberReference(IntPtr address)
         {
-            if (this.dalamud.ClientState.LocalContentId == 0)
+            var clientState = Service<ClientState>.Get();
+
+            if (clientState.LocalContentId == 0)
                 return null;
 
             if (address == IntPtr.Zero)
                 return null;
 
-            var buddy = new BuddyMember(address, this.dalamud);
+            var buddy = new BuddyMember(address);
             if (buddy.ObjectId == InvalidObjectID)
                 return null;
 

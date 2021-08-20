@@ -6,6 +6,8 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 
+using Dalamud.Configuration.Internal;
+using Dalamud.Game.Command;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Windowing;
@@ -21,8 +23,6 @@ namespace Dalamud.Interface.Internal.Windows
     /// </summary>
     internal class ConsoleWindow : Window, IDisposable
     {
-        private readonly Dalamud dalamud;
-
         private readonly List<LogEntry> logText = new();
         private readonly object renderLock = new();
 
@@ -46,14 +46,13 @@ namespace Dalamud.Interface.Internal.Windows
         /// <summary>
         /// Initializes a new instance of the <see cref="ConsoleWindow"/> class.
         /// </summary>
-        /// <param name="dalamud">The Dalamud instance.</param>
-        public ConsoleWindow(Dalamud dalamud)
+        public ConsoleWindow()
             : base("Dalamud Console")
         {
-            this.dalamud = dalamud;
+            var configuration = Service<DalamudConfiguration>.Get();
 
-            this.autoScroll = this.dalamud.Configuration.LogAutoScroll;
-            this.openAtStartup = this.dalamud.Configuration.LogOpenAtStartup;
+            this.autoScroll = configuration.LogAutoScroll;
+            this.openAtStartup = configuration.LogOpenAtStartup;
             SerilogEventSink.Instance.OnLogLine += this.OnLogLine;
 
             this.Size = new Vector2(500, 400);
@@ -113,24 +112,27 @@ namespace Dalamud.Interface.Internal.Windows
             // Options menu
             if (ImGui.BeginPopup("Options"))
             {
+                var dalamud = Service<Dalamud>.Get();
+                var configuration = Service<DalamudConfiguration>.Get();
+
                 if (ImGui.Checkbox("Auto-scroll", ref this.autoScroll))
                 {
-                    this.dalamud.Configuration.LogAutoScroll = this.autoScroll;
-                    this.dalamud.Configuration.Save();
+                    configuration.LogAutoScroll = this.autoScroll;
+                    configuration.Save();
                 }
 
                 if (ImGui.Checkbox("Open at startup", ref this.openAtStartup))
                 {
-                    this.dalamud.Configuration.LogOpenAtStartup = this.openAtStartup;
-                    this.dalamud.Configuration.Save();
+                    configuration.LogOpenAtStartup = this.openAtStartup;
+                    configuration.Save();
                 }
 
-                var prevLevel = (int)this.dalamud.LogLevelSwitch.MinimumLevel;
+                var prevLevel = (int)dalamud.LogLevelSwitch.MinimumLevel;
                 if (ImGui.Combo("Log Level", ref prevLevel, Enum.GetValues(typeof(LogEventLevel)).Cast<LogEventLevel>().Select(x => x.ToString()).ToArray(), 6))
                 {
-                    this.dalamud.LogLevelSwitch.MinimumLevel = (LogEventLevel)prevLevel;
-                    this.dalamud.Configuration.LogLevel = (LogEventLevel)prevLevel;
-                    this.dalamud.Configuration.Save();
+                    dalamud.LogLevelSwitch.MinimumLevel = (LogEventLevel)prevLevel;
+                    configuration.LogLevel = (LogEventLevel)prevLevel;
+                    configuration.Save();
                 }
 
                 ImGui.EndPopup();
@@ -336,7 +338,7 @@ namespace Dalamud.Interface.Internal.Windows
                     return;
                 }
 
-                this.lastCmdSuccess = this.dalamud.CommandManager.ProcessCommand("/" + this.commandText);
+                this.lastCmdSuccess = Service<CommandManager>.Get().ProcessCommand("/" + this.commandText);
                 this.commandText = string.Empty;
 
                 // TODO: Force scroll to bottom
@@ -367,7 +369,7 @@ namespace Dalamud.Interface.Internal.Windows
 
                     // TODO: Improve this, add partial completion
                     // https://github.com/ocornut/imgui/blob/master/imgui_demo.cpp#L6443-L6484
-                    var candidates = this.dalamud.CommandManager.Commands.Where(x => x.Key.Contains("/" + words[0])).ToList();
+                    var candidates = Service<CommandManager>.Get().Commands.Where(x => x.Key.Contains("/" + words[0])).ToList();
                     if (candidates.Count > 0)
                     {
                         ptr.DeleteChars(0, ptr.BufTextLen);

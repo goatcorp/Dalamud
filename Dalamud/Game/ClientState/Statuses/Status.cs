@@ -1,5 +1,6 @@
 using System;
 
+using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.ClientState.Resolvers;
 using JetBrains.Annotations;
@@ -11,16 +12,12 @@ namespace Dalamud.Game.ClientState.Statuses
     /// </summary>
     public unsafe class Status
     {
-        private Dalamud dalamud;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="Status"/> class.
         /// </summary>
         /// <param name="address">Status address.</param>
-        /// <param name="dalamud">Dalamud instance.</param>
-        internal Status(IntPtr address, Dalamud dalamud)
+        internal Status(IntPtr address)
         {
-            this.dalamud = dalamud;
             this.Address = address;
         }
 
@@ -37,7 +34,7 @@ namespace Dalamud.Game.ClientState.Statuses
         /// <summary>
         /// Gets the GameData associated with this status.
         /// </summary>
-        public Lumina.Excel.GeneratedSheets.Status GameData => new ExcelResolver<Lumina.Excel.GeneratedSheets.Status>(this.Struct->StatusID, this.dalamud).GameData;
+        public Lumina.Excel.GeneratedSheets.Status GameData => new ExcelResolver<Lumina.Excel.GeneratedSheets.Status>(this.Struct->StatusID).GameData;
 
         /// <summary>
         /// Gets the parameter value of the status.
@@ -66,7 +63,7 @@ namespace Dalamud.Game.ClientState.Statuses
         /// This iterates the actor table, it should be used with care.
         /// </remarks>
         [CanBeNull]
-        public GameObject SourceActor => this.dalamud.ClientState.Objects.SearchByID(this.SourceID);
+        public GameObject SourceObject => Service<ObjectTable>.Get().SearchByID(this.SourceID);
 
         private FFXIVClientStructs.FFXIV.Client.Game.Status* Struct => (FFXIVClientStructs.FFXIV.Client.Game.Status*)this.Address;
     }

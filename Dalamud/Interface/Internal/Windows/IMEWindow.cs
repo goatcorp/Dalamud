@@ -11,16 +11,12 @@ namespace Dalamud.Interface.Internal.Windows
     /// </summary>
     internal class IMEWindow : Window
     {
-        private readonly DalamudIME dalamudIME;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="IMEWindow"/> class.
         /// </summary>
-        /// <param name="dalamud">The Dalamud instance.</param>
-        public IMEWindow(Dalamud dalamud)
+        public IMEWindow()
             : base("Dalamud IME", ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoFocusOnAppearing)
         {
-            this.dalamudIME = dalamud.IME;
             this.Size = new Vector2(100, 200);
             this.SizeCondition = ImGuiCond.FirstUseEver;
         }
@@ -28,18 +24,20 @@ namespace Dalamud.Interface.Internal.Windows
         /// <inheritdoc/>
         public override void Draw()
         {
-            if (this.dalamudIME == null || !this.dalamudIME.IsEnabled)
+            var ime = Service<DalamudIME>.GetNullable();
+
+            if (ime == null || ime.IsEnabled)
             {
-                ImGui.Text("IME unavailable.");
+                ImGui.Text("IME is unavailable.");
                 return;
             }
 
-            ImGui.Text(this.dalamudIME.ImmComp);
+            ImGui.Text(ime.ImmComp);
 
             ImGui.Separator();
-            for (var i = 0; i < this.dalamudIME.ImmCand.Count; i++)
+            for (var i = 0; i < ime.ImmCand.Count; i++)
             {
-                ImGui.Text($"{i + 1}. {this.dalamudIME.ImmCand[i]}");
+                ImGui.Text($"{i + 1}. {ime.ImmCand[i]}");
             }
         }
     }

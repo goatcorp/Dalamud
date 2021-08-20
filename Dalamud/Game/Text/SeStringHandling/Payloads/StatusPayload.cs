@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
 
-using Dalamud.Data;
 using Lumina.Excel.GeneratedSheets;
 using Newtonsoft.Json;
 
@@ -21,11 +20,9 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         /// Initializes a new instance of the <see cref="StatusPayload"/> class.
         /// Creates a new StatusPayload for the given status id.
         /// </summary>
-        /// <param name="data">DataManager instance needed to resolve game data.</param>
         /// <param name="statusId">The id of the Status for this link.</param>
-        public StatusPayload(DataManager data, uint statusId)
+        public StatusPayload(uint statusId)
         {
-            this.DataResolver = data;
             this.statusId = statusId;
         }
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 
+using Dalamud.Interface.Internal;
 using Dalamud.Logging.Internal;
 using ImGuiNET;
 
@@ -17,8 +18,6 @@ namespace Dalamud.Game.Gui.Internal
     {
         private static readonly ModuleLog Log = new("IME");
 
-        private readonly Dalamud dalamud;
-
         private IntPtr interfaceHandle;
         private IntPtr wndProcPtr;
         private IntPtr oldWndProcPtr;
@@ -27,10 +26,8 @@ namespace Dalamud.Game.Gui.Internal
         /// <summary>
         /// Initializes a new instance of the <see cref="DalamudIME"/> class.
         /// </summary>
-        /// <param name="dalamud">The Dalamud instance.</param>
-        internal DalamudIME(Dalamud dalamud)
+        internal DalamudIME()
         {
-            this.dalamud = dalamud;
         }
 
         private delegate long WndProcDelegate(IntPtr hWnd, uint msg, ulong wParam, long lParam);
@@ -68,7 +65,7 @@ namespace Dalamud.Game.Gui.Internal
             try
             {
                 this.wndProcDelegate = this.WndProcDetour;
-                this.interfaceHandle = this.dalamud.InterfaceManager.WindowHandlePtr;
+                this.interfaceHandle = Service<InterfaceManager>.Get().WindowHandlePtr;
                 this.wndProcPtr = Marshal.GetFunctionPointerForDelegate(this.wndProcDelegate);
                 this.oldWndProcPtr = SetWindowLongPtrW(this.interfaceHandle, WindowLongType.WndProc, this.wndProcPtr);
                 this.IsEnabled = true;
@@ -83,9 +80,9 @@ namespace Dalamud.Game.Gui.Internal
         private void ToggleWindow(bool visible)
         {
             if (visible)
-                this.dalamud.DalamudUi.OpenIMEWindow();
+                Service<DalamudInterface>.Get().OpenIMEWindow();
             else
-                this.dalamud.DalamudUi.CloseIMEWindow();
+                Service<DalamudInterface>.Get().CloseIMEWindow();
         }
 
         private long WndProcDetour(IntPtr hWnd, uint msg, ulong wParam, long lParam)

@@ -2,6 +2,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
+using Dalamud.IoC;
+using Dalamud.IoC.Internal;
 using JetBrains.Annotations;
 using Serilog;
 
@@ -10,20 +12,19 @@ namespace Dalamud.Game.ClientState.Fates
     /// <summary>
     /// This collection represents the currently available Fate events.
     /// </summary>
+    [PluginInterface]
+    [InterfaceVersion("1.0")]
     public sealed partial class FateTable
     {
-        private readonly Dalamud dalamud;
         private readonly ClientStateAddressResolver address;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FateTable"/> class.
         /// </summary>
-        /// <param name="dalamud">The <see cref="dalamud"/> instance.</param>
         /// <param name="addressResolver">Client state address resolver.</param>
-        internal FateTable(Dalamud dalamud, ClientStateAddressResolver addressResolver)
+        internal FateTable(ClientStateAddressResolver addressResolver)
         {
             this.address = addressResolver;
-            this.dalamud = dalamud;
 
             Log.Verbose($"Fate table address 0x{this.address.FateTablePtr.ToInt64():X}");
         }
@@ -110,13 +111,15 @@ namespace Dalamud.Game.ClientState.Fates
         [CanBeNull]
         internal unsafe Fate CreateFateReference(IntPtr offset)
         {
-            if (this.dalamud.ClientState.LocalContentId == 0)
+            var clientState = Service<ClientState>.Get();
+
+            if (clientState.LocalContentId == 0)
                 return null;
 
             if (offset == IntPtr.Zero)
                 return null;
 
-            return new Fate(offset, this.dalamud);
+            return new Fate(offset);
         }
     }
 

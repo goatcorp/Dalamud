@@ -1,4 +1,4 @@
-﻿namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
+namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
 {
     /// <summary>
     /// Test that waits N frames.
@@ -22,7 +22,7 @@
         public string Name => $"Wait {this.cFrames} frames";
 
         /// <inheritdoc/>
-        public SelfTestStepResult RunStep(Dalamud dalamud)
+        public SelfTestStepResult RunStep()
         {
             this.cFrames--;
 
@@ -30,7 +30,7 @@
         }
 
         /// <inheritdoc/>
-        public void CleanUp(Dalamud dalamud)
+        public void CleanUp()
         {
             this.cFrames = this.frames;
         }

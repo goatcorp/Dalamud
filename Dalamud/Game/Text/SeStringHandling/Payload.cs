@@ -27,9 +27,9 @@ namespace Dalamud.Game.Text.SeStringHandling
         private byte[] encodedData;
 
         /// <summary>
-        /// Gets or sets the Lumina instance to use for any necessary data lookups.
+        /// Gets the Lumina instance to use for any necessary data lookups.
         /// </summary>
-        public DataManager DataResolver { get; set; }
+        public DataManager DataResolver => Service<DataManager>.Get();
 
         /// <summary>
         /// Gets the type of this payload.
@@ -45,9 +45,8 @@ namespace Dalamud.Game.Text.SeStringHandling
         /// Decodes a binary representation of a payload into its corresponding nice object payload.
         /// </summary>
         /// <param name="reader">A reader positioned at the start of the payload, and containing at least one entire payload.</param>
-        /// <param name="data">The DataManager instance.</param>
         /// <returns>The constructed Payload-derived object that was decoded from the binary data.</returns>
-        public static Payload Decode(BinaryReader reader, DataManager data)
+        public static Payload Decode(BinaryReader reader)
         {
             var payloadStartPos = reader.BaseStream.Position;
 
@@ -63,8 +62,6 @@ namespace Dalamud.Game.Text.SeStringHandling
             {
                 payload = DecodeChunk(reader);
             }
-
-            payload.DataResolver = data;
 
             // for now, cache off the actual binary data for this payload, so we don't have to
             // regenerate it if the payload isn't modified

@@ -17,22 +17,21 @@ namespace Dalamud.Interface.Internal.Windows
     /// </summary>
     internal class PluginStatWindow : Window
     {
-        private readonly PluginManager pluginManager;
         private bool showDalamudHooks;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PluginStatWindow"/> class.
         /// </summary>
-        /// <param name="dalamud">The Dalamud instance.</param>
-        public PluginStatWindow(Dalamud dalamud)
+        public PluginStatWindow()
             : base("Plugin Statistics###DalamudPluginStatWindow")
         {
-            this.pluginManager = dalamud.PluginManager;
         }
 
         /// <inheritdoc/>
         public override void Draw()
         {
+            var pluginManager = Service<PluginManager>.Get();
+
             ImGui.BeginTabBar("Stat Tabs");
 
             if (ImGui.BeginTabItem("Draw times"))
@@ -49,7 +48,7 @@ namespace Dalamud.Interface.Internal.Windows
                     ImGui.SameLine();
                     if (ImGui.Button("Reset"))
                     {
-                        foreach (var plugin in this.pluginManager.InstalledPlugins)
+                        foreach (var plugin in pluginManager.InstalledPlugins)
                         {
                             plugin.DalamudInterface.UiBuilder.LastDrawTime = -1;
                             plugin.DalamudInterface.UiBuilder.MaxDrawTime = -1;
@@ -77,7 +76,7 @@ namespace Dalamud.Interface.Internal.Windows
 
                     ImGui.Separator();
 
-                    foreach (var plugin in this.pluginManager.InstalledPlugins.Where(plugin => plugin.State == PluginState.Loaded))
+                    foreach (var plugin in pluginManager.InstalledPlugins.Where(plugin => plugin.State == PluginState.Loaded))
                     {
                         ImGui.Text(plugin.Manifest.Name);
                         ImGui.NextColumn();

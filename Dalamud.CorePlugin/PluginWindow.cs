@@ -8,21 +8,16 @@ using ImGuiNET;
 namespace Dalamud.CorePlugin
 {
     /// <summary>
-    /// Class responsible for drawing the plugin installer.
+    /// Class responsible for drawing the main plugin window.
     /// </summary>
     internal class PluginWindow : Window, IDisposable
     {
-        [SuppressMessage("CodeQuality", "IDE0052:Remove unread private members", Justification = "This is a placeholder.")]
-        private readonly Dalamud dalamud;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="PluginWindow"/> class.
         /// </summary>
-        /// <param name="dalamud">The Dalamud instance.</param>
-        public PluginWindow(Dalamud dalamud)
+        public PluginWindow()
             : base("CorePlugin")
         {
-            this.dalamud = dalamud;
             this.IsOpen = true;
 
             this.Size = new Vector2(810, 520);

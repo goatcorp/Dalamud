@@ -1,4 +1,5 @@
-﻿using Dalamud.Utility;
+using Dalamud.Game.ClientState.Fates;
+using Dalamud.Utility;
 using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
@@ -14,16 +15,18 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
         public string Name => "Test FateTable";
 
         /// <inheritdoc/>
-        public SelfTestStepResult RunStep(Dalamud dalamud)
+        public SelfTestStepResult RunStep()
         {
+            var fateTable = Service<FateTable>.Get();
+
             ImGui.Text("Checking fate table...");
 
-            if (this.index == dalamud.ClientState.Fates.Length - 1)
+            if (this.index == fateTable.Length - 1)
             {
                 return SelfTestStepResult.Pass;
             }
 
-            var actor = dalamud.ClientState.Fates[this.index];
+            var actor = fateTable[this.index];
             this.index++;
 
             if (actor == null)
@@ -37,7 +40,7 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
         }
 
         /// <inheritdoc/>
-        public void CleanUp(Dalamud dalamud)
+        public void CleanUp()
         {
             // ignored
         }

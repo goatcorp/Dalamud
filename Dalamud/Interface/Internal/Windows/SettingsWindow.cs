@@ -7,10 +7,12 @@ using System.Threading.Tasks;
 
 using CheapLoc;
 using Dalamud.Configuration;
+using Dalamud.Configuration.Internal;
 using Dalamud.Game.Text;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Windowing;
+using Dalamud.Plugin.Internal;
 using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows
@@ -22,8 +24,6 @@ namespace Dalamud.Interface.Internal.Windows
     {
         private const float MinScale = 0.3f;
         private const float MaxScale = 2.0f;
-
-        private readonly Dalamud dalamud;
 
         private readonly string[] languages;
         private readonly string[] locLanguages;
@@ -68,41 +68,40 @@ namespace Dalamud.Interface.Internal.Windows
         /// <summary>
         /// Initializes a new instance of the <see cref="SettingsWindow"/> class.
         /// </summary>
-        /// <param name="dalamud">The Dalamud Instance.</param>
-        public SettingsWindow(Dalamud dalamud)
+        public SettingsWindow()
             : base(Loc.Localize("DalamudSettingsHeader", "Dalamud Settings") + "###XlSettings2", ImGuiWindowFlags.NoCollapse)
         {
-            this.dalamud = dalamud;
+            var configuration = Service<DalamudConfiguration>.Get();
 
             this.Size = new Vector2(740, 550);
             this.SizeCondition = ImGuiCond.FirstUseEver;
 
-            this.dalamudMessagesChatType = this.dalamud.Configuration.GeneralChatType;
+            this.dalamudMessagesChatType = configuration.GeneralChatType;
 
-            this.doCfTaskBarFlash = this.dalamud.Configuration.DutyFinderTaskbarFlash;
-            this.doCfChatMessage = this.dalamud.Configuration.DutyFinderChatMessage;
+            this.doCfTaskBarFlash = configuration.DutyFinderTaskbarFlash;
+            this.doCfChatMessage = configuration.DutyFinderChatMessage;
 
-            this.globalUiScale = this.dalamud.Configuration.GlobalUiScale;
-            this.doToggleUiHide = this.dalamud.Configuration.ToggleUiHide;
-            this.doToggleUiHideDuringCutscenes = this.dalamud.Configuration.ToggleUiHideDuringCutscenes;
-            this.doToggleUiHideDuringGpose = this.dalamud.Configuration.ToggleUiHideDuringGpose;
+            this.globalUiScale = configuration.GlobalUiScale;
+            this.doToggleUiHide = configuration.ToggleUiHide;
+            this.doToggleUiHideDuringCutscenes = configuration.ToggleUiHideDuringCutscenes;
+            this.doToggleUiHideDuringGpose = configuration.ToggleUiHideDuringGpose;
 
-            this.doDocking = this.dalamud.Configuration.IsDocking;
-            this.doViewport = !this.dalamud.Configuration.IsDisableViewport;
-            this.doGamepad = this.dalamud.Configuration.IsGamepadNavigationEnabled;
+            this.doDocking = configuration.IsDocking;
+            this.doViewport = !configuration.IsDisableViewport;
+            this.doGamepad = configuration.IsGamepadNavigationEnabled;
 
-            this.doPluginTest = this.dalamud.Configuration.DoPluginTest;
-            this.thirdRepoList = this.dalamud.Configuration.ThirdRepoList.Select(x => x.Clone()).ToList();
-            this.devPluginLocations = this.dalamud.Configuration.DevPluginLoadLocations.Select(x => x.Clone()).ToList();
+            this.doPluginTest = configuration.DoPluginTest;
+            this.thirdRepoList = configuration.ThirdRepoList.Select(x => x.Clone()).ToList();
+            this.devPluginLocations = configuration.DevPluginLoadLocations.Select(x => x.Clone()).ToList();
 
-            this.printPluginsWelcomeMsg = this.dalamud.Configuration.PrintPluginsWelcomeMsg;
-            this.autoUpdatePlugins = this.dalamud.Configuration.AutoUpdatePlugins;
-            this.doButtonsSystemMenu = this.dalamud.Configuration.DoButtonsSystemMenu;
+            this.printPluginsWelcomeMsg = configuration.PrintPluginsWelcomeMsg;
+            this.autoUpdatePlugins = configuration.AutoUpdatePlugins;
+            this.doButtonsSystemMenu = configuration.DoButtonsSystemMenu;
 
             this.languages = Localization.ApplicableLangCodes.Prepend("en").ToArray();
             try
             {
-                if (string.IsNullOrEmpty(this.dalamud.Configuration.LanguageOverride))
+                if (string.IsNullOrEmpty(configuration.LanguageOverride))
                 {
                     var currentUiLang = CultureInfo.CurrentUICulture;
 
@@ -113,7 +112,7 @@ namespace Dalamud.Interface.Internal.Windows
                 }
                 else
                 {
-                    this.langIndex = Array.IndexOf(this.languages, this.dalamud.Configuration.LanguageOverride);
+                    this.langIndex = Array.IndexOf(this.languages, configuration.LanguageOverride);
                 }
             }
             catch (Exception)
@@ -156,14 +155,19 @@ namespace Dalamud.Interface.Internal.Windows
         /// <inheritdoc/>
         public override void OnClose()
         {
-            ImGui.GetIO().FontGlobalScale = this.dalamud.Configuration.GlobalUiScale;
-            this.thirdRepoList = this.dalamud.Configuration.ThirdRepoList.Select(x => x.Clone()).ToList();
-            this.devPluginLocations = this.dalamud.Configuration.DevPluginLoadLocations.Select(x => x.Clone()).ToList();
+            var configuration = Service<DalamudConfiguration>.Get();
+
+            ImGui.GetIO().FontGlobalScale = configuration.GlobalUiScale;
+            this.thirdRepoList = configuration.ThirdRepoList.Select(x => x.Clone()).ToList();
+            this.devPluginLocations = configuration.DevPluginLoadLocations.Select(x => x.Clone()).ToList();
         }
 
         /// <inheritdoc/>
         public override void Draw()
         {
+            var configuration = Service<DalamudConfiguration>.Get();
+            var pluginManager = Service<PluginManager>.Get();
+
             var windowSize = ImGui.GetWindowSize();
             ImGui.BeginChild("scrolling", new Vector2(windowSize.X - 5 - (5 * ImGuiHelpers.GlobalScale), windowSize.Y - 35 - (35 * ImGuiHelpers.GlobalScale)), false, ImGuiWindowFlags.HorizontalScrollbar);
 
@@ -273,8 +277,8 @@ namespace Dalamud.Interface.Internal.Windows
 
                     if (ImGui.Button(Loc.Localize("DalamudSettingsClearHidden", "Clear hidden plugins")))
                     {
-                        this.dalamud.Configuration.HiddenPluginInternalName.Clear();
-                        this.dalamud.PluginManager.RefilterPluginMasters();
+                        configuration.HiddenPluginInternalName.Clear();
+                        pluginManager.RefilterPluginMasters();
                     }
 
                     ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingsClearHiddenHint", "Restore plugins you have previously hidden from the plugin installer."));
@@ -525,13 +529,13 @@ namespace Dalamud.Interface.Internal.Windows
 
                 if (this.thirdRepoListChanged)
                 {
-                    this.dalamud.PluginManager.SetPluginReposFromConfig(true);
+                    pluginManager.SetPluginReposFromConfig(true);
                     this.thirdRepoListChanged = false;
                 }
 
                 if (this.devPluginLocationsChanged)
                 {
-                    this.dalamud.PluginManager.ScanDevPlugins();
+                    pluginManager.ScanDevPlugins();
                     this.devPluginLocationsChanged = false;
                 }
             }
@@ -544,27 +548,30 @@ namespace Dalamud.Interface.Internal.Windows
 
         private void Save()
         {
-            this.dalamud.LocalizationManager.SetupWithLangCode(this.languages[this.langIndex]);
-            this.dalamud.Configuration.LanguageOverride = this.languages[this.langIndex];
+            var configuration = Service<DalamudConfiguration>.Get();
+            var localization = Service<Localization>.Get();
 
-            this.dalamud.Configuration.GeneralChatType = this.dalamudMessagesChatType;
+            localization.SetupWithLangCode(this.languages[this.langIndex]);
+            configuration.LanguageOverride = this.languages[this.langIndex];
 
-            this.dalamud.Configuration.DutyFinderTaskbarFlash = this.doCfTaskBarFlash;
-            this.dalamud.Configuration.DutyFinderChatMessage = this.doCfChatMessage;
+            configuration.GeneralChatType = this.dalamudMessagesChatType;
 
-            this.dalamud.Configuration.GlobalUiScale = this.globalUiScale;
-            this.dalamud.Configuration.ToggleUiHide = this.doToggleUiHide;
-            this.dalamud.Configuration.ToggleUiHideDuringCutscenes = this.doToggleUiHideDuringCutscenes;
-            this.dalamud.Configuration.ToggleUiHideDuringGpose = this.doToggleUiHideDuringGpose;
+            configuration.DutyFinderTaskbarFlash = this.doCfTaskBarFlash;
+            configuration.DutyFinderChatMessage = this.doCfChatMessage;
 
-            this.dalamud.Configuration.IsDocking = this.doDocking;
-            this.dalamud.Configuration.IsGamepadNavigationEnabled = this.doGamepad;
+            configuration.GlobalUiScale = this.globalUiScale;
+            configuration.ToggleUiHide = this.doToggleUiHide;
+            configuration.ToggleUiHideDuringCutscenes = this.doToggleUiHideDuringCutscenes;
+            configuration.ToggleUiHideDuringGpose = this.doToggleUiHideDuringGpose;
+
+            configuration.IsDocking = this.doDocking;
+            configuration.IsGamepadNavigationEnabled = this.doGamepad;
 
             // This is applied every frame in InterfaceManager::CheckViewportState()
-            this.dalamud.Configuration.IsDisableViewport = !this.doViewport;
+            configuration.IsDisableViewport = !this.doViewport;
 
             // Apply docking flag
-            if (!this.dalamud.Configuration.IsDocking)
+            if (!configuration.IsDocking)
             {
                 ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.DockingEnable;
             }
@@ -574,7 +581,7 @@ namespace Dalamud.Interface.Internal.Windows
             }
 
             // NOTE (Chiv) Toggle gamepad navigation via setting
-            if (!this.dalamud.Configuration.IsGamepadNavigationEnabled)
+            if (!configuration.IsGamepadNavigationEnabled)
             {
                 ImGui.GetIO().BackendFlags &= ~ImGuiBackendFlags.HasGamepad;
                 ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.NavEnableSetMousePos;
@@ -585,17 +592,17 @@ namespace Dalamud.Interface.Internal.Windows
                 ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.NavEnableSetMousePos;
             }
 
-            this.dalamud.Configuration.DoPluginTest = this.doPluginTest;
-            this.dalamud.Configuration.ThirdRepoList = this.thirdRepoList.Select(x => x.Clone()).ToList();
-            this.dalamud.Configuration.DevPluginLoadLocations = this.devPluginLocations.Select(x => x.Clone()).ToList();
+            configuration.DoPluginTest = this.doPluginTest;
+            configuration.ThirdRepoList = this.thirdRepoList.Select(x => x.Clone()).ToList();
+            configuration.DevPluginLoadLocations = this.devPluginLocations.Select(x => x.Clone()).ToList();
 
-            this.dalamud.Configuration.PrintPluginsWelcomeMsg = this.printPluginsWelcomeMsg;
-            this.dalamud.Configuration.AutoUpdatePlugins = this.autoUpdatePlugins;
-            this.dalamud.Configuration.DoButtonsSystemMenu = this.doButtonsSystemMenu;
+            configuration.PrintPluginsWelcomeMsg = this.printPluginsWelcomeMsg;
+            configuration.AutoUpdatePlugins = this.autoUpdatePlugins;
+            configuration.DoButtonsSystemMenu = this.doButtonsSystemMenu;
 
-            this.dalamud.Configuration.Save();
+            configuration.Save();
 
-            this.dalamud.PluginManager.ReloadPluginMasters();
+            Service<PluginManager>.Get().ReloadPluginMasters();
         }
     }
 }

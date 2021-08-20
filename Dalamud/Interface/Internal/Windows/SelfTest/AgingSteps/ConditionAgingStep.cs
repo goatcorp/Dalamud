@@ -1,4 +1,4 @@
-﻿using Dalamud.Game.ClientState.Conditions;
+using Dalamud.Game.ClientState.Conditions;
 using ImGuiNET;
 using Serilog;
 
@@ -13,9 +13,11 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
         public string Name => "Test Condition";
 
         /// <inheritdoc/>
-        public SelfTestStepResult RunStep(Dalamud dalamud)
+        public SelfTestStepResult RunStep()
         {
-            if (!dalamud.ClientState.Condition.Any())
+            var condition = Service<Condition>.Get();
+
+            if (!condition.Any())
             {
                 Log.Error("No condition flags present.");
                 return SelfTestStepResult.Fail;
@@ -23,11 +25,11 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
 
             ImGui.Text("Please jump...");
 
-            return dalamud.ClientState.Condition[ConditionFlag.Jumping] ? SelfTestStepResult.Pass : SelfTestStepResult.Waiting;
+            return condition[ConditionFlag.Jumping] ? SelfTestStepResult.Pass : SelfTestStepResult.Waiting;
         }
 
         /// <inheritdoc/>
-        public void CleanUp(Dalamud dalamud)
+        public void CleanUp()
         {
             // ignored
         }

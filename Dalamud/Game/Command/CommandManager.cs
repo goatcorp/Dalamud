@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Text.RegularExpressions;
 
+using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.IoC;
+using Dalamud.IoC.Internal;
 using Serilog;
 
 namespace Dalamud.Game.Command
@@ -12,9 +15,10 @@ namespace Dalamud.Game.Command
     /// <summary>
     /// This class manages registered in-game slash commands.
     /// </summary>
+    [PluginInterface]
+    [InterfaceVersion("1.0")]
     public sealed class CommandManager
     {
-        private readonly Dalamud dalamud;
         private readonly Dictionary<string, CommandInfo> commandMap = new();
         private readonly Regex commandRegexEn = new(@"^The command (?<command>.+) does not exist\.$", RegexOptions.Compiled);
         private readonly Regex commandRegexJp = new(@"^そのコマンドはありません。： (?<command>.+)$", RegexOptions.Compiled);
@@ -25,13 +29,11 @@ namespace Dalamud.Game.Command
         /// <summary>
         /// Initializes a new instance of the <see cref="CommandManager"/> class.
         /// </summary>
-        /// <param name="dalamud">The Dalamud instance.</param>
-        /// <param name="language">The client language requested.</param>
-        internal CommandManager(Dalamud dalamud, ClientLanguage language)
+        internal CommandManager()
         {
-            this.dalamud = dalamud;
+            var startInfo = Service<DalamudStartInfo>.Get();
 
-            this.currentLangCommandRegex = language switch
+            this.currentLangCommandRegex = startInfo.Language switch
             {
                 ClientLanguage.Japanese => this.commandRegexJp,
                 ClientLanguage.English => this.commandRegexEn,
@@ -40,7 +42,7 @@ namespace Dalamud.Game.Command
                 _ => this.currentLangCommandRegex,
             };
 
-            dalamud.Framework.Gui.Chat.CheckMessageHandled += this.OnCheckMessageHandled;
+            Service<ChatGui>.Get().CheckMessageHandled += this.OnCheckMessageHandled;
         }
 
         /// <summary>

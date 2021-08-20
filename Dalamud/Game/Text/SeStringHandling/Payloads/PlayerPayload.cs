@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-using Dalamud.Data;
 using Lumina.Excel.GeneratedSheets;
 using Newtonsoft.Json;
 
@@ -25,12 +24,10 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         /// Initializes a new instance of the <see cref="PlayerPayload"/> class.
         /// Create a PlayerPayload link for the specified player.
         /// </summary>
-        /// <param name="data">DataManager instance needed to resolve game data.</param>
         /// <param name="playerName">The player's displayed name.</param>
         /// <param name="serverId">The player's home server id.</param>
-        public PlayerPayload(DataManager data, string playerName, uint serverId)
+        public PlayerPayload(string playerName, uint serverId)
         {
-            this.DataResolver = data;
             this.playerName = playerName;
             this.serverId = serverId;
         }

@@ -1,3 +1,4 @@
+using Dalamud.Game.ClientState.Objects;
 using Dalamud.Utility;
 using ImGuiNET;
 
@@ -14,16 +15,18 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
         public string Name => "Test ActorTable";
 
         /// <inheritdoc/>
-        public SelfTestStepResult RunStep(Dalamud dalamud)
+        public SelfTestStepResult RunStep()
         {
+            var objectTable = Service<ObjectTable>.Get();
+
             ImGui.Text("Checking actor table...");
 
-            if (this.index == dalamud.ClientState.Objects.Length - 1)
+            if (this.index == objectTable.Length - 1)
             {
                 return SelfTestStepResult.Pass;
             }
 
-            var actor = dalamud.ClientState.Objects[this.index];
+            var actor = objectTable[this.index];
             this.index++;
 
             if (actor == null)
@@ -37,7 +40,7 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
         }
 
         /// <inheritdoc/>
-        public void CleanUp(Dalamud dalamud)
+        public void CleanUp()
         {
             // ignored
         }

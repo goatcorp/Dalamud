@@ -2,8 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
-using Dalamud.Game.Network;
 using Dalamud.Hooking;
+using Dalamud.IoC;
+using Dalamud.IoC.Internal;
 using Serilog;
 
 namespace Dalamud.Game.Network
@@ -11,6 +12,8 @@ namespace Dalamud.Game.Network
     /// <summary>
     /// This class handles interacting with game network events.
     /// </summary>
+    [PluginInterface]
+    [InterfaceVersion("1.0")]
     public sealed class GameNetwork : IDisposable
     {
         private readonly GameNetworkAddressResolver address;
@@ -23,11 +26,10 @@ namespace Dalamud.Game.Network
         /// <summary>
         /// Initializes a new instance of the <see cref="GameNetwork"/> class.
         /// </summary>
-        /// <param name="scanner">The SigScanner instance.</param>
-        public GameNetwork(SigScanner scanner)
+        internal GameNetwork()
         {
             this.address = new GameNetworkAddressResolver();
-            this.address.Setup(scanner);
+            this.address.Setup();
 
             Log.Verbose("===== G A M E N E T W O R K =====");
             Log.Verbose($"ProcessZonePacketDown address 0x{this.address.ProcessZonePacketDown.ToInt64():X}");
@@ -79,8 +81,7 @@ namespace Dalamud.Game.Network
         /// <summary>
         /// Process a chat queue.
         /// </summary>
-        /// <param name="framework">The Framework instance.</param>
-        public void UpdateQueue(Framework framework)
+        internal void UpdateQueue()
         {
             while (this.zoneInjectQueue.Count > 0)
             {

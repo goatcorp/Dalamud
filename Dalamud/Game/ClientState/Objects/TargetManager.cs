@@ -1,6 +1,8 @@
 using System;
 
 using Dalamud.Game.ClientState.Objects.Types;
+using Dalamud.IoC;
+using Dalamud.IoC.Internal;
 using JetBrains.Annotations;
 
 namespace Dalamud.Game.ClientState.Objects
@@ -8,19 +10,18 @@ namespace Dalamud.Game.ClientState.Objects
     /// <summary>
     /// Get and set various kinds of targets for the player.
     /// </summary>
-    public sealed unsafe class Targets
+    [PluginInterface]
+    [InterfaceVersion("1.0")]
+    public sealed unsafe class TargetManager
     {
-        private readonly Dalamud dalamud;
         private readonly ClientStateAddressResolver address;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Targets"/> class.
+        /// Initializes a new instance of the <see cref="TargetManager"/> class.
         /// </summary>
-        /// <param name="dalamud">The Dalamud instance.</param>
         /// <param name="addressResolver">The ClientStateAddressResolver instance.</param>
-        internal Targets(Dalamud dalamud, ClientStateAddressResolver addressResolver)
+        internal TargetManager(ClientStateAddressResolver addressResolver)
         {
-            this.dalamud = dalamud;
             this.address = addressResolver;
         }
 
@@ -35,7 +36,7 @@ namespace Dalamud.Game.ClientState.Objects
         [CanBeNull]
         public GameObject Target
         {
-            get => this.dalamud.ClientState.Objects.CreateObjectReference((IntPtr)Struct->Target);
+            get => Service<ObjectTable>.Get().CreateObjectReference((IntPtr)Struct->Target);
             set => this.SetTarget(value);
         }
 
@@ -45,7 +46,7 @@ namespace Dalamud.Game.ClientState.Objects
         [CanBeNull]
         public GameObject MouseOverTarget
         {
-            get => this.dalamud.ClientState.Objects.CreateObjectReference((IntPtr)Struct->MouseOverTarget);
+            get => Service<ObjectTable>.Get().CreateObjectReference((IntPtr)Struct->MouseOverTarget);
             set => this.SetMouseOverTarget(value);
         }
 
@@ -55,7 +56,7 @@ namespace Dalamud.Game.ClientState.Objects
         [CanBeNull]
         public GameObject FocusTarget
         {
-            get => this.dalamud.ClientState.Objects.CreateObjectReference((IntPtr)Struct->FocusTarget);
+            get => Service<ObjectTable>.Get().CreateObjectReference((IntPtr)Struct->FocusTarget);
             set => this.SetFocusTarget(value);
         }
 
@@ -65,7 +66,7 @@ namespace Dalamud.Game.ClientState.Objects
         [CanBeNull]
         public GameObject PreviousTarget
         {
-            get => this.dalamud.ClientState.Objects.CreateObjectReference((IntPtr)Struct->PreviousTarget);
+            get => Service<ObjectTable>.Get().CreateObjectReference((IntPtr)Struct->PreviousTarget);
             set => this.SetPreviousTarget(value);
         }
 
@@ -75,7 +76,7 @@ namespace Dalamud.Game.ClientState.Objects
         [CanBeNull]
         public GameObject SoftTarget
         {
-            get => this.dalamud.ClientState.Objects.CreateObjectReference((IntPtr)Struct->SoftTarget);
+            get => Service<ObjectTable>.Get().CreateObjectReference((IntPtr)Struct->SoftTarget);
             set => this.SetSoftTarget(value);
         }
 

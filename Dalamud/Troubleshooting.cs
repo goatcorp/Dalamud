@@ -4,6 +4,9 @@ using System.Linq;
 using System.Text;
 
 using Dalamud.Configuration;
+using Dalamud.Configuration.Internal;
+using Dalamud.Interface.Internal;
+using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
 using Newtonsoft.Json;
@@ -48,19 +51,24 @@ namespace Dalamud
         /// <param name="isInterfaceLoaded">Whether or not the interface was loaded.</param>
         internal static void LogTroubleshooting(Dalamud dalamud, bool isInterfaceLoaded)
         {
+            var interfaceManager = Service<InterfaceManager>.Get();
+            var startInfo = Service<DalamudStartInfo>.Get();
+            var pluginManager = Service<PluginManager>.Get();
+            var configuration = Service<DalamudConfiguration>.Get();
+
             try
             {
                 var payload = new TroubleshootingPayload
                 {
-                    LoadedPlugins = dalamud.PluginManager.InstalledPlugins.Select(x => x.Manifest).ToArray(),
+                    LoadedPlugins = pluginManager.InstalledPlugins.Select(x => x.Manifest).ToArray(),
                     DalamudVersion = Util.AssemblyVersion,
                     DalamudGitHash = Util.GetGitHash(),
-                    GameVersion = dalamud.StartInfo.GameVersion.ToString(),
-                    Language = dalamud.StartInfo.Language.ToString(),
-                    DoDalamudTest = dalamud.Configuration.DoDalamudTest,
-                    DoPluginTest = dalamud.Configuration.DoPluginTest,
-                    InterfaceLoaded = isInterfaceLoaded,
-                    ThirdRepo = dalamud.Configuration.ThirdRepoList,
+                    GameVersion = startInfo.GameVersion.ToString(),
+                    Language = startInfo.Language.ToString(),
+                    DoDalamudTest = configuration.DoDalamudTest,
+                    DoPluginTest = configuration.DoPluginTest,
+                    InterfaceLoaded = interfaceManager.IsReady,
+                    ThirdRepo = configuration.ThirdRepoList,
                 };
 
                 var encodedPayload = Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(payload)));

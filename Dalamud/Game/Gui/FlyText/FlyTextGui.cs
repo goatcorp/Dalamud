@@ -4,8 +4,9 @@ using System.Threading.Tasks;
 
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Hooking;
+using Dalamud.IoC;
+using Dalamud.IoC.Internal;
 using Dalamud.Memory;
-using FFXIVClientStructs.FFXIV.Client.UI;
 using Serilog;
 
 namespace Dalamud.Game.Gui.FlyText
@@ -13,6 +14,8 @@ namespace Dalamud.Game.Gui.FlyText
     /// <summary>
     /// This class facilitates interacting with and creating native in-game "fly text".
     /// </summary>
+    [PluginInterface]
+    [InterfaceVersion("1.0")]
     public sealed class FlyTextGui : IDisposable
     {
         /// <summary>
@@ -28,14 +31,10 @@ namespace Dalamud.Game.Gui.FlyText
         /// <summary>
         /// Initializes a new instance of the <see cref="FlyTextGui"/> class.
         /// </summary>
-        /// <param name="scanner">The SigScanner instance.</param>
-        /// <param name="dalamud">The Dalamud instance.</param>
-        internal FlyTextGui(SigScanner scanner, Dalamud dalamud)
+        internal FlyTextGui()
         {
-            this.Dalamud = dalamud;
-
             this.Address = new FlyTextGuiAddressResolver();
-            this.Address.Setup(scanner);
+            this.Address.Setup();
 
             this.addFlyTextNative = Marshal.GetDelegateForFunctionPointer<AddFlyTextDelegate>(this.Address.AddFlyText);
             this.createFlyTextHook = new Hook<CreateFlyTextDelegate>(this.Address.CreateFlyText, this.CreateFlyTextDetour);
@@ -132,8 +131,9 @@ namespace Dalamud.Game.Gui.FlyText
             var strOffset = 28u;
 
             // Get the UI module and flytext addon pointers
-            var ui = (UIModule*)this.Dalamud.Framework.Gui.GetUIModule();
-            var flytext = this.Dalamud.Framework.Gui.GetAddonByName("_FlyText", 1);
+            var gameGui = Service<GameGui>.Get();
+            var ui = (FFXIVClientStructs.FFXIV.Client.UI.UIModule*)gameGui.GetUIModule();
+            var flytext = gameGui.GetAddonByName("_FlyText", 1);
 
             if (ui == null || flytext == IntPtr.Zero)
                 return;

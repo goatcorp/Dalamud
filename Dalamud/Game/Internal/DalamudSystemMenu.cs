@@ -3,7 +3,9 @@ using System.Runtime.InteropServices;
 using System.Text;
 
 using CheapLoc;
+using Dalamud.Configuration.Internal;
 using Dalamud.Hooking;
+using Dalamud.Interface.Internal;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
 using ValueType = FFXIVClientStructs.FFXIV.Component.GUI.ValueType;
@@ -15,32 +17,31 @@ namespace Dalamud.Game.Internal
     /// </summary>
     internal sealed unsafe partial class DalamudSystemMenu
     {
-        private readonly Dalamud dalamud;
         private readonly AtkValueChangeType atkValueChangeType;
         private readonly AtkValueSetString atkValueSetString;
         private readonly Hook<AgentHudOpenSystemMenuPrototype> hookAgentHudOpenSystemMenu;
+
         // TODO: Make this into events in Framework.Gui
         private readonly Hook<UiModuleRequestMainCommand> hookUiModuleRequestMainCommand;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DalamudSystemMenu"/> class.
         /// </summary>
-        /// <param name="dalamud">The dalamud instance to act on.</param>
-        public DalamudSystemMenu(Dalamud dalamud)
+        public DalamudSystemMenu()
         {
-            this.dalamud = dalamud;
+            var sigScanner = Service<SigScanner>.Get();
 
-            var openSystemMenuAddress = this.dalamud.SigScanner.ScanText("E8 ?? ?? ?? ?? 32 C0 4C 8B AC 24 ?? ?? ?? ?? 48 8B 8D ?? ?? ?? ??");
+            var openSystemMenuAddress = sigScanner.ScanText("E8 ?? ?? ?? ?? 32 C0 4C 8B AC 24 ?? ?? ?? ?? 48 8B 8D ?? ?? ?? ??");
 
             this.hookAgentHudOpenSystemMenu = new Hook<AgentHudOpenSystemMenuPrototype>(openSystemMenuAddress, this.AgentHudOpenSystemMenuDetour);
 
-            var atkValueChangeTypeAddress = this.dalamud.SigScanner.ScanText("E8 ?? ?? ?? ?? 45 84 F6 48 8D 4C 24 ??");
+            var atkValueChangeTypeAddress = sigScanner.ScanText("E8 ?? ?? ?? ?? 45 84 F6 48 8D 4C 24 ??");
             this.atkValueChangeType = Marshal.GetDelegateForFunctionPointer<AtkValueChangeType>(atkValueChangeTypeAddress);
 
-            var atkValueSetStringAddress = this.dalamud.SigScanner.ScanText("E8 ?? ?? ?? ?? 41 03 ED");
+            var atkValueSetStringAddress = sigScanner.ScanText("E8 ?? ?? ?? ?? 41 03 ED");
             this.atkValueSetString = Marshal.GetDelegateForFunctionPointer<AtkValueSetString>(atkValueSetStringAddress);
 
-            var uiModuleRequestMainCommandAddress = this.dalamud.SigScanner.ScanText("40 53 56 48 81 EC ?? ?? ?? ?? 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 84 24 ?? ?? ?? ?? 48 8B 01 8B DA 48 8B F1 FF 90 ?? ?? ?? ??");
+            var uiModuleRequestMainCommandAddress = sigScanner.ScanText("40 53 56 48 81 EC ?? ?? ?? ?? 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 84 24 ?? ?? ?? ?? 48 8B 01 8B DA 48 8B F1 FF 90 ?? ?? ?? ??");
             this.hookUiModuleRequestMainCommand = new Hook<UiModuleRequestMainCommand>(uiModuleRequestMainCommandAddress, this.UiModuleRequestMainCommandDetour);
         }
 
@@ -63,7 +64,9 @@ namespace Dalamud.Game.Internal
 
         private void AgentHudOpenSystemMenuDetour(void* thisPtr, AtkValue* atkValueArgs, uint menuSize)
         {
-            if (!this.dalamud.Configuration.DoButtonsSystemMenu)
+            var configuration = Service<DalamudConfiguration>.Get();
+
+            if (!configuration.DoButtonsSystemMenu)
             {
                 this.hookAgentHudOpenSystemMenu.Original(thisPtr, atkValueArgs, menuSize);
                 return;
@@ -134,13 +137,15 @@ namespace Dalamud.Game.Internal
 
         private void UiModuleRequestMainCommandDetour(void* thisPtr, int commandId)
         {
+            var dalamudInterface = Service<DalamudInterface>.Get();
+
             switch (commandId)
             {
                 case 69420:
-                    this.dalamud.DalamudUi.TogglePluginInstallerWindow();
+                    dalamudInterface.TogglePluginInstallerWindow();
                     break;
                 case 69421:
-                    this.dalamud.DalamudUi.ToggleSettingsWindow();
+                    dalamudInterface.ToggleSettingsWindow();
                     break;
                 default:
                     this.hookUiModuleRequestMainCommand.Original(thisPtr, commandId);

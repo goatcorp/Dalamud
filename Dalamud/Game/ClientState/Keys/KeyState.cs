@@ -1,6 +1,8 @@
 using System;
 using System.Runtime.InteropServices;
 
+using Dalamud.IoC;
+using Dalamud.IoC.Internal;
 using Serilog;
 
 namespace Dalamud.Game.ClientState.Keys
@@ -8,6 +10,8 @@ namespace Dalamud.Game.ClientState.Keys
     /// <summary>
     /// Wrapper around the game keystate buffer, which contains the pressed state for all keyboard keys, indexed by virtual vkCode.
     /// </summary>
+    [PluginInterface]
+    [InterfaceVersion("1.0")]
     public class KeyState
     {
         // The array is accessed in a way that this limit doesn't appear to exist
@@ -20,9 +24,10 @@ namespace Dalamud.Game.ClientState.Keys
         /// Initializes a new instance of the <see cref="KeyState"/> class.
         /// </summary>
         /// <param name="addressResolver">The ClientStateAddressResolver instance.</param>
-        /// <param name="moduleBaseAddress">The base address of the main process module.</param>
-        public KeyState(ClientStateAddressResolver addressResolver, IntPtr moduleBaseAddress)
+        public KeyState(ClientStateAddressResolver addressResolver)
         {
+            var moduleBaseAddress = Service<SigScanner>.Get().Module.BaseAddress;
+
             this.bufferBase = moduleBaseAddress + Marshal.ReadInt32(addressResolver.KeyboardState);
 
             Log.Verbose($"Keyboard state buffer address 0x{this.bufferBase.ToInt64():X}");

@@ -1,4 +1,4 @@
-﻿using Dalamud.Game.ClientState.GamePad;
+using Dalamud.Game.ClientState.GamePad;
 using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
@@ -12,13 +12,15 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
         public string Name => "Test GamePadState";
 
         /// <inheritdoc/>
-        public SelfTestStepResult RunStep(Dalamud dalamud)
+        public SelfTestStepResult RunStep()
         {
+            var gamepadState = Service<GamepadState>.Get();
+
             ImGui.Text("Hold down North, East, L1");
 
-            if (dalamud.ClientState.GamepadState.Pressed(GamepadButtons.North) == 1
-                && dalamud.ClientState.GamepadState.Pressed(GamepadButtons.East) == 1
-                && dalamud.ClientState.GamepadState.Pressed(GamepadButtons.L1) == 1)
+            if (gamepadState.Pressed(GamepadButtons.North) == 1
+                && gamepadState.Pressed(GamepadButtons.East) == 1
+                && gamepadState.Pressed(GamepadButtons.L1) == 1)
             {
                 return SelfTestStepResult.Pass;
             }
@@ -27,7 +29,7 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
         }
 
         /// <inheritdoc/>
-        public void CleanUp(Dalamud dalamud)
+        public void CleanUp()
         {
             // ignored
         }

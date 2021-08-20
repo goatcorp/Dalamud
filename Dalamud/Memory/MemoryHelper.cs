@@ -18,8 +18,6 @@ namespace Dalamud.Memory
     /// </summary>
     public static unsafe class MemoryHelper
     {
-        private static SeStringManager seStringManager;
-
         #region Read
 
         /// <summary>
@@ -232,7 +230,7 @@ namespace Dalamud.Memory
         public static SeString ReadSeStringNullTerminated(IntPtr memoryAddress)
         {
             var buffer = ReadRawNullTerminated(memoryAddress);
-            return seStringManager.Parse(buffer);
+            return Service<SeStringManager>.Get().Parse(buffer);
         }
 
         /// <summary>
@@ -248,13 +246,13 @@ namespace Dalamud.Memory
             var eos = Array.IndexOf(buffer, (byte)0);
             if (eos < 0)
             {
-                return seStringManager.Parse(buffer);
+                return Service<SeStringManager>.Get().Parse(buffer);
             }
             else
             {
                 var newBuffer = new byte[eos];
                 Buffer.BlockCopy(buffer, 0, newBuffer, 0, eos);
-                return seStringManager.Parse(newBuffer);
+                return Service<SeStringManager>.Get().Parse(newBuffer);
             }
         }
 
@@ -655,14 +653,5 @@ namespace Dalamud.Memory
             => SizeOf<T>(marshal) * elementCount;
 
         #endregion
-
-        /// <summary>
-        /// Initialize with static access to Dalamud.
-        /// </summary>
-        /// <param name="dalamud">The Dalamud instance.</param>
-        internal static void Initialize(Dalamud dalamud)
-        {
-            seStringManager = dalamud.SeStringManager;
-        }
     }
 }

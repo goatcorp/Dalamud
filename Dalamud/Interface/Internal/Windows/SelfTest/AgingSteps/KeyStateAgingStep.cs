@@ -1,4 +1,4 @@
-﻿using Dalamud.Game.ClientState.Keys;
+using Dalamud.Game.ClientState.Keys;
 using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
@@ -12,15 +12,17 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
         public string Name => "Test KeyState";
 
         /// <inheritdoc/>
-        public SelfTestStepResult RunStep(Dalamud dalamud)
+        public SelfTestStepResult RunStep()
         {
+            var keyState = Service<KeyState>.Get();
+
             ImGui.Text("Hold down D,A,L,M,U");
 
-            if (dalamud.ClientState.KeyState[VirtualKey.D]
-                && dalamud.ClientState.KeyState[VirtualKey.A]
-                && dalamud.ClientState.KeyState[VirtualKey.L]
-                && dalamud.ClientState.KeyState[VirtualKey.M]
-                && dalamud.ClientState.KeyState[VirtualKey.U])
+            if (keyState[VirtualKey.D]
+                && keyState[VirtualKey.A]
+                && keyState[VirtualKey.L]
+                && keyState[VirtualKey.M]
+                && keyState[VirtualKey.U])
             {
                 return SelfTestStepResult.Pass;
             }
@@ -29,7 +31,7 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
         }
 
         /// <inheritdoc/>
-        public void CleanUp(Dalamud dalamud)
+        public void CleanUp()
         {
             // ignored
         }

@@ -6,9 +6,12 @@ using System.Runtime.InteropServices;
 using System.Threading;
 
 using Dalamud.Game.Gui;
-using Dalamud.Game.Libc;
+using Dalamud.Game.Gui.Toast;
 using Dalamud.Game.Network;
 using Dalamud.Hooking;
+using Dalamud.Interface.Internal;
+using Dalamud.IoC;
+using Dalamud.IoC.Internal;
 using Serilog;
 
 namespace Dalamud.Game
@@ -16,11 +19,12 @@ namespace Dalamud.Game
     /// <summary>
     /// This class represents the Framework of the native game client and grants access to various subsystems.
     /// </summary>
+    [PluginInterface]
+    [InterfaceVersion("1.0")]
     public sealed class Framework : IDisposable
     {
         private static Stopwatch statsStopwatch = new();
 
-        private readonly Dalamud dalamud;
         private Hook<OnUpdateDetour> updateHook;
         private Hook<OnDestroyDetour> destroyHook;
         private Hook<OnRealDestroyDelegate> realDestroyHook;
@@ -28,13 +32,10 @@ namespace Dalamud.Game
         /// <summary>
         /// Initializes a new instance of the <see cref="Framework"/> class.
         /// </summary>
-        /// <param name="scanner">The SigScanner instance.</param>
-        /// <param name="dalamud">The Dalamud instance.</param>
-        internal Framework(SigScanner scanner, Dalamud dalamud)
+        internal Framework()
         {
-            this.dalamud = dalamud;
             this.Address = new FrameworkAddressResolver();
-            this.Address.Setup(scanner);
+            this.Address.Setup();
 
             Log.Verbose($"Framework address 0x{this.Address.BaseAddress.ToInt64():X}");
             if (this.Address.BaseAddress == IntPtr.Zero)
@@ -44,13 +45,6 @@ namespace Dalamud.Game
 
             // Hook virtual functions
             this.HookVTable();
-
-            // Initialize subsystems
-            this.Libc = new LibcFunction(scanner);
-
-            this.Gui = new GameGui(this.Address.GuiManager, scanner, dalamud);
-
-            this.Network = new GameNetwork(scanner);
         }
 
         /// <summary>
@@ -92,27 +86,6 @@ namespace Dalamud.Game
         /// </summary>
         public static Dictionary<string, List<double>> StatsHistory { get; } = new();
 
-        #region Subsystems
-
-        /// <summary>
-        /// Gets the GUI subsystem, used to access e.g. chat.
-        /// </summary>
-        public GameGui Gui { get; private set; }
-
-        /// <summary>
-        /// Gets the Network subsystem, used to access network data.
-        /// </summary>
-        public GameNetwork Network { get; private set; }
-
-        // public ResourceManager Resource { get; private set; }
-
-        /// <summary>
-        /// Gets the Libc subsystem, used to facilitate interop with std::strings.
-        /// </summary>
-        public LibcFunction Libc { get; private set; }
-
-        #endregion
-
         /// <summary>
         /// Gets a raw pointer to the instance of Client::Framework.
         /// </summary>
@@ -128,8 +101,8 @@ namespace Dalamud.Game
         /// </summary>
         public void Enable()
         {
-            this.Gui.Enable();
-            this.Network.Enable();
+            Service<GameGui>.Get().Enable();
+            Service<GameNetwork>.Get().Enable();
 
             this.updateHook.Enable();
             this.destroyHook.Enable();
@@ -141,17 +114,17 @@ namespace Dalamud.Game
         /// </summary>
         public void Dispose()
         {
-            this.Gui.Dispose();
-            this.Network.Dispose();
+            Service<GameGui>.GetNullable()?.Dispose();
+            Service<GameNetwork>.GetNullable()?.Dispose();
 
-            this.updateHook.Disable();
-            this.destroyHook.Disable();
-            this.realDestroyHook.Disable();
+            this.updateHook?.Disable();
+            this.destroyHook?.Disable();
+            this.realDestroyHook?.Disable();
             Thread.Sleep(500);
 
-            this.updateHook.Dispose();
-            this.destroyHook.Dispose();
-            this.realDestroyHook.Dispose();
+            this.updateHook?.Dispose();
+            this.destroyHook?.Dispose();
+            this.realDestroyHook?.Dispose();
         }
 
         private void HookVTable()
@@ -176,18 +149,20 @@ namespace Dalamud.Game
 
         private bool HandleFrameworkUpdate(IntPtr framework)
         {
-            // If this is the first time we are running this loop, we need to init Dalamud subsystems synchronously
-            if (!this.dalamud.IsReady)
-                this.dalamud.LoadTier2();
+            var dalamud = Service<Dalamud>.Get();
 
-            if (!this.dalamud.IsLoadedPluginSystem && this.dalamud.InterfaceManager.IsReady)
-                this.dalamud.LoadTier3();
+            // If this is the first time we are running this loop, we need to init Dalamud subsystems synchronously
+            if (!dalamud.IsReady)
+                dalamud.LoadTier2();
+
+            if (!dalamud.IsLoadedPluginSystem && Service<InterfaceManager>.GetNullable()?.IsReady == true)
+                dalamud.LoadTier3();
 
             try
             {
-                this.Gui.Chat.UpdateQueue(this);
-                this.Gui.Toast.UpdateQueue();
-                this.Network.UpdateQueue(this);
+                Service<ChatGui>.Get().UpdateQueue();
+                Service<ToastGui>.Get().UpdateQueue();
+                Service<GameNetwork>.Get().UpdateQueue();
             }
             catch (Exception ex)
             {
@@ -251,7 +226,10 @@ namespace Dalamud.Game
             if (this.DispatchUpdateEvents)
             {
                 Log.Information("Framework::Destroy!");
-                this.dalamud.DisposePlugins();
+
+                var dalamud = Service<Dalamud>.Get();
+                dalamud.DisposePlugins();
+
                 Log.Information("Framework::Destroy OK!");
             }
 
@@ -267,9 +245,9 @@ namespace Dalamud.Game
             // Store the pointer to the original trampoline location
             var originalPtr = Marshal.GetFunctionPointerForDelegate(this.destroyHook.Original);
 
-            this.dalamud.Unload();
-
-            this.dalamud.WaitForUnloadFinish();
+            var dalamud = Service<Dalamud>.Get();
+            dalamud.Unload();
+            dalamud.WaitForUnloadFinish();
 
             Log.Information("Framework::Free OK!");
 

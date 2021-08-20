@@ -1,7 +1,6 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -9,8 +8,6 @@ using System.Threading.Tasks;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Logging.Internal;
-using Dalamud.Utility;
-using HarmonyLib;
 using Newtonsoft.Json;
 using PInvoke;
 using Serilog;

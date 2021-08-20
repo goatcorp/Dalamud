@@ -11,12 +11,14 @@ using Dalamud.Data;
 using Dalamud.Game;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.Command;
-using Dalamud.Game.Internal;
+using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.Sanitizer;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface;
+using Dalamud.Interface.Internal;
+using Dalamud.Plugin.Internal;
 
 namespace Dalamud.Plugin
 {
@@ -25,7 +27,6 @@ namespace Dalamud.Plugin
     /// </summary>
     public sealed class DalamudPluginInterface : IDisposable
     {
-        private readonly Dalamud dalamud;
         private readonly string pluginName;
         private readonly PluginConfigurations configs;
 
@@ -33,29 +34,30 @@ namespace Dalamud.Plugin
         /// Initializes a new instance of the <see cref="DalamudPluginInterface"/> class.
         /// Set up the interface and populate all fields needed.
         /// </summary>
-        /// <param name="dalamud">The dalamud instance to expose.</param>
         /// <param name="pluginName">The internal name of the plugin.</param>
         /// <param name="reason">The reason the plugin was loaded.</param>
-        internal DalamudPluginInterface(Dalamud dalamud, string pluginName, PluginLoadReason reason)
+        internal DalamudPluginInterface(string pluginName, PluginLoadReason reason)
         {
-            this.CommandManager = dalamud.CommandManager;
-            this.Framework = dalamud.Framework;
-            this.ClientState = dalamud.ClientState;
-            this.UiBuilder = new UiBuilder(dalamud, pluginName);
-            this.TargetModuleScanner = dalamud.SigScanner;
-            this.Data = dalamud.Data;
-            this.SeStringManager = dalamud.SeStringManager;
+            var configuration = Service<DalamudConfiguration>.Get();
+            var localization = Service<Localization>.Get();
 
-            this.dalamud = dalamud;
+            this.CommandManager = Service<CommandManager>.Get();
+            this.Framework = Service<Framework>.Get();
+            this.ClientState = Service<ClientState>.Get();
+            this.UiBuilder = new UiBuilder(pluginName);
+            this.TargetModuleScanner = Service<SigScanner>.Get();
+            this.Data = Service<DataManager>.Get();
+            this.SeStringManager = Service<SeStringManager>.Get();
+
             this.pluginName = pluginName;
-            this.configs = dalamud.PluginManager.PluginConfigs;
+            this.configs = Service<PluginManager>.Get().PluginConfigs;
             this.Reason = reason;
 
-            this.GeneralChatType = this.dalamud.Configuration.GeneralChatType;
+            this.GeneralChatType = configuration.GeneralChatType;
             this.Sanitizer = new Sanitizer(this.Data.Language);
-            if (this.dalamud.Configuration.LanguageOverride != null)
+            if (configuration.LanguageOverride != null)
             {
-                this.UiLanguage = this.dalamud.Configuration.LanguageOverride;
+                this.UiLanguage = configuration.LanguageOverride;
             }
             else
             {
@@ -66,8 +68,8 @@ namespace Dalamud.Plugin
                     this.UiLanguage = "en";
             }
 
-            dalamud.LocalizationManager.OnLocalizationChanged += this.OnLocalizationChanged;
-            dalamud.Configuration.OnDalamudConfigurationSaved += this.OnDalamudConfigurationSaved;
+            localization.OnLocalizationChanged += this.OnLocalizationChanged;
+            configuration.OnDalamudConfigurationSaved += this.OnDalamudConfigurationSaved;
         }
 
         /// <summary>
@@ -89,7 +91,7 @@ namespace Dalamud.Plugin
         /// <summary>
         /// Gets the directory Dalamud assets are stored in.
         /// </summary>
-        public DirectoryInfo DalamudAssetDirectory => this.dalamud.AssetDirectory;
+        public DirectoryInfo DalamudAssetDirectory => Service<Dalamud>.Get().AssetDirectory;
 
         /// <summary>
         /// Gets the directory your plugin configurations are stored in.
@@ -142,7 +144,7 @@ namespace Dalamud.Plugin
 #if DEBUG
         public bool IsDebugging => true;
 #else
-        public bool IsDebugging => this.dalamud.DalamudUi.IsDevMenuOpen;
+        public bool IsDebugging => Service<DalamudInterface>.Get().IsDevMenuOpen;
 #endif
 
         /// <summary>
@@ -230,7 +232,7 @@ namespace Dalamud.Plugin
         /// <returns>Returns an SeString payload for the link.</returns>
         public DalamudLinkPayload AddChatLinkHandler(uint commandId, Action<uint, SeString> commandAction)
         {
-            return this.Framework.Gui.Chat.AddChatLinkHandler(this.pluginName, commandId, commandAction);
+            return Service<ChatGui>.Get().AddChatLinkHandler(this.pluginName, commandId, commandAction);
         }
 
         /// <summary>
@@ -239,7 +241,7 @@ namespace Dalamud.Plugin
         /// <param name="commandId">The ID of the command.</param>
         public void RemoveChatLinkHandler(uint commandId)
         {
-            this.Framework.Gui.Chat.RemoveChatLinkHandler(this.pluginName, commandId);
+            Service<ChatGui>.Get().RemoveChatLinkHandler(this.pluginName, commandId);
         }
 
         /// <summary>
@@ -247,7 +249,7 @@ namespace Dalamud.Plugin
         /// </summary>
         public void RemoveChatLinkHandler()
         {
-            this.Framework.Gui.Chat.RemoveChatLinkHandler(this.pluginName);
+            Service<ChatGui>.Get().RemoveChatLinkHandler(this.pluginName);
         }
         #endregion
 
@@ -274,10 +276,12 @@ namespace Dalamud.Plugin
         [Obsolete("The current IPC mechanism is obsolete and scheduled to be replaced after API level 3.")]
         public void Subscribe(string pluginName, Action<ExpandoObject> action)
         {
-            if (this.dalamud.PluginManager.IpcSubscriptions.Any(x => x.SourcePluginName == this.pluginName && x.SubPluginName == pluginName))
+            var pluginManager = Service<PluginManager>.Get();
+
+            if (pluginManager.IpcSubscriptions.Any(x => x.SourcePluginName == this.pluginName && x.SubPluginName == pluginName))
                 throw new InvalidOperationException("Can't add multiple subscriptions for the same plugin.");
 
-            this.dalamud.PluginManager.IpcSubscriptions.Add(new(this.pluginName, pluginName, action));
+            pluginManager.IpcSubscriptions.Add(new(this.pluginName, pluginName, action));
         }
 
         /// <summary>
@@ -299,11 +303,13 @@ namespace Dalamud.Plugin
         [Obsolete("The current IPC mechanism is obsolete and scheduled to be replaced after API level 3.")]
         public void Unsubscribe(string pluginName)
         {
-            var sub = this.dalamud.PluginManager.IpcSubscriptions.FirstOrDefault(x => x.SourcePluginName == this.pluginName && x.SubPluginName == pluginName);
+            var pluginManager = Service<PluginManager>.Get();
+
+            var sub = pluginManager.IpcSubscriptions.FirstOrDefault(x => x.SourcePluginName == this.pluginName && x.SubPluginName == pluginName);
             if (sub.SubAction == null)
                 throw new InvalidOperationException("Wasn't subscribed to this plugin.");
 
-            this.dalamud.PluginManager.IpcSubscriptions.Remove(sub);
+            pluginManager.IpcSubscriptions.Remove(sub);
         }
 
         /// <summary>
@@ -313,7 +319,9 @@ namespace Dalamud.Plugin
         [Obsolete("The current IPC mechanism is obsolete and scheduled to be replaced after API level 3.")]
         public void SendMessage(ExpandoObject message)
         {
-            var subs = this.dalamud.PluginManager.IpcSubscriptions.Where(x => x.SubPluginName == this.pluginName);
+            var pluginManager = Service<PluginManager>.Get();
+
+            var subs = pluginManager.IpcSubscriptions.Where(x => x.SubPluginName == this.pluginName);
             foreach (var sub in subs.Select(x => x.SubAction))
             {
                 sub.Invoke(message);
@@ -329,7 +337,9 @@ namespace Dalamud.Plugin
         [Obsolete("The current IPC mechanism is obsolete and scheduled to be replaced after API level 3.")]
         public bool SendMessage(string pluginName, ExpandoObject message)
         {
-            var plugin = this.dalamud.PluginManager.InstalledPlugins.FirstOrDefault(x => x.Manifest.InternalName == pluginName);
+            var pluginManager = Service<PluginManager>.Get();
+
+            var plugin = pluginManager.InstalledPlugins.FirstOrDefault(x => x.Manifest.InternalName == pluginName);
 
             if (plugin == default)
                 return false;
@@ -350,9 +360,9 @@ namespace Dalamud.Plugin
         public void Dispose()
         {
             this.UiBuilder.Dispose();
-            this.Framework.Gui.Chat.RemoveChatLinkHandler(this.pluginName);
-            this.dalamud.LocalizationManager.OnLocalizationChanged -= this.OnLocalizationChanged;
-            this.dalamud.Configuration.OnDalamudConfigurationSaved -= this.OnDalamudConfigurationSaved;
+            Service<ChatGui>.Get().RemoveChatLinkHandler(this.pluginName);
+            Service<Localization>.Get().OnLocalizationChanged -= this.OnLocalizationChanged;
+            Service<DalamudConfiguration>.Get().OnDalamudConfigurationSaved -= this.OnDalamudConfigurationSaved;
         }
 
         private void OnLocalizationChanged(string langCode)

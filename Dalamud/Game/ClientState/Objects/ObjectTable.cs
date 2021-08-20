@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
+using Dalamud.IoC;
+using Dalamud.IoC.Internal;
 using JetBrains.Annotations;
 using Serilog;
 
@@ -13,21 +15,20 @@ namespace Dalamud.Game.ClientState.Objects
     /// <summary>
     /// This collection represents the currently spawned FFXIV game objects.
     /// </summary>
+    [PluginInterface]
+    [InterfaceVersion("1.0")]
     public sealed partial class ObjectTable
     {
         private const int ObjectTableLength = 424;
 
-        private readonly Dalamud dalamud;
         private readonly ClientStateAddressResolver address;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ObjectTable"/> class.
         /// </summary>
-        /// <param name="dalamud">The <see cref="dalamud"/> instance.</param>
         /// <param name="addressResolver">Client state address resolver.</param>
-        internal ObjectTable(Dalamud dalamud, ClientStateAddressResolver addressResolver)
+        internal ObjectTable(ClientStateAddressResolver addressResolver)
         {
-            this.dalamud = dalamud;
             this.address = addressResolver;
 
             Log.Verbose($"Object table address 0x{this.address.ObjectTable.ToInt64():X}");
@@ -99,7 +100,9 @@ namespace Dalamud.Game.ClientState.Objects
         [CanBeNull]
         public unsafe GameObject CreateObjectReference(IntPtr address)
         {
-            if (this.dalamud.ClientState.LocalContentId == 0)
+            var clientState = Service<ClientState>.Get();
+
+            if (clientState.LocalContentId == 0)
                 return null;
 
             if (address == IntPtr.Zero)
@@ -109,11 +112,11 @@ namespace Dalamud.Game.ClientState.Objects
             var objKind = (ObjectKind)obj->ObjectKind;
             return objKind switch
             {
-                ObjectKind.Player => new PlayerCharacter(address, this.dalamud),
-                ObjectKind.BattleNpc => new BattleNpc(address, this.dalamud),
-                ObjectKind.EventObj => new EventObj(address, this.dalamud),
-                ObjectKind.Companion => new Npc(address, this.dalamud),
-                _ => new GameObject(address, this.dalamud),
+                ObjectKind.Player => new PlayerCharacter(address),
+                ObjectKind.BattleNpc => new BattleNpc(address),
+                ObjectKind.EventObj => new EventObj(address),
+                ObjectKind.Companion => new Npc(address),
+                _ => new GameObject(address),
             };
         }
     }

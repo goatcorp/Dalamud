@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
 
-using Dalamud.Data;
 using Lumina.Excel.GeneratedSheets;
 using Newtonsoft.Json;
 
@@ -21,11 +20,9 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         /// Initializes a new instance of the <see cref="QuestPayload"/> class.
         /// Creates a payload representing an interactable quest link for the specified quest.
         /// </summary>
-        /// <param name="data">DataManager instance needed to resolve game data.</param>
         /// <param name="questId">The id of the quest.</param>
-        public QuestPayload(DataManager data, uint questId)
+        public QuestPayload(uint questId)
         {
-            this.DataResolver = data;
             this.questId = questId;
         }
 

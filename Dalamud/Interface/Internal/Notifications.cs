@@ -1,10 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
 using Dalamud.Interface.Colors;
-using Dalamud.Interface.Internal;
 using Dalamud.Utility;
 using ImGuiNET;
 
@@ -62,8 +61,7 @@ namespace Dalamud.Interface.Internal
         /// <param name="title">The title of the notification.</param>
         /// <param name="type">The type of the notification.</param>
         /// <param name="msDelay">The time the notification should be displayed for.</param>
-        public void AddNotification(
-            string content, string title = null, Notification.Type type = Notification.Type.None, int msDelay = NotifyDefaultDismiss)
+        public void AddNotification(string content, string title = null, Notification.Type type = Notification.Type.None, int msDelay = NotifyDefaultDismiss)
         {
             this.notifications.Add(new Notification
             {

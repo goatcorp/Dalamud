@@ -1,5 +1,6 @@
 using System;
 
+using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.ClientState.Resolvers;
 using JetBrains.Annotations;
@@ -11,16 +12,12 @@ namespace Dalamud.Game.ClientState.Buddy
     /// </summary>
     public unsafe class BuddyMember
     {
-        private Dalamud dalamud;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="BuddyMember"/> class.
         /// </summary>
         /// <param name="address">Buddy address.</param>
-        /// <param name="dalamud">Dalamud instance.</param>
-        internal BuddyMember(IntPtr address, Dalamud dalamud)
+        internal BuddyMember(IntPtr address)
         {
-            this.dalamud = dalamud;
             this.Address = address;
         }
 
@@ -41,7 +38,7 @@ namespace Dalamud.Game.ClientState.Buddy
         /// This iterates the actor table, it should be used with care.
         /// </remarks>
         [CanBeNull]
-        public GameObject Actor => this.dalamud.ClientState.Objects.SearchByID(this.ObjectId);
+        public GameObject GameObject => Service<ObjectTable>.Get().SearchByID(this.ObjectId);
 
         /// <summary>
         /// Gets the current health of this buddy.
@@ -61,17 +58,17 @@ namespace Dalamud.Game.ClientState.Buddy
         /// <summary>
         /// Gets the Mount data related to this buddy. It should only be used with companion buddies.
         /// </summary>
-        public ExcelResolver<Lumina.Excel.GeneratedSheets.Mount> MountData => new(this.DataID, this.dalamud);
+        public ExcelResolver<Lumina.Excel.GeneratedSheets.Mount> MountData => new(this.DataID);
 
         /// <summary>
         /// Gets the Pet data related to this buddy. It should only be used with pet buddies.
         /// </summary>
-        public ExcelResolver<Lumina.Excel.GeneratedSheets.Pet> PetData => new(this.DataID, this.dalamud);
+        public ExcelResolver<Lumina.Excel.GeneratedSheets.Pet> PetData => new(this.DataID);
 
         /// <summary>
         /// Gets the Trust data related to this buddy. It should only be used with battle buddies.
         /// </summary>
-        public ExcelResolver<Lumina.Excel.GeneratedSheets.DawnGrowMember> TrustData => new(this.DataID, this.dalamud);
+        public ExcelResolver<Lumina.Excel.GeneratedSheets.DawnGrowMember> TrustData => new(this.DataID);
 
         private FFXIVClientStructs.FFXIV.Client.Game.UI.Buddy.BuddyMember* Struct => (FFXIVClientStructs.FFXIV.Client.Game.UI.Buddy.BuddyMember*)this.Address;
     }

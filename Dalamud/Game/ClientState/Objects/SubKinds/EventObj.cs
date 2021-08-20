@@ -14,9 +14,8 @@ namespace Dalamud.Game.ClientState.Objects.SubKinds
         /// Set up a new EventObj with the provided memory representation.
         /// </summary>
         /// <param name="address">The address of this event object in memory.</param>
-        /// <param name="dalamud">A dalamud reference.</param>
-        internal EventObj(IntPtr address, Dalamud dalamud)
-            : base(address, dalamud)
+        internal EventObj(IntPtr address)
+            : base(address)
         {
         }
     }

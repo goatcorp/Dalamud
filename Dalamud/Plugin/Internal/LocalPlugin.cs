@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 
+using Dalamud.Configuration.Internal;
 using Dalamud.Game;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Exceptions;
@@ -19,7 +20,6 @@ namespace Dalamud.Plugin.Internal
     {
         private static readonly ModuleLog Log = new("LOCALPLUGIN");
 
-        private readonly Dalamud dalamud;
         private readonly FileInfo manifestFile;
         private readonly FileInfo disabledFile;
         private readonly FileInfo testingFile;
@@ -32,12 +32,10 @@ namespace Dalamud.Plugin.Internal
         /// <summary>
         /// Initializes a new instance of the <see cref="LocalPlugin"/> class.
         /// </summary>
-        /// <param name="dalamud">Dalamud instance.</param>
         /// <param name="dllFile">Path to the DLL file.</param>
         /// <param name="manifest">The plugin manifest.</param>
-        public LocalPlugin(Dalamud dalamud, FileInfo dllFile, LocalPluginManifest manifest)
+        public LocalPlugin(FileInfo dllFile, LocalPluginManifest?manifest)
         {
-            this.dalamud = dalamud;
             this.DllFile = dllFile;
             this.State = PluginState.Unloaded;
 
@@ -192,6 +190,10 @@ namespace Dalamud.Plugin.Internal
         /// <param name="reloading">Load while reloading.</param>
         public void Load(PluginLoadReason reason, bool reloading = false)
         {
+            var startInfo = Service<DalamudStartInfo>.Get();
+            var configuration = Service<DalamudConfiguration>.Get();
+            var pluginManager = Service<PluginManager>.Get();
+
             // Allowed: Unloaded
             switch (this.State)
             {
@@ -205,10 +207,10 @@ namespace Dalamud.Plugin.Internal
                     throw new InvalidPluginOperationException($"Unable to load {this.Name}, unload previously faulted, restart Dalamud");
             }
 
-            if (this.Manifest.ApplicableVersion < this.dalamud.StartInfo.GameVersion)
+            if (this.Manifest.ApplicableVersion < startInfo.GameVersion)
                 throw new InvalidPluginOperationException($"Unable to load {this.Name}, no applicable version");
 
-            if (this.Manifest.DalamudApiLevel < PluginManager.DalamudApiLevel && !this.dalamud.Configuration.LoadAllApiLevels)
+            if (this.Manifest.DalamudApiLevel < PluginManager.DalamudApiLevel && !configuration.LoadAllApiLevels)
                 throw new InvalidPluginOperationException($"Unable to load {this.Name}, incompatible API level");
 
             if (this.Manifest.Disabled)
@@ -243,7 +245,7 @@ namespace Dalamud.Plugin.Internal
 
                 // Check for any loaded plugins with the same assembly name
                 var assemblyName = this.pluginAssembly.GetName().Name;
-                foreach (var otherPlugin in this.dalamud.PluginManager.InstalledPlugins)
+                foreach (var otherPlugin in pluginManager.InstalledPlugins)
                 {
                     // During hot-reloading, this plugin will be in the plugin list, and the instance will have been disposed
                     if (otherPlugin == this || otherPlugin.instance == null)
@@ -272,7 +274,7 @@ namespace Dalamud.Plugin.Internal
                     this.Manifest.Save(this.manifestFile);
                 }
 
-                this.DalamudInterface = new DalamudPluginInterface(this.dalamud, this.pluginAssembly.GetName().Name, reason);
+                this.DalamudInterface = new DalamudPluginInterface(this.pluginAssembly.GetName().Name, reason);
 
                 if (this.IsDev)
                 {

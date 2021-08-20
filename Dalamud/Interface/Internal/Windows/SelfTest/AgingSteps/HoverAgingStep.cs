@@ -1,4 +1,4 @@
-﻿using Dalamud.Game.Gui;
+using Dalamud.Game.Gui;
 using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
@@ -15,16 +15,15 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
         public string Name => "Test Hover";
 
         /// <inheritdoc/>
-        public SelfTestStepResult RunStep(Dalamud dalamud)
+        public SelfTestStepResult RunStep()
         {
-            var hoverItem = dalamud.Framework.Gui.HoveredItem;
-            var hoverAction = dalamud.Framework.Gui.HoveredAction;
+            var gameGui = Service<GameGui>.Get();
 
             if (!this.clearedItem)
             {
                 ImGui.Text("Hover WHM soul crystal...");
 
-                if (hoverItem == 4547)
+                if (gameGui.HoveredItem == 4547)
                 {
                     this.clearedItem = true;
                 }
@@ -34,8 +33,9 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
             {
                 ImGui.Text("Hover \"Open Linkshells\" action...");
 
-                if (hoverAction != null && hoverAction.ActionKind == HoverActionKind.MainCommand &&
-                    hoverAction.ActionID == 28)
+                if (gameGui.HoveredAction != null &&
+                    gameGui.HoveredAction.ActionKind == HoverActionKind.MainCommand &&
+                    gameGui.HoveredAction.ActionID == 28)
                 {
                     this.clearedAction = true;
                 }
@@ -50,7 +50,7 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
         }
 
         /// <inheritdoc/>
-        public void CleanUp(Dalamud dalamud)
+        public void CleanUp()
         {
             // ignored
         }
