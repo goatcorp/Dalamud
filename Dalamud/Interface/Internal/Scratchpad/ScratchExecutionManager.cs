@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
+using Dalamud.IoC;
+using Dalamud.IoC.Internal;
 using Dalamud.Plugin;
 using ImGuiNET;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
@@ -79,13 +80,18 @@ namespace Dalamud.Interface.Internal.Scratchpad
             {
                 var script = CSharpScript.Create(code, options);
 
-                var pi = new DalamudPluginInterface("Scratch-" + doc.Id, PluginLoadReason.Unknown);
-                var plugin = script.ContinueWith<IDalamudPlugin>("return new ScratchPlugin() as IDalamudPlugin;")
+                var pluginType = script.ContinueWith<Type>("return typeof(ScratchPlugin);")
                     .RunAsync().GetAwaiter().GetResult().ReturnValue;
 
-                plugin.Initialize(pi);
+                var pi = new DalamudPluginInterface($"Scratch-{doc.Id}", PluginLoadReason.Unknown);
 
-                this.loadedScratches[doc.Id] = plugin;
+                var ioc = Service<ServiceContainer>.Get();
+                var plugin = ioc.Create(pluginType, pi);
+
+                if (plugin == null)
+                    throw new Exception("Could not initialize scratch plugin");
+
+                this.loadedScratches[doc.Id] = (IDalamudPlugin)plugin;
                 return ScratchLoadStatus.Success;
             }
             catch (CompilationErrorException ex)

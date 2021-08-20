@@ -11,10 +11,9 @@ namespace Dalamud.Game.Gui
         /// <summary>
         /// Initializes a new instance of the <see cref="GameGuiAddressResolver"/> class.
         /// </summary>
-        /// <param name="baseAddress">The base address of the native GuiManager class.</param>
-        public GameGuiAddressResolver(IntPtr baseAddress)
+        public GameGuiAddressResolver()
         {
-            this.BaseAddress = baseAddress;
+            this.BaseAddress = Service<Framework>.Get().Address.BaseAddress;
         }
 
         /// <summary>

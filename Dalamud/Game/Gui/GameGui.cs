@@ -46,11 +46,10 @@ namespace Dalamud.Game.Gui
         /// </summary>
         internal GameGui()
         {
-            this.address = new GameGuiAddressResolver(this.address.BaseAddress);
+            this.address = new GameGuiAddressResolver();
             this.address.Setup();
 
             Log.Verbose("===== G A M E G U I =====");
-
             Log.Verbose($"GameGuiManager address 0x{this.address.BaseAddress.ToInt64():X}");
             Log.Verbose($"SetGlobalBgm address 0x{this.address.SetGlobalBgm.ToInt64():X}");
             Log.Verbose($"HandleItemHover address 0x{this.address.HandleItemHover.ToInt64():X}");

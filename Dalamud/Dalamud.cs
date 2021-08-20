@@ -91,10 +91,11 @@ namespace Dalamud
         {
             try
             {
+                Service<ServiceContainer>.Set();
+
                 // Initialize the process information.
                 Service<SigScanner>.Set(new SigScanner(true));
                 Service<HookManager>.Set();
-                Service<ServiceContainer>.Set();
 
                 // Initialize FFXIVClientStructs function resolver
                 FFXIVClientStructs.Resolver.Initialize();

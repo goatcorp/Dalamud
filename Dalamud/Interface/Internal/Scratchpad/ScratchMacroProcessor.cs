@@ -21,7 +21,7 @@ public class ScratchPlugin : IDalamudPlugin {
 
     {SETUPBODY}
 
-    public void Initialize(DalamudPluginInterface pluginInterface)
+    public ScratchPlugin(DalamudPluginInterface pluginInterface)
     {
         this.pi = pluginInterface;
             

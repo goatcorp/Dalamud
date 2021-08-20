@@ -610,53 +610,6 @@ namespace Dalamud.Interface.Internal.Windows
 
         private void DrawPluginIPC()
         {
-#pragma warning disable CS0618 // Type or member is obsolete
-            var i1 = new DalamudPluginInterface("DalamudTestSub", PluginLoadReason.Unknown);
-            var i2 = new DalamudPluginInterface("DalamudTestPub", PluginLoadReason.Unknown);
-
-            if (ImGui.Button("Add test sub"))
-            {
-                i1.Subscribe("DalamudTestPub", o =>
-                {
-                    dynamic msg = o;
-                    Log.Debug(msg.Expand);
-                });
-            }
-
-            if (ImGui.Button("Add test sub any"))
-            {
-                i1.SubscribeAny((o, a) =>
-                {
-                    dynamic msg = a;
-                    Log.Debug($"From {o}: {msg.Expand}");
-                });
-            }
-
-            if (ImGui.Button("Remove test sub"))
-                i1.Unsubscribe("DalamudTestPub");
-
-            if (ImGui.Button("Remove test sub any"))
-                i1.UnsubscribeAny();
-
-            if (ImGui.Button("Send test message"))
-            {
-                dynamic testMsg = new ExpandoObject();
-                testMsg.Expand = "dong";
-                i2.SendMessage(testMsg);
-            }
-
-            // This doesn't actually work, so don't mind it - impl relies on plugins being registered in PluginManager
-            if (ImGui.Button("Send test message any"))
-            {
-                dynamic testMsg = new ExpandoObject();
-                testMsg.Expand = "dong";
-                i2.SendMessage("DalamudTestSub", testMsg);
-            }
-
-            var pluginManager = Service<PluginManager>.Get();
-            foreach (var ipc in pluginManager.IpcSubscriptions)
-                ImGui.Text($"Source:{ipc.SourcePluginName} Sub:{ipc.SubPluginName}");
-#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         private void DrawCondition()

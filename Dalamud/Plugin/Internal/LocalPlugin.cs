@@ -5,6 +5,7 @@ using System.Reflection;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
+using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Exceptions;
 using Dalamud.Plugin.Internal.Types;
@@ -26,15 +27,15 @@ namespace Dalamud.Plugin.Internal
 
         private PluginLoader loader;
         private Assembly pluginAssembly;
-        private Type pluginType;
-        private IDalamudPlugin instance;
+        private Type? pluginType;
+        private IDalamudPlugin? instance;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LocalPlugin"/> class.
         /// </summary>
         /// <param name="dllFile">Path to the DLL file.</param>
         /// <param name="manifest">The plugin manifest.</param>
-        public LocalPlugin(FileInfo dllFile, LocalPluginManifest?manifest)
+        public LocalPlugin(FileInfo dllFile, LocalPluginManifest? manifest)
         {
             this.DllFile = dllFile;
             this.State = PluginState.Unloaded;
@@ -264,8 +265,16 @@ namespace Dalamud.Plugin.Internal
                 // Update the location for the Location and CodeBase patches
                 PluginManager.PluginLocations[this.pluginType.Assembly.FullName] = new(this.DllFile);
 
-                // Instantiate and initialize
-                this.instance = Activator.CreateInstance(this.pluginType) as IDalamudPlugin;
+                this.DalamudInterface = new DalamudPluginInterface(this.pluginAssembly.GetName().Name!, reason);
+
+                var ioc = Service<ServiceContainer>.Get();
+                this.instance = ioc.Create(this.pluginType, this.DalamudInterface) as IDalamudPlugin;
+                if (this.instance == null)
+                {
+                    this.State = PluginState.LoadError;
+                    Log.Error($"Error while loading {this.Name}, failed to bind and call the plugin constructor");
+                    return;
+                }
 
                 // In-case the manifest name was a placeholder. Can occur when no manifest was included.
                 if (this.instance.Name != this.Manifest.Name)
@@ -273,30 +282,6 @@ namespace Dalamud.Plugin.Internal
                     this.Manifest.Name = this.instance.Name;
                     this.Manifest.Save(this.manifestFile);
                 }
-
-                this.DalamudInterface = new DalamudPluginInterface(this.pluginAssembly.GetName().Name, reason);
-
-                if (this.IsDev)
-                {
-                    // Inherit LPL's AssemblyLocation functionality
-                    try
-                    {
-                        var bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
-
-                        this.instance.GetType()
-                            ?.GetProperty("AssemblyLocation", bindingFlags)
-                            ?.SetValue(this.instance, this.DllFile.FullName);
-                        this.instance.GetType()
-                            ?.GetMethod("SetLocation", bindingFlags)
-                            ?.Invoke(this.instance, new object[] { this.DllFile.FullName });
-                    }
-                    catch
-                    {
-                        // Ignored
-                    }
-                }
-
-                this.instance.Initialize(this.DalamudInterface);
 
                 this.State = PluginState.Loaded;
                 Log.Information($"Finished loading {this.DllFile.Name}");

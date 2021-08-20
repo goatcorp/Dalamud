@@ -39,22 +39,17 @@ namespace Dalamud.Plugin
         internal DalamudPluginInterface(string pluginName, PluginLoadReason reason)
         {
             var configuration = Service<DalamudConfiguration>.Get();
+            var dataManager = Service<DataManager>.Get();
             var localization = Service<Localization>.Get();
 
-            this.CommandManager = Service<CommandManager>.Get();
-            this.Framework = Service<Framework>.Get();
-            this.ClientState = Service<ClientState>.Get();
             this.UiBuilder = new UiBuilder(pluginName);
-            this.TargetModuleScanner = Service<SigScanner>.Get();
-            this.Data = Service<DataManager>.Get();
-            this.SeStringManager = Service<SeStringManager>.Get();
 
             this.pluginName = pluginName;
             this.configs = Service<PluginManager>.Get().PluginConfigs;
             this.Reason = reason;
 
             this.GeneralChatType = configuration.GeneralChatType;
-            this.Sanitizer = new Sanitizer(this.Data.Language);
+            this.Sanitizer = new Sanitizer(dataManager.Language);
             if (configuration.LanguageOverride != null)
             {
                 this.UiLanguage = configuration.LanguageOverride;
@@ -104,39 +99,9 @@ namespace Dalamud.Plugin
         public FileInfo ConfigFile => this.configs.GetConfigFile(this.pluginName);
 
         /// <summary>
-        /// Gets the CommandManager object that allows you to add and remove custom chat commands.
-        /// </summary>
-        public CommandManager CommandManager { get; private set; }
-
-        /// <summary>
-        /// Gets the ClientState object that allows you to access current client memory information like actors, territories, etc.
-        /// </summary>
-        public ClientState ClientState { get; private set; }
-
-        /// <summary>
-        /// Gets the Framework object that allows you to interact with the client.
-        /// </summary>
-        public Framework Framework { get; private set; }
-
-        /// <summary>
         /// Gets the <see cref="UiBuilder"/> instance which allows you to draw UI into the game via ImGui draw calls.
         /// </summary>
         public UiBuilder UiBuilder { get; private set; }
-
-        /// <summary>
-        /// Gets the <see cref="SigScanner">SigScanner</see> instance targeting the main module of the FFXIV process.
-        /// </summary>
-        public SigScanner TargetModuleScanner { get; private set; }
-
-        /// <summary>
-        /// Gets the <see cref="DataManager">DataManager</see> instance which allows you to access game data needed by the main dalamud features.
-        /// </summary>
-        public DataManager Data { get; private set; }
-
-        /// <summary>
-        /// Gets the <see cref="SeStringManager">SeStringManager</see> instance which allows creating and parsing SeString payloads.
-        /// </summary>
-        public SeStringManager SeStringManager { get; private set; }
 
         /// <summary>
         /// Gets a value indicating whether Dalamud is running in Debug mode or the /xldev menu is open. This can occur on release builds.
@@ -161,11 +126,6 @@ namespace Dalamud.Plugin
         /// Gets the chat type used by default for plugin messages.
         /// </summary>
         public XivChatType GeneralChatType { get; private set; }
-
-        /// <summary>
-        /// Gets the action that should be executed when any plugin sends a message.
-        /// </summary>
-        internal Action<string, ExpandoObject> AnyPluginIpcAction { get; private set; }
 
         #region Configuration
 
@@ -251,107 +211,6 @@ namespace Dalamud.Plugin
         {
             Service<ChatGui>.Get().RemoveChatLinkHandler(this.pluginName);
         }
-        #endregion
-
-        #region IPC
-
-        /// <summary>
-        /// Subscribe to an IPC message by any plugin.
-        /// </summary>
-        /// <param name="action">The action to take when a message was received.</param>
-        [Obsolete("The current IPC mechanism is obsolete and scheduled to be replaced after API level 3.")]
-        public void SubscribeAny(Action<string, ExpandoObject> action)
-        {
-            if (this.AnyPluginIpcAction != null)
-                throw new InvalidOperationException("Can't subscribe multiple times.");
-
-            this.AnyPluginIpcAction = action;
-        }
-
-        /// <summary>
-        /// Subscribe to an IPC message by a plugin.
-        /// </summary>
-        /// <param name="pluginName">The InternalName of the plugin to subscribe to.</param>
-        /// <param name="action">The action to take when a message was received.</param>
-        [Obsolete("The current IPC mechanism is obsolete and scheduled to be replaced after API level 3.")]
-        public void Subscribe(string pluginName, Action<ExpandoObject> action)
-        {
-            var pluginManager = Service<PluginManager>.Get();
-
-            if (pluginManager.IpcSubscriptions.Any(x => x.SourcePluginName == this.pluginName && x.SubPluginName == pluginName))
-                throw new InvalidOperationException("Can't add multiple subscriptions for the same plugin.");
-
-            pluginManager.IpcSubscriptions.Add(new(this.pluginName, pluginName, action));
-        }
-
-        /// <summary>
-        /// Unsubscribe from messages from any plugin.
-        /// </summary>
-        [Obsolete("The current IPC mechanism is obsolete and scheduled to be replaced after API level 3.")]
-        public void UnsubscribeAny()
-        {
-            if (this.AnyPluginIpcAction == null)
-                throw new InvalidOperationException("Wasn't subscribed to this plugin.");
-
-            this.AnyPluginIpcAction = null;
-        }
-
-        /// <summary>
-        /// Unsubscribe from messages from a plugin.
-        /// </summary>
-        /// <param name="pluginName">The InternalName of the plugin to unsubscribe from.</param>
-        [Obsolete("The current IPC mechanism is obsolete and scheduled to be replaced after API level 3.")]
-        public void Unsubscribe(string pluginName)
-        {
-            var pluginManager = Service<PluginManager>.Get();
-
-            var sub = pluginManager.IpcSubscriptions.FirstOrDefault(x => x.SourcePluginName == this.pluginName && x.SubPluginName == pluginName);
-            if (sub.SubAction == null)
-                throw new InvalidOperationException("Wasn't subscribed to this plugin.");
-
-            pluginManager.IpcSubscriptions.Remove(sub);
-        }
-
-        /// <summary>
-        /// Send a message to all subscribed plugins.
-        /// </summary>
-        /// <param name="message">The message to send.</param>
-        [Obsolete("The current IPC mechanism is obsolete and scheduled to be replaced after API level 3.")]
-        public void SendMessage(ExpandoObject message)
-        {
-            var pluginManager = Service<PluginManager>.Get();
-
-            var subs = pluginManager.IpcSubscriptions.Where(x => x.SubPluginName == this.pluginName);
-            foreach (var sub in subs.Select(x => x.SubAction))
-            {
-                sub.Invoke(message);
-            }
-        }
-
-        /// <summary>
-        /// Send a message to a specific plugin.
-        /// </summary>
-        /// <param name="pluginName">The InternalName of the plugin to send the message to.</param>
-        /// <param name="message">The message to send.</param>
-        /// <returns>True if the corresponding plugin was present and received the message.</returns>
-        [Obsolete("The current IPC mechanism is obsolete and scheduled to be replaced after API level 3.")]
-        public bool SendMessage(string pluginName, ExpandoObject message)
-        {
-            var pluginManager = Service<PluginManager>.Get();
-
-            var plugin = pluginManager.InstalledPlugins.FirstOrDefault(x => x.Manifest.InternalName == pluginName);
-
-            if (plugin == default)
-                return false;
-
-            if (plugin.DalamudInterface?.AnyPluginIpcAction == null)
-                return false;
-
-            plugin.DalamudInterface.AnyPluginIpcAction.Invoke(this.pluginName, message);
-
-            return true;
-        }
-
         #endregion
 
         /// <summary>

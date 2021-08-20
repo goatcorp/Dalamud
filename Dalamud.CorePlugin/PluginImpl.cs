@@ -17,16 +17,11 @@ namespace Dalamud.CorePlugin
 
         // private Localization localizationManager;
 
-        /// <inheritdoc/>
-        public string Name => "Dalamud.CorePlugin";
-
         /// <summary>
-        /// Gets the plugin interface.
+        /// Initializes a new instance of the <see cref="PluginImpl"/> class.
         /// </summary>
-        internal DalamudPluginInterface Interface { get; private set; }
-
-        /// <inheritdoc/>
-        public void Initialize(DalamudPluginInterface pluginInterface)
+        /// <param name="pluginInterface">Dalamud plugin interface.</param>
+        public PluginImpl(DalamudPluginInterface pluginInterface)
         {
             try
             {
@@ -38,8 +33,7 @@ namespace Dalamud.CorePlugin
                 this.Interface.UiBuilder.Draw += this.OnDraw;
                 this.Interface.UiBuilder.OpenConfigUi += this.OnOpenConfigUi;
 
-                var commandManager = Service<CommandManager>.Get();
-                commandManager.AddHandler("/di", new(this.OnCommand) { HelpMessage = $"Access the {this.Name} plugin." });
+                Service<CommandManager>.Get().AddHandler("/di", new(this.OnCommand) { HelpMessage = $"Access the {this.Name} plugin." });
             }
             catch (Exception ex)
             {
@@ -48,9 +42,17 @@ namespace Dalamud.CorePlugin
         }
 
         /// <inheritdoc/>
+        public string Name => "Dalamud.CorePlugin";
+
+        /// <summary>
+        /// Gets the plugin interface.
+        /// </summary>
+        internal DalamudPluginInterface Interface { get; private set; }
+
+        /// <inheritdoc/>
         public void Dispose()
         {
-            this.Interface.CommandManager.RemoveHandler("/di");
+            Service<CommandManager>.Get().RemoveHandler("/di");
 
             this.Interface.UiBuilder.Draw -= this.OnDraw;
 
