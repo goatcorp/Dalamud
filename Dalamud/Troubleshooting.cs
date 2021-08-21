@@ -14,14 +14,39 @@ namespace Dalamud
     /// <summary>
     /// Class responsible for printing troubleshooting information to the log.
     /// </summary>
-    internal static class Troubleshooting
+    public static class Troubleshooting
     {
         /// <summary>
-        /// Log troubleshooting information to Serilog.
+        /// Log the last exception in a parseable format to serilog.
+        /// </summary>
+        /// <param name="exception">The exception to log.</param>
+        /// <param name="context">Additional context.</param>
+        public static void LogException(Exception exception, string context)
+        {
+            try
+            {
+                var payload = new ExceptionPayload
+                {
+                    Context = context,
+                    When = DateTime.Now,
+                    Info = exception.ToString(),
+                };
+
+                var encodedPayload = Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(payload)));
+                Log.Information($"LASTEXCEPTION:{encodedPayload}");
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Could not print exception.");
+            }
+        }
+
+        /// <summary>
+        /// Log troubleshooting information in a parseable format to Serilog.
         /// </summary>
         /// <param name="dalamud">The <see cref="Dalamud"/> instance to read information from.</param>
         /// <param name="isInterfaceLoaded">Whether or not the interface was loaded.</param>
-        public static void LogTroubleshooting(Dalamud dalamud, bool isInterfaceLoaded)
+        internal static void LogTroubleshooting(Dalamud dalamud, bool isInterfaceLoaded)
         {
             try
             {
@@ -45,6 +70,15 @@ namespace Dalamud
             {
                 Log.Error(ex, "Could not print troubleshooting.");
             }
+        }
+
+        private class ExceptionPayload
+        {
+            public DateTime When { get; set; }
+
+            public string Info { get; set; }
+
+            public string Context { get; set; }
         }
 
         private class TroubleshootingPayload
