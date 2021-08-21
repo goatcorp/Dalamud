@@ -10,7 +10,7 @@
     <meta name="viewport" content="width=device-width">
     <meta name="title" content="Class ClientState
    ">
-    <meta name="generator" content="docfx 2.56.6.0">
+    <meta name="generator" content="docfx 2.58.0.0">
     
     <link rel="shortcut icon" href="../favicon.ico">
     <link rel="stylesheet" href="../styles/docfx.vendor.css">
@@ -83,22 +83,15 @@
   </div>
   <div classs="implements">
     <h5>Implements</h5>
-    <div><span class="xref">System.ComponentModel.INotifyPropertyChanged</span></div>
     <div><span class="xref">System.IDisposable</span></div>
   </div>
   <div class="inheritedMembers">
     <h5>Inherited Members</h5>
     <div>
-      <span class="xref">System.Object.ToString()</span>
-    </div>
-    <div>
       <span class="xref">System.Object.Equals(System.Object)</span>
     </div>
     <div>
       <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
-    </div>
-    <div>
-      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
     </div>
     <div>
       <span class="xref">System.Object.GetHashCode()</span>
@@ -109,108 +102,38 @@
     <div>
       <span class="xref">System.Object.MemberwiseClone()</span>
     </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ToString()</span>
+    </div>
   </div>
   <h6><strong>Namespace</strong>: <a class="xref" href="Dalamud.Game.ClientState.html">Dalamud.Game.ClientState</a></h6>
   <h6><strong>Assembly</strong>: Dalamud.dll</h6>
   <h5 id="Dalamud_Game_ClientState_ClientState_syntax">Syntax</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public class ClientState : INotifyPropertyChanged, IDisposable</code></pre>
+    <pre><code class="lang-csharp hljs">public sealed class ClientState : IDisposable</code></pre>
   </div>
-  <h3 id="constructors">Constructors
+  <h3 id="properties">Properties
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_ClientState__ctor_Dalamud_Dalamud_Dalamud_DalamudStartInfo_Dalamud_Game_SigScanner_.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.ClientState.%23ctor(Dalamud.Dalamud%2CDalamud.DalamudStartInfo%2CDalamud.Game.SigScanner)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_ClientState_ClientLanguage.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.ClientState.ClientLanguage%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/ClientState.cs/#L117">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/ClientState.cs/#L102">View Source</a>
   </span>
-  <a id="Dalamud_Game_ClientState_ClientState__ctor_" data-uid="Dalamud.Game.ClientState.ClientState.#ctor*"></a>
-  <h4 id="Dalamud_Game_ClientState_ClientState__ctor_Dalamud_Dalamud_Dalamud_DalamudStartInfo_Dalamud_Game_SigScanner_" data-uid="Dalamud.Game.ClientState.ClientState.#ctor(Dalamud.Dalamud,Dalamud.DalamudStartInfo,Dalamud.Game.SigScanner)">ClientState(Dalamud, DalamudStartInfo, SigScanner)</h4>
-  <div class="markdown level1 summary"><p>Set up client state access.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-  <h5 class="decalaration">Declaration</h5>
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ClientState(Dalamud dalamud, DalamudStartInfo startInfo, SigScanner scanner)</code></pre>
-  </div>
-  <h5 class="parameters">Parameters</h5>
-  <table class="table table-bordered table-striped table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Name</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="Dalamud.Dalamud.html">Dalamud</a></td>
-        <td><span class="parametername">dalamud</span></td>
-        <td><p>Dalamud instance</p>
-</td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="Dalamud.DalamudStartInfo.html">DalamudStartInfo</a></td>
-        <td><span class="parametername">startInfo</span></td>
-        <td><p>StartInfo of the current Dalamud launch</p>
-</td>
-      </tr>
-      <tr>
-        <td><a class="xref" href="Dalamud.Game.SigScanner.html">SigScanner</a></td>
-        <td><span class="parametername">scanner</span></td>
-        <td><p>Sig scanner</p>
-</td>
-      </tr>
-    </tbody>
-  </table>
-  <h3 id="fields">Fields
-  </h3>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_ClientState_Actors.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.ClientState.Actors%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/ClientState.cs/#L29">View Source</a>
-  </span>
-  <h4 id="Dalamud_Game_ClientState_ClientState_Actors" data-uid="Dalamud.Game.ClientState.ClientState.Actors">Actors</h4>
-  <div class="markdown level1 summary"><p>The table of all present actors.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-  <h5 class="decalaration">Declaration</h5>
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public readonly ActorTable Actors</code></pre>
-  </div>
-  <h5 class="fieldValue">Field Value</h5>
-  <table class="table table-bordered table-striped table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="Dalamud.Game.ClientState.Actors.ActorTable.html">ActorTable</a></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_ClientState_ClientLanguage.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.ClientState.ClientLanguage%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/ClientState.cs/#L24">View Source</a>
-  </span>
+  <a id="Dalamud_Game_ClientState_ClientState_ClientLanguage_" data-uid="Dalamud.Game.ClientState.ClientState.ClientLanguage*"></a>
   <h4 id="Dalamud_Game_ClientState_ClientState_ClientLanguage" data-uid="Dalamud.Game.ClientState.ClientState.ClientLanguage">ClientLanguage</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Gets the language of the client.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public readonly ClientLanguage ClientLanguage</code></pre>
+    <pre><code class="lang-csharp hljs">public ClientLanguage ClientLanguage { get; }</code></pre>
   </div>
-  <h5 class="fieldValue">Field Value</h5>
+  <h5 class="propertyValue">Property Value</h5>
   <table class="table table-bordered table-striped table-condensed">
     <thead>
       <tr>
@@ -227,222 +150,10 @@
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_ClientState_Condition.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.ClientState.Condition%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_ClientState_IsLoggedIn.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.ClientState.IsLoggedIn%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/ClientState.cs/#L104">View Source</a>
-  </span>
-  <h4 id="Dalamud_Game_ClientState_ClientState_Condition" data-uid="Dalamud.Game.ClientState.ClientState.Condition">Condition</h4>
-  <div class="markdown level1 summary"><p>Provides access to client conditions/player state. Allows you to check if a player is in a duty, mounted, etc.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-  <h5 class="decalaration">Declaration</h5>
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public Condition Condition</code></pre>
-  </div>
-  <h5 class="fieldValue">Field Value</h5>
-  <table class="table table-bordered table-striped table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="Dalamud.Game.ClientState.Condition.html">Condition</a></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_ClientState_JobGauges.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.ClientState.JobGauges%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/ClientState.cs/#L89">View Source</a>
-  </span>
-  <h4 id="Dalamud_Game_ClientState_ClientState_JobGauges" data-uid="Dalamud.Game.ClientState.ClientState.JobGauges">JobGauges</h4>
-  <div class="markdown level1 summary"><p>The class facilitating Job Gauge data access</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-  <h5 class="decalaration">Declaration</h5>
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public JobGauges JobGauges</code></pre>
-  </div>
-  <h5 class="fieldValue">Field Value</h5>
-  <table class="table table-bordered table-striped table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="Dalamud.Game.ClientState.JobGauges.html">JobGauges</a></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_ClientState_KeyState.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.ClientState.KeyState%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/ClientState.cs/#L99">View Source</a>
-  </span>
-  <h4 id="Dalamud_Game_ClientState_ClientState_KeyState" data-uid="Dalamud.Game.ClientState.ClientState.KeyState">KeyState</h4>
-  <div class="markdown level1 summary"><p>Provides access to the keypress state of keyboard keys in game.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-  <h5 class="decalaration">Declaration</h5>
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public KeyState KeyState</code></pre>
-  </div>
-  <h5 class="fieldValue">Field Value</h5>
-  <table class="table table-bordered table-striped table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="Dalamud.Game.ClientState.KeyState.html">KeyState</a></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_ClientState_PartyList.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.ClientState.PartyList%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/ClientState.cs/#L94">View Source</a>
-  </span>
-  <h4 id="Dalamud_Game_ClientState_ClientState_PartyList" data-uid="Dalamud.Game.ClientState.ClientState.PartyList">PartyList</h4>
-  <div class="markdown level1 summary"><p>The class facilitating party list data access</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-  <h5 class="decalaration">Declaration</h5>
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public PartyList PartyList</code></pre>
-  </div>
-  <h5 class="fieldValue">Field Value</h5>
-  <table class="table table-bordered table-striped table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="Dalamud.Game.ClientState.PartyList.html">PartyList</a></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_ClientState_Targets.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.ClientState.Targets%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/ClientState.cs/#L109">View Source</a>
-  </span>
-  <h4 id="Dalamud_Game_ClientState_ClientState_Targets" data-uid="Dalamud.Game.ClientState.ClientState.Targets">Targets</h4>
-  <div class="markdown level1 summary"><p>The class facilitating target data access</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-  <h5 class="decalaration">Declaration</h5>
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public Targets Targets</code></pre>
-  </div>
-  <h5 class="fieldValue">Field Value</h5>
-  <table class="table table-bordered table-striped table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="Dalamud.Game.ClientState.Actors.Targets.html">Targets</a></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_ClientState_TerritoryChanged.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.ClientState.TerritoryChanged%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/ClientState.cs/#L62">View Source</a>
-  </span>
-  <h4 id="Dalamud_Game_ClientState_ClientState_TerritoryChanged" data-uid="Dalamud.Game.ClientState.ClientState.TerritoryChanged">TerritoryChanged</h4>
-  <div class="markdown level1 summary"><p>Event that gets fired when the current Territory changes.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-  <h5 class="decalaration">Declaration</h5>
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public EventHandler&lt;ushort&gt; TerritoryChanged</code></pre>
-  </div>
-  <h5 class="fieldValue">Field Value</h5>
-  <table class="table table-bordered table-striped table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><span class="xref">System.EventHandler</span>&lt;<span class="xref">System.UInt16</span>&gt;</td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_ClientState_TerritoryType.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.ClientState.TerritoryType%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/ClientState.cs/#L57">View Source</a>
-  </span>
-  <h4 id="Dalamud_Game_ClientState_ClientState_TerritoryType" data-uid="Dalamud.Game.ClientState.ClientState.TerritoryType">TerritoryType</h4>
-  <div class="markdown level1 summary"><p>The current Territory the player resides in.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-  <h5 class="decalaration">Declaration</h5>
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ushort TerritoryType</code></pre>
-  </div>
-  <h5 class="fieldValue">Field Value</h5>
-  <table class="table table-bordered table-striped table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><span class="xref">System.UInt16</span></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <h3 id="properties">Properties
-  </h3>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_ClientState_IsLoggedIn.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.ClientState.IsLoggedIn%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/ClientState.cs/#L181">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/ClientState.cs/#L123">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_ClientState_IsLoggedIn_" data-uid="Dalamud.Game.ClientState.ClientState.IsLoggedIn*"></a>
   <h4 id="Dalamud_Game_ClientState_ClientState_IsLoggedIn" data-uid="Dalamud.Game.ClientState.ClientState.IsLoggedIn">IsLoggedIn</h4>
@@ -470,14 +181,14 @@
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_ClientState_LocalContentId.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.ClientState.LocalContentId%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_ClientState_LocalContentId.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.ClientState.LocalContentId%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/ClientState.cs/#L84">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/ClientState.cs/#L118">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_ClientState_LocalContentId_" data-uid="Dalamud.Game.ClientState.ClientState.LocalContentId*"></a>
   <h4 id="Dalamud_Game_ClientState_ClientState_LocalContentId" data-uid="Dalamud.Game.ClientState.ClientState.LocalContentId">LocalContentId</h4>
-  <div class="markdown level1 summary"><p>The content ID of the local character.</p>
+  <div class="markdown level1 summary"><p>Gets the content ID of the local character.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
@@ -501,14 +212,14 @@
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_ClientState_LocalPlayer.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.ClientState.LocalPlayer%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_ClientState_LocalPlayer.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.ClientState.LocalPlayer%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/ClientState.cs/#L34">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/ClientState.cs/#L112">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_ClientState_LocalPlayer_" data-uid="Dalamud.Game.ClientState.ClientState.LocalPlayer*"></a>
   <h4 id="Dalamud_Game_ClientState_ClientState_LocalPlayer" data-uid="Dalamud.Game.ClientState.ClientState.LocalPlayer">LocalPlayer</h4>
-  <div class="markdown level1 summary"><p>The local player character, if one is present.</p>
+  <div class="markdown level1 summary"><p>Gets the local player character, if one is present.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
@@ -526,7 +237,38 @@ public PlayerCharacter LocalPlayer { get; }</code></pre>
     </thead>
     <tbody>
       <tr>
-        <td><a class="xref" href="Dalamud.Game.ClientState.Actors.Types.PlayerCharacter.html">PlayerCharacter</a></td>
+        <td><a class="xref" href="Dalamud.Game.ClientState.Objects.SubKinds.PlayerCharacter.html">PlayerCharacter</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_ClientState_TerritoryType.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.ClientState.TerritoryType%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/ClientState.cs/#L107">View Source</a>
+  </span>
+  <a id="Dalamud_Game_ClientState_ClientState_TerritoryType_" data-uid="Dalamud.Game.ClientState.ClientState.TerritoryType*"></a>
+  <h4 id="Dalamud_Game_ClientState_ClientState_TerritoryType" data-uid="Dalamud.Game.ClientState.ClientState.TerritoryType">TerritoryType</h4>
+  <div class="markdown level1 summary"><p>Gets the current Territory the player resides in.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ushort TerritoryType { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt16</span></td>
         <td></td>
       </tr>
     </tbody>
@@ -535,14 +277,15 @@ public PlayerCharacter LocalPlayer { get; }</code></pre>
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_ClientState_Dispose.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.ClientState.Dispose%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_ClientState_Dispose.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.ClientState.Dispose%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/ClientState.cs/#L157">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/ClientState.cs/#L137">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_ClientState_Dispose_" data-uid="Dalamud.Game.ClientState.ClientState.Dispose*"></a>
   <h4 id="Dalamud_Game_ClientState_ClientState_Dispose" data-uid="Dalamud.Game.ClientState.ClientState.Dispose">Dispose()</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Dispose of managed and unmanaged resources.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -550,14 +293,15 @@ public PlayerCharacter LocalPlayer { get; }</code></pre>
   </div>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_ClientState_Enable.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.ClientState.Enable%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_ClientState_Enable.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.ClientState.Enable%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/ClientState.cs/#L152">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/ClientState.cs/#L128">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_ClientState_Enable_" data-uid="Dalamud.Game.ClientState.ClientState.Enable*"></a>
   <h4 id="Dalamud_Game_ClientState_ClientState_Enable" data-uid="Dalamud.Game.ClientState.ClientState.Enable">Enable()</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Enable this module.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -567,10 +311,10 @@ public PlayerCharacter LocalPlayer { get; }</code></pre>
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_ClientState_CfPop.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.ClientState.CfPop%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_ClientState_CfPop.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.ClientState.CfPop%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/ClientState.cs/#L67">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/ClientState.cs/#L97">View Source</a>
   </span>
   <h4 id="Dalamud_Game_ClientState_ClientState_CfPop" data-uid="Dalamud.Game.ClientState.ClientState.CfPop">CfPop</h4>
   <div class="markdown level1 summary"><p>Event that gets fired when a duty is ready.</p>
@@ -597,18 +341,18 @@ public PlayerCharacter LocalPlayer { get; }</code></pre>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_ClientState_OnLogin.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.ClientState.OnLogin%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_ClientState_Login.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.ClientState.Login%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/ClientState.cs/#L171">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/ClientState.cs/#L87">View Source</a>
   </span>
-  <h4 id="Dalamud_Game_ClientState_ClientState_OnLogin" data-uid="Dalamud.Game.ClientState.ClientState.OnLogin">OnLogin</h4>
+  <h4 id="Dalamud_Game_ClientState_ClientState_Login" data-uid="Dalamud.Game.ClientState.ClientState.Login">Login</h4>
   <div class="markdown level1 summary"><p>Event that fires when a character is logging in.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public event EventHandler OnLogin</code></pre>
+    <pre><code class="lang-csharp hljs">public event EventHandler Login</code></pre>
   </div>
   <h5 class="eventType">Event Type</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -627,18 +371,18 @@ public PlayerCharacter LocalPlayer { get; }</code></pre>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_ClientState_OnLogout.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.ClientState.OnLogout%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_ClientState_Logout.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.ClientState.Logout%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/ClientState.cs/#L176">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/ClientState.cs/#L92">View Source</a>
   </span>
-  <h4 id="Dalamud_Game_ClientState_ClientState_OnLogout" data-uid="Dalamud.Game.ClientState.ClientState.OnLogout">OnLogout</h4>
+  <h4 id="Dalamud_Game_ClientState_ClientState_Logout" data-uid="Dalamud.Game.ClientState.ClientState.Logout">Logout</h4>
   <div class="markdown level1 summary"><p>Event that fires when a character is logging out.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public event EventHandler OnLogout</code></pre>
+    <pre><code class="lang-csharp hljs">public event EventHandler Logout</code></pre>
   </div>
   <h5 class="eventType">Event Type</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -657,17 +401,18 @@ public PlayerCharacter LocalPlayer { get; }</code></pre>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_ClientState_PropertyChanged.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.ClientState.PropertyChanged%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_ClientState_TerritoryChanged.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.ClientState.TerritoryChanged%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/ClientState.cs/#L20">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/ClientState.cs/#L82">View Source</a>
   </span>
-  <h4 id="Dalamud_Game_ClientState_ClientState_PropertyChanged" data-uid="Dalamud.Game.ClientState.ClientState.PropertyChanged">PropertyChanged</h4>
-  <div class="markdown level1 summary"></div>
+  <h4 id="Dalamud_Game_ClientState_ClientState_TerritoryChanged" data-uid="Dalamud.Game.ClientState.ClientState.TerritoryChanged">TerritoryChanged</h4>
+  <div class="markdown level1 summary"><p>Event that gets fired when the current Territory changes.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public event PropertyChangedEventHandler PropertyChanged</code></pre>
+    <pre><code class="lang-csharp hljs">public event EventHandler&lt;ushort&gt; TerritoryChanged</code></pre>
   </div>
   <h5 class="eventType">Event Type</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -679,15 +424,12 @@ public PlayerCharacter LocalPlayer { get; }</code></pre>
     </thead>
     <tbody>
       <tr>
-        <td><span class="xref">System.ComponentModel.PropertyChangedEventHandler</span></td>
+        <td><span class="xref">System.EventHandler</span>&lt;<span class="xref">System.UInt16</span>&gt;</td>
         <td></td>
       </tr>
     </tbody>
   </table>
   <h3 id="implements">Implements</h3>
-  <div>
-      <span class="xref">System.ComponentModel.INotifyPropertyChanged</span>
-  </div>
   <div>
       <span class="xref">System.IDisposable</span>
   </div>
@@ -699,10 +441,10 @@ public PlayerCharacter LocalPlayer { get; }</code></pre>
               <div class="contribution">
                 <ul class="nav">
                   <li>
-                    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_ClientState.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.ClientState%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_ClientState.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.ClientState%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
                   </li>
                   <li>
-                    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/ClientState.cs/#L18" class="contribution-link">View Source</a>
+                    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/ClientState.cs/#L25" class="contribution-link">View Source</a>
                   </li>
                 </ul>
               </div>

@@ -10,7 +10,7 @@
     <meta name="viewport" content="width=device-width">
     <meta name="title" content="Class ImGuizmoNative
    ">
-    <meta name="generator" content="docfx 2.56.6.0">
+    <meta name="generator" content="docfx 2.58.0.0">
     
     <link rel="shortcut icon" href="../favicon.ico">
     <link rel="stylesheet" href="../styles/docfx.vendor.css">
@@ -83,16 +83,10 @@
   <div class="inheritedMembers">
     <h5>Inherited Members</h5>
     <div>
-      <span class="xref">System.Object.ToString()</span>
-    </div>
-    <div>
       <span class="xref">System.Object.Equals(System.Object)</span>
     </div>
     <div>
       <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
-    </div>
-    <div>
-      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
     </div>
     <div>
       <span class="xref">System.Object.GetHashCode()</span>
@@ -102,6 +96,12 @@
     </div>
     <div>
       <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ToString()</span>
     </div>
   </div>
   <h6><strong>Namespace</strong>: <a class="xref" href="ImGuizmoNET.html">ImGuizmoNET</a></h6>
@@ -120,7 +120,7 @@
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void ImGuizmo_AllowAxisFlip(byte value)</code></pre>
+    <pre><code class="lang-csharp hljs">public static extern void ImGuizmo_AllowAxisFlip(byte value)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -147,7 +147,7 @@
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void ImGuizmo_BeginFrame()</code></pre>
+    <pre><code class="lang-csharp hljs">public static extern void ImGuizmo_BeginFrame()</code></pre>
   </div>
   
   
@@ -157,7 +157,7 @@
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void ImGuizmo_DecomposeMatrixToComponents(float *matrix, float *translation, float *rotation, float *scale)</code></pre>
+    <pre><code class="lang-csharp hljs">public static extern void ImGuizmo_DecomposeMatrixToComponents(float *matrix, float *translation, float *rotation, float *scale)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -199,7 +199,7 @@
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void ImGuizmo_DrawCubes(float *view, float *projection, float *matrices, int matrixCount)</code></pre>
+    <pre><code class="lang-csharp hljs">public static extern void ImGuizmo_DrawCubes(float *view, float *projection, float *matrices, int matrixCount)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -241,7 +241,7 @@
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void ImGuizmo_DrawGrid(float *view, float *projection, float *matrix, float gridSize)</code></pre>
+    <pre><code class="lang-csharp hljs">public static extern void ImGuizmo_DrawGrid(float *view, float *projection, float *matrix, float gridSize)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -283,7 +283,7 @@
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void ImGuizmo_Enable(byte enable)</code></pre>
+    <pre><code class="lang-csharp hljs">public static extern void ImGuizmo_Enable(byte enable)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -310,7 +310,7 @@
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static byte ImGuizmo_IsOverNil()</code></pre>
+    <pre><code class="lang-csharp hljs">public static extern byte ImGuizmo_IsOverNil()</code></pre>
   </div>
   <h5 class="returns">Returns</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -335,7 +335,7 @@
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static byte ImGuizmo_IsOverOPERATION(OPERATION op)</code></pre>
+    <pre><code class="lang-csharp hljs">public static extern byte ImGuizmo_IsOverOPERATION(OPERATION op)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -377,7 +377,7 @@
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static byte ImGuizmo_IsUsing()</code></pre>
+    <pre><code class="lang-csharp hljs">public static extern byte ImGuizmo_IsUsing()</code></pre>
   </div>
   <h5 class="returns">Returns</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -402,7 +402,7 @@
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static byte ImGuizmo_Manipulate(float *view, float *projection, OPERATION operation, MODE mode, float *matrix, float *deltaMatrix, float *snap, float *localBounds, float *boundsSnap)</code></pre>
+    <pre><code class="lang-csharp hljs">public static extern byte ImGuizmo_Manipulate(float *view, float *projection, OPERATION operation, MODE mode, float *matrix, float *deltaMatrix, float *snap, float *localBounds, float *boundsSnap)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -484,7 +484,7 @@
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void ImGuizmo_RecomposeMatrixFromComponents(float *translation, float *rotation, float *scale, float *matrix)</code></pre>
+    <pre><code class="lang-csharp hljs">public static extern void ImGuizmo_RecomposeMatrixFromComponents(float *translation, float *rotation, float *scale, float *matrix)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -526,7 +526,7 @@
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void ImGuizmo_SetDrawlist(ImDrawList*drawlist)</code></pre>
+    <pre><code class="lang-csharp hljs">public static extern void ImGuizmo_SetDrawlist(ImDrawList*drawlist)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -553,7 +553,7 @@
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void ImGuizmo_SetGizmoSizeClipSpace(float value)</code></pre>
+    <pre><code class="lang-csharp hljs">public static extern void ImGuizmo_SetGizmoSizeClipSpace(float value)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -580,7 +580,7 @@
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void ImGuizmo_SetID(int id)</code></pre>
+    <pre><code class="lang-csharp hljs">public static extern void ImGuizmo_SetID(int id)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -607,7 +607,7 @@
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void ImGuizmo_SetImGuiContext(IntPtr ctx)</code></pre>
+    <pre><code class="lang-csharp hljs">public static extern void ImGuizmo_SetImGuiContext(IntPtr ctx)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -634,7 +634,7 @@
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void ImGuizmo_SetOrthographic(byte isOrthographic)</code></pre>
+    <pre><code class="lang-csharp hljs">public static extern void ImGuizmo_SetOrthographic(byte isOrthographic)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -661,7 +661,7 @@
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void ImGuizmo_SetRect(float x, float y, float width, float height)</code></pre>
+    <pre><code class="lang-csharp hljs">public static extern void ImGuizmo_SetRect(float x, float y, float width, float height)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -703,7 +703,7 @@
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void ImGuizmo_ViewManipulate(float *view, float length, Vector2 position, Vector2 size, uint backgroundColor)</code></pre>
+    <pre><code class="lang-csharp hljs">public static extern void ImGuizmo_ViewManipulate(float *view, float length, Vector2 position, Vector2 size, uint backgroundColor)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -750,10 +750,10 @@
               <div class="contribution">
                 <ul class="nav">
                   <li>
-                    <a href="https://github.com/goatcorp/ImGui.NET/new/a3719c564ad5e231eb0beb0bf93b37298fb71842/apiSpec/new?filename=ImGuizmoNET_ImGuizmoNative.md&amp;value=---%0Auid%3A%20ImGuizmoNET.ImGuizmoNative%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                    <a href="https://github.com/goatcorp/ImGui.NET/new/448ffce48f2df192eada6d7c7e09822677c21467/apiSpec/new?filename=ImGuizmoNET_ImGuizmoNative.md&amp;value=---%0Auid%3A%20ImGuizmoNET.ImGuizmoNative%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
                   </li>
                   <li>
-                    <a href="https://github.com/goatcorp/ImGui.NET/blob/a3719c564ad5e231eb0beb0bf93b37298fb71842/src/ImGui.NET-472/ImGuizmo.NET/ImGuizmoNative.gen.cs/#L8" class="contribution-link">View Source</a>
+                    <a href="https://github.com/goatcorp/ImGui.NET/blob/448ffce48f2df192eada6d7c7e09822677c21467/src/ImGui.NET-472/ImGuizmo.NET/ImGuizmoNative.gen.cs/#L8" class="contribution-link">View Source</a>
                   </li>
                 </ul>
               </div>

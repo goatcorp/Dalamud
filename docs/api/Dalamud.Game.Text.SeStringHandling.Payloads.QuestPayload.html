@@ -10,7 +10,7 @@
     <meta name="viewport" content="width=device-width">
     <meta name="title" content="Class QuestPayload
    ">
-    <meta name="generator" content="docfx 2.56.6.0">
+    <meta name="generator" content="docfx 2.58.0.0">
     
     <link rel="shortcut icon" href="../favicon.ico">
     <link rel="stylesheet" href="../styles/docfx.vendor.css">
@@ -85,16 +85,16 @@
   <div class="inheritedMembers">
     <h5>Inherited Members</h5>
     <div>
-      <a class="xref" href="Dalamud.Game.Text.SeStringHandling.Payload.html#Dalamud_Game_Text_SeStringHandling_Payload_Dirty">Payload.Dirty</a>
-    </div>
-    <div>
       <a class="xref" href="Dalamud.Game.Text.SeStringHandling.Payload.html#Dalamud_Game_Text_SeStringHandling_Payload_DataResolver">Payload.DataResolver</a>
     </div>
     <div>
-      <a class="xref" href="Dalamud.Game.Text.SeStringHandling.Payload.html#Dalamud_Game_Text_SeStringHandling_Payload_Encode_System_Boolean_">Payload.Encode(Boolean)</a>
+      <a class="xref" href="Dalamud.Game.Text.SeStringHandling.Payload.html#Dalamud_Game_Text_SeStringHandling_Payload_Dirty">Payload.Dirty</a>
     </div>
     <div>
-      <a class="xref" href="Dalamud.Game.Text.SeStringHandling.Payload.html#Dalamud_Game_Text_SeStringHandling_Payload_Decode_System_IO_BinaryReader_Dalamud_Data_DataManager_">Payload.Decode(BinaryReader, DataManager)</a>
+      <a class="xref" href="Dalamud.Game.Text.SeStringHandling.Payload.html#Dalamud_Game_Text_SeStringHandling_Payload_Decode_System_IO_BinaryReader_">Payload.Decode(BinaryReader)</a>
+    </div>
+    <div>
+      <a class="xref" href="Dalamud.Game.Text.SeStringHandling.Payload.html#Dalamud_Game_Text_SeStringHandling_Payload_Encode_System_Boolean_">Payload.Encode(Boolean)</a>
     </div>
     <div>
       <a class="xref" href="Dalamud.Game.Text.SeStringHandling.Payload.html#Dalamud_Game_Text_SeStringHandling_Payload_START_BYTE">Payload.START_BYTE</a>
@@ -121,9 +121,6 @@
       <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
     </div>
     <div>
-      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
-    </div>
-    <div>
       <span class="xref">System.Object.GetHashCode()</span>
     </div>
     <div>
@@ -131,6 +128,9 @@
     </div>
     <div>
       <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
     </div>
   </div>
   <h6><strong>Namespace</strong>: <a class="xref" href="Dalamud.Game.Text.SeStringHandling.Payloads.html">Dalamud.Game.Text.SeStringHandling.Payloads</a></h6>
@@ -143,19 +143,20 @@
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_Payloads_QuestPayload__ctor_Dalamud_Data_DataManager_System_UInt32_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.Payloads.QuestPayload.%23ctor(Dalamud.Data.DataManager%2CSystem.UInt32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_Payloads_QuestPayload__ctor_System_UInt32_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.Payloads.QuestPayload.%23ctor(System.UInt32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/Payloads/QuestPayload.cs/#L41">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/Payloads/QuestPayload.cs/#L24">View Source</a>
   </span>
   <a id="Dalamud_Game_Text_SeStringHandling_Payloads_QuestPayload__ctor_" data-uid="Dalamud.Game.Text.SeStringHandling.Payloads.QuestPayload.#ctor*"></a>
-  <h4 id="Dalamud_Game_Text_SeStringHandling_Payloads_QuestPayload__ctor_Dalamud_Data_DataManager_System_UInt32_" data-uid="Dalamud.Game.Text.SeStringHandling.Payloads.QuestPayload.#ctor(Dalamud.Data.DataManager,System.UInt32)">QuestPayload(DataManager, UInt32)</h4>
-  <div class="markdown level1 summary"><p>Creates a payload representing an interactable quest link for the specified quest.</p>
+  <h4 id="Dalamud_Game_Text_SeStringHandling_Payloads_QuestPayload__ctor_System_UInt32_" data-uid="Dalamud.Game.Text.SeStringHandling.Payloads.QuestPayload.#ctor(System.UInt32)">QuestPayload(UInt32)</h4>
+  <div class="markdown level1 summary"><p>Initializes a new instance of the <a class="xref" href="Dalamud.Game.Text.SeStringHandling.Payloads.QuestPayload.html">QuestPayload</a> class.
+Creates a payload representing an interactable quest link for the specified quest.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public QuestPayload(DataManager data, uint questId)</code></pre>
+    <pre><code class="lang-csharp hljs">public QuestPayload(uint questId)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -168,12 +169,6 @@
     </thead>
     <tbody>
       <tr>
-        <td><a class="xref" href="Dalamud.Data.DataManager.html">DataManager</a></td>
-        <td><span class="parametername">data</span></td>
-        <td><p>DataManager instance needed to resolve game data.</p>
-</td>
-      </tr>
-      <tr>
         <td><span class="xref">System.UInt32</span></td>
         <td><span class="parametername">questId</span></td>
         <td><p>The id of the quest.</p>
@@ -185,14 +180,14 @@
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_Payloads_QuestPayload_Quest.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.Payloads.QuestPayload.Quest%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_Payloads_QuestPayload_Quest.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.Payloads.QuestPayload.Quest%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/Payloads/QuestPayload.cs/#L23">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/Payloads/QuestPayload.cs/#L46">View Source</a>
   </span>
   <a id="Dalamud_Game_Text_SeStringHandling_Payloads_QuestPayload_Quest_" data-uid="Dalamud.Game.Text.SeStringHandling.Payloads.QuestPayload.Quest*"></a>
   <h4 id="Dalamud_Game_Text_SeStringHandling_Payloads_QuestPayload_Quest" data-uid="Dalamud.Game.Text.SeStringHandling.Payloads.QuestPayload.Quest">Quest</h4>
-  <div class="markdown level1 summary"><p>The underlying Lumina Quest represented by this payload.</p>
+  <div class="markdown level1 summary"><p>Gets the underlying Lumina Quest represented by this payload.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
@@ -216,18 +211,19 @@ public Quest Quest { get; }</code></pre>
     </tbody>
   </table>
   <h5 id="Dalamud_Game_Text_SeStringHandling_Payloads_QuestPayload_Quest_remarks">Remarks</h5>
-  <div class="markdown level1 remarks"><p>Value is evaluated lazily and cached.</p>
+  <div class="markdown level1 remarks"><p>The value is evaluated lazily and cached.</p>
 </div>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_Payloads_QuestPayload_Type.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.Payloads.QuestPayload.Type%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_Payloads_QuestPayload_Type.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.Payloads.QuestPayload.Type%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/Payloads/QuestPayload.cs/#L13">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/Payloads/QuestPayload.cs/#L38">View Source</a>
   </span>
   <a id="Dalamud_Game_Text_SeStringHandling_Payloads_QuestPayload_Type_" data-uid="Dalamud.Game.Text.SeStringHandling.Payloads.QuestPayload.Type*"></a>
   <h4 id="Dalamud_Game_Text_SeStringHandling_Payloads_QuestPayload_Type" data-uid="Dalamud.Game.Text.SeStringHandling.Payloads.QuestPayload.Type">Type</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Gets the type of this payload.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -254,14 +250,15 @@ public Quest Quest { get; }</code></pre>
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_Payloads_QuestPayload_DecodeImpl_System_IO_BinaryReader_System_Int64_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.Payloads.QuestPayload.DecodeImpl(System.IO.BinaryReader%2CSystem.Int64)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_Payloads_QuestPayload_DecodeImpl_System_IO_BinaryReader_System_Int64_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.Payloads.QuestPayload.DecodeImpl(System.IO.BinaryReader%2CSystem.Int64)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/Payloads/QuestPayload.cs/#L65">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/Payloads/QuestPayload.cs/#L72">View Source</a>
   </span>
   <a id="Dalamud_Game_Text_SeStringHandling_Payloads_QuestPayload_DecodeImpl_" data-uid="Dalamud.Game.Text.SeStringHandling.Payloads.QuestPayload.DecodeImpl*"></a>
   <h4 id="Dalamud_Game_Text_SeStringHandling_Payloads_QuestPayload_DecodeImpl_System_IO_BinaryReader_System_Int64_" data-uid="Dalamud.Game.Text.SeStringHandling.Payloads.QuestPayload.DecodeImpl(System.IO.BinaryReader,System.Int64)">DecodeImpl(BinaryReader, Int64)</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Decodes a byte stream from the game into a payload object.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -280,12 +277,14 @@ public Quest Quest { get; }</code></pre>
       <tr>
         <td><span class="xref">System.IO.BinaryReader</span></td>
         <td><span class="parametername">reader</span></td>
-        <td></td>
+        <td><p>A BinaryReader containing at least all the data for this payload.</p>
+</td>
       </tr>
       <tr>
         <td><span class="xref">System.Int64</span></td>
         <td><span class="parametername">endOfStream</span></td>
-        <td></td>
+        <td><p>The location holding the end of the data for this payload.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -293,14 +292,16 @@ public Quest Quest { get; }</code></pre>
   <div><a class="xref" href="Dalamud.Game.Text.SeStringHandling.Payload.html#Dalamud_Game_Text_SeStringHandling_Payload_DecodeImpl_System_IO_BinaryReader_System_Int64_">Payload.DecodeImpl(BinaryReader, Int64)</a></div>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_Payloads_QuestPayload_EncodeImpl.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.Payloads.QuestPayload.EncodeImpl%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_Payloads_QuestPayload_EncodeImpl.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.Payloads.QuestPayload.EncodeImpl%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/Payloads/QuestPayload.cs/#L51">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/Payloads/QuestPayload.cs/#L56">View Source</a>
   </span>
   <a id="Dalamud_Game_Text_SeStringHandling_Payloads_QuestPayload_EncodeImpl_" data-uid="Dalamud.Game.Text.SeStringHandling.Payloads.QuestPayload.EncodeImpl*"></a>
   <h4 id="Dalamud_Game_Text_SeStringHandling_Payloads_QuestPayload_EncodeImpl" data-uid="Dalamud.Game.Text.SeStringHandling.Payloads.QuestPayload.EncodeImpl">EncodeImpl()</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Encodes the internal state of this payload into a byte[] suitable for sending to in-game
+handlers such as the chat log.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -317,7 +318,8 @@ public Quest Quest { get; }</code></pre>
     <tbody>
       <tr>
         <td><span class="xref">System.Byte</span>[]</td>
-        <td></td>
+        <td><p>Encoded binary payload data suitable for use with in-game handlers.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -325,10 +327,10 @@ public Quest Quest { get; }</code></pre>
   <div><a class="xref" href="Dalamud.Game.Text.SeStringHandling.Payload.html#Dalamud_Game_Text_SeStringHandling_Payload_EncodeImpl">Payload.EncodeImpl()</a></div>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_Payloads_QuestPayload_ToString.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.Payloads.QuestPayload.ToString%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_Payloads_QuestPayload_ToString.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.Payloads.QuestPayload.ToString%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/Payloads/QuestPayload.cs/#L47">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/Payloads/QuestPayload.cs/#L50">View Source</a>
   </span>
   <a id="Dalamud_Game_Text_SeStringHandling_Payloads_QuestPayload_ToString_" data-uid="Dalamud.Game.Text.SeStringHandling.Payloads.QuestPayload.ToString*"></a>
   <h4 id="Dalamud_Game_Text_SeStringHandling_Payloads_QuestPayload_ToString" data-uid="Dalamud.Game.Text.SeStringHandling.Payloads.QuestPayload.ToString">ToString()</h4>
@@ -363,10 +365,10 @@ public Quest Quest { get; }</code></pre>
               <div class="contribution">
                 <ul class="nav">
                   <li>
-                    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_Payloads_QuestPayload.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.Payloads.QuestPayload%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_Payloads_QuestPayload.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.Payloads.QuestPayload%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
                   </li>
                   <li>
-                    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/Payloads/QuestPayload.cs/#L12" class="contribution-link">View Source</a>
+                    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/Payloads/QuestPayload.cs/#L12" class="contribution-link">View Source</a>
                   </li>
                 </ul>
               </div>

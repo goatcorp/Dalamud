@@ -10,7 +10,7 @@
     <meta name="viewport" content="width=device-width">
     <meta name="title" content="Class MarketBoardHistory.MarketBoardHistoryListing
    ">
-    <meta name="generator" content="docfx 2.56.6.0">
+    <meta name="generator" content="docfx 2.58.0.0">
     
     <link rel="shortcut icon" href="../favicon.ico">
     <link rel="stylesheet" href="../styles/docfx.vendor.css">
@@ -73,7 +73,8 @@
   
   <h1 id="Dalamud_Game_Network_Structures_MarketBoardHistory_MarketBoardHistoryListing" data-uid="Dalamud.Game.Network.Structures.MarketBoardHistory.MarketBoardHistoryListing" class="text-break">Class MarketBoardHistory.MarketBoardHistoryListing
   </h1>
-  <div class="markdown level0 summary"></div>
+  <div class="markdown level0 summary"><p>This class represents the market board history of a single item from the <a class="xref" href="Dalamud.Game.Network.Structures.MarketBoardHistory.html">MarketBoardHistory</a> network packet.</p>
+</div>
   <div class="markdown level0 conceptual"></div>
   <div class="inheritance">
     <h5>Inheritance</h5>
@@ -83,16 +84,10 @@
   <div class="inheritedMembers">
     <h5>Inherited Members</h5>
     <div>
-      <span class="xref">System.Object.ToString()</span>
-    </div>
-    <div>
       <span class="xref">System.Object.Equals(System.Object)</span>
     </div>
     <div>
       <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
-    </div>
-    <div>
-      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
     </div>
     <div>
       <span class="xref">System.Object.GetHashCode()</span>
@@ -103,6 +98,12 @@
     <div>
       <span class="xref">System.Object.MemberwiseClone()</span>
     </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ToString()</span>
+    </div>
   </div>
   <h6><strong>Namespace</strong>: <a class="xref" href="Dalamud.Game.Network.Structures.html">Dalamud.Game.Network.Structures</a></h6>
   <h6><strong>Assembly</strong>: Dalamud.dll</h6>
@@ -110,23 +111,25 @@
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public class MarketBoardHistoryListing</code></pre>
   </div>
-  <h3 id="fields">Fields
+  <h3 id="properties">Properties
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Network_Structures_MarketBoardHistory_MarketBoardHistoryListing_BuyerName.md&amp;value=---%0Auid%3A%20Dalamud.Game.Network.Structures.MarketBoardHistory.MarketBoardHistoryListing.BuyerName%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Network_Structures_MarketBoardHistory_MarketBoardHistoryListing_BuyerName.md&amp;value=---%0Auid%3A%20Dalamud.Game.Network.Structures.MarketBoardHistory.MarketBoardHistoryListing.BuyerName%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Network/Structures/MarketBoardHistory.cs/#L47">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Network/Structures/MarketBoardHistory.cs/#L90">View Source</a>
   </span>
+  <a id="Dalamud_Game_Network_Structures_MarketBoardHistory_MarketBoardHistoryListing_BuyerName_" data-uid="Dalamud.Game.Network.Structures.MarketBoardHistory.MarketBoardHistoryListing.BuyerName*"></a>
   <h4 id="Dalamud_Game_Network_Structures_MarketBoardHistory_MarketBoardHistoryListing_BuyerName" data-uid="Dalamud.Game.Network.Structures.MarketBoardHistory.MarketBoardHistoryListing.BuyerName">BuyerName</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Gets the buyer's name.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public string BuyerName</code></pre>
+    <pre><code class="lang-csharp hljs">public string BuyerName { get; }</code></pre>
   </div>
-  <h5 class="fieldValue">Field Value</h5>
+  <h5 class="propertyValue">Property Value</h5>
   <table class="table table-bordered table-striped table-condensed">
     <thead>
       <tr>
@@ -143,19 +146,21 @@
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Network_Structures_MarketBoardHistory_MarketBoardHistoryListing_CatalogId.md&amp;value=---%0Auid%3A%20Dalamud.Game.Network.Structures.MarketBoardHistory.MarketBoardHistoryListing.CatalogId%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Network_Structures_MarketBoardHistory_MarketBoardHistoryListing_CatalogId.md&amp;value=---%0Auid%3A%20Dalamud.Game.Network.Structures.MarketBoardHistory.MarketBoardHistoryListing.CatalogId%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Network/Structures/MarketBoardHistory.cs/#L49">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Network/Structures/MarketBoardHistory.cs/#L95">View Source</a>
   </span>
+  <a id="Dalamud_Game_Network_Structures_MarketBoardHistory_MarketBoardHistoryListing_CatalogId_" data-uid="Dalamud.Game.Network.Structures.MarketBoardHistory.MarketBoardHistoryListing.CatalogId*"></a>
   <h4 id="Dalamud_Game_Network_Structures_MarketBoardHistory_MarketBoardHistoryListing_CatalogId" data-uid="Dalamud.Game.Network.Structures.MarketBoardHistory.MarketBoardHistoryListing.CatalogId">CatalogId</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Gets the catalog ID.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public uint CatalogId</code></pre>
+    <pre><code class="lang-csharp hljs">public uint CatalogId { get; }</code></pre>
   </div>
-  <h5 class="fieldValue">Field Value</h5>
+  <h5 class="propertyValue">Property Value</h5>
   <table class="table table-bordered table-striped table-condensed">
     <thead>
       <tr>
@@ -172,19 +177,21 @@
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Network_Structures_MarketBoardHistory_MarketBoardHistoryListing_IsHq.md&amp;value=---%0Auid%3A%20Dalamud.Game.Network.Structures.MarketBoardHistory.MarketBoardHistoryListing.IsHq%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Network_Structures_MarketBoardHistory_MarketBoardHistoryListing_IsHq.md&amp;value=---%0Auid%3A%20Dalamud.Game.Network.Structures.MarketBoardHistory.MarketBoardHistoryListing.IsHq%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Network/Structures/MarketBoardHistory.cs/#L50">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Network/Structures/MarketBoardHistory.cs/#L100">View Source</a>
   </span>
+  <a id="Dalamud_Game_Network_Structures_MarketBoardHistory_MarketBoardHistoryListing_IsHq_" data-uid="Dalamud.Game.Network.Structures.MarketBoardHistory.MarketBoardHistoryListing.IsHq*"></a>
   <h4 id="Dalamud_Game_Network_Structures_MarketBoardHistory_MarketBoardHistoryListing_IsHq" data-uid="Dalamud.Game.Network.Structures.MarketBoardHistory.MarketBoardHistoryListing.IsHq">IsHq</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Gets a value indicating whether the item is HQ.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public bool IsHq</code></pre>
+    <pre><code class="lang-csharp hljs">public bool IsHq { get; }</code></pre>
   </div>
-  <h5 class="fieldValue">Field Value</h5>
+  <h5 class="propertyValue">Property Value</h5>
   <table class="table table-bordered table-striped table-condensed">
     <thead>
       <tr>
@@ -201,19 +208,21 @@
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Network_Structures_MarketBoardHistory_MarketBoardHistoryListing_OnMannequin.md&amp;value=---%0Auid%3A%20Dalamud.Game.Network.Structures.MarketBoardHistory.MarketBoardHistoryListing.OnMannequin%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Network_Structures_MarketBoardHistory_MarketBoardHistoryListing_OnMannequin.md&amp;value=---%0Auid%3A%20Dalamud.Game.Network.Structures.MarketBoardHistory.MarketBoardHistoryListing.OnMannequin%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Network/Structures/MarketBoardHistory.cs/#L51">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Network/Structures/MarketBoardHistory.cs/#L105">View Source</a>
   </span>
+  <a id="Dalamud_Game_Network_Structures_MarketBoardHistory_MarketBoardHistoryListing_OnMannequin_" data-uid="Dalamud.Game.Network.Structures.MarketBoardHistory.MarketBoardHistoryListing.OnMannequin*"></a>
   <h4 id="Dalamud_Game_Network_Structures_MarketBoardHistory_MarketBoardHistoryListing_OnMannequin" data-uid="Dalamud.Game.Network.Structures.MarketBoardHistory.MarketBoardHistoryListing.OnMannequin">OnMannequin</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Gets a value indicating whether the item is on a mannequin.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public bool OnMannequin</code></pre>
+    <pre><code class="lang-csharp hljs">public bool OnMannequin { get; }</code></pre>
   </div>
-  <h5 class="fieldValue">Field Value</h5>
+  <h5 class="propertyValue">Property Value</h5>
   <table class="table table-bordered table-striped table-condensed">
     <thead>
       <tr>
@@ -230,19 +239,21 @@
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Network_Structures_MarketBoardHistory_MarketBoardHistoryListing_PurchaseTime.md&amp;value=---%0Auid%3A%20Dalamud.Game.Network.Structures.MarketBoardHistory.MarketBoardHistoryListing.PurchaseTime%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Network_Structures_MarketBoardHistory_MarketBoardHistoryListing_PurchaseTime.md&amp;value=---%0Auid%3A%20Dalamud.Game.Network.Structures.MarketBoardHistory.MarketBoardHistoryListing.PurchaseTime%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Network/Structures/MarketBoardHistory.cs/#L52">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Network/Structures/MarketBoardHistory.cs/#L110">View Source</a>
   </span>
+  <a id="Dalamud_Game_Network_Structures_MarketBoardHistory_MarketBoardHistoryListing_PurchaseTime_" data-uid="Dalamud.Game.Network.Structures.MarketBoardHistory.MarketBoardHistoryListing.PurchaseTime*"></a>
   <h4 id="Dalamud_Game_Network_Structures_MarketBoardHistory_MarketBoardHistoryListing_PurchaseTime" data-uid="Dalamud.Game.Network.Structures.MarketBoardHistory.MarketBoardHistoryListing.PurchaseTime">PurchaseTime</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Gets the time of purchase.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public DateTime PurchaseTime</code></pre>
+    <pre><code class="lang-csharp hljs">public DateTime PurchaseTime { get; }</code></pre>
   </div>
-  <h5 class="fieldValue">Field Value</h5>
+  <h5 class="propertyValue">Property Value</h5>
   <table class="table table-bordered table-striped table-condensed">
     <thead>
       <tr>
@@ -259,19 +270,21 @@
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Network_Structures_MarketBoardHistory_MarketBoardHistoryListing_Quantity.md&amp;value=---%0Auid%3A%20Dalamud.Game.Network.Structures.MarketBoardHistory.MarketBoardHistoryListing.Quantity%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Network_Structures_MarketBoardHistory_MarketBoardHistoryListing_Quantity.md&amp;value=---%0Auid%3A%20Dalamud.Game.Network.Structures.MarketBoardHistory.MarketBoardHistoryListing.Quantity%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Network/Structures/MarketBoardHistory.cs/#L53">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Network/Structures/MarketBoardHistory.cs/#L115">View Source</a>
   </span>
+  <a id="Dalamud_Game_Network_Structures_MarketBoardHistory_MarketBoardHistoryListing_Quantity_" data-uid="Dalamud.Game.Network.Structures.MarketBoardHistory.MarketBoardHistoryListing.Quantity*"></a>
   <h4 id="Dalamud_Game_Network_Structures_MarketBoardHistory_MarketBoardHistoryListing_Quantity" data-uid="Dalamud.Game.Network.Structures.MarketBoardHistory.MarketBoardHistoryListing.Quantity">Quantity</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Gets the quantity.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public uint Quantity</code></pre>
+    <pre><code class="lang-csharp hljs">public uint Quantity { get; }</code></pre>
   </div>
-  <h5 class="fieldValue">Field Value</h5>
+  <h5 class="propertyValue">Property Value</h5>
   <table class="table table-bordered table-striped table-condensed">
     <thead>
       <tr>
@@ -288,19 +301,21 @@
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Network_Structures_MarketBoardHistory_MarketBoardHistoryListing_SalePrice.md&amp;value=---%0Auid%3A%20Dalamud.Game.Network.Structures.MarketBoardHistory.MarketBoardHistoryListing.SalePrice%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Network_Structures_MarketBoardHistory_MarketBoardHistoryListing_SalePrice.md&amp;value=---%0Auid%3A%20Dalamud.Game.Network.Structures.MarketBoardHistory.MarketBoardHistoryListing.SalePrice%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Network/Structures/MarketBoardHistory.cs/#L54">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Network/Structures/MarketBoardHistory.cs/#L120">View Source</a>
   </span>
+  <a id="Dalamud_Game_Network_Structures_MarketBoardHistory_MarketBoardHistoryListing_SalePrice_" data-uid="Dalamud.Game.Network.Structures.MarketBoardHistory.MarketBoardHistoryListing.SalePrice*"></a>
   <h4 id="Dalamud_Game_Network_Structures_MarketBoardHistory_MarketBoardHistoryListing_SalePrice" data-uid="Dalamud.Game.Network.Structures.MarketBoardHistory.MarketBoardHistoryListing.SalePrice">SalePrice</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Gets the sale price.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public uint SalePrice</code></pre>
+    <pre><code class="lang-csharp hljs">public uint SalePrice { get; }</code></pre>
   </div>
-  <h5 class="fieldValue">Field Value</h5>
+  <h5 class="propertyValue">Property Value</h5>
   <table class="table table-bordered table-striped table-condensed">
     <thead>
       <tr>
@@ -323,10 +338,10 @@
               <div class="contribution">
                 <ul class="nav">
                   <li>
-                    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Network_Structures_MarketBoardHistory_MarketBoardHistoryListing.md&amp;value=---%0Auid%3A%20Dalamud.Game.Network.Structures.MarketBoardHistory.MarketBoardHistoryListing%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Network_Structures_MarketBoardHistory_MarketBoardHistoryListing.md&amp;value=---%0Auid%3A%20Dalamud.Game.Network.Structures.MarketBoardHistory.MarketBoardHistoryListing%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
                   </li>
                   <li>
-                    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Network/Structures/MarketBoardHistory.cs/#L46" class="contribution-link">View Source</a>
+                    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Network/Structures/MarketBoardHistory.cs/#L78" class="contribution-link">View Source</a>
                   </li>
                 </ul>
               </div>

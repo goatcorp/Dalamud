@@ -10,7 +10,7 @@
     <meta name="viewport" content="width=device-width">
     <meta name="title" content="Class MapLinkPayload
    ">
-    <meta name="generator" content="docfx 2.56.6.0">
+    <meta name="generator" content="docfx 2.58.0.0">
     
     <link rel="shortcut icon" href="../favicon.ico">
     <link rel="stylesheet" href="../styles/docfx.vendor.css">
@@ -85,16 +85,16 @@
   <div class="inheritedMembers">
     <h5>Inherited Members</h5>
     <div>
-      <a class="xref" href="Dalamud.Game.Text.SeStringHandling.Payload.html#Dalamud_Game_Text_SeStringHandling_Payload_Dirty">Payload.Dirty</a>
-    </div>
-    <div>
       <a class="xref" href="Dalamud.Game.Text.SeStringHandling.Payload.html#Dalamud_Game_Text_SeStringHandling_Payload_DataResolver">Payload.DataResolver</a>
     </div>
     <div>
-      <a class="xref" href="Dalamud.Game.Text.SeStringHandling.Payload.html#Dalamud_Game_Text_SeStringHandling_Payload_Encode_System_Boolean_">Payload.Encode(Boolean)</a>
+      <a class="xref" href="Dalamud.Game.Text.SeStringHandling.Payload.html#Dalamud_Game_Text_SeStringHandling_Payload_Dirty">Payload.Dirty</a>
     </div>
     <div>
-      <a class="xref" href="Dalamud.Game.Text.SeStringHandling.Payload.html#Dalamud_Game_Text_SeStringHandling_Payload_Decode_System_IO_BinaryReader_Dalamud_Data_DataManager_">Payload.Decode(BinaryReader, DataManager)</a>
+      <a class="xref" href="Dalamud.Game.Text.SeStringHandling.Payload.html#Dalamud_Game_Text_SeStringHandling_Payload_Decode_System_IO_BinaryReader_">Payload.Decode(BinaryReader)</a>
+    </div>
+    <div>
+      <a class="xref" href="Dalamud.Game.Text.SeStringHandling.Payload.html#Dalamud_Game_Text_SeStringHandling_Payload_Encode_System_Boolean_">Payload.Encode(Boolean)</a>
     </div>
     <div>
       <a class="xref" href="Dalamud.Game.Text.SeStringHandling.Payload.html#Dalamud_Game_Text_SeStringHandling_Payload_START_BYTE">Payload.START_BYTE</a>
@@ -121,9 +121,6 @@
       <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
     </div>
     <div>
-      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
-    </div>
-    <div>
       <span class="xref">System.Object.GetHashCode()</span>
     </div>
     <div>
@@ -131,6 +128,9 @@
     </div>
     <div>
       <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
     </div>
   </div>
   <h6><strong>Namespace</strong>: <a class="xref" href="Dalamud.Game.Text.SeStringHandling.Payloads.html">Dalamud.Game.Text.SeStringHandling.Payloads</a></h6>
@@ -143,19 +143,20 @@
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload__ctor_Dalamud_Data_DataManager_System_UInt32_System_UInt32_System_Int32_System_Int32_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.%23ctor(Dalamud.Data.DataManager%2CSystem.UInt32%2CSystem.UInt32%2CSystem.Int32%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload__ctor_System_UInt32_System_UInt32_System_Int32_System_Int32_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.%23ctor(System.UInt32%2CSystem.UInt32%2CSystem.Int32%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/Payloads/MapLinkPayload.cs/#L176">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/Payloads/MapLinkPayload.cs/#L54">View Source</a>
   </span>
   <a id="Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload__ctor_" data-uid="Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.#ctor*"></a>
-  <h4 id="Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload__ctor_Dalamud_Data_DataManager_System_UInt32_System_UInt32_System_Int32_System_Int32_" data-uid="Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.#ctor(Dalamud.Data.DataManager,System.UInt32,System.UInt32,System.Int32,System.Int32)">MapLinkPayload(DataManager, UInt32, UInt32, Int32, Int32)</h4>
-  <div class="markdown level1 summary"><p>Creates an interactable MapLinkPayload from a raw position.</p>
+  <h4 id="Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload__ctor_System_UInt32_System_UInt32_System_Int32_System_Int32_" data-uid="Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.#ctor(System.UInt32,System.UInt32,System.Int32,System.Int32)">MapLinkPayload(UInt32, UInt32, Int32, Int32)</h4>
+  <div class="markdown level1 summary"><p>Initializes a new instance of the <a class="xref" href="Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.html">MapLinkPayload</a> class.
+Creates an interactable MapLinkPayload from a raw position.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public MapLinkPayload(DataManager data, uint territoryTypeId, uint mapId, int rawX, int rawY)</code></pre>
+    <pre><code class="lang-csharp hljs">public MapLinkPayload(uint territoryTypeId, uint mapId, int rawX, int rawY)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -167,12 +168,6 @@
       </tr>
     </thead>
     <tbody>
-      <tr>
-        <td><a class="xref" href="Dalamud.Data.DataManager.html">DataManager</a></td>
-        <td><span class="parametername">data</span></td>
-        <td><p>DataManager instance needed to resolve game data.</p>
-</td>
-      </tr>
       <tr>
         <td><span class="xref">System.UInt32</span></td>
         <td><span class="parametername">territoryTypeId</span></td>
@@ -201,19 +196,20 @@
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload__ctor_Dalamud_Data_DataManager_System_UInt32_System_UInt32_System_Single_System_Single_System_Single_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.%23ctor(Dalamud.Data.DataManager%2CSystem.UInt32%2CSystem.UInt32%2CSystem.Single%2CSystem.Single%2CSystem.Single)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload__ctor_System_UInt32_System_UInt32_System_Single_System_Single_System_Single_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.%23ctor(System.UInt32%2CSystem.UInt32%2CSystem.Single%2CSystem.Single%2CSystem.Single)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/Payloads/MapLinkPayload.cs/#L157">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/Payloads/MapLinkPayload.cs/#L35">View Source</a>
   </span>
   <a id="Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload__ctor_" data-uid="Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.#ctor*"></a>
-  <h4 id="Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload__ctor_Dalamud_Data_DataManager_System_UInt32_System_UInt32_System_Single_System_Single_System_Single_" data-uid="Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.#ctor(Dalamud.Data.DataManager,System.UInt32,System.UInt32,System.Single,System.Single,System.Single)">MapLinkPayload(DataManager, UInt32, UInt32, Single, Single, Single)</h4>
-  <div class="markdown level1 summary"><p>Creates an interactable MapLinkPayload from a human-readable position.</p>
+  <h4 id="Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload__ctor_System_UInt32_System_UInt32_System_Single_System_Single_System_Single_" data-uid="Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.#ctor(System.UInt32,System.UInt32,System.Single,System.Single,System.Single)">MapLinkPayload(UInt32, UInt32, Single, Single, Single)</h4>
+  <div class="markdown level1 summary"><p>Initializes a new instance of the <a class="xref" href="Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.html">MapLinkPayload</a> class.
+Creates an interactable MapLinkPayload from a human-readable position.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public MapLinkPayload(DataManager data, uint territoryTypeId, uint mapId, float niceXCoord, float niceYCoord, float fudgeFactor = 0.05F)</code></pre>
+    <pre><code class="lang-csharp hljs">public MapLinkPayload(uint territoryTypeId, uint mapId, float niceXCoord, float niceYCoord, float fudgeFactor = 0.05F)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -225,12 +221,6 @@
       </tr>
     </thead>
     <tbody>
-      <tr>
-        <td><a class="xref" href="Dalamud.Data.DataManager.html">DataManager</a></td>
-        <td><span class="parametername">data</span></td>
-        <td><p>DataManager instance needed to resolve game data.</p>
-</td>
-      </tr>
       <tr>
         <td><span class="xref">System.UInt32</span></td>
         <td><span class="parametername">territoryTypeId</span></td>
@@ -267,15 +257,15 @@
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_CoordinateString.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.CoordinateString%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_CoordinateString.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.CoordinateString%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/Payloads/MapLinkPayload.cs/#L89">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/Payloads/MapLinkPayload.cs/#L120">View Source</a>
   </span>
   <a id="Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_CoordinateString_" data-uid="Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.CoordinateString*"></a>
   <h4 id="Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_CoordinateString" data-uid="Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.CoordinateString">CoordinateString</h4>
-  <div class="markdown level1 summary"><p>The printable map coordinates for this link.  This value tries to match the in-game printable text as closely as possible
-but is an approximation and may be slightly off for some positions.</p>
+  <div class="markdown level1 summary"><p>Gets the printable map coordinates for this link.  This value tries to match the in-game printable text as closely
+as possible but is an approximation and may be slightly off for some positions.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
@@ -300,14 +290,14 @@ public string CoordinateString { get; }</code></pre>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_DataString.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.DataString%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_DataString.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.DataString%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/Payloads/MapLinkPayload.cs/#L137">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/Payloads/MapLinkPayload.cs/#L152">View Source</a>
   </span>
   <a id="Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_DataString_" data-uid="Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.DataString*"></a>
   <h4 id="Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_DataString" data-uid="Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.DataString">DataString</h4>
-  <div class="markdown level1 summary"><p>The data string for this map link, for use by internal game functions that take a string variant and not a binary payload.</p>
+  <div class="markdown level1 summary"><p>Gets the data string for this map link, for use by internal game functions that take a string variant and not a binary payload.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
@@ -331,14 +321,14 @@ public string CoordinateString { get; }</code></pre>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_Map.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.Map%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_Map.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.Map%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/Payloads/MapLinkPayload.cs/#L24">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/Payloads/MapLinkPayload.cs/#L79">View Source</a>
   </span>
   <a id="Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_Map_" data-uid="Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.Map*"></a>
   <h4 id="Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_Map" data-uid="Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.Map">Map</h4>
-  <div class="markdown level1 summary"><p>The Map specified for this map link.</p>
+  <div class="markdown level1 summary"><p>Gets the Map specified for this map link.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
@@ -362,18 +352,18 @@ public Map Map { get; }</code></pre>
     </tbody>
   </table>
   <h5 id="Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_Map_remarks">Remarks</h5>
-  <div class="markdown level1 remarks"><p>Value is evaluated lazily and cached.</p>
+  <div class="markdown level1 remarks"><p>The value is evaluated lazily and cached.</p>
 </div>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_PlaceName.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.PlaceName%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_PlaceName.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.PlaceName%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/Payloads/MapLinkPayload.cs/#L124">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/Payloads/MapLinkPayload.cs/#L146">View Source</a>
   </span>
   <a id="Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_PlaceName_" data-uid="Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.PlaceName*"></a>
   <h4 id="Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_PlaceName" data-uid="Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.PlaceName">PlaceName</h4>
-  <div class="markdown level1 summary"><p>The place name for this map link.  This corresponds to the lower zone name found in the actual in-game map UI.  eg, &quot;Limsa Lominsa Upper Decks&quot;</p>
+  <div class="markdown level1 summary"><p>Gets the place name for this map link. This corresponds to the lower zone name found in the actual in-game map UI. eg, &quot;Limsa Lominsa Upper Decks&quot;.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
@@ -398,14 +388,14 @@ public string PlaceName { get; }</code></pre>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_PlaceNameRegion.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.PlaceNameRegion%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_PlaceNameRegion.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.PlaceNameRegion%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/Payloads/MapLinkPayload.cs/#L110">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/Payloads/MapLinkPayload.cs/#L140">View Source</a>
   </span>
   <a id="Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_PlaceNameRegion_" data-uid="Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.PlaceNameRegion*"></a>
   <h4 id="Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_PlaceNameRegion" data-uid="Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.PlaceNameRegion">PlaceNameRegion</h4>
-  <div class="markdown level1 summary"><p>The region name for this map link.  This corresponds to the upper zone name found in the actual in-game map UI.  eg, &quot;La Noscea&quot;</p>
+  <div class="markdown level1 summary"><p>Gets the region name for this map link. This corresponds to the upper zone name found in the actual in-game map UI. eg, &quot;La Noscea&quot;.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
@@ -430,14 +420,14 @@ public string PlaceNameRegion { get; }</code></pre>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_RawX.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.RawX%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_RawX.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.RawX%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/Payloads/MapLinkPayload.cs/#L54">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/Payloads/MapLinkPayload.cs/#L94">View Source</a>
   </span>
   <a id="Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_RawX_" data-uid="Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.RawX*"></a>
   <h4 id="Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_RawX" data-uid="Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.RawX">RawX</h4>
-  <div class="markdown level1 summary"><p>The internal x-coordinate for this map position.</p>
+  <div class="markdown level1 summary"><p>Gets the internal x-coordinate for this map position.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
@@ -461,14 +451,14 @@ public string PlaceNameRegion { get; }</code></pre>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_RawY.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.RawY%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_RawY.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.RawY%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/Payloads/MapLinkPayload.cs/#L59">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/Payloads/MapLinkPayload.cs/#L99">View Source</a>
   </span>
   <a id="Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_RawY_" data-uid="Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.RawY*"></a>
   <h4 id="Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_RawY" data-uid="Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.RawY">RawY</h4>
-  <div class="markdown level1 summary"><p>The internal y-coordinate for this map position.</p>
+  <div class="markdown level1 summary"><p>Gets the internal y-coordinate for this map position.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
@@ -492,14 +482,14 @@ public string PlaceNameRegion { get; }</code></pre>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_TerritoryType.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.TerritoryType%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_TerritoryType.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.TerritoryType%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/Payloads/MapLinkPayload.cs/#L41">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/Payloads/MapLinkPayload.cs/#L88">View Source</a>
   </span>
   <a id="Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_TerritoryType_" data-uid="Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.TerritoryType*"></a>
   <h4 id="Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_TerritoryType" data-uid="Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.TerritoryType">TerritoryType</h4>
-  <div class="markdown level1 summary"><p>The TerritoryType specified for this map link.</p>
+  <div class="markdown level1 summary"><p>Gets the TerritoryType specified for this map link.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
@@ -523,18 +513,19 @@ public TerritoryType TerritoryType { get; }</code></pre>
     </tbody>
   </table>
   <h5 id="Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_TerritoryType_remarks">Remarks</h5>
-  <div class="markdown level1 remarks"><p>Value is evaluated lazily and cached.</p>
+  <div class="markdown level1 remarks"><p>The value is evaluated lazily and cached.</p>
 </div>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_Type.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.Type%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_Type.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.Type%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/Payloads/MapLinkPayload.cs/#L15">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/Payloads/MapLinkPayload.cs/#L71">View Source</a>
   </span>
   <a id="Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_Type_" data-uid="Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.Type*"></a>
   <h4 id="Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_Type" data-uid="Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.Type">Type</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Gets the type of this payload.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -559,14 +550,14 @@ public TerritoryType TerritoryType { get; }</code></pre>
   <div><a class="xref" href="Dalamud.Game.Text.SeStringHandling.Payload.html#Dalamud_Game_Text_SeStringHandling_Payload_Type">Payload.Type</a></div>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_XCoord.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.XCoord%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_XCoord.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.XCoord%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/Payloads/MapLinkPayload.cs/#L65">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/Payloads/MapLinkPayload.cs/#L106">View Source</a>
   </span>
   <a id="Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_XCoord_" data-uid="Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.XCoord*"></a>
   <h4 id="Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_XCoord" data-uid="Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.XCoord">XCoord</h4>
-  <div class="markdown level1 summary"><p>The readable x-coordinate position for this map link.  This value is approximate and unrounded.</p>
+  <div class="markdown level1 summary"><p>Gets the readable x-coordinate position for this map link.  This value is approximate and unrounded.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
@@ -590,14 +581,14 @@ public TerritoryType TerritoryType { get; }</code></pre>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_YCoord.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.YCoord%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_YCoord.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.YCoord%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/Payloads/MapLinkPayload.cs/#L76">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/Payloads/MapLinkPayload.cs/#L111">View Source</a>
   </span>
   <a id="Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_YCoord_" data-uid="Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.YCoord*"></a>
   <h4 id="Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_YCoord" data-uid="Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.YCoord">YCoord</h4>
-  <div class="markdown level1 summary"><p>The readable y-coordinate position for this map link.  This value is approximate and unrounded.</p>
+  <div class="markdown level1 summary"><p>Gets the readable y-coordinate position for this map link.  This value is approximate and unrounded.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
@@ -624,14 +615,15 @@ public float YCoord { get; }</code></pre>
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_DecodeImpl_System_IO_BinaryReader_System_Int64_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.DecodeImpl(System.IO.BinaryReader%2CSystem.Int64)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_DecodeImpl_System_IO_BinaryReader_System_Int64_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.DecodeImpl(System.IO.BinaryReader%2CSystem.Int64)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/Payloads/MapLinkPayload.cs/#L214">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/Payloads/MapLinkPayload.cs/#L186">View Source</a>
   </span>
   <a id="Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_DecodeImpl_" data-uid="Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.DecodeImpl*"></a>
   <h4 id="Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_DecodeImpl_System_IO_BinaryReader_System_Int64_" data-uid="Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.DecodeImpl(System.IO.BinaryReader,System.Int64)">DecodeImpl(BinaryReader, Int64)</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Decodes a byte stream from the game into a payload object.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -650,12 +642,14 @@ public float YCoord { get; }</code></pre>
       <tr>
         <td><span class="xref">System.IO.BinaryReader</span></td>
         <td><span class="parametername">reader</span></td>
-        <td></td>
+        <td><p>A BinaryReader containing at least all the data for this payload.</p>
+</td>
       </tr>
       <tr>
         <td><span class="xref">System.Int64</span></td>
         <td><span class="parametername">endOfStream</span></td>
-        <td></td>
+        <td><p>The location holding the end of the data for this payload.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -663,14 +657,16 @@ public float YCoord { get; }</code></pre>
   <div><a class="xref" href="Dalamud.Game.Text.SeStringHandling.Payload.html#Dalamud_Game_Text_SeStringHandling_Payload_DecodeImpl_System_IO_BinaryReader_System_Int64_">Payload.DecodeImpl(BinaryReader, Int64)</a></div>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_EncodeImpl.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.EncodeImpl%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_EncodeImpl.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.EncodeImpl%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/Payloads/MapLinkPayload.cs/#L190">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/Payloads/MapLinkPayload.cs/#L161">View Source</a>
   </span>
   <a id="Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_EncodeImpl_" data-uid="Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.EncodeImpl*"></a>
   <h4 id="Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_EncodeImpl" data-uid="Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.EncodeImpl">EncodeImpl()</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Encodes the internal state of this payload into a byte[] suitable for sending to in-game
+handlers such as the chat log.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -687,7 +683,8 @@ public float YCoord { get; }</code></pre>
     <tbody>
       <tr>
         <td><span class="xref">System.Byte</span>[]</td>
-        <td></td>
+        <td><p>Encoded binary payload data suitable for use with in-game handlers.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -695,10 +692,10 @@ public float YCoord { get; }</code></pre>
   <div><a class="xref" href="Dalamud.Game.Text.SeStringHandling.Payload.html#Dalamud_Game_Text_SeStringHandling_Payload_EncodeImpl">Payload.EncodeImpl()</a></div>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_ToString.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.ToString%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_ToString.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.ToString%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/Payloads/MapLinkPayload.cs/#L185">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/Payloads/MapLinkPayload.cs/#L155">View Source</a>
   </span>
   <a id="Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_ToString_" data-uid="Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.ToString*"></a>
   <h4 id="Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_ToString" data-uid="Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload.ToString">ToString()</h4>
@@ -733,10 +730,10 @@ public float YCoord { get; }</code></pre>
               <div class="contribution">
                 <ul class="nav">
                   <li>
-                    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
                   </li>
                   <li>
-                    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/Payloads/MapLinkPayload.cs/#L13" class="contribution-link">View Source</a>
+                    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/Payloads/MapLinkPayload.cs/#L13" class="contribution-link">View Source</a>
                   </li>
                 </ul>
               </div>

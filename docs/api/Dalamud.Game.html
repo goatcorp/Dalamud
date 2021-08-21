@@ -10,7 +10,7 @@
     <meta name="viewport" content="width=device-width">
     <meta name="title" content="Namespace Dalamud.Game
    ">
-    <meta name="generator" content="docfx 2.56.6.0">
+    <meta name="generator" content="docfx 2.58.0.0">
     
     <link rel="shortcut icon" href="../favicon.ico">
     <link rel="stylesheet" href="../styles/docfx.vendor.css">
@@ -78,9 +78,36 @@
     <h3 id="classes">Classes
   </h3>
       <h4><a class="xref" href="Dalamud.Game.ChatHandlers.html">ChatHandlers</a></h4>
-      <section></section>
+      <section><p>Chat events and public helper functions.</p>
+</section>
+      <h4><a class="xref" href="Dalamud.Game.Framework.html">Framework</a></h4>
+      <section><p>This class represents the Framework of the native game client and grants access to various subsystems.</p>
+</section>
+      <h4><a class="xref" href="Dalamud.Game.GameVersion.html">GameVersion</a></h4>
+      <section><p>A GameVersion object contains give hierarchical numeric components: year, month,
+day, major and minor. All components may be unspecified, which is represented
+internally as a -1. By definition, an unspecified component matches anything
+(both unspecified and specified), and an unspecified component is &quot;less than&quot; any
+specified component. It will also equal the string &quot;any&quot; if all components are
+unspecified. The value can be retrieved from the ffxivgame.ver file in your game
+installation directory.</p>
+</section>
+      <h4><a class="xref" href="Dalamud.Game.GameVersionConverter.html">GameVersionConverter</a></h4>
+      <section><p>Converts a <a class="xref" href="Dalamud.Game.GameVersion.html">GameVersion</a> to and from a string (e.g. <code>&quot;2010.01.01.1234.5678&quot;</code>).</p>
+</section>
       <h4><a class="xref" href="Dalamud.Game.SigScanner.html">SigScanner</a></h4>
       <section><p>A SigScanner facilitates searching for memory signatures in a given ProcessModule.</p>
+</section>
+    <h3 id="delegates">Delegates
+  </h3>
+      <h4><a class="xref" href="Dalamud.Game.Framework.OnDestroyDelegate.html">Framework.OnDestroyDelegate</a></h4>
+      <section><p>A delegate type used during the native Framework::free.</p>
+</section>
+      <h4><a class="xref" href="Dalamud.Game.Framework.OnRealDestroyDelegate.html">Framework.OnRealDestroyDelegate</a></h4>
+      <section><p>A delegate type used during the native Framework::destroy.</p>
+</section>
+      <h4><a class="xref" href="Dalamud.Game.Framework.OnUpdateDelegate.html">Framework.OnUpdateDelegate</a></h4>
+      <section><p>A delegate type used with the <a class="xref" href="Dalamud.Game.Framework.html#Dalamud_Game_Framework_OnUpdateEvent">OnUpdateEvent</a> event.</p>
 </section>
 </article>
           </div>

@@ -10,7 +10,7 @@
     <meta name="viewport" content="width=device-width">
     <meta name="title" content="Class SwapChainVtableResolver
    ">
-    <meta name="generator" content="docfx 2.56.6.0">
+    <meta name="generator" content="docfx 2.58.0.0">
     
     <link rel="shortcut icon" href="../favicon.ico">
     <link rel="stylesheet" href="../styles/docfx.vendor.css">
@@ -73,27 +73,22 @@
   
   <h1 id="Dalamud_Game_Internal_DXGI_SwapChainVtableResolver" data-uid="Dalamud.Game.Internal.DXGI.SwapChainVtableResolver" class="text-break">Class SwapChainVtableResolver
   </h1>
-  <div class="markdown level0 summary"></div>
+  <div class="markdown level0 summary"><p>This class attempts to determine the D3D11 SwapChain vtable addresses via instantiating a new form and inspecting it.</p>
+</div>
   <div class="markdown level0 conceptual"></div>
   <div class="inheritance">
     <h5>Inheritance</h5>
     <div class="level0"><span class="xref">System.Object</span></div>
-    <div class="level1"><span class="xref">Dalamud.Game.Internal.BaseAddressResolver</span></div>
+    <div class="level1"><span class="xref">Dalamud.Game.BaseAddressResolver</span></div>
     <div class="level2"><span class="xref">SwapChainVtableResolver</span></div>
   </div>
   <div class="inheritedMembers">
     <h5>Inherited Members</h5>
     <div>
-      <span class="xref">System.Object.ToString()</span>
-    </div>
-    <div>
       <span class="xref">System.Object.Equals(System.Object)</span>
     </div>
     <div>
       <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
-    </div>
-    <div>
-      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
     </div>
     <div>
       <span class="xref">System.Object.GetHashCode()</span>
@@ -104,6 +99,12 @@
     <div>
       <span class="xref">System.Object.MemberwiseClone()</span>
     </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ToString()</span>
+    </div>
   </div>
   <h6><strong>Namespace</strong>: <a class="xref" href="Dalamud.Game.Internal.DXGI.html">Dalamud.Game.Internal.DXGI</a></h6>
   <h6><strong>Assembly</strong>: Dalamud.dll</h6>
@@ -111,14 +112,17 @@
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public class SwapChainVtableResolver : BaseAddressResolver, ISwapChainAddressResolver</code></pre>
   </div>
+  <h5 id="Dalamud_Game_Internal_DXGI_SwapChainVtableResolver_remarks"><strong>Remarks</strong></h5>
+  <div class="markdown level0 remarks"><p>If the normal signature based method of resolution fails, this is the backup.</p>
+</div>
   <h3 id="properties">Properties
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Internal_DXGI_SwapChainVtableResolver_Present.md&amp;value=---%0Auid%3A%20Dalamud.Game.Internal.DXGI.SwapChainVtableResolver.Present%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Internal_DXGI_SwapChainVtableResolver_Present.md&amp;value=---%0Auid%3A%20Dalamud.Game.Internal.DXGI.SwapChainVtableResolver.Present%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Internal/DXGI/SwapChainVtableResolver.cs/#L61">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Internal/DXGI/SwapChainVtableResolver.cs/#L26">View Source</a>
   </span>
   <a id="Dalamud_Game_Internal_DXGI_SwapChainVtableResolver_Present_" data-uid="Dalamud.Game.Internal.DXGI.SwapChainVtableResolver.Present*"></a>
   <h4 id="Dalamud_Game_Internal_DXGI_SwapChainVtableResolver_Present" data-uid="Dalamud.Game.Internal.DXGI.SwapChainVtableResolver.Present">Present</h4>
@@ -145,10 +149,10 @@
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Internal_DXGI_SwapChainVtableResolver_ResizeBuffers.md&amp;value=---%0Auid%3A%20Dalamud.Game.Internal.DXGI.SwapChainVtableResolver.ResizeBuffers%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Internal_DXGI_SwapChainVtableResolver_ResizeBuffers.md&amp;value=---%0Auid%3A%20Dalamud.Game.Internal.DXGI.SwapChainVtableResolver.ResizeBuffers%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Internal/DXGI/SwapChainVtableResolver.cs/#L62">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Internal/DXGI/SwapChainVtableResolver.cs/#L29">View Source</a>
   </span>
   <a id="Dalamud_Game_Internal_DXGI_SwapChainVtableResolver_ResizeBuffers_" data-uid="Dalamud.Game.Internal.DXGI.SwapChainVtableResolver.ResizeBuffers*"></a>
   <h4 id="Dalamud_Game_Internal_DXGI_SwapChainVtableResolver_ResizeBuffers" data-uid="Dalamud.Game.Internal.DXGI.SwapChainVtableResolver.ResizeBuffers">ResizeBuffers</h4>
@@ -177,10 +181,10 @@
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Internal_DXGI_SwapChainVtableResolver_Setup64Bit_Dalamud_Game_SigScanner_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Internal.DXGI.SwapChainVtableResolver.Setup64Bit(Dalamud.Game.SigScanner)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Internal_DXGI_SwapChainVtableResolver_Setup64Bit_Dalamud_Game_SigScanner_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Internal.DXGI.SwapChainVtableResolver.Setup64Bit(Dalamud.Game.SigScanner)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Internal/DXGI/SwapChainVtableResolver.cs/#L66">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Internal/DXGI/SwapChainVtableResolver.cs/#L32">View Source</a>
   </span>
   <a id="Dalamud_Game_Internal_DXGI_SwapChainVtableResolver_Setup64Bit_" data-uid="Dalamud.Game.Internal.DXGI.SwapChainVtableResolver.Setup64Bit*"></a>
   <h4 id="Dalamud_Game_Internal_DXGI_SwapChainVtableResolver_Setup64Bit_Dalamud_Game_SigScanner_" data-uid="Dalamud.Game.Internal.DXGI.SwapChainVtableResolver.Setup64Bit(Dalamud.Game.SigScanner)">Setup64Bit(SigScanner)</h4>
@@ -208,7 +212,7 @@
     </tbody>
   </table>
   <h5 class="overrides">Overrides</h5>
-  <div><span class="xref">Dalamud.Game.Internal.BaseAddressResolver.Setup64Bit(Dalamud.Game.SigScanner)</span></div>
+  <div><span class="xref">Dalamud.Game.BaseAddressResolver.Setup64Bit(Dalamud.Game.SigScanner)</span></div>
 </article>
           </div>
           
@@ -217,10 +221,10 @@
               <div class="contribution">
                 <ul class="nav">
                   <li>
-                    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Internal_DXGI_SwapChainVtableResolver.md&amp;value=---%0Auid%3A%20Dalamud.Game.Internal.DXGI.SwapChainVtableResolver%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Internal_DXGI_SwapChainVtableResolver.md&amp;value=---%0Auid%3A%20Dalamud.Game.Internal.DXGI.SwapChainVtableResolver%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
                   </li>
                   <li>
-                    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Internal/DXGI/SwapChainVtableResolver.cs/#L16" class="contribution-link">View Source</a>
+                    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/Internal/DXGI/SwapChainVtableResolver.cs/#L20" class="contribution-link">View Source</a>
                   </li>
                 </ul>
               </div>
