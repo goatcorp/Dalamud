@@ -7,6 +7,7 @@ using System.Threading;
 
 using Dalamud.Game.Gui;
 using Dalamud.Game.Gui.Toast;
+using Dalamud.Game.Libc;
 using Dalamud.Game.Network;
 using Dalamud.Hooking;
 using Dalamud.Interface.Internal;
@@ -101,6 +102,7 @@ namespace Dalamud.Game
         /// </summary>
         public void Enable()
         {
+            Service<LibcFunction>.Set();
             Service<GameGui>.Get().Enable();
             Service<GameNetwork>.Get().Enable();
 
