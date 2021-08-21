@@ -47,27 +47,25 @@ namespace Dalamud
         /// <summary>
         /// Log troubleshooting information in a parseable format to Serilog.
         /// </summary>
-        /// <param name="dalamud">The <see cref="Dalamud"/> instance to read information from.</param>
-        /// <param name="isInterfaceLoaded">Whether or not the interface was loaded.</param>
-        internal static void LogTroubleshooting(Dalamud dalamud, bool isInterfaceLoaded)
+        internal static void LogTroubleshooting()
         {
-            var interfaceManager = Service<InterfaceManager>.Get();
             var startInfo = Service<DalamudStartInfo>.Get();
-            var pluginManager = Service<PluginManager>.Get();
             var configuration = Service<DalamudConfiguration>.Get();
+            var interfaceManager = Service<InterfaceManager>.GetNullable();
+            var pluginManager = Service<PluginManager>.GetNullable();
 
             try
             {
                 var payload = new TroubleshootingPayload
                 {
-                    LoadedPlugins = pluginManager.InstalledPlugins.Select(x => x.Manifest).ToArray(),
+                    LoadedPlugins = pluginManager?.InstalledPlugins?.Select(x => x.Manifest)?.ToArray(),
                     DalamudVersion = Util.AssemblyVersion,
                     DalamudGitHash = Util.GetGitHash(),
                     GameVersion = startInfo.GameVersion.ToString(),
                     Language = startInfo.Language.ToString(),
                     DoDalamudTest = configuration.DoDalamudTest,
                     DoPluginTest = configuration.DoPluginTest,
-                    InterfaceLoaded = interfaceManager.IsReady,
+                    InterfaceLoaded = interfaceManager?.IsReady ?? false,
                     ThirdRepo = configuration.ThirdRepoList,
                 };
 
