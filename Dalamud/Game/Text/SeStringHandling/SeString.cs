@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-using Dalamud.Data;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Newtonsoft.Json;
 
@@ -76,9 +75,8 @@ namespace Dalamud.Game.Text.SeStringHandling
         /// Creates a SeString from a json. (For testing - not recommended for production use.)
         /// </summary>
         /// <param name="json">A serialized SeString produced by ToJson() <see cref="ToJson"/>.</param>
-        /// <param name="dataManager">An initialized instance of DataManager for Lumina queries.</param>
         /// <returns>A SeString initialized with values from the json.</returns>
-        public static SeString FromJson(string json, DataManager dataManager)
+        public static SeString FromJson(string json)
         {
             var s = JsonConvert.DeserializeObject<SeString>(json, new JsonSerializerSettings
             {
@@ -86,11 +84,6 @@ namespace Dalamud.Game.Text.SeStringHandling
                 TypeNameHandling = TypeNameHandling.Auto,
                 ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor,
             });
-
-            foreach (var payload in s.Payloads)
-            {
-                payload.DataResolver = dataManager;
-            }
 
             return s;
         }

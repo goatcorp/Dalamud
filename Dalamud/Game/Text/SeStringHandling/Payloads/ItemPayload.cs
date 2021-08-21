@@ -3,7 +3,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-using Dalamud.Data;
 using Lumina.Excel.GeneratedSheets;
 using Newtonsoft.Json;
 
@@ -29,15 +28,13 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         /// Initializes a new instance of the <see cref="ItemPayload"/> class.
         /// Creates a payload representing an interactable item link for the specified item.
         /// </summary>
-        /// <param name="data">DataManager instance needed to resolve game data.</param>
         /// <param name="itemId">The id of the item.</param>
         /// <param name="isHQ">Whether or not the link should be for the high-quality variant of the item.</param>
         /// <param name="displayNameOverride">An optional name to include in the item link.  Typically this should
         /// be left as null, or set to the normal item name.  Actual overrides are better done with the subsequent
         /// TextPayload that is a part of a full item link in chat.</param>
-        public ItemPayload(DataManager data, uint itemId, bool isHQ, string displayNameOverride = null)
+        public ItemPayload(uint itemId, bool isHQ, string displayNameOverride = null)
         {
-            this.DataResolver = data;
             this.itemId = itemId;
             this.IsHQ = isHQ;
             this.displayName = displayNameOverride;

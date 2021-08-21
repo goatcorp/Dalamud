@@ -27,16 +27,17 @@ namespace Dalamud.Plugin.Internal
         /// <summary>
         /// Initializes a new instance of the <see cref="LocalDevPlugin"/> class.
         /// </summary>
-        /// <param name="dalamud">Dalamud instance.</param>
         /// <param name="dllFile">Path to the DLL file.</param>
         /// <param name="manifest">The plugin manifest.</param>
-        public LocalDevPlugin(Dalamud dalamud, FileInfo dllFile, LocalPluginManifest manifest)
-            : base(dalamud, dllFile, manifest)
+        public LocalDevPlugin(FileInfo dllFile, LocalPluginManifest? manifest)
+            : base(dllFile, manifest)
         {
-            if (!dalamud.Configuration.DevPluginSettings.TryGetValue(dllFile.FullName, out this.devSettings))
+            var configuration = Service<DalamudConfiguration>.Get();
+
+            if (!configuration.DevPluginSettings.TryGetValue(dllFile.FullName, out this.devSettings))
             {
-                dalamud.Configuration.DevPluginSettings[dllFile.FullName] = this.devSettings = new DevPluginSettings();
-                dalamud.Configuration.Save();
+                configuration.DevPluginSettings[dllFile.FullName] = this.devSettings = new DevPluginSettings();
+                configuration.Save();
             }
 
             if (this.AutomaticReload)

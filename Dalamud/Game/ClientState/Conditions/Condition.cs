@@ -1,10 +1,15 @@
 using System;
 
+using Dalamud.IoC;
+using Dalamud.IoC.Internal;
+
 namespace Dalamud.Game.ClientState.Conditions
 {
     /// <summary>
     /// Provides access to conditions (generally player state). You can check whether a player is in combat, mounted, etc.
     /// </summary>
+    [PluginInterface]
+    [InterfaceVersion("1.0")]
     public class Condition
     {
         /// <summary>

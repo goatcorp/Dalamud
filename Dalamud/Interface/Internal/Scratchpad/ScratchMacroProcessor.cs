@@ -21,11 +21,11 @@ public class ScratchPlugin : IDalamudPlugin {
 
     {SETUPBODY}
 
-    public void Initialize(DalamudPluginInterface pluginInterface)
+    public ScratchPlugin(DalamudPluginInterface pluginInterface)
     {
         this.pi = pluginInterface;
             
-        this.pi.UiBuilder.OnBuildUi += DrawUI;
+        this.pi.UiBuilder.Draw += DrawUI;
 
         {INITBODY}
     }
@@ -39,7 +39,7 @@ public class ScratchPlugin : IDalamudPlugin {
 
     public void Dispose()
     {
-        this.pi.UiBuilder.OnBuildUi -= DrawUI;
+        this.pi.UiBuilder.Draw -= DrawUI;
         {DISPOSEBODY}
     }
 }
@@ -168,10 +168,8 @@ public class ScratchPlugin : IDalamudPlugin {
             {
                 var hook = hooks[i];
 
-                hookSetup +=
-                    $"private delegate {hook.RetType} Hook{i}Delegate({hook.Arguments});\n";
-                hookSetup +=
-                    $"private Hook<Hook{i}Delegate> hook{i}Inst;\n";
+                hookSetup += $"private delegate {hook.RetType} Hook{i}Delegate({hook.Arguments});\n";
+                hookSetup += $"private Hook<Hook{i}Delegate> hook{i}Inst;\n";
 
                 hookInit += $"var addrH{i} = pi.TargetModuleScanner.ScanText(\"{hook.Sig}\");\n";
                 hookInit += $"this.hook{i}Inst = new Hook<Hook{i}Delegate>(addrH{i}, new Hook{i}Delegate(Hook{i}Detour), this);\n";

@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 
+using Dalamud.Game.ClientState;
 using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
@@ -16,19 +17,21 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
         public string Name => "Test Log-In";
 
         /// <inheritdoc/>
-        public SelfTestStepResult RunStep(Dalamud dalamud)
+        public SelfTestStepResult RunStep()
         {
+            var clientState = Service<ClientState>.Get();
+
             ImGui.Text("Log in now...");
 
             if (!this.subscribed)
             {
-                dalamud.ClientState.Login += this.ClientStateOnOnLogin;
+                clientState.Login += this.ClientStateOnOnLogin;
                 this.subscribed = true;
             }
 
             if (this.hasPassed)
             {
-                dalamud.ClientState.Login -= this.ClientStateOnOnLogin;
+                clientState.Login -= this.ClientStateOnOnLogin;
                 this.subscribed = false;
                 return SelfTestStepResult.Pass;
             }
@@ -37,11 +40,13 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
         }
 
         /// <inheritdoc/>
-        public void CleanUp(Dalamud dalamud)
+        public void CleanUp()
         {
+            var clientState = Service<ClientState>.Get();
+
             if (this.subscribed)
             {
-                dalamud.ClientState.Login -= this.ClientStateOnOnLogin;
+                clientState.Login -= this.ClientStateOnOnLogin;
                 this.subscribed = false;
             }
         }

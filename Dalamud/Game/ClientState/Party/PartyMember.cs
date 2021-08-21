@@ -1,6 +1,7 @@
 using System;
 using System.Numerics;
 
+using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.ClientState.Resolvers;
 using Dalamud.Game.ClientState.Statuses;
@@ -15,17 +16,13 @@ namespace Dalamud.Game.ClientState.Party
     /// </summary>
     public unsafe class PartyMember
     {
-        private Dalamud dalamud;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="PartyMember"/> class.
         /// </summary>
         /// <param name="address">Address of the party member.</param>
-        /// <param name="dalamud">Dalamud itself.</param>
-        internal PartyMember(IntPtr address, Dalamud dalamud)
+        internal PartyMember(IntPtr address)
         {
             this.Address = address;
-            this.dalamud = dalamud;
         }
 
         /// <summary>
@@ -36,7 +33,7 @@ namespace Dalamud.Game.ClientState.Party
         /// <summary>
         /// Gets a list of buffs or debuffs applied to this party member.
         /// </summary>
-        public StatusList Statuses => new(&this.Struct->StatusManager, this.dalamud);
+        public StatusList Statuses => new(&this.Struct->StatusManager);
 
         /// <summary>
         /// Gets the position of the party member.
@@ -60,7 +57,7 @@ namespace Dalamud.Game.ClientState.Party
         /// This iterates the actor table, it should be used with care.
         /// </remarks>
         [CanBeNull]
-        public GameObject GameObject => this.dalamud.ClientState.Objects.SearchByID(this.ObjectId);
+        public GameObject GameObject => Service<ObjectTable>.Get().SearchByID(this.ObjectId);
 
         /// <summary>
         /// Gets the current HP of this party member.
@@ -85,12 +82,12 @@ namespace Dalamud.Game.ClientState.Party
         /// <summary>
         /// Gets the territory this party member is located in.
         /// </summary>
-        public ExcelResolver<Lumina.Excel.GeneratedSheets.TerritoryType> Territory => new(this.Struct->TerritoryType, this.dalamud);
+        public ExcelResolver<Lumina.Excel.GeneratedSheets.TerritoryType> Territory => new(this.Struct->TerritoryType);
 
         /// <summary>
         /// Gets the World this party member resides in.
         /// </summary>
-        public ExcelResolver<Lumina.Excel.GeneratedSheets.World> World => new(this.Struct->HomeWorld, this.dalamud);
+        public ExcelResolver<Lumina.Excel.GeneratedSheets.World> World => new(this.Struct->HomeWorld);
 
         /// <summary>
         /// Gets the displayname of this party member.
@@ -105,7 +102,7 @@ namespace Dalamud.Game.ClientState.Party
         /// <summary>
         /// Gets the classjob of this party member.
         /// </summary>
-        public ExcelResolver<Lumina.Excel.GeneratedSheets.ClassJob> ClassJob => new(this.Struct->ClassJob, this.dalamud);
+        public ExcelResolver<Lumina.Excel.GeneratedSheets.ClassJob> ClassJob => new(this.Struct->ClassJob);
 
         /// <summary>
         /// Gets the level of this party member.

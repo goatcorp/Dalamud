@@ -8,6 +8,8 @@ using Dalamud.Game.Gui.Toast;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Hooking;
 using Dalamud.Interface;
+using Dalamud.IoC;
+using Dalamud.IoC.Internal;
 using Dalamud.Utility;
 using ImGuiNET;
 using Serilog;
@@ -17,9 +19,10 @@ namespace Dalamud.Game.Gui
     /// <summary>
     /// A class handling many aspects of the in-game UI.
     /// </summary>
+    [PluginInterface]
+    [InterfaceVersion("1.0")]
     public sealed class GameGui : IDisposable
     {
-        private readonly Dalamud dalamud;
         private readonly GameGuiAddressResolver address;
 
         private readonly GetMatrixSingletonDelegate getMatrixSingleton;
@@ -41,18 +44,12 @@ namespace Dalamud.Game.Gui
         /// Initializes a new instance of the <see cref="GameGui"/> class.
         /// This class is responsible for many aspects of interacting with the native game UI.
         /// </summary>
-        /// <param name="baseAddress">The base address of the native GuiManager class.</param>
-        /// <param name="scanner">The SigScanner instance.</param>
-        /// <param name="dalamud">The Dalamud instance.</param>
-        internal GameGui(IntPtr baseAddress, SigScanner scanner, Dalamud dalamud)
+        internal GameGui()
         {
-            this.dalamud = dalamud;
-
-            this.address = new GameGuiAddressResolver(baseAddress);
-            this.address.Setup(scanner);
+            this.address = new GameGuiAddressResolver();
+            this.address.Setup();
 
             Log.Verbose("===== G A M E G U I =====");
-
             Log.Verbose($"GameGuiManager address 0x{this.address.BaseAddress.ToInt64():X}");
             Log.Verbose($"SetGlobalBgm address 0x{this.address.SetGlobalBgm.ToInt64():X}");
             Log.Verbose($"HandleItemHover address 0x{this.address.HandleItemHover.ToInt64():X}");
@@ -60,10 +57,10 @@ namespace Dalamud.Game.Gui
             Log.Verbose($"HandleImm address 0x{this.address.HandleImm.ToInt64():X}");
             Log.Verbose($"GetAgentModule address 0x{this.address.GetAgentModule.ToInt64():X}");
 
-            this.Chat = new ChatGui(this.address.ChatManager, scanner, dalamud);
-            this.PartyFinder = new PartyFinderGui(scanner, dalamud);
-            this.Toast = new ToastGui(scanner, dalamud);
-            this.FlyText = new FlyTextGui(scanner, dalamud);
+            Service<ChatGui>.Set(new ChatGui(this.address.ChatManager));
+            Service<PartyFinderGui>.Set();
+            Service<ToastGui>.Set();
+            Service<FlyTextGui>.Set();
 
             this.setGlobalBgmHook = new Hook<SetGlobalBgmDelegate>(this.address.SetGlobalBgm, this.HandleSetGlobalBgmDetour);
 
@@ -127,26 +124,6 @@ namespace Dalamud.Game.Gui
         /// Event which is fired when the game UI hiding is toggled.
         /// </summary>
         public event EventHandler<bool> OnUiHideToggled;
-
-        /// <summary>
-        /// Gets the <see cref="Chat"/> instance.
-        /// </summary>
-        public ChatGui Chat { get; private set; }
-
-        /// <summary>
-        /// Gets the <see cref="PartyFinder"/> instance.
-        /// </summary>
-        public PartyFinderGui PartyFinder { get; private set; }
-
-        /// <summary>
-        /// Gets the <see cref="Toast"/> instance.
-        /// </summary>
-        public ToastGui Toast { get; private set; }
-
-        /// <summary>
-        /// Gets the <see cref="FlyText"/> instance.
-        /// </summary>
-        public FlyTextGui FlyText { get; private set; }
 
         /// <summary>
         /// Gets a value indicating whether the game UI is hidden.
@@ -440,7 +417,7 @@ namespace Dalamud.Game.Gui
             if (addon == IntPtr.Zero)
                 return IntPtr.Zero;
 
-            var uiModule = this.dalamud.Framework.Gui.GetUIModule();
+            var uiModule = Service<GameGui>.Get().GetUIModule();
             if (uiModule == IntPtr.Zero)
             {
                 return IntPtr.Zero;
@@ -483,10 +460,10 @@ namespace Dalamud.Game.Gui
         /// </summary>
         public void Enable()
         {
-            this.Chat.Enable();
-            this.Toast.Enable();
-            this.FlyText.Enable();
-            this.PartyFinder.Enable();
+            Service<ChatGui>.Get().Enable();
+            Service<ToastGui>.Get().Enable();
+            Service<FlyTextGui>.Get().Enable();
+            Service<PartyFinderGui>.Get().Enable();
             this.setGlobalBgmHook.Enable();
             this.handleItemHoverHook.Enable();
             this.handleItemOutHook.Enable();
@@ -501,10 +478,10 @@ namespace Dalamud.Game.Gui
         /// </summary>
         public void Dispose()
         {
-            this.Chat.Dispose();
-            this.Toast.Dispose();
-            this.FlyText.Dispose();
-            this.PartyFinder.Dispose();
+            Service<ChatGui>.Get().Dispose();
+            Service<ToastGui>.Get().Dispose();
+            Service<FlyTextGui>.Get().Dispose();
+            Service<PartyFinderGui>.Get().Dispose();
             this.setGlobalBgmHook.Dispose();
             this.handleItemHoverHook.Dispose();
             this.handleItemOutHook.Dispose();

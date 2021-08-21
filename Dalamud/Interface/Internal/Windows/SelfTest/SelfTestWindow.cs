@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -19,8 +19,6 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest
     internal class SelfTestWindow : Window
     {
         private static readonly ModuleLog Log = new("AGING");
-
-        private readonly Dalamud dalamud;
 
         private readonly List<IAgingStep> steps =
             new()
@@ -53,12 +51,9 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest
         /// <summary>
         /// Initializes a new instance of the <see cref="SelfTestWindow"/> class.
         /// </summary>
-        /// <param name="dalamud">The dalamud instance to act on.</param>
-        public SelfTestWindow(Dalamud dalamud)
+        public SelfTestWindow()
             : base("Dalamud Self-Test", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
         {
-            this.dalamud = dalamud;
-
             this.Size = new Vector2(800, 800);
             this.SizeCondition = ImGuiCond.FirstUseEver;
         }
@@ -142,7 +137,7 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest
             SelfTestStepResult result;
             try
             {
-                result = step.RunStep(this.dalamud);
+                result = step.RunStep();
             }
             catch (Exception ex)
             {
@@ -248,7 +243,7 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest
             {
                 try
                 {
-                    agingStep.CleanUp(this.dalamud);
+                    agingStep.CleanUp();
                 }
                 catch (Exception ex)
                 {

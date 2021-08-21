@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 
+using Dalamud.Configuration.Internal;
 using Dalamud.Game.Libc;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Hooking;
+using Dalamud.IoC;
+using Dalamud.IoC.Internal;
 using Serilog;
 
 namespace Dalamud.Game.Gui
@@ -15,9 +18,10 @@ namespace Dalamud.Game.Gui
     /// <summary>
     /// This class handles interacting with the native chat UI.
     /// </summary>
+    [PluginInterface]
+    [InterfaceVersion("1.0")]
     public sealed class ChatGui : IDisposable
     {
-        private readonly Dalamud dalamud;
         private readonly ChatGuiAddressResolver address;
 
         private readonly Queue<XivChatEntry> chatQueue = new();
@@ -33,14 +37,10 @@ namespace Dalamud.Game.Gui
         /// Initializes a new instance of the <see cref="ChatGui"/> class.
         /// </summary>
         /// <param name="baseAddress">The base address of the ChatManager.</param>
-        /// <param name="scanner">The SigScanner instance.</param>
-        /// <param name="dalamud">The Dalamud instance.</param>
-        internal ChatGui(IntPtr baseAddress, SigScanner scanner, Dalamud dalamud)
+        internal ChatGui(IntPtr baseAddress)
         {
-            this.dalamud = dalamud;
-
             this.address = new ChatGuiAddressResolver(baseAddress);
-            this.address.Setup(scanner);
+            this.address.Setup();
 
             Log.Verbose($"Chat manager address 0x{this.address.BaseAddress.ToInt64():X}");
 
@@ -163,11 +163,13 @@ namespace Dalamud.Game.Gui
         /// <param name="message">A message to send.</param>
         public void Print(string message)
         {
+            var configuration = Service<DalamudConfiguration>.Get();
+
             Log.Verbose("[CHATGUI PRINT REGULAR]{0}", message);
             this.PrintChat(new XivChatEntry
             {
                 Message = message,
-                Type = this.dalamud.Configuration.GeneralChatType,
+                Type = configuration.GeneralChatType,
             });
         }
 
@@ -178,11 +180,13 @@ namespace Dalamud.Game.Gui
         /// <param name="message">A message to send.</param>
         public void Print(SeString message)
         {
+            var configuration = Service<DalamudConfiguration>.Get();
+
             Log.Verbose("[CHATGUI PRINT SESTRING]{0}", message.TextValue);
             this.PrintChat(new XivChatEntry
             {
                 Message = message,
-                Type = this.dalamud.Configuration.GeneralChatType,
+                Type = configuration.GeneralChatType,
             });
         }
 
@@ -219,8 +223,7 @@ namespace Dalamud.Game.Gui
         /// <summary>
         /// Process a chat queue.
         /// </summary>
-        /// <param name="framework">The Framework instance.</param>
-        public void UpdateQueue(Framework framework)
+        public void UpdateQueue()
         {
             while (this.chatQueue.Count > 0)
             {
@@ -232,10 +235,10 @@ namespace Dalamud.Game.Gui
                 }
 
                 var senderRaw = (chat.Name ?? string.Empty).Encode();
-                using var senderOwned = framework.Libc.NewString(senderRaw);
+                using var senderOwned = Service<LibcFunction>.Get().NewString(senderRaw);
 
                 var messageRaw = (chat.Message ?? string.Empty).Encode();
-                using var messageOwned = framework.Libc.NewString(messageRaw);
+                using var messageOwned = Service<LibcFunction>.Get().NewString(messageRaw);
 
                 this.HandlePrintMessageDetour(this.baseAddress, chat.Type, senderOwned.Address, messageOwned.Address, chat.SenderId, chat.Parameters);
             }
@@ -353,8 +356,8 @@ namespace Dalamud.Game.Gui
                 var sender = StdString.ReadFromPointer(pSenderName);
                 var message = StdString.ReadFromPointer(pMessage);
 
-                var parsedSender = this.dalamud.SeStringManager.Parse(sender.RawData);
-                var parsedMessage = this.dalamud.SeStringManager.Parse(message.RawData);
+                var parsedSender = Service<SeStringManager>.Get().Parse(sender.RawData);
+                var parsedMessage = Service<SeStringManager>.Get().Parse(message.RawData);
 
                 Log.Verbose("[CHATGUI][{0}][{1}]", parsedSender.TextValue, parsedMessage.TextValue);
 
@@ -386,7 +389,7 @@ namespace Dalamud.Game.Gui
 
                 if (!FastByteArrayCompare(originalMessageData, message.RawData))
                 {
-                    allocatedString = this.dalamud.Framework.Libc.NewString(message.RawData);
+                    allocatedString = Service<LibcFunction>.Get().NewString(message.RawData);
                     Log.Debug(
                         $"HandlePrintMessageDetour String modified: {originalMessageData}({messagePtr}) -> {message}({allocatedString.Address})");
                     messagePtr = allocatedString.Address;
@@ -436,7 +439,7 @@ namespace Dalamud.Game.Gui
                 while (Marshal.ReadByte(payloadPtr, messageSize) != 0) messageSize++;
                 var payloadBytes = new byte[messageSize];
                 Marshal.Copy(payloadPtr, payloadBytes, 0, messageSize);
-                var seStr = this.dalamud.SeStringManager.Parse(payloadBytes);
+                var seStr = Service<SeStringManager>.Get().Parse(payloadBytes);
                 var terminatorIndex = seStr.Payloads.IndexOf(RawPayload.LinkTerminator);
                 var payloads = terminatorIndex >= 0 ? seStr.Payloads.Take(terminatorIndex + 1).ToList() : seStr.Payloads;
                 if (payloads.Count == 0) return;

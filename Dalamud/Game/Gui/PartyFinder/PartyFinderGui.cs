@@ -4,6 +4,8 @@ using System.Runtime.InteropServices;
 using Dalamud.Game.Gui.PartyFinder.Internal;
 using Dalamud.Game.Gui.PartyFinder.Types;
 using Dalamud.Hooking;
+using Dalamud.IoC;
+using Dalamud.IoC.Internal;
 using Serilog;
 
 namespace Dalamud.Game.Gui.PartyFinder
@@ -11,9 +13,10 @@ namespace Dalamud.Game.Gui.PartyFinder
     /// <summary>
     /// This class handles interacting with the native PartyFinder window.
     /// </summary>
+    [PluginInterface]
+    [InterfaceVersion("1.0")]
     public sealed class PartyFinderGui : IDisposable
     {
-        private readonly Dalamud dalamud;
         private readonly PartyFinderAddressResolver address;
         private readonly IntPtr memory;
 
@@ -22,14 +25,10 @@ namespace Dalamud.Game.Gui.PartyFinder
         /// <summary>
         /// Initializes a new instance of the <see cref="PartyFinderGui"/> class.
         /// </summary>
-        /// <param name="scanner">The SigScanner instance.</param>
-        /// <param name="dalamud">The Dalamud instance.</param>
-        internal PartyFinderGui(SigScanner scanner, Dalamud dalamud)
+        internal PartyFinderGui()
         {
-            this.dalamud = dalamud;
-
             this.address = new PartyFinderAddressResolver();
-            this.address.Setup(scanner);
+            this.address.Setup();
 
             this.memory = Marshal.AllocHGlobal(PartyFinderPacket.PacketSize);
 
@@ -101,7 +100,7 @@ namespace Dalamud.Game.Gui.PartyFinder
                     continue;
                 }
 
-                var listing = new PartyFinderListing(packet.Listings[i], this.dalamud.Data, this.dalamud.SeStringManager);
+                var listing = new PartyFinderListing(packet.Listings[i]);
                 var args = new PartyFinderListingEventArgs(packet.BatchNumber);
                 this.ReceiveListing?.Invoke(listing, args);
 

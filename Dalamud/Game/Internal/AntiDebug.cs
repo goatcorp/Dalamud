@@ -17,9 +17,10 @@ namespace Dalamud.Game.Internal
         /// <summary>
         /// Initializes a new instance of the <see cref="AntiDebug"/> class.
         /// </summary>
-        /// <param name="scanner">The SigScanner instance.</param>
-        public AntiDebug(SigScanner scanner)
+        public AntiDebug()
         {
+            var scanner = Service<SigScanner>.Get();
+
             try
             {
                 this.debugCheckAddress = scanner.ScanText("FF 15 ?? ?? ?? ?? 85 C0 74 11 41");

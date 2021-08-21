@@ -11,11 +11,5 @@ namespace Dalamud.Plugin
         /// Gets the name of the plugin.
         /// </summary>
         string Name { get; }
-
-        /// <summary>
-        /// Initializes a Dalamud plugin.
-        /// </summary>
-        /// <param name="pluginInterface">The <see cref="DalamudPluginInterface"/> needed to access various Dalamud objects.</param>
-        void Initialize(DalamudPluginInterface pluginInterface);
     }
 }

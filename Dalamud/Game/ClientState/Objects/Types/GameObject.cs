@@ -17,11 +17,9 @@ namespace Dalamud.Game.ClientState.Objects.Types
         /// Initializes a new instance of the <see cref="GameObject"/> class.
         /// </summary>
         /// <param name="address">The address of this game object in memory.</param>
-        /// <param name="dalamud">Dalamud itself.</param>
-        internal GameObject(IntPtr address, Dalamud dalamud)
+        internal GameObject(IntPtr address)
         {
             this.Address = address;
-            this.Dalamud = dalamud;
         }
 
         /// <summary>
@@ -59,10 +57,12 @@ namespace Dalamud.Game.ClientState.Objects.Types
         /// <returns>True or false.</returns>
         public static bool IsValid(GameObject? actor)
         {
+            var clientState = Service<ClientState>.Get();
+
             if (actor is null)
                 return false;
 
-            if (actor.Dalamud.ClientState.LocalContentId == 0)
+            if (clientState.LocalContentId == 0)
                 return false;
 
             return true;
@@ -158,7 +158,7 @@ namespace Dalamud.Game.ClientState.Objects.Types
         /// This iterates the actor table, it should be used with care.
         /// </remarks>
         [CanBeNull]
-        public virtual GameObject TargetObject => this.Dalamud.ClientState.Objects.SearchByID(this.TargetObjectId);
+        public virtual GameObject TargetObject => Service<ObjectTable>.Get().SearchByID(this.TargetObjectId);
 
         /// <summary>
         /// Gets the underlying structure.

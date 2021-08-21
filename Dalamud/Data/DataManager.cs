@@ -6,6 +6,8 @@ using System.IO;
 using System.Threading;
 
 using Dalamud.Interface.Internal;
+using Dalamud.IoC;
+using Dalamud.IoC.Internal;
 using Dalamud.Utility;
 using ImGuiScene;
 using JetBrains.Annotations;
@@ -21,10 +23,11 @@ namespace Dalamud.Data
     /// <summary>
     /// This class provides data for Dalamud-internal features, but can also be used by plugins if needed.
     /// </summary>
+    [PluginInterface]
+    [InterfaceVersion("1.0")]
     public sealed class DataManager : IDisposable
     {
         private const string IconFileFormat = "ui/icon/{0:D3}000/{1}{2:D6}.tex";
-        private readonly InterfaceManager interfaceManager;
 
         /// <summary>
         /// A <see cref="Lumina"/> object which gives access to any excel/game data.
@@ -37,16 +40,12 @@ namespace Dalamud.Data
         /// <summary>
         /// Initializes a new instance of the <see cref="DataManager"/> class.
         /// </summary>
-        /// <param name="language">The language to load data with by default.</param>
-        /// <param name="interfaceManager">An <see cref="InterfaceManager"/> instance to parse the data with.</param>
-        internal DataManager(ClientLanguage language, InterfaceManager interfaceManager)
+        internal DataManager()
         {
-            this.interfaceManager = interfaceManager;
+            this.Language = Service<DalamudStartInfo>.Get().Language;
 
             // Set up default values so plugins do not null-reference when data is being loaded.
             this.ClientOpCodes = this.ServerOpCodes = new ReadOnlyDictionary<string, ushort>(new Dictionary<string, ushort>());
-
-            this.Language = language;
         }
 
         /// <summary>
@@ -212,7 +211,7 @@ namespace Dalamud.Data
         /// <param name="tex">The Lumina <see cref="TexFile"/>.</param>
         /// <returns>A <see cref="TextureWrap"/> that can be used to draw the texture.</returns>
         public TextureWrap GetImGuiTexture(TexFile tex)
-            => this.interfaceManager.LoadImageRaw(tex.GetRgbaImageData(), tex.Header.Width, tex.Header.Height, 4);
+            => Service<InterfaceManager>.Get().LoadImageRaw(tex.GetRgbaImageData(), tex.Header.Width, tex.Header.Height, 4);
 
         /// <summary>
         /// Get the passed texture path as a drawable ImGui TextureWrap.

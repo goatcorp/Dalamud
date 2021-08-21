@@ -14,8 +14,6 @@ namespace Dalamud.Game.Gui.PartyFinder.Types
     /// </summary>
     public class PartyFinderListing
     {
-        #region Backing fields
-
         private readonly byte objective;
         private readonly byte conditions;
         private readonly byte dutyFinderSettings;
@@ -24,16 +22,15 @@ namespace Dalamud.Game.Gui.PartyFinder.Types
         private readonly PartyFinderSlot[] slots;
         private readonly byte[] jobsPresent;
 
-        #endregion
-
         /// <summary>
         /// Initializes a new instance of the <see cref="PartyFinderListing"/> class.
         /// </summary>
         /// <param name="listing">The interop listing data.</param>
-        /// <param name="dataManager">The DataManager instance.</param>
-        /// <param name="seStringManager">The SeStringManager instance.</param>
-        internal PartyFinderListing(PartyFinderPacketListing listing, DataManager dataManager, SeStringManager seStringManager)
+        internal PartyFinderListing(PartyFinderPacketListing listing)
         {
+            var dataManager = Service<DataManager>.Get();
+            var seStringManager = Service<SeStringManager>.Get();
+
             this.objective = listing.Objective;
             this.conditions = listing.Conditions;
             this.dutyFinderSettings = listing.DutyFinderSettings;

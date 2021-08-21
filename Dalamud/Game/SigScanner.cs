@@ -5,6 +5,8 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
+using Dalamud.IoC;
+using Dalamud.IoC.Internal;
 using Serilog;
 
 namespace Dalamud.Game
@@ -12,6 +14,8 @@ namespace Dalamud.Game
     /// <summary>
     /// A SigScanner facilitates searching for memory signatures in a given ProcessModule.
     /// </summary>
+    [PluginInterface]
+    [InterfaceVersion("1.0")]
     public sealed class SigScanner : IDisposable
     {
         private IntPtr moduleCopyPtr;

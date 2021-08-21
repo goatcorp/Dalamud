@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
+using Dalamud.IoC;
+using Dalamud.IoC.Internal;
 using Dalamud.Plugin;
 using ImGuiNET;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
@@ -15,16 +16,13 @@ namespace Dalamud.Interface.Internal.Scratchpad
     /// </summary>
     internal class ScratchExecutionManager
     {
-        private readonly Dalamud dalamud;
         private Dictionary<Guid, IDalamudPlugin> loadedScratches = new();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ScratchExecutionManager"/> class.
         /// </summary>
-        /// <param name="dalamud">The Dalamud instance.</param>
-        public ScratchExecutionManager(Dalamud dalamud)
+        public ScratchExecutionManager()
         {
-            this.dalamud = dalamud;
         }
 
         /// <summary>
@@ -82,13 +80,18 @@ namespace Dalamud.Interface.Internal.Scratchpad
             {
                 var script = CSharpScript.Create(code, options);
 
-                var pi = new DalamudPluginInterface(this.dalamud, "Scratch-" + doc.Id, PluginLoadReason.Unknown);
-                var plugin = script.ContinueWith<IDalamudPlugin>("return new ScratchPlugin() as IDalamudPlugin;")
+                var pluginType = script.ContinueWith<Type>("return typeof(ScratchPlugin);")
                     .RunAsync().GetAwaiter().GetResult().ReturnValue;
 
-                plugin.Initialize(pi);
+                var pi = new DalamudPluginInterface($"Scratch-{doc.Id}", PluginLoadReason.Unknown);
 
-                this.loadedScratches[doc.Id] = plugin;
+                var ioc = Service<ServiceContainer>.Get();
+                var plugin = ioc.Create(pluginType, pi);
+
+                if (plugin == null)
+                    throw new Exception("Could not initialize scratch plugin");
+
+                this.loadedScratches[doc.Id] = (IDalamudPlugin)plugin;
                 return ScratchLoadStatus.Success;
             }
             catch (CompilationErrorException ex)

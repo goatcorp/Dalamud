@@ -2,11 +2,16 @@ using System;
 using System.Runtime.InteropServices;
 using System.Text;
 
+using Dalamud.IoC;
+using Dalamud.IoC.Internal;
+
 namespace Dalamud.Game.Libc
 {
     /// <summary>
     /// This class handles creating cstrings utilizing native game methods.
     /// </summary>
+    [PluginInterface]
+    [InterfaceVersion("1.0")]
     public sealed class LibcFunction
     {
         private readonly LibcFunctionAddressResolver address;
@@ -16,11 +21,10 @@ namespace Dalamud.Game.Libc
         /// <summary>
         /// Initializes a new instance of the <see cref="LibcFunction"/> class.
         /// </summary>
-        /// <param name="scanner">The SigScanner instance.</param>
-        public LibcFunction(SigScanner scanner)
+        public LibcFunction()
         {
             this.address = new LibcFunctionAddressResolver();
-            this.address.Setup(scanner);
+            this.address.Setup();
 
             this.stdStringCtorCString = Marshal.GetDelegateForFunctionPointer<StdStringFromCStringDelegate>(this.address.StdStringFromCstring);
             this.stdStringDeallocate = Marshal.GetDelegateForFunctionPointer<StdStringDeallocateDelegate>(this.address.StdStringDeallocate);

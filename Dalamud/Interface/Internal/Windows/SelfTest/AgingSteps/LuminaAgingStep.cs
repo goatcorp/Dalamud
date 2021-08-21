@@ -1,6 +1,7 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 
+using Dalamud.Data;
 using Dalamud.Utility;
 using Lumina.Excel;
 
@@ -20,9 +21,11 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
         public string Name => "Test Lumina";
 
         /// <inheritdoc/>
-        public SelfTestStepResult RunStep(Dalamud dalamud)
+        public SelfTestStepResult RunStep()
         {
-            this.rows ??= dalamud.Data.GetExcelSheet<T>().ToList();
+            var dataManager = Service<DataManager>.Get();
+
+            this.rows ??= dataManager.GetExcelSheet<T>().ToList();
 
             Util.ShowObject(this.rows[this.step]);
 
@@ -31,7 +34,7 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
         }
 
         /// <inheritdoc/>
-        public void CleanUp(Dalamud dalamud)
+        public void CleanUp()
         {
             // ignored
         }

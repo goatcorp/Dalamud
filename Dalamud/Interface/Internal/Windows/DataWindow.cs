@@ -4,19 +4,29 @@ using System.Dynamic;
 using System.Linq;
 using System.Numerics;
 
+using Dalamud.Data;
 using Dalamud.Game;
+using Dalamud.Game.ClientState;
+using Dalamud.Game.ClientState.Buddy;
 using Dalamud.Game.ClientState.Conditions;
+using Dalamud.Game.ClientState.Fates;
 using Dalamud.Game.ClientState.GamePad;
+using Dalamud.Game.ClientState.JobGauge;
 using Dalamud.Game.ClientState.JobGauge.Enums;
 using Dalamud.Game.ClientState.JobGauge.Types;
+using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
+using Dalamud.Game.ClientState.Party;
+using Dalamud.Game.Command;
+using Dalamud.Game.Gui;
 using Dalamud.Game.Gui.FlyText;
 using Dalamud.Game.Gui.Toast;
 using Dalamud.Game.Text;
 using Dalamud.Interface.Windowing;
 using Dalamud.Memory;
 using Dalamud.Plugin;
+using Dalamud.Plugin.Internal;
 using Dalamud.Utility;
 using ImGuiNET;
 using ImGuiScene;
@@ -30,7 +40,6 @@ namespace Dalamud.Interface.Internal.Windows
     /// </summary>
     internal class DataWindow : Window
     {
-        private readonly Dalamud dalamud;
         private readonly string[] dataKindNames = Enum.GetNames(typeof(DataKind)).Select(k => k.Replace("_", " ")).ToArray();
 
         private bool wasReady;
@@ -85,12 +94,9 @@ namespace Dalamud.Interface.Internal.Windows
         /// <summary>
         /// Initializes a new instance of the <see cref="DataWindow"/> class.
         /// </summary>
-        /// <param name="dalamud">The Dalamud instance to access data of.</param>
-        public DataWindow(Dalamud dalamud)
+        public DataWindow()
             : base("Dalamud Data")
         {
-            this.dalamud = dalamud;
-
             this.Size = new Vector2(500, 500);
             this.SizeCondition = ImGuiCond.FirstUseEver;
 
@@ -160,7 +166,7 @@ namespace Dalamud.Interface.Internal.Windows
             }
             else
             {
-                this.dalamud.Framework.Gui.Chat.PrintError("/xldata: Invalid Data Type");
+                Service<ChatGui>.Get().PrintError("/xldata: Invalid Data Type");
             }
         }
 
@@ -307,7 +313,8 @@ namespace Dalamud.Interface.Internal.Windows
             {
                 try
                 {
-                    this.sigResult = this.dalamud.SigScanner.ScanText(this.inputSig);
+                    var sigScanner = Service<SigScanner>.Get();
+                    this.sigResult = sigScanner.ScanText(this.inputSig);
                 }
                 catch (KeyNotFoundException)
                 {
@@ -337,38 +344,44 @@ namespace Dalamud.Interface.Internal.Windows
 
         private void DrawObjectTable()
         {
+            var chatGui = Service<ChatGui>.Get();
+            var clientState = Service<ClientState>.Get();
+            var framework = Service<Framework>.Get();
+            var gameGui = Service<GameGui>.Get();
+            var objectTable = Service<ObjectTable>.Get();
+
             var stateString = string.Empty;
 
-            if (this.dalamud.ClientState.LocalPlayer == null)
+            if (clientState.LocalPlayer == null)
             {
                 ImGui.TextUnformatted("LocalPlayer null.");
             }
             else
             {
-                stateString += $"FrameworkBase: {this.dalamud.Framework.Address.BaseAddress.ToInt64():X}\n";
-                stateString += $"ObjectTableLen: {this.dalamud.ClientState.Objects.Length}\n";
-                stateString += $"LocalPlayerName: {this.dalamud.ClientState.LocalPlayer.Name}\n";
-                stateString += $"CurrentWorldName: {(this.resolveGameData ? this.dalamud.ClientState.LocalPlayer.CurrentWorld.GameData.Name : this.dalamud.ClientState.LocalPlayer.CurrentWorld.Id.ToString())}\n";
-                stateString += $"HomeWorldName: {(this.resolveGameData ? this.dalamud.ClientState.LocalPlayer.HomeWorld.GameData.Name : this.dalamud.ClientState.LocalPlayer.HomeWorld.Id.ToString())}\n";
-                stateString += $"LocalCID: {this.dalamud.ClientState.LocalContentId:X}\n";
-                stateString += $"LastLinkedItem: {this.dalamud.Framework.Gui.Chat.LastLinkedItemId}\n";
-                stateString += $"TerritoryType: {this.dalamud.ClientState.TerritoryType}\n\n";
+                stateString += $"FrameworkBase: {framework.Address.BaseAddress.ToInt64():X}\n";
+                stateString += $"ObjectTableLen: {objectTable.Length}\n";
+                stateString += $"LocalPlayerName: {clientState.LocalPlayer.Name}\n";
+                stateString += $"CurrentWorldName: {(this.resolveGameData ? clientState.LocalPlayer.CurrentWorld.GameData.Name : clientState.LocalPlayer.CurrentWorld.Id.ToString())}\n";
+                stateString += $"HomeWorldName: {(this.resolveGameData ? clientState.LocalPlayer.HomeWorld.GameData.Name : clientState.LocalPlayer.HomeWorld.Id.ToString())}\n";
+                stateString += $"LocalCID: {clientState.LocalContentId:X}\n";
+                stateString += $"LastLinkedItem: {chatGui.LastLinkedItemId}\n";
+                stateString += $"TerritoryType: {clientState.TerritoryType}\n\n";
 
                 ImGui.TextUnformatted(stateString);
 
                 ImGui.Checkbox("Draw characters on screen", ref this.drawCharas);
                 ImGui.SliderFloat("Draw Distance", ref this.maxCharaDrawDistance, 2f, 40f);
 
-                for (var i = 0; i < this.dalamud.ClientState.Objects.Length; i++)
+                for (var i = 0; i < objectTable.Length; i++)
                 {
-                    var obj = this.dalamud.ClientState.Objects[i];
+                    var obj = objectTable[i];
 
                     if (obj == null)
                         continue;
 
                     this.PrintGameObject(obj, i.ToString());
 
-                    if (this.drawCharas && this.dalamud.Framework.Gui.WorldToScreen(obj.Position, out var screenCoords))
+                    if (this.drawCharas && gameGui.WorldToScreen(obj.Position, out var screenCoords))
                     {
                         // So, while WorldToScreen will return false if the point is off of game client screen, to
                         // to avoid performance issues, we have to manually determine if creating a window would
@@ -413,21 +426,24 @@ namespace Dalamud.Interface.Internal.Windows
 
         private void DrawFateTable()
         {
+            var fateTable = Service<FateTable>.Get();
+            var framework = Service<Framework>.Get();
+
             var stateString = string.Empty;
-            if (this.dalamud.ClientState.Fates.Length == 0)
+            if (fateTable.Length == 0)
             {
                 ImGui.TextUnformatted("No fates or data not ready.");
             }
             else
             {
-                stateString += $"FrameworkBase: {this.dalamud.Framework.Address.BaseAddress.ToInt64():X}\n";
-                stateString += $"FateTableLen: {this.dalamud.ClientState.Fates.Length}\n";
+                stateString += $"FrameworkBase: {framework.Address.BaseAddress.ToInt64():X}\n";
+                stateString += $"FateTableLen: {fateTable.Length}\n";
 
                 ImGui.TextUnformatted(stateString);
 
-                for (var i = 0; i < this.dalamud.ClientState.Fates.Length; i++)
+                for (var i = 0; i < fateTable.Length; i++)
                 {
-                    var fate = this.dalamud.ClientState.Fates[i];
+                    var fate = fateTable[i];
                     if (fate == null)
                         continue;
 
@@ -473,17 +489,19 @@ namespace Dalamud.Interface.Internal.Windows
 
         private void DrawPartyList()
         {
+            var partyList = Service<PartyList>.Get();
+
             ImGui.Checkbox("Resolve Actors", ref this.resolveObjects);
 
-            ImGui.Text($"GroupManager: {this.dalamud.ClientState.PartyList.GroupManagerAddress.ToInt64():X}");
-            ImGui.Text($"GroupList: {this.dalamud.ClientState.PartyList.GroupListAddress.ToInt64():X}");
-            ImGui.Text($"AllianceList: {this.dalamud.ClientState.PartyList.AllianceListAddress.ToInt64():X}");
+            ImGui.Text($"GroupManager: {partyList.GroupManagerAddress.ToInt64():X}");
+            ImGui.Text($"GroupList: {partyList.GroupListAddress.ToInt64():X}");
+            ImGui.Text($"AllianceList: {partyList.AllianceListAddress.ToInt64():X}");
 
-            ImGui.Text($"{this.dalamud.ClientState.PartyList.Length} Members");
+            ImGui.Text($"{partyList.Length} Members");
 
-            for (var i = 0; i < this.dalamud.ClientState.PartyList.Length; i++)
+            for (var i = 0; i < partyList.Length; i++)
             {
-                var member = this.dalamud.ClientState.PartyList[i];
+                var member = partyList[i];
                 if (member == null)
                 {
                     ImGui.Text($"[{i}] was null");
@@ -508,11 +526,13 @@ namespace Dalamud.Interface.Internal.Windows
 
         private void DrawBuddyList()
         {
+            var buddyList = Service<BuddyList>.Get();
+
             ImGui.Checkbox("Resolve Actors", ref this.resolveObjects);
 
-            ImGui.Text($"BuddyList: {this.dalamud.ClientState.BuddyList.BuddyListAddress.ToInt64():X}");
+            ImGui.Text($"BuddyList: {buddyList.BuddyListAddress.ToInt64():X}");
             {
-                var member = this.dalamud.ClientState.BuddyList.CompanionBuddy;
+                var member = buddyList.CompanionBuddy;
                 if (member == null)
                 {
                     ImGui.Text("[Companion] null");
@@ -522,21 +542,21 @@ namespace Dalamud.Interface.Internal.Windows
                     ImGui.Text($"[Companion] {member.Address.ToInt64():X} - {member.ObjectId} - {member.DataID}");
                     if (this.resolveObjects)
                     {
-                        var actor = member.Actor;
-                        if (actor == null)
+                        var gameObject = member.GameObject;
+                        if (gameObject == null)
                         {
-                            ImGui.Text("Actor was null");
+                            ImGui.Text("GameObject was null");
                         }
                         else
                         {
-                            this.PrintGameObject(actor, "-");
+                            this.PrintGameObject(gameObject, "-");
                         }
                     }
                 }
             }
 
             {
-                var member = this.dalamud.ClientState.BuddyList.PetBuddy;
+                var member = buddyList.PetBuddy;
                 if (member == null)
                 {
                     ImGui.Text("[Pet] null");
@@ -546,21 +566,21 @@ namespace Dalamud.Interface.Internal.Windows
                     ImGui.Text($"[Pet] {member.Address.ToInt64():X} - {member.ObjectId} - {member.DataID}");
                     if (this.resolveObjects)
                     {
-                        var actor = member.Actor;
-                        if (actor == null)
+                        var gameObject = member.GameObject;
+                        if (gameObject == null)
                         {
-                            ImGui.Text("Actor was null");
+                            ImGui.Text("GameObject was null");
                         }
                         else
                         {
-                            this.PrintGameObject(actor, "-");
+                            this.PrintGameObject(gameObject, "-");
                         }
                     }
                 }
             }
 
             {
-                var count = this.dalamud.ClientState.BuddyList.Length;
+                var count = buddyList.Length;
                 if (count == 0)
                 {
                     ImGui.Text("[BattleBuddy] None present");
@@ -569,18 +589,18 @@ namespace Dalamud.Interface.Internal.Windows
                 {
                     for (var i = 0; i < count; i++)
                     {
-                        var member = this.dalamud.ClientState.BuddyList[i];
+                        var member = buddyList[i];
                         ImGui.Text($"[BattleBuddy] [{i}] {member.Address.ToInt64():X} - {member.ObjectId} - {member.DataID}");
                         if (this.resolveObjects)
                         {
-                            var actor = member.Actor;
-                            if (actor == null)
+                            var gameObject = member.GameObject;
+                            if (gameObject == null)
                             {
-                                ImGui.Text("Actor was null");
+                                ImGui.Text("GameObject was null");
                             }
                             else
                             {
-                                this.PrintGameObject(actor, "-");
+                                this.PrintGameObject(gameObject, "-");
                             }
                         }
                     }
@@ -590,58 +610,14 @@ namespace Dalamud.Interface.Internal.Windows
 
         private void DrawPluginIPC()
         {
-#pragma warning disable CS0618 // Type or member is obsolete
-            var i1 = new DalamudPluginInterface(this.dalamud, "DalamudTestSub", PluginLoadReason.Unknown);
-            var i2 = new DalamudPluginInterface(this.dalamud, "DalamudTestPub", PluginLoadReason.Unknown);
-
-            if (ImGui.Button("Add test sub"))
-            {
-                i1.Subscribe("DalamudTestPub", o =>
-                {
-                    dynamic msg = o;
-                    Log.Debug(msg.Expand);
-                });
-            }
-
-            if (ImGui.Button("Add test sub any"))
-            {
-                i1.SubscribeAny((o, a) =>
-                {
-                    dynamic msg = a;
-                    Log.Debug($"From {o}: {msg.Expand}");
-                });
-            }
-
-            if (ImGui.Button("Remove test sub"))
-                i1.Unsubscribe("DalamudTestPub");
-
-            if (ImGui.Button("Remove test sub any"))
-                i1.UnsubscribeAny();
-
-            if (ImGui.Button("Send test message"))
-            {
-                dynamic testMsg = new ExpandoObject();
-                testMsg.Expand = "dong";
-                i2.SendMessage(testMsg);
-            }
-
-            // This doesn't actually work, so don't mind it - impl relies on plugins being registered in PluginManager
-            if (ImGui.Button("Send test message any"))
-            {
-                dynamic testMsg = new ExpandoObject();
-                testMsg.Expand = "dong";
-                i2.SendMessage("DalamudTestSub", testMsg);
-            }
-
-            foreach (var ipc in this.dalamud.PluginManager.IpcSubscriptions)
-                ImGui.Text($"Source:{ipc.SourcePluginName} Sub:{ipc.SubPluginName}");
-#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         private void DrawCondition()
         {
+            var condition = Service<Condition>.Get();
+
 #if DEBUG
-            ImGui.Text($"ptr: 0x{this.dalamud.ClientState.Condition.ConditionArrayBase.ToInt64():X}");
+            ImGui.Text($"ptr: 0x{condition.ConditionArrayBase.ToInt64():X}");
 #endif
 
             ImGui.Text("Current Conditions:");
@@ -652,7 +628,7 @@ namespace Dalamud.Interface.Internal.Windows
             for (var i = 0; i < Condition.MaxConditionEntries; i++)
             {
                 var typedCondition = (ConditionFlag)i;
-                var cond = this.dalamud.ClientState.Condition[typedCondition];
+                var cond = condition[typedCondition];
 
                 if (!cond) continue;
 
@@ -667,7 +643,10 @@ namespace Dalamud.Interface.Internal.Windows
 
         private void DrawGauge()
         {
-            var player = this.dalamud.ClientState.LocalPlayer;
+            var clientState = Service<ClientState>.Get();
+            var jobGauges = Service<JobGauges>.Get();
+
+            var player = clientState.LocalPlayer;
             if (player == null)
             {
                 ImGui.Text("Player is not present");
@@ -677,25 +656,25 @@ namespace Dalamud.Interface.Internal.Windows
             var jobID = player.ClassJob.Id;
             if (jobID == 19)
             {
-                var gauge = this.dalamud.ClientState.JobGauges.Get<PLDGauge>();
+                var gauge = jobGauges.Get<PLDGauge>();
                 ImGui.Text($"Address: 0x{gauge.Address.ToInt64():X}");
                 ImGui.Text($"{nameof(gauge.OathGauge)}: {gauge.OathGauge}");
             }
             else if (jobID == 20)
             {
-                var gauge = this.dalamud.ClientState.JobGauges.Get<MNKGauge>();
+                var gauge = jobGauges.Get<MNKGauge>();
                 ImGui.Text($"Address: 0x{gauge.Address.ToInt64():X}");
                 ImGui.Text($"{nameof(gauge.Chakra)}: {gauge.Chakra}");
             }
             else if (jobID == 21)
             {
-                var gauge = this.dalamud.ClientState.JobGauges.Get<WARGauge>();
+                var gauge = jobGauges.Get<WARGauge>();
                 ImGui.Text($"Address: 0x{gauge.Address.ToInt64():X}");
                 ImGui.Text($"{nameof(gauge.BeastGauge)}: {gauge.BeastGauge}");
             }
             else if (jobID == 22)
             {
-                var gauge = this.dalamud.ClientState.JobGauges.Get<DRGGauge>();
+                var gauge = jobGauges.Get<DRGGauge>();
                 ImGui.Text($"Address: 0x{gauge.Address.ToInt64():X}");
                 ImGui.Text($"{nameof(gauge.BOTDTimer)}: {gauge.BOTDTimer}");
                 ImGui.Text($"{nameof(gauge.BOTDState)}: {gauge.BOTDState}");
@@ -703,7 +682,7 @@ namespace Dalamud.Interface.Internal.Windows
             }
             else if (jobID == 23)
             {
-                var gauge = this.dalamud.ClientState.JobGauges.Get<BRDGauge>();
+                var gauge = jobGauges.Get<BRDGauge>();
                 ImGui.Text($"Address: 0x{gauge.Address.ToInt64():X}");
                 ImGui.Text($"{nameof(gauge.SongTimer)}: {gauge.SongTimer}");
                 ImGui.Text($"{nameof(gauge.Repertoire)}: {gauge.Repertoire}");
@@ -712,7 +691,7 @@ namespace Dalamud.Interface.Internal.Windows
             }
             else if (jobID == 24)
             {
-                var gauge = this.dalamud.ClientState.JobGauges.Get<WHMGauge>();
+                var gauge = jobGauges.Get<WHMGauge>();
                 ImGui.Text($"Address: 0x{gauge.Address.ToInt64():X}");
                 ImGui.Text($"{nameof(gauge.LilyTimer)}: {gauge.LilyTimer}");
                 ImGui.Text($"{nameof(gauge.Lily)}: {gauge.Lily}");
@@ -720,7 +699,7 @@ namespace Dalamud.Interface.Internal.Windows
             }
             else if (jobID == 25)
             {
-                var gauge = this.dalamud.ClientState.JobGauges.Get<BLMGauge>();
+                var gauge = jobGauges.Get<BLMGauge>();
                 ImGui.Text($"Address: 0x{gauge.Address.ToInt64():X}");
                 ImGui.Text($"{nameof(gauge.EnochianTimer)}: {gauge.EnochianTimer}");
                 ImGui.Text($"{nameof(gauge.ElementTimeRemaining)}: {gauge.ElementTimeRemaining}");
@@ -734,7 +713,7 @@ namespace Dalamud.Interface.Internal.Windows
             }
             else if (jobID == 27)
             {
-                var gauge = this.dalamud.ClientState.JobGauges.Get<SMNGauge>();
+                var gauge = jobGauges.Get<SMNGauge>();
                 ImGui.Text($"Address: 0x{gauge.Address.ToInt64():X}");
                 ImGui.Text($"{nameof(gauge.TimerRemaining)}: {gauge.TimerRemaining}");
                 ImGui.Text($"{nameof(gauge.ReturnSummon)}: {gauge.ReturnSummon}");
@@ -746,7 +725,7 @@ namespace Dalamud.Interface.Internal.Windows
             }
             else if (jobID == 28)
             {
-                var gauge = this.dalamud.ClientState.JobGauges.Get<SCHGauge>();
+                var gauge = jobGauges.Get<SCHGauge>();
                 ImGui.Text($"Address: 0x{gauge.Address.ToInt64():X}");
                 ImGui.Text($"{nameof(gauge.Aetherflow)}: {gauge.Aetherflow}");
                 ImGui.Text($"{nameof(gauge.FairyGauge)}: {gauge.FairyGauge}");
@@ -755,7 +734,7 @@ namespace Dalamud.Interface.Internal.Windows
             }
             else if (jobID == 30)
             {
-                var gauge = this.dalamud.ClientState.JobGauges.Get<NINGauge>();
+                var gauge = jobGauges.Get<NINGauge>();
                 ImGui.Text($"Address: 0x{gauge.Address.ToInt64():X}");
                 ImGui.Text($"{nameof(gauge.HutonTimer)}: {gauge.HutonTimer}");
                 ImGui.Text($"{nameof(gauge.Ninki)}: {gauge.Ninki}");
@@ -763,7 +742,7 @@ namespace Dalamud.Interface.Internal.Windows
             }
             else if (jobID == 31)
             {
-                var gauge = this.dalamud.ClientState.JobGauges.Get<MCHGauge>();
+                var gauge = jobGauges.Get<MCHGauge>();
                 ImGui.Text($"Address: 0x{gauge.Address.ToInt64():X}");
                 ImGui.Text($"{nameof(gauge.OverheatTimeRemaining)}: {gauge.OverheatTimeRemaining}");
                 ImGui.Text($"{nameof(gauge.SummonTimeRemaining)}: {gauge.SummonTimeRemaining}");
@@ -775,7 +754,7 @@ namespace Dalamud.Interface.Internal.Windows
             }
             else if (jobID == 32)
             {
-                var gauge = this.dalamud.ClientState.JobGauges.Get<DRKGauge>();
+                var gauge = jobGauges.Get<DRKGauge>();
                 ImGui.Text($"Address: 0x{gauge.Address.ToInt64():X}");
                 ImGui.Text($"{nameof(gauge.Blood)}: {gauge.Blood}");
                 ImGui.Text($"{nameof(gauge.DarksideTimeRemaining)}: {gauge.DarksideTimeRemaining}");
@@ -784,7 +763,7 @@ namespace Dalamud.Interface.Internal.Windows
             }
             else if (jobID == 33)
             {
-                var gauge = this.dalamud.ClientState.JobGauges.Get<ASTGauge>();
+                var gauge = jobGauges.Get<ASTGauge>();
                 ImGui.Text($"Address: 0x{gauge.Address.ToInt64():X}");
                 ImGui.Text($"{nameof(gauge.DrawnCard)}: {gauge.DrawnCard}");
                 foreach (var seal in Enum.GetValues(typeof(SealType)).Cast<SealType>())
@@ -795,7 +774,7 @@ namespace Dalamud.Interface.Internal.Windows
             }
             else if (jobID == 34)
             {
-                var gauge = this.dalamud.ClientState.JobGauges.Get<SAMGauge>();
+                var gauge = jobGauges.Get<SAMGauge>();
                 ImGui.Text($"Address: 0x{gauge.Address.ToInt64():X}");
                 ImGui.Text($"{nameof(gauge.Kenki)}: {gauge.Kenki}");
                 ImGui.Text($"{nameof(gauge.MeditationStacks)}: {gauge.MeditationStacks}");
@@ -806,14 +785,14 @@ namespace Dalamud.Interface.Internal.Windows
             }
             else if (jobID == 35)
             {
-                var gauge = this.dalamud.ClientState.JobGauges.Get<RDMGauge>();
+                var gauge = jobGauges.Get<RDMGauge>();
                 ImGui.Text($"Address: 0x{gauge.Address.ToInt64():X}");
                 ImGui.Text($"{nameof(gauge.WhiteMana)}: {gauge.WhiteMana}");
                 ImGui.Text($"{nameof(gauge.BlackMana)}: {gauge.BlackMana}");
             }
             else if (jobID == 37)
             {
-                var gauge = this.dalamud.ClientState.JobGauges.Get<GNBGauge>();
+                var gauge = jobGauges.Get<GNBGauge>();
                 ImGui.Text($"Address: 0x{gauge.Address.ToInt64():X}");
                 ImGui.Text($"{nameof(gauge.Ammo)}: {gauge.Ammo}");
                 ImGui.Text($"{nameof(gauge.MaxTimerDuration)}: {gauge.MaxTimerDuration}");
@@ -821,7 +800,7 @@ namespace Dalamud.Interface.Internal.Windows
             }
             else if (jobID == 38)
             {
-                var gauge = this.dalamud.ClientState.JobGauges.Get<DNCGauge>();
+                var gauge = jobGauges.Get<DNCGauge>();
                 ImGui.Text($"Address: 0x{gauge.Address.ToInt64():X}");
                 ImGui.Text($"{nameof(gauge.Feathers)}: {gauge.Feathers}");
                 ImGui.Text($"{nameof(gauge.Esprit)}: {gauge.Esprit}");
@@ -837,13 +816,17 @@ namespace Dalamud.Interface.Internal.Windows
 
         private void DrawCommand()
         {
-            foreach (var command in this.dalamud.CommandManager.Commands)
+            var commandManager = Service<CommandManager>.Get();
+
+            foreach (var command in commandManager.Commands)
+            {
                 ImGui.Text($"{command.Key}\n    -> {command.Value.HelpMessage}\n    -> In help: {command.Value.ShowInHelp}\n\n");
+            }
         }
 
         private unsafe void DrawAddon()
         {
-            var gameGui = this.dalamud.Framework.Gui;
+            var gameGui = Service<GameGui>.Get();
 
             ImGui.InputText("Addon name", ref this.inputAddonName, 256);
             ImGui.InputInt("Addon Index", ref this.inputAddonIndex);
@@ -880,18 +863,21 @@ namespace Dalamud.Interface.Internal.Windows
 
         private void DrawAddonInspector()
         {
-            this.addonInspector ??= new UIDebug(this.dalamud);
+            this.addonInspector ??= new UIDebug();
             this.addonInspector.Draw();
         }
 
         private void DrawStartInfo()
         {
-            ImGui.Text(JsonConvert.SerializeObject(this.dalamud.StartInfo, Formatting.Indented));
+            var startInfo = Service<DalamudStartInfo>.Get();
+
+            ImGui.Text(JsonConvert.SerializeObject(startInfo, Formatting.Indented));
         }
 
         private void DrawTarget()
         {
-            var targetMgr = this.dalamud.ClientState.Targets;
+            var clientState = Service<ClientState>.Get();
+            var targetMgr = Service<TargetManager>.Get();
 
             if (targetMgr.Target != null)
             {
@@ -917,7 +903,7 @@ namespace Dalamud.Interface.Internal.Windows
             if (ImGui.Button("Clear FT"))
                 targetMgr.ClearFocusTarget();
 
-            var localPlayer = this.dalamud.ClientState.LocalPlayer;
+            var localPlayer = clientState.LocalPlayer;
 
             if (localPlayer != null)
             {
@@ -935,6 +921,8 @@ namespace Dalamud.Interface.Internal.Windows
 
         private void DrawToast()
         {
+            var toastGui = Service<ToastGui>.Get();
+
             ImGui.InputText("Toast text", ref this.inputTextToast, 200);
 
             ImGui.Combo("Toast Position", ref this.toastPosition, new[] { "Bottom", "Top", }, 2);
@@ -948,7 +936,7 @@ namespace Dalamud.Interface.Internal.Windows
 
             if (ImGui.Button("Show toast"))
             {
-                this.dalamud.Framework.Gui.Toast.ShowNormal(this.inputTextToast, new ToastOptions
+                toastGui.ShowNormal(this.inputTextToast, new ToastOptions
                 {
                     Position = (ToastPosition)this.toastPosition,
                     Speed = (ToastSpeed)this.toastSpeed,
@@ -957,7 +945,7 @@ namespace Dalamud.Interface.Internal.Windows
 
             if (ImGui.Button("Show Quest toast"))
             {
-                this.dalamud.Framework.Gui.Toast.ShowQuest(this.inputTextToast, new QuestToastOptions
+                toastGui.ShowQuest(this.inputTextToast, new QuestToastOptions
                 {
                     Position = (QuestToastPosition)this.questToastPosition,
                     DisplayCheckmark = this.questToastCheckmark,
@@ -968,7 +956,7 @@ namespace Dalamud.Interface.Internal.Windows
 
             if (ImGui.Button("Show Error toast"))
             {
-                this.dalamud.Framework.Gui.Toast.ShowError(this.inputTextToast);
+                toastGui.ShowError(this.inputTextToast);
             }
         }
 
@@ -999,7 +987,7 @@ namespace Dalamud.Interface.Internal.Windows
 
             if (ImGui.Button("Send"))
             {
-                this.dalamud.Framework.Gui.FlyText.AddFlyText(
+                Service<FlyTextGui>.Get().AddFlyText(
                     this.flyKind,
                     unchecked((uint)this.flyActor),
                     unchecked((uint)this.flyVal1),
@@ -1013,11 +1001,13 @@ namespace Dalamud.Interface.Internal.Windows
 
         private void DrawImGui()
         {
+            var interfaceManager = Service<InterfaceManager>.Get();
+
             ImGui.Text("Monitor count: " + ImGui.GetPlatformIO().Monitors.Size);
-            ImGui.Text("OverrideGameCursor: " + this.dalamud.InterfaceManager.OverrideGameCursor);
+            ImGui.Text("OverrideGameCursor: " + interfaceManager.OverrideGameCursor);
 
             ImGui.Button("THIS IS A BUTTON###hoverTestButton");
-            this.dalamud.InterfaceManager.OverrideGameCursor = !ImGui.IsItemHovered();
+            interfaceManager.OverrideGameCursor = !ImGui.IsItemHovered();
 
             ImGui.Separator();
 
@@ -1048,12 +1038,14 @@ namespace Dalamud.Interface.Internal.Windows
 
                 var text = "Bla bla bla bla bla bla bla bla bla bla bla.\nBla bla bla bla bla bla bla bla bla bla bla bla bla bla.";
 
-                this.dalamud.InterfaceManager.Notifications.AddNotification(text, title, type);
+                interfaceManager.Notifications.AddNotification(text, title, type);
             }
         }
 
         private void DrawTex()
         {
+            var dataManager = Service<DataManager>.Get();
+
             ImGui.InputText("Tex Path", ref this.inputTexPath, 255);
             ImGui.InputFloat2("UV0", ref this.inputTexUv0);
             ImGui.InputFloat2("UV1", ref this.inputTexUv1);
@@ -1064,7 +1056,7 @@ namespace Dalamud.Interface.Internal.Windows
             {
                 try
                 {
-                    this.debugTex = this.dalamud.Data.GetImGuiTexture(this.inputTexPath);
+                    this.debugTex = dataManager.GetImGuiTexture(this.inputTexPath);
                     this.inputTexScale = new Vector2(this.debugTex.Width, this.debugTex.Height);
                 }
                 catch (Exception ex)
@@ -1085,6 +1077,8 @@ namespace Dalamud.Interface.Internal.Windows
 
         private void DrawGamepad()
         {
+            var gamepadState = Service<GamepadState>.Get();
+
             static void DrawHelper(string text, uint mask, Func<GamepadButtons, float> resolve)
             {
                 ImGui.Text($"{text} {mask:X4}");
@@ -1106,47 +1100,49 @@ namespace Dalamud.Interface.Internal.Windows
                            $"R3 {resolve(GamepadButtons.R3)} ");
             }
 
-            ImGui.Text($"GamepadInput 0x{this.dalamud.ClientState.GamepadState.GamepadInputAddress.ToInt64():X}");
+            ImGui.Text($"GamepadInput 0x{gamepadState.GamepadInputAddress.ToInt64():X}");
 
 #if DEBUG
             if (ImGui.IsItemHovered())
                 ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
 
             if (ImGui.IsItemClicked())
-                ImGui.SetClipboardText($"0x{this.dalamud.ClientState.GamepadState.GamepadInputAddress.ToInt64():X}");
+                ImGui.SetClipboardText($"0x{gamepadState.GamepadInputAddress.ToInt64():X}");
 #endif
 
             DrawHelper(
                 "Buttons Raw",
-                this.dalamud.ClientState.GamepadState.ButtonsRaw,
-                this.dalamud.ClientState.GamepadState.Raw);
+                gamepadState.ButtonsRaw,
+                gamepadState.Raw);
             DrawHelper(
                 "Buttons Pressed",
-                this.dalamud.ClientState.GamepadState.ButtonsPressed,
-                this.dalamud.ClientState.GamepadState.Pressed);
+                gamepadState.ButtonsPressed,
+                gamepadState.Pressed);
             DrawHelper(
                 "Buttons Repeat",
-                this.dalamud.ClientState.GamepadState.ButtonsRepeat,
-                this.dalamud.ClientState.GamepadState.Repeat);
+                gamepadState.ButtonsRepeat,
+                gamepadState.Repeat);
             DrawHelper(
                 "Buttons Released",
-                this.dalamud.ClientState.GamepadState.ButtonsReleased,
-                this.dalamud.ClientState.GamepadState.Released);
-            ImGui.Text($"LeftStickLeft {this.dalamud.ClientState.GamepadState.LeftStickLeft:0.00} " +
-                       $"LeftStickUp {this.dalamud.ClientState.GamepadState.LeftStickUp:0.00} " +
-                       $"LeftStickRight {this.dalamud.ClientState.GamepadState.LeftStickRight:0.00} " +
-                       $"LeftStickDown {this.dalamud.ClientState.GamepadState.LeftStickDown:0.00} ");
-            ImGui.Text($"RightStickLeft {this.dalamud.ClientState.GamepadState.RightStickLeft:0.00} " +
-                       $"RightStickUp {this.dalamud.ClientState.GamepadState.RightStickUp:0.00} " +
-                       $"RightStickRight {this.dalamud.ClientState.GamepadState.RightStickRight:0.00} " +
-                       $"RightStickDown {this.dalamud.ClientState.GamepadState.RightStickDown:0.00} ");
+                gamepadState.ButtonsReleased,
+                gamepadState.Released);
+            ImGui.Text($"LeftStickLeft {gamepadState.LeftStickLeft:0.00} " +
+                       $"LeftStickUp {gamepadState.LeftStickUp:0.00} " +
+                       $"LeftStickRight {gamepadState.LeftStickRight:0.00} " +
+                       $"LeftStickDown {gamepadState.LeftStickDown:0.00} ");
+            ImGui.Text($"RightStickLeft {gamepadState.RightStickLeft:0.00} " +
+                       $"RightStickUp {gamepadState.RightStickUp:0.00} " +
+                       $"RightStickRight {gamepadState.RightStickRight:0.00} " +
+                       $"RightStickDown {gamepadState.RightStickDown:0.00} ");
         }
 
         private void Load()
         {
-            if (this.dalamud.Data.IsDataReady)
+            var dataManager = Service<DataManager>.Get();
+
+            if (dataManager.IsDataReady)
             {
-                this.serverOpString = JsonConvert.SerializeObject(this.dalamud.Data.ServerOpCodes, Formatting.Indented);
+                this.serverOpString = JsonConvert.SerializeObject(dataManager.ServerOpCodes, Formatting.Indented);
                 this.wasReady = true;
             }
         }

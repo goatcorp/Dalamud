@@ -15,21 +15,20 @@ namespace Dalamud.Game.ClientState.Objects.SubKinds
         /// This represents a player character.
         /// </summary>
         /// <param name="address">The address of this actor in memory.</param>
-        /// <param name="dalamud">A dalamud reference needed to access game data in Resolvers.</param>
-        internal PlayerCharacter(IntPtr address, Dalamud dalamud)
-            : base(address, dalamud)
+        internal PlayerCharacter(IntPtr address)
+            : base(address)
         {
         }
 
         /// <summary>
         /// Gets the current <see cref="ExcelResolver{T}">world</see> of the character.
         /// </summary>
-        public ExcelResolver<Lumina.Excel.GeneratedSheets.World> CurrentWorld => new(this.Struct->Character.CurrentWorld, this.Dalamud);
+        public ExcelResolver<Lumina.Excel.GeneratedSheets.World> CurrentWorld => new(this.Struct->Character.CurrentWorld);
 
         /// <summary>
         /// Gets the home <see cref="ExcelResolver{T}">world</see> of the character.
         /// </summary>
-        public ExcelResolver<Lumina.Excel.GeneratedSheets.World> HomeWorld => new(this.Struct->Character.HomeWorld, this.Dalamud);
+        public ExcelResolver<Lumina.Excel.GeneratedSheets.World> HomeWorld => new(this.Struct->Character.HomeWorld);
 
         /// <summary>
         /// Gets the target actor ID of the PlayerCharacter.

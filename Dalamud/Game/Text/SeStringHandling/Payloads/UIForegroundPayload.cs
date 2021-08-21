@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
 
-using Dalamud.Data;
 using Lumina.Excel.GeneratedSheets;
 using Newtonsoft.Json;
 
@@ -21,11 +20,9 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         /// Initializes a new instance of the <see cref="UIForegroundPayload"/> class.
         /// Creates a new UIForegroundPayload for the given UIColor key.
         /// </summary>
-        /// <param name="data">DataManager instance needed to resolve game data.</param>
         /// <param name="colorKey">A UIColor key.</param>
-        public UIForegroundPayload(DataManager data, ushort colorKey)
+        public UIForegroundPayload(ushort colorKey)
         {
-            this.DataResolver = data;
             this.colorKey = colorKey;
         }
 
@@ -41,7 +38,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         /// Gets a payload representing disabling foreground color on following text.
         /// </summary>
         // TODO Make this work with DI
-        public static UIForegroundPayload UIForegroundOff => new(null, 0);
+        public static UIForegroundPayload UIForegroundOff => new(0);
 
         /// <inheritdoc/>
         public override PayloadType Type => PayloadType.UIForeground;

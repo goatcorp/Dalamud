@@ -1,4 +1,5 @@
-﻿using ImGuiNET;
+using Dalamud.Game.ClientState;
+using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
 {
@@ -27,19 +28,21 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
         public string Name => $"Enter Terri: {this.terriName}";
 
         /// <inheritdoc/>
-        public SelfTestStepResult RunStep(Dalamud dalamud)
+        public SelfTestStepResult RunStep()
         {
+            var clientState = Service<ClientState>.Get();
+
             ImGui.TextUnformatted(this.Name);
 
             if (!this.subscribed)
             {
-                dalamud.ClientState.TerritoryChanged += this.ClientStateOnTerritoryChanged;
+                clientState.TerritoryChanged += this.ClientStateOnTerritoryChanged;
                 this.subscribed = true;
             }
 
             if (this.hasPassed)
             {
-                dalamud.ClientState.TerritoryChanged -= this.ClientStateOnTerritoryChanged;
+                clientState.TerritoryChanged -= this.ClientStateOnTerritoryChanged;
                 this.subscribed = false;
                 return SelfTestStepResult.Pass;
             }
@@ -48,9 +51,11 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
         }
 
         /// <inheritdoc/>
-        public void CleanUp(Dalamud dalamud)
+        public void CleanUp()
         {
-            dalamud.ClientState.TerritoryChanged -= this.ClientStateOnTerritoryChanged;
+            var clientState = Service<ClientState>.Get();
+
+            clientState.TerritoryChanged -= this.ClientStateOnTerritoryChanged;
             this.subscribed = false;
         }
 

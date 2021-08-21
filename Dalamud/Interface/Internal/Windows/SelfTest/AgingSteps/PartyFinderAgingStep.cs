@@ -1,4 +1,5 @@
-﻿using Dalamud.Game.Gui.PartyFinder.Types;
+using Dalamud.Game.Gui.PartyFinder;
+using Dalamud.Game.Gui.PartyFinder.Types;
 using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
@@ -15,17 +16,19 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
         public string Name => "Test Party Finder";
 
         /// <inheritdoc/>
-        public SelfTestStepResult RunStep(Dalamud dalamud)
+        public SelfTestStepResult RunStep()
         {
+            var partyFinderGui = Service<PartyFinderGui>.Get();
+
             if (!this.subscribed)
             {
-                dalamud.Framework.Gui.PartyFinder.ReceiveListing += this.PartyFinderOnReceiveListing;
+                partyFinderGui.ReceiveListing += this.PartyFinderOnReceiveListing;
                 this.subscribed = true;
             }
 
             if (this.hasPassed)
             {
-                dalamud.Framework.Gui.PartyFinder.ReceiveListing -= this.PartyFinderOnReceiveListing;
+                partyFinderGui.ReceiveListing -= this.PartyFinderOnReceiveListing;
                 this.subscribed = false;
                 return SelfTestStepResult.Pass;
             }
@@ -36,11 +39,13 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
         }
 
         /// <inheritdoc/>
-        public void CleanUp(Dalamud dalamud)
+        public void CleanUp()
         {
+            var partyFinderGui = Service<PartyFinderGui>.Get();
+
             if (this.subscribed)
             {
-                dalamud.Framework.Gui.PartyFinder.ReceiveListing -= this.PartyFinderOnReceiveListing;
+                partyFinderGui.ReceiveListing -= this.PartyFinderOnReceiveListing;
                 this.subscribed = false;
             }
         }

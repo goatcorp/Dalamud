@@ -4,7 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 
+using Dalamud.Game;
+using Dalamud.Game.Gui;
 using Dalamud.Interface.Windowing;
+using Dalamud.Plugin.Internal;
 using ImGuiNET;
 using ImGuiScene;
 
@@ -115,7 +118,6 @@ Contribute at: https://github.com/goatsoft/Dalamud
 Thank you for using XIVLauncher and Dalamud!
 ";
 
-        private readonly Dalamud dalamud;
         private readonly TextureWrap logoTexture;
         private readonly Stopwatch creditsThrottler;
 
@@ -124,12 +126,13 @@ Thank you for using XIVLauncher and Dalamud!
         /// <summary>
         /// Initializes a new instance of the <see cref="CreditsWindow"/> class.
         /// </summary>
-        /// <param name="dalamud">The Dalamud instance.</param>
-        public CreditsWindow(Dalamud dalamud)
+        public CreditsWindow()
             : base("Dalamud Credits", ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize, true)
         {
-            this.dalamud = dalamud;
-            this.logoTexture = this.dalamud.InterfaceManager.LoadImage(Path.Combine(this.dalamud.AssetDirectory.FullName, "UIRes", "logo.png"));
+            var dalamud = Service<Dalamud>.Get();
+            var interfaceManager = Service<InterfaceManager>.Get();
+
+            this.logoTexture = interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "logo.png"));
             this.creditsThrottler = new();
 
             this.Size = new Vector2(500, 400);
@@ -143,14 +146,14 @@ Thank you for using XIVLauncher and Dalamud!
         /// <inheritdoc/>
         public override void OnOpen()
         {
-            var pluginCredits = this.dalamud.PluginManager.InstalledPlugins
+            var pluginCredits = Service<PluginManager>.Get().InstalledPlugins
                 .Where(plugin => plugin.Manifest != null)
                 .Select(plugin => $"{plugin.Manifest.Name} by {plugin.Manifest.Author}\n")
                 .Aggregate(string.Empty, (current, next) => $"{current}{next}");
 
             this.creditsText = string.Format(CreditsTextTempl, typeof(Dalamud).Assembly.GetName().Version, pluginCredits);
 
-            this.dalamud.Framework.Gui.SetBgm(132);
+            Service<GameGui>.Get().SetBgm(132);
             this.creditsThrottler.Restart();
         }
 
@@ -158,7 +161,7 @@ Thank you for using XIVLauncher and Dalamud!
         public override void OnClose()
         {
             this.creditsThrottler.Reset();
-            this.dalamud.Framework.Gui.SetBgm(9999);
+            Service<GameGui>.Get().SetBgm(9999);
         }
 
         /// <inheritdoc/>

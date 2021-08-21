@@ -4,6 +4,9 @@ using System.Linq;
 using System.Text;
 
 using Dalamud.Configuration;
+using Dalamud.Configuration.Internal;
+using Dalamud.Interface.Internal;
+using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
 using Newtonsoft.Json;
@@ -44,23 +47,26 @@ namespace Dalamud
         /// <summary>
         /// Log troubleshooting information in a parseable format to Serilog.
         /// </summary>
-        /// <param name="dalamud">The <see cref="Dalamud"/> instance to read information from.</param>
-        /// <param name="isInterfaceLoaded">Whether or not the interface was loaded.</param>
-        internal static void LogTroubleshooting(Dalamud dalamud, bool isInterfaceLoaded)
+        internal static void LogTroubleshooting()
         {
+            var startInfo = Service<DalamudStartInfo>.Get();
+            var configuration = Service<DalamudConfiguration>.Get();
+            var interfaceManager = Service<InterfaceManager>.GetNullable();
+            var pluginManager = Service<PluginManager>.GetNullable();
+
             try
             {
                 var payload = new TroubleshootingPayload
                 {
-                    LoadedPlugins = dalamud.PluginManager.InstalledPlugins.Select(x => x.Manifest).ToArray(),
+                    LoadedPlugins = pluginManager?.InstalledPlugins?.Select(x => x.Manifest)?.ToArray(),
                     DalamudVersion = Util.AssemblyVersion,
                     DalamudGitHash = Util.GetGitHash(),
-                    GameVersion = dalamud.StartInfo.GameVersion.ToString(),
-                    Language = dalamud.StartInfo.Language.ToString(),
-                    DoDalamudTest = dalamud.Configuration.DoDalamudTest,
-                    DoPluginTest = dalamud.Configuration.DoPluginTest,
-                    InterfaceLoaded = isInterfaceLoaded,
-                    ThirdRepo = dalamud.Configuration.ThirdRepoList,
+                    GameVersion = startInfo.GameVersion.ToString(),
+                    Language = startInfo.Language.ToString(),
+                    DoDalamudTest = configuration.DoDalamudTest,
+                    DoPluginTest = configuration.DoPluginTest,
+                    InterfaceLoaded = interfaceManager?.IsReady ?? false,
+                    ThirdRepo = configuration.ThirdRepoList,
                 };
 
                 var encodedPayload = Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(payload)));

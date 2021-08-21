@@ -3,7 +3,9 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 
+using Dalamud.Configuration.Internal;
 using Dalamud.Game;
+using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Exceptions;
 using Dalamud.Plugin.Internal.Types;
@@ -19,25 +21,22 @@ namespace Dalamud.Plugin.Internal
     {
         private static readonly ModuleLog Log = new("LOCALPLUGIN");
 
-        private readonly Dalamud dalamud;
         private readonly FileInfo manifestFile;
         private readonly FileInfo disabledFile;
         private readonly FileInfo testingFile;
 
         private PluginLoader loader;
         private Assembly pluginAssembly;
-        private Type pluginType;
-        private IDalamudPlugin instance;
+        private Type? pluginType;
+        private IDalamudPlugin? instance;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LocalPlugin"/> class.
         /// </summary>
-        /// <param name="dalamud">Dalamud instance.</param>
         /// <param name="dllFile">Path to the DLL file.</param>
         /// <param name="manifest">The plugin manifest.</param>
-        public LocalPlugin(Dalamud dalamud, FileInfo dllFile, LocalPluginManifest manifest)
+        public LocalPlugin(FileInfo dllFile, LocalPluginManifest? manifest)
         {
-            this.dalamud = dalamud;
             this.DllFile = dllFile;
             this.State = PluginState.Unloaded;
 
@@ -192,6 +191,10 @@ namespace Dalamud.Plugin.Internal
         /// <param name="reloading">Load while reloading.</param>
         public void Load(PluginLoadReason reason, bool reloading = false)
         {
+            var startInfo = Service<DalamudStartInfo>.Get();
+            var configuration = Service<DalamudConfiguration>.Get();
+            var pluginManager = Service<PluginManager>.Get();
+
             // Allowed: Unloaded
             switch (this.State)
             {
@@ -205,10 +208,10 @@ namespace Dalamud.Plugin.Internal
                     throw new InvalidPluginOperationException($"Unable to load {this.Name}, unload previously faulted, restart Dalamud");
             }
 
-            if (this.Manifest.ApplicableVersion < this.dalamud.StartInfo.GameVersion)
+            if (this.Manifest.ApplicableVersion < startInfo.GameVersion)
                 throw new InvalidPluginOperationException($"Unable to load {this.Name}, no applicable version");
 
-            if (this.Manifest.DalamudApiLevel < PluginManager.DalamudApiLevel && !this.dalamud.Configuration.LoadAllApiLevels)
+            if (this.Manifest.DalamudApiLevel < PluginManager.DalamudApiLevel && !configuration.LoadAllApiLevels)
                 throw new InvalidPluginOperationException($"Unable to load {this.Name}, incompatible API level");
 
             if (this.Manifest.Disabled)
@@ -243,7 +246,7 @@ namespace Dalamud.Plugin.Internal
 
                 // Check for any loaded plugins with the same assembly name
                 var assemblyName = this.pluginAssembly.GetName().Name;
-                foreach (var otherPlugin in this.dalamud.PluginManager.InstalledPlugins)
+                foreach (var otherPlugin in pluginManager.InstalledPlugins)
                 {
                     // During hot-reloading, this plugin will be in the plugin list, and the instance will have been disposed
                     if (otherPlugin == this || otherPlugin.instance == null)
@@ -262,8 +265,16 @@ namespace Dalamud.Plugin.Internal
                 // Update the location for the Location and CodeBase patches
                 PluginManager.PluginLocations[this.pluginType.Assembly.FullName] = new(this.DllFile);
 
-                // Instantiate and initialize
-                this.instance = Activator.CreateInstance(this.pluginType) as IDalamudPlugin;
+                this.DalamudInterface = new DalamudPluginInterface(this.pluginAssembly.GetName().Name!, reason);
+
+                var ioc = Service<ServiceContainer>.Get();
+                this.instance = ioc.Create(this.pluginType, this.DalamudInterface) as IDalamudPlugin;
+                if (this.instance == null)
+                {
+                    this.State = PluginState.LoadError;
+                    Log.Error($"Error while loading {this.Name}, failed to bind and call the plugin constructor");
+                    return;
+                }
 
                 // In-case the manifest name was a placeholder. Can occur when no manifest was included.
                 if (this.instance.Name != this.Manifest.Name)
@@ -271,30 +282,6 @@ namespace Dalamud.Plugin.Internal
                     this.Manifest.Name = this.instance.Name;
                     this.Manifest.Save(this.manifestFile);
                 }
-
-                this.DalamudInterface = new DalamudPluginInterface(this.dalamud, this.pluginAssembly.GetName().Name, reason);
-
-                if (this.IsDev)
-                {
-                    // Inherit LPL's AssemblyLocation functionality
-                    try
-                    {
-                        var bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
-
-                        this.instance.GetType()
-                            ?.GetProperty("AssemblyLocation", bindingFlags)
-                            ?.SetValue(this.instance, this.DllFile.FullName);
-                        this.instance.GetType()
-                            ?.GetMethod("SetLocation", bindingFlags)
-                            ?.Invoke(this.instance, new object[] { this.DllFile.FullName });
-                    }
-                    catch
-                    {
-                        // Ignored
-                    }
-                }
-
-                this.instance.Initialize(this.DalamudInterface);
 
                 this.State = PluginState.Loaded;
                 Log.Information($"Finished loading {this.DllFile.Name}");

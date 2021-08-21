@@ -1,6 +1,7 @@
 using System;
 using System.Numerics;
 
+using Dalamud.Data;
 using Dalamud.Game.ClientState.Resolvers;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Memory;
@@ -12,17 +13,13 @@ namespace Dalamud.Game.ClientState.Fates
     /// </summary>
     public unsafe partial class Fate : IEquatable<Fate>
     {
-        private Dalamud dalamud;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="Fate"/> class.
         /// </summary>
         /// <param name="address">The address of this fate in memory.</param>
-        /// <param name="dalamud">Dalamud instance.</param>
-        internal Fate(IntPtr address, Dalamud dalamud)
+        internal Fate(IntPtr address)
         {
             this.Address = address;
-            this.dalamud = dalamud;
         }
 
         /// <summary>
@@ -49,10 +46,12 @@ namespace Dalamud.Game.ClientState.Fates
         /// <returns>True or false.</returns>
         public static bool IsValid(Fate fate)
         {
+            var clientState = Service<ClientState>.Get();
+
             if (fate == null)
                 return false;
 
-            if (fate.dalamud.ClientState.LocalContentId == 0)
+            if (clientState.LocalContentId == 0)
                 return false;
 
             return true;
@@ -87,7 +86,7 @@ namespace Dalamud.Game.ClientState.Fates
         /// <summary>
         /// Gets game data linked to this Fate.
         /// </summary>
-        public Lumina.Excel.GeneratedSheets.Fate GameData => this.dalamud.Data.GetExcelSheet<Lumina.Excel.GeneratedSheets.Fate>().GetRow(this.FateId);
+        public Lumina.Excel.GeneratedSheets.Fate GameData => Service<DataManager>.Get().GetExcelSheet<Lumina.Excel.GeneratedSheets.Fate>().GetRow(this.FateId);
 
         /// <summary>
         /// Gets the time this <see cref="Fate"/> started.
@@ -132,6 +131,6 @@ namespace Dalamud.Game.ClientState.Fates
         /// <summary>
         /// Gets the territory this <see cref="Fate"/> is located in.
         /// </summary>
-        public ExcelResolver<Lumina.Excel.GeneratedSheets.TerritoryType> TerritoryType => new(this.Struct->TerritoryID, this.dalamud);
+        public ExcelResolver<Lumina.Excel.GeneratedSheets.TerritoryType> TerritoryType => new(this.Struct->TerritoryID);
     }
 }

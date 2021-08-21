@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -9,21 +8,24 @@ using Dalamud.Data;
 using Dalamud.Game;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.Command;
+using Dalamud.Game.Gui;
 using Dalamud.Game.Gui.Internal;
 using Dalamud.Game.Internal;
+using Dalamud.Game.Network;
 using Dalamud.Game.Network.Internal;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Hooking.Internal;
 using Dalamud.Interface.Internal;
-using Dalamud.Memory;
+using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Internal;
 using Serilog;
 using Serilog.Core;
 
 #if DEBUG
-// This allows for rapid prototyping of Dalamud modules with access to internal objects.
 [assembly: InternalsVisibleTo("Dalamud.CorePlugin")]
 #endif
+
+[assembly: InternalsVisibleTo("Dalamud.Test")]
 
 namespace Dalamud
 {
@@ -49,14 +51,11 @@ namespace Dalamud
         /// <param name="configuration">The Dalamud configuration.</param>
         public Dalamud(DalamudStartInfo info, LoggingLevelSwitch loggingLevelSwitch, ManualResetEvent finishSignal, DalamudConfiguration configuration)
         {
-#if DEBUG
-            Instance = this;
-#endif
-            this.StartInfo = info;
-            this.LogLevelSwitch = loggingLevelSwitch;
-            this.Configuration = configuration;
+            Service<Dalamud>.Set(this);
+            Service<DalamudStartInfo>.Set(info);
+            Service<DalamudConfiguration>.Set(configuration);
 
-            // this.baseDirectory = info.WorkingDirectory;
+            this.LogLevelSwitch = loggingLevelSwitch;
 
             this.unloadSignal = new ManualResetEvent(false);
             this.unloadSignal.Reset();
@@ -65,138 +64,10 @@ namespace Dalamud
             this.finishUnloadSignal.Reset();
         }
 
-#if DEBUG
-        /// <summary>
-        /// Gets the Dalamud singleton instance.
-        /// </summary>
-        internal static Dalamud Instance { get; private set; }
-#endif
-
-        #region Native Game Subsystems
-
-        /// <summary>
-        /// Gets game framework subsystem.
-        /// </summary>
-        internal Framework Framework { get; private set; }
-
-        /// <summary>
-        /// Gets Anti-Debug detection prevention subsystem.
-        /// </summary>
-        internal AntiDebug AntiDebug { get; private set; }
-
-        /// <summary>
-        /// Gets WinSock optimization subsystem.
-        /// </summary>
-        internal WinSockHandlers WinSock2 { get; private set; }
-
-        /// <summary>
-        /// Gets Hook management subsystem.
-        /// </summary>
-        internal HookManager HookManager { get; private set; }
-
-        /// <summary>
-        /// Gets ImGui Interface subsystem.
-        /// </summary>
-        internal InterfaceManager InterfaceManager { get; private set; }
-
-        /// <summary>
-        /// Gets the Input Method subsystem.
-        /// </summary>
-        internal DalamudIME IME { get; private set; }
-
-        /// <summary>
-        /// Gets ClientState subsystem.
-        /// </summary>
-        internal ClientState ClientState { get; private set; }
-
-        #endregion
-
-        #region Dalamud Subsystems
-
-        /// <summary>
-        /// Gets Plugin Manager subsystem.
-        /// </summary>
-        internal PluginManager PluginManager { get; private set; }
-
-        /// <summary>
-        /// Gets Data provider subsystem.
-        /// </summary>
-        internal DataManager Data { get; private set; }
-
-        /// <summary>
-        /// Gets Command Manager subsystem.
-        /// </summary>
-        internal CommandManager CommandManager { get; private set; }
-
-        /// <summary>
-        /// Gets Localization subsystem facilitating localization for Dalamud and plugins.
-        /// </summary>
-        internal Localization LocalizationManager { get; private set; }
-
-        #endregion
-
-        #region Helpers
-
-        /// <summary>
-        /// Gets SeStringManager subsystem facilitating string parsing.
-        /// </summary>
-        internal SeStringManager SeStringManager { get; private set; }
-
-        /// <summary>
-        /// Gets copy-enabled SigScanner for target module.
-        /// </summary>
-        internal SigScanner SigScanner { get; private set; }
-
         /// <summary>
         /// Gets LoggingLevelSwitch for Dalamud and Plugin logs.
         /// </summary>
         internal LoggingLevelSwitch LogLevelSwitch { get; private set; }
-
-        /// <summary>
-        /// Gets StartInfo object passed from injector.
-        /// </summary>
-        internal DalamudStartInfo StartInfo { get; private set; }
-
-        /// <summary>
-        /// Gets Configuration object facilitating save and load of Dalamud configuration.
-        /// </summary>
-        internal DalamudConfiguration Configuration { get; private set; }
-
-        #endregion
-
-        #region Dalamud Core functionality
-
-        /// <summary>
-        /// Gets Dalamud base UI.
-        /// </summary>
-        internal DalamudInterface DalamudUi { get; private set; }
-
-        /// <summary>
-        /// Gets Dalamud chat commands.
-        /// </summary>
-        internal DalamudCommands DalamudCommands { get; private set; }
-
-        /// <summary>
-        /// Gets Dalamud chat-based features.
-        /// </summary>
-        internal ChatHandlers ChatHandlers { get; private set; }
-
-        /// <summary>
-        /// Gets Dalamud network-based features.
-        /// </summary>
-        internal NetworkHandlers NetworkHandlers { get; private set; }
-
-        /// <summary>
-        /// Gets subsystem responsible for adding the Dalamud menu items to the game's system menu.
-        /// </summary>
-        internal DalamudSystemMenu SystemMenu { get; private set; }
-
-        #endregion
-
-        /// <summary>
-        /// Gets Injected process module.
-        /// </summary>
-        internal ProcessModule TargetModule { get; private set; }
 
         /// <summary>
         /// Gets a value indicating whether Dalamud was successfully loaded.
@@ -206,12 +77,12 @@ namespace Dalamud
         /// <summary>
         /// Gets a value indicating whether the plugin system is loaded.
         /// </summary>
-        internal bool IsLoadedPluginSystem => this.PluginManager != null;
+        internal bool IsLoadedPluginSystem => Service<PluginManager>.GetNullable() != null;
 
         /// <summary>
         /// Gets location of stored assets.
         /// </summary>
-        internal DirectoryInfo AssetDirectory => new(this.StartInfo.AssetDirectory);
+        internal DirectoryInfo AssetDirectory => new(Service<DalamudStartInfo>.Get().AssetDirectory);
 
         /// <summary>
         /// Runs tier 1 of the Dalamud initialization process.
@@ -220,21 +91,25 @@ namespace Dalamud
         {
             try
             {
+                Service<ServiceContainer>.Set();
+
                 // Initialize the process information.
-                this.TargetModule = Process.GetCurrentProcess().MainModule;
-                this.SigScanner = new SigScanner(this.TargetModule, true);
-                this.HookManager = new HookManager(this);
+                Service<SigScanner>.Set(new SigScanner(true));
+                Service<HookManager>.Set();
 
                 // Initialize FFXIVClientStructs function resolver
                 FFXIVClientStructs.Resolver.Initialize();
                 Log.Information("[T1] FFXIVClientStructs initialized!");
 
                 // Initialize game subsystem
-                this.Framework = new Framework(this.SigScanner, this);
-
+                var framework = Service<Framework>.Set();
                 Log.Information("[T1] Framework OK!");
 
-                this.Framework.Enable();
+                Service<GameNetwork>.Set();
+                Service<GameGui>.Set();
+
+                framework.Enable();
+
                 Log.Information("[T1] Framework ENABLE!");
             }
             catch (Exception ex)
@@ -251,33 +126,35 @@ namespace Dalamud
         {
             try
             {
-                this.AntiDebug = new AntiDebug(this.SigScanner);
-                if (this.Configuration.IsAntiAntiDebugEnabled)
-                    this.AntiDebug.Enable();
-#if DEBUG
-                if (!this.AntiDebug.IsEnabled)
-                    this.AntiDebug.Enable();
-#endif
+                var configuration = Service<DalamudConfiguration>.Get();
 
+                var antiDebug = Service<AntiDebug>.Set();
+                if (configuration.IsAntiAntiDebugEnabled)
+                    antiDebug.Enable();
+#if DEBUG
+                if (!antiDebug.IsEnabled)
+                    antiDebug.Enable();
+#endif
                 Log.Information("[T2] AntiDebug OK!");
 
-                this.WinSock2 = new WinSockHandlers();
-
+                Service<WinSockHandlers>.Set();
                 Log.Information("[T2] WinSock OK!");
 
-                this.NetworkHandlers = new NetworkHandlers(this, this.StartInfo.OptOutMbCollection);
-
+                Service<NetworkHandlers>.Set();
                 Log.Information("[T2] NH OK!");
 
-                this.ClientState = new ClientState(this, this.StartInfo, this.SigScanner);
-
+                Service<ClientState>.Set();
                 Log.Information("[T2] CS OK!");
 
-                this.LocalizationManager = new Localization(Path.Combine(this.AssetDirectory.FullName, "UIRes", "loc", "dalamud"), "dalamud_");
-                if (!string.IsNullOrEmpty(this.Configuration.LanguageOverride))
-                    this.LocalizationManager.SetupWithLangCode(this.Configuration.LanguageOverride);
+                var localization = Service<Localization>.Set(new Localization(Path.Combine(this.AssetDirectory.FullName, "UIRes", "loc", "dalamud"), "dalamud_"));
+                if (!string.IsNullOrEmpty(configuration.LanguageOverride))
+                {
+                    localization.SetupWithLangCode(configuration.LanguageOverride);
+                }
                 else
-                    this.LocalizationManager.SetupWithUiCulture();
+                {
+                    localization.SetupWithUiCulture();
+                }
 
                 Log.Information("[T2] LOC OK!");
 
@@ -285,9 +162,7 @@ namespace Dalamud
                 {
                     try
                     {
-                        this.InterfaceManager = new InterfaceManager(this, this.SigScanner);
-
-                        this.InterfaceManager.Enable();
+                        Service<InterfaceManager>.Set().Enable();
 
                         Log.Information("[T2] IM OK!");
                     }
@@ -299,7 +174,7 @@ namespace Dalamud
 
                 try
                 {
-                    this.IME = new DalamudIME(this);
+                    Service<DalamudIME>.Set();
                     Log.Information("[T2] IME OK!");
                 }
                 catch (Exception e)
@@ -307,10 +182,9 @@ namespace Dalamud
                     Log.Information(e, "Could not init IME.");
                 }
 
-                this.Data = new DataManager(this.StartInfo.Language, this.InterfaceManager);
                 try
                 {
-                    this.Data.Initialize(this.AssetDirectory.FullName);
+                    Service<DataManager>.Set().Initialize(this.AssetDirectory.FullName);
                 }
                 catch (Exception e)
                 {
@@ -321,27 +195,25 @@ namespace Dalamud
 
                 Log.Information("[T2] Data OK!");
 
-                this.SeStringManager = new SeStringManager(this.Data);
-                MemoryHelper.Initialize(this);  // For SeString handling
+                Service<SeStringManager>.Set();
 
                 Log.Information("[T2] SeString OK!");
 
                 // Initialize managers. Basically handlers for the logic
-                this.CommandManager = new CommandManager(this, this.StartInfo.Language);
-                this.DalamudCommands = new DalamudCommands(this);
-                this.DalamudCommands.SetupCommands();
+                Service<CommandManager>.Set();
+
+                Service<DalamudCommands>.Set().SetupCommands();
 
                 Log.Information("[T2] CM OK!");
 
-                this.ChatHandlers = new ChatHandlers(this);
+                Service<ChatHandlers>.Set();
 
                 Log.Information("[T2] CH OK!");
 
-                this.ClientState.Enable();
+                Service<ClientState>.Set().Enable();
                 Log.Information("[T2] CS ENABLE!");
 
-                this.SystemMenu = new DalamudSystemMenu(this);
-                this.SystemMenu.Enable();
+                Service<DalamudSystemMenu>.Set().Enable();
 
                 this.IsReady = true;
             }
@@ -365,16 +237,16 @@ namespace Dalamud
                 {
                     try
                     {
-                        this.PluginManager = new PluginManager(this);
-                        this.PluginManager.OnInstalledPluginsChanged += () =>
-                            Troubleshooting.LogTroubleshooting(this, this.InterfaceManager.IsReady);
+                        var pluginManager = Service<PluginManager>.Set();
+                        pluginManager.OnInstalledPluginsChanged += () =>
+                            Troubleshooting.LogTroubleshooting();
 
                         Log.Information("[T3] PM OK!");
 
-                        this.PluginManager.CleanupPlugins();
+                        pluginManager.CleanupPlugins();
                         Log.Information("[T3] PMC OK!");
 
-                        this.PluginManager.LoadAllPlugins();
+                        pluginManager.LoadAllPlugins();
                         Log.Information("[T3] PML OK!");
                     }
                     catch (Exception ex)
@@ -383,10 +255,10 @@ namespace Dalamud
                     }
                 }
 
-                this.DalamudUi = new DalamudInterface(this);
+                Service<DalamudInterface>.Set();
                 Log.Information("[T3] DUI OK!");
 
-                Troubleshooting.LogTroubleshooting(this, this.InterfaceManager.IsReady);
+                Troubleshooting.LogTroubleshooting();
 
                 Log.Information("Dalamud is ready.");
             }
@@ -432,17 +304,17 @@ namespace Dalamud
             // this must be done before unloading interface manager, in order to do rebuild
             // the correct cascaded WndProc (IME -> RawDX11Scene -> Game). Otherwise the game
             // will not receive any windows messages
-            this.IME?.Dispose();
+            Service<DalamudIME>.GetNullable()?.Dispose();
 
             // this must be done before unloading plugins, or it can cause a race condition
             // due to rendering happening on another thread, where a plugin might receive
             // a render call after it has been disposed, which can crash if it attempts to
             // use any resources that it freed in its own Dispose method
-            this.InterfaceManager?.Dispose();
+            Service<InterfaceManager>.GetNullable()?.Dispose();
 
-            this.DalamudUi?.Dispose();
+            Service<DalamudInterface>.GetNullable()?.Dispose();
 
-            this.PluginManager?.Dispose();
+            Service<PluginManager>.GetNullable()?.Dispose();
         }
 
         /// <summary>
@@ -458,23 +330,17 @@ namespace Dalamud
                     Thread.Sleep(100);
                 }
 
-                this.Framework?.Dispose();
-
-                this.ClientState?.Dispose();
+                Service<Framework>.GetNullable()?.Dispose();
+                Service<ClientState>.GetNullable()?.Dispose();
 
                 this.unloadSignal?.Dispose();
 
-                this.WinSock2?.Dispose();
-
-                this.Data?.Dispose();
-
-                this.AntiDebug?.Dispose();
-
-                this.SystemMenu?.Dispose();
-
-                this.HookManager?.Dispose();
-
-                this.SigScanner?.Dispose();
+                Service<WinSockHandlers>.GetNullable()?.Dispose();
+                Service<DataManager>.GetNullable()?.Dispose();
+                Service<AntiDebug>.GetNullable()?.Dispose();
+                Service<DalamudSystemMenu>.GetNullable()?.Dispose();
+                Service<HookManager>.GetNullable()?.Dispose();
+                Service<SigScanner>.GetNullable()?.Dispose();
 
                 Log.Debug("Dalamud::Dispose() OK!");
             }
@@ -489,7 +355,8 @@ namespace Dalamud
         /// </summary>
         internal void ReplaceExceptionHandler()
         {
-            var releaseFilter = this.SigScanner.ScanText("40 55 53 56 48 8D AC 24 ?? ?? ?? ?? B8 ?? ?? ?? ?? E8 ?? ?? ?? ?? 48 2B E0 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 85 ?? ?? ?? ?? 48 83 3D ?? ?? ?? ?? ??");
+            var releaseSig = "40 55 53 56 48 8D AC 24 ?? ?? ?? ?? B8 ?? ?? ?? ?? E8 ?? ?? ?? ?? 48 2B E0 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 85 ?? ?? ?? ?? 48 83 3D ?? ?? ?? ?? ??";
+            var releaseFilter = Service<SigScanner>.Get().ScanText(releaseSig);
             Log.Debug($"SE debug filter at {releaseFilter.ToInt64():X}");
 
             var oldFilter = NativeFunctions.SetUnhandledExceptionFilter(releaseFilter);

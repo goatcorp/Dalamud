@@ -4,17 +4,20 @@ using System.Text;
 
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Hooking;
+using Dalamud.IoC;
+using Dalamud.IoC.Internal;
 
 namespace Dalamud.Game.Gui.Toast
 {
     /// <summary>
     /// This class facilitates interacting with and creating native toast windows.
     /// </summary>
+    [PluginInterface]
+    [InterfaceVersion("1.0")]
     public sealed partial class ToastGui : IDisposable
     {
         private const uint QuestToastCheckmarkMagic = 60081;
 
-        private readonly Dalamud dalamud;
         private readonly ToastGuiAddressResolver address;
 
         private readonly Queue<(byte[] Message, ToastOptions Options)> normalQueue = new();
@@ -28,14 +31,10 @@ namespace Dalamud.Game.Gui.Toast
         /// <summary>
         /// Initializes a new instance of the <see cref="ToastGui"/> class.
         /// </summary>
-        /// <param name="scanner">The SigScanner instance.</param>
-        /// <param name="dalamud">The Dalamud instance.</param>
-        internal ToastGui(SigScanner scanner, Dalamud dalamud)
+        internal ToastGui()
         {
-            this.dalamud = dalamud;
-
             this.address = new ToastGuiAddressResolver();
-            this.address.Setup(scanner);
+            this.address.Setup();
 
             this.showNormalToastHook = new Hook<ShowNormalToastDelegate>(this.address.ShowNormalToast, new ShowNormalToastDelegate(this.HandleNormalToastDetour));
             this.showQuestToastHook = new Hook<ShowQuestToastDelegate>(this.address.ShowQuestToast, new ShowQuestToastDelegate(this.HandleQuestToastDetour));
@@ -165,7 +164,7 @@ namespace Dalamud.Game.Gui.Toast
             }
 
             // call events
-            return this.dalamud.SeStringManager.Parse(bytes.ToArray());
+            return Service<SeStringManager>.Get().Parse(bytes.ToArray());
         }
     }
 
@@ -200,7 +199,7 @@ namespace Dalamud.Game.Gui.Toast
         {
             options ??= new ToastOptions();
 
-            var manager = this.dalamud.Framework.Gui.GetUIModule();
+            var manager = Service<GameGui>.Get().GetUIModule();
 
             // terminate the string
             var terminated = Terminate(bytes);
@@ -281,7 +280,7 @@ namespace Dalamud.Game.Gui.Toast
         {
             options ??= new QuestToastOptions();
 
-            var manager = this.dalamud.Framework.Gui.GetUIModule();
+            var manager = Service<GameGui>.Get().GetUIModule();
 
             // terminate the string
             var terminated = Terminate(bytes);
@@ -383,7 +382,7 @@ namespace Dalamud.Game.Gui.Toast
 
         private void ShowError(byte[] bytes)
         {
-            var manager = this.dalamud.Framework.Gui.GetUIModule();
+            var manager = Service<GameGui>.Get().GetUIModule();
 
             // terminate the string
             var terminated = Terminate(bytes);

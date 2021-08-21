@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Reflection;
 
 using Dalamud.Game.ClientState.JobGauge.Types;
+using Dalamud.IoC;
+using Dalamud.IoC.Internal;
 using Serilog;
 
 namespace Dalamud.Game.ClientState.JobGauge
@@ -10,6 +12,8 @@ namespace Dalamud.Game.ClientState.JobGauge
     /// <summary>
     /// This class converts in-memory Job gauge data to structs.
     /// </summary>
+    [PluginInterface]
+    [InterfaceVersion("1.0")]
     public class JobGauges
     {
         private Dictionary<Type, JobGaugeBase> cache = new();

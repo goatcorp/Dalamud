@@ -1,4 +1,5 @@
-﻿using Dalamud.Game.Text;
+using Dalamud.Game.Gui;
+using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using ImGuiNET;
 
@@ -17,12 +18,14 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
         public string Name => "Test Chat";
 
         /// <inheritdoc/>
-        public SelfTestStepResult RunStep(Dalamud dalamud)
+        public SelfTestStepResult RunStep()
         {
+            var chatGui = Service<ChatGui>.Get();
+
             switch (this.step)
             {
                 case 0:
-                    dalamud.Framework.Gui.Chat.Print("Testing!");
+                    chatGui.Print("Testing!");
                     this.step++;
 
                     break;
@@ -33,12 +36,12 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
                     if (!this.subscribed)
                     {
                         this.subscribed = true;
-                        dalamud.Framework.Gui.Chat.ChatMessage += this.ChatOnOnChatMessage;
+                        chatGui.ChatMessage += this.ChatOnOnChatMessage;
                     }
 
                     if (this.hasPassed)
                     {
-                        dalamud.Framework.Gui.Chat.ChatMessage -= this.ChatOnOnChatMessage;
+                        chatGui.ChatMessage -= this.ChatOnOnChatMessage;
                         this.subscribed = false;
                         return SelfTestStepResult.Pass;
                     }
@@ -50,9 +53,11 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
         }
 
         /// <inheritdoc/>
-        public void CleanUp(Dalamud dalamud)
+        public void CleanUp()
         {
-            dalamud.Framework.Gui.Chat.ChatMessage -= this.ChatOnOnChatMessage;
+            var chatGui = Service<ChatGui>.Get();
+
+            chatGui.ChatMessage -= this.ChatOnOnChatMessage;
             this.subscribed = false;
         }
 

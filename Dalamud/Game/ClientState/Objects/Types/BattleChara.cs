@@ -14,16 +14,15 @@ namespace Dalamud.Game.ClientState.Objects.Types
         /// This represents a battle character.
         /// </summary>
         /// <param name="address">The address of this character in memory.</param>
-        /// <param name="dalamud">Dalamud itself.</param>
-        internal BattleChara(IntPtr address, Dalamud dalamud)
-            : base(address, dalamud)
+        internal BattleChara(IntPtr address)
+            : base(address)
         {
         }
 
         /// <summary>
         /// Gets the current status effects.
         /// </summary>
-        public StatusList StatusList => new(&this.Struct->StatusManager, this.Dalamud);
+        public StatusList StatusList => new(&this.Struct->StatusManager);
 
         /// <summary>
         /// Gets a value indicating whether the chara is currently casting.

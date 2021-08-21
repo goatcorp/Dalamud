@@ -13,6 +13,8 @@ using System.Threading.Tasks;
 
 using CheapLoc;
 using Dalamud.Configuration;
+using Dalamud.Configuration.Internal;
+using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Exceptions;
@@ -36,7 +38,6 @@ namespace Dalamud.Plugin.Internal
 
         private static readonly ModuleLog Log = new("PLUGINM");
 
-        private readonly Dalamud dalamud;
         private readonly DirectoryInfo pluginDirectory;
         private readonly DirectoryInfo devPluginDirectory;
         private readonly BannedPlugin[] bannedPlugins;
@@ -48,12 +49,12 @@ namespace Dalamud.Plugin.Internal
         /// <summary>
         /// Initializes a new instance of the <see cref="PluginManager"/> class.
         /// </summary>
-        /// <param name="dalamud">The <see cref="Dalamud"/> instance to load plugins with.</param>
-        public PluginManager(Dalamud dalamud)
+        public PluginManager()
         {
-            this.dalamud = dalamud;
-            this.pluginDirectory = new DirectoryInfo(dalamud.StartInfo.PluginDirectory);
-            this.devPluginDirectory = new DirectoryInfo(dalamud.StartInfo.DefaultPluginDirectory);
+            var startInfo = Service<DalamudStartInfo>.Get();
+
+            this.pluginDirectory = new DirectoryInfo(startInfo.PluginDirectory);
+            this.devPluginDirectory = new DirectoryInfo(startInfo.DefaultPluginDirectory);
 
             if (!this.pluginDirectory.Exists)
                 this.pluginDirectory.Create();
@@ -61,9 +62,9 @@ namespace Dalamud.Plugin.Internal
             if (!this.devPluginDirectory.Exists)
                 this.devPluginDirectory.Create();
 
-            this.PluginConfigs = new PluginConfigurations(Path.Combine(Path.GetDirectoryName(dalamud.StartInfo.ConfigurationPath), "pluginConfigs"));
+            this.PluginConfigs = new PluginConfigurations(Path.Combine(Path.GetDirectoryName(startInfo.ConfigurationPath) ?? string.Empty, "pluginConfigs"));
 
-            var bannedPluginsJson = File.ReadAllText(Path.Combine(this.dalamud.StartInfo.AssetDirectory, "UIRes", "bannedplugin.json"));
+            var bannedPluginsJson = File.ReadAllText(Path.Combine(startInfo.AssetDirectory, "UIRes", "bannedplugin.json"));
             this.bannedPlugins = JsonConvert.DeserializeObject<BannedPlugin[]>(bannedPluginsJson);
 
             this.SetPluginReposFromConfig(false);
@@ -143,8 +144,10 @@ namespace Dalamud.Plugin.Internal
         /// <param name="notify">Whether the available plugins changed should be evented after.</param>
         public void SetPluginReposFromConfig(bool notify)
         {
+            var configuration = Service<DalamudConfiguration>.Get();
+
             var repos = new List<PluginRepository>() { PluginRepository.MainRepo };
-            repos.AddRange(this.dalamud.Configuration.ThirdRepoList
+            repos.AddRange(configuration.ThirdRepoList
                 .Select(repo => new PluginRepository(repo.Url, repo.IsEnabled)));
 
             this.Repos = repos;
@@ -159,12 +162,14 @@ namespace Dalamud.Plugin.Internal
         /// </summary>
         public void LoadAllPlugins()
         {
-            if (this.dalamud.Configuration.PluginSafeMode)
+            var configuration = Service<DalamudConfiguration>.Get();
+
+            if (configuration.PluginSafeMode)
             {
                 Log.Information("PluginSafeMode was enabled, not loading any plugins.");
 
-                this.dalamud.Configuration.PluginSafeMode = false;
-                this.dalamud.Configuration.Save();
+                configuration.PluginSafeMode = false;
+                configuration.Save();
 
                 return;
             }
@@ -198,7 +203,7 @@ namespace Dalamud.Plugin.Internal
             // devPlugins are more freeform. Look for any dll and hope to get lucky.
             var devDllFiles = this.devPluginDirectory.GetFiles("*.dll", SearchOption.AllDirectories).ToList();
 
-            foreach (var setting in this.dalamud.Configuration.DevPluginLoadLocations)
+            foreach (var setting in configuration.DevPluginLoadLocations)
             {
                 if (!setting.IsEnabled)
                     continue;
@@ -304,7 +309,7 @@ namespace Dalamud.Plugin.Internal
         /// </summary>
         public void RefilterPluginMasters()
         {
-            this.availablePlugins = this.dalamud.PluginManager.Repos
+            this.availablePlugins = this.Repos
                 .SelectMany(repo => repo.PluginMaster)
                 .Where(this.IsManifestEligible)
                 .Where(this.IsManifestVisible)
@@ -320,13 +325,15 @@ namespace Dalamud.Plugin.Internal
         /// </summary>
         public void ScanDevPlugins()
         {
+            var configuration = Service<DalamudConfiguration>.Get();
+
             if (!this.devPluginDirectory.Exists)
                 this.devPluginDirectory.Create();
 
             // devPlugins are more freeform. Look for any dll and hope to get lucky.
             var devDllFiles = this.devPluginDirectory.GetFiles("*.dll", SearchOption.AllDirectories).ToList();
 
-            foreach (var setting in this.dalamud.Configuration.DevPluginLoadLocations)
+            foreach (var setting in configuration.DevPluginLoadLocations)
             {
                 if (!setting.IsEnabled)
                     continue;
@@ -483,7 +490,7 @@ namespace Dalamud.Plugin.Internal
             if (isDev)
             {
                 Log.Information($"Loading dev plugin {name}");
-                var devPlugin = new LocalDevPlugin(this.dalamud, dllFile, manifest);
+                var devPlugin = new LocalDevPlugin(dllFile, manifest);
                 loadPlugin &= !isBoot || devPlugin.StartOnBoot;
 
                 // If we're not loading it, make sure it's disabled
@@ -495,7 +502,7 @@ namespace Dalamud.Plugin.Internal
             else
             {
                 Log.Information($"Loading plugin {name}");
-                plugin = new LocalPlugin(this.dalamud, dllFile, manifest);
+                plugin = new LocalPlugin(dllFile, manifest);
             }
 
             if (loadPlugin)
@@ -559,6 +566,9 @@ namespace Dalamud.Plugin.Internal
         /// </summary>
         public void CleanupPlugins()
         {
+            var configuration = Service<DalamudConfiguration>.Get();
+            var startInfo = Service<DalamudStartInfo>.Get();
+
             foreach (var pluginDir in this.pluginDirectory.GetDirectories())
             {
                 try
@@ -617,14 +627,14 @@ namespace Dalamud.Plugin.Internal
                                     continue;
                                 }
 
-                                if (manifest.DalamudApiLevel < DalamudApiLevel - 1 && !this.dalamud.Configuration.LoadAllApiLevels)
+                                if (manifest.DalamudApiLevel < DalamudApiLevel - 1 && !configuration.LoadAllApiLevels)
                                 {
                                     Log.Information($"Lower API: cleaning up {versionDir.FullName}");
                                     versionDir.Delete(true);
                                     continue;
                                 }
 
-                                if (manifest.ApplicableVersion < this.dalamud.StartInfo.GameVersion - TimeSpan.FromDays(90))
+                                if (manifest.ApplicableVersion < startInfo.GameVersion)
                                 {
                                     Log.Information($"Inapplicable version: cleaning up {versionDir.FullName}");
                                     versionDir.Delete(true);
@@ -778,19 +788,21 @@ namespace Dalamud.Plugin.Internal
         /// <param name="header">The header text to send to chat prior to any update info.</param>
         public void PrintUpdatedPlugins(List<PluginUpdateStatus> updateMetadata, string header)
         {
+            var chatGui = Service<ChatGui>.Get();
+
             if (updateMetadata != null && updateMetadata.Count > 0)
             {
-                this.dalamud.Framework.Gui.Chat.Print(header);
+                chatGui.Print(header);
 
                 foreach (var metadata in updateMetadata)
                 {
                     if (metadata.WasUpdated)
                     {
-                        this.dalamud.Framework.Gui.Chat.Print(Locs.DalamudPluginUpdateSuccessful(metadata.Name, metadata.Version));
+                        chatGui.Print(Locs.DalamudPluginUpdateSuccessful(metadata.Name, metadata.Version));
                     }
                     else
                     {
-                        this.dalamud.Framework.Gui.Chat.PrintChat(new XivChatEntry
+                        chatGui.PrintChat(new XivChatEntry
                         {
                             Message = Locs.DalamudPluginUpdateFailed(metadata.Name, metadata.Version),
                             Type = XivChatType.Urgent,
@@ -808,7 +820,9 @@ namespace Dalamud.Plugin.Internal
         /// <returns>A value indicating whether testing should be used.</returns>
         public bool UseTesting(PluginManifest manifest)
         {
-            if (!this.dalamud.Configuration.DoPluginTest)
+            var configuration = Service<DalamudConfiguration>.Get();
+
+            if (!configuration.DoPluginTest)
                 return false;
 
             if (manifest.IsTestingExclusive)
@@ -836,8 +850,10 @@ namespace Dalamud.Plugin.Internal
         /// <returns>If the manifest is visible.</returns>
         public bool IsManifestVisible(RemotePluginManifest manifest)
         {
+            var configuration = Service<DalamudConfiguration>.Get();
+
             // Hidden by user
-            if (this.dalamud.Configuration.HiddenPluginInternalName.Contains(manifest.InternalName))
+            if (configuration.HiddenPluginInternalName.Contains(manifest.InternalName))
                 return false;
 
             // Hidden by manifest
@@ -855,16 +871,19 @@ namespace Dalamud.Plugin.Internal
         /// <returns>If the manifest is eligible.</returns>
         public bool IsManifestEligible(PluginManifest manifest)
         {
+            var configuration = Service<DalamudConfiguration>.Get();
+            var startInfo = Service<DalamudStartInfo>.Get();
+
             // Testing exclusive
-            if (manifest.IsTestingExclusive && !this.dalamud.Configuration.DoPluginTest)
+            if (manifest.IsTestingExclusive && !configuration.DoPluginTest)
                 return false;
 
             // Applicable version
-            if (manifest.ApplicableVersion < this.dalamud.StartInfo.GameVersion)
+            if (manifest.ApplicableVersion < startInfo.GameVersion)
                 return false;
 
             // API level
-            if (manifest.DalamudApiLevel < DalamudApiLevel && !this.dalamud.Configuration.LoadAllApiLevels)
+            if (manifest.DalamudApiLevel < DalamudApiLevel && !configuration.LoadAllApiLevels)
                 return false;
 
             // Banned

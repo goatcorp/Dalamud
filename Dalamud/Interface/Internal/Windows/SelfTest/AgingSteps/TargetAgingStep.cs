@@ -1,3 +1,4 @@
+using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using ImGuiNET;
@@ -15,13 +16,15 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
         public string Name => "Test Target";
 
         /// <inheritdoc/>
-        public SelfTestStepResult RunStep(Dalamud dalamud)
+        public SelfTestStepResult RunStep()
         {
+            var targetManager = Service<TargetManager>.Get();
+
             switch (this.step)
             {
                 case 0:
-                    dalamud.ClientState.Targets.ClearTarget();
-                    dalamud.ClientState.Targets.ClearFocusTarget();
+                    targetManager.ClearTarget();
+                    targetManager.ClearFocusTarget();
 
                     this.step++;
 
@@ -30,7 +33,7 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
                 case 1:
                     ImGui.Text("Target a player...");
 
-                    var cTarget = dalamud.ClientState.Targets.Target;
+                    var cTarget = targetManager.Target;
                     if (cTarget is PlayerCharacter)
                     {
                         this.step++;
@@ -41,7 +44,7 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
                 case 2:
                     ImGui.Text("Focus-Target a Battle NPC...");
 
-                    var fTarget = dalamud.ClientState.Targets.FocusTarget;
+                    var fTarget = targetManager.FocusTarget;
                     if (fTarget is BattleNpc)
                     {
                         this.step++;
@@ -52,7 +55,7 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
                 case 3:
                     ImGui.Text("Soft-Target an EventObj...");
 
-                    var sTarget = dalamud.ClientState.Targets.FocusTarget;
+                    var sTarget = targetManager.FocusTarget;
                     if (sTarget is EventObj)
                     {
                         return SelfTestStepResult.Pass;
@@ -65,7 +68,7 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
         }
 
         /// <inheritdoc/>
-        public void CleanUp(Dalamud dalamud)
+        public void CleanUp()
         {
             // ignored
         }

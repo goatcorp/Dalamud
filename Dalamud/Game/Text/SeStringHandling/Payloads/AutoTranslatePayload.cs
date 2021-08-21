@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-using Dalamud.Data;
 using Lumina.Excel.GeneratedSheets;
 using Newtonsoft.Json;
 using Serilog;
@@ -27,17 +26,15 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         /// Initializes a new instance of the <see cref="AutoTranslatePayload"/> class.
         /// Creates a new auto-translate payload.
         /// </summary>
-        /// <param name="data">DataManager instance needed to resolve game data.</param>
         /// <param name="group">The group id for this message.</param>
         /// <param name="key">The key/row id for this message.  Which table this is in depends on the group id and details the Completion table.</param>
         /// <remarks>
         /// This table is somewhat complicated in structure, and so using this constructor may not be very nice.
         /// There is probably little use to create one of these, however.
         /// </remarks>
-        public AutoTranslatePayload(DataManager data, uint group, uint key)
+        public AutoTranslatePayload(uint group, uint key)
         {
             // TODO: friendlier ctor? not sure how to handle that given how weird the tables are
-            this.DataResolver = data;
             this.group = group;
             this.key = key;
         }

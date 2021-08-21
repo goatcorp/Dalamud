@@ -1,6 +1,6 @@
 using System;
-using System.IO;
 
+using Dalamud.Game.Command;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging;
 using Dalamud.Plugin;
@@ -14,7 +14,32 @@ namespace Dalamud.CorePlugin
     public sealed class PluginImpl : IDalamudPlugin
     {
         private readonly WindowSystem windowSystem = new("Dalamud.CorePlugin");
-        private Localization localizationManager;
+
+        // private Localization localizationManager;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PluginImpl"/> class.
+        /// </summary>
+        /// <param name="pluginInterface">Dalamud plugin interface.</param>
+        public PluginImpl(DalamudPluginInterface pluginInterface)
+        {
+            try
+            {
+                // this.InitLoc();
+                this.Interface = pluginInterface;
+
+                this.windowSystem.AddWindow(new PluginWindow());
+
+                this.Interface.UiBuilder.Draw += this.OnDraw;
+                this.Interface.UiBuilder.OpenConfigUi += this.OnOpenConfigUi;
+
+                Service<CommandManager>.Get().AddHandler("/di", new(this.OnCommand) { HelpMessage = $"Access the {this.Name} plugin." });
+            }
+            catch (Exception ex)
+            {
+                PluginLog.Error(ex, "kaboom");
+            }
+        }
 
         /// <inheritdoc/>
         public string Name => "Dalamud.CorePlugin";
@@ -25,31 +50,9 @@ namespace Dalamud.CorePlugin
         internal DalamudPluginInterface Interface { get; private set; }
 
         /// <inheritdoc/>
-        public void Initialize(DalamudPluginInterface pluginInterface)
-        {
-            try
-            {
-                this.InitLoc();
-
-                this.Interface = pluginInterface;
-
-                this.windowSystem.AddWindow(new PluginWindow(Dalamud.Instance));
-
-                this.Interface.UiBuilder.Draw += this.OnDraw;
-                this.Interface.UiBuilder.OpenConfigUi += this.OnOpenConfigUi;
-
-                this.Interface.CommandManager.AddHandler("/di", new(this.OnCommand) { HelpMessage = $"Access the {this.Name} plugin." });
-            }
-            catch (Exception ex)
-            {
-                PluginLog.Error(ex, "kaboom");
-            }
-        }
-
-        /// <inheritdoc/>
         public void Dispose()
         {
-            this.Interface.CommandManager.RemoveHandler("/di");
+            Service<CommandManager>.Get().RemoveHandler("/di");
 
             this.Interface.UiBuilder.Draw -= this.OnDraw;
 
@@ -58,20 +61,23 @@ namespace Dalamud.CorePlugin
             this.Interface.Dispose();
         }
 
-        private void InitLoc()
-        {
-            // CheapLoc needs to be reinitialized here because it tracks the setup by assembly name. New assembly, new setup.
-            this.localizationManager = new Localization(Path.Combine(Dalamud.Instance.AssetDirectory.FullName, "UIRes", "loc", "dalamud"), "dalamud_");
-            if (!string.IsNullOrEmpty(Dalamud.Instance.Configuration.LanguageOverride))
-            {
-                this.localizationManager.SetupWithLangCode(Dalamud.Instance.Configuration.LanguageOverride);
-            }
-            else
-            {
-                this.localizationManager.SetupWithUiCulture();
-            }
-        }
+        // private void InitLoc()
+        // {
+        //     // CheapLoc needs to be reinitialized here because it tracks the setup by assembly name. New assembly, new setup.
+        //     this.localizationManager = new Localization(Path.Combine(Dalamud.Instance.AssetDirectory.FullName, "UIRes", "loc", "dalamud"), "dalamud_");
+        //     if (!string.IsNullOrEmpty(Dalamud.Instance.Configuration.LanguageOverride))
+        //     {
+        //         this.localizationManager.SetupWithLangCode(Dalamud.Instance.Configuration.LanguageOverride);
+        //     }
+        //     else
+        //     {
+        //         this.localizationManager.SetupWithUiCulture();
+        //     }
+        // }
 
+        /// <summary>
+        /// Draw the window system.
+        /// </summary>
         private void OnDraw()
         {
             try

@@ -14,26 +14,21 @@ namespace Dalamud.Game.ClientState.Statuses
     {
         private const int StatusListLength = 30;
 
-        private readonly Dalamud dalamud;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="StatusList"/> class.
         /// </summary>
         /// <param name="address">Address of the status list.</param>
-        /// <param name="dalamud">The <see cref="dalamud"/> instance.</param>
-        internal StatusList(IntPtr address, Dalamud dalamud)
+        internal StatusList(IntPtr address)
         {
             this.Address = address;
-            this.dalamud = dalamud;
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="StatusList"/> class.
         /// </summary>
         /// <param name="pointer">Pointer to the status list.</param>
-        /// <param name="dalamud">The <see cref="dalamud"/> instance.</param>
-        internal unsafe StatusList(void* pointer, Dalamud dalamud)
-            : this((IntPtr)pointer, dalamud)
+        internal unsafe StatusList(void* pointer)
+            : this((IntPtr)pointer)
         {
         }
 
@@ -104,13 +99,15 @@ namespace Dalamud.Game.ClientState.Statuses
         [CanBeNull]
         public Status CreateStatusReference(IntPtr address)
         {
-            if (this.dalamud.ClientState.LocalContentId == 0)
+            var clientState = Service<ClientState>.Get();
+
+            if (clientState.LocalContentId == 0)
                 return null;
 
             if (address == IntPtr.Zero)
                 return null;
 
-            return new Status(address, this.dalamud);
+            return new Status(address);
         }
     }
 

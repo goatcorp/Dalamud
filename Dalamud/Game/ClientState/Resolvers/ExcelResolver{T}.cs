@@ -1,3 +1,4 @@
+using Dalamud.Data;
 using Lumina.Excel;
 
 namespace Dalamud.Game.ClientState.Resolvers
@@ -8,16 +9,12 @@ namespace Dalamud.Game.ClientState.Resolvers
     /// <typeparam name="T">The type of Lumina sheet to resolve.</typeparam>
     public class ExcelResolver<T> where T : ExcelRow
     {
-        private readonly Dalamud dalamud;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="ExcelResolver{T}"/> class.
         /// </summary>
         /// <param name="id">The ID of the classJob.</param>
-        /// <param name="dalamud">The Dalamud instance.</param>
-        internal ExcelResolver(uint id, Dalamud dalamud)
+        internal ExcelResolver(uint id)
         {
-            this.dalamud = dalamud;
             this.Id = id;
         }
 
@@ -29,6 +26,6 @@ namespace Dalamud.Game.ClientState.Resolvers
         /// <summary>
         /// Gets GameData linked to this excel row.
         /// </summary>
-        public T GameData => this.dalamud.Data.GetExcelSheet<T>().GetRow(this.Id);
+        public T GameData => Service<DataManager>.Get().GetExcelSheet<T>().GetRow(this.Id);
     }
 }

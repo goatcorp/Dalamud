@@ -11,12 +11,14 @@ using Dalamud.Data;
 using Dalamud.Game;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.Command;
-using Dalamud.Game.Internal;
+using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.Sanitizer;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface;
+using Dalamud.Interface.Internal;
+using Dalamud.Plugin.Internal;
 
 namespace Dalamud.Plugin
 {
@@ -25,7 +27,6 @@ namespace Dalamud.Plugin
     /// </summary>
     public sealed class DalamudPluginInterface : IDisposable
     {
-        private readonly Dalamud dalamud;
         private readonly string pluginName;
         private readonly PluginConfigurations configs;
 
@@ -33,29 +34,25 @@ namespace Dalamud.Plugin
         /// Initializes a new instance of the <see cref="DalamudPluginInterface"/> class.
         /// Set up the interface and populate all fields needed.
         /// </summary>
-        /// <param name="dalamud">The dalamud instance to expose.</param>
         /// <param name="pluginName">The internal name of the plugin.</param>
         /// <param name="reason">The reason the plugin was loaded.</param>
-        internal DalamudPluginInterface(Dalamud dalamud, string pluginName, PluginLoadReason reason)
+        internal DalamudPluginInterface(string pluginName, PluginLoadReason reason)
         {
-            this.CommandManager = dalamud.CommandManager;
-            this.Framework = dalamud.Framework;
-            this.ClientState = dalamud.ClientState;
-            this.UiBuilder = new UiBuilder(dalamud, pluginName);
-            this.TargetModuleScanner = dalamud.SigScanner;
-            this.Data = dalamud.Data;
-            this.SeStringManager = dalamud.SeStringManager;
+            var configuration = Service<DalamudConfiguration>.Get();
+            var dataManager = Service<DataManager>.Get();
+            var localization = Service<Localization>.Get();
 
-            this.dalamud = dalamud;
+            this.UiBuilder = new UiBuilder(pluginName);
+
             this.pluginName = pluginName;
-            this.configs = dalamud.PluginManager.PluginConfigs;
+            this.configs = Service<PluginManager>.Get().PluginConfigs;
             this.Reason = reason;
 
-            this.GeneralChatType = this.dalamud.Configuration.GeneralChatType;
-            this.Sanitizer = new Sanitizer(this.Data.Language);
-            if (this.dalamud.Configuration.LanguageOverride != null)
+            this.GeneralChatType = configuration.GeneralChatType;
+            this.Sanitizer = new Sanitizer(dataManager.Language);
+            if (configuration.LanguageOverride != null)
             {
-                this.UiLanguage = this.dalamud.Configuration.LanguageOverride;
+                this.UiLanguage = configuration.LanguageOverride;
             }
             else
             {
@@ -66,8 +63,8 @@ namespace Dalamud.Plugin
                     this.UiLanguage = "en";
             }
 
-            dalamud.LocalizationManager.OnLocalizationChanged += this.OnLocalizationChanged;
-            dalamud.Configuration.OnDalamudConfigurationSaved += this.OnDalamudConfigurationSaved;
+            localization.OnLocalizationChanged += this.OnLocalizationChanged;
+            configuration.OnDalamudConfigurationSaved += this.OnDalamudConfigurationSaved;
         }
 
         /// <summary>
@@ -89,7 +86,7 @@ namespace Dalamud.Plugin
         /// <summary>
         /// Gets the directory Dalamud assets are stored in.
         /// </summary>
-        public DirectoryInfo DalamudAssetDirectory => this.dalamud.AssetDirectory;
+        public DirectoryInfo DalamudAssetDirectory => Service<Dalamud>.Get().AssetDirectory;
 
         /// <summary>
         /// Gets the directory your plugin configurations are stored in.
@@ -102,39 +99,9 @@ namespace Dalamud.Plugin
         public FileInfo ConfigFile => this.configs.GetConfigFile(this.pluginName);
 
         /// <summary>
-        /// Gets the CommandManager object that allows you to add and remove custom chat commands.
-        /// </summary>
-        public CommandManager CommandManager { get; private set; }
-
-        /// <summary>
-        /// Gets the ClientState object that allows you to access current client memory information like actors, territories, etc.
-        /// </summary>
-        public ClientState ClientState { get; private set; }
-
-        /// <summary>
-        /// Gets the Framework object that allows you to interact with the client.
-        /// </summary>
-        public Framework Framework { get; private set; }
-
-        /// <summary>
         /// Gets the <see cref="UiBuilder"/> instance which allows you to draw UI into the game via ImGui draw calls.
         /// </summary>
         public UiBuilder UiBuilder { get; private set; }
-
-        /// <summary>
-        /// Gets the <see cref="SigScanner">SigScanner</see> instance targeting the main module of the FFXIV process.
-        /// </summary>
-        public SigScanner TargetModuleScanner { get; private set; }
-
-        /// <summary>
-        /// Gets the <see cref="DataManager">DataManager</see> instance which allows you to access game data needed by the main dalamud features.
-        /// </summary>
-        public DataManager Data { get; private set; }
-
-        /// <summary>
-        /// Gets the <see cref="SeStringManager">SeStringManager</see> instance which allows creating and parsing SeString payloads.
-        /// </summary>
-        public SeStringManager SeStringManager { get; private set; }
 
         /// <summary>
         /// Gets a value indicating whether Dalamud is running in Debug mode or the /xldev menu is open. This can occur on release builds.
@@ -142,7 +109,7 @@ namespace Dalamud.Plugin
 #if DEBUG
         public bool IsDebugging => true;
 #else
-        public bool IsDebugging => this.dalamud.DalamudUi.IsDevMenuOpen;
+        public bool IsDebugging => Service<DalamudInterface>.Get().IsDevMenuOpen;
 #endif
 
         /// <summary>
@@ -159,11 +126,6 @@ namespace Dalamud.Plugin
         /// Gets the chat type used by default for plugin messages.
         /// </summary>
         public XivChatType GeneralChatType { get; private set; }
-
-        /// <summary>
-        /// Gets the action that should be executed when any plugin sends a message.
-        /// </summary>
-        internal Action<string, ExpandoObject> AnyPluginIpcAction { get; private set; }
 
         #region Configuration
 
@@ -230,7 +192,7 @@ namespace Dalamud.Plugin
         /// <returns>Returns an SeString payload for the link.</returns>
         public DalamudLinkPayload AddChatLinkHandler(uint commandId, Action<uint, SeString> commandAction)
         {
-            return this.Framework.Gui.Chat.AddChatLinkHandler(this.pluginName, commandId, commandAction);
+            return Service<ChatGui>.Get().AddChatLinkHandler(this.pluginName, commandId, commandAction);
         }
 
         /// <summary>
@@ -239,7 +201,7 @@ namespace Dalamud.Plugin
         /// <param name="commandId">The ID of the command.</param>
         public void RemoveChatLinkHandler(uint commandId)
         {
-            this.Framework.Gui.Chat.RemoveChatLinkHandler(this.pluginName, commandId);
+            Service<ChatGui>.Get().RemoveChatLinkHandler(this.pluginName, commandId);
         }
 
         /// <summary>
@@ -247,101 +209,8 @@ namespace Dalamud.Plugin
         /// </summary>
         public void RemoveChatLinkHandler()
         {
-            this.Framework.Gui.Chat.RemoveChatLinkHandler(this.pluginName);
+            Service<ChatGui>.Get().RemoveChatLinkHandler(this.pluginName);
         }
-        #endregion
-
-        #region IPC
-
-        /// <summary>
-        /// Subscribe to an IPC message by any plugin.
-        /// </summary>
-        /// <param name="action">The action to take when a message was received.</param>
-        [Obsolete("The current IPC mechanism is obsolete and scheduled to be replaced after API level 3.")]
-        public void SubscribeAny(Action<string, ExpandoObject> action)
-        {
-            if (this.AnyPluginIpcAction != null)
-                throw new InvalidOperationException("Can't subscribe multiple times.");
-
-            this.AnyPluginIpcAction = action;
-        }
-
-        /// <summary>
-        /// Subscribe to an IPC message by a plugin.
-        /// </summary>
-        /// <param name="pluginName">The InternalName of the plugin to subscribe to.</param>
-        /// <param name="action">The action to take when a message was received.</param>
-        [Obsolete("The current IPC mechanism is obsolete and scheduled to be replaced after API level 3.")]
-        public void Subscribe(string pluginName, Action<ExpandoObject> action)
-        {
-            if (this.dalamud.PluginManager.IpcSubscriptions.Any(x => x.SourcePluginName == this.pluginName && x.SubPluginName == pluginName))
-                throw new InvalidOperationException("Can't add multiple subscriptions for the same plugin.");
-
-            this.dalamud.PluginManager.IpcSubscriptions.Add(new(this.pluginName, pluginName, action));
-        }
-
-        /// <summary>
-        /// Unsubscribe from messages from any plugin.
-        /// </summary>
-        [Obsolete("The current IPC mechanism is obsolete and scheduled to be replaced after API level 3.")]
-        public void UnsubscribeAny()
-        {
-            if (this.AnyPluginIpcAction == null)
-                throw new InvalidOperationException("Wasn't subscribed to this plugin.");
-
-            this.AnyPluginIpcAction = null;
-        }
-
-        /// <summary>
-        /// Unsubscribe from messages from a plugin.
-        /// </summary>
-        /// <param name="pluginName">The InternalName of the plugin to unsubscribe from.</param>
-        [Obsolete("The current IPC mechanism is obsolete and scheduled to be replaced after API level 3.")]
-        public void Unsubscribe(string pluginName)
-        {
-            var sub = this.dalamud.PluginManager.IpcSubscriptions.FirstOrDefault(x => x.SourcePluginName == this.pluginName && x.SubPluginName == pluginName);
-            if (sub.SubAction == null)
-                throw new InvalidOperationException("Wasn't subscribed to this plugin.");
-
-            this.dalamud.PluginManager.IpcSubscriptions.Remove(sub);
-        }
-
-        /// <summary>
-        /// Send a message to all subscribed plugins.
-        /// </summary>
-        /// <param name="message">The message to send.</param>
-        [Obsolete("The current IPC mechanism is obsolete and scheduled to be replaced after API level 3.")]
-        public void SendMessage(ExpandoObject message)
-        {
-            var subs = this.dalamud.PluginManager.IpcSubscriptions.Where(x => x.SubPluginName == this.pluginName);
-            foreach (var sub in subs.Select(x => x.SubAction))
-            {
-                sub.Invoke(message);
-            }
-        }
-
-        /// <summary>
-        /// Send a message to a specific plugin.
-        /// </summary>
-        /// <param name="pluginName">The InternalName of the plugin to send the message to.</param>
-        /// <param name="message">The message to send.</param>
-        /// <returns>True if the corresponding plugin was present and received the message.</returns>
-        [Obsolete("The current IPC mechanism is obsolete and scheduled to be replaced after API level 3.")]
-        public bool SendMessage(string pluginName, ExpandoObject message)
-        {
-            var plugin = this.dalamud.PluginManager.InstalledPlugins.FirstOrDefault(x => x.Manifest.InternalName == pluginName);
-
-            if (plugin == default)
-                return false;
-
-            if (plugin.DalamudInterface?.AnyPluginIpcAction == null)
-                return false;
-
-            plugin.DalamudInterface.AnyPluginIpcAction.Invoke(this.pluginName, message);
-
-            return true;
-        }
-
         #endregion
 
         /// <summary>
@@ -350,9 +219,9 @@ namespace Dalamud.Plugin
         public void Dispose()
         {
             this.UiBuilder.Dispose();
-            this.Framework.Gui.Chat.RemoveChatLinkHandler(this.pluginName);
-            this.dalamud.LocalizationManager.OnLocalizationChanged -= this.OnLocalizationChanged;
-            this.dalamud.Configuration.OnDalamudConfigurationSaved -= this.OnDalamudConfigurationSaved;
+            Service<ChatGui>.Get().RemoveChatLinkHandler(this.pluginName);
+            Service<Localization>.Get().OnLocalizationChanged -= this.OnLocalizationChanged;
+            Service<DalamudConfiguration>.Get().OnDalamudConfigurationSaved -= this.OnDalamudConfigurationSaved;
         }
 
         private void OnLocalizationChanged(string langCode)

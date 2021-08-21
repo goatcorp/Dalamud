@@ -6,11 +6,10 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
+using Dalamud.Game;
+using Dalamud.Game.Gui;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using FFXIVClientStructs.FFXIV.Component.GUI.ULD;
 using ImGuiNET;
-
-using AlignmentType = FFXIVClientStructs.FFXIV.Component.GUI.AlignmentType;
 
 // Customised version of https://github.com/aers/FFXIVUIDebug
 
@@ -23,7 +22,6 @@ namespace Dalamud.Interface.Internal
     {
         private const int UnitListCount = 18;
 
-        private readonly Dalamud dalamud;
         private readonly GetAtkStageSingleton getAtkStageSingleton;
         private readonly bool[] selectedInList = new bool[UnitListCount];
         private readonly string[] listNames = new string[UnitListCount]
@@ -57,11 +55,10 @@ namespace Dalamud.Interface.Internal
         /// <summary>
         /// Initializes a new instance of the <see cref="UIDebug"/> class.
         /// </summary>
-        /// <param name="dalamud">The Dalamud instance.</param>
-        public UIDebug(Dalamud dalamud)
+        public UIDebug()
         {
-            this.dalamud = dalamud;
-            var getSingletonAddr = dalamud.SigScanner.ScanText("E8 ?? ?? ?? ?? 41 B8 01 00 00 00 48 8D 15 ?? ?? ?? ?? 48 8B 48 20 E8 ?? ?? ?? ?? 48 8B CF");
+            var sigScanner = Service<SigScanner>.Get();
+            var getSingletonAddr = sigScanner.ScanText("E8 ?? ?? ?? ?? 41 B8 01 00 00 00 48 8D 15 ?? ?? ?? ?? 48 8B 48 20 E8 ?? ?? ?? ?? 48 8B CF");
             this.getAtkStageSingleton = Marshal.GetDelegateForFunctionPointer<GetAtkStageSingleton>(getSingletonAddr);
         }
 
@@ -108,7 +105,7 @@ namespace Dalamud.Interface.Internal
         {
             var isVisible = (atkUnitBase->Flags & 0x20) == 0x20;
             var addonName = Marshal.PtrToStringAnsi(new IntPtr(atkUnitBase->Name));
-            var agent = this.dalamud.Framework.Gui.FindAgentInterface((IntPtr)atkUnitBase);
+            var agent = Service<GameGui>.Get().FindAgentInterface(atkUnitBase);
 
             ImGui.Text($"{addonName}");
             ImGui.SameLine();
