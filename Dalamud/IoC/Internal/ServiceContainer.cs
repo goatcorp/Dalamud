@@ -40,7 +40,7 @@ namespace Dalamud.IoC.Internal
             var ctor = this.FindApplicableCtor(objectType, scopedObjects);
             if (ctor == null)
             {
-                Log.Error("Failed to create {TypeName}, unable to find any services to satisfy the dependencies in the ctor", objectType.FullName);
+                Log.Error("Failed to create {TypeName}, unable to find one or more services to satisfy the dependencies in the ctor", objectType.FullName);
                 return null;
             }
 
@@ -88,7 +88,7 @@ namespace Dalamud.IoC.Internal
 
                     if (service == null)
                     {
-                        Log.Error("Requested service type {TypeName} could not be satisfied", p.parameterType.FullName);
+                        Log.Error("Requested service type {TypeName} was not available (null)", p.parameterType.FullName);
                     }
 
                     return service;
@@ -142,20 +142,35 @@ namespace Dalamud.IoC.Internal
             // get a list of all the available types: scoped and singleton
             var types = scopedObjects
                 .Select(o => o.GetType())
-                .Union(this.instances.Keys);
+                .Union(this.instances.Keys)
+                .ToArray();
 
             var ctors = type.GetConstructors(BindingFlags.Public | BindingFlags.Instance);
             foreach (var ctor in ctors)
             {
-                var parameters = ctor.GetParameters();
-
-                var success = parameters.All(p => types.Contains(p.ParameterType));
-
-                if (success)
+                if (this.ValidateCtor(ctor, types))
+                {
                     return ctor;
+                }
             }
 
             return null;
+        }
+
+        private bool ValidateCtor(ConstructorInfo ctor, Type[] types)
+        {
+            var parameters = ctor.GetParameters();
+            foreach (var parameter in parameters)
+            {
+                var contains = types.Contains(parameter.ParameterType);
+                if (!contains)
+                {
+                    Log.Error("Failed to validate {TypeName}, unable to find any services that satisfy the type", parameter.ParameterType.FullName);
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 }
