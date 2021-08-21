@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Dalamud.IoC;
+
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin;
 using ImGuiNET;

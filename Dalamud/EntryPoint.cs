@@ -212,7 +212,9 @@ namespace Dalamud
                     if (result == (int)User32.MessageBoxResult.IDYES)
                     {
                         Log.Information("User chose to disable plugins on next launch...");
-                        // TODO When services are in
+                        var config = Service<DalamudConfiguration>.Get();
+                        config.PluginSafeMode = true;
+                        config.Save();
                     }
 
                     Environment.Exit(-1);
