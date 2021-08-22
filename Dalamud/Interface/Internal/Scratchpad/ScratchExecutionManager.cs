@@ -4,7 +4,6 @@ using System.Linq;
 
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin;
-using ImGuiNET;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
 using Serilog;
@@ -60,21 +59,46 @@ namespace Dalamud.Interface.Internal.Scratchpad
             var code = doc.IsMacro ? this.MacroProcessor.Process(doc.Content) : doc.Content;
 
             var options = ScriptOptions.Default
-                                       .AddReferences(typeof(ImGui).Assembly)
-                                       .AddReferences(typeof(Dalamud).Assembly)
-                                       .AddReferences(typeof(FFXIVClientStructs.Resolver).Assembly) // FFXIVClientStructs
-                                       .AddReferences(typeof(Lumina.GameData).Assembly) // Lumina
-                                       .AddReferences(typeof(Lumina.Excel.GeneratedSheets.TerritoryType).Assembly) // Lumina.Excel
-                                                                                                                   // .WithReferences(MetadataReference.CreateFromFile(typeof(ScratchExecutionManager).Assembly.Location))
-                                       .AddImports("System")
-                                       .AddImports("System.IO")
-                                       .AddImports("System.Reflection")
-                                       .AddImports("System.Runtime.InteropServices")
-                                       .AddImports("Dalamud")
-                                       .AddImports("Dalamud.Plugin")
-                                       .AddImports("Dalamud.Game.Command")
-                                       .AddImports("Dalamud.Hooking")
-                                       .AddImports("ImGuiNET");
+                // Dalamud
+                .AddReferences(typeof(Dalamud).Assembly)
+                // ImGui
+                .AddReferences(typeof(ImGuiNET.ImGui).Assembly)
+                // ImGuiScene
+                .AddReferences(typeof(ImGuiScene.RawDX11Scene).Assembly)
+                // FFXIVClientStructs
+                .AddReferences(typeof(FFXIVClientStructs.Resolver).Assembly)
+                // Lumina
+                .AddReferences(typeof(Lumina.GameData).Assembly)
+                // Lumina.Excel
+                .AddReferences(typeof(Lumina.Excel.GeneratedSheets.TerritoryType).Assembly)
+                .AddImports("System")
+                .AddImports("System.IO")
+                .AddImports("System.Reflection")
+                .AddImports("System.Runtime.InteropServices")
+                .AddImports("Dalamud")
+                .AddImports("Dalamud.Data")
+                .AddImports("Dalamud.Game")
+                .AddImports("Dalamud.Game.ClientState")
+                .AddImports("Dalamud.Game.ClientState.Buddy")
+                .AddImports("Dalamud.Game.ClientState.Conditions")
+                .AddImports("Dalamud.Game.ClientState.Fates")
+                .AddImports("Dalamud.Game.ClientState.JobGauge")
+                .AddImports("Dalamud.Game.ClientState.Keys")
+                .AddImports("Dalamud.Game.ClientState.Objects")
+                .AddImports("Dalamud.Game.ClientState.Party")
+                .AddImports("Dalamud.Game.Command")
+                .AddImports("Dalamud.Game.Gui")
+                .AddImports("Dalamud.Game.Gui.FlyText")
+                .AddImports("Dalamud.Game.Gui.PartyFinder")
+                .AddImports("Dalamud.Game.Gui.Toast")
+                .AddImports("Dalamud.Hooking")
+                .AddImports("Dalamud.Game.Libc")
+                .AddImports("Dalamud.Game.Network")
+                .AddImports("Dalamud.Game.Text.SeStringHandling")
+                .AddImports("Dalamud.Logging")
+                .AddImports("Dalamud.Plugin")
+                .AddImports("Dalamud.Utility")
+                .AddImports("ImGuiNET");
 
             try
             {

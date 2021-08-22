@@ -17,14 +17,83 @@ namespace Dalamud.Interface.Internal.Scratchpad
 public class ScratchPlugin : IDalamudPlugin {
 
     public string Name => ""ScratchPlugin"";
-    private DalamudPluginInterface pi;
+
+    private readonly DalamudPluginInterface pi;
+    private readonly BuddyList buddies;
+    private readonly ChatGui chat;
+    private readonly ChatHandlers chatHandlers;
+    private readonly ClientState clientState;
+    private readonly CommandManager commands;
+    private readonly Condition condition;
+    private readonly DataManager data;
+    private readonly FateTable fates;
+    private readonly FlyTextGui flyText;
+    private readonly Framework framework;
+    private readonly GameGui gameGui;
+    private readonly GameNetwork gameNetwork;
+    private readonly JobGauges gauges;
+    private readonly KeyState keyState;
+    private readonly LibcFunction libc;
+    private readonly ObjectTable objects;
+    private readonly PartyFinderGui pfGui;
+    private readonly PartyList party;
+    private readonly SeStringManager seStringManager;
+    private readonly SigScanner sigScanner;
+    private readonly TargetManager targets;
+    private readonly ToastGui toasts;
 
     {SETUPBODY}
 
-    public ScratchPlugin(DalamudPluginInterface pluginInterface)
+    public ScratchPlugin(
+        DalamudPluginInterface pluginInterface,
+        BuddyList buddies,
+        ChatGui chat,
+        ChatHandlers chatHandlers,
+        ClientState clientState,
+        CommandManager commands,
+        Condition condition,
+        DataManager data,
+        FateTable fates,
+        FlyTextGui flyText,
+        Framework framework,
+        GameGui gameGui,
+        GameNetwork gameNetwork,
+        JobGauges gauges,
+        KeyState keyState,
+        LibcFunction libcFunction,
+        ObjectTable objects,
+        PartyFinderGui pfGui,
+        PartyList party,
+        SeStringManager seStringManager,
+        SigScanner sigScanner,
+        TargetManager targets,
+        ToastGui toasts)
     {
         this.pi = pluginInterface;
-            
+
+        this.buddies = buddies;
+        this.chat = chat;
+        this.chatHandlers = chatHandlers;
+        this.clientState = clientState;
+        this.commands = commands;
+        this.condition = condition;
+        this.data = data;
+        this.fates = fates;
+        this.flyText = flyText;
+        this.framework = framework;
+        this.gameGui = gameGui;
+        this.gameNetwork = gameNetwork;
+        this.gauges = gauges;
+        this.keyState = keyState;
+        this.libc = libcFunction;
+        this.objects = objects;
+        this.pfGui = pfGui;
+        this.party = party;
+        this.seStringManager = seStringManager;
+        this.sigScanner = sigScanner;
+        this.targets = targets;
+        this.toasts = toasts;
+
         this.pi.UiBuilder.Draw += DrawUI;
 
         {INITBODY}
