@@ -36,7 +36,7 @@ namespace Dalamud.Game.ClientState.Buddy
         /// <remarks>
         /// This iterates the actor table, it should be used with care.
         /// </remarks>
-        public GameObject? GameObject => Service<ObjectTable>.Get().SearchByID(this.ObjectId);
+        public GameObject? GameObject => Service<ObjectTable>.Get().SearchById(this.ObjectId);
 
         /// <summary>
         /// Gets the current health of this buddy.

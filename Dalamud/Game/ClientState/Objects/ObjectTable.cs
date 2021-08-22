@@ -61,16 +61,16 @@ namespace Dalamud.Game.ClientState.Objects
         /// <summary>
         /// Search for a game object by their Object ID.
         /// </summary>
-        /// <param name="objectID">Object ID to find.</param>
+        /// <param name="objectId">Object ID to find.</param>
         /// <returns>A game object or null.</returns>
-        public GameObject? SearchByID(uint objectID)
+        public GameObject? SearchById(uint objectId)
         {
             foreach (var obj in this)
             {
                 if (obj == null)
                     continue;
 
-                if (obj.ObjectId == objectID)
+                if (obj.ObjectId == objectId)
                     return obj;
             }
 

@@ -61,7 +61,7 @@ namespace Dalamud.Game.ClientState.Statuses
         /// <remarks>
         /// This iterates the actor table, it should be used with care.
         /// </remarks>
-        public GameObject? SourceObject => Service<ObjectTable>.Get().SearchByID(this.SourceID);
+        public GameObject? SourceObject => Service<ObjectTable>.Get().SearchById(this.SourceID);
 
         private FFXIVClientStructs.FFXIV.Client.Game.Status* Struct => (FFXIVClientStructs.FFXIV.Client.Game.Status*)this.Address;
     }
