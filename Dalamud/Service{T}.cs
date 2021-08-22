@@ -42,6 +42,9 @@ namespace Dalamud
         /// <returns>The set object.</returns>
         public static T Set()
         {
+            if (instance != null)
+                throw new Exception($"Service {typeof(T).FullName} was set twice");
+
             var obj = (T?)Activator.CreateInstance(typeof(T), true);
 
             SetInstanceObject(obj);

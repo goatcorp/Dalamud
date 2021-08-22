@@ -107,7 +107,6 @@ namespace Dalamud.Game.Gui.FlyText
         /// </summary>
         public void Dispose()
         {
-            this.createFlyTextHook.Disable();
             this.createFlyTextHook.Dispose();
         }
 
