@@ -52,7 +52,7 @@ namespace Dalamud.IoC.Internal
                 return (parameterType, requiredVersion);
             });
 
-            var versionCheck = parameters.Any(p =>
+            var versionCheck = parameters.All(p =>
             {
                 // if there's no required version, ignore it
                 if (p.requiredVersion == null)
