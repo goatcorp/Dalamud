@@ -414,31 +414,45 @@ namespace Dalamud.Plugin.Internal
             Log.Debug($"Extracting to {outputDir}");
             // This throws an error, even with overwrite=false
             // ZipFile.ExtractToDirectory(tempZip.FullName, outputDir.FullName, false);
-            using (var archive = new ZipArchive(response.Content.ReadAsStream()))
+            using (var archive = new ZipArchive(await response.Content.ReadAsStreamAsync()))
             {
                 foreach (var zipFile in archive.Entries)
                 {
-                    var completeFileName = Path.GetFullPath(Path.Combine(outputDir.FullName, zipFile.FullName));
+                    var outputFile = new FileInfo(Path.GetFullPath(Path.Combine(outputDir.FullName, zipFile.FullName)));
 
-                    if (!completeFileName.StartsWith(outputDir.FullName, StringComparison.OrdinalIgnoreCase))
+                    if (!outputFile.FullName.StartsWith(outputDir.FullName, StringComparison.OrdinalIgnoreCase))
                     {
                         throw new IOException("Trying to extract file outside of destination directory. See this link for more info: https://snyk.io/research/zip-slip-vulnerability");
                     }
 
-                    if (zipFile.Name == string.Empty)
+                    if (outputFile.Directory == null)
                     {
+                        throw new IOException("Output directory invalid.");
+                    }
+
+                    if (zipFile.Name.IsNullOrEmpty())
+                    {
+                        Log.Error("zipFile.Name is null or empty");
                         // Assuming Empty for Directory
-                        Directory.CreateDirectory(Path.GetDirectoryName(completeFileName));
+                        Directory.CreateDirectory(outputFile.Directory.FullName);
                         continue;
                     }
 
+                    // Ensure directory is created
+                    Directory.CreateDirectory(outputFile.Directory.FullName);
+
                     try
                     {
-                        zipFile.ExtractToFile(completeFileName, true);
+                        zipFile.ExtractToFile(outputFile.FullName, true);
                     }
                     catch (Exception ex)
                     {
-                        Log.Information($"Could not overwrite {zipFile.Name}: {ex.Message}");
+                        if (outputFile.Extension.EndsWith("dll"))
+                        {
+                            throw new IOException($"Could not overwrite {zipFile.Name}: {ex.Message}");
+                        }
+
+                        Log.Error($"Could not overwrite {zipFile.Name}: {ex.Message}");
                     }
                 }
             }
