@@ -702,7 +702,6 @@ namespace Dalamud.Plugin.Internal
         /// <param name="notify">Whether to notify that installed plugins have changed afterwards.</param>
         /// <param name="dryRun">Whether or not to actually perform the update, or just indicate success.</param>
         /// <returns>The status of the update.</returns>
-        [CanBeNull]
         public async Task<PluginUpdateStatus?> UpdateSinglePluginAsync(AvailablePluginUpdate metadata, bool notify, bool dryRun)
         {
             var plugin = metadata.InstalledPlugin;

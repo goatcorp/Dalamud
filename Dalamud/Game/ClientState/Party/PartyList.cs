@@ -72,8 +72,7 @@ namespace Dalamud.Game.ClientState.Party
         /// </summary>
         /// <param name="index">Spawn index.</param>
         /// <returns>A <see cref="PartyMember"/> at the specified spawn index.</returns>
-        [CanBeNull]
-        public PartyMember this[int index]
+        public PartyMember? this[int index]
         {
             get
             {
@@ -112,8 +111,7 @@ namespace Dalamud.Game.ClientState.Party
         /// </summary>
         /// <param name="address">The address of the party member in memory.</param>
         /// <returns>The party member object containing the requested data.</returns>
-        [CanBeNull]
-        public PartyMember CreatePartyMemberReference(IntPtr address)
+        public PartyMember? CreatePartyMemberReference(IntPtr address)
         {
             var clientState = Service<ClientState>.Get();
 
@@ -144,8 +142,7 @@ namespace Dalamud.Game.ClientState.Party
         /// </summary>
         /// <param name="address">The address of the alliance member in memory.</param>
         /// <returns>The party member object containing the requested data.</returns>
-        [CanBeNull]
-        public PartyMember CreateAllianceMemberReference(IntPtr address)
+        public PartyMember? CreateAllianceMemberReference(IntPtr address)
         {
             var clientState = Service<ClientState>.Get();
 

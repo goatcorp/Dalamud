@@ -65,8 +65,7 @@ namespace Dalamud.Game.ClientState.Statuses
         /// </summary>
         /// <param name="index">Status Index.</param>
         /// <returns>The status at the specified index.</returns>
-        [CanBeNull]
-        public Status this[int index]
+        public Status? this[int index]
         {
             get
             {
@@ -96,8 +95,7 @@ namespace Dalamud.Game.ClientState.Statuses
         /// </summary>
         /// <param name="address">The address of the status effect in memory.</param>
         /// <returns>The status object containing the requested data.</returns>
-        [CanBeNull]
-        public Status CreateStatusReference(IntPtr address)
+        public Status? CreateStatusReference(IntPtr address)
         {
             var clientState = Service<ClientState>.Get();
 

@@ -56,8 +56,7 @@ namespace Dalamud.Game.ClientState.Party
         /// <remarks>
         /// This iterates the actor table, it should be used with care.
         /// </remarks>
-        [CanBeNull]
-        public GameObject GameObject => Service<ObjectTable>.Get().SearchByID(this.ObjectId);
+        public GameObject? GameObject => Service<ObjectTable>.Get().SearchByID(this.ObjectId);
 
         /// <summary>
         /// Gets the current HP of this party member.

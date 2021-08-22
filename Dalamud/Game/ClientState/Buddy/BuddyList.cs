@@ -66,8 +66,7 @@ namespace Dalamud.Game.ClientState.Buddy
         /// <summary>
         /// Gets the active companion buddy.
         /// </summary>
-        [CanBeNull]
-        public BuddyMember CompanionBuddy
+        public BuddyMember? CompanionBuddy
         {
             get
             {
@@ -79,8 +78,7 @@ namespace Dalamud.Game.ClientState.Buddy
         /// <summary>
         /// Gets the active pet buddy.
         /// </summary>
-        [CanBeNull]
-        public BuddyMember PetBuddy
+        public BuddyMember? PetBuddy
         {
             get
             {
@@ -103,8 +101,7 @@ namespace Dalamud.Game.ClientState.Buddy
         /// </summary>
         /// <param name="index">Spawn index.</param>
         /// <returns>A <see cref="BuddyMember"/> at the specified spawn index.</returns>
-        [CanBeNull]
-        public BuddyMember this[int index]
+        public BuddyMember? this[int index]
         {
             get
             {
@@ -149,8 +146,7 @@ namespace Dalamud.Game.ClientState.Buddy
         /// </summary>
         /// <param name="address">The address of the buddy in memory.</param>
         /// <returns><see cref="BuddyMember"/> object containing the requested data.</returns>
-        [CanBeNull]
-        public BuddyMember CreateBuddyMemberReference(IntPtr address)
+        public BuddyMember? CreateBuddyMemberReference(IntPtr address)
         {
             var clientState = Service<ClientState>.Get();
 

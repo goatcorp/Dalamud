@@ -109,8 +109,7 @@ namespace Dalamud.Game.ClientState
         /// <summary>
         /// Gets the local player character, if one is present.
         /// </summary>
-        [CanBeNull]
-        public PlayerCharacter LocalPlayer => Service<ObjectTable>.Get()[0] as PlayerCharacter;
+        public PlayerCharacter? LocalPlayer => Service<ObjectTable>.Get()[0] as PlayerCharacter;
 
         /// <summary>
         /// Gets the content ID of the local character.

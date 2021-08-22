@@ -75,8 +75,7 @@ namespace Dalamud.Game.ClientState.Fates
         /// </summary>
         /// <param name="index">Spawn index.</param>
         /// <returns>A <see cref="Fate"/> at the specified spawn index.</returns>
-        [CanBeNull]
-        public Fate this[int index]
+        public Fate? this[int index]
         {
             get
             {
@@ -108,8 +107,7 @@ namespace Dalamud.Game.ClientState.Fates
         /// </summary>
         /// <param name="offset">The offset of the actor in memory.</param>
         /// <returns><see cref="Fate"/> object containing requested data.</returns>
-        [CanBeNull]
-        internal unsafe Fate CreateFateReference(IntPtr offset)
+        internal Fate? CreateFateReference(IntPtr offset)
         {
             var clientState = Service<ClientState>.Get();
 

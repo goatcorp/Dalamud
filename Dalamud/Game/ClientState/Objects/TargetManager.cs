@@ -33,8 +33,7 @@ namespace Dalamud.Game.ClientState.Objects
         /// <summary>
         /// Gets or sets the current target.
         /// </summary>
-        [CanBeNull]
-        public GameObject Target
+        public GameObject? Target
         {
             get => Service<ObjectTable>.Get().CreateObjectReference((IntPtr)Struct->Target);
             set => this.SetTarget(value);
@@ -43,8 +42,7 @@ namespace Dalamud.Game.ClientState.Objects
         /// <summary>
         /// Gets or sets the mouseover target.
         /// </summary>
-        [CanBeNull]
-        public GameObject MouseOverTarget
+        public GameObject? MouseOverTarget
         {
             get => Service<ObjectTable>.Get().CreateObjectReference((IntPtr)Struct->MouseOverTarget);
             set => this.SetMouseOverTarget(value);
@@ -53,8 +51,7 @@ namespace Dalamud.Game.ClientState.Objects
         /// <summary>
         /// Gets or sets the focus target.
         /// </summary>
-        [CanBeNull]
-        public GameObject FocusTarget
+        public GameObject? FocusTarget
         {
             get => Service<ObjectTable>.Get().CreateObjectReference((IntPtr)Struct->FocusTarget);
             set => this.SetFocusTarget(value);
@@ -63,8 +60,7 @@ namespace Dalamud.Game.ClientState.Objects
         /// <summary>
         /// Gets or sets the previous target.
         /// </summary>
-        [CanBeNull]
-        public GameObject PreviousTarget
+        public GameObject? PreviousTarget
         {
             get => Service<ObjectTable>.Get().CreateObjectReference((IntPtr)Struct->PreviousTarget);
             set => this.SetPreviousTarget(value);
@@ -73,8 +69,7 @@ namespace Dalamud.Game.ClientState.Objects
         /// <summary>
         /// Gets or sets the soft target.
         /// </summary>
-        [CanBeNull]
-        public GameObject SoftTarget
+        public GameObject? SoftTarget
         {
             get => Service<ObjectTable>.Get().CreateObjectReference((IntPtr)Struct->SoftTarget);
             set => this.SetSoftTarget(value);
@@ -86,31 +81,31 @@ namespace Dalamud.Game.ClientState.Objects
         /// Sets the current target.
         /// </summary>
         /// <param name="actor">Actor to target.</param>
-        public void SetTarget(GameObject actor) => this.SetTarget(actor?.Address ?? IntPtr.Zero);
+        public void SetTarget(GameObject? actor) => this.SetTarget(actor?.Address ?? IntPtr.Zero);
 
         /// <summary>
         /// Sets the mouseover target.
         /// </summary>
         /// <param name="actor">Actor to target.</param>
-        public void SetMouseOverTarget(GameObject actor) => this.SetTarget(actor?.Address ?? IntPtr.Zero);
+        public void SetMouseOverTarget(GameObject? actor) => this.SetTarget(actor?.Address ?? IntPtr.Zero);
 
         /// <summary>
         /// Sets the focus target.
         /// </summary>
         /// <param name="actor">Actor to target.</param>
-        public void SetFocusTarget(GameObject actor) => this.SetTarget(actor?.Address ?? IntPtr.Zero);
+        public void SetFocusTarget(GameObject? actor) => this.SetTarget(actor?.Address ?? IntPtr.Zero);
 
         /// <summary>
         /// Sets the previous target.
         /// </summary>
         /// <param name="actor">Actor to target.</param>
-        public void SetPreviousTarget(GameObject actor) => this.SetTarget(actor?.Address ?? IntPtr.Zero);
+        public void SetPreviousTarget(GameObject? actor) => this.SetTarget(actor?.Address ?? IntPtr.Zero);
 
         /// <summary>
         /// Sets the soft target.
         /// </summary>
         /// <param name="actor">Actor to target.</param>
-        public void SetSoftTarget(GameObject actor) => this.SetTarget(actor?.Address ?? IntPtr.Zero);
+        public void SetSoftTarget(GameObject? actor) => this.SetTarget(actor?.Address ?? IntPtr.Zero);
 
         /// <summary>
         /// Sets the current target.

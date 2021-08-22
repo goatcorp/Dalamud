@@ -45,8 +45,7 @@ namespace Dalamud.Configuration
         /// </summary>
         /// <param name="pluginName">Plugin name.</param>
         /// <returns>Plugin configuration.</returns>
-        [CanBeNull]
-        public IPluginConfiguration Load(string pluginName)
+        public IPluginConfiguration? Load(string pluginName)
         {
             var path = this.GetConfigFile(pluginName);
 

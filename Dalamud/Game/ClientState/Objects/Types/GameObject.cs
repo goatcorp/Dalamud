@@ -157,8 +157,7 @@ namespace Dalamud.Game.ClientState.Objects.Types
         /// <remarks>
         /// This iterates the actor table, it should be used with care.
         /// </remarks>
-        [CanBeNull]
-        public virtual GameObject TargetObject => Service<ObjectTable>.Get().SearchByID(this.TargetObjectId);
+        public virtual GameObject? TargetObject => Service<ObjectTable>.Get().SearchByID(this.TargetObjectId);
 
         /// <summary>
         /// Gets the underlying structure.

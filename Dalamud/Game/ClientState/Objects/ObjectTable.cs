@@ -49,8 +49,7 @@ namespace Dalamud.Game.ClientState.Objects
         /// </summary>
         /// <param name="index">Spawn index.</param>
         /// <returns>An <see cref="GameObject"/> at the specified spawn index.</returns>
-        [CanBeNull]
-        public GameObject this[int index]
+        public GameObject? this[int index]
         {
             get
             {
@@ -64,8 +63,7 @@ namespace Dalamud.Game.ClientState.Objects
         /// </summary>
         /// <param name="objectID">Object ID to find.</param>
         /// <returns>A game object or null.</returns>
-        [CanBeNull]
-        public GameObject SearchByID(uint objectID)
+        public GameObject? SearchByID(uint objectID)
         {
             foreach (var obj in this)
             {
@@ -97,8 +95,7 @@ namespace Dalamud.Game.ClientState.Objects
         /// </summary>
         /// <param name="address">The address of the object in memory.</param>
         /// <returns><see cref="GameObject"/> object or inheritor containing the requested data.</returns>
-        [CanBeNull]
-        public unsafe GameObject CreateObjectReference(IntPtr address)
+        public unsafe GameObject? CreateObjectReference(IntPtr address)
         {
             var clientState = Service<ClientState>.Get();
 
