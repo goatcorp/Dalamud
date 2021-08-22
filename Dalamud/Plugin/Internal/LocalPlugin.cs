@@ -62,7 +62,7 @@ namespace Dalamud.Plugin.Internal
                 this.pluginType = null;
                 this.loader.Dispose();
 
-                Log.Error(ex, $"Not a plugin: {this.DllFile.Name}");
+                Log.Error(ex, $"Not a plugin: {this.DllFile.FullName}");
                 throw new InvalidPluginException(this.DllFile);
             }
 
@@ -73,7 +73,7 @@ namespace Dalamud.Plugin.Internal
                 this.pluginType = null;
                 this.loader.Dispose();
 
-                Log.Error($"Nothing inherits from IDalamudPlugin: {this.DllFile.Name}");
+                Log.Error($"Nothing inherits from IDalamudPlugin: {this.DllFile.FullName}");
                 throw new InvalidPluginException(this.DllFile);
             }
 
