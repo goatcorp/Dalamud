@@ -191,7 +191,7 @@ namespace Dalamud.Game.Gui
         /// <param name="worldPos">Coordinates in the world.</param>
         /// <param name="screenPos">Converted coordinates.</param>
         /// <returns>True if worldPos corresponds to a position in front of the camera.</returns>
-        public bool WorldToScreen(SharpDX.Vector3 worldPos, out SharpDX.Vector2 screenPos)
+        public bool WorldToScreen(Vector3 worldPos, out Vector2 screenPos)
         {
             // Get base object with matrices
             var matrixSingleton = this.getMatrixSingleton();
@@ -212,9 +212,10 @@ namespace Dalamud.Game.Gui
                 height = *(rawMatrix + 1);
             }
 
-            SharpDX.Vector3.Transform(ref worldPos, ref viewProjectionMatrix, out SharpDX.Vector3 pCoords);
+            var worldPosDx = worldPos.ToSharpDX();
+            SharpDX.Vector3.Transform(ref worldPosDx, ref viewProjectionMatrix, out SharpDX.Vector3 pCoords);
 
-            screenPos = new SharpDX.Vector2(pCoords.X / pCoords.Z, pCoords.Y / pCoords.Z);
+            screenPos = new Vector2(pCoords.X / pCoords.Z, pCoords.Y / pCoords.Z);
 
             screenPos.X = (0.5f * width * (screenPos.X + 1f)) + windowPos.X;
             screenPos.Y = (0.5f * height * (1f - screenPos.Y)) + windowPos.Y;
@@ -225,29 +226,13 @@ namespace Dalamud.Game.Gui
         }
 
         /// <summary>
-        /// Converts in-world coordinates to screen coordinates (upper left corner origin).
-        /// </summary>
-        /// <param name="worldPos">Coordinates in the world.</param>
-        /// <param name="screenPos">Converted coordinates.</param>
-        /// <returns>True if worldPos corresponds to a position in front of the camera.</returns>
-        /// <remarks>
-        /// This overload requires a conversion to SharpDX vectors, however the penalty should be negligible.
-        /// </remarks>
-        public bool WorldToScreen(Vector3 worldPos, out Vector2 screenPos)
-        {
-            var result = this.WorldToScreen(worldPos.ToSharpDX(), out var sharpScreenPos);
-            screenPos = sharpScreenPos.ToSystem();
-            return result;
-        }
-
-        /// <summary>
         /// Converts screen coordinates to in-world coordinates via raycasting.
         /// </summary>
         /// <param name="screenPos">Screen coordinates.</param>
         /// <param name="worldPos">Converted coordinates.</param>
         /// <param name="rayDistance">How far to search for a collision.</param>
         /// <returns>True if successful. On false, worldPos's contents are undefined.</returns>
-        public bool ScreenToWorld(SharpDX.Vector2 screenPos, out SharpDX.Vector3 worldPos, float rayDistance = 100000.0f)
+        public bool ScreenToWorld(Vector2 screenPos, out Vector3 worldPos, float rayDistance = 100000.0f)
         {
             // The game is only visible in the main viewport, so if the cursor is outside
             // of the game window, do not bother calculating anything
@@ -321,7 +306,7 @@ namespace Dalamud.Game.Gui
                     }
                 }
 
-                worldPos = new SharpDX.Vector3
+                worldPos = new Vector3
                 {
                     X = worldPosArray[0],
                     Y = worldPosArray[1],
@@ -330,23 +315,6 @@ namespace Dalamud.Game.Gui
             }
 
             return isSuccess;
-        }
-
-        /// <summary>
-        /// Converts screen coordinates to in-world coordinates via raycasting.
-        /// </summary>
-        /// <param name="screenPos">Screen coordinates.</param>
-        /// <param name="worldPos">Converted coordinates.</param>
-        /// <param name="rayDistance">How far to search for a collision.</param>
-        /// <returns>True if successful. On false, worldPos's contents are undefined.</returns>
-        /// <remarks>
-        /// This overload requires a conversion to SharpDX vectors, however the penalty should be negligible.
-        /// </remarks>
-        public bool ScreenToWorld(Vector2 screenPos, out Vector3 worldPos, float rayDistance = 100000.0f)
-        {
-            var result = this.ScreenToWorld(screenPos.ToSharpDX(), out var sharpworldPos);
-            worldPos = sharpworldPos.ToSystem();
-            return result;
         }
 
         /// <summary>
