@@ -227,7 +227,7 @@ namespace Dalamud.Hooking
         {
             if (this.IsDisposed)
             {
-                throw new ObjectDisposedException("Hook is already disposed.");
+                throw new ObjectDisposedException(message: "Hook is already disposed", null);
             }
         }
     }
