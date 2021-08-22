@@ -3,7 +3,6 @@ using System;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
-using JetBrains.Annotations;
 
 namespace Dalamud.Game.ClientState.Objects
 {

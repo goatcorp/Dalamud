@@ -1,6 +1,5 @@
 using System.IO;
 
-using JetBrains.Annotations;
 using Newtonsoft.Json;
 
 namespace Dalamud.Configuration

@@ -3,8 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
-using JetBrains.Annotations;
-
 namespace Dalamud.Game.ClientState.Statuses
 {
     /// <summary>

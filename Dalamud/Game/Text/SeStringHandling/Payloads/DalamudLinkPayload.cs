@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-using JetBrains.Annotations;
-
 namespace Dalamud.Game.Text.SeStringHandling.Payloads
 {
     /// <summary>
@@ -23,7 +21,6 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         /// <summary>
         /// Gets the plugin name to be linked.
         /// </summary>
-        [NotNull]
         public string Plugin { get; internal set; } = string.Empty;
 
         /// <inheritdoc/>

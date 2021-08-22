@@ -3,7 +3,6 @@ using System;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.ClientState.Resolvers;
-using JetBrains.Annotations;
 
 namespace Dalamud.Game.ClientState.Statuses
 {

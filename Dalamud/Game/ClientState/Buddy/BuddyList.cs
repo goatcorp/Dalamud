@@ -5,7 +5,6 @@ using System.Runtime.InteropServices;
 
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
-using JetBrains.Annotations;
 using Serilog;
 
 namespace Dalamud.Game.ClientState.Buddy

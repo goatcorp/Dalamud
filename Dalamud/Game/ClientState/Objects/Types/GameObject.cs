@@ -4,7 +4,6 @@ using System.Numerics;
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Memory;
-using JetBrains.Annotations;
 
 namespace Dalamud.Game.ClientState.Objects.Types
 {
