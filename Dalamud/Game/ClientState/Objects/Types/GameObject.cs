@@ -91,7 +91,7 @@ namespace Dalamud.Game.ClientState.Objects.Types
         /// <summary>
         /// Gets the name of this <see cref="GameObject" />.
         /// </summary>
-        public SeString Name => MemoryHelper.ReadSeString((IntPtr)this.Struct->Name, 32);
+        public SeString Name => MemoryHelper.ReadSeString((IntPtr)this.Struct->Name, 64);
 
         /// <summary>
         /// Gets the object ID of this <see cref="GameObject" />.

@@ -89,6 +89,11 @@ namespace Dalamud.Game.ClientState.Objects.Types
         public override uint TargetObjectId => this.Struct->GameObject.TargetObjectID;
 
         /// <summary>
+        /// Gets the name ID of the character.
+        /// </summary>
+        public uint NameId => this.Struct->NameID;
+
+        /// <summary>
         /// Gets the status flags.
         /// </summary>
         public StatusFlags StatusFlags => (StatusFlags)this.Struct->StatusFlags;

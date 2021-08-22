@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -123,6 +124,16 @@ namespace Dalamud.Plugin
         /// </summary>
         public XivChatType GeneralChatType { get; private set; }
 
+        /// <summary>
+        /// Gets a list of installed plugin names.
+        /// </summary>
+        public List<string> PluginNames => Service<PluginManager>.Get().InstalledPlugins.Select(p => p.Manifest.Name).ToList();
+
+        /// <summary>
+        /// Gets a list of installed plugin internal names.
+        /// </summary>
+        public List<string> PluginInternalNames => Service<PluginManager>.Get().InstalledPlugins.Select(p => p.Manifest.InternalName).ToList();
+
         #region Configuration
 
         /// <summary>
@@ -210,7 +221,8 @@ namespace Dalamud.Plugin
         #endregion
 
         /// <summary>
-        /// Unregister your plugin and dispose all references. You have to call this when your IDalamudPlugin is disposed.
+        /// Unregister your plugin and dispose all references.
+        /// You have to call this when your IDalamudPlugin is disposed.
         /// </summary>
         public void Dispose()
         {

@@ -143,7 +143,7 @@ namespace Dalamud
                 Service<NetworkHandlers>.Set();
                 Log.Information("[T2] NH OK!");
 
-                Service<ClientState>.Set();
+                var clientState = Service<ClientState>.Set();
                 Log.Information("[T2] CS OK!");
 
                 var localization = Service<Localization>.Set(new Localization(Path.Combine(this.AssetDirectory.FullName, "UIRes", "loc", "dalamud"), "dalamud_"));
@@ -210,7 +210,7 @@ namespace Dalamud
 
                 Log.Information("[T2] CH OK!");
 
-                Service<ClientState>.Set().Enable();
+                clientState.Enable();
                 Log.Information("[T2] CS ENABLE!");
 
                 Service<DalamudSystemMenu>.Set().Enable();
