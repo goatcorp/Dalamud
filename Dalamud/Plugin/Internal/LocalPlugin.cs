@@ -55,13 +55,6 @@ namespace Dalamud.Plugin.Internal
             {
                 // BadImageFormatException
                 this.pluginAssembly = this.loader.LoadDefaultAssembly();
-
-                // InvalidOperationException
-                this.pluginType = this.pluginAssembly.GetTypes().FirstOrDefault(type => type.IsAssignableTo(typeof(IDalamudPlugin)));
-                if (this.pluginType == default)
-                    throw new Exception("Nothing inherits from IDalamudPlugin");
-
-                assemblyVersion = this.pluginAssembly.GetName().Version;
             }
             catch (Exception ex)
             {
@@ -72,6 +65,19 @@ namespace Dalamud.Plugin.Internal
                 Log.Error(ex, $"Not a plugin: {this.DllFile.Name}");
                 throw new InvalidPluginException(this.DllFile);
             }
+
+            this.pluginType = this.pluginAssembly.GetTypes().FirstOrDefault(type => type.IsAssignableTo(typeof(IDalamudPlugin)));
+            if (this.pluginType == default)
+            {
+                this.pluginAssembly = null;
+                this.pluginType = null;
+                this.loader.Dispose();
+
+                Log.Error($"Nothing inherits from IDalamudPlugin: {this.DllFile.Name}");
+                throw new InvalidPluginException(this.DllFile);
+            }
+
+            assemblyVersion = this.pluginAssembly.GetName().Version;
 
             // Files that may or may not exist
             this.manifestFile = LocalPluginManifest.GetManifestFile(this.DllFile);
