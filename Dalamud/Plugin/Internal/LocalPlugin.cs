@@ -57,7 +57,9 @@ namespace Dalamud.Plugin.Internal
                 this.pluginAssembly = this.loader.LoadDefaultAssembly();
 
                 // InvalidOperationException
-                this.pluginType = this.pluginAssembly.GetTypes().First(type => type.IsAssignableTo(typeof(IDalamudPlugin)));
+                this.pluginType = this.pluginAssembly.GetTypes().FirstOrDefault(type => type.IsAssignableTo(typeof(IDalamudPlugin)));
+                if (this.pluginType == default)
+                    throw new Exception("Nothing inherits from IDalamudPlugin");
 
                 assemblyVersion = this.pluginAssembly.GetName().Version;
             }
