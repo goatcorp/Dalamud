@@ -1757,7 +1757,7 @@ namespace Dalamud.Interface.Internal.Windows
 
                     if (icon.Height != icon.Width)
                     {
-                        Log.Error($"Icon at {manifest.IconUrl} was not rectangular.");
+                        Log.Error($"Icon at {manifest.IconUrl} was not square.");
                         return;
                     }
 
