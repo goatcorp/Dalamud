@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Dynamic;
 using System.Linq;
 using System.Numerics;
 
@@ -26,7 +25,6 @@ using Dalamud.Game.Text;
 using Dalamud.Interface.Windowing;
 using Dalamud.Memory;
 using Dalamud.Plugin;
-using Dalamud.Plugin.Internal;
 using Dalamud.Utility;
 using ImGuiNET;
 using ImGuiScene;
@@ -61,6 +59,11 @@ namespace Dalamud.Interface.Internal.Windows
         private bool resolveObjects = false;
 
         private UIDebug addonInspector = null;
+
+        // IPC
+        private ICallGatePub<string, string> ipcPub;
+        private ICallGateSub<string, string> ipcSub;
+        private string callGateResponse = string.Empty;
 
         // Toast fields
         private string inputTextToast = string.Empty;
@@ -610,6 +613,56 @@ namespace Dalamud.Interface.Internal.Windows
 
         private void DrawPluginIPC()
         {
+            if (this.ipcPub == null)
+            {
+                this.ipcPub = Service<CallGate>.Get().GetIpcPubSub<string, string>("dataDemo1");
+
+                this.ipcPub.RegisterAction((msg) =>
+                {
+                    Log.Information($"Data action was called: {msg}");
+                });
+
+                this.ipcPub.RegisterFunc((msg) =>
+                {
+                    Log.Information($"Data func was called: {msg}");
+                    return Guid.NewGuid().ToString();
+                });
+            }
+
+            if (this.ipcSub == null)
+            {
+                this.ipcSub = Service<CallGate>.Get().GetIpcPubSub<string, string>("dataDemo1");
+                this.ipcSub.Subscribe((msg) =>
+                {
+                    Log.Information("PONG1");
+                });
+                this.ipcSub.Subscribe((msg) =>
+                {
+                    Log.Information("PONG2");
+                });
+                this.ipcSub.Subscribe((msg) =>
+                {
+                    throw new Exception("PONG3");
+                });
+            }
+
+            if (ImGui.Button("PING"))
+            {
+                this.ipcPub.SendMessage("PING");
+            }
+
+            if (ImGui.Button("Action"))
+            {
+                this.ipcSub.InvokeAction("button1");
+            }
+
+            if (ImGui.Button("Func"))
+            {
+                this.callGateResponse = this.ipcSub.InvokeFunc("button2");
+            }
+
+            if (!this.callGateResponse.IsNullOrEmpty())
+                ImGui.Text($"Response: {this.callGateResponse}");
         }
 
         private void DrawCondition()
