@@ -27,19 +27,19 @@ namespace Dalamud.Plugin.Internal.Types
         /// Gets a punchline of the plugins functions.
         /// </summary>
         [JsonProperty]
-        public string Punchline { get; init; }
+        public string? Punchline { get; init; }
 
         /// <summary>
         /// Gets a description of the plugins functions.
         /// </summary>
         [JsonProperty]
-        public string Description { get; init; }
+        public string? Description { get; init; }
 
         /// <summary>
         /// Gets a list of tags defined on the plugin.
         /// </summary>
         [JsonProperty]
-        public List<string> Tags { get; init; }
+        public List<string>? Tags { get; init; }
 
         /// <summary>
         /// Gets a value indicating whether or not the plugin is hidden in the plugin installer.
@@ -64,7 +64,7 @@ namespace Dalamud.Plugin.Internal.Types
         /// Gets the current testing assembly version of the plugin.
         /// </summary>
         [JsonProperty]
-        public Version TestingAssemblyVersion { get; init; }
+        public Version? TestingAssemblyVersion { get; init; }
 
         /// <summary>
         /// Gets a value indicating whether the <see cref="AssemblyVersion"/> is not null.
@@ -88,14 +88,14 @@ namespace Dalamud.Plugin.Internal.Types
         /// Gets an URL to the website or source code of the plugin.
         /// </summary>
         [JsonProperty]
-        public string RepoUrl { get; init; }
+        public string? RepoUrl { get; init; }
 
         /// <summary>
         /// Gets the version of the game this plugin works with.
         /// </summary>
         [JsonProperty]
         [JsonConverter(typeof(GameVersionConverter))]
-        public GameVersion ApplicableVersion { get; init; } = GameVersion.Any;
+        public GameVersion? ApplicableVersion { get; init; } = GameVersion.Any;
 
         /// <summary>
         /// Gets the API level of this plugin. For the current API level, please see <see cref="PluginManager.DalamudApiLevel"/>
@@ -143,11 +143,11 @@ namespace Dalamud.Plugin.Internal.Types
         /// <summary>
         /// Gets a list of screenshot image URLs to show in the plugin installer.
         /// </summary>
-        public List<string> ImageUrls { get; init; }
+        public List<string>? ImageUrls { get; init; }
 
         /// <summary>
         /// Gets an URL for the plugin's icon.
         /// </summary>
-        public string IconUrl { get; init; }
+        public string? IconUrl { get; init; }
     }
 }

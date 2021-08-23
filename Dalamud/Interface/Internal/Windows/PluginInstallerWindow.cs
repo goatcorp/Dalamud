@@ -34,8 +34,8 @@ namespace Dalamud.Interface.Internal.Windows
         private const int PluginImageWidth = 730;
         private const int PluginImageHeight = 380;
 
-        private const int PluginIconWidth = 300;
-        private const int PluginIconHeight = 300;
+        private const int PluginIconWidth = 512;
+        private const int PluginIconHeight = 512;
 
         private static readonly ModuleLog Log = new("PLUGINW");
 
@@ -532,7 +532,7 @@ namespace Dalamud.Interface.Internal.Windows
 
             var isOpen = this.openPluginCollapsibles.Contains(index);
 
-            var sectionSize = ImGuiHelpers.GlobalScale * 42;
+            var sectionSize = ImGuiHelpers.GlobalScale * 66;
             var startCursor = ImGui.GetCursorPos();
 
             ImGui.PushStyleColor(ImGuiCol.Button, isOpen ? new Vector4(0.5f, 0.5f, 0.5f, 0.1f) : Vector4.Zero);
@@ -571,20 +571,22 @@ namespace Dalamud.Interface.Internal.Windows
                 iconTex = icon.Texture;
             }
 
+            var iconSize = ImGuiHelpers.ScaledVector2(64, 64);
+
             var cursorBeforeImage = ImGui.GetCursorPos();
-            ImGui.Image(iconTex.ImGuiHandle, ImGuiHelpers.ScaledVector2(40, 40));
+            ImGui.Image(iconTex.ImGuiHandle, iconSize);
             ImGui.SameLine();
 
             if (trouble)
             {
                 ImGui.SetCursorPos(cursorBeforeImage);
-                ImGui.Image(this.troubleIcon.ImGuiHandle, ImGuiHelpers.ScaledVector2(40, 40));
+                ImGui.Image(this.troubleIcon.ImGuiHandle, iconSize);
                 ImGui.SameLine();
             }
             else if (updateAvailable)
             {
                 ImGui.SetCursorPos(cursorBeforeImage);
-                ImGui.Image(this.updateIcon.ImGuiHandle, ImGuiHelpers.ScaledVector2(40, 40));
+                ImGui.Image(this.updateIcon.ImGuiHandle, iconSize);
                 ImGui.SameLine();
             }
 
