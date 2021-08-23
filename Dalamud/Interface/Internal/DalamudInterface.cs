@@ -496,6 +496,11 @@ namespace Dalamud.Interface.Internal
                             this.OpenPluginInstaller();
                         }
 
+                        if (ImGui.MenuItem("Clear cached images/icons"))
+                        {
+                            this.pluginWindow?.ClearIconCache();
+                        }
+
                         ImGui.Separator();
 
                         if (ImGui.MenuItem("Open Plugin Stats"))

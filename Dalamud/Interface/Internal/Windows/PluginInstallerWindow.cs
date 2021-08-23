@@ -164,6 +164,17 @@ namespace Dalamud.Interface.Internal.Windows
             this.DrawErrorModal();
         }
 
+        /// <summary>
+        /// Clear the cache of downloaded icons.
+        /// </summary>
+        public void ClearIconCache()
+        {
+            this.pluginIconMap.Clear();
+            this.pluginImagesMap.Clear();
+
+            this.DownloadPluginIcons();
+        }
+
         private static Vector2 GetButtonSize(string text) => ImGui.CalcTextSize(text) + (ImGui.GetStyle().FramePadding * 2);
 
         private void DrawHeader()
