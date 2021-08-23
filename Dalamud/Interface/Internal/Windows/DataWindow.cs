@@ -25,6 +25,7 @@ using Dalamud.Game.Text;
 using Dalamud.Interface.Windowing;
 using Dalamud.Memory;
 using Dalamud.Plugin;
+using Dalamud.Plugin.Internal;
 using Dalamud.Utility;
 using ImGuiNET;
 using ImGuiScene;
@@ -61,8 +62,8 @@ namespace Dalamud.Interface.Internal.Windows
         private UIDebug addonInspector = null;
 
         // IPC
-        private ICallGatePub<string, string> ipcPub;
-        private ICallGateSub<string, string> ipcSub;
+        private ICallGateProvider<string, string> ipcPub;
+        private ICallGateSubscriber<string, string> ipcSub;
         private string callGateResponse = string.Empty;
 
         // Toast fields
