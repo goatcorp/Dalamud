@@ -16,6 +16,11 @@ namespace Dalamud.Game.ClientState.Objects.Enums
         Pet = 2,
 
         /// <summary>
+        /// BattleNpc representing a Chocobo.
+        /// </summary>
+        Chocobo = 3,
+
+        /// <summary>
         /// BattleNpc representing a standard enemy.
         /// </summary>
         Enemy = 5,
