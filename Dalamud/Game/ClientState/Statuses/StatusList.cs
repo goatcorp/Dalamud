@@ -46,7 +46,7 @@ namespace Dalamud.Game.ClientState.Statuses
                 for (; i < StatusListLength; i++)
                 {
                     var status = this[i];
-                    if (status == null || status.StatusID == 0)
+                    if (status == null || status.StatusId == 0)
                         break;
                 }
 
@@ -131,7 +131,7 @@ namespace Dalamud.Game.ClientState.Statuses
             {
                 var status = this[i];
 
-                if (status == null || status.StatusID == 0)
+                if (status == null || status.StatusId == 0)
                     continue;
 
                 yield return status;
