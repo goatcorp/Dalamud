@@ -1478,7 +1478,7 @@ namespace Dalamud.Interface.Internal.Windows
 
             Task.Run(async () =>
             {
-                var plugins = this.pluginListAvailable.Select(x => x);
+                var plugins = pluginManager.AvailablePlugins.Select(x => x);
 
                 foreach (var pluginManifest in plugins)
                 {
