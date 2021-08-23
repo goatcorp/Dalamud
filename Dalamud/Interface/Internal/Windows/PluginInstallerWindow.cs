@@ -24,6 +24,7 @@ using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
 using ImGuiNET;
 using ImGuiScene;
+using Microsoft.VisualBasic;
 
 namespace Dalamud.Interface.Internal.Windows
 {
@@ -47,6 +48,19 @@ namespace Dalamud.Interface.Internal.Windows
         private readonly TextureWrap defaultIcon;
         private readonly TextureWrap troubleIcon;
         private readonly TextureWrap updateIcon;
+
+        #region Image Tester State
+
+        private string[] testerImagePaths = new string[5];
+        private string testerIconPath = string.Empty;
+
+        private TextureWrap?[]? testerImages;
+        private TextureWrap? testerIcon;
+
+        private bool testerError = false;
+        private bool testerUpdateAvailable = false;
+
+        #endregion
 
         private bool errorModalDrawing = true;
         private bool errorModalOnNextFrame = false;
@@ -109,6 +123,11 @@ namespace Dalamud.Interface.Internal.Windows
             this.troubleIcon = interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "troubleIcon.png"));
 
             this.updateIcon = interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "updateIcon.png"));
+
+            for (var i = 0; i < this.testerImagePaths.Length; i++)
+            {
+                this.testerImagePaths[i] = string.Empty;
+            }
         }
 
         private enum OperationStatus
@@ -413,6 +432,7 @@ namespace Dalamud.Interface.Internal.Windows
                 if (this.hasDevPlugins)
                 {
                     this.DrawPluginTab(Locs.TabTitle_InstalledDevPlugins, this.DrawInstalledDevPluginList);
+                    this.DrawPluginTab("Image/Icon Tester", this.DrawImageTester);
                 }
             }
 
@@ -534,6 +554,217 @@ namespace Dalamud.Interface.Internal.Windows
             {
                 this.DrawInstalledPlugin(plugin, i++);
             }
+        }
+
+        // TODO: Technically, we really should just load images from a devplugin folder
+        private void DrawImageTester()
+        {
+            var sectionSize = ImGuiHelpers.GlobalScale * 66;
+            var startCursor = ImGui.GetCursorPos();
+
+            ImGui.PushStyleColor(ImGuiCol.Button, true ? new Vector4(0.5f, 0.5f, 0.5f, 0.1f) : Vector4.Zero);
+
+            ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Vector4(0.5f, 0.5f, 0.5f, 0.2f));
+            ImGui.PushStyleColor(ImGuiCol.ButtonActive, new Vector4(0.5f, 0.5f, 0.5f, 0.35f));
+            ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 0);
+
+            ImGui.Button($"###pluginTesterCollapsibleBtn", new Vector2(ImGui.GetWindowWidth() - (ImGuiHelpers.GlobalScale * 35), sectionSize));
+
+            ImGui.PopStyleVar();
+
+            ImGui.PopStyleColor(3);
+
+            ImGui.SetCursorPos(startCursor);
+
+            var hasIcon = this.testerIcon != null;
+
+            var iconTex = this.defaultIcon;
+            if (hasIcon) iconTex = this.testerIcon;
+
+            var iconSize = ImGuiHelpers.ScaledVector2(64, 64);
+
+            var cursorBeforeImage = ImGui.GetCursorPos();
+            ImGui.Image(iconTex.ImGuiHandle, iconSize);
+            ImGui.SameLine();
+
+            if (this.testerError)
+            {
+                ImGui.SetCursorPos(cursorBeforeImage);
+                ImGui.Image(this.troubleIcon.ImGuiHandle, iconSize);
+                ImGui.SameLine();
+            }
+            else if (this.testerUpdateAvailable)
+            {
+                ImGui.SetCursorPos(cursorBeforeImage);
+                ImGui.Image(this.updateIcon.ImGuiHandle, iconSize);
+                ImGui.SameLine();
+            }
+
+            ImGuiHelpers.ScaledDummy(5);
+            ImGui.SameLine();
+
+            var cursor = ImGui.GetCursorPos();
+            // Name
+            ImGui.Text("My Cool Plugin");
+
+            // Download count
+            var downloadCountText = Locs.PluginBody_AuthorWithDownloadCount("Plugin Enjoyer", 69420);
+
+            ImGui.SameLine();
+            ImGui.TextColored(ImGuiColors.DalamudGrey3, downloadCountText);
+
+            cursor.Y += ImGui.GetTextLineHeightWithSpacing();
+            ImGui.SetCursorPos(cursor);
+
+            // Description
+            ImGui.TextWrapped("This plugin does very many great things.");
+
+            startCursor.Y += sectionSize;
+            ImGui.SetCursorPos(startCursor);
+
+            ImGuiHelpers.ScaledDummy(5);
+
+            ImGui.Indent();
+
+            // Description
+            ImGui.TextWrapped("This is a description.\nIt has multiple lines.\nTruly descriptive.");
+
+            ImGuiHelpers.ScaledDummy(5);
+
+            // Controls
+            var disabled = this.updateStatus == OperationStatus.InProgress || this.installStatus == OperationStatus.InProgress;
+
+            var versionString = "1.0.0.0";
+
+            if (disabled)
+            {
+                ImGuiComponents.DisabledButton(Locs.PluginButton_InstallVersion(versionString));
+            }
+            else
+            {
+                var buttonText = Locs.PluginButton_InstallVersion(versionString);
+                ImGui.Button($"{buttonText}##{buttonText}testing");
+            }
+
+            this.DrawVisitRepoUrlButton("https://google.com");
+
+            if (this.testerImages != null)
+            {
+                ImGuiHelpers.ScaledDummy(5);
+
+                const float thumbFactor = 2.7f;
+
+                var scrollBarSize = 15;
+                ImGui.PushStyleVar(ImGuiStyleVar.ScrollbarSize, scrollBarSize);
+                ImGui.PushStyleColor(ImGuiCol.ScrollbarBg, Vector4.Zero);
+
+                var width = ImGui.GetWindowWidth();
+
+                if (ImGui.BeginChild(
+                    "pluginTestingImageScrolling",
+                    new Vector2(width - (70 * ImGuiHelpers.GlobalScale), (PluginImageHeight / thumbFactor) + scrollBarSize),
+                    false,
+                    ImGuiWindowFlags.HorizontalScrollbar |
+                    ImGuiWindowFlags.NoScrollWithMouse |
+                    ImGuiWindowFlags.NoBackground))
+                {
+                    if (this.testerImages != null && this.testerImages is { Length: > 0 })
+                    {
+                        for (var i = 0; i < this.testerImages.Length; i++)
+                        {
+                            var popupId = $"pluginTestingImage{i}";
+                            var image = this.testerImages[i];
+                            if (image == null)
+                                continue;
+
+                            ImGui.PushStyleVar(ImGuiStyleVar.PopupBorderSize, 0);
+                            ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
+                            ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, Vector2.Zero);
+
+                            if (ImGui.BeginPopup(popupId))
+                            {
+                                if (ImGui.ImageButton(image.ImGuiHandle, new Vector2(image.Width, image.Height)))
+                                    ImGui.CloseCurrentPopup();
+
+                                ImGui.EndPopup();
+                            }
+
+                            ImGui.PopStyleVar(3);
+
+                            ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, Vector2.Zero);
+
+                            if (ImGui.ImageButton(image.ImGuiHandle, ImGuiHelpers.ScaledVector2(image.Width / thumbFactor, image.Height / thumbFactor)))
+                                ImGui.OpenPopup(popupId);
+
+                            ImGui.PopStyleVar();
+
+                            if (i < this.testerImages.Length - 1)
+                            {
+                                ImGui.SameLine();
+                                ImGuiHelpers.ScaledDummy(5);
+                                ImGui.SameLine();
+                            }
+                        }
+                    }
+                }
+
+                ImGui.EndChild();
+
+                ImGui.PopStyleVar();
+                ImGui.PopStyleColor();
+
+                ImGui.Unindent();
+            }
+
+            ImGuiHelpers.ScaledDummy(20);
+
+            ImGui.InputText("Icon Path", ref this.testerIconPath, 1000);
+            ImGui.InputText("Image 1 Path", ref this.testerImagePaths[0], 1000);
+            ImGui.InputText("Image 2 Path", ref this.testerImagePaths[1], 1000);
+            ImGui.InputText("Image 3 Path", ref this.testerImagePaths[2], 1000);
+            ImGui.InputText("Image 4 Path", ref this.testerImagePaths[3], 1000);
+            ImGui.InputText("Image 5 Path", ref this.testerImagePaths[4], 1000);
+
+            var im = Service<InterfaceManager>.Get();
+            if (ImGui.Button("Load"))
+            {
+                try
+                {
+                    if (this.testerIcon != null)
+                    {
+                        this.testerIcon.Dispose();
+                        this.testerIcon = null;
+                    }
+
+                    if (!this.testerIconPath.IsNullOrEmpty())
+                    {
+                        this.testerIcon = im.LoadImage(this.testerIconPath);
+                    }
+
+                    this.testerImages = new TextureWrap[this.testerImagePaths.Length];
+
+                    for (var i = 0; i < this.testerImagePaths.Length; i++)
+                    {
+                        if (this.testerImagePaths[i].IsNullOrEmpty())
+                            continue;
+
+                        if (this.testerImages[i] != null)
+                        {
+                            this.testerImages[i].Dispose();
+                            this.testerImages[i] = null;
+                        }
+
+                        this.testerImages[i] = im.LoadImage(this.testerImagePaths[i]);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Could not load plugin images for testing.");
+                }
+            }
+
+            ImGui.Checkbox("Failed", ref this.testerError);
+            ImGui.Checkbox("Has Update", ref this.testerUpdateAvailable);
         }
 
         private bool DrawPluginListLoading()
