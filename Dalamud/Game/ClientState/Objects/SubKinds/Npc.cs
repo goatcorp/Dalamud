@@ -18,10 +18,5 @@ namespace Dalamud.Game.ClientState.Objects.SubKinds
             : base(address)
         {
         }
-
-        /// <summary>
-        /// Gets the name ID of the NPC linking to their respective game data.
-        /// </summary>
-        public uint NameId => this.Struct->NameID;
     }
 }
