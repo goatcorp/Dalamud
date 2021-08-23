@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Dalamud.IoC;
-using Dalamud.IoC.Internal;
 using Serilog;
 
 #pragma warning disable SA1201 // Elements should appear in the correct order
@@ -14,9 +12,7 @@ namespace Dalamud.Plugin
     /// <summary>
     /// This class facilitates inter-plugin communication.
     /// </summary>
-    [PluginInterface]
-    [InterfaceVersion("1.0")]
-    public class CallGate
+    internal class CallGate
     {
         private Dictionary<string, CallGateBase> gates = new();
 
