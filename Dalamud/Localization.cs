@@ -41,7 +41,7 @@ namespace Dalamud
         }
 
         /// <summary>
-        /// Delegate for the <see cref="OnLocalizationChanged"/> event that occurs when the language is changed.
+        /// Delegate for the <see cref="Localization.LocalizationChanged"/> event that occurs when the language is changed.
         /// </summary>
         /// <param name="langCode">The language code of the new language.</param>
         public delegate void LocalizationChangedDelegate(string langCode);
@@ -49,7 +49,7 @@ namespace Dalamud
         /// <summary>
         /// Event that occurs when the language is changed.
         /// </summary>
-        public event LocalizationChangedDelegate OnLocalizationChanged;
+        public event LocalizationChangedDelegate LocalizationChanged;
 
         /// <summary>
         /// Search the set-up localization data for the provided assembly for the given string key and return it.
@@ -95,7 +95,7 @@ namespace Dalamud
         /// </summary>
         public void SetupWithFallbacks()
         {
-            this.OnLocalizationChanged?.Invoke(FallbackLangCode);
+            this.LocalizationChanged?.Invoke(FallbackLangCode);
             Loc.SetupWithFallbacks(this.assembly);
         }
 
@@ -111,7 +111,7 @@ namespace Dalamud
                 return;
             }
 
-            this.OnLocalizationChanged?.Invoke(langCode);
+            this.LocalizationChanged?.Invoke(langCode);
 
             try
             {

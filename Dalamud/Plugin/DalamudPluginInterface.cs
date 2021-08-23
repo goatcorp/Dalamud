@@ -60,8 +60,8 @@ namespace Dalamud.Plugin
                     this.UiLanguage = "en";
             }
 
-            localization.OnLocalizationChanged += this.OnLocalizationChanged;
-            configuration.OnDalamudConfigurationSaved += this.OnDalamudConfigurationSaved;
+            localization.LocalizationChanged += this.OnLocalizationChanged;
+            configuration.DalamudConfigurationSaved += this.OnDalamudConfigurationSaved;
         }
 
         /// <summary>
@@ -73,7 +73,7 @@ namespace Dalamud.Plugin
         /// <summary>
         /// Event that gets fired when loc is changed
         /// </summary>
-        public event LanguageChangedDelegate OnLanguageChanged;
+        public event LanguageChangedDelegate LanguageChanged;
 
         /// <summary>
         /// Gets the reason this plugin was loaded.
@@ -228,14 +228,14 @@ namespace Dalamud.Plugin
         {
             this.UiBuilder.Dispose();
             Service<ChatGui>.Get().RemoveChatLinkHandler(this.pluginName);
-            Service<Localization>.Get().OnLocalizationChanged -= this.OnLocalizationChanged;
-            Service<DalamudConfiguration>.Get().OnDalamudConfigurationSaved -= this.OnDalamudConfigurationSaved;
+            Service<Localization>.Get().LocalizationChanged -= this.OnLocalizationChanged;
+            Service<DalamudConfiguration>.Get().DalamudConfigurationSaved -= this.OnDalamudConfigurationSaved;
         }
 
         private void OnLocalizationChanged(string langCode)
         {
             this.UiLanguage = langCode;
-            this.OnLanguageChanged?.Invoke(langCode);
+            this.LanguageChanged?.Invoke(langCode);
         }
 
         private void OnDalamudConfigurationSaved(DalamudConfiguration dalamudConfiguration)

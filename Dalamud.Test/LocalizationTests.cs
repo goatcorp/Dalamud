@@ -13,7 +13,7 @@ namespace Dalamud.Test
         {
             var workingDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             this.localization = new Localization(workingDir, "dalamud_");
-            this.localization.OnLocalizationChanged += code => this.currentLangCode = code;
+            this.localization.LocalizationChanged += code => this.currentLangCode = code;
         }
 
         [Fact]

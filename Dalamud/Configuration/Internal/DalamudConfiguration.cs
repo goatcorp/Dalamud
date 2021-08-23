@@ -19,7 +19,7 @@ namespace Dalamud.Configuration.Internal
         private string configPath;
 
         /// <summary>
-        /// Delegate for the <see cref="OnDalamudConfigurationSaved"/> event that occurs when the dalamud configuration is saved.
+        /// Delegate for the <see cref="DalamudConfiguration.DalamudConfigurationSaved"/> event that occurs when the dalamud configuration is saved.
         /// </summary>
         /// <param name="dalamudConfiguration">The current dalamud configuration.</param>
         public delegate void DalamudConfigurationSavedDelegate(DalamudConfiguration dalamudConfiguration);
@@ -27,7 +27,7 @@ namespace Dalamud.Configuration.Internal
         /// <summary>
         /// Event that occurs when dalamud configuration is saved.
         /// </summary>
-        public event DalamudConfigurationSavedDelegate OnDalamudConfigurationSaved;
+        public event DalamudConfigurationSavedDelegate DalamudConfigurationSaved;
 
         /// <summary>
         /// Gets or sets a list of muted works.
@@ -219,7 +219,7 @@ namespace Dalamud.Configuration.Internal
         public void Save()
         {
             File.WriteAllText(this.configPath, JsonConvert.SerializeObject(this, Formatting.Indented));
-            this.OnDalamudConfigurationSaved?.Invoke(this);
+            this.DalamudConfigurationSaved?.Invoke(this);
         }
     }
 }
