@@ -5,7 +5,7 @@ namespace Dalamud.IoC
     /// <summary>
     /// This attribute indicates the version of a service module that is required for the plugin to load.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Parameter)]
+    [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Property)]
     public class RequiredVersionAttribute : Attribute
     {
         /// <summary>
