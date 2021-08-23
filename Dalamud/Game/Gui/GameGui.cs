@@ -123,7 +123,7 @@ namespace Dalamud.Game.Gui
         /// <summary>
         /// Event which is fired when the game UI hiding is toggled.
         /// </summary>
-        public event EventHandler<bool> OnUiHideToggled;
+        public event EventHandler<bool> UiHideToggled;
 
         /// <summary>
         /// Event that is fired when the currently hovered item changes.
@@ -574,7 +574,7 @@ namespace Dalamud.Game.Gui
 
             try
             {
-                this.OnUiHideToggled?.Invoke(this, this.GameUiHidden);
+                this.UiHideToggled?.Invoke(this, this.GameUiHidden);
             }
             catch (Exception ex)
             {
