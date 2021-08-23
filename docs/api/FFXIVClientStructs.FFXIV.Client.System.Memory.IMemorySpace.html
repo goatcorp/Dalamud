@@ -156,6 +156,7 @@ public static void Free(void *ptr, ulong size)</code></pre>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public static void Free&lt;T&gt;(T*ptr)
+
     where T : struct</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
@@ -288,6 +289,7 @@ public void *Malloc(ulong size, ulong alignment)</code></pre>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public void *Malloc&lt;T&gt;(ulong alignment = 8UL)
+
     where T : struct</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
