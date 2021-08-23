@@ -755,18 +755,18 @@ namespace Dalamud.Plugin
         /// Invoke an action registered for inter-plugin communication.
         /// </summary>
         /// <param name="args">Action arguments.</param>
-        /// <exception cref="IpcNotReadyYetError">This is thrown when the IPC publisher has not registered an action for calling yet.</exception>
+        /// <exception cref="IpcNotReadyError">This is thrown when the IPC publisher has not registered an action for calling yet.</exception>
         private protected void InvokeAction(params object?[]? args)
-            => (this.Action ?? throw new IpcNotReadyYetError(this.Name)).DynamicInvoke(args);
+            => (this.Action ?? throw new IpcNotReadyError(this.Name)).DynamicInvoke(args);
 
         /// <summary>
         /// Invoke a function registered for inter-plugin communication.
         /// </summary>
         /// <param name="args">Parameter args.</param>
         /// <returns>The return value.</returns>
-        /// <exception cref="IpcNotReadyYetError">This is thrown when the IPC publisher has not registered a func for calling yet.</exception>
+        /// <exception cref="IpcNotReadyError">This is thrown when the IPC publisher has not registered a func for calling yet.</exception>
         private protected object InvokeFunc(params object?[]? args)
-            => (this.Func ?? throw new IpcNotReadyYetError(this.Name)).DynamicInvoke(args);
+            => (this.Func ?? throw new IpcNotReadyError(this.Name)).DynamicInvoke(args);
     }
 }
 

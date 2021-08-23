@@ -5,13 +5,13 @@ namespace Dalamud.Plugin
     /// <summary>
     /// This exception is thrown when an IPC method is invoked, but nothing has been registered by that name yet.
     /// </summary>
-    public class IpcNotReadyYetError : Exception
+    public class IpcNotReadyError : Exception
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="IpcNotReadyYetError"/> class.
+        /// Initializes a new instance of the <see cref="IpcNotReadyError"/> class.
         /// </summary>
         /// <param name="name">Name of the IPC method.</param>
-        public IpcNotReadyYetError(string name)
+        public IpcNotReadyError(string name)
         {
             this.Name = name;
         }
