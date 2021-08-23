@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -16,6 +17,7 @@ using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface;
 using Dalamud.Interface.Internal;
 using Dalamud.Plugin.Internal;
+using ServiceContainer = Dalamud.IoC.Internal.ServiceContainer;
 
 namespace Dalamud.Plugin
 {
@@ -305,6 +307,44 @@ namespace Dalamud.Plugin
         {
             Service<ChatGui>.Get().RemoveChatLinkHandler(this.pluginName);
         }
+        #endregion
+
+        #region Dependency Injection
+
+        /// <summary>
+        /// Create a new object of the provided type using its default constructor, then inject objects and properties.
+        /// </summary>
+        /// <param name="scopedObjects">Objects to inject additionally.</param>
+        /// <typeparam name="T">The type to create.</typeparam>
+        /// <returns>The created and initialized type.</returns>
+        public T? Create<T>(params object[] scopedObjects) where T : class
+        {
+            var svcContainer = Service<ServiceContainer>.Get();
+
+            var realScopedObjects = new object[scopedObjects.Length + 1];
+            realScopedObjects[0] = this;
+            Array.Copy(scopedObjects, 0, realScopedObjects, 1, scopedObjects.Length);
+
+            return svcContainer.Create(typeof(T), realScopedObjects) as T;
+        }
+
+        /// <summary>
+        /// Inject services into properties on the provided object instance.
+        /// </summary>
+        /// <param name="instance">The instance to inject services into.</param>
+        /// <param name="scopedObjects">Objects to inject additionally.</param>
+        /// <returns>Whether or not the injection succeeded.</returns>
+        public bool Inject(object instance, params object[] scopedObjects)
+        {
+            var svcContainer = Service<ServiceContainer>.Get();
+
+            var realScopedObjects = new object[scopedObjects.Length + 1];
+            realScopedObjects[0] = this;
+            Array.Copy(scopedObjects, 0, realScopedObjects, 1, scopedObjects.Length);
+
+            return svcContainer.InjectProperties(instance, realScopedObjects);
+        }
+
         #endregion
 
         /// <summary>
