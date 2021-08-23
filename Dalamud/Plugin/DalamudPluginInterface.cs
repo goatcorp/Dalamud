@@ -134,6 +134,93 @@ namespace Dalamud.Plugin
         /// </summary>
         public List<string> PluginInternalNames => Service<PluginManager>.Get().InstalledPlugins.Select(p => p.Manifest.InternalName).ToList();
 
+        #region IPC
+
+        /// <summary>
+        /// Gets an IPC publisher.
+        /// </summary>
+        /// <typeparam name="TRet">The return type for funcs. Use object if this is unused.</typeparam>
+        /// <param name="name">The name of the IPC registration.</param>
+        /// <returns>An IPC publisher.</returns>
+        /// <exception cref="IpcTypeMismatchError">This is thrown when the requested types do not match the previously registered types are different.</exception>
+        public ICallGatePub<TRet> GetIpcPub<TRet>(string name)
+            => Service<CallGate>.Get().GetIpcPubSub<TRet>(name);
+
+        /// <inheritdoc cref="ICallGatePub{TRet}"/>
+        public ICallGatePub<T1, TRet> GetIpcPub<T1, TRet>(string name)
+            => Service<CallGate>.Get().GetIpcPubSub<T1, TRet>(name);
+
+        /// <inheritdoc cref="ICallGatePub{TRet}"/>
+        public ICallGatePub<T1, T2, TRet> GetIpcPub<T1, T2, TRet>(string name)
+            => Service<CallGate>.Get().GetIpcPubSub<T1, T2, TRet>(name);
+
+        /// <inheritdoc cref="ICallGatePub{TRet}"/>
+        public ICallGatePub<T1, T2, T3, TRet> GetIpcPub<T1, T2, T3, TRet>(string name)
+            => Service<CallGate>.Get().GetIpcPubSub<T1, T2, T3, TRet>(name);
+
+        /// <inheritdoc cref="ICallGatePub{TRet}"/>
+        public ICallGatePub<T1, T2, T3, T4, TRet> GetIpcPub<T1, T2, T3, T4, TRet>(string name)
+            => Service<CallGate>.Get().GetIpcPubSub<T1, T2, T3, T4, TRet>(name);
+
+        /// <inheritdoc cref="ICallGatePub{TRet}"/>
+        public ICallGatePub<T1, T2, T3, T4, T5, TRet> GetIpcPub<T1, T2, T3, T4, T5, TRet>(string name)
+            => Service<CallGate>.Get().GetIpcPubSub<T1, T2, T3, T4, T5, TRet>(name);
+
+        /// <inheritdoc cref="ICallGatePub{TRet}"/>
+        public ICallGatePub<T1, T2, T3, T4, T5, T6, TRet> GetIpcPub<T1, T2, T3, T4, T5, T6, TRet>(string name)
+            => Service<CallGate>.Get().GetIpcPubSub<T1, T2, T3, T4, T5, T6, TRet>(name);
+
+        /// <inheritdoc cref="ICallGatePub{TRet}"/>
+        public ICallGatePub<T1, T2, T3, T4, T5, T6, T7, TRet> GetIpcPub<T1, T2, T3, T4, T5, T6, T7, TRet>(string name)
+            => Service<CallGate>.Get().GetIpcPubSub<T1, T2, T3, T4, T5, T6, T7, TRet>(name);
+
+        /// <inheritdoc cref="ICallGatePub{TRet}"/>
+        public ICallGatePub<T1, T2, T3, T4, T5, T6, T7, T8, TRet> GetIpcPub<T1, T2, T3, T4, T5, T6, T7, T8, TRet>(string name)
+            => Service<CallGate>.Get().GetIpcPubSub<T1, T2, T3, T4, T5, T6, T7, T8, TRet>(name);
+
+        /// <summary>
+        /// Gets an IPC subscriber.
+        /// </summary>
+        /// <typeparam name="TRet">The return type for funcs. Use object if this is unused.</typeparam>
+        /// <param name="name">The name of the IPC registration.</param>
+        /// <returns>An IPC publisher.</returns>
+        public ICallGatePub<TRet> GetIpcSub<TRet>(string name)
+            => Service<CallGate>.Get().GetIpcPubSub<TRet>(name);
+
+        /// <inheritdoc cref="ICallGateSub{TRet}"/>
+        public ICallGatePub<T1, TRet> GetIpcSub<T1, TRet>(string name)
+            => Service<CallGate>.Get().GetIpcPubSub<T1, TRet>(name);
+
+        /// <inheritdoc cref="ICallGateSub{TRet}"/>
+        public ICallGatePub<T1, T2, TRet> GetIpcSub<T1, T2, TRet>(string name)
+            => Service<CallGate>.Get().GetIpcPubSub<T1, T2, TRet>(name);
+
+        /// <inheritdoc cref="ICallGateSub{TRet}"/>
+        public ICallGatePub<T1, T2, T3, TRet> GetIpcSub<T1, T2, T3, TRet>(string name)
+            => Service<CallGate>.Get().GetIpcPubSub<T1, T2, T3, TRet>(name);
+
+        /// <inheritdoc cref="ICallGateSub{TRet}"/>
+        public ICallGatePub<T1, T2, T3, T4, TRet> GetIpcSub<T1, T2, T3, T4, TRet>(string name)
+            => Service<CallGate>.Get().GetIpcPubSub<T1, T2, T3, T4, TRet>(name);
+
+        /// <inheritdoc cref="ICallGateSub{TRet}"/>
+        public ICallGatePub<T1, T2, T3, T4, T5, TRet> GetIpcSub<T1, T2, T3, T4, T5, TRet>(string name)
+            => Service<CallGate>.Get().GetIpcPubSub<T1, T2, T3, T4, T5, TRet>(name);
+
+        /// <inheritdoc cref="ICallGateSub{TRet}"/>
+        public ICallGatePub<T1, T2, T3, T4, T5, T6, TRet> GetIpcSub<T1, T2, T3, T4, T5, T6, TRet>(string name)
+            => Service<CallGate>.Get().GetIpcPubSub<T1, T2, T3, T4, T5, T6, TRet>(name);
+
+        /// <inheritdoc cref="ICallGateSub{TRet}"/>
+        public ICallGatePub<T1, T2, T3, T4, T5, T6, T7, TRet> GetIpcSub<T1, T2, T3, T4, T5, T6, T7, TRet>(string name)
+            => Service<CallGate>.Get().GetIpcPubSub<T1, T2, T3, T4, T5, T6, T7, TRet>(name);
+
+        /// <inheritdoc cref="ICallGateSub{TRet}"/>
+        public ICallGatePub<T1, T2, T3, T4, T5, T6, T7, T8, TRet> GetIpcSub<T1, T2, T3, T4, T5, T6, T7, T8, TRet>(string name)
+            => Service<CallGate>.Get().GetIpcPubSub<T1, T2, T3, T4, T5, T6, T7, T8, TRet>(name);
+
+        #endregion
+
         #region Configuration
 
         /// <summary>
