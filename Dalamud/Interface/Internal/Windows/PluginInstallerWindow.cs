@@ -177,6 +177,15 @@ namespace Dalamud.Interface.Internal.Windows
 
         private static Vector2 GetButtonSize(string text) => ImGui.CalcTextSize(text) + (ImGui.GetStyle().FramePadding * 2);
 
+        // TODO: This is a stopgap solution, ideally will be rewritten with something better in mind soon
+        private static bool IsSafeUrl(string url)
+        {
+            return url.StartsWith("https://raw.githubusercontent.com/goatcorp/DalamudPlugins/");
+            // || url.StartsWith("https://cdn.discordapp.com/")
+            // || url.StartsWith("https://i.imgur.com/")
+            // || url.StartsWith("https://git.sr.ht/");
+        }
+
         private void DrawHeader()
         {
             var style = ImGui.GetStyle();
@@ -734,7 +743,7 @@ namespace Dalamud.Interface.Internal.Windows
 
                 ImGuiHelpers.ScaledDummy(5);
 
-                if (this.DrawPluginImages(manifest, index))
+                if (this.DrawPluginImages(manifest, index, manifest.SourceRepo.IsThirdParty))
                     ImGuiHelpers.ScaledDummy(5);
 
                 ImGui.Unindent();
@@ -892,13 +901,15 @@ namespace Dalamud.Interface.Internal.Windows
                 ImGui.SameLine();
                 ImGui.TextColored(ImGuiColors.DalamudGrey3, downloadText);
 
+                var isThirdParty = !string.IsNullOrEmpty(manifest.InstalledFromUrl);
+
                 // Installed from
                 if (plugin.IsDev)
                 {
                     var fileText = Locs.PluginBody_DevPluginPath(plugin.DllFile.FullName);
                     ImGui.TextColored(ImGuiColors.DalamudGrey3, fileText);
                 }
-                else if (!string.IsNullOrEmpty(manifest.InstalledFromUrl))
+                else if (isThirdParty)
                 {
                     var repoText = Locs.PluginBody_Plugin3rdPartyRepo(manifest.InstalledFromUrl);
                     ImGui.TextColored(ImGuiColors.DalamudGrey3, repoText);
@@ -950,7 +961,7 @@ namespace Dalamud.Interface.Internal.Windows
 
                 ImGuiHelpers.ScaledDummy(5);
 
-                this.DrawPluginImages(manifest, index);
+                this.DrawPluginImages(manifest, index, isThirdParty);
 
                 ImGuiHelpers.ScaledDummy(5);
 
@@ -1212,7 +1223,7 @@ namespace Dalamud.Interface.Internal.Windows
             }
         }
 
-        private void DrawVisitRepoUrlButton(string repoUrl)
+        private void DrawVisitRepoUrlButton(string? repoUrl)
         {
             if (!string.IsNullOrEmpty(repoUrl) && repoUrl.StartsWith("https://"))
             {
@@ -1238,11 +1249,11 @@ namespace Dalamud.Interface.Internal.Windows
             }
         }
 
-        private bool DrawPluginImages(PluginManifest manifest, int index)
+        private bool DrawPluginImages(PluginManifest manifest, int index, bool isThirdParty)
         {
             if (!this.pluginImagesMap.TryGetValue(manifest.InternalName, out var images))
             {
-                Task.Run(() => this.DownloadPluginImagesAsync(manifest));
+                Task.Run(() => this.DownloadPluginImagesAsync(manifest, isThirdParty));
                 return false;
             }
 
@@ -1445,8 +1456,7 @@ namespace Dalamud.Interface.Internal.Windows
 
             Task.Run(async () =>
             {
-                var plugins = this.pluginListAvailable.Select(x => x as PluginManifest)
-                                  .Concat(this.pluginListInstalled.Select(x => x.Manifest)).ToList();
+                var plugins = this.pluginListAvailable.Select(x => x);
 
                 foreach (var pluginManifest in plugins)
                 {
@@ -1460,7 +1470,7 @@ namespace Dalamud.Interface.Internal.Windows
             });
         }
 
-        private async Task DownloadPluginIconAsync(PluginManifest manifest)
+        private async Task DownloadPluginIconAsync(RemotePluginManifest manifest)
         {
             var interfaceManager = Service<InterfaceManager>.Get();
 
@@ -1471,6 +1481,12 @@ namespace Dalamud.Interface.Internal.Windows
 
             if (manifest.IconUrl != null)
             {
+                if (!IsSafeUrl(manifest.IconUrl) && !manifest.SourceRepo.IsThirdParty)
+                {
+                    Log.Error($"Icon at {manifest.IconUrl} is not on a whitelisted host.");
+                    return;
+                }
+
                 var data = await client.GetAsync(manifest.IconUrl);
                 data.EnsureSuccessStatusCode();
                 var icon = interfaceManager.LoadImage(await data.Content.ReadAsByteArrayAsync());
@@ -1483,12 +1499,18 @@ namespace Dalamud.Interface.Internal.Windows
                         return;
                     }
 
+                    if (icon.Height != icon.Width)
+                    {
+                        Log.Error($"Icon at {manifest.IconUrl} was not rectangular.");
+                        return;
+                    }
+
                     this.pluginIconMap[manifest.InternalName] = (true, icon);
                 }
             }
         }
 
-        private async Task DownloadPluginImagesAsync(PluginManifest manifest)
+        private async Task DownloadPluginImagesAsync(PluginManifest manifest, bool isThirdParty)
         {
             var interfaceManager = Service<InterfaceManager>.Get();
 
@@ -1509,6 +1531,12 @@ namespace Dalamud.Interface.Internal.Windows
                 var pluginImages = new TextureWrap[manifest.ImageUrls.Count];
                 for (var i = 0; i < manifest.ImageUrls.Count; i++)
                 {
+                    if (!IsSafeUrl(manifest.ImageUrls[i]) && !isThirdParty)
+                    {
+                        Log.Error($"Icon at {manifest.IconUrl} is not on a whitelisted host.");
+                        return;
+                    }
+
                     var data = await client.GetAsync(manifest.ImageUrls[i]);
                     data.EnsureSuccessStatusCode();
                     var image = interfaceManager.LoadImage(await data.Content.ReadAsByteArrayAsync());
