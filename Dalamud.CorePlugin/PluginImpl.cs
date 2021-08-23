@@ -1,6 +1,7 @@
 using System;
 
 using Dalamud.Game.Command;
+using Dalamud.Game.Gui;
 using Dalamud.Interface.Windowing;
 using Dalamud.IoC;
 using Dalamud.Logging;
@@ -25,7 +26,7 @@ namespace Dalamud.CorePlugin
         /// Initializes a new instance of the <see cref="PluginImpl"/> class.
         /// </summary>
         /// <param name="pluginInterface">Dalamud plugin interface.</param>
-        public PluginImpl(DalamudPluginInterface pluginInterface)
+        public PluginImpl(DalamudPluginInterface pluginInterface, ChatGui chatGui)
         {
             try
             {

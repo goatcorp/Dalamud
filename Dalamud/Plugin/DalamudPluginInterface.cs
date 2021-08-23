@@ -15,9 +15,7 @@ using Dalamud.Game.Text.Sanitizer;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface;
-using Dalamud.Interface.Internal;
 using Dalamud.Plugin.Internal;
-using ServiceContainer = Dalamud.IoC.Internal.ServiceContainer;
 
 namespace Dalamud.Plugin
 {
@@ -319,7 +317,7 @@ namespace Dalamud.Plugin
         /// <returns>The created and initialized type.</returns>
         public T? Create<T>(params object[] scopedObjects) where T : class
         {
-            var svcContainer = Service<ServiceContainer>.Get();
+            var svcContainer = Service<IoC.Internal.ServiceContainer>.Get();
 
             var realScopedObjects = new object[scopedObjects.Length + 1];
             realScopedObjects[0] = this;
@@ -336,7 +334,7 @@ namespace Dalamud.Plugin
         /// <returns>Whether or not the injection succeeded.</returns>
         public bool Inject(object instance, params object[] scopedObjects)
         {
-            var svcContainer = Service<ServiceContainer>.Get();
+            var svcContainer = Service<IoC.Internal.ServiceContainer>.Get();
 
             var realScopedObjects = new object[scopedObjects.Length + 1];
             realScopedObjects[0] = this;

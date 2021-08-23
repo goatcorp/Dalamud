@@ -86,13 +86,13 @@ namespace Dalamud.IoC.Internal
 
             var instance = FormatterServices.GetUninitializedObject(objectType);
 
-            if (!this.InjectProperties(instance, scopedObjects))
+            if (!this.InjectProperties(instance, resolvedParams))
             {
                 Log.Error("Failed to create {TypeName}, a requested property service type could not be satisfied", objectType.FullName);
                 return null;
             }
 
-            ctor.Invoke(instance, scopedObjects);
+            ctor.Invoke(instance, resolvedParams);
 
             return instance;
         }
@@ -109,10 +109,8 @@ namespace Dalamud.IoC.Internal
         {
             var objectType = instance.GetType();
 
-            Log.Information($"Injecting props into {objectType.FullName}");
-
             var props = objectType.GetProperties(BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public |
-                               BindingFlags.NonPublic).Where(x => x.GetCustomAttributes(typeof(PluginServiceAttribute)).Any()).Select(
+                                                 BindingFlags.NonPublic).Where(x => x.GetCustomAttributes(typeof(PluginServiceAttribute)).Any()).Select(
                 propertyInfo =>
                 {
                     var requiredVersion = propertyInfo.GetCustomAttribute(typeof(RequiredVersionAttribute)) as RequiredVersionAttribute;
@@ -129,8 +127,6 @@ namespace Dalamud.IoC.Internal
 
             foreach (var prop in props)
             {
-                Log.Information($"Injecting {prop.propertyInfo.Name} for type {prop.propertyInfo.PropertyType.GetType().FullName}");
-
                 var service = this.GetService(prop.propertyInfo.PropertyType, scopedObjects);
 
                 if (service == null)
@@ -141,8 +137,6 @@ namespace Dalamud.IoC.Internal
 
                 prop.propertyInfo.SetValue(instance, service);
             }
-
-            Log.Information("Injected");
 
             return true;
         }
