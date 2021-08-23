@@ -28,7 +28,7 @@ namespace Dalamud.Game.ClientState.Statuses
         /// <summary>
         /// Gets the status ID of this status.
         /// </summary>
-        public uint StatusID => this.Struct->StatusID;
+        public uint StatusId => this.Struct->StatusID;
 
         /// <summary>
         /// Gets the GameData associated with this status.
