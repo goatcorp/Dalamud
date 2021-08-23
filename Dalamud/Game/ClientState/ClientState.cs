@@ -66,7 +66,7 @@ namespace Dalamud.Game.ClientState
             this.setupTerritoryTypeHook = new Hook<SetupTerritoryTypeDelegate>(this.address.SetupTerritoryType, this.SetupTerritoryTypeDetour);
 
             var framework = Service<Framework>.Get();
-            framework.OnUpdateEvent += this.FrameworkOnOnUpdateEvent;
+            framework.Update += this.FrameworkOnOnUpdateEvent;
 
             var networkHandlers = Service<NetworkHandlers>.Get();
             networkHandlers.CfPop += this.NetworkHandlersOnCfPop;
@@ -136,7 +136,7 @@ namespace Dalamud.Game.ClientState
         {
             this.setupTerritoryTypeHook.Dispose();
             Service<GamepadState>.Get().Dispose();
-            Service<Framework>.Get().OnUpdateEvent -= this.FrameworkOnOnUpdateEvent;
+            Service<Framework>.Get().Update -= this.FrameworkOnOnUpdateEvent;
             Service<NetworkHandlers>.Get().CfPop -= this.NetworkHandlersOnCfPop;
         }
 

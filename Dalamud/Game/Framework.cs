@@ -49,7 +49,7 @@ namespace Dalamud.Game
         }
 
         /// <summary>
-        /// A delegate type used with the <see cref="OnUpdateEvent"/> event.
+        /// A delegate type used with the <see cref="Update"/> event.
         /// </summary>
         /// <param name="framework">The Framework instance.</param>
         public delegate void OnUpdateDelegate(Framework framework);
@@ -75,7 +75,7 @@ namespace Dalamud.Game
         /// <summary>
         /// Event that gets fired every time the game framework updates.
         /// </summary>
-        public event OnUpdateDelegate OnUpdateEvent;
+        public event OnUpdateDelegate Update;
 
         /// <summary>
         /// Gets or sets a value indicating whether the collection of stats is enabled.
@@ -175,10 +175,10 @@ namespace Dalamud.Game
             {
                 try
                 {
-                    if (StatsEnabled && this.OnUpdateEvent != null)
+                    if (StatsEnabled && this.Update != null)
                     {
                         // Stat Tracking for Framework Updates
-                        var invokeList = this.OnUpdateEvent.GetInvocationList();
+                        var invokeList = this.Update.GetInvocationList();
                         var notUpdated = StatsHistory.Keys.ToList();
                         // Individually invoke OnUpdate handlers and time them.
                         foreach (var d in invokeList)
@@ -211,7 +211,7 @@ namespace Dalamud.Game
                     }
                     else
                     {
-                        this.OnUpdateEvent?.Invoke(this);
+                        this.Update?.Invoke(this);
                     }
                 }
                 catch (Exception ex)
