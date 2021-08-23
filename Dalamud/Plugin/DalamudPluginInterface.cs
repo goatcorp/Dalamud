@@ -140,7 +140,7 @@ namespace Dalamud.Plugin
         /// Save a plugin configuration(inheriting IPluginConfiguration).
         /// </summary>
         /// <param name="currentConfig">The current configuration.</param>
-        public void SavePluginConfig(IPluginConfiguration currentConfig)
+        public void SavePluginConfig(IPluginConfiguration? currentConfig)
         {
             if (currentConfig == null)
                 return;
@@ -152,7 +152,7 @@ namespace Dalamud.Plugin
         /// Get a previously saved plugin configuration or null if none was saved before.
         /// </summary>
         /// <returns>A previously saved config or null if none was saved before.</returns>
-        public IPluginConfiguration GetPluginConfig()
+        public IPluginConfiguration? GetPluginConfig()
         {
             // This is done to support json deserialization of plugin configurations
             // even after running an in-game update of plugins, where the assembly version
