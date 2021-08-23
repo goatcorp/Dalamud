@@ -1477,7 +1477,7 @@ namespace Dalamud.Interface.Internal.Windows
 
                 if (icon != null)
                 {
-                    if (icon.Height != PluginIconHeight || icon.Width != PluginIconWidth)
+                    if (icon.Height > PluginIconHeight || icon.Width > PluginIconWidth)
                     {
                         Log.Error($"Icon at {manifest.IconUrl} was not of the correct resolution.");
                         return;
