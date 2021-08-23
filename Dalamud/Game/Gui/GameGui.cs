@@ -126,6 +126,16 @@ namespace Dalamud.Game.Gui
         public event EventHandler<bool> OnUiHideToggled;
 
         /// <summary>
+        /// Event that is fired when the currently hovered item changes.
+        /// </summary>
+        public event EventHandler<ulong> HoveredItemChanged;
+
+        /// <summary>
+        /// Event that is fired when the currently hovered action changes.
+        /// </summary>
+        public event EventHandler<HoveredAction> HoveredActionChanged;
+
+        /// <summary>
         /// Gets a value indicating whether the game UI is hidden.
         /// </summary>
         public bool GameUiHidden { get; private set; }
@@ -140,16 +150,6 @@ namespace Dalamud.Game.Gui
         /// Gets the action ID that is current hovered by the player. 0 when no action is hovered.
         /// </summary>
         public HoveredAction HoveredAction { get; } = new HoveredAction();
-
-        /// <summary>
-        /// Gets or sets the event that is fired when the currently hovered item changes.
-        /// </summary>
-        public EventHandler<ulong> HoveredItemChanged { get; set; }
-
-        /// <summary>
-        /// Gets or sets the event that is fired when the currently hovered action changes.
-        /// </summary>
-        public EventHandler<HoveredAction> HoveredActionChanged { get; set; }
 
         /// <summary>
         /// Opens the in-game map with a flag on the location of the parameter.

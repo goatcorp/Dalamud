@@ -139,7 +139,7 @@ namespace Dalamud.Plugin.Internal
         /// <summary>
         /// Gets the plugin manifest, if one exists.
         /// </summary>
-        public LocalPluginManifest Manifest { get; }
+        public LocalPluginManifest Manifest { get; private set; }
 
         /// <summary>
         /// Gets or sets the current state of the plugin.
@@ -242,6 +242,14 @@ namespace Dalamud.Plugin.Internal
                 if (reloading)
                 {
                     this.loader.Reload();
+
+                    // Reload the manifest in-case there were changes here too.
+                    if (this.IsDev)
+                    {
+                        var manifestFile = LocalPluginManifest.GetManifestFile(this.DllFile);
+                        if (manifestFile.Exists)
+                            this.Manifest = LocalPluginManifest.Load(manifestFile);
+                    }
                 }
 
                 // Load the assembly
