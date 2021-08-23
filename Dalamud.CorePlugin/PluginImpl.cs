@@ -2,6 +2,7 @@ using System;
 
 using Dalamud.Game.Command;
 using Dalamud.Interface.Windowing;
+using Dalamud.IoC;
 using Dalamud.Logging;
 using Dalamud.Plugin;
 
@@ -16,6 +17,9 @@ namespace Dalamud.CorePlugin
         private readonly WindowSystem windowSystem = new("Dalamud.CorePlugin");
 
         // private Localization localizationManager;
+
+        [PluginService]
+        public static CommandManager CmdManager { get; private set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PluginImpl"/> class.
@@ -33,7 +37,9 @@ namespace Dalamud.CorePlugin
                 this.Interface.UiBuilder.Draw += this.OnDraw;
                 this.Interface.UiBuilder.OpenConfigUi += this.OnOpenConfigUi;
 
-                Service<CommandManager>.Get().AddHandler("/di", new(this.OnCommand) { HelpMessage = $"Access the {this.Name} plugin." });
+                CmdManager.AddHandler("/coreplug", new(this.OnCommand) { HelpMessage = $"Access the {this.Name} plugin." });
+
+                PluginLog.Information("CorePlugin ctor!");
             }
             catch (Exception ex)
             {
@@ -52,7 +58,7 @@ namespace Dalamud.CorePlugin
         /// <inheritdoc/>
         public void Dispose()
         {
-            Service<CommandManager>.Get().RemoveHandler("/di");
+            CmdManager.RemoveHandler("/coreplug");
 
             this.Interface.UiBuilder.Draw -= this.OnDraw;
 
@@ -92,6 +98,7 @@ namespace Dalamud.CorePlugin
 
         private void OnCommand(string command, string args)
         {
+            PluginLog.Information("Command called!");
             // this.window.IsOpen = true;
         }
 

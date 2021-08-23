@@ -2,8 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Serialization;
 
-using Serilog;
+using Dalamud.Logging.Internal;
 
 namespace Dalamud.IoC.Internal
 {
@@ -12,6 +13,8 @@ namespace Dalamud.IoC.Internal
     /// </summary>
     internal class ServiceContainer : IServiceProvider
     {
+        private static readonly ModuleLog Log = new("SERVICECONTAINER");
+
         private readonly Dictionary<Type, ObjectInstance> instances = new();
 
         /// <summary>
@@ -52,28 +55,7 @@ namespace Dalamud.IoC.Internal
                 return (parameterType, requiredVersion);
             });
 
-            var versionCheck = parameters.All(p =>
-            {
-                // if there's no required version, ignore it
-                if (p.requiredVersion == null)
-                    return true;
-
-                // if there's no requested version, ignore it
-                var declVersion = p.parameterType.GetCustomAttribute<InterfaceVersionAttribute>();
-                if (declVersion == null)
-                    return true;
-
-                if (declVersion.Version == p.requiredVersion.Version)
-                    return true;
-
-                Log.Error(
-                    "Requested version {ReqVersion} does not match the implemented version {ImplVersion} for param type {ParamType}",
-                    p.requiredVersion.Version,
-                    declVersion.Version,
-                    p.parameterType.FullName);
-
-                return false;
-            });
+            var versionCheck = parameters.All(p => CheckInterfaceVersion(p.requiredVersion, p.parameterType));
 
             if (!versionCheck)
             {
@@ -102,11 +84,94 @@ namespace Dalamud.IoC.Internal
                 return null;
             }
 
-            return Activator.CreateInstance(objectType, resolvedParams);
+            var instance = FormatterServices.GetUninitializedObject(objectType);
+
+            if (!this.InjectProperties(instance, scopedObjects))
+            {
+                Log.Error("Failed to create {TypeName}, a requested property service type could not be satisfied", objectType.FullName);
+                return null;
+            }
+
+            ctor.Invoke(instance, scopedObjects);
+
+            return instance;
+        }
+
+        /// <summary>
+        /// Inject <see cref="PluginInterfaceAttribute"/> interfaces into public or static properties on the provided object.
+        /// The properties have to be marked with the <see cref="PluginServiceAttribute"/>.
+        /// The properties can be marked with the <see cref="RequiredVersionAttribute"/> to lock down versions.
+        /// </summary>
+        /// <param name="instance">The object instance.</param>
+        /// <param name="scopedObjects">Scoped objects.</param>
+        /// <returns>Whether or not the injection was successful.</returns>
+        public bool InjectProperties(object instance, params object[] scopedObjects)
+        {
+            var objectType = instance.GetType();
+
+            Log.Information($"Injecting props into {objectType.FullName}");
+
+            var props = objectType.GetProperties(BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public |
+                               BindingFlags.NonPublic).Where(x => x.GetCustomAttributes(typeof(PluginServiceAttribute)).Any()).Select(
+                propertyInfo =>
+                {
+                    var requiredVersion = propertyInfo.GetCustomAttribute(typeof(RequiredVersionAttribute)) as RequiredVersionAttribute;
+                    return (propertyInfo, requiredVersion);
+                }).ToArray();
+
+            var versionCheck = props.All(x => CheckInterfaceVersion(x.requiredVersion, x.propertyInfo.PropertyType));
+
+            if (!versionCheck)
+            {
+                Log.Error("Failed to create {TypeName}, a RequestedVersion could not be satisfied", objectType.FullName);
+                return false;
+            }
+
+            foreach (var prop in props)
+            {
+                Log.Information($"Injecting {prop.propertyInfo.Name} for type {prop.propertyInfo.PropertyType.GetType().FullName}");
+
+                var service = this.GetService(prop.propertyInfo.PropertyType, scopedObjects);
+
+                if (service == null)
+                {
+                    Log.Error("Requested service type {TypeName} was not available (null)", prop.propertyInfo.PropertyType.FullName);
+                    return false;
+                }
+
+                prop.propertyInfo.SetValue(instance, service);
+            }
+
+            Log.Information("Injected");
+
+            return true;
         }
 
         /// <inheritdoc/>
         object? IServiceProvider.GetService(Type serviceType) => this.GetService(serviceType);
+
+        private static bool CheckInterfaceVersion(RequiredVersionAttribute? requiredVersion, Type parameterType)
+        {
+            // if there's no required version, ignore it
+            if (requiredVersion == null)
+                return true;
+
+            // if there's no requested version, ignore it
+            var declVersion = parameterType.GetCustomAttribute<InterfaceVersionAttribute>();
+            if (declVersion == null)
+                return true;
+
+            if (declVersion.Version == requiredVersion.Version)
+                return true;
+
+            Log.Error(
+                "Requested version {ReqVersion} does not match the implemented version {ImplVersion} for param type {ParamType}",
+                requiredVersion.Version,
+                declVersion.Version,
+                parameterType.FullName);
+
+            return false;
+        }
 
         private object? GetService(Type serviceType, object[] scopedObjects)
         {
