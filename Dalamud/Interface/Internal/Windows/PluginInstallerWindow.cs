@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Numerics;
 using System.Threading.Tasks;
@@ -37,6 +38,10 @@ namespace Dalamud.Interface.Internal.Windows
         private const int PluginIconWidth = 512;
         private const int PluginIconHeight = 512;
 
+        // TODO: Change back to master after release
+        private const string MainRepoImageUrl =
+            "https://raw.githubusercontent.com/goatcorp/DalamudPlugins/api4/{0}/{1}/images/{2}";
+
         private static readonly ModuleLog Log = new("PLUGINW");
 
         private readonly TextureWrap defaultIcon;
@@ -56,7 +61,7 @@ namespace Dalamud.Interface.Internal.Windows
         private bool hasDevPlugins = false;
 
         private bool downloadingIcons = false;
-        private Dictionary<string, (bool IsDownloaded, TextureWrap[] Textures)> pluginImagesMap = new();
+        private Dictionary<string, (bool IsDownloaded, TextureWrap?[]? Textures)> pluginImagesMap = new();
         private Dictionary<string, (bool IsDownloaded, TextureWrap? Texture)> pluginIconMap = new();
 
         private string searchText = string.Empty;
@@ -177,13 +182,26 @@ namespace Dalamud.Interface.Internal.Windows
 
         private static Vector2 GetButtonSize(string text) => ImGui.CalcTextSize(text) + (ImGui.GetStyle().FramePadding * 2);
 
-        // TODO: This is a stopgap solution, ideally will be rewritten with something better in mind soon
-        private static bool IsSafeUrl(string url)
+        private static string? GetPluginIconUrl(PluginManifest manifest, bool isThirdParty, bool isTesting)
         {
-            return url.StartsWith("https://raw.githubusercontent.com/goatcorp/DalamudPlugins/");
-            // || url.StartsWith("https://cdn.discordapp.com/")
-            // || url.StartsWith("https://i.imgur.com/")
-            // || url.StartsWith("https://git.sr.ht/");
+            if (isThirdParty)
+                return manifest.IconUrl;
+
+            return MainRepoImageUrl.Format(isTesting ? "testing" : "plugins", manifest.InternalName, "icon.png");
+        }
+
+        private static List<string>? GetPluginImageUrls(PluginManifest manifest, bool isThirdParty, bool isTesting)
+        {
+            if (isThirdParty)
+                return manifest.ImageUrls;
+
+            var output = new List<string>();
+            for (var i = 1; i <= 5; i++)
+            {
+                output.Add(MainRepoImageUrl.Format(isTesting ? "testing" : "plugins", manifest.InternalName, $"image{i}.png"));
+            }
+
+            return output;
         }
 
         private void DrawHeader()
@@ -1279,6 +1297,8 @@ namespace Dalamud.Interface.Internal.Windows
                     {
                         var popupId = $"plugin{index}image{i}";
                         var image = images.Textures[i];
+                        if (image == null)
+                            continue;
 
                         ImGui.PushStyleVar(ImGuiStyleVar.PopupBorderSize, 0);
                         ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
@@ -1452,6 +1472,8 @@ namespace Dalamud.Interface.Internal.Windows
 
             this.downloadingIcons = true;
 
+            var pluginManager = Service<PluginManager>.Get();
+
             Log.Verbose("Start downloading plugin icons...");
 
             Task.Run(async () =>
@@ -1460,8 +1482,10 @@ namespace Dalamud.Interface.Internal.Windows
 
                 foreach (var pluginManifest in plugins)
                 {
+                    var useTesting = pluginManager.UseTesting(pluginManifest);
+
                     if (!this.pluginIconMap.ContainsKey(pluginManifest.InternalName))
-                        await this.DownloadPluginIconAsync(pluginManifest);
+                        await this.DownloadPluginIconAsync(pluginManifest, useTesting);
                 }
             }).ContinueWith(t =>
             {
@@ -1470,24 +1494,25 @@ namespace Dalamud.Interface.Internal.Windows
             });
         }
 
-        private async Task DownloadPluginIconAsync(RemotePluginManifest manifest)
+        private async Task DownloadPluginIconAsync(RemotePluginManifest manifest, bool isTesting)
         {
             var interfaceManager = Service<InterfaceManager>.Get();
 
             Log.Verbose($"Downloading icon for {manifest.InternalName}");
             this.pluginIconMap.Add(manifest.InternalName, (false, null));
 
+            var url = GetPluginIconUrl(manifest, manifest.SourceRepo.IsThirdParty, isTesting);
+
+            Log.Verbose($"Icon from {url}");
+
             var client = new HttpClient();
 
-            if (manifest.IconUrl != null)
+            if (url != null)
             {
-                if (!IsSafeUrl(manifest.IconUrl) && !manifest.SourceRepo.IsThirdParty)
-                {
-                    Log.Error($"Icon at {manifest.IconUrl} is not on a whitelisted host.");
+                var data = await client.GetAsync(url);
+                if (data.StatusCode == HttpStatusCode.NotFound)
                     return;
-                }
 
-                var data = await client.GetAsync(manifest.IconUrl);
                 data.EnsureSuccessStatusCode();
                 var icon = interfaceManager.LoadImage(await data.Content.ReadAsByteArrayAsync());
 
@@ -1513,6 +1538,7 @@ namespace Dalamud.Interface.Internal.Windows
         private async Task DownloadPluginImagesAsync(PluginManifest manifest, bool isThirdParty)
         {
             var interfaceManager = Service<InterfaceManager>.Get();
+            var pluginManager = Service<PluginManager>.Get();
 
             Log.Verbose($"Downloading images for {manifest.InternalName}");
 
@@ -1520,24 +1546,27 @@ namespace Dalamud.Interface.Internal.Windows
 
             var client = new HttpClient();
 
-            if (manifest.ImageUrls != null)
+            var urls = GetPluginImageUrls(manifest, isThirdParty, pluginManager.UseTesting(manifest));
+            var didAny = false;
+
+            if (urls != null)
             {
-                if (manifest.ImageUrls.Count > 5)
+                if (urls.Count > 5)
                 {
                     Log.Error($"Plugin {manifest.InternalName} has too many images.");
                     return;
                 }
 
-                var pluginImages = new TextureWrap[manifest.ImageUrls.Count];
-                for (var i = 0; i < manifest.ImageUrls.Count; i++)
+                var pluginImages = new TextureWrap[urls.Count];
+                for (var i = 0; i < urls.Count; i++)
                 {
-                    if (!IsSafeUrl(manifest.ImageUrls[i]) && !isThirdParty)
-                    {
-                        Log.Error($"Icon at {manifest.IconUrl} is not on a whitelisted host.");
-                        return;
-                    }
+                    var data = await client.GetAsync(urls[i]);
 
-                    var data = await client.GetAsync(manifest.ImageUrls[i]);
+                    Serilog.Log.Information($"Download from {urls[i]}");
+
+                    if (data.StatusCode == HttpStatusCode.NotFound)
+                        continue;
+
                     data.EnsureSuccessStatusCode();
                     var image = interfaceManager.LoadImage(await data.Content.ReadAsByteArrayAsync());
 
@@ -1548,14 +1577,19 @@ namespace Dalamud.Interface.Internal.Windows
 
                     if (image.Height != PluginImageHeight || image.Width != PluginImageWidth)
                     {
-                        Log.Error($"Image at {manifest.ImageUrls[i]} was not of the correct resolution.");
+                        Log.Error($"Image at {urls[i]} was not of the correct resolution.");
                         return;
                     }
+
+                    didAny = true;
 
                     pluginImages[i] = image;
                 }
 
-                this.pluginImagesMap[manifest.InternalName] = (true, pluginImages);
+                if (didAny)
+                {
+                    this.pluginImagesMap[manifest.InternalName] = (true, pluginImages);
+                }
             }
 
             Log.Verbose($"Plugin images for {manifest.InternalName} downloaded");
