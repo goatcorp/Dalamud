@@ -15,6 +15,7 @@ using Dalamud.Game.Gui.Internal;
 using Dalamud.Game.Internal.DXGI;
 using Dalamud.Hooking;
 using Dalamud.Hooking.Internal;
+using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Utility;
 using ImGuiNET;
 using ImGuiScene;
@@ -58,7 +59,7 @@ namespace Dalamud.Interface.Internal
         /// </summary>
         public InterfaceManager()
         {
-            Service<Notifications>.Set();
+            Service<NotificationManager>.Set();
 
             var scanner = Service<SigScanner>.Get();
 
@@ -149,11 +150,6 @@ namespace Dalamud.Interface.Internal
         /// Gets an included monospaced font.
         /// </summary>
         public static ImFontPtr MonoFont { get; private set; }
-
-        /// <summary>
-        /// Gets the manager for notifications/toasts.
-        /// </summary>
-        public Notifications Notifications { get; init; } = new();
 
         /// <summary>
         /// Gets or sets an action that is exexuted when fonts are rebuilt.
@@ -644,7 +640,7 @@ namespace Dalamud.Interface.Internal
             this.lastWantCapture = this.LastImGuiIoPtr.WantCaptureMouse;
 
             this.Draw?.Invoke();
-            Service<Notifications>.Get().Draw();
+            Service<NotificationManager>.Get().Draw();
         }
     }
 }

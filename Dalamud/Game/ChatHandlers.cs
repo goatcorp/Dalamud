@@ -13,6 +13,7 @@ using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Internal.Notifications;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Internal;
@@ -252,7 +253,7 @@ namespace Dalamud.Game
             var configuration = Service<DalamudConfiguration>.Get();
             var pluginManager = Service<PluginManager>.Get();
             var dalamudInterface = Service<DalamudInterface>.Get();
-            var notifications = Service<Notifications>.Get();
+            var notifications = Service<NotificationManager>.Get();
 
             var assemblyVersion = Assembly.GetAssembly(typeof(ChatHandlers)).GetName().Version.ToString();
 
@@ -298,7 +299,7 @@ namespace Dalamud.Game
                         if (configuration.AutoUpdatePlugins)
                         {
                             pluginManager.PrintUpdatedPlugins(updatedPlugins, Loc.Localize("DalamudPluginAutoUpdate", "Auto-update:"));
-                            notifications.AddNotification(Loc.Localize("NotificationUpdatedPlugins", "{0} of your plugins were updated.").Format(updatedPlugins.Count), Loc.Localize("NotificationAutoUpdate", "Auto-Update"), Notifications.Notification.Type.Info);
+                            notifications.AddNotification(Loc.Localize("NotificationUpdatedPlugins", "{0} of your plugins were updated.").Format(updatedPlugins.Count), Loc.Localize("NotificationAutoUpdate", "Auto-Update"), NotificationType.Info);
                         }
                         else
                         {

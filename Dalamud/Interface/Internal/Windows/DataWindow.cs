@@ -22,6 +22,7 @@ using Dalamud.Game.Gui;
 using Dalamud.Game.Gui.FlyText;
 using Dalamud.Game.Gui.Toast;
 using Dalamud.Game.Text;
+using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.Windowing;
 using Dalamud.Memory;
 using Dalamud.Plugin;
@@ -1056,6 +1057,7 @@ namespace Dalamud.Interface.Internal.Windows
         private void DrawImGui()
         {
             var interfaceManager = Service<InterfaceManager>.Get();
+            var notifications = Service<NotificationManager>.Get();
 
             ImGui.Text("Monitor count: " + ImGui.GetPlatformIO().Monitors.Size);
             ImGui.Text("OverrideGameCursor: " + interfaceManager.OverrideGameCursor);
@@ -1082,17 +1084,17 @@ namespace Dalamud.Interface.Internal.Windows
 
                 var type = rand.Next(0, 4) switch
                 {
-                    0 => Notifications.Notification.Type.Error,
-                    1 => Notifications.Notification.Type.Warning,
-                    2 => Notifications.Notification.Type.Info,
-                    3 => Notifications.Notification.Type.Success,
-                    4 => Notifications.Notification.Type.None,
-                    _ => Notifications.Notification.Type.None,
+                    0 => Notifications.NotificationType.Error,
+                    1 => Notifications.NotificationType.Warning,
+                    2 => Notifications.NotificationType.Info,
+                    3 => Notifications.NotificationType.Success,
+                    4 => Notifications.NotificationType.None,
+                    _ => Notifications.NotificationType.None,
                 };
 
                 var text = "Bla bla bla bla bla bla bla bla bla bla bla.\nBla bla bla bla bla bla bla bla bla bla bla bla bla bla.";
 
-                interfaceManager.Notifications.AddNotification(text, title, type);
+                notifications.AddNotification(text, title, type);
             }
         }
 

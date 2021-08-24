@@ -15,6 +15,7 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Game.Command;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
+using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin;
@@ -321,9 +322,8 @@ namespace Dalamud.Interface.Internal.Windows
 
         private void DrawUpdatePluginsButton()
         {
-            var interfaceManager = Service<InterfaceManager>.Get();
             var pluginManager = Service<PluginManager>.Get();
-            var notifications = Service<Notifications>.Get();
+            var notifications = Service<NotificationManager>.Get();
 
             var ready = pluginManager.PluginsReady && pluginManager.ReposReady;
 
@@ -379,11 +379,11 @@ namespace Dalamud.Interface.Internal.Windows
                                 if (this.updatePluginCount > 0)
                                 {
                                     pluginManager.PrintUpdatedPlugins(this.updatedPlugins, Locs.PluginUpdateHeader_Chatbox);
-                                    notifications.AddNotification(Locs.Notifications_UpdatesInstalled(this.updatePluginCount), Locs.Notifications_UpdatesInstalledTitle, Notifications.Notification.Type.Success);
+                                    notifications.AddNotification(Locs.Notifications_UpdatesInstalled(this.updatePluginCount), Locs.Notifications_UpdatesInstalledTitle, NotificationType.Success);
                                 }
                                 else if (this.updatePluginCount == 0)
                                 {
-                                    notifications.AddNotification(Locs.Notifications_NoUpdatesFound, Locs.Notifications_NoUpdatesFoundTitle, Notifications.Notification.Type.Info);
+                                    notifications.AddNotification(Locs.Notifications_NoUpdatesFound, Locs.Notifications_NoUpdatesFoundTitle, NotificationType.Info);
                                 }
                             }
                         });
@@ -898,8 +898,7 @@ namespace Dalamud.Interface.Internal.Windows
         private void DrawAvailablePlugin(RemotePluginManifest manifest, int index)
         {
             var configuration = Service<DalamudConfiguration>.Get();
-            var interfaceManager = Service<InterfaceManager>.Get();
-            var notifications = Service<Notifications>.Get();
+            var notifications = Service<NotificationManager>.Get();
             var pluginManager = Service<PluginManager>.Get();
 
             var useTesting = pluginManager.UseTesting(manifest);
@@ -976,11 +975,11 @@ namespace Dalamud.Interface.Internal.Windows
                                 {
                                     if (task.Result.State == PluginState.Loaded)
                                     {
-                                        notifications.AddNotification(Locs.Notifications_PluginInstalled(manifest.Name), Locs.Notifications_PluginInstalledTitle, Notifications.Notification.Type.Success);
+                                        notifications.AddNotification(Locs.Notifications_PluginInstalled(manifest.Name), Locs.Notifications_PluginInstalledTitle, NotificationType.Success);
                                     }
                                     else
                                     {
-                                        notifications.AddNotification(Locs.Notifications_PluginNotInstalled(manifest.Name), Locs.Notifications_PluginNotInstalledTitle, Notifications.Notification.Type.Error);
+                                        notifications.AddNotification(Locs.Notifications_PluginNotInstalled(manifest.Name), Locs.Notifications_PluginNotInstalledTitle, NotificationType.Error);
                                         this.ShowErrorModal(Locs.ErrorModal_InstallFail(manifest.Name));
                                     }
                                 }
@@ -1248,7 +1247,7 @@ namespace Dalamud.Interface.Internal.Windows
         private void DrawPluginControlButton(LocalPlugin plugin)
         {
             var configuration = Service<DalamudConfiguration>.Get();
-            var notifications = Service<Notifications>.Get();
+            var notifications = Service<NotificationManager>.Get();
             var pluginManager = Service<PluginManager>.Get();
             var startInfo = Service<DalamudStartInfo>.Get();
 
@@ -1293,7 +1292,7 @@ namespace Dalamud.Interface.Internal.Windows
                                 pluginManager.RemovePlugin(plugin);
                             }
 
-                            notifications.AddNotification(Locs.Notifications_PluginDisabled(plugin.Manifest.Name), Locs.Notifications_PluginDisabledTitle, Notifications.Notification.Type.Success);
+                            notifications.AddNotification(Locs.Notifications_PluginDisabled(plugin.Manifest.Name), Locs.Notifications_PluginDisabledTitle, NotificationType.Success);
                         });
                     }
                 }

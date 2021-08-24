@@ -7,13 +7,13 @@ using Dalamud.Interface.Colors;
 using Dalamud.Utility;
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal
+namespace Dalamud.Interface.Internal.Notifications
 {
     /// <summary>
     /// Class handling notifications/toasts in ImGui.
     /// Ported from https://github.com/patrickcjk/imgui-notify.
     /// </summary>
-    internal class Notifications
+    internal class NotificationManager
     {
         /// <summary>
         /// Value indicating the bottom-left X padding.
@@ -61,7 +61,7 @@ namespace Dalamud.Interface.Internal
         /// <param name="title">The title of the notification.</param>
         /// <param name="type">The type of the notification.</param>
         /// <param name="msDelay">The time the notification should be displayed for.</param>
-        public void AddNotification(string content, string title = null, Notification.Type type = Notification.Type.None, int msDelay = NotifyDefaultDismiss)
+        public void AddNotification(string content, string? title = null, NotificationType type = NotificationType.None, uint msDelay = NotifyDefaultDismiss)
         {
             this.notifications.Add(new Notification
             {
@@ -171,37 +171,6 @@ namespace Dalamud.Interface.Internal
         internal class Notification
         {
             /// <summary>
-            /// Possible notification types.
-            /// </summary>
-            public enum Type
-            {
-                /// <summary>
-                /// No special type.
-                /// </summary>
-                None,
-
-                /// <summary>
-                /// Type indicating success.
-                /// </summary>
-                Success,
-
-                /// <summary>
-                /// Type indicating a warning.
-                /// </summary>
-                Warning,
-
-                /// <summary>
-                /// Type indicating an error.
-                /// </summary>
-                Error,
-
-                /// <summary>
-                /// Type indicating generic information.
-                /// </summary>
-                Info,
-            }
-
-            /// <summary>
             /// Possible notification phases.
             /// </summary>
             internal enum Phase
@@ -230,12 +199,12 @@ namespace Dalamud.Interface.Internal
             /// <summary>
             /// Gets the type of the notification.
             /// </summary>
-            internal Type NotificationType { get; init; }
+            internal NotificationType NotificationType { get; init; }
 
             /// <summary>
             /// Gets the title of the notification.
             /// </summary>
-            internal string Title { get; init; }
+            internal string? Title { get; init; }
 
             /// <summary>
             /// Gets the content of the notification.
@@ -245,7 +214,7 @@ namespace Dalamud.Interface.Internal
             /// <summary>
             /// Gets the duration of the notification in milliseconds.
             /// </summary>
-            internal int DurationMs { get; init; }
+            internal uint DurationMs { get; init; }
 
             /// <summary>
             /// Gets the creation time of the notification.
@@ -258,11 +227,11 @@ namespace Dalamud.Interface.Internal
             /// <exception cref="ArgumentOutOfRangeException">Thrown when <see cref="NotificationType"/> is set to an out-of-range value.</exception>
             internal Vector4 Color => this.NotificationType switch
             {
-                Type.None => ImGuiColors.DalamudWhite,
-                Type.Success => ImGuiColors.HealerGreen,
-                Type.Warning => ImGuiColors.DalamudOrange,
-                Type.Error => ImGuiColors.DalamudRed,
-                Type.Info => ImGuiColors.TankBlue,
+                NotificationType.None => ImGuiColors.DalamudWhite,
+                NotificationType.Success => ImGuiColors.HealerGreen,
+                NotificationType.Warning => ImGuiColors.DalamudOrange,
+                NotificationType.Error => ImGuiColors.DalamudRed,
+                NotificationType.Info => ImGuiColors.TankBlue,
                 _ => throw new ArgumentOutOfRangeException(),
             };
 
@@ -272,11 +241,11 @@ namespace Dalamud.Interface.Internal
             /// <exception cref="ArgumentOutOfRangeException">Thrown when <see cref="NotificationType"/> is set to an out-of-range value.</exception>
             internal string? Icon => this.NotificationType switch
             {
-                Type.None => null,
-                Type.Success => FontAwesomeIcon.CheckCircle.ToIconString(),
-                Type.Warning => FontAwesomeIcon.ExclamationCircle.ToIconString(),
-                Type.Error => FontAwesomeIcon.TimesCircle.ToIconString(),
-                Type.Info => FontAwesomeIcon.InfoCircle.ToIconString(),
+                NotificationType.None => null,
+                NotificationType.Success => FontAwesomeIcon.CheckCircle.ToIconString(),
+                NotificationType.Warning => FontAwesomeIcon.ExclamationCircle.ToIconString(),
+                NotificationType.Error => FontAwesomeIcon.TimesCircle.ToIconString(),
+                NotificationType.Info => FontAwesomeIcon.InfoCircle.ToIconString(),
                 _ => throw new ArgumentOutOfRangeException(),
             };
 
@@ -286,11 +255,11 @@ namespace Dalamud.Interface.Internal
             /// <exception cref="ArgumentOutOfRangeException">Thrown when <see cref="NotificationType"/> is set to an out-of-range value.</exception>
             internal string? DefaultTitle => this.NotificationType switch
             {
-                Type.None => null,
-                Type.Success => Type.Success.ToString(),
-                Type.Warning => Type.Warning.ToString(),
-                Type.Error => Type.Error.ToString(),
-                Type.Info => Type.Info.ToString(),
+                NotificationType.None => null,
+                NotificationType.Success => NotificationType.Success.ToString(),
+                NotificationType.Warning => NotificationType.Warning.ToString(),
+                NotificationType.Error => NotificationType.Error.ToString(),
+                NotificationType.Info => NotificationType.Info.ToString(),
                 _ => throw new ArgumentOutOfRangeException(),
             };
 

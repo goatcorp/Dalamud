@@ -6,6 +6,7 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Gui;
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Internal.Notifications;
 using ImGuiNET;
 using ImGuiScene;
 using Serilog;
@@ -200,6 +201,17 @@ namespace Dalamud.Interface
             Log.Verbose("[FONT] {0} plugin is initiating FONT REBUILD", this.namespaceName);
             Service<InterfaceManager>.Get().RebuildFonts();
         }
+
+        /// <summary>
+        /// Add a notification to the notification queue.
+        /// </summary>
+        /// <param name="content">The content of the notification.</param>
+        /// <param name="title">The title of the notification.</param>
+        /// <param name="type">The type of the notification.</param>
+        /// <param name="msDelay">The time the notification should be displayed for.</param>
+        public void AddNotification(
+            string content, string? title = null, NotificationType type = NotificationType.None, uint msDelay = 3000) =>
+            Service<NotificationManager>.Get().AddNotification(content, title, type, msDelay);
 
         /// <summary>
         /// Unregister the UiBuilder. Do not call this in plugin code.
