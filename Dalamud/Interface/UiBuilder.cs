@@ -290,7 +290,7 @@ namespace Dalamud.Interface
 
         private void OnBuildFonts()
         {
-            this.BuildFonts.Invoke();
+            this.BuildFonts?.Invoke();
         }
     }
 }
