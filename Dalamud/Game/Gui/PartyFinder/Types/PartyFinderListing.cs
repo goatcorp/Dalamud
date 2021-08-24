@@ -157,7 +157,7 @@ namespace Dalamud.Game.Gui.PartyFinder.Types
         /// <summary>
         /// Gets the conditions of this listing.
         /// </summary>
-        public PartyFinderConditionFlags Conditions => (PartyFinderConditionFlags)this.conditions;
+        public ConditionFlags Conditions => (ConditionFlags)this.conditions;
 
         /// <summary>
         /// Gets the Duty Finder settings that will be used for this listing.
@@ -199,7 +199,7 @@ namespace Dalamud.Game.Gui.PartyFinder.Types
         /// </summary>
         /// <param name="flag">The flag to check for.</param>
         /// <returns>A value indicating whether the flag is present.</returns>
-        public bool this[PartyFinderConditionFlags flag] => this.conditions == 0 || (this.conditions & (uint)flag) > 0;
+        public bool this[ConditionFlags flag] => this.conditions == 0 || (this.conditions & (uint)flag) > 0;
 
         /// <summary>
         /// Check if the given flag is present.
