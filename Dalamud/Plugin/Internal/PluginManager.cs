@@ -394,6 +394,10 @@ namespace Dalamud.Plugin.Internal
             var downloadUrl = useTesting ? repoManifest.DownloadLinkTesting : repoManifest.DownloadLinkInstall;
             var version = useTesting ? repoManifest.TestingAssemblyVersion : repoManifest.AssemblyVersion;
 
+            using var client = new HttpClient();
+            var response = await client.GetAsync(downloadUrl);
+            response.EnsureSuccessStatusCode();
+
             var outputDir = new DirectoryInfo(Path.Combine(this.pluginDirectory.FullName, repoManifest.InternalName, version.ToString()));
 
             try
@@ -407,10 +411,6 @@ namespace Dalamud.Plugin.Internal
             {
                 // ignored, since the plugin may be loaded already
             }
-
-            using var client = new HttpClient();
-            var response = await client.GetAsync(downloadUrl);
-            response.EnsureSuccessStatusCode();
 
             Log.Debug($"Extracting to {outputDir}");
             // This throws an error, even with overwrite=false
