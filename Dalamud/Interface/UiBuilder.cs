@@ -227,7 +227,7 @@ namespace Dalamud.Interface
         /// </summary>
         internal void OpenConfig()
         {
-            this.OpenConfigUi?.Invoke(this, null);
+            this.OpenConfigUi?.Invoke();
         }
 
         private void OnDraw()

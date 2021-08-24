@@ -103,7 +103,7 @@ namespace Dalamud.CorePlugin
             // this.window.IsOpen = true;
         }
 
-        private void OnOpenConfigUi(object sender, EventArgs e)
+        private void OnOpenConfigUi()
         {
             // this.window.IsOpen = true;
         }
