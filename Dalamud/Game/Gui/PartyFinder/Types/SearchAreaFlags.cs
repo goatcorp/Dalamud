@@ -3,7 +3,7 @@ using System;
 namespace Dalamud.Game.Gui.PartyFinder.Types
 {
     /// <summary>
-    /// Search area flags for the <see cref="PartyFinder"/> class.
+    /// Search area flags for the <see cref="PartyFinderGui"/> class.
     /// </summary>
     [Flags]
     public enum DutyFinderSearchAreaFlags : uint

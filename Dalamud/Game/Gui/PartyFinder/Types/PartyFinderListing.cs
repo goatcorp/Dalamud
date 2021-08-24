@@ -46,10 +46,10 @@ namespace Dalamud.Game.Gui.PartyFinder.Types
             this.World = new Lazy<World>(() => dataManager.GetExcelSheet<World>().GetRow(listing.World));
             this.HomeWorld = new Lazy<World>(() => dataManager.GetExcelSheet<World>().GetRow(listing.HomeWorld));
             this.CurrentWorld = new Lazy<World>(() => dataManager.GetExcelSheet<World>().GetRow(listing.CurrentWorld));
-            this.Category = (DutyFinderCategory)listing.Category;
+            this.Category = (DutyCategory)listing.Category;
             this.RawDuty = listing.Duty;
             this.Duty = new Lazy<ContentFinderCondition>(() => dataManager.GetExcelSheet<ContentFinderCondition>().GetRow(listing.Duty));
-            this.DutyType = (DutyType)listing.DutyType;
+            this.DutyType = (PartyFinderDutyType)listing.DutyType;
             this.BeginnersWelcome = listing.BeginnersWelcome == 1;
             this.SecondsRemaining = listing.SecondsRemaining;
             this.MinimumItemLevel = listing.MinimumItemLevel;
@@ -101,7 +101,7 @@ namespace Dalamud.Game.Gui.PartyFinder.Types
         /// <summary>
         /// Gets the Party Finder category this listing is listed under.
         /// </summary>
-        public DutyFinderCategory Category { get; }
+        public DutyCategory Category { get; }
 
         /// <summary>
         /// Gets the row ID of the duty this listing is for. May be 0 for non-duty listings.
@@ -116,7 +116,7 @@ namespace Dalamud.Game.Gui.PartyFinder.Types
         /// <summary>
         /// Gets the type of duty this listing is for.
         /// </summary>
-        public DutyType DutyType { get; }
+        public PartyFinderDutyType DutyType { get; }
 
         /// <summary>
         /// Gets a value indicating whether if this listing is beginner-friendly. Shown with a sprout icon in-game.
@@ -152,12 +152,12 @@ namespace Dalamud.Game.Gui.PartyFinder.Types
         /// <summary>
         /// Gets  the objective of this listing.
         /// </summary>
-        public DutyFinderObjectiveFlags Objective => (DutyFinderObjectiveFlags)this.objective;
+        public ObjectiveFlags Objective => (ObjectiveFlags)this.objective;
 
         /// <summary>
         /// Gets the conditions of this listing.
         /// </summary>
-        public DutyFinderConditionFlags Conditions => (DutyFinderConditionFlags)this.conditions;
+        public PartyFinderConditionFlags Conditions => (PartyFinderConditionFlags)this.conditions;
 
         /// <summary>
         /// Gets the Duty Finder settings that will be used for this listing.
@@ -167,13 +167,13 @@ namespace Dalamud.Game.Gui.PartyFinder.Types
         /// <summary>
         /// Gets the loot rules that will be used for this listing.
         /// </summary>
-        public DutyFinderLootRuleFlags LootRules => (DutyFinderLootRuleFlags)this.lootRules;
+        public LootRuleFlags LootRules => (LootRuleFlags)this.lootRules;
 
         /// <summary>
         /// Gets where this listing is searching. Note that this is also used for denoting alliance raid listings and one
         /// player per job.
         /// </summary>
-        public DutyFinderSearchAreaFlags SearchArea => (DutyFinderSearchAreaFlags)this.searchArea;
+        public SearchAreaFlags SearchArea => (SearchAreaFlags)this.searchArea;
 
         /// <summary>
         /// Gets a list of the class/job IDs that are currently present in the party.
@@ -192,14 +192,14 @@ namespace Dalamud.Game.Gui.PartyFinder.Types
         /// </summary>
         /// <param name="flag">The flag to check for.</param>
         /// <returns>A value indicating whether the flag is present.</returns>
-        public bool this[DutyFinderObjectiveFlags flag] => this.objective == 0 || (this.objective & (uint)flag) > 0;
+        public bool this[ObjectiveFlags flag] => this.objective == 0 || (this.objective & (uint)flag) > 0;
 
         /// <summary>
         /// Check if the given flag is present.
         /// </summary>
         /// <param name="flag">The flag to check for.</param>
         /// <returns>A value indicating whether the flag is present.</returns>
-        public bool this[DutyFinderConditionFlags flag] => this.conditions == 0 || (this.conditions & (uint)flag) > 0;
+        public bool this[PartyFinderConditionFlags flag] => this.conditions == 0 || (this.conditions & (uint)flag) > 0;
 
         /// <summary>
         /// Check if the given flag is present.
@@ -213,14 +213,14 @@ namespace Dalamud.Game.Gui.PartyFinder.Types
         /// </summary>
         /// <param name="flag">The flag to check for.</param>
         /// <returns>A value indicating whether the flag is present.</returns>
-        public bool this[DutyFinderLootRuleFlags flag] => this.lootRules == 0 || (this.lootRules & (uint)flag) > 0;
+        public bool this[LootRuleFlags flag] => this.lootRules == 0 || (this.lootRules & (uint)flag) > 0;
 
         /// <summary>
         /// Check if the given flag is present.
         /// </summary>
         /// <param name="flag">The flag to check for.</param>
         /// <returns>A value indicating whether the flag is present.</returns>
-        public bool this[DutyFinderSearchAreaFlags flag] => this.searchArea == 0 || (this.searchArea & (uint)flag) > 0;
+        public bool this[SearchAreaFlags flag] => this.searchArea == 0 || (this.searchArea & (uint)flag) > 0;
 
         #endregion
 

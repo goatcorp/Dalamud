@@ -1,9 +1,9 @@
 namespace Dalamud.Game.Gui.PartyFinder.Types
 {
     /// <summary>
-    /// Category flags for the <see cref="PartyFinder"/> class.
+    /// Category flags for the <see cref="PartyFinderGui"/> class.
     /// </summary>
-    public enum DutyFinderCategory
+    public enum DutyCategory
     {
         /// <summary>
         /// The duty category.
