@@ -48,7 +48,7 @@ namespace Dalamud.Interface.Internal
 
         private readonly ManualResetEvent fontBuildSignal;
         private readonly ISwapChainAddressResolver address;
-        private RawDX11Scene scene;
+        private RawDX11Scene? scene;
 
         // can't access imgui IO before first present call
         private bool lastWantCapture = false;
@@ -137,6 +137,11 @@ namespace Dalamud.Interface.Internal
         public event RawDX11Scene.BuildUIDelegate Draw;
 
         /// <summary>
+        /// Gets or sets an action that is executed when fonts are rebuilt.
+        /// </summary>
+        public event Action BuildFonts;
+
+        /// <summary>
         /// Gets the default ImGui font.
         /// </summary>
         public static ImFontPtr DefaultFont { get; private set; }
@@ -152,11 +157,6 @@ namespace Dalamud.Interface.Internal
         public static ImFontPtr MonoFont { get; private set; }
 
         /// <summary>
-        /// Gets or sets an action that is exexuted when fonts are rebuilt.
-        /// </summary>
-        public Action OnBuildFonts { get; set; }
-
-        /// <summary>
         /// Gets or sets the pointer to ImGui.IO(), when it was last used.
         /// </summary>
         public ImGuiIOPtr LastImGuiIoPtr { get; set; }
@@ -164,7 +164,7 @@ namespace Dalamud.Interface.Internal
         /// <summary>
         /// Gets the D3D11 device instance.
         /// </summary>
-        public Device Device => this.scene.Device;
+        public Device? Device => this.scene?.Device;
 
         /// <summary>
         /// Gets the address handle to the main process window.
@@ -494,7 +494,7 @@ namespace Dalamud.Interface.Internal
             MonoFont = ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPathMono, 16.0f);
 
             Log.Verbose("[FONT] Invoke OnBuildFonts");
-            this.OnBuildFonts?.Invoke();
+            this.BuildFonts?.Invoke();
             Log.Verbose("[FONT] OnBuildFonts OK!");
 
             for (var i = 0; i < ImGui.GetIO().Fonts.Fonts.Size; i++)

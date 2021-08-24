@@ -35,7 +35,9 @@ namespace Dalamud.Interface
             this.stopwatch = new Stopwatch();
             this.namespaceName = namespaceName;
 
-            Service<InterfaceManager>.Get().Draw += this.OnDraw;
+            var interfaceManager = Service<InterfaceManager>.Get();
+            interfaceManager.Draw += this.OnDraw;
+            interfaceManager.BuildFonts += this.OnBuildFonts;
         }
 
         /// <summary>
@@ -48,6 +50,15 @@ namespace Dalamud.Interface
         /// Event that is fired when the plugin should open its configuration interface.
         /// </summary>
         public event EventHandler OpenConfigUi;
+
+        /// <summary>
+        /// Gets or sets an action that is called any time ImGui fonts need to be rebuilt.<br/>
+        /// Any ImFontPtr objects that you store <strong>can be invalidated</strong> when fonts are rebuilt
+        /// (at any time), so you should both reload your custom fonts and restore those
+        /// pointers inside this handler.<br/>
+        /// <strong>PLEASE remove this handler inside Dispose, or when you no longer need your fonts!</strong>
+        /// </summary>
+        public event Action BuildFonts;
 
         /// <summary>
         /// Gets the default Dalamud font based on Noto Sans CJK Medium in 17pt - supporting all game languages and icons.
@@ -101,19 +112,6 @@ namespace Dalamud.Interface
         {
             get => Service<InterfaceManager>.Get().OverrideGameCursor;
             set => Service<InterfaceManager>.Get().OverrideGameCursor = value;
-        }
-
-        /// <summary>
-        /// Gets or sets an action that is called any time ImGui fonts need to be rebuilt.<br/>
-        /// Any ImFontPtr objects that you store <strong>can be invalidated</strong> when fonts are rebuilt
-        /// (at any time), so you should both reload your custom fonts and restore those
-        /// pointers inside this handler.<br/>
-        /// <strong>PLEASE remove this handler inside Dispose, or when you no longer need your fonts!</strong>
-        /// </summary>
-        public Action OnBuildFonts
-        {
-            get => Service<InterfaceManager>.Get().OnBuildFonts;
-            set => Service<InterfaceManager>.Get().OnBuildFonts = value;
         }
 
         /// <summary>
@@ -218,7 +216,10 @@ namespace Dalamud.Interface
         /// </summary>
         public void Dispose()
         {
-            Service<InterfaceManager>.Get().Draw -= this.OnDraw;
+            var interfaceManager = Service<InterfaceManager>.Get();
+
+            interfaceManager.Draw -= this.OnDraw;
+            interfaceManager.BuildFonts -= this.BuildFonts;
         }
 
         /// <summary>
@@ -285,6 +286,11 @@ namespace Dalamud.Interface
             }
 
             ImGui.PopID();
+        }
+
+        private void OnBuildFonts()
+        {
+            this.BuildFonts.Invoke();
         }
     }
 }
