@@ -3,10 +3,10 @@ using System;
 namespace Dalamud.Game.Gui.PartyFinder.Types
 {
     /// <summary>
-    /// Loot rule flags for the <see cref="PartyFinder"/> class.
+    /// Loot rule flags for the <see cref="PartyFinderGui"/> class.
     /// </summary>
     [Flags]
-    public enum DutyFinderLootRuleFlags : uint
+    public enum LootRuleFlags : uint
     {
         /// <summary>
         /// No loot rules.

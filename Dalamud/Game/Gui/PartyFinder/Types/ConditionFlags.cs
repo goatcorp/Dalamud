@@ -3,10 +3,10 @@ using System;
 namespace Dalamud.Game.Gui.PartyFinder.Types
 {
     /// <summary>
-    /// Condition flags for the <see cref="PartyFinder"/> class.
+    /// Condition flags for the <see cref="PartyFinderGui"/> class.
     /// </summary>
     [Flags]
-    public enum DutyFinderConditionFlags : uint
+    public enum ConditionFlags : uint
     {
         /// <summary>
         /// No duty condition.

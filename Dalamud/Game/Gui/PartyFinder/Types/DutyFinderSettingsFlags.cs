@@ -3,7 +3,7 @@ using System;
 namespace Dalamud.Game.Gui.PartyFinder.Types
 {
     /// <summary>
-    /// Duty finder settings flags for the <see cref="PartyFinder"/> class.
+    /// Duty finder settings flags for the <see cref="PartyFinderGui"/> class.
     /// </summary>
     [Flags]
     public enum DutyFinderSettingsFlags : uint

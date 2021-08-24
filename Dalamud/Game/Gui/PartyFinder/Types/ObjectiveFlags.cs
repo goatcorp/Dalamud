@@ -3,10 +3,10 @@ using System;
 namespace Dalamud.Game.Gui.PartyFinder.Types
 {
     /// <summary>
-    /// Objective flags for the <see cref="PartyFinder"/> class.
+    /// Objective flags for the <see cref="PartyFinderGui"/> class.
     /// </summary>
     [Flags]
-    public enum DutyFinderObjectiveFlags : uint
+    public enum ObjectiveFlags : uint
     {
         /// <summary>
         /// No objective.
