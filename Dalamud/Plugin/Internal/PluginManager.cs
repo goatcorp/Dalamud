@@ -410,6 +410,7 @@ namespace Dalamud.Plugin.Internal
 
             using var client = new HttpClient();
             var response = await client.GetAsync(downloadUrl);
+            response.EnsureSuccessStatusCode();
 
             Log.Debug($"Extracting to {outputDir}");
             // This throws an error, even with overwrite=false
