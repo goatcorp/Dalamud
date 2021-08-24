@@ -6,7 +6,7 @@ namespace Dalamud.Game.Gui.PartyFinder.Types
     /// Search area flags for the <see cref="PartyFinderGui"/> class.
     /// </summary>
     [Flags]
-    public enum DutyFinderSearchAreaFlags : uint
+    public enum SearchAreaFlags : uint
     {
         /// <summary>
         /// Datacenter.

@@ -3,7 +3,7 @@ namespace Dalamud.Game.Gui.PartyFinder.Types
     /// <summary>
     /// Duty type flags for the <see cref="PartyFinderGui"/> class.
     /// </summary>
-    public enum PartyFinderDutyType
+    public enum DutyType
     {
         /// <summary>
         /// No duty type.

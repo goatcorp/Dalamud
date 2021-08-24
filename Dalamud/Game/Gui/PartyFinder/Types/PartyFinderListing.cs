@@ -49,7 +49,7 @@ namespace Dalamud.Game.Gui.PartyFinder.Types
             this.Category = (DutyCategory)listing.Category;
             this.RawDuty = listing.Duty;
             this.Duty = new Lazy<ContentFinderCondition>(() => dataManager.GetExcelSheet<ContentFinderCondition>().GetRow(listing.Duty));
-            this.DutyType = (PartyFinderDutyType)listing.DutyType;
+            this.DutyType = (DutyType)listing.DutyType;
             this.BeginnersWelcome = listing.BeginnersWelcome == 1;
             this.SecondsRemaining = listing.SecondsRemaining;
             this.MinimumItemLevel = listing.MinimumItemLevel;
@@ -116,7 +116,7 @@ namespace Dalamud.Game.Gui.PartyFinder.Types
         /// <summary>
         /// Gets the type of duty this listing is for.
         /// </summary>
-        public PartyFinderDutyType DutyType { get; }
+        public DutyType DutyType { get; }
 
         /// <summary>
         /// Gets a value indicating whether if this listing is beginner-friendly. Shown with a sprout icon in-game.

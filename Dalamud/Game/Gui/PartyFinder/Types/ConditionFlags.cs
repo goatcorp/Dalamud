@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace Dalamud.Game.Gui.PartyFinder.Types
 {
@@ -6,7 +6,7 @@ namespace Dalamud.Game.Gui.PartyFinder.Types
     /// Condition flags for the <see cref="PartyFinderGui"/> class.
     /// </summary>
     [Flags]
-    public enum DutyConditionFlags : uint
+    public enum ConditionFlags : uint
     {
         /// <summary>
         /// No duty condition.
