@@ -86,7 +86,7 @@ namespace Dalamud.IoC.Internal
 
             var instance = FormatterServices.GetUninitializedObject(objectType);
 
-            if (!this.InjectProperties(instance, resolvedParams))
+            if (!this.InjectProperties(instance, scopedObjects))
             {
                 Log.Error("Failed to create {TypeName}, a requested property service type could not be satisfied", objectType.FullName);
                 return null;
