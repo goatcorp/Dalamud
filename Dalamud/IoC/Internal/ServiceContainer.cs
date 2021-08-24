@@ -43,7 +43,7 @@ namespace Dalamud.IoC.Internal
             var ctor = this.FindApplicableCtor(objectType, scopedObjects);
             if (ctor == null)
             {
-                Log.Error("Failed to create {TypeName}, unable to find one or more services to satisfy the dependencies in the ctor", objectType.FullName);
+                Log.Error("Failed to create {TypeName}, an eligible ctor with satisfiable services could not be found", objectType.FullName);
                 return null;
             }
 
