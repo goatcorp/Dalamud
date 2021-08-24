@@ -44,12 +44,12 @@ namespace Dalamud.Interface
         /// The delegate that gets called when Dalamud is ready to draw your windows or overlays.
         /// When it is called, you can use static ImGui calls.
         /// </summary>
-        public event RawDX11Scene.BuildUIDelegate Draw;
+        public event Action Draw;
 
         /// <summary>
         /// Event that is fired when the plugin should open its configuration interface.
         /// </summary>
-        public event EventHandler OpenConfigUi;
+        public event Action OpenConfigUi;
 
         /// <summary>
         /// Gets or sets an action that is called any time ImGui fonts need to be rebuilt.<br/>
