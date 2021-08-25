@@ -672,7 +672,7 @@ namespace Dalamud.Interface.Internal.Windows
             var condition = Service<Condition>.Get();
 
 #if DEBUG
-            ImGui.Text($"ptr: 0x{condition.ConditionArrayBase.ToInt64():X}");
+            ImGui.Text($"ptr: 0x{condition.Address.ToInt64():X}");
 #endif
 
             ImGui.Text("Current Conditions:");

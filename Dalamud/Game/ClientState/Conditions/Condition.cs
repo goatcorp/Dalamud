@@ -23,14 +23,13 @@ namespace Dalamud.Game.ClientState.Conditions
         /// <param name="resolver">The ClientStateAddressResolver instance.</param>
         internal Condition(ClientStateAddressResolver resolver)
         {
-            this.ConditionArrayBase = resolver.ConditionFlags;
+            this.Address = resolver.ConditionFlags;
         }
 
         /// <summary>
         /// Gets the condition array base pointer.
-        /// Would typically be private but is used in /xldata windows.
         /// </summary>
-        internal IntPtr ConditionArrayBase { get; private set; }
+        public IntPtr Address { get; private set; }
 
         /// <summary>
         /// Check the value of a specific condition/state flag.
@@ -45,7 +44,7 @@ namespace Dalamud.Game.ClientState.Conditions
                 if (idx < 0 || idx >= MaxConditionEntries)
                     return false;
 
-                return *(bool*)(this.ConditionArrayBase + idx);
+                return *(bool*)(this.Address + idx);
             }
         }
 
