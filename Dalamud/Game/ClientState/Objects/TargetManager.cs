@@ -92,7 +92,7 @@ namespace Dalamud.Game.ClientState.Objects
         /// Sets the focus target.
         /// </summary>
         /// <param name="actor">Actor to target.</param>
-        public void SetFocusTarget(GameObject? actor) => this.SetTarget(actor?.Address ?? IntPtr.Zero);
+        public void SetFocusTarget(GameObject? actor) => this.SetFocusTarget(actor?.Address ?? IntPtr.Zero);
 
         /// <summary>
         /// Sets the previous target.
