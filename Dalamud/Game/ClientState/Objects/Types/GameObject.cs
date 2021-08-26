@@ -13,6 +13,11 @@ namespace Dalamud.Game.ClientState.Objects.Types
     public unsafe partial class GameObject : IEquatable<GameObject>
     {
         /// <summary>
+        /// IDs of non-networked GameObjects.
+        /// </summary>
+        public const uint InvalidGameObjectId = 0xE0000000;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="GameObject"/> class.
         /// </summary>
         /// <param name="address">The address of this game object in memory.</param>
@@ -156,7 +161,8 @@ namespace Dalamud.Game.ClientState.Objects.Types
         /// <remarks>
         /// This iterates the actor table, it should be used with care.
         /// </remarks>
-        public virtual GameObject? TargetObject => Service<ObjectTable>.Get().SearchById(this.TargetObjectId);
+        // TODO: Fix for non-networked GameObjects
+        public virtual GameObject? TargetObject => this.TargetObjectId != InvalidGameObjectId ? Service<ObjectTable>.Get().SearchById(this.TargetObjectId) : null;
 
         /// <summary>
         /// Gets the underlying structure.
