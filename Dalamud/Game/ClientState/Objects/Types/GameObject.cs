@@ -162,7 +162,7 @@ namespace Dalamud.Game.ClientState.Objects.Types
         /// This iterates the actor table, it should be used with care.
         /// </remarks>
         // TODO: Fix for non-networked GameObjects
-        public virtual GameObject? TargetObject => this.TargetObjectId != InvalidGameObjectId ? Service<ObjectTable>.Get().SearchById(this.TargetObjectId) : null;
+        public virtual GameObject? TargetObject => Service<ObjectTable>.Get().SearchById(this.TargetObjectId);
 
         /// <summary>
         /// Gets the underlying structure.
