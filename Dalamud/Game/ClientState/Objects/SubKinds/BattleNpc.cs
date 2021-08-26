@@ -23,5 +23,8 @@ namespace Dalamud.Game.ClientState.Objects.Types
         /// Gets the BattleNpc <see cref="BattleNpcSubKind" /> of this BattleNpc.
         /// </summary>
         public BattleNpcSubKind BattleNpcKind => (BattleNpcSubKind)this.Struct->Character.GameObject.SubKind;
+
+        /// <inheritdoc/>
+        public override uint TargetObjectId => this.Struct->BattleNpcTargetObjectId;
     }
 }
