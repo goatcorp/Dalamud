@@ -1,11 +1,12 @@
 using System;
+using System.IO;
 
+using Dalamud.Configuration.Internal;
 using Dalamud.Game.Command;
-using Dalamud.Game.Gui;
 using Dalamud.Interface.Windowing;
-using Dalamud.IoC;
 using Dalamud.Logging;
 using Dalamud.Plugin;
+using Dalamud.Utility;
 
 namespace Dalamud.CorePlugin
 {
@@ -13,20 +14,27 @@ namespace Dalamud.CorePlugin
     /// This class is a a plugin testbed for developing new Dalamud features with easy access to Dalamud itself.
     /// Be careful to not commit anything extra.
     /// </summary>
+    /// <remarks>
+    /// ██████╗ ███████╗ █████╗ ██████╗     ████████╗██╗  ██╗██╗███████╗
+    /// ██╔══██╗██╔════╝██╔══██╗██╔══██╗    ╚══██╔══╝██║  ██║██║██╔════╝
+    /// ██████╔╝█████╗  ███████║██║  ██║       ██║   ███████║██║███████╗
+    /// ██╔══██╗██╔══╝  ██╔══██║██║  ██║       ██║   ██╔══██║██║╚════██║
+    /// ██║  ██║███████╗██║  ██║██████╔╝       ██║   ██║  ██║██║███████║
+    /// ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═════╝        ╚═╝   ╚═╝  ╚═╝╚═╝╚══════╝
+    /// CorePlugin should not be used as a base for new plugins. Use this instead https://github.com/goatcorp/SamplePlugin.
+    /// While it may have similarities, it is compiled with access to Dalamud internals, which may cause confusion when
+    /// some things work and others don't in normal operations.
+    /// </remarks>
     public sealed class PluginImpl : IDalamudPlugin
     {
         private readonly WindowSystem windowSystem = new("Dalamud.CorePlugin");
-
-        // private Localization localizationManager;
-
-        [PluginService]
-        public static CommandManager CmdManager { get; private set; }
+        private Localization localization;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PluginImpl"/> class.
         /// </summary>
         /// <param name="pluginInterface">Dalamud plugin interface.</param>
-        public PluginImpl(DalamudPluginInterface pluginInterface, ChatGui chatGui)
+        public PluginImpl(DalamudPluginInterface pluginInterface)
         {
             try
             {
@@ -38,7 +46,7 @@ namespace Dalamud.CorePlugin
                 this.Interface.UiBuilder.Draw += this.OnDraw;
                 this.Interface.UiBuilder.OpenConfigUi += this.OnOpenConfigUi;
 
-                CmdManager.AddHandler("/coreplug", new(this.OnCommand) { HelpMessage = $"Access the {this.Name} plugin." });
+                Service<CommandManager>.Get().AddHandler("/coreplug", new(this.OnCommand) { HelpMessage = $"Access the {this.Name} plugin." });
 
                 PluginLog.Information("CorePlugin ctor!");
             }
@@ -59,7 +67,7 @@ namespace Dalamud.CorePlugin
         /// <inheritdoc/>
         public void Dispose()
         {
-            CmdManager.RemoveHandler("/coreplug");
+            Service<CommandManager>.Get().RemoveHandler("/coreplug");
 
             this.Interface.UiBuilder.Draw -= this.OnDraw;
 
@@ -68,19 +76,24 @@ namespace Dalamud.CorePlugin
             this.Interface.Dispose();
         }
 
-        // private void InitLoc()
-        // {
-        //     // CheapLoc needs to be reinitialized here because it tracks the setup by assembly name. New assembly, new setup.
-        //     this.localizationManager = new Localization(Path.Combine(Dalamud.Instance.AssetDirectory.FullName, "UIRes", "loc", "dalamud"), "dalamud_");
-        //     if (!string.IsNullOrEmpty(Dalamud.Instance.Configuration.LanguageOverride))
-        //     {
-        //         this.localizationManager.SetupWithLangCode(Dalamud.Instance.Configuration.LanguageOverride);
-        //     }
-        //     else
-        //     {
-        //         this.localizationManager.SetupWithUiCulture();
-        //     }
-        // }
+        /// <summary>
+        /// CheapLoc needs to be reinitialized here because it tracks the setup by assembly name. New assembly, new setup.
+        /// </summary>
+        public void InitLoc()
+        {
+            var dalamud = Service<Dalamud>.Get();
+            var dalamudConfig = Service<DalamudConfiguration>.Get();
+
+            this.localization = new Localization(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "loc", "dalamud"), "dalamud_");
+            if (!dalamudConfig.LanguageOverride.IsNullOrEmpty())
+            {
+                this.localization.SetupWithLangCode(dalamudConfig.LanguageOverride);
+            }
+            else
+            {
+                this.localization.SetupWithUiCulture();
+            }
+        }
 
         /// <summary>
         /// Draw the window system.
@@ -100,6 +113,7 @@ namespace Dalamud.CorePlugin
         private void OnCommand(string command, string args)
         {
             PluginLog.Information("Command called!");
+
             // this.window.IsOpen = true;
         }
 
