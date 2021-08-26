@@ -33,6 +33,6 @@ namespace Dalamud.Game.ClientState.Objects.SubKinds
         /// <summary>
         /// Gets the target actor ID of the PlayerCharacter.
         /// </summary>
-        public override uint TargetObjectId => this.Struct->Character.GameObject.TargetObjectID;
+        public override uint TargetObjectId => this.Struct->Character.TargetObjectID;
     }
 }

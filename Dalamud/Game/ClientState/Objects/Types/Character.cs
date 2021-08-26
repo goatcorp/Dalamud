@@ -86,7 +86,7 @@ namespace Dalamud.Game.ClientState.Objects.Types
         /// <summary>
         /// Gets the target object ID of the character.
         /// </summary>
-        public override uint TargetObjectId => this.Struct->GameObject.TargetObjectID;
+        public override uint TargetObjectId => this.Struct->TargetObjectID;
 
         /// <summary>
         /// Gets the name ID of the character.
