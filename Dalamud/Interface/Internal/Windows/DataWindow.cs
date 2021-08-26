@@ -937,7 +937,20 @@ namespace Dalamud.Interface.Internal.Windows
             if (targetMgr.Target != null)
             {
                 this.PrintGameObject(targetMgr.Target, "CurrentTarget");
+
+                ImGui.Text("Target");
                 Util.ShowObject(targetMgr.Target);
+
+                var tot = targetMgr.Target.TargetObject;
+                if (tot != null)
+                {
+                    ImGuiHelpers.ScaledDummy(10);
+
+                    ImGui.Text("ToT");
+                    Util.ShowObject(tot);
+                }
+
+                ImGuiHelpers.ScaledDummy(10);
             }
 
             if (targetMgr.FocusTarget != null)
