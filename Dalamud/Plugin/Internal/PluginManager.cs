@@ -148,6 +148,7 @@ namespace Dalamud.Plugin.Internal
 
             var repos = new List<PluginRepository>() { PluginRepository.MainRepo };
             repos.AddRange(configuration.ThirdRepoList
+                .Where(repo => repo.IsEnabled)
                 .Select(repo => new PluginRepository(repo.Url, repo.IsEnabled)));
 
             this.Repos = repos;
