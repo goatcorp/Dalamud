@@ -146,8 +146,8 @@ namespace Dalamud
                     if (!oldFile.Exists)
                         oldFile.Create().Close();
 
-                    using var reader = new BinaryReader(logFile.Open(FileMode.Open, FileAccess.Read));
-                    using var writer = new BinaryWriter(oldFile.Open(FileMode.Append, FileAccess.Write));
+                    using var reader = new BinaryReader(logFile.Open(FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
+                    using var writer = new BinaryWriter(oldFile.Open(FileMode.Append, FileAccess.Write, FileShare.ReadWrite));
 
                     var read = -1;
                     var total = 0;
