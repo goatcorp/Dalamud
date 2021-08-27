@@ -15,6 +15,12 @@ namespace Dalamud.Plugin
         /// <inheritdoc cref="CallGatePubSubBase.RegisterFunc"/>
         public void RegisterFunc(Func<TRet> func);
 
+        /// <inheritdoc cref="CallGatePubSubBase.UnregisterAction"/>
+        public void UnregisterAction();
+
+        /// <inheritdoc cref="CallGatePubSubBase.UnregisterFunc"/>
+        public void UnregisterFunc();
+
         /// <inheritdoc cref="CallGatePubSubBase.SendMessage"/>
         public void SendMessage();
     }
@@ -27,6 +33,12 @@ namespace Dalamud.Plugin
 
         /// <inheritdoc cref="CallGatePubSubBase.RegisterFunc"/>
         public void RegisterFunc(Func<T1, TRet> func);
+
+        /// <inheritdoc cref="CallGatePubSubBase.UnregisterAction"/>
+        public void UnregisterAction();
+
+        /// <inheritdoc cref="CallGatePubSubBase.UnregisterFunc"/>
+        public void UnregisterFunc();
 
         /// <inheritdoc cref="CallGatePubSubBase.SendMessage"/>
         public void SendMessage(T1 arg1);
@@ -41,6 +53,12 @@ namespace Dalamud.Plugin
         /// <inheritdoc cref="CallGatePubSubBase.RegisterFunc"/>
         public void RegisterFunc(Func<T1, T2, TRet> func);
 
+        /// <inheritdoc cref="CallGatePubSubBase.UnregisterAction"/>
+        public void UnregisterAction();
+
+        /// <inheritdoc cref="CallGatePubSubBase.UnregisterFunc"/>
+        public void UnregisterFunc();
+
         /// <inheritdoc cref="CallGatePubSubBase.SendMessage"/>
         public void SendMessage(T1 arg1, T2 arg2);
     }
@@ -53,6 +71,12 @@ namespace Dalamud.Plugin
 
         /// <inheritdoc cref="CallGatePubSubBase.RegisterFunc"/>
         public void RegisterFunc(Func<T1, T2, T3, TRet> func);
+
+        /// <inheritdoc cref="CallGatePubSubBase.UnregisterAction"/>
+        public void UnregisterAction();
+
+        /// <inheritdoc cref="CallGatePubSubBase.UnregisterFunc"/>
+        public void UnregisterFunc();
 
         /// <inheritdoc cref="CallGatePubSubBase.SendMessage"/>
         public void SendMessage(T1 arg1, T2 arg2, T3 arg3);
@@ -67,6 +91,12 @@ namespace Dalamud.Plugin
         /// <inheritdoc cref="CallGatePubSubBase.RegisterFunc"/>
         public void RegisterFunc(Func<T1, T2, T3, T4, TRet> func);
 
+        /// <inheritdoc cref="CallGatePubSubBase.UnregisterAction"/>
+        public void UnregisterAction();
+
+        /// <inheritdoc cref="CallGatePubSubBase.UnregisterFunc"/>
+        public void UnregisterFunc();
+
         /// <inheritdoc cref="CallGatePubSubBase.SendMessage"/>
         public void SendMessage(T1 arg1, T2 arg2, T3 arg3, T4 arg4);
     }
@@ -79,6 +109,12 @@ namespace Dalamud.Plugin
 
         /// <inheritdoc cref="CallGatePubSubBase.RegisterFunc"/>
         public void RegisterFunc(Func<T1, T2, T3, T4, T5, TRet> func);
+
+        /// <inheritdoc cref="CallGatePubSubBase.UnregisterAction"/>
+        public void UnregisterAction();
+
+        /// <inheritdoc cref="CallGatePubSubBase.UnregisterFunc"/>
+        public void UnregisterFunc();
 
         /// <inheritdoc cref="CallGatePubSubBase.SendMessage"/>
         public void SendMessage(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5);
@@ -93,6 +129,12 @@ namespace Dalamud.Plugin
         /// <inheritdoc cref="CallGatePubSubBase.RegisterFunc"/>
         public void RegisterFunc(Func<T1, T2, T3, T4, T5, T6, TRet> func);
 
+        /// <inheritdoc cref="CallGatePubSubBase.UnregisterAction"/>
+        public void UnregisterAction();
+
+        /// <inheritdoc cref="CallGatePubSubBase.UnregisterFunc"/>
+        public void UnregisterFunc();
+
         /// <inheritdoc cref="CallGatePubSubBase.SendMessage"/>
         public void SendMessage(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6);
     }
@@ -106,6 +148,12 @@ namespace Dalamud.Plugin
         /// <inheritdoc cref="CallGatePubSubBase.RegisterFunc"/>
         public void RegisterFunc(Func<T1, T2, T3, T4, T5, T6, T7, TRet> func);
 
+        /// <inheritdoc cref="CallGatePubSubBase.UnregisterAction"/>
+        public void UnregisterAction();
+
+        /// <inheritdoc cref="CallGatePubSubBase.UnregisterFunc"/>
+        public void UnregisterFunc();
+
         /// <inheritdoc cref="CallGatePubSubBase.SendMessage"/>
         public void SendMessage(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7);
     }
@@ -118,6 +166,12 @@ namespace Dalamud.Plugin
 
         /// <inheritdoc cref="CallGatePubSubBase.RegisterFunc"/>
         public void RegisterFunc(Func<T1, T2, T3, T4, T5, T6, T7, T8, TRet> func);
+
+        /// <inheritdoc cref="CallGatePubSubBase.UnregisterAction"/>
+        public void UnregisterAction();
+
+        /// <inheritdoc cref="CallGatePubSubBase.UnregisterFunc"/>
+        public void UnregisterFunc();
 
         /// <inheritdoc cref="CallGatePubSubBase.SendMessage"/>
         public void SendMessage(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8);
