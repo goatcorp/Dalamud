@@ -572,8 +572,8 @@ namespace Dalamud.Plugin.Internal
             this.installedPlugins.Remove(plugin);
             PluginLocations.Remove(plugin.AssemblyName.FullName);
 
-            this.NotifyAvailablePluginsChanged();
             this.NotifyInstalledPluginsChanged();
+            this.NotifyAvailablePluginsChanged();
         }
 
         /// <summary>
