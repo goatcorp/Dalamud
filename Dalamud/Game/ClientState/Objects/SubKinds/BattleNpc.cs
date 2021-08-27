@@ -25,6 +25,6 @@ namespace Dalamud.Game.ClientState.Objects.Types
         public BattleNpcSubKind BattleNpcKind => (BattleNpcSubKind)this.Struct->Character.GameObject.SubKind;
 
         /// <inheritdoc/>
-        public override uint TargetObjectId => this.Struct->BattleNpcTargetObjectId;
+        public override uint TargetObjectId => this.Struct->Character.TargetObjectID;
     }
 }
