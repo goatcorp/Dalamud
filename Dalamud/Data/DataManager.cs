@@ -29,11 +29,6 @@ namespace Dalamud.Data
     {
         private const string IconFileFormat = "ui/icon/{0:D3}000/{1}{2:D6}.tex";
 
-        /// <summary>
-        /// A <see cref="Lumina"/> object which gives access to any excel/game data.
-        /// </summary>
-        private GameData gameData;
-
         private Thread luminaResourceThread;
         private CancellationTokenSource luminaCancellationTokenSource;
 
@@ -65,9 +60,14 @@ namespace Dalamud.Data
         public ReadOnlyDictionary<string, ushort> ClientOpCodes { get; private set; }
 
         /// <summary>
+        /// Gets a <see cref="Lumina"/> object which gives access to any excel/game data.
+        /// </summary>
+        public GameData GameData { get; private set; }
+
+        /// <summary>
         /// Gets an <see cref="ExcelModule"/> object which gives access to any of the game's sheet data.
         /// </summary>
-        public ExcelModule Excel => this.gameData?.Excel;
+        public ExcelModule Excel => this.GameData?.Excel;
 
         /// <summary>
         /// Gets a value indicating whether Game Data is ready to be read.
@@ -118,7 +118,7 @@ namespace Dalamud.Data
             var filePath = GameData.ParseFilePath(path);
             if (filePath == null)
                 return default;
-            return this.gameData.Repositories.TryGetValue(filePath.Repository, out var repository) ? repository.GetFile<T>(filePath.Category, filePath) : default;
+            return this.GameData.Repositories.TryGetValue(filePath.Repository, out var repository) ? repository.GetFile<T>(filePath.Category, filePath) : default;
         }
 
         /// <summary>
@@ -128,7 +128,7 @@ namespace Dalamud.Data
         /// <returns>True if the file exists.</returns>
         public bool FileExists(string path)
         {
-            return this.gameData.FileExists(path);
+            return this.GameData.FileExists(path);
         }
 
         /// <summary>
@@ -312,10 +312,10 @@ namespace Dalamud.Data
                 var processModule = Process.GetCurrentProcess().MainModule;
                 if (processModule != null)
                 {
-                    this.gameData = new GameData(Path.Combine(Path.GetDirectoryName(processModule.FileName), "sqpack"), luminaOptions);
+                    this.GameData = new GameData(Path.Combine(Path.GetDirectoryName(processModule.FileName), "sqpack"), luminaOptions);
                 }
 
-                Log.Information("Lumina is ready: {0}", this.gameData.DataPath);
+                Log.Information("Lumina is ready: {0}", this.GameData.DataPath);
 
                 this.IsDataReady = true;
 
@@ -326,9 +326,9 @@ namespace Dalamud.Data
                 {
                     while (!luminaCancellationToken.IsCancellationRequested)
                     {
-                        if (this.gameData.FileHandleManager.HasPendingFileLoads)
+                        if (this.GameData.FileHandleManager.HasPendingFileLoads)
                         {
-                            this.gameData.ProcessFileHandleQueue();
+                            this.GameData.ProcessFileHandleQueue();
                         }
                         else
                         {
