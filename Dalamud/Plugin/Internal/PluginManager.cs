@@ -958,7 +958,7 @@ namespace Dalamud.Plugin.Internal
             {
                 this.AvailablePlugins = ImmutableList.CreateRange(this.availablePlugins);
                 this.UpdatablePlugins = ImmutableList.CreateRange(this.updatablePlugins);
-                this.OnAvailablePluginsChanged.Invoke();
+                this.OnAvailablePluginsChanged?.Invoke();
             }
             catch (Exception ex)
             {
@@ -974,7 +974,7 @@ namespace Dalamud.Plugin.Internal
             {
                 this.InstalledPlugins = ImmutableList.CreateRange(this.installedPlugins);
                 this.UpdatablePlugins = ImmutableList.CreateRange(this.updatablePlugins);
-                this.OnInstalledPluginsChanged.Invoke();
+                this.OnInstalledPluginsChanged?.Invoke();
             }
             catch (Exception ex)
             {

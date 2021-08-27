@@ -198,8 +198,7 @@ namespace Dalamud
                     var info = "Further information could not be obtained";
                     if (ex.TargetSite != null && ex.TargetSite.DeclaringType != null)
                     {
-                        info =
-                            $"{ex.TargetSite.DeclaringType.Assembly.GetName().Name}, {ex.TargetSite.DeclaringType.FullName}::{ex.TargetSite.Name}";
+                        info = $"{ex.TargetSite.DeclaringType.Assembly.GetName().Name}, {ex.TargetSite.DeclaringType.FullName}::{ex.TargetSite.Name}";
                     }
 
                     const MessageBoxType flags = NativeFunctions.MessageBoxType.YesNo | NativeFunctions.MessageBoxType.IconError | NativeFunctions.MessageBoxType.SystemModal;
