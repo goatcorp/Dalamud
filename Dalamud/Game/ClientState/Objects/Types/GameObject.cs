@@ -170,6 +170,6 @@ namespace Dalamud.Game.ClientState.Objects.Types
         private protected FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject* Struct => (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)this.Address;
 
         /// <inheritdoc/>
-        public override string ToString() => $"{this.ObjectId:X}({this.Name.TextValue} - {this.ObjectKind.ToString()}) at {this.Address:X}";
+        public override string ToString() => $"{this.ObjectId:X}({this.Name.TextValue} - {this.ObjectKind}) at {this.Address:X}";
     }
 }
