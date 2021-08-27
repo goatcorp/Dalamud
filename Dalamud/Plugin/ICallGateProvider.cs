@@ -36,7 +36,7 @@ namespace Dalamud.Plugin
     public interface ICallGateProvider<T1, T2, TRet>
     {
         /// <inheritdoc cref="CallGatePubSubBase.RegisterAction"/>
-        public void RegisterAction(Action<T1> action);
+        public void RegisterAction(Action<T1, T2> action);
 
         /// <inheritdoc cref="CallGatePubSubBase.RegisterFunc"/>
         public void RegisterFunc(Func<T1, T2, TRet> func);
@@ -49,7 +49,7 @@ namespace Dalamud.Plugin
     public interface ICallGateProvider<T1, T2, T3, TRet>
     {
         /// <inheritdoc cref="CallGatePubSubBase.RegisterAction"/>
-        public void RegisterAction(Action<T1> action);
+        public void RegisterAction(Action<T1, T2, T3> action);
 
         /// <inheritdoc cref="CallGatePubSubBase.RegisterFunc"/>
         public void RegisterFunc(Func<T1, T2, T3, TRet> func);
@@ -62,7 +62,7 @@ namespace Dalamud.Plugin
     public interface ICallGateProvider<T1, T2, T3, T4, TRet>
     {
         /// <inheritdoc cref="CallGatePubSubBase.RegisterAction"/>
-        public void RegisterAction(Action<T1> action);
+        public void RegisterAction(Action<T1, T2, T3, T4> action);
 
         /// <inheritdoc cref="CallGatePubSubBase.RegisterFunc"/>
         public void RegisterFunc(Func<T1, T2, T3, T4, TRet> func);
@@ -75,7 +75,7 @@ namespace Dalamud.Plugin
     public interface ICallGateProvider<T1, T2, T3, T4, T5, TRet>
     {
         /// <inheritdoc cref="CallGatePubSubBase.RegisterAction"/>
-        public void RegisterAction(Action<T1> action);
+        public void RegisterAction(Action<T1, T2, T3, T4, T5> action);
 
         /// <inheritdoc cref="CallGatePubSubBase.RegisterFunc"/>
         public void RegisterFunc(Func<T1, T2, T3, T4, T5, TRet> func);
@@ -88,7 +88,7 @@ namespace Dalamud.Plugin
     public interface ICallGateProvider<T1, T2, T3, T4, T5, T6, TRet>
     {
         /// <inheritdoc cref="CallGatePubSubBase.RegisterAction"/>
-        public void RegisterAction(Action<T1> action);
+        public void RegisterAction(Action<T1, T2, T3, T4, T5, T6> action);
 
         /// <inheritdoc cref="CallGatePubSubBase.RegisterFunc"/>
         public void RegisterFunc(Func<T1, T2, T3, T4, T5, T6, TRet> func);
@@ -101,7 +101,7 @@ namespace Dalamud.Plugin
     public interface ICallGateProvider<T1, T2, T3, T4, T5, T6, T7, TRet>
     {
         /// <inheritdoc cref="CallGatePubSubBase.RegisterAction"/>
-        public void RegisterAction(Action<T1> action);
+        public void RegisterAction(Action<T1, T2, T3, T4, T5, T6, T7> action);
 
         /// <inheritdoc cref="CallGatePubSubBase.RegisterFunc"/>
         public void RegisterFunc(Func<T1, T2, T3, T4, T5, T6, T7, TRet> func);
@@ -114,7 +114,7 @@ namespace Dalamud.Plugin
     public interface ICallGateProvider<T1, T2, T3, T4, T5, T6, T7, T8, TRet>
     {
         /// <inheritdoc cref="CallGatePubSubBase.RegisterAction"/>
-        public void RegisterAction(Action<T1> action);
+        public void RegisterAction(Action<T1, T2, T3, T4, T5, T6, T7, T8> action);
 
         /// <inheritdoc cref="CallGatePubSubBase.RegisterFunc"/>
         public void RegisterFunc(Func<T1, T2, T3, T4, T5, T6, T7, T8, TRet> func);

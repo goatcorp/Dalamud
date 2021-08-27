@@ -42,10 +42,10 @@ namespace Dalamud.Plugin
     public interface ICallGateSubscriber<T1, T2, TRet>
     {
         /// <inheritdoc cref="CallGatePubSubBase.Subscribe"/>
-        public void Subscribe(Action<T1> action);
+        public void Subscribe(Action<T1, T2> action);
 
         /// <inheritdoc cref="CallGatePubSubBase.Unsubscribe"/>
-        public void Unsubscribe(Action<T1> action);
+        public void Unsubscribe(Action<T1, T2> action);
 
         /// <inheritdoc cref="CallGatePubSubBase.InvokeAction"/>
         public void InvokeAction(T1 arg1, T2 arg2);
@@ -58,10 +58,10 @@ namespace Dalamud.Plugin
     public interface ICallGateSubscriber<T1, T2, T3, TRet>
     {
         /// <inheritdoc cref="CallGatePubSubBase.Subscribe"/>
-        public void Subscribe(Action<T1> action);
+        public void Subscribe(Action<T1, T2, T3> action);
 
         /// <inheritdoc cref="CallGatePubSubBase.Unsubscribe"/>
-        public void Unsubscribe(Action<T1> action);
+        public void Unsubscribe(Action<T1, T2, T3> action);
 
         /// <inheritdoc cref="CallGatePubSubBase.InvokeAction"/>
         public void InvokeAction(T1 arg1, T2 arg2, T3 arg3);
@@ -74,10 +74,10 @@ namespace Dalamud.Plugin
     public interface ICallGateSubscriber<T1, T2, T3, T4, TRet>
     {
         /// <inheritdoc cref="CallGatePubSubBase.Subscribe"/>
-        public void Subscribe(Action<T1> action);
+        public void Subscribe(Action<T1, T2, T3, T4> action);
 
         /// <inheritdoc cref="CallGatePubSubBase.Unsubscribe"/>
-        public void Unsubscribe(Action<T1> action);
+        public void Unsubscribe(Action<T1, T2, T3, T4> action);
 
         /// <inheritdoc cref="CallGatePubSubBase.InvokeAction"/>
         public void InvokeAction(T1 arg1, T2 arg2, T3 arg3, T4 arg4);
@@ -90,10 +90,10 @@ namespace Dalamud.Plugin
     public interface ICallGateSubscriber<T1, T2, T3, T4, T5, TRet>
     {
         /// <inheritdoc cref="CallGatePubSubBase.Subscribe"/>
-        public void Subscribe(Action<T1> action);
+        public void Subscribe(Action<T1, T2, T3, T4, T5> action);
 
         /// <inheritdoc cref="CallGatePubSubBase.Unsubscribe"/>
-        public void Unsubscribe(Action<T1> action);
+        public void Unsubscribe(Action<T1, T2, T3, T4, T5> action);
 
         /// <inheritdoc cref="CallGatePubSubBase.InvokeAction"/>
         public void InvokeAction(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5);
@@ -106,10 +106,10 @@ namespace Dalamud.Plugin
     public interface ICallGateSubscriber<T1, T2, T3, T4, T5, T6, TRet>
     {
         /// <inheritdoc cref="CallGatePubSubBase.Subscribe"/>
-        public void Subscribe(Action<T1> action);
+        public void Subscribe(Action<T1, T2, T3, T4, T5, T6> action);
 
         /// <inheritdoc cref="CallGatePubSubBase.Unsubscribe"/>
-        public void Unsubscribe(Action<T1> action);
+        public void Unsubscribe(Action<T1, T2, T3, T4, T5, T6> action);
 
         /// <inheritdoc cref="CallGatePubSubBase.InvokeAction"/>
         public void InvokeAction(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6);
@@ -122,10 +122,10 @@ namespace Dalamud.Plugin
     public interface ICallGateSubscriber<T1, T2, T3, T4, T5, T6, T7, TRet>
     {
         /// <inheritdoc cref="CallGatePubSubBase.Subscribe"/>
-        public void Subscribe(Action<T1> action);
+        public void Subscribe(Action<T1, T2, T3, T4, T5, T6, T7> action);
 
         /// <inheritdoc cref="CallGatePubSubBase.Unsubscribe"/>
-        public void Unsubscribe(Action<T1> action);
+        public void Unsubscribe(Action<T1, T2, T3, T4, T5, T6, T7> action);
 
         /// <inheritdoc cref="CallGatePubSubBase.InvokeAction"/>
         public void InvokeAction(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7);
@@ -138,10 +138,10 @@ namespace Dalamud.Plugin
     public interface ICallGateSubscriber<T1, T2, T3, T4, T5, T6, T7, T8, TRet>
     {
         /// <inheritdoc cref="CallGatePubSubBase.Subscribe"/>
-        public void Subscribe(Action<T1> action);
+        public void Subscribe(Action<T1, T2, T3, T4, T5, T6, T7, T8> action);
 
         /// <inheritdoc cref="CallGatePubSubBase.Unsubscribe"/>
-        public void Unsubscribe(Action<T1> action);
+        public void Unsubscribe(Action<T1, T2, T3, T4, T5, T6, T7, T8> action);
 
         /// <inheritdoc cref="CallGatePubSubBase.InvokeAction"/>
         public void InvokeAction(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8);
