@@ -50,14 +50,14 @@ namespace Dalamud.Plugin.Internal
             => this.Func = null;
 
         /// <summary>
-        /// Removes a registered Action from inter-plugin communication.
+        /// Registers an Action for inter-plugin communication.
         /// </summary>
         /// <param name="action">Action to register.</param>
         private protected void RegisterAction(Delegate action)
             => this.Action = action;
 
         /// <summary>
-        /// Removes a registered Func from inter-plugin communication.
+        /// Registers a Func for inter-plugin communication.
         /// </summary>
         /// <param name="func">Func to register.</param>
         private protected void RegisterFunc(Delegate func)
