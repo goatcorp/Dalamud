@@ -196,6 +196,10 @@ namespace Dalamud
 
                 Log.Information("[T2] Data OK!");
 
+                Service<SeStringManager>.Set();
+
+                Log.Information("[T2] SeString OK!");
+
                 // Initialize managers. Basically handlers for the logic
                 Service<CommandManager>.Set();
 
