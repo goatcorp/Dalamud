@@ -230,7 +230,7 @@ namespace Dalamud.Memory
         public static SeString ReadSeStringNullTerminated(IntPtr memoryAddress)
         {
             var buffer = ReadRawNullTerminated(memoryAddress);
-            return Service<SeStringManager>.Get().Parse(buffer);
+            return SeString.Parse(buffer);
         }
 
         /// <summary>
@@ -246,13 +246,13 @@ namespace Dalamud.Memory
             var eos = Array.IndexOf(buffer, (byte)0);
             if (eos < 0)
             {
-                return Service<SeStringManager>.Get().Parse(buffer);
+                return SeString.Parse(buffer);
             }
             else
             {
                 var newBuffer = new byte[eos];
                 Buffer.BlockCopy(buffer, 0, newBuffer, 0, eos);
-                return Service<SeStringManager>.Get().Parse(newBuffer);
+                return SeString.Parse(newBuffer);
             }
         }
 

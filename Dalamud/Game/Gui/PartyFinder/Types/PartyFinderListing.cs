@@ -29,7 +29,6 @@ namespace Dalamud.Game.Gui.PartyFinder.Types
         internal PartyFinderListing(PartyFinderPacketListing listing)
         {
             var dataManager = Service<DataManager>.Get();
-            var seStringManager = Service<SeStringManager>.Get();
 
             this.objective = listing.Objective;
             this.conditions = listing.Conditions;
@@ -41,8 +40,8 @@ namespace Dalamud.Game.Gui.PartyFinder.Types
 
             this.Id = listing.Id;
             this.ContentIdLower = listing.ContentIdLower;
-            this.Name = seStringManager.Parse(listing.Name.TakeWhile(b => b != 0).ToArray());
-            this.Description = seStringManager.Parse(listing.Description.TakeWhile(b => b != 0).ToArray());
+            this.Name = SeString.Parse(listing.Name.TakeWhile(b => b != 0).ToArray());
+            this.Description = SeString.Parse(listing.Description.TakeWhile(b => b != 0).ToArray());
             this.World = new Lazy<World>(() => dataManager.GetExcelSheet<World>().GetRow(listing.World));
             this.HomeWorld = new Lazy<World>(() => dataManager.GetExcelSheet<World>().GetRow(listing.HomeWorld));
             this.CurrentWorld = new Lazy<World>(() => dataManager.GetExcelSheet<World>().GetRow(listing.CurrentWorld));

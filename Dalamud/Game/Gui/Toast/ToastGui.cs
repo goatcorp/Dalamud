@@ -164,7 +164,7 @@ namespace Dalamud.Game.Gui.Toast
             }
 
             // call events
-            return Service<SeStringManager>.Get().Parse(bytes.ToArray());
+            return SeString.Parse(bytes.ToArray());
         }
     }
 

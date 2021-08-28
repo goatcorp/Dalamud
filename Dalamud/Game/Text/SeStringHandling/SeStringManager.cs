@@ -16,6 +16,7 @@ namespace Dalamud.Game.Text.SeStringHandling
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
+    [Obsolete("This class is obsolete. Please use the static methods on SeString instead.", true)]
     public sealed class SeStringManager
     {
         /// <summary>
@@ -31,43 +32,24 @@ namespace Dalamud.Game.Text.SeStringHandling
         /// <param name="ptr">Pointer to the string's data in memory.</param>
         /// <param name="len">Length of the string's data in memory.</param>
         /// <returns>An SeString containing parsed Payload objects for each payload in the data.</returns>
-        public unsafe SeString Parse(byte* ptr, int len)
-        {
-            var payloads = new List<Payload>();
-
-            using (var stream = new UnmanagedMemoryStream(ptr, len))
-            using (var reader = new BinaryReader(stream))
-            {
-                while (stream.Position < len)
-                {
-                    var payload = Payload.Decode(reader);
-                    if (payload != null)
-                        payloads.Add(payload);
-                }
-            }
-
-            return new SeString(payloads);
-        }
+        [Obsolete("This method is obsolete. Please use the static methods on SeString instead.", true)]
+        public unsafe SeString Parse(byte* ptr, int len) => SeString.Parse(ptr, len);
 
         /// <summary>
         /// Parse a binary game message into an SeString.
         /// </summary>
         /// <param name="data">Binary message payload data in SE's internal format.</param>
         /// <returns>An SeString containing parsed Payload objects for each payload in the data.</returns>
-        public unsafe SeString Parse(ReadOnlySpan<byte> data)
-        {
-            fixed (byte* ptr = data)
-            {
-                return this.Parse(ptr, data.Length);
-            }
-        }
+        [Obsolete("This method is obsolete. Please use the static methods on SeString instead.", true)]
+        public unsafe SeString Parse(ReadOnlySpan<byte> data) => SeString.Parse(data);
 
         /// <summary>
         /// Parse a binary game message into an SeString.
         /// </summary>
         /// <param name="bytes">Binary message payload data in SE's internal format.</param>
         /// <returns>An SeString containing parsed Payload objects for each payload in the data.</returns>
-        public SeString Parse(byte[] bytes) => this.Parse(new ReadOnlySpan<byte>(bytes));
+        [Obsolete("This method is obsolete. Please use the static methods on SeString instead.", true)]
+        public SeString Parse(byte[] bytes) => SeString.Parse(new ReadOnlySpan<byte>(bytes));
 
         /// <summary>
         /// Creates an SeString representing an entire Payload chain that can be used to link an item in the chat log.
@@ -76,32 +58,8 @@ namespace Dalamud.Game.Text.SeStringHandling
         /// <param name="isHQ">Whether to link the high-quality variant of the item.</param>
         /// <param name="displayNameOverride">An optional name override to display, instead of the actual item name.</param>
         /// <returns>An SeString containing all the payloads necessary to display an item link in the chat log.</returns>
-        public SeString CreateItemLink(uint itemId, bool isHQ, string displayNameOverride = null)
-        {
-            var data = Service<DataManager>.Get();
-
-            var displayName = displayNameOverride ?? data.GetExcelSheet<Item>().GetRow(itemId).Name;
-            if (isHQ)
-            {
-                displayName += $" {(char)SeIconChar.HighQuality}";
-            }
-
-            // TODO: probably a cleaner way to build these than doing the bulk+insert
-            var payloads = new List<Payload>(new Payload[]
-            {
-                new UIForegroundPayload(0x0225),
-                new UIGlowPayload(0x0226),
-                new ItemPayload(itemId, isHQ),
-                // arrow goes here
-                new TextPayload(displayName),
-                RawPayload.LinkTerminator,
-                // sometimes there is another set of uiglow/foreground off payloads here
-                // might be necessary when including additional text after the item name
-            });
-            payloads.InsertRange(3, this.TextArrowPayloads());
-
-            return new SeString(payloads);
-        }
+        [Obsolete("This method is obsolete. Please use the static methods on SeString instead.", true)]
+        public SeString CreateItemLink(uint itemId, bool isHQ, string displayNameOverride = null) => SeString.CreateItemLink(itemId, isHQ, displayNameOverride);
 
         /// <summary>
         /// Creates an SeString representing an entire Payload chain that can be used to link an item in the chat log.
@@ -110,10 +68,8 @@ namespace Dalamud.Game.Text.SeStringHandling
         /// <param name="isHQ">Whether to link the high-quality variant of the item.</param>
         /// <param name="displayNameOverride">An optional name override to display, instead of the actual item name.</param>
         /// <returns>An SeString containing all the payloads necessary to display an item link in the chat log.</returns>
-        public SeString CreateItemLink(Item item, bool isHQ, string displayNameOverride = null)
-        {
-            return this.CreateItemLink(item.RowId, isHQ, displayNameOverride ?? item.Name);
-        }
+        [Obsolete("This method is obsolete. Please use the static methods on SeString instead.", true)]
+        public SeString CreateItemLink(Item item, bool isHQ, string displayNameOverride = null) => SeString.CreateItemLink(item, isHQ, displayNameOverride);
 
         /// <summary>
         /// Creates an SeString representing an entire Payload chain that can be used to link a map position in the chat log.
@@ -123,22 +79,9 @@ namespace Dalamud.Game.Text.SeStringHandling
         /// <param name="rawX">The raw x-coordinate for this link.</param>
         /// <param name="rawY">The raw y-coordinate for this link..</param>
         /// <returns>An SeString containing all of the payloads necessary to display a map link in the chat log.</returns>
-        public SeString CreateMapLink(uint territoryId, uint mapId, int rawX, int rawY)
-        {
-            var mapPayload = new MapLinkPayload(territoryId, mapId, rawX, rawY);
-            var nameString = $"{mapPayload.PlaceName} {mapPayload.CoordinateString}";
-
-            var payloads = new List<Payload>(new Payload[]
-            {
-                mapPayload,
-                // arrow goes here
-                new TextPayload(nameString),
-                RawPayload.LinkTerminator,
-            });
-            payloads.InsertRange(1, this.TextArrowPayloads());
-
-            return new SeString(payloads);
-        }
+        [Obsolete("This method is obsolete. Please use the static methods on SeString instead.", true)]
+        public SeString CreateMapLink(uint territoryId, uint mapId, int rawX, int rawY) =>
+            SeString.CreateMapLink(territoryId, mapId, rawX, rawY);
 
         /// <summary>
         /// Creates an SeString representing an entire Payload chain that can be used to link a map position in the chat log.
@@ -149,22 +92,8 @@ namespace Dalamud.Game.Text.SeStringHandling
         /// <param name="yCoord">The human-readable y-coordinate for this link.</param>
         /// <param name="fudgeFactor">An optional offset to account for rounding and truncation errors; it is best to leave this untouched in most cases.</param>
         /// <returns>An SeString containing all of the payloads necessary to display a map link in the chat log.</returns>
-        public SeString CreateMapLink(uint territoryId, uint mapId, float xCoord, float yCoord, float fudgeFactor = 0.05f)
-        {
-            var mapPayload = new MapLinkPayload(territoryId, mapId, xCoord, yCoord, fudgeFactor);
-            var nameString = $"{mapPayload.PlaceName} {mapPayload.CoordinateString}";
-
-            var payloads = new List<Payload>(new Payload[]
-            {
-                mapPayload,
-                // arrow goes here
-                new TextPayload(nameString),
-                RawPayload.LinkTerminator,
-            });
-            payloads.InsertRange(1, this.TextArrowPayloads());
-
-            return new SeString(payloads);
-        }
+        [Obsolete("This method is obsolete. Please use the static methods on SeString instead.", true)]
+        public SeString CreateMapLink(uint territoryId, uint mapId, float xCoord, float yCoord, float fudgeFactor = 0.05f) => SeString.CreateMapLink(territoryId, mapId, xCoord, yCoord, fudgeFactor);
 
         /// <summary>
         /// Creates an SeString representing an entire Payload chain that can be used to link a map position in the chat log, matching a specified zone name.
@@ -174,44 +103,15 @@ namespace Dalamud.Game.Text.SeStringHandling
         /// <param name="yCoord">The human-readable y-coordinate for this link.</param>
         /// <param name="fudgeFactor">An optional offset to account for rounding and truncation errors; it is best to leave this untouched in most cases.</param>
         /// <returns>An SeString containing all of the payloads necessary to display a map link in the chat log.</returns>
-        public SeString CreateMapLink(string placeName, float xCoord, float yCoord, float fudgeFactor = 0.05f)
-        {
-            var data = Service<DataManager>.Get();
-
-            var mapSheet = data.GetExcelSheet<Map>();
-
-            var matches = data.GetExcelSheet<PlaceName>()
-                              .Where(row => row.Name.ToString().ToLowerInvariant() == placeName.ToLowerInvariant())
-                              .ToArray();
-
-            foreach (var place in matches)
-            {
-                var map = mapSheet.FirstOrDefault(row => row.PlaceName.Row == place.RowId);
-                if (map != null)
-                {
-                    return this.CreateMapLink(map.TerritoryType.Row, map.RowId, xCoord, yCoord, fudgeFactor);
-                }
-            }
-
-            // TODO: empty? throw?
-            return null;
-        }
+        [Obsolete("This method is obsolete. Please use the static methods on SeString instead.", true)]
+        public SeString CreateMapLink(string placeName, float xCoord, float yCoord, float fudgeFactor = 0.05f) => SeString.CreateMapLink(placeName, xCoord, yCoord, fudgeFactor);
 
         /// <summary>
         /// Creates a list of Payloads necessary to display the arrow link marker icon in chat
         /// with the appropriate glow and coloring.
         /// </summary>
         /// <returns>A list of all the payloads required to insert the link marker.</returns>
-        public List<Payload> TextArrowPayloads()
-        {
-            return new List<Payload>(new Payload[]
-            {
-                new UIForegroundPayload(0x01F4),
-                new UIGlowPayload(0x01F5),
-                new TextPayload($"{(char)SeIconChar.LinkMarker}"),
-                UIGlowPayload.UIGlowOff,
-                UIForegroundPayload.UIForegroundOff,
-            });
-        }
+        [Obsolete("This data is obsolete. Please use the static version on SeString instead.", true)]
+        public List<Payload> TextArrowPayloads() => new(SeString.TextArrowPayloads);
     }
 }

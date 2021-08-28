@@ -356,8 +356,8 @@ namespace Dalamud.Game.Gui
                 var sender = StdString.ReadFromPointer(pSenderName);
                 var message = StdString.ReadFromPointer(pMessage);
 
-                var parsedSender = Service<SeStringManager>.Get().Parse(sender.RawData);
-                var parsedMessage = Service<SeStringManager>.Get().Parse(message.RawData);
+                var parsedSender = SeString.Parse(sender.RawData);
+                var parsedMessage = SeString.Parse(message.RawData);
 
                 Log.Verbose("[CHATGUI][{0}][{1}]", parsedSender.TextValue, parsedMessage.TextValue);
 
@@ -439,7 +439,7 @@ namespace Dalamud.Game.Gui
                 while (Marshal.ReadByte(payloadPtr, messageSize) != 0) messageSize++;
                 var payloadBytes = new byte[messageSize];
                 Marshal.Copy(payloadPtr, payloadBytes, 0, messageSize);
-                var seStr = Service<SeStringManager>.Get().Parse(payloadBytes);
+                var seStr = SeString.Parse(payloadBytes);
                 var terminatorIndex = seStr.Payloads.IndexOf(RawPayload.LinkTerminator);
                 var payloads = terminatorIndex >= 0 ? seStr.Payloads.Take(terminatorIndex + 1).ToList() : seStr.Payloads;
                 if (payloads.Count == 0) return;
