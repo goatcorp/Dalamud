@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -23,6 +24,13 @@ namespace Dalamud.Game.Text.SeStringHandling
         internal SeStringManager()
         {
         }
+
+        /// <summary>
+        /// Parse a binary game message into an SeString.
+        /// </summary>
+        /// <param name="data">Binary message payload data in SE's internal format.</param>
+        /// <returns>An SeString containing parsed Payload objects for each payload in the data.</returns>
+        public SeString Parse(ReadOnlySpan<byte> data) => this.Parse(data.ToArray());
 
         /// <summary>
         /// Parse a binary game message into an SeString.
