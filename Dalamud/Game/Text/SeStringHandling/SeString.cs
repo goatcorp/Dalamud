@@ -90,13 +90,6 @@ namespace Dalamud.Game.Text.SeStringHandling
         public static implicit operator SeString(string str) => new(new TextPayload(str));
 
         /// <summary>
-        /// Implicitly parse a Lumina SeString into a Dalamud SeString.
-        /// </summary>
-        /// <param name="luminaString">The Lumina SeString.</param>
-        /// <returns>The re-parsed Dalamud SeString.</returns>
-        public static implicit operator SeString(Lumina.Text.SeString luminaString) => Parse(luminaString.RawData);
-
-        /// <summary>
         /// Parse a binary game message into an SeString.
         /// </summary>
         /// <param name="ptr">Pointer to the string's data in memory.</param>
