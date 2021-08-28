@@ -72,6 +72,13 @@ namespace Dalamud.Game.Text.SeStringHandling
         public static implicit operator SeString(string str) => new(new TextPayload(str));
 
         /// <summary>
+        /// Implicitly parse a Lumina SeString into a Dalamud SeString.
+        /// </summary>
+        /// <param name="luminaString">The Lumina SeString.</param>
+        /// <returns>The re-parsed Dalamud SeString.</returns>
+        public static implicit operator SeString(Lumina.Text.SeString luminaString) => Service<SeStringManager>.Get().Parse(luminaString.RawData);
+
+        /// <summary>
         /// Creates a SeString from a json. (For testing - not recommended for production use.)
         /// </summary>
         /// <param name="json">A serialized SeString produced by ToJson() <see cref="ToJson"/>.</param>
