@@ -62,6 +62,11 @@ namespace Dalamud.Game.Text.SeStringHandling
         });
 
         /// <summary>
+        /// Gets an empty SeString.
+        /// </summary>
+        public static SeString Empty => new();
+
+        /// <summary>
         /// Gets the ordered list of payloads included in this SeString.
         /// </summary>
         public List<Payload> Payloads { get; }
@@ -105,6 +110,9 @@ namespace Dalamud.Game.Text.SeStringHandling
         /// <returns>An SeString containing parsed Payload objects for each payload in the data.</returns>
         public static unsafe SeString Parse(byte* ptr, int len)
         {
+            if (ptr == null)
+                return Empty;
+
             var payloads = new List<Payload>();
 
             using (var stream = new UnmanagedMemoryStream(ptr, len))
