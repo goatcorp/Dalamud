@@ -232,6 +232,7 @@ namespace Dalamud.Game.Text.SeStringHandling
 
         /// <summary>
         /// Creates an SeString representing an entire Payload chain that can be used to link a map position in the chat log, matching a specified zone name.
+        /// Returns null if no corresponding PlaceName was found.
         /// </summary>
         /// <param name="placeName">The name of the location for this link.  This should be exactly the name as seen in a displayed map link in-game for the same zone.</param>
         /// <param name="xCoord">The human-readable x-coordinate for this link.</param>
@@ -266,7 +267,7 @@ namespace Dalamud.Game.Text.SeStringHandling
         /// </summary>
         /// <param name="json">A serialized SeString produced by ToJson() <see cref="ToJson"/>.</param>
         /// <returns>A SeString initialized with values from the json.</returns>
-        public static SeString FromJson(string json)
+        public static SeString? FromJson(string json)
         {
             var s = JsonConvert.DeserializeObject<SeString>(json, new JsonSerializerSettings
             {
