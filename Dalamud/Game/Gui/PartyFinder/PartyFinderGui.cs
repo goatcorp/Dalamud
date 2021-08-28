@@ -66,7 +66,15 @@ namespace Dalamud.Game.Gui.PartyFinder
         public void Dispose()
         {
             this.receiveListingHook.Dispose();
-            Marshal.FreeHGlobal(this.memory);
+
+            try
+            {
+                Marshal.FreeHGlobal(this.memory);
+            }
+            catch (BadImageFormatException)
+            {
+                Log.Warning("Could not free PartyFinderGui memory.");
+            }
         }
 
         private void HandleReceiveListingDetour(IntPtr managerPtr, IntPtr data)
