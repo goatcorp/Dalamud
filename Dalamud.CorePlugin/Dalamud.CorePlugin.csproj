@@ -2,12 +2,11 @@
     <PropertyGroup>
         <AssemblyName>Dalamud.CorePlugin</AssemblyName>
         <TargetFramework>net5.0-windows</TargetFramework>
-        <PlatformTarget>x64</PlatformTarget>
-        <Platforms>x64;AnyCPU</Platforms>
+        <Platforms>x64</Platforms>
         <LangVersion>9.0</LangVersion>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
         <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
         <NoWarn>IDE0003</NoWarn>
     </PropertyGroup>
 
@@ -18,20 +17,9 @@
 
     <PropertyGroup Label="Build">
         <OutputPath>$(AppData)\XIVLauncher\devPlugins\Dalamud.CorePlugin</OutputPath>
-        <DefineConstants>DEBUG;TRACE</DefineConstants>
-        <ErrorReport>prompt</ErrorReport>
-        <WarningLevel>4</WarningLevel>
-    </PropertyGroup>
-
-    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " Label="Build">
         <DebugSymbols>true</DebugSymbols>
         <DebugType>full</DebugType>
         <Optimize>false</Optimize>
-    </PropertyGroup>
-
-    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' " Label="Build">
-        <DebugType>pdbonly</DebugType>
-        <Optimize>true</Optimize>
     </PropertyGroup>
 
     <ItemGroup>

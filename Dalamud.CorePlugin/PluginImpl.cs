@@ -27,6 +27,26 @@ namespace Dalamud.CorePlugin
     /// </remarks>
     public sealed class PluginImpl : IDalamudPlugin
     {
+#if !DEBUG
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PluginImpl"/> class.
+        /// </summary>
+        /// <param name="pluginInterface">Dalamud plugin interface.</param>
+        public PluginImpl(DalamudPluginInterface pluginInterface)
+        {
+        }
+
+        /// <inheritdoc/>
+        public string Name => "Dalamud.CorePlugin";
+
+        /// <inheritdoc/>
+        public void Dispose()
+        {
+        }
+
+#else
+
         private readonly WindowSystem windowSystem = new("Dalamud.CorePlugin");
         private Localization localization;
 
@@ -121,5 +141,7 @@ namespace Dalamud.CorePlugin
         {
             // this.window.IsOpen = true;
         }
+
+#endif
     }
 }
