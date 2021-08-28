@@ -32,10 +32,24 @@ namespace Dalamud.Game.ClientState.JobGauge.Types
         public byte CompletedSteps => this.Struct->StepIndex;
 
         /// <summary>
+        /// Gets all the steps in the current dance.
+        /// </summary>
+        public unsafe uint[] Steps
+        {
+            get
+            {
+                var arr = new uint[4];
+                for (var i = 0; i < 4; i++)
+                    arr[i] = this.Struct->DanceSteps[i] + 15999u - 1;
+                return arr;
+            }
+        }
+
+        /// <summary>
         /// Gets the next step in the current dance.
         /// </summary>
         /// <returns>The next dance step action ID.</returns>
-        public ulong NextStep => (ulong)(15999 + this.Struct->DanceSteps[this.Struct->StepIndex] - 1);
+        public uint NextStep => 15999u + this.Struct->DanceSteps[this.Struct->StepIndex] - 1;
 
         /// <summary>
         /// Gets a value indicating whether the player is dancing or not.
