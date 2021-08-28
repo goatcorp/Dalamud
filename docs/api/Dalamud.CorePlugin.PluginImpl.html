@@ -117,6 +117,17 @@ Be careful to not commit anything extra.</p>
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public sealed class PluginImpl : IDalamudPlugin, IDisposable</code></pre>
   </div>
+  <h5 id="Dalamud_CorePlugin_PluginImpl_remarks"><strong>Remarks</strong></h5>
+  <div class="markdown level0 remarks"><p>██████╗ ███████╗ █████╗ ██████╗     ████████╗██╗  ██╗██╗███████╗
+██╔══██╗██╔════╝██╔══██╗██╔══██╗    ╚══██╔══╝██║  ██║██║██╔════╝
+██████╔╝█████╗  ███████║██║  ██║       ██║   ███████║██║███████╗
+██╔══██╗██╔══╝  ██╔══██║██║  ██║       ██║   ██╔══██║██║╚════██║
+██║  ██║███████╗██║  ██║██████╔╝       ██║   ██║  ██║██║███████║
+╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═════╝        ╚═╝   ╚═╝  ╚═╝╚═╝╚══════╝
+CorePlugin should not be used as a base for new plugins. Use this instead <a href="https://github.com/goatcorp/SamplePlugin">https://github.com/goatcorp/SamplePlugin</a>.
+While it may have similarities, it is compiled with access to Dalamud internals, which may cause confusion when
+some things work and others don't in normal operations.</p>
+</div>
   <h3 id="constructors">Constructors
   </h3>
   <span class="small pull-right mobile-hide">
@@ -124,7 +135,7 @@ Be careful to not commit anything extra.</p>
     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_CorePlugin_PluginImpl__ctor_Dalamud_Plugin_DalamudPluginInterface_.md&amp;value=---%0Auid%3A%20Dalamud.CorePlugin.PluginImpl.%23ctor(Dalamud.Plugin.DalamudPluginInterface)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud.CorePlugin/PluginImpl.cs/#L24">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud.CorePlugin/PluginImpl.cs/#L36">View Source</a>
   </span>
   <a id="Dalamud_CorePlugin_PluginImpl__ctor_" data-uid="Dalamud.CorePlugin.PluginImpl.#ctor*"></a>
   <h4 id="Dalamud_CorePlugin_PluginImpl__ctor_Dalamud_Plugin_DalamudPluginInterface_" data-uid="Dalamud.CorePlugin.PluginImpl.#ctor(Dalamud.Plugin.DalamudPluginInterface)">PluginImpl(DalamudPluginInterface)</h4>
@@ -160,7 +171,7 @@ Be careful to not commit anything extra.</p>
     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_CorePlugin_PluginImpl_Name.md&amp;value=---%0Auid%3A%20Dalamud.CorePlugin.PluginImpl.Name%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud.CorePlugin/PluginImpl.cs/#L45">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud.CorePlugin/PluginImpl.cs/#L41">View Source</a>
   </span>
   <a id="Dalamud_CorePlugin_PluginImpl_Name_" data-uid="Dalamud.CorePlugin.PluginImpl.Name*"></a>
   <h4 id="Dalamud_CorePlugin_PluginImpl_Name" data-uid="Dalamud.CorePlugin.PluginImpl.Name">Name</h4>
@@ -193,7 +204,7 @@ Be careful to not commit anything extra.</p>
     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_CorePlugin_PluginImpl_Dispose.md&amp;value=---%0Auid%3A%20Dalamud.CorePlugin.PluginImpl.Dispose%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud.CorePlugin/PluginImpl.cs/#L53">View Source</a>
+    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud.CorePlugin/PluginImpl.cs/#L44">View Source</a>
   </span>
   <a id="Dalamud_CorePlugin_PluginImpl_Dispose_" data-uid="Dalamud.CorePlugin.PluginImpl.Dispose*"></a>
   <h4 id="Dalamud_CorePlugin_PluginImpl_Dispose" data-uid="Dalamud.CorePlugin.PluginImpl.Dispose">Dispose()</h4>
@@ -221,7 +232,7 @@ Be careful to not commit anything extra.</p>
                     <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_CorePlugin_PluginImpl.md&amp;value=---%0Auid%3A%20Dalamud.CorePlugin.PluginImpl%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
                   </li>
                   <li>
-                    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud.CorePlugin/PluginImpl.cs/#L14" class="contribution-link">View Source</a>
+                    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud.CorePlugin/PluginImpl.cs/#L28" class="contribution-link">View Source</a>
                   </li>
                 </ul>
               </div>
