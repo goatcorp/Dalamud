@@ -196,7 +196,9 @@ namespace Dalamud
 
                 Log.Information("[T2] Data OK!");
 
+#pragma warning disable CS0618 // Type or member is obsolete
                 Service<SeStringManager>.Set();
+#pragma warning restore CS0618 // Type or member is obsolete
 
                 Log.Information("[T2] SeString OK!");
 
