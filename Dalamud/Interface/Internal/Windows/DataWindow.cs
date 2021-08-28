@@ -25,7 +25,7 @@ using Dalamud.Game.Text;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.Windowing;
 using Dalamud.Memory;
-using Dalamud.Plugin;
+using Dalamud.Plugin.Ipc;
 using Dalamud.Plugin.Ipc.Internal;
 using Dalamud.Utility;
 using ImGuiNET;
