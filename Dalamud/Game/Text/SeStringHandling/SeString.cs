@@ -6,6 +6,7 @@ using System.Text;
 
 using Dalamud.Data;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
+using Dalamud.Utility;
 using Lumina.Excel.GeneratedSheets;
 using Newtonsoft.Json;
 
@@ -88,6 +89,13 @@ namespace Dalamud.Game.Text.SeStringHandling
         /// <param name="str">string to convert.</param>
         /// <returns>Equivalent SeString.</returns>
         public static implicit operator SeString(string str) => new(new TextPayload(str));
+
+        /// <summary>
+        /// Implicitly convert a string into a SeString containing a <see cref="TextPayload"/>.
+        /// </summary>
+        /// <param name="str">string to convert.</param>
+        /// <returns>Equivalent SeString.</returns>
+        public static explicit operator SeString(Lumina.Text.SeString str) => str.ToDalamudString();
 
         /// <summary>
         /// Parse a binary game message into an SeString.
