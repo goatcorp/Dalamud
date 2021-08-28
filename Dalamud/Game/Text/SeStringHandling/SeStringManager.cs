@@ -28,23 +28,17 @@ namespace Dalamud.Game.Text.SeStringHandling
         /// <summary>
         /// Parse a binary game message into an SeString.
         /// </summary>
-        /// <param name="data">Binary message payload data in SE's internal format.</param>
+        /// <param name="ptr">Pointer to the string's data in memory.</param>
+        /// <param name="len">Length of the string's data in memory.</param>
         /// <returns>An SeString containing parsed Payload objects for each payload in the data.</returns>
-        public SeString Parse(ReadOnlySpan<byte> data) => this.Parse(data.ToArray());
-
-        /// <summary>
-        /// Parse a binary game message into an SeString.
-        /// </summary>
-        /// <param name="bytes">Binary message payload data in SE's internal format.</param>
-        /// <returns>An SeString containing parsed Payload objects for each payload in the data.</returns>
-        public SeString Parse(byte[] bytes)
+        public unsafe SeString Parse(byte* ptr, int len)
         {
             var payloads = new List<Payload>();
 
-            using (var stream = new MemoryStream(bytes))
+            using (var stream = new UnmanagedMemoryStream(ptr, len))
             using (var reader = new BinaryReader(stream))
             {
-                while (stream.Position < bytes.Length)
+                while (stream.Position < len)
                 {
                     var payload = Payload.Decode(reader);
                     if (payload != null)
@@ -54,6 +48,26 @@ namespace Dalamud.Game.Text.SeStringHandling
 
             return new SeString(payloads);
         }
+
+        /// <summary>
+        /// Parse a binary game message into an SeString.
+        /// </summary>
+        /// <param name="data">Binary message payload data in SE's internal format.</param>
+        /// <returns>An SeString containing parsed Payload objects for each payload in the data.</returns>
+        public unsafe SeString Parse(ReadOnlySpan<byte> data)
+        {
+            fixed (byte* ptr = data)
+            {
+                return this.Parse(ptr, data.Length);
+            }
+        }
+
+        /// <summary>
+        /// Parse a binary game message into an SeString.
+        /// </summary>
+        /// <param name="bytes">Binary message payload data in SE's internal format.</param>
+        /// <returns>An SeString containing parsed Payload objects for each payload in the data.</returns>
+        public SeString Parse(byte[] bytes) => this.Parse(new ReadOnlySpan<byte>(bytes));
 
         /// <summary>
         /// Creates an SeString representing an entire Payload chain that can be used to link an item in the chat log.
