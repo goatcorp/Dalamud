@@ -288,6 +288,7 @@ namespace Dalamud.Plugin.Internal
                 if (this.instance == null)
                 {
                     this.State = PluginState.LoadError;
+                    this.DalamudInterface.Dispose();
                     Log.Error($"Error while loading {this.Name}, failed to bind and call the plugin constructor");
                     return;
                 }
