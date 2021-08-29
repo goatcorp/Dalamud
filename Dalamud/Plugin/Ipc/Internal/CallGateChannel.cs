@@ -116,12 +116,18 @@ namespace Dalamud.Plugin.Ipc.Internal
             }
         }
 
-        private object ConvertObject(object? obj, Type type)
+        private object? ConvertObject(object? obj, Type type)
         {
             try
             {
-                var json = JsonConvert.SerializeObject(obj);
-                return JsonConvert.DeserializeObject(json, type);
+                var settings = new JsonSerializerSettings
+                {
+                    TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple,
+                    TypeNameHandling = TypeNameHandling.Objects,
+                };
+
+                var json = JsonConvert.SerializeObject(obj, settings);
+                return JsonConvert.DeserializeObject(json, type, settings);
             }
             catch (Exception ex)
             {
