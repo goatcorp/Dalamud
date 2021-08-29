@@ -25,8 +25,8 @@ using Dalamud.Game.Text;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.Windowing;
 using Dalamud.Memory;
-using Dalamud.Plugin;
-using Dalamud.Plugin.Internal;
+using Dalamud.Plugin.Ipc;
+using Dalamud.Plugin.Ipc.Internal;
 using Dalamud.Utility;
 using ImGuiNET;
 using ImGuiScene;
@@ -617,7 +617,7 @@ namespace Dalamud.Interface.Internal.Windows
         {
             if (this.ipcPub == null)
             {
-                this.ipcPub = Service<CallGate>.Get().GetIpcPubSub<string, string>("dataDemo1");
+                this.ipcPub = new CallGatePubSub<string, string>("dataDemo1");
 
                 this.ipcPub.RegisterAction((msg) =>
                 {
@@ -633,7 +633,7 @@ namespace Dalamud.Interface.Internal.Windows
 
             if (this.ipcSub == null)
             {
-                this.ipcSub = Service<CallGate>.Get().GetIpcPubSub<string, string>("dataDemo1");
+                this.ipcSub = new CallGatePubSub<string, string>("dataDemo1");
                 this.ipcSub.Subscribe((msg) =>
                 {
                     Log.Information("PONG1");

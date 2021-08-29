@@ -2,11 +2,17 @@ using System;
 
 #pragma warning disable SA1402 // File may only contain a single type
 
-namespace Dalamud.Plugin.Internal
+namespace Dalamud.Plugin.Ipc.Internal
 {
     /// <inheritdoc cref="CallGatePubSubBase"/>
     internal class CallGatePubSub<TRet> : CallGatePubSubBase, ICallGateProvider<TRet>, ICallGateSubscriber<TRet>
     {
+        /// <inheritdoc cref="CallGatePubSubBase(string)"/>
+        public CallGatePubSub(string name)
+            : base(name)
+        {
+        }
+
         /// <inheritdoc cref="CallGatePubSubBase.RegisterAction"/>
         public void RegisterAction(Action action)
             => base.RegisterAction(action);
@@ -33,12 +39,18 @@ namespace Dalamud.Plugin.Internal
 
         /// <inheritdoc cref="CallGatePubSubBase.InvokeFunc"/>
         public TRet InvokeFunc()
-            => (TRet)base.InvokeFunc();
+            => this.InvokeFunc<TRet>();
     }
 
     /// <inheritdoc cref="CallGatePubSubBase"/>
     internal class CallGatePubSub<T1, TRet> : CallGatePubSubBase, ICallGateProvider<T1, TRet>, ICallGateSubscriber<T1, TRet>
     {
+        /// <inheritdoc cref="CallGatePubSubBase(string)"/>
+        public CallGatePubSub(string name)
+            : base(name)
+        {
+        }
+
         /// <inheritdoc cref="CallGatePubSubBase.RegisterAction"/>
         public void RegisterAction(Action<T1> action)
             => base.RegisterAction(action);
@@ -65,12 +77,18 @@ namespace Dalamud.Plugin.Internal
 
         /// <inheritdoc cref="CallGatePubSubBase.InvokeFunc"/>
         public TRet InvokeFunc(T1 arg1)
-            => (TRet)base.InvokeFunc(arg1);
+            => this.InvokeFunc<TRet>(arg1);
     }
 
     /// <inheritdoc cref="CallGatePubSubBase"/>
     internal class CallGatePubSub<T1, T2, TRet> : CallGatePubSubBase, ICallGateProvider<T1, T2, TRet>, ICallGateSubscriber<T1, T2, TRet>
     {
+        /// <inheritdoc cref="CallGatePubSubBase(string)"/>
+        public CallGatePubSub(string name)
+            : base(name)
+        {
+        }
+
         /// <inheritdoc cref="CallGatePubSubBase.RegisterAction"/>
         public void RegisterAction(Action<T1, T2> action)
             => base.RegisterAction(action);
@@ -97,12 +115,18 @@ namespace Dalamud.Plugin.Internal
 
         /// <inheritdoc cref="CallGatePubSubBase.InvokeFunc"/>
         public TRet InvokeFunc(T1 arg1, T2 arg2)
-            => (TRet)base.InvokeFunc(arg1, arg2);
+            => this.InvokeFunc<TRet>(arg1, arg2);
     }
 
     /// <inheritdoc cref="CallGatePubSubBase"/>
     internal class CallGatePubSub<T1, T2, T3, TRet> : CallGatePubSubBase, ICallGateProvider<T1, T2, T3, TRet>, ICallGateSubscriber<T1, T2, T3, TRet>
     {
+        /// <inheritdoc cref="CallGatePubSubBase(string)"/>
+        public CallGatePubSub(string name)
+            : base(name)
+        {
+        }
+
         /// <inheritdoc cref="CallGatePubSubBase.RegisterAction"/>
         public void RegisterAction(Action<T1, T2, T3> action)
             => base.RegisterAction(action);
@@ -129,12 +153,18 @@ namespace Dalamud.Plugin.Internal
 
         /// <inheritdoc cref="CallGatePubSubBase.InvokeFunc"/>
         public TRet InvokeFunc(T1 arg1, T2 arg2, T3 arg3)
-            => (TRet)base.InvokeFunc(arg1, arg2, arg3);
+            => this.InvokeFunc<TRet>(arg1, arg2, arg3);
     }
 
     /// <inheritdoc cref="CallGatePubSubBase"/>
     internal class CallGatePubSub<T1, T2, T3, T4, TRet> : CallGatePubSubBase, ICallGateProvider<T1, T2, T3, T4, TRet>, ICallGateSubscriber<T1, T2, T3, T4, TRet>
     {
+        /// <inheritdoc cref="CallGatePubSubBase(string)"/>
+        public CallGatePubSub(string name)
+            : base(name)
+        {
+        }
+
         /// <inheritdoc cref="CallGatePubSubBase.RegisterAction"/>
         public void RegisterAction(Action<T1, T2, T3, T4> action)
             => base.RegisterAction(action);
@@ -161,12 +191,18 @@ namespace Dalamud.Plugin.Internal
 
         /// <inheritdoc cref="CallGatePubSubBase.InvokeFunc"/>
         public TRet InvokeFunc(T1 arg1, T2 arg2, T3 arg3, T4 arg4)
-            => (TRet)base.InvokeFunc(arg1, arg2, arg3, arg4);
+            => this.InvokeFunc<TRet>(arg1, arg2, arg3, arg4);
     }
 
     /// <inheritdoc cref="CallGatePubSubBase"/>
     internal class CallGatePubSub<T1, T2, T3, T4, T5, TRet> : CallGatePubSubBase, ICallGateProvider<T1, T2, T3, T4, T5, TRet>, ICallGateSubscriber<T1, T2, T3, T4, T5, TRet>
     {
+        /// <inheritdoc cref="CallGatePubSubBase(string)"/>
+        public CallGatePubSub(string name)
+            : base(name)
+        {
+        }
+
         /// <inheritdoc cref="CallGatePubSubBase.RegisterAction"/>
         public void RegisterAction(Action<T1, T2, T3, T4, T5> action)
             => base.RegisterAction(action);
@@ -193,12 +229,18 @@ namespace Dalamud.Plugin.Internal
 
         /// <inheritdoc cref="CallGatePubSubBase.InvokeFunc"/>
         public TRet InvokeFunc(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
-            => (TRet)base.InvokeFunc(arg1, arg2, arg3, arg4, arg5);
+            => this.InvokeFunc<TRet>(arg1, arg2, arg3, arg4, arg5);
     }
 
     /// <inheritdoc cref="CallGatePubSubBase"/>
     internal class CallGatePubSub<T1, T2, T3, T4, T5, T6, TRet> : CallGatePubSubBase, ICallGateProvider<T1, T2, T3, T4, T5, T6, TRet>, ICallGateSubscriber<T1, T2, T3, T4, T5, T6, TRet>
     {
+        /// <inheritdoc cref="CallGatePubSubBase(string)"/>
+        public CallGatePubSub(string name)
+            : base(name)
+        {
+        }
+
         /// <inheritdoc cref="CallGatePubSubBase.RegisterAction"/>
         public void RegisterAction(Action<T1, T2, T3, T4, T5, T6> action)
             => base.RegisterAction(action);
@@ -225,12 +267,18 @@ namespace Dalamud.Plugin.Internal
 
         /// <inheritdoc cref="CallGatePubSubBase.InvokeFunc"/>
         public TRet InvokeFunc(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6)
-            => (TRet)base.InvokeFunc(arg1, arg2, arg3, arg4, arg5, arg6);
+            => this.InvokeFunc<TRet>(arg1, arg2, arg3, arg4, arg5, arg6);
     }
 
     /// <inheritdoc cref="CallGatePubSubBase"/>
     internal class CallGatePubSub<T1, T2, T3, T4, T5, T6, T7, TRet> : CallGatePubSubBase, ICallGateProvider<T1, T2, T3, T4, T5, T6, T7, TRet>, ICallGateSubscriber<T1, T2, T3, T4, T5, T6, T7, TRet>
     {
+        /// <inheritdoc cref="CallGatePubSubBase(string)"/>
+        public CallGatePubSub(string name)
+            : base(name)
+        {
+        }
+
         /// <inheritdoc cref="CallGatePubSubBase.RegisterAction"/>
         public void RegisterAction(Action<T1, T2, T3, T4, T5, T6, T7> action)
             => base.RegisterAction(action);
@@ -257,12 +305,18 @@ namespace Dalamud.Plugin.Internal
 
         /// <inheritdoc cref="CallGatePubSubBase.InvokeFunc"/>
         public TRet InvokeFunc(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7)
-            => (TRet)base.InvokeFunc(arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+            => this.InvokeFunc<TRet>(arg1, arg2, arg3, arg4, arg5, arg6, arg7);
     }
 
     /// <inheritdoc cref="CallGatePubSubBase"/>
     internal class CallGatePubSub<T1, T2, T3, T4, T5, T6, T7, T8, TRet> : CallGatePubSubBase, ICallGateProvider<T1, T2, T3, T4, T5, T6, T7, T8, TRet>, ICallGateSubscriber<T1, T2, T3, T4, T5, T6, T7, T8, TRet>
     {
+        /// <inheritdoc cref="CallGatePubSubBase(string)"/>
+        public CallGatePubSub(string name)
+            : base(name)
+        {
+        }
+
         /// <inheritdoc cref="CallGatePubSubBase.RegisterAction"/>
         public void RegisterAction(Action<T1, T2, T3, T4, T5, T6, T7, T8> action)
             => base.RegisterAction(action);
@@ -289,7 +343,7 @@ namespace Dalamud.Plugin.Internal
 
         /// <inheritdoc cref="CallGatePubSubBase.InvokeFunc"/>
         public TRet InvokeFunc(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8)
-            => (TRet)base.InvokeFunc(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
+            => this.InvokeFunc<TRet>(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
     }
 }
 

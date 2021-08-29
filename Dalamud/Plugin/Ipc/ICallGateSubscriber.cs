@@ -1,10 +1,10 @@
 using System;
 
-using Dalamud.Plugin.Internal;
+using Dalamud.Plugin.Ipc.Internal;
 
 #pragma warning disable SA1402 // File may only contain a single type
 
-namespace Dalamud.Plugin
+namespace Dalamud.Plugin.Ipc
 {
     /// <inheritdoc cref="CallGatePubSubBase"/>
     public interface ICallGateSubscriber<TRet>
