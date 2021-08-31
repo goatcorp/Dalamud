@@ -14,6 +14,8 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam)
     ConsoleSetup(L"Dalamud Boot");
     #endif
 
+    printf("Dalamud.Boot Injectable, (c) 2021 XIVLauncher Contributors\nBuilt at: %s@%s\n\n", __DATE__, __TIME__);
+
     wchar_t _module_path[MAX_PATH];
     GetModuleFileNameW(g_hModule, _module_path, sizeof _module_path / 2);
     std::filesystem::path fs_module_path(_module_path);

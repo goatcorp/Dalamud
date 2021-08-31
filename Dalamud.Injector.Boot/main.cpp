@@ -8,8 +8,10 @@
 int wmain(int argc, char** argv)
 {
     #if !defined(NDEBUG)
-    ConsoleSetup(L"Dalamud Injector Boot");
+    ConsoleSetup(L"Dalamud.Injector");
     #endif
+
+    printf("Dalamud.Injector, (c) 2021 XIVLauncher Contributors\nBuilt at: %s@%s\n\n", __DATE__, __TIME__);
 
     wchar_t _module_path[MAX_PATH];
     GetModuleFileNameW(NULL, _module_path, sizeof _module_path / 2);
