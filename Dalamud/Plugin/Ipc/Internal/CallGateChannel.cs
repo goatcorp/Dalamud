@@ -118,16 +118,34 @@ namespace Dalamud.Plugin.Ipc.Internal
 
         private object? ConvertObject(object? obj, Type type)
         {
+            if (type.IsInterface)
+            {
+                var sourceType = obj.GetType();
+                var fieldNames = sourceType.GetFields(BindingFlags.Public | BindingFlags.Instance)
+                    .Select(f => f.Name);
+                var propNames = sourceType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                    .Select(p => p.Name);
+
+                var assignableTypes = type.Assembly.GetTypes()
+                    .Where(t => type.IsAssignableFrom(t) && type != t)
+                    .ToArray();
+
+                foreach (var assignableType in assignableTypes)
+                {
+                    var matchesFields = assignableType.GetFields().All(f => fieldNames.Contains(f.Name));
+                    var matchesProps = assignableType.GetProperties().All(p => propNames.Contains(p.Name));
+                    if (matchesFields && matchesProps)
+                    {
+                        type = assignableType;
+                        break;
+                    }
+                }
+            }
+
             try
             {
-                var settings = new JsonSerializerSettings
-                {
-                    TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple,
-                    TypeNameHandling = TypeNameHandling.Objects,
-                };
-
-                var json = JsonConvert.SerializeObject(obj, settings);
-                return JsonConvert.DeserializeObject(json, type, settings);
+                var json = JsonConvert.SerializeObject(obj);
+                return JsonConvert.DeserializeObject(json, type);
             }
             catch (Exception ex)
             {
