@@ -111,15 +111,43 @@ namespace Dalamud.Plugin.Ipc.Internal
             {
                 var arg = args[i];
                 var paramType = paramTypes[i];
-                if (arg.GetType() != paramType)
+
+                var argType = arg.GetType();
+                if (argType != paramType)
+                {
+                    // check the inheritance tree
+                    var baseTypes = this.GenerateTypes(argType.BaseType);
+                    if (baseTypes.Any(t => t == paramType))
+                    {
+                        // The source type inherits from the destination type
+                        continue;
+                    }
+
                     args[i] = this.ConvertObject(arg, paramType);
+                }
+            }
+        }
+
+        private IEnumerable<Type> GenerateTypes(Type type)
+        {
+            while (type != null && type != typeof(object))
+            {
+                yield return type;
+                type = type.BaseType;
             }
         }
 
         private object? ConvertObject(object? obj, Type type)
         {
-            if (type.IsInterface)
+            var json = JsonConvert.SerializeObject(obj);
+
+            try
             {
+                return JsonConvert.DeserializeObject(json, type);
+            }
+            catch (Exception)
+            {
+                // If type -> type fails, try to find an object that matches.
                 var sourceType = obj.GetType();
                 var fieldNames = sourceType.GetFields(BindingFlags.Public | BindingFlags.Instance)
                     .Select(f => f.Name);
@@ -144,7 +172,6 @@ namespace Dalamud.Plugin.Ipc.Internal
 
             try
             {
-                var json = JsonConvert.SerializeObject(obj);
                 return JsonConvert.DeserializeObject(json, type);
             }
             catch (Exception ex)
