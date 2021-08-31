@@ -5,6 +5,7 @@ using System.Reflection;
 
 using Dalamud.Plugin.Ipc.Exceptions;
 using Newtonsoft.Json;
+using Serilog;
 
 namespace Dalamud.Plugin.Ipc.Internal
 {
@@ -111,40 +112,69 @@ namespace Dalamud.Plugin.Ipc.Internal
             {
                 var arg = args[i];
                 var paramType = paramTypes[i];
-                if (arg.GetType() != paramType)
+
+                var argType = arg.GetType();
+                if (argType != paramType)
+                {
+                    // check the inheritance tree
+                    var baseTypes = this.GenerateTypes(argType.BaseType);
+                    if (baseTypes.Any(t => t == paramType))
+                    {
+                        // The source type inherits from the destination type
+                        continue;
+                    }
+
                     args[i] = this.ConvertObject(arg, paramType);
+                }
+            }
+        }
+
+        private IEnumerable<Type> GenerateTypes(Type type)
+        {
+            while (type != null && type != typeof(object))
+            {
+                yield return type;
+                type = type.BaseType;
             }
         }
 
         private object? ConvertObject(object? obj, Type type)
         {
-            if (type.IsInterface)
+            var json = JsonConvert.SerializeObject(obj);
+
+            try
             {
-                var sourceType = obj.GetType();
-                var fieldNames = sourceType.GetFields(BindingFlags.Public | BindingFlags.Instance)
-                    .Select(f => f.Name);
-                var propNames = sourceType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                    .Select(p => p.Name);
+                return JsonConvert.DeserializeObject(json, type);
+            }
+            catch (Exception)
+            {
+                Log.Verbose($"Could not convert {obj.GetType().Name} to {type.Name}, will look for compatible type instead");
+            }
 
-                var assignableTypes = type.Assembly.GetTypes()
-                    .Where(t => type.IsAssignableFrom(t) && type != t)
-                    .ToArray();
+            // If type -> type fails, try to find an object that matches.
+            var sourceType = obj.GetType();
+            var fieldNames = sourceType.GetFields(BindingFlags.Public | BindingFlags.Instance)
+                .Select(f => f.Name);
+            var propNames = sourceType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Select(p => p.Name);
 
-                foreach (var assignableType in assignableTypes)
+            var assignableTypes = type.Assembly.GetTypes()
+                .Where(t => type.IsAssignableFrom(t) && type != t)
+                .ToArray();
+
+            foreach (var assignableType in assignableTypes)
+            {
+                var matchesFields = assignableType.GetFields().All(f => fieldNames.Contains(f.Name));
+                var matchesProps = assignableType.GetProperties().All(p => propNames.Contains(p.Name));
+                if (matchesFields && matchesProps)
                 {
-                    var matchesFields = assignableType.GetFields().All(f => fieldNames.Contains(f.Name));
-                    var matchesProps = assignableType.GetProperties().All(p => propNames.Contains(p.Name));
-                    if (matchesFields && matchesProps)
-                    {
-                        type = assignableType;
-                        break;
-                    }
+                    type = assignableType;
+                    break;
                 }
             }
 
             try
             {
-                var json = JsonConvert.SerializeObject(obj);
                 return JsonConvert.DeserializeObject(json, type);
             }
             catch (Exception ex)
