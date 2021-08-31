@@ -5,6 +5,7 @@ using System.Reflection;
 
 using Dalamud.Plugin.Ipc.Exceptions;
 using Newtonsoft.Json;
+using Serilog;
 
 namespace Dalamud.Plugin.Ipc.Internal
 {
@@ -147,26 +148,28 @@ namespace Dalamud.Plugin.Ipc.Internal
             }
             catch (Exception)
             {
-                // If type -> type fails, try to find an object that matches.
-                var sourceType = obj.GetType();
-                var fieldNames = sourceType.GetFields(BindingFlags.Public | BindingFlags.Instance)
-                    .Select(f => f.Name);
-                var propNames = sourceType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                    .Select(p => p.Name);
+                Log.Verbose($"Could not convert {obj.GetType().Name} to {type.Name}, will look for compatible type instead");
+            }
 
-                var assignableTypes = type.Assembly.GetTypes()
-                    .Where(t => type.IsAssignableFrom(t) && type != t)
-                    .ToArray();
+            // If type -> type fails, try to find an object that matches.
+            var sourceType = obj.GetType();
+            var fieldNames = sourceType.GetFields(BindingFlags.Public | BindingFlags.Instance)
+                .Select(f => f.Name);
+            var propNames = sourceType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Select(p => p.Name);
 
-                foreach (var assignableType in assignableTypes)
+            var assignableTypes = type.Assembly.GetTypes()
+                .Where(t => type.IsAssignableFrom(t) && type != t)
+                .ToArray();
+
+            foreach (var assignableType in assignableTypes)
+            {
+                var matchesFields = assignableType.GetFields().All(f => fieldNames.Contains(f.Name));
+                var matchesProps = assignableType.GetProperties().All(p => propNames.Contains(p.Name));
+                if (matchesFields && matchesProps)
                 {
-                    var matchesFields = assignableType.GetFields().All(f => fieldNames.Contains(f.Name));
-                    var matchesProps = assignableType.GetProperties().All(p => propNames.Contains(p.Name));
-                    if (matchesFields && matchesProps)
-                    {
-                        type = assignableType;
-                        break;
-                    }
+                    type = assignableType;
+                    break;
                 }
             }
 
