@@ -1,5 +1,6 @@
 using System.Numerics;
 
+using Dalamud.Game.ClientState.Keys;
 using ImGuiNET;
 
 namespace Dalamud.Interface.Windowing
@@ -9,6 +10,8 @@ namespace Dalamud.Interface.Windowing
     /// </summary>
     public abstract class Window
     {
+        private static bool wasEscPressedLastFrame = false;
+
         private bool internalLastIsOpen = false;
         private bool internalIsOpen = false;
 
@@ -169,6 +172,17 @@ namespace Dalamud.Interface.Windowing
             {
                 // Draw the actual window contents
                 this.Draw();
+
+                var escapeDown = Service<KeyState>.Get()[VirtualKey.ESCAPE];
+                if (escapeDown && ImGui.IsWindowFocused() && !wasEscPressedLastFrame)
+                {
+                    this.IsOpen = false;
+                    wasEscPressedLastFrame = true;
+                }
+                else if (!escapeDown && wasEscPressedLastFrame)
+                {
+                    wasEscPressedLastFrame = false;
+                }
             }
 
             ImGui.End();
