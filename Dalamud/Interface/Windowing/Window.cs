@@ -34,7 +34,7 @@ namespace Dalamud.Interface.Windowing
         /// <summary>
         /// Gets or sets the namespace of the window.
         /// </summary>
-        public string Namespace { get; set; }
+        public string? Namespace { get; set; }
 
         /// <summary>
         /// Gets or sets the name of the window.
