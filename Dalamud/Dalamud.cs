@@ -236,28 +236,24 @@ namespace Dalamud
             {
                 Log.Information("[T3] START!");
 
-                if (!bool.Parse(Environment.GetEnvironmentVariable("DALAMUD_NOT_HAVE_PLUGINS") ?? "false"))
+                var pluginManager = Service<PluginManager>.Set();
+                Service<CallGate>.Set();
+
+                try
                 {
-                    try
-                    {
-                        Service<CallGate>.Set();
+                    pluginManager.OnInstalledPluginsChanged += Troubleshooting.LogTroubleshooting;
 
-                        var pluginManager = Service<PluginManager>.Set();
-                        pluginManager.OnInstalledPluginsChanged += () =>
-                            Troubleshooting.LogTroubleshooting();
+                    Log.Information("[T3] PM OK!");
 
-                        Log.Information("[T3] PM OK!");
+                    pluginManager.CleanupPlugins();
+                    Log.Information("[T3] PMC OK!");
 
-                        pluginManager.CleanupPlugins();
-                        Log.Information("[T3] PMC OK!");
-
-                        pluginManager.LoadAllPlugins();
-                        Log.Information("[T3] PML OK!");
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Error(ex, "Plugin load failed.");
-                    }
+                    pluginManager.LoadAllPlugins();
+                    Log.Information("[T3] PML OK!");
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Plugin load failed.");
                 }
 
                 Service<DalamudInterface>.Set();

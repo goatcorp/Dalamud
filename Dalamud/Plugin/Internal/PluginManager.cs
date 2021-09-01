@@ -21,7 +21,6 @@ using Dalamud.Plugin.Internal.Exceptions;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
 using HarmonyLib;
-using JetBrains.Annotations;
 using Newtonsoft.Json;
 
 namespace Dalamud.Plugin.Internal
@@ -52,6 +51,7 @@ namespace Dalamud.Plugin.Internal
         public PluginManager()
         {
             var startInfo = Service<DalamudStartInfo>.Get();
+            var configuration = Service<DalamudConfiguration>.Get();
 
             this.pluginDirectory = new DirectoryInfo(startInfo.PluginDirectory);
             this.devPluginDirectory = new DirectoryInfo(startInfo.DefaultPluginDirectory);
@@ -61,6 +61,13 @@ namespace Dalamud.Plugin.Internal
 
             if (!this.devPluginDirectory.Exists)
                 this.devPluginDirectory.Create();
+
+            var noPlugins = bool.Parse(Environment.GetEnvironmentVariable("DALAMUD_NOT_HAVE_PLUGINS") ?? "false");
+            if (this.SafeMode = noPlugins || configuration.PluginSafeMode)
+            {
+                configuration.PluginSafeMode = false;
+                configuration.Save();
+            }
 
             this.PluginConfigs = new PluginConfigurations(Path.Combine(Path.GetDirectoryName(startInfo.ConfigurationPath) ?? string.Empty, "pluginConfigs"));
 
@@ -113,9 +120,9 @@ namespace Dalamud.Plugin.Internal
         public bool ReposReady => this.Repos.All(repo => repo.State != PluginRepositoryState.InProgress);
 
         /// <summary>
-        /// Gets a list of all IPC subscriptions.
+        /// Gets a value indicating whether the plugin manager started in safe mode.
         /// </summary>
-        public List<IpcSubscription> IpcSubscriptions { get; } = new();
+        public bool SafeMode { get; init; }
 
         /// <summary>
         /// Gets the <see cref="PluginConfigurations"/> object used when initializing plugins.
@@ -163,17 +170,13 @@ namespace Dalamud.Plugin.Internal
         /// </summary>
         public void LoadAllPlugins()
         {
-            var configuration = Service<DalamudConfiguration>.Get();
-
-            if (configuration.PluginSafeMode)
+            if (this.SafeMode)
             {
                 Log.Information("PluginSafeMode was enabled, not loading any plugins.");
-
-                configuration.PluginSafeMode = false;
-                configuration.Save();
-
                 return;
             }
+
+            var configuration = Service<DalamudConfiguration>.Get();
 
             var pluginDefs = new List<PluginDef>();
             var devPluginDefs = new List<PluginDef>();
@@ -326,6 +329,12 @@ namespace Dalamud.Plugin.Internal
         /// </summary>
         public void ScanDevPlugins()
         {
+            if (this.SafeMode)
+            {
+                Log.Information("PluginSafeMode was enabled, not scanning any dev plugins.");
+                return;
+            }
+
             var configuration = Service<DalamudConfiguration>.Get();
 
             if (!this.devPluginDirectory.Exists)
