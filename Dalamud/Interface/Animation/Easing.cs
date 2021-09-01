@@ -39,11 +39,23 @@ namespace Dalamud.Interface.Animation
         public Vector2 EasedPoint { get; private set; }
 
         /// <summary>
+        /// Gets or sets a value indicating whether the result of the easing should be inversed.
+        /// </summary>
+        public bool IsInverse { get; set; }
+
+        /// <summary>
         /// Gets or sets the current value of the animation, from 0 to 1.
         /// </summary>
         public double Value
         {
-            get => this.valueInternal;
+            get
+            {
+                if (this.IsInverse)
+                    return 1 - this.valueInternal;
+
+                return this.valueInternal;
+            }
+
             protected set
             {
                 this.valueInternal = value;
