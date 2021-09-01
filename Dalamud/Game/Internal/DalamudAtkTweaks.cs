@@ -6,6 +6,7 @@ using CheapLoc;
 using Dalamud.Configuration.Internal;
 using Dalamud.Hooking;
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Windowing;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using Serilog;
 
@@ -75,10 +76,8 @@ namespace Dalamud.Game.Internal
 
         private IntPtr AtkUnitBaseReceiveGlobalEventDetour(AtkUnitBase* thisPtr, ushort cmd, uint a3, IntPtr a4, uint* a5)
         {
-            var di = Service<DalamudInterface>.Get();
-
             // "Close Addon"
-            if (cmd == 12 && di.WindowSystem.HasAnyFocus)
+            if (cmd == 12 && WindowSystem.HasAnyWindowSystemFocus)
                 return IntPtr.Zero;
 
             return this.hookAtkUnitBaseReceiveGlobalEvent.Original(thisPtr, cmd, a3, a4, a5);

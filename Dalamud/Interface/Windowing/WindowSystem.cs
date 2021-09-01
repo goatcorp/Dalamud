@@ -17,10 +17,16 @@ namespace Dalamud.Interface.Windowing
         /// Initializes a new instance of the <see cref="WindowSystem"/> class.
         /// </summary>
         /// <param name="imNamespace">The name/ID-space of this <see cref="WindowSystem"/>.</param>
-        public WindowSystem(string imNamespace = null)
+        public WindowSystem(string? imNamespace = null)
         {
             this.Namespace = imNamespace;
         }
+
+        /// <summary>
+        /// Gets a value indicating whether any <see cref="WindowSystem"/> contains any <see cref="Window"/>
+        /// that has focus and is not marked to be excluded from consideration.
+        /// </summary>
+        public static bool HasAnyWindowSystemFocus { get; internal set; }
 
         /// <summary>
         /// Gets a value indicating whether any window in this <see cref="WindowSystem"/> has focus and is
@@ -31,7 +37,7 @@ namespace Dalamud.Interface.Windowing
         /// <summary>
         /// Gets or sets the name/ID-space of this <see cref="WindowSystem"/>.
         /// </summary>
-        public string Namespace { get; set; }
+        public string? Namespace { get; set; }
 
         /// <summary>
         /// Add a window to this <see cref="WindowSystem"/>.
@@ -82,6 +88,9 @@ namespace Dalamud.Interface.Windowing
             }
 
             this.HasAnyFocus = this.windows.Any(x => x.IsFocused && x.RespectCloseHotkey);
+
+            if (this.HasAnyFocus)
+                HasAnyWindowSystemFocus = true;
 
             if (hasNamespace)
                 ImGui.PopID();

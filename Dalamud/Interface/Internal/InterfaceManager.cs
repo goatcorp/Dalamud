@@ -16,6 +16,7 @@ using Dalamud.Game.Internal.DXGI;
 using Dalamud.Hooking;
 using Dalamud.Hooking.Internal;
 using Dalamud.Interface.Internal.Notifications;
+using Dalamud.Interface.Windowing;
 using Dalamud.Utility;
 using ImGuiNET;
 using ImGuiScene;
@@ -638,6 +639,8 @@ namespace Dalamud.Interface.Internal
             // ImGui.GetIO().MouseDrawCursor = ImGui.GetIO().WantCaptureMouse;
             this.LastImGuiIoPtr = ImGui.GetIO();
             this.lastWantCapture = this.LastImGuiIoPtr.WantCaptureMouse;
+
+            WindowSystem.HasAnyWindowSystemFocus = false;
 
             this.Draw?.Invoke();
             Service<NotificationManager>.Get().Draw();
