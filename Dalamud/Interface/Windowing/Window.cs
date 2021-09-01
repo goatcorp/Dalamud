@@ -2,6 +2,7 @@ using System.Numerics;
 
 using Dalamud.Game.ClientState.Keys;
 using ImGuiNET;
+using Serilog;
 
 namespace Dalamud.Interface.Windowing
 {
@@ -201,7 +202,7 @@ namespace Dalamud.Interface.Windowing
                 // Draw the actual window contents
                 this.Draw();
 
-                this.IsFocused = ImGui.IsWindowFocused();
+                this.IsFocused = ImGui.IsWindowFocused(ImGuiFocusedFlags.RootAndChildWindows);
 
                 var escapeDown = Service<KeyState>.Get()[VirtualKey.ESCAPE];
                 if (escapeDown && this.IsFocused && !wasEscPressedLastFrame && this.RespectCloseHotkey)
