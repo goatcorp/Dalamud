@@ -236,15 +236,14 @@ namespace Dalamud
             {
                 Log.Information("[T3] START!");
 
+                var pluginManager = Service<PluginManager>.Set();
+                Service<CallGate>.Set();
+
                 if (!bool.Parse(Environment.GetEnvironmentVariable("DALAMUD_NOT_HAVE_PLUGINS") ?? "false"))
                 {
                     try
                     {
-                        Service<CallGate>.Set();
-
-                        var pluginManager = Service<PluginManager>.Set();
-                        pluginManager.OnInstalledPluginsChanged += () =>
-                            Troubleshooting.LogTroubleshooting();
+                        pluginManager.OnInstalledPluginsChanged += Troubleshooting.LogTroubleshooting;
 
                         Log.Information("[T3] PM OK!");
 

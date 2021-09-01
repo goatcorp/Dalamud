@@ -770,6 +770,12 @@ namespace Dalamud.Interface.Internal.Windows
         {
             var pluginManager = Service<PluginManager>.Get();
 
+            if (pluginManager.SafeMode)
+            {
+                ImGui.Text(Locs.TabBody_SafeMode);
+                return false;
+            }
+
             var ready = pluginManager.PluginsReady && pluginManager.ReposReady;
 
             if (!ready)
@@ -1872,6 +1878,8 @@ namespace Dalamud.Interface.Internal.Windows
             public static string TabBody_LoadingPlugins => Loc.Localize("InstallerLoading", "Loading plugins...");
 
             public static string TabBody_DownloadFailed => Loc.Localize("InstallerDownloadFailed", "Download failed.");
+
+            public static string TabBody_SafeMode => Loc.Localize("InstallerSafeMode", "Dalamud is running in Plugin Safe Mode, restart to activate plugins.");
 
             #endregion
 
