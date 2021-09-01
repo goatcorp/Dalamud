@@ -44,6 +44,11 @@ namespace Dalamud.Interface.Windowing
         public string WindowName { get; set; }
 
         /// <summary>
+        /// Gets a value indicating whether the window is focused.
+        /// </summary>
+        public bool IsFocused { get; private set; }
+
+        /// <summary>
         /// Gets or sets the position of this window.
         /// </summary>
         public Vector2? Position { get; set; }
@@ -188,8 +193,10 @@ namespace Dalamud.Interface.Windowing
                 // Draw the actual window contents
                 this.Draw();
 
+                this.IsFocused = ImGui.IsWindowFocused();
+
                 var escapeDown = Service<KeyState>.Get()[VirtualKey.ESCAPE];
-                if (escapeDown && ImGui.IsWindowFocused() && !wasEscPressedLastFrame)
+                if (escapeDown && this.IsFocused && !wasEscPressedLastFrame)
                 {
                     this.IsOpen = false;
                     wasEscPressedLastFrame = true;
