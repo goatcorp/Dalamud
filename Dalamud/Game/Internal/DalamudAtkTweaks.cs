@@ -7,6 +7,7 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Hooking;
 using Dalamud.Interface.Internal;
 using FFXIVClientStructs.FFXIV.Component.GUI;
+using Serilog;
 
 using ValueType = FFXIVClientStructs.FFXIV.Component.GUI.ValueType;
 
@@ -15,7 +16,7 @@ namespace Dalamud.Game.Internal
     /// <summary>
     /// This class implements in-game Dalamud options in the in-game System menu.
     /// </summary>
-    internal sealed unsafe partial class DalamudSystemMenu
+    internal sealed unsafe partial class DalamudAtkTweaks
     {
         private readonly AtkValueChangeType atkValueChangeType;
         private readonly AtkValueSetString atkValueSetString;
@@ -24,10 +25,12 @@ namespace Dalamud.Game.Internal
         // TODO: Make this into events in Framework.Gui
         private readonly Hook<UiModuleRequestMainCommand> hookUiModuleRequestMainCommand;
 
+        private readonly Hook<AtkUnitBaseReceiveGlobalEvent> hookAtkUnitBaseReceiveGlobalEvent;
+
         /// <summary>
-        /// Initializes a new instance of the <see cref="DalamudSystemMenu"/> class.
+        /// Initializes a new instance of the <see cref="DalamudAtkTweaks"/> class.
         /// </summary>
-        public DalamudSystemMenu()
+        public DalamudAtkTweaks()
         {
             var sigScanner = Service<SigScanner>.Get();
 
@@ -43,6 +46,11 @@ namespace Dalamud.Game.Internal
 
             var uiModuleRequestMainCommandAddress = sigScanner.ScanText("40 53 56 48 81 EC ?? ?? ?? ?? 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 84 24 ?? ?? ?? ?? 48 8B 01 8B DA 48 8B F1 FF 90 ?? ?? ?? ??");
             this.hookUiModuleRequestMainCommand = new Hook<UiModuleRequestMainCommand>(uiModuleRequestMainCommandAddress, this.UiModuleRequestMainCommandDetour);
+
+            var atkUnitBaseReceiveGlobalEventAddress =
+                sigScanner.ScanText("48 89 5C 24 ?? 48 89 7C 24 ?? 55 41 56 41 57 48 8B EC 48 83 EC 50 44 0F B7 F2 ");
+            this.hookAtkUnitBaseReceiveGlobalEvent =
+                new Hook<AtkUnitBaseReceiveGlobalEvent>(atkUnitBaseReceiveGlobalEventAddress, this.AtkUnitBaseReceiveGlobalEventDetour);
         }
 
         private delegate void AgentHudOpenSystemMenuPrototype(void* thisPtr, AtkValue* atkValueArgs, uint menuSize);
@@ -53,13 +61,28 @@ namespace Dalamud.Game.Internal
 
         private delegate void UiModuleRequestMainCommand(void* thisPtr, int commandId);
 
+        private delegate IntPtr AtkUnitBaseReceiveGlobalEvent(AtkUnitBase* thisPtr, ushort cmd, uint a3, IntPtr a4, uint* a5);
+
         /// <summary>
-        /// Enables the <see cref="DalamudSystemMenu"/>.
+        /// Enables the <see cref="DalamudAtkTweaks"/>.
         /// </summary>
         public void Enable()
         {
             this.hookAgentHudOpenSystemMenu.Enable();
             this.hookUiModuleRequestMainCommand.Enable();
+            this.hookAtkUnitBaseReceiveGlobalEvent.Enable();
+        }
+
+        private IntPtr AtkUnitBaseReceiveGlobalEventDetour(AtkUnitBase* thisPtr, ushort cmd, uint a3, IntPtr a4, uint* a5)
+        {
+            Log.Information($"cmd:{cmd} a3:{a3} a4:{a4:x} a5:{*a5}");
+
+            var di = Service<DalamudInterface>.Get();
+            // "Close Addon"
+            if (cmd == 12 && di.WindowSystem.HasAnyFocus)
+                return IntPtr.Zero;
+
+            return this.hookAtkUnitBaseReceiveGlobalEvent.Original(thisPtr, cmd, a3, a4, a5);
         }
 
         private void AgentHudOpenSystemMenuDetour(void* thisPtr, AtkValue* atkValueArgs, uint menuSize)
@@ -157,14 +180,14 @@ namespace Dalamud.Game.Internal
     /// <summary>
     /// Implements IDisposable.
     /// </summary>
-    internal sealed partial class DalamudSystemMenu : IDisposable
+    internal sealed partial class DalamudAtkTweaks : IDisposable
     {
         private bool disposed = false;
 
         /// <summary>
-        /// Finalizes an instance of the <see cref="DalamudSystemMenu"/> class.
+        /// Finalizes an instance of the <see cref="DalamudAtkTweaks"/> class.
         /// </summary>
-        ~DalamudSystemMenu() => this.Dispose(false);
+        ~DalamudAtkTweaks() => this.Dispose(false);
 
         /// <summary>
         /// Dispose of managed and unmanaged resources.
@@ -187,6 +210,7 @@ namespace Dalamud.Game.Internal
             {
                 this.hookAgentHudOpenSystemMenu.Dispose();
                 this.hookUiModuleRequestMainCommand.Dispose();
+                this.hookAtkUnitBaseReceiveGlobalEvent.Dispose();
             }
 
             this.disposed = true;

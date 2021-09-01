@@ -23,6 +23,12 @@ namespace Dalamud.Interface.Windowing
         }
 
         /// <summary>
+        /// Gets a value indicating whether any window in this <see cref="WindowSystem"/> has focus and is
+        /// not marked to be excluded from consideration.
+        /// </summary>
+        public bool HasAnyFocus { get; private set; }
+
+        /// <summary>
         /// Gets or sets the name/ID-space of this <see cref="WindowSystem"/>.
         /// </summary>
         public string Namespace { get; set; }
@@ -74,6 +80,8 @@ namespace Dalamud.Interface.Windowing
 
                 window.DrawInternal();
             }
+
+            this.HasAnyFocus = this.windows.Any(x => x.IsFocused && x.RespectCloseHotkey);
 
             if (hasNamespace)
                 ImGui.PopID();

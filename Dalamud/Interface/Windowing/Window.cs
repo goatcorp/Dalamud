@@ -49,7 +49,7 @@ namespace Dalamud.Interface.Windowing
         public bool IsFocused { get; private set; }
 
         /// <summary>
-        /// Allow this window to be closed with a hotkey, like Escape, and keep game addons open in turn if it is closed.
+        /// Gets or sets a value indicating whether this window is to be closed with a hotkey, like Escape, and keep game addons open in turn if it is closed.
         /// </summary>
         public bool RespectCloseHotkey { get; set; } = true;
 
@@ -112,6 +112,9 @@ namespace Dalamud.Interface.Windowing
             set
             {
                 this.internalIsOpen = value;
+
+                if (value == false)
+                    this.IsFocused = false;
             }
         }
 

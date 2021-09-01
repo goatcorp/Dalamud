@@ -28,8 +28,6 @@ namespace Dalamud.Interface.Internal
     {
         private static readonly ModuleLog Log = new("DUI");
 
-        private readonly WindowSystem windowSystem;
-
         private readonly ChangelogWindow changelogWindow;
         private readonly ColorDemoWindow colorDemoWindow;
         private readonly ComponentDemoWindow componentDemoWindow;
@@ -61,7 +59,7 @@ namespace Dalamud.Interface.Internal
         {
             var configuration = Service<DalamudConfiguration>.Get();
 
-            this.windowSystem = new WindowSystem("DalamudCore");
+            this.WindowSystem = new WindowSystem("DalamudCore");
 
             this.changelogWindow = new ChangelogWindow() { IsOpen = false };
             this.colorDemoWindow = new ColorDemoWindow() { IsOpen = false };
@@ -77,19 +75,19 @@ namespace Dalamud.Interface.Internal
             this.settingsWindow = new SettingsWindow() { IsOpen = false };
             this.selfTestWindow = new SelfTestWindow() { IsOpen = false };
 
-            this.windowSystem.AddWindow(this.changelogWindow);
-            this.windowSystem.AddWindow(this.colorDemoWindow);
-            this.windowSystem.AddWindow(this.componentDemoWindow);
-            this.windowSystem.AddWindow(this.creditsWindow);
-            this.windowSystem.AddWindow(this.dataWindow);
-            this.windowSystem.AddWindow(this.gamepadModeNotifierWindow);
-            this.windowSystem.AddWindow(this.imeWindow);
-            this.windowSystem.AddWindow(this.consoleWindow);
-            this.windowSystem.AddWindow(this.pluginStatWindow);
-            this.windowSystem.AddWindow(this.pluginWindow);
-            this.windowSystem.AddWindow(this.scratchpadWindow);
-            this.windowSystem.AddWindow(this.settingsWindow);
-            this.windowSystem.AddWindow(this.selfTestWindow);
+            this.WindowSystem.AddWindow(this.changelogWindow);
+            this.WindowSystem.AddWindow(this.colorDemoWindow);
+            this.WindowSystem.AddWindow(this.componentDemoWindow);
+            this.WindowSystem.AddWindow(this.creditsWindow);
+            this.WindowSystem.AddWindow(this.dataWindow);
+            this.WindowSystem.AddWindow(this.gamepadModeNotifierWindow);
+            this.WindowSystem.AddWindow(this.imeWindow);
+            this.WindowSystem.AddWindow(this.consoleWindow);
+            this.WindowSystem.AddWindow(this.pluginStatWindow);
+            this.WindowSystem.AddWindow(this.pluginWindow);
+            this.WindowSystem.AddWindow(this.scratchpadWindow);
+            this.WindowSystem.AddWindow(this.settingsWindow);
+            this.WindowSystem.AddWindow(this.selfTestWindow);
 
             ImGuiManagedAsserts.EnableAsserts = true;
 
@@ -97,6 +95,11 @@ namespace Dalamud.Interface.Internal
 
             Log.Information("Windows added");
         }
+
+        /// <summary>
+        /// Gets the <see cref="WindowSystem"/> controlling all Dalamud-internal windows.
+        /// </summary>
+        public WindowSystem WindowSystem { get; init; }
 
         /// <summary>
         /// Gets or sets a value indicating whether the /xldev menu is open.
@@ -117,7 +120,7 @@ namespace Dalamud.Interface.Internal
         {
             Service<InterfaceManager>.Get().Draw -= this.OnDraw;
 
-            this.windowSystem.RemoveAllWindows();
+            this.WindowSystem.RemoveAllWindows();
 
             this.creditsWindow.Dispose();
             this.consoleWindow.Dispose();
@@ -309,7 +312,7 @@ namespace Dalamud.Interface.Internal
                 if (Service<GameGui>.Get().GameUiHidden)
                     return;
 
-                this.windowSystem.Draw();
+                this.WindowSystem.Draw();
 
                 if (this.isImGuiDrawDemoWindow)
                     ImGui.ShowDemoWindow();

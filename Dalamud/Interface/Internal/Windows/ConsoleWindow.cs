@@ -57,6 +57,8 @@ namespace Dalamud.Interface.Internal.Windows
 
             this.Size = new Vector2(500, 400);
             this.SizeCondition = ImGuiCond.FirstUseEver;
+
+            this.RespectCloseHotkey = false;
         }
 
         private List<LogEntry> LogEntries => this.isFiltered ? this.filteredLogText : this.logText;

@@ -216,7 +216,7 @@ namespace Dalamud
                 clientState.Enable();
                 Log.Information("[T2] CS ENABLE!");
 
-                Service<DalamudSystemMenu>.Set().Enable();
+                Service<DalamudAtkTweaks>.Set().Enable();
 
                 this.IsReady = true;
             }
@@ -339,7 +339,7 @@ namespace Dalamud
                 Service<WinSockHandlers>.GetNullable()?.Dispose();
                 Service<DataManager>.GetNullable()?.Dispose();
                 Service<AntiDebug>.GetNullable()?.Dispose();
-                Service<DalamudSystemMenu>.GetNullable()?.Dispose();
+                Service<DalamudAtkTweaks>.GetNullable()?.Dispose();
                 Service<HookManager>.GetNullable()?.Dispose();
                 Service<SigScanner>.GetNullable()?.Dispose();
 
