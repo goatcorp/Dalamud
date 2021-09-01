@@ -49,6 +49,11 @@ namespace Dalamud.Interface.Windowing
         public bool IsFocused { get; private set; }
 
         /// <summary>
+        /// Allow this window to be closed with a hotkey, like Escape, and keep game addons open in turn if it is closed.
+        /// </summary>
+        public bool RespectCloseHotkey { get; set; } = true;
+
+        /// <summary>
         /// Gets or sets the position of this window.
         /// </summary>
         public Vector2? Position { get; set; }
@@ -196,7 +201,7 @@ namespace Dalamud.Interface.Windowing
                 this.IsFocused = ImGui.IsWindowFocused();
 
                 var escapeDown = Service<KeyState>.Get()[VirtualKey.ESCAPE];
-                if (escapeDown && this.IsFocused && !wasEscPressedLastFrame)
+                if (escapeDown && this.IsFocused && !wasEscPressedLastFrame && this.RespectCloseHotkey)
                 {
                     this.IsOpen = false;
                     wasEscPressedLastFrame = true;
