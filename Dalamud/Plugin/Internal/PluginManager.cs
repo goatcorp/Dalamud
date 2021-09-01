@@ -125,11 +125,6 @@ namespace Dalamud.Plugin.Internal
         public bool SafeMode { get; init; }
 
         /// <summary>
-        /// Gets a list of all IPC subscriptions.
-        /// </summary>
-        public List<IpcSubscription> IpcSubscriptions { get; } = new();
-
-        /// <summary>
         /// Gets the <see cref="PluginConfigurations"/> object used when initializing plugins.
         /// </summary>
         public PluginConfigurations PluginConfigs { get; }
