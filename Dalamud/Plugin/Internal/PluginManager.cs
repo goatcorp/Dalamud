@@ -62,7 +62,8 @@ namespace Dalamud.Plugin.Internal
             if (!this.devPluginDirectory.Exists)
                 this.devPluginDirectory.Create();
 
-            if (this.SafeMode = configuration.PluginSafeMode)
+            var noPlugins = bool.Parse(Environment.GetEnvironmentVariable("DALAMUD_NOT_HAVE_PLUGINS") ?? "false");
+            if (this.SafeMode = noPlugins || configuration.PluginSafeMode)
             {
                 configuration.PluginSafeMode = false;
                 configuration.Save();
