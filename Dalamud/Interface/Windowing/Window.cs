@@ -114,6 +114,13 @@ namespace Dalamud.Interface.Windowing
         }
 
         /// <summary>
+        /// Code to be executed before conditionals are applied.
+        /// </summary>
+        public virtual void PreConditionals()
+        {
+        }
+
+        /// <summary>
         /// Code to be executed every time the window renders.
         /// </summary>
         /// <remarks>
@@ -157,6 +164,7 @@ namespace Dalamud.Interface.Windowing
             if (hasNamespace)
                 ImGui.PushID(this.Namespace);
 
+            this.PreConditionals();
             this.ApplyConditionals();
 
             if (this.ForceMainWindow)
