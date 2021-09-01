@@ -114,9 +114,16 @@ namespace Dalamud.Interface.Windowing
         }
 
         /// <summary>
-        /// Code to be executed before conditionals are applied.
+        /// Code to be executed before conditionals are applied and the window is drawn.
         /// </summary>
-        public virtual void PreConditionals()
+        public virtual void PreDraw()
+        {
+        }
+
+        /// <summary>
+        /// Code to be executed after the window is drawn.
+        /// </summary>
+        public virtual void PostDraw()
         {
         }
 
@@ -164,7 +171,7 @@ namespace Dalamud.Interface.Windowing
             if (hasNamespace)
                 ImGui.PushID(this.Namespace);
 
-            this.PreConditionals();
+            this.PreDraw();
             this.ApplyConditionals();
 
             if (this.ForceMainWindow)
@@ -194,6 +201,8 @@ namespace Dalamud.Interface.Windowing
             }
 
             ImGui.End();
+
+            this.PostDraw();
 
             if (hasNamespace)
                 ImGui.PopID();
