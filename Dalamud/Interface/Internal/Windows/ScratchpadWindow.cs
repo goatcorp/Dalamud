@@ -35,6 +35,8 @@ namespace Dalamud.Interface.Internal.Windows
             };
 
             this.Execution = new ScratchExecutionManager();
+
+            this.RespectCloseHotkey = false;
         }
 
         /// <summary>

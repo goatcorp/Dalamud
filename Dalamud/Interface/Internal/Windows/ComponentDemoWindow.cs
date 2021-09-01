@@ -40,6 +40,8 @@ namespace Dalamud.Interface.Internal.Windows
             this.Size = new Vector2(600, 500);
             this.SizeCondition = ImGuiCond.FirstUseEver;
 
+            this.RespectCloseHotkey = false;
+
             this.componentDemos = new()
             {
                 ("Test", ImGuiComponents.Test),

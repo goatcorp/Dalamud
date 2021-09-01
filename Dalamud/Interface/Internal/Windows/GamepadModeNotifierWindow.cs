@@ -25,6 +25,8 @@ namespace Dalamud.Interface.Internal.Windows
             this.Size = Vector2.Zero;
             this.SizeCondition = ImGuiCond.Always;
             this.IsOpen = false;
+
+            this.RespectCloseHotkey = false;
         }
 
         /// <summary>

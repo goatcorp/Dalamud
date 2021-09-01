@@ -105,6 +105,8 @@ namespace Dalamud.Interface.Internal.Windows
             this.Size = new Vector2(500, 500);
             this.SizeCondition = ImGuiCond.FirstUseEver;
 
+            this.RespectCloseHotkey = false;
+
             this.Load();
         }
 

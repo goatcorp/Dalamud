@@ -25,6 +25,7 @@ namespace Dalamud.Interface.Internal.Windows
         public PluginStatWindow()
             : base("Plugin Statistics###DalamudPluginStatWindow")
         {
+            this.RespectCloseHotkey = false;
         }
 
         /// <inheritdoc/>

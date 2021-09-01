@@ -56,6 +56,8 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest
         {
             this.Size = new Vector2(800, 800);
             this.SizeCondition = ImGuiCond.FirstUseEver;
+
+            this.RespectCloseHotkey = false;
         }
 
         /// <inheritdoc/>
