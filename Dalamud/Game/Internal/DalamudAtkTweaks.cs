@@ -75,9 +75,8 @@ namespace Dalamud.Game.Internal
 
         private IntPtr AtkUnitBaseReceiveGlobalEventDetour(AtkUnitBase* thisPtr, ushort cmd, uint a3, IntPtr a4, uint* a5)
         {
-            Log.Information($"cmd:{cmd} a3:{a3} a4:{a4:x} a5:{*a5}");
-
             var di = Service<DalamudInterface>.Get();
+
             // "Close Addon"
             if (cmd == 12 && di.WindowSystem.HasAnyFocus)
                 return IntPtr.Zero;
