@@ -11,6 +11,8 @@ namespace Dalamud.Interface.Windowing
     /// </summary>
     public class WindowSystem
     {
+        private static DateTimeOffset lastAnyFocus;
+
         private readonly List<Window> windows = new();
 
         /// <summary>
@@ -27,6 +29,11 @@ namespace Dalamud.Interface.Windowing
         /// that has focus and is not marked to be excluded from consideration.
         /// </summary>
         public static bool HasAnyWindowSystemFocus { get; internal set; }
+
+        /// <summary>
+        /// Gets the timespan since the last time any window was focused.
+        /// </summary>
+        public static TimeSpan TimeSinceLastAnyFocus => DateTimeOffset.Now - lastAnyFocus;
 
         /// <summary>
         /// Gets a value indicating whether any window in this <see cref="WindowSystem"/> has focus and is
@@ -90,7 +97,10 @@ namespace Dalamud.Interface.Windowing
             this.HasAnyFocus = this.windows.Any(x => x.IsFocused && x.RespectCloseHotkey);
 
             if (this.HasAnyFocus)
+            {
                 HasAnyWindowSystemFocus = true;
+                lastAnyFocus = DateTimeOffset.Now;
+            }
 
             if (hasNamespace)
                 ImGui.PopID();

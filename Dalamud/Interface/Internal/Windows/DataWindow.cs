@@ -1082,6 +1082,10 @@ namespace Dalamud.Interface.Internal.Windows
 
             ImGui.Separator();
 
+            ImGui.TextUnformatted($"WindowSystem.TimeSinceLastAnyFocus: {WindowSystem.TimeSinceLastAnyFocus.TotalMilliseconds:0}ms");
+
+            ImGui.Separator();
+
             if (ImGui.Button("Add random notification"))
             {
                 var rand = new Random();

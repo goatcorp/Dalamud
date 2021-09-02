@@ -2,6 +2,8 @@ using System.Numerics;
 
 using Dalamud.Game.ClientState.Keys;
 using ImGuiNET;
+using Microsoft.CodeAnalysis;
+using Serilog;
 
 namespace Dalamud.Interface.Windowing
 {
@@ -109,13 +111,7 @@ namespace Dalamud.Interface.Windowing
         public bool IsOpen
         {
             get => this.internalIsOpen;
-            set
-            {
-                this.internalIsOpen = value;
-
-                if (value == false)
-                    this.IsFocused = false;
-            }
+            set => this.internalIsOpen = value;
         }
 
         /// <summary>
@@ -174,6 +170,8 @@ namespace Dalamud.Interface.Windowing
                 {
                     this.internalLastIsOpen = this.internalIsOpen;
                     this.OnClose();
+
+                    this.IsFocused = false;
                 }
 
                 return;
