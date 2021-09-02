@@ -76,7 +76,7 @@ namespace Dalamud.Game.Internal
 
         private IntPtr AtkUnitBaseReceiveGlobalEventDetour(AtkUnitBase* thisPtr, ushort cmd, uint a3, IntPtr a4, uint* a5)
         {
-            Log.Information("{0}: cmd#{1} a3#{2} - HasAnyFocus:{3}", Marshal.PtrToStringAnsi(new IntPtr(thisPtr->Name)), cmd, a3, WindowSystem.HasAnyWindowSystemFocus);
+            // Log.Information("{0}: cmd#{1} a3#{2} - HasAnyFocus:{3}", Marshal.PtrToStringAnsi(new IntPtr(thisPtr->Name)), cmd, a3, WindowSystem.HasAnyWindowSystemFocus);
 
             // "Close Addon"
             if (cmd == 12 && WindowSystem.HasAnyWindowSystemFocus)
@@ -87,6 +87,9 @@ namespace Dalamud.Game.Internal
 
         private void AgentHudOpenSystemMenuDetour(void* thisPtr, AtkValue* atkValueArgs, uint menuSize)
         {
+            if (WindowSystem.HasAnyWindowSystemFocus)
+                return;
+
             var configuration = Service<DalamudConfiguration>.Get();
 
             if (!configuration.DoButtonsSystemMenu)

@@ -2,8 +2,6 @@ using System.Numerics;
 
 using Dalamud.Game.ClientState.Keys;
 using ImGuiNET;
-using Microsoft.CodeAnalysis;
-using Serilog;
 
 namespace Dalamud.Interface.Windowing
 {
