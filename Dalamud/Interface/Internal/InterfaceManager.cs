@@ -133,9 +133,14 @@ namespace Dalamud.Interface.Internal
         private delegate void InstallRTSSHook();
 
         /// <summary>
-        /// This event gets called by a plugin UiBuilder when read
+        /// This event gets called each frame to facilitate ImGui drawing.
         /// </summary>
         public event RawDX11Scene.BuildUIDelegate Draw;
+
+        /// <summary>
+        /// This event gets called when ResizeBuffers is called.
+        /// </summary>
+        public event Action ResizeBuffers;
 
         /// <summary>
         /// Gets or sets an action that is executed when fonts are rebuilt.
@@ -544,6 +549,8 @@ namespace Dalamud.Interface.Internal
 #if DEBUG
             Log.Verbose($"Calling resizebuffers swap@{swapChain.ToInt64():X}{bufferCount} {width} {height} {newFormat} {swapChainFlags}");
 #endif
+
+            this.ResizeBuffers?.Invoke();
 
             // We have to ensure we're working with the main swapchain,
             // as viewports might be resizing as well

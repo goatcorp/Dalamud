@@ -38,13 +38,19 @@ namespace Dalamud.Interface
             var interfaceManager = Service<InterfaceManager>.Get();
             interfaceManager.Draw += this.OnDraw;
             interfaceManager.BuildFonts += this.OnBuildFonts;
+            interfaceManager.ResizeBuffers += this.OnResizeBuffers;
         }
 
         /// <summary>
-        /// The delegate that gets called when Dalamud is ready to draw your windows or overlays.
+        /// The event that gets called when Dalamud is ready to draw your windows or overlays.
         /// When it is called, you can use static ImGui calls.
         /// </summary>
         public event Action Draw;
+
+        /// <summary>
+        /// The event that is called when the game's DirectX device is requesting you to resize your buffers.
+        /// </summary>
+        public event Action ResizeBuffers;
 
         /// <summary>
         /// Event that is fired when the plugin should open its configuration interface.
@@ -219,7 +225,8 @@ namespace Dalamud.Interface
             var interfaceManager = Service<InterfaceManager>.Get();
 
             interfaceManager.Draw -= this.OnDraw;
-            interfaceManager.BuildFonts -= this.BuildFonts;
+            interfaceManager.BuildFonts -= this.OnBuildFonts;
+            interfaceManager.BuildFonts -= this.OnResizeBuffers;
         }
 
         /// <summary>
@@ -291,6 +298,11 @@ namespace Dalamud.Interface
         private void OnBuildFonts()
         {
             this.BuildFonts?.Invoke();
+        }
+
+        private void OnResizeBuffers()
+        {
+            this.ResizeBuffers?.Invoke();
         }
     }
 }
