@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using ImGuiNET;
+using Serilog;
 
 namespace Dalamud.Interface.Windowing
 {
@@ -14,6 +15,8 @@ namespace Dalamud.Interface.Windowing
         private static DateTimeOffset lastAnyFocus;
 
         private readonly List<Window> windows = new();
+
+        private string lastFocusedWindowName = string.Empty;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="WindowSystem"/> class.
@@ -94,12 +97,27 @@ namespace Dalamud.Interface.Windowing
                 window.DrawInternal();
             }
 
-            this.HasAnyFocus = this.windows.Any(x => x.IsFocused && x.RespectCloseHotkey);
+            var focusedWindow = this.windows.FirstOrDefault(x => x.IsFocused && x.RespectCloseHotkey);
+            this.HasAnyFocus = focusedWindow != default;
 
             if (this.HasAnyFocus)
             {
+                if (this.lastFocusedWindowName != focusedWindow.WindowName)
+                {
+                    Log.Verbose($"WindowSystem \"{this.Namespace}\" Window \"{focusedWindow.WindowName}\" has focus now");
+                    this.lastFocusedWindowName = focusedWindow.WindowName;
+                }
+
                 HasAnyWindowSystemFocus = true;
                 lastAnyFocus = DateTimeOffset.Now;
+            }
+            else
+            {
+                if (this.lastFocusedWindowName != string.Empty)
+                {
+                    Log.Verbose($"WindowSystem \"{this.Namespace}\" Window \"{this.lastFocusedWindowName}\" lost focus");
+                    this.lastFocusedWindowName = string.Empty;
+                }
             }
 
             if (hasNamespace)
