@@ -173,16 +173,16 @@ namespace Dalamud.Interface
         /// </summary>
         /// <param name="filePath">The full filepath to the image.</param>
         /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
-        public TextureWrap LoadImage(string filePath) =>
-            Service<InterfaceManager>.Get().LoadImage(filePath);
+        public TextureWrap LoadImage(string filePath)
+            => Service<InterfaceManager>.Get().LoadImage(filePath);
 
         /// <summary>
         /// Loads an image from a byte stream, such as a png downloaded into memory.
         /// </summary>
         /// <param name="imageData">A byte array containing the raw image data.</param>
         /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
-        public TextureWrap LoadImage(byte[] imageData) =>
-            Service<InterfaceManager>.Get().LoadImage(imageData);
+        public TextureWrap LoadImage(byte[] imageData)
+            => Service<InterfaceManager>.Get().LoadImage(imageData);
 
         /// <summary>
         /// Loads an image from raw unformatted pixel data, with no type or header information.  To load formatted data, use <see cref="LoadImage(byte[])"/>.
@@ -192,8 +192,8 @@ namespace Dalamud.Interface
         /// <param name="height">The height of the image contained in <paramref name="imageData"/>.</param>
         /// <param name="numChannels">The number of channels (bytes per pixel) of the image contained in <paramref name="imageData"/>.  This should usually be 4.</param>
         /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
-        public TextureWrap LoadImageRaw(byte[] imageData, int width, int height, int numChannels) =>
-            Service<InterfaceManager>.Get().LoadImageRaw(imageData, width, height, numChannels);
+        public TextureWrap LoadImageRaw(byte[] imageData, int width, int height, int numChannels)
+            => Service<InterfaceManager>.Get().LoadImageRaw(imageData, width, height, numChannels);
 
         /// <summary>
         /// Call this to queue a rebuild of the font atlas.<br/>
@@ -226,7 +226,7 @@ namespace Dalamud.Interface
 
             interfaceManager.Draw -= this.OnDraw;
             interfaceManager.BuildFonts -= this.OnBuildFonts;
-            interfaceManager.BuildFonts -= this.OnResizeBuffers;
+            interfaceManager.ResizeBuffers -= this.OnResizeBuffers;
         }
 
         /// <summary>
