@@ -226,7 +226,7 @@ namespace Dalamud.Interface
 
             interfaceManager.Draw -= this.OnDraw;
             interfaceManager.BuildFonts -= this.OnBuildFonts;
-            interfaceManager.BuildFonts -= this.OnResizeBuffers;
+            interfaceManager.ResizeBuffers -= this.OnResizeBuffers;
         }
 
         /// <summary>
