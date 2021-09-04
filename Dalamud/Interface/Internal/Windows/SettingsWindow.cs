@@ -255,8 +255,8 @@ namespace Dalamud.Interface.Internal.Windows
                     ImGui.Checkbox(Loc.Localize("DalamudSettingToggleDocking", "Enable window docking"), ref this.doDocking);
                     ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingToggleDockingHint", "This will allow you to fuse and tab plugin windows."));
 
-                    ImGui.Checkbox(Loc.Localize("DalamudSettingToggleGamepadNavigation", "Enable navigation of ImGui windows via gamepad."), ref this.doGamepad);
-                    ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingToggleGamepadNavigationHint", "This will allow you to toggle between game and ImGui navigation via L1+L3.\nToggle the PluginInstaller window via R3 if ImGui navigation is enabled."));
+                    ImGui.Checkbox(Loc.Localize("DalamudSettingToggleGamepadNavigation", "Control plugins via gamepad"), ref this.doGamepad);
+                    ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingToggleGamepadNavigationHint", "This will allow you to toggle between game and plugin navigation via L1+L3.\nToggle the PluginInstaller window via R3 if ImGui navigation is enabled."));
 
                     ImGui.EndTabItem();
                 }
