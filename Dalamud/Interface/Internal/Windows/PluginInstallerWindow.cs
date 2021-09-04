@@ -851,16 +851,16 @@ namespace Dalamud.Interface.Internal.Windows
             ImGui.Image(iconTex.ImGuiHandle, iconSize);
             ImGui.SameLine();
 
-            if (trouble)
-            {
-                ImGui.SetCursorPos(cursorBeforeImage);
-                ImGui.Image(this.troubleIcon.ImGuiHandle, iconSize);
-                ImGui.SameLine();
-            }
-            else if (updateAvailable)
+            if (updateAvailable)
             {
                 ImGui.SetCursorPos(cursorBeforeImage);
                 ImGui.Image(this.updateIcon.ImGuiHandle, iconSize);
+                ImGui.SameLine();
+            }
+            else if (trouble)
+            {
+                ImGui.SetCursorPos(cursorBeforeImage);
+                ImGui.Image(this.troubleIcon.ImGuiHandle, iconSize);
                 ImGui.SameLine();
             }
 
