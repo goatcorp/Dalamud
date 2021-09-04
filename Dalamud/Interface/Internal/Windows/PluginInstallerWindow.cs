@@ -1927,7 +1927,7 @@ namespace Dalamud.Interface.Internal.Windows
 
             public static string PluginContext_DeletePluginConfig => Loc.Localize("InstallerDeletePluginConfig", "Reset plugin");
 
-            public static string PluginContext_DeletePluginConfigReload => Loc.Localize("InstallerDeletePluginConfig", "Reset plugin settings & reload");
+            public static string PluginContext_DeletePluginConfigReload => Loc.Localize("InstallerDeletePluginConfigReload", "Reset plugin settings & reload");
 
             #endregion
 
@@ -1991,7 +1991,7 @@ namespace Dalamud.Interface.Internal.Windows
 
             public static string Notifications_PluginNotInstalledTitle => Loc.Localize("NotificationsPluginNotInstalledTitle", "Plugin not installed!");
 
-            public static string Notifications_PluginNotInstalled(string name) => Loc.Localize("NotificationsPluginInstalled", "'{0}' failed to install.").Format(name);
+            public static string Notifications_PluginNotInstalled(string name) => Loc.Localize("NotificationsPluginNotInstalled", "'{0}' failed to install.").Format(name);
 
             public static string Notifications_NoUpdatesFoundTitle => Loc.Localize("NotificationsNoUpdatesFoundTitle", "No updates found!");
 

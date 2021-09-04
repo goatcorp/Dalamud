@@ -371,7 +371,7 @@ namespace Dalamud
 
         /// <summary>
         /// Patch method for the class Process.Handle. This patch facilitates fixing Reloaded so that it
-        /// uses pseudo-handles to access memory, to prevent permission errors. 
+        /// uses pseudo-handles to access memory, to prevent permission errors.
         /// It should never be called manually.
         /// </summary>
         /// <param name="__instance">The equivalent of `this`.</param>
