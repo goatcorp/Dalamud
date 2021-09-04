@@ -31,7 +31,12 @@ namespace Dalamud.Interface.Windowing
         /// Gets a value indicating whether any <see cref="WindowSystem"/> contains any <see cref="Window"/>
         /// that has focus and is not marked to be excluded from consideration.
         /// </summary>
-        public static bool HasAnyWindowSystemFocus { get; internal set; }
+        public static bool HasAnyWindowSystemFocus { get; internal set; } = false;
+
+        /// <summary>
+        /// Gets the name of the currently focused window system that is redirecting normal escape functionality.
+        /// </summary>
+        public static string FocusedWindowSystemNamespace { get; internal set; } = string.Empty;
 
         /// <summary>
         /// Gets the timespan since the last time any window was focused.
@@ -109,6 +114,8 @@ namespace Dalamud.Interface.Windowing
                 }
 
                 HasAnyWindowSystemFocus = true;
+                FocusedWindowSystemNamespace = this.Namespace;
+
                 lastAnyFocus = DateTimeOffset.Now;
             }
             else
