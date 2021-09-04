@@ -14,13 +14,15 @@ namespace Dalamud.Interface.Internal.Windows
         /// <summary>
         /// Whether the latest update warrants a changelog window.
         /// </summary>
-        public const bool WarrantsChangelog = false;
+        public const bool WarrantsChangelog = true;
 
         private const string ChangeLog =
-            @"* Various behind-the-scenes changes to improve stability
-* Faster startup times
+            @"* Various behind-the-scenes changes to improve stability and provide more functionality to plugin developers
 
-If you note any issues or need help, please make sure to ask on our discord server.";
+ATTENTION: YOU WILL HAVE TO UPDATE/REINSTALL ALL OF YOUR PLUGINS!!!!
+If you note any issues or need help, please make sure to ask on our discord server.
+
+Thank you for participating in the Dalamud collaborative testing programme.";
 
         private readonly string assemblyVersion = Util.AssemblyVersion;
 
