@@ -52,6 +52,20 @@ namespace Dalamud
         public event LocalizationChangedDelegate LocalizationChanged;
 
         /// <summary>
+        /// Search the set-up localization data for the provided assembly for the given string key and return it.
+        /// If the key is not present, the fallback is shown.
+        /// The fallback is also required to create the string files to be localized.
+        /// </summary>
+        /// <param name="key">The string key to be returned.</param>
+        /// <param name="fallBack">The fallback string, usually your source language.</param>
+        /// <returns>The localized string, fallback or string key if not found.</returns>
+        // TODO: This breaks loc export, since it's being called without string args. Fix in CheapLoc.
+        public static string Localize(string key, string fallBack)
+        {
+            return Loc.Localize(key, fallBack, Assembly.GetCallingAssembly());
+        }
+
+        /// <summary>
         /// Set up the UI language with the users' local UI culture.
         /// </summary>
         public void SetupWithUiCulture()
