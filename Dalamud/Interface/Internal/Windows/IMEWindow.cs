@@ -28,7 +28,7 @@ namespace Dalamud.Interface.Internal.Windows
         {
             var ime = Service<DalamudIME>.GetNullable();
 
-            if (ime == null || ime.IsEnabled)
+            if (ime == null || !ime.IsEnabled)
             {
                 ImGui.Text("IME is unavailable.");
                 return;
