@@ -24,6 +24,7 @@ using Dalamud.Plugin.Ipc.Internal;
 using HarmonyLib;
 using Serilog;
 using Serilog.Core;
+using Serilog.Events;
 
 #if DEBUG
 [assembly: InternalsVisibleTo("Dalamud.CorePlugin")]
@@ -62,6 +63,9 @@ namespace Dalamud
             Service<DalamudConfiguration>.Set(configuration);
 
             this.LogLevelSwitch = loggingLevelSwitch;
+
+            // TODO: Just for testing, force verbose logging
+            this.LogLevelSwitch.MinimumLevel = LogEventLevel.Verbose;
 
             this.unloadSignal = new ManualResetEvent(false);
             this.unloadSignal.Reset();
