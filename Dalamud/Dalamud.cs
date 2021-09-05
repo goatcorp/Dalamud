@@ -388,7 +388,7 @@ namespace Dalamud
                 __result = (IntPtr)0xFFFFFFFF;
             }
 
-            Log.Verbose($"Process.Handle // {__instance.ProcessName} // {__result:X}");
+            //Log.Verbose($"Process.Handle // {__instance.ProcessName} // {__result:X}");
         }
 
         private void ApplyProcessPatch()
