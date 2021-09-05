@@ -1184,7 +1184,10 @@ namespace Dalamud.Interface.Internal.Windows
                 // Available commands (if loaded)
                 if (plugin.IsLoaded)
                 {
-                    var commands = commandManager.Commands.Where(cInfo => cInfo.Value.ShowInHelp && cInfo.Value.LoaderAssemblyName == plugin.Manifest.InternalName);
+                    var commands = commandManager.Commands
+                        .Where(cInfo => cInfo.Value.ShowInHelp && cInfo.Value.LoaderAssemblyName == plugin.Manifest.InternalName)
+                        .ToArray();
+
                     if (commands.Any())
                     {
                         ImGui.Dummy(ImGuiHelpers.ScaledVector2(10f, 10f));
