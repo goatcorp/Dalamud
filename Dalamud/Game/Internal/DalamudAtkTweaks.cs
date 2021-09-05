@@ -78,7 +78,10 @@ namespace Dalamud.Game.Internal
 
             // "Close Addon"
             if (cmd == 12 && WindowSystem.HasAnyWindowSystemFocus)
+            {
+                Log.Verbose($"Cancelling global event CloseAddon command due to WindowSystem {WindowSystem.FocusedWindowSystemNamespace}");
                 return IntPtr.Zero;
+            }
 
             return this.hookAtkUnitBaseReceiveGlobalEvent.Original(thisPtr, cmd, a3, a4, a5);
         }
@@ -86,7 +89,10 @@ namespace Dalamud.Game.Internal
         private void AgentHudOpenSystemMenuDetour(void* thisPtr, AtkValue* atkValueArgs, uint menuSize)
         {
             if (WindowSystem.HasAnyWindowSystemFocus)
+            {
+                Log.Verbose($"Cancelling OpenSystemMenu due to WindowSystem {WindowSystem.FocusedWindowSystemNamespace}");
                 return;
+            }
 
             var configuration = Service<DalamudConfiguration>.Get();
 

@@ -58,7 +58,7 @@ namespace Dalamud.Game.Network
         /// <summary>
         /// Event that is called when a network message is sent/received.
         /// </summary>
-        public event OnNetworkMessageDelegate OnNetworkMessage;
+        public event OnNetworkMessageDelegate NetworkMessage;
 
         /// <summary>
         /// Enable this module.
@@ -109,7 +109,7 @@ namespace Dalamud.Game.Network
             try
             {
                 // Call events
-                this.OnNetworkMessage?.Invoke(dataPtr + 0x20, (ushort)Marshal.ReadInt16(dataPtr, 0x12), 0, targetId, NetworkMessageDirection.ZoneDown);
+                this.NetworkMessage?.Invoke(dataPtr + 0x20, (ushort)Marshal.ReadInt16(dataPtr, 0x12), 0, targetId, NetworkMessageDirection.ZoneDown);
 
                 this.processZonePacketDownHook.Original(a, targetId, dataPtr + 0x10);
             }
@@ -139,7 +139,7 @@ namespace Dalamud.Game.Network
             {
                 // Call events
                 // TODO: Implement actor IDs
-                this.OnNetworkMessage?.Invoke(dataPtr + 0x20, (ushort)Marshal.ReadInt16(dataPtr), 0x0, 0x0, NetworkMessageDirection.ZoneUp);
+                this.NetworkMessage?.Invoke(dataPtr + 0x20, (ushort)Marshal.ReadInt16(dataPtr), 0x0, 0x0, NetworkMessageDirection.ZoneUp);
             }
             catch (Exception ex)
             {

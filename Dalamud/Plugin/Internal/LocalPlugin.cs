@@ -183,7 +183,7 @@ namespace Dalamud.Plugin.Internal
             this.instance?.Dispose();
             this.instance = null;
 
-            this.DalamudInterface.Dispose();
+            this.DalamudInterface?.Dispose();
             this.DalamudInterface = null;
 
             this.pluginType = null;
