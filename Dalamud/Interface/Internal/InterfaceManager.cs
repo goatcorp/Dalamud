@@ -648,6 +648,7 @@ namespace Dalamud.Interface.Internal
             this.lastWantCapture = this.LastImGuiIoPtr.WantCaptureMouse;
 
             WindowSystem.HasAnyWindowSystemFocus = false;
+            WindowSystem.FocusedWindowSystemNamespace = string.Empty;
 
             this.Draw?.Invoke();
             Service<NotificationManager>.Get().Draw();
