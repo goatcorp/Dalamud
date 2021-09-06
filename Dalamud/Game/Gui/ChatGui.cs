@@ -165,7 +165,7 @@ namespace Dalamud.Game.Gui
         {
             var configuration = Service<DalamudConfiguration>.Get();
 
-            Log.Verbose("[CHATGUI PRINT REGULAR]{0}", message);
+            // Log.Verbose("[CHATGUI PRINT REGULAR]{0}", message);
             this.PrintChat(new XivChatEntry
             {
                 Message = message,
@@ -182,7 +182,7 @@ namespace Dalamud.Game.Gui
         {
             var configuration = Service<DalamudConfiguration>.Get();
 
-            Log.Verbose("[CHATGUI PRINT SESTRING]{0}", message.TextValue);
+            // Log.Verbose("[CHATGUI PRINT SESTRING]{0}", message.TextValue);
             this.PrintChat(new XivChatEntry
             {
                 Message = message,
@@ -197,7 +197,7 @@ namespace Dalamud.Game.Gui
         /// <param name="message">A message to send.</param>
         public void PrintError(string message)
         {
-            Log.Verbose("[CHATGUI PRINT REGULAR ERROR]{0}", message);
+            // Log.Verbose("[CHATGUI PRINT REGULAR ERROR]{0}", message);
             this.PrintChat(new XivChatEntry
             {
                 Message = message,
@@ -212,7 +212,7 @@ namespace Dalamud.Game.Gui
         /// <param name="message">A message to send.</param>
         public void PrintError(SeString message)
         {
-            Log.Verbose("[CHATGUI PRINT SESTRING ERROR]{0}", message.TextValue);
+            // Log.Verbose("[CHATGUI PRINT SESTRING ERROR]{0}", message.TextValue);
             this.PrintChat(new XivChatEntry
             {
                 Message = message,
@@ -359,7 +359,7 @@ namespace Dalamud.Game.Gui
                 var parsedSender = SeString.Parse(sender.RawData);
                 var parsedMessage = SeString.Parse(message.RawData);
 
-                Log.Verbose("[CHATGUI][{0}][{1}]", parsedSender.TextValue, parsedMessage.TextValue);
+                // Log.Verbose("[CHATGUI][{0}][{1}]", parsedSender.TextValue, parsedMessage.TextValue);
 
                 // Log.Debug($"HandlePrintMessageDetour {manager} - [{chattype}] [{BitConverter.ToString(message.RawData).Replace("-", " ")}] {message.Value} from {senderName.Value}");
 
@@ -381,7 +381,7 @@ namespace Dalamud.Game.Gui
                 {
                     Log.Verbose("SeString was edited, taking precedence over StdString edit.");
                     message.RawData = newEdited;
-                    Log.Debug($"\nOLD: {BitConverter.ToString(originalMessageData)}\nNEW: {BitConverter.ToString(newEdited)}");
+                    // Log.Debug($"\nOLD: {BitConverter.ToString(originalMessageData)}\nNEW: {BitConverter.ToString(newEdited)}");
                 }
 
                 var messagePtr = pMessage;
