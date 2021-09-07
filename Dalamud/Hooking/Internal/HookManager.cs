@@ -169,15 +169,14 @@ namespace Dalamud.Hooking.Internal
                         break;
                 }
 
+                var snippet = originalBytes[0..i];
+
                 if (i > 0)
                 {
-                    Log.Verbose($"Reverting hook at 0x{address.ToInt64():X}");
-                    fixed (byte* original = originalBytes)
-                    {
-                        MemoryHelper.ChangePermission(address, i, MemoryProtection.ExecuteReadWrite, out var oldPermissions);
-                        MemoryHelper.WriteRaw(address, originalBytes);
-                        MemoryHelper.ChangePermission(address, i, oldPermissions);
-                    }
+                    Log.Verbose($"Reverting hook at 0x{address.ToInt64():X} ({snippet.Length} bytes)");
+                    MemoryHelper.ChangePermission(address, i, MemoryProtection.ExecuteReadWrite, out var oldPermissions);
+                    MemoryHelper.WriteRaw(address, snippet);
+                    MemoryHelper.ChangePermission(address, i, oldPermissions);
                 }
             }
         }
