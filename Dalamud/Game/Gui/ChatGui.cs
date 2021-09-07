@@ -390,8 +390,7 @@ namespace Dalamud.Game.Gui
                 if (!FastByteArrayCompare(originalMessageData, message.RawData))
                 {
                     allocatedString = Service<LibcFunction>.Get().NewString(message.RawData);
-                    Log.Debug(
-                        $"HandlePrintMessageDetour String modified: {originalMessageData}({messagePtr}) -> {message}({allocatedString.Address})");
+                    Log.Debug($"HandlePrintMessageDetour String modified: {originalMessageData}({messagePtr}) -> {message}({allocatedString.Address})");
                     messagePtr = allocatedString.Address;
                 }
 
