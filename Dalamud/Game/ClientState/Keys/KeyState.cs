@@ -137,7 +137,6 @@ namespace Dalamud.Game.ClientState.Keys
 
         /// <summary>
         /// Gets the raw value from the key state array.
-        /// No bounds checking is done.
         /// </summary>
         /// <param name="vkCode">Virtual key code.</param>
         /// <returns>A reference to the indexed array.</returns>
