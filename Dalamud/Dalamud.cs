@@ -153,6 +153,19 @@ namespace Dalamud
                 Service<NetworkHandlers>.Set();
                 Log.Information("[T2] NH OK!");
 
+                try
+                {
+                    Service<DataManager>.Set().Initialize(this.AssetDirectory.FullName);
+                }
+                catch (Exception e)
+                {
+                    Log.Error(e, "Could not initialize DataManager.");
+                    this.Unload();
+                    return;
+                }
+
+                Log.Information("[T2] Data OK!");
+
                 var clientState = Service<ClientState>.Set();
                 Log.Information("[T2] CS OK!");
 
@@ -191,19 +204,6 @@ namespace Dalamud
                 {
                     Log.Information(e, "Could not init IME.");
                 }
-
-                try
-                {
-                    Service<DataManager>.Set().Initialize(this.AssetDirectory.FullName);
-                }
-                catch (Exception e)
-                {
-                    Log.Error(e, "Could not initialize DataManager.");
-                    this.Unload();
-                    return;
-                }
-
-                Log.Information("[T2] Data OK!");
 
 #pragma warning disable CS0618 // Type or member is obsolete
                 Service<SeStringManager>.Set();
