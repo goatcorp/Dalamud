@@ -30,8 +30,7 @@ namespace Dalamud.Plugin.Internal
             this.IsThirdParty = pluginMasterUrl != DalamudPluginsMasterUrl;
             this.IsEnabled = isEnabled;
 
-            // No need to wait for this
-            Task.Run(this.ReloadPluginMasterAsync);
+            this.ReloadPluginMasterAsync();
         }
 
         /// <summary>
@@ -73,12 +72,12 @@ namespace Dalamud.Plugin.Internal
             this.State = PluginRepositoryState.InProgress;
             this.PluginMaster = new List<RemotePluginManifest>().AsReadOnly();
 
-            return Task.Run(() =>
+            return Task.Run(async () =>
             {
                 Log.Information($"Fetching repo: {this.PluginMasterUrl}");
                 using var client = new HttpClient();
-                using var response = client.GetAsync(this.PluginMasterUrl).Result;
-                var data = response.Content.ReadAsStringAsync().Result;
+                using var response = await client.GetAsync(this.PluginMasterUrl);
+                var data = await response.Content.ReadAsStringAsync();
 
                 var pluginMaster = JsonConvert.DeserializeObject<List<RemotePluginManifest>>(data);
                 pluginMaster.Sort((pm1, pm2) => pm1.Name.CompareTo(pm2.Name));
