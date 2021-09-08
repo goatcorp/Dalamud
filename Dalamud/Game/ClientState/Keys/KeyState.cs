@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 using Dalamud.IoC;
@@ -10,6 +11,15 @@ namespace Dalamud.Game.ClientState.Keys
     /// <summary>
     /// Wrapper around the game keystate buffer, which contains the pressed state for all keyboard keys, indexed by virtual vkCode.
     /// </summary>
+    /// <remarks>
+    /// The stored key state is actually a combination field, however the below ephemeral states are consumed each frame. Setting
+    /// the value may be mildly useful, however retrieving the value is largely pointless. In testing, it wasn't possible without
+    /// setting the statue manually.
+    /// index &amp; 0 = key pressed.
+    /// index &amp; 1 = key down (ephemeral).
+    /// index &amp; 2 = key up (ephemeral).
+    /// index &amp; 3 = short key press (ephemeral).
+    /// </remarks>
     [PluginInterface]
     [InterfaceVersion("1.0")]
     public class KeyState
@@ -18,7 +28,9 @@ namespace Dalamud.Game.ClientState.Keys
         // but there is other state data past this point, and keys beyond here aren't
         // generally valid for most things anyway
         private const int MaxKeyCodeIndex = 0xA0;
-        private IntPtr bufferBase;
+        private readonly IntPtr bufferBase;
+        private readonly IntPtr indexBase;
+        private VirtualKey[] validVirtualKeyCache = null;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="KeyState"/> class.
@@ -29,40 +41,81 @@ namespace Dalamud.Game.ClientState.Keys
             var moduleBaseAddress = Service<SigScanner>.Get().Module.BaseAddress;
 
             this.bufferBase = moduleBaseAddress + Marshal.ReadInt32(addressResolver.KeyboardState);
+            this.indexBase = moduleBaseAddress + Marshal.ReadInt32(addressResolver.KeyboardStateIndexArray);
 
             Log.Verbose($"Keyboard state buffer address 0x{this.bufferBase.ToInt64():X}");
         }
 
         /// <summary>
-        /// Get or set the keypressed state for a given vkCode.
+        /// Get or set the key-pressed state for a given vkCode.
         /// </summary>
         /// <param name="vkCode">The virtual key to change.</param>
         /// <returns>Whether the specified key is currently pressed.</returns>
-        public bool this[int vkCode]
+        /// <exception cref="ArgumentException">If the vkCode is not valid. Refer to <see cref="IsVirtualKeyValid(int)"/> or <see cref="GetValidVirtualKeys"/>.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">If the set value is non-zero.</exception>
+        public unsafe bool this[int vkCode]
         {
-            get
-            {
-                if (vkCode < 0 || vkCode > MaxKeyCodeIndex)
-                    throw new ArgumentException($"Keycode state only appears to be valid up to {MaxKeyCodeIndex}");
+            get => this.GetRawValue(vkCode) != 0;
+            set => this.SetRawValue(vkCode, value ? 1 : 0);
+        }
 
-                return Marshal.ReadInt32(this.bufferBase + (4 * vkCode)) != 0;
-            }
-
-            set
-            {
-                if (vkCode < 0 || vkCode > MaxKeyCodeIndex)
-                    throw new ArgumentException($"Keycode state only appears to be valid up to {MaxKeyCodeIndex}");
-
-                Marshal.WriteInt32(this.bufferBase + (4 * vkCode), value ? 1 : 0);
-            }
+        /// <inheritdoc cref="this[int]"/>
+        public bool this[VirtualKey vkCode]
+        {
+            get => this[(int)vkCode];
+            set => this[(int)vkCode] = value;
         }
 
         /// <summary>
-        /// Get or set the keypressed state for a given VirtualKey enum.
+        /// Gets the value in the index array.
         /// </summary>
-        /// <param name="vk">The virtual key to change.</param>
-        /// <returns>Whether the specified key is currently pressed.</returns>
-        public bool this[VirtualKey vk] => this[(int)vk];
+        /// <param name="vkCode">The virtual key to change.</param>
+        /// <returns>The raw value stored in the index array.</returns>
+        /// <exception cref="ArgumentException">If the vkCode is not valid. Refer to <see cref="IsVirtualKeyValid(int)"/> or <see cref="GetValidVirtualKeys"/>.</exception>
+        public int GetRawValue(int vkCode)
+            => this.GetRefValue(vkCode);
+
+        /// <inheritdoc cref="GetRawValue(int)"/>
+        public int GetRawValue(VirtualKey vkCode)
+            => this.GetRawValue((int)vkCode);
+
+        /// <summary>
+        /// Sets the value in the index array.
+        /// </summary>
+        /// <param name="vkCode">The virtual key to change.</param>
+        /// <param name="value">The raw value to set in the index array.</param>
+        /// <exception cref="ArgumentException">If the vkCode is not valid. Refer to <see cref="IsVirtualKeyValid(int)"/> or <see cref="GetValidVirtualKeys"/>.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">If the set value is non-zero.</exception>
+        public void SetRawValue(int vkCode, int value)
+        {
+            if (value != 0)
+                throw new ArgumentOutOfRangeException(nameof(value), "Dalamud does not support pressing keys, only preventing them via zero or False. If you have a valid use-case for this, please contact the dev team.");
+
+            this.GetRefValue(vkCode) = value;
+        }
+
+        /// <inheritdoc cref="SetRawValue(int, int)"/>
+        public void SetRawValue(VirtualKey vkCode, int value)
+            => this.SetRawValue((int)vkCode, value);
+
+        /// <summary>
+        /// Gets a value indicating whether the given VirtualKey code is regarded as valid input by the game.
+        /// </summary>
+        /// <param name="vkCode">Virtual key code.</param>
+        /// <returns>If the code is valid.</returns>
+        public bool IsVirtualKeyValid(int vkCode)
+            => vkCode > 0 && vkCode < MaxKeyCodeIndex && this.ConvertVirtualKey(vkCode) != 0;
+
+        /// <inheritdoc cref="IsVirtualKeyValid(int)"/>
+        public bool IsVirtualKeyValid(VirtualKey vkCode)
+            => this.IsVirtualKeyValid((int)vkCode);
+
+        /// <summary>
+        /// Gets an array of virtual keys the game considers valid input.
+        /// </summary>
+        /// <returns>An array of valid virtual keys.</returns>
+        public VirtualKey[] GetValidVirtualKeys()
+            => this.validVirtualKeyCache ??= Enum.GetValues<VirtualKey>().Where(vk => this.IsVirtualKeyValid(vk)).ToArray();
 
         /// <summary>
         /// Clears the pressed state for all keys.
@@ -71,8 +124,40 @@ namespace Dalamud.Game.ClientState.Keys
         {
             for (var i = 0; i < MaxKeyCodeIndex; i++)
             {
-                Marshal.WriteInt32(this.bufferBase + (i * 4), 0);
+                this.GetRefValue(i) = 0;
             }
+        }
+
+        /// <summary>
+        /// Converts a virtual key into the equivalent value that the game uses.
+        /// Valid values are non-zero.
+        /// </summary>
+        /// <param name="vkCode">Virtual key.</param>
+        /// <returns>Converted value.</returns>
+        private unsafe byte ConvertVirtualKey(int vkCode)
+        {
+            if (vkCode <= 0 || vkCode >= 240)
+                return 0;
+
+            return *(byte*)(this.indexBase + vkCode);
+        }
+
+        /// <summary>
+        /// Gets the raw value from the key state array.
+        /// </summary>
+        /// <param name="vkCode">Virtual key code.</param>
+        /// <returns>A reference to the indexed array.</returns>
+        private unsafe ref int GetRefValue(int vkCode)
+        {
+            if (vkCode < 0 || vkCode > MaxKeyCodeIndex)
+                throw new ArgumentException($"Keycode state is only valid up to {MaxKeyCodeIndex}");
+
+            vkCode = this.ConvertVirtualKey(vkCode);
+
+            if (vkCode == 0)
+                throw new ArgumentException($"Keycode state is only valid for certain values. Reference GetValidVirtualKeys for help.");
+
+            return ref *(int*)(this.bufferBase + (4 * vkCode));
         }
     }
 }
