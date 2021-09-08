@@ -99,7 +99,7 @@ namespace Dalamud.Plugin
         /// <summary>
         /// Gets the timespan delta from when this plugin was loaded.
         /// </summary>
-        public TimeSpan DeltaLoadTime => DateTime.Now - this.LoadTime;
+        public TimeSpan LoadTimeDelta => DateTime.Now - this.LoadTime;
 
         /// <summary>
         /// Gets the directory Dalamud assets are stored in.
