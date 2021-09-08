@@ -194,16 +194,23 @@ namespace Dalamud.Game
                         // Stat Tracking for Framework Updates
                         var invokeList = this.Update.GetInvocationList();
                         var notUpdated = StatsHistory.Keys.ToList();
+
                         // Individually invoke OnUpdate handlers and time them.
                         foreach (var d in invokeList)
                         {
                             statsStopwatch.Restart();
                             d.Method.Invoke(d.Target, new object[] { this });
                             statsStopwatch.Stop();
+
                             var key = $"{d.Target}::{d.Method.Name}";
-                            if (notUpdated.Contains(key)) notUpdated.Remove(key);
-                            if (!StatsHistory.ContainsKey(key)) StatsHistory.Add(key, new List<double>());
+                            if (notUpdated.Contains(key))
+                                notUpdated.Remove(key);
+
+                            if (!StatsHistory.ContainsKey(key))
+                                StatsHistory.Add(key, new List<double>());
+
                             StatsHistory[key].Add(statsStopwatch.Elapsed.TotalMilliseconds);
+
                             if (StatsHistory[key].Count > 1000)
                             {
                                 StatsHistory[key].RemoveRange(0, StatsHistory[key].Count - 1000);
