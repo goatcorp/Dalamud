@@ -52,6 +52,7 @@ namespace Dalamud.Game.ClientState.Keys
         /// <param name="vkCode">The virtual key to change.</param>
         /// <returns>Whether the specified key is currently pressed.</returns>
         /// <exception cref="ArgumentException">If the vkCode is not valid. Refer to <see cref="IsVirtualKeyValid(int)"/> or <see cref="GetValidVirtualKeys"/>.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">If the set value is non-zero.</exception>
         public unsafe bool this[int vkCode]
         {
             get => this.GetRawValue(vkCode) != 0;
@@ -84,8 +85,14 @@ namespace Dalamud.Game.ClientState.Keys
         /// <param name="vkCode">The virtual key to change.</param>
         /// <param name="value">The raw value to set in the index array.</param>
         /// <exception cref="ArgumentException">If the vkCode is not valid. Refer to <see cref="IsVirtualKeyValid(int)"/> or <see cref="GetValidVirtualKeys"/>.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">If the set value is non-zero.</exception>
         public void SetRawValue(int vkCode, int value)
-            => this.GetRefValue(vkCode) = value;
+        {
+            if (value != 0)
+                throw new ArgumentOutOfRangeException(nameof(value), "Dalamud does not support pressing keys, only preventing them via zero or False. If you have a valid use-case for this, please contact the dev team.");
+
+            this.GetRefValue(vkCode) = value;
+        }
 
         /// <inheritdoc cref="SetRawValue(int, int)"/>
         public void SetRawValue(VirtualKey vkCode, int value)
