@@ -25,6 +25,7 @@ namespace Dalamud.Game
     public sealed class Framework : IDisposable
     {
         private static Stopwatch statsStopwatch = new();
+        private Stopwatch updateStopwatch = new();
 
         private Hook<OnUpdateDetour> updateHook;
         private Hook<OnDestroyDetour> destroyHook;
@@ -93,9 +94,14 @@ namespace Dalamud.Game
         public FrameworkAddressResolver Address { get; }
 
         /// <summary>
-        /// Gets the last time the Framework Update event was triggered.
+        /// Gets the last time that the Framework Update event was triggered.
         /// </summary>
         public DateTime LastUpdate { get; private set; } = DateTime.MinValue;
+
+        /// <summary>
+        /// Gets the last time in UTC that the Framework Update event was triggered.
+        /// </summary>
+        public DateTime LastUpdateUTC { get; private set; } = DateTime.MinValue;
 
         /// <summary>
         /// Gets the delta between the last Framework Update and the currently executing one.
@@ -137,6 +143,9 @@ namespace Dalamud.Game
             this.updateHook?.Dispose();
             this.destroyHook?.Dispose();
             this.realDestroyHook?.Dispose();
+
+            this.updateStopwatch.Reset();
+            statsStopwatch.Reset();
         }
 
         private void HookVTable()
@@ -183,9 +192,12 @@ namespace Dalamud.Game
 
             if (this.DispatchUpdateEvents)
             {
-                var now = DateTime.Now;
-                this.UpdateDelta = now - this.LastUpdate;
-                this.LastUpdate = now;
+                this.updateStopwatch.Stop();
+                this.UpdateDelta = TimeSpan.FromMilliseconds(this.updateStopwatch.ElapsedMilliseconds);
+                this.updateStopwatch.Restart();
+
+                this.LastUpdate = DateTime.Now;
+                this.LastUpdateUTC = DateTime.UtcNow;
 
                 try
                 {
