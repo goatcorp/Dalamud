@@ -122,9 +122,9 @@ namespace Dalamud.Game.ClientState.Keys
         /// </summary>
         public void ClearAll()
         {
-            for (var i = 0; i < MaxKeyCodeIndex; i++)
+            foreach (var vk in this.GetValidVirtualKeys())
             {
-                this.GetRefValue(i) = 0;
+                this[vk] = false;
             }
         }
 
