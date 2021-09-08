@@ -93,6 +93,16 @@ namespace Dalamud.Game
         public FrameworkAddressResolver Address { get; }
 
         /// <summary>
+        /// Gets the last time the Framework Update event was triggered.
+        /// </summary>
+        public DateTime LastUpdate { get; private set; } = DateTime.MinValue;
+
+        /// <summary>
+        /// Gets the delta between the last Framework Update and the currently executing one.
+        /// </summary>
+        public TimeSpan UpdateDelta { get; private set; } = TimeSpan.Zero;
+
+        /// <summary>
         /// Gets or sets a value indicating whether to dispatch update events.
         /// </summary>
         internal bool DispatchUpdateEvents { get; set; } = true;
@@ -173,6 +183,10 @@ namespace Dalamud.Game
 
             if (this.DispatchUpdateEvents)
             {
+                var now = DateTime.Now;
+                this.DeltaFrameworkUpdate = now - this.LastUpdate;
+                this.LastUpdate = now;
+
                 try
                 {
                     if (StatsEnabled && this.Update != null)
