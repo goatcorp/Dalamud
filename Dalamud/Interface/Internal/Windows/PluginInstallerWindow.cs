@@ -67,7 +67,7 @@ namespace Dalamud.Interface.Internal.Windows
         private string errorModalMessage = string.Empty;
 
         private int updatePluginCount = 0;
-        private List<PluginUpdateStatus> updatedPlugins;
+        private List<PluginUpdateStatus>? updatedPlugins;
 
         private List<RemotePluginManifest> pluginListAvailable = new();
         private List<LocalPlugin> pluginListInstalled = new();
@@ -163,7 +163,7 @@ namespace Dalamud.Interface.Internal.Windows
         {
             var pluginManager = Service<PluginManager>.Get();
 
-            Task.Run(pluginManager.ReloadPluginMasters);
+            _ = pluginManager.ReloadPluginMastersAsync();
 
             this.updatePluginCount = 0;
             this.updatedPlugins = null;

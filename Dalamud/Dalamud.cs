@@ -250,6 +250,8 @@ namespace Dalamud
 
                 try
                 {
+                    _ = pluginManager.SetPluginReposFromConfigAsync(false);
+
                     pluginManager.OnInstalledPluginsChanged += Troubleshooting.LogTroubleshooting;
 
                     Log.Information("[T3] PM OK!");

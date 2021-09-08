@@ -529,7 +529,7 @@ namespace Dalamud.Interface.Internal.Windows
 
                 if (this.thirdRepoListChanged)
                 {
-                    pluginManager.SetPluginReposFromConfig(true);
+                    _ = pluginManager.SetPluginReposFromConfigAsync(true);
                     this.thirdRepoListChanged = false;
                 }
 
@@ -602,7 +602,7 @@ namespace Dalamud.Interface.Internal.Windows
 
             configuration.Save();
 
-            Service<PluginManager>.Get().ReloadPluginMasters();
+            _ = Service<PluginManager>.Get().ReloadPluginMastersAsync();
         }
     }
 }

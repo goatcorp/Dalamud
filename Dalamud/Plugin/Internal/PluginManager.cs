@@ -72,9 +72,7 @@ namespace Dalamud.Plugin.Internal
             this.PluginConfigs = new PluginConfigurations(Path.Combine(Path.GetDirectoryName(startInfo.ConfigurationPath) ?? string.Empty, "pluginConfigs"));
 
             var bannedPluginsJson = File.ReadAllText(Path.Combine(startInfo.AssetDirectory, "UIRes", "bannedplugin.json"));
-            this.bannedPlugins = JsonConvert.DeserializeObject<BannedPlugin[]>(bannedPluginsJson);
-
-            this.SetPluginReposFromConfig(false);
+            this.bannedPlugins = JsonConvert.DeserializeObject<BannedPlugin[]>(bannedPluginsJson) ?? Array.Empty<BannedPlugin>();
 
             this.ApplyPatches();
         }
@@ -146,10 +144,12 @@ namespace Dalamud.Plugin.Internal
         }
 
         /// <summary>
-        /// Set the list of repositories to use. Should be called when the Settings window has been updated or at instantiation.
+        /// Set the list of repositories to use and downloads their contents.
+        /// Should be called when the Settings window has been updated or at instantiation.
         /// </summary>
         /// <param name="notify">Whether the available plugins changed should be evented after.</param>
-        public void SetPluginReposFromConfig(bool notify)
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        public async Task SetPluginReposFromConfigAsync(bool notify)
         {
             var configuration = Service<DalamudConfiguration>.Get();
 
@@ -162,6 +162,11 @@ namespace Dalamud.Plugin.Internal
 
             if (notify)
                 this.NotifyAvailablePluginsChanged();
+
+            foreach (var repo in repos)
+            {
+                await repo.ReloadPluginMasterAsync();
+            }
         }
 
         /// <summary>
@@ -301,11 +306,15 @@ namespace Dalamud.Plugin.Internal
         /// <summary>
         /// Reload the PluginMaster for each repo, filter, and event that the list has updated.
         /// </summary>
-        public void ReloadPluginMasters()
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        public async Task ReloadPluginMastersAsync()
         {
-            Task.WhenAll(this.Repos.Select(repo => repo.ReloadPluginMasterAsync()))
-                .ContinueWith(task => this.RefilterPluginMasters())
-                .Wait();
+            foreach (var repo in this.Repos)
+            {
+                await repo.ReloadPluginMasterAsync();
+            }
+
+            this.RefilterPluginMasters();
         }
 
         /// <summary>
