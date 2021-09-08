@@ -121,6 +121,11 @@ namespace Dalamud.Interface
         }
 
         /// <summary>
+        /// Gets the count of Draw calls made since plugin creation.
+        /// </summary>
+        public ulong FrameCount { get; private set; } = 0;
+
+        /// <summary>
         /// Gets or sets a value indicating whether statistics about UI draw time should be collected.
         /// </summary>
 #if DEBUG
@@ -282,6 +287,8 @@ namespace Dalamud.Interface
 
                 this.hasErrorWindow = true;
             }
+
+            this.FrameCount++;
 
             if (DoStats)
             {

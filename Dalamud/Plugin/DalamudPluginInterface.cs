@@ -48,6 +48,9 @@ namespace Dalamud.Plugin
             this.configs = Service<PluginManager>.Get().PluginConfigs;
             this.Reason = reason;
 
+            this.LoadTime = DateTime.Now;
+            this.LoadTimeUTC = DateTime.UtcNow;
+
             this.GeneralChatType = configuration.GeneralChatType;
             this.Sanitizer = new Sanitizer(dataManager.Language);
             if (configuration.LanguageOverride != null)
@@ -82,6 +85,21 @@ namespace Dalamud.Plugin
         /// Gets the reason this plugin was loaded.
         /// </summary>
         public PluginLoadReason Reason { get; }
+
+        /// <summary>
+        /// Gets the time that this plugin was loaded.
+        /// </summary>
+        public DateTime LoadTime { get; }
+
+        /// <summary>
+        /// Gets the UTC time that this plugin was loaded.
+        /// </summary>
+        public DateTime LoadTimeUTC { get; }
+
+        /// <summary>
+        /// Gets the timespan delta from when this plugin was loaded.
+        /// </summary>
+        public TimeSpan DeltaLoadTime => DateTime.Now - this.LoadTime;
 
         /// <summary>
         /// Gets the directory Dalamud assets are stored in.
