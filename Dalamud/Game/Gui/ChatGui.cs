@@ -354,17 +354,22 @@ namespace Dalamud.Game.Gui
             try
             {
                 var sender = StdString.ReadFromPointer(pSenderName);
-                var message = StdString.ReadFromPointer(pMessage);
-
                 var parsedSender = SeString.Parse(sender.RawData);
+                var originalSenderData = (byte[])sender.RawData.Clone();
+                var oldEditedSender = parsedSender.Encode();
+                var senderPtr = pSenderName;
+                OwnedStdString allocatedString = null;
+
+                var message = StdString.ReadFromPointer(pMessage);
                 var parsedMessage = SeString.Parse(message.RawData);
+                var originalMessageData = (byte[])message.RawData.Clone();
+                var oldEdited = parsedMessage.Encode();
+                var messagePtr = pMessage;
+                OwnedStdString allocatedStringSender = null;
 
                 // Log.Verbose("[CHATGUI][{0}][{1}]", parsedSender.TextValue, parsedMessage.TextValue);
 
                 // Log.Debug($"HandlePrintMessageDetour {manager} - [{chattype}] [{BitConverter.ToString(message.RawData).Replace("-", " ")}] {message.Value} from {senderName.Value}");
-
-                var originalMessageData = (byte[])message.RawData.Clone();
-                var oldEdited = parsedMessage.Encode();
 
                 // Call events
                 var isHandled = false;
@@ -376,16 +381,12 @@ namespace Dalamud.Game.Gui
                 }
 
                 var newEdited = parsedMessage.Encode();
-
                 if (!FastByteArrayCompare(oldEdited, newEdited))
                 {
                     Log.Verbose("SeString was edited, taking precedence over StdString edit.");
                     message.RawData = newEdited;
                     // Log.Debug($"\nOLD: {BitConverter.ToString(originalMessageData)}\nNEW: {BitConverter.ToString(newEdited)}");
                 }
-
-                var messagePtr = pMessage;
-                OwnedStdString allocatedString = null;
 
                 if (!FastByteArrayCompare(originalMessageData, message.RawData))
                 {
@@ -395,6 +396,22 @@ namespace Dalamud.Game.Gui
                     messagePtr = allocatedString.Address;
                 }
 
+                var newEditedSender = parsedSender.Encode();
+                if (!FastByteArrayCompare(oldEditedSender, newEditedSender))
+                {
+                    Log.Verbose("SeString was edited, taking precedence over StdString edit.");
+                    sender.RawData = newEditedSender;
+                    // Log.Debug($"\nOLD: {BitConverter.ToString(originalMessageData)}\nNEW: {BitConverter.ToString(newEdited)}");
+                }
+
+                if (!FastByteArrayCompare(originalSenderData, sender.RawData))
+                {
+                    allocatedStringSender = Service<LibcFunction>.Get().NewString(sender.RawData);
+                    Log.Debug(
+                        $"HandlePrintMessageDetour Sender modified: {originalSenderData}({senderPtr}) -> {sender}({allocatedStringSender.Address})");
+                    senderPtr = allocatedStringSender.Address;
+                }
+
                 // Print the original chat if it's handled.
                 if (isHandled)
                 {
@@ -402,7 +419,7 @@ namespace Dalamud.Game.Gui
                 }
                 else
                 {
-                    retVal = this.printMessageHook.Original(manager, chattype, pSenderName, messagePtr, senderid, parameter);
+                    retVal = this.printMessageHook.Original(manager, chattype, senderPtr, messagePtr, senderid, parameter);
                     this.ChatMessageUnhandled?.Invoke(chattype, senderid, parsedSender, parsedMessage);
                 }
 
@@ -410,6 +427,7 @@ namespace Dalamud.Game.Gui
                     this.baseAddress = manager;
 
                 allocatedString?.Dispose();
+                allocatedStringSender?.Dispose();
             }
             catch (Exception ex)
             {
