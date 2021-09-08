@@ -184,7 +184,7 @@ namespace Dalamud.Game
             if (this.DispatchUpdateEvents)
             {
                 var now = DateTime.Now;
-                this.DeltaFrameworkUpdate = now - this.LastUpdate;
+                this.UpdateDelta = now - this.LastUpdate;
                 this.LastUpdate = now;
 
                 try
