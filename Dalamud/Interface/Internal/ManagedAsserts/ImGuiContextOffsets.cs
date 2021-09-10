@@ -1,11 +1,12 @@
 namespace Dalamud.Interface.Internal.ManagedAsserts
 {
     /// <summary>
-    /// Offsets to various data for ImGui.Context
+    /// Offsets to various data in ImGui context.
     /// </summary>
     /// <remarks>
-    /// Last updated for ImGui 1.83
+    /// Last updated for ImGui 1.83.
     /// </remarks>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "Document the unsage instead.")]
     internal static class ImGuiContextOffsets
     {
         public const int CurrentWindowStackOffset = 0x73A;
