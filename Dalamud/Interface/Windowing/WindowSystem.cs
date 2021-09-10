@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
+using Dalamud.Interface.Internal.ManagedAsserts;
 using ImGuiNET;
 using Serilog;
 
@@ -98,8 +98,13 @@ namespace Dalamud.Interface.Windowing
 #if DEBUG
                 // Log.Verbose($"[WS{(hasNamespace ? "/" + this.Namespace : string.Empty)}] Drawing {window.WindowName}");
 #endif
+                var snapshot = ImGuiManagedAsserts.GetSnapshot();
 
                 window.DrawInternal();
+
+                var source = ($"{this.Namespace}::" ?? string.Empty) + window.WindowName;
+                ImGuiManagedAsserts.ReportProblems(source, snapshot);
+
             }
 
             var focusedWindow = this.windows.FirstOrDefault(x => x.IsFocused && x.RespectCloseHotkey);
