@@ -1,5 +1,5 @@
 using System.Numerics;
-
+using Dalamud.Configuration.Internal;
 using Dalamud.Game.ClientState.Keys;
 using ImGuiNET;
 
@@ -200,7 +200,8 @@ namespace Dalamud.Interface.Windowing
                 this.IsFocused = ImGui.IsWindowFocused(ImGuiFocusedFlags.RootAndChildWindows);
 
                 var escapeDown = Service<KeyState>.Get()[VirtualKey.ESCAPE];
-                if (escapeDown && this.IsFocused && !wasEscPressedLastFrame && this.RespectCloseHotkey)
+                var isAllowed = Service<DalamudConfiguration>.Get().IsFocusManagementEnabled;
+                if (escapeDown && this.IsFocused && isAllowed && !wasEscPressedLastFrame && this.RespectCloseHotkey)
                 {
                     this.IsOpen = false;
                     wasEscPressedLastFrame = true;

@@ -44,6 +44,7 @@ namespace Dalamud.Interface.Internal.Windows
         private bool doDocking;
         private bool doViewport;
         private bool doGamepad;
+        private bool doFocus;
 
         private List<ThirdPartyRepoSettings> thirdRepoList;
         private bool thirdRepoListChanged;
@@ -89,6 +90,7 @@ namespace Dalamud.Interface.Internal.Windows
             this.doDocking = configuration.IsDocking;
             this.doViewport = !configuration.IsDisableViewport;
             this.doGamepad = configuration.IsGamepadNavigationEnabled;
+            this.doFocus = configuration.IsFocusManagementEnabled;
 
             this.doPluginTest = configuration.DoPluginTest;
             this.thirdRepoList = configuration.ThirdRepoList.Select(x => x.Clone()).ToList();
@@ -248,6 +250,9 @@ namespace Dalamud.Interface.Internal.Windows
                     ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingToggleUiHideDuringGposeHint", "Hide any open windows by plugins while gpose is active."));
 
                     ImGuiHelpers.ScaledDummy(10, 16);
+
+                    ImGui.Checkbox(Loc.Localize("DalamudSettingToggleFocusManagement", "Use escape to close Dalamud windows"), ref this.doFocus);
+                    ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingToggleFocusManagementHint", "This will cause Dalamud windows to behave like in-game windows when pressing escape.\nThey will close one after another until all are closed. May not work for all plugins."));
 
                     ImGui.Checkbox(Loc.Localize("DalamudSettingToggleViewports", "Enable multi-monitor windows"), ref this.doViewport);
                     ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingToggleViewportsHint", "This will allow you move plugin windows onto other monitors.\nWill only work in Borderless Window or Windowed mode."));
@@ -566,6 +571,7 @@ namespace Dalamud.Interface.Internal.Windows
 
             configuration.IsDocking = this.doDocking;
             configuration.IsGamepadNavigationEnabled = this.doGamepad;
+            configuration.IsFocusManagementEnabled = this.doFocus;
 
             // This is applied every frame in InterfaceManager::CheckViewportState()
             configuration.IsDisableViewport = !this.doViewport;

@@ -77,7 +77,7 @@ namespace Dalamud.Game.Internal
             // Log.Information("{0}: cmd#{1} a3#{2} - HasAnyFocus:{3}", Marshal.PtrToStringAnsi(new IntPtr(thisPtr->Name)), cmd, a3, WindowSystem.HasAnyWindowSystemFocus);
 
             // "Close Addon"
-            if (cmd == 12 && WindowSystem.HasAnyWindowSystemFocus)
+            if (cmd == 12 && WindowSystem.HasAnyWindowSystemFocus && Service<DalamudConfiguration>.Get().IsFocusManagementEnabled)
             {
                 Log.Verbose($"Cancelling global event CloseAddon command due to WindowSystem {WindowSystem.FocusedWindowSystemNamespace}");
                 return IntPtr.Zero;
@@ -88,7 +88,7 @@ namespace Dalamud.Game.Internal
 
         private void AgentHudOpenSystemMenuDetour(void* thisPtr, AtkValue* atkValueArgs, uint menuSize)
         {
-            if (WindowSystem.HasAnyWindowSystemFocus)
+            if (WindowSystem.HasAnyWindowSystemFocus && Service<DalamudConfiguration>.Get().IsFocusManagementEnabled)
             {
                 Log.Verbose($"Cancelling OpenSystemMenu due to WindowSystem {WindowSystem.FocusedWindowSystemNamespace}");
                 return;
