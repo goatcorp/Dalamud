@@ -17,6 +17,7 @@ using Dalamud.Plugin.Internal;
 using Dalamud.Utility;
 using ImGuiNET;
 using ImGuiScene.ManagedAsserts;
+using PInvoke;
 using Serilog.Events;
 
 namespace Dalamud.Interface.Internal
@@ -316,6 +317,13 @@ namespace Dalamud.Interface.Internal
 
                 if (this.isImGuiDrawDemoWindow)
                     ImGui.ShowDemoWindow();
+
+                // Release focus of any ImGui window if we click into the game.
+                var io = ImGui.GetIO();
+                if (!io.WantCaptureMouse && (User32.GetKeyState((int)User32.VirtualKey.VK_LBUTTON) & 0x8000) != 0)
+                {
+                    ImGui.SetWindowFocus(null);
+                }
             }
             catch (Exception ex)
             {
@@ -478,6 +486,11 @@ namespace Dalamud.Interface.Internal
                         ImGui.Separator();
 
                         ImGui.MenuItem("Enable Asserts", string.Empty, ref ImGuiManagedAsserts.EnableAsserts);
+
+                        if (ImGui.MenuItem("Clear focus"))
+                        {
+                            ImGui.SetWindowFocus(null);
+                        }
 
                         ImGui.EndMenu();
                     }
