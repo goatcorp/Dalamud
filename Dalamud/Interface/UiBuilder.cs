@@ -6,6 +6,7 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Gui;
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Internal.ManagedAsserts;
 using Dalamud.Interface.Internal.Notifications;
 using ImGuiNET;
 using ImGuiScene;
@@ -275,6 +276,12 @@ namespace Dalamud.Interface
                 ImGui.End();
             }
 
+            ImGuiManagedAsserts.ImGuiContextSnapshot? snapshot = null;
+            if (this.Draw != null)
+            {
+                snapshot = ImGuiManagedAsserts.GetSnapshot();
+            }
+
             try
             {
                 this.Draw?.Invoke();
@@ -286,6 +293,12 @@ namespace Dalamud.Interface
                 this.OpenConfigUi = null;
 
                 this.hasErrorWindow = true;
+            }
+
+            // Only if Draw was successful
+            if (this.Draw != null && snapshot != null)
+            {
+                ImGuiManagedAsserts.ReportProblems(this.namespaceName, snapshot);
             }
 
             this.FrameCount++;
