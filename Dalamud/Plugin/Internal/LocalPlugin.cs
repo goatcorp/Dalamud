@@ -49,11 +49,8 @@ namespace Dalamud.Plugin.Internal
                     config.PreferSharedTypes = true;
                 });
 
-            Version assemblyVersion;
-
             try
             {
-                // BadImageFormatException
                 this.pluginAssembly = this.loader.LoadDefaultAssembly();
             }
             catch (Exception ex)
@@ -66,7 +63,17 @@ namespace Dalamud.Plugin.Internal
                 throw new InvalidPluginException(this.DllFile);
             }
 
-            this.pluginType = this.pluginAssembly.GetTypes().FirstOrDefault(type => type.IsAssignableTo(typeof(IDalamudPlugin)));
+            try
+            {
+                this.pluginType = this.pluginAssembly.GetTypes().FirstOrDefault(type => type.IsAssignableTo(typeof(IDalamudPlugin)));
+            }
+            catch (ReflectionTypeLoadException ex)
+            {
+                Log.Error(ex, $"Could not load one or more types when searching for IDalamudPlugin: {this.DllFile.FullName}");
+                // Something blew up when parsing types, but we still want to look for IDalamudPlugin. Let Load() handle the error.
+                this.pluginType = ex.Types.FirstOrDefault(type => type.IsAssignableTo(typeof(IDalamudPlugin)));
+            }
+
             if (this.pluginType == default)
             {
                 this.pluginAssembly = null;
@@ -77,7 +84,7 @@ namespace Dalamud.Plugin.Internal
                 throw new InvalidPluginException(this.DllFile);
             }
 
-            assemblyVersion = this.pluginAssembly.GetName().Version;
+            var assemblyVersion = this.pluginAssembly.GetName().Version;
 
             // Files that may or may not exist
             this.manifestFile = LocalPluginManifest.GetManifestFile(this.DllFile);
