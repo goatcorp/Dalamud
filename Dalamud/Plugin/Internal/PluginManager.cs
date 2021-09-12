@@ -159,14 +159,7 @@ namespace Dalamud.Plugin.Internal
                 .Select(repo => new PluginRepository(repo.Url, repo.IsEnabled)));
 
             this.Repos = repos;
-
-            if (notify)
-                this.NotifyAvailablePluginsChanged();
-
-            foreach (var repo in repos)
-            {
-                await repo.ReloadPluginMasterAsync();
-            }
+            await this.ReloadPluginMastersAsync(notify);
         }
 
         /// <summary>
@@ -306,21 +299,20 @@ namespace Dalamud.Plugin.Internal
         /// <summary>
         /// Reload the PluginMaster for each repo, filter, and event that the list has updated.
         /// </summary>
+        /// <param name="notify">Whether to notify that available plugins have changed afterwards.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task ReloadPluginMastersAsync()
+        public async Task ReloadPluginMastersAsync(bool notify = true)
         {
-            foreach (var repo in this.Repos)
-            {
-                await repo.ReloadPluginMasterAsync();
-            }
+            await Task.WhenAll(this.Repos.Select(repo => repo.ReloadPluginMasterAsync()));
 
-            this.RefilterPluginMasters();
+            this.RefilterPluginMasters(notify);
         }
 
         /// <summary>
         /// Apply visibility and eligibility filters to the available plugins, then event that the list has updated.
         /// </summary>
-        public void RefilterPluginMasters()
+        /// <param name="notify">Whether to notify that available plugins have changed afterwards.</param>
+        public void RefilterPluginMasters(bool notify = true)
         {
             this.availablePlugins = this.Repos
                 .SelectMany(repo => repo.PluginMaster)
@@ -328,7 +320,10 @@ namespace Dalamud.Plugin.Internal
                 .Where(this.IsManifestVisible)
                 .ToList();
 
-            this.NotifyAvailablePluginsChanged();
+            if (notify)
+            {
+                this.NotifyAvailablePluginsChanged();
+            }
         }
 
         /// <summary>
