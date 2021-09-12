@@ -165,9 +165,9 @@ namespace Dalamud.Interface.Internal.Windows
             };
 
             dataKind = dataKind.Replace(" ", string.Empty).ToLower();
-            var matched = Enum.GetValues(typeof(DataKind))
-                .Cast<DataKind>()
-                .Where(k => Enum.GetName(typeof(DataKind), k).Replace("_", string.Empty).ToLower() == dataKind)
+
+            var matched = Enum.GetValues<DataKind>()
+                .Where(kind => Enum.GetName(kind).Replace("_", string.Empty).ToLower() == dataKind)
                 .FirstOrDefault();
 
             if (matched != default)
@@ -176,7 +176,7 @@ namespace Dalamud.Interface.Internal.Windows
             }
             else
             {
-                Service<ChatGui>.Get().PrintError("/xldata: Invalid Data Type");
+                Service<ChatGui>.Get().PrintError($"/xldata: Invalid data type {dataKind}");
             }
         }
 
