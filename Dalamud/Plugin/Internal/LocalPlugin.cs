@@ -49,12 +49,10 @@ namespace Dalamud.Plugin.Internal
                     config.PreferSharedTypes = true;
                 });
 
-            Version assemblyVersion;
-
             try
             {
-                // BadImageFormatException
                 this.pluginAssembly = this.loader.LoadDefaultAssembly();
+                this.pluginType = this.pluginAssembly.GetTypes().FirstOrDefault(type => type.IsAssignableTo(typeof(IDalamudPlugin)));
             }
             catch (Exception ex)
             {
@@ -62,11 +60,10 @@ namespace Dalamud.Plugin.Internal
                 this.pluginType = null;
                 this.loader.Dispose();
 
-                Log.Error(ex, $"Not a plugin: {this.DllFile.FullName}");
+                Log.Error(ex, $"Not a valid plugin: {this.DllFile.FullName}");
                 throw new InvalidPluginException(this.DllFile);
             }
 
-            this.pluginType = this.pluginAssembly.GetTypes().FirstOrDefault(type => type.IsAssignableTo(typeof(IDalamudPlugin)));
             if (this.pluginType == default)
             {
                 this.pluginAssembly = null;
@@ -77,7 +74,7 @@ namespace Dalamud.Plugin.Internal
                 throw new InvalidPluginException(this.DllFile);
             }
 
-            assemblyVersion = this.pluginAssembly.GetName().Version;
+            var assemblyVersion = this.pluginAssembly.GetName().Version;
 
             // Files that may or may not exist
             this.manifestFile = LocalPluginManifest.GetManifestFile(this.DllFile);
