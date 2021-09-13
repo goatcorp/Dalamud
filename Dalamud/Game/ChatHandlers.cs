@@ -106,6 +106,7 @@ namespace Dalamud.Game
         private readonly DalamudLinkPayload openInstallerWindowLink;
 
         private bool hasSeenLoadingMsg;
+        private bool hasAutoUpdatedPlugins;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ChatHandlers"/> class.
@@ -181,6 +182,9 @@ namespace Dalamud.Game
             if (clientState.LocalPlayer != null && clientState.TerritoryType == 0 && !this.hasSeenLoadingMsg)
                 this.PrintWelcomeMessage();
 
+            if (!this.hasAutoUpdatedPlugins)
+                this.AutoUpdatePlugins();
+
 #if !DEBUG && false
             if (!this.hasSeenLoadingMsg)
                 return;
@@ -231,7 +235,6 @@ namespace Dalamud.Game
             var configuration = Service<DalamudConfiguration>.Get();
             var pluginManager = Service<PluginManager>.Get();
             var dalamudInterface = Service<DalamudInterface>.Get();
-            var notifications = Service<NotificationManager>.Get();
 
             var assemblyVersion = Assembly.GetAssembly(typeof(ChatHandlers)).GetName().Version.ToString();
 
@@ -261,31 +264,47 @@ namespace Dalamud.Game
                 configuration.Save();
             }
 
-            Task.Run(() => pluginManager.UpdatePluginsAsync(!configuration.AutoUpdatePlugins))
-                .ContinueWith(t =>
+            this.hasSeenLoadingMsg = true;
+        }
+
+        private void AutoUpdatePlugins()
+        {
+            var chatGui = Service<ChatGui>.Get();
+            var configuration = Service<DalamudConfiguration>.Get();
+            var pluginManager = Service<PluginManager>.Get();
+            var notifications = Service<NotificationManager>.Get();
+
+            if (!pluginManager.ReposReady || pluginManager.InstalledPlugins.Count == 0 || pluginManager.AvailablePlugins.Count == 0)
             {
-                if (t.IsFaulted)
+                // Plugins aren't ready yet.
+                return;
+            }
+
+            this.hasAutoUpdatedPlugins = true;
+
+            Task.Run(() => pluginManager.UpdatePluginsAsync(!configuration.AutoUpdatePlugins)).ContinueWith(task =>
+            {
+                if (task.IsFaulted)
                 {
-                    Log.Error(t.Exception, Loc.Localize("DalamudPluginUpdateCheckFail", "Could not check for plugin updates."));
+                    Log.Error(task.Exception, Loc.Localize("DalamudPluginUpdateCheckFail", "Could not check for plugin updates."));
+                    return;
                 }
-                else
+
+                var updatedPlugins = task.Result;
+                if (updatedPlugins != null && updatedPlugins.Any())
                 {
-                    var updatedPlugins = t.Result;
-
-                    if (updatedPlugins != null && updatedPlugins.Any())
+                    if (configuration.AutoUpdatePlugins)
                     {
-                        if (configuration.AutoUpdatePlugins)
-                        {
-                            pluginManager.PrintUpdatedPlugins(updatedPlugins, Loc.Localize("DalamudPluginAutoUpdate", "Auto-update:"));
-                            notifications.AddNotification(Loc.Localize("NotificationUpdatedPlugins", "{0} of your plugins were updated.").Format(updatedPlugins.Count), Loc.Localize("NotificationAutoUpdate", "Auto-Update"), NotificationType.Info);
-                        }
-                        else
-                        {
-                            var data = Service<DataManager>.Get();
+                        pluginManager.PrintUpdatedPlugins(updatedPlugins, Loc.Localize("DalamudPluginAutoUpdate", "Auto-update:"));
+                        notifications.AddNotification(Loc.Localize("NotificationUpdatedPlugins", "{0} of your plugins were updated.").Format(updatedPlugins.Count), Loc.Localize("NotificationAutoUpdate", "Auto-Update"), NotificationType.Info);
+                    }
+                    else
+                    {
+                        var data = Service<DataManager>.Get();
 
-                            chatGui.PrintChat(new XivChatEntry
-                            {
-                                Message = new SeString(new List<Payload>()
+                        chatGui.PrintChat(new XivChatEntry
+                        {
+                            Message = new SeString(new List<Payload>()
                                 {
                                     new TextPayload(Loc.Localize("DalamudPluginUpdateRequired", "One or more of your plugins needs to be updated. Please use the /xlplugins command in-game to update them!")),
                                     new TextPayload("  ["),
@@ -296,14 +315,11 @@ namespace Dalamud.Game
                                     new UIForegroundPayload(0),
                                     new TextPayload("]"),
                                 }),
-                                Type = XivChatType.Urgent,
-                            });
-                        }
+                            Type = XivChatType.Urgent,
+                        });
                     }
                 }
             });
-
-            this.hasSeenLoadingMsg = true;
         }
     }
 }
