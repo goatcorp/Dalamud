@@ -35,7 +35,7 @@ namespace Dalamud
         /// <param name="infoPtr">Pointer to a serialized <see cref="DalamudStartInfo"/> data.</param>
         public static void Initialize(IntPtr infoPtr)
         {
-            var infoStr = Marshal.PtrToStringAnsi(infoPtr);
+            var infoStr = Marshal.PtrToStringUTF8(infoPtr);
             var info = JsonConvert.DeserializeObject<DalamudStartInfo>(infoStr);
 
             new Thread(() => RunThread(info)).Start();
