@@ -171,8 +171,11 @@ namespace Dalamud.Plugin.Internal
 
         /// <summary>
         /// Load all plugins, sorted by priority. Any plugins with no explicit definition file or a negative priority
-        /// are loaded asynchronously. Should only be called during Dalamud startup.
+        /// are loaded asynchronously.
         /// </summary>
+        /// <remarks>
+        /// This should only be called during Dalamud startup.
+        /// </remarks>
         public void LoadAllPlugins()
         {
             if (this.SafeMode)
@@ -267,8 +270,11 @@ namespace Dalamud.Plugin.Internal
 
             var asyncPlugins = pluginDefs.Where(def => def.Manifest == null || def.Manifest.LoadPriority <= 0);
             Task.Run(() => LoadPlugins(asyncPlugins))
-                .ContinueWith(task => this.PluginsReady = true)
-                .ContinueWith(task => this.NotifyInstalledPluginsChanged());
+                .ContinueWith(task =>
+                {
+                    this.PluginsReady = true;
+                    this.NotifyInstalledPluginsChanged();
+                });
         }
 
         /// <summary>
@@ -727,24 +733,22 @@ namespace Dalamud.Plugin.Internal
             var plugin = metadata.InstalledPlugin;
 
             // Can't update that!
-            if (plugin is LocalDevPlugin)
+            if (plugin.IsDev)
                 return null;
 
             var updateStatus = new PluginUpdateStatus
             {
                 InternalName = plugin.Manifest.InternalName,
                 Name = plugin.Manifest.Name,
-                Version = metadata.UseTesting ? metadata.UpdateManifest.TestingAssemblyVersion : metadata.UpdateManifest.AssemblyVersion,
+                Version = metadata.UseTesting
+                    ? metadata.UpdateManifest.TestingAssemblyVersion
+                    : metadata.UpdateManifest.AssemblyVersion,
             };
 
-            if (dryRun)
-            {
-                updateStatus.WasUpdated = true;
-            }
-            else
-            {
-                updateStatus.WasUpdated = true;
+            updateStatus.WasUpdated = true;
 
+            if (!dryRun)
+            {
                 // Unload if loaded
                 if (plugin.State == PluginState.Loaded || plugin.State == PluginState.LoadError)
                 {

@@ -1,4 +1,5 @@
 using System.Numerics;
+
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.ClientState.Keys;
 using ImGuiNET;
