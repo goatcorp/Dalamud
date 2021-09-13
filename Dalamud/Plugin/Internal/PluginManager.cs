@@ -41,10 +41,6 @@ namespace Dalamud.Plugin.Internal
         private readonly DirectoryInfo devPluginDirectory;
         private readonly BannedPlugin[] bannedPlugins;
 
-        private readonly List<LocalPlugin> installedPlugins = new();
-        private List<RemotePluginManifest> availablePlugins = new();
-        private List<AvailablePluginUpdate> updatablePlugins = new();
-
         /// <summary>
         /// Initializes a new instance of the <see cref="PluginManager"/> class.
         /// </summary>
@@ -130,7 +126,7 @@ namespace Dalamud.Plugin.Internal
         /// <inheritdoc/>
         public void Dispose()
         {
-            foreach (var plugin in this.installedPlugins.ToArray())
+            foreach (var plugin in this.InstalledPlugins)
             {
                 try
                 {
@@ -159,14 +155,7 @@ namespace Dalamud.Plugin.Internal
                 .Select(repo => new PluginRepository(repo.Url, repo.IsEnabled)));
 
             this.Repos = repos;
-
-            if (notify)
-                this.NotifyAvailablePluginsChanged();
-
-            foreach (var repo in repos)
-            {
-                await repo.ReloadPluginMasterAsync();
-            }
+            await this.ReloadPluginMastersAsync(notify);
         }
 
         /// <summary>
@@ -284,10 +273,8 @@ namespace Dalamud.Plugin.Internal
         {
             var aggregate = new List<Exception>();
 
-            for (var i = 0; i < this.installedPlugins.Count; i++)
+            foreach (var plugin in this.InstalledPlugins)
             {
-                var plugin = this.installedPlugins[i];
-
                 if (plugin.IsLoaded)
                 {
                     try
@@ -312,29 +299,31 @@ namespace Dalamud.Plugin.Internal
         /// <summary>
         /// Reload the PluginMaster for each repo, filter, and event that the list has updated.
         /// </summary>
+        /// <param name="notify">Whether to notify that available plugins have changed afterwards.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task ReloadPluginMastersAsync()
+        public async Task ReloadPluginMastersAsync(bool notify = true)
         {
-            foreach (var repo in this.Repos)
-            {
-                await repo.ReloadPluginMasterAsync();
-            }
+            await Task.WhenAll(this.Repos.Select(repo => repo.ReloadPluginMasterAsync()));
 
-            this.RefilterPluginMasters();
+            this.RefilterPluginMasters(notify);
         }
 
         /// <summary>
         /// Apply visibility and eligibility filters to the available plugins, then event that the list has updated.
         /// </summary>
-        public void RefilterPluginMasters()
+        /// <param name="notify">Whether to notify that available plugins have changed afterwards.</param>
+        public void RefilterPluginMasters(bool notify = true)
         {
-            this.availablePlugins = this.Repos
+            this.AvailablePlugins = this.Repos
                 .SelectMany(repo => repo.PluginMaster)
                 .Where(this.IsManifestEligible)
                 .Where(this.IsManifestVisible)
-                .ToList();
+                .ToImmutableList();
 
-            this.NotifyAvailablePluginsChanged();
+            if (notify)
+            {
+                this.NotifyAvailablePluginsChanged();
+            }
         }
 
         /// <summary>
@@ -581,7 +570,7 @@ namespace Dalamud.Plugin.Internal
                 }
             }
 
-            this.installedPlugins.Add(plugin);
+            this.InstalledPlugins = this.InstalledPlugins.Add(plugin);
             return plugin;
         }
 
@@ -594,7 +583,7 @@ namespace Dalamud.Plugin.Internal
             if (plugin.State != PluginState.Unloaded)
                 throw new InvalidPluginOperationException($"Unable to remove {plugin.Name}, not unloaded");
 
-            this.installedPlugins.Remove(plugin);
+            this.InstalledPlugins = this.InstalledPlugins.Remove(plugin);
             PluginLocations.Remove(plugin.AssemblyName.FullName);
 
             this.NotifyInstalledPluginsChanged();
@@ -707,9 +696,9 @@ namespace Dalamud.Plugin.Internal
             var updatedList = new List<PluginUpdateStatus>();
 
             // Prevent collection was modified errors
-            for (var i = 0; i < this.updatablePlugins.Count; i++)
+            foreach (var plugin in this.UpdatablePlugins)
             {
-                var result = await this.UpdateSinglePluginAsync(this.updatablePlugins[i], false, dryRun);
+                var result = await this.UpdateSinglePluginAsync(plugin, false, dryRun);
                 if (result != null)
                     updatedList.Add(result);
             }
@@ -767,7 +756,7 @@ namespace Dalamud.Plugin.Internal
                 try
                 {
                     plugin.Disable();
-                    this.installedPlugins.Remove(plugin);
+                    this.InstalledPlugins = this.InstalledPlugins.Remove(plugin);
                 }
                 catch (Exception ex)
                 {
@@ -939,15 +928,13 @@ namespace Dalamud.Plugin.Internal
         {
             var updatablePlugins = new List<AvailablePluginUpdate>();
 
-            for (var i = 0; i < this.installedPlugins.Count; i++)
+            foreach (var plugin in this.InstalledPlugins)
             {
-                var plugin = this.installedPlugins[i];
-
                 var installedVersion = plugin.IsTesting
                     ? plugin.Manifest.TestingAssemblyVersion
                     : plugin.Manifest.AssemblyVersion;
 
-                var updates = this.availablePlugins
+                var updates = this.AvailablePlugins
                     .Where(remoteManifest => plugin.Manifest.InternalName == remoteManifest.InternalName)
                     .Select(remoteManifest =>
                     {
@@ -969,7 +956,7 @@ namespace Dalamud.Plugin.Internal
                 }
             }
 
-            this.updatablePlugins = updatablePlugins;
+            this.UpdatablePlugins = updatablePlugins.ToImmutableList();
         }
 
         private void NotifyAvailablePluginsChanged()
@@ -978,8 +965,6 @@ namespace Dalamud.Plugin.Internal
 
             try
             {
-                this.AvailablePlugins = ImmutableList.CreateRange(this.availablePlugins);
-                this.UpdatablePlugins = ImmutableList.CreateRange(this.updatablePlugins);
                 this.OnAvailablePluginsChanged?.Invoke();
             }
             catch (Exception ex)
@@ -994,8 +979,6 @@ namespace Dalamud.Plugin.Internal
 
             try
             {
-                this.InstalledPlugins = ImmutableList.CreateRange(this.installedPlugins);
-                this.UpdatablePlugins = ImmutableList.CreateRange(this.updatablePlugins);
                 this.OnInstalledPluginsChanged?.Invoke();
             }
             catch (Exception ex)
