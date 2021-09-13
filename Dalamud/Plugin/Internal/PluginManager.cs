@@ -447,8 +447,8 @@ namespace Dalamud.Plugin.Internal
 
                     if (zipFile.Name.IsNullOrEmpty())
                     {
-                        Log.Error("zipFile.Name is null or empty");
                         // Assuming Empty for Directory
+                        Log.Verbose($"ZipFile name is null or empty, treating as a directory: {outputFile.Directory.FullName}");
                         Directory.CreateDirectory(outputFile.Directory.FullName);
                         continue;
                     }
