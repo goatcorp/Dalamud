@@ -338,7 +338,7 @@ namespace Dalamud.Game.Gui
                 this.LastLinkedItemId = Marshal.ReadInt32(itemInfoPtr, 8);
                 this.LastLinkedItemFlags = Marshal.ReadByte(itemInfoPtr, 0x14);
 
-                Log.Verbose($"HandlePopulateItemLinkDetour {linkObjectPtr} {itemInfoPtr} - linked:{this.LastLinkedItemId}");
+                // Log.Verbose($"HandlePopulateItemLinkDetour {linkObjectPtr} {itemInfoPtr} - linked:{this.LastLinkedItemId}");
             }
             catch (Exception ex)
             {

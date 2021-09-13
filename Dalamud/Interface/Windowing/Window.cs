@@ -1,4 +1,5 @@
 using System.Numerics;
+
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.ClientState.Keys;
 using ImGuiNET;
@@ -220,20 +221,20 @@ namespace Dalamud.Interface.Windowing
                 ImGui.PopID();
         }
 
-        private void CheckState()
-        {
-            if (this.internalLastIsOpen != this.internalIsOpen)
-            {
-                if (this.internalIsOpen)
-                {
-                    this.OnOpen();
-                }
-                else
-                {
-                    this.OnClose();
-                }
-            }
-        }
+        // private void CheckState()
+        // {
+        //     if (this.internalLastIsOpen != this.internalIsOpen)
+        //     {
+        //         if (this.internalIsOpen)
+        //         {
+        //             this.OnOpen();
+        //         }
+        //         else
+        //         {
+        //             this.OnClose();
+        //         }
+        //     }
+        // }
 
         private void ApplyConditionals()
         {

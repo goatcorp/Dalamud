@@ -223,28 +223,6 @@ namespace Dalamud.Game
             var linkMatch = this.urlRegex.Match(message.TextValue);
             if (linkMatch.Value.Length > 0)
                 this.LastLink = linkMatch.Value;
-
-            // Handle all of this with SeString some day
-            /*
-            if ((this.HandledChatTypeColors.ContainsKey(type) || type == XivChatType.Say || type == XivChatType.Shout ||
-                type == XivChatType.Alliance || type == XivChatType.TellOutgoing || type == XivChatType.Yell)) {
-                var italicsStart = message.TextValue.IndexOf("*", StringComparison.InvariantCulture);
-                var italicsEnd = message.TextValue.IndexOf("*", italicsStart + 1, StringComparison.InvariantCulture);
-
-                var messageString = message.TextValue;
-
-                while (italicsEnd != -1) {
-                    var it = MakeItalics(
-                        messageString.Substring(italicsStart, italicsEnd - italicsStart + 1).Replace("*", ""));
-                    messageString = messageString.Remove(italicsStart, italicsEnd - italicsStart + 1);
-                    messageString = messageString.Insert(italicsStart, it);
-                    italicsStart = messageString.IndexOf("*");
-                    italicsEnd = messageString.IndexOf("*", italicsStart + 1);
-                }
-
-                message.RawData = Encoding.UTF8.GetBytes(messageString);
-            }
-            */
         }
 
         private void PrintWelcomeMessage()
