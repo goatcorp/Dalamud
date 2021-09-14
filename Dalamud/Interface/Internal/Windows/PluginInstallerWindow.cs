@@ -49,6 +49,8 @@ namespace Dalamud.Interface.Internal.Windows
         private readonly TextureWrap troubleIcon;
         private readonly TextureWrap updateIcon;
 
+        private readonly HttpClient httpClient = new();
+
         #region Image Tester State
 
         private string[] testerImagePaths = new string[5];
@@ -1743,11 +1745,9 @@ namespace Dalamud.Interface.Internal.Windows
 
             Log.Verbose($"Icon from {url}");
 
-            var client = new HttpClient();
-
             if (url != null)
             {
-                var data = await client.GetAsync(url);
+                var data = await this.httpClient.GetAsync(url);
                 if (data.StatusCode == HttpStatusCode.NotFound)
                     return;
 
@@ -1782,8 +1782,6 @@ namespace Dalamud.Interface.Internal.Windows
 
             this.pluginImagesMap.Add(manifest.InternalName, (false, null));
 
-            var client = new HttpClient();
-
             var urls = GetPluginImageUrls(manifest, isThirdParty, pluginManager.UseTesting(manifest));
             var didAny = false;
 
@@ -1798,7 +1796,7 @@ namespace Dalamud.Interface.Internal.Windows
                 var pluginImages = new TextureWrap[urls.Count];
                 for (var i = 0; i < urls.Count; i++)
                 {
-                    var data = await client.GetAsync(urls[i]);
+                    var data = await this.httpClient.GetAsync(urls[i]);
 
                     Serilog.Log.Information($"Download from {urls[i]}");
 
