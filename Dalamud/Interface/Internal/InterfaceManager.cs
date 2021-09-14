@@ -48,7 +48,7 @@ namespace Dalamud.Interface.Internal
         private readonly Hook<SetCursorDelegate> setCursorHook;
 
         private readonly ManualResetEvent fontBuildSignal;
-        private readonly ISwapChainAddressResolver address;
+        private readonly SwapChainVtableResolver address;
         private RawDX11Scene? scene;
 
         // can't access imgui IO before first present call
@@ -66,27 +66,8 @@ namespace Dalamud.Interface.Internal
 
             this.fontBuildSignal = new ManualResetEvent(false);
 
-            try
-            {
-                var sigResolver = new SwapChainSigResolver();
-                sigResolver.Setup(scanner);
-
-                Log.Verbose("Found SwapChain via signatures.");
-
-                this.address = sigResolver;
-            }
-            catch (KeyNotFoundException)
-            {
-                // The SigScanner method fails on wine/proton since DXGI is not a real DLL. We fall back to vtable to detect our Present function address.
-                Log.Debug("Could not get SwapChain address via sig method, falling back to vtable");
-
-                var vtableResolver = new SwapChainVtableResolver();
-                vtableResolver.Setup(scanner);
-
-                Log.Verbose("Found SwapChain via vtable.");
-
-                this.address = vtableResolver;
-            }
+            this.address = new SwapChainVtableResolver();
+            this.address.Setup(scanner);
 
             try
             {
