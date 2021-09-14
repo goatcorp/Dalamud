@@ -753,16 +753,33 @@ namespace Dalamud.Plugin.Internal
                     }
                 }
 
-                try
+                if (plugin.IsDev)
                 {
-                    plugin.Disable();
-                    this.InstalledPlugins = this.InstalledPlugins.Remove(plugin);
+                    try
+                    {
+                        plugin.DllFile.Delete();
+                        this.InstalledPlugins = this.InstalledPlugins.Remove(plugin);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, "Error during delete (update)");
+                        updateStatus.WasUpdated = false;
+                        return updateStatus;
+                    }
                 }
-                catch (Exception ex)
+                else
                 {
-                    Log.Error(ex, "Error during disable (update)");
-                    updateStatus.WasUpdated = false;
-                    return updateStatus;
+                    try
+                    {
+                        plugin.Disable();
+                        this.InstalledPlugins = this.InstalledPlugins.Remove(plugin);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, "Error during disable (update)");
+                        updateStatus.WasUpdated = false;
+                        return updateStatus;
+                    }
                 }
 
                 try
