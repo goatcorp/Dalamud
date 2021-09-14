@@ -647,9 +647,6 @@ namespace Dalamud.Interface.Internal.Windows
 
             configuration.Save();
 
-            this.devPluginLocationsChanged = false;
-            this.thirdRepoListChanged = false;
-
             _ = Service<PluginManager>.Get().ReloadPluginMastersAsync();
         }
     }
