@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
 using Dalamud.Game.Internal.DXGI.Definitions;
+using Serilog;
 using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
 using SharpDX.DXGI;
@@ -19,9 +20,6 @@ namespace Dalamud.Game.Internal.DXGI
     /// </remarks>
     public class SwapChainVtableResolver : BaseAddressResolver, ISwapChainAddressResolver
     {
-        private List<IntPtr> d3d11VTblAddresses;
-        private List<IntPtr> dxgiSwapChainVTblAddresses;
-
         /// <inheritdoc/>
         public IntPtr Present { get; set; }
 
@@ -29,50 +27,14 @@ namespace Dalamud.Game.Internal.DXGI
         public IntPtr ResizeBuffers { get; set; }
 
         /// <inheritdoc/>
-        protected override void Setup64Bit(SigScanner sig)
+        protected override unsafe void Setup64Bit(SigScanner sig)
         {
-            // Create temporary device + swapchain and determine method addresses
-            if (this.d3d11VTblAddresses == null)
-            {
-                // A renderable object isnt required, just a handle
-                var handle = Marshal.AllocHGlobal(Marshal.SizeOf<IntPtr>());
+            var kernelDev = FFXIVClientStructs.FFXIV.Client.Graphics.Kernel.Device.Instance();
 
-                Device.CreateWithSwapChain(
-                    DriverType.Hardware,
-                    DeviceCreationFlags.BgraSupport,
-                    CreateSwapChainDescription(handle),
-                    out var device,
-                    out var swapChain);
+            var scVtbl = GetVTblAddresses(new IntPtr(kernelDev->SwapChain->DXGISwapChain), Enum.GetValues(typeof(IDXGISwapChainVtbl)).Length);
 
-                if (device != null && swapChain != null)
-                {
-                    this.d3d11VTblAddresses = GetVTblAddresses(device.NativePointer, Enum.GetValues(typeof(ID3D11DeviceVtbl)).Length);
-                    this.dxgiSwapChainVTblAddresses = GetVTblAddresses(swapChain.NativePointer, Enum.GetValues(typeof(IDXGISwapChainVtbl)).Length);
-                }
-
-                device?.Dispose();
-                swapChain?.Dispose();
-
-                Marshal.FreeHGlobal(handle);
-            }
-
-            this.Present = this.dxgiSwapChainVTblAddresses[(int)IDXGISwapChainVtbl.Present];
-            this.ResizeBuffers = this.dxgiSwapChainVTblAddresses[(int)IDXGISwapChainVtbl.ResizeBuffers];
-        }
-
-        private static SwapChainDescription CreateSwapChainDescription(IntPtr renderForm)
-        {
-            return new SwapChainDescription
-            {
-                BufferCount = 1,
-                Flags = SwapChainFlags.None,
-                IsWindowed = true,
-                ModeDescription = new ModeDescription(100, 100, new Rational(60, 1), Format.R8G8B8A8_UNorm),
-                OutputHandle = renderForm,
-                SampleDescription = new SampleDescription(1, 0),
-                SwapEffect = SwapEffect.Discard,
-                Usage = Usage.RenderTargetOutput,
-            };
+            this.Present = scVtbl[(int)IDXGISwapChainVtbl.Present];
+            this.ResizeBuffers = scVtbl[(int)IDXGISwapChainVtbl.ResizeBuffers];
         }
 
         private static List<IntPtr> GetVTblAddresses(IntPtr pointer, int numberOfMethods)
