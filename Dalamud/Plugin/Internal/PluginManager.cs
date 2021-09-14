@@ -685,7 +685,7 @@ namespace Dalamud.Plugin.Internal
         }
 
         /// <summary>
-        /// Update all plugins.
+        /// Update all non-dev plugins.
         /// </summary>
         /// <param name="dryRun">Perform a dry run, don't install anything.</param>
         /// <returns>Success or failure and a list of updated plugin metadata.</returns>
@@ -698,6 +698,10 @@ namespace Dalamud.Plugin.Internal
             // Prevent collection was modified errors
             foreach (var plugin in this.UpdatablePlugins)
             {
+                // Can't update that!
+                if (plugin.InstalledPlugin.IsDev)
+                    return null;
+
                 var result = await this.UpdateSinglePluginAsync(plugin, false, dryRun);
                 if (result != null)
                     updatedList.Add(result);
@@ -720,10 +724,6 @@ namespace Dalamud.Plugin.Internal
         public async Task<PluginUpdateStatus?> UpdateSinglePluginAsync(AvailablePluginUpdate metadata, bool notify, bool dryRun)
         {
             var plugin = metadata.InstalledPlugin;
-
-            // Can't update that!
-            if (plugin.IsDev)
-                return null;
 
             var updateStatus = new PluginUpdateStatus
             {
