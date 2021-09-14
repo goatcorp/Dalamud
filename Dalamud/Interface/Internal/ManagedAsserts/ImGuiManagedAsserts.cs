@@ -12,9 +12,9 @@ namespace Dalamud.Interface.Internal.ManagedAsserts
     internal static class ImGuiManagedAsserts
     {
         /// <summary>
-        /// Gets a value indicating whether asserts are enabled for ImGui.
+        /// Gets or sets a value indicating whether asserts are enabled for ImGui.
         /// </summary>
-        public static bool AssertsEnabled { get; private set; }
+        public static bool AssertsEnabled { get; set; }
 
         /// <summary>
         /// Create a snapshot of the current ImGui context.

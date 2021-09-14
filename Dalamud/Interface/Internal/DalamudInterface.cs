@@ -8,6 +8,7 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Internal;
+using Dalamud.Interface.Internal.ManagedAsserts;
 using Dalamud.Interface.Internal.Windows;
 using Dalamud.Interface.Internal.Windows.SelfTest;
 using Dalamud.Interface.Windowing;
@@ -16,7 +17,6 @@ using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal;
 using Dalamud.Utility;
 using ImGuiNET;
-using ImGuiScene.ManagedAsserts;
 using PInvoke;
 using Serilog.Events;
 
@@ -90,7 +90,7 @@ namespace Dalamud.Interface.Internal
             this.WindowSystem.AddWindow(this.settingsWindow);
             this.WindowSystem.AddWindow(this.selfTestWindow);
 
-            ImGuiManagedAsserts.EnableAsserts = true;
+            ImGuiManagedAsserts.AssertsEnabled = true;
 
             Service<InterfaceManager>.Get().Draw += this.OnDraw;
 
@@ -485,7 +485,11 @@ namespace Dalamud.Interface.Internal
 
                         ImGui.Separator();
 
-                        ImGui.MenuItem("Enable Asserts", string.Empty, ref ImGuiManagedAsserts.EnableAsserts);
+                        var val = ImGuiManagedAsserts.AssertsEnabled;
+                        if (ImGui.MenuItem("Enable Asserts", string.Empty, ref val))
+                        {
+                            ImGuiManagedAsserts.AssertsEnabled = val;
+                        }
 
                         if (ImGui.MenuItem("Clear focus"))
                         {
