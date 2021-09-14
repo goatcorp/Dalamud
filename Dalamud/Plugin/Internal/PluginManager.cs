@@ -685,7 +685,7 @@ namespace Dalamud.Plugin.Internal
         }
 
         /// <summary>
-        /// Update all plugins.
+        /// Update all non-dev plugins.
         /// </summary>
         /// <param name="dryRun">Perform a dry run, don't install anything.</param>
         /// <returns>Success or failure and a list of updated plugin metadata.</returns>
@@ -698,6 +698,10 @@ namespace Dalamud.Plugin.Internal
             // Prevent collection was modified errors
             foreach (var plugin in this.UpdatablePlugins)
             {
+                // Can't update that!
+                if (plugin.InstalledPlugin.IsDev)
+                    return null;
+
                 var result = await this.UpdateSinglePluginAsync(plugin, false, dryRun);
                 if (result != null)
                     updatedList.Add(result);
@@ -720,10 +724,6 @@ namespace Dalamud.Plugin.Internal
         public async Task<PluginUpdateStatus?> UpdateSinglePluginAsync(AvailablePluginUpdate metadata, bool notify, bool dryRun)
         {
             var plugin = metadata.InstalledPlugin;
-
-            // Can't update that!
-            if (plugin.IsDev)
-                return null;
 
             var updateStatus = new PluginUpdateStatus
             {
@@ -753,16 +753,33 @@ namespace Dalamud.Plugin.Internal
                     }
                 }
 
-                try
+                if (plugin.IsDev)
                 {
-                    plugin.Disable();
-                    this.InstalledPlugins = this.InstalledPlugins.Remove(plugin);
+                    try
+                    {
+                        plugin.DllFile.Delete();
+                        this.InstalledPlugins = this.InstalledPlugins.Remove(plugin);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, "Error during delete (update)");
+                        updateStatus.WasUpdated = false;
+                        return updateStatus;
+                    }
                 }
-                catch (Exception ex)
+                else
                 {
-                    Log.Error(ex, "Error during disable (update)");
-                    updateStatus.WasUpdated = false;
-                    return updateStatus;
+                    try
+                    {
+                        plugin.Disable();
+                        this.InstalledPlugins = this.InstalledPlugins.Remove(plugin);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, "Error during disable (update)");
+                        updateStatus.WasUpdated = false;
+                        return updateStatus;
+                    }
                 }
 
                 try
