@@ -1378,7 +1378,12 @@ namespace Dalamud.Interface.Internal.Windows
             }
 
             if (ImGui.IsItemHovered())
-                ImGui.SetTooltip(Locs.PluginButtonToolTip_UpdateSingle(update.UpdateManifest.AssemblyVersion.ToString()));
+            {
+                var updateVersion = update.UseTesting
+                    ? update.UpdateManifest.TestingAssemblyVersion
+                    : update.UpdateManifest.AssemblyVersion;
+                ImGui.SetTooltip(Locs.PluginButtonToolTip_UpdateSingle(updateVersion.ToString()));
+            }
         }
 
         private void DrawOpenPluginSettingsButton(LocalPlugin plugin)
