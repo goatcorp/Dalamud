@@ -1361,7 +1361,7 @@ namespace Dalamud.Interface.Internal.Windows
             {
                 this.installStatus = OperationStatus.InProgress;
 
-                Task.Run(() => pluginManager.UpdateSinglePluginAsync(update, true, false))
+                Task.Run(async () => await pluginManager.UpdateSinglePluginAsync(update, true, false))
                     .ContinueWith(task =>
                     {
                         // There is no need to set as Complete for an individual plugin installation
