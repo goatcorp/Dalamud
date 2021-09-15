@@ -2,14 +2,19 @@
 
 #include <filesystem>
 #include <Windows.h>
+#include <shellapi.h>
 #include "..\lib\CoreCLR\CoreCLR.h"
 #include "..\lib\CoreCLR\boot.h"
 
-int wmain(int argc, char** argv)
+int wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nShowCmd)
 {
     #ifndef NDEBUG
     ConsoleSetup(L"Dalamud.Injector");
     #endif
+
+    int argc = 0;
+    LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &argc);
+    //ShowWindow(GetConsoleWindow(), SW_HIDE);
 
     printf("Dalamud.Injector, (c) 2021 XIVLauncher Contributors\nBuilt at: %s@%s\n\n", __DATE__, __TIME__);
 
@@ -34,7 +39,7 @@ int wmain(int argc, char** argv)
     if (result != 0)
         return result;
 
-    typedef void (CORECLR_DELEGATE_CALLTYPE* custom_component_entry_point_fn)(int, char**);
+    typedef void (CORECLR_DELEGATE_CALLTYPE* custom_component_entry_point_fn)(int, wchar_t**);
     custom_component_entry_point_fn entrypoint_fn = reinterpret_cast<custom_component_entry_point_fn>(entrypoint_vfn);
 
     printf("Running Dalamud Injector... ");
