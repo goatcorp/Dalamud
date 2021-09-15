@@ -27,7 +27,7 @@ namespace Dalamud.Game.ClientState.Keys
         // The array is accessed in a way that this limit doesn't appear to exist
         // but there is other state data past this point, and keys beyond here aren't
         // generally valid for most things anyway
-        private const int MaxKeyCodeIndex = 0xA0;
+        private const int MaxKeyCode = 0xF0;
         private readonly IntPtr bufferBase;
         private readonly IntPtr indexBase;
         private VirtualKey[] validVirtualKeyCache = null;
@@ -104,7 +104,7 @@ namespace Dalamud.Game.ClientState.Keys
         /// <param name="vkCode">Virtual key code.</param>
         /// <returns>If the code is valid.</returns>
         public bool IsVirtualKeyValid(int vkCode)
-            => vkCode > 0 && vkCode < MaxKeyCodeIndex && this.ConvertVirtualKey(vkCode) != 0;
+            => this.ConvertVirtualKey(vkCode) != 0;
 
         /// <inheritdoc cref="IsVirtualKeyValid(int)"/>
         public bool IsVirtualKeyValid(VirtualKey vkCode)
@@ -136,7 +136,7 @@ namespace Dalamud.Game.ClientState.Keys
         /// <returns>Converted value.</returns>
         private unsafe byte ConvertVirtualKey(int vkCode)
         {
-            if (vkCode <= 0 || vkCode >= 240)
+            if (vkCode <= 0 || vkCode >= MaxKeyCode)
                 return 0;
 
             return *(byte*)(this.indexBase + vkCode);
@@ -149,9 +149,6 @@ namespace Dalamud.Game.ClientState.Keys
         /// <returns>A reference to the indexed array.</returns>
         private unsafe ref int GetRefValue(int vkCode)
         {
-            if (vkCode < 0 || vkCode > MaxKeyCodeIndex)
-                throw new ArgumentException($"Keycode state is only valid up to {MaxKeyCodeIndex}");
-
             vkCode = this.ConvertVirtualKey(vkCode);
 
             if (vkCode == 0)
