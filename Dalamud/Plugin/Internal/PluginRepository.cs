@@ -75,7 +75,7 @@ namespace Dalamud.Plugin.Internal
             {
                 Log.Information($"Fetching repo: {this.PluginMasterUrl}");
                 using var client = new HttpClient();
-                using var response = await client.GetAsync(this.PluginMasterUrl);
+                using var response = await client.GetAsync(this.PluginMasterUrl + "?" + DateTime.Now.Ticks);
                 var data = await response.Content.ReadAsStringAsync();
 
                 var pluginMaster = JsonConvert.DeserializeObject<List<RemotePluginManifest>>(data);
