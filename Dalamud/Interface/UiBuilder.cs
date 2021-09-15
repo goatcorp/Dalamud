@@ -276,7 +276,7 @@ namespace Dalamud.Interface
                 ImGui.End();
             }
 
-            ImGuiManagedAsserts.ImGuiContextSnapshot? snapshot = null;
+            ImGuiManagedAsserts.ImGuiContextSnapshot snapshot = null;
             if (this.Draw != null)
             {
                 snapshot = ImGuiManagedAsserts.GetSnapshot();
@@ -296,7 +296,7 @@ namespace Dalamud.Interface
             }
 
             // Only if Draw was successful
-            if (this.Draw != null && snapshot != null)
+            if (this.Draw != null)
             {
                 ImGuiManagedAsserts.ReportProblems(this.namespaceName, snapshot);
             }

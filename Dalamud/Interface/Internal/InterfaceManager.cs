@@ -15,6 +15,7 @@ using Dalamud.Game.Gui.Internal;
 using Dalamud.Game.Internal.DXGI;
 using Dalamud.Hooking;
 using Dalamud.Hooking.Internal;
+using Dalamud.Interface.Internal.ManagedAsserts;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.Windowing;
 using Dalamud.Utility;
@@ -631,7 +632,10 @@ namespace Dalamud.Interface.Internal
             WindowSystem.HasAnyWindowSystemFocus = false;
             WindowSystem.FocusedWindowSystemNamespace = string.Empty;
 
+            var snap = ImGuiManagedAsserts.GetSnapshot();
             this.Draw?.Invoke();
+            ImGuiManagedAsserts.ReportProblems("Dalamud Core", snap);
+
             Service<NotificationManager>.Get().Draw();
         }
     }
