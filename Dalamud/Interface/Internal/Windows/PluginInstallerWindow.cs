@@ -232,11 +232,8 @@ namespace Dalamud.Interface.Internal.Windows
         private static FileInfo? GetPluginIconFileInfo(LocalPlugin? plugin)
         {
             var pluginDir = plugin.DllFile.Directory;
-            var devUrl = new FileInfo(Path.Combine(pluginDir.FullName, "icon.png"));
-            if (devUrl.Exists)
-                return devUrl;
 
-            devUrl = new FileInfo(Path.Combine(pluginDir.FullName, "images", "icon.png"));
+            var devUrl = new FileInfo(Path.Combine(pluginDir.FullName, "images", "icon.png"));
             if (devUrl.Exists)
                 return devUrl;
 
