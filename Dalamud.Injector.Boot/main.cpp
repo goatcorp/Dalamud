@@ -49,6 +49,9 @@ int wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LP
     // =========================================================================== //
 
     #ifndef NDEBUG
+    fclose(stdin);
+    fclose(stdout);
+    fclose(stderr);
     FreeConsole();
     #endif
 

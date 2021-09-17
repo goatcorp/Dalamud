@@ -47,6 +47,9 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam)
     // =========================================================================== //
 
     #ifndef NDEBUG
+    fclose(stdin);
+    fclose(stdout);
+    fclose(stderr);
     FreeConsole();
     #endif
 
