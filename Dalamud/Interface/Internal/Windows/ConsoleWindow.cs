@@ -416,6 +416,9 @@ namespace Dalamud.Interface.Internal.Windows
 
         private void AddAndFilter(string line, LogEventLevel level, DateTimeOffset offset, bool isMultiline)
         {
+            if (line.StartsWith("TROUBLESHOOTING:") || line.StartsWith("EXCEPTION:"))
+                return;
+
             var entry = new LogEntry
             {
                 IsMultiline = isMultiline,
