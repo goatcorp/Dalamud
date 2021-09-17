@@ -7,6 +7,7 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Hooking;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Windowing;
+using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using Serilog;
 
@@ -72,18 +73,19 @@ namespace Dalamud.Game.Internal
             this.hookAtkUnitBaseReceiveGlobalEvent.Enable();
         }
 
-        private IntPtr AtkUnitBaseReceiveGlobalEventDetour(AtkUnitBase* thisPtr, ushort cmd, uint a3, IntPtr a4, uint* a5)
+        private IntPtr AtkUnitBaseReceiveGlobalEventDetour(AtkUnitBase* thisPtr, ushort cmd, uint a3, IntPtr a4, uint* arg)
         {
             // Log.Information("{0}: cmd#{1} a3#{2} - HasAnyFocus:{3}", Marshal.PtrToStringAnsi(new IntPtr(thisPtr->Name)), cmd, a3, WindowSystem.HasAnyWindowSystemFocus);
 
-            // "Close Addon"
-            if (cmd == 12 && WindowSystem.HasAnyWindowSystemFocus && Service<DalamudConfiguration>.Get().IsFocusManagementEnabled)
+            // "SendHotkey"
+            // 3 == Close
+            if (cmd == 12 && WindowSystem.HasAnyWindowSystemFocus && *arg == 3 && Service<DalamudConfiguration>.Get().IsFocusManagementEnabled)
             {
-                Log.Verbose($"Cancelling global event CloseAddon command due to WindowSystem {WindowSystem.FocusedWindowSystemNamespace}");
+                Log.Verbose($"Cancelling global event SendHotkey command due to WindowSystem {WindowSystem.FocusedWindowSystemNamespace}");
                 return IntPtr.Zero;
             }
 
-            return this.hookAtkUnitBaseReceiveGlobalEvent.Original(thisPtr, cmd, a3, a4, a5);
+            return this.hookAtkUnitBaseReceiveGlobalEvent.Original(thisPtr, cmd, a3, a4, arg);
         }
 
         private void AgentHudOpenSystemMenuDetour(void* thisPtr, AtkValue* atkValueArgs, uint menuSize)
