@@ -25,7 +25,7 @@ namespace Dalamud.Logging.Internal
         /// <summary>
         /// Event on a log line being emitted.
         /// </summary>
-        public event EventHandler<(string Line, LogEventLevel Level, DateTimeOffset TimeStamp)> OnLogLine;
+        public event EventHandler<(string Line, LogEventLevel Level, DateTimeOffset TimeStamp, Exception? Exception)>? LogLine;
 
         /// <summary>
         /// Gets the default instance.
@@ -45,7 +45,7 @@ namespace Dalamud.Logging.Internal
                 message += "\n" + logEvent.Exception;
             }
 
-            this.OnLogLine?.Invoke(this, (message, logEvent.Level, logEvent.Timestamp));
+            this.LogLine?.Invoke(this, (message, logEvent.Level, logEvent.Timestamp, logEvent.Exception));
         }
     }
 }

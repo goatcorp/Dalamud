@@ -19,6 +19,7 @@ using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Hooking.Internal;
 using Dalamud.Interface.Internal;
 using Dalamud.IoC.Internal;
+using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Ipc.Internal;
 using HarmonyLib;
@@ -101,6 +102,8 @@ namespace Dalamud
         {
             try
             {
+                SerilogEventSink.Instance.LogLine += SerilogOnLogLine;
+
                 Service<ServiceContainer>.Set();
 
                 // Initialize the process information.
@@ -391,6 +394,14 @@ namespace Dalamud
             }
 
             // Log.Verbose($"Process.Handle // {__instance.ProcessName} // {__result:X}");
+        }
+
+        private static void SerilogOnLogLine(object? sender, (string Line, LogEventLevel Level, DateTimeOffset TimeStamp, Exception? Exception) e)
+        {
+            if (e.Exception == null)
+                return;
+
+            Troubleshooting.LogException(e.Exception, e.Line);
         }
 
         private void ApplyProcessPatch()

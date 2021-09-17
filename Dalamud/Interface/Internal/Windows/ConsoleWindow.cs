@@ -53,7 +53,7 @@ namespace Dalamud.Interface.Internal.Windows
 
             this.autoScroll = configuration.LogAutoScroll;
             this.openAtStartup = configuration.LogOpenAtStartup;
-            SerilogEventSink.Instance.OnLogLine += this.OnLogLine;
+            SerilogEventSink.Instance.LogLine += this.OnLogLine;
 
             this.Size = new Vector2(500, 400);
             this.SizeCondition = ImGuiCond.FirstUseEver;
@@ -68,7 +68,7 @@ namespace Dalamud.Interface.Internal.Windows
         /// </summary>
         public void Dispose()
         {
-            SerilogEventSink.Instance.OnLogLine -= this.OnLogLine;
+            SerilogEventSink.Instance.LogLine -= this.OnLogLine;
         }
 
         /// <summary>
@@ -476,7 +476,7 @@ namespace Dalamud.Interface.Internal.Windows
             _ => throw new ArgumentOutOfRangeException(level.ToString(), "Invalid LogEventLevel"),
         };
 
-        private void OnLogLine(object sender, (string Line, LogEventLevel Level, DateTimeOffset Offset) logEvent)
+        private void OnLogLine(object sender, (string Line, LogEventLevel Level, DateTimeOffset Offset, Exception? Exception) logEvent)
         {
             this.HandleLogLine(logEvent.Line, logEvent.Level, logEvent.Offset);
         }
