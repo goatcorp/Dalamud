@@ -7,7 +7,6 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Hooking;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Windowing;
-using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using Serilog;
 
