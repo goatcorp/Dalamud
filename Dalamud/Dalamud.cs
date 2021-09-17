@@ -357,6 +357,8 @@ namespace Dalamud
                 Service<HookManager>.GetNullable()?.Dispose();
                 Service<SigScanner>.GetNullable()?.Dispose();
 
+                SerilogEventSink.Instance.LogLine -= SerilogOnLogLine;
+
                 Log.Debug("Dalamud::Dispose() OK!");
             }
             catch (Exception ex)
