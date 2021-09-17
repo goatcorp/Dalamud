@@ -106,6 +106,13 @@ namespace Dalamud.Interface
         }
 
         /// <summary>
+        /// Get the size of a button considering the default frame padding.
+        /// </summary>
+        /// <param name="text">Text in the button.</param>
+        /// <returns><see cref="Vector2"/> with the size of the button.</returns>
+        public static Vector2 GetButtonSize(string text) => ImGui.CalcTextSize(text) + (ImGui.GetStyle().FramePadding * 2);
+
+        /// <summary>
         /// Get data needed for each new frame.
         /// </summary>
         internal static void NewFrame()
