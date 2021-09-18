@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
+using System.Reflection;
 using System.Runtime.InteropServices;
 
 using Dalamud.Configuration.Internal;
@@ -11,12 +13,14 @@ using Dalamud.Game.Internal;
 using Dalamud.Interface.Internal.ManagedAsserts;
 using Dalamud.Interface.Internal.Windows;
 using Dalamud.Interface.Internal.Windows.SelfTest;
+using Dalamud.Interface.Internal.Windows.StyleEditor;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal;
 using Dalamud.Utility;
 using ImGuiNET;
+using Newtonsoft.Json;
 using PInvoke;
 using Serilog.Events;
 
@@ -494,6 +498,38 @@ namespace Dalamud.Interface.Internal
                         if (ImGui.MenuItem("Clear focus"))
                         {
                             ImGui.SetWindowFocus(null);
+                        }
+
+                        if (ImGui.MenuItem("Dump style"))
+                        {
+                            var info = string.Empty;
+                            var style = StyleModel.Get();
+
+                            foreach (var propertyInfo in typeof(StyleModel).GetProperties(BindingFlags.Public | BindingFlags.Instance))
+                            {
+                                if (propertyInfo.PropertyType == typeof(Vector2))
+                                {
+                                    var vec2 = (Vector2)propertyInfo.GetValue(style);
+                                    info += $"{propertyInfo.Name} = new Vector2({vec2.X}, {vec2.Y}),\n";
+                                }
+                                else
+                                {
+                                    info += $"{propertyInfo.Name} = {propertyInfo.GetValue(style)},\n";
+                                }
+                            }
+
+                            info += "Colors = new Dictionary<string, Vector4>()\n";
+                            info += "{\n";
+
+                            foreach (var color in style.Colors)
+                            {
+                                info +=
+                                    $"{{\"{color.Key}\", new Vector4({color.Value.X}, {color.Value.Y}, {color.Value.Z}, {color.Value.W})}},\n";
+                            }
+
+                            info += "},";
+
+                            Log.Information(info);
                         }
 
                         ImGui.EndMenu();
