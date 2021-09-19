@@ -151,13 +151,16 @@ namespace Dalamud.Game
 
             var textVal = message.TextValue;
 
-            var matched = this.rmtRegex.IsMatch(textVal);
-            if (matched)
+            if (!configuration.DisableRmtFiltering)
             {
-                // This seems to be a RMT ad - let's not show it
-                Log.Debug("Handled RMT ad: " + message.TextValue);
-                isHandled = true;
-                return;
+                var matched = this.rmtRegex.IsMatch(textVal);
+                if (matched)
+                {
+                    // This seems to be a RMT ad - let's not show it
+                    Log.Debug("Handled RMT ad: " + message.TextValue);
+                    isHandled = true;
+                    return;
+                }
             }
 
             if (configuration.BadWords != null &&
