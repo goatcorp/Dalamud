@@ -86,10 +86,8 @@ namespace Dalamud.Plugin.Internal
 
             var assemblyVersion = this.pluginAssembly.GetName().Version;
 
-            // Files that may or may not exist
+            // Although it is conditionally used here, we need to set the initial value regardless.
             this.manifestFile = LocalPluginManifest.GetManifestFile(this.DllFile);
-            this.disabledFile = LocalPluginManifest.GetDisabledFile(this.DllFile);
-            this.testingFile = LocalPluginManifest.GetTestingFile(this.DllFile);
 
             // If the parameter manifest was null
             if (manifest == null)
@@ -108,22 +106,23 @@ namespace Dalamud.Plugin.Internal
 
                 // Save the manifest to disk so there won't be any problems later.
                 // We'll update the name property after it can be retrieved from the instance.
-                var manifestFile = LocalPluginManifest.GetManifestFile(this.DllFile);
-                this.Manifest.Save(manifestFile);
+                this.Manifest.Save(this.manifestFile);
             }
             else
             {
                 this.Manifest = manifest;
             }
 
-            // This bit converts from ".disabled" functionality to using the manifest.
+            // This converts from the ".disabled" file feature to the manifest instead.
+            this.disabledFile = LocalPluginManifest.GetDisabledFile(this.DllFile);
             if (this.disabledFile.Exists)
             {
                 this.Manifest.Disabled = true;
                 this.disabledFile.Delete();
             }
 
-            // This bit converts from ".testing" functionality to using the manifest.
+            // This converts from the ".testing" file feature to the manifest instead.
+            this.testingFile = LocalPluginManifest.GetTestingFile(this.DllFile);
             if (this.testingFile.Exists)
             {
                 this.Manifest.Testing = true;

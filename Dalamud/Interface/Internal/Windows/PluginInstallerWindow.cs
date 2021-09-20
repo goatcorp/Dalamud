@@ -873,8 +873,8 @@ namespace Dalamud.Interface.Internal.Windows
 
             // Download count
             var downloadCountText = manifest.DownloadCount > 0
-                                        ? Locs.PluginBody_AuthorWithDownloadCount(manifest.Author, manifest.DownloadCount)
-                                        : Locs.PluginBody_AuthorWithDownloadCountUnavailable(manifest.Author);
+                ? Locs.PluginBody_AuthorWithDownloadCount(manifest.Author, manifest.DownloadCount)
+                : Locs.PluginBody_AuthorWithDownloadCountUnavailable(manifest.Author);
 
             ImGui.SameLine();
             ImGui.TextColored(ImGuiColors.DalamudGrey3, downloadCountText);

@@ -145,19 +145,17 @@ namespace Dalamud.Plugin.Internal
                         return;
                     }
 
+                    var notificationManager = Service<NotificationManager>.Get();
+
                     try
                     {
                         this.Reload();
-                        Service<NotificationManager>.Get()
-                                                    .AddNotification(
-                                                        $"The DevPlugin '{this.Name} was reloaded successfully.", "Plugin reloaded!", NotificationType.Success);
+                        notificationManager.AddNotification($"The DevPlugin '{this.Name} was reloaded successfully.", "Plugin reloaded!", NotificationType.Success);
                     }
                     catch (Exception ex)
                     {
                         Log.Error(ex, "DevPlugin reload failed.");
-                        Service<NotificationManager>.Get()
-                                                    .AddNotification(
-                                                        $"The DevPlugin '{this.Name} could not be reloaded.", "Plugin reload failed!", NotificationType.Error);
+                        notificationManager.AddNotification($"The DevPlugin '{this.Name} could not be reloaded.", "Plugin reload failed!", NotificationType.Error);
                     }
                 },
                 this.fileWatcherTokenSource.Token);
