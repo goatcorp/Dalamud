@@ -222,6 +222,9 @@ namespace Dalamud.Plugin.Internal
                     throw new InvalidPluginOperationException($"Unable to load {this.Name}, unload previously faulted, restart Dalamud");
             }
 
+            if (pluginManager.IsManifestBanned(this.Manifest))
+                throw new BannedPluginException($"Unable to load {this.Name}, banned");
+
             if (this.Manifest.ApplicableVersion < startInfo.GameVersion)
                 throw new InvalidPluginOperationException($"Unable to load {this.Name}, no applicable version");
 

@@ -548,6 +548,11 @@ namespace Dalamud.Plugin.Internal
                     PluginLocations.Remove(plugin.AssemblyName.FullName);
                     throw;
                 }
+                catch (BannedPluginException)
+                {
+                    // Out of date plugins get added so they can be updated.
+                    Log.Information($"Plugin was banned, adding anyways: {dllFile.Name}");
+                }
                 catch (Exception ex)
                 {
                     if (plugin.IsDev)
@@ -936,7 +941,12 @@ namespace Dalamud.Plugin.Internal
             return true;
         }
 
-        private bool IsManifestBanned(PluginManifest manifest)
+        /// <summary>
+        /// Determine if a plugin has been banned by inspecting the manifest.
+        /// </summary>
+        /// <param name="manifest">Manifest to inspect.</param>
+        /// <returns>A value indicating whether the plugin/manifest has been banned.</returns>
+        public bool IsManifestBanned(PluginManifest manifest)
         {
             return this.bannedPlugins.Any(ban => ban.Name == manifest.InternalName && ban.AssemblyVersion == manifest.AssemblyVersion);
         }
