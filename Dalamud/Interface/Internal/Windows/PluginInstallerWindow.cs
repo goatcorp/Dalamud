@@ -1124,7 +1124,7 @@ namespace Dalamud.Interface.Internal.Windows
             }
 
             // Outdated API level
-            if (plugin.Manifest.DalamudApiLevel < PluginManager.DalamudApiLevel)
+            if (plugin.IsOutdated)
             {
                 label += Locs.PluginTitleMod_OutdatedError;
                 trouble = true;
@@ -1174,7 +1174,7 @@ namespace Dalamud.Interface.Internal.Windows
                     ImGui.TextWrapped(manifest.Description);
                 }
 
-                if (plugin.Manifest.DalamudApiLevel < PluginManager.DalamudApiLevel)
+                if (plugin.IsOutdated)
                 {
                     ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
                     ImGui.TextWrapped(Locs.PluginBody_Outdated);
@@ -1263,7 +1263,7 @@ namespace Dalamud.Interface.Internal.Windows
             var disabled = this.updateStatus == OperationStatus.InProgress || this.installStatus == OperationStatus.InProgress;
 
             // Disable everything if the plugin is outdated
-            disabled = disabled || (plugin.Manifest.DalamudApiLevel < PluginManager.DalamudApiLevel && !configuration.LoadAllApiLevels);
+            disabled = disabled || (plugin.IsOutdated && !configuration.LoadAllApiLevels);
 
             if (plugin.State == PluginState.InProgress)
             {

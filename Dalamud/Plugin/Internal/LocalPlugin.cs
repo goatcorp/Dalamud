@@ -174,6 +174,11 @@ namespace Dalamud.Plugin.Internal
         public bool IsDisabled => this.Manifest.Disabled;
 
         /// <summary>
+        /// Gets a value indicating whether this plugin's API level is out of date.
+        /// </summary>
+        public bool IsOutdated => this.Manifest.DalamudApiLevel < PluginManager.DalamudApiLevel;
+
+        /// <summary>
         /// Gets a value indicating whether the plugin is for testing use only.
         /// </summary>
         public bool IsTesting => this.Manifest.IsTestingExclusive || this.Manifest.Testing;

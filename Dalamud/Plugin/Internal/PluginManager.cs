@@ -561,7 +561,7 @@ namespace Dalamud.Plugin.Internal
                         Log.Information(ex, $"Dev plugin failed to load, adding anyways: {dllFile.Name}");
                         plugin.Disable(); // Disable here, otherwise you can't enable+load later
                     }
-                    else if (plugin.Manifest.DalamudApiLevel < DalamudApiLevel)
+                    else if (plugin.IsOutdated)
                     {
                         // Out of date plugins get added so they can be updated.
                         Log.Information(ex, $"Plugin was outdated, adding anyways: {dllFile.Name}");
