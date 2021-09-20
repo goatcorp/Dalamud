@@ -1201,6 +1201,7 @@ namespace Dalamud.Interface.Internal.Windows
                 // Controls
                 this.DrawPluginControlButton(plugin);
                 this.DrawDevPluginButtons(plugin);
+                this.DrawDeletePluginButton(plugin);
                 this.DrawVisitRepoUrlButton(plugin.Manifest.RepoUrl);
 
                 if (availablePluginUpdate != default)
@@ -1411,7 +1412,6 @@ namespace Dalamud.Interface.Internal.Windows
         private void DrawDevPluginButtons(LocalPlugin localPlugin)
         {
             var configuration = Service<DalamudConfiguration>.Get();
-            var pluginManager = Service<PluginManager>.Get();
 
             if (localPlugin is LocalDevPlugin plugin)
             {
@@ -1454,33 +1454,40 @@ namespace Dalamud.Interface.Internal.Windows
                 {
                     ImGui.SetTooltip(Locs.PluginButtonToolTip_AutomaticReloading);
                 }
+            }
+        }
 
-                // Delete
-                if (plugin.State == PluginState.Unloaded)
+        private void DrawDeletePluginButton(LocalPlugin plugin)
+        {
+            var unloaded = plugin.State == PluginState.Unloaded;
+            var showButton = unloaded && (plugin.IsDev || plugin.IsOutdated);
+
+            if (!showButton)
+                return;
+
+            var pluginManager = Service<PluginManager>.Get();
+
+            ImGui.SameLine();
+            if (ImGuiComponents.IconButton(FontAwesomeIcon.TrashAlt))
+            {
+                try
                 {
-                    ImGui.SameLine();
-                    if (ImGuiComponents.IconButton(FontAwesomeIcon.TrashAlt))
-                    {
-                        try
-                        {
-                            plugin.DllFile.Delete();
-                            pluginManager.RemovePlugin(plugin);
-                        }
-                        catch (Exception ex)
-                        {
-                            Log.Error(ex, $"Plugin installer threw an error during removal of {plugin.Name}");
-
-                            this.errorModalMessage = Locs.ErrorModal_DeleteFail(plugin.Name);
-                            this.errorModalDrawing = true;
-                            this.errorModalOnNextFrame = true;
-                        }
-                    }
-
-                    if (ImGui.IsItemHovered())
-                    {
-                        ImGui.SetTooltip(Locs.PluginBody_DeleteDevPlugin);
-                    }
+                    plugin.DllFile.Delete();
+                    pluginManager.RemovePlugin(plugin);
                 }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, $"Plugin installer threw an error during removal of {plugin.Name}");
+
+                    this.errorModalMessage = Locs.ErrorModal_DeleteFail(plugin.Name);
+                    this.errorModalDrawing = true;
+                    this.errorModalOnNextFrame = true;
+                }
+            }
+
+            if (ImGui.IsItemHovered())
+            {
+                ImGui.SetTooltip(Locs.PluginButtonToolTip_DeletePlugin);
             }
         }
 
