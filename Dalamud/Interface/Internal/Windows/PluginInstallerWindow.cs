@@ -246,14 +246,7 @@ namespace Dalamud.Interface.Internal.Windows
             var output = new List<FileInfo>();
             for (var i = 1; i <= 5; i++)
             {
-                var devUrl = new FileInfo(Path.Combine(pluginDir.FullName, $"image{i}.png"));
-                if (devUrl.Exists)
-                {
-                    output.Add(devUrl);
-                    continue;
-                }
-
-                devUrl = new FileInfo(Path.Combine(pluginDir.FullName, "images", $"image{i}.png"));
+                var devUrl = new FileInfo(Path.Combine(pluginDir.FullName, "images", $"image{i}.png"));
                 if (devUrl.Exists)
                 {
                     output.Add(devUrl);
