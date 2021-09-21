@@ -868,6 +868,7 @@ namespace Dalamud.Interface.Internal.Windows
             ImGui.SameLine();
 
             var cursor = ImGui.GetCursorPos();
+
             // Name
             ImGui.Text(label);
 
@@ -1130,6 +1131,13 @@ namespace Dalamud.Interface.Internal.Windows
                 trouble = true;
             }
 
+            // Banned
+            if (plugin.IsBanned)
+            {
+                label += Locs.PluginTitleMod_BannedError;
+                trouble = true;
+            }
+
             ImGui.PushID($"installed{index}{plugin.Manifest.InternalName}");
 
             if (this.DrawPluginCollapsingHeader(label, plugin.Manifest, trouble, availablePluginUpdate != default, false, () => this.DrawInstalledPluginContextMenu(plugin), index))
@@ -1178,6 +1186,13 @@ namespace Dalamud.Interface.Internal.Windows
                 {
                     ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
                     ImGui.TextWrapped(Locs.PluginBody_Outdated);
+                    ImGui.PopStyleColor();
+                }
+
+                if (plugin.IsBanned)
+                {
+                    ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
+                    ImGui.TextWrapped(Locs.PluginBody_Banned);
                     ImGui.PopStyleColor();
                 }
 
@@ -1264,7 +1279,7 @@ namespace Dalamud.Interface.Internal.Windows
             var disabled = this.updateStatus == OperationStatus.InProgress || this.installStatus == OperationStatus.InProgress;
 
             // Disable everything if the plugin is outdated
-            disabled = disabled || (plugin.IsOutdated && !configuration.LoadAllApiLevels);
+            disabled = disabled || (plugin.IsOutdated && !configuration.LoadAllApiLevels) || plugin.IsBanned;
 
             if (plugin.State == PluginState.InProgress)
             {
@@ -1460,7 +1475,7 @@ namespace Dalamud.Interface.Internal.Windows
         private void DrawDeletePluginButton(LocalPlugin plugin)
         {
             var unloaded = plugin.State == PluginState.Unloaded;
-            var showButton = unloaded && (plugin.IsDev || plugin.IsOutdated);
+            var showButton = unloaded && (plugin.IsDev || plugin.IsOutdated || plugin.IsBanned);
 
             if (!showButton)
                 return;
@@ -1926,6 +1941,8 @@ namespace Dalamud.Interface.Internal.Windows
 
             public static string PluginTitleMod_OutdatedError => Loc.Localize("InstallerOutdatedError", " (outdated)");
 
+            public static string PluginTitleMod_BannedError => Loc.Localize("InstallerOutdatedError", " (banned)");
+
             public static string PluginTitleMod_New => Loc.Localize("InstallerNewPlugin ", " New!");
 
             #endregion
@@ -1959,6 +1976,8 @@ namespace Dalamud.Interface.Internal.Windows
             public static string PluginBody_DeleteDevPlugin => Loc.Localize("InstallerDeleteDevPlugin ", " To delete this plugin, please remove it from the devPlugins folder.");
 
             public static string PluginBody_Outdated => Loc.Localize("InstallerOutdatedPluginBody ", "This plugin is outdated and incompatible at the moment. Please wait for it to be updated by its author.");
+
+            public static string PluginBody_Banned => Loc.Localize("InstallerBannedPluginBody ", "This plugin version is banned and not available at the moment. Please wait for it to be updated by its author.");
 
             #endregion
 

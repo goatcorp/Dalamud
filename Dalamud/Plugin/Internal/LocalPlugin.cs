@@ -129,6 +129,9 @@ namespace Dalamud.Plugin.Internal
                 this.testingFile.Delete();
             }
 
+            var pluginManager = Service<PluginManager>.Get();
+            this.IsBanned = pluginManager.IsManifestBanned(this.Manifest);
+
             this.SaveManifest();
         }
 
@@ -182,6 +185,11 @@ namespace Dalamud.Plugin.Internal
         /// Gets a value indicating whether the plugin is for testing use only.
         /// </summary>
         public bool IsTesting => this.Manifest.IsTestingExclusive || this.Manifest.Testing;
+
+        /// <summary>
+        /// Gets a value indicating whether this plugin has been banned.
+        /// </summary>
+        public bool IsBanned { get; }
 
         /// <summary>
         /// Gets a value indicating whether this plugin is dev plugin.
@@ -262,7 +270,9 @@ namespace Dalamud.Plugin.Internal
                     {
                         var manifestFile = LocalPluginManifest.GetManifestFile(this.DllFile);
                         if (manifestFile.Exists)
+                        {
                             this.Manifest = LocalPluginManifest.Load(manifestFile);
+                        }
                     }
                 }
 
