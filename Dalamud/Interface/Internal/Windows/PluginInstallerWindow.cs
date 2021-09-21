@@ -440,6 +440,7 @@ namespace Dalamud.Interface.Internal.Windows
 
         private void DrawPluginTab(string title, Action drawPluginList)
         {
+            ImGui.PushID(title);
             if (ImGui.BeginTabItem(title))
             {
                 ImGui.BeginChild($"Scrolling{title}", ImGuiHelpers.ScaledVector2(0, -30), true, ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.NoBackground);
@@ -457,6 +458,8 @@ namespace Dalamud.Interface.Internal.Windows
 
                 ImGui.EndTabItem();
             }
+
+            ImGui.PopID();
         }
 
         private void DrawAvailablePluginList()
