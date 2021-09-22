@@ -159,7 +159,7 @@ namespace Dalamud.Plugin.Internal
         /// Gets the AssemblyName plugin, populated during <see cref="Load(PluginLoadReason, bool)"/>.
         /// </summary>
         /// <returns>Plugin type.</returns>
-        public AssemblyName AssemblyName { get; private set; } = null;
+        public AssemblyName? AssemblyName { get; private set; } = null;
 
         /// <summary>
         /// Gets the plugin name, directly from the plugin or if it is not loaded from the manifest.

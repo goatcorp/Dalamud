@@ -545,7 +545,7 @@ namespace Dalamud.Plugin.Internal
                 }
                 catch (InvalidPluginException)
                 {
-                    PluginLocations.Remove(plugin.AssemblyName.FullName);
+                    PluginLocations.Remove(plugin.AssemblyName?.FullName ?? string.Empty);
                     throw;
                 }
                 catch (BannedPluginException)
@@ -569,7 +569,7 @@ namespace Dalamud.Plugin.Internal
                     }
                     else
                     {
-                        PluginLocations.Remove(plugin.AssemblyName.FullName);
+                        PluginLocations.Remove(plugin.AssemblyName?.FullName ?? string.Empty);
                         throw;
                     }
                 }
@@ -589,7 +589,7 @@ namespace Dalamud.Plugin.Internal
                 throw new InvalidPluginOperationException($"Unable to remove {plugin.Name}, not unloaded");
 
             this.InstalledPlugins = this.InstalledPlugins.Remove(plugin);
-            PluginLocations.Remove(plugin.AssemblyName.FullName);
+            PluginLocations.Remove(plugin.AssemblyName?.FullName ?? string.Empty);
 
             this.NotifyInstalledPluginsChanged();
             this.NotifyAvailablePluginsChanged();
