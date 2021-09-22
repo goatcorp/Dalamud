@@ -205,11 +205,11 @@ namespace Dalamud.Interface.Internal.Windows
             return MainRepoImageUrl.Format(isTesting ? "testing" : "plugins", manifest.InternalName, "icon.png");
         }
 
-        private static List<string?> GetPluginImageUrls(PluginManifest manifest, bool isThirdParty, bool isTesting)
+        private static List<string?>? GetPluginImageUrls(PluginManifest manifest, bool isThirdParty, bool isTesting)
         {
             if (isThirdParty)
             {
-                if (manifest.ImageUrls.Count > 5)
+                if (manifest.ImageUrls?.Count > 5)
                 {
                     Log.Warning($"Plugin {manifest.InternalName} has too many images");
                     return manifest.ImageUrls.Take(5).ToList();
@@ -1802,7 +1802,9 @@ namespace Dalamud.Interface.Internal.Windows
                     Log.Verbose($"Plugin icon for {manifest.InternalName} loaded from disk");
                 }
 
-                return;
+                // Dev plugins are likely going to look like a main repo plugin, the InstalledFrom field is going to be null.
+                // So instead, set the value manually so we download from the urls specified.
+                isThirdParty = true;
             }
 
             var useTesting = pluginManager.UseTesting(manifest);
@@ -1885,8 +1887,9 @@ namespace Dalamud.Interface.Internal.Windows
                     }
                 }
 
-                // Dev plugins are loaded from disk only
-                return;
+                // Dev plugins are likely going to look like a main repo plugin, the InstalledFrom field is going to be null.
+                // So instead, set the value manually so we download from the urls specified.
+                isThirdParty = true;
             }
 
             var useTesting = pluginManager.UseTesting(manifest);
