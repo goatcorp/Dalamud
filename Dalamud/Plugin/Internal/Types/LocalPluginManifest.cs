@@ -24,9 +24,16 @@ namespace Dalamud.Plugin.Internal.Types
 
         /// <summary>
         /// Gets or sets the 3rd party repo URL that this plugin was installed from. Used to display where the plugin was
-        /// sourced from on the installed plugin view. This should not be included in the plugin master.
+        /// sourced from on the installed plugin view. This should not be included in the plugin master. This value is null
+        /// when installed from the main repo.
         /// </summary>
         public string InstalledFromUrl { get; set; }
+
+        /// <summary>
+        /// Gets a value indicating whether this manifest is associated with a plugin that was installed from a third party
+        /// repo. Unless the manifest has been manually modified, this is determined by the InstalledFromUrl being null.
+        /// </summary>
+        public bool IsThirdParty => !string.IsNullOrEmpty(this.InstalledFromUrl);
 
         /// <summary>
         /// Save a plugin manifest to file.
