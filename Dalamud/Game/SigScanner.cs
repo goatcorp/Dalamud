@@ -144,7 +144,6 @@ namespace Dalamud.Game
         /// <returns>true if the signature was found.</returns>
         public static bool TryScan(IntPtr baseAddress, int size, string signature, out IntPtr result)
         {
-            result = IntPtr.Zero;
             try
             {
                 result = Scan(baseAddress, size, signature);
@@ -152,6 +151,7 @@ namespace Dalamud.Game
             }
             catch (KeyNotFoundException)
             {
+                result = IntPtr.Zero;
                 return false;
             }
         }
@@ -193,7 +193,6 @@ namespace Dalamud.Game
         /// <returns>true if the signature was found.</returns>
         public bool TryGetStaticAddressFromSig(string signature, out IntPtr result, int offset = 0)
         {
-            result = IntPtr.Zero;
             try
             {
                 result = this.GetStaticAddressFromSig(signature, offset);
@@ -201,6 +200,7 @@ namespace Dalamud.Game
             }
             catch (KeyNotFoundException)
             {
+                result = IntPtr.Zero;
                 return false;
             }
         }
@@ -228,7 +228,6 @@ namespace Dalamud.Game
         /// <returns>true if the signature was found.</returns>
         public bool TryScanData(string signature, out IntPtr result)
         {
-            result = IntPtr.Zero;
             try
             {
                 result = this.ScanData(signature);
@@ -236,6 +235,7 @@ namespace Dalamud.Game
             }
             catch (KeyNotFoundException)
             {
+                result = IntPtr.Zero;
                 return false;
             }
         }
@@ -263,7 +263,6 @@ namespace Dalamud.Game
         /// <returns>true if the signature was found.</returns>
         public bool TryScanModule(string signature, out IntPtr result)
         {
-            result = IntPtr.Zero;
             try
             {
                 result = this.ScanModule(signature);
@@ -271,6 +270,7 @@ namespace Dalamud.Game
             }
             catch (KeyNotFoundException)
             {
+                result = IntPtr.Zero;
                 return false;
             }
         }
@@ -317,7 +317,6 @@ namespace Dalamud.Game
         /// <returns>true if the signature was found.</returns>
         public bool TryScanText(string signature, out IntPtr result)
         {
-            result = IntPtr.Zero;
             try
             {
                 result = this.ScanText(signature);
@@ -325,6 +324,7 @@ namespace Dalamud.Game
             }
             catch (KeyNotFoundException)
             {
+                result = IntPtr.Zero;
                 return false;
             }
         }
