@@ -548,18 +548,23 @@ namespace Dalamud.Plugin.Internal
                     PluginLocations.Remove(plugin.AssemblyName.FullName);
                     throw;
                 }
+                catch (BannedPluginException)
+                {
+                    // Out of date plugins get added so they can be updated.
+                    Log.Information($"Plugin was banned, adding anyways: {dllFile.Name}");
+                }
                 catch (Exception ex)
                 {
                     if (plugin.IsDev)
                     {
                         // Dev plugins always get added to the list so they can be fiddled with in the UI
-                        Log.Information(ex, $"Dev plugin failed to load, adding anyways:  {dllFile.Name}");
+                        Log.Information(ex, $"Dev plugin failed to load, adding anyways: {dllFile.Name}");
                         plugin.Disable(); // Disable here, otherwise you can't enable+load later
                     }
-                    else if (plugin.Manifest.DalamudApiLevel < DalamudApiLevel)
+                    else if (plugin.IsOutdated)
                     {
                         // Out of date plugins get added so they can be updated.
-                        Log.Information(ex, $"Plugin was outdated, adding anyways:  {dllFile.Name}");
+                        Log.Information(ex, $"Plugin was outdated, adding anyways: {dllFile.Name}");
                         // plugin.Disable(); // Don't disable, or it gets deleted next boot.
                     }
                     else
@@ -936,7 +941,12 @@ namespace Dalamud.Plugin.Internal
             return true;
         }
 
-        private bool IsManifestBanned(PluginManifest manifest)
+        /// <summary>
+        /// Determine if a plugin has been banned by inspecting the manifest.
+        /// </summary>
+        /// <param name="manifest">Manifest to inspect.</param>
+        /// <returns>A value indicating whether the plugin/manifest has been banned.</returns>
+        public bool IsManifestBanned(PluginManifest manifest)
         {
             return this.bannedPlugins.Any(ban => ban.Name == manifest.InternalName && ban.AssemblyVersion == manifest.AssemblyVersion);
         }
