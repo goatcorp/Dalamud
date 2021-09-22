@@ -196,6 +196,11 @@ namespace Dalamud.Configuration.Internal
         public bool PluginSafeMode { get; set; }
 
         /// <summary>
+        /// Gets or sets a value indicating whether or not Dalamud RMT filtering should be disabled.
+        /// </summary>
+        public bool DisableRmtFiltering { get; set; }
+
+        /// <summary>
         /// Load a configuration from the provided path.
         /// </summary>
         /// <param name="path">The path to load the configuration file from.</param>
