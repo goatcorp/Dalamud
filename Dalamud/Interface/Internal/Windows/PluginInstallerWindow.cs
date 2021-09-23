@@ -1757,7 +1757,17 @@ namespace Dalamud.Interface.Internal.Windows
             {
                 Log.Verbose($"Downloading icon for {manifest.InternalName} from {url}");
 
-                var data = await this.httpClient.GetAsync(url);
+                HttpResponseMessage data;
+                try
+                {
+                    data = await this.httpClient.GetAsync(url);
+                }
+                catch (InvalidOperationException)
+                {
+                    Log.Error($"Plugin icon for {manifest.InternalName} has an Invalid URI");
+                    return;
+                }
+
                 if (data.StatusCode == HttpStatusCode.NotFound)
                     return;
 
@@ -1773,7 +1783,7 @@ namespace Dalamud.Interface.Internal.Windows
                 return;
             }
 
-            Log.Verbose($"Icon for {manifest.InternalName} is not available");
+            Log.Verbose($"Plugin icon for {manifest.InternalName} is not available");
         }
 
         private async Task DownloadPluginImagesAsync(LocalPlugin? plugin, PluginManifest manifest, bool isThirdParty)
@@ -1793,7 +1803,7 @@ namespace Dalamud.Interface.Internal.Windows
 
                 if (image.Width > PluginImageWidth || image.Height > PluginImageHeight)
                 {
-                    Log.Error($"Image{i + 1} for {manifest.InternalName} at {loc} was larger than the maximum allowed resolution ({PluginImageWidth}x{PluginImageHeight}).");
+                    Log.Error($"Plugin image{i + 1} for {manifest.InternalName} at {loc} was larger than the maximum allowed resolution ({PluginImageWidth}x{PluginImageHeight}).");
                     return false;
                 }
 
@@ -1852,7 +1862,16 @@ namespace Dalamud.Interface.Internal.Windows
 
                     Log.Verbose($"Downloading image{i + 1} for {manifest.InternalName} from {url}");
 
-                    var data = await this.httpClient.GetAsync(url);
+                    HttpResponseMessage data;
+                    try
+                    {
+                        data = await this.httpClient.GetAsync(url);
+                    }
+                    catch (InvalidOperationException)
+                    {
+                        Log.Error($"Plugin image{i + 1} for {manifest.InternalName} has an Invalid URI");
+                        continue;
+                    }
 
                     if (data.StatusCode == HttpStatusCode.NotFound)
                         continue;
