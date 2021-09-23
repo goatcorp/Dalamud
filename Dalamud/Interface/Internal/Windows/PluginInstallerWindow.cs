@@ -665,7 +665,21 @@ namespace Dalamud.Interface.Internal.Windows
 
                             ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, Vector2.Zero);
 
-                            if (ImGui.ImageButton(image.ImGuiHandle, ImGuiHelpers.ScaledVector2(image.Width / thumbFactor, image.Height / thumbFactor)))
+                            float xAct = image.Width;
+                            float yAct = image.Height;
+                            float xMax = PluginImageWidth;
+                            float yMax = PluginImageHeight;
+
+                            // scale image if undersized
+                            if (xAct < xMax && yAct < yMax)
+                            {
+                                var scale = Math.Min(xMax / xAct, yMax / yAct);
+                                xAct *= scale;
+                                yAct *= scale;
+                            }
+
+                            var size = ImGuiHelpers.ScaledVector2(xAct / thumbFactor, yAct / thumbFactor);
+                            if (ImGui.ImageButton(image.ImGuiHandle, size))
                                 ImGui.OpenPopup(popupId);
 
                             ImGui.PopStyleVar();
@@ -1560,7 +1574,21 @@ namespace Dalamud.Interface.Internal.Windows
 
                     ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, Vector2.Zero);
 
-                    if (ImGui.ImageButton(image.ImGuiHandle, ImGuiHelpers.ScaledVector2(image.Width / thumbFactor, image.Height / thumbFactor)))
+                    float xAct = image.Width;
+                    float yAct = image.Height;
+                    float xMax = PluginImageWidth;
+                    float yMax = PluginImageHeight;
+
+                    // scale image if undersized
+                    if (xAct < xMax && yAct < yMax)
+                    {
+                        var scale = Math.Min(xMax / xAct, yMax / yAct);
+                        xAct *= scale;
+                        yAct *= scale;
+                    }
+
+                    var size = ImGuiHelpers.ScaledVector2(xAct / thumbFactor, yAct / thumbFactor);
+                    if (ImGui.ImageButton(image.ImGuiHandle, size))
                         ImGui.OpenPopup(popupId);
 
                     ImGui.PopStyleVar();
