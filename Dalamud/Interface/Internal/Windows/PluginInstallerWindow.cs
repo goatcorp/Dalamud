@@ -197,66 +197,6 @@ namespace Dalamud.Interface.Internal.Windows
             this.pluginImagesMap.Clear();
         }
 
-        private static string? GetPluginIconUrl(PluginManifest manifest, bool isThirdParty, bool isTesting)
-        {
-            if (isThirdParty)
-                return manifest.IconUrl;
-
-            return MainRepoImageUrl.Format(isTesting ? "testing" : "plugins", manifest.InternalName, "icon.png");
-        }
-
-        private static List<string?>? GetPluginImageUrls(PluginManifest manifest, bool isThirdParty, bool isTesting)
-        {
-            if (isThirdParty)
-            {
-                if (manifest.ImageUrls?.Count > 5)
-                {
-                    Log.Warning($"Plugin {manifest.InternalName} has too many images");
-                    return manifest.ImageUrls.Take(5).ToList();
-                }
-
-                return manifest.ImageUrls;
-            }
-
-            var output = new List<string>();
-            for (var i = 1; i <= 5; i++)
-            {
-                output.Add(MainRepoImageUrl.Format(isTesting ? "testing" : "plugins", manifest.InternalName, $"image{i}.png"));
-            }
-
-            return output;
-        }
-
-        private static FileInfo? GetPluginIconFileInfo(LocalPlugin? plugin)
-        {
-            var pluginDir = plugin.DllFile.Directory;
-
-            var devUrl = new FileInfo(Path.Combine(pluginDir.FullName, "images", "icon.png"));
-            if (devUrl.Exists)
-                return devUrl;
-
-            return null;
-        }
-
-        private static List<FileInfo?> GetPluginImageFileInfos(LocalPlugin? plugin)
-        {
-            var pluginDir = plugin.DllFile.Directory;
-            var output = new List<FileInfo>();
-            for (var i = 1; i <= 5; i++)
-            {
-                var devUrl = new FileInfo(Path.Combine(pluginDir.FullName, "images", $"image{i}.png"));
-                if (devUrl.Exists)
-                {
-                    output.Add(devUrl);
-                    continue;
-                }
-
-                output.Add(null);
-            }
-
-            return output;
-        }
-
         private void DrawHeader()
         {
             var style = ImGui.GetStyle();
@@ -1961,6 +1901,66 @@ namespace Dalamud.Interface.Internal.Windows
             }
 
             Log.Verbose($"Images for {manifest.InternalName} are not available");
+        }
+
+        private string? GetPluginIconUrl(PluginManifest manifest, bool isThirdParty, bool isTesting)
+        {
+            if (isThirdParty)
+                return manifest.IconUrl;
+
+            return MainRepoImageUrl.Format(isTesting ? "testing" : "plugins", manifest.InternalName, "icon.png");
+        }
+
+        private List<string?>? GetPluginImageUrls(PluginManifest manifest, bool isThirdParty, bool isTesting)
+        {
+            if (isThirdParty)
+            {
+                if (manifest.ImageUrls?.Count > 5)
+                {
+                    Log.Warning($"Plugin {manifest.InternalName} has too many images");
+                    return manifest.ImageUrls.Take(5).ToList();
+                }
+
+                return manifest.ImageUrls;
+            }
+
+            var output = new List<string>();
+            for (var i = 1; i <= 5; i++)
+            {
+                output.Add(MainRepoImageUrl.Format(isTesting ? "testing" : "plugins", manifest.InternalName, $"image{i}.png"));
+            }
+
+            return output;
+        }
+
+        private FileInfo? GetPluginIconFileInfo(LocalPlugin? plugin)
+        {
+            var pluginDir = plugin.DllFile.Directory;
+
+            var devUrl = new FileInfo(Path.Combine(pluginDir.FullName, "images", "icon.png"));
+            if (devUrl.Exists)
+                return devUrl;
+
+            return null;
+        }
+
+        private List<FileInfo?> GetPluginImageFileInfos(LocalPlugin? plugin)
+        {
+            var pluginDir = plugin.DllFile.Directory;
+            var output = new List<FileInfo>();
+            for (var i = 1; i <= 5; i++)
+            {
+                var devUrl = new FileInfo(Path.Combine(pluginDir.FullName, "images", $"image{i}.png"));
+                if (devUrl.Exists)
+                {
+                    output.Add(devUrl);
+                    continue;
+                }
+
+                output.Add(null);
+            }
+
+            return output;
         }
 
         [SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1201:Elements should appear in the correct order", Justification = "Disregard here")]
