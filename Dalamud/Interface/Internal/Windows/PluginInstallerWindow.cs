@@ -1706,49 +1706,40 @@ namespace Dalamud.Interface.Internal.Windows
             var interfaceManager = Service<InterfaceManager>.Get();
             var pluginManager = Service<PluginManager>.Get();
 
-            static bool ValidateIcon(TextureWrap icon, string loc)
+            static bool TryLoadIcon(byte[] bytes, string loc, PluginManifest manifest, InterfaceManager interfaceManager, out TextureWrap icon)
             {
-                if (icon == null)
-                    return false;
+                icon = interfaceManager.LoadImage(bytes);
 
-                if (icon.Height > PluginIconHeight || icon.Width > PluginIconWidth)
+                if (icon == null)
                 {
-                    Log.Error($"Icon at {loc} was not of the correct resolution.");
+                    Log.Error($"Could not load icon for {manifest.InternalName} at {loc}");
+                    return false;
+                }
+
+                if (icon.Width > PluginIconWidth || icon.Height > PluginIconHeight)
+                {
+                    Log.Error($"Icon for {manifest.InternalName} at {loc} was larger than the maximum allowed resolution ({PluginIconWidth}x{PluginIconHeight}).");
                     return false;
                 }
 
                 if (icon.Height != icon.Width)
                 {
-                    Log.Error($"Icon at {loc} was not square.");
+                    Log.Error($"Icon for {manifest.InternalName} at {loc} was not square.");
                     return false;
                 }
 
                 return true;
             }
 
-            static bool TryLoadIcon(byte[] bytes, PluginManifest manifest, InterfaceManager interfaceManager, out TextureWrap image)
-            {
-                image = interfaceManager.LoadImage(bytes);
-
-                var success = image != null;
-                if (!success)
-                    Log.Error($"Could not load icon for {manifest.InternalName}");
-
-                return success;
-            }
-
             if (plugin != null && plugin.IsDev)
             {
-                var file = GetPluginIconFileInfo(plugin);
+                var file = this.GetPluginIconFileInfo(plugin);
                 if (file != null)
                 {
                     Log.Verbose($"Fetching icon for {manifest.InternalName} from {file.FullName}");
 
                     var bytes = await File.ReadAllBytesAsync(file.FullName);
-                    if (!TryLoadIcon(bytes, manifest, interfaceManager, out var icon))
-                        return;
-
-                    if (!ValidateIcon(icon, file.FullName))
+                    if (!TryLoadIcon(bytes, file.FullName, manifest, interfaceManager, out var icon))
                         return;
 
                     this.pluginIconMap[manifest.InternalName] = icon;
@@ -1761,7 +1752,7 @@ namespace Dalamud.Interface.Internal.Windows
             }
 
             var useTesting = pluginManager.UseTesting(manifest);
-            var url = GetPluginIconUrl(manifest, isThirdParty, useTesting);
+            var url = this.GetPluginIconUrl(manifest, isThirdParty, useTesting);
             if (url != null)
             {
                 Log.Verbose($"Downloading icon for {manifest.InternalName} from {url}");
@@ -1773,10 +1764,7 @@ namespace Dalamud.Interface.Internal.Windows
                 data.EnsureSuccessStatusCode();
 
                 var bytes = await data.Content.ReadAsByteArrayAsync();
-                if (!TryLoadIcon(bytes, manifest, interfaceManager, out var icon))
-                    return;
-
-                if (!ValidateIcon(icon, url))
+                if (!TryLoadIcon(bytes, url, manifest, interfaceManager, out var icon))
                     return;
 
                 this.pluginIconMap[manifest.InternalName] = icon;
@@ -1793,34 +1781,28 @@ namespace Dalamud.Interface.Internal.Windows
             var interfaceManager = Service<InterfaceManager>.Get();
             var pluginManager = Service<PluginManager>.Get();
 
-            static bool ValidateImage(TextureWrap image, string loc)
+            static bool TryLoadImage(int i, byte[] bytes, string loc, PluginManifest manifest, InterfaceManager interfaceManager, out TextureWrap image)
             {
-                if (image == null)
-                    return false;
+                image = interfaceManager.LoadImage(bytes);
 
-                if (image.Height != PluginImageHeight || image.Width != PluginImageWidth)
+                if (image == null)
                 {
-                    Log.Error($"Image at {loc} was not of the correct resolution.");
+                    Log.Error($"Could not load image{i + 1} for {manifest.InternalName} at {loc}");
+                    return false;
+                }
+
+                if (image.Width > PluginImageWidth || image.Height > PluginImageHeight)
+                {
+                    Log.Error($"Image{i + 1} for {manifest.InternalName} at {loc} was larger than the maximum allowed resolution ({PluginImageWidth}x{PluginImageHeight}).");
                     return false;
                 }
 
                 return true;
             }
 
-            static bool TryLoadImage(int i, byte[] bytes, PluginManifest manifest, InterfaceManager interfaceManager, out TextureWrap image)
-            {
-                image = interfaceManager.LoadImage(bytes);
-
-                var success = image != null;
-                if (!success)
-                    Log.Error($"Could not load image{i + 1} for {manifest.InternalName}");
-
-                return success;
-            }
-
             if (plugin != null && plugin.IsDev)
             {
-                var files = GetPluginImageFileInfos(plugin);
+                var files = this.GetPluginImageFileInfos(plugin);
                 if (files != null)
                 {
                     var didAny = false;
@@ -1833,16 +1815,14 @@ namespace Dalamud.Interface.Internal.Windows
                             continue;
 
                         Log.Verbose($"Loading image{i + 1} for {manifest.InternalName} from {file.FullName}");
-
                         var bytes = await File.ReadAllBytesAsync(file.FullName);
-                        if (!TryLoadImage(i, bytes, manifest, interfaceManager, out var image))
-                            continue;
 
-                        if (!ValidateImage(image, file.FullName))
+                        if (!TryLoadImage(i, bytes, file.FullName, manifest, interfaceManager, out var image))
                             continue;
 
                         Log.Verbose($"Plugin image{i + 1} for {manifest.InternalName} loaded from disk");
                         pluginImages[i] = image;
+
                         didAny = true;
                     }
 
@@ -1861,7 +1841,7 @@ namespace Dalamud.Interface.Internal.Windows
             }
 
             var useTesting = pluginManager.UseTesting(manifest);
-            var urls = GetPluginImageUrls(manifest, isThirdParty, useTesting);
+            var urls = this.GetPluginImageUrls(manifest, isThirdParty, useTesting);
             if (urls != null)
             {
                 var didAny = false;
@@ -1880,14 +1860,12 @@ namespace Dalamud.Interface.Internal.Windows
                     data.EnsureSuccessStatusCode();
 
                     var bytes = await data.Content.ReadAsByteArrayAsync();
-                    if (!TryLoadImage(i, bytes, manifest, interfaceManager, out var image))
-                        continue;
-
-                    if (!ValidateImage(image, url))
+                    if (!TryLoadImage(i, bytes, url, manifest, interfaceManager, out var image))
                         continue;
 
                     Log.Verbose($"Plugin image{i + 1} for {manifest.InternalName} downloaded");
                     pluginImages[i] = image;
+
                     didAny = true;
                 }
 
