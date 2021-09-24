@@ -50,37 +50,40 @@ namespace Dalamud.Interface.ImGuiFileDialog
                 windowVisible = ImGui.Begin(name, ref this.visible, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoNav);
             }
 
+            bool wasClosed = false;
             if (windowVisible)
             {
                 if (!this.visible)
                 { // window closed
                     this.isOk = false;
-                    return true;
+                    wasClosed = true;
                 }
-
-                if (this.selectedFilter.Empty() && (this.filters.Count > 0))
+                else
                 {
-                    this.selectedFilter = this.filters[0];
-                }
-
-                if (this.files.Count == 0)
-                {
-                    if (!string.IsNullOrEmpty(this.defaultFileName))
+                    if (this.selectedFilter.Empty() && (this.filters.Count > 0))
                     {
-                        this.SetDefaultFileName();
-                        this.SetSelectedFilterWithExt(this.defaultExtension);
-                    }
-                    else if (this.IsDirectoryMode())
-                    {
-                        this.SetDefaultFileName();
+                        this.selectedFilter = this.filters[0];
                     }
 
-                    this.ScanDir(this.currentPath);
-                }
+                    if (this.files.Count == 0)
+                    {
+                        if (!string.IsNullOrEmpty(this.defaultFileName))
+                        {
+                            this.SetDefaultFileName();
+                            this.SetSelectedFilterWithExt(this.defaultExtension);
+                        }
+                        else if (this.IsDirectoryMode())
+                        {
+                            this.SetDefaultFileName();
+                        }
 
-                this.DrawHeader();
-                this.DrawContent();
-                res = this.DrawFooter();
+                        this.ScanDir(this.currentPath);
+                    }
+
+                    this.DrawHeader();
+                    this.DrawContent();
+                    res = this.DrawFooter();
+                }
 
                 if (this.isModal && !this.okResultToConfirm)
                 {
@@ -93,7 +96,7 @@ namespace Dalamud.Interface.ImGuiFileDialog
                 ImGui.End();
             }
 
-            return this.ConfirmOrOpenOverWriteFileDialogIfNeeded(res);
+            return wasClosed || this.ConfirmOrOpenOverWriteFileDialogIfNeeded(res);
         }
 
         private static void AddToIconMap(string[] extensions, char icon, Vector4 color)
