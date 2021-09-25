@@ -135,6 +135,28 @@ namespace Dalamud.Game
         }
 
         /// <summary>
+        /// Try scanning memory for a signature.
+        /// </summary>
+        /// <param name="baseAddress">The base address to scan from.</param>
+        /// <param name="size">The amount of bytes to scan.</param>
+        /// <param name="signature">The signature to search for.</param>
+        /// <param name="result">The offset, if found.</param>
+        /// <returns>true if the signature was found.</returns>
+        public static bool TryScan(IntPtr baseAddress, int size, string signature, out IntPtr result)
+        {
+            try
+            {
+                result = Scan(baseAddress, size, signature);
+                return true;
+            }
+            catch (KeyNotFoundException)
+            {
+                result = IntPtr.Zero;
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Scan for a .data address using a .text function.
         /// This is intended to be used with IDA sigs.
         /// Place your cursor on the line calling a static address, and create and IDA sig.
@@ -161,6 +183,29 @@ namespace Dalamud.Game
         }
 
         /// <summary>
+        /// Try scanning for a .data address using a .text function.
+        /// This is intended to be used with IDA sigs.
+        /// Place your cursor on the line calling a static address, and create and IDA sig.
+        /// </summary>
+        /// <param name="signature">The signature of the function using the data.</param>
+        /// <param name="result">An IntPtr to the static memory location, if found.</param>
+        /// <param name="offset">The offset from function start of the instruction using the data.</param>
+        /// <returns>true if the signature was found.</returns>
+        public bool TryGetStaticAddressFromSig(string signature, out IntPtr result, int offset = 0)
+        {
+            try
+            {
+                result = this.GetStaticAddressFromSig(signature, offset);
+                return true;
+            }
+            catch (KeyNotFoundException)
+            {
+                result = IntPtr.Zero;
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Scan for a byte signature in the .data section.
         /// </summary>
         /// <param name="signature">The signature.</param>
@@ -176,6 +221,26 @@ namespace Dalamud.Game
         }
 
         /// <summary>
+        /// Try scanning for a byte signature in the .data section.
+        /// </summary>
+        /// <param name="signature">The signature.</param>
+        /// <param name="result">The real offset of the signature, if found.</param>
+        /// <returns>true if the signature was found.</returns>
+        public bool TryScanData(string signature, out IntPtr result)
+        {
+            try
+            {
+                result = this.ScanData(signature);
+                return true;
+            }
+            catch (KeyNotFoundException)
+            {
+                result = IntPtr.Zero;
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Scan for a byte signature in the whole module search area.
         /// </summary>
         /// <param name="signature">The signature.</param>
@@ -188,6 +253,26 @@ namespace Dalamud.Game
                 scanRet = new IntPtr(scanRet.ToInt64() - this.moduleCopyOffset);
 
             return scanRet;
+        }
+
+        /// <summary>
+        /// Try scanning for a byte signature in the whole module search area.
+        /// </summary>
+        /// <param name="signature">The signature.</param>
+        /// <param name="result">The real offset of the signature, if found.</param>
+        /// <returns>true if the signature was found.</returns>
+        public bool TryScanModule(string signature, out IntPtr result)
+        {
+            try
+            {
+                result = this.ScanModule(signature);
+                return true;
+            }
+            catch (KeyNotFoundException)
+            {
+                result = IntPtr.Zero;
+                return false;
+            }
         }
 
         /// <summary>
@@ -222,6 +307,26 @@ namespace Dalamud.Game
                 return ReadJmpCallSig(scanRet);
 
             return scanRet;
+        }
+
+        /// <summary>
+        /// Try scanning for a byte signature in the .text section.
+        /// </summary>
+        /// <param name="signature">The signature.</param>
+        /// <param name="result">The real offset of the signature, if found.</param>
+        /// <returns>true if the signature was found.</returns>
+        public bool TryScanText(string signature, out IntPtr result)
+        {
+            try
+            {
+                result = this.ScanText(signature);
+                return true;
+            }
+            catch (KeyNotFoundException)
+            {
+                result = IntPtr.Zero;
+                return false;
+            }
         }
 
         /// <summary>
