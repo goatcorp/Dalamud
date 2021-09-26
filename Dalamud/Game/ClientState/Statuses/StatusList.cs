@@ -36,23 +36,9 @@ namespace Dalamud.Game.ClientState.Statuses
         public IntPtr Address { get; }
 
         /// <summary>
-        /// Gets the amount of status effects the actor has.
+        /// Gets the amount of status effect slots the actor has.
         /// </summary>
-        public int Length
-        {
-            get
-            {
-                var i = 0;
-                for (; i < StatusListLength; i++)
-                {
-                    var status = this[i];
-                    if (status == null || status.StatusId == 0)
-                        break;
-                }
-
-                return i;
-            }
-        }
+        public int Length => StatusListLength;
 
         private static int StatusSize { get; } = Marshal.SizeOf<FFXIVClientStructs.FFXIV.Client.Game.Status>();
 
