@@ -475,6 +475,9 @@ namespace Dalamud.Plugin.Internal
             var dllFile = LocalPluginManifest.GetPluginFile(outputDir, repoManifest);
             var manifestFile = LocalPluginManifest.GetManifestFile(dllFile);
 
+            // We need to save the repoManifest due to how the repo fills in some fields that authors are not expected to use.
+            File.WriteAllText(manifestFile.FullName, JsonConvert.SerializeObject(repoManifest, Formatting.Indented));
+
             // Reload as a local manifest, add some attributes, and save again.
             var manifest = LocalPluginManifest.Load(manifestFile);
 
