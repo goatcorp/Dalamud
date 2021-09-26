@@ -29,6 +29,11 @@ namespace Dalamud.Game.ClientState.Fates
         }
 
         /// <summary>
+        /// Gets the address of the Fate table.
+        /// </summary>
+        public IntPtr Address => this.address.FateTablePtr;
+
+        /// <summary>
         /// Gets the amount of currently active Fates.
         /// </summary>
         public unsafe int Length
