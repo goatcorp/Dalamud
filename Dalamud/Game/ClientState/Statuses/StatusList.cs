@@ -36,23 +36,9 @@ namespace Dalamud.Game.ClientState.Statuses
         public IntPtr Address { get; }
 
         /// <summary>
-        /// Gets the amount of status effects the actor has.
+        /// Gets the amount of status effect slots the actor has.
         /// </summary>
-        public int Length
-        {
-            get
-            {
-                var i = 0;
-                for (; i < StatusListLength; i++)
-                {
-                    var status = this[i];
-                    if (status == null || status.StatusId == 0)
-                        break;
-                }
-
-                return i;
-            }
-        }
+        public int Length => StatusListLength;
 
         private static int StatusSize { get; } = Marshal.SizeOf<FFXIVClientStructs.FFXIV.Client.Game.Status>();
 
@@ -71,8 +57,47 @@ namespace Dalamud.Game.ClientState.Statuses
                     return null;
 
                 var addr = this.GetStatusAddress(index);
-                return this.CreateStatusReference(addr);
+                return CreateStatusReference(addr);
             }
+        }
+
+        /// <summary>
+        /// Create a reference to an FFXIV actor status list.
+        /// </summary>
+        /// <param name="address">The address of the status list in memory.</param>
+        /// <returns>The status object containing the requested data.</returns>
+        public static StatusList? CreateStatusListReference(IntPtr address)
+        {
+            // The use case for CreateStatusListReference and CreateStatusReference to be static is so
+            // fake status lists can be generated. Since they aren't exposed as services, it's either
+            // here or somewhere else.
+            var clientState = Service<ClientState>.Get();
+
+            if (clientState.LocalContentId == 0)
+                return null;
+
+            if (address == IntPtr.Zero)
+                return null;
+
+            return new StatusList(address);
+        }
+
+        /// <summary>
+        /// Create a reference to an FFXIV actor status.
+        /// </summary>
+        /// <param name="address">The address of the status effect in memory.</param>
+        /// <returns>The status object containing the requested data.</returns>
+        public static Status? CreateStatusReference(IntPtr address)
+        {
+            var clientState = Service<ClientState>.Get();
+
+            if (clientState.LocalContentId == 0)
+                return null;
+
+            if (address == IntPtr.Zero)
+                return null;
+
+            return new Status(address);
         }
 
         /// <summary>
@@ -86,24 +111,6 @@ namespace Dalamud.Game.ClientState.Statuses
                 return IntPtr.Zero;
 
             return (IntPtr)(this.Struct->Status + (index * StatusSize));
-        }
-
-        /// <summary>
-        /// Create a reference to an FFXIV actor status.
-        /// </summary>
-        /// <param name="address">The address of the status effect in memory.</param>
-        /// <returns>The status object containing the requested data.</returns>
-        public Status? CreateStatusReference(IntPtr address)
-        {
-            var clientState = Service<ClientState>.Get();
-
-            if (clientState.LocalContentId == 0)
-                return null;
-
-            if (address == IntPtr.Zero)
-                return null;
-
-            return new Status(address);
         }
     }
 

@@ -29,6 +29,11 @@ namespace Dalamud.Game.ClientState.Fates
         }
 
         /// <summary>
+        /// Gets the address of the Fate table.
+        /// </summary>
+        public IntPtr Address => this.address.FateTablePtr;
+
+        /// <summary>
         /// Gets the amount of currently active Fates.
         /// </summary>
         public unsafe int Length
@@ -106,7 +111,7 @@ namespace Dalamud.Game.ClientState.Fates
         /// </summary>
         /// <param name="offset">The offset of the actor in memory.</param>
         /// <returns><see cref="Fate"/> object containing requested data.</returns>
-        internal Fate? CreateFateReference(IntPtr offset)
+        public Fate? CreateFateReference(IntPtr offset)
         {
             var clientState = Service<ClientState>.Get();
 
