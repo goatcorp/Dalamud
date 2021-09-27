@@ -159,6 +159,11 @@ namespace Dalamud.Interface.Internal.Windows.StyleEditor
 
                     newStyle.Name ??= GetRandomName();
 
+                    if (config.SavedStyles.Any(x => x.Name == newStyle.Name))
+                    {
+                        newStyle.Name = $"{newStyle.Name} ({GetRandomName()} Mix)";
+                    }
+
                     config.SavedStyles.Add(newStyle);
                     newStyle.Apply();
                     appliedThisFrame = true;
