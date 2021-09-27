@@ -45,6 +45,9 @@ namespace Dalamud.Interface.Internal.Windows
 
         private static readonly ModuleLog Log = new("PLUGINW");
 
+        private readonly Vector4 changelogBgColor = new(0.114f, 0.584f, 0.192f, 0.678f);
+        private readonly Vector4 changelogTextColor = new(0.812f, 1.000f, 0.816f, 1.000f);
+
         private readonly TextureWrap defaultIcon;
         private readonly TextureWrap troubleIcon;
         private readonly TextureWrap updateIcon;
@@ -1226,6 +1229,7 @@ namespace Dalamud.Interface.Internal.Windows
             }
 
             // Freshly updated
+            var thisWasUpdated = false;
             if (this.updatedPlugins != null && !plugin.IsDev)
             {
                 var update = this.updatedPlugins.FirstOrDefault(update => update.InternalName == plugin.Manifest.InternalName);
@@ -1233,6 +1237,7 @@ namespace Dalamud.Interface.Internal.Windows
                 {
                     if (update.WasUpdated)
                     {
+                        thisWasUpdated = true;
                         label += Locs.PluginTitleMod_Updated;
                     }
                     else
@@ -1360,6 +1365,28 @@ namespace Dalamud.Interface.Internal.Windows
                     ImGuiHelpers.ScaledDummy(5);
 
                 ImGui.Unindent();
+            }
+
+            if (thisWasUpdated && !plugin.Manifest.Changelog.IsNullOrEmpty())
+            {
+                ImGuiHelpers.ScaledDummy(5);
+
+                ImGui.PushStyleColor(ImGuiCol.ChildBg, this.changelogBgColor);
+                ImGui.PushStyleColor(ImGuiCol.Text, this.changelogTextColor);
+
+                ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(7, 5));
+
+                if (ImGui.BeginChild("##changelog", new Vector2(-1, 100), true, ImGuiWindowFlags.NoNavFocus | ImGuiWindowFlags.NoNavInputs | ImGuiWindowFlags.AlwaysAutoResize))
+                {
+                    ImGui.Text("Changelog:");
+                    ImGuiHelpers.ScaledDummy(2);
+                    ImGui.TextWrapped(plugin.Manifest.Changelog);
+                }
+
+                ImGui.EndChild();
+
+                ImGui.PopStyleVar();
+                ImGui.PopStyleColor(2);
             }
 
             ImGui.PopID();

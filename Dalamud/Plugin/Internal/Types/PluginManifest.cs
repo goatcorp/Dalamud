@@ -36,6 +36,12 @@ namespace Dalamud.Plugin.Internal.Types
         public string? Description { get; init; }
 
         /// <summary>
+        /// Gets a changelog.
+        /// </summary>
+        [JsonProperty]
+        public string? Changelog { get; init; }
+
+        /// <summary>
         /// Gets a list of tags defined on the plugin.
         /// </summary>
         [JsonProperty]
