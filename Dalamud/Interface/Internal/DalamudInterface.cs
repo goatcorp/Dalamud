@@ -43,7 +43,6 @@ namespace Dalamud.Interface.Internal
         private readonly ConsoleWindow consoleWindow;
         private readonly PluginStatWindow pluginStatWindow;
         private readonly PluginInstallerWindow pluginWindow;
-        private readonly ScratchpadWindow scratchpadWindow;
         private readonly SettingsWindow settingsWindow;
         private readonly SelfTestWindow selfTestWindow;
         private readonly StyleEditorWindow styleEditorWindow;
@@ -77,7 +76,6 @@ namespace Dalamud.Interface.Internal
             this.consoleWindow = new ConsoleWindow() { IsOpen = configuration.LogOpenAtStartup };
             this.pluginStatWindow = new PluginStatWindow() { IsOpen = false };
             this.pluginWindow = new PluginInstallerWindow() { IsOpen = false };
-            this.scratchpadWindow = new ScratchpadWindow() { IsOpen = false };
             this.settingsWindow = new SettingsWindow() { IsOpen = false };
             this.selfTestWindow = new SelfTestWindow() { IsOpen = false };
             this.styleEditorWindow = new StyleEditorWindow() { IsOpen = false };
@@ -92,7 +90,6 @@ namespace Dalamud.Interface.Internal
             this.WindowSystem.AddWindow(this.consoleWindow);
             this.WindowSystem.AddWindow(this.pluginStatWindow);
             this.WindowSystem.AddWindow(this.pluginWindow);
-            this.WindowSystem.AddWindow(this.scratchpadWindow);
             this.WindowSystem.AddWindow(this.settingsWindow);
             this.WindowSystem.AddWindow(this.selfTestWindow);
             this.WindowSystem.AddWindow(this.styleEditorWindow);
@@ -130,7 +127,6 @@ namespace Dalamud.Interface.Internal
 
             this.creditsWindow.Dispose();
             this.consoleWindow.Dispose();
-            this.scratchpadWindow.Dispose();
         }
 
         #region Open
@@ -197,11 +193,6 @@ namespace Dalamud.Interface.Internal
         /// Opens the <see cref="PluginInstallerWindow"/>.
         /// </summary>
         public void OpenPluginInstaller() => this.pluginWindow.IsOpen = true;
-
-        /// <summary>
-        /// Opens the <see cref="ScratchpadWindow"/>.
-        /// </summary>
-        public void OpenScratchpadWindow() => this.scratchpadWindow.IsOpen = true;
 
         /// <summary>
         /// Opens the <see cref="SettingsWindow"/>.
@@ -293,11 +284,6 @@ namespace Dalamud.Interface.Internal
         /// Toggles the <see cref="PluginInstallerWindow"/>.
         /// </summary>
         public void TogglePluginInstallerWindow() => this.pluginWindow.Toggle();
-
-        /// <summary>
-        /// Toggles the <see cref="ScratchpadWindow"/>.
-        /// </summary>
-        public void ToggleScratchpadWindow() => this.scratchpadWindow.Toggle();
 
         /// <summary>
         /// Toggles the <see cref="SettingsWindow"/>.
@@ -618,21 +604,6 @@ namespace Dalamud.Interface.Internal
                         ImGui.Separator();
                         ImGui.MenuItem("API Level:" + PluginManager.DalamudApiLevel, false);
                         ImGui.MenuItem("Loaded plugins:" + pluginManager.InstalledPlugins.Count, false);
-                        ImGui.EndMenu();
-                    }
-
-                    if (ImGui.BeginMenu("Scratchpad"))
-                    {
-                        if (ImGui.MenuItem("Open Scratchpad"))
-                        {
-                            this.OpenScratchpadWindow();
-                        }
-
-                        if (ImGui.MenuItem("Dispose all scratches"))
-                        {
-                            this.scratchpadWindow.Execution.DisposeAllScratches();
-                        }
-
                         ImGui.EndMenu();
                     }
 
