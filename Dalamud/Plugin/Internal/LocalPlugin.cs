@@ -8,8 +8,8 @@ using Dalamud.Game;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Exceptions;
+using Dalamud.Plugin.Internal.Loader;
 using Dalamud.Plugin.Internal.Types;
-using McMaster.NETCore.Plugins;
 
 namespace Dalamud.Plugin.Internal
 {
@@ -37,17 +37,18 @@ namespace Dalamud.Plugin.Internal
         /// <param name="manifest">The plugin manifest.</param>
         public LocalPlugin(FileInfo dllFile, LocalPluginManifest? manifest)
         {
+            if (dllFile.Name == "FFXIVClientStructs.Generators.dll")
+            {
+                // Could this be done another way? Sure. It is an extremely common source
+                // of errors in the log through, and should never be loaded as a plugin.
+                Log.Error($"Not a plugin: {dllFile.FullName}");
+                throw new InvalidPluginException(dllFile);
+            }
+
             this.DllFile = dllFile;
             this.State = PluginState.Unloaded;
 
-            this.loader = PluginLoader.CreateFromAssemblyFile(
-                this.DllFile.FullName,
-                config =>
-                {
-                    config.IsUnloadable = true;
-                    config.LoadInMemory = true;
-                    config.PreferSharedTypes = true;
-                });
+            this.loader = PluginLoader.CreateFromAssemblyFile(this.DllFile.FullName, this.SetupLoaderConfig);
 
             try
             {
@@ -252,14 +253,7 @@ namespace Dalamud.Plugin.Internal
 
             try
             {
-                this.loader ??= PluginLoader.CreateFromAssemblyFile(
-                    this.DllFile.FullName,
-                    config =>
-                    {
-                        config.IsUnloadable = true;
-                        config.LoadInMemory = true;
-                        config.PreferSharedTypes = true;
-                    });
+                this.loader ??= PluginLoader.CreateFromAssemblyFile(this.DllFile.FullName, this.SetupLoaderConfig);
 
                 if (reloading)
                 {
@@ -435,6 +429,15 @@ namespace Dalamud.Plugin.Internal
 
             this.Manifest.Disabled = true;
             this.SaveManifest();
+        }
+
+        private void SetupLoaderConfig(LoaderConfig config)
+        {
+            config.IsUnloadable = true;
+            config.LoadInMemory = true;
+            config.PreferSharedTypes = false;
+            config.SharedAssemblies.Add(typeof(Lumina.GameData).Assembly.GetName());
+            config.SharedAssemblies.Add(typeof(Lumina.Excel.ExcelSheetImpl).Assembly.GetName());
         }
 
         private void SaveManifest() => this.Manifest.Save(this.manifestFile);

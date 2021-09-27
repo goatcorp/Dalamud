@@ -51,8 +51,11 @@
     </PropertyGroup>
 
     <PropertyGroup Label="Warnings">
-        <NoWarn>IDE0002;IDE0003;IDE0044;IDE1006;CA1822;CS1591;CS1701;CS1702</NoWarn>
+        <NoWarn>IDE0002;IDE0003;IDE1006;IDE0044;CA1822;CS1591;CS1701;CS1702</NoWarn>
+        <!-- IDE1002 - Simplify member access -->
+        <!-- IDE1003 - This and me preferences -->
         <!-- IDE1006 - Naming violation -->
+        <!-- IDE1006 - Add readonly modifier -->
         <!-- CA1822  - Can be marked as static -->
         <!-- CS1591  - Missing XML comment for publicly visible type or member -->
         <!-- CS1701  - Runtime policy may be needed -->
@@ -65,9 +68,8 @@
         <PackageReference Include="Lib.Harmony" Version="2.1.1" />
         <PackageReference Include="Lumina" Version="3.3.0" />
         <PackageReference Include="Lumina.Excel" Version="5.50.0" />
-        <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-        <PackageReference Include="McMaster.NETCore.Plugins" Version="1.4.0" />
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="3.10.0" />
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
         <PackageReference Include="Serilog" Version="2.10.0" />
         <PackageReference Include="Serilog.Sinks.Async" Version="1.5.0" />
         <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
