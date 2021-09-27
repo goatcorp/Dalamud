@@ -264,6 +264,15 @@ namespace Dalamud.Interface.Internal.Windows
 
             ImGuiHelpers.ScaledDummy(10, 16);
 
+            if (ImGui.Button(Loc.Localize("DalamudSettingsOpenStyleEditor", "Open Style Editor")))
+            {
+                Service<DalamudInterface>.Get().OpenStyleEditor();
+            }
+
+            ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingsStyleEditorHint", "Modify the look & feel of Dalamud windows."));
+
+            ImGuiHelpers.ScaledDummy(10, 16);
+
             ImGui.TextColored(this.hintTextColor, Loc.Localize("DalamudSettingToggleUiHideOptOutNote", "Plugins may independently opt out of the settings below."));
 
             ImGui.Checkbox(Loc.Localize("DalamudSettingToggleUiHide", "Hide plugin UI when the game UI is toggled off"), ref this.doToggleUiHide);
