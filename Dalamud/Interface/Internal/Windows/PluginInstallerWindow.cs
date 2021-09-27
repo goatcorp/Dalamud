@@ -72,6 +72,7 @@ namespace Dalamud.Interface.Internal.Windows
         private bool feedbackModalOnNextFrame = false;
         private string feedbackModalBody = string.Empty;
         private string feedbackModalContact = string.Empty;
+        private bool feedbackModalIncludeException = false;
         private PluginManifest? feedbackPlugin = null;
 
         private int updatePluginCount = 0;
@@ -469,11 +470,13 @@ namespace Dalamud.Interface.Internal.Windows
                 ImGui.Text(Locs.FeedbackModal_Text);
                 ImGui.Spacing();
 
-                ImGui.InputTextMultiline("Feedback Content", ref this.feedbackModalBody, 1000, new Vector2(400, 200));
+                ImGui.InputTextMultiline("###FeedbackContent", ref this.feedbackModalBody, 1000, new Vector2(400, 200));
 
                 ImGui.Spacing();
 
                 ImGui.InputText("Contact Information", ref this.feedbackModalContact, 100);
+
+                ImGui.Checkbox("Include last error message", ref this.feedbackModalIncludeException);
 
                 ImGui.Spacing();
 
@@ -486,7 +489,7 @@ namespace Dalamud.Interface.Internal.Windows
                 {
                     if (this.feedbackPlugin != null)
                     {
-                        Task.Run(async () => await BugBait.SendFeedback(this.feedbackPlugin, this.feedbackModalBody, this.feedbackModalContact))
+                        Task.Run(async () => await BugBait.SendFeedback(this.feedbackPlugin, this.feedbackModalBody, this.feedbackModalContact, this.feedbackModalIncludeException))
                             .ContinueWith(
                                 t =>
                                 {
@@ -515,6 +518,7 @@ namespace Dalamud.Interface.Internal.Windows
                 this.feedbackModalDrawing = true;
                 this.feedbackModalBody = string.Empty;
                 this.feedbackModalContact = string.Empty;
+                this.feedbackModalIncludeException = false;
             }
         }
 
@@ -2263,7 +2267,7 @@ namespace Dalamud.Interface.Internal.Windows
 
             public static string FeedbackModal_Text => Loc.Localize("InstallerFeedbackInfo", "You can send feedback to the developer of this plugin here.\nYou can include your Discord tag or email address if you wish to give them the opportunity to answer.");
 
-            public static string FeedbackModal_Hint => Loc.Localize("InstallerFeedbackHint", "All plugin developers will be able to see your feedback.\nPlease never include any personal or revealing information.\nThe collected feedback is not stored and immediately relayed to Discord.");
+            public static string FeedbackModal_Hint => Loc.Localize("InstallerFeedbackHint", "All plugin developers will be able to see your feedback.\nPlease never include any personal or revealing information.\nIf you chose to include the last error message, information like your Windows username may be included.\n\nThe collected feedback is not stored on our end and immediately relayed to Discord.");
 
             public static string FeedbackModal_NotificationSuccess => Loc.Localize("InstallerFeedbackNotificationSuccess", "Your feedback was sent successfully!");
 

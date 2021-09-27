@@ -22,7 +22,7 @@ namespace Dalamud.Support
         /// <param name="content">The content of the feedback.</param>
         /// <param name="reporter">The reporter name.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public static async Task SendFeedback(PluginManifest plugin, string content, string reporter)
+        public static async Task SendFeedback(PluginManifest plugin, string content, string reporter, bool includeException)
         {
             if (content.IsNullOrWhitespace())
                 return;
@@ -36,6 +36,9 @@ namespace Dalamud.Support
                 Name = plugin.InternalName,
                 Version = plugin.AssemblyVersion.ToString(),
             };
+
+            if (includeException)
+                model.Exception = Troubleshooting.LastException?.ToString();
 
             var postContent = new StringContent(JsonConvert.SerializeObject(model), Encoding.UTF8, "application/json");
             var response = await client.PostAsync(BugBaitUrl, postContent);
@@ -56,6 +59,9 @@ namespace Dalamud.Support
 
             [JsonProperty("reporter")]
             public string? Reporter { get; set; }
+
+            [JsonProperty("exception")]
+            public string? Exception { get; set; }
         }
     }
 }
