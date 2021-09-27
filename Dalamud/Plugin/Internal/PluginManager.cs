@@ -475,6 +475,9 @@ namespace Dalamud.Plugin.Internal
             var dllFile = LocalPluginManifest.GetPluginFile(outputDir, repoManifest);
             var manifestFile = LocalPluginManifest.GetManifestFile(dllFile);
 
+            // We need to save the repoManifest due to how the repo fills in some fields that authors are not expected to use.
+            File.WriteAllText(manifestFile.FullName, JsonConvert.SerializeObject(repoManifest, Formatting.Indented));
+
             // Reload as a local manifest, add some attributes, and save again.
             var manifest = LocalPluginManifest.Load(manifestFile);
 
@@ -545,26 +548,31 @@ namespace Dalamud.Plugin.Internal
                 }
                 catch (InvalidPluginException)
                 {
-                    PluginLocations.Remove(plugin.AssemblyName.FullName);
+                    PluginLocations.Remove(plugin.AssemblyName?.FullName ?? string.Empty);
                     throw;
+                }
+                catch (BannedPluginException)
+                {
+                    // Out of date plugins get added so they can be updated.
+                    Log.Information($"Plugin was banned, adding anyways: {dllFile.Name}");
                 }
                 catch (Exception ex)
                 {
                     if (plugin.IsDev)
                     {
                         // Dev plugins always get added to the list so they can be fiddled with in the UI
-                        Log.Information(ex, $"Dev plugin failed to load, adding anyways:  {dllFile.Name}");
+                        Log.Information(ex, $"Dev plugin failed to load, adding anyways: {dllFile.Name}");
                         plugin.Disable(); // Disable here, otherwise you can't enable+load later
                     }
-                    else if (plugin.Manifest.DalamudApiLevel < DalamudApiLevel)
+                    else if (plugin.IsOutdated)
                     {
                         // Out of date plugins get added so they can be updated.
-                        Log.Information(ex, $"Plugin was outdated, adding anyways:  {dllFile.Name}");
+                        Log.Information(ex, $"Plugin was outdated, adding anyways: {dllFile.Name}");
                         // plugin.Disable(); // Don't disable, or it gets deleted next boot.
                     }
                     else
                     {
-                        PluginLocations.Remove(plugin.AssemblyName.FullName);
+                        PluginLocations.Remove(plugin.AssemblyName?.FullName ?? string.Empty);
                         throw;
                     }
                 }
@@ -584,7 +592,7 @@ namespace Dalamud.Plugin.Internal
                 throw new InvalidPluginOperationException($"Unable to remove {plugin.Name}, not unloaded");
 
             this.InstalledPlugins = this.InstalledPlugins.Remove(plugin);
-            PluginLocations.Remove(plugin.AssemblyName.FullName);
+            PluginLocations.Remove(plugin.AssemblyName?.FullName ?? string.Empty);
 
             this.NotifyInstalledPluginsChanged();
             this.NotifyAvailablePluginsChanged();
@@ -936,7 +944,12 @@ namespace Dalamud.Plugin.Internal
             return true;
         }
 
-        private bool IsManifestBanned(PluginManifest manifest)
+        /// <summary>
+        /// Determine if a plugin has been banned by inspecting the manifest.
+        /// </summary>
+        /// <param name="manifest">Manifest to inspect.</param>
+        /// <returns>A value indicating whether the plugin/manifest has been banned.</returns>
+        public bool IsManifestBanned(PluginManifest manifest)
         {
             return this.bannedPlugins.Any(ban => ban.Name == manifest.InternalName && ban.AssemblyVersion == manifest.AssemblyVersion);
         }

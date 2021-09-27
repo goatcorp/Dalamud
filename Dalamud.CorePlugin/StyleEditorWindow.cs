@@ -1,11 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Dalamud.Configuration.Internal;
+using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Internal.Windows.StyleEditor;
 using Dalamud.Interface.Windowing;
 using ImGuiNET;
 using JetBrains.Annotations;
+using Serilog;
 
 namespace Dalamud.Interface.Internal.Windows
 {
@@ -14,34 +17,56 @@ namespace Dalamud.Interface.Internal.Windows
         private ImGuiColorEditFlags alphaFlags = ImGuiColorEditFlags.None;
         private StyleModel workStyle = StyleModel.DalamudStandard;
 
+        private int currentSel = 0;
+        private string initialStyle;
+
         public StyleEditorWindow()
             : base("Dalamud Style Editor")
         {
-            IsOpen = true;
+            this.IsOpen = true;
+
+            var config = Service<DalamudConfiguration>.Get();
+            config.SavedStyles ??= new List<StyleModel>();
+            this.currentSel = config.SavedStyles.FindIndex(x => x.Name == config.ChosenStyle);
+
+            this.initialStyle = config.ChosenStyle;
         }
 
         public override void Draw()
         {
             var config = Service<DalamudConfiguration>.Get();
+
             var style = ImGui.GetStyle();
 
-            var a = 0;
             ImGui.Text("Choose Style:");
-            if (ImGui.Combo("###styleChooserCombo", ref a, new[] { "Dalamud Standard" }, 1))
+            if (ImGui.Combo("###styleChooserCombo", ref this.currentSel, config.SavedStyles.Select(x => x.Name).ToArray(), 1))
             {
-
+                var newStyle = config.SavedStyles[this.currentSel];
+                newStyle.Apply();
             }
 
-            if (ImGui.Button("Add current style"))
+            if (ImGui.Button("Add new style"))
             {
+                var newStyle = StyleModel.DalamudStandard;
+                newStyle.Name = "New Style";
+                config.SavedStyles.Add(newStyle);
 
+                this.currentSel = config.SavedStyles.Count - 1;
+
+                config.Save();
             }
 
             ImGui.SameLine();
 
-            if (ImGuiComponents.IconButton(FontAwesomeIcon.Trash))
+            if (ImGuiComponents.IconButton(FontAwesomeIcon.Trash) && this.currentSel != 0)
             {
+                this.currentSel--;
+                var newStyle = config.SavedStyles[this.currentSel];
+                newStyle.Apply();
 
+                config.SavedStyles.RemoveAt(this.currentSel + 1);
+
+                config.Save();
             }
 
             if (ImGui.IsItemHovered())
@@ -64,7 +89,23 @@ namespace Dalamud.Interface.Internal.Windows
 
             if (ImGuiComponents.IconButton(FontAwesomeIcon.FileImport))
             {
+                var styleJson = ImGui.GetClipboardText();
 
+                try
+                {
+                    var newStyle = StyleModel.FromJsonEncoded(styleJson);
+
+                    config.SavedStyles.Add(newStyle);
+                    newStyle.Apply();
+
+                    this.currentSel = config.SavedStyles.Count - 1;
+
+                    config.Save();
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Could not import style");
+                }
             }
 
             if (ImGui.IsItemHovered())
@@ -74,7 +115,11 @@ namespace Dalamud.Interface.Internal.Windows
 
             ImGui.PushItemWidth(ImGui.GetWindowWidth() * 0.50f);
 
-            if (ImGui.BeginTabBar("StyleEditorTabs"))
+            if (this.currentSel == 0)
+            {
+                ImGui.TextColored(ImGuiColors.DalamudRed, "You cannot edit the \"Dalamud Standard\" style. Please add a new style first.");
+            }
+            else if (ImGui.BeginTabBar("StyleEditorTabs"))
             {
                 if (ImGui.BeginTabItem("Variables"))
                 {
@@ -178,14 +223,23 @@ namespace Dalamud.Interface.Internal.Windows
 
             if (ImGui.Button("Close"))
             {
+                var newStyle = config.SavedStyles.FirstOrDefault(x => x.Name == this.initialStyle);
+                newStyle?.Apply();
 
+                this.IsOpen = false;
             }
 
             ImGui.SameLine();
 
             if (ImGui.Button("Save and Close"))
             {
-                config.SavedStyles.Add();
+                config.ChosenStyle = config.SavedStyles[this.currentSel].Name;
+
+                var newStyle = StyleModel.Get();
+                newStyle.Name = config.ChosenStyle;
+                config.SavedStyles[this.currentSel] = newStyle;
+
+                config.Save();
             }
         }
     }
