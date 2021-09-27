@@ -1,5 +1,7 @@
 using System;
 using System.Diagnostics;
+using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -203,6 +205,60 @@ namespace Dalamud.Utility
             }
 
             return text;
+        }
+
+        /// <summary>
+        ///     Compress a string using GZip.
+        /// </summary>
+        /// <param name="str">The input string.</param>
+        /// <returns>The compressed output bytes.</returns>
+        public static byte[] CompressString(string str)
+        {
+            var bytes = Encoding.UTF8.GetBytes(str);
+
+            using (var msi = new MemoryStream(bytes))
+            using (var mso = new MemoryStream())
+            {
+                using (var gs = new GZipStream(mso, CompressionMode.Compress))
+                {
+                    CopyTo(msi, gs);
+                }
+
+                return mso.ToArray();
+            }
+        }
+
+        /// <summary>
+        ///     Decompress a string using GZip.
+        /// </summary>
+        /// <param name="bytes">The input bytes.</param>
+        /// <returns>The compressed output string.</returns>
+        public static string DecompressString(byte[] bytes)
+        {
+            using (var msi = new MemoryStream(bytes))
+            using (var mso = new MemoryStream())
+            {
+                using (var gs = new GZipStream(msi, CompressionMode.Decompress))
+                {
+                    CopyTo(gs, mso);
+                }
+
+                return Encoding.UTF8.GetString(mso.ToArray());
+            }
+        }
+
+        /// <summary>
+        /// Copy one stream to another.
+        /// </summary>
+        /// <param name="src">The source stream.</param>
+        /// <param name="dest">The destination stream.</param>
+        /// <param name="len">The maximum length to copy.</param>
+        public static void CopyTo(Stream src, Stream dest, int len = 4069)
+        {
+            var bytes = new byte[len];
+            int cnt;
+
+            while ((cnt = src.Read(bytes, 0, bytes.Length)) != 0) dest.Write(bytes, 0, cnt);
         }
 
         // TODO: Someone implement GetUTF8String with some IntPtr overloads.

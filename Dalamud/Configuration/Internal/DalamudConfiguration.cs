@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 
 using Dalamud.Game.Text;
+using Dalamud.Interface.Internal.Windows.StyleEditor;
 using Newtonsoft.Json;
 using Serilog;
 using Serilog.Events;
@@ -194,6 +195,16 @@ namespace Dalamud.Configuration.Internal
         /// It is reset immediately when read.
         /// </summary>
         public bool PluginSafeMode { get; set; }
+
+        /// <summary>
+        /// Gets or sets a list of saved styles.
+        /// </summary>
+        public List<StyleModel>? SavedStyles { get; set; }
+
+        /// <summary>
+        /// Gets or sets the name of the currently chosen style.
+        /// </summary>
+        public string ChosenStyle { get; set; } = "Dalamud Standard";
 
         /// <summary>
         /// Gets or sets a value indicating whether or not Dalamud RMT filtering should be disabled.
