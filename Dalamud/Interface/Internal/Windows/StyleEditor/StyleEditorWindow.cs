@@ -80,7 +80,7 @@ namespace Dalamud.Interface.Internal.Windows.StyleEditor
             var appliedThisFrame = false;
 
             var styleAry = config.SavedStyles.Select(x => x.Name).ToArray();
-            ImGui.Text("Choose Style:");
+            ImGui.Text(Loc.Localize("StyleEditorChooseStyle", "Choose Style:"));
             if (ImGui.Combo("###styleChooserCombo", ref this.currentSel, styleAry, styleAry.Length))
             {
                 var newStyle = config.SavedStyles[this.currentSel];
@@ -88,7 +88,7 @@ namespace Dalamud.Interface.Internal.Windows.StyleEditor
                 appliedThisFrame = true;
             }
 
-            if (ImGui.Button("Add new style"))
+            if (ImGui.Button(Loc.Localize("StyleEditorAddNew", "Add new style")))
             {
                 var newStyle = StyleModel.DalamudStandard;
                 newStyle.Name = GetRandomName();
@@ -117,7 +117,7 @@ namespace Dalamud.Interface.Internal.Windows.StyleEditor
             }
 
             if (ImGui.IsItemHovered())
-                ImGui.SetTooltip("Delete current style");
+                ImGui.SetTooltip(Loc.Localize("StyleEditorDeleteStyle", "Delete current style"));
 
             ImGui.SameLine();
 
@@ -131,7 +131,7 @@ namespace Dalamud.Interface.Internal.Windows.StyleEditor
             }
 
             if (ImGui.IsItemHovered())
-                ImGui.SetTooltip("Rename style");
+                ImGui.SetTooltip(Loc.Localize("StyleEditorRenameStyle", "Rename style"));
 
             ImGui.SameLine();
 
@@ -145,7 +145,7 @@ namespace Dalamud.Interface.Internal.Windows.StyleEditor
             }
 
             if (ImGui.IsItemHovered())
-                ImGui.SetTooltip("Copy style to clipboard for sharing");
+                ImGui.SetTooltip(Loc.Localize("StyleEditorCopy", "Copy style to clipboard for sharing"));
 
             ImGui.SameLine();
 
@@ -163,8 +163,6 @@ namespace Dalamud.Interface.Internal.Windows.StyleEditor
                     newStyle.Apply();
                     appliedThisFrame = true;
 
-                    Log.Information("Applying: " + newStyle.Name);
-
                     this.currentSel = config.SavedStyles.Count - 1;
 
                     config.Save();
@@ -176,7 +174,7 @@ namespace Dalamud.Interface.Internal.Windows.StyleEditor
             }
 
             if (ImGui.IsItemHovered())
-                ImGui.SetTooltip("Import style from clipboard");
+                ImGui.SetTooltip(Loc.Localize("StyleEditorImport", "Import style from clipboard"));
 
             ImGui.Separator();
 
@@ -184,11 +182,11 @@ namespace Dalamud.Interface.Internal.Windows.StyleEditor
 
             if (this.currentSel == 0)
             {
-                ImGui.TextColored(ImGuiColors.DalamudRed, "You cannot edit the \"Dalamud Standard\" style. Please add a new style first.");
+                ImGui.TextColored(ImGuiColors.DalamudRed, Loc.Localize("StyleEditorNotAllowed", "You cannot edit the \"Dalamud Standard\" style. Please add a new style first."));
             }
             else if (appliedThisFrame)
             {
-                ImGui.Text("Applying style...");
+                ImGui.Text(Loc.Localize("StyleEditorApplying", "Applying style..."));
             }
             else if (ImGui.BeginTabBar("StyleEditorTabs"))
             {
@@ -294,14 +292,14 @@ namespace Dalamud.Interface.Internal.Windows.StyleEditor
 
             ImGui.Separator();
 
-            if (ImGui.Button("Close"))
+            if (ImGui.Button(Loc.Localize("Close", "Close")))
             {
                 this.IsOpen = false;
             }
 
             ImGui.SameLine();
 
-            if (ImGui.Button("Save and Close"))
+            if (ImGui.Button(Loc.Localize("SaveAndClose", "Save and Close")))
             {
                 config.ChosenStyle = config.SavedStyles[this.currentSel].Name;
 
@@ -318,7 +316,7 @@ namespace Dalamud.Interface.Internal.Windows.StyleEditor
 
             if (ImGui.BeginPopupModal(renameModalTitle, ref this.renameModalDrawing, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoScrollbar))
             {
-                ImGui.Text("Please enter the new name for this style.");
+                ImGui.Text(Loc.Localize("StyleEditorEnterName", "Please enter the new name for this style."));
                 ImGui.Spacing();
 
                 ImGui.InputText("###renameModalInput", ref this.renameText, 255);
