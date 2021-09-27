@@ -43,6 +43,7 @@ Pohky
 daemitus
 Aireil
 kalilistic
+MgAl2O4
 
 
 
@@ -97,12 +98,15 @@ aers
 
 
 We use these awesome
-FFXIV C# libraries:
+C# libraries:
 
 Lumina by Adam
 FFXIVClientStructs by aers
 
-
+DotNetCorePlugins
+Copyright (c) Nate McMaster 
+Licensed under the Apache License, Version 2.0
+See License.txt for license information.
 
 Thanks to everyone in the XIVLauncher
 Discord server
@@ -111,7 +115,7 @@ Join us at: https://discord.gg/3NMcUV5
 
 
 
-Licensed under AGPL V3 or later
+Dalamud is licensed under AGPL V3 or later
 Contribute at: https://github.com/goatsoft/Dalamud
 
 
