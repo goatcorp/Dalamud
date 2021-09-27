@@ -12,7 +12,7 @@ using Dalamud.Utility;
 using Newtonsoft.Json;
 using Serilog;
 
-namespace Dalamud
+namespace Dalamud.Support
 {
     /// <summary>
     /// Class responsible for printing troubleshooting information to the log.

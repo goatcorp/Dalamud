@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Logging.Internal;
+using Dalamud.Support;
 using Newtonsoft.Json;
 using PInvoke;
 using Serilog;

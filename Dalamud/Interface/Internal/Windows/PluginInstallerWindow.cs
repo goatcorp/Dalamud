@@ -22,6 +22,7 @@ using Dalamud.Plugin;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Exceptions;
 using Dalamud.Plugin.Internal.Types;
+using Dalamud.Support;
 using Dalamud.Utility;
 using ImGuiNET;
 using ImGuiScene;
@@ -66,6 +67,12 @@ namespace Dalamud.Interface.Internal.Windows
         private bool errorModalDrawing = true;
         private bool errorModalOnNextFrame = false;
         private string errorModalMessage = string.Empty;
+
+        private bool feedbackModalDrawing = true;
+        private bool feedbackModalOnNextFrame = false;
+        private string feedbackModalBody = string.Empty;
+        private string feedbackModalContact = string.Empty;
+        private PluginManifest? feedbackPlugin = null;
 
         private int updatePluginCount = 0;
         private List<PluginUpdateStatus>? updatedPlugins;
@@ -186,6 +193,7 @@ namespace Dalamud.Interface.Internal.Windows
             this.DrawPluginTabBar();
             this.DrawFooter();
             this.DrawErrorModal();
+            this.DrawFeedbackModal();
         }
 
         /// <summary>
@@ -448,6 +456,65 @@ namespace Dalamud.Interface.Internal.Windows
             {
                 ImGui.OpenPopup(modalTitle);
                 this.errorModalOnNextFrame = false;
+                this.errorModalDrawing = true;
+            }
+        }
+
+        private void DrawFeedbackModal()
+        {
+            var modalTitle = Locs.FeedbackModal_Title;
+
+            if (ImGui.BeginPopupModal(modalTitle, ref this.feedbackModalDrawing, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoScrollbar))
+            {
+                ImGui.Text(Locs.FeedbackModal_Text);
+                ImGui.Spacing();
+
+                ImGui.InputTextMultiline("Feedback Content", ref this.feedbackModalBody, 1000, new Vector2(400, 200));
+
+                ImGui.Spacing();
+
+                ImGui.InputText("Contact Information", ref this.feedbackModalContact, 100);
+
+                ImGui.Spacing();
+
+                ImGui.TextColored(ImGuiColors.DalamudGrey, Locs.FeedbackModal_Hint);
+
+                var buttonWidth = 120f;
+                ImGui.SetCursorPosX((ImGui.GetWindowWidth() - buttonWidth) / 2);
+
+                if (ImGui.Button(Locs.ErrorModalButton_Ok, new Vector2(buttonWidth, 40)))
+                {
+                    if (this.feedbackPlugin != null)
+                    {
+                        Task.Run(async () => await BugBait.SendFeedback(this.feedbackPlugin, this.feedbackModalBody, this.feedbackModalContact))
+                            .ContinueWith(
+                                t =>
+                                {
+                                    var notif = Service<NotificationManager>.Get();
+                                    if (t.IsCanceled || t.IsFaulted)
+                                        notif.AddNotification(Locs.FeedbackModal_NotificationError, Locs.FeedbackModal_Title, NotificationType.Error);
+                                    else
+                                        notif.AddNotification(Locs.FeedbackModal_NotificationSuccess, Locs.FeedbackModal_Title, NotificationType.Success);
+                                });
+                    }
+                    else
+                    {
+                        Log.Error("FeedbackPlugin was null.");
+                    }
+
+                    ImGui.CloseCurrentPopup();
+                }
+
+                ImGui.EndPopup();
+            }
+
+            if (this.feedbackModalOnNextFrame)
+            {
+                ImGui.OpenPopup(modalTitle);
+                this.feedbackModalOnNextFrame = false;
+                this.feedbackModalDrawing = true;
+                this.feedbackModalBody = string.Empty;
+                this.feedbackModalContact = string.Empty;
             }
         }
 
@@ -1037,6 +1104,11 @@ namespace Dalamud.Interface.Internal.Windows
 
                 this.DrawVisitRepoUrlButton(manifest.RepoUrl);
 
+                if (!manifest.SourceRepo.IsThirdParty)
+                {
+                    this.DrawSendFeedbackButton(manifest);
+                }
+
                 ImGuiHelpers.ScaledDummy(5);
 
                 if (this.DrawPluginImages(null, manifest, isThirdParty, index))
@@ -1261,6 +1333,11 @@ namespace Dalamud.Interface.Internal.Windows
                 this.DrawDeletePluginButton(plugin);
                 this.DrawVisitRepoUrlButton(plugin.Manifest.RepoUrl);
 
+                if (!isThirdParty)
+                {
+                    this.DrawSendFeedbackButton(plugin.Manifest);
+                }
+
                 if (availablePluginUpdate != default)
                     this.DrawUpdateSinglePluginButton(availablePluginUpdate);
 
@@ -1462,6 +1539,21 @@ namespace Dalamud.Interface.Internal.Windows
                 {
                     ImGui.SetTooltip(Locs.PluginButtonToolTip_OpenConfiguration);
                 }
+            }
+        }
+
+        private void DrawSendFeedbackButton(PluginManifest manifest)
+        {
+            ImGui.SameLine();
+            if (ImGuiComponents.IconButton(FontAwesomeIcon.Comment))
+            {
+                this.feedbackPlugin = manifest;
+                this.feedbackModalOnNextFrame = true;
+            }
+
+            if (ImGui.IsItemHovered())
+            {
+                ImGui.SetTooltip(Locs.FeedbackModal_Title);
             }
         }
 
@@ -2162,6 +2254,20 @@ namespace Dalamud.Interface.Internal.Windows
             public static string ErrorModal_HintBlame(string plugins) => Loc.Localize("InstallerErrorPluginInfo", "\n\nThe following plugins caused these issues:\n\n{0}\nYou may try removing these plugins manually and reinstalling them.").Format(plugins);
 
             // public static string ErrorModal_Hint => Loc.Localize("InstallerErrorHint", "The plugin installer ran into an issue or the plugin is incompatible.\nPlease restart the game and report this error on our discord.");
+
+            #endregion
+
+            #region Feedback Modal
+
+            public static string FeedbackModal_Title => Loc.Localize("InstallerFeedback", "Send Feedback");
+
+            public static string FeedbackModal_Text => Loc.Localize("InstallerFeedbackInfo", "You can send feedback to the developer of this plugin here.\nYou can include your Discord tag or email address if you wish to give them the opportunity to answer.");
+
+            public static string FeedbackModal_Hint => Loc.Localize("InstallerFeedbackHint", "All plugin developers will be able to see your feedback.\nPlease never include any personal or revealing information.\nThe collected feedback is not stored and immediately relayed to Discord.");
+
+            public static string FeedbackModal_NotificationSuccess => Loc.Localize("InstallerFeedbackNotificationSuccess", "Your feedback was sent successfully!");
+
+            public static string FeedbackModal_NotificationError => Loc.Localize("InstallerFeedbackNotificationSuccess", "Your feedback could not be sent.");
 
             #endregion
 

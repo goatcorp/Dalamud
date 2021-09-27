@@ -22,6 +22,7 @@ using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Ipc.Internal;
+using Dalamud.Support;
 using HarmonyLib;
 using Serilog;
 using Serilog.Core;
