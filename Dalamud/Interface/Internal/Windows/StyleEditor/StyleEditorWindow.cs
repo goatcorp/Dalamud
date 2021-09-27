@@ -20,8 +20,7 @@ namespace Dalamud.Interface.Internal.Windows.StyleEditor
     /// </summary>
     public class StyleEditorWindow : Window
     {
-        private ImGuiColorEditFlags alphaFlags = ImGuiColorEditFlags.None;
-        private StyleModel workStyle = StyleModel.DalamudStandard;
+        private ImGuiColorEditFlags alphaFlags = ImGuiColorEditFlags.AlphaPreviewHalf;
 
         private int currentSel = 0;
         private string initialStyle = string.Empty;
