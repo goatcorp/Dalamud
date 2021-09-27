@@ -140,7 +140,9 @@ namespace Dalamud.Interface.Internal.Windows.StyleEditor
 
             if (ImGuiComponents.IconButton(FontAwesomeIcon.FileExport))
             {
-                var newStyle = config.SavedStyles[this.currentSel];
+                var selectedStyle = config.SavedStyles[this.currentSel];
+                var newStyle = StyleModel.Get();
+                newStyle.Name = selectedStyle.Name;
                 ImGui.SetClipboardText(newStyle.ToEncoded());
             }
 
