@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+
 using Dalamud.Game.Text;
 using Dalamud.Interface.Internal.Windows.StyleEditor;
 using Newtonsoft.Json;

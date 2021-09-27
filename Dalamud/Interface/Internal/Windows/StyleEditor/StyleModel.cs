@@ -1,17 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.IO.Compression;
 using System.Numerics;
-using System.Text;
 
+using Dalamud.Utility;
 using ImGuiNET;
 using Newtonsoft.Json;
 
 namespace Dalamud.Interface.Internal.Windows.StyleEditor
 {
+    /// <summary>
+    /// Class representing a serializable ImGui style.
+    /// </summary>
     public class StyleModel
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="StyleModel"/> class.
+        /// </summary>
+        private StyleModel()
+        {
+            this.Colors = new Dictionary<string, Vector4>();
+            this.Name = "Unknown";
+        }
+
+        /// <summary>
+        /// Gets the standard Dalamud look.
+        /// </summary>
         public static StyleModel DalamudStandard => new()
         {
             Name = "Dalamud Standard",
@@ -104,6 +117,8 @@ namespace Dalamud.Interface.Internal.Windows.StyleEditor
             },
         };
 
+#pragma warning disable SA1600
+
         [JsonProperty("name")]
         public string Name { get; set; }
 
@@ -188,81 +203,18 @@ namespace Dalamud.Interface.Internal.Windows.StyleEditor
         [JsonProperty("aa")]
         public Vector2 DisplaySafeAreaPadding { get; set; }
 
+#pragma warning restore SA1600
+
+        /// <summary>
+        /// Gets or sets a dictionary mapping ImGui color names to colors.
+        /// </summary>
         [JsonProperty("col")]
         public Dictionary<string, Vector4> Colors { get; set; }
 
-        public static void CopyTo(Stream src, Stream dest) {
-            byte[] bytes = new byte[4096];
-
-            int cnt;
-
-            while ((cnt = src.Read(bytes, 0, bytes.Length)) != 0) {
-                dest.Write(bytes, 0, cnt);
-            }
-        }
-
-        public static byte[] Zip(string str) {
-            var bytes = Encoding.UTF8.GetBytes(str);
-
-            using (var msi = new MemoryStream(bytes))
-            using (var mso = new MemoryStream()) {
-                using (var gs = new GZipStream(mso, CompressionMode.Compress)) {
-                    //msi.CopyTo(gs);
-                    CopyTo(msi, gs);
-                }
-
-                return mso.ToArray();
-            }
-        }
-
-        public static string Unzip(byte[] bytes) {
-            using (var msi = new MemoryStream(bytes))
-            using (var mso = new MemoryStream()) {
-                using (var gs = new GZipStream(msi, CompressionMode.Decompress)) {
-                    //gs.CopyTo(mso);
-                    CopyTo(gs, mso);
-                }
-
-                return Encoding.UTF8.GetString(mso.ToArray());
-            }
-        }
-
-
-        public string ToJsonEncoded() => "DS1" + System.Convert.ToBase64String(Zip(JsonConvert.SerializeObject(this)));
-
-        public void Apply()
-        {
-            var style = ImGui.GetStyle();
-
-            style.Alpha = this.Alpha;
-            style.WindowPadding = this.WindowPadding;
-            style.WindowRounding = this.WindowRounding;
-            style.WindowBorderSize = this.WindowBorderSize;
-            style.WindowTitleAlign = this.WindowTitleAlign;
-            style.WindowMenuButtonPosition = this.WindowMenuButtonPosition;
-            style.ChildRounding = this.ChildRounding;
-            style.ChildBorderSize = this.ChildBorderSize;
-            style.PopupRounding = this.PopupRounding;
-            style.FramePadding = this.FramePadding;
-            style.FrameRounding = this.FrameRounding;
-            style.FrameBorderSize = this.FrameBorderSize;
-            style.ItemSpacing = this.ItemSpacing;
-            style.ItemInnerSpacing = this.ItemInnerSpacing;
-            style.CellPadding = this.CellPadding;
-            style.TouchExtraPadding = this.TouchExtraPadding;
-            style.IndentSpacing = this.IndentSpacing;
-            style.ScrollbarSize = this.ScrollbarSize;
-            style.ScrollbarRounding = this.ScrollbarRounding;
-            style.GrabMinSize = this.GrabMinSize;
-            style.GrabRounding = this.GrabRounding;
-            style.LogSliderDeadzone = this.LogSliderDeadzone;
-            style.TabRounding = this.TabRounding;
-            style.TabBorderSize = this.TabBorderSize;
-            style.ButtonTextAlign = this.ButtonTextAlign;
-            style.SelectableTextAlign = this.SelectableTextAlign;
-            style.DisplaySafeAreaPadding = this.DisplaySafeAreaPadding;
-        }
-
+        /// <summary>
+        /// Get a <see cref="StyleModel"/> instance via ImGui.
+        /// </summary>
+        /// <returns>The newly created <see cref="StyleModel"/> instance.</returns>
         public static StyleModel Get()
         {
             var model = new StyleModel();
@@ -311,10 +263,67 @@ namespace Dalamud.Interface.Internal.Windows.StyleEditor
             return model;
         }
 
-        public static StyleModel FromJsonEncoded(string data)
+        /// <summary>
+        /// Get a <see cref="StyleModel"/> instance from a compressed base64 string.
+        /// </summary>
+        /// <param name="data">The string to decode.</param>
+        /// <returns>A decompressed <see cref="StyleModel"/>.</returns>
+        public static StyleModel? FromEncoded(string data)
         {
-            var json = Unzip(Convert.FromBase64String(data.Substring(2)));
+            var json = Util.DecompressString(Convert.FromBase64String(data.Substring(3)));
             return JsonConvert.DeserializeObject<StyleModel>(json);
+        }
+
+        /// <summary>
+        /// Get this <see cref="StyleModel"/> instance as a encoded base64 string.
+        /// </summary>
+        /// <returns>The encoded base64 string.</returns>
+        public string ToEncoded() => "DS1" + Convert.ToBase64String(Util.CompressString(JsonConvert.SerializeObject(this)));
+
+        /// <summary>
+        /// Apply this StyleModel via ImGui.
+        /// </summary>
+        public void Apply()
+        {
+            var style = ImGui.GetStyle();
+
+            style.Alpha = this.Alpha;
+            style.WindowPadding = this.WindowPadding;
+            style.WindowRounding = this.WindowRounding;
+            style.WindowBorderSize = this.WindowBorderSize;
+            style.WindowTitleAlign = this.WindowTitleAlign;
+            style.WindowMenuButtonPosition = this.WindowMenuButtonPosition;
+            style.ChildRounding = this.ChildRounding;
+            style.ChildBorderSize = this.ChildBorderSize;
+            style.PopupRounding = this.PopupRounding;
+            style.FramePadding = this.FramePadding;
+            style.FrameRounding = this.FrameRounding;
+            style.FrameBorderSize = this.FrameBorderSize;
+            style.ItemSpacing = this.ItemSpacing;
+            style.ItemInnerSpacing = this.ItemInnerSpacing;
+            style.CellPadding = this.CellPadding;
+            style.TouchExtraPadding = this.TouchExtraPadding;
+            style.IndentSpacing = this.IndentSpacing;
+            style.ScrollbarSize = this.ScrollbarSize;
+            style.ScrollbarRounding = this.ScrollbarRounding;
+            style.GrabMinSize = this.GrabMinSize;
+            style.GrabRounding = this.GrabRounding;
+            style.LogSliderDeadzone = this.LogSliderDeadzone;
+            style.TabRounding = this.TabRounding;
+            style.TabBorderSize = this.TabBorderSize;
+            style.ButtonTextAlign = this.ButtonTextAlign;
+            style.SelectableTextAlign = this.SelectableTextAlign;
+            style.DisplaySafeAreaPadding = this.DisplaySafeAreaPadding;
+
+            foreach (var imGuiCol in Enum.GetValues<ImGuiCol>())
+            {
+                if (imGuiCol == ImGuiCol.COUNT)
+                {
+                    continue;
+                }
+
+                style.Colors[(int)imGuiCol] = this.Colors[imGuiCol.ToString()];
+            }
         }
     }
 }

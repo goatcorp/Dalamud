@@ -1,57 +1,103 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
+
+using CheapLoc;
 using Dalamud.Configuration.Internal;
+using Dalamud.Data;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
-using Dalamud.Interface.Internal.Windows.StyleEditor;
 using Dalamud.Interface.Windowing;
 using ImGuiNET;
-using JetBrains.Annotations;
+using Lumina.Excel.GeneratedSheets;
 using Serilog;
 
-namespace Dalamud.Interface.Internal.Windows
+namespace Dalamud.Interface.Internal.Windows.StyleEditor
 {
+    /// <summary>
+    /// Window for the Dalamud style editor.
+    /// </summary>
     public class StyleEditorWindow : Window
     {
         private ImGuiColorEditFlags alphaFlags = ImGuiColorEditFlags.None;
         private StyleModel workStyle = StyleModel.DalamudStandard;
 
         private int currentSel = 0;
-        private string initialStyle;
+        private string initialStyle = string.Empty;
+        private bool didSave = false;
 
+        private string renameText = string.Empty;
+        private bool renameModalDrawing = false;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="StyleEditorWindow"/> class.
+        /// </summary>
         public StyleEditorWindow()
             : base("Dalamud Style Editor")
         {
             this.IsOpen = true;
+            this.SizeConstraints = new WindowSizeConstraints
+            {
+                MinimumSize = new Vector2(890, 560),
+                MaximumSize = new Vector2(10000, 10000),
+            };
+        }
+
+        /// <inheritdoc />
+        public override void OnOpen()
+        {
+            this.didSave = false;
 
             var config = Service<DalamudConfiguration>.Get();
             config.SavedStyles ??= new List<StyleModel>();
             this.currentSel = config.SavedStyles.FindIndex(x => x.Name == config.ChosenStyle);
 
             this.initialStyle = config.ChosenStyle;
+
+            base.OnOpen();
         }
 
+        /// <inheritdoc />
+        public override void OnClose()
+        {
+            if (!this.didSave)
+            {
+                var config = Service<DalamudConfiguration>.Get();
+                var newStyle = config.SavedStyles.FirstOrDefault(x => x.Name == this.initialStyle);
+                newStyle?.Apply();
+            }
+
+            base.OnClose();
+        }
+
+        /// <inheritdoc />
         public override void Draw()
         {
             var config = Service<DalamudConfiguration>.Get();
+            var renameModalTitle = Loc.Localize("RenameStyleModalTitle", "Rename Style");
 
-            var style = ImGui.GetStyle();
+            var appliedThisFrame = false;
 
+            var styleAry = config.SavedStyles.Select(x => x.Name).ToArray();
             ImGui.Text("Choose Style:");
-            if (ImGui.Combo("###styleChooserCombo", ref this.currentSel, config.SavedStyles.Select(x => x.Name).ToArray(), 1))
+            if (ImGui.Combo("###styleChooserCombo", ref this.currentSel, styleAry, styleAry.Length))
             {
                 var newStyle = config.SavedStyles[this.currentSel];
                 newStyle.Apply();
+                appliedThisFrame = true;
             }
 
             if (ImGui.Button("Add new style"))
             {
                 var newStyle = StyleModel.DalamudStandard;
-                newStyle.Name = "New Style";
+                newStyle.Name = GetRandomName();
                 config.SavedStyles.Add(newStyle);
 
                 this.currentSel = config.SavedStyles.Count - 1;
+
+                newStyle.Apply();
+                appliedThisFrame = true;
 
                 config.Save();
             }
@@ -63,6 +109,7 @@ namespace Dalamud.Interface.Internal.Windows
                 this.currentSel--;
                 var newStyle = config.SavedStyles[this.currentSel];
                 newStyle.Apply();
+                appliedThisFrame = true;
 
                 config.SavedStyles.RemoveAt(this.currentSel + 1);
 
@@ -74,12 +121,27 @@ namespace Dalamud.Interface.Internal.Windows
 
             ImGui.SameLine();
 
+            if (ImGuiComponents.IconButton(FontAwesomeIcon.Pen) && this.currentSel != 0)
+            {
+                var newStyle = config.SavedStyles[this.currentSel];
+                this.renameText = newStyle.Name;
+
+                this.renameModalDrawing = true;
+                ImGui.OpenPopup(renameModalTitle);
+            }
+
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip("Rename style");
+
+            ImGui.SameLine();
+
             ImGuiHelpers.ScaledDummy(5);
             ImGui.SameLine();
 
             if (ImGuiComponents.IconButton(FontAwesomeIcon.FileExport))
             {
-                ImGui.SetClipboardText(StyleModel.Get().ToJsonEncoded());
+                var newStyle = config.SavedStyles[this.currentSel];
+                ImGui.SetClipboardText(newStyle.ToEncoded());
             }
 
             if (ImGui.IsItemHovered())
@@ -93,10 +155,15 @@ namespace Dalamud.Interface.Internal.Windows
 
                 try
                 {
-                    var newStyle = StyleModel.FromJsonEncoded(styleJson);
+                    var newStyle = StyleModel.FromEncoded(styleJson);
+
+                    newStyle.Name ??= GetRandomName();
 
                     config.SavedStyles.Add(newStyle);
                     newStyle.Apply();
+                    appliedThisFrame = true;
+
+                    Log.Information("Applying: " + newStyle.Name);
 
                     this.currentSel = config.SavedStyles.Count - 1;
 
@@ -119,8 +186,14 @@ namespace Dalamud.Interface.Internal.Windows
             {
                 ImGui.TextColored(ImGuiColors.DalamudRed, "You cannot edit the \"Dalamud Standard\" style. Please add a new style first.");
             }
+            else if (appliedThisFrame)
+            {
+                ImGui.Text("Applying style...");
+            }
             else if (ImGui.BeginTabBar("StyleEditorTabs"))
             {
+                var style = ImGui.GetStyle();
+
                 if (ImGui.BeginTabItem("Variables"))
                 {
                     ImGui.BeginChild($"ScrollingVars", ImGuiHelpers.ScaledVector2(0, -32), true, ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.NoBackground);
@@ -153,9 +226,9 @@ namespace Dalamud.Interface.Internal.Windows
                     ImGui.SliderFloat("TabRounding", ref style.TabRounding, 0.0f, 12.0f, "%.0f");
                     ImGui.Text("Alignment");
                     ImGui.SliderFloat2("WindowTitleAlign", ref style.WindowTitleAlign, 0.0f, 1.0f, "%.2f");
-                    var window_menu_button_position = (int)style.WindowMenuButtonPosition + 1;
-                    if (ImGui.Combo("WindowMenuButtonPosition", ref window_menu_button_position, "None\0Left\0Right\0"))
-                        style.WindowMenuButtonPosition = (ImGuiDir)(window_menu_button_position - 1);
+                    var windowMenuButtonPosition = (int)style.WindowMenuButtonPosition + 1;
+                    if (ImGui.Combo("WindowMenuButtonPosition", ref windowMenuButtonPosition, "None\0Left\0Right\0"))
+                        style.WindowMenuButtonPosition = (ImGuiDir)(windowMenuButtonPosition - 1);
                     ImGui.SliderFloat2("ButtonTextAlign", ref style.ButtonTextAlign, 0.0f, 1.0f, "%.2f");
                     ImGui.SameLine();
                     ImGuiComponents.HelpMarker("Alignment applies when a button is larger than its text content.");
@@ -223,9 +296,6 @@ namespace Dalamud.Interface.Internal.Windows
 
             if (ImGui.Button("Close"))
             {
-                var newStyle = config.SavedStyles.FirstOrDefault(x => x.Name == this.initialStyle);
-                newStyle?.Apply();
-
                 this.IsOpen = false;
             }
 
@@ -238,9 +308,43 @@ namespace Dalamud.Interface.Internal.Windows
                 var newStyle = StyleModel.Get();
                 newStyle.Name = config.ChosenStyle;
                 config.SavedStyles[this.currentSel] = newStyle;
+                newStyle.Apply();
 
                 config.Save();
+                this.didSave = true;
+
+                this.IsOpen = false;
             }
+
+            if (ImGui.BeginPopupModal(renameModalTitle, ref this.renameModalDrawing, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoScrollbar))
+            {
+                ImGui.Text("Please enter the new name for this style.");
+                ImGui.Spacing();
+
+                ImGui.InputText("###renameModalInput", ref this.renameText, 255);
+
+                const float buttonWidth = 120f;
+                ImGui.SetCursorPosX((ImGui.GetWindowWidth() - buttonWidth) / 2);
+
+                if (ImGui.Button("OK", new Vector2(buttonWidth, 40)))
+                {
+                    config.SavedStyles[this.currentSel].Name = this.renameText;
+                    config.Save();
+
+                    ImGui.CloseCurrentPopup();
+                }
+
+                ImGui.EndPopup();
+            }
+        }
+
+        private static string GetRandomName()
+        {
+            var data = Service<DataManager>.Get();
+            var names = data.GetExcelSheet<BNpcName>(ClientLanguage.English);
+            var rng = new Random();
+
+            return names.ElementAt(rng.Next(0, names.Count() - 1)).Singular.RawString;
         }
     }
 }

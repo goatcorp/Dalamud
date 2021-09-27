@@ -46,6 +46,7 @@ namespace Dalamud.Interface.Internal
         private readonly ScratchpadWindow scratchpadWindow;
         private readonly SettingsWindow settingsWindow;
         private readonly SelfTestWindow selfTestWindow;
+        private readonly StyleEditorWindow styleEditorWindow;
 
         private ulong frameCount = 0;
 
@@ -79,6 +80,7 @@ namespace Dalamud.Interface.Internal
             this.scratchpadWindow = new ScratchpadWindow() { IsOpen = false };
             this.settingsWindow = new SettingsWindow() { IsOpen = false };
             this.selfTestWindow = new SelfTestWindow() { IsOpen = false };
+            this.styleEditorWindow = new StyleEditorWindow() { IsOpen = false };
 
             this.WindowSystem.AddWindow(this.changelogWindow);
             this.WindowSystem.AddWindow(this.colorDemoWindow);
@@ -93,12 +95,11 @@ namespace Dalamud.Interface.Internal
             this.WindowSystem.AddWindow(this.scratchpadWindow);
             this.WindowSystem.AddWindow(this.settingsWindow);
             this.WindowSystem.AddWindow(this.selfTestWindow);
+            this.WindowSystem.AddWindow(this.styleEditorWindow);
 
             ImGuiManagedAsserts.AssertsEnabled = true;
 
             Service<InterfaceManager>.Get().Draw += this.OnDraw;
-
-            Log.Information("Windows added");
         }
 
         /// <summary>
@@ -212,6 +213,11 @@ namespace Dalamud.Interface.Internal
         /// </summary>
         public void OpenSelfTest() => this.selfTestWindow.IsOpen = true;
 
+        /// <summary>
+        /// Opens the <see cref="StyleEditorWindow"/>.
+        /// </summary>
+        public void OpenStyleEditor() => this.styleEditorWindow.IsOpen = true;
+
         #endregion
 
         #region Close
@@ -302,6 +308,11 @@ namespace Dalamud.Interface.Internal
         /// Toggles the <see cref="SelfTestWindow"/>.
         /// </summary>
         public void ToggleSelfTestWindow() => this.selfTestWindow.Toggle();
+
+        /// <summary>
+        /// Toggles the <see cref="StyleEditorWindow"/>.
+        /// </summary>
+        public void ToggleStyleEditorWindow() => this.selfTestWindow.Toggle();
 
         #endregion
 
@@ -450,6 +461,11 @@ namespace Dalamud.Interface.Internal
                         if (ImGui.MenuItem("Open Self-Test"))
                         {
                             this.OpenSelfTest();
+                        }
+
+                        if (ImGui.MenuItem("Open Style Editor"))
+                        {
+                            this.OpenStyleEditor();
                         }
 
                         ImGui.Separator();

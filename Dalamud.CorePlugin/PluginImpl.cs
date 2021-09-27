@@ -3,7 +3,6 @@ using System.IO;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.Command;
-using Dalamud.Interface.Internal.Windows;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging;
 using Dalamud.Plugin;
@@ -63,7 +62,6 @@ namespace Dalamud.CorePlugin
                 this.Interface = pluginInterface;
 
                 this.windowSystem.AddWindow(new PluginWindow());
-                this.windowSystem.AddWindow(new StyleEditorWindow());
 
                 this.Interface.UiBuilder.Draw += this.OnDraw;
                 this.Interface.UiBuilder.OpenConfigUi += this.OnOpenConfigUi;
