@@ -13,7 +13,7 @@ namespace Dalamud.Support
     /// </summary>
     internal static class BugBait
     {
-        private const string BugBaitUrl = "https://dalamud-bugbait.goatsoft.workers.dev/feedback";
+        private const string BugBaitUrl = "https://kiko.goats.dev/feedback";
 
         /// <summary>
         /// Send feedback to Discord.

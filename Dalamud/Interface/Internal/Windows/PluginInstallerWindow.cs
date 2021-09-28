@@ -470,7 +470,7 @@ namespace Dalamud.Interface.Internal.Windows
 
             if (ImGui.BeginPopupModal(modalTitle, ref this.feedbackModalDrawing, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoScrollbar))
             {
-                ImGui.Text(Locs.FeedbackModal_Text);
+                ImGui.Text(Locs.FeedbackModal_Text(this.feedbackPlugin.Name));
                 ImGui.Spacing();
 
                 ImGui.InputTextMultiline("###FeedbackContent", ref this.feedbackModalBody, 1000, new Vector2(400, 200));
@@ -1342,7 +1342,7 @@ namespace Dalamud.Interface.Internal.Windows
                 this.DrawDeletePluginButton(plugin);
                 this.DrawVisitRepoUrlButton(plugin.Manifest.RepoUrl);
 
-                if (!isThirdParty)
+                if (!isThirdParty && !plugin.IsDev)
                 {
                     this.DrawSendFeedbackButton(plugin.Manifest);
                 }
@@ -2292,7 +2292,7 @@ namespace Dalamud.Interface.Internal.Windows
 
             public static string FeedbackModal_Title => Loc.Localize("InstallerFeedback", "Send Feedback");
 
-            public static string FeedbackModal_Text => Loc.Localize("InstallerFeedbackInfo", "You can send feedback to the developer of this plugin here.\nYou can include your Discord tag or email address if you wish to give them the opportunity to answer.");
+            public static string FeedbackModal_Text(string pluginName) => Loc.Localize("InstallerFeedbackInfo", "You can send feedback to the developer of \"{0}\" here.\nYou can include your Discord tag or email address if you wish to give them the opportunity to answer.").Format(pluginName);
 
             public static string FeedbackModal_Hint => Loc.Localize("InstallerFeedbackHint", "All plugin developers will be able to see your feedback.\nPlease never include any personal or revealing information.\nIf you chose to include the last error message, information like your Windows username may be included.\n\nThe collected feedback is not stored on our end and immediately relayed to Discord.");
 

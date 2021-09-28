@@ -198,7 +198,7 @@ namespace Dalamud.Interface.Internal.Windows.StyleEditor
             {
                 var style = ImGui.GetStyle();
 
-                if (ImGui.BeginTabItem("Variables"))
+                if (ImGui.BeginTabItem(Loc.Localize("StyleEditorVariables", "Variables")))
                 {
                     ImGui.BeginChild($"ScrollingVars", ImGuiHelpers.ScaledVector2(0, -32), true, ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.NoBackground);
 
@@ -250,7 +250,7 @@ namespace Dalamud.Interface.Internal.Windows.StyleEditor
                     ImGui.EndTabItem();
                 }
 
-                if (ImGui.BeginTabItem("Colors"))
+                if (ImGui.BeginTabItem(Loc.Localize("StyleEditorColors", "Colors")))
                 {
                     ImGui.BeginChild("ScrollingColors", ImGuiHelpers.ScaledVector2(0, -30), true, ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.NoBackground);
 
