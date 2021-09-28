@@ -21,7 +21,7 @@ namespace Dalamud.Interface.Internal.Windows
         private const float CreditFPS = 60.0f;
         private const string CreditsTextTempl = @"
 Dalamud
-A FFXIV Hooking Framework
+A FFXIV Plugin Framework
 Version D{0}
 
 
@@ -97,8 +97,7 @@ Franz
 aers
 
 
-We use these awesome
-C# libraries:
+We use these awesome C# libraries:
 
 Lumina by Adam
 FFXIVClientStructs by aers
@@ -115,7 +114,7 @@ Join us at: https://discord.gg/3NMcUV5
 
 
 
-Dalamud is licensed under AGPL V3 or later
+Dalamud is licensed under AGPL v3 or later
 Contribute at: https://github.com/goatsoft/Dalamud
 
 
@@ -144,7 +143,7 @@ Thank you for using XIVLauncher and Dalamud!
 
             this.PositionCondition = ImGuiCond.Always;
 
-            this.BgAlpha = 0.5f;
+            this.BgAlpha = 0.8f;
         }
 
         /// <inheritdoc/>
@@ -166,6 +165,22 @@ Thank you for using XIVLauncher and Dalamud!
         {
             this.creditsThrottler.Reset();
             Service<GameGui>.Get().SetBgm(9999);
+        }
+
+        /// <inheritdoc/>
+        public override void PreDraw()
+        {
+            ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(0, 0));
+
+            base.PreDraw();
+        }
+
+        /// <inheritdoc/>
+        public override void PostDraw()
+        {
+            ImGui.PopStyleVar();
+
+            base.PostDraw();
         }
 
         /// <inheritdoc/>
