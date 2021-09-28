@@ -86,7 +86,7 @@ namespace Dalamud.Game.ClientState.Objects
         /// Sets the mouseover target.
         /// </summary>
         /// <param name="actor">Actor to target.</param>
-        public void SetMouseOverTarget(GameObject? actor) => this.SetTarget(actor?.Address ?? IntPtr.Zero);
+        public void SetMouseOverTarget(GameObject? actor) => this.SetMouseOverTarget(actor?.Address ?? IntPtr.Zero);
 
         /// <summary>
         /// Sets the focus target.
