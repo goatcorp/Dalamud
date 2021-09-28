@@ -89,6 +89,8 @@ namespace Dalamud.Interface.Internal.Windows.StyleEditor
 
             if (ImGui.Button(Loc.Localize("StyleEditorAddNew", "Add new style")))
             {
+                this.SaveStyle();
+
                 var newStyle = StyleModel.DalamudStandard;
                 newStyle.Name = GetRandomName();
                 config.SavedStyles.Add(newStyle);
@@ -152,6 +154,8 @@ namespace Dalamud.Interface.Internal.Windows.StyleEditor
 
             if (ImGuiComponents.IconButton(FontAwesomeIcon.FileImport))
             {
+                this.SaveStyle();
+
                 var styleJson = ImGui.GetClipboardText();
 
                 try
@@ -307,14 +311,10 @@ namespace Dalamud.Interface.Internal.Windows.StyleEditor
 
             if (ImGui.Button(Loc.Localize("SaveAndClose", "Save and Close")))
             {
+                this.SaveStyle();
+
                 config.ChosenStyle = config.SavedStyles[this.currentSel].Name;
 
-                var newStyle = StyleModel.Get();
-                newStyle.Name = config.ChosenStyle;
-                config.SavedStyles[this.currentSel] = newStyle;
-                newStyle.Apply();
-
-                config.Save();
                 this.didSave = true;
 
                 this.IsOpen = false;
@@ -340,6 +340,21 @@ namespace Dalamud.Interface.Internal.Windows.StyleEditor
 
                 ImGui.EndPopup();
             }
+        }
+
+        private void SaveStyle()
+        {
+            if (this.currentSel == 0)
+                return;
+
+            var config = Service<DalamudConfiguration>.Get();
+
+            var newStyle = StyleModel.Get();
+            newStyle.Name = config.ChosenStyle;
+            config.SavedStyles[this.currentSel] = newStyle;
+            newStyle.Apply();
+
+            config.Save();
         }
 
         private static string GetRandomName()
