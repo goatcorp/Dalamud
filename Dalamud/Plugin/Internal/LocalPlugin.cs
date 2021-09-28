@@ -436,6 +436,7 @@ namespace Dalamud.Plugin.Internal
             config.IsUnloadable = true;
             config.LoadInMemory = true;
             config.PreferSharedTypes = false;
+            config.SharedAssemblies.Add(typeof(IDalamudPlugin).Assembly.GetName());
             config.SharedAssemblies.Add(typeof(Lumina.GameData).Assembly.GetName());
             config.SharedAssemblies.Add(typeof(Lumina.Excel.ExcelSheetImpl).Assembly.GetName());
         }
