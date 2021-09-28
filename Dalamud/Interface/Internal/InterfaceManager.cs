@@ -344,6 +344,8 @@ namespace Dalamud.Interface.Internal
                     configuration.ChosenStyle = StyleModel.DalamudStandard.Name;
                 }
 
+                configuration.SavedStyles[0] = StyleModel.DalamudStandard;
+
                 var style = configuration.SavedStyles.FirstOrDefault(x => x.Name == configuration.ChosenStyle) ?? StyleModel.DalamudStandard;
                 style.Apply();
 
