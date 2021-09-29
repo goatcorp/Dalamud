@@ -190,9 +190,9 @@ namespace Dalamud.Interface.Internal.Windows.StyleEditor
 
             ImGui.PushItemWidth(ImGui.GetWindowWidth() * 0.50f);
 
-            if (this.currentSel == 0)
+            if (this.currentSel < 2)
             {
-                ImGui.TextColored(ImGuiColors.DalamudRed, Loc.Localize("StyleEditorNotAllowed", "You cannot edit the \"Dalamud Standard\" style. Please add a new style first."));
+                ImGui.TextColored(ImGuiColors.DalamudRed, Loc.Localize("StyleEditorNotAllowed", "You cannot edit built-in styles. Please add a new style first."));
             }
             else if (appliedThisFrame)
             {
@@ -354,7 +354,7 @@ namespace Dalamud.Interface.Internal.Windows.StyleEditor
 
         private void SaveStyle()
         {
-            if (this.currentSel == 0)
+            if (this.currentSel < 2)
                 return;
 
             var config = Service<DalamudConfiguration>.Get();

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Numerics;
 using System.Reflection;
@@ -506,13 +507,14 @@ namespace Dalamud.Interface.Internal
                         {
                             var info = string.Empty;
                             var style = StyleModel.Get();
+                            var enCulture = new CultureInfo("en-US");
 
                             foreach (var propertyInfo in typeof(StyleModel).GetProperties(BindingFlags.Public | BindingFlags.Instance))
                             {
                                 if (propertyInfo.PropertyType == typeof(Vector2))
                                 {
                                     var vec2 = (Vector2)propertyInfo.GetValue(style);
-                                    info += $"{propertyInfo.Name} = new Vector2({vec2.X}, {vec2.Y}),\n";
+                                    info += $"{propertyInfo.Name} = new Vector2({vec2.X.ToString(enCulture)}f, {vec2.Y.ToString(enCulture)}f),\n";
                                 }
                                 else
                                 {
@@ -526,7 +528,7 @@ namespace Dalamud.Interface.Internal
                             foreach (var color in style.Colors)
                             {
                                 info +=
-                                    $"{{\"{color.Key}\", new Vector4({color.Value.X}, {color.Value.Y}, {color.Value.Z}, {color.Value.W})}},\n";
+                                    $"{{\"{color.Key}\", new Vector4({color.Value.X.ToString(enCulture)}f, {color.Value.Y.ToString(enCulture)}f, {color.Value.Z.ToString(enCulture)}f, {color.Value.W.ToString(enCulture)}f)}},\n";
                             }
 
                             info += "},";

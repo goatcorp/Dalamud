@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Numerics;
 
+using Dalamud.Interface.Colors;
 using Dalamud.Utility;
 using ImGuiNET;
 using Newtonsoft.Json;
@@ -117,6 +118,101 @@ namespace Dalamud.Interface.Internal.Windows.StyleEditor
             },
         };
 
+        /// <summary>
+        /// Gets the standard Dalamud look.
+        /// </summary>
+        public static StyleModel DalamudClassic => new()
+        {
+            Name = "Dalamud Classic",
+
+            Alpha = 1,
+            WindowPadding = new Vector2(8, 8),
+            WindowRounding = 4,
+            WindowBorderSize = 0,
+            WindowTitleAlign = new Vector2(0, 0.5f),
+            WindowMenuButtonPosition = ImGuiDir.Right,
+            ChildRounding = 0,
+            ChildBorderSize = 1,
+            PopupRounding = 0,
+            FramePadding = new Vector2(4, 3),
+            FrameRounding = 4,
+            FrameBorderSize = 0,
+            ItemSpacing = new Vector2(8, 4),
+            ItemInnerSpacing = new Vector2(4, 4),
+            CellPadding = new Vector2(4, 2),
+            TouchExtraPadding = new Vector2(0, 0),
+            IndentSpacing = 21,
+            ScrollbarSize = 16,
+            ScrollbarRounding = 9,
+            GrabMinSize = 10,
+            GrabRounding = 3,
+            LogSliderDeadzone = 4,
+            TabRounding = 4,
+            TabBorderSize = 0,
+            ButtonTextAlign = new Vector2(0.5f, 0.5f),
+            SelectableTextAlign = new Vector2(0, 0),
+            DisplaySafeAreaPadding = new Vector2(3, 3),
+
+            Colors = new Dictionary<string, Vector4>
+            {
+                { "Text", new Vector4(1f, 1f, 1f, 1f) },
+                { "TextDisabled", new Vector4(0.5f, 0.5f, 0.5f, 1f) },
+                { "WindowBg", new Vector4(0.06f, 0.06f, 0.06f, 0.87f) },
+                { "ChildBg", new Vector4(0f, 0f, 0f, 0f) },
+                { "PopupBg", new Vector4(0.08f, 0.08f, 0.08f, 0.94f) },
+                { "Border", new Vector4(0.43f, 0.43f, 0.5f, 0.5f) },
+                { "BorderShadow", new Vector4(0f, 0f, 0f, 0f) },
+                { "FrameBg", new Vector4(0.29f, 0.29f, 0.29f, 0.54f) },
+                { "FrameBgHovered", new Vector4(0.54f, 0.54f, 0.54f, 0.4f) },
+                { "FrameBgActive", new Vector4(0.64f, 0.64f, 0.64f, 0.67f) },
+                { "TitleBg", new Vector4(0.04f, 0.04f, 0.04f, 1f) },
+                { "TitleBgActive", new Vector4(0.29f, 0.29f, 0.29f, 1f) },
+                { "TitleBgCollapsed", new Vector4(0f, 0f, 0f, 0.51f) },
+                { "MenuBarBg", new Vector4(0.14f, 0.14f, 0.14f, 1f) },
+                { "ScrollbarBg", new Vector4(0f, 0f, 0f, 0f) },
+                { "ScrollbarGrab", new Vector4(0.31f, 0.31f, 0.31f, 1f) },
+                { "ScrollbarGrabHovered", new Vector4(0.41f, 0.41f, 0.41f, 1f) },
+                { "ScrollbarGrabActive", new Vector4(0.51f, 0.51f, 0.51f, 1f) },
+                { "CheckMark", new Vector4(0.86f, 0.86f, 0.86f, 1f) },
+                { "SliderGrab", new Vector4(0.54f, 0.54f, 0.54f, 1f) },
+                { "SliderGrabActive", new Vector4(0.67f, 0.67f, 0.67f, 1f) },
+                { "Button", new Vector4(0.71f, 0.71f, 0.71f, 0.4f) },
+                { "ButtonHovered", new Vector4(0.47f, 0.47f, 0.47f, 1f) },
+                { "ButtonActive", new Vector4(0.74f, 0.74f, 0.74f, 1f) },
+                { "Header", new Vector4(0.59f, 0.59f, 0.59f, 0.31f) },
+                { "HeaderHovered", new Vector4(0.5f, 0.5f, 0.5f, 0.8f) },
+                { "HeaderActive", new Vector4(0.6f, 0.6f, 0.6f, 1f) },
+                { "Separator", new Vector4(0.43f, 0.43f, 0.5f, 0.5f) },
+                { "SeparatorHovered", new Vector4(0.1f, 0.4f, 0.75f, 0.78f) },
+                { "SeparatorActive", new Vector4(0.1f, 0.4f, 0.75f, 1f) },
+                { "ResizeGrip", new Vector4(0.79f, 0.79f, 0.79f, 0.25f) },
+                { "ResizeGripHovered", new Vector4(0.78f, 0.78f, 0.78f, 0.67f) },
+                { "ResizeGripActive", new Vector4(0.88f, 0.88f, 0.88f, 0.95f) },
+                { "Tab", new Vector4(0.23f, 0.23f, 0.23f, 0.86f) },
+                { "TabHovered", new Vector4(0.71f, 0.71f, 0.71f, 0.8f) },
+                { "TabActive", new Vector4(0.36f, 0.36f, 0.36f, 1f) },
+                { "TabUnfocused", new Vector4(0.068f, 0.10199998f, 0.14800003f, 0.9724f) },
+                { "TabUnfocusedActive", new Vector4(0.13599998f, 0.26199996f, 0.424f, 1f) },
+                { "DockingPreview", new Vector4(0.26f, 0.59f, 0.98f, 0.7f) },
+                { "DockingEmptyBg", new Vector4(0.2f, 0.2f, 0.2f, 1f) },
+                { "PlotLines", new Vector4(0.61f, 0.61f, 0.61f, 1f) },
+                { "PlotLinesHovered", new Vector4(1f, 0.43f, 0.35f, 1f) },
+                { "PlotHistogram", new Vector4(0.9f, 0.7f, 0f, 1f) },
+                { "PlotHistogramHovered", new Vector4(1f, 0.6f, 0f, 1f) },
+                { "TableHeaderBg", new Vector4(0.19f, 0.19f, 0.2f, 1f) },
+                { "TableBorderStrong", new Vector4(0.31f, 0.31f, 0.35f, 1f) },
+                { "TableBorderLight", new Vector4(0.23f, 0.23f, 0.25f, 1f) },
+                { "TableRowBg", new Vector4(0f, 0f, 0f, 0f) },
+                { "TableRowBgAlt", new Vector4(1f, 1f, 1f, 0.06f) },
+                { "TextSelectedBg", new Vector4(0.26f, 0.59f, 0.98f, 0.35f) },
+                { "DragDropTarget", new Vector4(1f, 1f, 0f, 0.9f) },
+                { "NavHighlight", new Vector4(0.26f, 0.59f, 0.98f, 1f) },
+                { "NavWindowingHighlight", new Vector4(1f, 1f, 1f, 0.7f) },
+                { "NavWindowingDimBg", new Vector4(0.8f, 0.8f, 0.8f, 0.2f) },
+                { "ModalWindowDimBg", new Vector4(0.8f, 0.8f, 0.8f, 0.35f) },
+            },
+        };
+
 #pragma warning disable SA1600
 
         [JsonProperty("name")]
@@ -210,6 +306,12 @@ namespace Dalamud.Interface.Internal.Windows.StyleEditor
         /// </summary>
         [JsonProperty("col")]
         public Dictionary<string, Vector4> Colors { get; set; }
+
+        /// <summary>
+        /// Gets or sets class representing Dalamud-builtin <see cref="ImGuiColors"/>.
+        /// </summary>
+        [JsonProperty("dol")]
+        public DalamudColors? BuiltInColors { get; set; }
 
         /// <summary>
         /// Get a <see cref="StyleModel"/> instance via ImGui.
@@ -325,5 +427,43 @@ namespace Dalamud.Interface.Internal.Windows.StyleEditor
                 style.Colors[(int)imGuiCol] = this.Colors[imGuiCol.ToString()];
             }
         }
+
+#pragma warning disable SA1600
+
+        public class DalamudColors
+        {
+            [JsonProperty("a")]
+            public Vector4 DalamudRed { get; set; }
+
+            [JsonProperty("b")]
+            public Vector4 DalamudGrey { get; set; }
+
+            [JsonProperty("c")]
+            public Vector4 DalamudGrey2 { get; set; }
+
+            [JsonProperty("d")]
+            public Vector4 DalamudGrey3 { get; set; }
+
+            [JsonProperty("e")]
+            public Vector4 DalamudWhite { get; set; }
+
+            [JsonProperty("f")]
+            public Vector4 DalamudWhite2 { get; set; }
+
+            [JsonProperty("g")]
+            public Vector4 DalamudOrange { get; set; }
+
+            [JsonProperty("h")]
+            public Vector4 TankBlue { get; set; }
+
+            [JsonProperty("i")]
+            public Vector4 HealerGreen { get; set; }
+
+            [JsonProperty("j")]
+            public Vector4 DPSRed { get; set; }
+        }
+
+#pragma warning restore SA1600
+
     }
 }

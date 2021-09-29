@@ -340,11 +340,12 @@ namespace Dalamud.Interface.Internal
 
                 if (configuration.SavedStyles == null || configuration.SavedStyles.All(x => x.Name != StyleModel.DalamudStandard.Name))
                 {
-                    configuration.SavedStyles = new List<StyleModel> { StyleModel.DalamudStandard };
+                    configuration.SavedStyles = new List<StyleModel> { StyleModel.DalamudStandard, StyleModel.DalamudClassic };
                     configuration.ChosenStyle = StyleModel.DalamudStandard.Name;
                 }
 
                 configuration.SavedStyles[0] = StyleModel.DalamudStandard;
+                configuration.SavedStyles[1] = StyleModel.DalamudClassic;
 
                 var style = configuration.SavedStyles.FirstOrDefault(x => x.Name == configuration.ChosenStyle) ?? StyleModel.DalamudStandard;
                 style.Apply();
