@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Reflection;
 
 using CheapLoc;
 using Dalamud.Configuration.Internal;
@@ -75,6 +76,9 @@ namespace Dalamud.Interface.Internal.Windows.StyleEditor
         {
             var config = Service<DalamudConfiguration>.Get();
             var renameModalTitle = Loc.Localize("RenameStyleModalTitle", "Rename Style");
+
+            var workStyle = config.SavedStyles[this.currentSel];
+            workStyle.BuiltInColors ??= StyleModel.DalamudStandard.BuiltInColors;
 
             var appliedThisFrame = false;
 
@@ -286,6 +290,25 @@ namespace Dalamud.Interface.Internal.Windows.StyleEditor
 
                         ImGui.SameLine(0.0f, style.ItemInnerSpacing.X);
                         ImGui.TextUnformatted(imGuiCol.ToString());
+
+                        ImGui.PopID();
+                    }
+
+                    ImGui.Separator();
+
+                    foreach (var property in typeof(StyleModel.DalamudColors).GetProperties(BindingFlags.Public | BindingFlags.Instance))
+                    {
+                        ImGui.PushID(property.Name);
+
+                        var color = (Vector4)property.GetValue(workStyle.BuiltInColors);
+                        if (ImGui.ColorEdit4("##color", ref color, ImGuiColorEditFlags.AlphaBar | this.alphaFlags))
+                        {
+                            property.SetValue(workStyle.BuiltInColors, color);
+                            workStyle.BuiltInColors?.Apply();
+                        }
+
+                        ImGui.SameLine(0.0f, style.ItemInnerSpacing.X);
+                        ImGui.TextUnformatted(property.Name);
 
                         ImGui.PopID();
                     }

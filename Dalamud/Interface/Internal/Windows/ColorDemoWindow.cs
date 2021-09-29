@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Reflection;
 
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Windowing;
@@ -46,9 +47,10 @@ namespace Dalamud.Interface.Internal.Windows
 
             ImGui.Separator();
 
-            foreach (var (name, color) in this.colors)
+            foreach (var property in typeof(ImGuiColors).GetProperties(BindingFlags.Public | BindingFlags.Static))
             {
-                ImGui.TextColored(color, name);
+                var color = (Vector4)property.GetValue(null);
+                ImGui.TextColored(color, property.Name);
             }
         }
     }

@@ -469,19 +469,7 @@ namespace Dalamud.Interface.Internal.Windows.StyleEditor
                 style.Colors[(int)imGuiCol] = this.Colors[imGuiCol.ToString()];
             }
 
-            if (this.BuiltInColors != null)
-            {
-                ImGuiColors.DalamudRed = this.BuiltInColors.DalamudRed;
-                ImGuiColors.DalamudGrey = this.BuiltInColors.DalamudGrey;
-                ImGuiColors.DalamudGrey2 = this.BuiltInColors.DalamudGrey2;
-                ImGuiColors.DalamudGrey3 = this.BuiltInColors.DalamudGrey3;
-                ImGuiColors.DalamudWhite = this.BuiltInColors.DalamudWhite;
-                ImGuiColors.DalamudWhite2 = this.BuiltInColors.DalamudWhite2;
-                ImGuiColors.DalamudOrange = this.BuiltInColors.DalamudOrange;
-                ImGuiColors.TankBlue = this.BuiltInColors.TankBlue;
-                ImGuiColors.HealerGreen = this.BuiltInColors.HealerGreen;
-                ImGuiColors.DPSRed = this.BuiltInColors.DPSRed;
-            }
+            this.BuiltInColors?.Apply();
         }
 
 #pragma warning disable SA1600
@@ -517,6 +505,20 @@ namespace Dalamud.Interface.Internal.Windows.StyleEditor
 
             [JsonProperty("j")]
             public Vector4 DPSRed { get; set; }
+
+            public void Apply()
+            {
+                ImGuiColors.DalamudRed = this.DalamudRed;
+                ImGuiColors.DalamudGrey = this.DalamudGrey;
+                ImGuiColors.DalamudGrey2 = this.DalamudGrey2;
+                ImGuiColors.DalamudGrey3 = this.DalamudGrey3;
+                ImGuiColors.DalamudWhite = this.DalamudWhite;
+                ImGuiColors.DalamudWhite2 = this.DalamudWhite2;
+                ImGuiColors.DalamudOrange = this.DalamudOrange;
+                ImGuiColors.TankBlue = this.TankBlue;
+                ImGuiColors.HealerGreen = this.HealerGreen;
+                ImGuiColors.DPSRed = this.DPSRed;
+            }
         }
 
 #pragma warning restore SA1600
