@@ -60,12 +60,9 @@ namespace Dalamud.Interface.Internal
         ///   key: PluginManifest.InternalName (lowercase, no spaces),
         ///   value: list of category tags, <see cref="categoryList"/>.
         /// </summary>
-        private Dictionary<string, string[]> mapPluginCategoryTagFallbacks = new();
-
-#if DEBUG
-        // temp - hardcode some tag values for testing, idk what most of them does so it's probably not very accurate :D
-        private Dictionary<string, string[]> mapPluginCategoryTagFallbacksHACK = new()
+        private Dictionary<string, string[]> mapPluginCategoryTagFallbacks = new()
         {
+            // temporary for testing, should be removed when manifests are updated
             ["accuratecountdown"] = new string[] { "UI" },
             ["adventurerinneed"] = new string[] { "UI" },
             ["aethersense"] = new string[] { "Other" },
@@ -150,7 +147,6 @@ namespace Dalamud.Interface.Internal
             ["xivchat"] = new string[] { "social" },
             ["xivcombo"] = new string[] { "jobs" },
         };
-#endif // DEBUG
 
         /// <summary>
         /// Type of category group.
@@ -382,13 +378,6 @@ namespace Dalamud.Interface.Internal
             {
                 return fallbackTags;
             }
-
-#if DEBUG
-            if (this.mapPluginCategoryTagFallbacksHACK.TryGetValue(nameKey, out var dummyTags))
-            {
-                return dummyTags;
-            }
-#endif // DEBUG
 
             return null;
         }
