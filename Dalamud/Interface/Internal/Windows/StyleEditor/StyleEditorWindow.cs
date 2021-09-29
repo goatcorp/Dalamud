@@ -314,6 +314,7 @@ namespace Dalamud.Interface.Internal.Windows.StyleEditor
                 this.SaveStyle();
 
                 config.ChosenStyle = config.SavedStyles[this.currentSel].Name;
+                Log.Verbose("ChosenStyle = {ChosenStyle}", config.ChosenStyle);
 
                 this.didSave = true;
 
@@ -359,7 +360,7 @@ namespace Dalamud.Interface.Internal.Windows.StyleEditor
             var config = Service<DalamudConfiguration>.Get();
 
             var newStyle = StyleModel.Get();
-            newStyle.Name = config.ChosenStyle;
+            newStyle.Name = config.SavedStyles[this.currentSel].Name;
             config.SavedStyles[this.currentSel] = newStyle;
             newStyle.Apply();
 
