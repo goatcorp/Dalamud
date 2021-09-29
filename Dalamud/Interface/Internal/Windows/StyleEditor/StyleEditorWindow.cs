@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -342,6 +342,15 @@ namespace Dalamud.Interface.Internal.Windows.StyleEditor
             }
         }
 
+        private static string GetRandomName()
+        {
+            var data = Service<DataManager>.Get();
+            var names = data.GetExcelSheet<BNpcName>(ClientLanguage.English);
+            var rng = new Random();
+
+            return names.ElementAt(rng.Next(0, names.Count() - 1)).Singular.RawString;
+        }
+
         private void SaveStyle()
         {
             if (this.currentSel == 0)
@@ -355,15 +364,6 @@ namespace Dalamud.Interface.Internal.Windows.StyleEditor
             newStyle.Apply();
 
             config.Save();
-        }
-
-        private static string GetRandomName()
-        {
-            var data = Service<DataManager>.Get();
-            var names = data.GetExcelSheet<BNpcName>(ClientLanguage.English);
-            var rng = new Random();
-
-            return names.ElementAt(rng.Next(0, names.Count() - 1)).Singular.RawString;
         }
     }
 }

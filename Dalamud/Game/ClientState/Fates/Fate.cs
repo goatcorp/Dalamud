@@ -126,7 +126,7 @@ namespace Dalamud.Game.ClientState.Fates
         /// <summary>
         /// Gets the position of this <see cref="Fate"/>.
         /// </summary>
-        public Vector3 Position => new(this.Struct->X, this.Struct->Y, this.Struct->Z);
+        public Vector3 Position => this.Struct->Location;
 
         /// <summary>
         /// Gets the territory this <see cref="Fate"/> is located in.
