@@ -48,9 +48,23 @@ namespace Dalamud.Interface.Internal
         private Dictionary<PluginManifest, int[]> mapPluginCategories = new();
         private List<int> highlightedCategoryIds = new();
 
+        /// <summary>
+        /// Forces plugin category tags, overrides settings from manifest.
+        ///   key: PluginManifest.InternalName (lowercase, no spaces),
+        ///   value: list of category tags, <see cref="categoryList"/>.
+        /// </summary>
+        private Dictionary<string, string[]> mapPluginCategoryTagOverrides = new();
+
+        /// <summary>
+        /// Fallback plugin category tags, used only when manifest doesn't contain any.
+        ///   key: PluginManifest.InternalName (lowercase, no spaces),
+        ///   value: list of category tags, <see cref="categoryList"/>.
+        /// </summary>
+        private Dictionary<string, string[]> mapPluginCategoryTagFallbacks = new();
+
 #if DEBUG
         // temp - hardcode some tag values for testing, idk what most of them does so it's probably not very accurate :D
-        private Dictionary<string, string[]> mapPluginTagTesting = new()
+        private Dictionary<string, string[]> mapPluginCategoryTagFallbacksHACK = new()
         {
             ["accuratecountdown"] = new string[] { "UI" },
             ["adventurerinneed"] = new string[] { "UI" },
@@ -136,7 +150,7 @@ namespace Dalamud.Interface.Internal
             ["xivchat"] = new string[] { "social" },
             ["xivcombo"] = new string[] { "jobs" },
         };
-        #endif // DEBUG
+#endif // DEBUG
 
         /// <summary>
         /// Type of category group.
@@ -231,25 +245,10 @@ namespace Dalamud.Interface.Internal
             foreach (var plugin in availablePlugins)
             {
                 categoryList.Clear();
-                if (plugin.Tags != null)
+
+                var pluginCategoryTags = this.GetCategoryTagsForManifest(plugin);
+                if (pluginCategoryTags != null)
                 {
-                    IEnumerable<string> pluginCategoryTags = plugin.CategoryTags;
-#if DEBUG
-                    if (pluginCategoryTags == null)
-                    {
-                        var nameKey = plugin.InternalName.ToLowerInvariant().Replace(" ", string.Empty);
-
-                        if (this.mapPluginTagTesting.TryGetValue(nameKey, out var dummyTags))
-                        {
-                            pluginCategoryTags = dummyTags;
-                        }
-                    }
-#endif // DEBUG
-                    if (pluginCategoryTags == null)
-                    {
-                        continue;
-                    }
-
                     foreach (var tag in pluginCategoryTags)
                     {
                         // only tags from whitelist can be accepted
@@ -365,6 +364,34 @@ namespace Dalamud.Interface.Internal
         /// <param name="categoryId">CategoryId to check.</param>
         /// <returns>true if highlight is needed.</returns>
         public bool IsCategoryHighlighted(int categoryId) => this.highlightedCategoryIds.Contains(categoryId);
+
+        private IEnumerable<string> GetCategoryTagsForManifest(PluginManifest pluginManifest)
+        {
+            var nameKey = pluginManifest.InternalName.ToLowerInvariant().Replace(" ", string.Empty);
+            if (this.mapPluginCategoryTagOverrides.TryGetValue(nameKey, out var overrideTags))
+            {
+                return overrideTags;
+            }
+
+            if (pluginManifest.CategoryTags != null)
+            {
+                return pluginManifest.CategoryTags;
+            }
+
+            if (this.mapPluginCategoryTagFallbacks.TryGetValue(nameKey, out var fallbackTags))
+            {
+                return fallbackTags;
+            }
+
+#if DEBUG
+            if (this.mapPluginCategoryTagFallbacksHACK.TryGetValue(nameKey, out var dummyTags))
+            {
+                return dummyTags;
+            }
+#endif // DEBUG
+
+            return null;
+        }
 
         /// <summary>
         /// Plugin installer category info.

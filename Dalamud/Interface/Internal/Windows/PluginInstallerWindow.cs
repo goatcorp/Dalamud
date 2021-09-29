@@ -611,26 +611,40 @@ namespace Dalamud.Interface.Internal.Windows
         private void DrawPluginCategories()
         {
             float useContentHeight = -40;   // button height + spacing
-            float useMenuWidth = 180;       // make dynamic?
+            float useMenuWidth = 180;       // works fine as static value, table can be resized by user
 
-            if (ImGui.BeginChild($"ScrollingCategorySelectors", ImGuiHelpers.ScaledVector2(useMenuWidth, useContentHeight), false, ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.NoBackground))
+            float useContentWidth = ImGui.GetContentRegionAvail().X;
+
+            if (ImGui.BeginChild("InstallerCategories", new Vector2(useContentWidth, useContentHeight * ImGuiHelpers.GlobalScale)))
             {
-                this.DrawPluginCategorySelectors();
-                ImGui.EndChild();
-            }
+                ImGui.PushStyleVar(ImGuiStyleVar.CellPadding, ImGuiHelpers.ScaledVector2(5, 0));
+                if (ImGui.BeginTable("##InstallerCategoriesCont", 2, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.Resizable | ImGuiTableFlags.BordersInnerV))
+                {
+                    ImGui.TableSetupColumn("##InstallerCategoriesSelector", ImGuiTableColumnFlags.WidthFixed, useMenuWidth * ImGuiHelpers.GlobalScale);
+                    ImGui.TableSetupColumn("##InstallerCategoriesBody", ImGuiTableColumnFlags.WidthStretch);
+                    ImGui.TableNextRow();
 
-            ImGui.SameLine((useMenuWidth + 20) * ImGuiHelpers.GlobalScale);
+                    ImGui.TableNextColumn();
+                    this.DrawPluginCategorySelectors();
 
-            if (ImGui.BeginChild($"ScrollingCategoryContent", new Vector2(ImGui.GetContentRegionAvail().X, useContentHeight * ImGuiHelpers.GlobalScale), false, ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.NoBackground))
-            {
-                this.DrawPluginCategoryContent();
+                    ImGui.TableNextColumn();
+                    if (ImGui.BeginChild($"ScrollingPlugins", new Vector2(useContentWidth, 0), false, ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.NoBackground))
+                    {
+                        this.DrawPluginCategoryContent();
+                        ImGui.EndChild();
+                    }
+
+                    ImGui.EndTable();
+                }
+
+                ImGui.PopStyleVar();
                 ImGui.EndChild();
             }
         }
 
         private void DrawPluginCategorySelectors()
         {
-            Vector4 colorSearchHighlight = Vector4.One;
+            var colorSearchHighlight = Vector4.One;
             unsafe
             {
                 var colorPtr = ImGui.GetStyleColorVec4(ImGuiCol.NavHighlight);
@@ -658,6 +672,7 @@ namespace Dalamud.Interface.Internal.Windows
                     }
 
                     ImGui.Indent();
+                    var categoryItemSize = new Vector2(ImGui.GetContentRegionAvail().X - (5 * ImGuiHelpers.GlobalScale), ImGui.GetTextLineHeight());
                     for (int categoryIdx = 0; categoryIdx < groupInfo.Categories.Count; categoryIdx++)
                     {
                         var categoryInfo = Array.Find(this.categoryManager.CategoryList, x => x.CategoryId == groupInfo.Categories[categoryIdx]);
@@ -668,7 +683,7 @@ namespace Dalamud.Interface.Internal.Windows
                             ImGui.PushStyleColor(ImGuiCol.Text, colorSearchHighlight);
                         }
 
-                        if (ImGui.Selectable(categoryInfo.Name, this.categoryManager.CurrentCategoryIdx == categoryIdx))
+                        if (ImGui.Selectable(categoryInfo.Name, this.categoryManager.CurrentCategoryIdx == categoryIdx, ImGuiSelectableFlags.None, categoryItemSize))
                         {
                             this.categoryManager.CurrentCategoryIdx = categoryIdx;
                         }
