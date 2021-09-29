@@ -343,11 +343,26 @@ namespace Dalamud.Interface.Internal
                     configuration.SavedStyles = new List<StyleModel> { StyleModel.DalamudStandard, StyleModel.DalamudClassic };
                     configuration.ChosenStyle = StyleModel.DalamudStandard.Name;
                 }
+                else if (configuration.SavedStyles.Count == 1)
+                {
+                    configuration.SavedStyles.Add(StyleModel.DalamudClassic);
+                }
+                else if (configuration.SavedStyles[1].Name != StyleModel.DalamudClassic.Name)
+                {
+                    configuration.SavedStyles.Insert(1, StyleModel.DalamudClassic);
+                }
 
                 configuration.SavedStyles[0] = StyleModel.DalamudStandard;
                 configuration.SavedStyles[1] = StyleModel.DalamudClassic;
 
-                var style = configuration.SavedStyles.FirstOrDefault(x => x.Name == configuration.ChosenStyle) ?? StyleModel.DalamudStandard;
+                var style = configuration.SavedStyles.FirstOrDefault(x => x.Name == configuration.ChosenStyle);
+                if (style == null)
+                {
+                    style = StyleModel.DalamudStandard;
+                    configuration.ChosenStyle = style.Name;
+                    configuration.Save();
+                }
+
                 style.Apply();
 
                 ImGui.GetIO().FontGlobalScale = configuration.GlobalUiScale;

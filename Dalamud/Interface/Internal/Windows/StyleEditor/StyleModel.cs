@@ -116,6 +116,20 @@ namespace Dalamud.Interface.Internal.Windows.StyleEditor
                 { "NavWindowingDimBg", new Vector4(0.8f, 0.8f, 0.8f, 0.2f) },
                 { "ModalWindowDimBg", new Vector4(0.8f, 0.8f, 0.8f, 0.35f) },
             },
+
+            BuiltInColors = new DalamudColors
+            {
+                DalamudRed = new Vector4(1f, 0f, 0f, 1f),
+                DalamudGrey = new Vector4(0.7f, 0.7f, 0.7f, 1f),
+                DalamudGrey2 = new Vector4(0.7f, 0.7f, 0.7f, 1f),
+                DalamudGrey3 = new Vector4(0.5f, 0.5f, 0.5f, 1f),
+                DalamudWhite = new Vector4(1f, 1f, 1f, 1f),
+                DalamudWhite2 = new Vector4(0.878f, 0.878f, 0.878f, 1f),
+                DalamudOrange = new Vector4(1f, 0.709f, 0f, 1f),
+                TankBlue = new Vector4(0f, 0.6f, 1f, 1f),
+                HealerGreen = new Vector4(0f, 0.8f, 0.1333333f, 1f),
+                DPSRed = new Vector4(0.7058824f, 0f, 0f, 1f),
+            },
         };
 
         /// <summary>
@@ -210,6 +224,20 @@ namespace Dalamud.Interface.Internal.Windows.StyleEditor
                 { "NavWindowingHighlight", new Vector4(1f, 1f, 1f, 0.7f) },
                 { "NavWindowingDimBg", new Vector4(0.8f, 0.8f, 0.8f, 0.2f) },
                 { "ModalWindowDimBg", new Vector4(0.8f, 0.8f, 0.8f, 0.35f) },
+            },
+
+            BuiltInColors = new DalamudColors
+            {
+                DalamudRed = new Vector4(1f, 0f, 0f, 1f),
+                DalamudGrey = new Vector4(0.7f, 0.7f, 0.7f, 1f),
+                DalamudGrey2 = new Vector4(0.7f, 0.7f, 0.7f, 1f),
+                DalamudGrey3 = new Vector4(0.5f, 0.5f, 0.5f, 1f),
+                DalamudWhite = new Vector4(1f, 1f, 1f, 1f),
+                DalamudWhite2 = new Vector4(0.878f, 0.878f, 0.878f, 1f),
+                DalamudOrange = new Vector4(1f, 0.709f, 0f, 1f),
+                TankBlue = new Vector4(0f, 0.6f, 1f, 1f),
+                HealerGreen = new Vector4(0f, 0.8f, 0.1333333f, 1f),
+                DPSRed = new Vector4(0.7058824f, 0f, 0f, 1f),
             },
         };
 
@@ -362,6 +390,20 @@ namespace Dalamud.Interface.Internal.Windows.StyleEditor
                 model.Colors[imGuiCol.ToString()] = style.Colors[(int)imGuiCol];
             }
 
+            model.BuiltInColors = new DalamudColors
+            {
+                DalamudRed = ImGuiColors.DalamudRed,
+                DalamudGrey = ImGuiColors.DalamudGrey,
+                DalamudGrey2 = ImGuiColors.DalamudGrey2,
+                DalamudGrey3 = ImGuiColors.DalamudGrey3,
+                DalamudWhite = ImGuiColors.DalamudWhite,
+                DalamudWhite2 = ImGuiColors.DalamudWhite2,
+                DalamudOrange = ImGuiColors.DalamudOrange,
+                TankBlue = ImGuiColors.TankBlue,
+                HealerGreen = ImGuiColors.HealerGreen,
+                DPSRed = ImGuiColors.DPSRed,
+            };
+
             return model;
         }
 
@@ -425,6 +467,20 @@ namespace Dalamud.Interface.Internal.Windows.StyleEditor
                 }
 
                 style.Colors[(int)imGuiCol] = this.Colors[imGuiCol.ToString()];
+            }
+
+            if (this.BuiltInColors != null)
+            {
+                ImGuiColors.DalamudRed = this.BuiltInColors.DalamudRed;
+                ImGuiColors.DalamudGrey = this.BuiltInColors.DalamudGrey;
+                ImGuiColors.DalamudGrey2 = this.BuiltInColors.DalamudGrey2;
+                ImGuiColors.DalamudGrey3 = this.BuiltInColors.DalamudGrey3;
+                ImGuiColors.DalamudWhite = this.BuiltInColors.DalamudWhite;
+                ImGuiColors.DalamudWhite2 = this.BuiltInColors.DalamudWhite2;
+                ImGuiColors.DalamudOrange = this.BuiltInColors.DalamudOrange;
+                ImGuiColors.TankBlue = this.BuiltInColors.TankBlue;
+                ImGuiColors.HealerGreen = this.BuiltInColors.HealerGreen;
+                ImGuiColors.DPSRed = this.BuiltInColors.DPSRed;
             }
         }
 
