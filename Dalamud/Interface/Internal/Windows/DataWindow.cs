@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
+using Dalamud.Configuration.Internal;
 using Dalamud.Data;
 using Dalamud.Game;
 using Dalamud.Game.ClientState;
@@ -135,6 +136,7 @@ namespace Dalamud.Interface.Internal.Windows
             Tex,
             KeyState,
             Gamepad,
+            Configuration,
         }
 
         /// <inheritdoc/>
@@ -297,6 +299,10 @@ namespace Dalamud.Interface.Internal.Windows
 
                         case DataKind.Gamepad:
                             this.DrawGamepad();
+                            break;
+
+                        case DataKind.Configuration:
+                            this.DrawConfiguration();
                             break;
                     }
                 }
@@ -1242,6 +1248,12 @@ namespace Dalamud.Interface.Internal.Windows
                        $"RightStickUp {gamepadState.RightStickUp:0.00} " +
                        $"RightStickRight {gamepadState.RightStickRight:0.00} " +
                        $"RightStickDown {gamepadState.RightStickDown:0.00} ");
+        }
+
+        private void DrawConfiguration()
+        {
+            var config = Service<DalamudConfiguration>.Get();
+            Util.ShowObject(config);
         }
 
         private void Load()
