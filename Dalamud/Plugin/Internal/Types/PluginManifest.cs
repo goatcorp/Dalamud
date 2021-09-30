@@ -48,6 +48,12 @@ namespace Dalamud.Plugin.Internal.Types
         public List<string>? Tags { get; init; }
 
         /// <summary>
+        /// Gets a list of category tags defined on the plugin.
+        /// </summary>
+        [JsonProperty]
+        public List<string>? CategoryTags { get; init; }
+
+        /// <summary>
         /// Gets a value indicating whether or not the plugin is hidden in the plugin installer.
         /// This value comes from the plugin master and is in addition to the list of hidden names kept by Dalamud.
         /// </summary>

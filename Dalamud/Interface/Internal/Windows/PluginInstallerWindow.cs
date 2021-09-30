@@ -53,6 +53,7 @@ namespace Dalamud.Interface.Internal.Windows
         private readonly TextureWrap updateIcon;
 
         private readonly HttpClient httpClient = new();
+        private readonly PluginCategoryManager categoryManager = new();
 
         #region Image Tester State
 
@@ -194,7 +195,8 @@ namespace Dalamud.Interface.Internal.Windows
         public override void Draw()
         {
             this.DrawHeader();
-            this.DrawPluginTabBar();
+            // this.DrawPluginTabBar();
+            this.DrawPluginCategories();
             this.DrawFooter();
             this.DrawErrorModal();
             this.DrawFeedbackModal();
@@ -242,7 +244,10 @@ namespace Dalamud.Interface.Internal.Windows
 
             ImGui.SetCursorPosX(windowSize.X - sortSelectWidth - style.ItemSpacing.X - searchInputWidth);
             ImGui.SetNextItemWidth(searchInputWidth);
-            ImGui.InputTextWithHint("###XlPluginInstaller_Search", Locs.Header_SearchPlaceholder, ref this.searchText, 100);
+            if (ImGui.InputTextWithHint("###XlPluginInstaller_Search", Locs.Header_SearchPlaceholder, ref this.searchText, 100))
+            {
+                this.UpdateCategoriesOnSearchChange();
+            }
 
             ImGui.SameLine();
             ImGui.SetCursorPosX(windowSize.X - sortSelectWidth);
@@ -600,6 +605,168 @@ namespace Dalamud.Interface.Internal.Windows
             foreach (var plugin in filteredList)
             {
                 this.DrawInstalledPlugin(plugin, i++);
+            }
+        }
+
+        private void DrawPluginCategories()
+        {
+            float useContentHeight = -40;   // button height + spacing
+            float useMenuWidth = 180;       // works fine as static value, table can be resized by user
+
+            float useContentWidth = ImGui.GetContentRegionAvail().X;
+
+            if (ImGui.BeginChild("InstallerCategories", new Vector2(useContentWidth, useContentHeight * ImGuiHelpers.GlobalScale)))
+            {
+                ImGui.PushStyleVar(ImGuiStyleVar.CellPadding, ImGuiHelpers.ScaledVector2(5, 0));
+                if (ImGui.BeginTable("##InstallerCategoriesCont", 2, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.Resizable | ImGuiTableFlags.BordersInnerV))
+                {
+                    ImGui.TableSetupColumn("##InstallerCategoriesSelector", ImGuiTableColumnFlags.WidthFixed, useMenuWidth * ImGuiHelpers.GlobalScale);
+                    ImGui.TableSetupColumn("##InstallerCategoriesBody", ImGuiTableColumnFlags.WidthStretch);
+                    ImGui.TableNextRow();
+
+                    ImGui.TableNextColumn();
+                    this.DrawPluginCategorySelectors();
+
+                    ImGui.TableNextColumn();
+                    if (ImGui.BeginChild($"ScrollingPlugins", new Vector2(useContentWidth, 0), false, ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.NoBackground))
+                    {
+                        this.DrawPluginCategoryContent();
+                        ImGui.EndChild();
+                    }
+
+                    ImGui.EndTable();
+                }
+
+                ImGui.PopStyleVar();
+                ImGui.EndChild();
+            }
+        }
+
+        private void DrawPluginCategorySelectors()
+        {
+            var colorSearchHighlight = Vector4.One;
+            unsafe
+            {
+                var colorPtr = ImGui.GetStyleColorVec4(ImGuiCol.NavHighlight);
+                if (colorPtr != null)
+                {
+                    colorSearchHighlight = *colorPtr;
+                }
+            }
+
+            for (int groupIdx = 0; groupIdx < this.categoryManager.GroupList.Length; groupIdx++)
+            {
+                var groupInfo = this.categoryManager.GroupList[groupIdx];
+                var canShowGroup = (groupInfo.GroupKind != PluginCategoryManager.GroupKind.DevTools) || this.hasDevPlugins;
+                if (!canShowGroup)
+                {
+                    continue;
+                }
+
+                ImGui.SetNextItemOpen(groupIdx == this.categoryManager.CurrentGroupIdx);
+                if (ImGui.CollapsingHeader(groupInfo.Name))
+                {
+                    if (this.categoryManager.CurrentGroupIdx != groupIdx)
+                    {
+                        this.categoryManager.CurrentGroupIdx = groupIdx;
+                    }
+
+                    ImGui.Indent();
+                    var categoryItemSize = new Vector2(ImGui.GetContentRegionAvail().X - (5 * ImGuiHelpers.GlobalScale), ImGui.GetTextLineHeight());
+                    for (int categoryIdx = 0; categoryIdx < groupInfo.Categories.Count; categoryIdx++)
+                    {
+                        var categoryInfo = Array.Find(this.categoryManager.CategoryList, x => x.CategoryId == groupInfo.Categories[categoryIdx]);
+
+                        bool hasSearchHighlight = this.categoryManager.IsCategoryHighlighted(categoryInfo.CategoryId);
+                        if (hasSearchHighlight)
+                        {
+                            ImGui.PushStyleColor(ImGuiCol.Text, colorSearchHighlight);
+                        }
+
+                        if (ImGui.Selectable(categoryInfo.Name, this.categoryManager.CurrentCategoryIdx == categoryIdx, ImGuiSelectableFlags.None, categoryItemSize))
+                        {
+                            this.categoryManager.CurrentCategoryIdx = categoryIdx;
+                        }
+
+                        if (hasSearchHighlight)
+                        {
+                            ImGui.PopStyleColor();
+                        }
+                    }
+
+                    ImGui.Unindent();
+                }
+            }
+        }
+
+        private void DrawPluginCategoryContent()
+        {
+            var ready = this.DrawPluginListLoading();
+            if (!this.categoryManager.IsSelectionValid || !ready)
+            {
+                return;
+            }
+
+            var groupInfo = this.categoryManager.GroupList[this.categoryManager.CurrentGroupIdx];
+            if (groupInfo.GroupKind == PluginCategoryManager.GroupKind.DevTools)
+            {
+                // this one is never sorted and remains in hardcoded order from group ctor
+                switch (this.categoryManager.CurrentCategoryIdx)
+                {
+                    case 0:
+                        this.DrawInstalledDevPluginList();
+                        break;
+
+                    case 1:
+                        this.DrawImageTester();
+                        break;
+
+                    default:
+                        // umm, there's nothing else, keep handled set and just skip drawing...
+                        break;
+                }
+            }
+            else if (groupInfo.GroupKind == PluginCategoryManager.GroupKind.Installed)
+            {
+                this.DrawInstalledPluginList();
+            }
+            else
+            {
+                var pluginList = this.pluginListAvailable;
+                if (pluginList.Count > 0)
+                {
+                    // reset opened list of collapsibles when switching between categories
+                    if (this.categoryManager.IsContentDirty)
+                    {
+                        this.openPluginCollapsibles.Clear();
+                    }
+
+                    var filteredManifests = pluginList.Where(rm => !this.IsManifestFiltered(rm));
+                    var categoryManifestsList = this.categoryManager.GetCurrentCategoryContent(filteredManifests);
+
+                    if (categoryManifestsList.Count > 0)
+                    {
+                        var i = 0;
+                        foreach (var manifest in categoryManifestsList)
+                        {
+                            var rmManifest = manifest as RemotePluginManifest;
+                            if (rmManifest != null)
+                            {
+                                ImGui.PushID($"{rmManifest.InternalName}{rmManifest.AssemblyVersion}");
+                                this.DrawAvailablePlugin(rmManifest, i++);
+                                ImGui.PopID();
+                            }
+                        }
+                    }
+                    else
+                    {
+                        ImGui.Text(Locs.TabBody_SearchNoMatching);
+                    }
+                }
+                else
+                {
+                    ImGui.Text(Locs.TabBody_SearchNoCompatible);
+                }
             }
         }
 
@@ -1763,6 +1930,8 @@ namespace Dalamud.Interface.Internal.Windows
                 .ToList();
             this.pluginListUpdatable = pluginManager.UpdatablePlugins.ToList();
             this.ResortPlugins();
+
+            this.UpdateCategoriesOnPluginsChange();
         }
 
         private void OnInstalledPluginsChanged()
@@ -1773,6 +1942,8 @@ namespace Dalamud.Interface.Internal.Windows
             this.pluginListUpdatable = pluginManager.UpdatablePlugins.ToList();
             this.hasDevPlugins = this.pluginListInstalled.Any(plugin => plugin.IsDev);
             this.ResortPlugins();
+
+            this.UpdateCategoriesOnPluginsChange();
         }
 
         private void ResortPlugins()
@@ -2109,6 +2280,25 @@ namespace Dalamud.Interface.Internal.Windows
             }
 
             return output;
+        }
+
+        private void UpdateCategoriesOnSearchChange()
+        {
+            if (string.IsNullOrEmpty(this.searchText))
+            {
+                this.categoryManager.SetCategoryHighlightsForPlugins(null);
+            }
+            else
+            {
+                var pluginsMatchingSearch = this.pluginListAvailable.Where(rm => !this.IsManifestFiltered(rm));
+                this.categoryManager.SetCategoryHighlightsForPlugins(pluginsMatchingSearch);
+            }
+        }
+
+        private void UpdateCategoriesOnPluginsChange()
+        {
+            this.categoryManager.BuildCategories(this.pluginListAvailable);
+            this.UpdateCategoriesOnSearchChange();
         }
 
         [SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1201:Elements should appear in the correct order", Justification = "Disregard here")]
