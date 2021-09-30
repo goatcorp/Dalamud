@@ -28,6 +28,7 @@ namespace Dalamud.Interface.Internal
             new(FirstTagBasedCategoryId + 4, "inventory", () => Locs.Category_Inventory),
             new(FirstTagBasedCategoryId + 5, "sound", () => Locs.Category_Sound),
             new(FirstTagBasedCategoryId + 6, "social", () => Locs.Category_Social),
+            new(FirstTagBasedCategoryId + 7, "utility", () => Locs.Category_Utility),
 
             // order doesn't matter, all tag driven categories should have Id >= FirstTagBasedCategoryId
         };
@@ -378,6 +379,8 @@ namespace Dalamud.Interface.Internal
             public static string Category_Sound => Loc.Localize("InstallerCategorySound", "Sound");
 
             public static string Category_Social => Loc.Localize("InstallerCategorySocial", "Social");
+
+            public static string Category_Utility => Loc.Localize("InstallerCategoryUtility", "Utiliry");
 
             #endregion
         }
