@@ -741,7 +741,7 @@ namespace Dalamud.Interface.Internal.Windows
                         this.openPluginCollapsibles.Clear();
                     }
 
-                    var filteredManifests = pluginList.Where(rm => !this.IsManifestFiltered(rm));
+                    var filteredManifests = pluginList.Where(rm => !this.IsManifestFiltered(rm) && !this.IsManifestInstalled(rm).IsInstalled);
                     var categoryManifestsList = this.categoryManager.GetCurrentCategoryContent(filteredManifests);
 
                     if (categoryManifestsList.Count > 0)
