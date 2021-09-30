@@ -380,7 +380,7 @@ namespace Dalamud.Interface.Internal
 
             public static string Category_Social => Loc.Localize("InstallerCategorySocial", "Social");
 
-            public static string Category_Utility => Loc.Localize("InstallerCategoryUtility", "Utiliry");
+            public static string Category_Utility => Loc.Localize("InstallerCategoryUtility", "Utility");
 
             #endregion
         }
