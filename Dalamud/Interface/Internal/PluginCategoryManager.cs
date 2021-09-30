@@ -49,106 +49,6 @@ namespace Dalamud.Interface.Internal
         private List<int> highlightedCategoryIds = new();
 
         /// <summary>
-        /// Forces plugin category tags, overrides settings from manifest.
-        ///   key: PluginManifest.InternalName (lowercase, no spaces),
-        ///   value: list of category tags, <see cref="categoryList"/>.
-        /// </summary>
-        private Dictionary<string, string[]> mapPluginCategoryTagOverrides = new();
-
-        /// <summary>
-        /// Fallback plugin category tags, used only when manifest doesn't contain any.
-        ///   key: PluginManifest.InternalName (lowercase, no spaces),
-        ///   value: list of category tags, <see cref="categoryList"/>.
-        /// </summary>
-        private Dictionary<string, string[]> mapPluginCategoryTagFallbacks = new()
-        {
-            // temporary for testing, should be removed when manifests are updated
-            ["accuratecountdown"] = new string[] { "UI" },
-            ["adventurerinneed"] = new string[] { "UI" },
-            ["aethersense"] = new string[] { "Other" },
-            ["autovisor"] = new string[] { "UI" },
-            ["betterpartyfinder"] = new string[] { "UI" },
-            ["browserhost.plugin"] = new string[] { "UI" },
-            ["burnttoast"] = new string[] { "UI" },
-            ["chatalerts"] = new string[] { "social" },
-            ["chatbubbles"] = new string[] { "social" },
-            ["chatcoordinates"] = new string[] { "social" },
-            ["chatextender"] = new string[] { "social" },
-            ["chattranslator"] = new string[] { "social" },
-            ["compass"] = new string[] { "UI" },
-            ["dalamud.charactersync"] = new string[] { "other" },
-            ["dalamud.discordbridge"] = new string[] { "other" },
-            ["dalamud.loadingimage"] = new string[] { "other" },
-            ["dalamud.richpresence"] = new string[] { "other" },
-            ["dalamudvox"] = new string[] { "Other" },
-            ["damageinfoplugin"] = new string[] { "UI" },
-            ["deepdungeondex"] = new string[] { "UI" },
-            ["easyeyes"] = new string[] { "UI" },
-            ["engagetimer"] = new string[] { "jobs" },
-            ["expandedsearchinfo"] = new string[] { "UI" },
-            ["fantasyplayer.dalamud"] = new string[] { "UI" },
-            ["fauxhollowssolver"] = new string[] { "minigames" },
-            ["fcnamecolor"] = new string[] { "UI", "social" },
-            ["fpsplugin"] = new string[] { "UI" },
-            ["gatherbuddy"] = new string[] { "jobs" },
-            ["gentletouch"] = new string[] { "UI" },
-            ["globetrotter"] = new string[] { "UI" },
-            ["goodmemory"] = new string[] { "UI" },
-            ["harphero"] = new string[] { "jobs" },
-            ["housemate"] = new string[] { "UI" },
-            ["itemsearchplugin"] = new string[] { "inventory" },
-            ["jobbars"] = new string[] { "jobs" },
-            ["jobicons"] = new string[] { "jobs" },
-            ["kapture"] = new string[] { "UI" },
-            ["kingdomheartsplugin"] = new string[] { "UI" },
-            ["macrochain"] = new string[] { "jobs" },
-            ["maplinker"] = new string[] { "UI" },
-            ["marketboardplugin"] = new string[] { "UI" },
-            ["minicactpotsolver"] = new string[] { "minigames" },
-            ["moaction"] = new string[] { "jobs" },
-            ["namingway"] = new string[] { "jobs", "UI" },
-            ["neatnoter"] = new string[] { "UI" },
-            ["nosoliciting"] = new string[] { "UI", "social" },
-            ["oopsalllalafells"] = new string[] { "other" },
-            ["orchestrion"] = new string[] { "sound" },
-            ["owofy"] = new string[] { "social" },
-            ["peepingtom"] = new string[] { "UI" },
-            ["pennypincher"] = new string[] { "UI", "inventory" },
-            ["pingplugin"] = new string[] { "UI" },
-            ["pixelperfect"] = new string[] { "UI" },
-            ["playertrack"] = new string[] { "UI", "social" },
-            ["prefpro"] = new string[] { "UI" },
-            ["pricecheck"] = new string[] { "UI", "inventory" },
-            ["qolbar"] = new string[] { "UI" },
-            ["quest map"] = new string[] { "UI" },
-            ["remindme"] = new string[] { "UI" },
-            ["rezpls"] = new string[] { "UI" },
-            ["sillychat"] = new string[] { "other" },
-            ["simpletweaksplugin"] = new string[] { "UI" },
-            ["skillswap"] = new string[] { "jobs" },
-            ["slidecast"] = new string[] { "jobs" },
-            ["sonarplugin"] = new string[] { "UI" },
-            ["soundfilter"] = new string[] { "sound" },
-            ["soundsetter"] = new string[] { "sound" },
-            ["teleporterplugin"] = new string[] { "UI" },
-            ["textboxstyler"] = new string[] { "UI" },
-            ["texttotalk"] = new string[] { "UI" },
-            ["thegreatseparator"] = new string[] { "UI" },
-            ["titleedit"] = new string[] { "UI" },
-            ["tourist"] = new string[] { "UI" },
-            ["triadbuddy"] = new string[] { "minigames" },
-            ["vfxeditor"] = new string[] { "UI" },
-            ["visibility"] = new string[] { "UI" },
-            ["voidlist"] = new string[] { "UI" },
-            ["waymarkpresetplugin"] = new string[] { "UI" },
-            ["wintitle"] = new string[] { "UI" },
-            ["woldo"] = new string[] { "UI" },
-            ["wondroustailssolver"] = new string[] { "minigames" },
-            ["xivchat"] = new string[] { "social" },
-            ["xivcombo"] = new string[] { "jobs" },
-        };
-
-        /// <summary>
         /// Type of category group.
         /// </summary>
         public enum GroupKind
@@ -363,20 +263,9 @@ namespace Dalamud.Interface.Internal
 
         private IEnumerable<string> GetCategoryTagsForManifest(PluginManifest pluginManifest)
         {
-            var nameKey = pluginManifest.InternalName.ToLowerInvariant().Replace(" ", string.Empty);
-            if (this.mapPluginCategoryTagOverrides.TryGetValue(nameKey, out var overrideTags))
-            {
-                return overrideTags;
-            }
-
             if (pluginManifest.CategoryTags != null)
             {
                 return pluginManifest.CategoryTags;
-            }
-
-            if (this.mapPluginCategoryTagFallbacks.TryGetValue(nameKey, out var fallbackTags))
-            {
-                return fallbackTags;
             }
 
             return null;
