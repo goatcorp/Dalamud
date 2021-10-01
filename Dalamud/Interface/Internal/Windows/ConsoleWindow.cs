@@ -196,8 +196,13 @@ namespace Dalamud.Interface.Internal.Windows
             if (ImGui.IsItemHovered())
                 ImGui.SetTooltip("Kill game");
 
-            ImGui.BeginChild("scrolling", new Vector2(0, ImGui.GetFrameHeightWithSpacing() - 55), false, ImGuiWindowFlags.HorizontalScrollbar);
-
+            ImGui.BeginTable("##logTable", 3, ImGuiTableFlags.ScrollX | ImGuiTableFlags.ScrollY | ImGuiTableFlags.BordersInner | ImGuiTableFlags.NoKeepColumnsVisible, new Vector2(0, ImGui.GetFrameHeightWithSpacing() - 55));
+            //ImGui.TableSetupScrollFreeze(0, 1);
+            ImGui.TableSetupColumn("##TimeStamp", ImGuiTableColumnFlags.WidthFixed);
+            ImGui.TableSetupColumn("##LogLevel", ImGuiTableColumnFlags.WidthFixed);
+            ImGui.TableSetupColumn("##LogLine", ImGuiTableColumnFlags.WidthFixed);
+            //ImGui.TableHeadersRow();
+            
             if (clear)
             {
                 this.Clear();
@@ -207,9 +212,7 @@ namespace Dalamud.Interface.Internal.Windows
             {
                 ImGui.LogToClipboard();
             }
-
-            ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, Vector2.Zero);
-
+            
             ImGuiListClipperPtr clipper;
             unsafe
             {
@@ -217,15 +220,7 @@ namespace Dalamud.Interface.Internal.Windows
             }
 
             ImGui.PushFont(InterfaceManager.MonoFont);
-
-            var childPos = ImGui.GetWindowPos();
-            var childDrawList = ImGui.GetWindowDrawList();
-            var childSize = ImGui.GetWindowSize();
-
-            var cursorDiv = ImGuiHelpers.GlobalScale * 92;
-            var cursorLogLevel = ImGuiHelpers.GlobalScale * 100;
-            var cursorLogLine = ImGuiHelpers.GlobalScale * 135;
-
+            
             lock (this.renderLock)
             {
                 clipper.Begin(this.LogEntries.Count);
@@ -234,33 +229,30 @@ namespace Dalamud.Interface.Internal.Windows
                     for (var i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
                     {
                         var line = this.LogEntries[i];
+                        var lineColor = this.GetColorForLogEventLevel(line.Level);
 
-                        if (!line.IsMultiline)
-                            ImGui.Separator();
-
-                        ImGui.PushStyleColor(ImGuiCol.Header, this.GetColorForLogEventLevel(line.Level));
-                        ImGui.PushStyleColor(ImGuiCol.HeaderActive, this.GetColorForLogEventLevel(line.Level));
-                        ImGui.PushStyleColor(ImGuiCol.HeaderHovered, this.GetColorForLogEventLevel(line.Level));
-
-                        ImGui.Selectable("###consolenull", true, ImGuiSelectableFlags.AllowItemOverlap | ImGuiSelectableFlags.SpanAllColumns);
-                        ImGui.SameLine();
-
-                        ImGui.PopStyleColor(3);
-
-                        if (!line.IsMultiline)
+                        if (line.IsMultiline)
                         {
+                            //ImGui.PushStyleColor(ImGuiCol.TableBorderLight, lineColor);
+                        }
+                        
+                        ImGui.TableNextColumn();
+                        if (!line.IsMultiline)
                             ImGui.TextUnformatted(line.TimeStamp.ToString("HH:mm:ss.fff"));
-                            ImGui.SameLine();
-                            ImGui.SetCursorPosX(cursorDiv);
-                            ImGui.TextUnformatted("|");
-                            ImGui.SameLine();
-                            ImGui.SetCursorPosX(cursorLogLevel);
+
+                        ImGui.TableNextColumn();
+                        if (!line.IsMultiline)
                             ImGui.TextUnformatted(this.GetTextForLogEventLevel(line.Level));
-                            ImGui.SameLine();
+
+                        ImGui.TableNextColumn();
+                        ImGui.TextUnformatted(line.Line);
+
+                        if (line.IsMultiline)
+                        {
+                            //ImGui.PopStyleColor();
                         }
 
-                        ImGui.SetCursorPosX(cursorLogLine);
-                        ImGui.TextUnformatted(line.Line);
+                        ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg0, lineColor);
                     }
                 }
 
@@ -269,18 +261,12 @@ namespace Dalamud.Interface.Internal.Windows
 
             ImGui.PopFont();
 
-            ImGui.PopStyleVar();
-
             if (this.autoScroll && ImGui.GetScrollY() >= ImGui.GetScrollMaxY())
             {
                 ImGui.SetScrollHereY(1.0f);
             }
 
-            // Draw dividing line
-            var offset = ImGuiHelpers.GlobalScale * 127;
-            childDrawList.AddLine(new Vector2(childPos.X + offset, childPos.Y), new Vector2(childPos.X + offset, childPos.Y + childSize.Y), 0x4FFFFFFF, 1.0f);
-
-            ImGui.EndChild();
+            ImGui.EndTable();
 
             var hadColor = false;
             if (this.lastCmdSuccess.HasValue)
