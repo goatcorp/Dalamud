@@ -664,7 +664,7 @@ namespace Dalamud.Interface.Internal.Windows
                 }
 
                 ImGui.SetNextItemOpen(groupIdx == this.categoryManager.CurrentGroupIdx);
-                if (ImGui.CollapsingHeader(groupInfo.Name))
+                if (ImGui.CollapsingHeader(groupInfo.Name, groupIdx == this.categoryManager.CurrentGroupIdx ? ImGuiTreeNodeFlags.OpenOnDoubleClick : ImGuiTreeNodeFlags.None))
                 {
                     if (this.categoryManager.CurrentGroupIdx != groupIdx)
                     {
@@ -695,6 +695,11 @@ namespace Dalamud.Interface.Internal.Windows
                     }
 
                     ImGui.Unindent();
+
+                    if (groupIdx != this.categoryManager.GroupList.Length - 1)
+                    {
+                        ImGuiHelpers.ScaledDummy(5);
+                    }
                 }
             }
         }
