@@ -24,7 +24,7 @@ namespace Dalamud.Interface.Internal
             new(FirstTagBasedCategoryId + 0, "other", () => Locs.Category_Other),
             new(FirstTagBasedCategoryId + 1, "jobs", () => Locs.Category_Jobs),
             new(FirstTagBasedCategoryId + 2, "ui", () => Locs.Category_UI),
-            new(FirstTagBasedCategoryId + 3, "minigame", () => Locs.Category_MiniGames),
+            new(FirstTagBasedCategoryId + 3, "minigames", () => Locs.Category_MiniGames),
             new(FirstTagBasedCategoryId + 4, "inventory", () => Locs.Category_Inventory),
             new(FirstTagBasedCategoryId + 5, "sound", () => Locs.Category_Sound),
             new(FirstTagBasedCategoryId + 6, "social", () => Locs.Category_Social),
@@ -380,7 +380,7 @@ namespace Dalamud.Interface.Internal
 
             public static string Category_Social => Loc.Localize("InstallerCategorySocial", "Social");
 
-            public static string Category_Utility => Loc.Localize("InstallerCategoryUtility", "Utiliry");
+            public static string Category_Utility => Loc.Localize("InstallerCategoryUtility", "Utility");
 
             #endregion
         }
