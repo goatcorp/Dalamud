@@ -222,6 +222,10 @@ namespace Dalamud.Interface.Internal.Windows
             var childDrawList = ImGui.GetWindowDrawList();
             var childSize = ImGui.GetWindowSize();
 
+            var cursorDiv = ImGuiHelpers.GlobalScale * 92;
+            var cursorLogLevel = ImGuiHelpers.GlobalScale * 100;
+            var cursorLogLine = ImGuiHelpers.GlobalScale * 135;
+
             lock (this.renderLock)
             {
                 clipper.Begin(this.LogEntries.Count);
@@ -247,15 +251,15 @@ namespace Dalamud.Interface.Internal.Windows
                         {
                             ImGui.TextUnformatted(line.TimeStamp.ToString("HH:mm:ss.fff"));
                             ImGui.SameLine();
-                            ImGui.SetCursorPosX(92);
+                            ImGui.SetCursorPosX(cursorDiv);
                             ImGui.TextUnformatted("|");
                             ImGui.SameLine();
-                            ImGui.SetCursorPosX(100);
+                            ImGui.SetCursorPosX(cursorLogLevel);
                             ImGui.TextUnformatted(this.GetTextForLogEventLevel(line.Level));
                             ImGui.SameLine();
                         }
 
-                        ImGui.SetCursorPosX(135);
+                        ImGui.SetCursorPosX(cursorLogLine);
                         ImGui.TextUnformatted(line.Line);
                     }
                 }
@@ -273,7 +277,8 @@ namespace Dalamud.Interface.Internal.Windows
             }
 
             // Draw dividing line
-            childDrawList.AddLine(new Vector2(childPos.X + 127, childPos.Y), new Vector2(childPos.X + 127, childPos.Y + childSize.Y), 0x4FFFFFFF, 1.0f);
+            var offset = ImGuiHelpers.GlobalScale * 127;
+            childDrawList.AddLine(new Vector2(childPos.X + offset, childPos.Y), new Vector2(childPos.X + offset, childPos.Y + childSize.Y), 0x4FFFFFFF, 1.0f);
 
             ImGui.EndChild();
 
