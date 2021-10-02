@@ -628,7 +628,7 @@ namespace Dalamud.Interface.Internal.Windows
                     this.DrawPluginCategorySelectors();
 
                     ImGui.TableNextColumn();
-                    if (ImGui.BeginChild($"ScrollingPlugins", new Vector2(useContentWidth, 0), false, ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.NoBackground))
+                    if (ImGui.BeginChild("ScrollingPlugins", new Vector2(-1, 0), false, ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.NoBackground))
                     {
                         this.DrawPluginCategoryContent();
                         ImGui.EndChild();
