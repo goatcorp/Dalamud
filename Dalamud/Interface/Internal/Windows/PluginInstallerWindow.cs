@@ -715,6 +715,8 @@ namespace Dalamud.Interface.Internal.Windows
                 return;
             }
 
+            ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, ImGuiHelpers.ScaledVector2(1, 3));
+
             var groupInfo = this.categoryManager.GroupList[this.categoryManager.CurrentGroupIdx];
             if (groupInfo.GroupKind == PluginCategoryManager.GroupKind.DevTools)
             {
@@ -776,6 +778,8 @@ namespace Dalamud.Interface.Internal.Windows
                     ImGui.Text(Locs.TabBody_SearchNoCompatible);
                 }
             }
+
+            ImGui.PopStyleVar();
         }
 
         private void DrawImageTester()
