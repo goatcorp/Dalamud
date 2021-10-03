@@ -469,6 +469,7 @@ namespace Dalamud.Interface.Internal.Windows
             }
         }
 
+        /*
         private void DrawPluginTabBar()
         {
             ImGui.SetCursorPosY(ImGui.GetCursorPosY() - (5 * ImGuiHelpers.GlobalScale));
@@ -489,7 +490,9 @@ namespace Dalamud.Interface.Internal.Windows
 
             ImGui.PopStyleVar();
         }
+        */
 
+        /*
         private void DrawPluginTab(string title, Action drawPluginList)
         {
             if (ImGui.BeginTabItem(title))
@@ -510,6 +513,7 @@ namespace Dalamud.Interface.Internal.Windows
                 ImGui.EndTabItem();
             }
         }
+        */
 
         private void DrawAvailablePluginList()
         {
