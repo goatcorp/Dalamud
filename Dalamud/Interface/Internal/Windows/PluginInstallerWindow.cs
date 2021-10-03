@@ -525,30 +525,38 @@ namespace Dalamud.Interface.Internal.Windows
                 return;
             }
 
-            var filteredList = pluginList
+            var filteredManifests = pluginList
                 .Where(rm => !this.IsManifestFiltered(rm))
                 .ToList();
 
-            if (filteredList.Count == 0)
+            if (filteredManifests.Count == 0)
             {
                 ImGui.TextColored(ImGuiColors.DalamudGrey2, Locs.TabBody_SearchNoMatching);
                 return;
             }
 
-            var i = 0;
-            foreach (var manifest in filteredList)
+            // reset opened list of collapsibles when switching between categories
+            if (this.categoryManager.IsContentDirty)
             {
-                var (isInstalled, plugin) = this.IsManifestInstalled(manifest);
+                this.openPluginCollapsibles.Clear();
+            }
+
+            var categoryManifestsList = this.categoryManager.GetCurrentCategoryContent(filteredManifests);
+
+            var i = 0;
+            foreach (var manifest in categoryManifestsList)
+            {
+                var remoteManifest = manifest as RemotePluginManifest;
+                var (isInstalled, plugin) = this.IsManifestInstalled(remoteManifest);
 
                 ImGui.PushID($"{manifest.InternalName}{manifest.AssemblyVersion}");
-
                 if (isInstalled)
                 {
                     this.DrawInstalledPlugin(plugin, i++, true);
                 }
                 else
                 {
-                    this.DrawAvailablePlugin(manifest, i++);
+                    this.DrawAvailablePlugin(remoteManifest, i++);
                 }
 
                 ImGui.PopID();
@@ -742,41 +750,7 @@ namespace Dalamud.Interface.Internal.Windows
             }
             else
             {
-                var pluginList = this.pluginListAvailable;
-                if (pluginList.Count > 0)
-                {
-                    // reset opened list of collapsibles when switching between categories
-                    if (this.categoryManager.IsContentDirty)
-                    {
-                        this.openPluginCollapsibles.Clear();
-                    }
-
-                    var filteredManifests = pluginList.Where(rm => !this.IsManifestFiltered(rm) && !this.IsManifestInstalled(rm).IsInstalled);
-                    var categoryManifestsList = this.categoryManager.GetCurrentCategoryContent(filteredManifests);
-
-                    if (categoryManifestsList.Count > 0)
-                    {
-                        var i = 0;
-                        foreach (var manifest in categoryManifestsList)
-                        {
-                            var rmManifest = manifest as RemotePluginManifest;
-                            if (rmManifest != null)
-                            {
-                                ImGui.PushID($"{rmManifest.InternalName}{rmManifest.AssemblyVersion}");
-                                this.DrawAvailablePlugin(rmManifest, i++);
-                                ImGui.PopID();
-                            }
-                        }
-                    }
-                    else
-                    {
-                        ImGui.Text(Locs.TabBody_SearchNoMatching);
-                    }
-                }
-                else
-                {
-                    ImGui.Text(Locs.TabBody_SearchNoCompatible);
-                }
+                this.DrawAvailablePluginList();
             }
 
             ImGui.PopStyleVar();
