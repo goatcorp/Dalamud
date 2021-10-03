@@ -2165,6 +2165,10 @@ namespace Dalamud.Interface.Internal.Windows
                     if (didAny)
                     {
                         Log.Verbose($"Plugin images for {manifest.InternalName} loaded from disk");
+
+                        if (pluginImages.Contains(null))
+                            pluginImages = pluginImages.Where(image => image != null).ToArray();
+
                         this.pluginImagesMap[manifest.InternalName] = pluginImages;
 
                         return;
@@ -2217,6 +2221,10 @@ namespace Dalamud.Interface.Internal.Windows
                 if (didAny)
                 {
                     Log.Verbose($"Plugin images for {manifest.InternalName} downloaded");
+
+                    if (pluginImages.Contains(null))
+                        pluginImages = pluginImages.Where(image => image != null).ToArray();
+
                     this.pluginImagesMap[manifest.InternalName] = pluginImages;
 
                     return;
