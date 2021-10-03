@@ -195,7 +195,6 @@ namespace Dalamud.Interface.Internal.Windows
         public override void Draw()
         {
             this.DrawHeader();
-            // this.DrawPluginTabBar();
             this.DrawPluginCategories();
             this.DrawFooter();
             this.DrawErrorModal();
@@ -631,9 +630,9 @@ namespace Dalamud.Interface.Internal.Windows
                     if (ImGui.BeginChild("ScrollingPlugins", new Vector2(-1, 0), false, ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.NoBackground))
                     {
                         this.DrawPluginCategoryContent();
-                        ImGui.EndChild();
                     }
 
+                    ImGui.EndChild();
                     ImGui.EndTable();
                 }
 
