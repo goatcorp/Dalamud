@@ -610,10 +610,10 @@ namespace Dalamud.Interface.Internal.Windows
 
         private void DrawPluginCategories()
         {
-            float useContentHeight = -40;   // button height + spacing
-            float useMenuWidth = 180;       // works fine as static value, table can be resized by user
+            var useContentHeight = -40f;   // button height + spacing
+            var useMenuWidth = 180f;       // works fine as static value, table can be resized by user
 
-            float useContentWidth = ImGui.GetContentRegionAvail().X;
+            var useContentWidth = ImGui.GetContentRegionAvail().X;
 
             if (ImGui.BeginChild("InstallerCategories", new Vector2(useContentWidth, useContentHeight * ImGuiHelpers.GlobalScale)))
             {
@@ -654,7 +654,7 @@ namespace Dalamud.Interface.Internal.Windows
                 }
             }
 
-            for (int groupIdx = 0; groupIdx < this.categoryManager.GroupList.Length; groupIdx++)
+            for (var groupIdx = 0; groupIdx < this.categoryManager.GroupList.Length; groupIdx++)
             {
                 var groupInfo = this.categoryManager.GroupList[groupIdx];
                 var canShowGroup = (groupInfo.GroupKind != PluginCategoryManager.GroupKind.DevTools) || this.hasDevPlugins;
@@ -673,11 +673,11 @@ namespace Dalamud.Interface.Internal.Windows
 
                     ImGui.Indent();
                     var categoryItemSize = new Vector2(ImGui.GetContentRegionAvail().X - (5 * ImGuiHelpers.GlobalScale), ImGui.GetTextLineHeight());
-                    for (int categoryIdx = 0; categoryIdx < groupInfo.Categories.Count; categoryIdx++)
+                    for (var categoryIdx = 0; categoryIdx < groupInfo.Categories.Count; categoryIdx++)
                     {
                         var categoryInfo = Array.Find(this.categoryManager.CategoryList, x => x.CategoryId == groupInfo.Categories[categoryIdx]);
 
-                        bool hasSearchHighlight = this.categoryManager.IsCategoryHighlighted(categoryInfo.CategoryId);
+                        var hasSearchHighlight = this.categoryManager.IsCategoryHighlighted(categoryInfo.CategoryId);
                         if (hasSearchHighlight)
                         {
                             ImGui.PushStyleColor(ImGuiCol.Text, colorSearchHighlight);
