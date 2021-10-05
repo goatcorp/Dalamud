@@ -149,10 +149,10 @@ namespace Dalamud.Interface.Internal
                     foreach (var tag in pluginCategoryTags)
                     {
                         // only tags from whitelist can be accepted
-                        int matchIdx = Array.FindIndex(this.CategoryList, x => x.Tag.Equals(tag, StringComparison.InvariantCultureIgnoreCase));
+                        var matchIdx = Array.FindIndex(this.CategoryList, x => x.Tag.Equals(tag, StringComparison.InvariantCultureIgnoreCase));
                         if (matchIdx >= 0)
                         {
-                            int categoryId = this.CategoryList[matchIdx].CategoryId;
+                            var categoryId = this.CategoryList[matchIdx].CategoryId;
                             if (categoryId >= FirstTagBasedCategoryId)
                             {
                                 categoryList.Add(categoryId);
@@ -202,7 +202,7 @@ namespace Dalamud.Interface.Internal
             {
                 var groupInfo = this.groupList[this.currentGroupIdx];
 
-                bool includeAll = (this.currentCategoryIdx == 0) || (groupInfo.GroupKind != GroupKind.Available);
+                var includeAll = (this.currentCategoryIdx == 0) || (groupInfo.GroupKind != GroupKind.Available);
                 if (includeAll)
                 {
                     result.AddRange(plugins);
@@ -215,7 +215,7 @@ namespace Dalamud.Interface.Internal
                     {
                         if (this.mapPluginCategories.TryGetValue(plugin, out var pluginCategoryIds))
                         {
-                            int matchIdx = Array.IndexOf(pluginCategoryIds, selectedCategoryInfo.CategoryId);
+                            var matchIdx = Array.IndexOf(pluginCategoryIds, selectedCategoryInfo.CategoryId);
                             if (matchIdx >= 0)
                             {
                                 result.Add(plugin);

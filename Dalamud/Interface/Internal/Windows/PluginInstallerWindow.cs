@@ -195,7 +195,6 @@ namespace Dalamud.Interface.Internal.Windows
         public override void Draw()
         {
             this.DrawHeader();
-            // this.DrawPluginTabBar();
             this.DrawPluginCategories();
             this.DrawFooter();
             this.DrawErrorModal();
@@ -470,6 +469,7 @@ namespace Dalamud.Interface.Internal.Windows
             }
         }
 
+        /*
         private void DrawPluginTabBar()
         {
             ImGui.SetCursorPosY(ImGui.GetCursorPosY() - (5 * ImGuiHelpers.GlobalScale));
@@ -490,7 +490,9 @@ namespace Dalamud.Interface.Internal.Windows
 
             ImGui.PopStyleVar();
         }
+        */
 
+        /*
         private void DrawPluginTab(string title, Action drawPluginList)
         {
             if (ImGui.BeginTabItem(title))
@@ -511,6 +513,7 @@ namespace Dalamud.Interface.Internal.Windows
                 ImGui.EndTabItem();
             }
         }
+        */
 
         private void DrawAvailablePluginList()
         {
@@ -522,30 +525,38 @@ namespace Dalamud.Interface.Internal.Windows
                 return;
             }
 
-            var filteredList = pluginList
+            var filteredManifests = pluginList
                 .Where(rm => !this.IsManifestFiltered(rm))
                 .ToList();
 
-            if (filteredList.Count == 0)
+            if (filteredManifests.Count == 0)
             {
                 ImGui.TextColored(ImGuiColors.DalamudGrey2, Locs.TabBody_SearchNoMatching);
                 return;
             }
 
-            var i = 0;
-            foreach (var manifest in filteredList)
+            // reset opened list of collapsibles when switching between categories
+            if (this.categoryManager.IsContentDirty)
             {
-                var (isInstalled, plugin) = this.IsManifestInstalled(manifest);
+                this.openPluginCollapsibles.Clear();
+            }
+
+            var categoryManifestsList = this.categoryManager.GetCurrentCategoryContent(filteredManifests);
+
+            var i = 0;
+            foreach (var manifest in categoryManifestsList)
+            {
+                var remoteManifest = manifest as RemotePluginManifest;
+                var (isInstalled, plugin) = this.IsManifestInstalled(remoteManifest);
 
                 ImGui.PushID($"{manifest.InternalName}{manifest.AssemblyVersion}");
-
                 if (isInstalled)
                 {
                     this.DrawInstalledPlugin(plugin, i++, true);
                 }
                 else
                 {
-                    this.DrawAvailablePlugin(manifest, i++);
+                    this.DrawAvailablePlugin(remoteManifest, i++);
                 }
 
                 ImGui.PopID();
@@ -610,10 +621,10 @@ namespace Dalamud.Interface.Internal.Windows
 
         private void DrawPluginCategories()
         {
-            float useContentHeight = -40;   // button height + spacing
-            float useMenuWidth = 180;       // works fine as static value, table can be resized by user
+            var useContentHeight = -40f;   // button height + spacing
+            var useMenuWidth = 180f;       // works fine as static value, table can be resized by user
 
-            float useContentWidth = ImGui.GetContentRegionAvail().X;
+            var useContentWidth = ImGui.GetContentRegionAvail().X;
 
             if (ImGui.BeginChild("InstallerCategories", new Vector2(useContentWidth, useContentHeight * ImGuiHelpers.GlobalScale)))
             {
@@ -628,12 +639,12 @@ namespace Dalamud.Interface.Internal.Windows
                     this.DrawPluginCategorySelectors();
 
                     ImGui.TableNextColumn();
-                    if (ImGui.BeginChild($"ScrollingPlugins", new Vector2(useContentWidth, 0), false, ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.NoBackground))
+                    if (ImGui.BeginChild("ScrollingPlugins", new Vector2(-1, 0), false, ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.NoBackground))
                     {
                         this.DrawPluginCategoryContent();
-                        ImGui.EndChild();
                     }
 
+                    ImGui.EndChild();
                     ImGui.EndTable();
                 }
 
@@ -654,7 +665,7 @@ namespace Dalamud.Interface.Internal.Windows
                 }
             }
 
-            for (int groupIdx = 0; groupIdx < this.categoryManager.GroupList.Length; groupIdx++)
+            for (var groupIdx = 0; groupIdx < this.categoryManager.GroupList.Length; groupIdx++)
             {
                 var groupInfo = this.categoryManager.GroupList[groupIdx];
                 var canShowGroup = (groupInfo.GroupKind != PluginCategoryManager.GroupKind.DevTools) || this.hasDevPlugins;
@@ -673,11 +684,11 @@ namespace Dalamud.Interface.Internal.Windows
 
                     ImGui.Indent();
                     var categoryItemSize = new Vector2(ImGui.GetContentRegionAvail().X - (5 * ImGuiHelpers.GlobalScale), ImGui.GetTextLineHeight());
-                    for (int categoryIdx = 0; categoryIdx < groupInfo.Categories.Count; categoryIdx++)
+                    for (var categoryIdx = 0; categoryIdx < groupInfo.Categories.Count; categoryIdx++)
                     {
                         var categoryInfo = Array.Find(this.categoryManager.CategoryList, x => x.CategoryId == groupInfo.Categories[categoryIdx]);
 
-                        bool hasSearchHighlight = this.categoryManager.IsCategoryHighlighted(categoryInfo.CategoryId);
+                        var hasSearchHighlight = this.categoryManager.IsCategoryHighlighted(categoryInfo.CategoryId);
                         if (hasSearchHighlight)
                         {
                             ImGui.PushStyleColor(ImGuiCol.Text, colorSearchHighlight);
@@ -712,6 +723,8 @@ namespace Dalamud.Interface.Internal.Windows
                 return;
             }
 
+            ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, ImGuiHelpers.ScaledVector2(1, 3));
+
             var groupInfo = this.categoryManager.GroupList[this.categoryManager.CurrentGroupIdx];
             if (groupInfo.GroupKind == PluginCategoryManager.GroupKind.DevTools)
             {
@@ -737,42 +750,10 @@ namespace Dalamud.Interface.Internal.Windows
             }
             else
             {
-                var pluginList = this.pluginListAvailable;
-                if (pluginList.Count > 0)
-                {
-                    // reset opened list of collapsibles when switching between categories
-                    if (this.categoryManager.IsContentDirty)
-                    {
-                        this.openPluginCollapsibles.Clear();
-                    }
-
-                    var filteredManifests = pluginList.Where(rm => !this.IsManifestFiltered(rm) && !this.IsManifestInstalled(rm).IsInstalled);
-                    var categoryManifestsList = this.categoryManager.GetCurrentCategoryContent(filteredManifests);
-
-                    if (categoryManifestsList.Count > 0)
-                    {
-                        var i = 0;
-                        foreach (var manifest in categoryManifestsList)
-                        {
-                            var rmManifest = manifest as RemotePluginManifest;
-                            if (rmManifest != null)
-                            {
-                                ImGui.PushID($"{rmManifest.InternalName}{rmManifest.AssemblyVersion}");
-                                this.DrawAvailablePlugin(rmManifest, i++);
-                                ImGui.PopID();
-                            }
-                        }
-                    }
-                    else
-                    {
-                        ImGui.Text(Locs.TabBody_SearchNoMatching);
-                    }
-                }
-                else
-                {
-                    ImGui.Text(Locs.TabBody_SearchNoCompatible);
-                }
+                this.DrawAvailablePluginList();
             }
+
+            ImGui.PopStyleVar();
         }
 
         private void DrawImageTester()
@@ -2166,6 +2147,10 @@ namespace Dalamud.Interface.Internal.Windows
                     if (didAny)
                     {
                         Log.Verbose($"Plugin images for {manifest.InternalName} loaded from disk");
+
+                        if (pluginImages.Contains(null))
+                            pluginImages = pluginImages.Where(image => image != null).ToArray();
+
                         this.pluginImagesMap[manifest.InternalName] = pluginImages;
 
                         return;
@@ -2218,6 +2203,10 @@ namespace Dalamud.Interface.Internal.Windows
                 if (didAny)
                 {
                     Log.Verbose($"Plugin images for {manifest.InternalName} downloaded");
+
+                    if (pluginImages.Contains(null))
+                        pluginImages = pluginImages.Where(image => image != null).ToArray();
+
                     this.pluginImagesMap[manifest.InternalName] = pluginImages;
 
                     return;

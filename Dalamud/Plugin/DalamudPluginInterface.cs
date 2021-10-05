@@ -165,11 +165,11 @@ namespace Dalamud.Plugin
         #region IPC
 
         /// <summary>
-        /// Gets an IPC publisher.
+        /// Gets an IPC provider.
         /// </summary>
         /// <typeparam name="TRet">The return type for funcs. Use object if this is unused.</typeparam>
         /// <param name="name">The name of the IPC registration.</param>
-        /// <returns>An IPC publisher.</returns>
+        /// <returns>An IPC provider.</returns>
         /// <exception cref="IpcTypeMismatchError">This is thrown when the requested types do not match the previously registered types are different.</exception>
         public ICallGateProvider<TRet> GetIpcProvider<TRet>(string name)
             => new CallGatePubSub<TRet>(name);
@@ -211,7 +211,7 @@ namespace Dalamud.Plugin
         /// </summary>
         /// <typeparam name="TRet">The return type for funcs. Use object if this is unused.</typeparam>
         /// <param name="name">The name of the IPC registration.</param>
-        /// <returns>An IPC publisher.</returns>
+        /// <returns>An IPC subscriber.</returns>
         public ICallGateSubscriber<TRet> GetIpcSubscriber<TRet>(string name)
             => new CallGatePubSub<TRet>(name);
 
