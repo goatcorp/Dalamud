@@ -48,7 +48,6 @@ namespace Dalamud.Plugin
 
             this.pluginName = pluginName;
             this.AssemblyLocation = assemblyLocation;
-            this.AssemblyDirectory = new DirectoryInfo(assemblyLocation.DirectoryName!);
             this.configs = Service<PluginManager>.Get().PluginConfigs;
             this.Reason = reason;
             this.IsDev = isDev;
@@ -120,11 +119,6 @@ namespace Dalamud.Plugin
         /// Gets the location of your plugin assembly.
         /// </summary>
         public FileInfo AssemblyLocation { get; }
-
-        /// <summary>
-        /// Gets the directory your plugin assembly and bundled files are stored in.
-        /// </summary>
-        public DirectoryInfo AssemblyDirectory { get; }
 
         /// <summary>
         /// Gets the directory your plugin configurations are stored in.
