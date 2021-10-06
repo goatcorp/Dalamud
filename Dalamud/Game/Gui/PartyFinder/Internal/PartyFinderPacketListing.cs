@@ -51,7 +51,7 @@ namespace Dalamud.Game.Gui.PartyFinder.Internal
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 3)]
         private readonly byte[] header7; // all zero in every pf I've examined
 
-        private readonly uint lastPatchHotfixTimestamp; // last time the servers were restarted?
+        internal readonly uint LastPatchHotfixTimestamp; // last time the servers were restarted?
         internal readonly ushort SecondsRemaining;
 
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 6)]
