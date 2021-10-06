@@ -309,7 +309,7 @@ namespace Dalamud.Plugin.Internal
                 // Update the location for the Location and CodeBase patches
                 PluginManager.PluginLocations[this.pluginType.Assembly.FullName] = new(this.DllFile);
 
-                this.DalamudInterface = new DalamudPluginInterface(this.pluginAssembly.GetName().Name!, reason, this.IsDev);
+                this.DalamudInterface = new DalamudPluginInterface(this.pluginAssembly.GetName().Name!, this.DllFile, reason, this.IsDev);
 
                 var ioc = Service<ServiceContainer>.Get();
                 this.instance = ioc.Create(this.pluginType, this.DalamudInterface) as IDalamudPlugin;
