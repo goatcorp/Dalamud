@@ -161,6 +161,11 @@ namespace Dalamud.Configuration.Internal
         public bool LogOpenAtStartup { get; set; }
 
         /// <summary>
+        /// Gets or sets a value indicating whether or not ImGui asserts should be enabled at startup.
+        /// </summary>
+        public bool AssertsEnabledAtStartup { get; set; }
+
+        /// <summary>
         /// Gets or sets a value indicating whether or not docking should be globally enabled in ImGui.
         /// </summary>
         public bool IsDocking { get; set; }

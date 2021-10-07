@@ -94,7 +94,7 @@ namespace Dalamud.Interface.Internal
             this.WindowSystem.AddWindow(this.selfTestWindow);
             this.WindowSystem.AddWindow(this.styleEditorWindow);
 
-            ImGuiManagedAsserts.AssertsEnabled = true;
+            ImGuiManagedAsserts.AssertsEnabled = configuration.AssertsEnabledAtStartup;
 
             Service<InterfaceManager>.Get().Draw += this.OnDraw;
         }
@@ -490,6 +490,12 @@ namespace Dalamud.Interface.Internal
                         if (ImGui.MenuItem("Enable Asserts", string.Empty, ref val))
                         {
                             ImGuiManagedAsserts.AssertsEnabled = val;
+                        }
+
+                        if (ImGui.MenuItem("Enable asserts at startup", null, configuration.AssertsEnabledAtStartup))
+                        {
+                            configuration.AssertsEnabledAtStartup = !configuration.AssertsEnabledAtStartup;
+                            configuration.Save();
                         }
 
                         if (ImGui.MenuItem("Clear focus"))
