@@ -535,12 +535,7 @@ namespace Dalamud.Interface.Internal.Windows
                 return;
             }
 
-            // reset opened list of collapsibles when switching between categories
-            if (this.categoryManager.IsContentDirty)
-            {
-                this.openPluginCollapsibles.Clear();
-            }
-
+            // get list to show and reset category dirty flag
             var categoryManifestsList = this.categoryManager.GetCurrentCategoryContent(filteredManifests);
 
             var i = 0;
@@ -726,6 +721,18 @@ namespace Dalamud.Interface.Internal.Windows
             ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, ImGuiHelpers.ScaledVector2(1, 3));
 
             var groupInfo = this.categoryManager.GroupList[this.categoryManager.CurrentGroupIdx];
+            if (this.categoryManager.IsContentDirty)
+            {
+                // reset opened list of collapsibles when switching between categories
+                this.openPluginCollapsibles.Clear();
+
+                // do NOT reset dirty flag when Available group is selected, it will be handled by DrawAvailablePluginList()
+                if (groupInfo.GroupKind != PluginCategoryManager.GroupKind.Available)
+                {
+                    this.categoryManager.ResetContentDirty();
+                }
+            }
+
             if (groupInfo.GroupKind == PluginCategoryManager.GroupKind.DevTools)
             {
                 // this one is never sorted and remains in hardcoded order from group ctor
