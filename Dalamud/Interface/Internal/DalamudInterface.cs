@@ -56,6 +56,7 @@ namespace Dalamud.Interface.Internal
 #endif
 
         private bool isImGuiDrawDemoWindow = false;
+        private bool isImGuiDrawMetricsWindow = false;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DalamudInterface"/> class.
@@ -312,7 +313,10 @@ namespace Dalamud.Interface.Internal
                 this.WindowSystem.Draw();
 
                 if (this.isImGuiDrawDemoWindow)
-                    ImGui.ShowDemoWindow();
+                    ImGui.ShowDemoWindow(ref this.isImGuiDrawDemoWindow);
+
+                if (this.isImGuiDrawMetricsWindow)
+                    ImGui.ShowMetricsWindow(ref this.isImGuiDrawMetricsWindow);
 
                 // Release focus of any ImGui window if we click into the game.
                 var io = ImGui.GetIO();
@@ -483,6 +487,8 @@ namespace Dalamud.Interface.Internal
                     if (ImGui.BeginMenu("GUI"))
                     {
                         ImGui.MenuItem("Draw ImGui demo", string.Empty, ref this.isImGuiDrawDemoWindow);
+
+                        ImGui.MenuItem("Draw metrics", string.Empty, ref this.isImGuiDrawMetricsWindow);
 
                         ImGui.Separator();
 
