@@ -56,6 +56,11 @@ namespace Dalamud.Configuration.Internal
         public string LastVersion { get; set; } = null;
 
         /// <summary>
+        /// Gets or sets the last loaded Dalamud version.
+        /// </summary>
+        public string LastChangelogMajorMinor { get; set; } = null;
+
+        /// <summary>
         /// Gets or sets the chat type used by default for plugin messages.
         /// </summary>
         public XivChatType GeneralChatType { get; set; } = XivChatType.Debug;

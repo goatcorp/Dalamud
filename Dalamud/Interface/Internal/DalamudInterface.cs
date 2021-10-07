@@ -21,7 +21,6 @@ using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal;
 using Dalamud.Utility;
 using ImGuiNET;
-using Newtonsoft.Json;
 using PInvoke;
 using Serilog.Events;
 
@@ -113,11 +112,6 @@ namespace Dalamud.Interface.Internal
             get => this.isImGuiDrawDevMenu;
             set => this.isImGuiDrawDevMenu = value;
         }
-
-        /// <summary>
-        /// Gets a value indicating whether the current Dalamud version warrants displaying the changelog.
-        /// </summary>
-        public bool WarrantsChangelog => ChangelogWindow.WarrantsChangelog;
 
         /// <inheritdoc/>
         public void Dispose()
