@@ -54,6 +54,7 @@ namespace Dalamud.Game.Gui.PartyFinder.Types
             this.MinimumItemLevel = listing.MinimumItemLevel;
             this.Parties = listing.NumParties;
             this.SlotsAvailable = listing.NumSlots;
+            this.LastPatchHotfixTimestamp = listing.LastPatchHotfixTimestamp;
             this.JobsPresent = listing.JobsPresent
                 .Select(id => new Lazy<ClassJob>(
                     () => id == 0
@@ -142,6 +143,12 @@ namespace Dalamud.Game.Gui.PartyFinder.Types
         /// Gets the number of player slots this listing is recruiting for.
         /// </summary>
         public byte SlotsAvailable { get; }
+
+        /// <summary>
+        /// Gets the time at which the server this listings is on last restarted for a patch/hotfix.
+        /// Probably.
+        /// </summary>
+        public uint LastPatchHotfixTimestamp { get; }
 
         /// <summary>
         /// Gets a list of player slots that the Party Finder is accepting.
