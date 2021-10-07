@@ -39,7 +39,9 @@ namespace Dalamud.Support
             };
 
             if (includeException)
-                model.Exception = Troubleshooting.LastException?.ToString();
+            {
+                model.Exception = Troubleshooting.LastException == null ? "Was included, but none happened" : Troubleshooting.LastException?.ToString();
+            }
 
             var postContent = new StringContent(JsonConvert.SerializeObject(model), Encoding.UTF8, "application/json");
             var response = await client.PostAsync(BugBaitUrl, postContent);
