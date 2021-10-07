@@ -36,6 +36,7 @@ namespace Dalamud.Support
                 Reporter = reporter,
                 Name = plugin.InternalName,
                 Version = plugin.AssemblyVersion.ToString(),
+                DalamudHash = Util.GetGitHash(),
             };
 
             if (includeException)
@@ -56,6 +57,9 @@ namespace Dalamud.Support
 
             [JsonProperty("name")]
             public string? Name { get; set; }
+
+            [JsonProperty("dhash")]
+            public string? DalamudHash { get; set; }
 
             [JsonProperty("version")]
             public string? Version { get; set; }
