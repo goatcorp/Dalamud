@@ -24,8 +24,8 @@ We are currently working from the following branches.
 
 | Name | Purpose | .NET Version |
 |---|---|---|
-| *master* | .NET Core rework, in-development, will replace stable | .NET 5.0.6 (May 2021) |
-| *api3* | Legacy, current stable version, to be replaced in November | .NET 4.7.5 (April 2017) |
+| *master* | .NET Core rework, replaced api3 on 10/08/21 | .NET 5.0.6 (May 2021) |
+| *api3* | Legacy version, no longer in active use | .NET Framework 4.7.2 (April 2017) |
 
 <br>
 
