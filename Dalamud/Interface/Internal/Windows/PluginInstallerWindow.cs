@@ -1401,6 +1401,7 @@ namespace Dalamud.Interface.Internal.Windows
                 ImGui.TextColored(ImGuiColors.DalamudGrey3, downloadText);
 
                 var isThirdParty = manifest.IsThirdParty;
+                var canFeedback = !isThirdParty && !plugin.IsDev && this.pluginListAvailable.Any(x => x.InternalName == plugin.Manifest.InternalName) && plugin.Manifest.DalamudApiLevel == PluginManager.DalamudApiLevel;
 
                 // Installed from
                 if (plugin.IsDev)
@@ -1457,7 +1458,7 @@ namespace Dalamud.Interface.Internal.Windows
                 this.DrawDeletePluginButton(plugin);
                 this.DrawVisitRepoUrlButton(plugin.Manifest.RepoUrl);
 
-                if (!isThirdParty && !plugin.IsDev)
+                if (canFeedback)
                 {
                     this.DrawSendFeedbackButton(plugin.Manifest);
                 }

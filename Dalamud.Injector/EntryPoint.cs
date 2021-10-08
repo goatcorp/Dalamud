@@ -173,7 +173,7 @@ namespace Dalamud.Injector
 
                 writer.BaseStream.SetLength(total);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 /*
                 var caption = "XIVLauncher Error";
