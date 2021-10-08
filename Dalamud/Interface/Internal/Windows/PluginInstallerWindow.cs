@@ -1127,10 +1127,11 @@ namespace Dalamud.Interface.Internal.Windows
             else if (!string.IsNullOrWhiteSpace(manifest.Description))
             {
                 const int punchlineLen = 200;
+                var firstLine = manifest.Description.Split()[0];
 
-                ImGui.TextWrapped(manifest.Description.Length < punchlineLen
-                                      ? manifest.Description
-                                      : manifest.Description[..punchlineLen]);
+                ImGui.TextWrapped(firstLine.Length < punchlineLen
+                                      ? firstLine
+                                      : firstLine[..punchlineLen]);
             }
 
             startCursor.Y += sectionSize;
