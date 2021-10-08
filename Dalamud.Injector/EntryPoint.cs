@@ -175,9 +175,11 @@ namespace Dalamud.Injector
             }
             catch (Exception ex)
             {
+                /*
                 var caption = "XIVLauncher Error";
                 var message = $"Log cull threw an exception: {ex.Message}\n{ex.StackTrace ?? string.Empty}";
                 _ = MessageBoxW(IntPtr.Zero, message, caption, MessageBoxType.IconError | MessageBoxType.Ok);
+                */
             }
         }
 
