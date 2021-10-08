@@ -708,7 +708,7 @@ namespace Dalamud.Plugin.Internal
             {
                 // Can't update that!
                 if (plugin.InstalledPlugin.IsDev)
-                    return null;
+                    continue;
 
                 var result = await this.UpdateSinglePluginAsync(plugin, false, dryRun);
                 if (result != null)
