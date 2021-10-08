@@ -1124,6 +1124,14 @@ namespace Dalamud.Interface.Internal.Windows
             {
                 ImGui.TextWrapped(manifest.Punchline);
             }
+            else if (!string.IsNullOrWhiteSpace(manifest.Description))
+            {
+                const int punchlineLen = 200;
+
+                ImGui.TextWrapped(manifest.Description.Length < punchlineLen
+                                      ? manifest.Description
+                                      : manifest.Description[..punchlineLen]);
+            }
 
             startCursor.Y += sectionSize;
             ImGui.SetCursorPos(startCursor);
