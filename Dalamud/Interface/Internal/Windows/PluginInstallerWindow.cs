@@ -421,9 +421,10 @@ namespace Dalamud.Interface.Internal.Windows
 
                 ImGui.Spacing();
 
-                ImGui.InputText("Contact Information", ref this.feedbackModalContact, 100);
+                ImGui.InputText(Locs.FeedbackModal_ContactInformation, ref this.feedbackModalContact, 100);
 
-                ImGui.Checkbox("Include last error message", ref this.feedbackModalIncludeException);
+                ImGui.Checkbox(Locs.FeedbackModal_IncludeLastError, ref this.feedbackModalIncludeException);
+                ImGui.TextColored(ImGuiColors.DalamudGrey, Locs.FeedbackModal_IncludeLastErrorHint);
 
                 ImGui.Spacing();
 
@@ -2542,6 +2543,12 @@ namespace Dalamud.Interface.Internal.Windows
             public static string FeedbackModal_Title => Loc.Localize("InstallerFeedback", "Send Feedback");
 
             public static string FeedbackModal_Text(string pluginName) => Loc.Localize("InstallerFeedbackInfo", "You can send feedback to the developer of \"{0}\" here.\nYou can include your Discord tag or email address if you wish to give them the opportunity to answer.").Format(pluginName);
+
+            public static string FeedbackModal_ContactInformation => Loc.Localize("InstallerFeedbackContactInfo", "Contact information");
+
+            public static string FeedbackModal_IncludeLastError => Loc.Localize("InstallerFeedbackIncludeLastError", "Include last error message");
+
+            public static string FeedbackModal_IncludeLastErrorHint => Loc.Localize("InstallerFeedbackIncludeLastErrorHint", "This option can give the plugin developer useful feedback on what exactly went wrong.");
 
             public static string FeedbackModal_Hint => Loc.Localize("InstallerFeedbackHint", "All plugin developers will be able to see your feedback.\nPlease never include any personal or revealing information.\nIf you chose to include the last error message, information like your Windows username may be included.\n\nThe collected feedback is not stored on our end and immediately relayed to Discord.");
 
