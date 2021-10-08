@@ -39,7 +39,7 @@ namespace Dalamud.Game.Internal.DXGI
             var modules = Process.GetCurrentProcess().Modules;
             foreach (ProcessModule processModule in modules)
             {
-                if (processModule.FileName != null && processModule.FileName.EndsWith("game\\dxgi.dll"))
+                if (processModule.FileName != null && (processModule.FileName.EndsWith("game\\dxgi.dll") || processModule.FileName.EndsWith("game\\d3d11.dll")))
                 {
                     // reshade master@4232872 RVA
                     // var p = processModule.BaseAddress + 0x82C7E0; // DXGISwapChain::Present
