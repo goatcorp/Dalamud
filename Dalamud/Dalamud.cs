@@ -66,9 +66,6 @@ namespace Dalamud
 
             this.LogLevelSwitch = loggingLevelSwitch;
 
-            // TODO: Just for testing, force verbose logging
-            this.LogLevelSwitch.MinimumLevel = LogEventLevel.Verbose;
-
             this.unloadSignal = new ManualResetEvent(false);
             this.unloadSignal.Reset();
 
