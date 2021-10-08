@@ -2424,7 +2424,7 @@ namespace Dalamud.Interface.Internal.Windows
 
             public static string PluginBody_Outdated => Loc.Localize("InstallerOutdatedPluginBody ", "This plugin is outdated and incompatible at the moment. Please wait for it to be updated by its author.");
 
-            public static string PluginBody_Banned => Loc.Localize("InstallerBannedPluginBody ", "This plugin version is banned and not available at the moment. Please wait for it to be updated by its author.");
+            public static string PluginBody_Banned => Loc.Localize("InstallerBannedPluginBody ", "This plugin version is banned due to incompatibilities and not available at the moment. Please wait for it to be updated by its author.");
 
             #endregion
 
