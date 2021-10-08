@@ -320,6 +320,10 @@ namespace Dalamud.Interface.Internal
             Util.Fatal($"One or more files required by XIVLauncher were not found.\nPlease restart and report this error if it occurs again.\n\n{path}", "Error");
         }
 
+        /*
+         * NOTE(goat): When hooking ReShade DXGISwapChain::runtime_present, this is missing the syncInterval arg.
+         *             Seems to work fine regardless, I guess, so whatever.
+         */
         private IntPtr PresentDetour(IntPtr swapChain, uint syncInterval, uint presentFlags)
         {
             if (this.scene != null && swapChain != this.scene.SwapChain.NativePointer)
@@ -398,6 +402,22 @@ namespace Dalamud.Interface.Internal
                 Service<DalamudIME>.Get().Enable();
             }
 
+            if (this.address.IsReshade)
+            {
+                var pRes = this.presentHook.Original(swapChain, syncInterval, presentFlags);
+
+                this.RenderImGui();
+
+                return pRes;
+            }
+
+            this.RenderImGui();
+
+            return this.presentHook.Original(swapChain, syncInterval, presentFlags);
+        }
+
+        private void RenderImGui()
+        {
             // Process information needed by ImGuiHelpers each frame.
             ImGuiHelpers.NewFrame();
 
@@ -405,8 +425,6 @@ namespace Dalamud.Interface.Internal
             this.CheckViewportState();
 
             this.scene.Render();
-
-            return this.presentHook.Original(swapChain, syncInterval, presentFlags);
         }
 
         private void CheckViewportState()
