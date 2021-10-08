@@ -20,7 +20,12 @@ namespace Dalamud.Interface.Internal.Windows
 
         private const string ChangeLog =
             @"This is the biggest update of the in-game addon to date.
-We have redone most of the underlying systems, providing you with a better experience playing and browsing for plugins, including better performance, and developers with a better API and more comfortable development environment. You will receive this update automatically the next time you start the game.
+We have redone most of the underlying systems, providing you with a better experience playing and browsing for plugins, including better performance, and developers with a better API and more comfortable development environment.
+
+We have also added some new features:
+• Redesigned plugin installer, featuring icons, screenshots, and filterable categories
+• A new look for Dalamud windows and a style editor that lets you adjust colors & other variables to your liking
+• Pressing Escape in-game will now close the focused Dalamud window and keep game windows open, until all windows are closed, to unify behaviour with the game windows (you can disable this in the settings)
 
 If you note any issues or need help, please make sure to ask on our discord server.";
 
@@ -40,7 +45,7 @@ If you note any issues or need help, please make sure to ask on our discord serv
         {
             this.Namespace = "DalamudChangelogWindow";
 
-            this.Size = new Vector2(885, 385);
+            this.Size = new Vector2(885, 463);
             this.SizeCondition = ImGuiCond.Appearing;
         }
 
