@@ -1430,7 +1430,7 @@ namespace Dalamud.Interface.Internal.Windows
                     ImGui.TextWrapped(manifest.Description);
                 }
 
-                if (plugin.IsOutdated)
+                if (plugin.IsOutdated && !plugin.IsBanned)
                 {
                     ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
                     ImGui.TextWrapped(Locs.PluginBody_Outdated);
@@ -1440,7 +1440,10 @@ namespace Dalamud.Interface.Internal.Windows
                 if (plugin.IsBanned)
                 {
                     ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
-                    ImGui.TextWrapped(Locs.PluginBody_Banned);
+                    ImGui.TextWrapped(plugin.BanReason.IsNullOrEmpty()
+                                          ? Locs.PluginBody_Banned
+                                          : Locs.PluginBody_BannedReason(plugin.BanReason));
+
                     ImGui.PopStyleColor();
                 }
 
@@ -2435,6 +2438,9 @@ namespace Dalamud.Interface.Internal.Windows
             public static string PluginBody_Outdated => Loc.Localize("InstallerOutdatedPluginBody ", "This plugin is outdated and incompatible at the moment. Please wait for it to be updated by its author.");
 
             public static string PluginBody_Banned => Loc.Localize("InstallerBannedPluginBody ", "This plugin version is banned due to incompatibilities and not available at the moment. Please wait for it to be updated by its author.");
+
+            public static string PluginBody_BannedReason(string message) =>
+                Loc.Localize("InstallerBannedPluginBodyReason ", "This plugin is banned: {0}").Format(message);
 
             #endregion
 
