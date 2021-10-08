@@ -1,16 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
 
 using Dalamud.Game.Internal.DXGI.Definitions;
 using Serilog;
-using SharpDX.Direct3D;
-using SharpDX.Direct3D11;
-using SharpDX.DXGI;
-
-using Device = SharpDX.Direct3D11.Device;
 
 namespace Dalamud.Game.Internal.DXGI
 {
@@ -59,6 +53,7 @@ namespace Dalamud.Game.Internal.DXGI
 
                         this.Present = p;
                         this.IsReshade = true;
+                        break;
                     }
                     catch (Exception ex)
                     {
