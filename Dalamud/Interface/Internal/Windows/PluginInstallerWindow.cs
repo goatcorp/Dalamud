@@ -1827,7 +1827,14 @@ namespace Dalamud.Interface.Internal.Windows
             if (!hasImages)
             {
                 this.pluginImagesMap.Add(manifest.InternalName, Array.Empty<TextureWrap>());
-                Task.Run(async () => await this.DownloadPluginImagesAsync(plugin, manifest, isThirdParty));
+                Task.Run(async () => await this.DownloadPluginImagesAsync(plugin, manifest, isThirdParty))
+                    .ContinueWith(task =>
+                    {
+                        if (task.IsFaulted)
+                        {
+                            Log.Error(task.Exception.InnerException, "An unhandled exception occurred in the plugin image downloader");
+                        }
+                    });
 
                 return false;
             }
@@ -2093,6 +2100,11 @@ namespace Dalamud.Interface.Internal.Windows
                     Log.Error($"Plugin icon for {manifest.InternalName} has an Invalid URI");
                     return;
                 }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, $"An unexpected error occurred with the icon for {manifest.InternalName}");
+                    return;
+                }
 
                 if (data.StatusCode == HttpStatusCode.NotFound)
                     return;
@@ -2200,6 +2212,11 @@ namespace Dalamud.Interface.Internal.Windows
                     catch (InvalidOperationException)
                     {
                         Log.Error($"Plugin image{i + 1} for {manifest.InternalName} has an Invalid URI");
+                        continue;
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, $"An unexpected error occurred with image{i + 1} for {manifest.InternalName}");
                         continue;
                     }
 
