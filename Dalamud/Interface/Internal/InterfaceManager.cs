@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -23,6 +23,7 @@ using Dalamud.Interface.Windowing;
 using Dalamud.Utility;
 using ImGuiNET;
 using ImGuiScene;
+using PInvoke;
 using Serilog;
 using SharpDX.Direct3D11;
 
@@ -331,7 +332,30 @@ namespace Dalamud.Interface.Internal
 
             if (this.scene == null)
             {
-                this.scene = new RawDX11Scene(swapChain);
+                try
+                {
+                    this.scene = new RawDX11Scene(swapChain);
+                }
+                catch (DllNotFoundException)
+                {
+                    var res = PInvoke.User32.MessageBox(
+                        IntPtr.Zero,
+                        "Dalamud plugins require the Microsoft Visual C++ Redistributable to be installed.\nPlease install the runtime from the official Microsoft website or disable Dalamud.\n\nDo you want to download the redistributable now?",
+                        "Dalamud Error",
+                        User32.MessageBoxOptions.MB_YESNO | User32.MessageBoxOptions.MB_TOPMOST | User32.MessageBoxOptions.MB_ICONERROR);
+
+                    if (res == User32.MessageBoxResult.IDYES)
+                    {
+                        var psi = new ProcessStartInfo
+                        {
+                            FileName = "https://aka.ms/vs/16/release/vc_redist.x64.exe",
+                            UseShellExecute = true,
+                        };
+                        Process.Start(psi);
+                    }
+
+                    Environment.Exit(-1);
+                }
 
                 var startInfo = Service<DalamudStartInfo>.Get();
                 var configuration = Service<DalamudConfiguration>.Get();
