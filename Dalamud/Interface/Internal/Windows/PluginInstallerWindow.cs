@@ -1827,7 +1827,14 @@ namespace Dalamud.Interface.Internal.Windows
             if (!hasImages)
             {
                 this.pluginImagesMap.Add(manifest.InternalName, Array.Empty<TextureWrap>());
-                Task.Run(async () => await this.DownloadPluginImagesAsync(plugin, manifest, isThirdParty));
+                Task.Run(async () => await this.DownloadPluginImagesAsync(plugin, manifest, isThirdParty))
+                    .ContinueWith(task =>
+                    {
+                        if (task.IsFaulted)
+                        {
+                            Log.Error(task.Exception.InnerException, "An unhandled exception occurred in the plugin image downloader");
+                        }
+                    });
 
                 return false;
             }
