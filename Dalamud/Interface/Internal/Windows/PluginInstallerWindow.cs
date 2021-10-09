@@ -1127,7 +1127,7 @@ namespace Dalamud.Interface.Internal.Windows
             else if (!string.IsNullOrWhiteSpace(manifest.Description))
             {
                 const int punchlineLen = 200;
-                var firstLine = manifest.Description.Split(new [] { '\r', '\n' })[0];
+                var firstLine = manifest.Description.Split(new[] { '\r', '\n' })[0];
 
                 ImGui.TextWrapped(firstLine.Length < punchlineLen
                                       ? firstLine
