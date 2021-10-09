@@ -2093,6 +2093,11 @@ namespace Dalamud.Interface.Internal.Windows
                     Log.Error($"Plugin icon for {manifest.InternalName} has an Invalid URI");
                     return;
                 }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, $"An unexpected error occurred with the icon for {manifest.InternalName}");
+                    return;
+                }
 
                 if (data.StatusCode == HttpStatusCode.NotFound)
                     return;
@@ -2200,6 +2205,11 @@ namespace Dalamud.Interface.Internal.Windows
                     catch (InvalidOperationException)
                     {
                         Log.Error($"Plugin image{i + 1} for {manifest.InternalName} has an Invalid URI");
+                        continue;
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, $"An unexpected error occurred with image{i + 1} for {manifest.InternalName}");
                         continue;
                     }
 
