@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
 
@@ -23,7 +24,7 @@ using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Ipc.Internal;
 using Dalamud.Support;
-using HarmonyLib;
+using MonoMod.RuntimeDetour;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
@@ -383,17 +384,20 @@ namespace Dalamud
         /// uses pseudo-handles to access memory, to prevent permission errors.
         /// It should never be called manually.
         /// </summary>
-        /// <param name="__instance">The equivalent of `this`.</param>
-        /// <param name="__result">The result from the original method.</param>
-        [SuppressMessage("StyleCop.CSharp.NamingRules", "SA1313:Parameter names should begin with lower-case letter", Justification = "Enforced naming for special injected parameters")]
-        private static void ProcessHandlePatch(Process __instance, ref IntPtr __result)
+        /// <param name="orig">A delegate that acts as the original method.</param>
+        /// <param name="self">The equivalent of `this`.</param>
+        /// <returns>A pseudo-handle for the current process, or the result from the original method.</returns>
+        private static IntPtr ProcessHandlePatch(Func<Process, IntPtr> orig, Process self)
         {
-            if (__instance.Id == Environment.ProcessId)
+            var result = orig(self);
+
+            if (self.Id == Environment.ProcessId)
             {
-                __result = (IntPtr)0xFFFFFFFF;
+                result = (IntPtr)0xFFFFFFFF;
             }
 
-            // Log.Verbose($"Process.Handle // {__instance.ProcessName} // {__result:X}");
+            // Log.Verbose($"Process.Handle // {self.ProcessName} // {result:X}");
+            return result;
         }
 
         private static void SerilogOnLogLine(object? sender, (string Line, LogEventLevel Level, DateTimeOffset TimeStamp, Exception? Exception) e)
@@ -406,13 +410,11 @@ namespace Dalamud
 
         private void ApplyProcessPatch()
         {
-            var harmony = new Harmony("goatcorp.dalamud");
-
             var targetType = typeof(Process);
 
-            var handleTarget = AccessTools.PropertyGetter(targetType, nameof(Process.Handle));
-            var handlePatch = AccessTools.Method(typeof(Dalamud), nameof(Dalamud.ProcessHandlePatch));
-            harmony.Patch(handleTarget, postfix: new(handlePatch));
+            var handleTarget = targetType.GetProperty(nameof(Process.Handle)).GetGetMethod();
+            var handlePatch = typeof(Dalamud).GetMethod(nameof(Dalamud.ProcessHandlePatch), BindingFlags.NonPublic | BindingFlags.Static);
+            _ = new Hook(handleTarget, handlePatch);
         }
     }
 }

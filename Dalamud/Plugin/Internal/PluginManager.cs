@@ -20,7 +20,7 @@ using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Exceptions;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
-using HarmonyLib;
+using MonoMod.RuntimeDetour;
 using Newtonsoft.Json;
 
 namespace Dalamud.Plugin.Internal
@@ -1074,26 +1074,29 @@ namespace Dalamud.Plugin.Internal
         /// This patch facilitates resolving the assembly location for plugins that are loaded via byte[].
         /// It should never be called manually.
         /// </summary>
-        /// <param name="__instance">The equivalent of `this`.</param>
-        /// <param name="__result">The result from the original method.</param>
-        [SuppressMessage("StyleCop.CSharp.NamingRules", "SA1313:Parameter names should begin with lower-case letter", Justification = "Enforced naming for special injected parameters")]
-        private static void AssemblyLocationPatch(Assembly __instance, ref string __result)
+        /// <param name="orig">A delegate that acts as the original method.</param>
+        /// <param name="self">The equivalent of `this`.</param>
+        /// <returns>The plugin location, or the result from the original method.</returns>
+        private static string AssemblyLocationPatch(Func<Assembly, string?> orig, Assembly self)
         {
-            if (string.IsNullOrEmpty(__result))
+            var result = orig(self);
+
+            if (string.IsNullOrEmpty(result))
             {
                 foreach (var assemblyName in GetStackFrameAssemblyNames())
                 {
                     if (PluginLocations.TryGetValue(assemblyName, out var data))
                     {
-                        __result = data.Location;
+                        result = data.Location;
                         break;
                     }
                 }
             }
 
-            __result ??= string.Empty;
+            result ??= string.Empty;
 
-            Log.Verbose($"Assembly.Location // {__instance.FullName} // {__result}");
+            Log.Verbose($"Assembly.Location // {self.FullName} // {result}");
+            return result;
         }
 
         /// <summary>
@@ -1101,26 +1104,29 @@ namespace Dalamud.Plugin.Internal
         /// This patch facilitates resolving the assembly location for plugins that are loaded via byte[].
         /// It should never be called manually.
         /// </summary>
-        /// <param name="__instance">The equivalent of `this`.</param>
-        /// <param name="__result">The result from the original method.</param>
-        [SuppressMessage("StyleCop.CSharp.NamingRules", "SA1313:Parameter names should begin with lower-case letter", Justification = "Enforced naming for special injected parameters")]
-        private static void AssemblyCodeBasePatch(Assembly __instance, ref string __result)
+        /// <param name="orig">A delegate that acts as the original method.</param>
+        /// <param name="self">The equivalent of `this`.</param>
+        /// <returns>The plugin code base, or the result from the original method.</returns>
+        private static string AssemblyCodeBasePatch(Func<Assembly, string?> orig, Assembly self)
         {
-            if (string.IsNullOrEmpty(__result))
+            var result = orig(self);
+
+            if (string.IsNullOrEmpty(result))
             {
                 foreach (var assemblyName in GetStackFrameAssemblyNames())
                 {
                     if (PluginLocations.TryGetValue(assemblyName, out var data))
                     {
-                        __result = data.CodeBase;
+                        result = data.CodeBase;
                         break;
                     }
                 }
             }
 
-            __result ??= string.Empty;
+            result ??= string.Empty;
 
-            Log.Verbose($"Assembly.CodeBase // {__instance.FullName} // {__result}");
+            Log.Verbose($"Assembly.CodeBase // {self.FullName} // {result}");
+            return result;
         }
 
         private static IEnumerable<string> GetStackFrameAssemblyNames()
@@ -1140,18 +1146,16 @@ namespace Dalamud.Plugin.Internal
 
         private void ApplyPatches()
         {
-            var harmony = new Harmony("goatcorp.dalamud.pluginmanager");
-
             var targetType = typeof(PluginManager).Assembly.GetType();
 
-            var locationTarget = AccessTools.PropertyGetter(targetType, nameof(Assembly.Location));
-            var locationPatch = AccessTools.Method(typeof(PluginManager), nameof(PluginManager.AssemblyLocationPatch));
-            harmony.Patch(locationTarget, postfix: new(locationPatch));
+            var locationTarget = targetType.GetProperty(nameof(Assembly.Location)).GetGetMethod();
+            var locationPatch = typeof(PluginManager).GetMethod(nameof(PluginManager.AssemblyLocationPatch), BindingFlags.NonPublic | BindingFlags.Static);
+            _ = new Hook(locationTarget, locationPatch);
 
 #pragma warning disable SYSLIB0012 // Type or member is obsolete
-            var codebaseTarget = AccessTools.PropertyGetter(targetType, nameof(Assembly.CodeBase));
-            var codebasePatch = AccessTools.Method(typeof(PluginManager), nameof(PluginManager.AssemblyCodeBasePatch));
-            harmony.Patch(codebaseTarget, postfix: new(codebasePatch));
+            var codebaseTarget = targetType.GetProperty(nameof(Assembly.CodeBase)).GetGetMethod();
+            var codebasePatch = typeof(PluginManager).GetMethod(nameof(PluginManager.AssemblyCodeBasePatch), BindingFlags.NonPublic | BindingFlags.Static);
+            _ = new Hook(codebaseTarget, codebasePatch);
 #pragma warning restore SYSLIB0012 // Type or member is obsolete
         }
 
