@@ -336,8 +336,10 @@ namespace Dalamud.Interface.Internal
                 {
                     this.scene = new RawDX11Scene(swapChain);
                 }
-                catch (DllNotFoundException)
+                catch (DllNotFoundException ex)
                 {
+                    Log.Error(ex, "Could not load ImGui dependencies.");
+
                     var res = PInvoke.User32.MessageBox(
                         IntPtr.Zero,
                         "Dalamud plugins require the Microsoft Visual C++ Redistributable to be installed.\nPlease install the runtime from the official Microsoft website or disable Dalamud.\n\nDo you want to download the redistributable now?",
