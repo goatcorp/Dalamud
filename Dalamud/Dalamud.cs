@@ -104,6 +104,11 @@ namespace Dalamud
 
                 Service<ServiceContainer>.Set();
 
+#if DEBUG
+                Service<TaskTracker>.Set();
+                Log.Information("[T1] TaskTracker OK!");
+#endif
+
                 // Initialize the process information.
                 Service<SigScanner>.Set(new SigScanner(true));
                 Service<HookManager>.Set();

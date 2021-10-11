@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Data;
@@ -27,6 +30,7 @@ using Dalamud.Game.Text;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.Windowing;
+using Dalamud.Logging.Internal;
 using Dalamud.Memory;
 using Dalamud.Plugin.Ipc;
 using Dalamud.Plugin.Ipc.Internal;
@@ -137,6 +141,7 @@ namespace Dalamud.Interface.Internal.Windows
             KeyState,
             Gamepad,
             Configuration,
+            TaskSched,
         }
 
         /// <inheritdoc/>
@@ -303,6 +308,10 @@ namespace Dalamud.Interface.Internal.Windows
 
                         case DataKind.Configuration:
                             this.DrawConfiguration();
+                            break;
+
+                        case DataKind.TaskSched:
+                            this.DrawTaskSched();
                             break;
                     }
                 }
@@ -1254,6 +1263,127 @@ namespace Dalamud.Interface.Internal.Windows
         {
             var config = Service<DalamudConfiguration>.Get();
             Util.ShowObject(config);
+        }
+
+        private void DrawTaskSched()
+        {
+            if (ImGui.Button("Clear list"))
+            {
+                TaskTracker.Clear();
+            }
+
+            ImGui.SameLine();
+            ImGuiHelpers.ScaledDummy(10);
+            ImGui.SameLine();
+
+            if (ImGui.Button("Short Task.Run"))
+            {
+                Task.Run(() => { Thread.Sleep(500); });
+            }
+
+            ImGui.SameLine();
+
+            if (ImGui.Button("Task in task(Delay)"))
+            {
+                Task.Run(async () => await this.TestTaskInTaskDelay());
+            }
+
+            ImGui.SameLine();
+
+            if (ImGui.Button("Task in task(Sleep)"))
+            {
+                Task.Run(async () => await this.TestTaskInTaskSleep());
+            }
+
+            ImGui.SameLine();
+
+            if (ImGui.Button("Faulting task"))
+            {
+                Task.Run(() =>
+                {
+                    Thread.Sleep(200);
+
+                    string a = null;
+                    a.Contains("dalamud");
+                });
+            }
+
+            ImGuiHelpers.ScaledDummy(20);
+
+            // Needed to init the task tracker, if we're not on a debug build
+            var tracker = Service<TaskTracker>.GetNullable() ?? Service<TaskTracker>.Set();
+
+            for (var i = 0; i < TaskTracker.Tasks.Count; i++)
+            {
+                var task = TaskTracker.Tasks[i];
+                var subTime = DateTime.Now;
+                if (task.Task == null)
+                    subTime = task.FinishTime;
+
+                switch (task.Status)
+                {
+                    case TaskStatus.Created:
+                    case TaskStatus.WaitingForActivation:
+                    case TaskStatus.WaitingToRun:
+                        ImGui.PushStyleColor(ImGuiCol.Header, ImGuiColors.DalamudGrey);
+                        break;
+                    case TaskStatus.Running:
+                    case TaskStatus.WaitingForChildrenToComplete:
+                        ImGui.PushStyleColor(ImGuiCol.Header, ImGuiColors.ParsedBlue);
+                        break;
+                    case TaskStatus.RanToCompletion:
+                        ImGui.PushStyleColor(ImGuiCol.Header, ImGuiColors.ParsedGreen);
+                        break;
+                    case TaskStatus.Canceled:
+                    case TaskStatus.Faulted:
+                        ImGui.PushStyleColor(ImGuiCol.Header, ImGuiColors.DalamudRed);
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+
+                if (ImGui.CollapsingHeader($"#{task.Id} - {task.Status} {(subTime - task.StartTime).TotalMilliseconds}ms###task{i}"))
+                {
+                    if (ImGui.Button("CANCEL (May not work)"))
+                    {
+                        try
+                        {
+                            var cancelFunc =
+                                typeof(Task).GetMethod("InternalCancel", BindingFlags.NonPublic | BindingFlags.Instance);
+                            cancelFunc.Invoke(task, null);
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error(ex, "Could not cancel task.");
+                        }
+                    }
+
+                    ImGuiHelpers.ScaledDummy(10);
+
+                    ImGui.TextUnformatted(task.StackTrace.ToString());
+
+                    if (task.Exception != null)
+                    {
+                        ImGuiHelpers.ScaledDummy(15);
+                        ImGui.TextColored(ImGuiColors.DalamudRed, "EXCEPTION:");
+                        ImGui.TextUnformatted(task.Exception.ToString());
+                    }
+                }
+
+                ImGui.PopStyleColor(1);
+            }
+        }
+
+        private async Task TestTaskInTaskDelay()
+        {
+            await Task.Delay(5000);
+        }
+
+#pragma warning disable 1998
+        private async Task TestTaskInTaskSleep()
+#pragma warning restore 1998
+        {
+            Thread.Sleep(5000);
         }
 
         private void Load()

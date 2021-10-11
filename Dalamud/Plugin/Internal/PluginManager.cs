@@ -1064,14 +1064,14 @@ namespace Dalamud.Plugin.Internal
     /// </summary>
     internal partial class PluginManager
     {
-        private MonoMod.RuntimeDetour.Hook assemblyLocationMonoHook;
-        private MonoMod.RuntimeDetour.Hook assemblyCodeBaseMonoHook;
-
         /// <summary>
         /// A mapping of plugin assembly name to patch data. Used to fill in missing data due to loading
         /// plugins via byte[].
         /// </summary>
         internal static readonly Dictionary<string, PluginPatchData> PluginLocations = new();
+
+        private MonoMod.RuntimeDetour.Hook assemblyLocationMonoHook;
+        private MonoMod.RuntimeDetour.Hook assemblyCodeBaseMonoHook;
 
         /// <summary>
         /// Patch method for internal class RuntimeAssembly.Location, also known as Assembly.Location.
