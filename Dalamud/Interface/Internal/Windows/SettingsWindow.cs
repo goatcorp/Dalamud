@@ -442,7 +442,7 @@ namespace Dalamud.Interface.Internal.Windows
             ImGui.Text(repoNumber.ToString());
             ImGui.NextColumn();
             ImGui.SetNextItemWidth(-1);
-            ImGui.InputText("##thirdRepoUrlInput", ref this.thirdRepoTempUrl, 300);
+            ImGui.InputText("##thirdRepoUrlInput", ref this.thirdRepoTempUrl, 300, ImGuiInputTextFlags.CharsNoBlank);
             ImGui.NextColumn();
             // Enabled button
             ImGui.NextColumn();
