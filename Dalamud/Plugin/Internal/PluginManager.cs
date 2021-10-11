@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -20,7 +19,6 @@ using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Exceptions;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
-using MonoMod.RuntimeDetour;
 using Newtonsoft.Json;
 
 namespace Dalamud.Plugin.Internal
@@ -137,6 +135,9 @@ namespace Dalamud.Plugin.Internal
                     Log.Error(ex, $"Error disposing {plugin.Name}");
                 }
             }
+
+            this.assemblyLocationMonoHook?.Dispose();
+            this.assemblyCodeBaseMonoHook?.Dispose();
         }
 
         /// <summary>
@@ -1063,6 +1064,9 @@ namespace Dalamud.Plugin.Internal
     /// </summary>
     internal partial class PluginManager
     {
+        private MonoMod.RuntimeDetour.Hook assemblyLocationMonoHook;
+        private MonoMod.RuntimeDetour.Hook assemblyCodeBaseMonoHook;
+
         /// <summary>
         /// A mapping of plugin assembly name to patch data. Used to fill in missing data due to loading
         /// plugins via byte[].
@@ -1150,12 +1154,12 @@ namespace Dalamud.Plugin.Internal
 
             var locationTarget = targetType.GetProperty(nameof(Assembly.Location)).GetGetMethod();
             var locationPatch = typeof(PluginManager).GetMethod(nameof(PluginManager.AssemblyLocationPatch), BindingFlags.NonPublic | BindingFlags.Static);
-            _ = new Hook(locationTarget, locationPatch);
+            this.assemblyLocationMonoHook = new MonoMod.RuntimeDetour.Hook(locationTarget, locationPatch);
 
 #pragma warning disable SYSLIB0012 // Type or member is obsolete
             var codebaseTarget = targetType.GetProperty(nameof(Assembly.CodeBase)).GetGetMethod();
             var codebasePatch = typeof(PluginManager).GetMethod(nameof(PluginManager.AssemblyCodeBasePatch), BindingFlags.NonPublic | BindingFlags.Static);
-            _ = new Hook(codebaseTarget, codebasePatch);
+            this.assemblyCodeBaseMonoHook = new MonoMod.RuntimeDetour.Hook(codebaseTarget, codebasePatch);
 #pragma warning restore SYSLIB0012 // Type or member is obsolete
         }
 

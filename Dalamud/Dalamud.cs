@@ -1,6 +1,5 @@
 using System;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -24,7 +23,6 @@ using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Ipc.Internal;
 using Dalamud.Support;
-using MonoMod.RuntimeDetour;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
@@ -46,6 +44,7 @@ namespace Dalamud
 
         private readonly ManualResetEvent unloadSignal;
         private readonly ManualResetEvent finishUnloadSignal;
+        private MonoMod.RuntimeDetour.Hook processMonoHook;
         private bool hasDisposedPlugins = false;
 
         #endregion
@@ -358,6 +357,8 @@ namespace Dalamud
 
                 SerilogEventSink.Instance.LogLine -= SerilogOnLogLine;
 
+                this.processMonoHook?.Dispose();
+
                 Log.Debug("Dalamud::Dispose() OK!");
             }
             catch (Exception ex)
@@ -377,6 +378,14 @@ namespace Dalamud
 
             var oldFilter = NativeFunctions.SetUnhandledExceptionFilter(releaseFilter);
             Log.Debug("Reset ExceptionFilter, old: {0}", oldFilter);
+        }
+
+        private static void SerilogOnLogLine(object? sender, (string Line, LogEventLevel Level, DateTimeOffset TimeStamp, Exception? Exception) e)
+        {
+            if (e.Exception == null)
+                return;
+
+            Troubleshooting.LogException(e.Exception, e.Line);
         }
 
         /// <summary>
@@ -400,21 +409,13 @@ namespace Dalamud
             return result;
         }
 
-        private static void SerilogOnLogLine(object? sender, (string Line, LogEventLevel Level, DateTimeOffset TimeStamp, Exception? Exception) e)
-        {
-            if (e.Exception == null)
-                return;
-
-            Troubleshooting.LogException(e.Exception, e.Line);
-        }
-
         private void ApplyProcessPatch()
         {
             var targetType = typeof(Process);
 
             var handleTarget = targetType.GetProperty(nameof(Process.Handle)).GetGetMethod();
             var handlePatch = typeof(Dalamud).GetMethod(nameof(Dalamud.ProcessHandlePatch), BindingFlags.NonPublic | BindingFlags.Static);
-            _ = new Hook(handleTarget, handlePatch);
+            this.processMonoHook = new MonoMod.RuntimeDetour.Hook(handleTarget, handlePatch);
         }
     }
 }
