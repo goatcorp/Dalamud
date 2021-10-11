@@ -1060,19 +1060,10 @@ namespace Dalamud.Interface.Internal.Windows
             ImGui.SetCursorPos(startCursor);
 
             var iconTex = this.defaultIcon;
-            var hasIcon = this.pluginIconMap.TryGetValue(manifest.InternalName, out var cachedIconTex);
-            if (!hasIcon)
-            {
-                this.pluginIconMap.Add(manifest.InternalName, null);
-                Task.Run(async () => await this.DownloadPluginIconAsync(plugin, manifest, isThirdParty));
-            }
-            else if (cachedIconTex != null)
+
+            if (this.pluginIconMap.TryGetValue(manifest.InternalName, out var cachedIconTex) && cachedIconTex != null)
             {
                 iconTex = cachedIconTex;
-            }
-            else
-            {
-                // nothing
             }
 
             var iconSize = ImGuiHelpers.ScaledVector2(64, 64);
@@ -1943,6 +1934,7 @@ namespace Dalamud.Interface.Internal.Windows
             this.ResortPlugins();
 
             this.UpdateCategoriesOnPluginsChange();
+            Task.Run(() => this.DownloadPluginIconsAsync(this.pluginListAvailable.ToArray()));
         }
 
         private void OnInstalledPluginsChanged()
@@ -2034,7 +2026,17 @@ namespace Dalamud.Interface.Internal.Windows
             this.errorModalOnNextFrame = true;
         }
 
-        private async Task DownloadPluginIconAsync(LocalPlugin? plugin, PluginManifest manifest, bool isThirdParty)
+        private async Task DownloadPluginIconsAsync(RemotePluginManifest[] plugins)
+        {
+            Log.Verbose("Starting icon download...");
+            foreach (var plugin in plugins.Where(x => !this.pluginIconMap.ContainsKey(x.InternalName)))
+            {
+                this.pluginIconMap[plugin.InternalName] = null;
+                await this.DownloadPluginIconAsync(plugin, plugin.SourceRepo.IsThirdParty);
+            }
+        }
+
+        private async Task DownloadPluginIconAsync(PluginManifest manifest, bool isThirdParty)
         {
             var interfaceManager = Service<InterfaceManager>.Get();
             var pluginManager = Service<PluginManager>.Get();
@@ -2062,26 +2064,6 @@ namespace Dalamud.Interface.Internal.Windows
                 }
 
                 return true;
-            }
-
-            if (plugin != null && plugin.IsDev)
-            {
-                var file = this.GetPluginIconFileInfo(plugin);
-                if (file != null)
-                {
-                    Log.Verbose($"Fetching icon for {manifest.InternalName} from {file.FullName}");
-
-                    var bytes = await File.ReadAllBytesAsync(file.FullName);
-                    if (!TryLoadIcon(bytes, file.FullName, manifest, interfaceManager, out var icon))
-                        return;
-
-                    this.pluginIconMap[manifest.InternalName] = icon;
-                    Log.Verbose($"Plugin icon for {manifest.InternalName} loaded from disk");
-                }
-
-                // Dev plugins are likely going to look like a main repo plugin, the InstalledFrom field is going to be null.
-                // So instead, set the value manually so we download from the urls specified.
-                isThirdParty = true;
             }
 
             var useTesting = pluginManager.UseTesting(manifest);
