@@ -448,6 +448,7 @@ namespace Dalamud.Interface.Internal.Windows
             ImGui.NextColumn();
             if (!string.IsNullOrEmpty(this.thirdRepoTempUrl) && ImGuiComponents.IconButton(FontAwesomeIcon.Plus))
             {
+                this.thirdRepoTempUrl = this.thirdRepoTempUrl.TrimEnd();
                 if (this.thirdRepoList.Any(r => string.Equals(r.Url, this.thirdRepoTempUrl, StringComparison.InvariantCultureIgnoreCase)))
                 {
                     this.thirdRepoAddError = Loc.Localize("DalamudThirdRepoExists", "Repo already exists.");
