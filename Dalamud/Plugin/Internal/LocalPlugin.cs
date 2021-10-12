@@ -132,6 +132,7 @@ namespace Dalamud.Plugin.Internal
 
             var pluginManager = Service<PluginManager>.Get();
             this.IsBanned = pluginManager.IsManifestBanned(this.Manifest);
+            this.BanReason = pluginManager.GetBanReason(this.Manifest);
 
             this.SaveManifest();
         }
@@ -166,6 +167,11 @@ namespace Dalamud.Plugin.Internal
         /// Gets the plugin name, directly from the plugin or if it is not loaded from the manifest.
         /// </summary>
         public string Name => this.instance?.Name ?? this.Manifest.Name ?? this.DllFile.Name;
+
+        /// <summary>
+        /// Gets an optional reason, if the plugin is banned.
+        /// </summary>
+        public string BanReason { get; }
 
         /// <summary>
         /// Gets a value indicating whether the plugin is loaded and running.

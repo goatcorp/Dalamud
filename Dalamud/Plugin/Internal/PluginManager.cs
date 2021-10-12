@@ -955,6 +955,16 @@ namespace Dalamud.Plugin.Internal
             return this.bannedPlugins.Any(ban => ban.Name == manifest.InternalName && ban.AssemblyVersion == manifest.AssemblyVersion);
         }
 
+        /// <summary>
+        /// Get the reason of a banned plugin by inspecting the manifest.
+        /// </summary>
+        /// <param name="manifest">Manifest to inspect.</param>
+        /// <returns>The reason of the ban, if any.</returns>
+        public string GetBanReason(PluginManifest manifest)
+        {
+            return this.bannedPlugins.FirstOrDefault(ban => ban.Name == manifest.InternalName).Reason;
+        }
+
         private void DetectAvailablePluginUpdates()
         {
             var updatablePlugins = new List<AvailablePluginUpdate>();
@@ -1025,6 +1035,9 @@ namespace Dalamud.Plugin.Internal
 
             [JsonProperty]
             public Version AssemblyVersion { get; private set; }
+
+            [JsonProperty]
+            public string Reason { get; private set; }
         }
 
         private struct PluginDef
