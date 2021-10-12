@@ -36,10 +36,13 @@ namespace Dalamud.Support
                 Reporter = reporter,
                 Name = plugin.InternalName,
                 Version = plugin.AssemblyVersion.ToString(),
+                DalamudHash = Util.GetGitHash(),
             };
 
             if (includeException)
-                model.Exception = Troubleshooting.LastException?.ToString();
+            {
+                model.Exception = Troubleshooting.LastException == null ? "Was included, but none happened" : Troubleshooting.LastException?.ToString();
+            }
 
             var postContent = new StringContent(JsonConvert.SerializeObject(model), Encoding.UTF8, "application/json");
             var response = await client.PostAsync(BugBaitUrl, postContent);
@@ -54,6 +57,9 @@ namespace Dalamud.Support
 
             [JsonProperty("name")]
             public string? Name { get; set; }
+
+            [JsonProperty("dhash")]
+            public string? DalamudHash { get; set; }
 
             [JsonProperty("version")]
             public string? Version { get; set; }

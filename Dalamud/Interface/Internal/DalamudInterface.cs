@@ -21,7 +21,6 @@ using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal;
 using Dalamud.Utility;
 using ImGuiNET;
-using Newtonsoft.Json;
 using PInvoke;
 using Serilog.Events;
 
@@ -57,6 +56,7 @@ namespace Dalamud.Interface.Internal
 #endif
 
         private bool isImGuiDrawDemoWindow = false;
+        private bool isImGuiDrawMetricsWindow = false;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DalamudInterface"/> class.
@@ -95,7 +95,7 @@ namespace Dalamud.Interface.Internal
             this.WindowSystem.AddWindow(this.selfTestWindow);
             this.WindowSystem.AddWindow(this.styleEditorWindow);
 
-            ImGuiManagedAsserts.AssertsEnabled = true;
+            ImGuiManagedAsserts.AssertsEnabled = configuration.AssertsEnabledAtStartup;
 
             Service<InterfaceManager>.Get().Draw += this.OnDraw;
         }
@@ -113,11 +113,6 @@ namespace Dalamud.Interface.Internal
             get => this.isImGuiDrawDevMenu;
             set => this.isImGuiDrawDevMenu = value;
         }
-
-        /// <summary>
-        /// Gets a value indicating whether the current Dalamud version warrants displaying the changelog.
-        /// </summary>
-        public bool WarrantsChangelog => ChangelogWindow.WarrantsChangelog;
 
         /// <inheritdoc/>
         public void Dispose()
@@ -318,7 +313,10 @@ namespace Dalamud.Interface.Internal
                 this.WindowSystem.Draw();
 
                 if (this.isImGuiDrawDemoWindow)
-                    ImGui.ShowDemoWindow();
+                    ImGui.ShowDemoWindow(ref this.isImGuiDrawDemoWindow);
+
+                if (this.isImGuiDrawMetricsWindow)
+                    ImGui.ShowMetricsWindow(ref this.isImGuiDrawMetricsWindow);
 
                 // Release focus of any ImGui window if we click into the game.
                 var io = ImGui.GetIO();
@@ -490,12 +488,20 @@ namespace Dalamud.Interface.Internal
                     {
                         ImGui.MenuItem("Draw ImGui demo", string.Empty, ref this.isImGuiDrawDemoWindow);
 
+                        ImGui.MenuItem("Draw metrics", string.Empty, ref this.isImGuiDrawMetricsWindow);
+
                         ImGui.Separator();
 
                         var val = ImGuiManagedAsserts.AssertsEnabled;
                         if (ImGui.MenuItem("Enable Asserts", string.Empty, ref val))
                         {
                             ImGuiManagedAsserts.AssertsEnabled = val;
+                        }
+
+                        if (ImGui.MenuItem("Enable asserts at startup", null, configuration.AssertsEnabledAtStartup))
+                        {
+                            configuration.AssertsEnabledAtStartup = !configuration.AssertsEnabledAtStartup;
+                            configuration.Save();
                         }
 
                         if (ImGui.MenuItem("Clear focus"))

@@ -14,6 +14,7 @@ using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.Notifications;
+using Dalamud.Interface.Internal.Windows;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Internal;
@@ -260,8 +261,11 @@ namespace Dalamud.Game
                     Type = XivChatType.Notice,
                 });
 
-                if (dalamudInterface.WarrantsChangelog)
+                if (string.IsNullOrEmpty(configuration.LastChangelogMajorMinor) || (!ChangelogWindow.WarrantsChangelogForMajorMinor.StartsWith(configuration.LastChangelogMajorMinor) && assemblyVersion.StartsWith(ChangelogWindow.WarrantsChangelogForMajorMinor)))
+                {
                     dalamudInterface.OpenChangelogWindow();
+                    configuration.LastChangelogMajorMinor = ChangelogWindow.WarrantsChangelogForMajorMinor;
+                }
 
                 configuration.LastVersion = assemblyVersion;
                 configuration.Save();

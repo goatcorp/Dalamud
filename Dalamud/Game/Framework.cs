@@ -176,6 +176,7 @@ namespace Dalamud.Game
             if (!dalamud.IsReady)
                 dalamud.LoadTier2();
 
+            // Plugins expect the interface to be available and ready, so we need to wait with plugins until we have init'd ImGui
             if (!dalamud.IsLoadedPluginSystem && Service<InterfaceManager>.GetNullable()?.IsReady == true)
                 dalamud.LoadTier3();
 

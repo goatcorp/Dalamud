@@ -1,7 +1,7 @@
 using System;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
 
@@ -23,7 +23,6 @@ using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Ipc.Internal;
 using Dalamud.Support;
-using HarmonyLib;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
@@ -45,6 +44,7 @@ namespace Dalamud
 
         private readonly ManualResetEvent unloadSignal;
         private readonly ManualResetEvent finishUnloadSignal;
+        private MonoMod.RuntimeDetour.Hook processMonoHook;
         private bool hasDisposedPlugins = false;
 
         #endregion
@@ -65,9 +65,6 @@ namespace Dalamud
             Service<DalamudConfiguration>.Set(configuration);
 
             this.LogLevelSwitch = loggingLevelSwitch;
-
-            // TODO: Just for testing, force verbose logging
-            this.LogLevelSwitch.MinimumLevel = LogEventLevel.Verbose;
 
             this.unloadSignal = new ManualResetEvent(false);
             this.unloadSignal.Reset();
@@ -106,6 +103,11 @@ namespace Dalamud
                 SerilogEventSink.Instance.LogLine += SerilogOnLogLine;
 
                 Service<ServiceContainer>.Set();
+
+#if DEBUG
+                Service<TaskTracker>.Set();
+                Log.Information("[T1] TaskTracker OK!");
+#endif
 
                 // Initialize the process information.
                 Service<SigScanner>.Set(new SigScanner(true));
@@ -360,6 +362,8 @@ namespace Dalamud
 
                 SerilogEventSink.Instance.LogLine -= SerilogOnLogLine;
 
+                this.processMonoHook?.Dispose();
+
                 Log.Debug("Dalamud::Dispose() OK!");
             }
             catch (Exception ex)
@@ -381,24 +385,6 @@ namespace Dalamud
             Log.Debug("Reset ExceptionFilter, old: {0}", oldFilter);
         }
 
-        /// <summary>
-        /// Patch method for the class Process.Handle. This patch facilitates fixing Reloaded so that it
-        /// uses pseudo-handles to access memory, to prevent permission errors.
-        /// It should never be called manually.
-        /// </summary>
-        /// <param name="__instance">The equivalent of `this`.</param>
-        /// <param name="__result">The result from the original method.</param>
-        [SuppressMessage("StyleCop.CSharp.NamingRules", "SA1313:Parameter names should begin with lower-case letter", Justification = "Enforced naming for special injected parameters")]
-        private static void ProcessHandlePatch(Process __instance, ref IntPtr __result)
-        {
-            if (__instance.Id == Environment.ProcessId)
-            {
-                __result = (IntPtr)0xFFFFFFFF;
-            }
-
-            // Log.Verbose($"Process.Handle // {__instance.ProcessName} // {__result:X}");
-        }
-
         private static void SerilogOnLogLine(object? sender, (string Line, LogEventLevel Level, DateTimeOffset TimeStamp, Exception? Exception) e)
         {
             if (e.Exception == null)
@@ -407,15 +393,34 @@ namespace Dalamud
             Troubleshooting.LogException(e.Exception, e.Line);
         }
 
+        /// <summary>
+        /// Patch method for the class Process.Handle. This patch facilitates fixing Reloaded so that it
+        /// uses pseudo-handles to access memory, to prevent permission errors.
+        /// It should never be called manually.
+        /// </summary>
+        /// <param name="orig">A delegate that acts as the original method.</param>
+        /// <param name="self">The equivalent of `this`.</param>
+        /// <returns>A pseudo-handle for the current process, or the result from the original method.</returns>
+        private static IntPtr ProcessHandlePatch(Func<Process, IntPtr> orig, Process self)
+        {
+            var result = orig(self);
+
+            if (self.Id == Environment.ProcessId)
+            {
+                result = (IntPtr)0xFFFFFFFF;
+            }
+
+            // Log.Verbose($"Process.Handle // {self.ProcessName} // {result:X}");
+            return result;
+        }
+
         private void ApplyProcessPatch()
         {
-            var harmony = new Harmony("goatcorp.dalamud");
-
             var targetType = typeof(Process);
 
-            var handleTarget = AccessTools.PropertyGetter(targetType, nameof(Process.Handle));
-            var handlePatch = AccessTools.Method(typeof(Dalamud), nameof(Dalamud.ProcessHandlePatch));
-            harmony.Patch(handleTarget, postfix: new(handlePatch));
+            var handleTarget = targetType.GetProperty(nameof(Process.Handle)).GetGetMethod();
+            var handlePatch = typeof(Dalamud).GetMethod(nameof(Dalamud.ProcessHandlePatch), BindingFlags.NonPublic | BindingFlags.Static);
+            this.processMonoHook = new MonoMod.RuntimeDetour.Hook(handleTarget, handlePatch);
         }
     }
 }

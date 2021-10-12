@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using CheapLoc;
 using Dalamud.Plugin.Internal.Types;
@@ -114,7 +115,8 @@ namespace Dalamud.Interface.Internal
         }
 
         /// <summary>
-        /// Gets a value indicating whether category content needs to be rebuild with BuildCategoryContent() function.
+        /// Gets a value indicating whether current group + category selection changed recently.
+        /// Changes in Available group should be followed with <see cref="GetCurrentCategoryContent"/>, everythine else can use <see cref="ResetContentDirty"/>.
         /// </summary>
         public bool IsContentDirty => this.isContentDirty;
 
@@ -136,6 +138,10 @@ namespace Dalamud.Interface.Internal
             // rebuild map plugin name -> categoryIds
             this.mapPluginCategories.Clear();
 
+            var groupAvail = Array.Find(this.groupList, x => x.GroupKind == GroupKind.Available);
+            var prevCategoryIds = new List<int>();
+            prevCategoryIds.AddRange(groupAvail.Categories);
+
             var categoryList = new List<int>();
             var allCategoryIndices = new List<int>();
 
@@ -149,10 +155,10 @@ namespace Dalamud.Interface.Internal
                     foreach (var tag in pluginCategoryTags)
                     {
                         // only tags from whitelist can be accepted
-                        int matchIdx = Array.FindIndex(this.CategoryList, x => x.Tag.Equals(tag, StringComparison.InvariantCultureIgnoreCase));
+                        var matchIdx = Array.FindIndex(this.CategoryList, x => x.Tag.Equals(tag, StringComparison.InvariantCultureIgnoreCase));
                         if (matchIdx >= 0)
                         {
-                            int categoryId = this.CategoryList[matchIdx].CategoryId;
+                            var categoryId = this.CategoryList[matchIdx].CategoryId;
                             if (categoryId >= FirstTagBasedCategoryId)
                             {
                                 categoryList.Add(categoryId);
@@ -174,7 +180,6 @@ namespace Dalamud.Interface.Internal
             allCategoryIndices.Sort((idxX, idxY) => this.CategoryList[idxX].Name.CompareTo(this.CategoryList[idxY].Name));
 
             // rebuild all categories in group, leaving first entry = All intact and always on top
-            var groupAvail = Array.Find(this.groupList, x => x.GroupKind == GroupKind.Available);
             if (groupAvail.Categories.Count > 1)
             {
                 groupAvail.Categories.RemoveRange(1, groupAvail.Categories.Count - 1);
@@ -185,12 +190,17 @@ namespace Dalamud.Interface.Internal
                 groupAvail.Categories.Add(this.CategoryList[categoryIdx].CategoryId);
             }
 
-            this.isContentDirty = true;
+            // compare with prev state and mark as dirty if needed
+            var noCategoryChanges = Enumerable.SequenceEqual(prevCategoryIds, groupAvail.Categories);
+            if (!noCategoryChanges)
+            {
+                this.isContentDirty = true;
+            }
         }
 
         /// <summary>
         /// Filters list of available plugins based on currently selected category.
-        /// Resets <see cref="isContentDirty"/>.
+        /// Resets <see cref="IsContentDirty"/>.
         /// </summary>
         /// <param name="plugins">List of available plugins to install.</param>
         /// <returns>Filtered list of plugins.</returns>
@@ -202,7 +212,7 @@ namespace Dalamud.Interface.Internal
             {
                 var groupInfo = this.groupList[this.currentGroupIdx];
 
-                bool includeAll = (this.currentCategoryIdx == 0) || (groupInfo.GroupKind != GroupKind.Available);
+                var includeAll = (this.currentCategoryIdx == 0) || (groupInfo.GroupKind != GroupKind.Available);
                 if (includeAll)
                 {
                     result.AddRange(plugins);
@@ -215,7 +225,7 @@ namespace Dalamud.Interface.Internal
                     {
                         if (this.mapPluginCategories.TryGetValue(plugin, out var pluginCategoryIds))
                         {
-                            int matchIdx = Array.IndexOf(pluginCategoryIds, selectedCategoryInfo.CategoryId);
+                            var matchIdx = Array.IndexOf(pluginCategoryIds, selectedCategoryInfo.CategoryId);
                             if (matchIdx >= 0)
                             {
                                 result.Add(plugin);
@@ -225,8 +235,16 @@ namespace Dalamud.Interface.Internal
                 }
             }
 
-            this.isContentDirty = false;
+            this.ResetContentDirty();
             return result;
+        }
+
+        /// <summary>
+        /// Clears <see cref="IsContentDirty"/> flag, indicating that all cached values about currently selected group + category have been updated.
+        /// </summary>
+        public void ResetContentDirty()
+        {
+            this.isContentDirty = false;
         }
 
         /// <summary>

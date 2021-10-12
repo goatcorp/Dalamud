@@ -213,8 +213,8 @@ namespace Dalamud.Game.Gui.FlyText
                 var tmpKind = kind;
                 var tmpVal1 = val1;
                 var tmpVal2 = val2;
-                var tmpText1 = MemoryHelper.ReadSeStringNullTerminated(text1);
-                var tmpText2 = MemoryHelper.ReadSeStringNullTerminated(text2);
+                var tmpText1 = text1 == IntPtr.Zero ? string.Empty : MemoryHelper.ReadSeStringNullTerminated(text1);
+                var tmpText2 = text2 == IntPtr.Zero ? string.Empty : MemoryHelper.ReadSeStringNullTerminated(text2);
                 var tmpColor = color;
                 var tmpIcon = icon;
                 var tmpYOffset = yOffset;

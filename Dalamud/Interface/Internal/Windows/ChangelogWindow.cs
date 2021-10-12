@@ -1,5 +1,7 @@
 using System.Diagnostics;
+using System.Numerics;
 
+using Dalamud.Interface.Colors;
 using Dalamud.Interface.Windowing;
 using Dalamud.Utility;
 using ImGuiNET;
@@ -14,15 +16,24 @@ namespace Dalamud.Interface.Internal.Windows
         /// <summary>
         /// Whether the latest update warrants a changelog window.
         /// </summary>
-        public const bool WarrantsChangelog = true;
+        public const string WarrantsChangelogForMajorMinor = "6.0.";
 
         private const string ChangeLog =
-            @"* Various behind-the-scenes changes to improve stability and provide more functionality to plugin developers
+            @"This is the biggest update of the in-game addon to date.
+We have redone most of the underlying systems, providing you with a better experience playing and browsing for plugins, including better performance, and developers with a better API and more comfortable development environment.
 
-ATTENTION: YOU WILL HAVE TO UPDATE/REINSTALL ALL OF YOUR PLUGINS!!!!
-If you note any issues or need help, please make sure to ask on our discord server.
+We have also added some new features:
+• Redesigned plugin installer, featuring icons, screenshots, and filterable categories
+• A new look for Dalamud windows and a style editor that lets you adjust colors & other variables to your liking
+• Pressing Escape in-game will now close the focused Dalamud window and keep game windows open, until all windows are closed, to unify behaviour with the game windows (you can disable this in the settings)
 
-Thank you for participating in the Dalamud collaborative testing programme.";
+If you note any issues or need help, please make sure to ask on our discord server.";
+
+        private const string UpdatePluginsInfo =
+            @"• All of your plugins were disabled automatically, due to this update. This is normal.
+• Open the plugin installer, then click 'update plugins'. Updated plugins should update and then re-enable themselves.
+   => Please keep in mind that not all of your plugins may already be updated for the new version.
+   => If some plugins are displayed with a red cross in the 'Installed Plugins' tab, they may not yet be available.";
 
         private readonly string assemblyVersion = Util.AssemblyVersion;
 
@@ -30,11 +41,12 @@ Thank you for participating in the Dalamud collaborative testing programme.";
         /// Initializes a new instance of the <see cref="ChangelogWindow"/> class.
         /// </summary>
         public ChangelogWindow()
-            : base("What's new in XIVLauncher?", ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoResize)
+            : base("What's new in XIVLauncher?")
         {
             this.Namespace = "DalamudChangelogWindow";
 
-            this.IsOpen = WarrantsChangelog;
+            this.Size = new Vector2(885, 463);
+            this.SizeCondition = ImGuiCond.Appearing;
         }
 
         /// <inheritdoc/>
@@ -45,7 +57,13 @@ Thank you for participating in the Dalamud collaborative testing programme.";
             ImGuiHelpers.ScaledDummy(10);
 
             ImGui.Text("The following changes were introduced:");
-            ImGui.Text(ChangeLog);
+            ImGui.TextWrapped(ChangeLog);
+
+            ImGuiHelpers.ScaledDummy(5);
+
+            ImGui.TextColored(ImGuiColors.DalamudRed, " !!! ATTENTION !!!");
+
+            ImGui.TextWrapped(UpdatePluginsInfo);
 
             ImGuiHelpers.ScaledDummy(10);
 

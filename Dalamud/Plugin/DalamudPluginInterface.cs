@@ -35,9 +35,10 @@ namespace Dalamud.Plugin
         /// Set up the interface and populate all fields needed.
         /// </summary>
         /// <param name="pluginName">The internal name of the plugin.</param>
+        /// <param name="assemblyLocation">Location of the assembly.</param>
         /// <param name="reason">The reason the plugin was loaded.</param>
         /// <param name="isDev">A value indicating whether this is a dev plugin.</param>
-        internal DalamudPluginInterface(string pluginName, PluginLoadReason reason, bool isDev)
+        internal DalamudPluginInterface(string pluginName, FileInfo assemblyLocation, PluginLoadReason reason, bool isDev)
         {
             var configuration = Service<DalamudConfiguration>.Get();
             var dataManager = Service<DataManager>.Get();
@@ -46,6 +47,7 @@ namespace Dalamud.Plugin
             this.UiBuilder = new UiBuilder(pluginName);
 
             this.pluginName = pluginName;
+            this.AssemblyLocation = assemblyLocation;
             this.configs = Service<PluginManager>.Get().PluginConfigs;
             this.Reason = reason;
             this.IsDev = isDev;
@@ -114,6 +116,11 @@ namespace Dalamud.Plugin
         public DirectoryInfo DalamudAssetDirectory => Service<Dalamud>.Get().AssetDirectory;
 
         /// <summary>
+        /// Gets the location of your plugin assembly.
+        /// </summary>
+        public FileInfo AssemblyLocation { get; }
+
+        /// <summary>
         /// Gets the directory your plugin configurations are stored in.
         /// </summary>
         public DirectoryInfo ConfigDirectory => new(this.GetPluginConfigDirectory());
@@ -165,11 +172,11 @@ namespace Dalamud.Plugin
         #region IPC
 
         /// <summary>
-        /// Gets an IPC publisher.
+        /// Gets an IPC provider.
         /// </summary>
         /// <typeparam name="TRet">The return type for funcs. Use object if this is unused.</typeparam>
         /// <param name="name">The name of the IPC registration.</param>
-        /// <returns>An IPC publisher.</returns>
+        /// <returns>An IPC provider.</returns>
         /// <exception cref="IpcTypeMismatchError">This is thrown when the requested types do not match the previously registered types are different.</exception>
         public ICallGateProvider<TRet> GetIpcProvider<TRet>(string name)
             => new CallGatePubSub<TRet>(name);
@@ -211,7 +218,7 @@ namespace Dalamud.Plugin
         /// </summary>
         /// <typeparam name="TRet">The return type for funcs. Use object if this is unused.</typeparam>
         /// <param name="name">The name of the IPC registration.</param>
-        /// <returns>An IPC publisher.</returns>
+        /// <returns>An IPC subscriber.</returns>
         public ICallGateSubscriber<TRet> GetIpcSubscriber<TRet>(string name)
             => new CallGatePubSub<TRet>(name);
 

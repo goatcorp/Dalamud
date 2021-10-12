@@ -56,6 +56,11 @@ namespace Dalamud.Configuration.Internal
         public string LastVersion { get; set; } = null;
 
         /// <summary>
+        /// Gets or sets the last loaded Dalamud version.
+        /// </summary>
+        public string LastChangelogMajorMinor { get; set; } = null;
+
+        /// <summary>
         /// Gets or sets the chat type used by default for plugin messages.
         /// </summary>
         public XivChatType GeneralChatType { get; set; } = XivChatType.Debug;
@@ -154,6 +159,11 @@ namespace Dalamud.Configuration.Internal
         /// Gets or sets a value indicating whether or not the debug log should open at startup.
         /// </summary>
         public bool LogOpenAtStartup { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether or not ImGui asserts should be enabled at startup.
+        /// </summary>
+        public bool AssertsEnabledAtStartup { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether or not docking should be globally enabled in ImGui.
