@@ -64,6 +64,7 @@
 
     <ItemGroup>
         <PackageReference Include="CheapLoc" Version="1.1.6" />
+        <PackageReference Include="CoreHook" Version="1.0.4" />
         <PackageReference Include="JetBrains.Annotations" Version="2021.2.0" />
         <PackageReference Include="Lumina" Version="3.3.0" />
         <PackageReference Include="Lumina.Excel" Version="5.50.0" />
@@ -91,6 +92,12 @@
 
     <ItemGroup>
         <AdditionalFiles Include="..\stylecop.json" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="corehook64.dll">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
     <Target Name="AddRuntimeDependenciesToContent" BeforeTargets="GetCopyToOutputDirectoryItems" DependsOnTargets="GenerateBuildDependencyFile;GenerateBuildRuntimeConfigurationFiles">

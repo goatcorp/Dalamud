@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 
+using Dalamud.Configuration.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Memory;
 using Iced.Intel;
@@ -40,7 +41,7 @@ namespace Dalamud.Hooking.Internal
 
                     bool Check1()
                     {
-                        return Environment.GetEnvironmentVariable("XL_WINEONLINUX") != null;
+                        return EnvironmentConfiguration.XlWineOnLinux;
                     }
 
                     bool Check2()
