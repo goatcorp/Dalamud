@@ -99,7 +99,7 @@ namespace Dalamud.Interface.Internal
         }
 
         /// <summary>
-        /// Gets or sets current category.
+        /// Gets or sets current category, index in current Group.Categories array.
         /// </summary>
         public int CurrentCategoryIdx
         {
@@ -127,7 +127,7 @@ namespace Dalamud.Interface.Internal
             (this.currentGroupIdx >= 0) &&
             (this.currentGroupIdx < this.groupList.Length) &&
             (this.currentCategoryIdx >= 0) &&
-            (this.currentCategoryIdx < this.categoryList.Length);
+            (this.currentCategoryIdx < this.groupList[this.currentGroupIdx].Categories.Count);
 
         /// <summary>
         /// Rebuild available categories based on currently available plugins.
