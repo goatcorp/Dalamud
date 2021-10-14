@@ -94,7 +94,7 @@ namespace Dalamud.Interface.Internal
             }
 
             this.setCursorHook = HookManager.DirtyLinuxUser ? null
-                : Hook<SetCursorDelegate>.FromSymbol("user32.dll", "SetCursor", this.SetCursorDetour);
+                : Hook<SetCursorDelegate>.FromSymbol("user32.dll", "SetCursor", this.SetCursorDetour, true);
             this.presentHook = new Hook<PresentDelegate>(this.address.Present, this.PresentDetour);
             this.resizeBuffersHook = new Hook<ResizeBuffersDelegate>(this.address.ResizeBuffers, this.ResizeBuffersDetour);
 
