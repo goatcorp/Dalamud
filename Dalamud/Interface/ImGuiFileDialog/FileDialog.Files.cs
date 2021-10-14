@@ -327,12 +327,15 @@ namespace Dalamud.Interface.ImGuiFileDialog
                 Text = "Documents",
             });
 
-            this.quickAccess.Add(new SideBarItem
+            if (!string.IsNullOrEmpty(personal))
             {
-                Icon = (char)FontAwesomeIcon.Download,
-                Location = Path.Combine(personal, "Downloads"),
-                Text = "Downloads",
-            });
+                this.quickAccess.Add(new SideBarItem
+                {
+                    Icon = (char)FontAwesomeIcon.Download,
+                    Location = Path.Combine(personal, "Downloads"),
+                    Text = "Downloads",
+                });
+            }
 
             this.quickAccess.Add(new SideBarItem
             {

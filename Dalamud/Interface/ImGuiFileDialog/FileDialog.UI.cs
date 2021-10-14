@@ -335,6 +335,11 @@ namespace Dalamud.Interface.ImGuiFileDialog
 
             foreach (var quick in this.quickAccess)
             {
+                if (string.IsNullOrEmpty(quick.Location))
+                {
+                    continue;
+                }
+
                 ImGui.PushFont(UiBuilder.IconFont);
                 if (ImGui.Selectable($"{quick.Icon}##{quick.Text}", quick.Text == this.selectedSideBar))
                 {
