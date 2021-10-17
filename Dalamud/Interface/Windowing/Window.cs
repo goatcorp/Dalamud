@@ -193,24 +193,37 @@ namespace Dalamud.Interface.Windowing
                 this.OnOpen();
             }
 
+            var wasFocused = this.IsFocused;
+            if (wasFocused)
+            {
+                var style = ImGui.GetStyle();
+                var focusedHeaderColor = style.Colors[(int)ImGuiCol.TitleBgActive];
+                ImGui.PushStyleColor(ImGuiCol.TitleBgCollapsed, focusedHeaderColor);
+            }
+
             if (ImGui.Begin(this.WindowName, ref this.internalIsOpen, this.Flags))
             {
                 // Draw the actual window contents
                 this.Draw();
+            }
 
-                this.IsFocused = ImGui.IsWindowFocused(ImGuiFocusedFlags.RootAndChildWindows);
+            if (wasFocused)
+            {
+                ImGui.PopStyleColor();
+            }
 
-                var escapeDown = Service<KeyState>.Get()[VirtualKey.ESCAPE];
-                var isAllowed = Service<DalamudConfiguration>.Get().IsFocusManagementEnabled;
-                if (escapeDown && this.IsFocused && isAllowed && !wasEscPressedLastFrame && this.RespectCloseHotkey)
-                {
-                    this.IsOpen = false;
-                    wasEscPressedLastFrame = true;
-                }
-                else if (!escapeDown && wasEscPressedLastFrame)
-                {
-                    wasEscPressedLastFrame = false;
-                }
+            this.IsFocused = ImGui.IsWindowFocused(ImGuiFocusedFlags.RootAndChildWindows);
+
+            var escapeDown = Service<KeyState>.Get()[VirtualKey.ESCAPE];
+            var isAllowed = Service<DalamudConfiguration>.Get().IsFocusManagementEnabled;
+            if (escapeDown && this.IsFocused && isAllowed && !wasEscPressedLastFrame && this.RespectCloseHotkey)
+            {
+                this.IsOpen = false;
+                wasEscPressedLastFrame = true;
+            }
+            else if (!escapeDown && wasEscPressedLastFrame)
+            {
+                wasEscPressedLastFrame = false;
             }
 
             ImGui.End();

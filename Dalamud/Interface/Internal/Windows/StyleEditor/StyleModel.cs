@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 
@@ -12,7 +12,7 @@ namespace Dalamud.Interface.Internal.Windows.StyleEditor
     /// <summary>
     /// Class representing a serializable ImGui style.
     /// </summary>
-    public class StyleModel
+    internal class StyleModel
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="StyleModel"/> class.
