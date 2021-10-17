@@ -197,20 +197,20 @@ namespace Dalamud.Interface.Windowing
             {
                 // Draw the actual window contents
                 this.Draw();
+            }
 
-                this.IsFocused = ImGui.IsWindowFocused(ImGuiFocusedFlags.RootAndChildWindows);
+            this.IsFocused = ImGui.IsWindowFocused(ImGuiFocusedFlags.RootAndChildWindows);
 
-                var escapeDown = Service<KeyState>.Get()[VirtualKey.ESCAPE];
-                var isAllowed = Service<DalamudConfiguration>.Get().IsFocusManagementEnabled;
-                if (escapeDown && this.IsFocused && isAllowed && !wasEscPressedLastFrame && this.RespectCloseHotkey)
-                {
-                    this.IsOpen = false;
-                    wasEscPressedLastFrame = true;
-                }
-                else if (!escapeDown && wasEscPressedLastFrame)
-                {
-                    wasEscPressedLastFrame = false;
-                }
+            var escapeDown = Service<KeyState>.Get()[VirtualKey.ESCAPE];
+            var isAllowed = Service<DalamudConfiguration>.Get().IsFocusManagementEnabled;
+            if (escapeDown && this.IsFocused && isAllowed && !wasEscPressedLastFrame && this.RespectCloseHotkey)
+            {
+                this.IsOpen = false;
+                wasEscPressedLastFrame = true;
+            }
+            else if (!escapeDown && wasEscPressedLastFrame)
+            {
+                wasEscPressedLastFrame = false;
             }
 
             ImGui.End();

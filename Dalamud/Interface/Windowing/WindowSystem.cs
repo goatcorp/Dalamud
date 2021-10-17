@@ -107,7 +107,7 @@ namespace Dalamud.Interface.Windowing
                 ImGuiManagedAsserts.ReportProblems(source, snapshot);
             }
 
-            var focusedWindow = this.windows.FirstOrDefault(x => x.IsFocused && x.RespectCloseHotkey);
+            var focusedWindow = this.windows.FirstOrDefault(window => window.IsFocused && window.RespectCloseHotkey);
             this.HasAnyFocus = focusedWindow != default;
 
             if (this.HasAnyFocus)
