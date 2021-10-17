@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
@@ -106,8 +106,7 @@ namespace Dalamud.Logging.Internal
             Log.Information("s_asyncDebuggingEnabled: {0}", debugField.GetValue(null));
 
             var targetMethod = targetType.GetMethod("AddToActiveTasks", BindingFlags.Static | BindingFlags.NonPublic);
-            var patchMethod =
-                typeof(TaskTracker).GetMethod("AddToActiveTasksHook", BindingFlags.NonPublic | BindingFlags.Static);
+            var patchMethod = typeof(TaskTracker).GetMethod(nameof(AddToActiveTasksHook), BindingFlags.NonPublic | BindingFlags.Static);
 
             if (targetMethod == null)
                 Log.Error("TargetMethod null!");
