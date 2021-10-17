@@ -123,6 +123,7 @@ namespace Dalamud.Interface.Internal
 
             this.creditsWindow.Dispose();
             this.consoleWindow.Dispose();
+            this.pluginWindow.Dispose();
         }
 
         #region Open

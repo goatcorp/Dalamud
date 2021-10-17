@@ -5,8 +5,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
 using System.Numerics;
 using System.Threading.Tasks;
 
@@ -34,26 +32,13 @@ namespace Dalamud.Interface.Internal.Windows
     /// </summary>
     internal class PluginInstallerWindow : Window, IDisposable
     {
-        private const int PluginImageWidth = 730;
-        private const int PluginImageHeight = 380;
-
-        private const int PluginIconWidth = 512;
-        private const int PluginIconHeight = 512;
-
-        // TODO: Change back to master after release
-        private const string MainRepoImageUrl = "https://raw.githubusercontent.com/goatcorp/DalamudPlugins/api4/{0}/{1}/images/{2}";
-
         private static readonly ModuleLog Log = new("PLUGINW");
 
         private readonly Vector4 changelogBgColor = new(0.114f, 0.584f, 0.192f, 0.678f);
         private readonly Vector4 changelogTextColor = new(0.812f, 1.000f, 0.816f, 1.000f);
 
-        private readonly TextureWrap defaultIcon;
-        private readonly TextureWrap troubleIcon;
-        private readonly TextureWrap updateIcon;
-
-        private readonly HttpClient httpClient = new();
         private readonly PluginCategoryManager categoryManager = new();
+        private readonly PluginImageCache imageCache = new();
 
         #region Image Tester State
 
@@ -87,9 +72,6 @@ namespace Dalamud.Interface.Internal.Windows
         private List<AvailablePluginUpdate> pluginListUpdatable = new();
         private bool hasDevPlugins = false;
 
-        private Dictionary<string, TextureWrap?> pluginIconMap = new();
-        private Dictionary<string, TextureWrap?[]> pluginImagesMap = new();
-
         private string searchText = string.Empty;
 
         private PluginSortKind sortKind = PluginSortKind.Alphabetical;
@@ -119,8 +101,6 @@ namespace Dalamud.Interface.Internal.Windows
                 MaximumSize = new Vector2(5000, 5000),
             };
 
-            var dalamud = Service<Dalamud>.Get();
-            var interfaceManager = Service<InterfaceManager>.Get();
             var pluginManager = Service<PluginManager>.Get();
 
             // For debugging
@@ -129,12 +109,6 @@ namespace Dalamud.Interface.Internal.Windows
 
             pluginManager.OnAvailablePluginsChanged += this.OnAvailablePluginsChanged;
             pluginManager.OnInstalledPluginsChanged += this.OnInstalledPluginsChanged;
-
-            this.defaultIcon = interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "defaultIcon.png"));
-
-            this.troubleIcon = interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "troubleIcon.png"));
-
-            this.updateIcon = interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "updateIcon.png"));
 
             for (var i = 0; i < this.testerImagePaths.Length; i++)
             {
@@ -165,9 +139,7 @@ namespace Dalamud.Interface.Internal.Windows
             pluginManager.OnAvailablePluginsChanged -= this.OnAvailablePluginsChanged;
             pluginManager.OnInstalledPluginsChanged -= this.OnInstalledPluginsChanged;
 
-            this.defaultIcon.Dispose();
-            this.troubleIcon.Dispose();
-            this.updateIcon.Dispose();
+            this.imageCache?.Dispose();
         }
 
         /// <inheritdoc/>
@@ -202,12 +174,11 @@ namespace Dalamud.Interface.Internal.Windows
         }
 
         /// <summary>
-        /// Clear the cache of downloaded icons.
+        /// Clear the icon and image caches, forcing a fresh download.
         /// </summary>
         public void ClearIconCache()
         {
-            this.pluginIconMap.Clear();
-            this.pluginImagesMap.Clear();
+            this.imageCache.ClearIconCache();
         }
 
         private void DrawHeader()
@@ -785,7 +756,7 @@ namespace Dalamud.Interface.Internal.Windows
 
             var hasIcon = this.testerIcon != null;
 
-            var iconTex = this.defaultIcon;
+            var iconTex = this.imageCache.DefaultIcon;
             if (hasIcon) iconTex = this.testerIcon;
 
             var iconSize = ImGuiHelpers.ScaledVector2(64, 64);
@@ -797,13 +768,13 @@ namespace Dalamud.Interface.Internal.Windows
             if (this.testerError)
             {
                 ImGui.SetCursorPos(cursorBeforeImage);
-                ImGui.Image(this.troubleIcon.ImGuiHandle, iconSize);
+                ImGui.Image(this.imageCache.TroubleIcon.ImGuiHandle, iconSize);
                 ImGui.SameLine();
             }
             else if (this.testerUpdateAvailable)
             {
                 ImGui.SetCursorPos(cursorBeforeImage);
-                ImGui.Image(this.updateIcon.ImGuiHandle, iconSize);
+                ImGui.Image(this.imageCache.UpdateIcon.ImGuiHandle, iconSize);
                 ImGui.SameLine();
             }
 
@@ -869,7 +840,7 @@ namespace Dalamud.Interface.Internal.Windows
 
                 if (ImGui.BeginChild(
                     "pluginTestingImageScrolling",
-                    new Vector2(width - (70 * ImGuiHelpers.GlobalScale), (PluginImageHeight / thumbFactor) + scrollBarSize),
+                    new Vector2(width - (70 * ImGuiHelpers.GlobalScale), (PluginImageCache.PluginImageHeight / thumbFactor) + scrollBarSize),
                     false,
                     ImGuiWindowFlags.HorizontalScrollbar |
                     ImGuiWindowFlags.NoScrollWithMouse |
@@ -902,8 +873,8 @@ namespace Dalamud.Interface.Internal.Windows
 
                             float xAct = image.Width;
                             float yAct = image.Height;
-                            float xMax = PluginImageWidth;
-                            float yMax = PluginImageHeight;
+                            float xMax = PluginImageCache.PluginImageWidth;
+                            float yMax = PluginImageCache.PluginImageHeight;
 
                             // scale image if undersized
                             if (xAct < xMax && yAct < yMax)
@@ -1059,9 +1030,9 @@ namespace Dalamud.Interface.Internal.Windows
 
             ImGui.SetCursorPos(startCursor);
 
-            var iconTex = this.defaultIcon;
-
-            if (this.pluginIconMap.TryGetValue(manifest.InternalName, out var cachedIconTex) && cachedIconTex != null)
+            var iconTex = this.imageCache.DefaultIcon;
+            var hasIcon = this.imageCache.TryGetIcon(plugin, manifest, isThirdParty, out var cachedIconTex);
+            if (hasIcon && cachedIconTex != null)
             {
                 iconTex = cachedIconTex;
             }
@@ -1075,13 +1046,13 @@ namespace Dalamud.Interface.Internal.Windows
             if (updateAvailable)
             {
                 ImGui.SetCursorPos(cursorBeforeImage);
-                ImGui.Image(this.updateIcon.ImGuiHandle, iconSize);
+                ImGui.Image(this.imageCache.UpdateIcon.ImGuiHandle, iconSize);
                 ImGui.SameLine();
             }
             else if (trouble)
             {
                 ImGui.SetCursorPos(cursorBeforeImage);
-                ImGui.Image(this.troubleIcon.ImGuiHandle, iconSize);
+                ImGui.Image(this.imageCache.TroubleIcon.ImGuiHandle, iconSize);
                 ImGui.SameLine();
             }
 
@@ -1822,23 +1793,8 @@ namespace Dalamud.Interface.Internal.Windows
 
         private bool DrawPluginImages(LocalPlugin? plugin, PluginManifest manifest, bool isThirdParty, int index)
         {
-            var hasImages = this.pluginImagesMap.TryGetValue(manifest.InternalName, out var imageTextures);
-            if (!hasImages)
-            {
-                this.pluginImagesMap.Add(manifest.InternalName, Array.Empty<TextureWrap>());
-                Task.Run(async () => await this.DownloadPluginImagesAsync(plugin, manifest, isThirdParty))
-                    .ContinueWith(task =>
-                    {
-                        if (task.IsFaulted)
-                        {
-                            Log.Error(task.Exception.InnerException, "An unhandled exception occurred in the plugin image downloader");
-                        }
-                    });
-
-                return false;
-            }
-
-            if (imageTextures.Length == 0)
+            var hasImages = this.imageCache.TryGetImages(plugin, manifest, isThirdParty, out var imageTextures);
+            if (!hasImages || imageTextures.Length == 0)
                 return false;
 
             const float thumbFactor = 2.7f;
@@ -1849,7 +1805,7 @@ namespace Dalamud.Interface.Internal.Windows
 
             var width = ImGui.GetWindowWidth();
 
-            if (ImGui.BeginChild($"plugin{index}ImageScrolling", new Vector2(width - (70 * ImGuiHelpers.GlobalScale), (PluginImageHeight / thumbFactor) + scrollBarSize), false, ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoBackground))
+            if (ImGui.BeginChild($"plugin{index}ImageScrolling", new Vector2(width - (70 * ImGuiHelpers.GlobalScale), (PluginImageCache.PluginImageHeight / thumbFactor) + scrollBarSize), false, ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoBackground))
             {
                 for (var i = 0; i < imageTextures.Length; i++)
                 {
@@ -1876,8 +1832,8 @@ namespace Dalamud.Interface.Internal.Windows
 
                     float xAct = image.Width;
                     float yAct = image.Height;
-                    float xMax = PluginImageWidth;
-                    float yMax = PluginImageHeight;
+                    float xMax = PluginImageCache.PluginImageWidth;
+                    float yMax = PluginImageCache.PluginImageHeight;
 
                     // scale image if undersized
                     if (xAct < xMax && yAct < yMax)
@@ -1942,7 +1898,6 @@ namespace Dalamud.Interface.Internal.Windows
             this.ResortPlugins();
 
             this.UpdateCategoriesOnPluginsChange();
-            Task.Run(() => this.DownloadPluginIconsAsync(this.pluginListAvailable.ToArray()));
         }
 
         private void OnInstalledPluginsChanged()
@@ -2032,273 +1987,6 @@ namespace Dalamud.Interface.Internal.Windows
             this.errorModalMessage = message;
             this.errorModalDrawing = true;
             this.errorModalOnNextFrame = true;
-        }
-
-        private async Task DownloadPluginIconsAsync(RemotePluginManifest[] plugins)
-        {
-            Log.Verbose("Starting icon download...");
-            foreach (var plugin in plugins.Where(x => !this.pluginIconMap.ContainsKey(x.InternalName)))
-            {
-                this.pluginIconMap[plugin.InternalName] = null;
-                await this.DownloadPluginIconAsync(plugin, plugin.SourceRepo.IsThirdParty);
-            }
-        }
-
-        private async Task DownloadPluginIconAsync(PluginManifest manifest, bool isThirdParty)
-        {
-            var interfaceManager = Service<InterfaceManager>.Get();
-            var pluginManager = Service<PluginManager>.Get();
-
-            static bool TryLoadIcon(byte[] bytes, string loc, PluginManifest manifest, InterfaceManager interfaceManager, out TextureWrap icon)
-            {
-                icon = interfaceManager.LoadImage(bytes);
-
-                if (icon == null)
-                {
-                    Log.Error($"Could not load icon for {manifest.InternalName} at {loc}");
-                    return false;
-                }
-
-                if (icon.Width > PluginIconWidth || icon.Height > PluginIconHeight)
-                {
-                    Log.Error($"Icon for {manifest.InternalName} at {loc} was larger than the maximum allowed resolution ({PluginIconWidth}x{PluginIconHeight}).");
-                    return false;
-                }
-
-                if (icon.Height != icon.Width)
-                {
-                    Log.Error($"Icon for {manifest.InternalName} at {loc} was not square.");
-                    return false;
-                }
-
-                return true;
-            }
-
-            var useTesting = pluginManager.UseTesting(manifest);
-            var url = this.GetPluginIconUrl(manifest, isThirdParty, useTesting);
-            if (url != null)
-            {
-                Log.Verbose($"Downloading icon for {manifest.InternalName} from {url}");
-
-                HttpResponseMessage data;
-                try
-                {
-                    data = await this.httpClient.GetAsync(url);
-                }
-                catch (InvalidOperationException)
-                {
-                    Log.Error($"Plugin icon for {manifest.InternalName} has an Invalid URI");
-                    return;
-                }
-                catch (Exception ex)
-                {
-                    Log.Error(ex, $"An unexpected error occurred with the icon for {manifest.InternalName}");
-                    return;
-                }
-
-                if (data.StatusCode == HttpStatusCode.NotFound)
-                    return;
-
-                data.EnsureSuccessStatusCode();
-
-                var bytes = await data.Content.ReadAsByteArrayAsync();
-                if (!TryLoadIcon(bytes, url, manifest, interfaceManager, out var icon))
-                    return;
-
-                this.pluginIconMap[manifest.InternalName] = icon;
-                Log.Verbose($"Plugin icon for {manifest.InternalName} downloaded");
-
-                return;
-            }
-
-            Log.Verbose($"Plugin icon for {manifest.InternalName} is not available");
-        }
-
-        private async Task DownloadPluginImagesAsync(LocalPlugin? plugin, PluginManifest manifest, bool isThirdParty)
-        {
-            var interfaceManager = Service<InterfaceManager>.Get();
-            var pluginManager = Service<PluginManager>.Get();
-
-            static bool TryLoadImage(int i, byte[] bytes, string loc, PluginManifest manifest, InterfaceManager interfaceManager, out TextureWrap image)
-            {
-                image = interfaceManager.LoadImage(bytes);
-
-                if (image == null)
-                {
-                    Log.Error($"Could not load image{i + 1} for {manifest.InternalName} at {loc}");
-                    return false;
-                }
-
-                if (image.Width > PluginImageWidth || image.Height > PluginImageHeight)
-                {
-                    Log.Error($"Plugin image{i + 1} for {manifest.InternalName} at {loc} was larger than the maximum allowed resolution ({PluginImageWidth}x{PluginImageHeight}).");
-                    return false;
-                }
-
-                return true;
-            }
-
-            if (plugin != null && plugin.IsDev)
-            {
-                var files = this.GetPluginImageFileInfos(plugin);
-                if (files != null)
-                {
-                    var didAny = false;
-                    var pluginImages = new TextureWrap[files.Count];
-                    for (var i = 0; i < files.Count; i++)
-                    {
-                        var file = files[i];
-
-                        if (file == null)
-                            continue;
-
-                        Log.Verbose($"Loading image{i + 1} for {manifest.InternalName} from {file.FullName}");
-                        var bytes = await File.ReadAllBytesAsync(file.FullName);
-
-                        if (!TryLoadImage(i, bytes, file.FullName, manifest, interfaceManager, out var image))
-                            continue;
-
-                        Log.Verbose($"Plugin image{i + 1} for {manifest.InternalName} loaded from disk");
-                        pluginImages[i] = image;
-
-                        didAny = true;
-                    }
-
-                    if (didAny)
-                    {
-                        Log.Verbose($"Plugin images for {manifest.InternalName} loaded from disk");
-
-                        if (pluginImages.Contains(null))
-                            pluginImages = pluginImages.Where(image => image != null).ToArray();
-
-                        this.pluginImagesMap[manifest.InternalName] = pluginImages;
-
-                        return;
-                    }
-                }
-
-                // Dev plugins are likely going to look like a main repo plugin, the InstalledFrom field is going to be null.
-                // So instead, set the value manually so we download from the urls specified.
-                isThirdParty = true;
-            }
-
-            var useTesting = pluginManager.UseTesting(manifest);
-            var urls = this.GetPluginImageUrls(manifest, isThirdParty, useTesting);
-            if (urls != null)
-            {
-                var didAny = false;
-                var pluginImages = new TextureWrap[urls.Count];
-                for (var i = 0; i < urls.Count; i++)
-                {
-                    var url = urls[i];
-
-                    Log.Verbose($"Downloading image{i + 1} for {manifest.InternalName} from {url}");
-
-                    HttpResponseMessage data;
-                    try
-                    {
-                        data = await this.httpClient.GetAsync(url);
-                    }
-                    catch (InvalidOperationException)
-                    {
-                        Log.Error($"Plugin image{i + 1} for {manifest.InternalName} has an Invalid URI");
-                        continue;
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Error(ex, $"An unexpected error occurred with image{i + 1} for {manifest.InternalName}");
-                        continue;
-                    }
-
-                    if (data.StatusCode == HttpStatusCode.NotFound)
-                        continue;
-
-                    data.EnsureSuccessStatusCode();
-
-                    var bytes = await data.Content.ReadAsByteArrayAsync();
-                    if (!TryLoadImage(i, bytes, url, manifest, interfaceManager, out var image))
-                        continue;
-
-                    Log.Verbose($"Plugin image{i + 1} for {manifest.InternalName} downloaded");
-                    pluginImages[i] = image;
-
-                    didAny = true;
-                }
-
-                if (didAny)
-                {
-                    Log.Verbose($"Plugin images for {manifest.InternalName} downloaded");
-
-                    if (pluginImages.Contains(null))
-                        pluginImages = pluginImages.Where(image => image != null).ToArray();
-
-                    this.pluginImagesMap[manifest.InternalName] = pluginImages;
-
-                    return;
-                }
-            }
-
-            Log.Verbose($"Images for {manifest.InternalName} are not available");
-        }
-
-        private string? GetPluginIconUrl(PluginManifest manifest, bool isThirdParty, bool isTesting)
-        {
-            if (isThirdParty)
-                return manifest.IconUrl;
-
-            return MainRepoImageUrl.Format(isTesting ? "testing" : "plugins", manifest.InternalName, "icon.png");
-        }
-
-        private List<string?>? GetPluginImageUrls(PluginManifest manifest, bool isThirdParty, bool isTesting)
-        {
-            if (isThirdParty)
-            {
-                if (manifest.ImageUrls?.Count > 5)
-                {
-                    Log.Warning($"Plugin {manifest.InternalName} has too many images");
-                    return manifest.ImageUrls.Take(5).ToList();
-                }
-
-                return manifest.ImageUrls;
-            }
-
-            var output = new List<string>();
-            for (var i = 1; i <= 5; i++)
-            {
-                output.Add(MainRepoImageUrl.Format(isTesting ? "testing" : "plugins", manifest.InternalName, $"image{i}.png"));
-            }
-
-            return output;
-        }
-
-        private FileInfo? GetPluginIconFileInfo(LocalPlugin? plugin)
-        {
-            var pluginDir = plugin.DllFile.Directory;
-
-            var devUrl = new FileInfo(Path.Combine(pluginDir.FullName, "images", "icon.png"));
-            if (devUrl.Exists)
-                return devUrl;
-
-            return null;
-        }
-
-        private List<FileInfo?> GetPluginImageFileInfos(LocalPlugin? plugin)
-        {
-            var pluginDir = plugin.DllFile.Directory;
-            var output = new List<FileInfo>();
-            for (var i = 1; i <= 5; i++)
-            {
-                var devUrl = new FileInfo(Path.Combine(pluginDir.FullName, "images", $"image{i}.png"));
-                if (devUrl.Exists)
-                {
-                    output.Add(devUrl);
-                    continue;
-                }
-
-                output.Add(null);
-            }
-
-            return output;
         }
 
         private void UpdateCategoriesOnSearchChange()
