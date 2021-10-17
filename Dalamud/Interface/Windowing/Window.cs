@@ -193,10 +193,23 @@ namespace Dalamud.Interface.Windowing
                 this.OnOpen();
             }
 
+            var wasFocused = this.IsFocused;
+            if (wasFocused)
+            {
+                var style = ImGui.GetStyle();
+                var focusedHeaderColor = style.Colors[(int)ImGuiCol.TitleBgActive];
+                ImGui.PushStyleColor(ImGuiCol.TitleBgCollapsed, focusedHeaderColor);
+            }
+
             if (ImGui.Begin(this.WindowName, ref this.internalIsOpen, this.Flags))
             {
                 // Draw the actual window contents
                 this.Draw();
+            }
+
+            if (wasFocused)
+            {
+                ImGui.PopStyleColor();
             }
 
             this.IsFocused = ImGui.IsWindowFocused(ImGuiFocusedFlags.RootAndChildWindows);
