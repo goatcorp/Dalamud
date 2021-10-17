@@ -1110,19 +1110,41 @@ namespace Dalamud.Interface.Internal.Windows
             cursor.Y += ImGui.GetTextLineHeightWithSpacing();
             ImGui.SetCursorPos(cursor);
 
-            // Description
-            if (!string.IsNullOrWhiteSpace(manifest.Punchline))
+            // Outdated warning
+            if (plugin is { IsOutdated: true, IsBanned: false })
             {
-                ImGui.TextWrapped(manifest.Punchline);
+                ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
+                ImGui.TextWrapped(Locs.PluginBody_Outdated);
+                ImGui.PopStyleColor();
             }
-            else if (!string.IsNullOrWhiteSpace(manifest.Description))
-            {
-                const int punchlineLen = 200;
-                var firstLine = manifest.Description.Split(new[] { '\r', '\n' })[0];
 
-                ImGui.TextWrapped(firstLine.Length < punchlineLen
-                                      ? firstLine
-                                      : firstLine[..punchlineLen]);
+            // Banned warning
+            if (plugin is { IsBanned: true })
+            {
+                ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
+                ImGui.TextWrapped(plugin.BanReason.IsNullOrEmpty()
+                                      ? Locs.PluginBody_Banned
+                                      : Locs.PluginBody_BannedReason(plugin.BanReason));
+
+                ImGui.PopStyleColor();
+            }
+
+            // Description
+            if (plugin is null or { IsOutdated: false, IsBanned: false })
+            {
+                if (!string.IsNullOrWhiteSpace(manifest.Punchline))
+                {
+                    ImGui.TextWrapped(manifest.Punchline);
+                }
+                else if (!string.IsNullOrWhiteSpace(manifest.Description))
+                {
+                    const int punchlineLen = 200;
+                    var firstLine = manifest.Description.Split(new[] { '\r', '\n' })[0];
+
+                    ImGui.TextWrapped(firstLine.Length < punchlineLen
+                                          ? firstLine
+                                          : firstLine[..punchlineLen]);
+                }
             }
 
             startCursor.Y += sectionSize;
@@ -1419,23 +1441,6 @@ namespace Dalamud.Interface.Internal.Windows
                 if (!string.IsNullOrWhiteSpace(manifest.Description))
                 {
                     ImGui.TextWrapped(manifest.Description);
-                }
-
-                if (plugin.IsOutdated && !plugin.IsBanned)
-                {
-                    ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
-                    ImGui.TextWrapped(Locs.PluginBody_Outdated);
-                    ImGui.PopStyleColor();
-                }
-
-                if (plugin.IsBanned)
-                {
-                    ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
-                    ImGui.TextWrapped(plugin.BanReason.IsNullOrEmpty()
-                                          ? Locs.PluginBody_Banned
-                                          : Locs.PluginBody_BannedReason(plugin.BanReason));
-
-                    ImGui.PopStyleColor();
                 }
 
                 // Available commands (if loaded)
