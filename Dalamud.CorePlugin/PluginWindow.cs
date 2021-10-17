@@ -13,9 +13,6 @@ namespace Dalamud.CorePlugin
     /// </summary>
     internal class PluginWindow : Window, IDisposable
     {
-        private Vector4 bgCol = ImGuiColors.HealerGreen;
-        private Vector4 textCol = ImGuiColors.DalamudWhite;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="PluginWindow"/> class.
         /// </summary>
@@ -41,21 +38,6 @@ namespace Dalamud.CorePlugin
         /// <inheritdoc/>
         public override void Draw()
         {
-            ImGui.ColorPicker4("bg", ref this.bgCol);
-            ImGui.ColorPicker4("text", ref this.textCol);
-
-            ImGui.PushStyleColor(ImGuiCol.ChildBg, this.bgCol);
-            ImGui.PushStyleColor(ImGuiCol.Text, this.textCol);
-
-            if (ImGui.BeginChild("##changelog", new Vector2(-1, 100), true, ImGuiWindowFlags.NoNavFocus | ImGuiWindowFlags.NoNavInputs | ImGuiWindowFlags.AlwaysAutoResize))
-            {
-                ImGui.Text("Changelog:");
-                ImGuiHelpers.ScaledDummy(2);
-                ImGui.TextWrapped("* ASIhif ai fdh adhsfuoadf\n* IUHoiaudsfh adsof hioaudshfuio husiodfh\n* A iiaojfdpasd ijopadfnklafwjenalkfjensgdlkjnasasdfbhnj");
-            }
-
-            ImGui.EndChild();
-            ImGui.PopStyleColor(2);
         }
     }
 }
