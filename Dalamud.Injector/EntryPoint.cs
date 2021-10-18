@@ -116,7 +116,7 @@ namespace Dalamud.Injector
             var baseDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
 #if DEBUG
-            var logPath = Path.Combine(baseDirectory, "injector.log");
+            var logPath = Path.Combine(baseDirectory, "dalamud.injector.log");
 #else
             var logPath = Path.Combine(baseDirectory, "..", "..", "..", "dalamud.injector.log");
 #endif
