@@ -166,7 +166,9 @@ namespace Dalamud.Hooking
             if (this.isCoreHook)
             {
                 this.Disable();
-                this.coreHookImpl.Dispose();
+                // Disposing CoreHook causes an APPCRASH on game exit.
+                // We already overwrite the original hook code, so there shouldn't be any real risk with not disposing here.
+                // this.coreHookImpl.Dispose();
             }
             else
             {
