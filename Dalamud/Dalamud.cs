@@ -287,7 +287,7 @@ namespace Dalamud
         }
 
         /// <summary>
-        ///     Queue an unload of Dalamud when it gets the chance.
+        /// Queue an unload of Dalamud when it gets the chance.
         /// </summary>
         public void Unload()
         {
@@ -296,7 +296,7 @@ namespace Dalamud
         }
 
         /// <summary>
-        ///     Wait for an unload request to start.
+        /// Wait for an unload request to start.
         /// </summary>
         public void WaitForUnload()
         {
