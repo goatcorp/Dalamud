@@ -33,7 +33,7 @@ namespace Dalamud.Logging.Internal
         /// <summary>
         /// Gets a read-only list of tracked tasks.
         /// </summary>
-        public static IReadOnlyList<TaskInfo> Tasks => TrackedTasksInternal;
+        public static IReadOnlyList<TaskInfo> Tasks => TrackedTasksInternal.ToArray();
 
         /// <summary>
         /// Clear the list of tracked tasks.
