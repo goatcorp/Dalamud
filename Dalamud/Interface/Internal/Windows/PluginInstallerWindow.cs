@@ -386,6 +386,13 @@ namespace Dalamud.Interface.Internal.Windows
             if (ImGui.BeginPopupModal(modalTitle, ref this.feedbackModalDrawing, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoScrollbar))
             {
                 ImGui.Text(Locs.FeedbackModal_Text(this.feedbackPlugin.Name));
+
+                if (this.pluginListUpdatable.Any(
+                    up => up.InstalledPlugin.Manifest.InternalName == this.feedbackPlugin?.InternalName))
+                {
+                    ImGui.TextColored(ImGuiColors.DalamudRed, Locs.FeedbackModal_HasUpdate);
+                }
+
                 ImGui.Spacing();
 
                 ImGui.InputTextMultiline("###FeedbackContent", ref this.feedbackModalBody, 1000, new Vector2(400, 200));
@@ -2251,6 +2258,8 @@ namespace Dalamud.Interface.Internal.Windows
             public static string FeedbackModal_Title => Loc.Localize("InstallerFeedback", "Send Feedback");
 
             public static string FeedbackModal_Text(string pluginName) => Loc.Localize("InstallerFeedbackInfo", "You can send feedback to the developer of \"{0}\" here.\nYou can include your Discord tag or email address if you wish to give them the opportunity to answer.").Format(pluginName);
+
+            public static string FeedbackModal_HasUpdate => Loc.Localize("InstallerFeedbackHasUpdate", "A new version of this plugin is available, please update before reporting bugs.");
 
             public static string FeedbackModal_ContactInformation => Loc.Localize("InstallerFeedbackContactInfo", "Contact information");
 
