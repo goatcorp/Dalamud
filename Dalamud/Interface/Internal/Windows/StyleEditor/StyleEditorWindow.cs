@@ -9,6 +9,7 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Data;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
+using Dalamud.Interface.Style;
 using Dalamud.Interface.Windowing;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
@@ -78,7 +79,7 @@ namespace Dalamud.Interface.Internal.Windows.StyleEditor
             var renameModalTitle = Loc.Localize("RenameStyleModalTitle", "Rename Style");
 
             var workStyle = config.SavedStyles[this.currentSel];
-            workStyle.BuiltInColors ??= StyleModel.DalamudStandard.BuiltInColors;
+            workStyle.BuiltInColors ??= StyleModelV1.DalamudStandard.BuiltInColors;
 
             var appliedThisFrame = false;
 
@@ -95,7 +96,7 @@ namespace Dalamud.Interface.Internal.Windows.StyleEditor
             {
                 this.SaveStyle();
 
-                var newStyle = StyleModel.DalamudStandard;
+                var newStyle = StyleModelV1.DalamudStandard;
                 newStyle.Name = GetRandomName();
                 config.SavedStyles.Add(newStyle);
 
@@ -146,9 +147,9 @@ namespace Dalamud.Interface.Internal.Windows.StyleEditor
             if (ImGuiComponents.IconButton(FontAwesomeIcon.FileExport))
             {
                 var selectedStyle = config.SavedStyles[this.currentSel];
-                var newStyle = StyleModel.Get();
+                var newStyle = StyleModelV1.Get();
                 newStyle.Name = selectedStyle.Name;
-                ImGui.SetClipboardText(newStyle.ToEncoded());
+                ImGui.SetClipboardText(newStyle.Serialize());
             }
 
             if (ImGui.IsItemHovered())
@@ -164,7 +165,7 @@ namespace Dalamud.Interface.Internal.Windows.StyleEditor
 
                 try
                 {
-                    var newStyle = StyleModel.FromEncoded(styleJson);
+                    var newStyle = StyleModel.Deserialize(styleJson);
 
                     newStyle.Name ??= GetRandomName();
 
@@ -296,11 +297,19 @@ namespace Dalamud.Interface.Internal.Windows.StyleEditor
 
                     ImGui.Separator();
 
-                    foreach (var property in typeof(StyleModel.DalamudColors).GetProperties(BindingFlags.Public | BindingFlags.Instance))
+                    foreach (var property in typeof(DalamudColors).GetProperties(BindingFlags.Public | BindingFlags.Instance))
                     {
                         ImGui.PushID(property.Name);
 
-                        var color = (Vector4)property.GetValue(workStyle.BuiltInColors);
+                        var colorVal = property.GetValue(workStyle.BuiltInColors);
+                        if (colorVal == null)
+                        {
+                            colorVal = property.GetValue(StyleModelV1.DalamudStandard.BuiltInColors);
+                            property.SetValue(workStyle.BuiltInColors, colorVal);
+                        }
+
+                        var color = (Vector4)colorVal;
+
                         if (ImGui.ColorEdit4("##color", ref color, ImGuiColorEditFlags.AlphaBar | this.alphaFlags))
                         {
                             property.SetValue(workStyle.BuiltInColors, color);
@@ -382,7 +391,7 @@ namespace Dalamud.Interface.Internal.Windows.StyleEditor
 
             var config = Service<DalamudConfiguration>.Get();
 
-            var newStyle = StyleModel.Get();
+            var newStyle = StyleModelV1.Get();
             newStyle.Name = config.SavedStyles[this.currentSel].Name;
             config.SavedStyles[this.currentSel] = newStyle;
             newStyle.Apply();

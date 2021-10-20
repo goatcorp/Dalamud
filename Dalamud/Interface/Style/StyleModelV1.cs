@@ -1,23 +1,22 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
 
 using Dalamud.Interface.Colors;
-using Dalamud.Utility;
 using ImGuiNET;
 using Newtonsoft.Json;
 
-namespace Dalamud.Interface.Internal.Windows.StyleEditor
+namespace Dalamud.Interface.Style
 {
     /// <summary>
-    /// Class representing a serializable ImGui style.
+    /// Version one of the Dalamud style model.
     /// </summary>
-    internal class StyleModel
+    public class StyleModelV1 : StyleModel
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="StyleModel"/> class.
+        /// Initializes a new instance of the <see cref="StyleModelV1"/> class.
         /// </summary>
-        private StyleModel()
+        private StyleModelV1()
         {
             this.Colors = new Dictionary<string, Vector4>();
             this.Name = "Unknown";
@@ -26,7 +25,7 @@ namespace Dalamud.Interface.Internal.Windows.StyleEditor
         /// <summary>
         /// Gets the standard Dalamud look.
         /// </summary>
-        public static StyleModel DalamudStandard => new()
+        public static StyleModelV1 DalamudStandard => new()
         {
             Name = "Dalamud Standard",
 
@@ -135,7 +134,7 @@ namespace Dalamud.Interface.Internal.Windows.StyleEditor
         /// <summary>
         /// Gets the standard Dalamud look.
         /// </summary>
-        public static StyleModel DalamudClassic => new()
+        public static StyleModelV1 DalamudClassic => new()
         {
             Name = "Dalamud Classic",
 
@@ -241,10 +240,12 @@ namespace Dalamud.Interface.Internal.Windows.StyleEditor
             },
         };
 
-#pragma warning disable SA1600
+        /// <summary>
+        /// Gets the version prefix for this version.
+        /// </summary>
+        public static string SerializedPrefix => "DS1";
 
-        [JsonProperty("name")]
-        public string Name { get; set; }
+#pragma warning disable SA1600
 
         [JsonProperty("a")]
         public float Alpha { get; set; }
@@ -336,18 +337,12 @@ namespace Dalamud.Interface.Internal.Windows.StyleEditor
         public Dictionary<string, Vector4> Colors { get; set; }
 
         /// <summary>
-        /// Gets or sets class representing Dalamud-builtin <see cref="ImGuiColors"/>.
-        /// </summary>
-        [JsonProperty("dol")]
-        public DalamudColors? BuiltInColors { get; set; }
-
-        /// <summary>
         /// Get a <see cref="StyleModel"/> instance via ImGui.
         /// </summary>
         /// <returns>The newly created <see cref="StyleModel"/> instance.</returns>
-        public static StyleModel Get()
+        public static StyleModelV1 Get()
         {
-            var model = new StyleModel();
+            var model = new StyleModelV1();
             var style = ImGui.GetStyle();
 
             model.Alpha = style.Alpha;
@@ -408,26 +403,9 @@ namespace Dalamud.Interface.Internal.Windows.StyleEditor
         }
 
         /// <summary>
-        /// Get a <see cref="StyleModel"/> instance from a compressed base64 string.
-        /// </summary>
-        /// <param name="data">The string to decode.</param>
-        /// <returns>A decompressed <see cref="StyleModel"/>.</returns>
-        public static StyleModel? FromEncoded(string data)
-        {
-            var json = Util.DecompressString(Convert.FromBase64String(data.Substring(3)));
-            return JsonConvert.DeserializeObject<StyleModel>(json);
-        }
-
-        /// <summary>
-        /// Get this <see cref="StyleModel"/> instance as a encoded base64 string.
-        /// </summary>
-        /// <returns>The encoded base64 string.</returns>
-        public string ToEncoded() => "DS1" + Convert.ToBase64String(Util.CompressString(JsonConvert.SerializeObject(this)));
-
-        /// <summary>
         /// Apply this StyleModel via ImGui.
         /// </summary>
-        public void Apply()
+        public override void Apply()
         {
             var style = ImGui.GetStyle();
 
@@ -472,56 +450,16 @@ namespace Dalamud.Interface.Internal.Windows.StyleEditor
             this.BuiltInColors?.Apply();
         }
 
-#pragma warning disable SA1600
-
-        public class DalamudColors
+        /// <inheritdoc/>
+        public override void Push()
         {
-            [JsonProperty("a")]
-            public Vector4 DalamudRed { get; set; }
-
-            [JsonProperty("b")]
-            public Vector4 DalamudGrey { get; set; }
-
-            [JsonProperty("c")]
-            public Vector4 DalamudGrey2 { get; set; }
-
-            [JsonProperty("d")]
-            public Vector4 DalamudGrey3 { get; set; }
-
-            [JsonProperty("e")]
-            public Vector4 DalamudWhite { get; set; }
-
-            [JsonProperty("f")]
-            public Vector4 DalamudWhite2 { get; set; }
-
-            [JsonProperty("g")]
-            public Vector4 DalamudOrange { get; set; }
-
-            [JsonProperty("h")]
-            public Vector4 TankBlue { get; set; }
-
-            [JsonProperty("i")]
-            public Vector4 HealerGreen { get; set; }
-
-            [JsonProperty("j")]
-            public Vector4 DPSRed { get; set; }
-
-            public void Apply()
-            {
-                ImGuiColors.DalamudRed = this.DalamudRed;
-                ImGuiColors.DalamudGrey = this.DalamudGrey;
-                ImGuiColors.DalamudGrey2 = this.DalamudGrey2;
-                ImGuiColors.DalamudGrey3 = this.DalamudGrey3;
-                ImGuiColors.DalamudWhite = this.DalamudWhite;
-                ImGuiColors.DalamudWhite2 = this.DalamudWhite2;
-                ImGuiColors.DalamudOrange = this.DalamudOrange;
-                ImGuiColors.TankBlue = this.TankBlue;
-                ImGuiColors.HealerGreen = this.HealerGreen;
-                ImGuiColors.DPSRed = this.DPSRed;
-            }
+            throw new NotImplementedException();
         }
 
-#pragma warning restore SA1600
-
+        /// <inheritdoc/>
+        public override void Pop()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

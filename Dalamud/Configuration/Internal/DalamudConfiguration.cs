@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 
 using Dalamud.Game.Text;
-using Dalamud.Interface.Internal.Windows.StyleEditor;
+using Dalamud.Interface.Style;
 using Newtonsoft.Json;
 using Serilog;
 using Serilog.Events;
