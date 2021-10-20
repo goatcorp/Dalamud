@@ -6,6 +6,7 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
 using Dalamud.Utility;
 using Newtonsoft.Json;
+using Serilog;
 
 namespace Dalamud.Interface.Style
 {
@@ -82,6 +83,8 @@ namespace Dalamud.Interface.Style
 
             configuration.SavedStyles = new List<StyleModel>();
             configuration.SavedStyles.AddRange(configuration.SavedStylesOld);
+
+            Log.Information("Transferred {0} styles", configuration.SavedStyles.Count);
 
             configuration.SavedStylesOld = null;
             configuration.Save();
