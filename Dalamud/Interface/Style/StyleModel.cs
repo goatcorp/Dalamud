@@ -71,6 +71,23 @@ namespace Dalamud.Interface.Style
         }
 
         /// <summary>
+        /// [TEMPORARY] Transfer old non-polymorphic style models to the new format.
+        /// </summary>
+        public static void TransferOldModels()
+        {
+            var configuration = Service<DalamudConfiguration>.Get();
+
+            if (configuration.SavedStylesOld == null)
+                return;
+
+            configuration.SavedStyles = new List<StyleModel>();
+            configuration.SavedStyles.AddRange(configuration.SavedStylesOld);
+
+            configuration.SavedStylesOld = null;
+            configuration.Save();
+        }
+
+        /// <summary>
         /// Serialize this style model.
         /// </summary>
         /// <returns>Serialized style model as string.</returns>

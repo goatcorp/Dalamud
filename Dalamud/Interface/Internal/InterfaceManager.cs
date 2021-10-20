@@ -369,6 +369,8 @@ namespace Dalamud.Interface.Internal
 
                 this.SetupFonts();
 
+                StyleModel.TransferOldModels();
+
                 if (configuration.SavedStyles == null || configuration.SavedStyles.All(x => x.Name != StyleModelV1.DalamudStandard.Name))
                 {
                     configuration.SavedStyles = new List<StyleModel> { StyleModelV1.DalamudStandard, StyleModelV1.DalamudClassic };

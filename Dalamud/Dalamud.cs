@@ -125,7 +125,7 @@ namespace Dalamud
 
                 framework.Enable();
 
-                Log.Information("[T1] Framework ENABLE!");
+                Log.Information("[T1] Load complete!");
             }
             catch (Exception ex)
             {
@@ -233,6 +233,7 @@ namespace Dalamud
                 Service<DalamudAtkTweaks>.Set().Enable();
 
                 this.IsReady = true;
+                Log.Information("[T2] Load complete!");
             }
             catch (Exception ex)
             {
