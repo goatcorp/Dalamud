@@ -209,6 +209,13 @@ namespace Dalamud.Configuration.Internal
         /// <summary>
         /// Gets or sets a list of saved styles.
         /// </summary>
+        [JsonProperty("SavedStyles")]
+        public List<StyleModelV1>? SavedStylesOld { get; set; }
+
+        /// <summary>
+        /// Gets or sets a list of saved styles.
+        /// </summary>
+        [JsonProperty("SavedStylesVersioned")]
         public List<StyleModel>? SavedStyles { get; set; }
 
         /// <summary>
