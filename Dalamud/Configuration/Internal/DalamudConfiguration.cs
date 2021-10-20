@@ -19,7 +19,7 @@ namespace Dalamud.Configuration.Internal
         private static readonly JsonSerializerSettings SerializerSettings = new()
         {
             TypeNameHandling = TypeNameHandling.All,
-            TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Full,
+            TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple,
             Formatting = Formatting.Indented,
         };
 
