@@ -186,7 +186,7 @@ namespace Dalamud
 
                 Log.Information("[T2] LOC OK!");
 
-                if (!bool.Parse(Environment.GetEnvironmentVariable("DALAMUD_NOT_HAVE_INTERFACE") ?? "false"))
+                if (!EnvironmentConfiguration.DalamudNoInterface)
                 {
                     try
                     {

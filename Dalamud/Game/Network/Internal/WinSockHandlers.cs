@@ -20,7 +20,7 @@ namespace Dalamud.Game.Network.Internal
         public WinSockHandlers()
         {
             this.ws2SocketHook = HookManager.DirtyLinuxUser ? null
-                : Hook<SocketDelegate>.FromSymbol("ws2_32.dll", "socket", this.OnSocket);
+                : Hook<SocketDelegate>.FromSymbol("ws2_32.dll", "socket", this.OnSocket, true);
             this.ws2SocketHook?.Enable();
         }
 

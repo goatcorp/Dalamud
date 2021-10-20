@@ -1,6 +1,7 @@
 using System;
 using System.Reflection;
 
+using Dalamud.Configuration.Internal;
 using Dalamud.Hooking.Internal;
 using Dalamud.Memory;
 using Reloaded.Hooks;
@@ -16,6 +17,8 @@ namespace Dalamud.Hooking
     {
         private readonly IntPtr address;
         private readonly Reloaded.Hooks.Definitions.IHook<T> hookImpl;
+        private readonly CoreHook.IHook<T> coreHookImpl;
+        private readonly bool isCoreHook;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Hook{T}"/> class.
@@ -24,8 +27,22 @@ namespace Dalamud.Hooking
         /// <param name="address">A memory address to install a hook.</param>
         /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
         public Hook(IntPtr address, T detour)
+            : this(address, detour, false)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Hook{T}"/> class.
+        /// Hook is not activated until Enable() method is called.
+        /// Please do not use CoreHook unless you have thoroughly troubleshot why Reloaded does not work.
+        /// </summary>
+        /// <param name="address">A memory address to install a hook.</param>
+        /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
+        /// <param name="useCoreHook">Use the corehook hooking library instead of Reloaded.</param>
+        public Hook(IntPtr address, T detour, bool useCoreHook)
         {
             address = HookManager.FollowJmp(address);
+            this.isCoreHook = useCoreHook || EnvironmentConfiguration.DalamudForceCoreHook;
 
             var hasOtherHooks = HookManager.Originals.ContainsKey(address);
             if (!hasOtherHooks)
@@ -35,7 +52,14 @@ namespace Dalamud.Hooking
             }
 
             this.address = address;
-            this.hookImpl = ReloadedHooks.Instance.CreateHook<T>(detour, address.ToInt64());
+            if (this.isCoreHook)
+            {
+                this.coreHookImpl = CoreHook.HookFactory.CreateHook<T>(address, detour);
+            }
+            else
+            {
+                this.hookImpl = ReloadedHooks.Instance.CreateHook<T>(detour, address.ToInt64());
+            }
 
             HookManager.TrackedHooks.Add(new HookInfo(this, detour, Assembly.GetCallingAssembly()));
         }
@@ -62,7 +86,14 @@ namespace Dalamud.Hooking
             get
             {
                 this.CheckDisposed();
-                return this.hookImpl.OriginalFunction;
+                if (this.isCoreHook)
+                {
+                    return this.coreHookImpl.Original;
+                }
+                else
+                {
+                    return this.hookImpl.OriginalFunction;
+                }
             }
         }
 
@@ -74,7 +105,14 @@ namespace Dalamud.Hooking
             get
             {
                 this.CheckDisposed();
-                return this.hookImpl.IsHookEnabled;
+                if (this.isCoreHook)
+                {
+                    return this.coreHookImpl.Enabled;
+                }
+                else
+                {
+                    return this.hookImpl.IsHookEnabled;
+                }
             }
         }
 
@@ -92,6 +130,19 @@ namespace Dalamud.Hooking
         /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
         /// <returns>The hook with the supplied parameters.</returns>
         public static Hook<T> FromSymbol(string moduleName, string exportName, T detour)
+            => FromSymbol(moduleName, exportName, detour, false);
+
+        /// <summary>
+        /// Creates a hook. Hooking address is inferred by calling to GetProcAddress() function.
+        /// The hook is not activated until Enable() method is called.
+        /// Please do not use CoreHook unless you have thoroughly troubleshot why Reloaded does not work.
+        /// </summary>
+        /// <param name="moduleName">A name of the module currently loaded in the memory. (e.g. ws2_32.dll).</param>
+        /// <param name="exportName">A name of the exported function name (e.g. send).</param>
+        /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
+        /// <param name="useCoreHook">Use the corehook hooking library instead of Reloaded.</param>
+        /// <returns>The hook with the supplied parameters.</returns>
+        public static Hook<T> FromSymbol(string moduleName, string exportName, T detour, bool useCoreHook)
         {
             var moduleHandle = NativeFunctions.GetModuleHandleW(moduleName);
             if (moduleHandle == IntPtr.Zero)
@@ -101,7 +152,7 @@ namespace Dalamud.Hooking
             if (procAddress == IntPtr.Zero)
                 throw new Exception($"Could not get the address of {moduleName}::{exportName}");
 
-            return new Hook<T>(procAddress, detour);
+            return new Hook<T>(procAddress, detour, useCoreHook);
         }
 
         /// <summary>
@@ -112,10 +163,19 @@ namespace Dalamud.Hooking
             if (this.IsDisposed)
                 return;
 
-            this.IsDisposed = true;
+            if (this.isCoreHook)
+            {
+                this.Disable();
+                // Disposing CoreHook causes an APPCRASH on game exit.
+                // We already overwrite the original hook code, so there shouldn't be any real risk with not disposing here.
+                // this.coreHookImpl.Dispose();
+            }
+            else
+            {
+                this.Disable();
+            }
 
-            if (this.hookImpl.IsHookEnabled)
-                this.hookImpl.Disable();
+            this.IsDisposed = true;
         }
 
         /// <summary>
@@ -125,11 +185,19 @@ namespace Dalamud.Hooking
         {
             this.CheckDisposed();
 
-            if (!this.hookImpl.IsHookActivated)
-                this.hookImpl.Activate();
+            if (this.isCoreHook)
+            {
+                if (!this.coreHookImpl.Enabled)
+                    this.coreHookImpl.Enabled = true;
+            }
+            else
+            {
+                if (!this.hookImpl.IsHookActivated)
+                    this.hookImpl.Activate();
 
-            if (!this.hookImpl.IsHookEnabled)
-                this.hookImpl.Enable();
+                if (!this.hookImpl.IsHookEnabled)
+                    this.hookImpl.Enable();
+            }
         }
 
         /// <summary>
@@ -139,11 +207,19 @@ namespace Dalamud.Hooking
         {
             this.CheckDisposed();
 
-            if (!this.hookImpl.IsHookActivated)
-                return;
+            if (this.isCoreHook)
+            {
+                if (this.coreHookImpl.Enabled)
+                    this.coreHookImpl.Enabled = false;
+            }
+            else
+            {
+                if (!this.hookImpl.IsHookActivated)
+                    return;
 
-            if (this.hookImpl.IsHookEnabled)
-                this.hookImpl.Disable();
+                if (this.hookImpl.IsHookEnabled)
+                    this.hookImpl.Disable();
+            }
         }
 
         /// <summary>
