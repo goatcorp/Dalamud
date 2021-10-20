@@ -19,6 +19,7 @@ using Dalamud.Hooking.Internal;
 using Dalamud.Interface.Internal.ManagedAsserts;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.Internal.Windows.StyleEditor;
+using Dalamud.Interface.Style;
 using Dalamud.Interface.Windowing;
 using Dalamud.Utility;
 using ImGuiNET;
@@ -368,27 +369,29 @@ namespace Dalamud.Interface.Internal
 
                 this.SetupFonts();
 
-                if (configuration.SavedStyles == null || configuration.SavedStyles.All(x => x.Name != StyleModel.DalamudStandard.Name))
+                StyleModel.TransferOldModels();
+
+                if (configuration.SavedStyles == null || configuration.SavedStyles.All(x => x.Name != StyleModelV1.DalamudStandard.Name))
                 {
-                    configuration.SavedStyles = new List<StyleModel> { StyleModel.DalamudStandard, StyleModel.DalamudClassic };
-                    configuration.ChosenStyle = StyleModel.DalamudStandard.Name;
+                    configuration.SavedStyles = new List<StyleModel> { StyleModelV1.DalamudStandard, StyleModelV1.DalamudClassic };
+                    configuration.ChosenStyle = StyleModelV1.DalamudStandard.Name;
                 }
                 else if (configuration.SavedStyles.Count == 1)
                 {
-                    configuration.SavedStyles.Add(StyleModel.DalamudClassic);
+                    configuration.SavedStyles.Add(StyleModelV1.DalamudClassic);
                 }
-                else if (configuration.SavedStyles[1].Name != StyleModel.DalamudClassic.Name)
+                else if (configuration.SavedStyles[1].Name != StyleModelV1.DalamudClassic.Name)
                 {
-                    configuration.SavedStyles.Insert(1, StyleModel.DalamudClassic);
+                    configuration.SavedStyles.Insert(1, StyleModelV1.DalamudClassic);
                 }
 
-                configuration.SavedStyles[0] = StyleModel.DalamudStandard;
-                configuration.SavedStyles[1] = StyleModel.DalamudClassic;
+                configuration.SavedStyles[0] = StyleModelV1.DalamudStandard;
+                configuration.SavedStyles[1] = StyleModelV1.DalamudClassic;
 
                 var style = configuration.SavedStyles.FirstOrDefault(x => x.Name == configuration.ChosenStyle);
                 if (style == null)
                 {
-                    style = StyleModel.DalamudStandard;
+                    style = StyleModelV1.DalamudStandard;
                     configuration.ChosenStyle = style.Name;
                     configuration.Save();
                 }

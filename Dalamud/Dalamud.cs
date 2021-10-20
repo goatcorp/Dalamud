@@ -125,7 +125,7 @@ namespace Dalamud
 
                 framework.Enable();
 
-                Log.Information("[T1] Framework ENABLE!");
+                Log.Information("[T1] Load complete!");
             }
             catch (Exception ex)
             {
@@ -233,6 +233,7 @@ namespace Dalamud
                 Service<DalamudAtkTweaks>.Set().Enable();
 
                 this.IsReady = true;
+                Log.Information("[T2] Load complete!");
             }
             catch (Exception ex)
             {
@@ -287,7 +288,7 @@ namespace Dalamud
         }
 
         /// <summary>
-        ///     Queue an unload of Dalamud when it gets the chance.
+        /// Queue an unload of Dalamud when it gets the chance.
         /// </summary>
         public void Unload()
         {
@@ -296,7 +297,7 @@ namespace Dalamud
         }
 
         /// <summary>
-        ///     Wait for an unload request to start.
+        /// Wait for an unload request to start.
         /// </summary>
         public void WaitForUnload()
         {

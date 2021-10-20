@@ -15,6 +15,7 @@ using Dalamud.Interface.Internal.ManagedAsserts;
 using Dalamud.Interface.Internal.Windows;
 using Dalamud.Interface.Internal.Windows.SelfTest;
 using Dalamud.Interface.Internal.Windows.StyleEditor;
+using Dalamud.Interface.Style;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging;
 using Dalamud.Logging.Internal;
@@ -513,7 +514,7 @@ namespace Dalamud.Interface.Internal
                         if (ImGui.MenuItem("Dump style"))
                         {
                             var info = string.Empty;
-                            var style = StyleModel.Get();
+                            var style = StyleModelV1.Get();
                             var enCulture = new CultureInfo("en-US");
 
                             foreach (var propertyInfo in typeof(StyleModel).GetProperties(BindingFlags.Public | BindingFlags.Instance))

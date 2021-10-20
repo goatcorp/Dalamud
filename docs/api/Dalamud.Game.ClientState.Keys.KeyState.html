@@ -10,7 +10,7 @@
     <meta name="viewport" content="width=device-width">
     <meta name="title" content="Class KeyState
    ">
-    <meta name="generator" content="docfx 2.58.0.0">
+    <meta name="generator" content="docfx 2.58.4.0">
     
     <link rel="shortcut icon" href="../favicon.ico">
     <link rel="stylesheet" href="../styles/docfx.vendor.css">
@@ -111,14 +111,23 @@
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public class KeyState</code></pre>
   </div>
+  <h5 id="Dalamud_Game_ClientState_Keys_KeyState_remarks"><strong>Remarks</strong></h5>
+  <div class="markdown level0 remarks"><p>The stored key state is actually a combination field, however the below ephemeral states are consumed each frame. Setting
+the value may be mildly useful, however retrieving the value is largely pointless. In testing, it wasn't possible without
+setting the statue manually.
+index &amp; 0 = key pressed.
+index &amp; 1 = key down (ephemeral).
+index &amp; 2 = key up (ephemeral).
+index &amp; 3 = short key press (ephemeral).</p>
+</div>
   <h3 id="constructors">Constructors
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Keys_KeyState__ctor_Dalamud_Game_ClientState_ClientStateAddressResolver_.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Keys.KeyState.%23ctor(Dalamud.Game.ClientState.ClientStateAddressResolver)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Keys_KeyState__ctor_Dalamud_Game_ClientState_ClientStateAddressResolver_.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Keys.KeyState.%23ctor(Dalamud.Game.ClientState.ClientStateAddressResolver)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Keys/KeyState.cs/#L27">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Keys/KeyState.cs/#L39">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_Keys_KeyState__ctor_" data-uid="Dalamud.Game.ClientState.Keys.KeyState.#ctor*"></a>
   <h4 id="Dalamud_Game_ClientState_Keys_KeyState__ctor_Dalamud_Game_ClientState_ClientStateAddressResolver_" data-uid="Dalamud.Game.ClientState.Keys.KeyState.#ctor(Dalamud.Game.ClientState.ClientStateAddressResolver)">KeyState(ClientStateAddressResolver)</h4>
@@ -151,19 +160,19 @@
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Keys_KeyState_Item_Dalamud_Game_ClientState_Keys_VirtualKey_.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Keys.KeyState.Item(Dalamud.Game.ClientState.Keys.VirtualKey)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Keys_KeyState_Item_Dalamud_Game_ClientState_Keys_VirtualKey_.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Keys.KeyState.Item(Dalamud.Game.ClientState.Keys.VirtualKey)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Keys/KeyState.cs/#L65">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Keys/KeyState.cs/#L63">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_Keys_KeyState_Item_" data-uid="Dalamud.Game.ClientState.Keys.KeyState.Item*"></a>
   <h4 id="Dalamud_Game_ClientState_Keys_KeyState_Item_Dalamud_Game_ClientState_Keys_VirtualKey_" data-uid="Dalamud.Game.ClientState.Keys.KeyState.Item(Dalamud.Game.ClientState.Keys.VirtualKey)">Item[VirtualKey]</h4>
-  <div class="markdown level1 summary"><p>Get or set the keypressed state for a given VirtualKey enum.</p>
+  <div class="markdown level1 summary"><p>Get or set the key-pressed state for a given vkCode.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public bool this[VirtualKey vk] { get; }</code></pre>
+    <pre><code class="lang-csharp hljs">public bool this[VirtualKey vkCode] { get; set; }</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -177,9 +186,8 @@
     <tbody>
       <tr>
         <td><a class="xref" href="Dalamud.Game.ClientState.Keys.VirtualKey.html">VirtualKey</a></td>
-        <td><span class="parametername">vk</span></td>
-        <td><p>The virtual key to change.</p>
-</td>
+        <td><span class="parametername">vkCode</span></td>
+        <td></td>
       </tr>
     </tbody>
   </table>
@@ -199,16 +207,37 @@
       </tr>
     </tbody>
   </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentException</span></td>
+        <td><p>If the vkCode is not valid. Refer to <a class="xref" href="Dalamud.Game.ClientState.Keys.KeyState.html#Dalamud_Game_ClientState_Keys_KeyState_IsVirtualKeyValid_System_Int32_">IsVirtualKeyValid(Int32)</a> or <a class="xref" href="Dalamud.Game.ClientState.Keys.KeyState.html#Dalamud_Game_ClientState_Keys_KeyState_GetValidVirtualKeys">GetValidVirtualKeys()</a>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.ArgumentOutOfRangeException</span></td>
+        <td><p>If the set value is non-zero.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Keys_KeyState_Item_System_Int32_.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Keys.KeyState.Item(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Keys_KeyState_Item_System_Int32_.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Keys.KeyState.Item(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Keys/KeyState.cs/#L41">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Keys/KeyState.cs/#L56">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_Keys_KeyState_Item_" data-uid="Dalamud.Game.ClientState.Keys.KeyState.Item*"></a>
   <h4 id="Dalamud_Game_ClientState_Keys_KeyState_Item_System_Int32_" data-uid="Dalamud.Game.ClientState.Keys.KeyState.Item(System.Int32)">Item[Int32]</h4>
-  <div class="markdown level1 summary"><p>Get or set the keypressed state for a given vkCode.</p>
+  <div class="markdown level1 summary"><p>Get or set the key-pressed state for a given vkCode.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
@@ -249,14 +278,35 @@
       </tr>
     </tbody>
   </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentException</span></td>
+        <td><p>If the vkCode is not valid. Refer to <a class="xref" href="Dalamud.Game.ClientState.Keys.KeyState.html#Dalamud_Game_ClientState_Keys_KeyState_IsVirtualKeyValid_System_Int32_">IsVirtualKeyValid(Int32)</a> or <a class="xref" href="Dalamud.Game.ClientState.Keys.KeyState.html#Dalamud_Game_ClientState_Keys_KeyState_GetValidVirtualKeys">GetValidVirtualKeys()</a>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.ArgumentOutOfRangeException</span></td>
+        <td><p>If the set value is non-zero.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
   <h3 id="methods">Methods
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Keys_KeyState_ClearAll.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Keys.KeyState.ClearAll%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Keys_KeyState_ClearAll.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Keys.KeyState.ClearAll%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Keys/KeyState.cs/#L70">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Keys/KeyState.cs/#L123">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_Keys_KeyState_ClearAll_" data-uid="Dalamud.Game.ClientState.Keys.KeyState.ClearAll*"></a>
   <h4 id="Dalamud_Game_ClientState_Keys_KeyState_ClearAll" data-uid="Dalamud.Game.ClientState.Keys.KeyState.ClearAll">ClearAll()</h4>
@@ -267,6 +317,389 @@
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public void ClearAll()</code></pre>
   </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Keys_KeyState_GetRawValue_Dalamud_Game_ClientState_Keys_VirtualKey_.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Keys.KeyState.GetRawValue(Dalamud.Game.ClientState.Keys.VirtualKey)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Keys/KeyState.cs/#L79">View Source</a>
+  </span>
+  <a id="Dalamud_Game_ClientState_Keys_KeyState_GetRawValue_" data-uid="Dalamud.Game.ClientState.Keys.KeyState.GetRawValue*"></a>
+  <h4 id="Dalamud_Game_ClientState_Keys_KeyState_GetRawValue_Dalamud_Game_ClientState_Keys_VirtualKey_" data-uid="Dalamud.Game.ClientState.Keys.KeyState.GetRawValue(Dalamud.Game.ClientState.Keys.VirtualKey)">GetRawValue(VirtualKey)</h4>
+  <div class="markdown level1 summary"><p>Gets the value in the index array.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int GetRawValue(VirtualKey vkCode)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Dalamud.Game.ClientState.Keys.VirtualKey.html">VirtualKey</a></td>
+        <td><span class="parametername">vkCode</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>The raw value stored in the index array.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentException</span></td>
+        <td><p>If the vkCode is not valid. Refer to <a class="xref" href="Dalamud.Game.ClientState.Keys.KeyState.html#Dalamud_Game_ClientState_Keys_KeyState_IsVirtualKeyValid_System_Int32_">IsVirtualKeyValid(Int32)</a> or <a class="xref" href="Dalamud.Game.ClientState.Keys.KeyState.html#Dalamud_Game_ClientState_Keys_KeyState_GetValidVirtualKeys">GetValidVirtualKeys()</a>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Keys_KeyState_GetRawValue_System_Int32_.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Keys.KeyState.GetRawValue(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Keys/KeyState.cs/#L75">View Source</a>
+  </span>
+  <a id="Dalamud_Game_ClientState_Keys_KeyState_GetRawValue_" data-uid="Dalamud.Game.ClientState.Keys.KeyState.GetRawValue*"></a>
+  <h4 id="Dalamud_Game_ClientState_Keys_KeyState_GetRawValue_System_Int32_" data-uid="Dalamud.Game.ClientState.Keys.KeyState.GetRawValue(System.Int32)">GetRawValue(Int32)</h4>
+  <div class="markdown level1 summary"><p>Gets the value in the index array.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int GetRawValue(int vkCode)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">vkCode</span></td>
+        <td><p>The virtual key to change.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><p>The raw value stored in the index array.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentException</span></td>
+        <td><p>If the vkCode is not valid. Refer to <a class="xref" href="Dalamud.Game.ClientState.Keys.KeyState.html#Dalamud_Game_ClientState_Keys_KeyState_IsVirtualKeyValid_System_Int32_">IsVirtualKeyValid(Int32)</a> or <a class="xref" href="Dalamud.Game.ClientState.Keys.KeyState.html#Dalamud_Game_ClientState_Keys_KeyState_GetValidVirtualKeys">GetValidVirtualKeys()</a>.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Keys_KeyState_GetValidVirtualKeys.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Keys.KeyState.GetValidVirtualKeys%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Keys/KeyState.cs/#L117">View Source</a>
+  </span>
+  <a id="Dalamud_Game_ClientState_Keys_KeyState_GetValidVirtualKeys_" data-uid="Dalamud.Game.ClientState.Keys.KeyState.GetValidVirtualKeys*"></a>
+  <h4 id="Dalamud_Game_ClientState_Keys_KeyState_GetValidVirtualKeys" data-uid="Dalamud.Game.ClientState.Keys.KeyState.GetValidVirtualKeys">GetValidVirtualKeys()</h4>
+  <div class="markdown level1 summary"><p>Gets an array of virtual keys the game considers valid input.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public VirtualKey[] GetValidVirtualKeys()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Dalamud.Game.ClientState.Keys.VirtualKey.html">VirtualKey</a>[]</td>
+        <td><p>An array of valid virtual keys.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Keys_KeyState_IsVirtualKeyValid_Dalamud_Game_ClientState_Keys_VirtualKey_.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Keys.KeyState.IsVirtualKeyValid(Dalamud.Game.ClientState.Keys.VirtualKey)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Keys/KeyState.cs/#L110">View Source</a>
+  </span>
+  <a id="Dalamud_Game_ClientState_Keys_KeyState_IsVirtualKeyValid_" data-uid="Dalamud.Game.ClientState.Keys.KeyState.IsVirtualKeyValid*"></a>
+  <h4 id="Dalamud_Game_ClientState_Keys_KeyState_IsVirtualKeyValid_Dalamud_Game_ClientState_Keys_VirtualKey_" data-uid="Dalamud.Game.ClientState.Keys.KeyState.IsVirtualKeyValid(Dalamud.Game.ClientState.Keys.VirtualKey)">IsVirtualKeyValid(VirtualKey)</h4>
+  <div class="markdown level1 summary"><p>Gets a value indicating whether the given VirtualKey code is regarded as valid input by the game.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool IsVirtualKeyValid(VirtualKey vkCode)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Dalamud.Game.ClientState.Keys.VirtualKey.html">VirtualKey</a></td>
+        <td><span class="parametername">vkCode</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p>If the code is valid.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Keys_KeyState_IsVirtualKeyValid_System_Int32_.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Keys.KeyState.IsVirtualKeyValid(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Keys/KeyState.cs/#L106">View Source</a>
+  </span>
+  <a id="Dalamud_Game_ClientState_Keys_KeyState_IsVirtualKeyValid_" data-uid="Dalamud.Game.ClientState.Keys.KeyState.IsVirtualKeyValid*"></a>
+  <h4 id="Dalamud_Game_ClientState_Keys_KeyState_IsVirtualKeyValid_System_Int32_" data-uid="Dalamud.Game.ClientState.Keys.KeyState.IsVirtualKeyValid(System.Int32)">IsVirtualKeyValid(Int32)</h4>
+  <div class="markdown level1 summary"><p>Gets a value indicating whether the given VirtualKey code is regarded as valid input by the game.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool IsVirtualKeyValid(int vkCode)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">vkCode</span></td>
+        <td><p>Virtual key code.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p>If the code is valid.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Keys_KeyState_SetRawValue_Dalamud_Game_ClientState_Keys_VirtualKey_System_Int32_.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Keys.KeyState.SetRawValue(Dalamud.Game.ClientState.Keys.VirtualKey%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Keys/KeyState.cs/#L98">View Source</a>
+  </span>
+  <a id="Dalamud_Game_ClientState_Keys_KeyState_SetRawValue_" data-uid="Dalamud.Game.ClientState.Keys.KeyState.SetRawValue*"></a>
+  <h4 id="Dalamud_Game_ClientState_Keys_KeyState_SetRawValue_Dalamud_Game_ClientState_Keys_VirtualKey_System_Int32_" data-uid="Dalamud.Game.ClientState.Keys.KeyState.SetRawValue(Dalamud.Game.ClientState.Keys.VirtualKey,System.Int32)">SetRawValue(VirtualKey, Int32)</h4>
+  <div class="markdown level1 summary"><p>Sets the value in the index array.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void SetRawValue(VirtualKey vkCode, int value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Dalamud.Game.ClientState.Keys.VirtualKey.html">VirtualKey</a></td>
+        <td><span class="parametername">vkCode</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>The raw value to set in the index array.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentException</span></td>
+        <td><p>If the vkCode is not valid. Refer to <a class="xref" href="Dalamud.Game.ClientState.Keys.KeyState.html#Dalamud_Game_ClientState_Keys_KeyState_IsVirtualKeyValid_System_Int32_">IsVirtualKeyValid(Int32)</a> or <a class="xref" href="Dalamud.Game.ClientState.Keys.KeyState.html#Dalamud_Game_ClientState_Keys_KeyState_GetValidVirtualKeys">GetValidVirtualKeys()</a>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.ArgumentOutOfRangeException</span></td>
+        <td><p>If the set value is non-zero.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Keys_KeyState_SetRawValue_System_Int32_System_Int32_.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Keys.KeyState.SetRawValue(System.Int32%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Keys/KeyState.cs/#L89">View Source</a>
+  </span>
+  <a id="Dalamud_Game_ClientState_Keys_KeyState_SetRawValue_" data-uid="Dalamud.Game.ClientState.Keys.KeyState.SetRawValue*"></a>
+  <h4 id="Dalamud_Game_ClientState_Keys_KeyState_SetRawValue_System_Int32_System_Int32_" data-uid="Dalamud.Game.ClientState.Keys.KeyState.SetRawValue(System.Int32,System.Int32)">SetRawValue(Int32, Int32)</h4>
+  <div class="markdown level1 summary"><p>Sets the value in the index array.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void SetRawValue(int vkCode, int value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">vkCode</span></td>
+        <td><p>The virtual key to change.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>The raw value to set in the index array.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="exceptions">Exceptions</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.ArgumentException</span></td>
+        <td><p>If the vkCode is not valid. Refer to <a class="xref" href="Dalamud.Game.ClientState.Keys.KeyState.html#Dalamud_Game_ClientState_Keys_KeyState_IsVirtualKeyValid_System_Int32_">IsVirtualKeyValid(Int32)</a> or <a class="xref" href="Dalamud.Game.ClientState.Keys.KeyState.html#Dalamud_Game_ClientState_Keys_KeyState_GetValidVirtualKeys">GetValidVirtualKeys()</a>.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.ArgumentOutOfRangeException</span></td>
+        <td><p>If the set value is non-zero.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
 </article>
           </div>
           
@@ -275,10 +708,10 @@
               <div class="contribution">
                 <ul class="nav">
                   <li>
-                    <a href="https://github.com/goaaats/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Keys_KeyState.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Keys.KeyState%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Keys_KeyState.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Keys.KeyState%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
                   </li>
                   <li>
-                    <a href="https://github.com/goaaats/Dalamud/blob/master/Dalamud/Game/ClientState/Keys/KeyState.cs/#L13" class="contribution-link">View Source</a>
+                    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Keys/KeyState.cs/#L23" class="contribution-link">View Source</a>
                   </li>
                 </ul>
               </div>

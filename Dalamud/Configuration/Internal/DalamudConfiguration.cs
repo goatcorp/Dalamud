@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 
 using Dalamud.Game.Text;
-using Dalamud.Interface.Internal.Windows.StyleEditor;
+using Dalamud.Interface.Style;
 using Newtonsoft.Json;
 using Serilog;
 using Serilog.Events;
@@ -16,6 +16,13 @@ namespace Dalamud.Configuration.Internal
     [Serializable]
     internal sealed class DalamudConfiguration
     {
+        private static readonly JsonSerializerSettings SerializerSettings = new()
+        {
+            TypeNameHandling = TypeNameHandling.All,
+            TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple,
+            Formatting = Formatting.Indented,
+        };
+
         [JsonIgnore]
         private string configPath;
 
@@ -209,6 +216,13 @@ namespace Dalamud.Configuration.Internal
         /// <summary>
         /// Gets or sets a list of saved styles.
         /// </summary>
+        [JsonProperty("SavedStyles")]
+        public List<StyleModelV1>? SavedStylesOld { get; set; }
+
+        /// <summary>
+        /// Gets or sets a list of saved styles.
+        /// </summary>
+        [JsonProperty("SavedStylesVersioned")]
         public List<StyleModel>? SavedStyles { get; set; }
 
         /// <summary>
@@ -231,7 +245,7 @@ namespace Dalamud.Configuration.Internal
             DalamudConfiguration deserialized;
             try
             {
-                deserialized = JsonConvert.DeserializeObject<DalamudConfiguration>(File.ReadAllText(path));
+                deserialized = JsonConvert.DeserializeObject<DalamudConfiguration>(File.ReadAllText(path), SerializerSettings);
             }
             catch (Exception ex)
             {
@@ -249,7 +263,7 @@ namespace Dalamud.Configuration.Internal
         /// </summary>
         public void Save()
         {
-            File.WriteAllText(this.configPath, JsonConvert.SerializeObject(this, Formatting.Indented));
+            File.WriteAllText(this.configPath, JsonConvert.SerializeObject(this, SerializerSettings));
             this.DalamudConfigurationSaved?.Invoke(this);
         }
     }

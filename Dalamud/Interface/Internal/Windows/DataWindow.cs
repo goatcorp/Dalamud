@@ -1308,6 +1308,43 @@ namespace Dalamud.Interface.Internal.Windows
                 });
             }
 
+            if (ImGui.Button("Drown in tasks"))
+            {
+                Task.Run(() =>
+                {
+                    for (var i = 0; i < 100; i++)
+                    {
+                        Task.Run(() =>
+                        {
+                            for (var i = 0; i < 100; i++)
+                            {
+                                Task.Run(() =>
+                                {
+                                    for (var i = 0; i < 100; i++)
+                                    {
+                                        Task.Run(() =>
+                                        {
+                                            for (var i = 0; i < 100; i++)
+                                            {
+                                                Task.Run(() =>
+                                                {
+                                                    for (var i = 0; i < 100; i++)
+                                                    {
+                                                        Thread.Sleep(1);
+                                                    }
+                                                });
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+
+            ImGui.SameLine();
+
             ImGuiHelpers.ScaledDummy(20);
 
             // Needed to init the task tracker, if we're not on a debug build

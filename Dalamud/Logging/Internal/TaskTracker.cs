@@ -1,11 +1,11 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using System.Threading.Tasks;
 
 using Dalamud.Game;
-using MonoMod.RuntimeDetour;
 using Serilog;
 
 namespace Dalamud.Logging.Internal
@@ -16,8 +16,10 @@ namespace Dalamud.Logging.Internal
     internal class TaskTracker : IDisposable
     {
         private static readonly List<TaskInfo> TrackedTasksInternal = new();
+        private static readonly ConcurrentQueue<TaskInfo> NewlyCreatedTasks = new();
+        private static bool clearRequested = false;
 
-        private Hook? scheduleAndStartHook;
+        private MonoMod.RuntimeDetour.Hook? scheduleAndStartHook;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TaskTracker"/> class.
@@ -33,20 +35,32 @@ namespace Dalamud.Logging.Internal
         /// <summary>
         /// Gets a read-only list of tracked tasks.
         /// </summary>
-        public static IReadOnlyList<TaskInfo> Tasks => TrackedTasksInternal;
+        public static IReadOnlyList<TaskInfo> Tasks => TrackedTasksInternal.ToArray();
 
         /// <summary>
         /// Clear the list of tracked tasks.
         /// </summary>
-        public static void Clear() => TrackedTasksInternal.Clear();
+        public static void Clear() => clearRequested = true;
 
         /// <summary>
         /// Update the tracked data.
         /// </summary>
         public static void UpdateData()
         {
-            foreach (var taskInfo in TrackedTasksInternal)
+            if (clearRequested)
             {
+                TrackedTasksInternal.Clear();
+                clearRequested = false;
+            }
+
+            while (NewlyCreatedTasks.TryDequeue(out var newTask))
+            {
+                TrackedTasksInternal.Add(newTask);
+            }
+
+            for (var i = 0; i < TrackedTasksInternal.Count; i++)
+            {
+                var taskInfo = TrackedTasksInternal[i];
                 if (taskInfo.Task == null)
                     continue;
 
@@ -81,7 +95,7 @@ namespace Dalamud.Logging.Internal
             orig(self);
 
             var trace = new StackTrace();
-            TrackedTasksInternal.Add(new TaskInfo
+            NewlyCreatedTasks.Enqueue(new TaskInfo
             {
                 Task = self,
                 Id = self.Id,
@@ -106,7 +120,7 @@ namespace Dalamud.Logging.Internal
             Log.Information("s_asyncDebuggingEnabled: {0}", debugField.GetValue(null));
 
             var targetMethod = targetType.GetMethod("AddToActiveTasks", BindingFlags.Static | BindingFlags.NonPublic);
-            var patchMethod = typeof(TaskTracker).GetMethod("AddToActiveTasksHook", BindingFlags.NonPublic | BindingFlags.Static);
+            var patchMethod = typeof(TaskTracker).GetMethod(nameof(AddToActiveTasksHook), BindingFlags.NonPublic | BindingFlags.Static);
 
             if (targetMethod == null)
                 Log.Error("TargetMethod null!");
@@ -114,7 +128,7 @@ namespace Dalamud.Logging.Internal
             if (patchMethod == null)
                 Log.Error("PatchMethod null!");
 
-            this.scheduleAndStartHook = new Hook(targetMethod, patchMethod);
+            this.scheduleAndStartHook = new MonoMod.RuntimeDetour.Hook(targetMethod, patchMethod);
 
             Log.Information("AddToActiveTasks Hooked!");
         }
