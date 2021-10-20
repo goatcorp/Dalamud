@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
+using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
 using Dalamud.Utility;
 using Newtonsoft.Json;
@@ -28,6 +31,28 @@ namespace Dalamud.Interface.Style
         /// </summary>
         [JsonProperty("ver")]
         public int Version { get; set; }
+
+        /// <summary>
+        /// Get a StyleModel based on the current Dalamud style, with the current version.
+        /// </summary>
+        /// <returns>The current style.</returns>
+        public static StyleModel GetFromCurrent() => StyleModelV1.Get();
+
+        /// <summary>
+        /// Get the current style model, as per configuration.
+        /// </summary>
+        /// <returns>The current style, as per configuration.</returns>
+        public static StyleModel? GetConfiguredStyle()
+        {
+            var configuration = Service<DalamudConfiguration>.Get();
+            return configuration.SavedStyles?.FirstOrDefault(x => x.Name == configuration.ChosenStyle);
+        }
+
+        /// <summary>
+        /// Get an enumerable of all saved styles.
+        /// </summary>
+        /// <returns>Enumerable of saved styles.</returns>
+        public static IEnumerable<StyleModel>? GetConfiguredStyles() => Service<DalamudConfiguration>.Get().SavedStyles;
 
         /// <summary>
         /// Deserialize a style model.
