@@ -18,10 +18,41 @@ namespace Dalamud.Game.Gui.PartyFinder.Types
         /// <returns>A ClassJob if found or null if not.</returns>
         public static ClassJob ClassJob(this JobFlags job, DataManager data)
         {
-            var result = Math.Log2((double)job);
-            return result % 1 == 0
-                ? data.GetExcelSheet<ClassJob>().GetRow((uint)result)
-                : null;
+            var jobs = data.GetExcelSheet<ClassJob>();
+
+            uint? row = job switch
+            {
+                JobFlags.Gladiator => 1,
+                JobFlags.Pugilist => 2,
+                JobFlags.Marauder => 3,
+                JobFlags.Lancer => 4,
+                JobFlags.Archer => 5,
+                JobFlags.Conjurer => 6,
+                JobFlags.Thaumaturge => 7,
+                JobFlags.Paladin => 19,
+                JobFlags.Monk => 20,
+                JobFlags.Warrior => 21,
+                JobFlags.Dragoon => 22,
+                JobFlags.Bard => 23,
+                JobFlags.WhiteMage => 24,
+                JobFlags.BlackMage => 25,
+                JobFlags.Arcanist => 26,
+                JobFlags.Summoner => 27,
+                JobFlags.Scholar => 28,
+                JobFlags.Rogue => 29,
+                JobFlags.Ninja => 30,
+                JobFlags.Machinist => 31,
+                JobFlags.DarkKnight => 32,
+                JobFlags.Astrologian => 33,
+                JobFlags.Samurai => 34,
+                JobFlags.RedMage => 35,
+                JobFlags.BlueMage => 36,
+                JobFlags.Gunbreaker => 37,
+                JobFlags.Dancer => 38,
+                _ => null,
+            };
+
+            return row == null ? null : jobs.GetRow((uint)row);
         }
     }
 }
