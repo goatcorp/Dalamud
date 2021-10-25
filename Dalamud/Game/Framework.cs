@@ -28,7 +28,7 @@ namespace Dalamud.Game
         private static Stopwatch statsStopwatch = new();
         private Stopwatch updateStopwatch = new();
 
-        private DateTime timeSinceTier2;
+        private DateTime tier2LoadTime;
 
         private Hook<OnUpdateDetour> updateHook;
         private Hook<OnDestroyDetour> destroyHook;
@@ -179,13 +179,14 @@ namespace Dalamud.Game
             if (!dalamud.IsReady)
             {
                 dalamud.LoadTier2();
-                this.timeSinceTier2 = DateTime.Now;
+                this.tier2LoadTime = DateTime.Now;
                 goto original;
             }
 
-            if (!dalamud.IsLoadedPluginSystem && (DateTime.Now - this.timeSinceTier2).TotalSeconds > 30)
+            if (!dalamud.IsLoadedPluginSystem && (DateTime.Now - this.tier2LoadTime).TotalSeconds > 30)
             {
-                Util.Fatal("The Dalamud plugin system could not initialize important subsystems.\nThis error may be caused by outdated ReShade or GShade installations.\n\nIf this error persists, please contact us.", "XIVLauncher Error");
+                Log.Error("Did not detect tier 3 load!!! {Seconds}", (DateTime.Now - this.tier2LoadTime).TotalSeconds);
+                // Util.Fatal("The Dalamud plugin system could not initialize important subsystems.\nThis error may be caused by outdated ReShade or GShade installations.\n\nIf this error persists, please contact us.", "XIVLauncher Error");
             }
 
             // Plugins expect the interface to be available and ready, so we need to wait with plugins until we have init'd ImGui
