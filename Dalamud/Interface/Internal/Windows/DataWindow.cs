@@ -333,12 +333,7 @@ namespace Dalamud.Interface.Internal.Windows
                                 if (ImGui.Button("Create"))
                                 {
                                     this.messageBoxMinHook = Hook<MessageBoxWDelegate>.FromSymbol(
-                                        "User32", "MessageBoxW",
-                                        (wnd, text, caption, type) =>
-                                        {
-                                            Log.Information("[DATAHOOK] {0} {1} {2} {3}", wnd, text, caption, type);
-                                            return this.messageBoxMinHook.Original(wnd, text, caption, type);
-                                        });
+                                        "User32", "MessageBoxW", MessageBoxWDetour);
                                 }
 
                                 if (ImGui.Button("Enable")) this.messageBoxMinHook?.Enable();
@@ -378,6 +373,12 @@ namespace Dalamud.Interface.Internal.Windows
             ImGui.PopStyleVar();
 
             ImGui.EndChild();
+        }
+
+        private int MessageBoxWDetour(IntPtr hwnd, string text, string caption, NativeFunctions.MessageBoxType type)
+        {
+            Log.Information("[DATAHOOK] {0} {1} {2} {3}", hwnd, text, caption, type);
+            return this.messageBoxMinHook.Original(hwnd, text, caption, type);
         }
 
         private void DrawServerOpCode()
