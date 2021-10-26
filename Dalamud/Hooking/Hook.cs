@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Reflection;
 
 using Dalamud.Configuration.Internal;
@@ -43,7 +44,7 @@ namespace Dalamud.Hooking
         public Hook(IntPtr address, T detour, bool useMinHook)
         {
             address = HookManager.FollowJmp(address);
-            this.isMinHook = useMinHook || EnvironmentConfiguration.DalamudForceCoreHook;
+            this.isMinHook = true;
 
             var hasOtherHooks = HookManager.Originals.ContainsKey(address);
             if (!hasOtherHooks)
