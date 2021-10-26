@@ -28,7 +28,7 @@ namespace Dalamud.Hooking
         /// <param name="address">A memory address to install a hook.</param>
         /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
         public Hook(IntPtr address, T detour)
-            : this(address, detour, false)
+            : this(address, detour, true)
         {
         }
 
@@ -131,7 +131,7 @@ namespace Dalamud.Hooking
         /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
         /// <returns>The hook with the supplied parameters.</returns>
         public static Hook<T> FromSymbol(string moduleName, string exportName, T detour)
-            => FromSymbol(moduleName, exportName, detour, false);
+            => FromSymbol(moduleName, exportName, detour, true);
 
         /// <summary>
         /// Creates a hook. Hooking address is inferred by calling to GetProcAddress() function.
