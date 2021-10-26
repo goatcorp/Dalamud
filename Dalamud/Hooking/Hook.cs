@@ -5,6 +5,7 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Hooking.Internal;
 using Dalamud.Memory;
 using Reloaded.Hooks;
+using Serilog;
 
 namespace Dalamud.Hooking
 {
@@ -54,7 +55,16 @@ namespace Dalamud.Hooking
             this.address = address;
             if (this.isCoreHook)
             {
-                this.coreHookImpl = CoreHook.HookFactory.CreateHook<T>(address, detour);
+                try
+                {
+                    this.coreHookImpl = CoreHook.HookFactory.CreateHook<T>(address, detour);
+                }
+                catch (Exception ex)
+                {
+                    this.isCoreHook = false;
+                    Log.Error(ex, "CoreHook is having a bad day, defaulting to Reloaded");
+                    this.hookImpl = ReloadedHooks.Instance.CreateHook<T>(detour, address.ToInt64());
+                }
             }
             else
             {
