@@ -18,8 +18,8 @@ namespace Dalamud.Hooking
     {
         private readonly IntPtr address;
         private readonly Reloaded.Hooks.Definitions.IHook<T> hookImpl;
-        private readonly CoreHook.IHook<T> coreHookImpl;
-        private readonly bool isCoreHook;
+        private readonly MinSharp.Hook<T> minHookImpl;
+        private readonly bool isMinHook;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Hook{T}"/> class.
@@ -35,15 +35,15 @@ namespace Dalamud.Hooking
         /// <summary>
         /// Initializes a new instance of the <see cref="Hook{T}"/> class.
         /// Hook is not activated until Enable() method is called.
-        /// Please do not use CoreHook unless you have thoroughly troubleshot why Reloaded does not work.
+        /// Please do not use MinHook unless you have thoroughly troubleshot why Reloaded does not work.
         /// </summary>
         /// <param name="address">A memory address to install a hook.</param>
         /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
-        /// <param name="useCoreHook">Use the corehook hooking library instead of Reloaded.</param>
-        public Hook(IntPtr address, T detour, bool useCoreHook)
+        /// <param name="useMinHook">Use the MinHook hooking library instead of Reloaded.</param>
+        public Hook(IntPtr address, T detour, bool useMinHook)
         {
             address = HookManager.FollowJmp(address);
-            this.isCoreHook = useCoreHook || EnvironmentConfiguration.DalamudForceCoreHook;
+            this.isMinHook = useMinHook || EnvironmentConfiguration.DalamudForceCoreHook;
 
             var hasOtherHooks = HookManager.Originals.ContainsKey(address);
             if (!hasOtherHooks)
@@ -53,18 +53,9 @@ namespace Dalamud.Hooking
             }
 
             this.address = address;
-            if (this.isCoreHook)
+            if (this.isMinHook)
             {
-                try
-                {
-                    this.coreHookImpl = CoreHook.HookFactory.CreateHook<T>(address, detour);
-                }
-                catch (Exception ex)
-                {
-                    this.isCoreHook = false;
-                    Log.Error(ex, "CoreHook is having a bad day, defaulting to Reloaded");
-                    this.hookImpl = ReloadedHooks.Instance.CreateHook<T>(detour, address.ToInt64());
-                }
+                this.minHookImpl = new MinSharp.Hook<T>(address, detour);
             }
             else
             {
@@ -96,9 +87,9 @@ namespace Dalamud.Hooking
             get
             {
                 this.CheckDisposed();
-                if (this.isCoreHook)
+                if (this.isMinHook)
                 {
-                    return this.coreHookImpl.Original;
+                    return this.minHookImpl.Original;
                 }
                 else
                 {
@@ -115,9 +106,9 @@ namespace Dalamud.Hooking
             get
             {
                 this.CheckDisposed();
-                if (this.isCoreHook)
+                if (this.isMinHook)
                 {
-                    return this.coreHookImpl.Enabled;
+                    return this.minHookImpl.Enabled;
                 }
                 else
                 {
@@ -145,14 +136,14 @@ namespace Dalamud.Hooking
         /// <summary>
         /// Creates a hook. Hooking address is inferred by calling to GetProcAddress() function.
         /// The hook is not activated until Enable() method is called.
-        /// Please do not use CoreHook unless you have thoroughly troubleshot why Reloaded does not work.
+        /// Please do not use MinHook unless you have thoroughly troubleshot why Reloaded does not work.
         /// </summary>
         /// <param name="moduleName">A name of the module currently loaded in the memory. (e.g. ws2_32.dll).</param>
         /// <param name="exportName">A name of the exported function name (e.g. send).</param>
         /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
-        /// <param name="useCoreHook">Use the corehook hooking library instead of Reloaded.</param>
+        /// <param name="useMinHook">Use the MinHook hooking library instead of Reloaded.</param>
         /// <returns>The hook with the supplied parameters.</returns>
-        public static Hook<T> FromSymbol(string moduleName, string exportName, T detour, bool useCoreHook)
+        public static Hook<T> FromSymbol(string moduleName, string exportName, T detour, bool useMinHook)
         {
             var moduleHandle = NativeFunctions.GetModuleHandleW(moduleName);
             if (moduleHandle == IntPtr.Zero)
@@ -162,7 +153,7 @@ namespace Dalamud.Hooking
             if (procAddress == IntPtr.Zero)
                 throw new Exception($"Could not get the address of {moduleName}::{exportName}");
 
-            return new Hook<T>(procAddress, detour, useCoreHook);
+            return new Hook<T>(procAddress, detour, useMinHook);
         }
 
         /// <summary>
@@ -173,12 +164,10 @@ namespace Dalamud.Hooking
             if (this.IsDisposed)
                 return;
 
-            if (this.isCoreHook)
+            if (this.isMinHook)
             {
                 this.Disable();
-                // Disposing CoreHook causes an APPCRASH on game exit.
-                // We already overwrite the original hook code, so there shouldn't be any real risk with not disposing here.
-                // this.coreHookImpl.Dispose();
+                this.minHookImpl.Dispose();
             }
             else
             {
@@ -195,10 +184,12 @@ namespace Dalamud.Hooking
         {
             this.CheckDisposed();
 
-            if (this.isCoreHook)
+            if (this.isMinHook)
             {
-                if (!this.coreHookImpl.Enabled)
-                    this.coreHookImpl.Enabled = true;
+                if (!this.minHookImpl.Enabled)
+                {
+                    this.minHookImpl.Enable();
+                }
             }
             else
             {
@@ -217,10 +208,12 @@ namespace Dalamud.Hooking
         {
             this.CheckDisposed();
 
-            if (this.isCoreHook)
+            if (this.isMinHook)
             {
-                if (this.coreHookImpl.Enabled)
-                    this.coreHookImpl.Enabled = false;
+                if (this.minHookImpl.Enabled)
+                {
+                    this.minHookImpl.Disable();
+                }
             }
             else
             {
