@@ -328,28 +328,38 @@ namespace Dalamud.Interface.Internal.Windows
 
                         case DataKind.Hook:
                         {
-                            if (ImGui.Button("Create"))
+                            try
                             {
-                                this.messageBoxMinHook = Hook<MessageBoxWDelegate>.FromSymbol("User32", "MessageBoxW",
-                                    (wnd, text, caption, type) =>
-                                    {
-                                        Log.Information("[DATAHOOK] {0} {1} {2} {3}", wnd, text, caption, type);
-                                        return this.messageBoxMinHook.Original(wnd, text, caption, type);
-                                    });
+                                if (ImGui.Button("Create"))
+                                {
+                                    this.messageBoxMinHook = Hook<MessageBoxWDelegate>.FromSymbol(
+                                        "User32", "MessageBoxW",
+                                        (wnd, text, caption, type) =>
+                                        {
+                                            Log.Information("[DATAHOOK] {0} {1} {2} {3}", wnd, text, caption, type);
+                                            return this.messageBoxMinHook.Original(wnd, text, caption, type);
+                                        });
+                                }
+
+                                if (ImGui.Button("Enable")) this.messageBoxMinHook?.Enable();
+
+                                if (ImGui.Button("Disable")) this.messageBoxMinHook?.Disable();
+
+                                if (ImGui.Button("Dispose"))
+                                {
+                                    this.messageBoxMinHook?.Dispose();
+                                    this.messageBoxMinHook = null;
+                                }
+
+                                if (ImGui.Button("Test")) NativeFunctions.MessageBoxW(IntPtr.Zero, "Hi", "Hello", NativeFunctions.MessageBoxType.Ok);
+
+                                if (this.messageBoxMinHook != null)
+                                    ImGui.Text("Enabled: " + this.messageBoxMinHook?.IsEnabled);
                             }
-
-                            if (ImGui.Button("Enable")) this.messageBoxMinHook?.Enable();
-
-                            if (ImGui.Button("Disable")) this.messageBoxMinHook?.Disable();
-
-                            if (ImGui.Button("Dispose"))
+                            catch (Exception ex)
                             {
-                                this.messageBoxMinHook?.Dispose();
-                                this.messageBoxMinHook = null;
+                                Log.Error(ex, "MinHook error caught");
                             }
-
-                            if (this.messageBoxMinHook != null)
-                                ImGui.Text("Enabled: " + this.messageBoxMinHook?.IsEnabled);
                         }
 
                             break;
