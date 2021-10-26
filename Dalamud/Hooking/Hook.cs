@@ -167,7 +167,6 @@ namespace Dalamud.Hooking
 
             if (this.isMinHook)
             {
-                this.Disable();
                 this.minHookImpl.Dispose();
             }
             else

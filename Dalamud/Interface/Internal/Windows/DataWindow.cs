@@ -27,6 +27,7 @@ using Dalamud.Game.Gui;
 using Dalamud.Game.Gui.FlyText;
 using Dalamud.Game.Gui.Toast;
 using Dalamud.Game.Text;
+using Dalamud.Hooking;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.Windowing;
@@ -39,6 +40,7 @@ using ImGuiNET;
 using ImGuiScene;
 using Newtonsoft.Json;
 using Serilog;
+using SharpDX.Direct3D11;
 
 namespace Dalamud.Interface.Internal.Windows
 {
@@ -68,6 +70,10 @@ namespace Dalamud.Interface.Internal.Windows
         private bool resolveObjects = false;
 
         private UIDebug addonInspector = null;
+
+        private delegate int MessageBoxWDelegate(IntPtr hWnd, string text, string caption, NativeFunctions.MessageBoxType type);
+
+        private Hook<MessageBoxWDelegate>? messageBoxMinHook;
 
         // IPC
         private ICallGateProvider<string, string> ipcPub;
@@ -143,6 +149,7 @@ namespace Dalamud.Interface.Internal.Windows
             Gamepad,
             Configuration,
             TaskSched,
+            Hook,
         }
 
         /// <inheritdoc/>
@@ -317,6 +324,34 @@ namespace Dalamud.Interface.Internal.Windows
 
                         case DataKind.TaskSched:
                             this.DrawTaskSched();
+                            break;
+
+                        case DataKind.Hook:
+                        {
+                            if (ImGui.Button("Create"))
+                            {
+                                this.messageBoxMinHook = Hook<MessageBoxWDelegate>.FromSymbol("User32", "MessageBoxW",
+                                    (wnd, text, caption, type) =>
+                                    {
+                                        Log.Information("[DATAHOOK] {0} {1} {2} {3}", wnd, text, caption, type);
+                                        return this.messageBoxMinHook.Original(wnd, text, caption, type);
+                                    });
+                            }
+
+                            if (ImGui.Button("Enable")) this.messageBoxMinHook?.Enable();
+
+                            if (ImGui.Button("Disable")) this.messageBoxMinHook?.Disable();
+
+                            if (ImGui.Button("Dispose"))
+                            {
+                                this.messageBoxMinHook?.Dispose();
+                                this.messageBoxMinHook = null;
+                            }
+
+                            if (this.messageBoxMinHook != null)
+                                ImGui.Text("Enabled: " + this.messageBoxMinHook?.IsEnabled);
+                        }
+
                             break;
                     }
                 }
