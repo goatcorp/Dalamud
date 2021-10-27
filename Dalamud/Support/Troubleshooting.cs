@@ -74,7 +74,7 @@ namespace Dalamud.Support
                     DoPluginTest = configuration.DoPluginTest,
                     InterfaceLoaded = interfaceManager?.IsReady ?? false,
                     ThirdRepo = configuration.ThirdRepoList,
-                    ForcedCoreHook = EnvironmentConfiguration.DalamudForceMinHook,
+                    ForcedMinHook = EnvironmentConfiguration.DalamudForceMinHook,
                 };
 
                 var encodedPayload = Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(payload)));
@@ -113,7 +113,7 @@ namespace Dalamud.Support
 
             public bool InterfaceLoaded { get; set; }
 
-            public bool ForcedCoreHook { get; set; }
+            public bool ForcedMinHook { get; set; }
 
             public List<ThirdPartyRepoSettings> ThirdRepo { get; set; }
         }
