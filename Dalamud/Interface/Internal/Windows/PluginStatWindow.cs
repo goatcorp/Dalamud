@@ -176,11 +176,12 @@ namespace Dalamud.Interface.Internal.Windows
 
             if (ImGui.BeginTabItem("Hooks"))
             {
-                ImGui.Columns(3);
+                ImGui.Columns(4);
 
-                ImGui.SetColumnWidth(0, ImGui.GetWindowContentRegionWidth() - 280);
+                ImGui.SetColumnWidth(0, ImGui.GetWindowContentRegionWidth() - 330);
                 ImGui.SetColumnWidth(1, 180f);
                 ImGui.SetColumnWidth(2, 100f);
+                ImGui.SetColumnWidth(3, 100f);
 
                 ImGui.Text("Detour Method");
                 ImGui.SameLine();
