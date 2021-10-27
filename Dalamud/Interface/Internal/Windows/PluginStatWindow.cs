@@ -4,6 +4,7 @@ using System.Reflection;
 
 using Dalamud.Game;
 using Dalamud.Game.Internal;
+using Dalamud.Hooking;
 using Dalamud.Hooking.Internal;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Internal;
@@ -196,6 +197,9 @@ namespace Dalamud.Interface.Internal.Windows
                 ImGui.Text("Status");
                 ImGui.NextColumn();
 
+                ImGui.Text("Backend");
+                ImGui.NextColumn();
+
                 ImGui.Separator();
                 ImGui.Separator();
 
@@ -238,6 +242,10 @@ namespace Dalamud.Interface.Internal.Windows
                         {
                             ImGui.Text(trackedHook.Hook.IsEnabled ? "Enabled" : "Disabled");
                         }
+
+                        ImGui.NextColumn();
+
+                        ImGui.Text(trackedHook.Hook.BackendName);
 
                         ImGui.NextColumn();
                     }

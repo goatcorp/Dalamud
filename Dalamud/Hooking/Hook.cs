@@ -131,6 +131,18 @@ namespace Dalamud.Hooking
         /// </summary>
         public bool IsDisposed { get; private set; }
 
+        /// <inheritdoc/>
+        public string BackendName
+        {
+            get
+            {
+                if (this.isMinHook)
+                    return "MinHook";
+
+                return "Reloaded";
+            }
+        }
+
         /// <summary>
         /// Creates a hook. Hooking address is inferred by calling to GetProcAddress() function.
         /// The hook is not activated until Enable() method is called.

@@ -21,5 +21,10 @@ namespace Dalamud.Hooking
         /// Gets a value indicating whether or not the hook is disposed.
         /// </summary>
         public bool IsDisposed { get; }
+
+        /// <summary>
+        /// Gets the name of the hooking backend used for the hook.
+        /// </summary>
+        public string BackendName { get; }
     }
 }

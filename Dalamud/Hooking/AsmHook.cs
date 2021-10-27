@@ -112,6 +112,9 @@ namespace Dalamud.Hooking
         /// </summary>
         public bool IsDisposed { get; private set; }
 
+        /// <inheritdoc/>
+        public string BackendName => "Reloaded/Asm";
+
         /// <summary>
         /// Remove a hook from the current process.
         /// </summary>
