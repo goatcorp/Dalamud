@@ -35,6 +35,9 @@ namespace Dalamud.Hooking.Internal
         {
             get
             {
+                // TODO: Temporary for testing
+                return false;
+                
                 if (checkLinuxOnce)
                 {
                     checkLinuxOnce = false;
