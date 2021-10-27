@@ -74,7 +74,7 @@ namespace Dalamud.Support
                     DoPluginTest = configuration.DoPluginTest,
                     InterfaceLoaded = interfaceManager?.IsReady ?? false,
                     ThirdRepo = configuration.ThirdRepoList,
-                    ForcedCoreHook = EnvironmentConfiguration.DalamudForceCoreHook,
+                    ForcedCoreHook = EnvironmentConfiguration.DalamudForceMinHook,
                 };
 
                 var encodedPayload = Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(payload)));

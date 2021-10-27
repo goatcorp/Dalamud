@@ -29,7 +29,7 @@ namespace Dalamud.Hooking
         /// <param name="address">A memory address to install a hook.</param>
         /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
         public Hook(IntPtr address, T detour)
-            : this(address, detour, true)
+            : this(address, detour, false)
         {
         }
 
@@ -44,7 +44,7 @@ namespace Dalamud.Hooking
         public Hook(IntPtr address, T detour, bool useMinHook)
         {
             address = HookManager.FollowJmp(address);
-            this.isMinHook = true;
+            this.isMinHook = EnvironmentConfiguration.DalamudForceMinHook || useMinHook;
 
             var hasOtherHooks = HookManager.Originals.ContainsKey(address);
             if (!hasOtherHooks)
@@ -140,7 +140,7 @@ namespace Dalamud.Hooking
         /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
         /// <returns>The hook with the supplied parameters.</returns>
         public static Hook<T> FromSymbol(string moduleName, string exportName, T detour)
-            => FromSymbol(moduleName, exportName, detour, true);
+            => FromSymbol(moduleName, exportName, detour, false);
 
         /// <summary>
         /// Creates a hook. Hooking address is inferred by calling to GetProcAddress() function.

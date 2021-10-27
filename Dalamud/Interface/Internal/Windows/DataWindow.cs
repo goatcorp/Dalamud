@@ -41,7 +41,6 @@ using ImGuiNET;
 using ImGuiScene;
 using Newtonsoft.Json;
 using Serilog;
-using SharpDX.Direct3D11;
 
 namespace Dalamud.Interface.Internal.Windows
 {
@@ -73,6 +72,7 @@ namespace Dalamud.Interface.Internal.Windows
         private UIDebug addonInspector = null;
 
         private Hook<MessageBoxWDelegate>? messageBoxMinHook;
+        private bool hookUseMinHook = false;
 
         // IPC
         private ICallGateProvider<string, string> ipcPub;
@@ -1589,8 +1589,10 @@ namespace Dalamud.Interface.Internal.Windows
         {
             try
             {
+                ImGui.Checkbox("Use MinHook", ref this.hookUseMinHook);
+
                 if (ImGui.Button("Create"))
-                    this.messageBoxMinHook = Hook<MessageBoxWDelegate>.FromSymbol("User32", "MessageBoxW", this.MessageBoxWDetour);
+                    this.messageBoxMinHook = Hook<MessageBoxWDelegate>.FromSymbol("User32", "MessageBoxW", this.MessageBoxWDetour, this.hookUseMinHook);
 
                 if (ImGui.Button("Enable"))
                     this.messageBoxMinHook?.Enable();
