@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -71,8 +72,6 @@ namespace Dalamud.Interface.Internal.Windows
 
         private UIDebug addonInspector = null;
 
-        private delegate int MessageBoxWDelegate(IntPtr hWnd, string text, string caption, NativeFunctions.MessageBoxType type);
-
         private Hook<MessageBoxWDelegate>? messageBoxMinHook;
 
         // IPC
@@ -122,6 +121,12 @@ namespace Dalamud.Interface.Internal.Windows
 
             this.Load();
         }
+
+        private delegate int MessageBoxWDelegate(
+            IntPtr hWnd,
+            [MarshalAs(UnmanagedType.LPWStr)] string text,
+            [MarshalAs(UnmanagedType.LPWStr)] string caption,
+            NativeFunctions.MessageBoxType type);
 
         private enum DataKind
         {
@@ -327,36 +332,7 @@ namespace Dalamud.Interface.Internal.Windows
                             break;
 
                         case DataKind.Hook:
-                        {
-                            try
-                            {
-                                if (ImGui.Button("Create"))
-                                {
-                                    this.messageBoxMinHook = Hook<MessageBoxWDelegate>.FromSymbol(
-                                        "User32", "MessageBoxW", MessageBoxWDetour);
-                                }
-
-                                if (ImGui.Button("Enable")) this.messageBoxMinHook?.Enable();
-
-                                if (ImGui.Button("Disable")) this.messageBoxMinHook?.Disable();
-
-                                if (ImGui.Button("Dispose"))
-                                {
-                                    this.messageBoxMinHook?.Dispose();
-                                    this.messageBoxMinHook = null;
-                                }
-
-                                if (ImGui.Button("Test")) NativeFunctions.MessageBoxW(IntPtr.Zero, "Hi", "Hello", NativeFunctions.MessageBoxType.Ok);
-
-                                if (this.messageBoxMinHook != null)
-                                    ImGui.Text("Enabled: " + this.messageBoxMinHook?.IsEnabled);
-                            }
-                            catch (Exception ex)
-                            {
-                                Log.Error(ex, "MinHook error caught");
-                            }
-                        }
-
+                            this.DrawHook();
                             break;
                     }
                 }
@@ -1606,6 +1582,37 @@ namespace Dalamud.Interface.Internal.Windows
                 }
 
                 ImGui.PopStyleColor(1);
+            }
+        }
+
+        private void DrawHook()
+        {
+            try
+            {
+                if (ImGui.Button("Create"))
+                    this.messageBoxMinHook = Hook<MessageBoxWDelegate>.FromSymbol("User32", "MessageBoxW", this.MessageBoxWDetour);
+
+                if (ImGui.Button("Enable"))
+                    this.messageBoxMinHook?.Enable();
+
+                if (ImGui.Button("Disable"))
+                    this.messageBoxMinHook?.Disable();
+
+                if (ImGui.Button("Dispose"))
+                {
+                    this.messageBoxMinHook?.Dispose();
+                    this.messageBoxMinHook = null;
+                }
+
+                if (ImGui.Button("Test"))
+                    NativeFunctions.MessageBoxW(IntPtr.Zero, "Hi", "Hello", NativeFunctions.MessageBoxType.Ok);
+
+                if (this.messageBoxMinHook != null)
+                    ImGui.Text("Enabled: " + this.messageBoxMinHook?.IsEnabled);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "MinHook error caught");
             }
         }
 
