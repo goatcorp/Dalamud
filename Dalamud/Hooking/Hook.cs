@@ -56,7 +56,15 @@ namespace Dalamud.Hooking
             this.address = address;
             if (this.isMinHook)
             {
-                this.minHookImpl = new MinSharp.Hook<T>(address, detour);
+                var indexList = hasOtherHooks
+                    ? HookManager.MultiHookTracker[address]
+                    : HookManager.MultiHookTracker[address] = new();
+                var index = (ulong)indexList.Count;
+
+                this.minHookImpl = new MinSharp.Hook<T>(address, detour, index);
+
+                // Add afterwards, so the hookIdent starts at 0.
+                indexList.Add(this);
             }
             else
             {
@@ -168,6 +176,7 @@ namespace Dalamud.Hooking
             if (this.isMinHook)
             {
                 this.minHookImpl.Dispose();
+                HookManager.MultiHookTracker[this.address] = null;
             }
             else
             {

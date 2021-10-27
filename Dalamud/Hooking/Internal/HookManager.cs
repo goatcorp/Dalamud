@@ -79,6 +79,11 @@ namespace Dalamud.Hooking.Internal
         /// </summary>
         internal static Dictionary<IntPtr, byte[]> Originals { get; } = new();
 
+        /// <summary>
+        /// Gets a static dictionary of the number of hooks on a given address.
+        /// </summary>
+        internal static Dictionary<IntPtr, List<IDalamudHook?>> MultiHookTracker { get; } = new();
+
         /// <inheritdoc/>
         public void Dispose()
         {
