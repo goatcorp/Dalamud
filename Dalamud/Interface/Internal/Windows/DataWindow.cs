@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -27,6 +28,7 @@ using Dalamud.Game.Gui;
 using Dalamud.Game.Gui.FlyText;
 using Dalamud.Game.Gui.Toast;
 using Dalamud.Game.Text;
+using Dalamud.Hooking;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.Windowing;
@@ -68,6 +70,9 @@ namespace Dalamud.Interface.Internal.Windows
         private bool resolveObjects = false;
 
         private UIDebug addonInspector = null;
+
+        private Hook<MessageBoxWDelegate>? messageBoxMinHook;
+        private bool hookUseMinHook = false;
 
         // IPC
         private ICallGateProvider<string, string> ipcPub;
@@ -117,6 +122,12 @@ namespace Dalamud.Interface.Internal.Windows
             this.Load();
         }
 
+        private delegate int MessageBoxWDelegate(
+            IntPtr hWnd,
+            [MarshalAs(UnmanagedType.LPWStr)] string text,
+            [MarshalAs(UnmanagedType.LPWStr)] string caption,
+            NativeFunctions.MessageBoxType type);
+
         private enum DataKind
         {
             Server_OpCode,
@@ -143,6 +154,7 @@ namespace Dalamud.Interface.Internal.Windows
             Gamepad,
             Configuration,
             TaskSched,
+            Hook,
         }
 
         /// <inheritdoc/>
@@ -318,6 +330,10 @@ namespace Dalamud.Interface.Internal.Windows
                         case DataKind.TaskSched:
                             this.DrawTaskSched();
                             break;
+
+                        case DataKind.Hook:
+                            this.DrawHook();
+                            break;
                     }
                 }
                 else
@@ -333,6 +349,12 @@ namespace Dalamud.Interface.Internal.Windows
             ImGui.PopStyleVar();
 
             ImGui.EndChild();
+        }
+
+        private int MessageBoxWDetour(IntPtr hwnd, string text, string caption, NativeFunctions.MessageBoxType type)
+        {
+            Log.Information("[DATAHOOK] {0} {1} {2} {3}", hwnd, text, caption, type);
+            return this.messageBoxMinHook.Original(hwnd, text, caption, type);
         }
 
         private void DrawServerOpCode()
@@ -975,7 +997,7 @@ namespace Dalamud.Interface.Internal.Windows
                         ImGui.TableSetupColumn("Size", ImGuiTableColumnFlags.WidthFixed, fontWidth * 10);
                         ImGui.TableSetupColumn("Pointer", ImGuiTableColumnFlags.WidthStretch);
                         ImGui.TableHeadersRow();
-                        for (int numberArrayIndex = 0; numberArrayIndex < atkArrayDataHolder->NumberArrayCount; numberArrayIndex++)
+                        for (var numberArrayIndex = 0; numberArrayIndex < atkArrayDataHolder->NumberArrayCount; numberArrayIndex++)
                         {
                             ImGui.TableNextRow();
                             ImGui.TableNextColumn();
@@ -989,7 +1011,7 @@ namespace Dalamud.Interface.Internal.Windows
                                 if (ImGui.TreeNodeEx($"{(long)numberArrayData:X}###{numberArrayIndex}", ImGuiTreeNodeFlags.SpanFullWidth))
                                 {
                                     ImGui.NewLine();
-                                    int tableHeight = Math.Min(40, numberArrayData->AtkArrayData.Size + 4);
+                                    var tableHeight = Math.Min(40, numberArrayData->AtkArrayData.Size + 4);
                                     if (ImGui.BeginTable($"NumberArrayDataTable", 4, ImGuiTableFlags.RowBg | ImGuiTableFlags.ScrollY, new Vector2(0.0F, fontHeight * tableHeight)))
                                     {
                                         ImGui.TableSetupColumn("Index", ImGuiTableColumnFlags.WidthFixed, fontWidth * 6);
@@ -997,7 +1019,7 @@ namespace Dalamud.Interface.Internal.Windows
                                         ImGui.TableSetupColumn("Integer", ImGuiTableColumnFlags.WidthFixed, fontWidth * 12);
                                         ImGui.TableSetupColumn("Float", ImGuiTableColumnFlags.WidthFixed, fontWidth * 20);
                                         ImGui.TableHeadersRow();
-                                        for (int numberIndex = 0; numberIndex < numberArrayData->AtkArrayData.Size; numberIndex++)
+                                        for (var numberIndex = 0; numberIndex < numberArrayData->AtkArrayData.Size; numberIndex++)
                                         {
                                             ImGui.TableNextRow();
                                             ImGui.TableNextColumn();
@@ -1038,7 +1060,7 @@ namespace Dalamud.Interface.Internal.Windows
                         ImGui.TableSetupColumn("Size", ImGuiTableColumnFlags.WidthFixed, fontWidth * 10);
                         ImGui.TableSetupColumn("Pointer", ImGuiTableColumnFlags.WidthStretch);
                         ImGui.TableHeadersRow();
-                        for (int stringArrayIndex = 0; stringArrayIndex < atkArrayDataHolder->StringArrayCount; stringArrayIndex++)
+                        for (var stringArrayIndex = 0; stringArrayIndex < atkArrayDataHolder->StringArrayCount; stringArrayIndex++)
                         {
                             ImGui.TableNextRow();
                             ImGui.TableNextColumn();
@@ -1052,13 +1074,13 @@ namespace Dalamud.Interface.Internal.Windows
                                 if (ImGui.TreeNodeEx($"{(long)stringArrayData:X}###{stringArrayIndex}", ImGuiTreeNodeFlags.SpanFullWidth))
                                 {
                                     ImGui.NewLine();
-                                    int tableHeight = Math.Min(40, stringArrayData->AtkArrayData.Size + 4);
+                                    var tableHeight = Math.Min(40, stringArrayData->AtkArrayData.Size + 4);
                                     if (ImGui.BeginTable($"StringArrayDataTable", 2, ImGuiTableFlags.RowBg | ImGuiTableFlags.ScrollY, new Vector2(0.0F, fontHeight * tableHeight)))
                                     {
                                         ImGui.TableSetupColumn("Index", ImGuiTableColumnFlags.WidthFixed, fontWidth * 6);
                                         ImGui.TableSetupColumn("String", ImGuiTableColumnFlags.WidthStretch);
                                         ImGui.TableHeadersRow();
-                                        for (int stringIndex = 0; stringIndex < stringArrayData->AtkArrayData.Size; stringIndex++)
+                                        for (var stringIndex = 0; stringIndex < stringArrayData->AtkArrayData.Size; stringIndex++)
                                         {
                                             ImGui.TableNextRow();
                                             ImGui.TableNextColumn();
@@ -1560,6 +1582,42 @@ namespace Dalamud.Interface.Internal.Windows
                 }
 
                 ImGui.PopStyleColor(1);
+            }
+        }
+
+        private void DrawHook()
+        {
+            try
+            {
+                ImGui.Checkbox("Use MinHook", ref this.hookUseMinHook);
+
+                if (ImGui.Button("Create"))
+                    this.messageBoxMinHook = Hook<MessageBoxWDelegate>.FromSymbol("User32", "MessageBoxW", this.MessageBoxWDetour, this.hookUseMinHook);
+
+                if (ImGui.Button("Enable"))
+                    this.messageBoxMinHook?.Enable();
+
+                if (ImGui.Button("Disable"))
+                    this.messageBoxMinHook?.Disable();
+
+                if (ImGui.Button("Call Original"))
+                    this.messageBoxMinHook?.Original(IntPtr.Zero, "Hello from .Original", "Hook Test", NativeFunctions.MessageBoxType.Ok);
+
+                if (ImGui.Button("Dispose"))
+                {
+                    this.messageBoxMinHook?.Dispose();
+                    this.messageBoxMinHook = null;
+                }
+
+                if (ImGui.Button("Test"))
+                    _ = NativeFunctions.MessageBoxW(IntPtr.Zero, "Hi", "Hello", NativeFunctions.MessageBoxType.Ok);
+
+                if (this.messageBoxMinHook != null)
+                    ImGui.Text("Enabled: " + this.messageBoxMinHook?.IsEnabled);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "MinHook error caught");
             }
         }
 

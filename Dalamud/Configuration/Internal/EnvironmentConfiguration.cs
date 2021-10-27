@@ -25,7 +25,7 @@ namespace Dalamud.Configuration.Internal
         /// <summary>
         /// Gets a value indicating whether the DalamudForceCoreHook setting has been enabled.
         /// </summary>
-        public static bool DalamudForceCoreHook { get; } = GetEnvironmentVariable("DALAMUD_FORCE_COREHOOK");
+        public static bool DalamudForceMinHook { get; } = GetEnvironmentVariable("DALAMUD_FORCE_COREHOOK");
 
         private static bool GetEnvironmentVariable(string name)
             => bool.Parse(Environment.GetEnvironmentVariable(name) ?? "false");

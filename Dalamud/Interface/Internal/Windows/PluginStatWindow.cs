@@ -4,6 +4,7 @@ using System.Reflection;
 
 using Dalamud.Game;
 using Dalamud.Game.Internal;
+using Dalamud.Hooking;
 using Dalamud.Hooking.Internal;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Internal;
@@ -175,11 +176,12 @@ namespace Dalamud.Interface.Internal.Windows
 
             if (ImGui.BeginTabItem("Hooks"))
             {
-                ImGui.Columns(3);
+                ImGui.Columns(4);
 
-                ImGui.SetColumnWidth(0, ImGui.GetWindowContentRegionWidth() - 280);
+                ImGui.SetColumnWidth(0, ImGui.GetWindowContentRegionWidth() - 330);
                 ImGui.SetColumnWidth(1, 180f);
                 ImGui.SetColumnWidth(2, 100f);
+                ImGui.SetColumnWidth(3, 100f);
 
                 ImGui.Text("Detour Method");
                 ImGui.SameLine();
@@ -194,6 +196,9 @@ namespace Dalamud.Interface.Internal.Windows
                 ImGui.NextColumn();
 
                 ImGui.Text("Status");
+                ImGui.NextColumn();
+
+                ImGui.Text("Backend");
                 ImGui.NextColumn();
 
                 ImGui.Separator();
@@ -238,6 +243,10 @@ namespace Dalamud.Interface.Internal.Windows
                         {
                             ImGui.Text(trackedHook.Hook.IsEnabled ? "Enabled" : "Disabled");
                         }
+
+                        ImGui.NextColumn();
+
+                        ImGui.Text(trackedHook.Hook.BackendName);
 
                         ImGui.NextColumn();
                     }
