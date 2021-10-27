@@ -1598,6 +1598,9 @@ namespace Dalamud.Interface.Internal.Windows
                 if (ImGui.Button("Disable"))
                     this.messageBoxMinHook?.Disable();
 
+                if (ImGui.Button("Call Original"))
+                    this.messageBoxMinHook?.Original(IntPtr.Zero, "Hello from .Original", "Hook Test", NativeFunctions.MessageBoxType.Ok);
+
                 if (ImGui.Button("Dispose"))
                 {
                     this.messageBoxMinHook?.Dispose();
