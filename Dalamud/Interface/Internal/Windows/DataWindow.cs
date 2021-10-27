@@ -997,7 +997,7 @@ namespace Dalamud.Interface.Internal.Windows
                         ImGui.TableSetupColumn("Size", ImGuiTableColumnFlags.WidthFixed, fontWidth * 10);
                         ImGui.TableSetupColumn("Pointer", ImGuiTableColumnFlags.WidthStretch);
                         ImGui.TableHeadersRow();
-                        for (int numberArrayIndex = 0; numberArrayIndex < atkArrayDataHolder->NumberArrayCount; numberArrayIndex++)
+                        for (var numberArrayIndex = 0; numberArrayIndex < atkArrayDataHolder->NumberArrayCount; numberArrayIndex++)
                         {
                             ImGui.TableNextRow();
                             ImGui.TableNextColumn();
@@ -1011,7 +1011,7 @@ namespace Dalamud.Interface.Internal.Windows
                                 if (ImGui.TreeNodeEx($"{(long)numberArrayData:X}###{numberArrayIndex}", ImGuiTreeNodeFlags.SpanFullWidth))
                                 {
                                     ImGui.NewLine();
-                                    int tableHeight = Math.Min(40, numberArrayData->AtkArrayData.Size + 4);
+                                    var tableHeight = Math.Min(40, numberArrayData->AtkArrayData.Size + 4);
                                     if (ImGui.BeginTable($"NumberArrayDataTable", 4, ImGuiTableFlags.RowBg | ImGuiTableFlags.ScrollY, new Vector2(0.0F, fontHeight * tableHeight)))
                                     {
                                         ImGui.TableSetupColumn("Index", ImGuiTableColumnFlags.WidthFixed, fontWidth * 6);
@@ -1019,7 +1019,7 @@ namespace Dalamud.Interface.Internal.Windows
                                         ImGui.TableSetupColumn("Integer", ImGuiTableColumnFlags.WidthFixed, fontWidth * 12);
                                         ImGui.TableSetupColumn("Float", ImGuiTableColumnFlags.WidthFixed, fontWidth * 20);
                                         ImGui.TableHeadersRow();
-                                        for (int numberIndex = 0; numberIndex < numberArrayData->AtkArrayData.Size; numberIndex++)
+                                        for (var numberIndex = 0; numberIndex < numberArrayData->AtkArrayData.Size; numberIndex++)
                                         {
                                             ImGui.TableNextRow();
                                             ImGui.TableNextColumn();
@@ -1060,7 +1060,7 @@ namespace Dalamud.Interface.Internal.Windows
                         ImGui.TableSetupColumn("Size", ImGuiTableColumnFlags.WidthFixed, fontWidth * 10);
                         ImGui.TableSetupColumn("Pointer", ImGuiTableColumnFlags.WidthStretch);
                         ImGui.TableHeadersRow();
-                        for (int stringArrayIndex = 0; stringArrayIndex < atkArrayDataHolder->StringArrayCount; stringArrayIndex++)
+                        for (var stringArrayIndex = 0; stringArrayIndex < atkArrayDataHolder->StringArrayCount; stringArrayIndex++)
                         {
                             ImGui.TableNextRow();
                             ImGui.TableNextColumn();
@@ -1074,13 +1074,13 @@ namespace Dalamud.Interface.Internal.Windows
                                 if (ImGui.TreeNodeEx($"{(long)stringArrayData:X}###{stringArrayIndex}", ImGuiTreeNodeFlags.SpanFullWidth))
                                 {
                                     ImGui.NewLine();
-                                    int tableHeight = Math.Min(40, stringArrayData->AtkArrayData.Size + 4);
+                                    var tableHeight = Math.Min(40, stringArrayData->AtkArrayData.Size + 4);
                                     if (ImGui.BeginTable($"StringArrayDataTable", 2, ImGuiTableFlags.RowBg | ImGuiTableFlags.ScrollY, new Vector2(0.0F, fontHeight * tableHeight)))
                                     {
                                         ImGui.TableSetupColumn("Index", ImGuiTableColumnFlags.WidthFixed, fontWidth * 6);
                                         ImGui.TableSetupColumn("String", ImGuiTableColumnFlags.WidthStretch);
                                         ImGui.TableHeadersRow();
-                                        for (int stringIndex = 0; stringIndex < stringArrayData->AtkArrayData.Size; stringIndex++)
+                                        for (var stringIndex = 0; stringIndex < stringArrayData->AtkArrayData.Size; stringIndex++)
                                         {
                                             ImGui.TableNextRow();
                                             ImGui.TableNextColumn();
@@ -1605,7 +1605,7 @@ namespace Dalamud.Interface.Internal.Windows
                 }
 
                 if (ImGui.Button("Test"))
-                    NativeFunctions.MessageBoxW(IntPtr.Zero, "Hi", "Hello", NativeFunctions.MessageBoxType.Ok);
+                    _ = NativeFunctions.MessageBoxW(IntPtr.Zero, "Hi", "Hello", NativeFunctions.MessageBoxType.Ok);
 
                 if (this.messageBoxMinHook != null)
                     ImGui.Text("Enabled: " + this.messageBoxMinHook?.IsEnabled);
