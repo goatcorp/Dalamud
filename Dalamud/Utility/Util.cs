@@ -5,12 +5,13 @@ using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-
+using Dalamud.Configuration.Internal;
 using Dalamud.Game;
 using Dalamud.Interface;
 using Dalamud.Interface.Colors;
 using Dalamud.Logging.Internal;
 using ImGuiNET;
+using Microsoft.Win32;
 using Serilog;
 
 namespace Dalamud.Utility
@@ -263,5 +264,34 @@ namespace Dalamud.Utility
 
         // TODO: Someone implement GetUTF8String with some IntPtr overloads.
         // while(Marshal.ReadByte(0, sz) != 0) { sz++; }
+
+        /// <summary>
+        /// Heuristically determine if Dalamud is running on Linux/WINE.
+        /// </summary>
+        /// <returns>Whether or not Dalamud is running on Linux/WINE.</returns>
+        public static bool IsLinux()
+        {
+            bool Check1()
+            {
+                return EnvironmentConfiguration.XlWineOnLinux;
+            }
+
+            bool Check2()
+            {
+                var hModule = NativeFunctions.GetModuleHandleW("ntdll.dll");
+                var proc1 = NativeFunctions.GetProcAddress(hModule, "wine_get_version");
+                var proc2 = NativeFunctions.GetProcAddress(hModule, "wine_get_build_id");
+
+                return proc1 != IntPtr.Zero || proc2 != IntPtr.Zero;
+            }
+
+            bool Check3()
+            {
+                return Registry.CurrentUser.OpenSubKey(@"Software\Wine") != null ||
+                       Registry.LocalMachine.OpenSubKey(@"Software\Wine") != null;
+            }
+
+            return Check1() || Check2() || Check3();
+        }
     }
 }
