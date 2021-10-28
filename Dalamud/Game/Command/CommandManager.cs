@@ -162,12 +162,8 @@ namespace Dalamud.Game.Command
                 }
                 else
                 {
-                    // I tried to get the start info to determine language with an else if and it failed, so this always checks instead
-                    // Log.Debug("Trying Chinese mod pack command parse as fallback");
-                    // Log.Information($"Message: {message.ToString()}");
-                    // Japanese failed. Try Chinese as a fallback.
+                    // Always match for china, since they patch in language files without changing the ClientLanguage.
                     cmdMatch = this.commandRegexCn.Match(message.TextValue).Groups["command"];
-                    // Log.Information($"Success:{cmdMatch2.Success} Groups: {this.commandRegexCn.Match(message.TextValue).Groups.Keys.GetEnumerator().Current}\nValues:{cmdMatch2.Value}");
                     if (cmdMatch.Success)
                     {
                         // Yes, it's a Chinese fallback chat command.
