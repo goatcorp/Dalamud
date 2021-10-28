@@ -1,0 +1,34 @@
+name: Tag Build
+on: [push]
+concurrency: build_dalamud
+
+jobs:
+  tag:
+    name: Tag Build
+    steps:
+      - name: Determine Tag
+        id: s1
+        run: |
+          version=$(echo $input | perl -nle 'm/build:\s*([0-9]+.[0-9]+.[0-9]+.[0-9]+)/; print $1');
+
+          if [ -z "$version" ];
+          then
+                  echo "No build version found";
+                  exit -1;
+          else
+                  export D_TAG_VERSION=$version;
+                  echo "::set-env name=D_TAG_VERSION::$D_TAG_VERSION";
+                  exit 0;
+          fi
+      - name: Create Tag
+        if: steps.s1.conclusion == 'success'
+        uses: actions/github-script@v3
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            github.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: "refs/tags/${{D_TAG_VERSION}}",
+              sha: context.sha
+            })
