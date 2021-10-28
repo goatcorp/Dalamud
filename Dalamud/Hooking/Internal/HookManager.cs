@@ -28,51 +28,6 @@ namespace Dalamud.Hooking.Internal
         }
 
         /// <summary>
-        /// Gets a value indicating whether the client is running under Linux Wine.
-        /// </summary>
-        /// <returns>A value indicating whether the game is running under Wine.</returns>
-        internal static bool DirtyLinuxUser
-        {
-            get
-            {
-                // TODO: Temporary for testing
-                return false;
-                
-                if (checkLinuxOnce)
-                {
-                    checkLinuxOnce = false;
-
-                    bool Check1()
-                    {
-                        return EnvironmentConfiguration.XlWineOnLinux;
-                    }
-
-                    bool Check2()
-                    {
-                        var hModule = NativeFunctions.GetModuleHandleW("ntdll.dll");
-                        var proc1 = NativeFunctions.GetProcAddress(hModule, "wine_get_version");
-                        var proc2 = NativeFunctions.GetProcAddress(hModule, "wine_get_build_id");
-
-                        return proc1 != IntPtr.Zero || proc2 != IntPtr.Zero;
-                    }
-
-                    bool Check3()
-                    {
-                        return Registry.CurrentUser.OpenSubKey(@"Software\Wine") != null ||
-                               Registry.LocalMachine.OpenSubKey(@"Software\Wine") != null;
-                    }
-
-                    if (isRunningLinux = Check1() || Check2() || Check3())
-                    {
-                        Log.Information($"Dalamud detected running on Wine");
-                    }
-                }
-
-                return isRunningLinux;
-            }
-        }
-
-        /// <summary>
         /// Gets a static list of tracked and registered hooks.
         /// </summary>
         internal static List<HookInfo> TrackedHooks { get; } = new();

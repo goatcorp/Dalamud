@@ -94,8 +94,7 @@ namespace Dalamud.Interface.Internal
                 Log.Error(e, "RTSS Free failed");
             }
 
-            this.setCursorHook = HookManager.DirtyLinuxUser ? null
-                : Hook<SetCursorDelegate>.FromSymbol("user32.dll", "SetCursor", this.SetCursorDetour, true);
+            this.setCursorHook = Hook<SetCursorDelegate>.FromSymbol("user32.dll", "SetCursor", this.SetCursorDetour, true);
             this.presentHook = new Hook<PresentDelegate>(this.address.Present, this.PresentDetour);
             this.resizeBuffersHook = new Hook<ResizeBuffersDelegate>(this.address.ResizeBuffers, this.ResizeBuffersDetour);
 
