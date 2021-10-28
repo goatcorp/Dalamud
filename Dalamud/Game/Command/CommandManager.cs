@@ -24,6 +24,7 @@ namespace Dalamud.Game.Command
         private readonly Regex commandRegexJp = new(@"^そのコマンドはありません。： (?<command>.+)$", RegexOptions.Compiled);
         private readonly Regex commandRegexDe = new(@"^„(?<command>.+)“ existiert nicht als Textkommando\.$", RegexOptions.Compiled);
         private readonly Regex commandRegexFr = new(@"^La commande texte “(?<command>.+)” n'existe pas\.$", RegexOptions.Compiled);
+        private readonly Regex commandRegexCn = new(@"^“(?<command>.+)”出現問題：該命令不存在。$", RegexOptions.Compiled);
         private readonly Regex currentLangCommandRegex;
 
         /// <summary>
@@ -158,6 +159,21 @@ namespace Dalamud.Game.Command
                     // Yes, it's a chat command.
                     var command = cmdMatch.Value;
                     if (this.ProcessCommand(command)) isHandled = true;
+                }
+                else
+                {
+                    // I tried to get the start info to determine language with an else if and it failed, so this always checks instead
+                    // Log.Debug("Trying Chinese mod pack command parse as fallback");
+                    // Log.Information($"Message: {message.ToString()}");
+                    // Japanese failed. Try Chinese as a fallback.
+                    cmdMatch = this.commandRegexCn.Match(message.TextValue).Groups["command"];
+                    // Log.Information($"Success:{cmdMatch2.Success} Groups: {this.commandRegexCn.Match(message.TextValue).Groups.Keys.GetEnumerator().Current}\nValues:{cmdMatch2.Value}");
+                    if (cmdMatch.Success)
+                    {
+                        // Yes, it's a Chinese fallback chat command.
+                        var command = cmdMatch.Value;
+                        if (this.ProcessCommand(command)) isHandled = true;
+                    }
                 }
             }
         }
