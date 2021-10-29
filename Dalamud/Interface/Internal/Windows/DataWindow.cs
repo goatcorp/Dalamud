@@ -40,6 +40,7 @@ using Dalamud.Utility;
 using ImGuiNET;
 using ImGuiScene;
 using Newtonsoft.Json;
+using PInvoke;
 using Serilog;
 
 namespace Dalamud.Interface.Internal.Windows
@@ -354,7 +355,15 @@ namespace Dalamud.Interface.Internal.Windows
         private int MessageBoxWDetour(IntPtr hwnd, string text, string caption, NativeFunctions.MessageBoxType type)
         {
             Log.Information("[DATAHOOK] {0} {1} {2} {3}", hwnd, text, caption, type);
-            return this.messageBoxMinHook.Original(hwnd, text, caption, type);
+
+            var result = this.messageBoxMinHook.Original(hwnd, "Cause Access Violation?", caption, NativeFunctions.MessageBoxType.YesNo);
+
+            if (result == (int)User32.MessageBoxResult.IDYES)
+            {
+                Marshal.ReadByte(IntPtr.Zero);
+            }
+
+            return result;
         }
 
         private void DrawServerOpCode()
