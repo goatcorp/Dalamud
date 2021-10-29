@@ -17,8 +17,6 @@ namespace Dalamud.Hooking.Internal
     internal class HookManager : IDisposable
     {
         private static readonly ModuleLog Log = new("HM");
-        private static bool checkLinuxOnce = true;
-        private static bool isRunningLinux = false;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HookManager"/> class.
