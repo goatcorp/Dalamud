@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -70,6 +71,8 @@ namespace Dalamud
                 Log.Information(new string('-', 80));
                 Log.Information("Initializing a session..");
 
+                var vehManager = new VehManager(0, OnVectoredException);
+
                 // This is due to GitHub not supporting TLS 1.0, so we enable all TLS versions globally
                 ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12 | SecurityProtocolType.Tls;
 
@@ -81,6 +84,7 @@ namespace Dalamud
                 dalamud.WaitForUnload();
 
                 dalamud.Dispose();
+                vehManager.Dispose();
             }
             catch (Exception ex)
             {
@@ -190,6 +194,88 @@ namespace Dalamud
                 _ = MessageBoxW(IntPtr.Zero, message, caption, MessageBoxType.IconError | MessageBoxType.Ok);
                 */
             }
+        }
+
+        private static unsafe int OnVectoredException(ref VehManager.ExceptionPointers ex)
+        {
+            if (!Enum.IsDefined(typeof(VehManager.ExceptionCode), ex.ExceptionRecord->ExceptionCode))
+                return VehManager.ExceptionContinueSearch;
+
+            var code = (VehManager.ExceptionCode)ex.ExceptionRecord->ExceptionCode;
+            var address = ex.ExceptionRecord->ExceptionAddress;
+            var info = $"{code}(0x{ex.ExceptionRecord->ExceptionCode:X})";
+
+            var module = Process.GetCurrentProcess().Modules.Cast<ProcessModule>().FirstOrDefault(m => address >= m.BaseAddress && address < m.BaseAddress + m.ModuleMemorySize);
+            if (module != null)
+            {
+                var rva = address - module.BaseAddress;
+
+                info += $"\nat {module.ModuleName}+{rva:X}";
+            }
+            else
+            {
+                info += $"\nat {ex.ExceptionRecord->ExceptionAddress:X}";
+            }
+
+            const MessageBoxType flags = NativeFunctions.MessageBoxType.AbortRetryIgnore | NativeFunctions.MessageBoxType.IconError | NativeFunctions.MessageBoxType.SystemModal;
+            var result = MessageBoxW(
+                Process.GetCurrentProcess().MainWindowHandle,
+                $"An error within the game occurred and Dalamud handled it. This may indicate a malfunctioning plugin.\nThe game must close.\n\n{info}\n\nMore information has been recorded separately, please contact us in our Discord or on GitHub.\n\n" +
+                "Click \"Abort\" to save further information.\n" +
+                "Click \"Retry\" to disable all plugins.\n" +
+                "Click \"Ignore\" to do nothing and quit.",
+                "Dalamud",
+                flags);
+
+            switch (result)
+            {
+                case (int)User32.MessageBoxResult.IDRETRY:
+                {
+                    Log.Information("User chose to disable plugins on next launch...");
+                    var config = Service<DalamudConfiguration>.Get();
+                    config.PluginSafeMode = true;
+                    config.Save();
+                    break;
+                }
+
+                case (int)User32.MessageBoxResult.IDABORT:
+                {
+                    // TODO: We can also do this for managed exceptions, but do we want to? It requires doing dumps with full memory.
+                    Log.Information("User chose to save minidump...");
+
+                    #if DEBUG
+                    var path = Path.Combine(Path.GetDirectoryName(typeof(EntryPoint).Assembly.Location), $"dalamud_appcrashd_{DateTimeOffset.Now.ToUnixTimeSeconds()}.dmp");
+                    #else
+                    var path = Path.Combine(Path.GetDirectoryName(typeof(EntryPoint).Assembly.Location), "..", "..", "..", $"dalamud_appcrash_{DateTimeOffset.Now.ToUnixTimeSeconds()}.dmp");
+                    #endif
+
+                    try
+                    {
+                        var file = new FileStream(path, FileMode.Create);
+
+                        fixed (void* pEx = &ex)
+                        {
+                            var mdmpInfo = default(MinidumpExceptionInformation);
+                            mdmpInfo.ClientPointers = 1;
+
+                            mdmpInfo.ExceptionPointers = new IntPtr(pEx);
+                            mdmpInfo.ThreadId = GetCurrentThreadId();
+
+                            MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), file.SafeFileHandle.DangerousGetHandle(), (int)MiniDumpType.MiniDumpWithDataSegs, ref mdmpInfo, IntPtr.Zero, IntPtr.Zero);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Error(e, "Failed to save minidump");
+                    }
+
+                    break;
+                }
+            }
+
+            Environment.Exit(-1);
+
+            return VehManager.ExceptionContinueSearch;
         }
 
         private static void OnUnhandledException(object sender, UnhandledExceptionEventArgs args)

@@ -5,11 +5,11 @@ using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
 using Dalamud.Interface;
 using Dalamud.Interface.Colors;
-using Dalamud.Logging.Internal;
 using ImGuiNET;
 using Microsoft.Win32;
 using Serilog;

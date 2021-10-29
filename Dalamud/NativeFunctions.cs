@@ -1777,6 +1777,90 @@ namespace Dalamud
             byte[] lpBuffer,
             int dwSize,
             out IntPtr lpNumberOfBytesWritten);
+
+        /// <summary>
+        /// Get a handle to the current process.
+        /// </summary>
+        /// <returns>Handle to the process.</returns>
+        [DllImport("kernel32.dll")]
+        public static extern IntPtr GetCurrentProcess();
+
+        /// <summary>
+        /// Get the current process ID.
+        /// </summary>
+        /// <returns>The process ID.</returns>
+        [DllImport("kernel32.dll")]
+        public static extern uint GetCurrentProcessId();
+
+        /// <summary>
+        /// Get the current thread ID.
+        /// </summary>
+        /// <returns>The thread ID.</returns>
+        [DllImport("kernel32.dll")]
+        public static extern uint GetCurrentThreadId();
+    }
+
+    /// <summary>
+    /// Native dbghelp functions.
+    /// </summary>
+    internal static partial class NativeFunctions
+    {
+        /// <summary>
+        /// Type of minidump to create.
+        /// </summary>
+        public enum MiniDumpType : int
+        {
+            /// <summary>
+            /// Normal minidump.
+            /// </summary>
+            MiniDumpNormal,
+
+            /// <summary>
+            /// Minidump with data segments.
+            /// </summary>
+            MiniDumpWithDataSegs,
+
+            /// <summary>
+            /// Minidump with full memory.
+            /// </summary>
+            MiniDumpWithFullMemory,
+        }
+
+        /// <summary>
+        /// Creates a minidump.
+        /// </summary>
+        /// <param name="hProcess">Target process handle.</param>
+        /// <param name="processId">Target process ID.</param>
+        /// <param name="hFile">Output file handle.</param>
+        /// <param name="dumpType">Type of dump to take.</param>
+        /// <param name="exceptionInfo">Exception information.</param>
+        /// <param name="userStreamParam">User information.</param>
+        /// <param name="callback">Callback.</param>
+        /// <returns>Whether or not the minidump succeeded.</returns>
+        [DllImport("dbghelp.dll")]
+        public static extern bool MiniDumpWriteDump(IntPtr hProcess, uint processId, IntPtr hFile, int dumpType, ref MinidumpExceptionInformation exceptionInfo, IntPtr userStreamParam, IntPtr callback);
+
+        /// <summary>
+        /// Structure describing minidump exception information.
+        /// </summary>
+        [StructLayout(LayoutKind.Sequential, Pack = 4)]
+        public struct MinidumpExceptionInformation
+        {
+            /// <summary>
+            /// ID of the thread that caused the exception.
+            /// </summary>
+            public uint ThreadId;
+
+            /// <summary>
+            /// Pointer to the exception record.
+            /// </summary>
+            public IntPtr ExceptionPointers;
+
+            /// <summary>
+            /// ClientPointers field.
+            /// </summary>
+            public int ClientPointers;
+        }
     }
 
     /// <summary>

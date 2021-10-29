@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
@@ -21,6 +20,8 @@ using Dalamud.Logging;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal;
 using Dalamud.Utility;
+using FFXIVClientStructs.FFXIV.Client.System.Framework;
+using FFXIVClientStructs.FFXIV.Client.UI;
 using ImGuiNET;
 using PInvoke;
 using Serilog.Events;
@@ -467,12 +468,24 @@ namespace Dalamud.Interface.Internal
                             Process.GetCurrentProcess().Kill();
                         }
 
-                        if (ImGui.MenuItem("Cause AccessViolation"))
+                        ImGui.Separator();
+
+                        if (ImGui.MenuItem("Access Violation"))
                         {
                             Marshal.ReadByte(IntPtr.Zero);
                         }
 
+                        if (ImGui.MenuItem("Crash game"))
+                        {
+                            unsafe
+                            {
+                                var framework = Framework.Instance();
+                                framework->UIModule = (UIModule*)0;
+                            }
+                        }
+
                         ImGui.Separator();
+
                         if (ImGui.MenuItem("Enable Dalamud testing", string.Empty, configuration.DoDalamudTest))
                         {
                             configuration.DoDalamudTest ^= true;
