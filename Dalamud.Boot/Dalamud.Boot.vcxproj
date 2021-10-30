@@ -85,6 +85,7 @@
     <ClCompile Include="..\lib\CoreCLR\CoreCLR.cpp" />
     <ClCompile Include="..\lib\CoreCLR\pch.cpp" />
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="veh.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\lib\CoreCLR\boot.h" />
@@ -94,6 +95,7 @@
     <ClInclude Include="..\lib\CoreCLR\framework.h" />
     <ClInclude Include="..\lib\CoreCLR\nethost\nethost.h" />
     <ClInclude Include="..\lib\CoreCLR\pch.h" />
+    <ClInclude Include="veh.h" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="..\lib\CoreCLR\nethost\libnethost.lib" />
