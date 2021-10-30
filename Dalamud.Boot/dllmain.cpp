@@ -5,6 +5,7 @@
 #include <Windows.h>
 #include "..\lib\CoreCLR\CoreCLR.h"
 #include "..\lib\CoreCLR\boot.h"
+#include "veh.h"
 
 HMODULE g_hModule;
 
@@ -44,6 +45,12 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam)
     entrypoint_fn(lpParam);
     printf("Done!\n");
 
+    // ============================== VEH ======================================== //
+
+    if (veh::add_handler())
+        printf("VEH Installed\n");
+    else printf("Failed to Install VEH\n");
+
     // =========================================================================== //
 
     #ifndef NDEBUG
@@ -65,6 +72,8 @@ BOOL APIENTRY DllMain(const HMODULE hModule, const DWORD dwReason, LPVOID lpRese
             g_hModule = hModule;
             break;
         case DLL_PROCESS_DETACH:
+            // remove the VEH on unload
+            veh::remove_handler();
             break;
     }
     return TRUE;

@@ -27,6 +27,9 @@
     <ClCompile Include="..\lib\CoreCLR\CoreCLR.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="veh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\lib\CoreCLR\core\coreclr_delegates.h">
@@ -48,6 +51,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\lib\CoreCLR\boot.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="veh.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
