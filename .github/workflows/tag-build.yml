@@ -5,6 +5,7 @@ concurrency: build_dalamud
 jobs:
   tag:
     name: Tag Build
+    runs-on: ubuntu-latest
     steps:
       - name: Determine Tag
         id: s1
@@ -17,7 +18,7 @@ jobs:
                   exit -1;
           else
                   export D_TAG_VERSION=$version;
-                  echo "::set-env name=D_TAG_VERSION::$D_TAG_VERSION";
+                  echo "::set-output name=D_TAG_VERSION::$D_TAG_VERSION";
                   exit 0;
           fi
       - name: Create Tag
@@ -29,6 +30,6 @@ jobs:
             github.git.createRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              ref: "refs/tags/${{D_TAG_VERSION}}",
+              ref: "refs/tags/${{steps.s1.outputs.D_TAG_VERSION}}",
               sha: context.sha
             })
