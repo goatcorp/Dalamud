@@ -15,14 +15,14 @@ jobs:
           if [ -z "$version" ];
           then
                   echo "No build version found";
-                  exit -1;
+                  echo "::set-output name=D_TAG_RESULT::fail";
           else
                   export D_TAG_VERSION=$version;
                   echo "::set-output name=D_TAG_VERSION::$D_TAG_VERSION";
-                  exit 0;
+                  echo "::set-output name=D_TAG_RESULT::pass";
           fi
       - name: Create Tag
-        if: steps.s1.conclusion == 'success'
+        if: steps.s1.outputs.D_TAG_RESULT == 'pass'
         uses: actions/github-script@v3
         with:
           github-token: ${{ github.token }}
