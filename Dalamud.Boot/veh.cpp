@@ -4,6 +4,9 @@
 #include <fstream>
 #include <Windows.h>
 #include <DbgHelp.h>
+#include <format>
+#include <string>
+#include <string_view>
 
 std::vector g_exception_whitelist({
     STATUS_ACCESS_VIOLATION,
@@ -133,6 +136,18 @@ LONG ExceptionHandler(PEXCEPTION_POINTERS ex)
     log << "Crash Dump: " << dmp_path << std::endl;
 
     log.close();
+    auto msg = L"An error within the game has occurred and Dalamud has caught it.\n\n"
+        L"This could be caused by a faulty plugin.\n"
+        L"Please report this issue on our Discord - more information has been recorded separately.\n\n"
+        L"The crash dump file is located at:\n"
+        L"{0}\n\n"
+        L"The log file is located at:\n"
+        L"{1}\n\n"
+        L"Press OK to exit the application.";
+
+    auto formatted = std::format(msg, dmp_path, log_path);
+
+    MessageBoxW(nullptr, formatted.c_str(), L"Dalamud Error", MB_OK | MB_ICONERROR | MB_TOPMOST);
 
     return EXCEPTION_CONTINUE_SEARCH;
 }

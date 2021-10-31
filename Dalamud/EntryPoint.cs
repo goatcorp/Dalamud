@@ -192,7 +192,7 @@ namespace Dalamud
                 */
             }
         }
-        
+
         private static void OnUnhandledException(object sender, UnhandledExceptionEventArgs args)
         {
             switch (args.ExceptionObject)
