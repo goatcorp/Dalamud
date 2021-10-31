@@ -47,9 +47,10 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam)
 
     // ============================== VEH ======================================== //
 
+    printf("Initializing VEH... ");
     if (veh::add_handler())
-        printf("VEH Installed\n");
-    else printf("Failed to Install VEH\n");
+        printf("Done!\n");
+    else printf("Failed!\n");
 
     // =========================================================================== //
 
@@ -72,7 +73,6 @@ BOOL APIENTRY DllMain(const HMODULE hModule, const DWORD dwReason, LPVOID lpRese
             g_hModule = hModule;
             break;
         case DLL_PROCESS_DETACH:
-            // remove the VEH on unload
             veh::remove_handler();
             break;
     }
