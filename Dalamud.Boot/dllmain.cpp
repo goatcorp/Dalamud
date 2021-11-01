@@ -11,6 +11,20 @@ HMODULE g_hModule;
 
 bool is_running_on_linux()
 {
+    size_t required_size;
+    getenv_s(&required_size, nullptr, 0, "XL_WINEONLINUX");
+    if (required_size > 0)
+    {
+        if (char* is_wine_on_linux = static_cast<char*>(malloc(required_size * sizeof(char))))
+        {
+            getenv_s(&required_size, is_wine_on_linux, required_size, "XL_WINEONLINUX");
+            auto result = _stricmp(is_wine_on_linux, "true");
+            free(is_wine_on_linux);
+            if (result == 0)
+                return true;
+        }
+    }
+
     HMODULE hntdll = GetModuleHandleW(L"ntdll.dll");
     if (!hntdll) // not running on NT
         return true;
