@@ -478,8 +478,8 @@ namespace Dalamud
             WM_INPUT_DEVICE_CHANGE = 0x00FE,
             WM_INPUT = 0x00FF,
 
-            WM_KEYFIRST = WM_KEYDOWN,
-            WM_KEYDOWN = 0x0100,
+            WM_KEYFIRST = 0x0100,
+            WM_KEYDOWN = WM_KEYFIRST,
             WM_KEYUP = 0x0101,
             WM_CHAR = 0x0102,
             WM_DEADCHAR = 0x0103,
@@ -525,8 +525,8 @@ namespace Dalamud
             WM_CTLCOLORSTATIC = 0x0138,
             MN_GETHMENU = 0x01E1,
 
-            WM_MOUSEFIRST = WM_MOUSEMOVE,
-            WM_MOUSEMOVE = 0x0200,
+            WM_MOUSEFIRST = 0x0200,
+            WM_MOUSEMOVE = WM_MOUSEFIRST,
             WM_LBUTTONDOWN = 0x0201,
             WM_LBUTTONUP = 0x0202,
             WM_LBUTTONDBLCLK = 0x0203,
