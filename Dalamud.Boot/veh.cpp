@@ -81,7 +81,7 @@ bool get_sym_from_addr(const DWORD64 address, DWORD64* displacement, std::wstrin
     auto symbol = reinterpret_cast<PSYMBOL_INFOW>(buffer);
     symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
     symbol->MaxNameLen = MAX_SYM_NAME;
-    
+
     if (SymFromAddrW(GetCurrentProcess(), address, displacement, symbol))
     {
         symbol_name.assign(_wcsdup(symbol->Name));
@@ -96,7 +96,7 @@ std::wstring to_address_string(const DWORD64 address, const bool try_ptrderef = 
     DWORD64 module_base;
     std::filesystem::path module_path;
     bool is_mod_addr = get_module_file_and_base(address, &module_base, module_path);
-    
+
     DWORD64 value = 0;
     if(try_ptrderef && address > 0x10000 && address < 0x7FFFFFFE0000)
     {
@@ -125,7 +125,7 @@ void print_exception_info(const EXCEPTION_POINTERS* ex, std::wofstream& log)
     sf.AddrStack.Mode = AddrModeFlat;
     sf.AddrFrame.Offset = ex->ContextRecord->Rbp;
     sf.AddrFrame.Mode = AddrModeFlat;
-    CONTEXT ctx = *ex->ContextRecord;    
+    CONTEXT ctx = *ex->ContextRecord;
     int frame_index = 0;
 
     log << std::format(L"\n  [{}]\t{}", frame_index++, to_address_string(sf.AddrPC.Offset, false));
@@ -144,7 +144,7 @@ void print_exception_info(const EXCEPTION_POINTERS* ex, std::wofstream& log)
     ctx = *ex->ContextRecord;
 
     log << "\nRegisters\n{";
-    
+
     log << std::format(L"\n  RAX:\t{}", to_address_string(ctx.Rax));
     log << std::format(L"\n  RBX:\t{}", to_address_string(ctx.Rbx));
     log << std::format(L"\n  RCX:\t{}", to_address_string(ctx.Rcx));
@@ -166,7 +166,7 @@ void print_exception_info(const EXCEPTION_POINTERS* ex, std::wofstream& log)
 
     log << "\n}" << std::endl;
 
-    if(ctx.Rsp <= 0x10000 || ctx.Rsp >= 0x7FFFFFFE0000) 
+    if(ctx.Rsp <= 0x10000 || ctx.Rsp >= 0x7FFFFFFE0000)
         return;
 
     log << "\nStack\n{";
@@ -208,27 +208,26 @@ LONG exception_handler(EXCEPTION_POINTERS* ex)
 
     log << std::format(L"Unhandled native exception occurred at {}", to_address_string(ex->ContextRecord->Rip, false)) << std::endl;
     log << std::format(L"Code: {:X}", ex->ExceptionRecord->ExceptionCode) << std::endl;
+    log << std::format(L"Dump at: {}", dmp_path) << std::endl;
     log << L"Time: " << std::chrono::zoned_time{ std::chrono::current_zone(), std::chrono::system_clock::now() } << std::endl;
 
     SymRefreshModuleList(GetCurrentProcess());
     print_exception_info(ex, log);
-    
+
     log.close();
 
     MINIDUMP_EXCEPTION_INFORMATION ex_info;
     ex_info.ClientPointers = false;
     ex_info.ExceptionPointers = ex;
     ex_info.ThreadId = GetCurrentThreadId();
-    
+
     HANDLE file = CreateFileW(dmp_path.c_str(), GENERIC_WRITE, FILE_SHARE_WRITE, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
     MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), file, MiniDumpWithDataSegs, &ex_info, nullptr, nullptr);
     CloseHandle(file);
 
     auto msg = L"An error within the game has occurred and Dalamud has caught it.\n\n"
-        L"This could be caused by a faulty plugin.\n"
-        L"Please report this issue on our Discord - more information has been recorded separately.\n\n"
-        L"The crash dump file is located at:\n"
-        L"{0}\n\n"
+        L"This may be caused by a faulty plugin, a broken TexTools modification, any other third-party tool or simply a bug in the game.\n"
+        L"You can report this issue on our Discord - more information has been recorded separately.\n\n"
         L"The log file is located at:\n"
         L"{1}\n\n"
         L"Press OK to exit the application.";
