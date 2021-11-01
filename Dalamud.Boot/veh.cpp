@@ -250,8 +250,6 @@ bool veh::add_handler()
     if (g_veh_handle)
         return false;
     g_veh_handle = AddVectoredExceptionHandler(0, exception_handler);
-    // init the symbol handler, the game already does it in WinMain but just in case
-    SymInitializeW(GetCurrentProcess(), nullptr, true);
     return g_veh_handle != nullptr;
 }
 
