@@ -113,8 +113,7 @@ namespace Dalamud
                     return;
 
                 var symbolPath = Path.Combine(info.AssetDirectory, "UIRes", "pdb");
-                var dalamudPath = Path.GetDirectoryName(typeof(EntryPoint).Assembly.Location);
-                var searchPath = $".;{symbolPath};{dalamudPath}";
+                var searchPath = $".;{symbolPath}";
 
                 // Remove any existing Symbol Handler and Init a new one with our search path added
                 SymCleanup(GetCurrentProcess());
