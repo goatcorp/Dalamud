@@ -76,7 +76,7 @@ namespace Dalamud
 
                 // This is due to GitHub not supporting TLS 1.0, so we enable all TLS versions globally
                 ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12 | SecurityProtocolType.Tls;
-                
+
                 if (!Util.IsLinux())
                     InitSymbolHandler(info);
 
