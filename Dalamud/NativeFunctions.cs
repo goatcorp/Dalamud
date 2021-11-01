@@ -1827,6 +1827,39 @@ namespace Dalamud
         }
 
         /// <summary>
+        /// Initializes the symbol handler for a process.
+        /// </summary>
+        /// <param name="hProcess">
+        /// A handle that identifies the caller.
+        /// This value should be unique and nonzero, but need not be a process handle.
+        /// However, if you do use a process handle, be sure to use the correct handle.
+        /// If the application is a debugger, use the process handle for the process being debugged.
+        /// Do not use the handle returned by GetCurrentProcess when debugging another process, because calling functions like SymLoadModuleEx can have unexpected results.
+        /// This parameter cannot be NULL.</param>
+        /// <param name="userSearchPath">
+        /// The path, or series of paths separated by a semicolon (;), that is used to search for symbol files.
+        /// If this parameter is NULL, the library attempts to form a symbol path from the following sources:
+        ///    - The current working directory of the application
+        ///    - The _NT_SYMBOL_PATH environment variable
+        ///    - The _NT_ALTERNATE_SYMBOL_PATH environment variable
+        /// Note that the search path can also be set using the SymSetSearchPath function.
+        /// </param>
+        /// <param name="fInvadeProcess">
+        /// If this value is <see langword="true"/>, enumerates the loaded modules for the process and effectively calls the SymLoadModule64 function for each module.
+        /// </param>
+        /// <returns>Whether or not the function succeeded.</returns>
+        [DllImport("dbghelp.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        public static extern bool SymInitialize(IntPtr hProcess, string userSearchPath, bool fInvadeProcess);
+
+        /// <summary>
+        /// Deallocates all resources associated with the process handle.
+        /// </summary>
+        /// <param name="hProcess">A handle to the process that was originally passed to the <seealso cref="SymInitialize"/> function.</param>
+        /// <returns>Whether or not the function succeeded.</returns>
+        [DllImport("dbghelp.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        public static extern bool SymCleanup(IntPtr hProcess);
+
+        /// <summary>
         /// Creates a minidump.
         /// </summary>
         /// <param name="hProcess">Target process handle.</param>
