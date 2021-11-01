@@ -27,7 +27,7 @@ namespace Dalamud.Hooking
         /// <param name="address">A memory address to install a hook.</param>
         /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
         public Hook(IntPtr address, T detour)
-            : this(address, detour, false)
+            : this(address, detour, false, Assembly.GetCallingAssembly())
         {
         }
 
@@ -40,6 +40,11 @@ namespace Dalamud.Hooking
         /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
         /// <param name="useMinHook">Use the MinHook hooking library instead of Reloaded.</param>
         public Hook(IntPtr address, T detour, bool useMinHook)
+            : this(address, detour, useMinHook, Assembly.GetCallingAssembly())
+        {
+        }
+
+        private Hook(IntPtr address, T detour, bool useMinHook, Assembly callingAssembly)
         {
             address = HookManager.FollowJmp(address);
             this.isMinHook = EnvironmentConfiguration.DalamudForceMinHook || useMinHook;
@@ -69,7 +74,7 @@ namespace Dalamud.Hooking
                 this.hookImpl = ReloadedHooks.Instance.CreateHook<T>(detour, address.ToInt64());
             }
 
-            HookManager.TrackedHooks.Add(new HookInfo(this, detour, Assembly.GetCallingAssembly()));
+            HookManager.TrackedHooks.Add(new HookInfo(this, detour, callingAssembly));
         }
 
         /// <summary>
