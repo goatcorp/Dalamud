@@ -1,12 +1,10 @@
 using System;
-using System.Diagnostics;
 using System.Reflection;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Hooking.Internal;
 using Dalamud.Memory;
 using Reloaded.Hooks;
-using Serilog;
 
 namespace Dalamud.Hooking
 {
