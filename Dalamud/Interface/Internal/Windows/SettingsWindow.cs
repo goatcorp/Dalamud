@@ -197,6 +197,24 @@ namespace Dalamud.Interface.Internal.Windows
             this.DrawSaveCloseButtons();
         }
 
+        /// <summary>
+        /// Transform byte count to human readable format.
+        /// </summary>
+        /// <param name="bytes">Number of bytes.</param>
+        /// <returns>Human readable version.</returns>
+        private static string FormatBytes(long bytes)
+        {
+            string[] suffix = { "B", "KB", "MB", "GB", "TB" };
+            int i;
+            double dblSByte = bytes;
+            for (i = 0; i < suffix.Length && bytes >= 1024; i++, bytes /= 1024)
+            {
+                dblSByte = bytes / 1024.0;
+            }
+
+            return $"{dblSByte:0.##} {suffix[i]}";
+        }
+
         private void DrawGeneralTab()
         {
             ImGui.Text(Loc.Localize("DalamudSettingsLanguage", "Language"));
@@ -332,6 +350,8 @@ namespace Dalamud.Interface.Internal.Windows
             this.DrawDevPluginLocationsSection();
 
             ImGuiHelpers.ScaledDummy(12);
+
+            ImGui.TextColored(ImGuiColors.DalamudGrey, "Total memory used by Dalamud & Plugins: " + FormatBytes(GC.GetTotalMemory(false)));
         }
 
         private void DrawCustomReposSection()
