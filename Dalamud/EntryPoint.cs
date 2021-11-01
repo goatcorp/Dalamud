@@ -12,6 +12,7 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Game;
 using Dalamud.Logging.Internal;
 using Dalamud.Support;
+using Dalamud.Utility;
 using Newtonsoft.Json;
 using PInvoke;
 using Serilog;
@@ -75,8 +76,9 @@ namespace Dalamud
 
                 // This is due to GitHub not supporting TLS 1.0, so we enable all TLS versions globally
                 ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12 | SecurityProtocolType.Tls;
-
-                InitSymbolHandler(info);
+                
+                if (!Util.IsLinux())
+                    InitSymbolHandler(info);
 
                 var dalamud = new Dalamud(info, levelSwitch, finishSignal, configuration);
                 Log.Information("Starting a session..");
