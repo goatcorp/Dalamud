@@ -4,10 +4,12 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Configuration.Internal;
+using Dalamud.Game;
 using Dalamud.Logging.Internal;
 using Dalamud.Support;
 using Newtonsoft.Json;
@@ -74,6 +76,8 @@ namespace Dalamud
                 // This is due to GitHub not supporting TLS 1.0, so we enable all TLS versions globally
                 ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12 | SecurityProtocolType.Tls;
 
+                InitSymbolHandler(info);
+
                 var dalamud = new Dalamud(info, levelSwitch, finishSignal, configuration);
                 Log.Information("Starting a session..");
 
@@ -96,6 +100,29 @@ namespace Dalamud
                 Log.CloseAndFlush();
 
                 finishSignal.Set();
+            }
+        }
+
+        private static void InitSymbolHandler(DalamudStartInfo info)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(info.AssetDirectory))
+                    return;
+
+                var symbolPath = Path.Combine(info.AssetDirectory, "UIRes", "pdb");
+                var dalamudPath = Path.GetDirectoryName(typeof(EntryPoint).Assembly.Location);
+                var searchPath = $".;{symbolPath};{dalamudPath}";
+
+                // Remove any existing Symbol Handler and Init a new one with our search path added
+                SymCleanup(GetCurrentProcess());
+
+                if (!SymInitialize(GetCurrentProcess(), searchPath, true))
+                    throw new Win32Exception();
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "SymbolHandler Initialize Failed.");
             }
         }
 
