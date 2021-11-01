@@ -77,10 +77,8 @@ namespace Dalamud
                 // This is due to GitHub not supporting TLS 1.0, so we enable all TLS versions globally
                 ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12 | SecurityProtocolType.Tls;
 
-                /* BUG: This causes weird behaviour with BrowserHost, TTT and a few other plugins
                 if (!Util.IsLinux())
                     InitSymbolHandler(info);
-                */
 
                 var dalamud = new Dalamud(info, levelSwitch, finishSignal, configuration);
                 Log.Information("Starting a session..");
@@ -115,8 +113,7 @@ namespace Dalamud
                     return;
 
                 var symbolPath = Path.Combine(info.AssetDirectory, "UIRes", "pdb");
-                var dalamudPath = Path.GetDirectoryName(typeof(EntryPoint).Assembly.Location);
-                var searchPath = $".;{symbolPath};{dalamudPath}";
+                var searchPath = $".;{symbolPath}";
 
                 // Remove any existing Symbol Handler and Init a new one with our search path added
                 SymCleanup(GetCurrentProcess());
