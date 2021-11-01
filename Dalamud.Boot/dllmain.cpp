@@ -36,20 +36,6 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam)
     std::wstring runtimeconfig_path = _wcsdup(fs_module_path.replace_filename(L"Dalamud.runtimeconfig.json").c_str());
     std::wstring module_path = _wcsdup(fs_module_path.replace_filename(L"Dalamud.dll").c_str());
 
-    // ============================== VEH ======================================== //
-
-    printf("Initializing VEH... ");
-    if(is_running_on_linux())
-    {
-        printf("Failed! [Disabled for Wine]\n");
-    }
-    else
-    {
-        if (veh::add_handler())
-            printf("Done!\n");
-        else printf("Failed!\n");
-    }
-
     // =========================================================================== //
 
     void* entrypoint_vfn;
@@ -70,6 +56,22 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam)
     printf("Initializing Dalamud... ");
     entrypoint_fn(lpParam);
     printf("Done!\n");
+
+    // ============================== VEH ======================================== //
+
+    printf("Initializing VEH... ");
+    if(is_running_on_linux())
+    {
+        printf("Failed! [Disabled for Wine]\n");
+    }
+    else
+    {
+        if (veh::add_handler())
+            printf("Done!\n");
+        else printf("Failed!\n");
+    }
+
+    // =========================================================================== //
 
     #ifndef NDEBUG
     fclose(stdin);
