@@ -9,6 +9,18 @@
 
 HMODULE g_hModule;
 
+bool is_running_on_linux()
+{
+    HMODULE hntdll = GetModuleHandleW(L"ntdll.dll");
+    if (!hntdll) // not running on NT
+        return true;
+
+    FARPROC pwine_get_version = GetProcAddress(hntdll, "wine_get_version");
+    FARPROC pwine_get_host_version = GetProcAddress(hntdll, "wine_get_host_version");
+
+    return pwine_get_version != nullptr || pwine_get_host_version != nullptr;
+}
+
 DllExport DWORD WINAPI Initialize(LPVOID lpParam)
 {
     #ifndef NDEBUG
@@ -48,9 +60,16 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam)
     // ============================== VEH ======================================== //
 
     printf("Initializing VEH... ");
-    if (veh::add_handler())
-        printf("Done!\n");
-    else printf("Failed!\n");
+    if(is_running_on_linux())
+    {
+        printf("Failed! [Disabled for Wine]\n");
+    }
+    else
+    {
+        if (veh::add_handler())
+            printf("Done!\n");
+        else printf("Failed!\n");
+    }
 
     // =========================================================================== //
 
