@@ -6,6 +6,7 @@
 #include <DbgHelp.h>
 #include <format>
 #include <string>
+#include <TlHelp32.h>
 
 bool is_whitelist_exception(const DWORD code)
 {
@@ -139,11 +140,11 @@ void print_exception_info(const EXCEPTION_POINTERS* ex, std::wofstream& log)
 
     } while (sf.AddrReturn.Offset != 0 && sf.AddrPC.Offset != sf.AddrReturn.Offset);
 
-    log << "\n}" << std::endl;
+    log << L"\n}" << std::endl;
 
     ctx = *ex->ContextRecord;
 
-    log << "\nRegisters\n{";
+    log << L"\nRegisters\n{";
 
     log << std::format(L"\n  RAX:\t{}", to_address_string(ctx.Rax));
     log << std::format(L"\n  RBX:\t{}", to_address_string(ctx.Rbx));
@@ -164,17 +165,36 @@ void print_exception_info(const EXCEPTION_POINTERS* ex, std::wofstream& log)
     log << std::format(L"\n  RSP:\t{}", to_address_string(ctx.Rsp));
     log << std::format(L"\n  RIP:\t{}", to_address_string(ctx.Rip));
 
-    log << "\n}" << std::endl;
+    log << L"\n}" << std::endl;
 
     if(ctx.Rsp <= 0x10000 || ctx.Rsp >= 0x7FFFFFFE0000)
         return;
 
-    log << "\nStack\n{";
+    log << L"\nStack\n{";
 
     for(DWORD64 i = 0; i < 16; i++)
         log << std::format(L"\n  [RSP+{:X}]\t{}", i * 8, to_address_string(*reinterpret_cast<DWORD64*>(ctx.Rsp + i * 8ull)));
 
-    log << "\n}" << std::endl;
+    log << L"\n}" << std::endl;
+
+    log << L"\nModules\n{";
+
+    if(HANDLE snap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, GetCurrentProcessId()); snap != INVALID_HANDLE_VALUE)
+    {
+        MODULEENTRY32 mod;
+        mod.dwSize = sizeof MODULEENTRY32;
+        if(Module32First(snap, &mod))
+        {
+            do
+            {
+                log << std::format(L"\n  {:08X}\t{}", reinterpret_cast<DWORD64>(mod.modBaseAddr), mod.szExePath);
+            }
+            while (Module32Next(snap, &mod));
+        }
+        CloseHandle(snap);
+    }
+
+    log << L"\n}" << std::endl;
 }
 
 
