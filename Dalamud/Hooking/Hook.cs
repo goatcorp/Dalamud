@@ -61,7 +61,7 @@ namespace Dalamud.Hooking
             {
                 var indexList = hasOtherHooks
                     ? HookManager.MultiHookTracker[address]
-                    : HookManager.MultiHookTracker[address] = new();
+                    : (HookManager.MultiHookTracker[address] = new());
                 var index = (ulong)indexList.Count;
 
                 this.minHookImpl = new MinSharp.Hook<T>(address, detour, index);
