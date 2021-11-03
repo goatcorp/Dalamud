@@ -47,7 +47,7 @@ namespace Dalamud.Hooking
         private Hook(IntPtr address, T detour, bool useMinHook, Assembly callingAssembly)
         {
             address = HookManager.FollowJmp(address);
-            this.isMinHook = EnvironmentConfiguration.DalamudForceMinHook || useMinHook;
+            this.isMinHook = !EnvironmentConfiguration.DalamudForceReloaded && (EnvironmentConfiguration.DalamudForceMinHook || useMinHook);
 
             var hasOtherHooks = HookManager.Originals.ContainsKey(address);
             if (!hasOtherHooks)
