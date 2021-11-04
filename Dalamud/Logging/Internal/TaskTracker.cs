@@ -15,6 +15,7 @@ namespace Dalamud.Logging.Internal
     /// </summary>
     internal class TaskTracker : IDisposable
     {
+        private static readonly ModuleLog Log = new("TT");
         private static readonly List<TaskInfo> TrackedTasksInternal = new();
         private static readonly ConcurrentQueue<TaskInfo> NewlyCreatedTasks = new();
         private static bool clearRequested = false;
@@ -53,12 +54,33 @@ namespace Dalamud.Logging.Internal
                 clearRequested = false;
             }
 
+            var i = 0;
+            var pruned = 0;
+            // Prune old tasks. Technically a memory "leak" that grows infinitely otherwise.
+            while (i < TrackedTasksInternal.Count)
+            {
+                var taskInfo = TrackedTasksInternal[i];
+                if (taskInfo.IsCompleted && !taskInfo.IsBeingViewed && TrackedTasksInternal.Count > 1000)
+                {
+                    TrackedTasksInternal.RemoveAt(i);
+                    pruned++;
+                    continue;
+                }
+
+                i++;
+            }
+
+            // if (pruned > 0)
+            //     Log.Debug($"Pruned {pruned} tasks");
+
+            // Consume from a queue to prevent iteration errors
             while (NewlyCreatedTasks.TryDequeue(out var newTask))
             {
                 TrackedTasksInternal.Add(newTask);
             }
 
-            for (var i = 0; i < TrackedTasksInternal.Count; i++)
+            // Update each task
+            for (i = 0; i < TrackedTasksInternal.Count; i++)
             {
                 var taskInfo = TrackedTasksInternal[i];
                 if (taskInfo.Task == null)
@@ -178,6 +200,11 @@ namespace Dalamud.Logging.Internal
             /// Gets or sets a value indicating whether or not the task was completed successfully.
             /// </summary>
             public bool IsCompletedSuccessfully { get; set; }
+
+            /// <summary>
+            /// Gets or sets a value indicating whether this task is being viewed.
+            /// </summary>
+            public bool IsBeingViewed { get; set; }
 
             /// <summary>
             /// Gets or sets the status of the task.
