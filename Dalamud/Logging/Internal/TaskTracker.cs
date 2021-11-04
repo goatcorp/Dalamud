@@ -123,10 +123,16 @@ namespace Dalamud.Logging.Internal
             var patchMethod = typeof(TaskTracker).GetMethod(nameof(AddToActiveTasksHook), BindingFlags.NonPublic | BindingFlags.Static);
 
             if (targetMethod == null)
-                Log.Error("TargetMethod null!");
+            {
+                Log.Error("AddToActiveTasks TargetMethod null!");
+                return;
+            }
 
             if (patchMethod == null)
-                Log.Error("PatchMethod null!");
+            {
+                Log.Error("AddToActiveTasks PatchMethod null!");
+                return;
+            }
 
             this.scheduleAndStartHook = new MonoMod.RuntimeDetour.Hook(targetMethod, patchMethod);
 
