@@ -196,7 +196,7 @@ namespace Dalamud.Interface.Internal.Windows
             if (ImGui.IsItemHovered())
                 ImGui.SetTooltip("Kill game");
 
-            ImGui.BeginChild("scrolling", new Vector2(0, ImGui.GetFrameHeightWithSpacing() - 55), false, ImGuiWindowFlags.HorizontalScrollbar);
+            ImGui.BeginChild("scrolling", new Vector2(0, ImGui.GetFrameHeightWithSpacing() - 55), false, ImGuiWindowFlags.AlwaysHorizontalScrollbar | ImGuiWindowFlags.AlwaysVerticalScrollbar);
 
             if (clear)
             {

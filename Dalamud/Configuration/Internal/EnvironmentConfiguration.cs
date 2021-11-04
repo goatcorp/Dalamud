@@ -23,9 +23,14 @@ namespace Dalamud.Configuration.Internal
         public static bool DalamudNoPlugins { get; } = GetEnvironmentVariable("DALAMUD_NOT_HAVE_PLUGINS");
 
         /// <summary>
-        /// Gets a value indicating whether the DalamudForceCoreHook setting has been enabled.
+        /// Gets a value indicating whether the DalamudForceReloaded setting has been enabled.
         /// </summary>
-        public static bool DalamudForceMinHook { get; } = GetEnvironmentVariable("DALAMUD_FORCE_COREHOOK");
+        public static bool DalamudForceReloaded { get; } = GetEnvironmentVariable("DALAMUD_FORCE_RELOADED");
+
+        /// <summary>
+        /// Gets a value indicating whether the DalamudForceMinHook setting has been enabled.
+        /// </summary>
+        public static bool DalamudForceMinHook { get; } = GetEnvironmentVariable("DALAMUD_FORCE_MINHOOK");
 
         private static bool GetEnvironmentVariable(string name)
             => bool.Parse(Environment.GetEnvironmentVariable(name) ?? "false");

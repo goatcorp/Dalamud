@@ -1,12 +1,11 @@
 using System;
-using System.Diagnostics;
+using System.Collections.Generic;
 using System.Reflection;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Hooking.Internal;
 using Dalamud.Memory;
 using Reloaded.Hooks;
-using Serilog;
 
 namespace Dalamud.Hooking
 {
@@ -29,7 +28,7 @@ namespace Dalamud.Hooking
         /// <param name="address">A memory address to install a hook.</param>
         /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
         public Hook(IntPtr address, T detour)
-            : this(address, detour, false)
+            : this(address, detour, false, Assembly.GetCallingAssembly())
         {
         }
 
@@ -42,9 +41,14 @@ namespace Dalamud.Hooking
         /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
         /// <param name="useMinHook">Use the MinHook hooking library instead of Reloaded.</param>
         public Hook(IntPtr address, T detour, bool useMinHook)
+            : this(address, detour, useMinHook, Assembly.GetCallingAssembly())
+        {
+        }
+
+        private Hook(IntPtr address, T detour, bool useMinHook, Assembly callingAssembly)
         {
             address = HookManager.FollowJmp(address);
-            this.isMinHook = EnvironmentConfiguration.DalamudForceMinHook || useMinHook;
+            this.isMinHook = !EnvironmentConfiguration.DalamudForceReloaded && (EnvironmentConfiguration.DalamudForceMinHook || useMinHook);
 
             var hasOtherHooks = HookManager.Originals.ContainsKey(address);
             if (!hasOtherHooks)
@@ -56,9 +60,9 @@ namespace Dalamud.Hooking
             this.address = address;
             if (this.isMinHook)
             {
-                var indexList = hasOtherHooks
-                    ? HookManager.MultiHookTracker[address]
-                    : HookManager.MultiHookTracker[address] = new();
+                if (!HookManager.MultiHookTracker.TryGetValue(address, out var indexList))
+                    indexList = HookManager.MultiHookTracker[address] = new();
+
                 var index = (ulong)indexList.Count;
 
                 this.minHookImpl = new MinSharp.Hook<T>(address, detour, index);
@@ -71,7 +75,7 @@ namespace Dalamud.Hooking
                 this.hookImpl = ReloadedHooks.Instance.CreateHook<T>(detour, address.ToInt64());
             }
 
-            HookManager.TrackedHooks.Add(new HookInfo(this, detour, Assembly.GetCallingAssembly()));
+            HookManager.TrackedHooks.Add(new HookInfo(this, detour, callingAssembly));
         }
 
         /// <summary>
@@ -188,7 +192,9 @@ namespace Dalamud.Hooking
             if (this.isMinHook)
             {
                 this.minHookImpl.Dispose();
-                HookManager.MultiHookTracker[this.address] = null;
+
+                var index = HookManager.MultiHookTracker[this.address].IndexOf(this);
+                HookManager.MultiHookTracker[this.address][index] = null;
             }
             else
             {

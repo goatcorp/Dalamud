@@ -1564,6 +1564,8 @@ namespace Dalamud.Interface.Internal.Windows
 
                 if (ImGui.CollapsingHeader($"#{task.Id} - {task.Status} {(subTime - task.StartTime).TotalMilliseconds}ms###task{i}"))
                 {
+                    task.IsBeingViewed = true;
+
                     if (ImGui.Button("CANCEL (May not work)"))
                     {
                         try
@@ -1588,6 +1590,10 @@ namespace Dalamud.Interface.Internal.Windows
                         ImGui.TextColored(ImGuiColors.DalamudRed, "EXCEPTION:");
                         ImGui.TextUnformatted(task.Exception.ToString());
                     }
+                }
+                else
+                {
+                    task.IsBeingViewed = false;
                 }
 
                 ImGui.PopStyleColor(1);
