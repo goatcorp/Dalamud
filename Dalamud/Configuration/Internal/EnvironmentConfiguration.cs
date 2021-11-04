@@ -28,7 +28,7 @@ namespace Dalamud.Configuration.Internal
         public static bool DalamudForceReloaded { get; } = GetEnvironmentVariable("DALAMUD_FORCE_RELOADED");
 
         /// <summary>
-        /// Gets a value indicating whether the DalamudForceCoreHook setting has been enabled.
+        /// Gets a value indicating whether the DalamudForceMinHook setting has been enabled.
         /// </summary>
         public static bool DalamudForceMinHook { get; } = GetEnvironmentVariable("DALAMUD_FORCE_MINHOOK");
 
