@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 
 using Dalamud.Configuration.Internal;
@@ -59,9 +60,9 @@ namespace Dalamud.Hooking
             this.address = address;
             if (this.isMinHook)
             {
-                var indexList = hasOtherHooks
-                    ? HookManager.MultiHookTracker[address]
-                    : (HookManager.MultiHookTracker[address] = new());
+                if (!HookManager.MultiHookTracker.TryGetValue(address, out var indexList))
+                    indexList = HookManager.MultiHookTracker[address] = new();
+
                 var index = (ulong)indexList.Count;
 
                 this.minHookImpl = new MinSharp.Hook<T>(address, detour, index);
@@ -191,7 +192,9 @@ namespace Dalamud.Hooking
             if (this.isMinHook)
             {
                 this.minHookImpl.Dispose();
-                HookManager.MultiHookTracker[this.address] = null;
+
+                var index = HookManager.MultiHookTracker[this.address].IndexOf(this);
+                HookManager.MultiHookTracker[this.address][index] = null;
             }
             else
             {
