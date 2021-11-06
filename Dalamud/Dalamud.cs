@@ -144,12 +144,15 @@ namespace Dalamud
                 var configuration = Service<DalamudConfiguration>.Get();
 
                 var antiDebug = Service<AntiDebug>.Set();
-                if (configuration.IsAntiAntiDebugEnabled)
-                    antiDebug.Enable();
-#if DEBUG
                 if (!antiDebug.IsEnabled)
+                {
+#if DEBUG
                     antiDebug.Enable();
+#else
+                    if (configuration.IsAntiAntiDebugEnabled)
+                        antiDebug.Enable();
 #endif
+                }
                 Log.Information("[T2] AntiDebug OK!");
 
                 Service<WinSockHandlers>.Set();
