@@ -208,6 +208,11 @@ namespace Dalamud.Configuration.Internal
         public bool LoadAllApiLevels { get; set; }
 
         /// <summary>
+        /// Gets or sets a value indicating whether or not banned plugins should be loaded.
+        /// </summary>
+        public bool LoadBannedPlugins { get; set; }
+
+        /// <summary>
         /// Gets or sets a value indicating whether or not any plugin should be loaded when the game is started.
         /// It is reset immediately when read.
         /// </summary>

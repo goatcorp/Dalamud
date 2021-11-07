@@ -624,6 +624,12 @@ namespace Dalamud.Interface.Internal
                             configuration.Save();
                         }
 
+                        if (ImGui.MenuItem("Load banned plugins", null, configuration.LoadBannedPlugins))
+                        {
+                            configuration.LoadBannedPlugins = !configuration.LoadBannedPlugins;
+                            configuration.Save();
+                        }
+
                         ImGui.Separator();
                         ImGui.MenuItem("API Level:" + PluginManager.DalamudApiLevel, false);
                         ImGui.MenuItem("Loaded plugins:" + pluginManager.InstalledPlugins.Count, false);

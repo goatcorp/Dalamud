@@ -952,7 +952,8 @@ namespace Dalamud.Plugin.Internal
         /// <returns>A value indicating whether the plugin/manifest has been banned.</returns>
         public bool IsManifestBanned(PluginManifest manifest)
         {
-            return this.bannedPlugins.Any(ban => ban.Name == manifest.InternalName && ban.AssemblyVersion >= manifest.AssemblyVersion);
+            var configuration = Service<DalamudConfiguration>.Get();
+            return configuration.LoadBannedPlugins || this.bannedPlugins.Any(ban => ban.Name == manifest.InternalName && ban.AssemblyVersion >= manifest.AssemblyVersion);
         }
 
         /// <summary>
