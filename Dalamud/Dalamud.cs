@@ -79,16 +79,6 @@ namespace Dalamud
         internal LoggingLevelSwitch LogLevelSwitch { get; private set; }
 
         /// <summary>
-        /// Gets a value indicating whether Dalamud was successfully loaded.
-        /// </summary>
-        internal bool IsReady { get; private set; }
-
-        /// <summary>
-        /// Gets a value indicating whether the plugin system is loaded.
-        /// </summary>
-        internal bool IsLoadedPluginSystem => Service<PluginManager>.GetNullable() != null;
-
-        /// <summary>
         /// Gets location of stored assets.
         /// </summary>
         internal DirectoryInfo AssetDirectory => new(Service<DalamudStartInfo>.Get().AssetDirectory);
@@ -137,7 +127,8 @@ namespace Dalamud
         /// <summary>
         /// Runs tier 2 of the Dalamud initialization process.
         /// </summary>
-        public void LoadTier2()
+        /// <returns>Whether or not the load succeeded.</returns>
+        public bool LoadTier2()
         {
             try
             {
@@ -153,6 +144,7 @@ namespace Dalamud
                         antiDebug.Enable();
 #endif
                 }
+
                 Log.Information("[T2] AntiDebug OK!");
 
                 Service<WinSockHandlers>.Set();
@@ -169,7 +161,7 @@ namespace Dalamud
                 {
                     Log.Error(e, "Could not initialize DataManager.");
                     this.Unload();
-                    return;
+                    return false;
                 }
 
                 Log.Information("[T2] Data OK!");
@@ -189,29 +181,12 @@ namespace Dalamud
 
                 Log.Information("[T2] LOC OK!");
 
-                if (!EnvironmentConfiguration.DalamudNoInterface)
-                {
-                    try
-                    {
-                        Service<InterfaceManager>.Set().Enable();
+                // This is enabled in ImGuiScene setup
+                Service<DalamudIME>.Set();
+                Log.Information("[T2] IME OK!");
 
-                        Log.Information("[T2] IM OK!");
-                    }
-                    catch (Exception e)
-                    {
-                        Log.Information(e, "Could not init interface.");
-                    }
-                }
-
-                try
-                {
-                    Service<DalamudIME>.Set();
-                    Log.Information("[T2] IME OK!");
-                }
-                catch (Exception e)
-                {
-                    Log.Information(e, "Could not init IME.");
-                }
+                Service<InterfaceManager>.Set().Enable();
+                Log.Information("[T2] IM OK!");
 
 #pragma warning disable CS0618 // Type or member is obsolete
                 Service<SeStringManager>.Set();
@@ -235,20 +210,23 @@ namespace Dalamud
 
                 Service<DalamudAtkTweaks>.Set().Enable();
 
-                this.IsReady = true;
                 Log.Information("[T2] Load complete!");
             }
             catch (Exception ex)
             {
                 Log.Error(ex, "Tier 2 load failed.");
                 this.Unload();
+                return false;
             }
+
+            return true;
         }
 
         /// <summary>
         /// Runs tier 3 of the Dalamud initialization process.
         /// </summary>
-        public void LoadTier3()
+        /// <returns>Whether or not the load succeeded.</returns>
+        public bool LoadTier3()
         {
             try
             {
@@ -287,7 +265,11 @@ namespace Dalamud
             {
                 Log.Error(ex, "Tier 3 load failed.");
                 this.Unload();
+
+                return false;
             }
+
+            return true;
         }
 
         /// <summary>

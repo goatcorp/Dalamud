@@ -28,7 +28,9 @@ namespace Dalamud.Game
         private static Stopwatch statsStopwatch = new();
         private Stopwatch updateStopwatch = new();
 
-        private DateTime tier2LoadTime;
+        private bool tier2Initialized = false;
+        private bool tier3Initialized = false;
+        private bool tierInitError = false;
 
         private Hook<OnUpdateDetour> updateHook;
         private Hook<OnDestroyDetour> destroyHook;
@@ -173,26 +175,29 @@ namespace Dalamud.Game
 
         private bool HandleFrameworkUpdate(IntPtr framework)
         {
+            // If any of the tier loads failed, just go to the original code.
+            if (this.tierInitError)
+                goto original;
+
             var dalamud = Service<Dalamud>.Get();
 
             // If this is the first time we are running this loop, we need to init Dalamud subsystems synchronously
-            if (!dalamud.IsReady)
+            if (!this.tier2Initialized)
             {
-                dalamud.LoadTier2();
-                this.tier2LoadTime = DateTime.Now;
+                this.tier2Initialized = dalamud.LoadTier2();
+                if (!this.tier2Initialized)
+                    this.tierInitError = true;
+
                 goto original;
             }
 
-            if (!dalamud.IsLoadedPluginSystem && (DateTime.Now - this.tier2LoadTime).TotalSeconds > 30)
-            {
-                Log.Error("Did not detect tier 3 load!!! {Seconds}", (DateTime.Now - this.tier2LoadTime).TotalSeconds);
-                // Util.Fatal("The Dalamud plugin system could not initialize important subsystems.\nThis error may be caused by outdated ReShade or GShade installations.\n\nIf this error persists, please contact us.", "XIVLauncher Error");
-            }
-
             // Plugins expect the interface to be available and ready, so we need to wait with plugins until we have init'd ImGui
-            if (!dalamud.IsLoadedPluginSystem && Service<InterfaceManager>.GetNullable()?.IsReady == true)
+            if (!this.tier3Initialized && Service<InterfaceManager>.GetNullable()?.IsReady == true)
             {
-                dalamud.LoadTier3();
+                this.tier3Initialized = dalamud.LoadTier3();
+                if (!this.tier3Initialized)
+                    this.tierInitError = true;
+
                 goto original;
             }
 

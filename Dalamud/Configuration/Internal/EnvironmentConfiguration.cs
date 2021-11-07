@@ -8,11 +8,6 @@ namespace Dalamud.Configuration.Internal
     internal class EnvironmentConfiguration
     {
         /// <summary>
-        /// Gets a value indicating whether the DALAMUD_NOT_HAVE_INTERFACE setting has been enabled.
-        /// </summary>
-        public static bool DalamudNoInterface { get; } = GetEnvironmentVariable("DALAMUD_NOT_HAVE_INTERFACE");
-
-        /// <summary>
         /// Gets a value indicating whether the XL_WINEONLINUX setting has been enabled.
         /// </summary>
         public static bool XlWineOnLinux { get; } = GetEnvironmentVariable("XL_WINEONLINUX");
