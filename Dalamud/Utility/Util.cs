@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Net.Http;
 using System.Reflection;
 using System.Text;
 
@@ -22,6 +23,12 @@ namespace Dalamud.Utility
     public static class Util
     {
         private static string gitHashInternal;
+
+        /// <summary>
+        /// Gets an httpclient for usage.
+        /// Do NOT await this.
+        /// </summary>
+        public static HttpClient HttpClient { get; } = new();
 
         /// <summary>
         /// Gets the assembly version of Dalamud.

@@ -1,3 +1,5 @@
+using System.Threading.Tasks;
+
 using Dalamud.Game.Network.Structures;
 
 namespace Dalamud.Game.Network.Internal.MarketBoardUploaders
@@ -11,18 +13,21 @@ namespace Dalamud.Game.Network.Internal.MarketBoardUploaders
         /// Upload data about an item.
         /// </summary>
         /// <param name="item">The item request data being uploaded.</param>
-        void Upload(MarketBoardItemRequest item);
+        /// <returns>An async task.</returns>
+        Task Upload(MarketBoardItemRequest item);
 
         /// <summary>
         /// Upload tax rate data.
         /// </summary>
         /// <param name="taxRates">The tax rate data being uploaded.</param>
-        void UploadTax(MarketTaxRates taxRates);
+        /// <returns>An async task.</returns>
+        Task UploadTax(MarketTaxRates taxRates);
 
         /// <summary>
         /// Upload information about a purchase this client has made.
         /// </summary>
         /// <param name="purchaseHandler">The purchase handler data associated with the sale.</param>
-        void UploadPurchase(MarketBoardPurchaseHandler purchaseHandler);
+        /// <returns>An async task.</returns>
+        Task UploadPurchase(MarketBoardPurchaseHandler purchaseHandler);
     }
 }

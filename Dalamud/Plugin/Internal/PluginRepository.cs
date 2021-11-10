@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Types;
+using Dalamud.Utility;
 using Newtonsoft.Json;
 
 namespace Dalamud.Plugin.Internal
@@ -74,10 +75,9 @@ namespace Dalamud.Plugin.Internal
             try
             {
                 Log.Information($"Fetching repo: {this.PluginMasterUrl}");
-                using var client = new HttpClient();
 
                 // ?ticks causes a cache invalidation. Get a fresh repo every time.
-                using var response = await client.GetAsync(this.PluginMasterUrl + "?" + DateTime.Now.Ticks);
+                using var response = await Util.HttpClient.GetAsync(this.PluginMasterUrl + "?" + DateTime.Now.Ticks);
                 response.EnsureSuccessStatusCode();
 
                 var data = await response.Content.ReadAsStringAsync();

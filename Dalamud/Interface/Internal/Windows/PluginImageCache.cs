@@ -44,8 +44,6 @@ namespace Dalamud.Interface.Internal.Windows
         // TODO: Change back to master after release
         private const string MainRepoImageUrl = "https://raw.githubusercontent.com/goatcorp/DalamudPlugins/api4/{0}/{1}/images/{2}";
 
-        private readonly HttpClient httpClient = new();
-
         private BlockingCollection<Func<Task>> downloadQueue = new();
         private CancellationTokenSource downloadToken = new();
 
@@ -264,7 +262,7 @@ namespace Dalamud.Interface.Internal.Windows
                 HttpResponseMessage data;
                 try
                 {
-                    data = await this.httpClient.GetAsync(url);
+                    data = await Util.HttpClient.GetAsync(url);
                 }
                 catch (InvalidOperationException)
                 {
@@ -381,7 +379,7 @@ namespace Dalamud.Interface.Internal.Windows
                     HttpResponseMessage data;
                     try
                     {
-                        data = await this.httpClient.GetAsync(url);
+                        data = await Util.HttpClient.GetAsync(url);
                     }
                     catch (InvalidOperationException)
                     {
