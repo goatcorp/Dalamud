@@ -9,6 +9,10 @@ namespace Dalamud.Game.Network.Structures
     /// </summary>
     internal class MarketBoardPurchaseHandler
     {
+        private MarketBoardPurchaseHandler()
+        {
+        }
+
         /// <summary>
         /// Gets the object ID of the retainer associated with the sale.
         /// </summary>
@@ -41,10 +45,11 @@ namespace Dalamud.Game.Network.Structures
         /// <returns>An object representing the data read.</returns>
         public static unsafe MarketBoardPurchaseHandler Read(IntPtr dataPtr)
         {
-            var output = new MarketBoardPurchaseHandler();
-
             using var stream = new UnmanagedMemoryStream((byte*)dataPtr.ToPointer(), 1544);
             using var reader = new BinaryReader(stream);
+
+            var output = new MarketBoardPurchaseHandler();
+
             output.RetainerId = reader.ReadUInt64();
             output.ListingId = reader.ReadUInt64();
             output.CatalogId = reader.ReadUInt32();
