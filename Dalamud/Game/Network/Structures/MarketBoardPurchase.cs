@@ -9,6 +9,10 @@ namespace Dalamud.Game.Network.Structures
     /// </summary>
     internal class MarketBoardPurchase
     {
+        private MarketBoardPurchase()
+        {
+        }
+
         /// <summary>
         /// Gets the item ID of the item that was purchased.
         /// </summary>
@@ -26,10 +30,11 @@ namespace Dalamud.Game.Network.Structures
         /// <returns>An object representing the data read.</returns>
         public static unsafe MarketBoardPurchase Read(IntPtr dataPtr)
         {
-            var output = new MarketBoardPurchase();
-
             using var stream = new UnmanagedMemoryStream((byte*)dataPtr.ToPointer(), 1544);
             using var reader = new BinaryReader(stream);
+
+            var output = new MarketBoardPurchase();
+
             output.CatalogId = reader.ReadUInt32();
             stream.Position += 4;
             output.ItemQuantity = reader.ReadUInt32();

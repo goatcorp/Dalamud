@@ -1,4 +1,4 @@
-﻿using System.Net.Http;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -28,8 +28,6 @@ namespace Dalamud.Support
             if (content.IsNullOrWhitespace())
                 return;
 
-            using var client = new HttpClient();
-
             var model = new FeedbackModel
             {
                 Content = content,
@@ -45,7 +43,7 @@ namespace Dalamud.Support
             }
 
             var postContent = new StringContent(JsonConvert.SerializeObject(model), Encoding.UTF8, "application/json");
-            var response = await client.PostAsync(BugBaitUrl, postContent);
+            var response = await Util.HttpClient.PostAsync(BugBaitUrl, postContent);
 
             response.EnsureSuccessStatusCode();
         }

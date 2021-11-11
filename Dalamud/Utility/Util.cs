@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Net.Http;
 using System.Reflection;
 using System.Text;
 
@@ -22,6 +23,12 @@ namespace Dalamud.Utility
     public static class Util
     {
         private static string gitHashInternal;
+
+        /// <summary>
+        /// Gets an httpclient for usage.
+        /// Do NOT await this.
+        /// </summary>
+        public static HttpClient HttpClient { get; } = new();
 
         /// <summary>
         /// Gets the assembly version of Dalamud.
@@ -209,7 +216,7 @@ namespace Dalamud.Utility
         }
 
         /// <summary>
-        ///     Compress a string using GZip.
+        /// Compress a string using GZip.
         /// </summary>
         /// <param name="str">The input string.</param>
         /// <returns>The compressed output bytes.</returns>
@@ -217,35 +224,29 @@ namespace Dalamud.Utility
         {
             var bytes = Encoding.UTF8.GetBytes(str);
 
-            using (var msi = new MemoryStream(bytes))
-            using (var mso = new MemoryStream())
-            {
-                using (var gs = new GZipStream(mso, CompressionMode.Compress))
-                {
-                    CopyTo(msi, gs);
-                }
+            using var msi = new MemoryStream(bytes);
+            using var mso = new MemoryStream();
+            using var gs = new GZipStream(mso, CompressionMode.Compress);
 
-                return mso.ToArray();
-            }
+            CopyTo(msi, gs);
+
+            return mso.ToArray();
         }
 
         /// <summary>
-        ///     Decompress a string using GZip.
+        /// Decompress a string using GZip.
         /// </summary>
         /// <param name="bytes">The input bytes.</param>
         /// <returns>The compressed output string.</returns>
         public static string DecompressString(byte[] bytes)
         {
-            using (var msi = new MemoryStream(bytes))
-            using (var mso = new MemoryStream())
-            {
-                using (var gs = new GZipStream(msi, CompressionMode.Decompress))
-                {
-                    CopyTo(gs, mso);
-                }
+            using var msi = new MemoryStream(bytes);
+            using var mso = new MemoryStream();
+            using var gs = new GZipStream(msi, CompressionMode.Decompress);
 
-                return Encoding.UTF8.GetString(mso.ToArray());
-            }
+            CopyTo(gs, mso);
+
+            return Encoding.UTF8.GetString(mso.ToArray());
         }
 
         /// <summary>
@@ -261,9 +262,6 @@ namespace Dalamud.Utility
 
             while ((cnt = src.Read(bytes, 0, bytes.Length)) != 0) dest.Write(bytes, 0, cnt);
         }
-
-        // TODO: Someone implement GetUTF8String with some IntPtr overloads.
-        // while(Marshal.ReadByte(0, sz) != 0) { sz++; }
 
         /// <summary>
         /// Heuristically determine if Dalamud is running on Linux/WINE.

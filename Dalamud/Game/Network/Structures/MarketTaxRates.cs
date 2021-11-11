@@ -8,42 +8,39 @@ namespace Dalamud.Game.Network.Structures
     /// </summary>
     public class MarketTaxRates
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="MarketTaxRates"/> class.
-        /// </summary>
-        internal MarketTaxRates()
+        private MarketTaxRates()
         {
         }
 
         /// <summary>
         /// Gets the tax rate in Limsa Lominsa.
         /// </summary>
-        public uint LimsaLominsaTax { get; internal set; }
+        public uint LimsaLominsaTax { get; private set; }
 
         /// <summary>
         /// Gets the tax rate in Gridania.
         /// </summary>
-        public uint GridaniaTax { get; internal set; }
+        public uint GridaniaTax { get; private set; }
 
         /// <summary>
         /// Gets the tax rate in Ul'dah.
         /// </summary>
-        public uint UldahTax { get; internal set; }
+        public uint UldahTax { get; private set; }
 
         /// <summary>
         /// Gets the tax rate in Ishgard.
         /// </summary>
-        public uint IshgardTax { get; internal set; }
+        public uint IshgardTax { get; private set; }
 
         /// <summary>
         /// Gets the tax rate in Kugane.
         /// </summary>
-        public uint KuganeTax { get; internal set; }
+        public uint KuganeTax { get; private set; }
 
         /// <summary>
         /// Gets the tax rate in the Crystarium.
         /// </summary>
-        public uint CrystariumTax { get; internal set; }
+        public uint CrystariumTax { get; private set; }
 
         /// <summary>
         /// Read a <see cref="MarketTaxRates"/> object from memory.
@@ -52,13 +49,12 @@ namespace Dalamud.Game.Network.Structures
         /// <returns>A new <see cref="MarketTaxRates"/> object.</returns>
         public static unsafe MarketTaxRates Read(IntPtr dataPtr)
         {
-            var output = new MarketTaxRates();
-
             using var stream = new UnmanagedMemoryStream((byte*)dataPtr.ToPointer(), 1544);
             using var reader = new BinaryReader(stream);
 
-            stream.Position += 8;
+            var output = new MarketTaxRates();
 
+            stream.Position += 8;
             output.LimsaLominsaTax = reader.ReadUInt32();
             output.GridaniaTax = reader.ReadUInt32();
             output.UldahTax = reader.ReadUInt32();

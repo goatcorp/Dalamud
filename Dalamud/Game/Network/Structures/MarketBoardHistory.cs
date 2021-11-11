@@ -20,17 +20,17 @@ namespace Dalamud.Game.Network.Structures
         /// <summary>
         /// Gets the catalog ID.
         /// </summary>
-        public uint CatalogId { get; internal set; }
+        public uint CatalogId { get; private set; }
 
         /// <summary>
         /// Gets the second catalog ID.
         /// </summary>
-        public uint CatalogId2 { get; internal set; }
+        public uint CatalogId2 { get; private set; }
 
         /// <summary>
         /// Gets the list of individual item history listings.
         /// </summary>
-        public List<MarketBoardHistoryListing> HistoryListings { get; internal set; }
+        public List<MarketBoardHistoryListing> HistoryListings { get; } = new();
 
         /// <summary>
         /// Read a <see cref="MarketBoardHistory"/> object from memory.
@@ -39,17 +39,15 @@ namespace Dalamud.Game.Network.Structures
         /// <returns>A new <see cref="MarketBoardHistory"/> object.</returns>
         public static unsafe MarketBoardHistory Read(IntPtr dataPtr)
         {
-            var output = new MarketBoardHistory();
-
             using var stream = new UnmanagedMemoryStream((byte*)dataPtr.ToPointer(), 1544);
             using var reader = new BinaryReader(stream);
+
+            var output = new MarketBoardHistory();
 
             output.CatalogId = reader.ReadUInt32();
             output.CatalogId2 = reader.ReadUInt32();
 
-            output.HistoryListings = new List<MarketBoardHistoryListing>();
-
-            for (var i = 0; i < 10; i++)
+            for (var i = 0; i < 20; i++)
             {
                 var listingEntry = new MarketBoardHistoryListing
                 {
@@ -63,10 +61,12 @@ namespace Dalamud.Game.Network.Structures
 
                 listingEntry.OnMannequin = reader.ReadBoolean();
                 listingEntry.BuyerName = Encoding.UTF8.GetString(reader.ReadBytes(33)).TrimEnd('\u0000');
-                listingEntry.CatalogId = reader.ReadUInt32();
+                listingEntry.NextCatalogId = reader.ReadUInt32();
 
-                if (listingEntry.CatalogId != 0)
-                    output.HistoryListings.Add(listingEntry);
+                output.HistoryListings.Add(listingEntry);
+
+                if (listingEntry.NextCatalogId == 0)
+                    break;
             }
 
             return output;
@@ -90,9 +90,9 @@ namespace Dalamud.Game.Network.Structures
             public string BuyerName { get; internal set; }
 
             /// <summary>
-            /// Gets the catalog ID.
+            /// Gets the next entry's catalog ID.
             /// </summary>
-            public uint CatalogId { get; internal set; }
+            public uint NextCatalogId { get; internal set; }
 
             /// <summary>
             /// Gets a value indicating whether the item is HQ.

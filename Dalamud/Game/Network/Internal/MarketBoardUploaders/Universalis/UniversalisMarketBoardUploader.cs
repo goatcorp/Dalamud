@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text;
+using System.Threading.Tasks;
 
 using Dalamud.Game.Network.Internal.MarketBoardUploaders.Universalis.Types;
 using Dalamud.Game.Network.Structures;
+using Dalamud.Utility;
 using Newtonsoft.Json;
 using Serilog;
 
@@ -29,10 +30,9 @@ namespace Dalamud.Game.Network.Internal.MarketBoardUploaders.Universalis
         }
 
         /// <inheritdoc/>
-        public void Upload(MarketBoardItemRequest request)
+        public async Task Upload(MarketBoardItemRequest request)
         {
             var clientState = Service<ClientState.ClientState>.Get();
-            using var client = new HttpClient();
 
             Log.Verbose("Starting Universalis upload.");
             var uploader = clientState.LocalContentId;
@@ -80,7 +80,7 @@ namespace Dalamud.Game.Network.Internal.MarketBoardUploaders.Universalis
             var listingPath = "/upload";
             var listingUpload = JsonConvert.SerializeObject(listingsUploadObject);
             Log.Verbose($"{listingPath}: {listingUpload}");
-            client.PostAsync($"{ApiBase}{listingPath}/{ApiKey}", new StringContent(listingUpload, Encoding.UTF8, "application/json")).GetAwaiter().GetResult();
+            await Util.HttpClient.PostAsync($"{ApiBase}{listingPath}/{ApiKey}", new StringContent(listingUpload, Encoding.UTF8, "application/json"));
 
             // ====================================================================================
 
@@ -108,7 +108,7 @@ namespace Dalamud.Game.Network.Internal.MarketBoardUploaders.Universalis
             var historyPath = "/upload";
             var historyUpload = JsonConvert.SerializeObject(historyUploadObject);
             Log.Verbose($"{historyPath}: {historyUpload}");
-            client.PostAsync($"{ApiBase}{historyPath}/{ApiKey}", new StringContent(historyUpload, Encoding.UTF8, "application/json")).GetAwaiter().GetResult();
+            await Util.HttpClient.PostAsync($"{ApiBase}{historyPath}/{ApiKey}", new StringContent(historyUpload, Encoding.UTF8, "application/json"));
 
             // ====================================================================================
 
@@ -116,10 +116,9 @@ namespace Dalamud.Game.Network.Internal.MarketBoardUploaders.Universalis
         }
 
         /// <inheritdoc/>
-        public void UploadTax(MarketTaxRates taxRates)
+        public async Task UploadTax(MarketTaxRates taxRates)
         {
             var clientState = Service<ClientState.ClientState>.Get();
-            using var client = new HttpClient();
 
             // ====================================================================================
 
@@ -142,7 +141,7 @@ namespace Dalamud.Game.Network.Internal.MarketBoardUploaders.Universalis
             var taxUpload = JsonConvert.SerializeObject(taxUploadObject);
             Log.Verbose($"{taxPath}: {taxUpload}");
 
-            client.PostAsync($"{ApiBase}{taxPath}/{ApiKey}", new StringContent(taxUpload, Encoding.UTF8, "application/json")).GetAwaiter().GetResult();
+            await Util.HttpClient.PostAsync($"{ApiBase}{taxPath}/{ApiKey}", new StringContent(taxUpload, Encoding.UTF8, "application/json"));
 
             // ====================================================================================
 
@@ -155,12 +154,9 @@ namespace Dalamud.Game.Network.Internal.MarketBoardUploaders.Universalis
         /// to track the available listings, that is done via the listings packet. All this does is remove
         /// a listing, or delete it, when a purchase has been made.
         /// </remarks>
-        public void UploadPurchase(MarketBoardPurchaseHandler purchaseHandler)
+        public async Task UploadPurchase(MarketBoardPurchaseHandler purchaseHandler)
         {
             var clientState = Service<ClientState.ClientState>.Get();
-            using var client = new HttpClient();
-
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(ApiKey);
 
             var itemId = purchaseHandler.CatalogId;
             var worldId = clientState.LocalPlayer?.CurrentWorld.Id ?? 0;
@@ -180,7 +176,12 @@ namespace Dalamud.Game.Network.Internal.MarketBoardUploaders.Universalis
             var deleteListing = JsonConvert.SerializeObject(deleteListingObject);
             Log.Verbose($"{deletePath}: {deleteListing}");
 
-            client.PostAsync($"{ApiBase}{deletePath}", new StringContent(deleteListing, Encoding.UTF8, "application/json")).GetAwaiter().GetResult();
+            var content = new StringContent(deleteListing, Encoding.UTF8, "application/json");
+            var message = new HttpRequestMessage(HttpMethod.Post, $"{ApiBase}{deletePath}");
+            message.Headers.Add("Authorization", ApiKey);
+            message.Content = content;
+
+            await Util.HttpClient.SendAsync(message);
 
             // ====================================================================================
 
