@@ -10,17 +10,14 @@ namespace Dalamud.Game.Network.Structures
     /// </summary>
     public class MarketBoardCurrentOfferings
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="MarketBoardCurrentOfferings"/> class.
-        /// </summary>
-        internal MarketBoardCurrentOfferings()
+        private MarketBoardCurrentOfferings()
         {
         }
 
         /// <summary>
         /// Gets the list of individual item listings.
         /// </summary>
-        public List<MarketBoardItemListing> ItemListings { get; internal set; }
+        public List<MarketBoardItemListing> ItemListings { get; } = new();
 
         /// <summary>
         /// Gets the listing end index.
@@ -49,8 +46,6 @@ namespace Dalamud.Game.Network.Structures
             using var stream = new UnmanagedMemoryStream((byte*)dataPtr.ToPointer(), 1544);
             using var reader = new BinaryReader(stream);
 
-            output.ItemListings = new List<MarketBoardItemListing>();
-
             for (var i = 0; i < 10; i++)
             {
                 var listingEntry = new MarketBoardItemListing();
@@ -70,15 +65,14 @@ namespace Dalamud.Game.Network.Structures
                 reader.ReadUInt16(); // durability
                 reader.ReadUInt16(); // spiritbond
 
-                listingEntry.Materia = new List<MarketBoardItemListing.ItemMateria>();
-
                 for (var materiaIndex = 0; materiaIndex < 5; materiaIndex++)
                 {
                     var materiaVal = reader.ReadUInt16();
-
-                    var materiaEntry = new MarketBoardItemListing.ItemMateria();
-                    materiaEntry.MateriaId = (materiaVal & 0xFF0) >> 4;
-                    materiaEntry.Index = materiaVal & 0xF;
+                    var materiaEntry = new MarketBoardItemListing.ItemMateria()
+                    {
+                        MateriaId = (materiaVal & 0xFF0) >> 4,
+                        Index = materiaVal & 0xF,
+                    };
 
                     if (materiaEntry.MateriaId != 0)
                         listingEntry.Materia.Add(materiaEntry);
@@ -154,7 +148,7 @@ namespace Dalamud.Game.Network.Structures
             /// <summary>
             /// Gets the list of materia attached to this item.
             /// </summary>
-            public List<ItemMateria> Materia { get; internal set; }
+            public List<ItemMateria> Materia { get; } = new();
 
             /// <summary>
             /// Gets the amount of attached materia.

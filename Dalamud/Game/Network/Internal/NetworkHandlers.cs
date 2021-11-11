@@ -77,18 +77,10 @@ namespace Dalamud.Game.Network.Internal
             {
                 if (opCode == dataManager.ServerOpCodes["MarketBoardItemRequestStart"])
                 {
-                    var catalogId = (uint)Marshal.ReadInt32(dataPtr);
-                    var amount = Marshal.ReadByte(dataPtr + 0xB);
+                    var data = MarketBoardItemRequest.Read(dataPtr);
+                    this.marketBoardRequests.Add(data);
 
-                    this.marketBoardRequests.Add(new MarketBoardItemRequest
-                    {
-                        CatalogId = catalogId,
-                        AmountToArrive = amount,
-                        Listings = new List<MarketBoardCurrentOfferings.MarketBoardItemListing>(),
-                        History = new List<MarketBoardHistory.MarketBoardHistoryListing>(),
-                    });
-
-                    Log.Verbose($"NEW MB REQUEST START: item#{catalogId} amount#{amount}");
+                    Log.Verbose($"NEW MB REQUEST START: item#{data.CatalogId} amount#{data.AmountToArrive}");
                     return;
                 }
 
