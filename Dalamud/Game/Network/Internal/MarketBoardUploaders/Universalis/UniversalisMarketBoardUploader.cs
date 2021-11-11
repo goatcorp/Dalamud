@@ -177,9 +177,11 @@ namespace Dalamud.Game.Network.Internal.MarketBoardUploaders.Universalis
             Log.Verbose($"{deletePath}: {deleteListing}");
 
             var content = new StringContent(deleteListing, Encoding.UTF8, "application/json");
-            content.Headers.Add("Authorization", ApiKey);
+            var message = new HttpRequestMessage(HttpMethod.Post, $"{ApiBase}{deletePath}");
+            message.Headers.Add("Authorization", ApiKey);
+            message.Content = content;
 
-            await Util.HttpClient.PostAsync($"{ApiBase}{deletePath}", content);
+            await Util.HttpClient.SendAsync(message);
 
             // ====================================================================================
 
