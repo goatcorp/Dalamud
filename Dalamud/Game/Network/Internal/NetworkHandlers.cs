@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -11,6 +12,7 @@ using Dalamud.Game.Gui;
 using Dalamud.Game.Network.Internal.MarketBoardUploaders;
 using Dalamud.Game.Network.Internal.MarketBoardUploaders.Universalis;
 using Dalamud.Game.Network.Structures;
+using Dalamud.Utility;
 using Lumina.Excel.GeneratedSheets;
 using Serilog;
 
@@ -58,9 +60,10 @@ namespace Dalamud.Game.Network.Internal
             {
                 if (!this.optOutMbUploads)
                 {
-                    if (opCode == Service<DataManager>.Get().ClientOpCodes["MarketBoardPurchaseHandler"])
+                    if (opCode == dataManager.ClientOpCodes["MarketBoardPurchaseHandler"])
                     {
                         this.marketBoardPurchaseHandler = MarketBoardPurchaseHandler.Read(dataPtr);
+                        return;
                     }
                 }
 
@@ -137,14 +140,9 @@ namespace Dalamud.Game.Network.Internal
                             request.ListingsRequestId,
                             request.CatalogId,
                             request.AmountToArrive);
-                        try
-                        {
-                            Task.Run(() => this.uploader.Upload(request));
-                        }
-                        catch (Exception ex)
-                        {
-                            Log.Error(ex, "Market Board data upload failed.");
-                        }
+
+                        Task.Run(() => this.uploader.Upload(request))
+                            .ContinueWith((task) => Log.Error(task.Exception, "Market Board offerings data upload failed."), TaskContinuationOptions.OnlyOnFaulted);
                     }
 
                     return;
@@ -176,14 +174,8 @@ namespace Dalamud.Game.Network.Internal
                     {
                         Log.Verbose("Request had 0 amount, uploading now");
 
-                        try
-                        {
-                            Task.Run(() => this.uploader.Upload(request));
-                        }
-                        catch (Exception ex)
-                        {
-                            Log.Error(ex, "Market Board data upload failed.");
-                        }
+                        Task.Run(() => this.uploader.Upload(request))
+                            .ContinueWith((task) => Log.Error(task.Exception, "Market Board history data upload failed."), TaskContinuationOptions.OnlyOnFaulted);
                     }
                 }
 
@@ -207,14 +199,11 @@ namespace Dalamud.Game.Network.Internal
                         taxes.IshgardTax,
                         taxes.KuganeTax,
                         taxes.CrystariumTax);
-                    try
-                    {
-                        Task.Run(() => this.uploader.UploadTax(taxes));
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Error(ex, "Market Board data upload failed.");
-                    }
+
+                    Task.Run(() => this.uploader.UploadTax(taxes))
+                        .ContinueWith((task) => Log.Error(task.Exception, "Market Board tax data upload failed."), TaskContinuationOptions.OnlyOnFaulted);
+
+                    return;
                 }
 
                 if (opCode == dataManager.ServerOpCodes["MarketBoardPurchase"])
@@ -224,17 +213,26 @@ namespace Dalamud.Game.Network.Internal
 
                     var purchase = MarketBoardPurchase.Read(dataPtr);
 
+                    var sameQty = purchase.ItemQuantity == this.marketBoardPurchaseHandler.ItemQuantity;
+                    var itemMatch = purchase.CatalogId == this.marketBoardPurchaseHandler.CatalogId;
+                    var itemMatchHq = purchase.CatalogId == this.marketBoardPurchaseHandler.CatalogId + 1_000_000;
+
                     // Transaction succeeded
-                    if (purchase.ItemQuantity == this.marketBoardPurchaseHandler.ItemQuantity
-                        && (purchase.CatalogId == this.marketBoardPurchaseHandler.CatalogId
-                            || purchase.CatalogId == this.marketBoardPurchaseHandler.CatalogId + 1_000_000))
-                    { // HQ
+                    if (sameQty && (itemMatch || itemMatchHq))
+                    {
                         Log.Verbose($"Bought {purchase.ItemQuantity}x {this.marketBoardPurchaseHandler.CatalogId} for {this.marketBoardPurchaseHandler.PricePerUnit * purchase.ItemQuantity} gils, listing id is {this.marketBoardPurchaseHandler.ListingId}");
+
                         var handler = this.marketBoardPurchaseHandler; // Capture the object so that we don't pass in a null one when the task starts.
-                        Task.Run(() => this.uploader.UploadPurchase(handler));
+
+                        Task.Run(() => this.uploader.UploadPurchase(handler))
+                            .ContinueWith((task) => Log.Error(task.Exception, "Market Board purchase data upload failed."), TaskContinuationOptions.OnlyOnFaulted);
                     }
 
                     this.marketBoardPurchaseHandler = null;
+                    return;
+                }
+            }
+        }
 
         private unsafe void HandleCfPop(IntPtr dataPtr)
         {
