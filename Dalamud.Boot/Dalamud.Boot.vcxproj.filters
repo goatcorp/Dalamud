@@ -30,6 +30,9 @@
     <ClCompile Include="veh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="rewrite_entrypoint.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\lib\CoreCLR\core\coreclr_delegates.h">
