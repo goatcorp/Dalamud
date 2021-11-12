@@ -198,7 +198,7 @@ HWND try_find_game_window() {
         DWORD pid;
         GetWindowThreadProcessId(hwnd, &pid);
 
-        if (pid == GetCurrentProcessId())
+        if (pid == GetCurrentProcessId() && IsWindowVisible(hwnd))
             break;
     }
     return hwnd;

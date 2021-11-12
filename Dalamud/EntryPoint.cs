@@ -79,6 +79,12 @@ namespace Dalamud
 
             try
             {
+                if (info.DelayInitializeMs > 0)
+                {
+                    Log.Information(string.Format("Waiting for {0}ms before starting a session.", info.DelayInitializeMs));
+                    Thread.Sleep(info.DelayInitializeMs);
+                }
+
                 Log.Information(new string('-', 80));
                 Log.Information("Initializing a session..");
 

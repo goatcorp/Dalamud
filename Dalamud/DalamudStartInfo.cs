@@ -51,5 +51,10 @@ namespace Dalamud
         /// Gets a value indicating whether or not market board information should be uploaded by default.
         /// </summary>
         public bool OptOutMbCollection { get; init; }
+
+        /// <summary>
+        /// Gets a value that specifies how much to wait before a new Dalamud session.
+        /// </summary>
+        public int DelayInitializeMs { get; init; } = 0;
     }
 }
