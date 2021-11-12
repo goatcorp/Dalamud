@@ -85,6 +85,7 @@
     <ClCompile Include="..\lib\CoreCLR\CoreCLR.cpp" />
     <ClCompile Include="..\lib\CoreCLR\pch.cpp" />
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="rewrite_entrypoint.cpp" />
     <ClCompile Include="veh.cpp" />
   </ItemGroup>
   <ItemGroup>
