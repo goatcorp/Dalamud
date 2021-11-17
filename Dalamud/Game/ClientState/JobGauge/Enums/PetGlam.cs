@@ -1,28 +1,27 @@
-namespace Dalamud.Game.ClientState.JobGauge.Enums
+namespace Dalamud.Game.ClientState.JobGauge.Enums;
+
+/// <summary>
+/// SMN summoned pet glam types.
+/// </summary>
+public enum PetGlam : byte
 {
     /// <summary>
-    /// SMN summoned pet glam types.
+    /// No pet glam.
     /// </summary>
-    public enum PetGlam : byte
-    {
-        /// <summary>
-        /// No pet glam.
-        /// </summary>
-        NONE = 0,
+    NONE = 0,
 
-        /// <summary>
-        /// Emerald carbuncle pet glam.
-        /// </summary>
-        EMERALD = 1,
+    /// <summary>
+    /// Emerald carbuncle pet glam.
+    /// </summary>
+    EMERALD = 1,
 
-        /// <summary>
-        /// Topaz carbuncle pet glam.
-        /// </summary>
-        TOPAZ = 2,
+    /// <summary>
+    /// Topaz carbuncle pet glam.
+    /// </summary>
+    TOPAZ = 2,
 
-        /// <summary>
-        /// Ruby carbuncle pet glam.
-        /// </summary>
-        RUBY = 3,
-    }
+    /// <summary>
+    /// Ruby carbuncle pet glam.
+    /// </summary>
+    RUBY = 3,
 }
