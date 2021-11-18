@@ -13,6 +13,8 @@ jobs:
           submodules: recursive
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v1.0.2
+        env: 
+          MSBuildEnableWorkloadResolver: true
       - name: Define VERSION
         run: |
           $env:COMMIT = $env:GITHUB_SHA.Substring(0, 7)
@@ -24,8 +26,12 @@ jobs:
           ($env:COMMIT) >> VERSION
       - name: Build Dalamud
         run: .\build.ps1 compile
+        env: 
+          MSBuildEnableWorkloadResolver: true
       - name: Test Dalamud
         run: .\build.ps1 test
+        env: 
+          MSBuildEnableWorkloadResolver: true
       - name: Create hashlist
         run: .\CreateHashList.ps1 .\bin\Release
       - name: Upload artifact
