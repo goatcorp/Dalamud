@@ -5,7 +5,7 @@ concurrency: build_dalamud
 jobs:
   build:
     name: Build on Windows
-    runs-on: windows-2022
+    runs-on: windows-2019
     steps:
       - name: Checkout Dalamud
         uses: actions/checkout@v2
@@ -38,7 +38,7 @@ jobs:
     name: Deploy dalamud-distrib staging
     if: ${{ github.ref == 'refs/heads/master' && github.event_name == 'push' }}
     needs: build
-    runs-on: windows-2022
+    runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
       with:
