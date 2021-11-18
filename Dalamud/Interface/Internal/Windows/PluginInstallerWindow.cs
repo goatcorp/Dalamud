@@ -387,6 +387,11 @@ internal class PluginInstallerWindow : Window, IDisposable
         {
             ImGui.Text(Locs.FeedbackModal_Text(this.feedbackPlugin.Name));
 
+            if (this.feedbackPlugin?.FeedbackMessage != null)
+            {
+                ImGui.TextWrapped(this.feedbackPlugin.FeedbackMessage);
+            }
+
             if (this.pluginListUpdatable.Any(
                 up => up.InstalledPlugin.Manifest.InternalName == this.feedbackPlugin?.InternalName))
             {
@@ -1226,7 +1231,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
             this.DrawVisitRepoUrlButton(manifest.RepoUrl);
 
-            if (!manifest.SourceRepo.IsThirdParty)
+            if (!manifest.SourceRepo.IsThirdParty && manifest.AcceptsFeedback)
             {
                 this.DrawSendFeedbackButton(manifest);
             }
@@ -1401,7 +1406,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             ImGui.TextColored(ImGuiColors.DalamudGrey3, downloadText);
 
             var isThirdParty = manifest.IsThirdParty;
-            var canFeedback = !isThirdParty && !plugin.IsDev && plugin.Manifest.DalamudApiLevel == PluginManager.DalamudApiLevel;
+            var canFeedback = !isThirdParty && !plugin.IsDev && plugin.Manifest.DalamudApiLevel == PluginManager.DalamudApiLevel && plugin.Manifest.AcceptsFeedback;
 
             // Installed from
             if (plugin.IsDev)
