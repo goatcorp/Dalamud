@@ -1,22 +1,23 @@
-namespace Dalamud.Game.ClientState.JobGauge.Enums;
-
-/// <summary>
-/// DRG Blood of the Dragon state types.
-/// </summary>
-public enum BOTDState : byte
+namespace Dalamud.Game.ClientState.JobGauge.Enums
 {
     /// <summary>
-    /// Inactive type.
+    /// DRG Blood of the Dragon state types.
     /// </summary>
-    NONE = 0,
+    public enum BOTDState : byte
+    {
+        /// <summary>
+        /// Inactive type.
+        /// </summary>
+        NONE = 0,
 
-    /// <summary>
-    /// Blood of the Dragon is active.
-    /// </summary>
-    BOTD = 1,
+        /// <summary>
+        /// Blood of the Dragon is active.
+        /// </summary>
+        BOTD = 1,
 
-    /// <summary>
-    /// Life of the Dragon is active.
-    /// </summary>
-    LOTD = 2,
+        /// <summary>
+        /// Life of the Dragon is active.
+        /// </summary>
+        LOTD = 2,
+    }
 }

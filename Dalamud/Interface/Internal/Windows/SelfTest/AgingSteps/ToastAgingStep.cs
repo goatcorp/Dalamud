@@ -1,29 +1,30 @@
 using Dalamud.Game.Gui.Toast;
 
-namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
-
-/// <summary>
-/// Test setup for toasts.
-/// </summary>
-internal class ToastAgingStep : IAgingStep
+namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
 {
-    /// <inheritdoc/>
-    public string Name => "Test Toasts";
-
-    /// <inheritdoc/>
-    public SelfTestStepResult RunStep()
+    /// <summary>
+    /// Test setup for toasts.
+    /// </summary>
+    internal class ToastAgingStep : IAgingStep
     {
-        var toastGui = Service<ToastGui>.Get();
+        /// <inheritdoc/>
+        public string Name => "Test Toasts";
 
-        toastGui.ShowNormal("Normal Toast");
-        toastGui.ShowError("Error Toast");
+        /// <inheritdoc/>
+        public SelfTestStepResult RunStep()
+        {
+            var toastGui = Service<ToastGui>.Get();
 
-        return SelfTestStepResult.Pass;
-    }
+            toastGui.ShowNormal("Normal Toast");
+            toastGui.ShowError("Error Toast");
 
-    /// <inheritdoc/>
-    public void CleanUp()
-    {
-        // ignored
+            return SelfTestStepResult.Pass;
+        }
+
+        /// <inheritdoc/>
+        public void CleanUp()
+        {
+            // ignored
+        }
     }
 }

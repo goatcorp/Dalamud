@@ -2,56 +2,57 @@ using Dalamud.Game.Gui.PartyFinder;
 using Dalamud.Game.Gui.PartyFinder.Types;
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
-
-/// <summary>
-/// Test setup for Party Finder events.
-/// </summary>
-internal class PartyFinderAgingStep : IAgingStep
+namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
 {
-    private bool subscribed = false;
-    private bool hasPassed = false;
-
-    /// <inheritdoc/>
-    public string Name => "Test Party Finder";
-
-    /// <inheritdoc/>
-    public SelfTestStepResult RunStep()
+    /// <summary>
+    /// Test setup for Party Finder events.
+    /// </summary>
+    internal class PartyFinderAgingStep : IAgingStep
     {
-        var partyFinderGui = Service<PartyFinderGui>.Get();
+        private bool subscribed = false;
+        private bool hasPassed = false;
 
-        if (!this.subscribed)
+        /// <inheritdoc/>
+        public string Name => "Test Party Finder";
+
+        /// <inheritdoc/>
+        public SelfTestStepResult RunStep()
         {
-            partyFinderGui.ReceiveListing += this.PartyFinderOnReceiveListing;
-            this.subscribed = true;
+            var partyFinderGui = Service<PartyFinderGui>.Get();
+
+            if (!this.subscribed)
+            {
+                partyFinderGui.ReceiveListing += this.PartyFinderOnReceiveListing;
+                this.subscribed = true;
+            }
+
+            if (this.hasPassed)
+            {
+                partyFinderGui.ReceiveListing -= this.PartyFinderOnReceiveListing;
+                this.subscribed = false;
+                return SelfTestStepResult.Pass;
+            }
+
+            ImGui.Text("Open Party Finder");
+
+            return SelfTestStepResult.Waiting;
         }
 
-        if (this.hasPassed)
+        /// <inheritdoc/>
+        public void CleanUp()
         {
-            partyFinderGui.ReceiveListing -= this.PartyFinderOnReceiveListing;
-            this.subscribed = false;
-            return SelfTestStepResult.Pass;
+            var partyFinderGui = Service<PartyFinderGui>.Get();
+
+            if (this.subscribed)
+            {
+                partyFinderGui.ReceiveListing -= this.PartyFinderOnReceiveListing;
+                this.subscribed = false;
+            }
         }
 
-        ImGui.Text("Open Party Finder");
-
-        return SelfTestStepResult.Waiting;
-    }
-
-    /// <inheritdoc/>
-    public void CleanUp()
-    {
-        var partyFinderGui = Service<PartyFinderGui>.Get();
-
-        if (this.subscribed)
+        private void PartyFinderOnReceiveListing(PartyFinderListing listing, PartyFinderListingEventArgs args)
         {
-            partyFinderGui.ReceiveListing -= this.PartyFinderOnReceiveListing;
-            this.subscribed = false;
+            this.hasPassed = true;
         }
-    }
-
-    private void PartyFinderOnReceiveListing(PartyFinderListing listing, PartyFinderListingEventArgs args)
-    {
-        this.hasPassed = true;
     }
 }

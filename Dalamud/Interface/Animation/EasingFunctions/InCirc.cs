@@ -1,26 +1,27 @@
-using System;
+﻿using System;
 
-namespace Dalamud.Interface.Animation.EasingFunctions;
-
-/// <summary>
-/// Class providing an "InCirc" easing animation.
-/// </summary>
-public class InCirc : Easing
+namespace Dalamud.Interface.Animation.EasingFunctions
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="InCirc"/> class.
+    /// Class providing an "InCirc" easing animation.
     /// </summary>
-    /// <param name="duration">The duration of the animation.</param>
-    public InCirc(TimeSpan duration)
-        : base(duration)
+    public class InCirc : Easing
     {
-        // ignored
-    }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="InCirc"/> class.
+        /// </summary>
+        /// <param name="duration">The duration of the animation.</param>
+        public InCirc(TimeSpan duration)
+            : base(duration)
+        {
+            // ignored
+        }
 
-    /// <inheritdoc/>
-    public override void Update()
-    {
-        var p = this.Progress;
-        this.Value = 1 - Math.Sqrt(1 - Math.Pow(p, 2));
+        /// <inheritdoc/>
+        public override void Update()
+        {
+            var p = this.Progress;
+            this.Value = 1 - Math.Sqrt(1 - Math.Pow(p, 2));
+        }
     }
 }

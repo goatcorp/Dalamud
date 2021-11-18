@@ -2,46 +2,47 @@ using Dalamud.Game.ClientState.Fates;
 using Dalamud.Utility;
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
-
-/// <summary>
-/// Test setup for the Fate Table.
-/// </summary>
-internal class FateTableAgingStep : IAgingStep
+namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
 {
-    private int index = 0;
-
-    /// <inheritdoc/>
-    public string Name => "Test FateTable";
-
-    /// <inheritdoc/>
-    public SelfTestStepResult RunStep()
+    /// <summary>
+    /// Test setup for the Fate Table.
+    /// </summary>
+    internal class FateTableAgingStep : IAgingStep
     {
-        var fateTable = Service<FateTable>.Get();
+        private int index = 0;
 
-        ImGui.Text("Checking fate table...");
+        /// <inheritdoc/>
+        public string Name => "Test FateTable";
 
-        if (this.index == fateTable.Length - 1)
+        /// <inheritdoc/>
+        public SelfTestStepResult RunStep()
         {
-            return SelfTestStepResult.Pass;
-        }
+            var fateTable = Service<FateTable>.Get();
 
-        var actor = fateTable[this.index];
-        this.index++;
+            ImGui.Text("Checking fate table...");
 
-        if (actor == null)
-        {
+            if (this.index == fateTable.Length - 1)
+            {
+                return SelfTestStepResult.Pass;
+            }
+
+            var actor = fateTable[this.index];
+            this.index++;
+
+            if (actor == null)
+            {
+                return SelfTestStepResult.Waiting;
+            }
+
+            Util.ShowObject(actor);
+
             return SelfTestStepResult.Waiting;
         }
 
-        Util.ShowObject(actor);
-
-        return SelfTestStepResult.Waiting;
-    }
-
-    /// <inheritdoc/>
-    public void CleanUp()
-    {
-        // ignored
+        /// <inheritdoc/>
+        public void CleanUp()
+        {
+            // ignored
+        }
     }
 }

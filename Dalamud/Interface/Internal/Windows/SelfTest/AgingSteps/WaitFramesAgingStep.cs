@@ -1,37 +1,38 @@
-namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
-
-/// <summary>
-/// Test that waits N frames.
-/// </summary>
-internal class WaitFramesAgingStep : IAgingStep
+namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
 {
-    private readonly int frames;
-    private int cFrames;
-
     /// <summary>
-    /// Initializes a new instance of the <see cref="WaitFramesAgingStep"/> class.
+    /// Test that waits N frames.
     /// </summary>
-    /// <param name="frames">Amount of frames to wait.</param>
-    public WaitFramesAgingStep(int frames)
+    internal class WaitFramesAgingStep : IAgingStep
     {
-        this.frames = frames;
-        this.cFrames = frames;
-    }
+        private readonly int frames;
+        private int cFrames;
 
-    /// <inheritdoc/>
-    public string Name => $"Wait {this.cFrames} frames";
+        /// <summary>
+        /// Initializes a new instance of the <see cref="WaitFramesAgingStep"/> class.
+        /// </summary>
+        /// <param name="frames">Amount of frames to wait.</param>
+        public WaitFramesAgingStep(int frames)
+        {
+            this.frames = frames;
+            this.cFrames = frames;
+        }
 
-    /// <inheritdoc/>
-    public SelfTestStepResult RunStep()
-    {
-        this.cFrames--;
+        /// <inheritdoc/>
+        public string Name => $"Wait {this.cFrames} frames";
 
-        return this.cFrames <= 0 ? SelfTestStepResult.Pass : SelfTestStepResult.Waiting;
-    }
+        /// <inheritdoc/>
+        public SelfTestStepResult RunStep()
+        {
+            this.cFrames--;
 
-    /// <inheritdoc/>
-    public void CleanUp()
-    {
-        this.cFrames = this.frames;
+            return this.cFrames <= 0 ? SelfTestStepResult.Pass : SelfTestStepResult.Waiting;
+        }
+
+        /// <inheritdoc/>
+        public void CleanUp()
+        {
+            this.cFrames = this.frames;
+        }
     }
 }

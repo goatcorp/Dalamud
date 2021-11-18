@@ -1,27 +1,28 @@
-namespace Dalamud;
-
-/// <summary>
-/// Enum describing the language the game loads in.
-/// </summary>
-public enum ClientLanguage
+namespace Dalamud
 {
     /// <summary>
-    /// Indicating a Japanese game client.
+    /// Enum describing the language the game loads in.
     /// </summary>
-    Japanese,
+    public enum ClientLanguage
+    {
+        /// <summary>
+        /// Indicating a Japanese game client.
+        /// </summary>
+        Japanese,
 
-    /// <summary>
-    /// Indicating an English game client.
-    /// </summary>
-    English,
+        /// <summary>
+        /// Indicating an English game client.
+        /// </summary>
+        English,
 
-    /// <summary>
-    /// Indicating a German game client.
-    /// </summary>
-    German,
+        /// <summary>
+        /// Indicating a German game client.
+        /// </summary>
+        German,
 
-    /// <summary>
-    /// Indicating a French game client.
-    /// </summary>
-    French,
+        /// <summary>
+        /// Indicating a French game client.
+        /// </summary>
+        French,
+    }
 }

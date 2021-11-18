@@ -5,74 +5,75 @@ using System.Text;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 
-namespace Dalamud.Game.Libc;
-
-/// <summary>
-/// This class handles creating cstrings utilizing native game methods.
-/// </summary>
-[PluginInterface]
-[InterfaceVersion("1.0")]
-public sealed class LibcFunction
+namespace Dalamud.Game.Libc
 {
-    private readonly LibcFunctionAddressResolver address;
-    private readonly StdStringFromCStringDelegate stdStringCtorCString;
-    private readonly StdStringDeallocateDelegate stdStringDeallocate;
-
     /// <summary>
-    /// Initializes a new instance of the <see cref="LibcFunction"/> class.
+    /// This class handles creating cstrings utilizing native game methods.
     /// </summary>
-    public LibcFunction()
+    [PluginInterface]
+    [InterfaceVersion("1.0")]
+    public sealed class LibcFunction
     {
-        this.address = new LibcFunctionAddressResolver();
-        this.address.Setup();
+        private readonly LibcFunctionAddressResolver address;
+        private readonly StdStringFromCStringDelegate stdStringCtorCString;
+        private readonly StdStringDeallocateDelegate stdStringDeallocate;
 
-        this.stdStringCtorCString = Marshal.GetDelegateForFunctionPointer<StdStringFromCStringDelegate>(this.address.StdStringFromCstring);
-        this.stdStringDeallocate = Marshal.GetDelegateForFunctionPointer<StdStringDeallocateDelegate>(this.address.StdStringDeallocate);
-    }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="LibcFunction"/> class.
+        /// </summary>
+        public LibcFunction()
+        {
+            this.address = new LibcFunctionAddressResolver();
+            this.address.Setup();
 
-    // TODO: prolly callconv is not okay in x86
-    [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-    private delegate IntPtr StdStringFromCStringDelegate(IntPtr pStdString, [MarshalAs(UnmanagedType.LPArray)] byte[] content, IntPtr size);
+            this.stdStringCtorCString = Marshal.GetDelegateForFunctionPointer<StdStringFromCStringDelegate>(this.address.StdStringFromCstring);
+            this.stdStringDeallocate = Marshal.GetDelegateForFunctionPointer<StdStringDeallocateDelegate>(this.address.StdStringDeallocate);
+        }
 
-    // TODO: prolly callconv is not okay in x86
-    [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-    private delegate IntPtr StdStringDeallocateDelegate(IntPtr address);
+        // TODO: prolly callconv is not okay in x86
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        private delegate IntPtr StdStringFromCStringDelegate(IntPtr pStdString, [MarshalAs(UnmanagedType.LPArray)] byte[] content, IntPtr size);
 
-    /// <summary>
-    /// Create a new string from the given bytes.
-    /// </summary>
-    /// <param name="content">The bytes to convert.</param>
-    /// <returns>An owned std string object.</returns>
-    public OwnedStdString NewString(byte[] content)
-    {
-        // While 0x70 bytes in the memory should be enough in DX11 version,
-        // I don't trust my analysis so we're just going to allocate almost two times more than that.
-        var pString = Marshal.AllocHGlobal(256);
+        // TODO: prolly callconv is not okay in x86
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        private delegate IntPtr StdStringDeallocateDelegate(IntPtr address);
 
-        // Initialize a string
-        var size = new IntPtr(content.Length);
-        var pReallocString = this.stdStringCtorCString(pString, content, size);
+        /// <summary>
+        /// Create a new string from the given bytes.
+        /// </summary>
+        /// <param name="content">The bytes to convert.</param>
+        /// <returns>An owned std string object.</returns>
+        public OwnedStdString NewString(byte[] content)
+        {
+            // While 0x70 bytes in the memory should be enough in DX11 version,
+            // I don't trust my analysis so we're just going to allocate almost two times more than that.
+            var pString = Marshal.AllocHGlobal(256);
 
-        // Log.Verbose("Prev: {Prev} Now: {Now}", pString, pReallocString);
+            // Initialize a string
+            var size = new IntPtr(content.Length);
+            var pReallocString = this.stdStringCtorCString(pString, content, size);
 
-        return new OwnedStdString(pReallocString, this.DeallocateStdString);
-    }
+            // Log.Verbose("Prev: {Prev} Now: {Now}", pString, pReallocString);
 
-    /// <summary>
-    /// Create a new string form the given bytes.
-    /// </summary>
-    /// <param name="content">The bytes to convert.</param>
-    /// <param name="encoding">A non-default encoding.</param>
-    /// <returns>An owned std string object.</returns>
-    public OwnedStdString NewString(string content, Encoding encoding = null)
-    {
-        encoding ??= Encoding.UTF8;
+            return new OwnedStdString(pReallocString, this.DeallocateStdString);
+        }
 
-        return this.NewString(encoding.GetBytes(content));
-    }
+        /// <summary>
+        /// Create a new string form the given bytes.
+        /// </summary>
+        /// <param name="content">The bytes to convert.</param>
+        /// <param name="encoding">A non-default encoding.</param>
+        /// <returns>An owned std string object.</returns>
+        public OwnedStdString NewString(string content, Encoding encoding = null)
+        {
+            encoding ??= Encoding.UTF8;
 
-    private void DeallocateStdString(IntPtr address)
-    {
-        this.stdStringDeallocate(address);
+            return this.NewString(encoding.GetBytes(content));
+        }
+
+        private void DeallocateStdString(IntPtr address)
+        {
+            this.stdStringDeallocate(address);
+        }
     }
 }

@@ -1,22 +1,23 @@
-namespace Dalamud.Game.ClientState.JobGauge.Enums;
-
-/// <summary>
-/// NIN Mudra types.
-/// </summary>
-public enum Mudras : byte
+namespace Dalamud.Game.ClientState.JobGauge.Enums
 {
     /// <summary>
-    /// Ten mudra.
+    /// NIN Mudra types.
     /// </summary>
-    TEN = 1,
+    public enum Mudras : byte
+    {
+        /// <summary>
+        /// Ten mudra.
+        /// </summary>
+        TEN = 1,
 
-    /// <summary>
-    /// Chi mudra.
-    /// </summary>
-    CHI = 2,
+        /// <summary>
+        /// Chi mudra.
+        /// </summary>
+        CHI = 2,
 
-    /// <summary>
-    /// Jin mudra.
-    /// </summary>
-    JIN = 3,
+        /// <summary>
+        /// Jin mudra.
+        /// </summary>
+        JIN = 3,
+    }
 }

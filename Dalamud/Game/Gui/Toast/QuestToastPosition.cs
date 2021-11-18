@@ -1,22 +1,23 @@
-namespace Dalamud.Game.Gui.Toast;
-
-/// <summary>
-/// The alignment of native quest toast windows.
-/// </summary>
-public enum QuestToastPosition
+namespace Dalamud.Game.Gui.Toast
 {
     /// <summary>
-    /// The toast will be aligned screen centre.
+    /// The alignment of native quest toast windows.
     /// </summary>
-    Centre = 0,
+    public enum QuestToastPosition
+    {
+        /// <summary>
+        /// The toast will be aligned screen centre.
+        /// </summary>
+        Centre = 0,
 
-    /// <summary>
-    /// The toast will be aligned screen right.
-    /// </summary>
-    Right = 1,
+        /// <summary>
+        /// The toast will be aligned screen right.
+        /// </summary>
+        Right = 1,
 
-    /// <summary>
-    /// The toast will be aligned screen left.
-    /// </summary>
-    Left = 2,
+        /// <summary>
+        /// The toast will be aligned screen left.
+        /// </summary>
+        Left = 2,
+    }
 }

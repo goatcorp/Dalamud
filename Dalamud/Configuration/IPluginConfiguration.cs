@@ -1,12 +1,13 @@
-namespace Dalamud.Configuration;
-
-/// <summary>
-/// Configuration to store settings for a dalamud plugin.
-/// </summary>
-public interface IPluginConfiguration
+namespace Dalamud.Configuration
 {
     /// <summary>
-    /// Gets or sets configuration version.
+    /// Configuration to store settings for a dalamud plugin.
     /// </summary>
-    int Version { get; set; }
+    public interface IPluginConfiguration
+    {
+        /// <summary>
+        /// Gets or sets configuration version.
+        /// </summary>
+        int Version { get; set; }
+    }
 }

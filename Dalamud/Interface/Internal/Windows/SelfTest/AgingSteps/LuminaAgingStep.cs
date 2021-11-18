@@ -5,37 +5,38 @@ using Dalamud.Data;
 using Dalamud.Utility;
 using Lumina.Excel;
 
-namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
-
-/// <summary>
-/// Test setup for Lumina.
-/// </summary>
-/// <typeparam name="T">ExcelRow to run test on.</typeparam>
-internal class LuminaAgingStep<T> : IAgingStep
-    where T : ExcelRow
+namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
 {
-    private int step = 0;
-    private List<T> rows;
-
-    /// <inheritdoc/>
-    public string Name => "Test Lumina";
-
-    /// <inheritdoc/>
-    public SelfTestStepResult RunStep()
+    /// <summary>
+    /// Test setup for Lumina.
+    /// </summary>
+    /// <typeparam name="T">ExcelRow to run test on.</typeparam>
+    internal class LuminaAgingStep<T> : IAgingStep
+        where T : ExcelRow
     {
-        var dataManager = Service<DataManager>.Get();
+        private int step = 0;
+        private List<T> rows;
 
-        this.rows ??= dataManager.GetExcelSheet<T>().ToList();
+        /// <inheritdoc/>
+        public string Name => "Test Lumina";
 
-        Util.ShowObject(this.rows[this.step]);
+        /// <inheritdoc/>
+        public SelfTestStepResult RunStep()
+        {
+            var dataManager = Service<DataManager>.Get();
 
-        this.step++;
-        return this.step >= this.rows.Count ? SelfTestStepResult.Pass : SelfTestStepResult.Waiting;
-    }
+            this.rows ??= dataManager.GetExcelSheet<T>().ToList();
 
-    /// <inheritdoc/>
-    public void CleanUp()
-    {
-        // ignored
+            Util.ShowObject(this.rows[this.step]);
+
+            this.step++;
+            return this.step >= this.rows.Count ? SelfTestStepResult.Pass : SelfTestStepResult.Waiting;
+        }
+
+        /// <inheritdoc/>
+        public void CleanUp()
+        {
+            // ignored
+        }
     }
 }

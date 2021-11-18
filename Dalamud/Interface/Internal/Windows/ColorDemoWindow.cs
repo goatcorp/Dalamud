@@ -7,25 +7,25 @@ using Dalamud.Interface.Colors;
 using Dalamud.Interface.Windowing;
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows;
-
-/// <summary>
-/// Color Demo Window to view custom ImGui colors.
-/// </summary>
-internal sealed class ColorDemoWindow : Window
+namespace Dalamud.Interface.Internal.Windows
 {
-    private readonly List<(string Name, Vector4 Color)> colors;
-
     /// <summary>
-    /// Initializes a new instance of the <see cref="ColorDemoWindow"/> class.
+    /// Color Demo Window to view custom ImGui colors.
     /// </summary>
-    public ColorDemoWindow()
-        : base("Dalamud Colors Demo")
+    internal sealed class ColorDemoWindow : Window
     {
-        this.Size = new Vector2(600, 500);
-        this.SizeCondition = ImGuiCond.FirstUseEver;
+        private readonly List<(string Name, Vector4 Color)> colors;
 
-        this.colors = new List<(string Name, Vector4 Color)>()
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ColorDemoWindow"/> class.
+        /// </summary>
+        public ColorDemoWindow()
+            : base("Dalamud Colors Demo")
+        {
+            this.Size = new Vector2(600, 500);
+            this.SizeCondition = ImGuiCond.FirstUseEver;
+
+            this.colors = new List<(string Name, Vector4 Color)>()
             {
                 ("DalamudRed", ImGuiColors.DalamudRed),
                 ("DalamudGrey", ImGuiColors.DalamudGrey),
@@ -47,19 +47,20 @@ internal sealed class ColorDemoWindow : Window
                 ("ParsedPink", ImGuiColors.ParsedPink),
                 ("ParsedGold", ImGuiColors.ParsedGold),
             }.OrderBy(colorDemo => colorDemo.Name).ToList();
-    }
+        }
 
-    /// <inheritdoc/>
-    public override void Draw()
-    {
-        ImGui.Text("This is a collection of UI colors you can use in your plugin.");
-
-        ImGui.Separator();
-
-        foreach (var property in typeof(ImGuiColors).GetProperties(BindingFlags.Public | BindingFlags.Static))
+        /// <inheritdoc/>
+        public override void Draw()
         {
-            var color = (Vector4)property.GetValue(null);
-            ImGui.TextColored(color, property.Name);
+            ImGui.Text("This is a collection of UI colors you can use in your plugin.");
+
+            ImGui.Separator();
+
+            foreach (var property in typeof(ImGuiColors).GetProperties(BindingFlags.Public | BindingFlags.Static))
+            {
+                var color = (Vector4)property.GetValue(null);
+                ImGui.TextColored(color, property.Name);
+            }
         }
     }
 }

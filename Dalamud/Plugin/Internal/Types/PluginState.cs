@@ -1,32 +1,33 @@
-namespace Dalamud.Plugin.Internal.Types;
-
-/// <summary>
-/// Values representing plugin load state.
-/// </summary>
-internal enum PluginState
+namespace Dalamud.Plugin.Internal.Types
 {
     /// <summary>
-    /// Plugin is defined, but unloaded.
+    /// Values representing plugin load state.
     /// </summary>
-    Unloaded,
+    internal enum PluginState
+    {
+        /// <summary>
+        /// Plugin is defined, but unloaded.
+        /// </summary>
+        Unloaded,
 
-    /// <summary>
-    /// Plugin has thrown an error during unload.
-    /// </summary>
-    UnloadError,
+        /// <summary>
+        /// Plugin has thrown an error during unload.
+        /// </summary>
+        UnloadError,
 
-    /// <summary>
-    /// Currently loading.
-    /// </summary>
-    InProgress,
+        /// <summary>
+        /// Currently loading.
+        /// </summary>
+        InProgress,
 
-    /// <summary>
-    /// Load is successful.
-    /// </summary>
-    Loaded,
+        /// <summary>
+        /// Load is successful.
+        /// </summary>
+        Loaded,
 
-    /// <summary>
-    /// Plugin has thrown an error during loading.
-    /// </summary>
-    LoadError,
+        /// <summary>
+        /// Plugin has thrown an error during loading.
+        /// </summary>
+        LoadError,
+    }
 }

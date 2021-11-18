@@ -1,57 +1,58 @@
 using Dalamud.Game.Gui;
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
-
-/// <summary>
-/// Test setup for the Hover events.
-/// </summary>
-internal class HoverAgingStep : IAgingStep
+namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
 {
-    private bool clearedItem = false;
-    private bool clearedAction = false;
-
-    /// <inheritdoc/>
-    public string Name => "Test Hover";
-
-    /// <inheritdoc/>
-    public SelfTestStepResult RunStep()
+    /// <summary>
+    /// Test setup for the Hover events.
+    /// </summary>
+    internal class HoverAgingStep : IAgingStep
     {
-        var gameGui = Service<GameGui>.Get();
+        private bool clearedItem = false;
+        private bool clearedAction = false;
 
-        if (!this.clearedItem)
+        /// <inheritdoc/>
+        public string Name => "Test Hover";
+
+        /// <inheritdoc/>
+        public SelfTestStepResult RunStep()
         {
-            ImGui.Text("Hover WHM soul crystal...");
+            var gameGui = Service<GameGui>.Get();
 
-            if (gameGui.HoveredItem == 4547)
+            if (!this.clearedItem)
             {
-                this.clearedItem = true;
+                ImGui.Text("Hover WHM soul crystal...");
+
+                if (gameGui.HoveredItem == 4547)
+                {
+                    this.clearedItem = true;
+                }
             }
-        }
 
-        if (!this.clearedAction)
-        {
-            ImGui.Text("Hover \"Open Linkshells\" action...");
-
-            if (gameGui.HoveredAction != null &&
-                gameGui.HoveredAction.ActionKind == HoverActionKind.MainCommand &&
-                gameGui.HoveredAction.ActionID == 28)
+            if (!this.clearedAction)
             {
-                this.clearedAction = true;
+                ImGui.Text("Hover \"Open Linkshells\" action...");
+
+                if (gameGui.HoveredAction != null &&
+                    gameGui.HoveredAction.ActionKind == HoverActionKind.MainCommand &&
+                    gameGui.HoveredAction.ActionID == 28)
+                {
+                    this.clearedAction = true;
+                }
             }
+
+            if (this.clearedItem && this.clearedAction)
+            {
+                return SelfTestStepResult.Pass;
+            }
+
+            return SelfTestStepResult.Waiting;
         }
 
-        if (this.clearedItem && this.clearedAction)
+        /// <inheritdoc/>
+        public void CleanUp()
         {
-            return SelfTestStepResult.Pass;
+            // ignored
         }
-
-        return SelfTestStepResult.Waiting;
-    }
-
-    /// <inheritdoc/>
-    public void CleanUp()
-    {
-        // ignored
     }
 }
