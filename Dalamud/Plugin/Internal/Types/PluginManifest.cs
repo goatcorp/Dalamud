@@ -161,19 +161,4 @@ internal record PluginManifest
     /// Gets an URL for the plugin's icon.
     /// </summary>
     public string? IconUrl { get; init; }
-
-    /// <summary>
-    /// Gets a value that indicates whether or not this plugin accepts feedback.
-    /// </summary>
-    public bool AcceptsFeedback { get; init; } = true;
-
-    /// <summary>
-    /// Gets a message that is shown to users when sending feedback.
-    /// </summary>
-    public string? FeedbackMessage { get; init; }
-
-    /// <summary>
-    /// Gets a value indicating the webhook URL feedback is sent to.
-    /// </summary>
-    public string? FeedbackWebhook { get; init; }
 }
