@@ -12,7 +12,7 @@ jobs:
         with:
           submodules: recursive
       - name: Setup MSBuild
-        uses: microsoft/setup-msbuild@v1.1
+        uses: microsoft/setup-msbuild@v1.0.2
         env: 
           MSBuildEnableWorkloadResolver: true
       - name: Define VERSION
