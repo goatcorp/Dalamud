@@ -94,9 +94,9 @@ namespace Dalamud.Game.ClientState
             this.GroupManager = sig.GetStaticAddressFromSig("48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 80 B8 ?? ?? ?? ?? ?? 76 50");
 
             this.LocalContentId = sig.GetStaticAddressFromSig("48 0F 44 05 ?? ?? ?? ?? 48 39 07");
-            this.JobGaugeData = sig.GetStaticAddressFromSig("48 8B 0D ?? ?? ?? ?? 48 85 C9 74 43") + 0x8;
+            this.JobGaugeData = sig.GetStaticAddressFromSig("48 8B 3D ?? ?? ?? ?? 33 ED") + 0x8;
 
-            this.SetupTerritoryType = sig.ScanText("48 89 5C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 48 8B F9 66 89 91 ?? ?? ?? ??");
+            this.SetupTerritoryType = sig.ScanText("48 89 5C 24 ?? 48 89 6C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 48 8B F9 66 89 91 ?? ?? ?? ??");
 
             // These resolve to fixed offsets only, without the base address added in, so GetStaticAddressFromSig() can't be used.
             // lea   rcx, ds:1DB9F74h[rax*4]          KeyboardState
