@@ -18,9 +18,9 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
 
             ImGui.Text("Hold down North, East, L1");
 
-            if (gamepadState.Pressed(GamepadButtons.North) == 1
-                && gamepadState.Pressed(GamepadButtons.East) == 1
-                && gamepadState.Pressed(GamepadButtons.L1) == 1)
+            if (gamepadState.Raw(GamepadButtons.North) == 1
+                && gamepadState.Raw(GamepadButtons.East) == 1
+                && gamepadState.Raw(GamepadButtons.L1) == 1)
             {
                 return SelfTestStepResult.Pass;
             }
