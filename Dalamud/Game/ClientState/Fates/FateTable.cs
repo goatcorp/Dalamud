@@ -45,16 +45,13 @@ namespace Dalamud.Game.ClientState.Fates
                     return 0;
 
                 // Sonar used this to check if the table was safe to read
-                var check = Struct->Unk80.ToInt64();
-                if (check == 0)
+                if (Struct->FateDirector == null)
                     return 0;
 
-                var start = Struct->FirstFatePtr.ToInt64();
-                var end = Struct->LastFatePtr.ToInt64();
-                if (start == 0 || end == 0)
+                if (Struct->Fates.First == null || Struct->Fates.Last == null)
                     return 0;
 
-                return (int)((end - start) / 8);
+                return (int)Struct->Fates.Capacity();
             }
         }
 
@@ -102,8 +99,7 @@ namespace Dalamud.Game.ClientState.Fates
             if (fateTable == IntPtr.Zero)
                 return IntPtr.Zero;
 
-            var firstFate = this.Struct->FirstFatePtr;
-            return *(IntPtr*)(firstFate + (8 * index));
+            return *(IntPtr*)this.Struct->Fates.Get((ulong)index).Value;
         }
 
         /// <summary>
