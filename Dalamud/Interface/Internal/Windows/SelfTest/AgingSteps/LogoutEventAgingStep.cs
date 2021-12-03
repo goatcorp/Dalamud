@@ -14,7 +14,7 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
         private bool hasPassed = false;
 
         /// <inheritdoc/>
-        public string Name => "Test Log-In";
+        public string Name => "Test Log-Out";
 
         /// <inheritdoc/>
         public SelfTestStepResult RunStep()
