@@ -16,7 +16,7 @@
     </PropertyGroup>
 
     <PropertyGroup Label="Build">
-        <OutputPath>$(AppData)\XIVLauncher\devPlugins\Dalamud.CorePlugin</OutputPath>
+        <OutputPath>bin\$(Configuration)</OutputPath>
         <DebugSymbols>true</DebugSymbols>
         <DebugType>full</DebugType>
         <Optimize>false</Optimize>

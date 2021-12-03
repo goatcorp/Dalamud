@@ -131,6 +131,6 @@ namespace Dalamud.Game.ClientState.Fates
         /// <summary>
         /// Gets the territory this <see cref="Fate"/> is located in.
         /// </summary>
-        public ExcelResolver<Lumina.Excel.GeneratedSheets.TerritoryType> TerritoryType => new(this.Struct->TerritoryID);
+        public ExcelResolver<Lumina.Excel.GeneratedSheets.TerritoryType> TerritoryType => new(this.Struct->TerritoryId);
     }
 }
