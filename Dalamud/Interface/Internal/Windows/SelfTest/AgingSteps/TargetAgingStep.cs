@@ -55,7 +55,7 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
                 case 3:
                     ImGui.Text("Soft-Target an EventObj...");
 
-                    var sTarget = targetManager.FocusTarget;
+                    var sTarget = targetManager.SoftTarget;
                     if (sTarget is EventObj)
                     {
                         return SelfTestStepResult.Pass;
