@@ -191,14 +191,18 @@ namespace Dalamud.Game.Network.Internal
 
                     var taxes = MarketTaxRates.Read(dataPtr);
 
+                    if (taxes.Category != 0xb0009)
+                        return;
+
                     Log.Verbose(
-                        "MarketTaxRates: limsa#{0} grid#{1} uldah#{2} ish#{3} kugane#{4} cr#{5}",
+                        "MarketTaxRates: limsa#{0} grid#{1} uldah#{2} ish#{3} kugane#{4} cr#{5} sh#{6}",
                         taxes.LimsaLominsaTax,
                         taxes.GridaniaTax,
                         taxes.UldahTax,
                         taxes.IshgardTax,
                         taxes.KuganeTax,
-                        taxes.CrystariumTax);
+                        taxes.CrystariumTax,
+                        taxes.SharlayanTax);
 
                     Task.Run(() => this.uploader.UploadTax(taxes))
                         .ContinueWith((task) => Log.Error(task.Exception, "Market Board tax data upload failed."), TaskContinuationOptions.OnlyOnFaulted);

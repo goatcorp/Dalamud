@@ -4,13 +4,19 @@ using System.IO;
 namespace Dalamud.Game.Network.Structures
 {
     /// <summary>
-    /// This class represents the market tax rates from a game network packet.
+    /// This class represents the "Result Dialog" packet. This is also used e.g. for reduction results, but we only care about tax rates.
+    /// We can do that by checking the "Category" field.
     /// </summary>
     public class MarketTaxRates
     {
         private MarketTaxRates()
         {
         }
+
+        /// <summary>
+        /// Category of this ResultDialog packet.
+        /// </summary>
+        public uint Category { get; private set; }
 
         /// <summary>
         /// Gets the tax rate in Limsa Lominsa.
@@ -43,6 +49,11 @@ namespace Dalamud.Game.Network.Structures
         public uint CrystariumTax { get; private set; }
 
         /// <summary>
+        /// Gets the tax rate in the Crystarium.
+        /// </summary>
+        public uint SharlayanTax { get; private set; }
+
+        /// <summary>
         /// Read a <see cref="MarketTaxRates"/> object from memory.
         /// </summary>
         /// <param name="dataPtr">Address to read.</param>
@@ -54,13 +65,15 @@ namespace Dalamud.Game.Network.Structures
 
             var output = new MarketTaxRates();
 
-            stream.Position += 8;
+            output.Category = reader.ReadUInt32();
+            stream.Position += 4;
             output.LimsaLominsaTax = reader.ReadUInt32();
             output.GridaniaTax = reader.ReadUInt32();
             output.UldahTax = reader.ReadUInt32();
             output.IshgardTax = reader.ReadUInt32();
             output.KuganeTax = reader.ReadUInt32();
             output.CrystariumTax = reader.ReadUInt32();
+            output.SharlayanTax = reader.ReadUInt32();
 
             return output;
         }
