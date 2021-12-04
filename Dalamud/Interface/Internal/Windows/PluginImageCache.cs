@@ -45,6 +45,7 @@ namespace Dalamud.Interface.Internal.Windows
 
         private BlockingCollection<Func<Task>> downloadQueue = new();
         private CancellationTokenSource downloadToken = new();
+        private Thread downloadThread;
 
         private Dictionary<string, TextureWrap?> pluginIconMap = new();
         private Dictionary<string, TextureWrap?[]> pluginImagesMap = new();
@@ -61,11 +62,8 @@ namespace Dalamud.Interface.Internal.Windows
             this.TroubleIcon = interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "troubleIcon.png"));
             this.UpdateIcon = interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "updateIcon.png"));
 
-            var task = new Task(
-                () => this.DownloadTask(this.downloadToken.Token),
-                this.downloadToken.Token,
-                TaskCreationOptions.LongRunning);
-            task.Start();
+            this.downloadThread = new Thread(this.DownloadTask);
+            this.downloadThread.Start();
         }
 
         /// <summary>
@@ -91,6 +89,12 @@ namespace Dalamud.Interface.Internal.Windows
             this.UpdateIcon?.Dispose();
 
             this.downloadToken?.Cancel();
+
+            if (!this.downloadThread.Join(4000))
+            {
+                Log.Error("Plugin Image Download thread has not cancelled in time.");
+            }
+
             this.downloadToken?.Dispose();
             this.downloadQueue?.CompleteAdding();
             this.downloadQueue?.Dispose();
@@ -171,16 +175,13 @@ namespace Dalamud.Interface.Internal.Windows
             return false;
         }
 
-        private async void DownloadTask(CancellationToken token)
+        private async void DownloadTask()
         {
-            while (true)
+            while (!this.downloadToken.Token.IsCancellationRequested)
             {
                 try
                 {
-                    if (token.IsCancellationRequested)
-                        return;
-
-                    if (!this.downloadQueue.TryTake(out var task, -1, token))
+                    if (!this.downloadQueue.TryTake(out var task, -1, this.downloadToken.Token))
                         return;
 
                     await task.Invoke();
