@@ -10,6 +10,7 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Internal;
+using Dalamud.Interface.Colors;
 using Dalamud.Interface.Internal.ManagedAsserts;
 using Dalamud.Interface.Internal.Windows;
 using Dalamud.Interface.Internal.Windows.SelfTest;
@@ -340,6 +341,8 @@ namespace Dalamud.Interface.Internal
 
             if (!this.isImGuiDrawDevMenu && !condition.Any())
             {
+                var config = Service<DalamudConfiguration>.Get();
+
                 ImGui.PushStyleColor(ImGuiCol.Button, Vector4.Zero);
                 ImGui.PushStyleColor(ImGuiCol.ButtonActive, Vector4.Zero);
                 ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Vector4.Zero);
@@ -357,6 +360,15 @@ namespace Dalamud.Interface.Internal
                 {
                     if (ImGui.Button("###devMenuOpener", new Vector2(40, 25)))
                         this.isImGuiDrawDevMenu = true;
+
+                    if (config.DoDalamudTest)
+                    {
+                        ImGui.SetWindowFontScale(2.2f);
+                        ImGuiHelpers.ScaledDummy(20);
+                        ImGuiHelpers.ScaledDummy(20);
+                        ImGui.SameLine();
+                        ImGui.TextColored(ImGuiColors.DPSRed, "Dalamud Staging");
+                    }
 
                     ImGui.End();
                 }
