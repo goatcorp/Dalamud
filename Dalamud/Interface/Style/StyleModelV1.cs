@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 
@@ -61,7 +61,7 @@ namespace Dalamud.Interface.Style
             {
                 { "Text", new Vector4(1, 1, 1, 1) },
                 { "TextDisabled", new Vector4(0.5f, 0.5f, 0.5f, 1) },
-                { "WindowBg", new Vector4(0.06f, 0.06f, 0.06f, 0.87f) },
+                { "WindowBg", new Vector4(0.06f, 0.06f, 0.06f, 0.93f) },
                 { "ChildBg", new Vector4(0, 0, 0, 0) },
                 { "PopupBg", new Vector4(0.08f, 0.08f, 0.08f, 0.94f) },
                 { "Border", new Vector4(0.43f, 0.43f, 0.5f, 0.5f) },
