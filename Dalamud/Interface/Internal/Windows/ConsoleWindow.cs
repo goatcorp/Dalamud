@@ -43,6 +43,8 @@ namespace Dalamud.Interface.Internal.Windows
         private int historyPos;
         private List<string> history = new();
 
+        private bool killGameArmed = false;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ConsoleWindow"/> class.
         /// </summary>
@@ -62,6 +64,13 @@ namespace Dalamud.Interface.Internal.Windows
         }
 
         private List<LogEntry> LogEntries => this.isFiltered ? this.filteredLogText : this.logText;
+
+        /// <inheritdoc/>
+        public override void OnOpen()
+        {
+            this.killGameArmed = false;
+            base.OnOpen();
+        }
 
         /// <summary>
         /// Dispose of managed and unmanaged resources.
@@ -190,8 +199,16 @@ namespace Dalamud.Interface.Internal.Windows
                 ImGui.SetTooltip("Copy Log");
 
             ImGui.SameLine();
-            if (ImGuiComponents.IconButton(FontAwesomeIcon.Skull))
-                Process.GetCurrentProcess().Kill();
+            if (this.killGameArmed)
+            {
+                if (ImGuiComponents.IconButton(FontAwesomeIcon.Flushed))
+                    Process.GetCurrentProcess().Kill();
+            }
+            else
+            {
+                if (ImGuiComponents.IconButton(FontAwesomeIcon.Skull))
+                    this.killGameArmed = true;
+            }
 
             if (ImGui.IsItemHovered())
                 ImGui.SetTooltip("Kill game");
