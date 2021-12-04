@@ -41,8 +41,7 @@ namespace Dalamud.Interface.Internal.Windows
         /// </summary>
         public const int PluginIconHeight = 512;
 
-        // TODO: Change back to master after release
-        private const string MainRepoImageUrl = "https://raw.githubusercontent.com/goatcorp/DalamudPlugins/api4/{0}/{1}/images/{2}";
+        private const string MainRepoImageUrl = "https://raw.githubusercontent.com/goatcorp/DalamudPlugins/api5/{0}/{1}/images/{2}";
 
         private BlockingCollection<Func<Task>> downloadQueue = new();
         private CancellationTokenSource downloadToken = new();

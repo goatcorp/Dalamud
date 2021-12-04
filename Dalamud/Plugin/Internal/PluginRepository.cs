@@ -16,8 +16,7 @@ namespace Dalamud.Plugin.Internal
     /// </summary>
     internal partial class PluginRepository
     {
-        // TODO: Change back to master after api4 release
-        private const string DalamudPluginsMasterUrl = "https://raw.githubusercontent.com/goatcorp/DalamudPlugins/api4/pluginmaster.json";
+        private const string DalamudPluginsMasterUrl = "https://raw.githubusercontent.com/goatcorp/DalamudPlugins/api5/pluginmaster.json";
 
         private static readonly ModuleLog Log = new("PLUGINR");
 
