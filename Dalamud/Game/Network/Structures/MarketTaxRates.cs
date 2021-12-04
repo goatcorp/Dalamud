@@ -14,7 +14,7 @@ namespace Dalamud.Game.Network.Structures
         }
 
         /// <summary>
-        /// Category of this ResultDialog packet.
+        /// Gets the category of this ResultDialog packet.
         /// </summary>
         public uint Category { get; private set; }
 
