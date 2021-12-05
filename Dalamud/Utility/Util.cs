@@ -22,7 +22,8 @@ namespace Dalamud.Utility
     /// </summary>
     public static class Util
     {
-        private static string gitHashInternal;
+        private static string? gitHashInternal;
+        private static string? gitHashClientStructsInternal;
 
         /// <summary>
         /// Gets an httpclient for usage.
@@ -48,9 +49,27 @@ namespace Dalamud.Utility
             var asm = typeof(Util).Assembly;
             var attrs = asm.GetCustomAttributes<AssemblyMetadataAttribute>();
 
-            gitHashInternal = attrs.FirstOrDefault(a => a.Key == "GitHash")?.Value;
+            gitHashInternal = attrs.First(a => a.Key == "GitHash").Value;
 
             return gitHashInternal;
+        }
+
+        /// <summary>
+        /// Gets the git hash value from the assembly
+        /// or null if it cannot be found.
+        /// </summary>
+        /// <returns>The git hash of the assembly.</returns>
+        public static string GetGitHashClientStructs()
+        {
+            if (gitHashClientStructsInternal != null)
+                return gitHashClientStructsInternal;
+
+            var asm = typeof(Util).Assembly;
+            var attrs = asm.GetCustomAttributes<AssemblyMetadataAttribute>();
+
+            gitHashClientStructsInternal = attrs.First(a => a.Key == "GitHashClientStructs").Value;
+
+            return gitHashClientStructsInternal;
         }
 
         /// <summary>

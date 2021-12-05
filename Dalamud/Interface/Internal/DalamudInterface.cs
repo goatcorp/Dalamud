@@ -507,6 +507,7 @@ namespace Dalamud.Interface.Internal
                         var startInfo = Service<DalamudStartInfo>.Get();
                         ImGui.MenuItem(Util.AssemblyVersion, false);
                         ImGui.MenuItem(startInfo.GameVersion.ToString(), false);
+                        ImGui.MenuItem($"CS: {Util.GetGitHashClientStructs()}", false);
 
                         ImGui.EndMenu();
                     }
