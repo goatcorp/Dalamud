@@ -24,5 +24,25 @@ namespace Dalamud.Game.ClientState.JobGauge.Enums
         /// Ruby carbuncle pet glam.
         /// </summary>
         RUBY = 3,
+
+        /// <summary>
+        /// Normal carbuncle pet glam.
+        /// </summary>
+        CARBUNCLE = 4,
+
+        /// <summary>
+        /// Ifrit Egi pet glam.
+        /// </summary>
+        IFRIT = 5,
+
+        /// <summary>
+        /// Titan Egi pet glam.
+        /// </summary>
+        TITAN = 6,
+
+        /// <summary>
+        /// Garuda Egi pet glam.
+        /// </summary>
+        GARUDA = 7,
     }
 }

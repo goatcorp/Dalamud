@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 
 using Dalamud.Game.ClientState.JobGauge.Enums;
 
@@ -31,16 +32,15 @@ namespace Dalamud.Game.ClientState.JobGauge.Types
         public CardType DrawnCrownCard => (CardType)(this.Struct->Card - (this.Struct->Card % 10));
 
         /// <summary>
+        /// Gets the <see cref="SealType"/>s currently active.
+        /// </summary>
+        public SealType[] Seals => this.Struct->CurrentSeals.Cast<SealType>().ToArray();
+
+        /// <summary>
         /// Check if a <see cref="SealType"/> is currently active on the divination gauge.
         /// </summary>
         /// <param name="seal">The <see cref="SealType"/> to check for.</param>
         /// <returns>If the given Seal is currently divined.</returns>
-        public unsafe bool ContainsSeal(SealType seal)
-        {
-            if (this.Struct->Seals[0] == (byte)seal) return true;
-            if (this.Struct->Seals[1] == (byte)seal) return true;
-            if (this.Struct->Seals[2] == (byte)seal) return true;
-            return false;
-        }
+        public unsafe bool ContainsSeal(SealType seal) => this.Seals.Contains(seal);
     }
 }
