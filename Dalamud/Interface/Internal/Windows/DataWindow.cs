@@ -799,15 +799,7 @@ namespace Dalamud.Interface.Internal.Windows
                 return;
             }
 
-            var props = gauge.GetType().GetProperties().OrderBy(prop => prop.Name);
-            foreach (var prop in props)
-            {
-                var result = prop.GetValue(gauge);
-                if (result.GetType() == typeof(IntPtr))
-                    ImGui.Text($"{prop.Name}: {result:X}");
-                else
-                    ImGui.Text($"{prop.Name}: {result}");
-            }
+            Util.ShowObject(gauge);
         }
 
         private void DrawCommand()
