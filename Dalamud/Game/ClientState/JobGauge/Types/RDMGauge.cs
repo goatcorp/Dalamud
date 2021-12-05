@@ -25,5 +25,10 @@ namespace Dalamud.Game.ClientState.JobGauge.Types
         /// Gets the level of the Black gauge.
         /// </summary>
         public byte BlackMana => this.Struct->BlackMana;
+
+        /// <summary>
+        /// Gets the amount of mana stacks.
+        /// </summary>
+        public byte ManaStacks => this.Struct->ManaStacks;
     }
 }
