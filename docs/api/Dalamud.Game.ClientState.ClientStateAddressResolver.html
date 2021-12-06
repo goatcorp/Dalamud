@@ -1,0 +1,594 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class ClientStateAddressResolver
+   </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class ClientStateAddressResolver
+   ">
+    <meta name="generator" content="docfx 2.58.9.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Dalamud.Game.ClientState.ClientStateAddressResolver">
+  
+  
+  <h1 id="Dalamud_Game_ClientState_ClientStateAddressResolver" data-uid="Dalamud.Game.ClientState.ClientStateAddressResolver" class="text-break">Class ClientStateAddressResolver
+  </h1>
+  <div class="markdown level0 summary"><p>Client state memory address resolver.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><a class="xref" href="Dalamud.Game.BaseAddressResolver.html">BaseAddressResolver</a></div>
+    <div class="level2"><span class="xref">ClientStateAddressResolver</span></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <a class="xref" href="Dalamud.Game.BaseAddressResolver.html#Dalamud_Game_BaseAddressResolver_DebugScannedValues">BaseAddressResolver.DebugScannedValues</a>
+    </div>
+    <div>
+      <a class="xref" href="Dalamud.Game.BaseAddressResolver.html#Dalamud_Game_BaseAddressResolver_IsResolved">BaseAddressResolver.IsResolved</a>
+    </div>
+    <div>
+      <a class="xref" href="Dalamud.Game.BaseAddressResolver.html#Dalamud_Game_BaseAddressResolver_Setup">BaseAddressResolver.Setup()</a>
+    </div>
+    <div>
+      <a class="xref" href="Dalamud.Game.BaseAddressResolver.html#Dalamud_Game_BaseAddressResolver_Setup_Dalamud_Game_SigScanner_">BaseAddressResolver.Setup(SigScanner)</a>
+    </div>
+    <div>
+      <a class="xref" href="Dalamud.Game.BaseAddressResolver.html#Dalamud_Game_BaseAddressResolver_GetVirtualFunction__1_System_IntPtr_System_Int32_System_Int32_">BaseAddressResolver.GetVirtualFunction&lt;T&gt;(IntPtr, Int32, Int32)</a>
+    </div>
+    <div>
+      <a class="xref" href="Dalamud.Game.BaseAddressResolver.html#Dalamud_Game_BaseAddressResolver_Setup32Bit_Dalamud_Game_SigScanner_">BaseAddressResolver.Setup32Bit(SigScanner)</a>
+    </div>
+    <div>
+      <a class="xref" href="Dalamud.Game.BaseAddressResolver.html#Dalamud_Game_BaseAddressResolver_SetupInternal_Dalamud_Game_SigScanner_">BaseAddressResolver.SetupInternal(SigScanner)</a>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ToString()</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Dalamud.Game.ClientState.html">Dalamud.Game.ClientState</a></h6>
+  <h6><strong>Assembly</strong>: Dalamud.dll</h6>
+  <h5 id="Dalamud_Game_ClientState_ClientStateAddressResolver_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public sealed class ClientStateAddressResolver : BaseAddressResolver</code></pre>
+  </div>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_ClientStateAddressResolver_BuddyList.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.ClientStateAddressResolver.BuddyList%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/ClientStateAddressResolver.cs/#L20">View Source</a>
+  </span>
+  <a id="Dalamud_Game_ClientState_ClientStateAddressResolver_BuddyList_" data-uid="Dalamud.Game.ClientState.ClientStateAddressResolver.BuddyList*"></a>
+  <h4 id="Dalamud_Game_ClientState_ClientStateAddressResolver_BuddyList" data-uid="Dalamud.Game.ClientState.ClientStateAddressResolver.BuddyList">BuddyList</h4>
+  <div class="markdown level1 summary"><p>Gets the address of the buddy list.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IntPtr BuddyList { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IntPtr</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_ClientStateAddressResolver_ConditionFlags.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.ClientStateAddressResolver.ConditionFlags%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/ClientStateAddressResolver.cs/#L63">View Source</a>
+  </span>
+  <a id="Dalamud_Game_ClientState_ClientStateAddressResolver_ConditionFlags_" data-uid="Dalamud.Game.ClientState.ClientStateAddressResolver.ConditionFlags*"></a>
+  <h4 id="Dalamud_Game_ClientState_ClientStateAddressResolver_ConditionFlags" data-uid="Dalamud.Game.ClientState.ClientStateAddressResolver.ConditionFlags">ConditionFlags</h4>
+  <div class="markdown level1 summary"><p>Gets the address of the condition flag array.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IntPtr ConditionFlags { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IntPtr</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_ClientStateAddressResolver_FateTablePtr.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.ClientStateAddressResolver.FateTablePtr%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/ClientStateAddressResolver.cs/#L28">View Source</a>
+  </span>
+  <a id="Dalamud_Game_ClientState_ClientStateAddressResolver_FateTablePtr_" data-uid="Dalamud.Game.ClientState.ClientStateAddressResolver.FateTablePtr*"></a>
+  <h4 id="Dalamud_Game_ClientState_ClientStateAddressResolver_FateTablePtr" data-uid="Dalamud.Game.ClientState.ClientStateAddressResolver.FateTablePtr">FateTablePtr</h4>
+  <div class="markdown level1 summary"><p>Gets the address of a pointer to the fate table.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IntPtr FateTablePtr { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IntPtr</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="Dalamud_Game_ClientState_ClientStateAddressResolver_FateTablePtr_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This is a static address to a pointer, not the address of the table itself.</p>
+</div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_ClientStateAddressResolver_GamepadPoll.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.ClientStateAddressResolver.GamepadPoll%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/ClientStateAddressResolver.cs/#L76">View Source</a>
+  </span>
+  <a id="Dalamud_Game_ClientState_ClientStateAddressResolver_GamepadPoll_" data-uid="Dalamud.Game.ClientState.ClientStateAddressResolver.GamepadPoll*"></a>
+  <h4 id="Dalamud_Game_ClientState_ClientStateAddressResolver_GamepadPoll" data-uid="Dalamud.Game.ClientState.ClientStateAddressResolver.GamepadPoll">GamepadPoll</h4>
+  <div class="markdown level1 summary"><p>Gets the address of the method which polls the gamepads for data.
+Called every frame, even when <code>Enable Gamepad</code> is off in the settings.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IntPtr GamepadPoll { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IntPtr</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_ClientStateAddressResolver_GroupManager.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.ClientStateAddressResolver.GroupManager%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/ClientStateAddressResolver.cs/#L33">View Source</a>
+  </span>
+  <a id="Dalamud_Game_ClientState_ClientStateAddressResolver_GroupManager_" data-uid="Dalamud.Game.ClientState.ClientStateAddressResolver.GroupManager*"></a>
+  <h4 id="Dalamud_Game_ClientState_ClientStateAddressResolver_GroupManager" data-uid="Dalamud.Game.ClientState.ClientStateAddressResolver.GroupManager">GroupManager</h4>
+  <div class="markdown level1 summary"><p>Gets the address of the Group Manager.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IntPtr GroupManager { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IntPtr</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_ClientStateAddressResolver_JobGaugeData.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.ClientStateAddressResolver.JobGaugeData%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/ClientStateAddressResolver.cs/#L43">View Source</a>
+  </span>
+  <a id="Dalamud_Game_ClientState_ClientStateAddressResolver_JobGaugeData_" data-uid="Dalamud.Game.ClientState.ClientStateAddressResolver.JobGaugeData*"></a>
+  <h4 id="Dalamud_Game_ClientState_ClientStateAddressResolver_JobGaugeData" data-uid="Dalamud.Game.ClientState.ClientStateAddressResolver.JobGaugeData">JobGaugeData</h4>
+  <div class="markdown level1 summary"><p>Gets the address of job gauge data.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IntPtr JobGaugeData { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IntPtr</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_ClientStateAddressResolver_KeyboardState.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.ClientStateAddressResolver.KeyboardState%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/ClientStateAddressResolver.cs/#L48">View Source</a>
+  </span>
+  <a id="Dalamud_Game_ClientState_ClientStateAddressResolver_KeyboardState_" data-uid="Dalamud.Game.ClientState.ClientStateAddressResolver.KeyboardState*"></a>
+  <h4 id="Dalamud_Game_ClientState_ClientStateAddressResolver_KeyboardState" data-uid="Dalamud.Game.ClientState.ClientStateAddressResolver.KeyboardState">KeyboardState</h4>
+  <div class="markdown level1 summary"><p>Gets the address of the keyboard state.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IntPtr KeyboardState { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IntPtr</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_ClientStateAddressResolver_KeyboardStateIndexArray.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.ClientStateAddressResolver.KeyboardStateIndexArray%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/ClientStateAddressResolver.cs/#L53">View Source</a>
+  </span>
+  <a id="Dalamud_Game_ClientState_ClientStateAddressResolver_KeyboardStateIndexArray_" data-uid="Dalamud.Game.ClientState.ClientStateAddressResolver.KeyboardStateIndexArray*"></a>
+  <h4 id="Dalamud_Game_ClientState_ClientStateAddressResolver_KeyboardStateIndexArray" data-uid="Dalamud.Game.ClientState.ClientStateAddressResolver.KeyboardStateIndexArray">KeyboardStateIndexArray</h4>
+  <div class="markdown level1 summary"><p>Gets the address of the keyboard state index array which translates the VK enumeration to the key state.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IntPtr KeyboardStateIndexArray { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IntPtr</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_ClientStateAddressResolver_LocalContentId.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.ClientStateAddressResolver.LocalContentId%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/ClientStateAddressResolver.cs/#L38">View Source</a>
+  </span>
+  <a id="Dalamud_Game_ClientState_ClientStateAddressResolver_LocalContentId_" data-uid="Dalamud.Game.ClientState.ClientStateAddressResolver.LocalContentId*"></a>
+  <h4 id="Dalamud_Game_ClientState_ClientStateAddressResolver_LocalContentId" data-uid="Dalamud.Game.ClientState.ClientStateAddressResolver.LocalContentId">LocalContentId</h4>
+  <div class="markdown level1 summary"><p>Gets the address of the local content id.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IntPtr LocalContentId { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IntPtr</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_ClientStateAddressResolver_ObjectTable.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.ClientStateAddressResolver.ObjectTable%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/ClientStateAddressResolver.cs/#L15">View Source</a>
+  </span>
+  <a id="Dalamud_Game_ClientState_ClientStateAddressResolver_ObjectTable_" data-uid="Dalamud.Game.ClientState.ClientStateAddressResolver.ObjectTable*"></a>
+  <h4 id="Dalamud_Game_ClientState_ClientStateAddressResolver_ObjectTable" data-uid="Dalamud.Game.ClientState.ClientStateAddressResolver.ObjectTable">ObjectTable</h4>
+  <div class="markdown level1 summary"><p>Gets the address of the actor table.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IntPtr ObjectTable { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IntPtr</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_ClientStateAddressResolver_SetupTerritoryType.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.ClientStateAddressResolver.SetupTerritoryType%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/ClientStateAddressResolver.cs/#L70">View Source</a>
+  </span>
+  <a id="Dalamud_Game_ClientState_ClientStateAddressResolver_SetupTerritoryType_" data-uid="Dalamud.Game.ClientState.ClientStateAddressResolver.SetupTerritoryType*"></a>
+  <h4 id="Dalamud_Game_ClientState_ClientStateAddressResolver_SetupTerritoryType" data-uid="Dalamud.Game.ClientState.ClientStateAddressResolver.SetupTerritoryType">SetupTerritoryType</h4>
+  <div class="markdown level1 summary"><p>Gets the address of the method which sets the territory type.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IntPtr SetupTerritoryType { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IntPtr</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_ClientStateAddressResolver_TargetManager.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.ClientStateAddressResolver.TargetManager%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/ClientStateAddressResolver.cs/#L58">View Source</a>
+  </span>
+  <a id="Dalamud_Game_ClientState_ClientStateAddressResolver_TargetManager_" data-uid="Dalamud.Game.ClientState.ClientStateAddressResolver.TargetManager*"></a>
+  <h4 id="Dalamud_Game_ClientState_ClientStateAddressResolver_TargetManager" data-uid="Dalamud.Game.ClientState.ClientStateAddressResolver.TargetManager">TargetManager</h4>
+  <div class="markdown level1 summary"><p>Gets the address of the target manager.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IntPtr TargetManager { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IntPtr</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_ClientStateAddressResolver_Setup64Bit_Dalamud_Game_SigScanner_.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.ClientStateAddressResolver.Setup64Bit(Dalamud.Game.SigScanner)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/ClientStateAddressResolver.cs/#L82">View Source</a>
+  </span>
+  <a id="Dalamud_Game_ClientState_ClientStateAddressResolver_Setup64Bit_" data-uid="Dalamud.Game.ClientState.ClientStateAddressResolver.Setup64Bit*"></a>
+  <h4 id="Dalamud_Game_ClientState_ClientStateAddressResolver_Setup64Bit_Dalamud_Game_SigScanner_" data-uid="Dalamud.Game.ClientState.ClientStateAddressResolver.Setup64Bit(Dalamud.Game.SigScanner)">Setup64Bit(SigScanner)</h4>
+  <div class="markdown level1 summary"><p>Scan for and setup any configured address pointers.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override void Setup64Bit(SigScanner sig)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Dalamud.Game.SigScanner.html">SigScanner</a></td>
+        <td><span class="parametername">sig</span></td>
+        <td><p>The signature scanner to facilitate setup.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><a class="xref" href="Dalamud.Game.BaseAddressResolver.html#Dalamud_Game_BaseAddressResolver_Setup64Bit_Dalamud_Game_SigScanner_">BaseAddressResolver.Setup64Bit(SigScanner)</a></div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_ClientStateAddressResolver.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.ClientStateAddressResolver%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/ClientStateAddressResolver.cs/#L8" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

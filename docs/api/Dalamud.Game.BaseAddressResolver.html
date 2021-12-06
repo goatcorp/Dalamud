@@ -1,0 +1,461 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class BaseAddressResolver
+   </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class BaseAddressResolver
+   ">
+    <meta name="generator" content="docfx 2.58.9.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Dalamud.Game.BaseAddressResolver">
+  
+  
+  <h1 id="Dalamud_Game_BaseAddressResolver" data-uid="Dalamud.Game.BaseAddressResolver" class="text-break">Class BaseAddressResolver
+  </h1>
+  <div class="markdown level0 summary"><p>Base memory address resolver.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><span class="xref">BaseAddressResolver</span></div>
+      <div class="level2"><a class="xref" href="Dalamud.Game.ClientState.ClientStateAddressResolver.html">ClientStateAddressResolver</a></div>
+      <div class="level2"><a class="xref" href="Dalamud.Game.FrameworkAddressResolver.html">FrameworkAddressResolver</a></div>
+      <div class="level2"><a class="xref" href="Dalamud.Game.Gui.ChatGuiAddressResolver.html">ChatGuiAddressResolver</a></div>
+      <div class="level2"><a class="xref" href="Dalamud.Game.Gui.FlyText.FlyTextGuiAddressResolver.html">FlyTextGuiAddressResolver</a></div>
+      <div class="level2"><a class="xref" href="Dalamud.Game.Gui.PartyFinder.PartyFinderAddressResolver.html">PartyFinderAddressResolver</a></div>
+      <div class="level2"><a class="xref" href="Dalamud.Game.Gui.Toast.ToastGuiAddressResolver.html">ToastGuiAddressResolver</a></div>
+      <div class="level2"><a class="xref" href="Dalamud.Game.Libc.LibcFunctionAddressResolver.html">LibcFunctionAddressResolver</a></div>
+      <div class="level2"><a class="xref" href="Dalamud.Game.Network.GameNetworkAddressResolver.html">GameNetworkAddressResolver</a></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ToString()</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Dalamud.Game.html">Dalamud.Game</a></h6>
+  <h6><strong>Assembly</strong>: Dalamud.dll</h6>
+  <h5 id="Dalamud_Game_BaseAddressResolver_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public abstract class BaseAddressResolver</code></pre>
+  </div>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_BaseAddressResolver_DebugScannedValues.md&amp;value=---%0Auid%3A%20Dalamud.Game.BaseAddressResolver.DebugScannedValues%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/BaseAddressResolver.cs/#L16">View Source</a>
+  </span>
+  <a id="Dalamud_Game_BaseAddressResolver_DebugScannedValues_" data-uid="Dalamud.Game.BaseAddressResolver.DebugScannedValues*"></a>
+  <h4 id="Dalamud_Game_BaseAddressResolver_DebugScannedValues" data-uid="Dalamud.Game.BaseAddressResolver.DebugScannedValues">DebugScannedValues</h4>
+  <div class="markdown level1 summary"><p>Gets a list of memory addresses that were found, to list in /xldata.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static Dictionary&lt;string, List&lt;(string ClassName, IntPtr Address)&gt;&gt; DebugScannedValues { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Collections.Generic.Dictionary</span>&lt;<span class="xref">System.String</span>, <span class="xref">System.Collections.Generic.List</span>&lt;<span class="xref">System.ValueTuple</span>&lt;<span class="xref">System.String</span>, <span class="xref">System.IntPtr</span>&gt;&gt;&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_BaseAddressResolver_IsResolved.md&amp;value=---%0Auid%3A%20Dalamud.Game.BaseAddressResolver.IsResolved%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/BaseAddressResolver.cs/#L21">View Source</a>
+  </span>
+  <a id="Dalamud_Game_BaseAddressResolver_IsResolved_" data-uid="Dalamud.Game.BaseAddressResolver.IsResolved*"></a>
+  <h4 id="Dalamud_Game_BaseAddressResolver_IsResolved" data-uid="Dalamud.Game.BaseAddressResolver.IsResolved">IsResolved</h4>
+  <div class="markdown level1 summary"><p>Gets or sets a value indicating whether the resolver has successfully run <a class="xref" href="Dalamud.Game.BaseAddressResolver.html#Dalamud_Game_BaseAddressResolver_Setup32Bit_Dalamud_Game_SigScanner_">Setup32Bit(SigScanner)</a> or <a class="xref" href="Dalamud.Game.BaseAddressResolver.html#Dalamud_Game_BaseAddressResolver_Setup64Bit_Dalamud_Game_SigScanner_">Setup64Bit(SigScanner)</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected bool IsResolved { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_BaseAddressResolver_GetVirtualFunction__1_System_IntPtr_System_Int32_System_Int32_.md&amp;value=---%0Auid%3A%20Dalamud.Game.BaseAddressResolver.GetVirtualFunction%60%601(System.IntPtr%2CSystem.Int32%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/BaseAddressResolver.cs/#L76">View Source</a>
+  </span>
+  <a id="Dalamud_Game_BaseAddressResolver_GetVirtualFunction_" data-uid="Dalamud.Game.BaseAddressResolver.GetVirtualFunction*"></a>
+  <h4 id="Dalamud_Game_BaseAddressResolver_GetVirtualFunction__1_System_IntPtr_System_Int32_System_Int32_" data-uid="Dalamud.Game.BaseAddressResolver.GetVirtualFunction``1(System.IntPtr,System.Int32,System.Int32)">GetVirtualFunction&lt;T&gt;(IntPtr, Int32, Int32)</h4>
+  <div class="markdown level1 summary"><p>Fetch vfunc N from a pointer to the vtable and return a delegate function pointer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public T GetVirtualFunction&lt;T&gt;(IntPtr address, int vtableOffset, int count)
+    where T : class</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IntPtr</span></td>
+        <td><span class="parametername">address</span></td>
+        <td><p>The address of the virtual table.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">vtableOffset</span></td>
+        <td><p>The offset from address to the vtable pointer.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">count</span></td>
+        <td><p>The vfunc index.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">T</span></td>
+        <td><p>A delegate function pointer that can be invoked.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="typeParameters">Type Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="parametername">T</span></td>
+        <td><p>The delegate to marshal the function pointer to.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_BaseAddressResolver_Setup.md&amp;value=---%0Auid%3A%20Dalamud.Game.BaseAddressResolver.Setup%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/BaseAddressResolver.cs/#L26">View Source</a>
+  </span>
+  <a id="Dalamud_Game_BaseAddressResolver_Setup_" data-uid="Dalamud.Game.BaseAddressResolver.Setup*"></a>
+  <h4 id="Dalamud_Game_BaseAddressResolver_Setup" data-uid="Dalamud.Game.BaseAddressResolver.Setup">Setup()</h4>
+  <div class="markdown level1 summary"><p>Setup the resolver, calling the appopriate method based on the process architecture.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Setup()</code></pre>
+  </div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_BaseAddressResolver_Setup_Dalamud_Game_SigScanner_.md&amp;value=---%0Auid%3A%20Dalamud.Game.BaseAddressResolver.Setup(Dalamud.Game.SigScanner)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/BaseAddressResolver.cs/#L36">View Source</a>
+  </span>
+  <a id="Dalamud_Game_BaseAddressResolver_Setup_" data-uid="Dalamud.Game.BaseAddressResolver.Setup*"></a>
+  <h4 id="Dalamud_Game_BaseAddressResolver_Setup_Dalamud_Game_SigScanner_" data-uid="Dalamud.Game.BaseAddressResolver.Setup(Dalamud.Game.SigScanner)">Setup(SigScanner)</h4>
+  <div class="markdown level1 summary"><p>Setup the resolver, calling the appopriate method based on the process architecture.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Setup(SigScanner scanner)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Dalamud.Game.SigScanner.html">SigScanner</a></td>
+        <td><span class="parametername">scanner</span></td>
+        <td><p>The SigScanner instance.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_BaseAddressResolver_Setup32Bit_Dalamud_Game_SigScanner_.md&amp;value=---%0Auid%3A%20Dalamud.Game.BaseAddressResolver.Setup32Bit(Dalamud.Game.SigScanner)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/BaseAddressResolver.cs/#L91">View Source</a>
+  </span>
+  <a id="Dalamud_Game_BaseAddressResolver_Setup32Bit_" data-uid="Dalamud.Game.BaseAddressResolver.Setup32Bit*"></a>
+  <h4 id="Dalamud_Game_BaseAddressResolver_Setup32Bit_Dalamud_Game_SigScanner_" data-uid="Dalamud.Game.BaseAddressResolver.Setup32Bit(Dalamud.Game.SigScanner)">Setup32Bit(SigScanner)</h4>
+  <div class="markdown level1 summary"><p>Setup the resolver by finding any necessary memory addresses.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual void Setup32Bit(SigScanner scanner)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Dalamud.Game.SigScanner.html">SigScanner</a></td>
+        <td><span class="parametername">scanner</span></td>
+        <td><p>The SigScanner instance.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_BaseAddressResolver_Setup64Bit_Dalamud_Game_SigScanner_.md&amp;value=---%0Auid%3A%20Dalamud.Game.BaseAddressResolver.Setup64Bit(Dalamud.Game.SigScanner)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/BaseAddressResolver.cs/#L100">View Source</a>
+  </span>
+  <a id="Dalamud_Game_BaseAddressResolver_Setup64Bit_" data-uid="Dalamud.Game.BaseAddressResolver.Setup64Bit*"></a>
+  <h4 id="Dalamud_Game_BaseAddressResolver_Setup64Bit_Dalamud_Game_SigScanner_" data-uid="Dalamud.Game.BaseAddressResolver.Setup64Bit(Dalamud.Game.SigScanner)">Setup64Bit(SigScanner)</h4>
+  <div class="markdown level1 summary"><p>Setup the resolver by finding any necessary memory addresses.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual void Setup64Bit(SigScanner scanner)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Dalamud.Game.SigScanner.html">SigScanner</a></td>
+        <td><span class="parametername">scanner</span></td>
+        <td><p>The SigScanner instance.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_BaseAddressResolver_SetupInternal_Dalamud_Game_SigScanner_.md&amp;value=---%0Auid%3A%20Dalamud.Game.BaseAddressResolver.SetupInternal(Dalamud.Game.SigScanner)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/BaseAddressResolver.cs/#L109">View Source</a>
+  </span>
+  <a id="Dalamud_Game_BaseAddressResolver_SetupInternal_" data-uid="Dalamud.Game.BaseAddressResolver.SetupInternal*"></a>
+  <h4 id="Dalamud_Game_BaseAddressResolver_SetupInternal_Dalamud_Game_SigScanner_" data-uid="Dalamud.Game.BaseAddressResolver.SetupInternal(Dalamud.Game.SigScanner)">SetupInternal(SigScanner)</h4>
+  <div class="markdown level1 summary"><p>Setup the resolver by finding any necessary memory addresses.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual void SetupInternal(SigScanner scanner)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Dalamud.Game.SigScanner.html">SigScanner</a></td>
+        <td><span class="parametername">scanner</span></td>
+        <td><p>The SigScanner instance.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_BaseAddressResolver.md&amp;value=---%0Auid%3A%20Dalamud.Game.BaseAddressResolver%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/BaseAddressResolver.cs/#L11" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

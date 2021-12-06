@@ -1,0 +1,1230 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class SeStringBuilder
+   </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class SeStringBuilder
+   ">
+    <meta name="generator" content="docfx 2.58.9.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="Dalamud.Game.Text.SeStringHandling.SeStringBuilder">
+  
+  
+  <h1 id="Dalamud_Game_Text_SeStringHandling_SeStringBuilder" data-uid="Dalamud.Game.Text.SeStringHandling.SeStringBuilder" class="text-break">Class SeStringBuilder
+  </h1>
+  <div class="markdown level0 summary"><p>Helper class to build SeStrings using a builder pattern.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><span class="xref">SeStringBuilder</span></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="Dalamud.Game.Text.SeStringHandling.html">Dalamud.Game.Text.SeStringHandling</a></h6>
+  <h6><strong>Assembly</strong>: Dalamud.dll</h6>
+  <h5 id="Dalamud_Game_Text_SeStringHandling_SeStringBuilder_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class SeStringBuilder</code></pre>
+  </div>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_SeStringBuilder_BuiltString.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.SeStringBuilder.BuiltString%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/SeStringBuilder.cs/#L13">View Source</a>
+  </span>
+  <a id="Dalamud_Game_Text_SeStringHandling_SeStringBuilder_BuiltString_" data-uid="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.BuiltString*"></a>
+  <h4 id="Dalamud_Game_Text_SeStringHandling_SeStringBuilder_BuiltString" data-uid="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.BuiltString">BuiltString</h4>
+  <div class="markdown level1 summary"><p>Gets the built SeString.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public SeString BuiltString { get; set; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Dalamud.Game.Text.SeStringHandling.SeString.html">SeString</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_SeStringBuilder_Add_Dalamud_Game_Text_SeStringHandling_Payload_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.SeStringBuilder.Add(Dalamud.Game.Text.SeStringHandling.Payload)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/SeStringBuilder.cs/#L176">View Source</a>
+  </span>
+  <a id="Dalamud_Game_Text_SeStringHandling_SeStringBuilder_Add_" data-uid="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.Add*"></a>
+  <h4 id="Dalamud_Game_Text_SeStringHandling_SeStringBuilder_Add_Dalamud_Game_Text_SeStringHandling_Payload_" data-uid="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.Add(Dalamud.Game.Text.SeStringHandling.Payload)">Add(Payload)</h4>
+  <div class="markdown level1 summary"><p>Add a payload to the builder.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public SeStringBuilder Add(Payload payload)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Dalamud.Game.Text.SeStringHandling.Payload.html">Payload</a></td>
+        <td><span class="parametername">payload</span></td>
+        <td><p>The payload to add.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.html">SeStringBuilder</a></td>
+        <td><p>The current builder.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_SeStringBuilder_AddIcon_Dalamud_Game_Text_SeStringHandling_BitmapFontIcon_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.SeStringBuilder.AddIcon(Dalamud.Game.Text.SeStringHandling.BitmapFontIcon)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/SeStringBuilder.cs/#L97">View Source</a>
+  </span>
+  <a id="Dalamud_Game_Text_SeStringHandling_SeStringBuilder_AddIcon_" data-uid="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.AddIcon*"></a>
+  <h4 id="Dalamud_Game_Text_SeStringHandling_SeStringBuilder_AddIcon_Dalamud_Game_Text_SeStringHandling_BitmapFontIcon_" data-uid="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.AddIcon(Dalamud.Game.Text.SeStringHandling.BitmapFontIcon)">AddIcon(BitmapFontIcon)</h4>
+  <div class="markdown level1 summary"><p>Add an icon to the builder.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public SeStringBuilder AddIcon(BitmapFontIcon icon)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Dalamud.Game.Text.SeStringHandling.BitmapFontIcon.html">BitmapFontIcon</a></td>
+        <td><span class="parametername">icon</span></td>
+        <td><p>The icon to add.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.html">SeStringBuilder</a></td>
+        <td><p>The current builder.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_SeStringBuilder_AddItalics_System_String_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.SeStringBuilder.AddItalics(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/SeStringBuilder.cs/#L114">View Source</a>
+  </span>
+  <a id="Dalamud_Game_Text_SeStringHandling_SeStringBuilder_AddItalics_" data-uid="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.AddItalics*"></a>
+  <h4 id="Dalamud_Game_Text_SeStringHandling_SeStringBuilder_AddItalics_System_String_" data-uid="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.AddItalics(System.String)">AddItalics(String)</h4>
+  <div class="markdown level1 summary"><p>Add italicized raw text to the builder.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public SeStringBuilder AddItalics(string text)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">text</span></td>
+        <td><p>The raw text.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.html">SeStringBuilder</a></td>
+        <td><p>The current builder.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_SeStringBuilder_AddItalicsOff.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.SeStringBuilder.AddItalicsOff%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/SeStringBuilder.cs/#L131">View Source</a>
+  </span>
+  <a id="Dalamud_Game_Text_SeStringHandling_SeStringBuilder_AddItalicsOff_" data-uid="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.AddItalicsOff*"></a>
+  <h4 id="Dalamud_Game_Text_SeStringHandling_SeStringBuilder_AddItalicsOff" data-uid="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.AddItalicsOff">AddItalicsOff()</h4>
+  <div class="markdown level1 summary"><p>Turn italics off.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public SeStringBuilder AddItalicsOff()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.html">SeStringBuilder</a></td>
+        <td><p>The current builder.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_SeStringBuilder_AddItalicsOn.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.SeStringBuilder.AddItalicsOn%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/SeStringBuilder.cs/#L125">View Source</a>
+  </span>
+  <a id="Dalamud_Game_Text_SeStringHandling_SeStringBuilder_AddItalicsOn_" data-uid="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.AddItalicsOn*"></a>
+  <h4 id="Dalamud_Game_Text_SeStringHandling_SeStringBuilder_AddItalicsOn" data-uid="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.AddItalicsOn">AddItalicsOn()</h4>
+  <div class="markdown level1 summary"><p>Turn italics on.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public SeStringBuilder AddItalicsOn()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.html">SeStringBuilder</a></td>
+        <td><p>The current builder.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_SeStringBuilder_AddItemLink_System_UInt32_System_Boolean_System_String_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.SeStringBuilder.AddItemLink(System.UInt32%2CSystem.Boolean%2CSystem.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/SeStringBuilder.cs/#L106">View Source</a>
+  </span>
+  <a id="Dalamud_Game_Text_SeStringHandling_SeStringBuilder_AddItemLink_" data-uid="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.AddItemLink*"></a>
+  <h4 id="Dalamud_Game_Text_SeStringHandling_SeStringBuilder_AddItemLink_System_UInt32_System_Boolean_System_String_" data-uid="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.AddItemLink(System.UInt32,System.Boolean,System.String)">AddItemLink(UInt32, Boolean, String)</h4>
+  <div class="markdown level1 summary"><p>Add an item link to the builder.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public SeStringBuilder AddItemLink(uint itemId, bool isHq, string itemNameOverride = null)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt32</span></td>
+        <td><span class="parametername">itemId</span></td>
+        <td><p>The item ID.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">isHq</span></td>
+        <td><p>Whether or not the item is high quality.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">itemNameOverride</span></td>
+        <td><p>Override for the item's name.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.html">SeStringBuilder</a></td>
+        <td><p>The current builder.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_SeStringBuilder_AddMapLink_System_UInt32_System_UInt32_System_Int32_System_Int32_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.SeStringBuilder.AddMapLink(System.UInt32%2CSystem.UInt32%2CSystem.Int32%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/SeStringBuilder.cs/#L141">View Source</a>
+  </span>
+  <a id="Dalamud_Game_Text_SeStringHandling_SeStringBuilder_AddMapLink_" data-uid="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.AddMapLink*"></a>
+  <h4 id="Dalamud_Game_Text_SeStringHandling_SeStringBuilder_AddMapLink_System_UInt32_System_UInt32_System_Int32_System_Int32_" data-uid="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.AddMapLink(System.UInt32,System.UInt32,System.Int32,System.Int32)">AddMapLink(UInt32, UInt32, Int32, Int32)</h4>
+  <div class="markdown level1 summary"><p>Add a map link payload to the builder.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public SeStringBuilder AddMapLink(uint territoryTypeId, uint mapId, int rawX, int rawY)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt32</span></td>
+        <td><span class="parametername">territoryTypeId</span></td>
+        <td><p>The id of the TerritoryType entry for this link.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.UInt32</span></td>
+        <td><span class="parametername">mapId</span></td>
+        <td><p>The id of the Map entry for this link.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">rawX</span></td>
+        <td><p>The internal raw x-coordinate for this link.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">rawY</span></td>
+        <td><p>The internal raw y-coordinate for this link.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.html">SeStringBuilder</a></td>
+        <td><p>The current builder.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_SeStringBuilder_AddMapLink_System_UInt32_System_UInt32_System_Single_System_Single_System_Single_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.SeStringBuilder.AddMapLink(System.UInt32%2CSystem.UInt32%2CSystem.Single%2CSystem.Single%2CSystem.Single)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/SeStringBuilder.cs/#L153">View Source</a>
+  </span>
+  <a id="Dalamud_Game_Text_SeStringHandling_SeStringBuilder_AddMapLink_" data-uid="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.AddMapLink*"></a>
+  <h4 id="Dalamud_Game_Text_SeStringHandling_SeStringBuilder_AddMapLink_System_UInt32_System_UInt32_System_Single_System_Single_System_Single_" data-uid="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.AddMapLink(System.UInt32,System.UInt32,System.Single,System.Single,System.Single)">AddMapLink(UInt32, UInt32, Single, Single, Single)</h4>
+  <div class="markdown level1 summary"><p>Add a map link payload to the builder.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public SeStringBuilder AddMapLink(uint territoryTypeId, uint mapId, float niceXCoord, float niceYCoord, float fudgeFactor = 0.05F)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt32</span></td>
+        <td><span class="parametername">territoryTypeId</span></td>
+        <td><p>The id of the TerritoryType entry for this link.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.UInt32</span></td>
+        <td><span class="parametername">mapId</span></td>
+        <td><p>The id of the Map entry for this link.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Single</span></td>
+        <td><span class="parametername">niceXCoord</span></td>
+        <td><p>The human-readable x-coordinate for this link.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Single</span></td>
+        <td><span class="parametername">niceYCoord</span></td>
+        <td><p>The human-readable y-coordinate for this link.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Single</span></td>
+        <td><span class="parametername">fudgeFactor</span></td>
+        <td><p>An optional offset to account for rounding and truncation errors; it is best to leave this untouched in most cases.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.html">SeStringBuilder</a></td>
+        <td><p>The current builder.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_SeStringBuilder_AddQuestLink_System_UInt32_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.SeStringBuilder.AddQuestLink(System.UInt32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/SeStringBuilder.cs/#L162">View Source</a>
+  </span>
+  <a id="Dalamud_Game_Text_SeStringHandling_SeStringBuilder_AddQuestLink_" data-uid="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.AddQuestLink*"></a>
+  <h4 id="Dalamud_Game_Text_SeStringHandling_SeStringBuilder_AddQuestLink_System_UInt32_" data-uid="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.AddQuestLink(System.UInt32)">AddQuestLink(UInt32)</h4>
+  <div class="markdown level1 summary"><p>Add a quest link to the builder.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public SeStringBuilder AddQuestLink(uint questId)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt32</span></td>
+        <td><span class="parametername">questId</span></td>
+        <td><p>The quest ID.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.html">SeStringBuilder</a></td>
+        <td><p>The current builder.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_SeStringBuilder_AddStatusLink_System_UInt32_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.SeStringBuilder.AddStatusLink(System.UInt32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/SeStringBuilder.cs/#L169">View Source</a>
+  </span>
+  <a id="Dalamud_Game_Text_SeStringHandling_SeStringBuilder_AddStatusLink_" data-uid="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.AddStatusLink*"></a>
+  <h4 id="Dalamud_Game_Text_SeStringHandling_SeStringBuilder_AddStatusLink_System_UInt32_" data-uid="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.AddStatusLink(System.UInt32)">AddStatusLink(UInt32)</h4>
+  <div class="markdown level1 summary"><p>Add a status effect link to the builder.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public SeStringBuilder AddStatusLink(uint statusId)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt32</span></td>
+        <td><span class="parametername">statusId</span></td>
+        <td><p>The status effect ID.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.html">SeStringBuilder</a></td>
+        <td><p>The current builder.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_SeStringBuilder_AddText_System_String_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.SeStringBuilder.AddText(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/SeStringBuilder.cs/#L38">View Source</a>
+  </span>
+  <a id="Dalamud_Game_Text_SeStringHandling_SeStringBuilder_AddText_" data-uid="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.AddText*"></a>
+  <h4 id="Dalamud_Game_Text_SeStringHandling_SeStringBuilder_AddText_System_String_" data-uid="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.AddText(System.String)">AddText(String)</h4>
+  <div class="markdown level1 summary"><p>Append raw text to the builder.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public SeStringBuilder AddText(string text)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">text</span></td>
+        <td><p>The raw text.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.html">SeStringBuilder</a></td>
+        <td><p>The current builder.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_SeStringBuilder_AddUiForeground_System_String_System_UInt16_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.SeStringBuilder.AddUiForeground(System.String%2CSystem.UInt16)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/SeStringBuilder.cs/#L59">View Source</a>
+  </span>
+  <a id="Dalamud_Game_Text_SeStringHandling_SeStringBuilder_AddUiForeground_" data-uid="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.AddUiForeground*"></a>
+  <h4 id="Dalamud_Game_Text_SeStringHandling_SeStringBuilder_AddUiForeground_System_String_System_UInt16_" data-uid="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.AddUiForeground(System.String,System.UInt16)">AddUiForeground(String, UInt16)</h4>
+  <div class="markdown level1 summary"><p>Add colored text to the current builder.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public SeStringBuilder AddUiForeground(string text, ushort colorKey)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">text</span></td>
+        <td><p>The raw text.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.UInt16</span></td>
+        <td><span class="parametername">colorKey</span></td>
+        <td><p>The text color.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.html">SeStringBuilder</a></td>
+        <td><p>The current builder.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_SeStringBuilder_AddUiForeground_System_UInt16_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.SeStringBuilder.AddUiForeground(System.UInt16)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/SeStringBuilder.cs/#L45">View Source</a>
+  </span>
+  <a id="Dalamud_Game_Text_SeStringHandling_SeStringBuilder_AddUiForeground_" data-uid="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.AddUiForeground*"></a>
+  <h4 id="Dalamud_Game_Text_SeStringHandling_SeStringBuilder_AddUiForeground_System_UInt16_" data-uid="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.AddUiForeground(System.UInt16)">AddUiForeground(UInt16)</h4>
+  <div class="markdown level1 summary"><p>Start colored text in the current builder.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public SeStringBuilder AddUiForeground(ushort colorKey)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt16</span></td>
+        <td><span class="parametername">colorKey</span></td>
+        <td><p>The text color.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.html">SeStringBuilder</a></td>
+        <td><p>The current builder.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_SeStringBuilder_AddUiForegroundOff.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.SeStringBuilder.AddUiForegroundOff%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/SeStringBuilder.cs/#L51">View Source</a>
+  </span>
+  <a id="Dalamud_Game_Text_SeStringHandling_SeStringBuilder_AddUiForegroundOff_" data-uid="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.AddUiForegroundOff*"></a>
+  <h4 id="Dalamud_Game_Text_SeStringHandling_SeStringBuilder_AddUiForegroundOff" data-uid="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.AddUiForegroundOff">AddUiForegroundOff()</h4>
+  <div class="markdown level1 summary"><p>Turn off a previous colored text.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public SeStringBuilder AddUiForegroundOff()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.html">SeStringBuilder</a></td>
+        <td><p>The current builder.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_SeStringBuilder_AddUiGlow_System_String_System_UInt16_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.SeStringBuilder.AddUiGlow(System.String%2CSystem.UInt16)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/SeStringBuilder.cs/#L85">View Source</a>
+  </span>
+  <a id="Dalamud_Game_Text_SeStringHandling_SeStringBuilder_AddUiGlow_" data-uid="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.AddUiGlow*"></a>
+  <h4 id="Dalamud_Game_Text_SeStringHandling_SeStringBuilder_AddUiGlow_System_String_System_UInt16_" data-uid="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.AddUiGlow(System.String,System.UInt16)">AddUiGlow(String, UInt16)</h4>
+  <div class="markdown level1 summary"><p>Add glowing text to the current builder.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public SeStringBuilder AddUiGlow(string text, ushort colorKey)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">text</span></td>
+        <td><p>The raw text.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.UInt16</span></td>
+        <td><span class="parametername">colorKey</span></td>
+        <td><p>The glow color.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.html">SeStringBuilder</a></td>
+        <td><p>The current builder.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_SeStringBuilder_AddUiGlow_System_UInt16_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.SeStringBuilder.AddUiGlow(System.UInt16)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/SeStringBuilder.cs/#L71">View Source</a>
+  </span>
+  <a id="Dalamud_Game_Text_SeStringHandling_SeStringBuilder_AddUiGlow_" data-uid="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.AddUiGlow*"></a>
+  <h4 id="Dalamud_Game_Text_SeStringHandling_SeStringBuilder_AddUiGlow_System_UInt16_" data-uid="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.AddUiGlow(System.UInt16)">AddUiGlow(UInt16)</h4>
+  <div class="markdown level1 summary"><p>Start an UiGlow in the current builder.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public SeStringBuilder AddUiGlow(ushort colorKey)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt16</span></td>
+        <td><span class="parametername">colorKey</span></td>
+        <td><p>The glow color.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.html">SeStringBuilder</a></td>
+        <td><p>The current builder.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_SeStringBuilder_AddUiGlowOff.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.SeStringBuilder.AddUiGlowOff%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/SeStringBuilder.cs/#L77">View Source</a>
+  </span>
+  <a id="Dalamud_Game_Text_SeStringHandling_SeStringBuilder_AddUiGlowOff_" data-uid="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.AddUiGlowOff*"></a>
+  <h4 id="Dalamud_Game_Text_SeStringHandling_SeStringBuilder_AddUiGlowOff" data-uid="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.AddUiGlowOff">AddUiGlowOff()</h4>
+  <div class="markdown level1 summary"><p>Turn off a previous UiGlow.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public SeStringBuilder AddUiGlowOff()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.html">SeStringBuilder</a></td>
+        <td><p>The current builder.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_SeStringBuilder_Append_Dalamud_Game_Text_SeStringHandling_SeString_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.SeStringBuilder.Append(Dalamud.Game.Text.SeStringHandling.SeString)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/SeStringBuilder.cs/#L20">View Source</a>
+  </span>
+  <a id="Dalamud_Game_Text_SeStringHandling_SeStringBuilder_Append_" data-uid="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.Append*"></a>
+  <h4 id="Dalamud_Game_Text_SeStringHandling_SeStringBuilder_Append_Dalamud_Game_Text_SeStringHandling_SeString_" data-uid="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.Append(Dalamud.Game.Text.SeStringHandling.SeString)">Append(SeString)</h4>
+  <div class="markdown level1 summary"><p>Append another SeString to the builder.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public SeStringBuilder Append(SeString toAppend)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Dalamud.Game.Text.SeStringHandling.SeString.html">SeString</a></td>
+        <td><span class="parametername">toAppend</span></td>
+        <td><p>The SeString to append.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.html">SeStringBuilder</a></td>
+        <td><p>The current builder.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_SeStringBuilder_Append_System_String_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.SeStringBuilder.Append(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/SeStringBuilder.cs/#L31">View Source</a>
+  </span>
+  <a id="Dalamud_Game_Text_SeStringHandling_SeStringBuilder_Append_" data-uid="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.Append*"></a>
+  <h4 id="Dalamud_Game_Text_SeStringHandling_SeStringBuilder_Append_System_String_" data-uid="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.Append(System.String)">Append(String)</h4>
+  <div class="markdown level1 summary"><p>Append raw text to the builder.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public SeStringBuilder Append(string text)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">text</span></td>
+        <td><p>The raw text.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.html">SeStringBuilder</a></td>
+        <td><p>The current builder.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_SeStringBuilder_Build.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.SeStringBuilder.Build%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/SeStringBuilder.cs/#L186">View Source</a>
+  </span>
+  <a id="Dalamud_Game_Text_SeStringHandling_SeStringBuilder_Build_" data-uid="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.Build*"></a>
+  <h4 id="Dalamud_Game_Text_SeStringHandling_SeStringBuilder_Build" data-uid="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.Build">Build()</h4>
+  <div class="markdown level1 summary"><p>Return the built string.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public SeString Build()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Dalamud.Game.Text.SeStringHandling.SeString.html">SeString</a></td>
+        <td><p>The built string.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_SeStringBuilder_Encode.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.SeStringBuilder.Encode%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/SeStringBuilder.cs/#L192">View Source</a>
+  </span>
+  <a id="Dalamud_Game_Text_SeStringHandling_SeStringBuilder_Encode_" data-uid="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.Encode*"></a>
+  <h4 id="Dalamud_Game_Text_SeStringHandling_SeStringBuilder_Encode" data-uid="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.Encode">Encode()</h4>
+  <div class="markdown level1 summary"><p>Encode the built string to bytes.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public byte[] Encode()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Byte</span>[]</td>
+        <td><p>The built string, encoded to UTF-8 bytes.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_SeStringBuilder_ToString.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.SeStringBuilder.ToString%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/SeStringBuilder.cs/#L198">View Source</a>
+  </span>
+  <a id="Dalamud_Game_Text_SeStringHandling_SeStringBuilder_ToString_" data-uid="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.ToString*"></a>
+  <h4 id="Dalamud_Game_Text_SeStringHandling_SeStringBuilder_ToString" data-uid="Dalamud.Game.Text.SeStringHandling.SeStringBuilder.ToString">ToString()</h4>
+  <div class="markdown level1 summary"><p>Return the text representation of this string.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override string ToString()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><p>The text representation of this string.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">System.Object.ToString()</span></div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Text_SeStringHandling_SeStringBuilder.md&amp;value=---%0Auid%3A%20Dalamud.Game.Text.SeStringHandling.SeStringBuilder%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Text/SeStringHandling/SeStringBuilder.cs/#L8" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

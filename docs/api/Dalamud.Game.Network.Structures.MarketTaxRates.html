@@ -10,7 +10,7 @@
     <meta name="viewport" content="width=device-width">
     <meta name="title" content="Class MarketTaxRates
    ">
-    <meta name="generator" content="docfx 2.58.4.0">
+    <meta name="generator" content="docfx 2.58.9.0">
     
     <link rel="shortcut icon" href="../favicon.ico">
     <link rel="stylesheet" href="../styles/docfx.vendor.css">
@@ -73,7 +73,8 @@
   
   <h1 id="Dalamud_Game_Network_Structures_MarketTaxRates" data-uid="Dalamud.Game.Network.Structures.MarketTaxRates" class="text-break">Class MarketTaxRates
   </h1>
-  <div class="markdown level0 summary"><p>This class represents the market tax rates from a game network packet.</p>
+  <div class="markdown level0 summary"><p>This class represents the &quot;Result Dialog&quot; packet. This is also used e.g. for reduction results, but we only care about tax rates.
+We can do that by checking the &quot;Category&quot; field.</p>
 </div>
   <div class="markdown level0 conceptual"></div>
   <div class="inheritance">
@@ -115,10 +116,41 @@
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Network_Structures_MarketTaxRates_Category.md&amp;value=---%0Auid%3A%20Dalamud.Game.Network.Structures.MarketTaxRates.Category%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Network/Structures/MarketTaxRates.cs/#L19">View Source</a>
+  </span>
+  <a id="Dalamud_Game_Network_Structures_MarketTaxRates_Category_" data-uid="Dalamud.Game.Network.Structures.MarketTaxRates.Category*"></a>
+  <h4 id="Dalamud_Game_Network_Structures_MarketTaxRates_Category" data-uid="Dalamud.Game.Network.Structures.MarketTaxRates.Category">Category</h4>
+  <div class="markdown level1 summary"><p>Gets the category of this ResultDialog packet.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public uint Category { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Network_Structures_MarketTaxRates_CrystariumTax.md&amp;value=---%0Auid%3A%20Dalamud.Game.Network.Structures.MarketTaxRates.CrystariumTax%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Network/Structures/MarketTaxRates.cs/#L46">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Network/Structures/MarketTaxRates.cs/#L49">View Source</a>
   </span>
   <a id="Dalamud_Game_Network_Structures_MarketTaxRates_CrystariumTax_" data-uid="Dalamud.Game.Network.Structures.MarketTaxRates.CrystariumTax*"></a>
   <h4 id="Dalamud_Game_Network_Structures_MarketTaxRates_CrystariumTax" data-uid="Dalamud.Game.Network.Structures.MarketTaxRates.CrystariumTax">CrystariumTax</h4>
@@ -149,7 +181,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Network_Structures_MarketTaxRates_GridaniaTax.md&amp;value=---%0Auid%3A%20Dalamud.Game.Network.Structures.MarketTaxRates.GridaniaTax%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Network/Structures/MarketTaxRates.cs/#L26">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Network/Structures/MarketTaxRates.cs/#L29">View Source</a>
   </span>
   <a id="Dalamud_Game_Network_Structures_MarketTaxRates_GridaniaTax_" data-uid="Dalamud.Game.Network.Structures.MarketTaxRates.GridaniaTax*"></a>
   <h4 id="Dalamud_Game_Network_Structures_MarketTaxRates_GridaniaTax" data-uid="Dalamud.Game.Network.Structures.MarketTaxRates.GridaniaTax">GridaniaTax</h4>
@@ -180,7 +212,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Network_Structures_MarketTaxRates_IshgardTax.md&amp;value=---%0Auid%3A%20Dalamud.Game.Network.Structures.MarketTaxRates.IshgardTax%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Network/Structures/MarketTaxRates.cs/#L36">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Network/Structures/MarketTaxRates.cs/#L39">View Source</a>
   </span>
   <a id="Dalamud_Game_Network_Structures_MarketTaxRates_IshgardTax_" data-uid="Dalamud.Game.Network.Structures.MarketTaxRates.IshgardTax*"></a>
   <h4 id="Dalamud_Game_Network_Structures_MarketTaxRates_IshgardTax" data-uid="Dalamud.Game.Network.Structures.MarketTaxRates.IshgardTax">IshgardTax</h4>
@@ -211,7 +243,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Network_Structures_MarketTaxRates_KuganeTax.md&amp;value=---%0Auid%3A%20Dalamud.Game.Network.Structures.MarketTaxRates.KuganeTax%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Network/Structures/MarketTaxRates.cs/#L41">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Network/Structures/MarketTaxRates.cs/#L44">View Source</a>
   </span>
   <a id="Dalamud_Game_Network_Structures_MarketTaxRates_KuganeTax_" data-uid="Dalamud.Game.Network.Structures.MarketTaxRates.KuganeTax*"></a>
   <h4 id="Dalamud_Game_Network_Structures_MarketTaxRates_KuganeTax" data-uid="Dalamud.Game.Network.Structures.MarketTaxRates.KuganeTax">KuganeTax</h4>
@@ -242,7 +274,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Network_Structures_MarketTaxRates_LimsaLominsaTax.md&amp;value=---%0Auid%3A%20Dalamud.Game.Network.Structures.MarketTaxRates.LimsaLominsaTax%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Network/Structures/MarketTaxRates.cs/#L21">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Network/Structures/MarketTaxRates.cs/#L24">View Source</a>
   </span>
   <a id="Dalamud_Game_Network_Structures_MarketTaxRates_LimsaLominsaTax_" data-uid="Dalamud.Game.Network.Structures.MarketTaxRates.LimsaLominsaTax*"></a>
   <h4 id="Dalamud_Game_Network_Structures_MarketTaxRates_LimsaLominsaTax" data-uid="Dalamud.Game.Network.Structures.MarketTaxRates.LimsaLominsaTax">LimsaLominsaTax</h4>
@@ -270,10 +302,41 @@
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Network_Structures_MarketTaxRates_SharlayanTax.md&amp;value=---%0Auid%3A%20Dalamud.Game.Network.Structures.MarketTaxRates.SharlayanTax%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Network/Structures/MarketTaxRates.cs/#L54">View Source</a>
+  </span>
+  <a id="Dalamud_Game_Network_Structures_MarketTaxRates_SharlayanTax_" data-uid="Dalamud.Game.Network.Structures.MarketTaxRates.SharlayanTax*"></a>
+  <h4 id="Dalamud_Game_Network_Structures_MarketTaxRates_SharlayanTax" data-uid="Dalamud.Game.Network.Structures.MarketTaxRates.SharlayanTax">SharlayanTax</h4>
+  <div class="markdown level1 summary"><p>Gets the tax rate in the Crystarium.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public uint SharlayanTax { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.UInt32</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Network_Structures_MarketTaxRates_UldahTax.md&amp;value=---%0Auid%3A%20Dalamud.Game.Network.Structures.MarketTaxRates.UldahTax%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Network/Structures/MarketTaxRates.cs/#L31">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Network/Structures/MarketTaxRates.cs/#L34">View Source</a>
   </span>
   <a id="Dalamud_Game_Network_Structures_MarketTaxRates_UldahTax_" data-uid="Dalamud.Game.Network.Structures.MarketTaxRates.UldahTax*"></a>
   <h4 id="Dalamud_Game_Network_Structures_MarketTaxRates_UldahTax" data-uid="Dalamud.Game.Network.Structures.MarketTaxRates.UldahTax">UldahTax</h4>
@@ -306,7 +369,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Network_Structures_MarketTaxRates_Read_System_IntPtr_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Network.Structures.MarketTaxRates.Read(System.IntPtr)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Network/Structures/MarketTaxRates.cs/#L53">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Network/Structures/MarketTaxRates.cs/#L61">View Source</a>
   </span>
   <a id="Dalamud_Game_Network_Structures_MarketTaxRates_Read_" data-uid="Dalamud.Game.Network.Structures.MarketTaxRates.Read*"></a>
   <h4 id="Dalamud_Game_Network_Structures_MarketTaxRates_Read_System_IntPtr_" data-uid="Dalamud.Game.Network.Structures.MarketTaxRates.Read(System.IntPtr)">Read(IntPtr)</h4>
@@ -362,7 +425,7 @@
                     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Network_Structures_MarketTaxRates.md&amp;value=---%0Auid%3A%20Dalamud.Game.Network.Structures.MarketTaxRates%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
                   </li>
                   <li>
-                    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Network/Structures/MarketTaxRates.cs/#L9" class="contribution-link">View Source</a>
+                    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Network/Structures/MarketTaxRates.cs/#L10" class="contribution-link">View Source</a>
                   </li>
                 </ul>
               </div>

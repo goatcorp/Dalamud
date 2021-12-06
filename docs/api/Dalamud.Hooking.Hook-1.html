@@ -10,7 +10,7 @@
     <meta name="viewport" content="width=device-width">
     <meta name="title" content="Class Hook&lt;T&gt;
    ">
-    <meta name="generator" content="docfx 2.58.4.0">
+    <meta name="generator" content="docfx 2.58.9.0">
     
     <link rel="shortcut icon" href="../favicon.ico">
     <link rel="stylesheet" href="../styles/docfx.vendor.css">
@@ -140,7 +140,7 @@ This class is basically a thin wrapper around the LocalHook type to provide help
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Hooking_Hook_1__ctor_System_IntPtr__0_.md&amp;value=---%0Auid%3A%20Dalamud.Hooking.Hook%601.%23ctor(System.IntPtr%2C%600)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Hooking/Hook.cs/#L26">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Hooking/Hook.cs/#L30">View Source</a>
   </span>
   <a id="Dalamud_Hooking_Hook_1__ctor_" data-uid="Dalamud.Hooking.Hook`1.#ctor*"></a>
   <h4 id="Dalamud_Hooking_Hook_1__ctor_System_IntPtr__0_" data-uid="Dalamud.Hooking.Hook`1.#ctor(System.IntPtr,`0)">Hook(IntPtr, T)</h4>
@@ -176,6 +176,54 @@ Hook is not activated until Enable() method is called.</p>
       </tr>
     </tbody>
   </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Hooking_Hook_1__ctor_System_IntPtr__0_System_Boolean_.md&amp;value=---%0Auid%3A%20Dalamud.Hooking.Hook%601.%23ctor(System.IntPtr%2C%600%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Hooking/Hook.cs/#L43">View Source</a>
+  </span>
+  <a id="Dalamud_Hooking_Hook_1__ctor_" data-uid="Dalamud.Hooking.Hook`1.#ctor*"></a>
+  <h4 id="Dalamud_Hooking_Hook_1__ctor_System_IntPtr__0_System_Boolean_" data-uid="Dalamud.Hooking.Hook`1.#ctor(System.IntPtr,`0,System.Boolean)">Hook(IntPtr, T, Boolean)</h4>
+  <div class="markdown level1 summary"><p>Initializes a new instance of the <a class="xref" href="Dalamud.Hooking.Hook-1.html">Hook&lt;T&gt;</a> class.
+Hook is not activated until Enable() method is called.
+Please do not use MinHook unless you have thoroughly troubleshot why Reloaded does not work.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Hook(IntPtr address, T detour, bool useMinHook)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IntPtr</span></td>
+        <td><span class="parametername">address</span></td>
+        <td><p>A memory address to install a hook.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">T</span></td>
+        <td><span class="parametername">detour</span></td>
+        <td><p>Callback function. Delegate must have a same original function prototype.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">useMinHook</span></td>
+        <td><p>Use the MinHook hooking library instead of Reloaded.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
   <h3 id="properties">Properties
   </h3>
   <span class="small pull-right mobile-hide">
@@ -183,7 +231,7 @@ Hook is not activated until Enable() method is called.</p>
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Hooking_Hook_1_Address.md&amp;value=---%0Auid%3A%20Dalamud.Hooking.Hook%601.Address%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Hooking/Hook.cs/#L47">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Hooking/Hook.cs/#L85">View Source</a>
   </span>
   <a id="Dalamud_Hooking_Hook_1_Address_" data-uid="Dalamud.Hooking.Hook`1.Address*"></a>
   <h4 id="Dalamud_Hooking_Hook_1_Address" data-uid="Dalamud.Hooking.Hook`1.Address">Address</h4>
@@ -227,10 +275,41 @@ Hook is not activated until Enable() method is called.</p>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Hooking_Hook_1_BackendName.md&amp;value=---%0Auid%3A%20Dalamud.Hooking.Hook%601.BackendName%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Hooking/Hook.cs/#L139">View Source</a>
+  </span>
+  <a id="Dalamud_Hooking_Hook_1_BackendName_" data-uid="Dalamud.Hooking.Hook`1.BackendName*"></a>
+  <h4 id="Dalamud_Hooking_Hook_1_BackendName" data-uid="Dalamud.Hooking.Hook`1.BackendName">BackendName</h4>
+  <div class="markdown level1 summary"><p>Gets the name of the hooking backend used for the hook.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public string BackendName { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Hooking_Hook_1_IsDisposed.md&amp;value=---%0Auid%3A%20Dalamud.Hooking.Hook%601.IsDisposed%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Hooking/Hook.cs/#L84">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Hooking/Hook.cs/#L136">View Source</a>
   </span>
   <a id="Dalamud_Hooking_Hook_1_IsDisposed_" data-uid="Dalamud.Hooking.Hook`1.IsDisposed*"></a>
   <h4 id="Dalamud_Hooking_Hook_1_IsDisposed" data-uid="Dalamud.Hooking.Hook`1.IsDisposed">IsDisposed</h4>
@@ -261,7 +340,7 @@ Hook is not activated until Enable() method is called.</p>
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Hooking_Hook_1_IsEnabled.md&amp;value=---%0Auid%3A%20Dalamud.Hooking.Hook%601.IsEnabled%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Hooking/Hook.cs/#L72">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Hooking/Hook.cs/#L117">View Source</a>
   </span>
   <a id="Dalamud_Hooking_Hook_1_IsEnabled_" data-uid="Dalamud.Hooking.Hook`1.IsEnabled*"></a>
   <h4 id="Dalamud_Hooking_Hook_1_IsEnabled" data-uid="Dalamud.Hooking.Hook`1.IsEnabled">IsEnabled</h4>
@@ -292,7 +371,7 @@ Hook is not activated until Enable() method is called.</p>
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Hooking_Hook_1_Original.md&amp;value=---%0Auid%3A%20Dalamud.Hooking.Hook%601.Original%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Hooking/Hook.cs/#L60">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Hooking/Hook.cs/#L98">View Source</a>
   </span>
   <a id="Dalamud_Hooking_Hook_1_Original_" data-uid="Dalamud.Hooking.Hook`1.Original*"></a>
   <h4 id="Dalamud_Hooking_Hook_1_Original" data-uid="Dalamud.Hooking.Hook`1.Original">Original</h4>
@@ -341,7 +420,7 @@ Hook is not activated until Enable() method is called.</p>
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Hooking_Hook_1_Disable.md&amp;value=---%0Auid%3A%20Dalamud.Hooking.Hook%601.Disable%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Hooking/Hook.cs/#L138">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Hooking/Hook.cs/#L234">View Source</a>
   </span>
   <a id="Dalamud_Hooking_Hook_1_Disable_" data-uid="Dalamud.Hooking.Hook`1.Disable*"></a>
   <h4 id="Dalamud_Hooking_Hook_1_Disable" data-uid="Dalamud.Hooking.Hook`1.Disable">Disable()</h4>
@@ -357,7 +436,7 @@ Hook is not activated until Enable() method is called.</p>
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Hooking_Hook_1_Dispose.md&amp;value=---%0Auid%3A%20Dalamud.Hooking.Hook%601.Dispose%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Hooking/Hook.cs/#L110">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Hooking/Hook.cs/#L187">View Source</a>
   </span>
   <a id="Dalamud_Hooking_Hook_1_Dispose_" data-uid="Dalamud.Hooking.Hook`1.Dispose*"></a>
   <h4 id="Dalamud_Hooking_Hook_1_Dispose" data-uid="Dalamud.Hooking.Hook`1.Dispose">Dispose()</h4>
@@ -373,7 +452,7 @@ Hook is not activated until Enable() method is called.</p>
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Hooking_Hook_1_Enable.md&amp;value=---%0Auid%3A%20Dalamud.Hooking.Hook%601.Enable%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Hooking/Hook.cs/#L124">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Hooking/Hook.cs/#L210">View Source</a>
   </span>
   <a id="Dalamud_Hooking_Hook_1_Enable_" data-uid="Dalamud.Hooking.Hook`1.Enable*"></a>
   <h4 id="Dalamud_Hooking_Hook_1_Enable" data-uid="Dalamud.Hooking.Hook`1.Enable">Enable()</h4>
@@ -389,7 +468,7 @@ Hook is not activated until Enable() method is called.</p>
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Hooking_Hook_1_FromSymbol_System_String_System_String__0_.md&amp;value=---%0Auid%3A%20Dalamud.Hooking.Hook%601.FromSymbol(System.String%2CSystem.String%2C%600)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Hooking/Hook.cs/#L94">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Hooking/Hook.cs/#L158">View Source</a>
   </span>
   <a id="Dalamud_Hooking_Hook_1_FromSymbol_" data-uid="Dalamud.Hooking.Hook`1.FromSymbol*"></a>
   <h4 id="Dalamud_Hooking_Hook_1_FromSymbol_System_String_System_String__0_" data-uid="Dalamud.Hooking.Hook`1.FromSymbol(System.String,System.String,`0)">FromSymbol(String, String, T)</h4>
@@ -447,6 +526,76 @@ The hook is not activated until Enable() method is called.</p>
       </tr>
     </tbody>
   </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Hooking_Hook_1_FromSymbol_System_String_System_String__0_System_Boolean_.md&amp;value=---%0Auid%3A%20Dalamud.Hooking.Hook%601.FromSymbol(System.String%2CSystem.String%2C%600%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Hooking/Hook.cs/#L171">View Source</a>
+  </span>
+  <a id="Dalamud_Hooking_Hook_1_FromSymbol_" data-uid="Dalamud.Hooking.Hook`1.FromSymbol*"></a>
+  <h4 id="Dalamud_Hooking_Hook_1_FromSymbol_System_String_System_String__0_System_Boolean_" data-uid="Dalamud.Hooking.Hook`1.FromSymbol(System.String,System.String,`0,System.Boolean)">FromSymbol(String, String, T, Boolean)</h4>
+  <div class="markdown level1 summary"><p>Creates a hook. Hooking address is inferred by calling to GetProcAddress() function.
+The hook is not activated until Enable() method is called.
+Please do not use MinHook unless you have thoroughly troubleshot why Reloaded does not work.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static Hook&lt;T&gt; FromSymbol(string moduleName, string exportName, T detour, bool useMinHook)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">moduleName</span></td>
+        <td><p>A name of the module currently loaded in the memory. (e.g. ws2_32.dll).</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">exportName</span></td>
+        <td><p>A name of the exported function name (e.g. send).</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">T</span></td>
+        <td><span class="parametername">detour</span></td>
+        <td><p>Callback function. Delegate must have a same original function prototype.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">useMinHook</span></td>
+        <td><p>Use the MinHook hooking library instead of Reloaded.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="Dalamud.Hooking.Hook-1.html">Hook</a>&lt;T&gt;</td>
+        <td><p>The hook with the supplied parameters.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
   <h3 id="implements">Implements</h3>
   <div>
       <span class="xref">System.IDisposable</span>
@@ -465,7 +614,7 @@ The hook is not activated until Enable() method is called.</p>
                     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Hooking_Hook_1.md&amp;value=---%0Auid%3A%20Dalamud.Hooking.Hook%601%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
                   </li>
                   <li>
-                    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Hooking/Hook.cs/#L15" class="contribution-link">View Source</a>
+                    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Hooking/Hook.cs/#L17" class="contribution-link">View Source</a>
                   </li>
                 </ul>
               </div>
