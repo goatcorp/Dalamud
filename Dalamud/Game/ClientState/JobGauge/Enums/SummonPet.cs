@@ -11,18 +11,8 @@ namespace Dalamud.Game.ClientState.JobGauge.Enums
         NONE = 0,
 
         /// <summary>
-        /// The summoned pet Ifrit.
+        /// The summoned pet Carbuncle.
         /// </summary>
-        IFRIT = 3,
-
-        /// <summary>
-        /// The summoned pet Titan.
-        /// </summary>
-        TITAN = 4,
-
-        /// <summary>
-        /// The summoned pet Garuda.
-        /// </summary>
-        GARUDA = 5,
+        CARBUNCLE = 23,
     }
 }

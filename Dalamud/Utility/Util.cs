@@ -174,7 +174,12 @@ namespace Dalamud.Utility
 
             foreach (var propertyInfo in type.GetProperties())
             {
-                ImGui.TextColored(ImGuiColors.DalamudOrange, $"    {propertyInfo.Name}: {propertyInfo.GetValue(obj)}");
+                var value = propertyInfo.GetValue(obj);
+                var valueType = value?.GetType();
+                if (valueType == typeof(IntPtr))
+                    ImGui.TextColored(ImGuiColors.DalamudOrange, $"    {propertyInfo.Name}: 0x{value:X}");
+                else
+                    ImGui.TextColored(ImGuiColors.DalamudOrange, $"    {propertyInfo.Name}: {value}");
             }
 
             ImGui.Unindent();

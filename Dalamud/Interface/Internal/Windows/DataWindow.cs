@@ -769,164 +769,37 @@ namespace Dalamud.Interface.Internal.Windows
             }
 
             var jobID = player.ClassJob.Id;
-            if (jobID == 19)
+            JobGaugeBase? gauge = jobID switch
             {
-                var gauge = jobGauges.Get<PLDGauge>();
-                ImGui.Text($"Address: 0x{gauge.Address.ToInt64():X}");
-                ImGui.Text($"{nameof(gauge.OathGauge)}: {gauge.OathGauge}");
-            }
-            else if (jobID == 20)
-            {
-                var gauge = jobGauges.Get<MNKGauge>();
-                ImGui.Text($"Address: 0x{gauge.Address.ToInt64():X}");
-                ImGui.Text($"{nameof(gauge.Chakra)}: {gauge.Chakra}");
-            }
-            else if (jobID == 21)
-            {
-                var gauge = jobGauges.Get<WARGauge>();
-                ImGui.Text($"Address: 0x{gauge.Address.ToInt64():X}");
-                ImGui.Text($"{nameof(gauge.BeastGauge)}: {gauge.BeastGauge}");
-            }
-            else if (jobID == 22)
-            {
-                var gauge = jobGauges.Get<DRGGauge>();
-                ImGui.Text($"Address: 0x{gauge.Address.ToInt64():X}");
-                ImGui.Text($"{nameof(gauge.BOTDTimer)}: {gauge.BOTDTimer}");
-                ImGui.Text($"{nameof(gauge.BOTDState)}: {gauge.BOTDState}");
-                ImGui.Text($"{nameof(gauge.EyeCount)}: {gauge.EyeCount}");
-            }
-            else if (jobID == 23)
-            {
-                var gauge = jobGauges.Get<BRDGauge>();
-                ImGui.Text($"Address: 0x{gauge.Address.ToInt64():X}");
-                ImGui.Text($"{nameof(gauge.SongTimer)}: {gauge.SongTimer}");
-                ImGui.Text($"{nameof(gauge.Repertoire)}: {gauge.Repertoire}");
-                ImGui.Text($"{nameof(gauge.SoulVoice)}: {gauge.SoulVoice}");
-                ImGui.Text($"{nameof(gauge.Song)}: {gauge.Song}");
-            }
-            else if (jobID == 24)
-            {
-                var gauge = jobGauges.Get<WHMGauge>();
-                ImGui.Text($"Address: 0x{gauge.Address.ToInt64():X}");
-                ImGui.Text($"{nameof(gauge.LilyTimer)}: {gauge.LilyTimer}");
-                ImGui.Text($"{nameof(gauge.Lily)}: {gauge.Lily}");
-                ImGui.Text($"{nameof(gauge.BloodLily)}: {gauge.BloodLily}");
-            }
-            else if (jobID == 25)
-            {
-                var gauge = jobGauges.Get<BLMGauge>();
-                ImGui.Text($"Address: 0x{gauge.Address.ToInt64():X}");
-                ImGui.Text($"{nameof(gauge.EnochianTimer)}: {gauge.EnochianTimer}");
-                ImGui.Text($"{nameof(gauge.ElementTimeRemaining)}: {gauge.ElementTimeRemaining}");
-                ImGui.Text($"{nameof(gauge.PolyglotStacks)}: {gauge.PolyglotStacks}");
-                ImGui.Text($"{nameof(gauge.UmbralHearts)}: {gauge.UmbralHearts}");
-                ImGui.Text($"{nameof(gauge.UmbralIceStacks)}: {gauge.UmbralIceStacks}");
-                ImGui.Text($"{nameof(gauge.AstralFireStacks)}: {gauge.AstralFireStacks}");
-                ImGui.Text($"{nameof(gauge.InUmbralIce)}: {gauge.InUmbralIce}");
-                ImGui.Text($"{nameof(gauge.InAstralFire)}: {gauge.InAstralFire}");
-                ImGui.Text($"{nameof(gauge.IsEnochianActive)}: {gauge.IsEnochianActive}");
-            }
-            else if (jobID == 27)
-            {
-                var gauge = jobGauges.Get<SMNGauge>();
-                ImGui.Text($"Address: 0x{gauge.Address.ToInt64():X}");
-                ImGui.Text($"{nameof(gauge.TimerRemaining)}: {gauge.TimerRemaining}");
-                ImGui.Text($"{nameof(gauge.ReturnSummon)}: {gauge.ReturnSummon}");
-                ImGui.Text($"{nameof(gauge.ReturnSummonGlam)}: {gauge.ReturnSummonGlam}");
-                ImGui.Text($"{nameof(gauge.AetherFlags)}: {gauge.AetherFlags}");
-                ImGui.Text($"{nameof(gauge.IsPhoenixReady)}: {gauge.IsPhoenixReady}");
-                ImGui.Text($"{nameof(gauge.IsBahamutReady)}: {gauge.IsBahamutReady}");
-                ImGui.Text($"{nameof(gauge.HasAetherflowStacks)}: {gauge.HasAetherflowStacks}");
-            }
-            else if (jobID == 28)
-            {
-                var gauge = jobGauges.Get<SCHGauge>();
-                ImGui.Text($"Address: 0x{gauge.Address.ToInt64():X}");
-                ImGui.Text($"{nameof(gauge.Aetherflow)}: {gauge.Aetherflow}");
-                ImGui.Text($"{nameof(gauge.FairyGauge)}: {gauge.FairyGauge}");
-                ImGui.Text($"{nameof(gauge.SeraphTimer)}: {gauge.SeraphTimer}");
-                ImGui.Text($"{nameof(gauge.DismissedFairy)}: {gauge.DismissedFairy}");
-            }
-            else if (jobID == 30)
-            {
-                var gauge = jobGauges.Get<NINGauge>();
-                ImGui.Text($"Address: 0x{gauge.Address.ToInt64():X}");
-                ImGui.Text($"{nameof(gauge.HutonTimer)}: {gauge.HutonTimer}");
-                ImGui.Text($"{nameof(gauge.Ninki)}: {gauge.Ninki}");
-                ImGui.Text($"{nameof(gauge.HutonManualCasts)}: {gauge.HutonManualCasts}");
-            }
-            else if (jobID == 31)
-            {
-                var gauge = jobGauges.Get<MCHGauge>();
-                ImGui.Text($"Address: 0x{gauge.Address.ToInt64():X}");
-                ImGui.Text($"{nameof(gauge.OverheatTimeRemaining)}: {gauge.OverheatTimeRemaining}");
-                ImGui.Text($"{nameof(gauge.SummonTimeRemaining)}: {gauge.SummonTimeRemaining}");
-                ImGui.Text($"{nameof(gauge.Heat)}: {gauge.Heat}");
-                ImGui.Text($"{nameof(gauge.Battery)}: {gauge.Battery}");
-                ImGui.Text($"{nameof(gauge.LastSummonBatteryPower)}: {gauge.LastSummonBatteryPower}");
-                ImGui.Text($"{nameof(gauge.IsOverheated)}: {gauge.IsOverheated}");
-                ImGui.Text($"{nameof(gauge.IsRobotActive)}: {gauge.IsRobotActive}");
-            }
-            else if (jobID == 32)
-            {
-                var gauge = jobGauges.Get<DRKGauge>();
-                ImGui.Text($"Address: 0x{gauge.Address.ToInt64():X}");
-                ImGui.Text($"{nameof(gauge.Blood)}: {gauge.Blood}");
-                ImGui.Text($"{nameof(gauge.DarksideTimeRemaining)}: {gauge.DarksideTimeRemaining}");
-                ImGui.Text($"{nameof(gauge.ShadowTimeRemaining)}: {gauge.ShadowTimeRemaining}");
-                ImGui.Text($"{nameof(gauge.HasDarkArts)}: {gauge.HasDarkArts}");
-            }
-            else if (jobID == 33)
-            {
-                var gauge = jobGauges.Get<ASTGauge>();
-                ImGui.Text($"Address: 0x{gauge.Address.ToInt64():X}");
-                ImGui.Text($"{nameof(gauge.DrawnCard)}: {gauge.DrawnCard}");
-                foreach (var seal in Enum.GetValues(typeof(SealType)).Cast<SealType>())
-                {
-                    var sealName = Enum.GetName(typeof(SealType), seal);
-                    ImGui.Text($"{nameof(gauge.ContainsSeal)}({sealName}): {gauge.ContainsSeal(seal)}");
-                }
-            }
-            else if (jobID == 34)
-            {
-                var gauge = jobGauges.Get<SAMGauge>();
-                ImGui.Text($"Address: 0x{gauge.Address.ToInt64():X}");
-                ImGui.Text($"{nameof(gauge.Kenki)}: {gauge.Kenki}");
-                ImGui.Text($"{nameof(gauge.MeditationStacks)}: {gauge.MeditationStacks}");
-                ImGui.Text($"{nameof(gauge.Sen)}: {gauge.Sen}");
-                ImGui.Text($"{nameof(gauge.HasSetsu)}: {gauge.HasSetsu}");
-                ImGui.Text($"{nameof(gauge.HasGetsu)}: {gauge.HasGetsu}");
-                ImGui.Text($"{nameof(gauge.HasKa)}: {gauge.HasKa}");
-            }
-            else if (jobID == 35)
-            {
-                var gauge = jobGauges.Get<RDMGauge>();
-                ImGui.Text($"Address: 0x{gauge.Address.ToInt64():X}");
-                ImGui.Text($"{nameof(gauge.WhiteMana)}: {gauge.WhiteMana}");
-                ImGui.Text($"{nameof(gauge.BlackMana)}: {gauge.BlackMana}");
-            }
-            else if (jobID == 37)
-            {
-                var gauge = jobGauges.Get<GNBGauge>();
-                ImGui.Text($"Address: 0x{gauge.Address.ToInt64():X}");
-                ImGui.Text($"{nameof(gauge.Ammo)}: {gauge.Ammo}");
-                ImGui.Text($"{nameof(gauge.MaxTimerDuration)}: {gauge.MaxTimerDuration}");
-                ImGui.Text($"{nameof(gauge.AmmoComboStep)}: {gauge.AmmoComboStep}");
-            }
-            else if (jobID == 38)
-            {
-                var gauge = jobGauges.Get<DNCGauge>();
-                ImGui.Text($"Address: 0x{gauge.Address.ToInt64():X}");
-                ImGui.Text($"{nameof(gauge.Feathers)}: {gauge.Feathers}");
-                ImGui.Text($"{nameof(gauge.Esprit)}: {gauge.Esprit}");
-                ImGui.Text($"{nameof(gauge.CompletedSteps)}: {gauge.CompletedSteps}");
-                ImGui.Text($"{nameof(gauge.NextStep)}: {gauge.NextStep}");
-                ImGui.Text($"{nameof(gauge.IsDancing)}: {gauge.IsDancing}");
-            }
-            else
+                19 => jobGauges.Get<PLDGauge>(),
+                20 => jobGauges.Get<MNKGauge>(),
+                21 => jobGauges.Get<WARGauge>(),
+                22 => jobGauges.Get<DRGGauge>(),
+                23 => jobGauges.Get<BRDGauge>(),
+                24 => jobGauges.Get<WHMGauge>(),
+                25 => jobGauges.Get<BLMGauge>(),
+                27 => jobGauges.Get<SMNGauge>(),
+                28 => jobGauges.Get<SCHGauge>(),
+                30 => jobGauges.Get<NINGauge>(),
+                31 => jobGauges.Get<MCHGauge>(),
+                32 => jobGauges.Get<DRKGauge>(),
+                33 => jobGauges.Get<ASTGauge>(),
+                34 => jobGauges.Get<SAMGauge>(),
+                35 => jobGauges.Get<RDMGauge>(),
+                37 => jobGauges.Get<GNBGauge>(),
+                38 => jobGauges.Get<DNCGauge>(),
+                39 => jobGauges.Get<RPRGauge>(),
+                40 => jobGauges.Get<SGEGauge>(),
+                _ => null,
+            };
+
+            if (gauge == null)
             {
                 ImGui.Text("No supported gauge exists for this job.");
+                return;
             }
+
+            Util.ShowObject(gauge);
         }
 
         private void DrawCommand()
