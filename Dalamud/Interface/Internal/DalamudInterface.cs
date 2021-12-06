@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Reflection;
@@ -24,6 +25,7 @@ using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using ImGuiNET;
+using ImGuiScene;
 using PInvoke;
 using Serilog.Events;
 
@@ -60,6 +62,8 @@ namespace Dalamud.Interface.Internal
 
         private bool isImGuiDrawDemoWindow = false;
         private bool isImGuiDrawMetricsWindow = false;
+
+        private readonly TextureWrap logoTexture;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DalamudInterface"/> class.
@@ -100,7 +104,12 @@ namespace Dalamud.Interface.Internal
 
             ImGuiManagedAsserts.AssertsEnabled = configuration.AssertsEnabledAtStartup;
 
-            Service<InterfaceManager>.Get().Draw += this.OnDraw;
+            var interfaceManager = Service<InterfaceManager>.Get();
+            interfaceManager.Draw += this.OnDraw;
+            var dalamud = Service<Dalamud>.Get();
+
+            this.logoTexture =
+                interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "logo.png"))!;
         }
 
         /// <summary>
@@ -121,6 +130,8 @@ namespace Dalamud.Interface.Internal
         public void Dispose()
         {
             Service<InterfaceManager>.Get().Draw -= this.OnDraw;
+
+            this.logoTexture.Dispose();
 
             this.WindowSystem.RemoveAllWindows();
 
@@ -363,11 +374,10 @@ namespace Dalamud.Interface.Internal
 
                     if (config.DoDalamudTest)
                     {
-                        ImGui.SetWindowFontScale(2.2f);
                         ImGuiHelpers.ScaledDummy(20);
                         ImGuiHelpers.ScaledDummy(20);
                         ImGui.SameLine();
-                        ImGui.TextColored(ImGuiColors.DPSRed, "Dalamud Staging");
+                        ImGui.Image(this.logoTexture.ImGuiHandle, new Vector2(25, 25));
                     }
 
                     ImGui.End();
