@@ -363,26 +363,36 @@ namespace Dalamud.Interface.Internal
                 ImGui.PushStyleColor(ImGuiCol.BorderShadow, new Vector4(0, 0, 0, 1));
                 ImGui.PushStyleColor(ImGuiCol.WindowBg, new Vector4(0, 0, 0, 1));
 
-                var mainViewportPos = ImGui.GetMainViewport().Pos;
-                ImGui.SetNextWindowPos(new Vector2(mainViewportPos.X, mainViewportPos.Y), ImGuiCond.Always);
+                ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
+                ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, Vector2.Zero);
+                ImGui.PushStyleVar(ImGuiStyleVar.WindowBorderSize, 0);
+
+                var windowPos = ImGui.GetMainViewport().Pos + new Vector2(40);
+                ImGui.SetNextWindowPos(windowPos, ImGuiCond.Always);
                 ImGui.SetNextWindowBgAlpha(1);
+
+                var imageSize = new Vector2(90);
 
                 if (ImGui.Begin("DevMenu Opener", ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoSavedSettings))
                 {
-                    if (ImGui.Button("###devMenuOpener", new Vector2(40, 25)))
+                    var cursor = ImGui.GetCursorPos();
+                    if (ImGui.Button("###devMenuOpener", imageSize))
                         this.isImGuiDrawDevMenu = true;
 
+#if !DEBUG
                     if (config.DoDalamudTest)
                     {
-                        ImGuiHelpers.ScaledDummy(20);
-                        ImGuiHelpers.ScaledDummy(20);
-                        ImGui.SameLine();
-                        ImGui.Image(this.logoTexture.ImGuiHandle, new Vector2(25, 25));
+#endif
+                        ImGui.SetCursorPos(cursor);
+                        ImGui.Image(this.logoTexture.ImGuiHandle, imageSize);
+#if !DEBUG
                     }
+#endif
 
                     ImGui.End();
                 }
-
+                
+                ImGui.PopStyleVar(3);
                 ImGui.PopStyleColor(8);
             }
         }
