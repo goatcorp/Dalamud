@@ -19,7 +19,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         // TODO: even though this is present in some item links, it may not really have a use at all
         //   For things like owo, changing the text payload is probably correct, whereas changing the
         //   actual embedded name might not work properly.
-        private string displayName = null;
+        private string? displayName = null;
 
         [JsonProperty]
         private uint itemId;
@@ -29,14 +29,14 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         /// Creates a payload representing an interactable item link for the specified item.
         /// </summary>
         /// <param name="itemId">The id of the item.</param>
-        /// <param name="isHQ">Whether or not the link should be for the high-quality variant of the item.</param>
+        /// <param name="isHq">Whether or not the link should be for the high-quality variant of the item.</param>
         /// <param name="displayNameOverride">An optional name to include in the item link.  Typically this should
         /// be left as null, or set to the normal item name.  Actual overrides are better done with the subsequent
         /// TextPayload that is a part of a full item link in chat.</param>
-        public ItemPayload(uint itemId, bool isHQ, string displayNameOverride = null)
+        public ItemPayload(uint itemId, bool isHq, string? displayNameOverride = null)
         {
             this.itemId = itemId;
-            this.IsHQ = isHQ;
+            this.IsHQ = isHq;
             this.displayName = displayNameOverride;
         }
 

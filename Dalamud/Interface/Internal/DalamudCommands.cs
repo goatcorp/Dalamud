@@ -8,7 +8,9 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Game;
 using Dalamud.Game.Command;
 using Dalamud.Game.Gui;
+using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Plugin.Internal;
+using Dalamud.Utility;
 using Serilog;
 
 namespace Dalamud.Interface.Internal
@@ -122,6 +124,11 @@ namespace Dalamud.Interface.Internal
                 HelpMessage = Loc.Localize(
                         "DalamudSettingsHelp",
                         "Change various In-Game-Addon settings like chat channels and the discord bot setup."),
+            });
+
+            commandManager.AddHandler("/xlversion", new CommandInfo(this.OnDebugImInfoCommand)
+            {
+                HelpMessage = "Dalamud version info",
             });
 
             commandManager.AddHandler("/imdebug", new CommandInfo(this.OnDebugImInfoCommand)
@@ -304,6 +311,21 @@ namespace Dalamud.Interface.Internal
             info += $"NavVisible: {io.NavVisible}\n";
 
             Log.Information(info);
+        }
+
+        private void OnVersionInfo(string command, string arguments)
+        {
+            var chatGui = Service<ChatGui>.Get();
+
+            chatGui.Print(new SeStringBuilder()
+                              .AddItalics("Dalamud:")
+                              .AddText($" D{Util.AssemblyVersion}({Util.GetGitHash()}")
+                              .Build());
+
+            chatGui.Print(new SeStringBuilder()
+                          .AddItalics("FFXIVCS:")
+                          .AddText($" {Util.GetGitHashClientStructs()}")
+                          .Build());
         }
 
         private void OnOpenInstallerCommand(string command, string arguments)
