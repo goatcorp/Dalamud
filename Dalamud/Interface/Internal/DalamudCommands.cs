@@ -113,7 +113,7 @@ namespace Dalamud.Interface.Internal
                 HelpMessage =
                     Loc.Localize(
                         "DalamudLanguageHelp",
-                        "Set the language for the in-game addon and plugins that support it. Available languages: ") +
+                        "Set the language for Dalamud and plugins that support it. Available languages: ") +
                         Localization.ApplicableLangCodes.Aggregate("en", (current, code) => current + ", " + code),
             });
 

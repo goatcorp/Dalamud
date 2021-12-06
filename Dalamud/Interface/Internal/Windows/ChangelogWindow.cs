@@ -47,7 +47,7 @@ Thanks and have fun with the new expansion!";
         /// <inheritdoc/>
         public override void Draw()
         {
-            ImGui.Text($"The in-game addon has been updated to version D{this.assemblyVersion}.");
+            ImGui.Text($"Dalamud has been updated to version D{this.assemblyVersion}.");
 
             ImGuiHelpers.ScaledDummy(10);
 

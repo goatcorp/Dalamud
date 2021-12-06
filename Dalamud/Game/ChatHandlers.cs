@@ -257,7 +257,7 @@ namespace Dalamud.Game
             {
                 chatGui.PrintChat(new XivChatEntry
                 {
-                    Message = Loc.Localize("DalamudUpdated", "The In-Game addon has been updated or was reinstalled successfully! Please check the discord for a full changelog."),
+                    Message = Loc.Localize("DalamudUpdated", "Dalamud has been updated successfully! Please check the discord for a full changelog."),
                     Type = XivChatType.Notice,
                 });
 
