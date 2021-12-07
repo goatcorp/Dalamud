@@ -27,7 +27,7 @@ namespace Dalamud.Game.ClientState.JobGauge.Types
         /// <summary>
         /// Gets the time remaining for the current attunement.
         /// </summary>
-        public ushort AttunmentTimerRemaining => this.Struct->SummonTimer;
+        public ushort AttunmentTimerRemaining => this.Struct->AttunementTimer;
 
         /// <summary>
         /// Gets the summon that will return after the current summon expires.
