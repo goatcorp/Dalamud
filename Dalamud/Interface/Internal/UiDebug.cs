@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 
 using Dalamud.Game;
 using Dalamud.Game.Gui;
+using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
 
@@ -49,8 +50,6 @@ namespace Dalamud.Interface.Internal
         private bool doingSearch;
         private string searchInput = string.Empty;
         private AtkUnitBase* selectedUnitBase = null;
-        private ulong beginModule;
-        private ulong endModule;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="UIDebug"/> class.
@@ -88,19 +87,6 @@ namespace Dalamud.Interface.Internal
             ImGui.PopStyleVar();
         }
 
-        private static void ClickToCopyText(string text, string textCopy = null)
-        {
-            textCopy ??= text;
-            ImGui.Text($"{text}");
-            if (ImGui.IsItemHovered())
-            {
-                ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
-                if (textCopy != text) ImGui.SetTooltip(textCopy);
-            }
-
-            if (ImGui.IsItemClicked()) ImGui.SetClipboardText($"{textCopy}");
-        }
-
         private void DrawUnitBase(AtkUnitBase* atkUnitBase)
         {
             var isVisible = (atkUnitBase->Flags & 0x20) == 0x20;
@@ -120,8 +106,8 @@ namespace Dalamud.Interface.Internal
             }
 
             ImGui.Separator();
-            ClickToCopyText($"Address: {(ulong)atkUnitBase:X}", $"{(ulong)atkUnitBase:X}");
-            ClickToCopyText($"Agent: {(ulong)agent:X}", $"{(ulong)agent:X}");
+            ImGuiHelpers.ClickToCopyText($"Address: {(ulong)atkUnitBase:X}", $"{(ulong)atkUnitBase:X}");
+            ImGuiHelpers.ClickToCopyText($"Agent: {(ulong)agent:X}", $"{(ulong)agent:X}");
             ImGui.Separator();
 
             ImGui.Text($"Position: [ {atkUnitBase->X} , {atkUnitBase->Y} ]");
@@ -132,7 +118,7 @@ namespace Dalamud.Interface.Internal
 
             object addonObj = *atkUnitBase;
 
-            this.PrintOutObject(addonObj, (ulong)atkUnitBase, new List<string>());
+            Util.PrintOutObject(addonObj, (ulong)atkUnitBase, new List<string>());
 
             ImGui.Dummy(new Vector2(25 * ImGui.GetIO().FontGlobalScale));
             ImGui.Separator();
@@ -205,16 +191,16 @@ namespace Dalamud.Interface.Internal
 
                 ImGui.Text("Node: ");
                 ImGui.SameLine();
-                ClickToCopyText($"{(ulong)node:X}");
+                ImGuiHelpers.ClickToCopyText($"{(ulong)node:X}");
                 ImGui.SameLine();
                 switch (node->Type)
                 {
-                    case NodeType.Text: this.PrintOutObject(*(AtkTextNode*)node, (ulong)node, new List<string>()); break;
-                    case NodeType.Image: this.PrintOutObject(*(AtkImageNode*)node, (ulong)node, new List<string>()); break;
-                    case NodeType.Collision: this.PrintOutObject(*(AtkCollisionNode*)node, (ulong)node, new List<string>()); break;
-                    case NodeType.NineGrid: this.PrintOutObject(*(AtkNineGridNode*)node, (ulong)node, new List<string>()); break;
-                    case NodeType.Counter: this.PrintOutObject(*(AtkCounterNode*)node, (ulong)node, new List<string>()); break;
-                    default: this.PrintOutObject(*node, (ulong)node, new List<string>()); break;
+                    case NodeType.Text: Util.PrintOutObject(*(AtkTextNode*)node, (ulong)node); break;
+                    case NodeType.Image: Util.PrintOutObject(*(AtkImageNode*)node, (ulong)node); break;
+                    case NodeType.Collision: Util.PrintOutObject(*(AtkCollisionNode*)node, (ulong)node); break;
+                    case NodeType.NineGrid: Util.PrintOutObject(*(AtkNineGridNode*)node, (ulong)node); break;
+                    case NodeType.Counter: Util.PrintOutObject(*(AtkCounterNode*)node, (ulong)node); break;
+                    default: Util.PrintOutObject(*node, (ulong)node, new List<string>()); break;
                 }
 
                 this.PrintResNode(node);
@@ -341,25 +327,25 @@ namespace Dalamud.Interface.Internal
 
                 ImGui.Text("Node: ");
                 ImGui.SameLine();
-                ClickToCopyText($"{(ulong)node:X}");
+                ImGuiHelpers.ClickToCopyText($"{(ulong)node:X}");
                 ImGui.SameLine();
-                this.PrintOutObject(*compNode, (ulong)compNode, new List<string>());
+                Util.PrintOutObject(*compNode, (ulong)compNode);
                 ImGui.Text("Component: ");
                 ImGui.SameLine();
-                ClickToCopyText($"{(ulong)compNode->Component:X}");
+                ImGuiHelpers.ClickToCopyText($"{(ulong)compNode->Component:X}");
                 ImGui.SameLine();
 
                 switch (objectInfo->ComponentType)
                 {
-                    case ComponentType.Button: this.PrintOutObject(*(AtkComponentButton*)compNode->Component, (ulong)compNode->Component, new List<string>()); break;
-                    case ComponentType.Slider: this.PrintOutObject(*(AtkComponentSlider*)compNode->Component, (ulong)compNode->Component, new List<string>()); break;
-                    case ComponentType.Window: this.PrintOutObject(*(AtkComponentWindow*)compNode->Component, (ulong)compNode->Component, new List<string>()); break;
-                    case ComponentType.CheckBox: this.PrintOutObject(*(AtkComponentCheckBox*)compNode->Component, (ulong)compNode->Component, new List<string>()); break;
-                    case ComponentType.GaugeBar: this.PrintOutObject(*(AtkComponentGaugeBar*)compNode->Component, (ulong)compNode->Component, new List<string>()); break;
-                    case ComponentType.RadioButton: this.PrintOutObject(*(AtkComponentRadioButton*)compNode->Component, (ulong)compNode->Component, new List<string>()); break;
-                    case ComponentType.TextInput: this.PrintOutObject(*(AtkComponentTextInput*)compNode->Component, (ulong)compNode->Component, new List<string>()); break;
-                    case ComponentType.Icon: this.PrintOutObject(*(AtkComponentIcon*)compNode->Component, (ulong)compNode->Component, new List<string>()); break;
-                    default: this.PrintOutObject(*compNode->Component, (ulong)compNode->Component, new List<string>()); break;
+                    case ComponentType.Button: Util.PrintOutObject(*(AtkComponentButton*)compNode->Component, (ulong)compNode->Component); break;
+                    case ComponentType.Slider: Util.PrintOutObject(*(AtkComponentSlider*)compNode->Component, (ulong)compNode->Component); break;
+                    case ComponentType.Window: Util.PrintOutObject(*(AtkComponentWindow*)compNode->Component, (ulong)compNode->Component); break;
+                    case ComponentType.CheckBox: Util.PrintOutObject(*(AtkComponentCheckBox*)compNode->Component, (ulong)compNode->Component); break;
+                    case ComponentType.GaugeBar: Util.PrintOutObject(*(AtkComponentGaugeBar*)compNode->Component, (ulong)compNode->Component); break;
+                    case ComponentType.RadioButton: Util.PrintOutObject(*(AtkComponentRadioButton*)compNode->Component, (ulong)compNode->Component); break;
+                    case ComponentType.TextInput: Util.PrintOutObject(*(AtkComponentTextInput*)compNode->Component, (ulong)compNode->Component); break;
+                    case ComponentType.Icon: Util.PrintOutObject(*(AtkComponentIcon*)compNode->Component, (ulong)compNode->Component); break;
+                    default: Util.PrintOutObject(*compNode->Component, (ulong)compNode->Component); break;
                 }
 
                 this.PrintResNode(node);
@@ -608,125 +594,6 @@ namespace Dalamud.Interface.Internal
             position += ImGuiHelpers.MainViewport.Pos;
 
             ImGui.GetForegroundDrawList(ImGuiHelpers.MainViewport).AddRect(position, position + size, nodeVisible ? 0xFF00FF00 : 0xFF0000FF);
-        }
-
-        private void PrintOutValue(ulong addr, IEnumerable<string> path, Type type, object value)
-        {
-            if (type.IsPointer)
-            {
-                var val = (Pointer)value;
-                var unboxed = Pointer.Unbox(val);
-                if (unboxed != null)
-                {
-                    var unboxedAddr = (ulong)unboxed;
-                    ClickToCopyText($"{(ulong)unboxed:X}");
-                    if (this.beginModule > 0 && unboxedAddr >= this.beginModule && unboxedAddr <= this.endModule)
-                    {
-                        ImGui.SameLine();
-                        ImGui.PushStyleColor(ImGuiCol.Text, 0xffcbc0ff);
-                        ClickToCopyText($"ffxiv_dx11.exe+{unboxedAddr - this.beginModule:X}");
-                        ImGui.PopStyleColor();
-                    }
-
-                    try
-                    {
-                        var eType = type.GetElementType();
-                        var ptrObj = Marshal.PtrToStructure(new IntPtr(unboxed), eType);
-                        ImGui.SameLine();
-                        this.PrintOutObject(ptrObj, (ulong)unboxed, new List<string>(path));
-                    }
-                    catch
-                    {
-                        // Ignored
-                    }
-                }
-                else
-                {
-                    ImGui.Text("null");
-                }
-            }
-            else
-            {
-                if (!type.IsPrimitive)
-                {
-                    this.PrintOutObject(value, addr, new List<string>(path));
-                }
-                else
-                {
-                    ImGui.Text($"{value}");
-                }
-            }
-        }
-
-        private void PrintOutObject(object obj, ulong addr, List<string> path, bool autoExpand = false)
-        {
-            if (this.endModule == 0 && this.beginModule == 0)
-            {
-                try
-                {
-                    var processModule = Process.GetCurrentProcess().MainModule;
-                    if (processModule != null)
-                    {
-                        this.beginModule = (ulong)processModule.BaseAddress.ToInt64();
-                        this.endModule = this.beginModule + (ulong)processModule.ModuleMemorySize;
-                    }
-                    else
-                    {
-                        this.endModule = 1;
-                    }
-                }
-                catch
-                {
-                    this.endModule = 1;
-                }
-            }
-
-            ImGui.PushStyleColor(ImGuiCol.Text, 0xFF00FFFF);
-            if (autoExpand)
-            {
-                ImGui.SetNextItemOpen(true, ImGuiCond.Appearing);
-            }
-
-            if (ImGui.TreeNode($"{obj}##print-obj-{addr:X}-{string.Join("-", path)}"))
-            {
-                ImGui.PopStyleColor();
-                foreach (var f in obj.GetType().GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.Instance))
-                {
-                    var fixedBuffer = (FixedBufferAttribute)f.GetCustomAttribute(typeof(FixedBufferAttribute));
-                    if (fixedBuffer != null)
-                    {
-                        ImGui.Text($"fixed");
-                        ImGui.SameLine();
-                        ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.9f, 1), $"{fixedBuffer.ElementType.Name}[0x{fixedBuffer.Length:X}]");
-                    }
-                    else
-                    {
-                        ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.9f, 1), $"{f.FieldType.Name}");
-                    }
-
-                    ImGui.SameLine();
-                    ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.4f, 1), $"{f.Name}: ");
-                    ImGui.SameLine();
-
-                    this.PrintOutValue(addr, new List<string>(path) { f.Name }, f.FieldType, f.GetValue(obj));
-                }
-
-                foreach (var p in obj.GetType().GetProperties())
-                {
-                    ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.9f, 1), $"{p.PropertyType.Name}");
-                    ImGui.SameLine();
-                    ImGui.TextColored(new Vector4(0.2f, 0.6f, 0.4f, 1), $"{p.Name}: ");
-                    ImGui.SameLine();
-
-                    this.PrintOutValue(addr, new List<string>(path) { p.Name }, p.PropertyType, p.GetValue(obj));
-                }
-
-                ImGui.TreePop();
-            }
-            else
-            {
-                ImGui.PopStyleColor();
-            }
         }
     }
 }

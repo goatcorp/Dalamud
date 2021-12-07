@@ -1,10 +1,14 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
+using System.Numerics;
 using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 
 using Dalamud.Configuration.Internal;
@@ -154,6 +158,130 @@ namespace Dalamud.Utility
             }
 
             return sb.ToString().TrimEnd(Environment.NewLine.ToCharArray());
+        }
+
+        private static ulong moduleStartAddr;
+        private static ulong moduleEndAddr;
+
+        private static unsafe void PrintOutValue(ulong addr, IEnumerable<string> path, Type type, object value)
+        {
+            if (type.IsPointer)
+            {
+                var val = (Pointer)value;
+                var unboxed = Pointer.Unbox(val);
+                if (unboxed != null)
+                {
+                    var unboxedAddr = (ulong)unboxed;
+                    ImGuiHelpers.ClickToCopyText($"{(ulong)unboxed:X}");
+                    if (moduleStartAddr > 0 && unboxedAddr >= moduleStartAddr && unboxedAddr <= moduleEndAddr)
+                    {
+                        ImGui.SameLine();
+                        ImGui.PushStyleColor(ImGuiCol.Text, 0xffcbc0ff);
+                        ImGuiHelpers.ClickToCopyText($"ffxiv_dx11.exe+{unboxedAddr - moduleStartAddr:X}");
+                        ImGui.PopStyleColor();
+                    }
+
+                    try
+                    {
+                        var eType = type.GetElementType();
+                        var ptrObj = Marshal.PtrToStructure(new IntPtr(unboxed), eType);
+                        ImGui.SameLine();
+                        PrintOutObject(ptrObj, (ulong)unboxed, new List<string>(path));
+                    }
+                    catch
+                    {
+                        // Ignored
+                    }
+                }
+                else
+                {
+                    ImGui.Text("null");
+                }
+            }
+            else
+            {
+                if (!type.IsPrimitive)
+                {
+                    PrintOutObject(value, addr, new List<string>(path));
+                }
+                else
+                {
+                    ImGui.Text($"{value}");
+                }
+            }
+        }
+
+        public static void PrintOutObject(object obj, ulong addr, IEnumerable<string>? path = null, bool autoExpand = false)
+        {
+            path ??= new List<string>();
+
+            if (moduleEndAddr == 0 && moduleStartAddr == 0)
+            {
+                try
+                {
+                    var processModule = Process.GetCurrentProcess().MainModule;
+                    if (processModule != null)
+                    {
+                        moduleStartAddr = (ulong)processModule.BaseAddress.ToInt64();
+                        moduleEndAddr = moduleStartAddr + (ulong)processModule.ModuleMemorySize;
+                    }
+                    else
+                    {
+                        moduleEndAddr = 1;
+                    }
+                }
+                catch
+                {
+                    moduleEndAddr = 1;
+                }
+            }
+
+            ImGui.PushStyleColor(ImGuiCol.Text, 0xFF00FFFF);
+            if (autoExpand)
+            {
+                ImGui.SetNextItemOpen(true, ImGuiCond.Appearing);
+            }
+
+            if (ImGui.TreeNode($"{obj}##print-obj-{addr:X}-{string.Join("-", path)}"))
+            {
+                ImGui.PopStyleColor();
+                foreach (var f in obj.GetType().GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.Instance))
+                {
+                    var fixedBuffer = (FixedBufferAttribute)f.GetCustomAttribute(typeof(FixedBufferAttribute));
+                    if (fixedBuffer != null)
+                    {
+                        ImGui.Text($"fixed");
+                        ImGui.SameLine();
+                        ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.9f, 1), $"{fixedBuffer.ElementType.Name}[0x{fixedBuffer.Length:X}]");
+                    }
+                    else
+                    {
+                        ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.9f, 1), $"{f.FieldType.Name}");
+                    }
+
+                    ImGui.SameLine();
+                    ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.4f, 1), $"{f.Name}: ");
+                    ImGui.SameLine();
+
+                    PrintOutValue(addr, new List<string>(path) { f.Name }, f.FieldType, f.GetValue(obj));
+                }
+
+                foreach (var p in obj.GetType().GetProperties())
+                {
+                    ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.9f, 1), $"{p.PropertyType.Name}");
+                    ImGui.SameLine();
+                    ImGui.TextColored(new Vector4(0.2f, 0.6f, 0.4f, 1), $"{p.Name}: ");
+                    ImGui.SameLine();
+
+                    PrintOutValue(addr, new List<string>(path) { p.Name }, p.PropertyType, p.GetValue(obj));
+                }
+
+                ImGui.TreePop();
+            }
+            else
+            {
+                ImGui.PopStyleColor();
+            }
         }
 
         /// <summary>

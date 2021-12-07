@@ -119,5 +119,23 @@ namespace Dalamud.Interface
         {
             GlobalScale = ImGui.GetIO().FontGlobalScale;
         }
+
+        /// <summary>
+        /// Print out text that can be copied when clicked.
+        /// </summary>
+        /// <param name="text">The text to show.</param>
+        /// <param name="textCopy">The text to copy when clicked.</param>
+        public static void ClickToCopyText(string text, string? textCopy = null)
+        {
+            textCopy ??= text;
+            ImGui.Text($"{text}");
+            if (ImGui.IsItemHovered())
+            {
+                ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
+                if (textCopy != text) ImGui.SetTooltip(textCopy);
+            }
+
+            if (ImGui.IsItemClicked()) ImGui.SetClipboardText($"{textCopy}");
+        }
     }
 }
