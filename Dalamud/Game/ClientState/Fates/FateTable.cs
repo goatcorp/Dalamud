@@ -51,7 +51,7 @@ namespace Dalamud.Game.ClientState.Fates
                 if (Struct->Fates.First == null || Struct->Fates.Last == null)
                     return 0;
 
-                return (int)Struct->Fates.Capacity();
+                return (int)Struct->Fates.Size();
             }
         }
 
@@ -99,7 +99,7 @@ namespace Dalamud.Game.ClientState.Fates
             if (fateTable == IntPtr.Zero)
                 return IntPtr.Zero;
 
-            return *(IntPtr*)this.Struct->Fates.Get((ulong)index).Value;
+            return (IntPtr)this.Struct->Fates.Get((ulong)index).Value;
         }
 
         /// <summary>
