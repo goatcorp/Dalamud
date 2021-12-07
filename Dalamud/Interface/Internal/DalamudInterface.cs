@@ -52,6 +52,8 @@ namespace Dalamud.Interface.Internal
         private readonly SelfTestWindow selfTestWindow;
         private readonly StyleEditorWindow styleEditorWindow;
 
+        private readonly TextureWrap logoTexture;
+
         private ulong frameCount = 0;
 
 #if DEBUG
@@ -62,8 +64,6 @@ namespace Dalamud.Interface.Internal
 
         private bool isImGuiDrawDemoWindow = false;
         private bool isImGuiDrawMetricsWindow = false;
-
-        private readonly TextureWrap logoTexture;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DalamudInterface"/> class.
@@ -135,6 +135,7 @@ namespace Dalamud.Interface.Internal
 
             this.WindowSystem.RemoveAllWindows();
 
+            this.changelogWindow.Dispose();
             this.creditsWindow.Dispose();
             this.consoleWindow.Dispose();
             this.pluginWindow.Dispose();
@@ -391,7 +392,7 @@ namespace Dalamud.Interface.Internal
 
                     ImGui.End();
                 }
-                
+
                 ImGui.PopStyleVar(3);
                 ImGui.PopStyleColor(8);
             }

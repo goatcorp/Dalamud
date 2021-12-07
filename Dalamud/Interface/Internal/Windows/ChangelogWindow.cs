@@ -1,17 +1,20 @@
+using System;
 using System.Diagnostics;
+using System.IO;
 using System.Numerics;
 
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Windowing;
 using Dalamud.Utility;
 using ImGuiNET;
+using ImGuiScene;
 
 namespace Dalamud.Interface.Internal.Windows
 {
     /// <summary>
     /// For major updates, an in-game Changelog window.
     /// </summary>
-    internal sealed class ChangelogWindow : Window
+    internal sealed class ChangelogWindow : Window, IDisposable
     {
         /// <summary>
         /// Whether the latest update warrants a changelog window.
@@ -32,16 +35,24 @@ Thanks and have fun with the new expansion!";
 
         private readonly string assemblyVersion = Util.AssemblyVersion;
 
+        private readonly TextureWrap logoTexture;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ChangelogWindow"/> class.
         /// </summary>
         public ChangelogWindow()
-            : base("What's new in XIVLauncher?")
+            : base("What's new in XIVLauncher?", ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoResize)
         {
             this.Namespace = "DalamudChangelogWindow";
 
             this.Size = new Vector2(885, 463);
             this.SizeCondition = ImGuiCond.Appearing;
+
+            var interfaceManager = Service<InterfaceManager>.Get();
+            var dalamud = Service<Dalamud>.Get();
+
+            this.logoTexture =
+                interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "logo.png"))!;
         }
 
         /// <inheritdoc/>
@@ -52,6 +63,11 @@ Thanks and have fun with the new expansion!";
             ImGuiHelpers.ScaledDummy(10);
 
             ImGui.Text("The following changes were introduced:");
+
+            ImGui.SameLine();
+            ImGuiHelpers.ScaledDummy(0);
+            var imgCursor = ImGui.GetCursorPos();
+
             ImGui.TextWrapped(ChangeLog);
 
             ImGuiHelpers.ScaledDummy(5);
@@ -118,6 +134,20 @@ Thanks and have fun with the new expansion!";
             {
                 this.IsOpen = false;
             }
+
+            imgCursor.X += 520;
+            imgCursor.Y -= 30;
+            ImGui.SetCursorPos(imgCursor);
+
+            ImGui.Image(this.logoTexture.ImGuiHandle, new Vector2(100));
+        }
+
+        /// <summary>
+        /// Dispose this window.
+        /// </summary>
+        public void Dispose()
+        {
+            this.logoTexture.Dispose();
         }
     }
 }
