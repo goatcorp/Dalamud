@@ -29,6 +29,9 @@ namespace Dalamud.Utility
         private static string? gitHashInternal;
         private static string? gitHashClientStructsInternal;
 
+        private static ulong moduleStartAddr;
+        private static ulong moduleEndAddr;
+
         /// <summary>
         /// Gets an httpclient for usage.
         /// Do NOT await this.
@@ -160,86 +163,35 @@ namespace Dalamud.Utility
             return sb.ToString().TrimEnd(Environment.NewLine.ToCharArray());
         }
 
-        private static ulong ModuleStartAddr;
-        private static ulong ModuleEndAddr;
-
-        private static unsafe void PrintOutValue(ulong addr, IEnumerable<string> path, Type type, object value)
-        {
-            if (type.IsPointer)
-            {
-                var val = (Pointer)value;
-                var unboxed = Pointer.Unbox(val);
-                if (unboxed != null)
-                {
-                    var unboxedAddr = (ulong)unboxed;
-                    ImGuiHelpers.ClickToCopyText($"{(ulong)unboxed:X}");
-                    if (ModuleStartAddr > 0 && unboxedAddr >= ModuleStartAddr && unboxedAddr <= ModuleEndAddr)
-                    {
-                        ImGui.SameLine();
-                        ImGui.PushStyleColor(ImGuiCol.Text, 0xffcbc0ff);
-                        ImGuiHelpers.ClickToCopyText($"ffxiv_dx11.exe+{unboxedAddr - ModuleStartAddr:X}");
-                        ImGui.PopStyleColor();
-                    }
-
-                    try
-                    {
-                        var eType = type.GetElementType();
-                        var ptrObj = SafeMemory.PtrToStructure(new IntPtr(unboxed), eType);
-                        ImGui.SameLine();
-                        if (ptrObj == null)
-                        {
-                            ImGui.Text("null or invalid");
-                        }
-                        else
-                        {
-                            PrintOutObject(ptrObj, (ulong)unboxed, new List<string>(path));
-                        }
-                    }
-                    catch
-                    {
-                        // Ignored
-                    }
-                }
-                else
-                {
-                    ImGui.Text("null");
-                }
-            }
-            else
-            {
-                if (!type.IsPrimitive)
-                {
-                    PrintOutObject(value, addr, new List<string>(path));
-                }
-                else
-                {
-                    ImGui.Text($"{value}");
-                }
-            }
-        }
-
-        public static void PrintOutObject(object obj, ulong addr, IEnumerable<string>? path = null, bool autoExpand = false)
+        /// <summary>
+        /// Show a structure in an ImGui context.
+        /// </summary>
+        /// <param name="obj">The structure to show.</param>
+        /// <param name="addr">The address to the structure.</param>
+        /// <param name="path">The already followed path.</param>
+        /// <param name="autoExpand">Whether or not this structure should start out expanded.</param>
+        public static void ShowStruct(object obj, ulong addr, IEnumerable<string>? path = null, bool autoExpand = false)
         {
             path ??= new List<string>();
 
-            if (ModuleEndAddr == 0 && ModuleStartAddr == 0)
+            if (moduleEndAddr == 0 && moduleStartAddr == 0)
             {
                 try
                 {
                     var processModule = Process.GetCurrentProcess().MainModule;
                     if (processModule != null)
                     {
-                        ModuleStartAddr = (ulong)processModule.BaseAddress.ToInt64();
-                        ModuleEndAddr = ModuleStartAddr + (ulong)processModule.ModuleMemorySize;
+                        moduleStartAddr = (ulong)processModule.BaseAddress.ToInt64();
+                        moduleEndAddr = moduleStartAddr + (ulong)processModule.ModuleMemorySize;
                     }
                     else
                     {
-                        ModuleEndAddr = 1;
+                        moduleEndAddr = 1;
                     }
                 }
                 catch
                 {
-                    ModuleEndAddr = 1;
+                    moduleEndAddr = 1;
                 }
             }
 
@@ -270,7 +222,7 @@ namespace Dalamud.Utility
                     ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.4f, 1), $"{f.Name}: ");
                     ImGui.SameLine();
 
-                    PrintOutValue(addr, new List<string>(path) { f.Name }, f.FieldType, f.GetValue(obj));
+                    ShowValue(addr, new List<string>(path) { f.Name }, f.FieldType, f.GetValue(obj));
                 }
 
                 foreach (var p in obj.GetType().GetProperties())
@@ -280,7 +232,7 @@ namespace Dalamud.Utility
                     ImGui.TextColored(new Vector4(0.2f, 0.6f, 0.4f, 1), $"{p.Name}: ");
                     ImGui.SameLine();
 
-                    PrintOutValue(addr, new List<string>(path) { p.Name }, p.PropertyType, p.GetValue(obj));
+                    ShowValue(addr, new List<string>(path) { p.Name }, p.PropertyType, p.GetValue(obj));
                 }
 
                 ImGui.TreePop();
@@ -449,6 +401,61 @@ namespace Dalamud.Utility
             }
 
             return Check1() || Check2() || Check3();
+        }
+        
+        private static unsafe void ShowValue(ulong addr, IEnumerable<string> path, Type type, object value)
+        {
+            if (type.IsPointer)
+            {
+                var val = (Pointer)value;
+                var unboxed = Pointer.Unbox(val);
+                if (unboxed != null)
+                {
+                    var unboxedAddr = (ulong)unboxed;
+                    ImGuiHelpers.ClickToCopyText($"{(ulong)unboxed:X}");
+                    if (moduleStartAddr > 0 && unboxedAddr >= moduleStartAddr && unboxedAddr <= moduleEndAddr)
+                    {
+                        ImGui.SameLine();
+                        ImGui.PushStyleColor(ImGuiCol.Text, 0xffcbc0ff);
+                        ImGuiHelpers.ClickToCopyText($"ffxiv_dx11.exe+{unboxedAddr - moduleStartAddr:X}");
+                        ImGui.PopStyleColor();
+                    }
+
+                    try
+                    {
+                        var eType = type.GetElementType();
+                        var ptrObj = SafeMemory.PtrToStructure(new IntPtr(unboxed), eType);
+                        ImGui.SameLine();
+                        if (ptrObj == null)
+                        {
+                            ImGui.Text("null or invalid");
+                        }
+                        else
+                        {
+                            ShowStruct(ptrObj, (ulong)unboxed, new List<string>(path));
+                        }
+                    }
+                    catch
+                    {
+                        // Ignored
+                    }
+                }
+                else
+                {
+                    ImGui.Text("null");
+                }
+            }
+            else
+            {
+                if (!type.IsPrimitive)
+                {
+                    ShowStruct(value, addr, new List<string>(path));
+                }
+                else
+                {
+                    ImGui.Text($"{value}");
+                }
+            }
         }
     }
 }

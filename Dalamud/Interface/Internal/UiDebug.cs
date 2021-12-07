@@ -118,7 +118,7 @@ namespace Dalamud.Interface.Internal
 
             object addonObj = *atkUnitBase;
 
-            Util.PrintOutObject(addonObj, (ulong)atkUnitBase, new List<string>());
+            Util.ShowStruct(addonObj, (ulong)atkUnitBase, new List<string>());
 
             ImGui.Dummy(new Vector2(25 * ImGui.GetIO().FontGlobalScale));
             ImGui.Separator();
@@ -195,12 +195,12 @@ namespace Dalamud.Interface.Internal
                 ImGui.SameLine();
                 switch (node->Type)
                 {
-                    case NodeType.Text: Util.PrintOutObject(*(AtkTextNode*)node, (ulong)node); break;
-                    case NodeType.Image: Util.PrintOutObject(*(AtkImageNode*)node, (ulong)node); break;
-                    case NodeType.Collision: Util.PrintOutObject(*(AtkCollisionNode*)node, (ulong)node); break;
-                    case NodeType.NineGrid: Util.PrintOutObject(*(AtkNineGridNode*)node, (ulong)node); break;
-                    case NodeType.Counter: Util.PrintOutObject(*(AtkCounterNode*)node, (ulong)node); break;
-                    default: Util.PrintOutObject(*node, (ulong)node, new List<string>()); break;
+                    case NodeType.Text: Util.ShowStruct(*(AtkTextNode*)node, (ulong)node); break;
+                    case NodeType.Image: Util.ShowStruct(*(AtkImageNode*)node, (ulong)node); break;
+                    case NodeType.Collision: Util.ShowStruct(*(AtkCollisionNode*)node, (ulong)node); break;
+                    case NodeType.NineGrid: Util.ShowStruct(*(AtkNineGridNode*)node, (ulong)node); break;
+                    case NodeType.Counter: Util.ShowStruct(*(AtkCounterNode*)node, (ulong)node); break;
+                    default: Util.ShowStruct(*node, (ulong)node, new List<string>()); break;
                 }
 
                 this.PrintResNode(node);
@@ -329,7 +329,7 @@ namespace Dalamud.Interface.Internal
                 ImGui.SameLine();
                 ImGuiHelpers.ClickToCopyText($"{(ulong)node:X}");
                 ImGui.SameLine();
-                Util.PrintOutObject(*compNode, (ulong)compNode);
+                Util.ShowStruct(*compNode, (ulong)compNode);
                 ImGui.Text("Component: ");
                 ImGui.SameLine();
                 ImGuiHelpers.ClickToCopyText($"{(ulong)compNode->Component:X}");
@@ -337,15 +337,15 @@ namespace Dalamud.Interface.Internal
 
                 switch (objectInfo->ComponentType)
                 {
-                    case ComponentType.Button: Util.PrintOutObject(*(AtkComponentButton*)compNode->Component, (ulong)compNode->Component); break;
-                    case ComponentType.Slider: Util.PrintOutObject(*(AtkComponentSlider*)compNode->Component, (ulong)compNode->Component); break;
-                    case ComponentType.Window: Util.PrintOutObject(*(AtkComponentWindow*)compNode->Component, (ulong)compNode->Component); break;
-                    case ComponentType.CheckBox: Util.PrintOutObject(*(AtkComponentCheckBox*)compNode->Component, (ulong)compNode->Component); break;
-                    case ComponentType.GaugeBar: Util.PrintOutObject(*(AtkComponentGaugeBar*)compNode->Component, (ulong)compNode->Component); break;
-                    case ComponentType.RadioButton: Util.PrintOutObject(*(AtkComponentRadioButton*)compNode->Component, (ulong)compNode->Component); break;
-                    case ComponentType.TextInput: Util.PrintOutObject(*(AtkComponentTextInput*)compNode->Component, (ulong)compNode->Component); break;
-                    case ComponentType.Icon: Util.PrintOutObject(*(AtkComponentIcon*)compNode->Component, (ulong)compNode->Component); break;
-                    default: Util.PrintOutObject(*compNode->Component, (ulong)compNode->Component); break;
+                    case ComponentType.Button: Util.ShowStruct(*(AtkComponentButton*)compNode->Component, (ulong)compNode->Component); break;
+                    case ComponentType.Slider: Util.ShowStruct(*(AtkComponentSlider*)compNode->Component, (ulong)compNode->Component); break;
+                    case ComponentType.Window: Util.ShowStruct(*(AtkComponentWindow*)compNode->Component, (ulong)compNode->Component); break;
+                    case ComponentType.CheckBox: Util.ShowStruct(*(AtkComponentCheckBox*)compNode->Component, (ulong)compNode->Component); break;
+                    case ComponentType.GaugeBar: Util.ShowStruct(*(AtkComponentGaugeBar*)compNode->Component, (ulong)compNode->Component); break;
+                    case ComponentType.RadioButton: Util.ShowStruct(*(AtkComponentRadioButton*)compNode->Component, (ulong)compNode->Component); break;
+                    case ComponentType.TextInput: Util.ShowStruct(*(AtkComponentTextInput*)compNode->Component, (ulong)compNode->Component); break;
+                    case ComponentType.Icon: Util.ShowStruct(*(AtkComponentIcon*)compNode->Component, (ulong)compNode->Component); break;
+                    default: Util.ShowStruct(*compNode->Component, (ulong)compNode->Component); break;
                 }
 
                 this.PrintResNode(node);
