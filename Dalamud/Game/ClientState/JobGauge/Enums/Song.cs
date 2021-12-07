@@ -13,16 +13,16 @@ namespace Dalamud.Game.ClientState.JobGauge.Enums
         /// <summary>
         /// Mage's Ballad type.
         /// </summary>
-        MAGE = 5,
+        MAGE = 1,
 
         /// <summary>
         /// Army's Paeon type.
         /// </summary>
-        ARMY = 10,
+        ARMY = 2,
 
         /// <summary>
         /// The Wanderer's Minuet type.
         /// </summary>
-        WANDERER = 15,
+        WANDERER = 3,
     }
 }
