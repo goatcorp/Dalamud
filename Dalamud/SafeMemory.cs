@@ -190,8 +190,20 @@ namespace Dalamud
             return WriteBytes(address, encoding.GetBytes(str + "\0"));
         }
 
+        /// <summary>
+        /// Marshals data from an unmanaged block of memory to a managed object.
+        /// </summary>
+        /// <typeparam name="T">The type to create.</typeparam>
+        /// <param name="addr">The address to read from.</param>
+        /// <returns>The read object, or null, if it could not be read.</returns>
         public static T? PtrToStructure<T>(IntPtr addr) where T : struct => (T?)PtrToStructure(addr, typeof(T));
 
+        /// <summary>
+        /// Marshals data from an unmanaged block of memory to a managed object.
+        /// </summary>
+        /// <param name="addr">The address to read from.</param>
+        /// <param name="type">The type to create.</param>
+        /// <returns>The read object, or null, if it could not be read.</returns>
         public static object? PtrToStructure(IntPtr addr, Type type)
         {
             var size = Marshal.SizeOf(type);
