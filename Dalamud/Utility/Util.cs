@@ -186,7 +186,14 @@ namespace Dalamud.Utility
                         var eType = type.GetElementType();
                         var ptrObj = SafeMemory.PtrToStructure(new IntPtr(unboxed), eType);
                         ImGui.SameLine();
-                        PrintOutObject(ptrObj, (ulong)unboxed, new List<string>(path));
+                        if (ptrObj == null)
+                        {
+                            ImGui.Text("null or invalid");
+                        }
+                        else
+                        {
+                            PrintOutObject(ptrObj, (ulong)unboxed, new List<string>(path));
+                        }
                     }
                     catch
                     {
