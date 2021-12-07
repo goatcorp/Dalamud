@@ -126,7 +126,7 @@ namespace Dalamud.Interface.Internal
                         "Change various In-Game-Addon settings like chat channels and the discord bot setup."),
             });
 
-            commandManager.AddHandler("/xlversion", new CommandInfo(this.OnDebugImInfoCommand)
+            commandManager.AddHandler("/xlversion", new CommandInfo(this.OnVersionInfoCommand)
             {
                 HelpMessage = "Dalamud version info",
             });
@@ -313,7 +313,7 @@ namespace Dalamud.Interface.Internal
             Log.Information(info);
         }
 
-        private void OnVersionInfo(string command, string arguments)
+        private void OnVersionInfoCommand(string command, string arguments)
         {
             var chatGui = Service<ChatGui>.Get();
 
