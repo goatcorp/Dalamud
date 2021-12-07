@@ -160,8 +160,8 @@ namespace Dalamud.Utility
             return sb.ToString().TrimEnd(Environment.NewLine.ToCharArray());
         }
 
-        private static ulong moduleStartAddr;
-        private static ulong moduleEndAddr;
+        private static ulong ModuleStartAddr;
+        private static ulong ModuleEndAddr;
 
         private static unsafe void PrintOutValue(ulong addr, IEnumerable<string> path, Type type, object value)
         {
@@ -173,18 +173,18 @@ namespace Dalamud.Utility
                 {
                     var unboxedAddr = (ulong)unboxed;
                     ImGuiHelpers.ClickToCopyText($"{(ulong)unboxed:X}");
-                    if (moduleStartAddr > 0 && unboxedAddr >= moduleStartAddr && unboxedAddr <= moduleEndAddr)
+                    if (ModuleStartAddr > 0 && unboxedAddr >= ModuleStartAddr && unboxedAddr <= ModuleEndAddr)
                     {
                         ImGui.SameLine();
                         ImGui.PushStyleColor(ImGuiCol.Text, 0xffcbc0ff);
-                        ImGuiHelpers.ClickToCopyText($"ffxiv_dx11.exe+{unboxedAddr - moduleStartAddr:X}");
+                        ImGuiHelpers.ClickToCopyText($"ffxiv_dx11.exe+{unboxedAddr - ModuleStartAddr:X}");
                         ImGui.PopStyleColor();
                     }
 
                     try
                     {
                         var eType = type.GetElementType();
-                        var ptrObj = Marshal.PtrToStructure(new IntPtr(unboxed), eType);
+                        var ptrObj = SafeMemory.PtrToStructure(new IntPtr(unboxed), eType);
                         ImGui.SameLine();
                         PrintOutObject(ptrObj, (ulong)unboxed, new List<string>(path));
                     }
@@ -215,24 +215,24 @@ namespace Dalamud.Utility
         {
             path ??= new List<string>();
 
-            if (moduleEndAddr == 0 && moduleStartAddr == 0)
+            if (ModuleEndAddr == 0 && ModuleStartAddr == 0)
             {
                 try
                 {
                     var processModule = Process.GetCurrentProcess().MainModule;
                     if (processModule != null)
                     {
-                        moduleStartAddr = (ulong)processModule.BaseAddress.ToInt64();
-                        moduleEndAddr = moduleStartAddr + (ulong)processModule.ModuleMemorySize;
+                        ModuleStartAddr = (ulong)processModule.BaseAddress.ToInt64();
+                        ModuleEndAddr = ModuleStartAddr + (ulong)processModule.ModuleMemorySize;
                     }
                     else
                     {
-                        moduleEndAddr = 1;
+                        ModuleEndAddr = 1;
                     }
                 }
                 catch
                 {
-                    moduleEndAddr = 1;
+                    ModuleEndAddr = 1;
                 }
             }
 
