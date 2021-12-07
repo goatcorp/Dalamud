@@ -21,7 +21,7 @@ namespace Dalamud.Game.ClientState.JobGauge.Types
         /// <summary>
         /// Gets the current song timer in milliseconds.
         /// </summary>
-        public short SongTimer => this.Struct->SongTimer;
+        public ushort SongTimer => this.Struct->SongTimer;
 
         /// <summary>
         /// Gets the amount of Repertoire accumulated.
