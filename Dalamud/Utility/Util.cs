@@ -13,6 +13,7 @@ using System.Text;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
+using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface;
 using Dalamud.Interface.Colors;
 using ImGuiNET;
@@ -244,6 +245,26 @@ namespace Dalamud.Utility
         }
 
         /// <summary>
+        /// Show a GameObject's internal data in an ImGui-context.
+        /// </summary>
+        /// <param name="go">The GameObject to show.</param>
+        public static unsafe void ShowGameObjectStruct(GameObject go)
+        {
+            switch (go)
+            {
+                case BattleChara bchara:
+                    ShowStruct(*bchara.Struct, (ulong)bchara.Address);
+                    break;
+                case Character chara:
+                    ShowStruct(*chara.Struct, (ulong)chara.Address);
+                    break;
+                default:
+                    ShowStruct(*go.Struct, (ulong)go.Address);
+                    break;
+            }
+        }
+
+        /// <summary>
         /// Show all properties and fields of the provided object via ImGui.
         /// </summary>
         /// <param name="obj">The object to show.</param>
@@ -402,7 +423,7 @@ namespace Dalamud.Utility
 
             return Check1() || Check2() || Check3();
         }
-        
+
         private static unsafe void ShowValue(ulong addr, IEnumerable<string> path, Type type, object value)
         {
             if (type.IsPointer)

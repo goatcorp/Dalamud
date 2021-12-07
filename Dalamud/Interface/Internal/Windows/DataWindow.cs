@@ -1019,15 +1019,16 @@ namespace Dalamud.Interface.Internal.Windows
                 this.PrintGameObject(targetMgr.Target, "CurrentTarget");
 
                 ImGui.Text("Target");
-                Util.ShowObject(targetMgr.Target);
+                Util.ShowGameObjectStruct(targetMgr.Target);
 
                 var tot = targetMgr.Target.TargetObject;
                 if (tot != null)
                 {
                     ImGuiHelpers.ScaledDummy(10);
 
+                    ImGui.Separator();
                     ImGui.Text("ToT");
-                    Util.ShowObject(tot);
+                    Util.ShowGameObjectStruct(tot);
                 }
 
                 ImGuiHelpers.ScaledDummy(10);

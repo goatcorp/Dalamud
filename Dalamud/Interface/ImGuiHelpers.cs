@@ -113,14 +113,6 @@ namespace Dalamud.Interface
         public static Vector2 GetButtonSize(string text) => ImGui.CalcTextSize(text) + (ImGui.GetStyle().FramePadding * 2);
 
         /// <summary>
-        /// Get data needed for each new frame.
-        /// </summary>
-        internal static void NewFrame()
-        {
-            GlobalScale = ImGui.GetIO().FontGlobalScale;
-        }
-
-        /// <summary>
         /// Print out text that can be copied when clicked.
         /// </summary>
         /// <param name="text">The text to show.</param>
@@ -136,6 +128,14 @@ namespace Dalamud.Interface
             }
 
             if (ImGui.IsItemClicked()) ImGui.SetClipboardText($"{textCopy}");
+        }
+
+        /// <summary>
+        /// Get data needed for each new frame.
+        /// </summary>
+        internal static void NewFrame()
+        {
+            GlobalScale = ImGui.GetIO().FontGlobalScale;
         }
     }
 }
