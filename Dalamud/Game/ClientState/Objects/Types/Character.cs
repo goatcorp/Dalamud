@@ -101,6 +101,6 @@ namespace Dalamud.Game.ClientState.Objects.Types
         /// <summary>
         /// Gets the underlying structure.
         /// </summary>
-        private protected new FFXIVClientStructs.FFXIV.Client.Game.Character.Character* Struct => (FFXIVClientStructs.FFXIV.Client.Game.Character.Character*)this.Address;
+        protected internal new FFXIVClientStructs.FFXIV.Client.Game.Character.Character* Struct => (FFXIVClientStructs.FFXIV.Client.Game.Character.Character*)this.Address;
     }
 }

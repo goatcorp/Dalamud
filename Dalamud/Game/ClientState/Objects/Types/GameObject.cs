@@ -167,7 +167,7 @@ namespace Dalamud.Game.ClientState.Objects.Types
         /// <summary>
         /// Gets the underlying structure.
         /// </summary>
-        private protected FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject* Struct => (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)this.Address;
+        protected internal FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject* Struct => (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)this.Address;
 
         /// <inheritdoc/>
         public override string ToString() => $"{this.ObjectId:X}({this.Name.TextValue} - {this.ObjectKind}) at {this.Address:X}";
