@@ -247,6 +247,12 @@ namespace Dalamud.Utility
             ImGui.PopStyleVar();
         }
 
+        /// <summary>
+        /// Show a structure in an ImGui context.
+        /// </summary>
+        /// <typeparam name="T">The type of the structure.</typeparam>
+        /// <param name="obj">The pointer to the structure.</param>
+        /// <param name="autoExpand">Whether or not this structure should start out expanded.</param>
         public static unsafe void ShowStruct<T>(T* obj, bool autoExpand = false) where T : unmanaged
         {
             ShowStruct(*obj, (ulong)&obj, autoExpand);
@@ -431,6 +437,19 @@ namespace Dalamud.Utility
             }
 
             return Check1() || Check2() || Check3();
+        }
+
+        /// <summary>
+        /// Open a link in the default browser.
+        /// </summary>
+        /// <param name="url">The link to open.</param>
+        public static void OpenLink(string url)
+        {
+            var process = new ProcessStartInfo(url)
+            {
+                UseShellExecute = true
+            };
+            Process.Start(process);
         }
 
         private static unsafe void ShowValue(ulong addr, IEnumerable<string> path, Type type, object value)
