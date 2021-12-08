@@ -169,10 +169,11 @@ namespace Dalamud.Utility
         /// </summary>
         /// <param name="obj">The structure to show.</param>
         /// <param name="addr">The address to the structure.</param>
-        /// <param name="path">The already followed path.</param>
         /// <param name="autoExpand">Whether or not this structure should start out expanded.</param>
-        public static void ShowStruct(object obj, ulong addr, IEnumerable<string>? path = null, bool autoExpand = false)
+        /// <param name="path">The already followed path.</param>
+        public static void ShowStruct(object obj, ulong addr, bool autoExpand = false, IEnumerable<string>? path = null)
         {
+            ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(3, 2));
             path ??= new List<string>();
 
             if (moduleEndAddr == 0 && moduleStartAddr == 0)
@@ -242,24 +243,27 @@ namespace Dalamud.Utility
             {
                 ImGui.PopStyleColor();
             }
+
+            ImGui.PopStyleVar();
         }
 
         /// <summary>
         /// Show a GameObject's internal data in an ImGui-context.
         /// </summary>
         /// <param name="go">The GameObject to show.</param>
-        public static unsafe void ShowGameObjectStruct(GameObject go)
+        /// <param name="autoExpand">Whether or not the struct should start as expanded.</param>
+        public static unsafe void ShowGameObjectStruct(GameObject go, bool autoExpand = true)
         {
             switch (go)
             {
                 case BattleChara bchara:
-                    ShowStruct(*bchara.Struct, (ulong)bchara.Address);
+                    ShowStruct(*bchara.Struct, (ulong)bchara.Address, autoExpand);
                     break;
                 case Character chara:
-                    ShowStruct(*chara.Struct, (ulong)chara.Address);
+                    ShowStruct(*chara.Struct, (ulong)chara.Address, autoExpand);
                     break;
                 default:
-                    ShowStruct(*go.Struct, (ulong)go.Address);
+                    ShowStruct(*go.Struct, (ulong)go.Address, autoExpand);
                     break;
             }
         }
@@ -453,7 +457,7 @@ namespace Dalamud.Utility
                         }
                         else
                         {
-                            ShowStruct(ptrObj, (ulong)unboxed, new List<string>(path));
+                            ShowStruct(ptrObj, (ulong)unboxed, path: new List<string>(path));
                         }
                     }
                     catch
@@ -470,7 +474,7 @@ namespace Dalamud.Utility
             {
                 if (!type.IsPrimitive)
                 {
-                    ShowStruct(value, addr, new List<string>(path));
+                    ShowStruct(value, addr, path: new List<string>(path));
                 }
                 else
                 {

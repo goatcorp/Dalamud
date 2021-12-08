@@ -118,7 +118,7 @@ namespace Dalamud.Interface.Internal
 
             object addonObj = *atkUnitBase;
 
-            Util.ShowStruct(addonObj, (ulong)atkUnitBase, new List<string>());
+            Util.ShowStruct(addonObj, (ulong)atkUnitBase);
 
             ImGui.Dummy(new Vector2(25 * ImGui.GetIO().FontGlobalScale));
             ImGui.Separator();
@@ -200,7 +200,7 @@ namespace Dalamud.Interface.Internal
                     case NodeType.Collision: Util.ShowStruct(*(AtkCollisionNode*)node, (ulong)node); break;
                     case NodeType.NineGrid: Util.ShowStruct(*(AtkNineGridNode*)node, (ulong)node); break;
                     case NodeType.Counter: Util.ShowStruct(*(AtkCounterNode*)node, (ulong)node); break;
-                    default: Util.ShowStruct(*node, (ulong)node, new List<string>()); break;
+                    default: Util.ShowStruct(*node, (ulong)node); break;
                 }
 
                 this.PrintResNode(node);
