@@ -19,7 +19,7 @@ namespace Dalamud.Interface.Internal.Windows
         /// <summary>
         /// Whether the latest update warrants a changelog window.
         /// </summary>
-        public const string WarrantsChangelogForMajorMinor = "6.1.";
+        public const string WarrantsChangelogForMajorMinor = "6.2.";
 
         private const string ChangeLog =
             @"• Internal adjustments to allow plugins to work on the new version of the game
@@ -31,7 +31,11 @@ Thanks and have fun with the new expansion!";
             @"• All of your plugins were disabled automatically, due to this update. This is normal.
 • Open the plugin installer, then click 'update plugins'. Updated plugins should update and then re-enable themselves.
    => Please keep in mind that not all of your plugins may already be updated for the new version.
-   => If some plugins are displayed with a red cross in the 'Installed Plugins' tab, they may not yet be available.";
+   => If some plugins are displayed with a red cross in the 'Installed Plugins' tab, they may not yet be available.
+
+While we tested the released plugins considerably with a smaller set of people and believe that they are stable, we cannot guarantee to you that you will not run into crashes.
+
+Considering current queue times, this is why we recommend that for now, you only use a set of plugins that are most essential to you, so you can go on playing the game instead of waiting endlessly.";
 
         private readonly string assemblyVersion = Util.AssemblyVersion;
 
