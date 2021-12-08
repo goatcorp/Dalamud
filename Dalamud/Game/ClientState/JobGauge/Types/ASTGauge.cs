@@ -29,12 +29,12 @@ namespace Dalamud.Game.ClientState.JobGauge.Types
         /// Gets the currently drawn crown <see cref="CardType"/>.
         /// </summary>
         /// <returns>Currently drawn crown <see cref="CardType"/>.</returns>
-        public CardType DrawnCrownCard => (CardType)(this.Struct->Card - (this.Struct->Card % 10));
+        public CardType DrawnCrownCard => this.Struct->Card - this.DrawnCard;
 
         /// <summary>
         /// Gets the <see cref="SealType"/>s currently active.
         /// </summary>
-        public SealType[] Seals => this.Struct->CurrentSeals.Cast<SealType>().ToArray();
+        public SealType[] Seals => this.Struct->CurrentSeals.Select(seal => (SealType)seal).ToArray();
 
         /// <summary>
         /// Check if a <see cref="SealType"/> is currently active on the divination gauge.
