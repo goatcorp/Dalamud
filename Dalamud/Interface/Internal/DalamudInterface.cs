@@ -652,7 +652,7 @@ namespace Dalamud.Interface.Internal
 
                         ImGui.Separator();
 
-                        if (ImGui.MenuItem("Load all API levels", null, configuration.LoadAllApiLevels))
+                        if (ImGui.MenuItem("Load all API levels (ONLY FOR DEVELOPERS!!!)", null, configuration.LoadAllApiLevels))
                         {
                             configuration.LoadAllApiLevels = !configuration.LoadAllApiLevels;
                             configuration.Save();
