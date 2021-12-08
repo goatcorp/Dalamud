@@ -1,6 +1,6 @@
 {
   "homepages": [],
-  "source_base_path": "C:/Users/jonas/Documents/repos/Dalamud",
+  "source_base_path": "D:/repo/Dalamud",
   "xrefmap": "xrefmap.yml",
   "files": [
     {
@@ -425,6 +425,18 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/Dalamud.Game.ClientState.JobGauge.Enums.Kaeshi.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Dalamud.Game.ClientState.JobGauge.Enums.Kaeshi.html",
+          "hash": "1BTYiWLZY8itACVWF6nJxSYIIji4OUr5IFf6yfwp/gg="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/Dalamud.Game.ClientState.JobGauge.Enums.Mudras.yml",
       "output": {
         ".html": {
@@ -501,7 +513,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.ClientState.JobGauge.Enums.html",
-          "hash": "xlP1Dx079FCm3ZGceqeqyyKuL76W2KFpZd0jkQIL2Wo="
+          "hash": "hSar0TSZovhoznc+f8EBVCO6MMb7Z4XD5KGjnn4uZi4="
         }
       },
       "is_incremental": false,
@@ -549,7 +561,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.ClientState.JobGauge.Types.BRDGauge.html",
-          "hash": "4SKwc0+u092dxhCiRZlR5w+zVxN+FFge5IUdKYuVcSg="
+          "hash": "xC5HtE+9OGwCzOn0j008Qw2GoAMQ9CjeYpqqSU2oLXw="
         }
       },
       "is_incremental": false,
@@ -705,7 +717,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.ClientState.JobGauge.Types.SAMGauge.html",
-          "hash": "vtvp+9PmyJZzRM5MIIkfjSD8tZZ0B9MSkPQmbAhdr6E="
+          "hash": "5zsmlug848wHTb1NlM+HzK6SaYSpQWeT3jC7w65TDuQ="
         }
       },
       "is_incremental": false,
@@ -909,7 +921,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.ClientState.Objects.SubKinds.EventObj.html",
-          "hash": "5AbyamcY7gO4dJ8TWGe5zUjbUEJocZxVxh9IEW3Tq8g="
+          "hash": "HO3UXHrS92UxRWxPsFUUtNx5aUxGauTREmDrk3goJiM="
         }
       },
       "is_incremental": false,
@@ -921,7 +933,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.ClientState.Objects.SubKinds.Npc.html",
-          "hash": "BxsF3hLmwsdABT5KkV8zE27h9zTEN4x6gUDg5cnpghY="
+          "hash": "9vulhm/+rUx640pK7zwoPengHTwN1FoF4TTF6C4WaLA="
         }
       },
       "is_incremental": false,
@@ -933,7 +945,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.ClientState.Objects.SubKinds.PlayerCharacter.html",
-          "hash": "pjA7Yd/R7UPNaUfCeYC27rQ+61Ar0sHWs3rhbi9RAbU="
+          "hash": "MAj9dICi9pCtG3xRZi6E49BzUpFmb6AkTGzlDS7Hcc0="
         }
       },
       "is_incremental": false,
@@ -969,7 +981,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.ClientState.Objects.Types.BattleChara.html",
-          "hash": "i6nxb5GW2i6dLxajLu46b/PpCLiWjcrzdyDdghR2tXk="
+          "hash": "+FVWJeasExRtTmaGCiIR+VWaILuHK/VXRtcgUkrM3XA="
         }
       },
       "is_incremental": false,
@@ -981,7 +993,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.ClientState.Objects.Types.BattleNpc.html",
-          "hash": "iTD3SELUoaeKhFqaeuK4HDbK5qozQFpmi36HS1Ojv9A="
+          "hash": "zaP3t0JVFTI4XSe1s3FBZVEK8ThhvNC7CnxUSWogkqA="
         }
       },
       "is_incremental": false,
@@ -993,7 +1005,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.ClientState.Objects.Types.Character.html",
-          "hash": "bCrDwFYKhUR1AyHlTowEG2Qk5P1PX5b4OhgJVCEMfbQ="
+          "hash": "0c6GWJG+KOBSRmsDt1tKDWxVq5PLGnaK3l3VaNYp51s="
         }
       },
       "is_incremental": false,
@@ -1005,7 +1017,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.ClientState.Objects.Types.GameObject.html",
-          "hash": "9JOJvzFZt4vZW+swGF/QmSG5LvNkOk3rr8yn5O3O8OM="
+          "hash": "x1IRIeFfbqcmqevaAkbbhux7c9xcWTy0kQdT29NEzqI="
         }
       },
       "is_incremental": false,
@@ -1557,7 +1569,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Game.Gui.PartyFinder.Types.JobFlags.html",
-          "hash": "flClOrx5fgzSfA+Et3qMwgC8A1pdHj8k2pmm1zcgpcw="
+          "hash": "0MmWdR9YX4AQG5vR8LQ/sPG3RB50mw6c5rkQIrorJls="
         }
       },
       "is_incremental": false,
@@ -2925,7 +2937,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Interface.ImGuiHelpers.html",
-          "hash": "+iffoT/qQmHMQrgv/ooJt2Gs8Gsu7WLP6QQPoAjmu3M="
+          "hash": "9o/GMbkwPwNmeaLoB5EUfsryiHLmyr4ckU+5Om1pP+Y="
         }
       },
       "is_incremental": false,
@@ -3609,7 +3621,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.SafeMemory.html",
-          "hash": "jrLAaS0KywAEVNbus72yq37M+llZ+2U1kiFx3PExAGE="
+          "hash": "JZh+zF2zwADKHxD1f2BT1jpsNL0DzmkmsjKdwNV4jDo="
         }
       },
       "is_incremental": false,
@@ -3693,7 +3705,7 @@
       "output": {
         ".html": {
           "relative_path": "api/Dalamud.Utility.Util.html",
-          "hash": "PAMIRyuw/4diQq4Uf/TJ1xEHfZ6zKEgkp4ox0cwpd80="
+          "hash": "VRZBSsvXea1wU6JHmUTsFBMjambod5Cvvmk4jBu8FPw="
         }
       },
       "is_incremental": false,
@@ -3741,7 +3753,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Attributes.Addon.html",
-          "hash": "INIt59hCvWCkDXm7vReohipZllF3OD/v7cnq1q9DB2c="
+          "hash": "hMg3k+AzrKjpvB3wI3GG2R94V2SAlAzQLq65zPKoZxc="
         }
       },
       "is_incremental": false,
@@ -3753,7 +3765,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Attributes.MemberFunctionAttribute.html",
-          "hash": "7Gx24Irv4LL7IbxX+p3YIrnQuA1rrWSQf1fhYW2Iq1c="
+          "hash": "xcCQA48g/KHZy04PCF4TT5oZ7zupxt9G0zBw53mMPp4="
         }
       },
       "is_incremental": false,
@@ -3765,7 +3777,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Attributes.StaticAddressAttribute.html",
-          "hash": "EaPC9CZbzRYAWcFmR6CcNjoSZ1ZJVx40xISUKgE+SgA="
+          "hash": "Lkiwqr5MAIcHNg87RrveRzqsRc+P//Lwsxe9N9spFL4="
         }
       },
       "is_incremental": false,
@@ -3777,7 +3789,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Attributes.VirtualFunctionAttribute.html",
-          "hash": "rrEoihrVzCPcSdb3Uq7gzgi7WDI5IyTV9jqNpGrKYMo="
+          "hash": "KL9DToHLkWu/U8KckZq/6mxlgb6G/QzelriS088+c6w="
         }
       },
       "is_incremental": false,
@@ -3801,7 +3813,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.ActionManager.html",
-          "hash": "q4IxZCUfbjtFrXUevRdpZ2x3RQ7RQjGGWaix/iq3HOc="
+          "hash": "y4S73op1uwQKHphhvC8AFcg5b8qLCBRT6y+r38gA6TI="
         }
       },
       "is_incremental": false,
@@ -3813,7 +3825,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.ActionType.html",
-          "hash": "J5IyD2+lTfNWYHgoaKimDBtV8fPuT0Frlimp2cZYGi4="
+          "hash": "lIdlCxXs+SCFq0vgTGO+IGVE8uVbv1A+Q0xKF0rz/Cw="
         }
       },
       "is_incremental": false,
@@ -3825,7 +3837,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara.CastInfo.html",
-          "hash": "/YMDyN/H+UR+hgfYfVv50FHgNNr8sfesvPWayzirCow="
+          "hash": "WICEr5Ux4Uck9RGqGK79bihPVdL/N1hSGi0ciLTOk24="
         }
       },
       "is_incremental": false,
@@ -3837,7 +3849,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara.html",
-          "hash": "RASwE/ypMVw4rCXW1G2eeHiapSkzRuIfOMZ35EmlF1c="
+          "hash": "Gfzaop8CIXEboyufndmqjRTKWjaTdvW8iWCCLJ8V4k0="
         }
       },
       "is_incremental": false,
@@ -3849,7 +3861,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Character.Character.html",
-          "hash": "4L/vV2xWn3u2l8GjYyVX9o2kH2KMoEdWiog0NXsHhKE="
+          "hash": "UsuZ4rB5qre9AVFCM5xhRf7ydbvlPTfUxtLwOok8Mj0="
         }
       },
       "is_incremental": false,
@@ -3861,7 +3873,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Character.CharacterManager.html",
-          "hash": "BESx3M8lfqnjuFpX+PYIma6C4wEyvQjXERjhvYQ4mOw="
+          "hash": "wurw1wcTwOR+j5JkyDkzGrEAXfVSoj3HIwGZzUdqAmY="
         }
       },
       "is_incremental": false,
@@ -3873,7 +3885,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Character.Companion.html",
-          "hash": "KvNsumLXKIj7RtX61csetMsChO2I4VN5xXguEZ+6lIk="
+          "hash": "k/lzX2B4rQQnVHylNZVz8yKE8/MDrTazLnyzK/HMZOM="
         }
       },
       "is_incremental": false,
@@ -3885,7 +3897,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Character.EurekaElement.html",
-          "hash": "Tf+g6kZ1LM2hiQpuM14wBhGnDb2ISSgkMhywpDte2BM="
+          "hash": "q3hUFpqCVLLkxQdkVkv0MvziTPKw5sYSDsLBQ+fiteQ="
         }
       },
       "is_incremental": false,
@@ -3909,7 +3921,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Control.TargetSystem.html",
-          "hash": "bp6AaROwpx0MpeQTv9cHi/Y6jzPfTfiuIWakEK5sQwc="
+          "hash": "a3wPqc1qgf3RNugWSzhZDn3F7KK30MSmxJ+waiiFEWA="
         }
       },
       "is_incremental": false,
@@ -3933,7 +3945,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Event.Director.html",
-          "hash": "zLvpB/0DNFcU4KFZ28A/bCV3WdMtHhkzOQmbhsvjM/g="
+          "hash": "R4qKOz+8bGHbdpuShiVX10K1jIx7+Ni/bVUylKC7ZxU="
         }
       },
       "is_incremental": false,
@@ -3945,7 +3957,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Event.EventHandler.html",
-          "hash": "E+MxZN+cjS+c2IbpMD0zAXdHXW9P02Pl5hCyRskNDmE="
+          "hash": "8XX3HDOakb8VQWAFYUfm4RixH2zsYY4EJkonq6Kf0oA="
         }
       },
       "is_incremental": false,
@@ -3957,7 +3969,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Event.LuaActor.html",
-          "hash": "BV4c4923IH7a38CP1od/uHzSGIvTbbNi5+GT1SPQ3kw="
+          "hash": "KzAoXucbBaxSm5Ggy5+hPG3hKSLLTnq1lY9OfTW4WcE="
         }
       },
       "is_incremental": false,
@@ -3969,7 +3981,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Event.LuaActorModule.html",
-          "hash": "xLkn0tvYV7/t+gsH3XGUt/BjFua6UAJu28g+LHhQIVw="
+          "hash": "pTyFQanmm9/xVxoatZklOIXcfTd6Ercs0vzPsb7ZQKA="
         }
       },
       "is_incremental": false,
@@ -3981,7 +3993,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Event.LuaEventHandler.html",
-          "hash": "mLOULlLwyp6qsWFBE4DCFgRXCbpKM3LY7ZL0RhDsx6g="
+          "hash": "DyiuBL095VI2w0EJG5SXUoUcFOhOBgysF61CoF49T00="
         }
       },
       "is_incremental": false,
@@ -3993,7 +4005,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Event.ModuleBase.html",
-          "hash": "ONOncVqdYybtk6RpMX/zscBFdxgqGuwz7xW0eSd8noI="
+          "hash": "BSwFZed3K5B6DgP5zwcZPOB9JVaryhT5NR88YKFg/R0="
         }
       },
       "is_incremental": false,
@@ -4017,7 +4029,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Fate.FateContext.html",
-          "hash": "wrGS3i55fSiFM9tRFF3YUy99htYQ8bcYSFWRS8mzl5k="
+          "hash": "dcRtTRI1syUoKupVfCp5tr41MTyouBtSPKZFP2xfq/8="
         }
       },
       "is_incremental": false,
@@ -4029,7 +4041,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Fate.FateDirector.html",
-          "hash": "pGlcf+FQe0scwBv5HP6IRFZAePBuDVntdWl5pK8kwbY="
+          "hash": "EqXM5mcKCbFNj9YDCtUwWlZ1OG+HOgKffE+OAljUSw0="
         }
       },
       "is_incremental": false,
@@ -4041,7 +4053,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Fate.FateManager.html",
-          "hash": "blk9iXW3sx2N4+odc4HSggNl4+BUDI7AaYHAI66ZcIU="
+          "hash": "S936AwzHoxbC9GezfV6P2VjenSat2jtlSSsAYdyUrSU="
         }
       },
       "is_incremental": false,
@@ -4065,7 +4077,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Gauge.AetherFlags.html",
-          "hash": "bt65qm/xQlbEEiNNxdUeKBjwkrmxPKzn2BZDWAuJFMw="
+          "hash": "04tjLmRAOrHpX55nvZ+qZj7G0TcTF8CZw0+KEOptRu8="
         }
       },
       "is_incremental": false,
@@ -4077,7 +4089,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Gauge.AstrologianCard.html",
-          "hash": "ShMEm67zu5SW3SV2n1S8t1kcuDj20hGhIQ13WNMkycA="
+          "hash": "TzhG4hPsBrH0kJhdEAY1GE58EJAGeuImfmyNcEvMGuI="
         }
       },
       "is_incremental": false,
@@ -4089,7 +4101,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Gauge.AstrologianGauge.html",
-          "hash": "nW4sQaQdMzzCTwsXi217yTgSkPJtAfcB7uL4Mpx1hpg="
+          "hash": "chsoYQszJ0Zt7j7O+U6ApqrAqBfSFl1YDXHO/a0XVHU="
         }
       },
       "is_incremental": false,
@@ -4101,7 +4113,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Gauge.AstrologianSeal.html",
-          "hash": "RP+ouFjBlAK4KoGRCz0lplqZ3cuL0rl2Pc01kD+/FuQ="
+          "hash": "3gAMiKF/fwr+merhmafsIUAXeB5wIUbhdGMBs04L2cQ="
         }
       },
       "is_incremental": false,
@@ -4113,19 +4125,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Gauge.BardGauge.html",
-          "hash": "edRTrsiCC+YSPWhzdP39FbECiQ5Yg3feOyJKd7XldaY="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Gauge.BardSong.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Gauge.BardSong.html",
-          "hash": "5l4F83XBqJJ2avY27/dO3mjyf6vPW2wZbUfKMt6NFWI="
+          "hash": "fIPWmXIJDxSlIAP/bBZvLpIYL10tlUTmWMqcCyzlu0k="
         }
       },
       "is_incremental": false,
@@ -4137,7 +4137,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Gauge.BlackMageGauge.html",
-          "hash": "9FnTWILWAn7euilA2XH8kVQR0o3sriDOcdfVtlw8CCc="
+          "hash": "NFgny9wGouhQz/pWt8dumJfcrXR5CF9HuzW6oIEsEUU="
         }
       },
       "is_incremental": false,
@@ -4149,7 +4149,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Gauge.DanceStep.html",
-          "hash": "vDQ5P3U7Pszh7Lt0UdlQwQCztH1pWZjpOHgWwLkes7Q="
+          "hash": "47m/bWx4kZKmNN1jvRb9OHkiqiVdloW/fae7sFUDrt4="
         }
       },
       "is_incremental": false,
@@ -4161,7 +4161,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Gauge.DancerGauge.html",
-          "hash": "41/hWVAx2rSIjJoSrjohJD/uBQOpMd0WQ4HRuGbyJ/c="
+          "hash": "32A+GeRJ1oXXiTP1j6puRO21hoSmffcxVgAJrw4z6xY="
         }
       },
       "is_incremental": false,
@@ -4173,7 +4173,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Gauge.DarkKnightGauge.html",
-          "hash": "zWdHe+I5fJqQXfn2ofRiEEtsEexuB9UfFl+jvJG+EiQ="
+          "hash": "TUuEOZe2ONsmMlo5Crra0t2qyxG5L7/X831nCWopOes="
         }
       },
       "is_incremental": false,
@@ -4185,7 +4185,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Gauge.DragoonGauge.html",
-          "hash": "bTbbCaaV5NAMoRGeCbO/lFAAx16EAnY9BSUC6vENNg0="
+          "hash": "0wVgO+YCzaex5EapoWCrIBbk72T7v+8gr7QoS0MVqIc="
         }
       },
       "is_incremental": false,
@@ -4197,7 +4197,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Gauge.GunbreakerGauge.html",
-          "hash": "UQ3DrKmJXNT+GZby4VdtRWyj68xD8kdgCVyVWkiPoSk="
+          "hash": "hBrTZNYFcbVOo7zhf0Vvf8p7iYRQGbHX5DGVpzdZQno="
         }
       },
       "is_incremental": false,
@@ -4209,7 +4209,19 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Gauge.JobGauge.html",
-          "hash": "am+k7wMVAjEPflX12mq0hUy3jqxgNTR0vGaRp7cJF7Y="
+          "hash": "CHKh8xNgYgHlJ71S3ykuG37Q8OKyWtOXaWKJkdlEVzc="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Gauge.KaeshiAction.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Gauge.KaeshiAction.html",
+          "hash": "QGekJqNk7Vr1tTAsWcRD+mUw7jIUPqYAJ2IwvHdaizM="
         }
       },
       "is_incremental": false,
@@ -4221,7 +4233,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Gauge.MachinistGauge.html",
-          "hash": "/9AxqQsXvDzy8QwVhTt6ZBp8mPywskCbx5KlkLdel1s="
+          "hash": "cCVaEgFhvqqKeX0GVyw+VuJjH0rWthRZq6jhoizLCKM="
         }
       },
       "is_incremental": false,
@@ -4233,7 +4245,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Gauge.MonkGauge.html",
-          "hash": "pGrLp1Qc3hBebHHCrmRLJ5FTS7BvKnPflcIajvwSs3I="
+          "hash": "PIeHnJ6VEe/T2Fn4BsOIV57o2Rp98L0tZJaD9D5OWmw="
         }
       },
       "is_incremental": false,
@@ -4245,7 +4257,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Gauge.NinjaGauge.html",
-          "hash": "MPuTUda/OvK1A5TIiy76RKUJPv1aoUpMypGWyn12kQM="
+          "hash": "aPcNMXsH+iCLXZdNsao5AquQpyrZXwwG7VeW9w/Akok="
         }
       },
       "is_incremental": false,
@@ -4257,7 +4269,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Gauge.PaladinGauge.html",
-          "hash": "+O/uKwIb0SSeJea4fGVfa2JkIpydeKG3cQS8VPOhxPU="
+          "hash": "0LB4JKMOw2oWH49KQH1A8oJbkAiSi912u5AZ23nEf+Q="
         }
       },
       "is_incremental": false,
@@ -4269,7 +4281,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Gauge.ReaperGauge.html",
-          "hash": "LmZF47rT8HOplOaxUBIxAFw+AbNctMDxol8ANC2NtzY="
+          "hash": "5PWCKecThh8qADWAvuokkzyMKpK4IO1rpWm9AmTMSeE="
         }
       },
       "is_incremental": false,
@@ -4281,7 +4293,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Gauge.RedMageGauge.html",
-          "hash": "+3wwDpmLXywUORbNtoZs4q6HE2GxrRjdM6fXVJ9Z+zU="
+          "hash": "a7rRaZqTaKFydjE7i/e4Fzlfi+5io6mX6baQX9cY9LQ="
         }
       },
       "is_incremental": false,
@@ -4293,7 +4305,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Gauge.SageGauge.html",
-          "hash": "wYWVY3FMJyv5VoabFtOUBx9fyzL+Bi3SsHIHrTKS4nQ="
+          "hash": "ErhBs3S0oJ7RmRIY7xKg4gRajUDtApkot89GAthWRzI="
         }
       },
       "is_incremental": false,
@@ -4305,7 +4317,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Gauge.SamuraiGauge.html",
-          "hash": "z9CNOgGDeKfTc9IjwuUF0wQ7xnDITi5WoJAqD5KexlA="
+          "hash": "wwBrjs/qQoEN+dMPG8WrhtlmT2j2SpYb6jhExBGmsvg="
         }
       },
       "is_incremental": false,
@@ -4317,7 +4329,31 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Gauge.ScholarGauge.html",
-          "hash": "EUDRh/hzLvF3FOVve41sxPw88gfukIMSld58I7TYgdQ="
+          "hash": "53Fcr7BUGG0sxyHAjl19bUwqg564WkIjJ3dMFVx2WKU="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Gauge.SenFlags.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Gauge.SenFlags.html",
+          "hash": "A6jheBWR6JbNjU2JcrTMzfHxnFhQ5u2ECgZQ1lxLoUo="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Gauge.SongFlags.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Gauge.SongFlags.html",
+          "hash": "c7BVk0vgBAkr7r14iqBk4r0GvLdaR41WzO+cNnU1GOY="
         }
       },
       "is_incremental": false,
@@ -4329,7 +4365,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Gauge.SummonerGauge.html",
-          "hash": "qv8q/MYX+JaL5wlHenV4EMaZEet+Iz2ZcBYX7hUnX6o="
+          "hash": "jn/ChSLKDjiPQ15IibPQF87m859HTCJCQ1pw4/EI/Lk="
         }
       },
       "is_incremental": false,
@@ -4341,7 +4377,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Gauge.WarriorGauge.html",
-          "hash": "0zHLGQ8P9M4QiBwnd2ATAHRA30P3OFc1NfEgzZiE2jc="
+          "hash": "ARs5Myov09OoGHe1rnQCcG9Qq8fJauGKEGNj8IskWFY="
         }
       },
       "is_incremental": false,
@@ -4353,7 +4389,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Gauge.WhiteMageGauge.html",
-          "hash": "nu0ZfI07gymNbh5NZhiFx/LbEzS6neszPlDX2AEt0mA="
+          "hash": "6yz8KlT0m55cCbCv3RCrpvse6PD30FKNBxvaYn+Lt24="
         }
       },
       "is_incremental": false,
@@ -4365,7 +4401,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Gauge.html",
-          "hash": "k2Bzr2qO+pgRGbaaHQ/tTDQwP6kZZRNk0g5XZ8TlrdU="
+          "hash": "k37+AThYJWL/gJ9YKlQWSpitZNj+MfqSs1jRDdmy3cY="
         }
       },
       "is_incremental": false,
@@ -4377,7 +4413,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Group.GroupManager.html",
-          "hash": "MK46R2MxCI2oCrsgOs75xwrg+jm5fmVEnbBXZZad41k="
+          "hash": "zR2CHEzzVP2OqD1IEUa/SjsMBGfo+TmfaXzHj5ZPJB4="
         }
       },
       "is_incremental": false,
@@ -4389,7 +4425,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Group.PartyMember.html",
-          "hash": "0iIPDfeAbiDQwuQ8cxEmRV47y3JlZE9R0wAyz14jcW8="
+          "hash": "z4u7yhDeAmTTLVrtvhQVHsrtSamhnI6TLzeVxodhmcc="
         }
       },
       "is_incremental": false,
@@ -4413,7 +4449,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.InventoryContainer.html",
-          "hash": "jq9goN25PNhC0OJ4l6Vu8ztsRgyIHQiKaPuJUl/0b+I="
+          "hash": "jm0cfbF0QTAgdvZvW6S6j9tjdgJDm19SxwY0Oa2NRCc="
         }
       },
       "is_incremental": false,
@@ -4425,7 +4461,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.InventoryItem.ItemFlags.html",
-          "hash": "gzIz6xH353KLoY9aKnH+MJY1SaTmdTP3Q2xiqtsefeo="
+          "hash": "msV5ZRuIf0rdkfdig3Ci6g1UTUVx67RRpHbKwqIzJzM="
         }
       },
       "is_incremental": false,
@@ -4437,7 +4473,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.InventoryItem.html",
-          "hash": "uupk+rQskihdDYvSczJ/dDPf9kS4g4OVgjggoJ5H/Ns="
+          "hash": "WjJf9wKPV8NmeGB1MDCHykixxHifR31pEaswNWTPxcw="
         }
       },
       "is_incremental": false,
@@ -4449,7 +4485,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.InventoryManager.html",
-          "hash": "Hw4EeyslP/VQepWlTA+azKiVXe1PPpI46y4/0o2e/bI="
+          "hash": "0JqVeg6A9nZ03GqDXPDvgNo2n3IeKQWyjtz1t9FhQyc="
         }
       },
       "is_incremental": false,
@@ -4461,7 +4497,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.InventoryType.html",
-          "hash": "wO7C9Prf47Co8T7BYWIDxI0NVWKEhbFYtqtX183ZMVo="
+          "hash": "P87OwW5V1/sjvS36zgv6zoYjqO0q/aqLJrIFn5A065w="
         }
       },
       "is_incremental": false,
@@ -4473,7 +4509,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.JobGaugeManager.html",
-          "hash": "k6estnWV8YgHsM4SuAufOOEQKWa4VpqimtqbXI3KZ5A="
+          "hash": "xoBKVwq9XNB2DDtZ37+g0qlFeiJRqxqwcLCCJqS6mtk="
         }
       },
       "is_incremental": false,
@@ -4485,7 +4521,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject.html",
-          "hash": "Q0ClX8NawYPf95tgyDaZ/WHegS2NNHenMMLnKUCLzGs="
+          "hash": "Pz5ZzNZLjDaTpy5Nqz91vmiFU06Nt6uShD/BiUSIyG4="
         }
       },
       "is_incremental": false,
@@ -4497,7 +4533,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Object.GameObjectID.html",
-          "hash": "j0VeVcJZcgZxkxkk/FdX1uh141cgCDeKgs6D61RteYY="
+          "hash": "azYxRaWrp1kvfh5F/SLTQBqGQNJ8E/HRgs2/BER2HsY="
         }
       },
       "is_incremental": false,
@@ -4509,7 +4545,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Object.GameObjectManager.html",
-          "hash": "1zTJF12u1McLj7OZxtSUiYn1URkm6l82zeZvlBrCa9o="
+          "hash": "MYqYLxFAu/ioV7pv35vtBOJUrm6hizW/WEGkzfTaKRA="
         }
       },
       "is_incremental": false,
@@ -4521,7 +4557,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Object.ObjectKind.html",
-          "hash": "g4Ueu2zMRJOeEZgDFlgwwJ6M7KbctoG5LpUEdI2p4wM="
+          "hash": "QbUcUgDlDu0Ge47GAnVKi9iyu7IoOa/Q3oJxIJYAjBg="
         }
       },
       "is_incremental": false,
@@ -4545,7 +4581,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.QuestManager.QuestListArray.Quest.QuestFlags.html",
-          "hash": "ih5Y7kknQEmYDUScGvQt12wqYfP+xO4yMR0htlikIdE="
+          "hash": "LiZAG3EsJBnruCHXpiZCtgPBCkqjqyR0212W5652ttc="
         }
       },
       "is_incremental": false,
@@ -4557,7 +4593,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.QuestManager.QuestListArray.Quest.html",
-          "hash": "HelDIESxfYmzV5/8P6BhwsqUvETTVx2Ijsi/tx6hUxU="
+          "hash": "Nmlrz0NyDAJHOzPo7dbUU+60Ut+ovl5MM6FsLn8gy9M="
         }
       },
       "is_incremental": false,
@@ -4569,7 +4605,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.QuestManager.QuestListArray.html",
-          "hash": "MVflcy152mrdxs1TvUrTsFR1TPoidvUKRBBl6KfCNSI="
+          "hash": "nzUmdNPHB7upKwe25h9+kpBYk114FCS10zB6YPD0zRg="
         }
       },
       "is_incremental": false,
@@ -4581,7 +4617,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.QuestManager.html",
-          "hash": "Mweg0fm2QGgGpsWhA6jx0znnSfkk9mg/oIE6Dwner4c="
+          "hash": "r5mUGzHCdljNPtvJUd2LkoxTrD/nK+78rgW0wJLIOAo="
         }
       },
       "is_incremental": false,
@@ -4593,7 +4629,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.Status.html",
-          "hash": "0W8SpB0jXhak6dosvrM4zvXhEyAOaEiLSyY0DylUiJE="
+          "hash": "JUaU/Lmjjs9pkyKM8rfgdBQg7qm2oKHjLCyipoVVrxg="
         }
       },
       "is_incremental": false,
@@ -4605,7 +4641,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.StatusManager.html",
-          "hash": "7SJXjpifbU0MMrg2LFLca5JiSDF6DTJUp3oClIzEyXI="
+          "hash": "z9P1k9dFanWzEraZgmRsswZx4ZM9sVAA1k7DhlqkpQc="
         }
       },
       "is_incremental": false,
@@ -4617,7 +4653,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.UI.Buddy.BuddyMember.html",
-          "hash": "NkcblWadKltqb04X4cDnX8paT0B0FHki8I131BrO4NE="
+          "hash": "nIjeFH2raNtFniB7p1WVubeqz0hgpytRhZ3FwDjAORU="
         }
       },
       "is_incremental": false,
@@ -4629,7 +4665,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.UI.Buddy.html",
-          "hash": "1jfUlJRq6EHC0KVc3EpK/jzZUbgiDG81iw7AWS+io/s="
+          "hash": "JS+R43NT05gH2ZXkYm5fSEQwBYbmin6DzGZ0lGDyADI="
         }
       },
       "is_incremental": false,
@@ -4641,7 +4677,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.UI.Hotbar.html",
-          "hash": "22sVIj0ONhOmjOiA1eWj5xsZBJ2D4o73S4JdDEnRPws="
+          "hash": "f5pzRx7q9jH0OUvD/C+xVoocU94sFcElUnkgtC6lBjQ="
         }
       },
       "is_incremental": false,
@@ -4653,7 +4689,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.UI.Map.MapMarkerInfo.html",
-          "hash": "gdK/t0UsSt8MmBXKYuVsaZv4uygNJtYe59wWD6lpIk0="
+          "hash": "0/mqJwSIyvJI/2zj6JqBuJdIWUuujSJUDf38SutSxjI="
         }
       },
       "is_incremental": false,
@@ -4665,7 +4701,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.UI.Map.QuestMarkerArray.html",
-          "hash": "dYW3MW1Jtk6bVTPwJ2irCajEjTMQ2Y0yQN3XXNH82Dw="
+          "hash": "JBJ5RsxjmgIEbyJSU62kYTqhfpZJ0BDryVrMgExTS9o="
         }
       },
       "is_incremental": false,
@@ -4677,7 +4713,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.UI.Map.html",
-          "hash": "qbvtSVaAV2yfkNkx7UJtgQFJRLlADMv+XCg+nMBMMuM="
+          "hash": "OC+3pcN2d8/Tz7TMPrOHnxUD5VxieCl+eS0qFwKyZyA="
         }
       },
       "is_incremental": false,
@@ -4689,7 +4725,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.UI.PlayerState.html",
-          "hash": "XKYQEsWYFy/w3kKKrdc7ZGIJvoiJvwgbafqVcW4wVc0="
+          "hash": "J2sW+cHwPJw99g6sL5mmJ2LgMArVK/YXwqRIao/Kpd0="
         }
       },
       "is_incremental": false,
@@ -4701,7 +4737,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.UI.RelicNote.html",
-          "hash": "vLxQZUnucfDkopSZE+erExb1gVJ8RU4N2xNv5D8mQgQ="
+          "hash": "UBEXbZ6EyJlo1J3y2DY25sk2c4HLTxIl+beWkX98xZU="
         }
       },
       "is_incremental": false,
@@ -4713,7 +4749,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.UI.Revive.html",
-          "hash": "YWIDPqvq40bc374+x4I5SsOiisHSJjkyJ6SlkkRHYLs="
+          "hash": "6lVUmvWGcdHCZyFeXHsO+3oio1V0SjiAvNr6EIq7H4k="
         }
       },
       "is_incremental": false,
@@ -4725,7 +4761,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.UI.SelectUseTicketInvoker.html",
-          "hash": "dfCKTaCmnm+fI9h0elQgIgjETUylZvM4v+7zkKxs/so="
+          "hash": "7wq7HVKINmv6qMGW5q0ZAEvnbyzwyiT/yCLi2VDoWVY="
         }
       },
       "is_incremental": false,
@@ -4737,7 +4773,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.UI.Telepo.html",
-          "hash": "00GMW92u7+8omaNrj6fbev+/eENHvgYr+t2Vv+noJkk="
+          "hash": "Uy1EIZ4jcYvwKHCsj/EZ3Lssu0zHqcawjpxYDBdffSk="
         }
       },
       "is_incremental": false,
@@ -4749,7 +4785,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.UI.TeleportInfo.html",
-          "hash": "VA+xiNL9Ha2WqigZg3vh+JL8ys59jca+RXZEz8FBTro="
+          "hash": "Yio8UATPeLZJ/PZl0EHUMDtzWSrEQPLfoM2lgAsGG1M="
         }
       },
       "is_incremental": false,
@@ -4761,7 +4797,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Game.UI.UIState.html",
-          "hash": "Boz1Rxd2VdkcMptuMPQYVoQzpSpUXnlTBlneF5WNqz8="
+          "hash": "T1LahTbN0VJM5We3OWck2ajOn81D8LuUcXS0V6F6T6E="
         }
       },
       "is_incremental": false,
@@ -4797,7 +4833,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Graphics.ByteColor.html",
-          "hash": "S5Ogdb/Me62SkwpgexM7avz0jezq032qPog4phFu2h8="
+          "hash": "YUiHech4kduNLMdFf+uTNet0vAG4Ywckm9jRgGozBdM="
         }
       },
       "is_incremental": false,
@@ -4809,7 +4845,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Graphics.Kernel.CVector-1.html",
-          "hash": "rbZRgJsRGQGVgEkc8GicKVd5NPmaZu6KpVuJ0j94ylc="
+          "hash": "Cvoq9lBFAFSN/qi/CU5f622XrZvj3K17eJLRZROuZx0="
         }
       },
       "is_incremental": false,
@@ -4821,7 +4857,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Graphics.Kernel.Device.html",
-          "hash": "xsQ/kAd/gZCD6HO84Gj6mL7Tunq4kdS9Li3cF3ZqWTo="
+          "hash": "mm8RiNr4ZtTgg/s7W5Cfx7R3lnB6XL+7vtD8YTbAG/c="
         }
       },
       "is_incremental": false,
@@ -4833,7 +4869,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Graphics.Kernel.PixelShader.html",
-          "hash": "C12QLFxoJPvdXux+AcVlqzMvLC/8ro72G60z/1XEHLM="
+          "hash": "1UEAK6DEnUcKk7cF9wC3Xopi2GGw86GPzR9sxoJm9pU="
         }
       },
       "is_incremental": false,
@@ -4845,7 +4881,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Graphics.Kernel.ShaderNode.ShaderPass.html",
-          "hash": "YNuWk4yV8nSNDFQU4dxsL4lwuzgaBFNISZP1533kYOU="
+          "hash": "cb0A0BxIKQA1fGTc1k02gNMDvDo0dlnT/3+PrNKD/fg="
         }
       },
       "is_incremental": false,
@@ -4857,7 +4893,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Graphics.Kernel.ShaderNode.html",
-          "hash": "4+O2Kth89VGiET6dnCi5y6/Ox6CG2RMF85VY3/35/ro="
+          "hash": "2+qroSegYW4ZCZhsFKDjrPhsWnrf5ImCG8H52mKCo4M="
         }
       },
       "is_incremental": false,
@@ -4869,7 +4905,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Graphics.Kernel.ShaderPackage.ConstantSamplerUnknown.html",
-          "hash": "OXJ1tro6EUoep432cItmxi3VP8Vb+QeUB4ZJ0mUV/8k="
+          "hash": "Oz1IFtEsArRSHU2Zjw5h+kDkPwDsd7Xg1uaT25QEWmk="
         }
       },
       "is_incremental": false,
@@ -4881,7 +4917,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Graphics.Kernel.ShaderPackage.MaterialElement.html",
-          "hash": "lPjj/T3DuBmfLadWn2xSrm4JmfSNoaC0oGV1tqnuqqQ="
+          "hash": "QowV46nX8rbI/Ic3IsvWIOeVKDbL2/2yPnTUNqSFUSQ="
         }
       },
       "is_incremental": false,
@@ -4893,7 +4929,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Graphics.Kernel.ShaderPackage.html",
-          "hash": "bjJTNAmdjHSWGA6Tfz9UBH2s623wnScxdtAPpcwC1B8="
+          "hash": "2/Z3eQUginYLkQyXhpVbjSMSEBHfkwSqli5VIg1t7Tk="
         }
       },
       "is_incremental": false,
@@ -4905,7 +4941,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Graphics.Kernel.SwapChain.html",
-          "hash": "8wSXy1vX+2sWfzMfSbDbtm7v/E274rmhXNA+Kq8Xbso="
+          "hash": "wuP/d1z4n0tjvbaW3phXE0mQ84Fen4y7xcDi038gv24="
         }
       },
       "is_incremental": false,
@@ -4917,7 +4953,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Graphics.Kernel.VertexShader.html",
-          "hash": "aN+1aiaAfvbnme4v1n76R6EzArBhjHIuwsYrTPT8rMQ="
+          "hash": "p95j/g2NhxSJeEMAZ3G+rGO9djHucpyoo0k66jwL9P0="
         }
       },
       "is_incremental": false,
@@ -4941,7 +4977,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Graphics.Matrix44.html",
-          "hash": "3ZXR2d2SpOprXWk0rjLrnstzOQ5gdCHqaroVUoF8u24="
+          "hash": "56WPSX2GMS7XY/9vZs4L/iAA/qUBgLQZZd/2BsKyFxQ="
         }
       },
       "is_incremental": false,
@@ -4953,7 +4989,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Graphics.Physics.BonePhysicsModule.html",
-          "hash": "ez1rnmnWzBvgloSBQL8IfC/JxZAJBhVaJU9w8sBT9rI="
+          "hash": "WxTyeh9mgJufk5ypjLUiQ/7aFjxzEPHtXDER//OrONg="
         }
       },
       "is_incremental": false,
@@ -4965,7 +5001,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Graphics.Physics.BoneSimulator.html",
-          "hash": "lCweKYkpzBywhiPHpMM2mf5R4GP/3jgXiLmjYRBDSGQ="
+          "hash": "b7SNq9xbIbz7WJ6rmXVd7NJFF7zALrslFwoJ61HzMek="
         }
       },
       "is_incremental": false,
@@ -4977,7 +5013,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Graphics.Physics.BoneSimulators.html",
-          "hash": "UCvuaQLL1Sjtg+fSXIIH3QcNVAPrL2ra+SP9cpmZ404="
+          "hash": "oO3SpQAq7B9EWKpKUh1ExgTW5P7lFXWiu6U9amdR2BI="
         }
       },
       "is_incremental": false,
@@ -5001,7 +5037,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Graphics.Quarternion.html",
-          "hash": "nIhSIG3Ern0wIkKoZ2fVafsbbJtuyiuy/HSyaK9Z27o="
+          "hash": "uuHIZ33px7T5KZhTpQLDeHouadDjCEJX1RpchxN9TrM="
         }
       },
       "is_incremental": false,
@@ -5013,7 +5049,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Graphics.Rectangle.html",
-          "hash": "g1Seu5A3VUhTNy4v9DiWmlGo8izJ2ak6mLUzLDnWaWs="
+          "hash": "RGIMG033B+Zgae0kNq3g+2hddJbX0xwVeGhvMtHwriU="
         }
       },
       "is_incremental": false,
@@ -5025,7 +5061,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Graphics.ReferencedClassBase.html",
-          "hash": "SwPi4aWOqDj0M5EvSXCrSCN+AtgnRrSeIbVN4ovQGtM="
+          "hash": "riXsv96ly0F8WPIXWQhQYpKS7yDZmj17caRfWvRWh5c="
         }
       },
       "is_incremental": false,
@@ -5037,7 +5073,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Graphics.Render.Manager.RenderSubViews.html",
-          "hash": "b0EMD2X2/1LFZORXhRleGnG4VZhSc3JeGfL3pzXB3rE="
+          "hash": "wP4sEF6KzJLzB1hLvu/2TE3UBofCULSRYnDOB/UjgK4="
         }
       },
       "is_incremental": false,
@@ -5049,7 +5085,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Graphics.Render.Manager.RenderViews.html",
-          "hash": "GcNRUoRXKKCM5f9kpYrUnhGMscABmKTu1j5eKJlJAXw="
+          "hash": "qWnRgGtX/uqNRaABXtUIbEhB62cGdh516MYzYdyXmRU="
         }
       },
       "is_incremental": false,
@@ -5061,7 +5097,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Graphics.Render.Manager.html",
-          "hash": "9R4VQgNFcul8YzJfKMtMWB38McSucd4AP2oh4SMHEj8="
+          "hash": "kkc0N3FoIy9xZCm/HDWsxG9bOD8VbfdCO4m/VYhs2kQ="
         }
       },
       "is_incremental": false,
@@ -5073,7 +5109,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Graphics.Render.Notifier.html",
-          "hash": "vyGK4c4eYC01GRsgYMrAzU6kNvdYuwx6er67zKL3UdQ="
+          "hash": "Z7VoHyX+UJbnw/n8uWK5nV6Vr5Nm12n9cbSW8fKxTL4="
         }
       },
       "is_incremental": false,
@@ -5085,7 +5121,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Graphics.Render.OffscreenRenderingManager.html",
-          "hash": "O6YZiU+pex0+pv7lrg5R0aeEO4tdm4eJ3wP/mpYI7Qw="
+          "hash": "afosAKzGS95x84mk/xa+GYqoVbSOnHauTP0b/JSSa/Y="
         }
       },
       "is_incremental": false,
@@ -5097,7 +5133,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Graphics.Render.RenderTargetManager.html",
-          "hash": "iU8V07WiW2MhL/ygY7jTahzkm4R+qe5cLSfGRwupxyU="
+          "hash": "fvs9IM0O/hHwlPdgNFCbu9b44DsxToLLmDp+Jm3arsE="
         }
       },
       "is_incremental": false,
@@ -5109,7 +5145,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Graphics.Render.Skeleton.html",
-          "hash": "LB6i1C2MsjWovBUKXWbpPmIVHLjKInNUDx08xtY40ls="
+          "hash": "g7/XjfIOLHYZr9SzLfdy3fJhdnt9TqgLo44EmZjwd/M="
         }
       },
       "is_incremental": false,
@@ -5121,7 +5157,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Graphics.Render.SubView.html",
-          "hash": "MIjv2d7fObKCP5AsQmAFFavs4K1dKsdTmdTuAVJ7iJ0="
+          "hash": "b4d29dQ0sG7+CyrYatuiMYmoEIntp1BFi2yGu4TnF28="
         }
       },
       "is_incremental": false,
@@ -5133,7 +5169,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Graphics.Render.Texture.html",
-          "hash": "uFcvIh6X9IwlMfqHjzazNeaQDNLug2TRYJ0qCjRxoJo="
+          "hash": "dz3imlHFb6Xecfktv++D7pdVJJ0OwrLzxVOSiz2+7oM="
         }
       },
       "is_incremental": false,
@@ -5145,7 +5181,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Graphics.Render.TextureFormat.html",
-          "hash": "WYP2xrVGrFuYhz/Rk6bq0vddPyhiPxHNFQrSNrrpqP0="
+          "hash": "cRuYB8O/dDpsVsIE1zMNlbr4UYXpZeaXsMfCRe2pLkU="
         }
       },
       "is_incremental": false,
@@ -5157,7 +5193,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Graphics.Render.View.html",
-          "hash": "xlBenWDqmjxgnBvpKui64okR8BPjSPI4KHyhmJ0oVf0="
+          "hash": "VTY7gDm/SpnicZPxQ249OqFUtclp9hBUeGgenGphvCU="
         }
       },
       "is_incremental": false,
@@ -5181,7 +5217,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Graphics.Scene.CharacterBase.html",
-          "hash": "vb2QlX3EtlctCSeVYq3qjCNsKIXbB0mnJa1XHutI3pE="
+          "hash": "KjX22Wp49GyhHcE9NoW8EIP6Rx6RM7On+J5uAHqqbds="
         }
       },
       "is_incremental": false,
@@ -5193,7 +5229,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Graphics.Scene.DrawObject.html",
-          "hash": "gdvOjD5ntYUQIt+u/4snJUPzgPo4Kc/xJwFWm2tS//Q="
+          "hash": "q+mf6Qmh/4eYGgiCz2N7cd2+mgmt6srVkBo9FC5yxKA="
         }
       },
       "is_incremental": false,
@@ -5205,7 +5241,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Graphics.Scene.Human.html",
-          "hash": "ow+Sb5dD10rrdnoWFxgdJGL2e4PElE9dAAFs/BibNbQ="
+          "hash": "nxjbQBeq675Qf1EN6HjW5aCv/egcEzZvL3qk0iZ616A="
         }
       },
       "is_incremental": false,
@@ -5217,7 +5253,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Graphics.Scene.Object.html",
-          "hash": "3fPluE1KznggTscKb8wbq1mSf3h/42Eg16pUopf9TBU="
+          "hash": "pwTEttX6ZDledyRI65aW+fPG73EVpAx/Am0Y856hRJc="
         }
       },
       "is_incremental": false,
@@ -5241,7 +5277,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Graphics.Transform.html",
-          "hash": "s9Rw09P/g0ZwsnHc3NEqWIqGV4C0HuY7HX2wO+AFT90="
+          "hash": "cOA/P2wU7Ngq6rDHESoQ+kJOF0zbPchCTWWqWnpM2F4="
         }
       },
       "is_incremental": false,
@@ -5253,7 +5289,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.Graphics.Vector3.html",
-          "hash": "dOyVTAfpDd998SdwJbuMMvWx4otdk1dYbQDsJjwsnSc="
+          "hash": "zDMvhMlckPsB8PDYEeIsyLoFQUZ8keRtfpBemZBoEsk="
         }
       },
       "is_incremental": false,
@@ -5277,7 +5313,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.System.Configuration.SystemConfig.html",
-          "hash": "rvVj5H7R9izZ3vHEcDvi/ngmrHVnALCVl8yfoDh5mwQ="
+          "hash": "AhzptzbODyuG7HncgLZY1IIhT5L80lmtZ9kFlNinDEM="
         }
       },
       "is_incremental": false,
@@ -5301,7 +5337,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.System.File.FileDescriptor.html",
-          "hash": "yNsH0XPa3wz+0tb6cq+zL0TihgPdErhgYbwcS7xhhPY="
+          "hash": "lxF3JmfxSVRdmIMqJjH+202zVtUclNZpQ4onA7jMrHs="
         }
       },
       "is_incremental": false,
@@ -5313,7 +5349,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.System.File.FileMode.html",
-          "hash": "wcUt04gPLkPXq9Uew02Nzovs2RXe75JFW4JgvXF4VLk="
+          "hash": "KQ95HloDCYpUhljTHkypsm+yPlIpNH8JMxDDN9tyZok="
         }
       },
       "is_incremental": false,
@@ -5337,7 +5373,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.html",
-          "hash": "OnNM5fGNr5kdnff3AiD4HUG/mAdUnGzmOdYuwIk0wfk="
+          "hash": "J6w4PQlX+xH8H7zwRzKSw3n+z/pK0ZNOtHJ9IpQ37P0="
         }
       },
       "is_incremental": false,
@@ -5361,7 +5397,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.System.Memory.ICreatable.html",
-          "hash": "iTBAHalq5EGKViCzCacldkD1CUXAP7uUZ8XRiU88q6A="
+          "hash": "9O8+381JNLV74pjPf3JisLMUsDyqOF5OKC99eMdifYw="
         }
       },
       "is_incremental": false,
@@ -5373,7 +5409,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.System.Memory.IMemorySpace.html",
-          "hash": "hun90YdwORY41dBdSw6yK3VCLG8uGk91Bxb+BM3GN4A="
+          "hash": "Z85rp3HEgPECRQS2/UXh/8KsusztT/gPBcM8QHnZOnY="
         }
       },
       "is_incremental": false,
@@ -5397,7 +5433,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.System.Resource.Handle.ResourceHandle.html",
-          "hash": "UVpJ/J5IyHFqsbW5r44FmHYKNy+HlKZHIfsCgD9dv9s="
+          "hash": "Y59BtIBqvTVrwK7ago0epB3Yf+RmzUjiW/eHiUEYT9Q="
         }
       },
       "is_incremental": false,
@@ -5409,7 +5445,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.System.Resource.Handle.TextureResourceHandle.html",
-          "hash": "u9us+Iv/ngO7sroAE2tgfnwxLfRcCLD236IxVsCFUSs="
+          "hash": "yDGJy+z5g1vnBpzZ5i1tzV9DQJmZWCbBj2Qx7r/5lYQ="
         }
       },
       "is_incremental": false,
@@ -5433,7 +5469,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.System.Resource.ResourceCategory.html",
-          "hash": "tBwNIbHeEcAVUvLr3tfFR1h2g3Ndbd6645gribTJHCQ="
+          "hash": "U1ERnqkg3PuMMBiBdG2BJib5DId3qSI3cF7Xtx0yBZU="
         }
       },
       "is_incremental": false,
@@ -5445,7 +5481,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.System.Resource.ResourceGraph.CategoryContainer.html",
-          "hash": "sQR4bnhtyGypeD9VH9Kk+58OL7vaZW3UPP0WyIFR/yY="
+          "hash": "Y0Fc2MfBp5BClp//3m4hHPvGhJBEJodBY7m57v/HQSE="
         }
       },
       "is_incremental": false,
@@ -5457,7 +5493,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.System.Resource.ResourceGraph.html",
-          "hash": "QwDBFizGwJxxdr09Uk0QC7YX7vv+KYMudmw41Y+qk3Y="
+          "hash": "zmzJDINh338gjd2kSL5lJm9DLN3YeGrShX3XXjI0ejI="
         }
       },
       "is_incremental": false,
@@ -5469,7 +5505,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.System.Resource.ResourceManager.html",
-          "hash": "PeXULRs+vojBvl954FWyZAOZdDAARCBgalGZNtnoVx8="
+          "hash": "0gmP7zVFXD0AHX0qrfvmHeAERBCo699ZkL5M48Rwlds="
         }
       },
       "is_incremental": false,
@@ -5493,7 +5529,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.System.String.Utf8String.html",
-          "hash": "QIzx1GGcaxe8wc27Qdj6KS3MNBEhC0EjqlnAB7J9MKU="
+          "hash": "9Q4bPIKg7tzCXusvCpV1LiQjRl8v2A0jsqhIEYq/LBw="
         }
       },
       "is_incremental": false,
@@ -5517,7 +5553,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonAOZNotebook.ActiveActions.html",
-          "hash": "W+MkA7hRzDShUZSepMtCtRo45HMwh/cOHM4PIcKn5Eo="
+          "hash": "NEFgSzMwsEMvRZ/CvHg8lTMD7EEk4zg8syG6H5u7/n8="
         }
       },
       "is_incremental": false,
@@ -5529,7 +5565,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonAOZNotebook.SpellbookBlock.html",
-          "hash": "iyaHpH4haLJP/0au9BTMvjA+92Gt0W+1Lxwm5YdUguA="
+          "hash": "NUGHjPOoBX5G5t5Gg+gTs5tq9paJ9rcskjEmKKdfma8="
         }
       },
       "is_incremental": false,
@@ -5541,7 +5577,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonAOZNotebook.html",
-          "hash": "+UE3aPQCyqiHX+wqExyI6qfxHCq73FEO8n71WIYUs5g="
+          "hash": "7djwO7VXDwrBkIMBkBpjmRgMXJuS3k271Z6Ck5T0EA8="
         }
       },
       "is_incremental": false,
@@ -5553,7 +5589,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonChatLogPanel.html",
-          "hash": "p9WYhQau78n62t4fkUFLA/mROmhQUoxXVH4er5vbd0E="
+          "hash": "devuo9O/bjEb07CTb4++z5pfIykKBJWD7mYCNA7x7I4="
         }
       },
       "is_incremental": false,
@@ -5565,7 +5601,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonContentsFinderConfirm.html",
-          "hash": "AumtebY5QzR7IKJJwiYmeDBxzXXSwKnLnl0rP18asGo="
+          "hash": "sRR4zuKQYrsVJsZC/U2wOQmQSHNSrLL45FLVtY1EayM="
         }
       },
       "is_incremental": false,
@@ -5577,7 +5613,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonContextIconMenu.html",
-          "hash": "SbHDXZnyntNA4w3CXFmkusHxYTMZaxhvG7KdcfoN9NM="
+          "hash": "DvnWnMbEMUy0tslunRX8TJGEU6bIUkZHDIxAm5zP780="
         }
       },
       "is_incremental": false,
@@ -5589,7 +5625,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonEnemyList.html",
-          "hash": "SRXfstT99IuSmz+1Z0fQskfKzgYmojtS9PxJhYu1UPA="
+          "hash": "/vZYCy3ftf2+yjXNulT3UoOYtcQYFO66leR4O2sokYc="
         }
       },
       "is_incremental": false,
@@ -5601,7 +5637,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonExp.html",
-          "hash": "gCVxa9agOU/WihKfgGEmkPjx96wSkmUeYwyz/r9R2ew="
+          "hash": "Okp/E/5Xg30o3vDPvJUmjQetZcOFbnS8QMu7qnNN3ds="
         }
       },
       "is_incremental": false,
@@ -5613,7 +5649,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonGathering.html",
-          "hash": "jN1/rzNSwZx8ExYHiPdt5bW2rXVnZlEHKO6SmQheSE4="
+          "hash": "IKM8y79EAAL5aiCnATTPBgm0NK4Tzq+qhIGBnamFQqc="
         }
       },
       "is_incremental": false,
@@ -5625,7 +5661,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonGatheringMasterpiece.html",
-          "hash": "+O9UpSOoqQCZugzAdApU+0UJTUiUrtgjuZk+RrUKs+0="
+          "hash": "qIBn06vKBXFfiRU691vas9mGmmXUHa7W+Ze1G8UBU54="
         }
       },
       "is_incremental": false,
@@ -5637,7 +5673,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonGrandCompanySupplyReward.html",
-          "hash": "C4I3tTJFp1XOiwVWitM+frUH4N+LiDGNud1//0qcvsM="
+          "hash": "2UsPluQju90yjFaZeIvefzO0fQj6kRj2lTw37nObJ6M="
         }
       },
       "is_incremental": false,
@@ -5649,7 +5685,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonGuildLeve.html",
-          "hash": "+cC39kT3BCZ/vprRVk2T6xETUGHE0CgWV+rLfZpS/8U="
+          "hash": "AakiUW3WLHwhq0UtxeqHUFGVFUltBO2RvZ4R7N/wIV0="
         }
       },
       "is_incremental": false,
@@ -5661,7 +5697,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonHudLayoutScreen.html",
-          "hash": "IQEZET1QlFZp3ttlCW72cjl7iCJ+Ps5za7S64HFK+zc="
+          "hash": "WMcyx0Jj9j7eIRiZzFK1NwL9FLiRhYySpJn6wRyd8CM="
         }
       },
       "is_incremental": false,
@@ -5673,7 +5709,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonHudLayoutWindow.html",
-          "hash": "HbDRpxtBGylVauuhKBsUtuVH5Iy8rgoq+1IyEwDr5ug="
+          "hash": "youXVEPr8BfEwjjfLHlQl1FoKcYQNQJ4kqU6MoQ4q88="
         }
       },
       "is_incremental": false,
@@ -5685,7 +5721,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonItemInspectionList.html",
-          "hash": "77E5R5VT5r/eTpKboF/PaNgBInP7a+IL+sLbOHzhjkY="
+          "hash": "IIcO/dQuiwFxkmekplgdX6NuaOWBwA8LsVa4MTq1R4o="
         }
       },
       "is_incremental": false,
@@ -5697,7 +5733,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonItemInspectionResult.html",
-          "hash": "gf6RS15pwgE3z2DodaZuiv+djoMlkLxt5vBYV6L8JK8="
+          "hash": "1MRv2iAk9bwortwIfOZaZ3x7pPmI5hO8bB4PCJK3tpw="
         }
       },
       "is_incremental": false,
@@ -5709,7 +5745,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonItemSearchResult.html",
-          "hash": "sQm5JGL2ZB/cLt4ZEWbrln6/V3Lmns7rkeY9iOcr8DU="
+          "hash": "lLfQScT2tFqZAjJgeawGIlm2E7e2onefqzc+eLh5Uks="
         }
       },
       "is_incremental": false,
@@ -5721,7 +5757,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonJournalDetail.html",
-          "hash": "M+y4PfI4H/fED7xLJyHh2Z7W+QeGrNoSfF5ozTB/C0o="
+          "hash": "3gIsnD+xUH6mLhj8IG/3EffqoCiQR4KAhnEyndqvPZU="
         }
       },
       "is_incremental": false,
@@ -5733,7 +5769,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonJournalResult.html",
-          "hash": "g5Cez4tsowWy70pQ2ykWt8Hwm2aTuyYvaSHaqSS+FeQ="
+          "hash": "kT9h822Cg+INGr+d3bA3LTH4qZaDS58sUUfWJst0iB4="
         }
       },
       "is_incremental": false,
@@ -5745,7 +5781,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonLotteryDaily.GameBoardNumbers.html",
-          "hash": "6iPWwo0SMC2l/mFLfKWbMUJh3QmH+vLRe5fl2cGrgf4="
+          "hash": "Hzp2dFermUPl3Afw9lKL/5SLU2XvThk/iCgk51nQbnM="
         }
       },
       "is_incremental": false,
@@ -5757,7 +5793,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonLotteryDaily.GameNumberRow.html",
-          "hash": "OF7o36hpQIN06iW7cTWTA9jFdX/kOhQUVu2ughHhpYY="
+          "hash": "fKydrFH/MNo4LXLdrYiE82kjuBo2nsSqhSxrASzcJPI="
         }
       },
       "is_incremental": false,
@@ -5769,7 +5805,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonLotteryDaily.GameTileBoard.html",
-          "hash": "pAIhA6bG6zYAZuoImlPy7YMti4/NEozxsXGuKS5CfZc="
+          "hash": "+d3Gt1oh+5ctPbzvVTLM5OBIBrD+uFWnkYRyNf18Ilg="
         }
       },
       "is_incremental": false,
@@ -5781,7 +5817,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonLotteryDaily.GameTileRow.html",
-          "hash": "r00aOi4/mNp0o3WGcVpdG2Hv+ASZTEWg4BkwZkVDT60="
+          "hash": "uBpRypd+y9IiTEaqaJuRNr6iuwx6MuuhMOa34+li+Is="
         }
       },
       "is_incremental": false,
@@ -5793,7 +5829,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonLotteryDaily.LaneTileSelector.html",
-          "hash": "qWqkskEAiSaJ1rPpHqIGeSNS+jvFCslGntWpCX5CQj4="
+          "hash": "hmpHCE4lS886a8qqRWt7pk4821gZ/XjYYBoQGhYz+Vo="
         }
       },
       "is_incremental": false,
@@ -5805,7 +5841,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonLotteryDaily.html",
-          "hash": "V4hGBuO2A8qOFW4ZPw8LnrT16j1jUq8uSf3g6QC7eJU="
+          "hash": "XK+NG9HaO48BbCnlBDDECApAPtvaML7RtT3NKiBBvqI="
         }
       },
       "is_incremental": false,
@@ -5817,7 +5853,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonMateriaRetrieveDialog.html",
-          "hash": "WdvpomhTCHopJWRvWj2zn1tiF2odRauofKMQMBDXQpA="
+          "hash": "f7PDRpZFl3beYlDz/m2lEX3sC06PXHmGSJg4MVeAXNE="
         }
       },
       "is_incremental": false,
@@ -5829,7 +5865,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonMaterializeDialog.html",
-          "hash": "fBgyGnrRKnx+t9gf8FQaWzm+oKMO/Rd93pmBVRF7FM0="
+          "hash": "UzY+VqzEufq93efKJzEFKCq9tX8/ATt717VOIM++5Yg="
         }
       },
       "is_incremental": false,
@@ -5841,7 +5877,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonNamePlate.BakeData.html",
-          "hash": "9stlc+Rx78e0GGaQdgN0HFTo1uWU59OeS6d51dXm3kM="
+          "hash": "IfsUZFM4DyCVudymp5VBbJT/66E93H41ReUqd+mLiwU="
         }
       },
       "is_incremental": false,
@@ -5853,7 +5889,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonNamePlate.BakePlateRenderer.html",
-          "hash": "9bsg+7FeAN7apZeiFUXU60DZhk7l0RhyjY+6CI5FVjs="
+          "hash": "nq6T6zbrAXK8B/mhAJxOEqHeXQBSBkouPtf1o5nbJjg="
         }
       },
       "is_incremental": false,
@@ -5865,7 +5901,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonNamePlate.NamePlateObject.html",
-          "hash": "JiIwzFhJT+U0cERIcDdl0hn8D/IdFQraPK94DNma+DQ="
+          "hash": "0/t/W4vHrPBwU7ETGJzoRexBUmLmoEjcuNyDIgkDwpQ="
         }
       },
       "is_incremental": false,
@@ -5877,7 +5913,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonNamePlate.html",
-          "hash": "FoCowFxoLlW4St17GeGuefZS92sywCnFmhqm+rjsPqk="
+          "hash": "y77T5TJzLwTrsis5VlwTZbKVNCQ+TdP7pCwsAEv2AFs="
         }
       },
       "is_incremental": false,
@@ -5889,7 +5925,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonPartyList.PartyListMemberStruct.StatusIcons.html",
-          "hash": "VM3dmC6VFkFIT8YqQm8lBeYRBoLhhcz/Sf2yl27FMqY="
+          "hash": "7SqlldllnnyTy7SySPqELKS6hkSDlusuDUHgEYnTdfk="
         }
       },
       "is_incremental": false,
@@ -5901,7 +5937,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonPartyList.PartyListMemberStruct.html",
-          "hash": "7TkXjSsB41B7jdpxN5kPQIPpdLzIgpinP9FYHBs8Bgw="
+          "hash": "a7f0ll7KPoOerh4RKk1ldBstEvi6GC+xDCMdfJooOjY="
         }
       },
       "is_incremental": false,
@@ -5913,7 +5949,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonPartyList.PartyMembers.html",
-          "hash": "j8KoerDEeAxyrKfxRghMakqHje++hu8792INCaMS12Q="
+          "hash": "X7TNMi6ojkx5VPW6UM/rOAnhms96O6L0iVXhQwqnvq0="
         }
       },
       "is_incremental": false,
@@ -5925,7 +5961,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonPartyList.TrustMembers.html",
-          "hash": "5YBj+BsEgdVcJP3cIKKyCnczb8VV7MKA8BecsLmFJEU="
+          "hash": "bryvM+A73UAILhcBU3YbTw4xs/hc0Jz7yOK7wfPGEyo="
         }
       },
       "is_incremental": false,
@@ -5937,7 +5973,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonPartyList.html",
-          "hash": "USA+e2RsFjM90W0Xe1/3IgzY+Vp3zxqXOhm3J+l0xpY="
+          "hash": "QRF6rggubnk7TeslJeZFTLzXZBjnEuQVJjP72VbQ+fQ="
         }
       },
       "is_incremental": false,
@@ -5949,7 +5985,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonRecipeNote.html",
-          "hash": "83kUd5s+SwmPXegxYocbMdZ4ppWH0j500C/+h2X4ae4="
+          "hash": "8cGUqUJ6Ff1UH7KzNhrV32Uw3ZdJYbMf3YG9Ki+2x34="
         }
       },
       "is_incremental": false,
@@ -5961,7 +5997,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonRelicNoteBook.TargetNode.html",
-          "hash": "lo2JQHbULE80gdxZcQ5V/R0IzDKpNcRa3o/o3CmB3fo="
+          "hash": "ixE4cjFRvhRdi+ChL6A28VFDknRz/UXi7/4l9b4NBfc="
         }
       },
       "is_incremental": false,
@@ -5973,7 +6009,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonRelicNoteBook.html",
-          "hash": "19rR8NYmW7Z8gE2oON7WbFP+BKNq5GjaK52P3cytkts="
+          "hash": "T1du3tIg9nEy+6TUtah37YxZI6aUTjUGuDA5F2n4Cdo="
         }
       },
       "is_incremental": false,
@@ -5985,7 +6021,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonRequest.html",
-          "hash": "uxFvrWQnjjrZJtIvVUWhM0glGLPBSM2Cx+CcKdax/xI="
+          "hash": "tS6DT0Gy/NDew6m0nKld5GBXDh3gw0c4rdGEFyEhSN0="
         }
       },
       "is_incremental": false,
@@ -5997,7 +6033,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonRetainerSell.html",
-          "hash": "K5hxCfSv7O89xARkXiRq+7lTgaB5kOlE1UwgfFT/R8Q="
+          "hash": "vhy2Wd4+ZSFhqksTwgKmfctj7HppNBG4Mya0HKckxSs="
         }
       },
       "is_incremental": false,
@@ -6009,7 +6045,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonRetainerTaskAsk.html",
-          "hash": "hoP0Co+dwf+52/4aNoxa1xITNY0as/OH0uFcJ7tqzeM="
+          "hash": "4FPRPcOKSoYF79AEn3PJeTHy4aV3xsRlNQkXpHsLOOQ="
         }
       },
       "is_incremental": false,
@@ -6021,7 +6057,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonRetainerTaskResult.html",
-          "hash": "ysVjCZTJD7+rIGHlBVe1lb7v1AVs2ly1cB+62dQjNsM="
+          "hash": "hInQc+QX7JBb2+so3ggEcf4ux5DBmrWz3l44XVDJSCw="
         }
       },
       "is_incremental": false,
@@ -6033,7 +6069,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonSalvageDialog.html",
-          "hash": "vMEU69fSO1XagifjD4rATzLNziPJmXExBHz9hrV9uxc="
+          "hash": "Yvz3jJDpf711W196bHoXN2zV5563Dv+EPeDADj8hm3c="
         }
       },
       "is_incremental": false,
@@ -6045,7 +6081,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonSelectIconString.PopupMenuDerive.html",
-          "hash": "86Kpv8YM8FjBAd0zl1NHnxOqkNJuEttem82WfOAautQ="
+          "hash": "5YSEzP2XDpOKMWOea4vgtf9rrKiQ2lftxg2YgNYe+f4="
         }
       },
       "is_incremental": false,
@@ -6057,7 +6093,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonSelectIconString.html",
-          "hash": "Ihei6cKha76D/vrA9IalQjHFzUHV7ahS0eW13hJ6wZ4="
+          "hash": "2tVSNWLZ4F9MxIKJMgGWXs1LRLZbR+j6si+ybaw/2Bw="
         }
       },
       "is_incremental": false,
@@ -6069,7 +6105,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonSelectString.PopupMenuDerive.html",
-          "hash": "NTephe0c3jhPd7F0caaWvvMoLYpi0Way6WeUheWW+3M="
+          "hash": "+UamjGe4LRUKlhhHm7o+w1Tukckt349+rMPRvl9ZZiY="
         }
       },
       "is_incremental": false,
@@ -6081,7 +6117,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonSelectString.html",
-          "hash": "U5MSL/w11Wg9wkNEh3aDL6JJBzPQ4Td5W1zxyApUSjs="
+          "hash": "rJr2+5GtW/KkR3hWZjXREnlHfrYWMr/R9Jo0xqaKPs4="
         }
       },
       "is_incremental": false,
@@ -6093,7 +6129,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonSelectYesno.html",
-          "hash": "Mqa5tlJeW0ydVT73Q9+t1ThXwxOhZJKuofO8TXstiqM="
+          "hash": "5LqnVvUDx1iqktNE7BMyy6wGJOG0CyU3ZftjeetoEgc="
         }
       },
       "is_incremental": false,
@@ -6105,7 +6141,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonShopCardDialog.html",
-          "hash": "/Yf2GyI+JkVzFureEAwT9QqZKCdHJlZACv3pq/8csk4="
+          "hash": "fYCPilnpu1Idz7fTkWbPIZ0CiNzhyOMKjKJpjQpQ+qo="
         }
       },
       "is_incremental": false,
@@ -6117,7 +6153,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonSynthesize.CraftEffect.html",
-          "hash": "AdDGbwASzNVYtuPgzamFlsm/hauajkFJtCLDG0mzRbk="
+          "hash": "iIcR3T2U7EKxMF8UFN6ZfYa+1zJlmySAqu4BzOPq6ks="
         }
       },
       "is_incremental": false,
@@ -6129,7 +6165,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonSynthesize.html",
-          "hash": "wiyi6LkTRUQ3b6geoOs3A7YYYrw2/IH33FA3sqHJLKQ="
+          "hash": "aGuEoMSlqnwuurT/AS1rWM4fXqaiKsvcJpmuSv5LlQ0="
         }
       },
       "is_incremental": false,
@@ -6141,7 +6177,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonTalk.html",
-          "hash": "Hy7NEXmUnLV8ogCjulapWfk/aXjkRVi7ivNEARmzv5s="
+          "hash": "9b+R6kwAFw86wfWgyld/jBdWoBvXUCRG98tddWnMoFE="
         }
       },
       "is_incremental": false,
@@ -6153,7 +6189,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonWeeklyBingo.html",
-          "hash": "DwORz4LdBGsbn7V5B1trmG+fKw5a7Kcu5l0Pv4QyO+U="
+          "hash": "mvLMMZdveBKwLdRHqi8QG3GpPTmRbdsBjSjoCaGrs7Y="
         }
       },
       "is_incremental": false,
@@ -6165,7 +6201,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonWeeklyPuzzle.GameTileBoard.html",
-          "hash": "/nmV/Acqj85feySKhtmum/0d1fDVoHmXRYSopLdQzas="
+          "hash": "fQntx31Wl5qi/238IysOe2C/lCv9pDH2CtWDGg9M1zA="
         }
       },
       "is_incremental": false,
@@ -6177,7 +6213,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonWeeklyPuzzle.GameTileItem.html",
-          "hash": "a/0Vv8cbvt84CKRQ+DkwhLuB30ik30GwbxH5Cbau4pM="
+          "hash": "wzfE5VbWu14gszUxytBRfaAerh5lWkMdW2FvxofJIDc="
         }
       },
       "is_incremental": false,
@@ -6189,7 +6225,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonWeeklyPuzzle.GameTileRow.html",
-          "hash": "8ZZFScu0lR+Z3hgo2SyUncFIKtXfzTsMoI1ZXs7MqEs="
+          "hash": "fihhliLUUdypWSP9XluU5gMXGI7i28cC+M7wjbndkbM="
         }
       },
       "is_incremental": false,
@@ -6201,7 +6237,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonWeeklyPuzzle.RewardPanelItem.html",
-          "hash": "H/QqBtev5jRYS9l6hCA4ten4IS/2zEsz4YyPeeNmzw4="
+          "hash": "WiWhUwNu6OMzJDnD70Qnnyj8jhCnP+dDpmQiWX6Z4jY="
         }
       },
       "is_incremental": false,
@@ -6213,7 +6249,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.AddonWeeklyPuzzle.html",
-          "hash": "KQZX0QjhDq71Xoe7DHBtMLpoyziMhKTjE6BGszjEZH8="
+          "hash": "4okJRA/aluDhbXufUcoGBTLALJRG4EyiYzQoQiBU6ho="
         }
       },
       "is_incremental": false,
@@ -6225,7 +6261,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.Agent.AgentHUD.html",
-          "hash": "Bczdnri+/NAcaH38iUB6Otf74ReLDM72tAZ+9gNOGFY="
+          "hash": "Yq8CqpCJra68RyoHBXQpazJLEbUj8SWq9R4kQYEGFTI="
         }
       },
       "is_incremental": false,
@@ -6237,7 +6273,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.Agent.AgentId.html",
-          "hash": "8UfGQHXP91OhOy1ce1QJAlG209z/2ljEVF2bLrTZuXA="
+          "hash": "UcvXt+1lI+ox/cVkb7QY5sGotxTcmmbpTifIYEQoKns="
         }
       },
       "is_incremental": false,
@@ -6249,7 +6285,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.Agent.AgentLobby.html",
-          "hash": "+9S2Bhn0L7E1Yr6CTAm/aZfI6nkWliGi8WW4Jw7B9jA="
+          "hash": "BAzHxX3F9EHTOeziFMy7aTvbgHN6iLc2BauzUymhdQs="
         }
       },
       "is_incremental": false,
@@ -6261,7 +6297,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.Agent.AgentModule.html",
-          "hash": "BGJ1IvJC5n1r4RKJK81HBO9XgPV6QR+yNWkJ1cZLzOg="
+          "hash": "xWAX5Rl/s8evwofNTaAg42NzlGMqoiz/Vq1Hsq1mlbg="
         }
       },
       "is_incremental": false,
@@ -6273,7 +6309,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.Agent.AgentRevive.html",
-          "hash": "LGUSAlLIoGVUOSmBfmHBtun3rhiFc+yKi//2v+zNh6A="
+          "hash": "u8k8Nkzy7iknNgKdegFwhQj3/Wce59ggZem2JZS5i0Q="
         }
       },
       "is_incremental": false,
@@ -6285,7 +6321,31 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.Agent.AgentTeleport.html",
-          "hash": "ngxeuolMYS5kWpt1rzro9nInzfntCtuvISDFyD2rR78="
+          "hash": "ULcPWkX7rA28/MtsqmsLnEt+UXAkwKw/lLIZJr8ZG9g="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.Agent.HudPartyMember.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.Agent.HudPartyMember.html",
+          "hash": "QYrwj792k1NncJSEZpjMShS8nAojp/RDBAOs1fy/lUI="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.Agent.HudPartyMemberEnmity.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.Agent.HudPartyMemberEnmity.html",
+          "hash": "1zOZ4CgDRQlGBQQBlbdctN8Zl/m0OkZOvlaVDHjMoXM="
         }
       },
       "is_incremental": false,
@@ -6297,7 +6357,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.Agent.html",
-          "hash": "OGrMsYjFGUky+73OpyQc7OW6IHJivHVX+DcxbYhp9dY="
+          "hash": "VcxIRrc/B7F6PHs2Maw7bBhWDGH25WXVxfHMjGl/Mb8="
         }
       },
       "is_incremental": false,
@@ -6309,7 +6369,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.Info.InfoProxyCrossRealm.html",
-          "hash": "ME2QvknzZqvlkSNc9emH0bK5wWKPCvZJlxqRHVNVHW8="
+          "hash": "mKuKP6o2tE4HihxsIwgz7TBMbwLbelNuR4A0hpmyZ0k="
         }
       },
       "is_incremental": false,
@@ -6333,7 +6393,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.Misc.ConfigModule.Option.html",
-          "hash": "wEKb1BLtfOy453gelXU2aV6m9dFeMQBzVgGw7pYcRwQ="
+          "hash": "2yzRJ7/Fk+KIFafaNUxxp2yXKb8G2lUXFsEDNBPhCcs="
         }
       },
       "is_incremental": false,
@@ -6345,7 +6405,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.Misc.ConfigModule.html",
-          "hash": "yv1Y+LOpJgq3KjWkTVGOCsCDzjG6BlfnZ49ogpMfY3k="
+          "hash": "iweqRKqWKs7p2mGUvb7ZCmeLC06RxolZKLtT4+Z4Cuk="
         }
       },
       "is_incremental": false,
@@ -6357,7 +6417,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.Misc.HotBar.html",
-          "hash": "MYV5HUSj0JxdgwBhbay1qqFWt7fTSMDERl7ca3EKCO4="
+          "hash": "qt1PFNElfNGTbbgGduOAwfdV0pjoB5V3OdI/XT7sFIk="
         }
       },
       "is_incremental": false,
@@ -6369,7 +6429,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.Misc.HotBarSlot.html",
-          "hash": "wSnAdE5FHfg1+ndZzocYNyvnCjM1ij/Zoc9jzNLxpl8="
+          "hash": "LOjyUllscoRdsk5d4ZyKmYcRglSg66paGi6GkKm2Js4="
         }
       },
       "is_incremental": false,
@@ -6381,7 +6441,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.Misc.HotBarSlots.html",
-          "hash": "zGw4nuKh1P4soKBpVCMeDXbHyuhQDjBbqPULdjBBe7s="
+          "hash": "lHCf9BOZsi+oRqTp1c1OyYq4+TYmDHXTeJbZRNMCMCk="
         }
       },
       "is_incremental": false,
@@ -6393,7 +6453,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.Misc.HotBars.html",
-          "hash": "GVC9rCRcYtCnD2VVZSa6ELRGuczI0meB/5/4oKXe4GM="
+          "hash": "K8AFIq3aXKv78Rn60we7jUoII6bLBMSh+Qg8vfM6etc="
         }
       },
       "is_incremental": false,
@@ -6405,7 +6465,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.Misc.HotbarSlotType.html",
-          "hash": "R4lxyvHaMJHt/ibRqq9bMtqYb0n7VEAAapBVSqomGKc="
+          "hash": "xjHLyILBU7LP/ArdvTtVtn6D4ITFNR4Rs1BPTJJ9pA8="
         }
       },
       "is_incremental": false,
@@ -6417,7 +6477,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.Misc.PronounModule.html",
-          "hash": "DeODMgKEEVFhRiNj+mYGhhIYjmMRgR6NBiuLXQJWfI8="
+          "hash": "h6iRGWjuA8LsKV9DJicoTsJXDNd0gnAFeWfcVVxgC7A="
         }
       },
       "is_incremental": false,
@@ -6429,7 +6489,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.Misc.RaptureGearsetModule.GearsetEntry.html",
-          "hash": "E0K07OF/KgN9i7TpolF/vWgw1Di7+QOUKjWOegCsm/4="
+          "hash": "usahcNTI/NqHhCknZPqgBl5oW/VXtmO3kJJpdt0otx8="
         }
       },
       "is_incremental": false,
@@ -6441,7 +6501,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.Misc.RaptureGearsetModule.GearsetFlag.html",
-          "hash": "2mDu3u8ti5EXZHYsN1wJOMsbR4AF/JW8qQtAGD2SLDU="
+          "hash": "73626QbOMzlRkn0sadTxjjbyn7Jlzj7gPRm58qp69XE="
         }
       },
       "is_incremental": false,
@@ -6453,7 +6513,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.Misc.RaptureGearsetModule.GearsetItem.html",
-          "hash": "m3dkkIy7woa3Rj3n4U5dldyBAKmaTl1T+WcK9p3Exh4="
+          "hash": "LAJ4uoD2jhqP0IGObT54NPSPQZRwStyKt/TYeeg51Tc="
         }
       },
       "is_incremental": false,
@@ -6465,7 +6525,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.Misc.RaptureGearsetModule.Gearsets.html",
-          "hash": "Glzux8caK4dXG1upmP3hRmHawqLdzPf06RLLhJbdYhQ="
+          "hash": "+z1eSeJpNhtguWAAdqyEci0pkoJ21dvmPQRPtqhNLZU="
         }
       },
       "is_incremental": false,
@@ -6477,7 +6537,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.Misc.RaptureGearsetModule.html",
-          "hash": "bjm7ud8KPq7mJPiFp9VisMOIONtWIT+BsC0VFXJGZkg="
+          "hash": "XYZUvwte1zbZ/GjEaNd5IHgBwehzdK41SEeoP1jTs8Y="
         }
       },
       "is_incremental": false,
@@ -6489,7 +6549,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.Misc.RaptureHotbarModule.html",
-          "hash": "aTnrmS5E7eYu6fSUW9KFs0PyoBWl306b2pUkeE200yk="
+          "hash": "ueZMMlhP3QGBYNhURnkMNYK5on1NXWjzhRyA0wcbv9U="
         }
       },
       "is_incremental": false,
@@ -6501,7 +6561,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.Misc.RaptureLogModule.html",
-          "hash": "chh+m6uFrkjHtt4yN9JyFnTO1ZJPKWsskCxX8qtr4vs="
+          "hash": "rS+FDwZe20W57lPqjranXV93w9alvfTu38bqcCa0wQ8="
         }
       },
       "is_incremental": false,
@@ -6513,7 +6573,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.Misc.RaptureMacroModule.Macro.Lines.html",
-          "hash": "+wSKQ8U9w/KUWwDc3NgF5YtEPeKp7uHZQts87VD+HZc="
+          "hash": "m4rYLwyp8teAUVbt5ETcT0H23n851GCBiKVaIoRT1Q0="
         }
       },
       "is_incremental": false,
@@ -6525,7 +6585,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.Misc.RaptureMacroModule.Macro.html",
-          "hash": "yLGyq5DQQXr+L/v0FTtwsjd+PRSGx81PuZKC0IGWM7o="
+          "hash": "EicQzXsj7OgHMWITXnwOcEK/JCk4RsvZBxBFjKX2uG8="
         }
       },
       "is_incremental": false,
@@ -6537,7 +6597,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.Misc.RaptureMacroModule.MacroPage.html",
-          "hash": "6+mA2KgCUmZt5WHz13DmSD/9XVCfU189Kqc9LlqJrZw="
+          "hash": "tST9zeBHz/xGTjoEGb2RgbXsuGJLUoMZZZjJM0mVuJ0="
         }
       },
       "is_incremental": false,
@@ -6549,7 +6609,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.Misc.RaptureMacroModule.html",
-          "hash": "rT/e2HtK1ZCiqQuPJquYRDRLt6el5GzexeEJbyrufgI="
+          "hash": "R3mnfBap+pWT3vZxNdoHaAer769fruEGM5tD9HaZLUs="
         }
       },
       "is_incremental": false,
@@ -6561,7 +6621,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.Misc.RaptureTextModule.html",
-          "hash": "pXp1iof76An5jToxrz0RhLwFQvFEK4zYsgZIeaBkuN8="
+          "hash": "X2ttTAx9ZSc0LbjIsSeTTuTa2gwcpjJIRQfQICdnokk="
         }
       },
       "is_incremental": false,
@@ -6573,7 +6633,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.Misc.ScreenLog.html",
-          "hash": "87R+u7auq1JEVQxWnON1E3iKqiFwVZ0BVu3PAOlfmUY="
+          "hash": "oTeug2NmUdfeKgi70ISqvS1MxSvkHZRJ4JGmL2tgXYc="
         }
       },
       "is_incremental": false,
@@ -6597,7 +6657,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.MoveableAddonInfoStruct.html",
-          "hash": "P/4InJYh8a8dIgzi4pf6KJ6u1RROOLXp8P78yNlqiTo="
+          "hash": "jXUqenB4GM6MqlletfTAV21h8uPR43ozqge5/Qlo3fA="
         }
       },
       "is_incremental": false,
@@ -6609,7 +6669,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.PopupMenu.html",
-          "hash": "h9NlpdBaC7KJ0r2cyEi8DhsWgMbb3dm+LTeBPkgaySQ="
+          "hash": "EHmv3uyNupN0Evv2kTWTNVCYE/ooXQg/iWo9xMdniXQ="
         }
       },
       "is_incremental": false,
@@ -6621,7 +6681,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.RaptureAtkModule.NamePlateInfo.html",
-          "hash": "f6M/4FhXBiFIEggSDZf2LUO4WT1U5XsgQ22Q2wi5M1o="
+          "hash": "ZrWF1j28kybDqcuSrAliv+J0Zq1nA6a8s76ms1K9AAE="
         }
       },
       "is_incremental": false,
@@ -6633,7 +6693,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.RaptureAtkModule.html",
-          "hash": "H9hm0mOXtqjBy8accWM2tYLi/gtxg8FhNh+tYaYQGXE="
+          "hash": "2e0TbPisLFQB4DtccrxzbSNTzKG3iqw9slEE8IsyBn4="
         }
       },
       "is_incremental": false,
@@ -6645,7 +6705,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.RaptureAtkUnitManager.html",
-          "hash": "k/IdCQtzouopnpyACOEMgfvPuzUNt/SpcLkz/YY8bAw="
+          "hash": "pncxyoZlhiPkczImRHIkbQJsbevIl9EUAKbpxnMOqA4="
         }
       },
       "is_incremental": false,
@@ -6657,7 +6717,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.Shell.RaptureShellModule.html",
-          "hash": "Q9w03pG+Yk3vzXzdqP0YVIp7g3z9PvbSf3nPJ+6TkXY="
+          "hash": "Y/l23agSxno0Vfh+tjz0aS76DjdbaLXLLXFYC39kJSw="
         }
       },
       "is_incremental": false,
@@ -6681,7 +6741,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.StickerSlot.html",
-          "hash": "pF3c2dbCQupDSklS85n2+cbqX2Lhxfbuwkdfo9nUfXw="
+          "hash": "KU+i46MoKJTeia+TJO8OW09nTLG6ya7gMdoFn+hL7a4="
         }
       },
       "is_incremental": false,
@@ -6693,7 +6753,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.StickerSlotList.html",
-          "hash": "z9w77qL3c/hFVgIHcfeXVT4W+BnVdJCqkANgdcZoAE8="
+          "hash": "2WhSnI5GoS/A0El08eTqISkmOw+eSPJ0653fRQktEqs="
         }
       },
       "is_incremental": false,
@@ -6705,7 +6765,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.StringThing.html",
-          "hash": "VZi4chmPusQt8zuJ5DC+kMyJiyApOaT4xKfPxczTiCc="
+          "hash": "zwzEEuYUJ1RCCPhacw6mu/enPpbzkodqGksdqBLLbVM="
         }
       },
       "is_incremental": false,
@@ -6717,7 +6777,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.UI3DModule.MapInfo.html",
-          "hash": "+x/a5K60NuroKNf4mYcyWqPAQqR4RajGPWawsu9EDMA="
+          "hash": "sbIM86zCrF1UlTTXJWTISol0ZMPL4I2kZKwCvoyrIQo="
         }
       },
       "is_incremental": false,
@@ -6729,7 +6789,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.UI3DModule.MemberInfo.html",
-          "hash": "RgmpDJIqrEayd+mv1adoqntoytZhP+v2yle/daI/LXs="
+          "hash": "H+DkgDWPJr0aaOCEOlIf6+nUV3madNoLLavxI8a/Gak="
         }
       },
       "is_incremental": false,
@@ -6741,7 +6801,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.UI3DModule.ObjectInfo.html",
-          "hash": "R8fbUiCLKJuOccUs7mk4qtBu3b4SiqnN+We38Ps4iks="
+          "hash": "GTPuPXwA8CEtrEK1Qti5iFxkElOh6uK4E6H+hptpmk4="
         }
       },
       "is_incremental": false,
@@ -6753,7 +6813,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.UI3DModule.UnkInfo.html",
-          "hash": "oKG8JwhdqJU7QyMK/HjKrk/5MbifNAJ6vGjpbZ/JOLo="
+          "hash": "6mZAbb4E83rBGs7DOFQcLOp2d1DMlUs1BOkqCf3T7Dc="
         }
       },
       "is_incremental": false,
@@ -6765,7 +6825,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.UI3DModule.html",
-          "hash": "x1caMROmORpFZSyolFJuTxuQ7CYKHYVbyKBGU/chZIY="
+          "hash": "450IAR60s0PCQgb5cIttyH59gsEU+a4qxaS6PbOZqeI="
         }
       },
       "is_incremental": false,
@@ -6777,7 +6837,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.UIModule.Unk1.html",
-          "hash": "uNwfs9gp5/4PEwg4Kyw1pvkUvFAVW9pfRlx5hNGuYog="
+          "hash": "2vQcFaF3u2xLzcHCkkU46SXE3bAJLVD+fflrmX7vDr0="
         }
       },
       "is_incremental": false,
@@ -6789,7 +6849,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.UIModule.Unk2.html",
-          "hash": "zGkNQ7ReZJZCIBaEVupOV+Hdi9pQHvqsZk4Y1BOc3vw="
+          "hash": "ZHdt1yX326iD/T/aTdYaFNNk9eFFSOxF/dUqFi2bVwU="
         }
       },
       "is_incremental": false,
@@ -6801,7 +6861,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.UIModule.Unk3.html",
-          "hash": "xKe1dPds46Fb4Y8NtK47KrEIzT/5z+9Es0p+zhn7ReE="
+          "hash": "nd9n9IBwG0kAH/v1wGB5SjJBoN30DLi1ePUMzZcoCOA="
         }
       },
       "is_incremental": false,
@@ -6813,7 +6873,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Client.UI.UIModule.html",
-          "hash": "LPrGwW+jJBdURO6U1F9ATIcTJxELvp9qM9Z0CYNqCdE="
+          "hash": "5Uv0Sq8mw5HRCUJclYOUqdsILzEd3sjHMH9jNrK4yEI="
         }
       },
       "is_incremental": false,
@@ -6837,7 +6897,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Common.Configuration.ChangeEventInterface.html",
-          "hash": "+ov91Zk14LZ6O5ei7xuJ5BdWHT0yPpBynEwLj3hNkUs="
+          "hash": "GUHMfxLnS+qCE1vbiMPr9Arz6aREN6TQzAly58fE050="
         }
       },
       "is_incremental": false,
@@ -6849,7 +6909,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Common.Configuration.ConfigBase.html",
-          "hash": "E7+jZN0EB59SUhOHG2GT//3N382Ck5OGaTqxfYVHaxY="
+          "hash": "c0GKrq8RN14os0nJ+yO6UsorPLaKpqAPZP9adLI424U="
         }
       },
       "is_incremental": false,
@@ -6861,7 +6921,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Common.Configuration.ConfigEntry.html",
-          "hash": "bOIQoHbQTknE37ZNFZQ199KoYPGLFMxeF678KFl5PIQ="
+          "hash": "3+6xScrHZzXUsnHms7ZcHLw1Ky5HFKrM73NQXCheJDU="
         }
       },
       "is_incremental": false,
@@ -6873,7 +6933,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Common.Configuration.ConfigProperties.FloatProperties.html",
-          "hash": "20mnlcw35uMXwSKA7DWKUykGksOEPt2Gxuff0AHYNLQ="
+          "hash": "sG/jELvzeOG9nwx2grX2grWo+baG2pkltrXuyIYYIZY="
         }
       },
       "is_incremental": false,
@@ -6885,7 +6945,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Common.Configuration.ConfigProperties.StringProperties.html",
-          "hash": "uIZW8SAowkQNSFhxHyeFrJpo5WUqdzDBXKazHWPWhXk="
+          "hash": "isUTZUSGO5F5ZEfoj+65U0kbh43YnMCmt4/Lq3H95l8="
         }
       },
       "is_incremental": false,
@@ -6897,7 +6957,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Common.Configuration.ConfigProperties.UIntProperties.html",
-          "hash": "CecyrC4xDlAUPgJZf/i79mlfrtnpV14g71bM0c3oACU="
+          "hash": "RhVIsLzDoOPdNZaiSzWoDFXTNf3xxJJmnYKbzkgIGRI="
         }
       },
       "is_incremental": false,
@@ -6909,7 +6969,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Common.Configuration.ConfigProperties.html",
-          "hash": "ecibhyAlgcFzy4bkmklzoWSfYlWVOwFmXxAXy0EcBIY="
+          "hash": "f5fEEjbll+pbPg2Bm+6rZKJRQc19gaXiQQoLRMIRqww="
         }
       },
       "is_incremental": false,
@@ -6921,7 +6981,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Common.Configuration.ConfigType.html",
-          "hash": "nsHBDCMDX7iuoHQ4pHEWfIPQVgqKSISKuJSPiSzBiWM="
+          "hash": "4RPVukAt0OmePQWDyJCb3cLpncyQ5BgnN+Ne923hKK0="
         }
       },
       "is_incremental": false,
@@ -6933,7 +6993,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Common.Configuration.ConfigValue.html",
-          "hash": "v/akoes/aJ0V8DkTi9Mif8PKBMJW1XfFvv/67ptV3tQ="
+          "hash": "MYXHHd2USQUNNti3HZUGfxlrtXBGCLf2bIJjCkyrnNk="
         }
       },
       "is_incremental": false,
@@ -6945,7 +7005,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Common.Configuration.SystemConfig.html",
-          "hash": "fWQEvV8KVyLZpllEOX8b9OEqp6EiTidU+KqsZ3QiFdU="
+          "hash": "TphjjUmgg2JPGZerjtDXLJOHZAbsBZ9vaCvEfLrzlaI="
         }
       },
       "is_incremental": false,
@@ -6969,7 +7029,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Common.Lua.LuaState.html",
-          "hash": "FSYnrnbo3WwqwFnKHCn3dfAFd6lkFnyV8FjLgS5N+SA="
+          "hash": "jDoJtHIndbJZcm2bxRth9V0YAJFLbz9JRQbpa066dow="
         }
       },
       "is_incremental": false,
@@ -6981,7 +7041,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Common.Lua.LuaType.html",
-          "hash": "nMHgbN4RYqkK2qSqICWZHeVmmScjwoDdZ8jFm4NdXFA="
+          "hash": "TsGr/XMBteR3qu5nN0dDZPxEnTK+9vdGWFlNt3DGLpI="
         }
       },
       "is_incremental": false,
@@ -6993,7 +7053,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Common.Lua.lua_State.html",
-          "hash": "b0AzXoVrvWYA/bM/qeSv/xRmq7LZgBcEAYO/6khEMTY="
+          "hash": "SP+WJ8jprRwPOvuf4Zcv1HMRwMNWHk7upb6yqKe3n0A="
         }
       },
       "is_incremental": false,
@@ -7017,7 +7077,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.Excel.ExcelModule.html",
-          "hash": "Du3C0cIbqOHRFh3JmohcDBP9KO0W3ijb1dDi1BFk6aQ="
+          "hash": "P6mtABYaBNR28KYD5RvbRZuOEz90bFq4+lNVqDmF4LU="
         }
       },
       "is_incremental": false,
@@ -7029,7 +7089,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.Excel.ExcelModuleInterface.html",
-          "hash": "n8CskbF/UIBJS+/9v41UXdG44T/z3jLXbR1kWKH5Pyw="
+          "hash": "rPnP9dy7xQMkXPyi/ebcwvayVWFsMDLT73mWEn2kQB0="
         }
       },
       "is_incremental": false,
@@ -7041,7 +7101,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.Excel.ExcelSheet.html",
-          "hash": "nN3nfPlk4zeGWaP+Qq+BzgvHzJBHux3GM5KEDZOHM6Y="
+          "hash": "xpW503FsXP0vAY75LXXHq6K6vOEJxTqJ1tqwXozH4tQ="
         }
       },
       "is_incremental": false,
@@ -7065,7 +7125,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.Exd.ExdModule.html",
-          "hash": "MzAFSfXz0WXFOnPSx5cMw+FSXjcUUbbbWTsN7MLAsSA="
+          "hash": "vsODsDsLRjdTplCgZKAymdAxnUXcfT133/46R0gt0E0="
         }
       },
       "is_incremental": false,
@@ -7089,7 +7149,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AgentHudLayout.html",
-          "hash": "KEM0bkJSjpKuSxUNoshIfV+gppG+wEE6Y8VyqmtCGp0="
+          "hash": "jMZt5N5RfSkI00o5ANI9udVtU6NpeFhsixBptrfuqxo="
         }
       },
       "is_incremental": false,
@@ -7101,7 +7161,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AgentInterface.html",
-          "hash": "6sShwu1uFr7drXnX3NyUnF0HZXNNhSqMq4AY78aTbn4="
+          "hash": "ISmsrVI6PPLnoWto2yaxPovQ8cuqLxj2gjnKCFMBrck="
         }
       },
       "is_incremental": false,
@@ -7113,7 +7173,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AlignmentType.html",
-          "hash": "bnOgSfeOoF9RR/byT+e5KGbOtyAHZDSNBNDR5owyXH4="
+          "hash": "RVhBoA7loWXiNawP/Dzgt6325P/BVBkXXv374Miv4eI="
         }
       },
       "is_incremental": false,
@@ -7125,7 +7185,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkArrayData.html",
-          "hash": "1ZVC2ndcVE2YnjwSDzueH3IzzzE/VRcJCqilF4I2Crs="
+          "hash": "gIdi6ssnDwVLR/Ud8ld42HpJ20g8X/x8i85rufe33Js="
         }
       },
       "is_incremental": false,
@@ -7137,7 +7197,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkArrayDataHolder.html",
-          "hash": "xnkZbiYJfcSsNKTt1/Uq8IvHH4gdXI2b7TgCOo7F3Qo="
+          "hash": "4tvoqi15JgS9aUJMV4GhWYPxyyzdP36MaOg7HG+uUic="
         }
       },
       "is_incremental": false,
@@ -7149,7 +7209,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkCollisionNode.html",
-          "hash": "nBi7h4kXvy8FVN+UOK/vo0LgFlUMs6owZQGhrBtVakQ="
+          "hash": "TTmiX3ao57cHDmT4unNvKEVUSmd147WtKiVlKOKrjY8="
         }
       },
       "is_incremental": false,
@@ -7161,7 +7221,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkComponentBase.html",
-          "hash": "RR3F3xc48A38BByQ2gE+bxf0h1q+I6p62R8AUw005AY="
+          "hash": "nJDrsDkYdXVv1BQB5gFAF0teYuQvDbhDSQ8EYRaFh8U="
         }
       },
       "is_incremental": false,
@@ -7173,7 +7233,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkComponentButton.html",
-          "hash": "rf3wFOJcCelN91k66Y09SgTxmUineqmi4pKSZV9AOtI="
+          "hash": "cv1xbbRrZeCDAStu++f+MQA19wHdb25frnllIGzT7eA="
         }
       },
       "is_incremental": false,
@@ -7185,7 +7245,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkComponentCheckBox.html",
-          "hash": "e/P7XtNlGIAHhJjZn/roFVwjwJojmjOjkIFJfKm/Jrk="
+          "hash": "QF4ZjtSu6ISn2Jbn3sQrwLPW2IMGHDFk5SBBAraf0vI="
         }
       },
       "is_incremental": false,
@@ -7197,7 +7257,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkComponentDragDrop.html",
-          "hash": "NYFvkuvG+GtL6aLyr8JCGBwXAGEVplI/z2uJYm8t5aE="
+          "hash": "vZ+j2ff2a5eoWTeZh9uYUELI34cazQFTyced7ZEpi6c="
         }
       },
       "is_incremental": false,
@@ -7209,7 +7269,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkComponentGaugeBar.html",
-          "hash": "uJhrPbaItpyv4zbLgBjBnweIxvWz43kf7v37sXt/SYc="
+          "hash": "pjn+i85h/GW5QNGtr9Pm6+BNnpEYIYVQOZix7M42/Ag="
         }
       },
       "is_incremental": false,
@@ -7221,7 +7281,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkComponentGuildLeveCard.html",
-          "hash": "AaUnOyqE81IUCe+/6XCTG5Rok/iyT0LSIqLVTQN8HPo="
+          "hash": "9RggKJxsY/+HubA0t8YLn1p6HN97X/npZ63rU6SMYFM="
         }
       },
       "is_incremental": false,
@@ -7233,7 +7293,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkComponentHoldButton.html",
-          "hash": "e6q7HyyXtNrd5i+XKQAcyPnZtpFDNghwwxmUoQFaq3A="
+          "hash": "j5dKR/gsPWzfameotVTcYhb9y+qCgsAA/SlZwD200qA="
         }
       },
       "is_incremental": false,
@@ -7245,7 +7305,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkComponentIcon.html",
-          "hash": "YHTIoRJ+ChP4AGI/krZpm099mv9J9wXcWyfO2H5G8vw="
+          "hash": "29xja9DLfA6EpzoSJs79gvP7SBtVo7jQBUa/Jx80vTY="
         }
       },
       "is_incremental": false,
@@ -7257,7 +7317,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkComponentIconText.html",
-          "hash": "qiYuEhtXTRu/Ha4paVzzXT42VbgNPAor2DgX8BUxN8Q="
+          "hash": "G9bQrsRVQsUo5VYkzn5tHOFy6RnLmXxV4+UZecU1YQA="
         }
       },
       "is_incremental": false,
@@ -7269,7 +7329,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkComponentInputBase.html",
-          "hash": "VkQWresM5Mf87Bnce9ShZI5fLQIItS+k39m4uIs8XTs="
+          "hash": "xYeg9m2MLSs6OStIGP4Hl+KlKr2Qoso2cmJHULOh6OY="
         }
       },
       "is_incremental": false,
@@ -7281,7 +7341,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkComponentJournalCanvas.html",
-          "hash": "ogZVPDjw3WIV47t6639bov5bzJyFrtu20TpoKA34Jkw="
+          "hash": "RL7ogj3KKIbRW2G+2D4De4aVl+A32uOXFHDtKX22MQw="
         }
       },
       "is_incremental": false,
@@ -7293,7 +7353,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkComponentList.ListItem.html",
-          "hash": "Jk63v6hnKQZUhTMu9DB8RwAy/Npm6ZO54eqP4vz86Ug="
+          "hash": "8e0jy6SZAQ64pvNkTtdnLq4VrHgHXrDZknmXwNCHtDg="
         }
       },
       "is_incremental": false,
@@ -7305,7 +7365,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkComponentList.html",
-          "hash": "6zdd9yIpfkJ9nYV1CwMEaGqEVzTKd83aBn8zVZqEPLQ="
+          "hash": "eWoS6+p4BQTS6o9ZdCw/ylFxV1DcXgvS5nfs5rZtekU="
         }
       },
       "is_incremental": false,
@@ -7317,7 +7377,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkComponentListItemRenderer.html",
-          "hash": "7ChQV7/IbFH7N0bmekJVdE6B5h7ioedwGzbzNN1H/fk="
+          "hash": "ci76R/tPXJuocZbJ7tfpThdBIqp7wgLbsdwy2CC1gfc="
         }
       },
       "is_incremental": false,
@@ -7329,7 +7389,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkComponentNode.html",
-          "hash": "a9OKAZqXHtRXeX3x51zgW1hud+dFQ+pZ1yAgLpmueCk="
+          "hash": "QLDO0xD7W+tIxz22whtZwYAf+AnyDnlEm5u1EHhjP0s="
         }
       },
       "is_incremental": false,
@@ -7341,7 +7401,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkComponentNumericInput.html",
-          "hash": "y4XKH2gftqJQBqI73hjmRIUC2CCItdW2PiDJdZ+VsLs="
+          "hash": "l7bhfbAn6jAzrHg59lB0QTNQnNoc905/HU1rbYHqQpQ="
         }
       },
       "is_incremental": false,
@@ -7353,7 +7413,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkComponentRadioButton.html",
-          "hash": "F9DoHnd3s9Xpuv6u0jQofIztIESuZml8MFhvUoYSkGM="
+          "hash": "HsZZLz3q12hZuwwmT/bsBSeBxidJxyK6kPORkEgLhWQ="
         }
       },
       "is_incremental": false,
@@ -7365,7 +7425,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkComponentScrollBar.html",
-          "hash": "2Pu/AKtnmXq9KuNtvEwcWsDDeNvNpXN5+/m53mSDG5U="
+          "hash": "qV5rhi+LHlINKr6ocXm0UERSgPsmPlEOJ9MA2Pnr64M="
         }
       },
       "is_incremental": false,
@@ -7377,7 +7437,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkComponentSlider.html",
-          "hash": "43qisiXWZnlEithLkcm5JYader3zg7XuoXSmCr74AXo="
+          "hash": "f+N0Sq3hn5P2OxOiUhmO/sjp6+L8ldxpGhhS/qgasKw="
         }
       },
       "is_incremental": false,
@@ -7389,7 +7449,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkComponentTextInput.html",
-          "hash": "FGtg4um6UkbJ/XLUKbXiivBltBTsz3uHN0R3D5uOW9M="
+          "hash": "WLlEcWliEPkQ31zGQ0CFGVU/C7NlBir4+sX1MZvMkNM="
         }
       },
       "is_incremental": false,
@@ -7401,7 +7461,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkComponentTextNineGrid.html",
-          "hash": "nt3GxYnWTCcKFgmwDKwxRyAkrkSVmJZuzdkj4meL65Y="
+          "hash": "+ICQWIHbKqHYnt27K55CnGAFrNRXEyUAhYrfvnjeDAc="
         }
       },
       "is_incremental": false,
@@ -7413,7 +7473,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkComponentTreeList.html",
-          "hash": "X3d7QxKZJ24u/1V6lr3Mopra2xUiPWYHaHcBBdTCOxE="
+          "hash": "YT1R0dLAyBUuJJ+ht79AVmFK8WOj1VV3cBtnSNa0KXU="
         }
       },
       "is_incremental": false,
@@ -7425,7 +7485,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkComponentWindow.html",
-          "hash": "BWVIcIHmTibEHnnLYjHvMNhRtRnIAjJUlsI0OFm363o="
+          "hash": "u9LOVE7jh+lCTz6mTpzEj/KRLh5wbAYI7RWNTcqCJmQ="
         }
       },
       "is_incremental": false,
@@ -7437,7 +7497,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkCounterNode.html",
-          "hash": "gZ0rh4NE+mMKdmw+P3ljMyRWTUQeJJ1YkJ+2W7qMZao="
+          "hash": "KZFmB957a+EW5TnFVBk6/P+zyY4G0OtdbjrzvmlCcE0="
         }
       },
       "is_incremental": false,
@@ -7449,7 +7509,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkEventInterface.html",
-          "hash": "SslxKcjeT4+hzd33bVtTB9m23rWQ2XJHH6tzic9MV7Q="
+          "hash": "GylaTF472VhrZtY/SqSJxNWSrshxaW5nnUZ2NuI7xzw="
         }
       },
       "is_incremental": false,
@@ -7461,7 +7521,19 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkEventListener.html",
-          "hash": "uykO0q024u/m+frETCioITOGM7JOtVn79z61nb7rBS0="
+          "hash": "pvF/q7sxnnQCGN93JcBcwMM6+i2eZ1USNOFpptrEVFk="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkEventListenerUnk1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkEventListenerUnk1.html",
+          "hash": "LfoAGVPCFk1QWTxkJzAQshIWDjObBgAHm9yoLioKVqY="
         }
       },
       "is_incremental": false,
@@ -7473,7 +7545,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkEventTarget.html",
-          "hash": "qwqUy8soklMduoqqN+PN/0XqfdqknpfeB4WqB3l6qr8="
+          "hash": "rxfWaHKmSFhwSqBiW++YyRaRKVljDhkdoHL2nEBHKuA="
         }
       },
       "is_incremental": false,
@@ -7485,7 +7557,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkImageNode.html",
-          "hash": "c8pqzD/L0meQ6C0SBjd7Aw+6+VKfu2e4StU40gKQHiI="
+          "hash": "EiN0l7kgebf8cvHwkVkfIpFvc1yMelDHYyL6KR9jrYg="
         }
       },
       "is_incremental": false,
@@ -7497,7 +7569,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkModule.html",
-          "hash": "UxqFk5Ku2eNH7Q7kEHuD5ZO0vy/qlTIK57vkghJ1Oss="
+          "hash": "/SFuQVvhQxDrUVA+daZFrz5RF3wVJWhTJZrfOIvCmpE="
         }
       },
       "is_incremental": false,
@@ -7509,7 +7581,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkNineGridNode.html",
-          "hash": "kTmt4Ngas07DeaVsJuxqEFQgyCnX74jc59Q9pwQ2rZA="
+          "hash": "vCKmy11GzRH0Ifd1TkLOaX1CXLwM9hspjPNIZITzA8o="
         }
       },
       "is_incremental": false,
@@ -7521,7 +7593,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkResNode.html",
-          "hash": "5wToct3pp/sTgQz3dSnuc2DkDJ+ePIlmItYcD+U6utk="
+          "hash": "0sg8ZDo9kNDnLPRvbDS7inlOC5Xx95eeSwOXx1ENDpA="
         }
       },
       "is_incremental": false,
@@ -7533,7 +7605,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkStage.html",
-          "hash": "QMAunFgMu6Xh8A4918W9JKWIPf9DbaUhwTf4QxI6uvU="
+          "hash": "hAZD+Qris2DveNpV9QI5Lu2COoU57B4SMRkYaTfoSyQ="
         }
       },
       "is_incremental": false,
@@ -7545,7 +7617,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkTextNode.html",
-          "hash": "NIyeLKfwbPZPbZmLPpyKdHbXRWqqgN0M9ePqNuBt1Sk="
+          "hash": "IuKKEI7ifu6osdQslHL24in/6v+QR/PPPomXe2HqLZg="
         }
       },
       "is_incremental": false,
@@ -7557,7 +7629,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkTexture.html",
-          "hash": "whpkA07T38zlAT3JstrPZRBwtUaUokZ6z8wK5Xm3AVs="
+          "hash": "HpJjiVxNAAuMT0Wpn5Tibu81Cy+q+hBTboIfOFDBu0c="
         }
       },
       "is_incremental": false,
@@ -7569,7 +7641,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkTextureResource.html",
-          "hash": "mgAOZKtyK/MScXziqnkd7NFwlB4QxMab9TpGwyqIF9U="
+          "hash": "+CCz/+BwWDfN91MDnjiKJ1LEl5CXqOm8Kp5OFQ/YcSc="
         }
       },
       "is_incremental": false,
@@ -7581,7 +7653,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkTooltipManager.html",
-          "hash": "cSXWpgc+WzkI40SMYmun6em8bL7526ZLqkk6HkuvKNc="
+          "hash": "1ugVzob5RNEeB8U6SFdSELBj3gvkTLMMBjBMAIu+UMg="
         }
       },
       "is_incremental": false,
@@ -7593,7 +7665,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkUldAsset.html",
-          "hash": "2y69fennJVcWGYoKVKQrDsFl2lav6GQsRU7hSuMjlGc="
+          "hash": "Bts4JCWEPVuikavkfgE1F4KrzEnYFArDXG5Dg5i8cd4="
         }
       },
       "is_incremental": false,
@@ -7605,7 +7677,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkUldComponentDataBase.html",
-          "hash": "7WA9jMADJqTG3N1dnpuTUrGtJHQ52ShYUjtItLNt0t0="
+          "hash": "1oNuRscuXJcjxztFEbUgPkQr+0AvqrIfB3no+kBJZKc="
         }
       },
       "is_incremental": false,
@@ -7617,7 +7689,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkUldComponentDataButton.html",
-          "hash": "oFUlrVSYlZI0VC+yUE9oHaMAakAGdfNI58NnVLsqH5I="
+          "hash": "sepq1JHf/gANcDgt9xDr3PR9eHGa5/pAI3rjj4CWiUo="
         }
       },
       "is_incremental": false,
@@ -7629,7 +7701,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkUldComponentDataCheckBox.html",
-          "hash": "H47ok/NJU5kGnwZ2qX2oNuw004altWtiC9eWt/q6cBg="
+          "hash": "VHEa+QclI8allEIKcWhgN4v9fwMlhWUIjmvx/xF78RU="
         }
       },
       "is_incremental": false,
@@ -7641,7 +7713,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkUldComponentDataDragDrop.html",
-          "hash": "OaCj2eVabEao+7FddhHNTvuLubJWFtaHDnBOY56FccQ="
+          "hash": "4aZyIRAn2SxGj7Mab9Zjw47ayYiztaqksES+XeNA3Vk="
         }
       },
       "is_incremental": false,
@@ -7653,7 +7725,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkUldComponentDataDropDownList.html",
-          "hash": "qfHyiQWu3kbB4zCwK1sR1FbO0bzAKyhwqPWfV940F4o="
+          "hash": "OvZpg/vv1ByqkpKnblU+uMS5BnWi89808tk6bypiKNs="
         }
       },
       "is_incremental": false,
@@ -7665,7 +7737,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkUldComponentDataGaugeBar.html",
-          "hash": "7ICs/t6Kp7seJiLh3FccLxJuqhgee7gWD44UXw2Ulgk="
+          "hash": "W3g+wY4uD+1di4oQZCB6iI6sVslbpUO1Ssr7oYmYbpY="
         }
       },
       "is_incremental": false,
@@ -7677,7 +7749,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkUldComponentDataGuildLeveCard.html",
-          "hash": "YWHuoYnHjQTTB7fZY2LcCaRnTuoXYAowDwCADQD+wtk="
+          "hash": "Em3FXkLmwDUzLtjBIDqW+m57GP8rtMnw9HX3dd8eS5I="
         }
       },
       "is_incremental": false,
@@ -7689,7 +7761,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkUldComponentDataHoldButton.html",
-          "hash": "PyO9Snr5bJIyiWJFguVTIJBKEmg0hDipp6JEiFwza9k="
+          "hash": "TTmB8GJIV0ewl1k/k8eTgI+d0TjsU5ILCBUQ0bgtoNg="
         }
       },
       "is_incremental": false,
@@ -7701,7 +7773,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkUldComponentDataIcon.html",
-          "hash": "/8gbaFNRtPAZsf+fHbZ1DCunFo1PSMe0sSuVTJpe43A="
+          "hash": "Bu4Zwp7g43tVKO8TOlAPT55fqFiiEMc0sMq863d/eJg="
         }
       },
       "is_incremental": false,
@@ -7713,7 +7785,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkUldComponentDataIconText.html",
-          "hash": "B/nNBBR7M5PF3K+j2yRUQGWdzJw3JxcvCs+11v2Vsak="
+          "hash": "swydKlm1EF5KVPqtekKof/Gy2yV4Wwvo8YU9KoWYAEU="
         }
       },
       "is_incremental": false,
@@ -7725,7 +7797,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkUldComponentDataInputBase.html",
-          "hash": "qFnje1gF0chCDYsxT3iYqpmIZWPbjf1PJ8GvTSZa2jw="
+          "hash": "ZI2HL+omT9y+9Fpk4xYh+652x4Iqe/XcHywfoLatFhw="
         }
       },
       "is_incremental": false,
@@ -7737,7 +7809,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkUldComponentDataJournalCanvas.html",
-          "hash": "hv+4knJQYFGEnc3+/onyoCYWXJp6coMKCTfxWKSbzh4="
+          "hash": "hoNs15Zqsz6Tha91frp/OGUKGknVMjxCN+1GQqW2l4E="
         }
       },
       "is_incremental": false,
@@ -7749,7 +7821,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkUldComponentDataList.html",
-          "hash": "MXOiRPj8edNuX/L2OQrd5oZVhGc5wjkxc7YIgsD9bf4="
+          "hash": "qN0nOwty25Bhj+I5Hjh8cfg+uk60hNmVzVb9uNsH3Cg="
         }
       },
       "is_incremental": false,
@@ -7761,7 +7833,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkUldComponentDataListItemRenderer.html",
-          "hash": "Nrzlaf0bDX4OqZnUItdzScLHms5hGraRXRGYmIWj9GI="
+          "hash": "liV2LDlZ0L1wGAXpnVkHLv7xHAElL0GeN4It6bIHdRQ="
         }
       },
       "is_incremental": false,
@@ -7773,7 +7845,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkUldComponentDataMap.html",
-          "hash": "XO59+yqK3/TgR4KKc7/bL9Tc0dWUouNtIgswKieVZas="
+          "hash": "Gv8LtyAlEePpukoNNHnJqAy8PzpuHAZlMsS22uK/5Tc="
         }
       },
       "is_incremental": false,
@@ -7785,7 +7857,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkUldComponentDataMultipurpose.html",
-          "hash": "IElTSyMNr1tyxuMHFjfOp5+ZlQNfbLAzvbUN+IsTggI="
+          "hash": "94uwgGNS1G906O6FrXFmUYXjV/1iY9lFuWQK4Sdn5ng="
         }
       },
       "is_incremental": false,
@@ -7797,7 +7869,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkUldComponentDataNumericInput.html",
-          "hash": "PRkOPjKJpxDBPX6KFEDdZdAy/DZHa+TCn0zX/RLuRmE="
+          "hash": "dAKx6qL5mVZzy0p5ucGJgeWRqoNgjnmLlxNBY55YbqA="
         }
       },
       "is_incremental": false,
@@ -7809,7 +7881,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkUldComponentDataPreview.html",
-          "hash": "lacsorvVPd8Nz2Wim+jaBybcLUJpOLWsMkCEcjdV/AQ="
+          "hash": "6clbjncCe3TPZnL2jf7yNsKnkMxtpP/tozddG+Uf2gQ="
         }
       },
       "is_incremental": false,
@@ -7821,7 +7893,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkUldComponentDataRadioButton.html",
-          "hash": "XFxhASM+zZ4ayzJSulT0lPJ2fYN7VihoSHElMD6R3Yo="
+          "hash": "IKXEx0Q7tsjqjKFr2MhI8PV7gbcbcEloRymoMlWeBPw="
         }
       },
       "is_incremental": false,
@@ -7833,7 +7905,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkUldComponentDataScrollBar.html",
-          "hash": "KY1k5YqO8bNsXjyJjCEZRfw/x8ZMgmxYW2lOY65Rec4="
+          "hash": "BTlWcghD/qb/lgqAfX0rFMKMAvsHSuP5+L8BlYDi7LA="
         }
       },
       "is_incremental": false,
@@ -7845,7 +7917,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkUldComponentDataSlider.html",
-          "hash": "nLltewHPbE4h6EoeuXHlxDt1F9YYMfnZxKETb8x0NCc="
+          "hash": "ZfxGDz5TXI1YVinjSPVpuRBbR6bkvkE4Nni1IC12+LM="
         }
       },
       "is_incremental": false,
@@ -7857,7 +7929,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkUldComponentDataTextInput.html",
-          "hash": "OWqXKzGcE3KO1T3V0RE605q2+i3+KvHdf+ZzCq9e/XU="
+          "hash": "tefhuGy6PQTiAEhS637Cspo/UFTqF4sHMnEwzkw9B2g="
         }
       },
       "is_incremental": false,
@@ -7869,7 +7941,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkUldComponentDataTextNineGrid.html",
-          "hash": "tcrTFj+q07w3BzCiIlqUi9FTzIku7AzcbrvXBrbTEKM="
+          "hash": "frOCJg4C5z2opCowh/yNhhtxIdy5V/JW8Qed6VaHj7o="
         }
       },
       "is_incremental": false,
@@ -7881,7 +7953,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkUldComponentDataTreeList.html",
-          "hash": "E9z5w3lkBT3Y2h8Du8DMFsIk7zM7+ioIORsN/ts7R3U="
+          "hash": "RX2exv960GV7QmsGl8h0bfqI0FHiYUu/VmOh24SVRpc="
         }
       },
       "is_incremental": false,
@@ -7893,7 +7965,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkUldComponentDataWindow.html",
-          "hash": "pn7UVRZAyPlmbJ9WmJ5/hKJ9Q3iiebdtWdzxjTeDw4I="
+          "hash": "YajhVYFHLcxhFd8OM8AoPFJv7Twjc/BMISfBUHokr5I="
         }
       },
       "is_incremental": false,
@@ -7905,7 +7977,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkUldComponentInfo.html",
-          "hash": "O9HE53cR14CPndN+W6MZGyZGUUUA0JCGLhMha1Q1J28="
+          "hash": "F6XJPVl1IbWopdZU935IlEyZx2L6mqa5G1gB/mroKKk="
         }
       },
       "is_incremental": false,
@@ -7917,7 +7989,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkUldManager.html",
-          "hash": "OkSV8Ev0uFh0Gk26x7p397pTz3BWns4Zdu6oAk0xjK4="
+          "hash": "5FcN2xkbHhpY8N2lado1XGs2N8v2okKYb0T94MxIl6Y="
         }
       },
       "is_incremental": false,
@@ -7929,7 +8001,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkUldObjectInfo.html",
-          "hash": "TGGZ0xQo3MYGgrLicARD+s/zBchCkxpl0qeGXfSFFuY="
+          "hash": "XnAK7pSOrN+zDwQn1jFGoto/1ywVLikTBE2no6Hk3uc="
         }
       },
       "is_incremental": false,
@@ -7941,7 +8013,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkUldPart.html",
-          "hash": "eNxcxUSmr+gmgqDF7a9Tgh/4GZGDBLZ0QEs/FA0GKUw="
+          "hash": "gipxj8hCqBbkMruDsWMkBGejMIKKcyouGplNgepFJuY="
         }
       },
       "is_incremental": false,
@@ -7953,7 +8025,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkUldPartsList.html",
-          "hash": "zldmsZNRQHSq+UyaTNHgN+Za/IDuV2d6i6AbUkB5w1E="
+          "hash": "CBq3+UTfxz5y4eZi4PvzluQsiQgGLo3nJKqa/+/8EsY="
         }
       },
       "is_incremental": false,
@@ -7965,7 +8037,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkUldWidgetInfo.html",
-          "hash": "zFuMgZ4wfxgoTDe+Fq0/UE92rr/LwQ4ydVQJ9YlTLZY="
+          "hash": "SpqtV4+wEQ6ChojrOGReYTNY+iOIq4k6rU5z3uHli7I="
         }
       },
       "is_incremental": false,
@@ -7977,7 +8049,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkUnitBase.html",
-          "hash": "rDOOjOJ68v7ypMkcK3Fx6XAhHQiM6e7E2Ke/Pt8ToG4="
+          "hash": "DOvKOspyHyk0d7kM3VmQn9AS8fzqXnFwrqG4iWVKBeg="
         }
       },
       "is_incremental": false,
@@ -7989,7 +8061,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkUnitList.html",
-          "hash": "19NlmRVcYfhWxTEwt1WiqQ3br6RS9Ljz5l2TX9nVagY="
+          "hash": "sO+N9PB88ji96NXCHh0cNA/LzbNCGA5lXMSlfiJFW4Q="
         }
       },
       "is_incremental": false,
@@ -8001,7 +8073,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkUnitManager.html",
-          "hash": "I9wB81DTj4mDHYC1WLgUND7QlNIS97sFIfFPxXIZj+8="
+          "hash": "uBNxj4+Xng3n8Pgku2X8ycbyw9iGXAXJdqJebgKMa7E="
         }
       },
       "is_incremental": false,
@@ -8013,7 +8085,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.AtkValue.html",
-          "hash": "oeuCq3PT8M0n6e0baTLkSntvQ2Q3DH45c6zQctt4FK0="
+          "hash": "VjdIo01htpcDR5ILeBUFxJBfkCt4lL38Tsb9qnwVQ9M="
         }
       },
       "is_incremental": false,
@@ -8025,7 +8097,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.CollisionType.html",
-          "hash": "+OCg5bHnsBRV0WNGR9sNPfJiZehrBDU3T9Lc+wjx5ec="
+          "hash": "bOaahkcxvgZau1kkScuNk3qRJyVwm2iFZogAPGxgaps="
         }
       },
       "is_incremental": false,
@@ -8037,7 +8109,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.ComponentType.html",
-          "hash": "TKkFCAijZRIkUXRgE9I8ck9vhXCV4BByxHSxTY/D6CE="
+          "hash": "gUQOot2F9jSTjG8lAYWs4mejV+4koplhlJDzcCh6RBU="
         }
       },
       "is_incremental": false,
@@ -8049,7 +8121,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.ExtendArrayData.html",
-          "hash": "GAAGZD/Mdp0HqZy8MkFXfNI+lknYYg7cB+P0/TIhBGA="
+          "hash": "7ImIoe8T3BTtq04UHFXIyMixrktEB1sj1RrI2EtWjtk="
         }
       },
       "is_incremental": false,
@@ -8061,7 +8133,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.IconComponentFlags.html",
-          "hash": "ggOfLTnceCv3bGcr3dgWaLH2OnRepx0SICvV4bT+hVc="
+          "hash": "EByxZMqNYe4VxZdW1GEow8IOHGAiyBR8kVcSXO9VDOo="
         }
       },
       "is_incremental": false,
@@ -8073,7 +8145,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.ImageNodeFlags.html",
-          "hash": "3hEFXQxc0lNJFoXfY6naIOSnigZS30ICfNFjvPHu+gw="
+          "hash": "Hu5Mj+k8z+zuIGkvGC9YDruky9hoscnglrrA2s7U1LU="
         }
       },
       "is_incremental": false,
@@ -8085,7 +8157,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.NodeFlags.html",
-          "hash": "0tpxVocIL57ZzL3854tzds6jLCAi7omlmfZTTLgvzrU="
+          "hash": "N5Mqtj/hwQx+0piMYIS2s6B0jWlpaTsN8R04GL2maeU="
         }
       },
       "is_incremental": false,
@@ -8097,7 +8169,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.NodeType.html",
-          "hash": "JkbZe1xQJs98+2uNb/pdp8JvPiLXmeiX0kKGDM+d7Sw="
+          "hash": "bfy/oyUYgV8Zwj18FJjeAoOk+ac3aCkpZKhpF2EXnkA="
         }
       },
       "is_incremental": false,
@@ -8109,7 +8181,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.NumberArrayData.html",
-          "hash": "B/qDHCsK1l5M+WRF4pqaBOlVtIPQg3d60UMG4AsSUCo="
+          "hash": "vMsgP8gVATWITZR2eeAocgWSxDAtUEItA/9WGGUGZCw="
         }
       },
       "is_incremental": false,
@@ -8121,7 +8193,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.StringArrayData.html",
-          "hash": "JwBcYBJVWxYwHm4ek0saFVVTlrVCjapVYpOqfCf7op8="
+          "hash": "kXiy/5CNXZsiInCNqSGHeDbxAnYvD3t76ITYs/ivdMk="
         }
       },
       "is_incremental": false,
@@ -8133,7 +8205,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.TextFlags.html",
-          "hash": "AigT2SYkzK5bVEN5aGbBaXfBKuq1mQtizI600ARkyqw="
+          "hash": "qS3kqUeP9eWPnXolwJXjmq/w/dnaiok/4Vw+on2Nxcs="
         }
       },
       "is_incremental": false,
@@ -8145,7 +8217,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.TextFlags2.html",
-          "hash": "pLENl5m2e5Yux7GBT3Bw15idwyQCWfgZeERbknDFeKo="
+          "hash": "SaXurKLy0dC53Kk+SiohzPj56mV3LfDWbI5/YSVS0G4="
         }
       },
       "is_incremental": false,
@@ -8157,7 +8229,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.TextInputFlags1.html",
-          "hash": "1YYlIAjFFZ18VtO7RaMbszQhuL+1ZWaTND7Ls61AJ3M="
+          "hash": "LM+W9i2mlIWBBEryi3MCq4YaXz1YwrAb4Hc0Uxdo+E8="
         }
       },
       "is_incremental": false,
@@ -8169,7 +8241,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.TextInputFlags2.html",
-          "hash": "MSlcweryuc+m3+6qjtiCFKNQho9rncSmONj5WIn1JP0="
+          "hash": "380o14lBuqBDISHQmO0qxMb50EFwTURsit1K42ORUG0="
         }
       },
       "is_incremental": false,
@@ -8181,7 +8253,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.TextureType.html",
-          "hash": "3dTVTq28aSJqVPZBgVmVEIJYmhDG2FKdikw17bHgtyQ="
+          "hash": "4inOkc/MZy5Mtb8YKR4q6a/EAjxFNhnJeThB1rgN52U="
         }
       },
       "is_incremental": false,
@@ -8193,7 +8265,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.ULD.AtkUldComponentDataTab.html",
-          "hash": "HmOt3ZxI700iduI6JgFXDvNlx15of8otDSvA8PrqJIM="
+          "hash": "TP2cMczeCvzbF4cl+wMQs3iQRPyPT3e3LlB8LK8iZxM="
         }
       },
       "is_incremental": false,
@@ -8217,7 +8289,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.ValueType.html",
-          "hash": "wBPWZpZIEvHoSkEQJ3F2UebowWiNd9TBfkHQjnLKvZk="
+          "hash": "jm3LgOGNyU5IB8J5WHvnjxdmFXnvJVuGtiJLsFJrQkU="
         }
       },
       "is_incremental": false,
@@ -8229,7 +8301,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.FFXIV.Component.GUI.html",
-          "hash": "bpM3SoFsnco2j6PQXF0QApfnERCha6eQwlYvT9dqJNM="
+          "hash": "0fOuututTz5IjzTrhN29jOAOHj9syLxFknWldUhNJEU="
         }
       },
       "is_incremental": false,
@@ -8241,7 +8313,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.Resolver.html",
-          "hash": "NImP6pG3VuJeihcXbvf55UYF8l/jbHL4ZxvQfpw08vM="
+          "hash": "mdm53G0UR+BiRf4sg51dX7v3i1ezzxxYm9BLjnFn2jw="
         }
       },
       "is_incremental": false,
@@ -8253,7 +8325,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.STD.NoExportAttribute.html",
-          "hash": "ivvN//vQjJXCqyY74YXV5EwIV2sp5YpnIlM4M+i+Y44="
+          "hash": "W7Dyi7LOFFxg7tCZ58b5QyPY1WRCL8IFIYt4NIB3CM8="
         }
       },
       "is_incremental": false,
@@ -8265,7 +8337,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.STD.Pointer-1.html",
-          "hash": "fLSONlmK5swYW6woziKuPhOTq2uaKjZpjbuRK/LOqpY="
+          "hash": "52OWG3N8ZDRo+56eCLhd0mlSlVIQhJWmSlaFGTfNbJw="
         }
       },
       "is_incremental": false,
@@ -8277,7 +8349,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.STD.StdMap-2.Node.html",
-          "hash": "5V2dOYkG+FEGZz1UwZth85Qew7wtOHwjn+701nlFEcA="
+          "hash": "KoT8M6SsSUeqJ1b95pLL44VmwxIvZRUgEtQvZ1f4iiY="
         }
       },
       "is_incremental": false,
@@ -8289,7 +8361,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.STD.StdMap-2.html",
-          "hash": "mpfOh4Mjwwq4UFEEqqmdU2Ex2f/b945EXOq572KdRbk="
+          "hash": "SmjhJZHPn9tbrqu0fbSprxyaPOT+GzCO9rTxi9oPFao="
         }
       },
       "is_incremental": false,
@@ -8301,7 +8373,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.STD.StdPair-2.html",
-          "hash": "ybhIHNJ7FwbTe636FgHdp+j4nZWYfc+vrUQ3/a4II24="
+          "hash": "g+uSYU5v5uvoA5gt3fcUSeI7Jw4Py9L1CH9xr9PI/rE="
         }
       },
       "is_incremental": false,
@@ -8313,7 +8385,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.STD.StdVector-1.html",
-          "hash": "1q3E8Gm/fXKbQUDHVVVJNCyxC4oubbCMZAaYLH07ges="
+          "hash": "/CASrqHew+pXhOzwfzVhlBGleW0bj1+1YM5BhFRlDnQ="
         }
       },
       "is_incremental": false,
@@ -8325,7 +8397,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.STD.String.html",
-          "hash": "yhXvAT+3ZUU+gJXwypjr9vb+CQLq4e1CLCSm6GcKhrc="
+          "hash": "UTiHjqnHgPq5rQKWVpYMa9a8mLxuLI8A+hMliL5M+WM="
         }
       },
       "is_incremental": false,
@@ -8349,7 +8421,7 @@
       "output": {
         ".html": {
           "relative_path": "api/FFXIVClientStructs.SigScanner.html",
-          "hash": "NOEyp0DFxeyNzZYtzcWYP2PgZnsBOSjoEbjhtEOcBx8="
+          "hash": "c7WOn/s59ZwBquZbFJvk7aPiOYZFLknpkejdHX6juhE="
         }
       },
       "is_incremental": false,
@@ -10665,7 +10737,7 @@
       "output": {
         ".html": {
           "relative_path": "api/toc.html",
-          "hash": "HneegGSmGmPL9nmfY7a+rJGprz3UQRx8E1niV9VBoSM="
+          "hash": "k1sqFM0Nh4eeNAnXpC6YLNh9IxdWbwbP/pkv++NMBRg="
         }
       },
       "is_incremental": false,
@@ -10688,11 +10760,11 @@
     {
       "status": {
         "can_incremental": false,
-        "details": "Cannot build incrementally because docfx version changed from 2.58.4.0 to 2.58.9.0.",
+        "details": "Cannot build incrementally because last build info is missing.",
         "incrementalPhase": "build",
         "total_file_count": 0,
         "skipped_file_count": 0,
-        "full_build_reason_code": "DocfxVersionChanged"
+        "full_build_reason_code": "NoAvailableBuildCache"
       },
       "processors": {
         "ConceptualDocumentProcessor": {
@@ -10704,7 +10776,7 @@
         "ManagedReferenceDocumentProcessor": {
           "can_incremental": false,
           "incrementalPhase": "build",
-          "total_file_count": 886,
+          "total_file_count": 892,
           "skipped_file_count": 0
         },
         "TocDocumentProcessor": {
@@ -10718,8 +10790,8 @@
     },
     {
       "status": {
-        "can_incremental": true,
-        "details": "Can support incremental post processing.",
+        "can_incremental": false,
+        "details": "Cannot support incremental post processing, the reason is: last post processor info is null.",
         "incrementalPhase": "postProcessing",
         "total_file_count": 0,
         "skipped_file_count": 0

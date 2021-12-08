@@ -119,6 +119,129 @@ Please consider using those instead in performance-critical code.</p>
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_SafeMemory_PtrToStructure_System_IntPtr_System_Type_.md&amp;value=---%0Auid%3A%20Dalamud.SafeMemory.PtrToStructure(System.IntPtr%2CSystem.Type)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/SafeMemory.cs/#L207">View Source</a>
+  </span>
+  <a id="Dalamud_SafeMemory_PtrToStructure_" data-uid="Dalamud.SafeMemory.PtrToStructure*"></a>
+  <h4 id="Dalamud_SafeMemory_PtrToStructure_System_IntPtr_System_Type_" data-uid="Dalamud.SafeMemory.PtrToStructure(System.IntPtr,System.Type)">PtrToStructure(IntPtr, Type)</h4>
+  <div class="markdown level1 summary"><p>Marshals data from an unmanaged block of memory to a managed object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static object PtrToStructure(IntPtr addr, Type type)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IntPtr</span></td>
+        <td><span class="parametername">addr</span></td>
+        <td><p>The address to read from.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Type</span></td>
+        <td><span class="parametername">type</span></td>
+        <td><p>The type to create.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Object</span></td>
+        <td><p>The read object, or null, if it could not be read.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_SafeMemory_PtrToStructure__1_System_IntPtr_.md&amp;value=---%0Auid%3A%20Dalamud.SafeMemory.PtrToStructure%60%601(System.IntPtr)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/SafeMemory.cs/#L199">View Source</a>
+  </span>
+  <a id="Dalamud_SafeMemory_PtrToStructure_" data-uid="Dalamud.SafeMemory.PtrToStructure*"></a>
+  <h4 id="Dalamud_SafeMemory_PtrToStructure__1_System_IntPtr_" data-uid="Dalamud.SafeMemory.PtrToStructure``1(System.IntPtr)">PtrToStructure&lt;T&gt;(IntPtr)</h4>
+  <div class="markdown level1 summary"><p>Marshals data from an unmanaged block of memory to a managed object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static T? PtrToStructure&lt;T&gt;(IntPtr addr)
+    where T : struct</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IntPtr</span></td>
+        <td><span class="parametername">addr</span></td>
+        <td><p>The address to read from.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Nullable</span>&lt;T&gt;</td>
+        <td><p>The read object, or null, if it could not be read.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="typeParameters">Type Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="parametername">T</span></td>
+        <td><p>The type to create.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_SafeMemory_Read__1_System_IntPtr___0__.md&amp;value=---%0Auid%3A%20Dalamud.SafeMemory.Read%60%601(System.IntPtr%2C%60%600%40)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
@@ -458,7 +581,7 @@ since Encoding may destroy the FFXIV payload structure.</p>
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_SafeMemory_SizeOf__1.md&amp;value=---%0Auid%3A%20Dalamud.SafeMemory.SizeOf%60%601%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/SafeMemory.cs/#L198">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/SafeMemory.cs/#L225">View Source</a>
   </span>
   <a id="Dalamud_SafeMemory_SizeOf_" data-uid="Dalamud.SafeMemory.SizeOf*"></a>
   <h4 id="Dalamud_SafeMemory_SizeOf__1" data-uid="Dalamud.SafeMemory.SizeOf``1">SizeOf&lt;T&gt;()</h4>
