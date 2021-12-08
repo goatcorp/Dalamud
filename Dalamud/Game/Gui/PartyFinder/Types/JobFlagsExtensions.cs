@@ -49,6 +49,8 @@ namespace Dalamud.Game.Gui.PartyFinder.Types
                 JobFlags.BlueMage => 36,
                 JobFlags.Gunbreaker => 37,
                 JobFlags.Dancer => 38,
+                JobFlags.Reaper => 39,
+                JobFlags.Sage => 40,
                 _ => null,
             };
 
