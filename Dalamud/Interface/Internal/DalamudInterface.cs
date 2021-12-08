@@ -54,7 +54,6 @@ namespace Dalamud.Interface.Internal
 
         private readonly TextureWrap logoTexture;
 
-        private uint devButtonClickCnt = 0;
         private ulong frameCount = 0;
 
 #if DEBUG
@@ -379,14 +378,7 @@ namespace Dalamud.Interface.Internal
                 {
                     var cursor = ImGui.GetCursorPos();
                     if (ImGui.Button("###devMenuOpener", imageSize))
-                    {
-                        if (this.devButtonClickCnt > 20)
-                        {
-                            this.isImGuiDrawDevMenu = true;
-                        }
-
-                        this.devButtonClickCnt++;
-                    }
+                        this.isImGuiDrawDevMenu = true;
                     /*
 #if !DEBUG
                     if (config.DoDalamudTest)
