@@ -29,7 +29,7 @@ namespace Dalamud.Game.ClientState.JobGauge.Types
         /// <summary>
         /// Gets the time remaining that Enshrouded is active.
         /// </summary>
-        public ushort Enshrouded => this.Struct->EnshroudedTimeRemaining;
+        public ushort EnshroudedTimeRemaining => this.Struct->EnshroudedTimeRemaining;
 
         /// <summary>
         /// Gets the amount of Void Shroud available.
