@@ -142,5 +142,15 @@ namespace Dalamud.Game.Gui.PartyFinder.Types
         /// Dancer (DNC).
         /// </summary>
         Dancer = 1 << 27,
+        
+        /// <summary>
+        /// Reaper (RPR).
+        /// </summary>
+        Reaper = 1 << 28,
+        
+        /// <summary>
+        /// Sage (SGE).
+        /// </summary>
+        Sage = 1 << 29,
     }
 }
