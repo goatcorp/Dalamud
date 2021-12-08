@@ -247,6 +247,11 @@ namespace Dalamud.Utility
             ImGui.PopStyleVar();
         }
 
+        public static unsafe void ShowStruct<T>(T* obj, bool autoExpand = false) where T : unmanaged
+        {
+            ShowStruct(*obj, (ulong)&obj, autoExpand);
+        }
+
         /// <summary>
         /// Show a GameObject's internal data in an ImGui-context.
         /// </summary>
@@ -257,13 +262,13 @@ namespace Dalamud.Utility
             switch (go)
             {
                 case BattleChara bchara:
-                    ShowStruct(*bchara.Struct, (ulong)bchara.Address, autoExpand);
+                    ShowStruct(bchara.Struct, autoExpand);
                     break;
                 case Character chara:
-                    ShowStruct(*chara.Struct, (ulong)chara.Address, autoExpand);
+                    ShowStruct(chara.Struct, autoExpand);
                     break;
                 default:
-                    ShowStruct(*go.Struct, (ulong)go.Address, autoExpand);
+                    ShowStruct(go.Struct, autoExpand);
                     break;
             }
         }
