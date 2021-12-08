@@ -62,6 +62,12 @@ namespace Dalamud.Game.ClientState.JobGauge.Types
         /// Gets a value indicating whether if Enochian is active.
         /// </summary>
         /// <returns><c>true</c> or <c>false</c>.</returns>
-        public bool IsEnochianActive => this.Struct->Enochian != 0;
+        public bool IsEnochianActive => this.Struct->EnochianActive;
+
+        /// <summary>
+        /// Gets a value indicating whether Paradox is active.
+        /// </summary>
+        /// <returns><c>true</c> or <c>false</c>.</returns>
+        public bool IsParadoxActive => this.Struct->ParadoxActive;
     }
 }
