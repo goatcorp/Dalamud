@@ -100,7 +100,7 @@ Thanks and have fun with the new expansion!";
 
             if (ImGui.Button(FontAwesomeIcon.LaughBeam.ToIconString()))
             {
-                Process.Start("https://discord.gg/3NMcUV5");
+                Util.OpenLink("https://discord.gg/3NMcUV5");
             }
 
             if (ImGui.IsItemHovered())
@@ -114,13 +114,27 @@ Thanks and have fun with the new expansion!";
 
             if (ImGui.Button(FontAwesomeIcon.Globe.ToIconString()))
             {
-                Process.Start("https://github.com/goatcorp/FFXIVQuickLauncher");
+                Util.OpenLink("https://github.com/goatcorp/FFXIVQuickLauncher");
             }
 
             if (ImGui.IsItemHovered())
             {
                 ImGui.PopFont();
                 ImGui.SetTooltip("See our GitHub repository");
+                ImGui.PushFont(UiBuilder.IconFont);
+            }
+
+            ImGui.SameLine();
+
+            if (ImGui.Button(FontAwesomeIcon.Heart.ToIconString()))
+            {
+                Util.OpenLink("https://goatcorp.github.io/faq/support");
+            }
+
+            if (ImGui.IsItemHovered())
+            {
+                ImGui.PopFont();
+                ImGui.SetTooltip("Support what we care about");
                 ImGui.PushFont(UiBuilder.IconFont);
             }
 
