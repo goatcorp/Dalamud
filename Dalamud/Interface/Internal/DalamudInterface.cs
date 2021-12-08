@@ -379,19 +379,16 @@ namespace Dalamud.Interface.Internal
                     var cursor = ImGui.GetCursorPos();
                     if (ImGui.Button("###devMenuOpener", imageSize))
                         this.isImGuiDrawDevMenu = true;
-                    /*
+
 #if !DEBUG
                     if (config.DoDalamudTest)
                     {
 #endif
-                    */
-                    ImGui.SetCursorPos(cursor);
-                    ImGui.Image(this.logoTexture.ImGuiHandle, imageSize);
-                    /*
+                        ImGui.SetCursorPos(cursor);
+                        ImGui.Image(this.logoTexture.ImGuiHandle, imageSize);
 #if !DEBUG
                     }
 #endif
-                    */
 
                     ImGui.End();
                 }
