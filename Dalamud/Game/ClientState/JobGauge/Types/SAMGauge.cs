@@ -19,6 +19,11 @@ namespace Dalamud.Game.ClientState.JobGauge.Types
         }
 
         /// <summary>
+        /// Gets the currently active Kaeshi ability.
+        /// </summary>
+        public Kaeshi Kaeshi => (Kaeshi)this.Struct->Kaeshi;
+
+        /// <summary>
         /// Gets the current amount of Kenki available.
         /// </summary>
         public byte Kenki => this.Struct->Kenki;
