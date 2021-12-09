@@ -23,6 +23,7 @@ using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.ClientState.Party;
+using Dalamud.Game.ClientState.Aetherytes;
 using Dalamud.Game.Command;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Gui.FlyText;
@@ -156,6 +157,7 @@ namespace Dalamud.Interface.Internal.Windows
             Configuration,
             TaskSched,
             Hook,
+            Aetherytes,
         }
 
         /// <inheritdoc/>
@@ -334,6 +336,9 @@ namespace Dalamud.Interface.Internal.Windows
 
                         case DataKind.Hook:
                             this.DrawHook();
+                            break;
+                        case DataKind.Aetherytes:
+                            this.DrawAetherytes();
                             break;
                     }
                 }
@@ -1508,6 +1513,70 @@ namespace Dalamud.Interface.Internal.Windows
             {
                 Log.Error(ex, "MinHook error caught");
             }
+        }
+
+        private void DrawAetherytes()
+        {
+            if (!ImGui.BeginTable("##aetheryteTable", 11, ImGuiTableFlags.ScrollY | ImGuiTableFlags.RowBg | ImGuiTableFlags.Borders))
+                return;
+
+            ImGui.TableSetupScrollFreeze(0, 1);
+            ImGui.TableSetupColumn("Idx", ImGuiTableColumnFlags.WidthFixed);
+            ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthFixed);
+            ImGui.TableSetupColumn("ID", ImGuiTableColumnFlags.WidthFixed);
+            ImGui.TableSetupColumn("Zone", ImGuiTableColumnFlags.WidthFixed);
+            ImGui.TableSetupColumn("Ward", ImGuiTableColumnFlags.WidthFixed);
+            ImGui.TableSetupColumn("Plot", ImGuiTableColumnFlags.WidthFixed);
+            ImGui.TableSetupColumn("Sub", ImGuiTableColumnFlags.WidthFixed);
+            ImGui.TableSetupColumn("Gil", ImGuiTableColumnFlags.WidthFixed);
+            ImGui.TableSetupColumn("Fav", ImGuiTableColumnFlags.WidthFixed);
+            ImGui.TableSetupColumn("Shared", ImGuiTableColumnFlags.WidthFixed);
+            ImGui.TableSetupColumn("Appartment", ImGuiTableColumnFlags.WidthFixed);
+            ImGui.TableHeadersRow();
+
+            var tpList = Service<AetheryteList>.Get();
+
+            for (var i = 0; i < tpList.Length; i++)
+            {
+                var info = tpList[i];
+                if (info == null)
+                    continue;
+
+                ImGui.TableNextColumn(); // Idx
+                ImGui.TextUnformatted($"{i}");
+
+                ImGui.TableNextColumn(); // Name
+                ImGui.TextUnformatted($"{info.AetheryteData.GameData.PlaceName.Value?.Name}");
+
+                ImGui.TableNextColumn(); // ID
+                ImGui.TextUnformatted($"{info.AetheryteId}");
+
+                ImGui.TableNextColumn(); // Zone
+                ImGui.TextUnformatted($"{info.TerritoryId}");
+
+                ImGui.TableNextColumn(); // Ward
+                ImGui.TextUnformatted($"{info.Ward}");
+
+                ImGui.TableNextColumn(); // Plot
+                ImGui.TextUnformatted($"{info.Plot}");
+
+                ImGui.TableNextColumn(); // Sub
+                ImGui.TextUnformatted($"{info.SubIndex}");
+
+                ImGui.TableNextColumn(); // Gil
+                ImGui.TextUnformatted($"{info.GilCost}");
+
+                ImGui.TableNextColumn(); // Favourite
+                ImGui.TextUnformatted($"{info.IsFavourite}");
+
+                ImGui.TableNextColumn(); // Shared
+                ImGui.TextUnformatted($"{info.IsSharedHouse}");
+
+                ImGui.TableNextColumn(); // Appartment
+                ImGui.TextUnformatted($"{info.IsAppartment}");
+            }
+
+            ImGui.EndTable();
         }
 
         private async Task TestTaskInTaskDelay()
