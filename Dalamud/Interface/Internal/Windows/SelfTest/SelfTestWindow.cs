@@ -28,6 +28,7 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest
                 new EnterTerritoryAgingStep(148, "Central Shroud"),
                 new ActorTableAgingStep(),
                 new FateTableAgingStep(),
+                new AetheryteListAgingStep(),
                 new ConditionAgingStep(),
                 new ToastAgingStep(),
                 new TargetAgingStep(),
