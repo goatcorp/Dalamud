@@ -226,6 +226,18 @@ void write_process_memory_or_throw(HANDLE hProcess, void* pAddress, const T& dat
     return write_process_memory_or_throw(hProcess, pAddress, &data, sizeof data);
 }
 
+std::string from_utf16(const std::wstring& wstr, UINT codePage = CP_UTF8) {
+    std::string str(WideCharToMultiByte(codePage, 0, &wstr[0], static_cast<int>(wstr.size()), nullptr, 0, nullptr, nullptr), 0);
+    WideCharToMultiByte(codePage, 0, &wstr[0], static_cast<int>(wstr.size()), &str[0], static_cast<int>(str.size()), nullptr, nullptr);
+    return str;
+}
+
+std::wstring to_utf16(const std::string& str, UINT codePage = CP_UTF8, bool errorOnInvalidChars = false) {
+    std::wstring wstr(MultiByteToWideChar(codePage, 0, &str[0], static_cast<int>(str.size()), nullptr, 0), 0);
+    MultiByteToWideChar(codePage, errorOnInvalidChars ? MB_ERR_INVALID_CHARS : 0, &str[0], static_cast<int>(str.size()), &wstr[0], static_cast<int>(wstr.size()));
+    return wstr;
+}
+
 /// @brief Rewrite target process' entry point so that this DLL can be loaded and executed first.
 /// @param hProcess Process handle.
 /// @param pcwzPath Path to target process.
@@ -236,7 +248,7 @@ void write_process_memory_or_throw(HANDLE hProcess, void* pAddress, const T& dat
 /// Instead, we have to enumerate through all the files mapped into target process' virtual address space and find the base address
 /// of memory region corresponding to the path given.
 /// 
-DllExport DWORD WINAPI RewriteRemoteEntryPoint(HANDLE hProcess, const wchar_t* pcwzPath, const char* pcszLoadInfo) {
+DllExport DWORD WINAPI RewriteRemoteEntryPointW(HANDLE hProcess, const wchar_t* pcwzPath, const wchar_t* pcwzLoadInfo) {
     try {
         const auto base_address = reinterpret_cast<char*>(get_mapped_image_base_address(hProcess, pcwzPath));
 
@@ -260,17 +272,18 @@ DllExport DWORD WINAPI RewriteRemoteEntryPoint(HANDLE hProcess, const wchar_t* p
         nethost_path.resize(nethost_path.size() + 1);  // ensure null termination
         auto nethost_path_bytes = std::span(reinterpret_cast<const char*>(&nethost_path[0]), std::span(nethost_path).size_bytes());
 
-        const auto load_info_size = strlen(pcszLoadInfo) + 1;
+        auto load_info = from_utf16(pcwzLoadInfo);
+        load_info.resize(load_info.size() + 1);  //ensure null termination
 
         // Allocate full buffer in advance to keep reference to trampoline valid.
-        std::vector<uint8_t> buffer(sizeof TrampolineTemplate + load_info_size + nethost_path_bytes.size() + path_bytes.size());
+        std::vector<uint8_t> buffer(sizeof TrampolineTemplate + load_info.size() + nethost_path_bytes.size() + path_bytes.size());
         auto& trampoline = *reinterpret_cast<TrampolineTemplate*>(&buffer[0]);
-        const auto load_info_buffer = std::span(buffer).subspan(sizeof trampoline, load_info_size);
-        const auto nethost_path_buffer = std::span(buffer).subspan(sizeof trampoline + load_info_size, nethost_path_bytes.size());
-        const auto dalamud_path_buffer = std::span(buffer).subspan(sizeof trampoline + load_info_size + nethost_path_bytes.size(), path_bytes.size());
+        const auto load_info_buffer = std::span(buffer).subspan(sizeof trampoline, load_info.size());
+        const auto nethost_path_buffer = std::span(buffer).subspan(sizeof trampoline + load_info.size(), nethost_path_bytes.size());
+        const auto dalamud_path_buffer = std::span(buffer).subspan(sizeof trampoline + load_info.size() + nethost_path_bytes.size(), path_bytes.size());
 
         new(&trampoline)TrampolineTemplate();  // this line initializes given buffer instead of allocating memory
-        memcpy(&load_info_buffer[0], pcszLoadInfo, load_info_buffer.size());
+        memcpy(&load_info_buffer[0], &load_info[0], load_info_buffer.size());
         memcpy(&nethost_path_buffer[0], &nethost_path_bytes[0], nethost_path_buffer.size());
         memcpy(&dalamud_path_buffer[0], &path_bytes[0], dalamud_path_buffer.size());
 
@@ -313,6 +326,20 @@ DllExport DWORD WINAPI RewriteRemoteEntryPoint(HANDLE hProcess, const wchar_t* p
     }
 }
 
+/// @deprecated
+DllExport DWORD WINAPI RewriteRemoteEntryPoint(HANDLE hProcess, const wchar_t* pcwzPath, const char* pcszLoadInfo) {
+    return RewriteRemoteEntryPointW(hProcess, pcwzPath, to_utf16(pcszLoadInfo).c_str());
+}
+
+void wait_for_game_window() {
+    HWND game_window;
+    while (!(game_window = try_find_game_window())) {
+        WaitForInputIdle(GetCurrentProcess(), INFINITE);
+        Sleep(100);
+    };
+    SendMessageW(game_window, WM_NULL, 0, 0);
+}
+
 /// @brief Entry point function "called" instead of game's original main entry point.
 /// @param params Parameters set up from RewriteRemoteEntryPoint.
 DllExport void WINAPI RewrittenEntryPoint(RewrittenEntryPointParameters& params) {
@@ -339,13 +366,7 @@ DllExport void WINAPI RewrittenEntryPoint(RewrittenEntryPointParameters& params)
                 SetEvent(params.hMainThreadContinue);
             }
 
-            // Wait until game main window shows up and becomes responsive.
-            HWND game_window;
-            while (!(game_window = try_find_game_window())) {
-                WaitForInputIdle(GetCurrentProcess(), INFINITE);
-                Sleep(100);
-            };
-            SendMessageW(game_window, WM_NULL, 0, 0);
+            wait_for_game_window();
 
             Initialize(&loadInfo[0]);
             return 0;
