@@ -32,6 +32,11 @@ namespace Dalamud.Game.ClientState.JobGauge.Types
         public ushort EnshroudedTimeRemaining => this.Struct->EnshroudedTimeRemaining;
 
         /// <summary>
+        /// Gets the amount of Lemure Shroud available.
+        /// </summary>
+        public byte LemureShroud => this.Struct->LemureShroud;
+
+        /// <summary>
         /// Gets the amount of Void Shroud available.
         /// </summary>
         public byte VoidShroud => this.Struct->VoidShroud;
