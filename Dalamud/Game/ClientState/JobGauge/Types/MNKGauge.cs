@@ -1,4 +1,5 @@
 using System;
+using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 
 namespace Dalamud.Game.ClientState.JobGauge.Types
 {
@@ -17,8 +18,13 @@ namespace Dalamud.Game.ClientState.JobGauge.Types
         }
 
         /// <summary>
-        /// Gets the number of Chakra available.
+        /// Gets the number of Chakra available, per Chakra type.
         /// </summary>
-        public byte Chakra => this.Struct->Chakra;
+        public ChakraType[] Chakra => this.Struct->CurrentChakra;
+
+        /// <summary>
+        /// Gets the kind of Nadi available.
+        /// </summary>
+        public NadiFlags Nadi => this.Struct->Nadi;
     }
 }

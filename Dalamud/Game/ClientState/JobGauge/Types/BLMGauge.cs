@@ -1,4 +1,5 @@
 using System;
+using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 
 namespace Dalamud.Game.ClientState.JobGauge.Types
 {
@@ -47,21 +48,32 @@ namespace Dalamud.Game.ClientState.JobGauge.Types
         public byte AstralFireStacks => (byte)(this.InAstralFire ? this.Struct->ElementStance : 0);
 
         /// <summary>
-        /// Gets a value indicating whether if the player is in Umbral Ice.
+        /// Gets a value indicating whether or not the player is in Umbral Ice.
         /// </summary>
         /// <returns><c>true</c> or <c>false</c>.</returns>
         public bool InUmbralIce => this.Struct->ElementStance < 0;
 
         /// <summary>
-        /// Gets a value indicating whether if the player is in Astral fire.
+        /// Gets a value indicating whether or not the player is in Astral fire.
         /// </summary>
         /// <returns><c>true</c> or <c>false</c>.</returns>
         public bool InAstralFire => this.Struct->ElementStance > 0;
 
         /// <summary>
-        /// Gets a value indicating whether if Enochian is active.
+        /// Gets a value indicating whether or not Enochian is active.
         /// </summary>
         /// <returns><c>true</c> or <c>false</c>.</returns>
-        public bool IsEnochianActive => this.Struct->Enochian != 0;
+        public bool IsEnochianActive => this.Struct->EnochianActive;
+
+        /// <summary>
+        /// Gets a value indicating whether or not Paradox is active.
+        /// </summary>
+        /// <returns><c>true</c> or <c>false</c>.</returns>
+        public bool IsParadoxActive => this.Struct->ParadoxActive;
+
+        /// <summary>
+        /// Gets a value indicating which kind of Enochian is active.
+        /// </summary>
+        public EnochianFlags EnochianFlags => this.Struct->EnochianFlags;
     }
 }
