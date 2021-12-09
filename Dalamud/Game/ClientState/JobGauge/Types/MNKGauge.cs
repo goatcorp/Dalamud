@@ -1,5 +1,7 @@
 using System;
-using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+using System.Linq;
+
+using Dalamud.Game.ClientState.JobGauge.Enums;
 
 namespace Dalamud.Game.ClientState.JobGauge.Types
 {
@@ -18,13 +20,21 @@ namespace Dalamud.Game.ClientState.JobGauge.Types
         }
 
         /// <summary>
-        /// Gets the number of Chakra available, per Chakra type.
+        /// Gets the types of Chakra available.
         /// </summary>
-        public ChakraType[] Chakra => this.Struct->CurrentChakra;
+        /// <remarks>
+        /// This will always return an array of size 3, inactive Chakra are represented by <see cref="Chakra.NONE"/>.
+        /// </remarks>
+        public Chakra[] Chakra => this.Struct->CurrentChakra.Select(c => (Chakra)c).ToArray();
 
         /// <summary>
-        /// Gets the kind of Nadi available.
+        /// Gets the types of Nadi available.
         /// </summary>
-        public NadiFlags Nadi => this.Struct->Nadi;
+        public Nadi Nadi => (Nadi)this.Struct->Nadi;
+
+        /// <summary>
+        /// Gets the time remaining that Blitz is active.
+        /// </summary>
+        public ushort BlitzTimeRemaining => this.Struct->BlitzTimeRemaining;
     }
 }
