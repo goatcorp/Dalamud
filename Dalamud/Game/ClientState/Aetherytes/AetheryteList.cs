@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Serilog;
@@ -15,8 +16,6 @@ namespace Dalamud.Game.ClientState.Aetherytes
     [InterfaceVersion("1.0")]
     public sealed partial class AetheryteList
     {
-        private delegate void UpdateAetheryteListDelegate(IntPtr telepo, byte arg1);
-
         private readonly ClientStateAddressResolver address;
         private readonly UpdateAetheryteListDelegate updateAetheryteListFunc;
 
@@ -31,6 +30,8 @@ namespace Dalamud.Game.ClientState.Aetherytes
 
             Log.Verbose($"Teleport address 0x{this.address.Telepo.ToInt64():X}");
         }
+
+        private delegate void UpdateAetheryteListDelegate(IntPtr telepo, byte arg1);
 
         /// <summary>
         /// Gets the amount of Aetherytes the local player has unlocked.
@@ -64,7 +65,7 @@ namespace Dalamud.Game.ClientState.Aetherytes
         {
             get
             {
-                if (index < 0 || index >= Length)
+                if (index < 0 || index >= this.Length)
                 {
                     return null;
                 }
@@ -95,7 +96,6 @@ namespace Dalamud.Game.ClientState.Aetherytes
     /// </summary>
     public sealed partial class AetheryteList : IReadOnlyCollection<AetheryteEntry>
     {
-
         /// <inheritdoc/>
         public int Count => this.Length;
 
@@ -111,7 +111,7 @@ namespace Dalamud.Game.ClientState.Aetherytes
         /// <inheritdoc/>
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return GetEnumerator();
+            return this.GetEnumerator();
         }
     }
 }
