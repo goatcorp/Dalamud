@@ -10,6 +10,7 @@ using Dalamud.Game.ClientState.Keys;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Party;
+using Dalamud.Game.ClientState.Aetherytes;
 using Dalamud.Game.Network.Internal;
 using Dalamud.Hooking;
 using Dalamud.IoC;
@@ -60,6 +61,8 @@ namespace Dalamud.Game.ClientState
             Service<Condition>.Set(this.address);
 
             Service<TargetManager>.Set(this.address);
+
+            Service<AetheryteList>.Set(this.address);
 
             Log.Verbose($"SetupTerritoryType address 0x{this.address.SetupTerritoryType.ToInt64():X}");
 
