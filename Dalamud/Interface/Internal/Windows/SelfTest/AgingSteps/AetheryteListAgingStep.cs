@@ -34,6 +34,11 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
                 return SelfTestStepResult.Waiting;
             }
 
+            if (aetheryte.AetheryteId == 0)
+            {
+                return SelfTestStepResult.Fail;
+            }
+
             Util.ShowObject(aetheryte);
 
             return SelfTestStepResult.Waiting;
