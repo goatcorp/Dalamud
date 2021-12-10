@@ -34,23 +34,23 @@ namespace Dalamud.Game.ClientState.Objects.Enums
         OffhandOut = 8,
 
         /// <summary>
+        /// Character is crafting.
+        /// </summary>
+        Crafting = 16,
+
+        /// <summary>
         /// Character is a party member.
         /// </summary>
-        PartyMember = 16,
+        PartyMember = 32,
 
         /// <summary>
         /// Character is a alliance member.
         /// </summary>
-        AllianceMember = 32,
+        AllianceMember = 64,
 
         /// <summary>
         /// Character is in friend list.
         /// </summary>
-        Friend = 64,
-
-        /// <summary>
-        /// Character is casting.
-        /// </summary>
-        IsCasting = 128,
+        Friend = 128,
     }
 }
