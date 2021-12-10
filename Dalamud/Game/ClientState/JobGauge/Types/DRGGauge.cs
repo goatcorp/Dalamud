@@ -19,18 +19,23 @@ namespace Dalamud.Game.ClientState.JobGauge.Types
         }
 
         /// <summary>
-        /// Gets the time remaining for Blood of the Dragon in milliseconds.
+        /// Gets the time remaining for Life of the Dragon in milliseconds.
         /// </summary>
-        public short BOTDTimer => this.Struct->BotdTimer;
+        public short LOTDTimer => this.Struct->LotdTimer;
 
         /// <summary>
-        /// Gets the current state of Blood of the Dragon.
+        /// Gets a value indicating whether Life of the Dragon is active.
         /// </summary>
-        public BOTDState BOTDState => (BOTDState)this.Struct->BotdState;
+        public bool IsLOTDActive => this.Struct->LotdState == 2;
 
         /// <summary>
         /// Gets the count of eyes opened during Blood of the Dragon.
         /// </summary>
         public byte EyeCount => this.Struct->EyeCount;
+
+        /// <summary>
+        /// Gets the amount of Firstminds' Focus available.
+        /// </summary>
+        public byte FirstmindsFocusCount => this.Struct->FirstmindsFocusCount;
     }
 }
