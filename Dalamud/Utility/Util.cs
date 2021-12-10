@@ -447,7 +447,7 @@ namespace Dalamud.Utility
         {
             var process = new ProcessStartInfo(url)
             {
-                UseShellExecute = true
+                UseShellExecute = true,
             };
             Process.Start(process);
         }
