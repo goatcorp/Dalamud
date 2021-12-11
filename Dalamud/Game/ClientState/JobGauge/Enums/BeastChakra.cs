@@ -1,9 +1,9 @@
 namespace Dalamud.Game.ClientState.JobGauge.Enums
 {
     /// <summary>
-    /// MNK Chakra types.
+    /// MNK Beast Chakra types.
     /// </summary>
-    public enum Chakra : byte
+    public enum BeastChakra : byte
     {
         /// <summary>
         /// No card.

@@ -20,12 +20,17 @@ namespace Dalamud.Game.ClientState.JobGauge.Types
         }
 
         /// <summary>
-        /// Gets the types of Chakra available.
+        /// Gets the amount of Chakra available.
+        /// </summary>
+        public byte Chakra => this.Struct->Chakra;
+
+        /// <summary>
+        /// Gets the types of Beast Chakra available.
         /// </summary>
         /// <remarks>
-        /// This will always return an array of size 3, inactive Chakra are represented by <see cref="Chakra.NONE"/>.
+        /// This will always return an array of size 3, inactive Beast Chakra are represented by <see cref="BeastChakra.NONE"/>.
         /// </remarks>
-        public Chakra[] Chakra => this.Struct->CurrentChakra.Select(c => (Chakra)c).ToArray();
+        public BeastChakra[] BeastChakra => this.Struct->BeastChakra.Select(c => (BeastChakra)c).ToArray();
 
         /// <summary>
         /// Gets the types of Nadi available.
