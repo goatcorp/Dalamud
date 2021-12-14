@@ -149,12 +149,16 @@ namespace Dalamud.Interface.Internal.Windows
 
             _ = pluginManager.ReloadPluginMastersAsync();
 
-            this.updatePluginCount = 0;
-            this.updatedPlugins = null;
-
             this.searchText = string.Empty;
             this.sortKind = PluginSortKind.Alphabetical;
             this.filterText = Locs.SortBy_Alphabetical;
+
+            if (this.updateStatus == OperationStatus.Complete || this.updateStatus == OperationStatus.Idle)
+            {
+                this.updateStatus = OperationStatus.Idle;
+                this.updatePluginCount = 0;
+                this.updatedPlugins = null;
+            }
         }
 
         /// <inheritdoc/>
