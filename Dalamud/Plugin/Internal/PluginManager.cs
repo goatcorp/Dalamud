@@ -247,9 +247,9 @@ namespace Dalamud.Plugin.Internal
                     {
                         // Not a plugin
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
-                        Log.Error("During boot plugin load, an unexpected error occurred");
+                        Log.Error(ex, "During boot plugin load, an unexpected error occurred");
                     }
                 }
             }
@@ -518,6 +518,9 @@ namespace Dalamud.Plugin.Internal
             var loadPlugin = !doNotLoad;
 
             LocalPlugin plugin;
+
+            if (!manifest.CheckSanity())
+                throw new InvalidOperationException("Plugin manifest is not sane.");
 
             if (isDev)
             {

@@ -15,7 +15,7 @@ namespace Dalamud.Plugin.Internal.Types
         /// Gets the author/s of the plugin.
         /// </summary>
         [JsonProperty]
-        public string Author { get; init; }
+        public string? Author { get; init; }
 
         /// <summary>
         /// Gets or sets the public name of the plugin.

@@ -1889,7 +1889,7 @@ namespace Dalamud.Interface.Internal.Windows
 
             return hasSearchString && !(
                 manifest.Name.ToLowerInvariant().Contains(searchString) ||
-                manifest.Author.Equals(this.searchText, StringComparison.InvariantCultureIgnoreCase) ||
+                (!manifest.Author.IsNullOrEmpty() && manifest.Author.Equals(this.searchText, StringComparison.InvariantCultureIgnoreCase)) ||
                 (manifest.Tags != null && manifest.Tags.Contains(searchString, StringComparer.InvariantCultureIgnoreCase)));
         }
 
