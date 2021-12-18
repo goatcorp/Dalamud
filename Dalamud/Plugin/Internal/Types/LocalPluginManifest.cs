@@ -22,7 +22,7 @@ namespace Dalamud.Plugin.Internal.Types
             if (this.Name.IsNullOrEmpty())
                 return false;
 
-            if (this.DalamudApiLevel != 0)
+            if (this.DalamudApiLevel == 0)
                 return false;
 
             return true;
