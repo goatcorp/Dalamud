@@ -434,5 +434,25 @@ namespace Dalamud.Game.Text.SeStringHandling
         /// The crafting type Fate icon.
         /// </summary>
         FateCrafting = 111,
+
+        /// <summary>
+        /// The Fan Festival logo.
+        /// </summary>
+        FanFestival = 112,
+
+        /// <summary>
+        /// The Sharlayan region icon.
+        /// </summary>
+        Sharlayan = 113,
+
+        /// <summary>
+        /// The Ilsabard region icon.
+        /// </summary>
+        Ilsabard = 114,
+
+        /// <summary>
+        /// The Garlemald region icon.
+        /// </summary>
+        Garlemald = 115,
     }
 }
