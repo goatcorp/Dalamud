@@ -21,8 +21,8 @@ namespace Dalamud.Plugin.Internal
         // Ref to Dalamud.Configuration.DevPluginSettings
         private readonly DevPluginSettings devSettings;
 
-        private FileSystemWatcher fileWatcher;
-        private CancellationTokenSource fileWatcherTokenSource;
+        private FileSystemWatcher? fileWatcher;
+        private CancellationTokenSource fileWatcherTokenSource = new();
         private int reloadCounter;
 
         /// <summary>
@@ -125,7 +125,7 @@ namespace Dalamud.Plugin.Internal
             var current = Interlocked.Increment(ref this.reloadCounter);
 
             Task.Delay(500).ContinueWith(
-                task =>
+                _ =>
                 {
                     if (this.fileWatcherTokenSource.IsCancellationRequested)
                     {

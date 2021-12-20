@@ -112,6 +112,9 @@ namespace Dalamud.Plugin.Internal
             else
             {
                 this.Manifest = manifest;
+
+                if (!manifest.CheckSanity())
+                    throw new InvalidOperationException("Plugin manifest is not sane.");
             }
 
             // This converts from the ".disabled" file feature to the manifest instead.
