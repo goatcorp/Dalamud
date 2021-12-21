@@ -1,4 +1,5 @@
 using System.IO;
+
 using Dalamud.Utility;
 using Newtonsoft.Json;
 
@@ -10,24 +11,6 @@ namespace Dalamud.Plugin.Internal.Types
     /// </summary>
     internal record LocalPluginManifest : PluginManifest
     {
-        /// <summary>
-        /// Check if this manifest is valid.
-        /// </summary>
-        /// <returns>Whether or not this manifest is valid.</returns>
-        public bool CheckSanity()
-        {
-            if (this.InternalName.IsNullOrEmpty())
-                return false;
-
-            if (this.Name.IsNullOrEmpty())
-                return false;
-
-            if (this.DalamudApiLevel == 0)
-                return false;
-
-            return true;
-        }
-
         /// <summary>
         /// Gets or sets a value indicating whether the plugin is disabled and should not be loaded.
         /// This value supercedes the ".disabled" file functionality and should not be included in the plugin master.
@@ -94,5 +77,23 @@ namespace Dalamud.Plugin.Internal.Types
         /// <param name="dllFile">The plugin DLL.</param>
         /// <returns>The <see cref="PluginManifest"/> .testing file.</returns>
         public static FileInfo GetTestingFile(FileInfo dllFile) => new(Path.Combine(dllFile.DirectoryName, ".testing"));
+
+        /// <summary>
+        /// Check if this manifest is valid.
+        /// </summary>
+        /// <returns>Whether or not this manifest is valid.</returns>
+        public bool CheckSanity()
+        {
+            if (this.InternalName.IsNullOrEmpty())
+                return false;
+
+            if (this.Name.IsNullOrEmpty())
+                return false;
+
+            if (this.DalamudApiLevel == 0)
+                return false;
+
+            return true;
+        }
     }
 }
