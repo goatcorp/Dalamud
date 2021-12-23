@@ -74,7 +74,8 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam)
     // ============================== VEH ======================================== //
 
     printf("Initializing VEH... ");
-    if(is_running_on_linux() || getenv("DALAMUD_NO_VEH"))
+    GetEnvironmentVariableW(L"DALAMUD_NO_VEH", nullptr, 0);
+    if(is_running_on_linux() || GetLastError() != ERROR_ENVVAR_NOT_FOUND)
     {
         printf("VEH was disabled manually!\n");
     }
