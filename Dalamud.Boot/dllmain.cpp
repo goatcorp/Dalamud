@@ -73,11 +73,10 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam)
 
     // ============================== VEH ======================================== //
 
-    /*
     printf("Initializing VEH... ");
-    if(is_running_on_linux())
+    if(is_running_on_linux() || getenv("DALAMUD_NO_VEH"))
     {
-        printf("Failed! [Disabled for Wine]\n");
+        printf("VEH was disabled manually!\n");
     }
     else
     {
@@ -85,7 +84,6 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam)
             printf("Done!\n");
         else printf("Failed!\n");
     }
-    */
 
     // =========================================================================== //
 
@@ -108,7 +106,7 @@ BOOL APIENTRY DllMain(const HMODULE hModule, const DWORD dwReason, LPVOID lpRese
             g_hModule = hModule;
             break;
         case DLL_PROCESS_DETACH:
-            //veh::remove_handler();
+            veh::remove_handler();
             break;
     }
     return TRUE;
