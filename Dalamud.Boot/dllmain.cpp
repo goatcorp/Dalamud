@@ -38,20 +38,20 @@ bool is_running_on_linux()
 bool is_veh_enabled()
 {
     size_t required_size;
-    getenv_s(&required_size, nullptr, 0, "DALAMUD_NO_VEH");
+    getenv_s(&required_size, nullptr, 0, "DALAMUD_HAVE_VEH");
     if (required_size > 0)
     {
         if (char* is_no_veh = static_cast<char*>(malloc(required_size * sizeof(char))))
         {
-            getenv_s(&required_size, is_no_veh, required_size, "DALAMUD_NO_VEH");
+            getenv_s(&required_size, is_no_veh, required_size, "DALAMUD_HAVE_VEH");
             auto result = _stricmp(is_no_veh, "true");
             free(is_no_veh);
             if (result == 0)
-                return false;
+                return true;
         }
     }
 
-    return true;
+    return false;
 }
 
 DllExport DWORD WINAPI Initialize(LPVOID lpParam)
@@ -93,15 +93,19 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam)
     // ============================== VEH ======================================== //
 
     printf("Initializing VEH... ");
-    if(is_running_on_linux() || !is_veh_enabled())
+    if(is_running_on_linux())
     {
-        printf("VEH was disabled manually!\n");
+        printf("VEH was disabled, running on linux\n");
     }
-    else
+    else if (is_veh_enabled())
     {
         if (veh::add_handler())
             printf("Done!\n");
         else printf("Failed!\n");
+    }
+    else
+    {
+        printf("VEH was disabled manually\n");
     }
 
     // =========================================================================== //
