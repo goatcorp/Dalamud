@@ -245,9 +245,9 @@ LONG exception_handler(EXCEPTION_POINTERS* ex)
     MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), file, MiniDumpWithDataSegs, &ex_info, nullptr, nullptr);
     CloseHandle(file);
 
-    auto msg = L"An error within the game has occurred and Dalamud has caught it.\n\n"
+    auto msg = L"An error within the game has occurred.\n\n"
         L"This may be caused by a faulty plugin, a broken TexTools modification, any other third-party tool or simply a bug in the game.\n"
-        L"You can report this issue on our Discord - more information has been recorded separately.\n\n"
+        L"Please try \"Start Over\" in TexTools, an integrity check in the XIVLauncher settings and disabling plugins you don't need.\n\n"
         L"The log file is located at:\n"
         L"{1}\n\n"
         L"Press OK to exit the application.";
