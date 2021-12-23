@@ -35,6 +35,25 @@ bool is_running_on_linux()
     return pwine_get_version != nullptr || pwine_get_host_version != nullptr;
 }
 
+bool is_veh_enabled()
+{
+    size_t required_size;
+    getenv_s(&required_size, nullptr, 0, "DALAMUD_NO_VEH");
+    if (required_size > 0)
+    {
+        if (char* is_no_veh = static_cast<char*>(malloc(required_size * sizeof(char))))
+        {
+            getenv_s(&required_size, is_no_veh, required_size, "DALAMUD_NO_VEH");
+            auto result = _stricmp(is_no_veh, "true");
+            free(is_no_veh);
+            if (result == 0)
+                return false;
+        }
+    }
+
+    return true;
+}
+
 DllExport DWORD WINAPI Initialize(LPVOID lpParam)
 {
     #ifndef NDEBUG
@@ -74,8 +93,7 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam)
     // ============================== VEH ======================================== //
 
     printf("Initializing VEH... ");
-    GetEnvironmentVariableW(L"DALAMUD_NO_VEH", nullptr, 0);
-    if(is_running_on_linux() || GetLastError() != ERROR_ENVVAR_NOT_FOUND)
+    if(is_running_on_linux() || !is_veh_enabled())
     {
         printf("VEH was disabled manually!\n");
     }
