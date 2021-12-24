@@ -35,6 +35,14 @@ namespace Dalamud
         public delegate void InitDelegate(IntPtr infoPtr);
 
         /// <summary>
+        /// A delegate used from VEH handler on exception which CoreCLR will fast fail by default.
+        /// </summary>
+        /// <param name="dumpPath">Path to minidump file created in UTF-16.</param>
+        /// <param name="logPath">Path to log file to create in UTF-16.</param>
+        /// <param name="log">Log text in UTF-16.</param>
+        public delegate void VehDelegate(IntPtr dumpPath, IntPtr logPath, IntPtr log);
+
+        /// <summary>
         /// Initialize Dalamud.
         /// </summary>
         /// <param name="infoPtr">Pointer to a serialized <see cref="DalamudStartInfo"/> data.</param>
@@ -44,6 +52,57 @@ namespace Dalamud
             var info = JsonConvert.DeserializeObject<DalamudStartInfo>(infoStr);
 
             new Thread(() => RunThread(info)).Start();
+        }
+
+        /// <summary>
+        /// Show error message along with stack trace and exit.
+        /// </summary>
+        /// <param name="dumpPath">Path to minidump file created in UTF-16.</param>
+        /// <param name="logPath">Path to log file to create in UTF-16.</param>
+        /// <param name="log">Log text in UTF-16.</param>
+        public static void VehCallback(IntPtr dumpPath, IntPtr logPath, IntPtr log)
+        {
+            string stackTrace;
+            try
+            {
+                stackTrace = Environment.StackTrace;
+            }
+            catch (Exception e)
+            {
+                stackTrace = "Fail: " + e.ToString();
+            }
+
+            var msg = "An error within the game has occurred.\n\n"
+                + "This may be caused by a faulty plugin, a broken TexTools modification, any other third-party tool or simply a bug in the game.\n"
+                + "Please try \"Start Over\" or \"Download Index Backup\" in TexTools, an integrity check in the XIVLauncher settings, and disabling plugins you don't need.\n\n"
+                + "The log file is located at:\n"
+                + "{1}\n\n"
+                + "Press OK to exit the application.\n\nStack trace:\n{2}";
+
+            try
+            {
+                File.WriteAllText(
+                    Marshal.PtrToStringUni(logPath),
+                    "Stack trace:\n" + stackTrace + "\n\n" + Marshal.PtrToStringUni(log));
+            }
+            catch (Exception e)
+            {
+                msg += "\n\nAdditionally, failed to write file: " + e.ToString();
+            }
+
+            // Show in another thread to prevent messagebox from pumping messages of current thread.
+            var msgThread = new Thread(() =>
+            {
+                Utility.Util.Fatal(
+                    msg.Format(
+                        Marshal.PtrToStringUni(dumpPath),
+                        Marshal.PtrToStringUni(logPath),
+                        stackTrace),
+                    "Dalamud Error",
+                    false);
+            });
+            msgThread.Start();
+            msgThread.Join();
         }
 
         /// <summary>

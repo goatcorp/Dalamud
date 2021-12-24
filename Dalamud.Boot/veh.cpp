@@ -1,12 +1,6 @@
-#define WIN32_LEAN_AND_MEAN
+#include "pch.h"
+
 #include "veh.h"
-#include <filesystem>
-#include <fstream>
-#include <Windows.h>
-#include <DbgHelp.h>
-#include <format>
-#include <string>
-#include <TlHelp32.h>
 
 bool is_whitelist_exception(const DWORD code)
 {
@@ -51,14 +45,16 @@ bool is_whitelist_exception(const DWORD code)
 }
 
 
-bool get_module_file_and_base(const DWORD64 address, DWORD64* module_base, std::filesystem::path& module_file)
+bool get_module_file_and_base(const DWORD64 address, DWORD64& module_base, std::filesystem::path& module_file)
 {
     HMODULE handle;
     if (GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, reinterpret_cast<LPCSTR>(address), &handle))
     {
-        if (wchar_t path[1024]; GetModuleFileNameW(handle, path, sizeof path / 2) > 0)
+        std::wstring path(PATHCCH_MAX_CCH, L'\0');
+        path.resize(GetModuleFileNameW(handle, &path[0], static_cast<DWORD>(path.size())));
+        if (!path.empty())
         {
-            *module_base = reinterpret_cast<DWORD64>(handle);
+            module_base = reinterpret_cast<DWORD64>(handle);
             module_file = path;
             return true;
         }
@@ -70,22 +66,24 @@ bool get_module_file_and_base(const DWORD64 address, DWORD64* module_base, std::
 bool is_ffxiv_address(const DWORD64 address)
 {
     DWORD64 module_base;
-    if (std::filesystem::path module_path; get_module_file_and_base(address, &module_base, module_path))
+    if (std::filesystem::path module_path; get_module_file_and_base(address, module_base, module_path))
         return _wcsicmp(module_path.filename().c_str(), L"ffxiv_dx11.exe") == 0;
     return false;
 }
 
 
-bool get_sym_from_addr(const DWORD64 address, DWORD64* displacement, std::wstring& symbol_name)
+bool get_sym_from_addr(const DWORD64 address, DWORD64& displacement, std::wstring& symbol_name)
 {
-    char buffer[sizeof(SYMBOL_INFOW) + MAX_SYM_NAME * sizeof(wchar_t)];
-    auto symbol = reinterpret_cast<PSYMBOL_INFOW>(buffer);
-    symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
-    symbol->MaxNameLen = MAX_SYM_NAME;
+    union {
+        char buffer[sizeof(SYMBOL_INFOW) + MAX_SYM_NAME * sizeof(wchar_t)]{};
+        SYMBOL_INFOW symbol;
+    };
+    symbol.SizeOfStruct = sizeof(SYMBOL_INFO);
+    symbol.MaxNameLen = MAX_SYM_NAME;
 
-    if (SymFromAddrW(GetCurrentProcess(), address, displacement, symbol))
+    if (SymFromAddrW(GetCurrentProcess(), address, &displacement, &symbol) && symbol.Name[0])
     {
-        symbol_name.assign(_wcsdup(symbol->Name));
+        symbol_name = symbol.Name;
         return true;
     }
     return false;
@@ -96,7 +94,7 @@ std::wstring to_address_string(const DWORD64 address, const bool try_ptrderef = 
 {
     DWORD64 module_base;
     std::filesystem::path module_path;
-    bool is_mod_addr = get_module_file_and_base(address, &module_base, module_path);
+    bool is_mod_addr = get_module_file_and_base(address, module_base, module_path);
 
     DWORD64 value = 0;
     if(try_ptrderef && address > 0x10000 && address < 0x7FFFFFFE0000)
@@ -109,14 +107,32 @@ std::wstring to_address_string(const DWORD64 address, const bool try_ptrderef = 
         std::format(L"{:X}", address);
 
     DWORD64 displacement;
-    if (std::wstring symbol; get_sym_from_addr(address, &displacement, symbol))
+    if (std::wstring symbol; get_sym_from_addr(address, displacement, symbol))
         return std::format(L"{}\t({})", addr_str, displacement != 0 ? std::format(L"{}+0x{:X}", symbol, displacement) : std::format(L"{}", symbol));
     return value != 0 ? std::format(L"{} [{}]", addr_str, to_address_string(value, false)) : addr_str;
 }
 
 
-void print_exception_info(const EXCEPTION_POINTERS* ex, std::wofstream& log)
+void print_exception_info(const EXCEPTION_POINTERS* ex, std::wostringstream& log)
 {
+    size_t rec_index = 0;
+    for (auto rec = ex->ExceptionRecord; rec; rec = rec->ExceptionRecord)
+    {
+        log << std::format(L"\nException Info #{}\n", ++rec_index);
+        log << std::format(L"Address: {:X}\n", rec->ExceptionCode);
+        log << std::format(L"Flags: {:X}\n", rec->ExceptionFlags);
+        log << std::format(L"Address: {:X}\n", reinterpret_cast<size_t>(rec->ExceptionAddress));
+        if (!rec->NumberParameters)
+            continue;
+        log << L"Parameters: ";
+        for (DWORD i = 0; i < rec->NumberParameters; ++i)
+        {
+            if (i != 0)
+                log << L", ";
+            log << std::format(L"{:X}", rec->ExceptionInformation[i]);
+        }
+    }
+    
     log << L"\nCall Stack\n{";
 
     STACKFRAME64 sf;
@@ -140,7 +156,7 @@ void print_exception_info(const EXCEPTION_POINTERS* ex, std::wofstream& log)
 
     } while (sf.AddrReturn.Offset != 0 && sf.AddrPC.Offset != sf.AddrReturn.Offset);
 
-    log << L"\n}" << std::endl;
+    log << L"\n}\n";
 
     ctx = *ex->ContextRecord;
 
@@ -167,15 +183,15 @@ void print_exception_info(const EXCEPTION_POINTERS* ex, std::wofstream& log)
 
     log << L"\n}" << std::endl;
 
-    if(ctx.Rsp <= 0x10000 || ctx.Rsp >= 0x7FFFFFFE0000)
-        return;
+    if(0x10000 < ctx.Rsp && ctx.Rsp < 0x7FFFFFFE0000)
+    {
+        log << L"\nStack\n{";
 
-    log << L"\nStack\n{";
+        for(DWORD64 i = 0; i < 16; i++)
+            log << std::format(L"\n  [RSP+{:X}]\t{}", i * 8, to_address_string(*reinterpret_cast<DWORD64*>(ctx.Rsp + i * 8ull)));
 
-    for(DWORD64 i = 0; i < 16; i++)
-        log << std::format(L"\n  [RSP+{:X}]\t{}", i * 8, to_address_string(*reinterpret_cast<DWORD64*>(ctx.Rsp + i * 8ull)));
-
-    log << L"\n}" << std::endl;
+        log << L"\n}\n";
+    }
 
     log << L"\nModules\n{";
 
@@ -194,17 +210,12 @@ void print_exception_info(const EXCEPTION_POINTERS* ex, std::wofstream& log)
         CloseHandle(snap);
     }
 
-    log << L"\n}" << std::endl;
+    log << L"\n}\n";
 }
-
-
-bool g_veh_message_open;
 
 LONG exception_handler(EXCEPTION_POINTERS* ex)
 {
-    //block any further exceptions while the message box is open
-    if (g_veh_message_open)
-        for (;;) Sleep(1);
+    static std::mutex s_exception_handler_mutex;
 
     if (!is_whitelist_exception(ex->ExceptionRecord->ExceptionCode))
         return EXCEPTION_CONTINUE_SEARCH;
@@ -212,20 +223,21 @@ LONG exception_handler(EXCEPTION_POINTERS* ex)
     if (!is_ffxiv_address(ex->ContextRecord->Rip))
         return EXCEPTION_CONTINUE_SEARCH;
 
+    // block any other exceptions hitting the veh while the messagebox is open
+    const auto lock = std::lock_guard(s_exception_handler_mutex);
+
     DWORD64 module_base;
     std::filesystem::path module_path;
 
-    get_module_file_and_base(reinterpret_cast<DWORD64>(&exception_handler), &module_base, module_path);
+    get_module_file_and_base(reinterpret_cast<DWORD64>(&exception_handler), module_base, module_path);
 #ifndef NDEBUG
-    std::wstring dmp_path = _wcsdup(module_path.replace_filename(L"dalamud_appcrashd.dmp").wstring().c_str());
+    std::wstring dmp_path = module_path.replace_filename(L"dalamud_appcrashd.dmp").wstring();
 #else
-    std::wstring dmp_path = _wcsdup(module_path.replace_filename(L"dalamud_appcrash.dmp").wstring().c_str());
+    std::wstring dmp_path = module_path.replace_filename(L"dalamud_appcrash.dmp").wstring();
 #endif
-    std::wstring log_path = _wcsdup(module_path.replace_filename(L"dalamud_appcrash.log").wstring().c_str());
+    std::wstring log_path = module_path.replace_filename(L"dalamud_appcrash.log").wstring();
 
-    std::wofstream log;
-    log.open(log_path, std::ios::trunc);
-
+    std::wostringstream log;
     log << std::format(L"Unhandled native exception occurred at {}", to_address_string(ex->ContextRecord->Rip, false)) << std::endl;
     log << std::format(L"Code: {:X}", ex->ExceptionRecord->ExceptionCode) << std::endl;
     log << std::format(L"Dump at: {}", dmp_path) << std::endl;
@@ -233,8 +245,6 @@ LONG exception_handler(EXCEPTION_POINTERS* ex)
 
     SymRefreshModuleList(GetCurrentProcess());
     print_exception_info(ex, log);
-
-    log.close();
 
     MINIDUMP_EXCEPTION_INFORMATION ex_info;
     ex_info.ClientPointers = false;
@@ -244,32 +254,43 @@ LONG exception_handler(EXCEPTION_POINTERS* ex)
     HANDLE file = CreateFileW(dmp_path.c_str(), GENERIC_WRITE, FILE_SHARE_WRITE, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
     MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), file, MiniDumpWithDataSegs, &ex_info, nullptr, nullptr);
     CloseHandle(file);
+    
+    void* fn;
+    if (const auto err = static_cast<DWORD>(g_clr->get_function_pointer(
+        L"Dalamud.EntryPoint, Dalamud",
+        L"VehCallback",
+        L"Dalamud.EntryPoint+VehDelegate, Dalamud", 
+        nullptr, nullptr, &fn)))
+    {
+        const auto msg = L"An error within the game has occurred.\n\n"
+            L"This may be caused by a faulty plugin, a broken TexTools modification, any other third-party tool or simply a bug in the game.\n"
+            L"Please try \"Start Over\" or \"Download Index Backup\" in TexTools, an integrity check in the XIVLauncher settings, and disabling plugins you don't need.\n\n"
+            L"The log file is located at:\n"
+            L"{1}\n\n"
+            L"Press OK to exit the application.\n\nFailed to read stack trace: {2:08x}";
 
-    auto msg = L"An error within the game has occurred.\n\n"
-        L"This may be caused by a faulty plugin, a broken TexTools modification, any other third-party tool or simply a bug in the game.\n"
-        L"Please try \"Start Over\" in TexTools, an integrity check in the XIVLauncher settings and disabling plugins you don't need.\n\n"
-        L"The log file is located at:\n"
-        L"{1}\n\n"
-        L"Press OK to exit the application.";
-
-    auto formatted = std::format(msg, dmp_path, log_path);
-
-    // block any other exceptions hitting the veh while the messagebox is open
-    g_veh_message_open = true;
-    MessageBoxW(nullptr, formatted.c_str(), L"Dalamud Error", MB_OK | MB_ICONERROR | MB_TOPMOST);
-    g_veh_message_open = false;
+        // show in another thread to prevent messagebox from pumping messages of current thread
+        std::thread([&]() {
+            MessageBoxW(nullptr, std::format(msg, dmp_path, log_path, err).c_str(), L"Dalamud Error", MB_OK | MB_ICONERROR | MB_TOPMOST);
+            }).join();
+    }
+    else
+    {
+        ((void(__stdcall*)(const void*, const void*, const void*))fn)(dmp_path.c_str(), log_path.c_str(), log.str().c_str());
+    }
 
     return EXCEPTION_CONTINUE_SEARCH;
 }
 
 
-PVOID g_veh_handle;
+PVOID g_veh_handle = nullptr;
 
 bool veh::add_handler()
 {
     if (g_veh_handle)
         return false;
-    g_veh_handle = AddVectoredExceptionHandler(0, exception_handler);
+    g_veh_handle = AddVectoredExceptionHandler(1, exception_handler);
+    SetUnhandledExceptionFilter(nullptr);
     return g_veh_handle != nullptr;
 }
 

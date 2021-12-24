@@ -1,10 +1,5 @@
-#define WIN32_LEAN_AND_MEAN
-#define DllExport extern "C" __declspec(dllexport)
+#include "pch.h"
 
-#include <filesystem>
-#include <Windows.h>
-#include "..\lib\CoreCLR\CoreCLR.h"
-#include "..\lib\CoreCLR\boot.h"
 #include "veh.h"
 
 HMODULE g_hModule;
@@ -69,7 +64,7 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam)
     std::wstring runtimeconfig_path = _wcsdup(fs_module_path.replace_filename(L"Dalamud.runtimeconfig.json").c_str());
     std::wstring module_path = _wcsdup(fs_module_path.replace_filename(L"Dalamud.dll").c_str());
 
-    // =========================================================================== //
+    // ============================== CLR ========================================= //
 
     void* entrypoint_vfn;
     int result = InitializeClrAndGetEntryPoint(
@@ -85,10 +80,6 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam)
 
     typedef void (CORECLR_DELEGATE_CALLTYPE* custom_component_entry_point_fn)(LPVOID);
     custom_component_entry_point_fn entrypoint_fn = reinterpret_cast<custom_component_entry_point_fn>(entrypoint_vfn);
-
-    printf("Initializing Dalamud... ");
-    entrypoint_fn(lpParam);
-    printf("Done!\n");
 
     // ============================== VEH ======================================== //
 
@@ -108,7 +99,11 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam)
         printf("VEH was disabled manually\n");
     }
 
-    // =========================================================================== //
+    // ============================== Dalamud ==================================== //
+
+    printf("Initializing Dalamud... ");
+    entrypoint_fn(lpParam);
+    printf("Done!\n");
 
     #ifndef NDEBUG
     fclose(stdin);

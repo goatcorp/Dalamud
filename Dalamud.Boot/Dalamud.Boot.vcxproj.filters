@@ -1,63 +1,59 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
-    </Filter>
     <Filter Include="Library Files">
       <UniqueIdentifier>{18be40ac-9367-46ff-b848-4c528aa97a8d}</UniqueIdentifier>
       <Extensions>lib</Extensions>
     </Filter>
+    <Filter Include="CoreCLR">
+      <UniqueIdentifier>{dc468303-865e-43bd-908f-a3542c4bb669}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dalamud.Boot DLL">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Dalamud.Boot DLL</Filter>
     </ClCompile>
-    <ClCompile Include="..\lib\CoreCLR\pch.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\lib\CoreCLR\boot.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\lib\CoreCLR\CoreCLR.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="pch.cpp">
+      <Filter>Dalamud.Boot DLL</Filter>
     </ClCompile>
     <ClCompile Include="veh.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Dalamud.Boot DLL</Filter>
     </ClCompile>
     <ClCompile Include="rewrite_entrypoint.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Dalamud.Boot DLL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lib\CoreCLR\CoreCLR.cpp">
+      <Filter>CoreCLR</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lib\CoreCLR\boot.cpp">
+      <Filter>CoreCLR</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\lib\CoreCLR\core\coreclr_delegates.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\lib\CoreCLR\core\hostfxr.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\lib\CoreCLR\nethost\nethost.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\lib\CoreCLR\CoreCLR.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\lib\CoreCLR\framework.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\lib\CoreCLR\pch.h">
-      <Filter>Header Files</Filter>
+      <Filter>CoreCLR</Filter>
     </ClInclude>
     <ClInclude Include="..\lib\CoreCLR\boot.h">
-      <Filter>Header Files</Filter>
+      <Filter>CoreCLR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lib\CoreCLR\core\coreclr_delegates.h">
+      <Filter>CoreCLR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lib\CoreCLR\core\hostfxr.h">
+      <Filter>CoreCLR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lib\CoreCLR\nethost\nethost.h">
+      <Filter>CoreCLR</Filter>
     </ClInclude>
     <ClInclude Include="veh.h">
-      <Filter>Header Files</Filter>
+      <Filter>Dalamud.Boot DLL</Filter>
+    </ClInclude>
+    <ClInclude Include="pch.h">
+      <Filter>Dalamud.Boot DLL</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
