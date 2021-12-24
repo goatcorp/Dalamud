@@ -375,9 +375,10 @@ namespace Dalamud.Utility
 
             using var msi = new MemoryStream(bytes);
             using var mso = new MemoryStream();
-            using var gs = new GZipStream(mso, CompressionMode.Compress);
-
-            CopyTo(msi, gs);
+            using (var gs = new GZipStream(mso, CompressionMode.Compress))
+            {
+                msi.CopyTo(gs);
+            }
 
             return mso.ToArray();
         }
@@ -391,9 +392,10 @@ namespace Dalamud.Utility
         {
             using var msi = new MemoryStream(bytes);
             using var mso = new MemoryStream();
-            using var gs = new GZipStream(msi, CompressionMode.Decompress);
-
-            CopyTo(gs, mso);
+            using (var gs = new GZipStream(msi, CompressionMode.Decompress))
+            {
+                gs.CopyTo(mso);
+            }
 
             return Encoding.UTF8.GetString(mso.ToArray());
         }
@@ -404,6 +406,7 @@ namespace Dalamud.Utility
         /// <param name="src">The source stream.</param>
         /// <param name="dest">The destination stream.</param>
         /// <param name="len">The maximum length to copy.</param>
+        [Obsolete("Use Stream.CopyTo() instead", true)]
         public static void CopyTo(Stream src, Stream dest, int len = 4069)
         {
             var bytes = new byte[len];
