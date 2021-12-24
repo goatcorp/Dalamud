@@ -90,15 +90,12 @@
   <ItemGroup>
     <ClCompile Include="..\lib\CoreCLR\boot.cpp" />
     <ClCompile Include="..\lib\CoreCLR\CoreCLR.cpp" />
-    <ClCompile Include="..\lib\CoreCLR\pch.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\lib\CoreCLR\boot.h" />
     <ClInclude Include="..\lib\CoreCLR\CoreCLR.h" />
     <ClInclude Include="..\lib\CoreCLR\core\coreclr_delegates.h" />
     <ClInclude Include="..\lib\CoreCLR\core\hostfxr.h" />
-    <ClInclude Include="..\lib\CoreCLR\framework.h" />
     <ClInclude Include="..\lib\CoreCLR\nethost\nethost.h" />
     <ClInclude Include="..\lib\CoreCLR\pch.h" />
   </ItemGroup>

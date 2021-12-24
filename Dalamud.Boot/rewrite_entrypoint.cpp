@@ -1,15 +1,5 @@
-#define WIN32_LEAN_AND_MEAN
-#define DllExport extern "C" __declspec(dllexport)
+#include "pch.h"
 
-#include <cassert>
-#include <filesystem>
-#include <span>
-
-#include <Windows.h>
-#include <PathCch.h>
-#include <Psapi.h>
-
-extern HMODULE g_hModule;
 DllExport DWORD WINAPI Initialize(LPVOID lpParam);
 
 struct RewrittenEntryPointParameters {

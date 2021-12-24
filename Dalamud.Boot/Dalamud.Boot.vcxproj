@@ -32,6 +32,8 @@
     <IntDir>obj\$(Configuration)\</IntDir>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
   <ItemDefinitionGroup>
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -81,21 +83,38 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\lib\CoreCLR\boot.cpp" />
-    <ClCompile Include="..\lib\CoreCLR\CoreCLR.cpp" />
-    <ClCompile Include="..\lib\CoreCLR\pch.cpp" />
-    <ClCompile Include="dllmain.cpp" />
-    <ClCompile Include="rewrite_entrypoint.cpp" />
-    <ClCompile Include="veh.cpp" />
+    <ClCompile Include="..\lib\CoreCLR\boot.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\lib\CoreCLR\CoreCLR.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="pch.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="dllmain.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="rewrite_entrypoint.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="veh.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\lib\CoreCLR\boot.h" />
     <ClInclude Include="..\lib\CoreCLR\CoreCLR.h" />
     <ClInclude Include="..\lib\CoreCLR\core\coreclr_delegates.h" />
     <ClInclude Include="..\lib\CoreCLR\core\hostfxr.h" />
-    <ClInclude Include="..\lib\CoreCLR\framework.h" />
     <ClInclude Include="..\lib\CoreCLR\nethost\nethost.h" />
-    <ClInclude Include="..\lib\CoreCLR\pch.h" />
+    <ClInclude Include="pch.h" />
     <ClInclude Include="veh.h" />
   </ItemGroup>
   <ItemGroup>

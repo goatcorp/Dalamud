@@ -72,7 +72,17 @@ bool CoreCLR::load_runtime(const std::wstring& runtime_config_path, const struct
         hdt_load_assembly_and_get_function_pointer,
         reinterpret_cast<void**>(&m_load_assembly_and_get_function_pointer_fptr));
 
-    if (result != 0 || m_load_assembly_and_get_function_pointer_fptr == nullptr)
+    if (result != 0 || m_load_assembly_and_get_function_pointer_fptr == nullptr) {
+        m_hostfxr_close_fptr(context);
+        return result;
+    }
+
+    result = m_hostfxr_get_runtime_delegate_fptr(
+        context,
+        hdt_get_function_pointer,
+        reinterpret_cast<void**>(&m_get_function_pointer_fptr));
+
+    if (result != 0 || m_get_function_pointer_fptr == nullptr)
     {
         m_hostfxr_close_fptr(context);
         return result;
@@ -98,6 +108,22 @@ int CoreCLR::load_assembly_and_get_function_pointer(
 
     return result;
 };
+
+int CoreCLR::get_function_pointer(
+    const wchar_t* type_name,
+    const wchar_t* method_name,
+    const wchar_t* delegate_type_name,
+    void* load_context,
+    void* reserved,
+    void** delegate) const
+{
+    int result = m_get_function_pointer_fptr(type_name, method_name, delegate_type_name, load_context, reserved, delegate);
+
+    if (result != 0)
+        delegate = nullptr;
+
+    return result;
+}
 
 /* Helpers */
 uint64_t CoreCLR::load_library(const wchar_t* path)

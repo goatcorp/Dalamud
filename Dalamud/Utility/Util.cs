@@ -326,12 +326,14 @@ namespace Dalamud.Utility
         /// </summary>
         /// <param name="message">MessageBox body.</param>
         /// <param name="caption">MessageBox caption (title).</param>
-        public static void Fatal(string message, string caption)
+        /// <param name="exit">Specify whether to exit immediately.</param>
+        public static void Fatal(string message, string caption, bool exit = true)
         {
-            var flags = NativeFunctions.MessageBoxType.Ok | NativeFunctions.MessageBoxType.IconError;
+            var flags = NativeFunctions.MessageBoxType.Ok | NativeFunctions.MessageBoxType.IconError | NativeFunctions.MessageBoxType.Topmost;
             _ = NativeFunctions.MessageBoxW(Process.GetCurrentProcess().MainWindowHandle, message, caption, flags);
 
-            Environment.Exit(-1);
+            if (exit)
+                Environment.Exit(-1);
         }
 
         /// <summary>

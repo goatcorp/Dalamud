@@ -31,9 +31,6 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\lib\CoreCLR\pch.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\lib\CoreCLR\boot.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -42,13 +39,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\lib\CoreCLR\framework.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\lib\CoreCLR\pch.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\lib\CoreCLR\boot.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\lib\CoreCLR\CoreCLR.h">
