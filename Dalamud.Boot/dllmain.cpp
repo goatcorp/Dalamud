@@ -33,20 +33,20 @@ bool is_running_on_linux()
 bool is_veh_enabled()
 {
     size_t required_size;
-    getenv_s(&required_size, nullptr, 0, "DALAMUD_NO_VEH");
+    getenv_s(&required_size, nullptr, 0, "DALAMUD_IS_STAGING");
     if (required_size > 0)
     {
         if (char* is_no_veh = static_cast<char*>(malloc(required_size * sizeof(char))))
         {
-            getenv_s(&required_size, is_no_veh, required_size, "DALAMUD_NO_VEH");
+            getenv_s(&required_size, is_no_veh, required_size, "DALAMUD_IS_STAGING");
             auto result = _stricmp(is_no_veh, "true");
             free(is_no_veh);
             if (result == 0)
-                return false;
+                return true;
         }
     }
 
-    return true;
+    return false;
 }
 
 DllExport DWORD WINAPI Initialize(LPVOID lpParam)
