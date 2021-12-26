@@ -141,7 +141,7 @@ namespace Dalamud.Plugin
 #if DEBUG
         public bool IsDebugging => true;
 #else
-        public bool IsDebugging => Service<DalamudInterface>.Get().IsDevMenuOpen;
+        public bool IsDebugging => Service<DalamudInterface>.GetNullable() is {IsDevMenuOpen: true}; // Can be null during boot
 #endif
 
         /// <summary>
