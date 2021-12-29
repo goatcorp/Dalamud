@@ -159,10 +159,19 @@ namespace Dalamud.Interface.Windowing
         }
 
         /// <summary>
+        /// Code to be executed every frame, even when the window is collapsed.
+        /// </summary>
+        public virtual void Update()
+        {
+        }
+
+        /// <summary>
         /// Draw the window via ImGui.
         /// </summary>
         internal void DrawInternal()
         {
+            this.Update();
+
             if (!this.IsOpen)
             {
                 if (this.internalIsOpen != this.internalLastIsOpen)
