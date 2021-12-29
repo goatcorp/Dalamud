@@ -271,13 +271,23 @@ namespace Dalamud.Plugin.Internal
             {
                 this.loader ??= PluginLoader.CreateFromAssemblyFile(this.DllFile.FullName, this.SetupLoaderConfig);
 
-                if (reloading)
+                if (reloading || this.IsDev)
                 {
-                    this.loader.Reload();
-
-                    // Reload the manifest in-case there were changes here too.
                     if (this.IsDev)
                     {
+                        // If a dev plugin is set to not autoload on boot, but we want to reload it at the arbitrary load
+                        // time, we need to essentially "Unload" the plugin, but we can't call plugin.Unload because of the
+                        // load state checks. Null any references to the assembly and types, then proceed with regular reload
+                        // operations.
+                        this.pluginAssembly = null;
+                        this.pluginType = null;
+                    }
+
+                    this.loader.Reload();
+
+                    if (this.IsDev)
+                    {
+                        // Reload the manifest in-case there were changes here too.
                         var manifestFile = LocalPluginManifest.GetManifestFile(this.DllFile);
                         if (manifestFile.Exists)
                         {
