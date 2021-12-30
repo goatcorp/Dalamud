@@ -170,8 +170,6 @@ namespace Dalamud.Interface.Windowing
         /// </summary>
         internal void DrawInternal()
         {
-            this.Update();
-
             if (!this.IsOpen)
             {
                 if (this.internalIsOpen != this.internalLastIsOpen)
@@ -184,6 +182,8 @@ namespace Dalamud.Interface.Windowing
 
                 return;
             }
+
+            this.Update();
 
             var hasNamespace = !string.IsNullOrEmpty(this.Namespace);
 
