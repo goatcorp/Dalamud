@@ -32,6 +32,7 @@ using Serilog.Events;
 #endif
 
 [assembly: InternalsVisibleTo("Dalamud.Test")]
+[assembly: InternalsVisibleTo("Dalamud.DevHelpers")]
 
 namespace Dalamud
 {
