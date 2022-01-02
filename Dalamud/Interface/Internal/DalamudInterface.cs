@@ -381,7 +381,7 @@ namespace Dalamud.Interface.Internal
                         this.isImGuiDrawDevMenu = true;
 
 #if !DEBUG
-                    if (config.DoDalamudTest)
+                    if (config.DalamudBetaKind == DalamudConfiguration.DalamudCurrentBetaKey)
                     {
 #endif
 #pragma warning disable SA1137
