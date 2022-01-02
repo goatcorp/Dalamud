@@ -16,6 +16,11 @@ namespace Dalamud.Configuration.Internal
     [Serializable]
     internal sealed class DalamudConfiguration
     {
+        /// <summary>
+        /// Currently used beta key for Dalamud staging builds.
+        /// </summary>
+        public const string DalamudCurrentBetaKey = "Testing6015";
+
         private static readonly JsonSerializerSettings SerializerSettings = new()
         {
             TypeNameHandling = TypeNameHandling.All,
@@ -78,9 +83,9 @@ namespace Dalamud.Configuration.Internal
         public bool DoPluginTest { get; set; } = false;
 
         /// <summary>
-        /// Gets or sets a value indicating whether or not Dalamud testing builds should be used.
+        /// Gets or sets a key to opt into Dalamud staging builds.
         /// </summary>
-        public bool DoDalamudTest { get; set; } = false;
+        public string? DalamudBetaKey { get; set; } = null;
 
         /// <summary>
         /// Gets or sets a value indicating whether or not XL should download the Dalamud .NET runtime.
@@ -198,7 +203,7 @@ namespace Dalamud.Configuration.Internal
         public bool IsAntiAntiDebugEnabled { get; set; } = false;
 
         /// <summary>
-        /// Gets or sets the kind of beta to download when <see cref="DoDalamudTest"/> is set to true.
+        /// Gets or sets the kind of beta to download when <see cref="DalamudBetaKey"/> matches the server value.
         /// </summary>
         public string DalamudBetaKind { get; set; }
 

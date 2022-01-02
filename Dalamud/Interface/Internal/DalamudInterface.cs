@@ -384,8 +384,10 @@ namespace Dalamud.Interface.Internal
                     if (config.DoDalamudTest)
                     {
 #endif
+#pragma warning disable SA1137
                         ImGui.SetCursorPos(cursor);
                         ImGui.Image(this.logoTexture.ImGuiHandle, imageSize);
+#pragma warning restore SA1137
 #if !DEBUG
                     }
 #endif
@@ -519,9 +521,10 @@ namespace Dalamud.Interface.Internal
 
                         ImGui.Separator();
 
-                        if (ImGui.MenuItem("Enable Dalamud testing", string.Empty, configuration.DoDalamudTest))
+                        var isBeta = configuration.DalamudBetaKey == DalamudConfiguration.DalamudCurrentBetaKey;
+                        if (ImGui.MenuItem("Enable Dalamud testing", string.Empty, isBeta))
                         {
-                            configuration.DoDalamudTest ^= true;
+                            configuration.DalamudBetaKey = isBeta ? null : DalamudConfiguration.DalamudCurrentBetaKey;
                             configuration.Save();
                         }
 
