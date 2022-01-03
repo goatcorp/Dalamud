@@ -59,6 +59,12 @@ namespace Dalamud.Injector
             }
 
             var process = GetProcess(args.ElementAtOrDefault(1));
+            if (process == null)
+            {
+                Log.Error("Could not open process");
+                return;
+            }
+
             var startInfo = GetStartInfo(args.ElementAtOrDefault(2), process);
 
             // TODO: XL does not set this!!! we need to keep this line here for now, otherwise we crash in the Dalamud entrypoint
@@ -183,9 +189,9 @@ namespace Dalamud.Injector
             }
         }
 
-        private static Process GetProcess(string arg)
+        private static Process? GetProcess(string? arg)
         {
-            Process process;
+            Process process = null;
 
             var pid = -1;
             if (arg != default)
@@ -203,7 +209,19 @@ namespace Dalamud.Injector
                         throw new Exception("Could not find process");
                     }
 
+                    #if !DEBUG
+                    var result = MessageBoxW(IntPtr.Zero, $"Take care: you are manually injecting Dalamud into FFXIV({process.Id}).\n\nIf you are doing this to use plugins before they are officially whitelisted on patch days, things may go wrong and you may get into trouble.\nWe discourage you from doing this and you won't be warned again in-game.", "Dalamud", MessageBoxType.IconWarning | MessageBoxType.OkCancel);
+
+                    // IDCANCEL
+                    if (result == 2)
+                    {
+                        Log.Information("User cancelled injection");
+                        return null;
+                    }
+                    #endif
+
                     break;
+
                 case -2:
                     var exePath = "C:\\Program Files (x86)\\SquareEnix\\FINAL FANTASY XIV - A Realm Reborn\\game\\ffxiv_dx11.exe";
                     var exeArgs = new StringBuilder()
@@ -222,7 +240,15 @@ namespace Dalamud.Injector
                     Thread.Sleep(1000);
                     break;
                 default:
-                    process = Process.GetProcessById(pid);
+                    try
+                    {
+                        process = Process.GetProcessById(pid);
+                    }
+                    catch (ArgumentException)
+                    {
+                        Log.Error("Could not find process with PID: {Pid}", pid);
+                    }
+
                     break;
             }
 
