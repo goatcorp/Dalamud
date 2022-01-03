@@ -38,6 +38,7 @@ namespace Dalamud.Interface.Style
             ChildRounding = 0,
             ChildBorderSize = 1,
             PopupRounding = 0,
+            PopupBorderSize = 0,
             FramePadding = new Vector2(4, 3),
             FrameRounding = 4,
             FrameBorderSize = 0,
@@ -147,6 +148,7 @@ namespace Dalamud.Interface.Style
             ChildRounding = 0,
             ChildBorderSize = 1,
             PopupRounding = 0,
+            PopupBorderSize = 0,
             FramePadding = new Vector2(4, 3),
             FrameRounding = 4,
             FrameBorderSize = 0,
@@ -274,6 +276,9 @@ namespace Dalamud.Interface.Style
         [JsonProperty("i")]
         public float PopupRounding { get; set; }
 
+        [JsonProperty("ab")]
+        public float PopupBorderSize { get; set; }
+
         [JsonProperty("j")]
         public Vector2 FramePadding { get; set; }
 
@@ -354,6 +359,7 @@ namespace Dalamud.Interface.Style
             model.ChildRounding = style.ChildRounding;
             model.ChildBorderSize = style.ChildBorderSize;
             model.PopupRounding = style.PopupRounding;
+            model.PopupBorderSize = style.PopupBorderSize;
             model.FramePadding = style.FramePadding;
             model.FrameRounding = style.FrameRounding;
             model.FrameBorderSize = style.FrameBorderSize;
@@ -418,6 +424,7 @@ namespace Dalamud.Interface.Style
             style.ChildRounding = this.ChildRounding;
             style.ChildBorderSize = this.ChildBorderSize;
             style.PopupRounding = this.PopupRounding;
+            style.PopupBorderSize = this.PopupBorderSize;
             style.FramePadding = this.FramePadding;
             style.FrameRounding = this.FrameRounding;
             style.FrameBorderSize = this.FrameBorderSize;
