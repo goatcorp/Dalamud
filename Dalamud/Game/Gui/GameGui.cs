@@ -2,6 +2,7 @@ using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
+using Dalamud.Game.Gui.FellowshipFinder;
 using Dalamud.Game.Gui.FlyText;
 using Dalamud.Game.Gui.PartyFinder;
 using Dalamud.Game.Gui.Toast;
@@ -61,6 +62,7 @@ namespace Dalamud.Game.Gui
             Service<PartyFinderGui>.Set();
             Service<ToastGui>.Set();
             Service<FlyTextGui>.Set();
+            Service<FellowshipFinderGui>.Set();
 
             this.setGlobalBgmHook = new Hook<SetGlobalBgmDelegate>(this.address.SetGlobalBgm, this.HandleSetGlobalBgmDetour);
 
@@ -432,6 +434,7 @@ namespace Dalamud.Game.Gui
             Service<ToastGui>.Get().Enable();
             Service<FlyTextGui>.Get().Enable();
             Service<PartyFinderGui>.Get().Enable();
+            Service<FellowshipFinderGui>.Get().Enable();
             this.setGlobalBgmHook.Enable();
             this.handleItemHoverHook.Enable();
             this.handleItemOutHook.Enable();
@@ -450,6 +453,7 @@ namespace Dalamud.Game.Gui
             Service<ToastGui>.Get().Dispose();
             Service<FlyTextGui>.Get().Dispose();
             Service<PartyFinderGui>.Get().Dispose();
+            Service<FellowshipFinderGui>.Get().Dispose();
             this.setGlobalBgmHook.Dispose();
             this.handleItemHoverHook.Dispose();
             this.handleItemOutHook.Dispose();
