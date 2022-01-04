@@ -962,7 +962,7 @@ namespace Dalamud.Plugin.Internal
         /// <returns>The reason of the ban, if any.</returns>
         public string GetBanReason(PluginManifest manifest)
         {
-            return this.bannedPlugins.FirstOrDefault(ban => ban.Name == manifest.InternalName).Reason;
+            return this.bannedPlugins.LastOrDefault(ban => ban.Name == manifest.InternalName).Reason;
         }
 
         private void DetectAvailablePluginUpdates()
