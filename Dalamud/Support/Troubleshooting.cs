@@ -33,11 +33,13 @@ namespace Dalamud.Support
         {
             LastException = exception;
 
+            var fixedContext = context?.Split(new []{'\r', '\n'}, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+
             try
             {
                 var payload = new ExceptionPayload
                 {
-                    Context = context,
+                    Context = fixedContext,
                     When = DateTime.Now,
                     Info = exception.ToString(),
                 };
@@ -92,7 +94,7 @@ namespace Dalamud.Support
 
             public string Info { get; set; }
 
-            public string Context { get; set; }
+            public string? Context { get; set; }
         }
 
         private class TroubleshootingPayload
