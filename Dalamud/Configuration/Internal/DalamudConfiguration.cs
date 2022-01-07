@@ -88,11 +88,6 @@ namespace Dalamud.Configuration.Internal
         public string? DalamudBetaKey { get; set; } = null;
 
         /// <summary>
-        /// Gets or sets a value indicating whether or not XL should download the Dalamud .NET runtime.
-        /// </summary>
-        public bool DoDalamudRuntime { get; set; } = false;
-
-        /// <summary>
         /// Gets or sets a list of custom repos.
         /// </summary>
         public List<ThirdPartyRepoSettings> ThirdRepoList { get; set; } = new();
@@ -252,7 +247,7 @@ namespace Dalamud.Configuration.Internal
         /// <returns>The deserialized configuration file.</returns>
         public static DalamudConfiguration Load(string path)
         {
-            DalamudConfiguration deserialized;
+            DalamudConfiguration deserialized = null;
             try
             {
                 deserialized = JsonConvert.DeserializeObject<DalamudConfiguration>(File.ReadAllText(path), SerializerSettings);
@@ -260,9 +255,9 @@ namespace Dalamud.Configuration.Internal
             catch (Exception ex)
             {
                 Log.Warning(ex, "Failed to load DalamudConfiguration at {0}", path);
-                deserialized = new DalamudConfiguration();
             }
 
+            deserialized ??= new DalamudConfiguration();
             deserialized.configPath = path;
 
             return deserialized;
