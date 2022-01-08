@@ -1462,7 +1462,11 @@ namespace Dalamud.Interface.Internal.Windows
                     this.DrawUpdateSinglePluginButton(availablePluginUpdate);
 
                 ImGui.SameLine();
-                ImGui.TextColored(ImGuiColors.DalamudGrey3, $" v{plugin.Manifest.AssemblyVersion}");
+                var version = plugin.AssemblyName?.Version;
+                version ??= plugin.Manifest.Testing
+                                ? plugin.Manifest.TestingAssemblyVersion
+                                : plugin.Manifest.AssemblyVersion;
+                ImGui.TextColored(ImGuiColors.DalamudGrey3, $" v{version}");
 
                 if (plugin.IsDev)
                 {
