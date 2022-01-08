@@ -457,6 +457,16 @@ namespace Dalamud.Utility
             Process.Start(process);
         }
 
+        /// <summary>
+        /// Dispose this object.
+        /// </summary>
+        /// <param name="obj">The object to dispose.</param>
+        /// <typeparam name="T">The type of object to dispose.</typeparam>
+        internal static void ExplicitDispose<T>(this T obj) where T : IDisposable
+        {
+            obj.Dispose();
+        }
+
         private static unsafe void ShowValue(ulong addr, IEnumerable<string> path, Type type, object value)
         {
             if (type.IsPointer)

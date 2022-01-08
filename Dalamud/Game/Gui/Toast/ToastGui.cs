@@ -110,7 +110,7 @@ namespace Dalamud.Game.Gui.Toast
         /// <summary>
         /// Disposes of managed and unmanaged resources.
         /// </summary>
-        public void Dispose()
+        void IDisposable.Dispose()
         {
             this.showNormalToastHook.Dispose();
             this.showQuestToastHook.Dispose();

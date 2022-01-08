@@ -444,12 +444,12 @@ namespace Dalamud.Game.Gui
         /// <summary>
         /// Disables the hooks and submodules of this module.
         /// </summary>
-        public void Dispose()
+        void IDisposable.Dispose()
         {
-            Service<ChatGui>.Get().Dispose();
-            Service<ToastGui>.Get().Dispose();
-            Service<FlyTextGui>.Get().Dispose();
-            Service<PartyFinderGui>.Get().Dispose();
+            Service<ChatGui>.Get().ExplicitDispose();
+            Service<ToastGui>.Get().ExplicitDispose();
+            Service<FlyTextGui>.Get().ExplicitDispose();
+            Service<PartyFinderGui>.Get().ExplicitDispose();
             this.setGlobalBgmHook.Dispose();
             this.handleItemHoverHook.Dispose();
             this.handleItemOutHook.Dispose();

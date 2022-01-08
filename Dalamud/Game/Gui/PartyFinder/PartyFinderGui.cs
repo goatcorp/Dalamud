@@ -61,9 +61,9 @@ namespace Dalamud.Game.Gui.PartyFinder
         }
 
         /// <summary>
-        /// Dispose of m anaged and unmanaged resources.
+        /// Dispose of managed and unmanaged resources.
         /// </summary>
-        public void Dispose()
+        void IDisposable.Dispose()
         {
             this.receiveListingHook.Dispose();
 

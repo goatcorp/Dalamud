@@ -10,6 +10,7 @@ using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Exceptions;
 using Dalamud.Plugin.Internal.Loader;
 using Dalamud.Plugin.Internal.Types;
+using Dalamud.Utility;
 
 namespace Dalamud.Plugin.Internal
 {
@@ -209,7 +210,7 @@ namespace Dalamud.Plugin.Internal
             this.instance?.Dispose();
             this.instance = null;
 
-            this.DalamudInterface?.Dispose();
+            this.DalamudInterface?.ExplicitDispose();
             this.DalamudInterface = null;
 
             this.pluginType = null;
@@ -332,7 +333,7 @@ namespace Dalamud.Plugin.Internal
                 if (this.instance == null)
                 {
                     this.State = PluginState.LoadError;
-                    this.DalamudInterface.Dispose();
+                    this.DalamudInterface.ExplicitDispose();
                     Log.Error($"Error while loading {this.Name}, failed to bind and call the plugin constructor");
                     return;
                 }
@@ -382,7 +383,7 @@ namespace Dalamud.Plugin.Internal
                 this.instance?.Dispose();
                 this.instance = null;
 
-                this.DalamudInterface?.Dispose();
+                this.DalamudInterface?.ExplicitDispose();
                 this.DalamudInterface = null;
 
                 this.pluginType = null;

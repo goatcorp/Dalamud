@@ -136,7 +136,7 @@ namespace Dalamud.Game.ClientState.Conditions
         /// <summary>
         /// Disposes this instance, alongside its hooks.
         /// </summary>
-        public void Dispose()
+        void IDisposable.Dispose()
         {
             GC.SuppressFinalize(this);
             this.Dispose(true);

@@ -175,7 +175,7 @@ namespace Dalamud.Game.ClientState.GamePad
         /// <summary>
         /// Disposes this instance, alongside its hooks.
         /// </summary>
-        public void Dispose()
+        void IDisposable.Dispose()
         {
             this.Dispose(true);
             GC.SuppressFinalize(this);

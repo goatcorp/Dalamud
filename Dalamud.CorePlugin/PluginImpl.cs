@@ -93,7 +93,7 @@ namespace Dalamud.CorePlugin
 
             this.windowSystem.RemoveAllWindows();
 
-            this.Interface.Dispose();
+            this.Interface.ExplicitDispose();
         }
 
         /// <summary>

@@ -139,7 +139,7 @@ namespace Dalamud.Game.Gui
         /// <summary>
         /// Dispose of managed and unmanaged resources.
         /// </summary>
-        public void Dispose()
+        void IDisposable.Dispose()
         {
             this.printMessageHook.Dispose();
             this.populateItemLinkHook.Dispose();

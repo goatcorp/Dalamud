@@ -72,7 +72,7 @@ namespace Dalamud.Game.Network
         /// <summary>
         /// Dispose of managed and unmanaged resources.
         /// </summary>
-        public void Dispose()
+        void IDisposable.Dispose()
         {
             this.processZonePacketDownHook.Dispose();
             this.processZonePacketUpHook.Dispose();

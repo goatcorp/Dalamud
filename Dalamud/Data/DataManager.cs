@@ -271,7 +271,7 @@ namespace Dalamud.Data
         /// <summary>
         /// Dispose this DataManager.
         /// </summary>
-        public void Dispose()
+        void IDisposable.Dispose()
         {
             this.luminaCancellationTokenSource.Cancel();
         }

@@ -226,7 +226,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// Unregister the UiBuilder. Do not call this in plugin code.
         /// </summary>
-        public void Dispose()
+        void IDisposable.Dispose()
         {
             var interfaceManager = Service<InterfaceManager>.Get();
 

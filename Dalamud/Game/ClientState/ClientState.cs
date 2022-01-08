@@ -15,6 +15,7 @@ using Dalamud.Game.Network.Internal;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Utility;
 using Serilog;
 
 namespace Dalamud.Game.ClientState
@@ -136,11 +137,11 @@ namespace Dalamud.Game.ClientState
         /// <summary>
         /// Dispose of managed and unmanaged resources.
         /// </summary>
-        public void Dispose()
+        void IDisposable.Dispose()
         {
             this.setupTerritoryTypeHook.Dispose();
-            Service<Condition>.Get().Dispose();
-            Service<GamepadState>.Get().Dispose();
+            Service<Condition>.Get().ExplicitDispose();
+            Service<GamepadState>.Get().ExplicitDispose();
             Service<Framework>.Get().Update -= this.FrameworkOnOnUpdateEvent;
             Service<NetworkHandlers>.Get().CfPop -= this.NetworkHandlersOnCfPop;
         }

@@ -135,10 +135,10 @@ namespace Dalamud.Game
         /// <summary>
         /// Dispose of managed and unmanaged resources.
         /// </summary>
-        public void Dispose()
+        void IDisposable.Dispose()
         {
-            Service<GameGui>.GetNullable()?.Dispose();
-            Service<GameNetwork>.GetNullable()?.Dispose();
+            Service<GameGui>.GetNullable()?.ExplicitDispose();
+            Service<GameNetwork>.GetNullable()?.ExplicitDispose();
 
             this.updateHook?.Disable();
             this.destroyHook?.Disable();

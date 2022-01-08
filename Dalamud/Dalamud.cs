@@ -23,6 +23,7 @@ using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Ipc.Internal;
 using Dalamud.Support;
+using Dalamud.Utility;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
@@ -334,13 +335,13 @@ namespace Dalamud
                     Thread.Sleep(100);
                 }
 
-                Service<Framework>.GetNullable()?.Dispose();
-                Service<ClientState>.GetNullable()?.Dispose();
+                Service<Framework>.GetNullable()?.ExplicitDispose();
+                Service<ClientState>.GetNullable()?.ExplicitDispose();
 
                 this.unloadSignal?.Dispose();
 
                 Service<WinSockHandlers>.GetNullable()?.Dispose();
-                Service<DataManager>.GetNullable()?.Dispose();
+                Service<DataManager>.GetNullable()?.ExplicitDispose();
                 Service<AntiDebug>.GetNullable()?.Dispose();
                 Service<DalamudAtkTweaks>.GetNullable()?.Dispose();
                 Service<HookManager>.GetNullable()?.Dispose();
