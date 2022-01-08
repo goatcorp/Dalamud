@@ -8,6 +8,9 @@ Dalamud is a plugin development framework for FINAL FANTASY XIV that provides ac
 
 It is meant to be used in conjunction with [FFXIVQuickLauncher](https://github.com/goatcorp/FFXIVQuickLauncher), which manages and launches Dalamud for you. __It is generally not recommended for users to try to run Dalamud manually as there are multiple dependencies and assumed folder paths.__
 
+## Hold Up!
+If you are just trying to **use** Dalamud, you don't need to do anything on this page - please [download XIVLauncher](https://goatcorp.github.io/) from its official page and follow the setup instructions.
+
 ## Plugin development
 Dalamud features a growing API for in-game plugin development with game data and chat access and overlays.
 Please see our [Developer FAQ](https://goatcorp.github.io/faq/development) and the [API documentation](https://goatcorp.github.io/Dalamud/api/index.html) for more details.
