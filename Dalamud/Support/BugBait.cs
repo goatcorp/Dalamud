@@ -23,7 +23,7 @@ namespace Dalamud.Support
         /// <param name="reporter">The reporter name.</param>
         /// <param name="includeException">Whether or not the most recent exception to occur should be included in the report.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public static async Task SendFeedback(PluginManifest plugin, string content, string reporter, bool includeException)
+        public static async Task SendFeedback(PluginManifest plugin, bool isTesting, string content, string reporter, bool includeException)
         {
             if (content.IsNullOrWhitespace())
                 return;
@@ -33,7 +33,7 @@ namespace Dalamud.Support
                 Content = content,
                 Reporter = reporter,
                 Name = plugin.InternalName,
-                Version = plugin.AssemblyVersion.ToString(),
+                Version = isTesting ? plugin.TestingAssemblyVersion?.ToString() : plugin.AssemblyVersion.ToString(),
                 DalamudHash = Util.GetGitHash(),
             };
 
