@@ -29,7 +29,7 @@ namespace Dalamud.Game.ClientState.JobGauge.Types
         public byte FairyGauge => this.Struct->FairyGauge;
 
         /// <summary>
-        /// Gets the Seraph time remaiSCHg in milliseconds.
+        /// Gets the remaining time Seraph is active in milliseconds.
         /// </summary>
         public short SeraphTimer => this.Struct->SeraphTimer;
 
