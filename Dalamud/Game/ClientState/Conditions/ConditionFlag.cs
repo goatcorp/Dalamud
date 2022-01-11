@@ -449,5 +449,20 @@ namespace Dalamud.Game.ClientState.Conditions
         /// Unable to execute command while bound by duty.
         /// </summary>
         BoundByDuty95 = 95,
+
+        /// <summary>
+        /// Cannot execute at this time.
+        /// </summary>
+        Unknown96 = 96,
+
+        /// <summary>
+        /// Unable to execute command while wearing a guise.
+        /// </summary>
+        Disguised = 97,
+
+        /// <summary>
+        /// Unable to execute command while recruiting for a non-cross-world party.
+        /// </summary>
+        RecruitingWorldOnly = 98,
     }
 }
