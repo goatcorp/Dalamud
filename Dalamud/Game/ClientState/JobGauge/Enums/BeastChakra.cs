@@ -16,13 +16,13 @@ namespace Dalamud.Game.ClientState.JobGauge.Enums
         COEURL = 1,
 
         /// <summary>
-        /// The Raptor chakra.
-        /// </summary>
-        RAPTOR = 2,
-
-        /// <summary>
         /// The Opo-Opo chakra.
         /// </summary>
-        OPOOPO = 3,
+        OPOOPO = 2,
+
+        /// <summary>
+        /// The Raptor chakra.
+        /// </summary>
+        RAPTOR = 3,
     }
 }

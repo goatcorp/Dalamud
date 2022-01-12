@@ -63,6 +63,7 @@ namespace Dalamud.Interface.Internal.Windows
         private string feedbackModalContact = string.Empty;
         private bool feedbackModalIncludeException = false;
         private PluginManifest? feedbackPlugin = null;
+        private bool feedbackIsTesting = false;
 
         private int updatePluginCount = 0;
         private List<PluginUpdateStatus>? updatedPlugins;
@@ -424,7 +425,7 @@ namespace Dalamud.Interface.Internal.Windows
                 {
                     if (this.feedbackPlugin != null)
                     {
-                        Task.Run(async () => await BugBait.SendFeedback(this.feedbackPlugin, this.feedbackModalBody, this.feedbackModalContact, this.feedbackModalIncludeException))
+                        Task.Run(async () => await BugBait.SendFeedback(this.feedbackPlugin, this.feedbackIsTesting, this.feedbackModalBody, this.feedbackModalContact, this.feedbackModalIncludeException))
                             .ContinueWith(
                                 t =>
                                 {
@@ -1237,7 +1238,7 @@ namespace Dalamud.Interface.Internal.Windows
 
                 if (!manifest.SourceRepo.IsThirdParty && manifest.AcceptsFeedback)
                 {
-                    this.DrawSendFeedbackButton(manifest);
+                    this.DrawSendFeedbackButton(manifest, false);
                 }
 
                 ImGuiHelpers.ScaledDummy(5);
@@ -1455,14 +1456,18 @@ namespace Dalamud.Interface.Internal.Windows
 
                 if (canFeedback)
                 {
-                    this.DrawSendFeedbackButton(plugin.Manifest);
+                    this.DrawSendFeedbackButton(plugin.Manifest, plugin.IsTesting);
                 }
 
                 if (availablePluginUpdate != default)
                     this.DrawUpdateSinglePluginButton(availablePluginUpdate);
 
                 ImGui.SameLine();
-                ImGui.TextColored(ImGuiColors.DalamudGrey3, $" v{plugin.Manifest.AssemblyVersion}");
+                var version = plugin.AssemblyName?.Version;
+                version ??= plugin.Manifest.Testing
+                                ? plugin.Manifest.TestingAssemblyVersion
+                                : plugin.Manifest.AssemblyVersion;
+                ImGui.TextColored(ImGuiColors.DalamudGrey3, $" v{version}");
 
                 if (plugin.IsDev)
                 {
@@ -1684,13 +1689,14 @@ namespace Dalamud.Interface.Internal.Windows
             }
         }
 
-        private void DrawSendFeedbackButton(PluginManifest manifest)
+        private void DrawSendFeedbackButton(PluginManifest manifest, bool isTesting)
         {
             ImGui.SameLine();
             if (ImGuiComponents.IconButton(FontAwesomeIcon.Comment))
             {
                 this.feedbackPlugin = manifest;
                 this.feedbackModalOnNextFrame = true;
+                this.feedbackIsTesting = isTesting;
             }
 
             if (ImGui.IsItemHovered())
