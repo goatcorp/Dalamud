@@ -58,9 +58,10 @@ namespace Dalamud.Interface.Internal.Windows
             var dalamud = Service<Dalamud>.Get();
             var interfaceManager = Service<InterfaceManager>.Get();
 
-            this.DefaultIcon = interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "defaultIcon.png"));
-            this.TroubleIcon = interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "troubleIcon.png"));
-            this.UpdateIcon = interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "updateIcon.png"));
+            this.DefaultIcon = interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "defaultIcon.png"))!;
+            this.TroubleIcon = interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "troubleIcon.png"))!;
+            this.UpdateIcon = interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "updateIcon.png"))!;
+            this.InstalledIcon = interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "installedIcon.png"))!;
 
             this.downloadThread = new Thread(this.DownloadTask);
             this.downloadThread.Start();
@@ -81,12 +82,18 @@ namespace Dalamud.Interface.Internal.Windows
         /// </summary>
         public TextureWrap UpdateIcon { get; }
 
+        /// <summary>
+        /// Gets the plugin installed icon overlay.
+        /// </summary>
+        public TextureWrap InstalledIcon { get; set; }
+
         /// <inheritdoc/>
         public void Dispose()
         {
             this.DefaultIcon?.Dispose();
             this.TroubleIcon?.Dispose();
             this.UpdateIcon?.Dispose();
+            this.InstalledIcon?.Dispose();
 
             this.downloadToken?.Cancel();
 

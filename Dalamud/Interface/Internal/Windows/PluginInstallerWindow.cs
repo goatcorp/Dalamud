@@ -1072,6 +1072,12 @@ namespace Dalamud.Interface.Internal.Windows
                 ImGui.Image(this.imageCache.TroubleIcon.ImGuiHandle, iconSize);
                 ImGui.SameLine();
             }
+            else if (plugin != null)
+            {
+                ImGui.SetCursorPos(cursorBeforeImage);
+                ImGui.Image(this.imageCache.InstalledIcon.ImGuiHandle, iconSize);
+                ImGui.SameLine();
+            }
 
             ImGuiHelpers.ScaledDummy(5);
             ImGui.SameLine();
