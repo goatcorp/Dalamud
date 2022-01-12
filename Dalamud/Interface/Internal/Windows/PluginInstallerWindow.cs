@@ -1907,9 +1907,7 @@ namespace Dalamud.Interface.Internal.Windows
 
             // By removing installed plugins only when the available plugin list changes (basically when the window is
             // opened), plugins that have been newly installed remain in the available plugin list as installed.
-            this.pluginListAvailable = pluginManager.AvailablePlugins
-                .Where(manifest => !this.IsManifestInstalled(manifest).IsInstalled)
-                .ToList();
+            this.pluginListAvailable = pluginManager.AvailablePlugins.ToList();
             this.pluginListUpdatable = pluginManager.UpdatablePlugins.ToList();
             this.ResortPlugins();
 
@@ -2059,7 +2057,7 @@ namespace Dalamud.Interface.Internal.Windows
 
             #region Tabs
 
-            public static string TabTitle_AvailablePlugins => Loc.Localize("InstallerAvailablePlugins", "Available Plugins");
+            public static string TabTitle_AvailablePlugins => Loc.Localize("InstallerAllPlugins", "All Plugins");
 
             public static string TabTitle_InstalledPlugins => Loc.Localize("InstallerInstalledPlugins", "Installed Plugins");
 
@@ -2083,7 +2081,7 @@ namespace Dalamud.Interface.Internal.Windows
 
             public static string TabBody_SearchNoCompatible => Loc.Localize("InstallerNoCompatible", "No compatible plugins were found :( Please restart your game and try again.");
 
-            public static string TabBody_SearchNoInstalled => Loc.Localize("InstallerNoInstalled", "No plugins are currently installed. You can install them from the Available Plugins tab.");
+            public static string TabBody_SearchNoInstalled => Loc.Localize("InstallerNoInstalled", "No plugins are currently installed. You can install them from the \"All Plugins\" tab.");
 
             #endregion
 
