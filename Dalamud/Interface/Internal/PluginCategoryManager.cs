@@ -372,7 +372,7 @@ namespace Dalamud.Interface.Internal
 
             public static string Group_Installed => Loc.Localize("InstallerInstalledPlugins", "Installed Plugins");
 
-            public static string Group_Available => Loc.Localize("InstallerAvailablePlugins", "Available Plugins");
+            public static string Group_Available => Loc.Localize("InstallerAllPlugins", "All Plugins");
 
             #endregion
 

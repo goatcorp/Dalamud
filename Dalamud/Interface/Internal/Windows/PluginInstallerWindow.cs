@@ -2061,16 +2061,6 @@ namespace Dalamud.Interface.Internal.Windows
 
             #endregion
 
-            #region Tabs
-
-            public static string TabTitle_AvailablePlugins => Loc.Localize("InstallerAllPlugins", "All Plugins");
-
-            public static string TabTitle_InstalledPlugins => Loc.Localize("InstallerInstalledPlugins", "Installed Plugins");
-
-            public static string TabTitle_InstalledDevPlugins => Loc.Localize("InstallerInstalledDevPlugins", "Installed Dev Plugins");
-
-            #endregion
-
             #region Tab body
 
             public static string TabBody_LoadingPlugins => Loc.Localize("InstallerLoading", "Loading plugins...");
