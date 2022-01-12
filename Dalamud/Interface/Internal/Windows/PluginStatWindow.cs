@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
@@ -174,6 +175,8 @@ namespace Dalamud.Interface.Internal.Windows
                 ImGui.EndTabItem();
             }
 
+            var toRemove = new List<Guid>();
+
             if (ImGui.BeginTabItem("Hooks"))
             {
                 ImGui.Columns(4);
@@ -204,10 +207,13 @@ namespace Dalamud.Interface.Internal.Windows
                 ImGui.Separator();
                 ImGui.Separator();
 
-                foreach (var trackedHook in HookManager.TrackedHooks)
+                foreach (var (guid, trackedHook) in HookManager.TrackedHooks)
                 {
                     try
                     {
+                        if (trackedHook.Hook.IsDisposed)
+                            toRemove.Add(guid);
+
                         if (!this.showDalamudHooks && trackedHook.Assembly == Assembly.GetExecutingAssembly())
                             continue;
 
@@ -265,7 +271,10 @@ namespace Dalamud.Interface.Internal.Windows
 
             if (ImGui.IsWindowAppearing())
             {
-                HookManager.TrackedHooks.RemoveAll(h => h.Hook.IsDisposed);
+                foreach (var guid in toRemove)
+                {
+                    HookManager.TrackedHooks.TryRemove(guid, out _);
+                }
             }
 
             ImGui.EndTabBar();

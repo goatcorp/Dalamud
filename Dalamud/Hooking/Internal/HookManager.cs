@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -28,7 +29,7 @@ namespace Dalamud.Hooking.Internal
         /// <summary>
         /// Gets a static list of tracked and registered hooks.
         /// </summary>
-        internal static List<HookInfo> TrackedHooks { get; } = new();
+        internal static ConcurrentDictionary<Guid, HookInfo> TrackedHooks { get; } = new();
 
         /// <summary>
         /// Gets a static dictionary of original code for a hooked address.

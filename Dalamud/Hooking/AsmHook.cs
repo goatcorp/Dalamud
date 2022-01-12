@@ -49,7 +49,7 @@ namespace Dalamud.Hooking
             this.statsMethod.GetILGenerator().Emit(OpCodes.Ret);
             var dele = this.statsMethod.CreateDelegate(typeof(Action));
 
-            HookManager.TrackedHooks.Add(new HookInfo(this, dele, Assembly.GetCallingAssembly()));
+            HookManager.TrackedHooks.TryAdd(Guid.NewGuid(), new HookInfo(this, dele, Assembly.GetCallingAssembly()));
         }
 
         /// <summary>
@@ -79,7 +79,7 @@ namespace Dalamud.Hooking
             this.statsMethod.GetILGenerator().Emit(OpCodes.Ret);
             var dele = this.statsMethod.CreateDelegate(typeof(Action));
 
-            HookManager.TrackedHooks.Add(new HookInfo(this, dele, Assembly.GetCallingAssembly()));
+            HookManager.TrackedHooks.TryAdd(Guid.NewGuid(), new HookInfo(this, dele, Assembly.GetCallingAssembly()));
         }
 
         /// <summary>
