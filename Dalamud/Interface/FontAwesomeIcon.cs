@@ -305,7 +305,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "arrow-left" icon unicode character.
         /// </summary>
-        ArrowLeft = 0xF06,
+        ArrowLeft = 0xF060,
 
         /// <summary>
         /// The Font Awesome "arrow-right" icon unicode character.
