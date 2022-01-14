@@ -392,6 +392,15 @@ namespace Dalamud.Plugin
             Service<DalamudConfiguration>.Get().DalamudConfigurationSaved -= this.OnDalamudConfigurationSaved;
         }
 
+        /// <summary>
+        /// Obsolete implicit dispose implementation. Should not be used.
+        /// </summary>
+        [Obsolete("Do not dispose \"DalamudPluginInterface\".", true)]
+        public void Dispose()
+        {
+            // ignored
+        }
+
         private void OnLocalizationChanged(string langCode)
         {
             this.UiLanguage = langCode;
