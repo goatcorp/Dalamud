@@ -33,7 +33,7 @@ namespace Dalamud.Support
         {
             LastException = exception;
 
-            var fixedContext = context?.Split(new []{'\r', '\n'}, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+            var fixedContext = context?.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
 
             try
             {

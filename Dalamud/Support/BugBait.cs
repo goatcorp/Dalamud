@@ -19,6 +19,7 @@ namespace Dalamud.Support
         /// Send feedback to Discord.
         /// </summary>
         /// <param name="plugin">The plugin to send feedback about.</param>
+        /// <param name="isTesting">Whether or not the plugin is a testing plugin.</param>
         /// <param name="content">The content of the feedback.</param>
         /// <param name="reporter">The reporter name.</param>
         /// <param name="includeException">Whether or not the most recent exception to occur should be included in the report.</param>
