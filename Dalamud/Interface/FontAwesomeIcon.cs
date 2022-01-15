@@ -55,7 +55,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "adn" icon unicode character.
         /// </summary>
-        Adn = 0xF17,
+        Adn = 0xF170,
 
         /// <summary>
         /// The Font Awesome "adobe" icon unicode character.
@@ -80,7 +80,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "air-freshener" icon unicode character.
         /// </summary>
-        AirFreshener = 0xF5D,
+        AirFreshener = 0xF5D0,
 
         /// <summary>
         /// The Font Awesome "algolia" icon unicode character.
@@ -120,7 +120,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "amazon" icon unicode character.
         /// </summary>
-        Amazon = 0xF27,
+        Amazon = 0xF270,
 
         /// <summary>
         /// The Font Awesome "amazon-pay" icon unicode character.
@@ -165,7 +165,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "angle-double-left" icon unicode character.
         /// </summary>
-        AngleDoubleLeft = 0xF1,
+        AngleDoubleLeft = 0xF100,
 
         /// <summary>
         /// The Font Awesome "angle-double-right" icon unicode character.
@@ -210,7 +210,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "angular" icon unicode character.
         /// </summary>
-        Angular = 0xF42,
+        Angular = 0xF420,
 
         /// <summary>
         /// The Font Awesome "ankh" icon unicode character.
@@ -245,7 +245,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "app-store-ios" icon unicode character.
         /// </summary>
-        AppStoreIos = 0xF37,
+        AppStoreIos = 0xF370,
 
         /// <summary>
         /// The Font Awesome "archive" icon unicode character.
@@ -305,7 +305,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "arrow-left" icon unicode character.
         /// </summary>
-        ArrowLeft = 0xF06,
+        ArrowLeft = 0xF060,
 
         /// <summary>
         /// The Font Awesome "arrow-right" icon unicode character.
@@ -500,7 +500,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "battery-full" icon unicode character.
         /// </summary>
-        BatteryFull = 0xF24,
+        BatteryFull = 0xF240,
 
         /// <summary>
         /// The Font Awesome "battery-half" icon unicode character.
@@ -585,7 +585,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "biohazard" icon unicode character.
         /// </summary>
-        Biohazard = 0xF78,
+        Biohazard = 0xF780,
 
         /// <summary>
         /// The Font Awesome "birthday-cake" icon unicode character.
@@ -725,7 +725,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "border-none" icon unicode character.
         /// </summary>
-        BorderNone = 0xF85,
+        BorderNone = 0xF850,
 
         /// <summary>
         /// The Font Awesome "border-style" icon unicode character.
@@ -820,7 +820,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "bullseye" icon unicode character.
         /// </summary>
-        Bullseye = 0xF14,
+        Bullseye = 0xF140,
 
         /// <summary>
         /// The Font Awesome "burn" icon unicode character.
@@ -905,7 +905,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "camera" icon unicode character.
         /// </summary>
-        Camera = 0xF03,
+        Camera = 0xF030,
 
         /// <summary>
         /// The Font Awesome "camera-retro" icon unicode character.
@@ -980,7 +980,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "caret-square-down" icon unicode character.
         /// </summary>
-        CaretSquareDown = 0xF15,
+        CaretSquareDown = 0xF150,
 
         /// <summary>
         /// The Font Awesome "caret-square-left" icon unicode character.
@@ -1080,12 +1080,12 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "cc-visa" icon unicode character.
         /// </summary>
-        CcVisa = 0xF1F,
+        CcVisa = 0xF1F0,
 
         /// <summary>
         /// The Font Awesome "centercode" icon unicode character.
         /// </summary>
-        Centercode = 0xF38,
+        Centercode = 0xF380,
 
         /// <summary>
         /// The Font Awesome "centos" icon unicode character.
@@ -1100,7 +1100,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "chair" icon unicode character.
         /// </summary>
-        Chair = 0xF6C,
+        Chair = 0xF6C0,
 
         /// <summary>
         /// The Font Awesome "chalkboard" icon unicode character.
@@ -1125,7 +1125,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "chart-bar" icon unicode character.
         /// </summary>
-        ChartBar = 0xF08,
+        ChartBar = 0xF080,
 
         /// <summary>
         /// The Font Awesome "chart-line" icon unicode character.
@@ -1135,7 +1135,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "chart-pie" icon unicode character.
         /// </summary>
-        ChartPie = 0xF2,
+        ChartPie = 0xF200,
 
         /// <summary>
         /// The Font Awesome "check" icon unicode character.
@@ -1150,7 +1150,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "check-double" icon unicode character.
         /// </summary>
-        CheckDouble = 0xF56,
+        CheckDouble = 0xF560,
 
         /// <summary>
         /// The Font Awesome "check-square" icon unicode character.
@@ -1350,7 +1350,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "cloud-showers-heavy" icon unicode character.
         /// </summary>
-        CloudShowersHeavy = 0xF74,
+        CloudShowersHeavy = 0xF740,
 
         /// <summary>
         /// The Font Awesome "cloudsmith" icon unicode character.
@@ -1600,7 +1600,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "creative-commons-sampling" icon unicode character.
         /// </summary>
-        CreativeCommonsSampling = 0xF4F,
+        CreativeCommonsSampling = 0xF4F0,
 
         /// <summary>
         /// The Font Awesome "creative-commons-sampling-plus" icon unicode character.
@@ -1650,7 +1650,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "crow" icon unicode character.
         /// </summary>
-        Crow = 0xF52,
+        Crow = 0xF520,
 
         /// <summary>
         /// The Font Awesome "crown" icon unicode character.
@@ -1710,12 +1710,12 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "dashcube" icon unicode character.
         /// </summary>
-        Dashcube = 0xF21,
+        Dashcube = 0xF210,
 
         /// <summary>
         /// The Font Awesome "database" icon unicode character.
         /// </summary>
-        Database = 0xF1C,
+        Database = 0xF1C0,
 
         /// <summary>
         /// The Font Awesome "deaf" icon unicode character.
@@ -1765,12 +1765,12 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "dhl" icon unicode character.
         /// </summary>
-        Dhl = 0xF79,
+        Dhl = 0xF790,
 
         /// <summary>
         /// The Font Awesome "diagnoses" icon unicode character.
         /// </summary>
-        Diagnoses = 0xF47,
+        Diagnoses = 0xF470,
 
         /// <summary>
         /// The Font Awesome "diaspora" icon unicode character.
@@ -2040,7 +2040,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "elementor" icon unicode character.
         /// </summary>
-        Elementor = 0xF43,
+        Elementor = 0xF430,
 
         /// <summary>
         /// The Font Awesome "ellipsis-h" icon unicode character.
@@ -2070,7 +2070,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "envelope" icon unicode character.
         /// </summary>
-        Envelope = 0xF0E,
+        Envelope = 0xF0E0,
 
         /// <summary>
         /// The Font Awesome "envelope-open" icon unicode character.
@@ -2180,7 +2180,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "external-link-square-alt" icon unicode character.
         /// </summary>
-        ExternalLinkSquareAlt = 0xF36,
+        ExternalLinkSquareAlt = 0xF360,
 
         /// <summary>
         /// The Font Awesome "eye" icon unicode character.
@@ -2195,7 +2195,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "eye-slash" icon unicode character.
         /// </summary>
-        EyeSlash = 0xF07,
+        EyeSlash = 0xF070,
 
         /// <summary>
         /// The Font Awesome "facebook" icon unicode character.
@@ -2235,7 +2235,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "fast-forward" icon unicode character.
         /// </summary>
-        FastForward = 0xF05,
+        FastForward = 0xF050,
 
         /// <summary>
         /// The Font Awesome "fax" icon unicode character.
@@ -2340,7 +2340,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "file-invoice" icon unicode character.
         /// </summary>
-        FileInvoice = 0xF57,
+        FileInvoice = 0xF570,
 
         /// <summary>
         /// The Font Awesome "file-invoice-dollar" icon unicode character.
@@ -2410,7 +2410,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "filter" icon unicode character.
         /// </summary>
-        Filter = 0xF0B,
+        Filter = 0xF0B0,
 
         /// <summary>
         /// The Font Awesome "fingerprint" icon unicode character.
@@ -2455,7 +2455,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "first-order" icon unicode character.
         /// </summary>
-        FirstOrder = 0xF2B,
+        FirstOrder = 0xF2B0,
 
         /// <summary>
         /// The Font Awesome "first-order-alt" icon unicode character.
@@ -2560,7 +2560,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "fonticons" icon unicode character.
         /// </summary>
-        Fonticons = 0xF28,
+        Fonticons = 0xF280,
 
         /// <summary>
         /// The Font Awesome "fonticons-fi" icon unicode character.
@@ -2595,7 +2595,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "foursquare" icon unicode character.
         /// </summary>
-        Foursquare = 0xF18,
+        Foursquare = 0xF180,
 
         /// <summary>
         /// The Font Awesome "freebsd" icon unicode character.
@@ -2680,7 +2680,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "gg" icon unicode character.
         /// </summary>
-        Gg = 0xF26,
+        Gg = 0xF260,
 
         /// <summary>
         /// The Font Awesome "gg-circle" icon unicode character.
@@ -2755,12 +2755,12 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "glasses" icon unicode character.
         /// </summary>
-        Glasses = 0xF53,
+        Glasses = 0xF530,
 
         /// <summary>
         /// The Font Awesome "glass-martini" icon unicode character.
         /// </summary>
-        GlassMartini = 0xF,
+        GlassMartini = 0xF000,
 
         /// <summary>
         /// The Font Awesome "glass-martini-alt" icon unicode character.
@@ -2770,7 +2770,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "glass-whiskey" icon unicode character.
         /// </summary>
-        GlassWhiskey = 0xF7A,
+        GlassWhiskey = 0xF7A0,
 
         /// <summary>
         /// The Font Awesome "glide" icon unicode character.
@@ -2815,7 +2815,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "golf-ball" icon unicode character.
         /// </summary>
-        GolfBall = 0xF45,
+        GolfBall = 0xF450,
 
         /// <summary>
         /// The Font Awesome "goodreads" icon unicode character.
@@ -2830,7 +2830,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "google" icon unicode character.
         /// </summary>
-        Google = 0xF1A,
+        Google = 0xF1A0,
 
         /// <summary>
         /// The Font Awesome "google-drive" icon unicode character.
@@ -2900,7 +2900,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "grin" icon unicode character.
         /// </summary>
-        Grin = 0xF58,
+        Grin = 0xF580,
 
         /// <summary>
         /// The Font Awesome "grin-alt" icon unicode character.
@@ -3045,7 +3045,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "hand-holding-usd" icon unicode character.
         /// </summary>
-        HandHoldingUsd = 0xF4C,
+        HandHoldingUsd = 0xF4C0,
 
         /// <summary>
         /// The Font Awesome "hand-lizard" icon unicode character.
@@ -3140,7 +3140,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "hat-cowboy" icon unicode character.
         /// </summary>
-        HatCowboy = 0xF8C,
+        HatCowboy = 0xF8C0,
 
         /// <summary>
         /// The Font Awesome "hat-cowboy-side" icon unicode character.
@@ -3155,7 +3155,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "hdd" icon unicode character.
         /// </summary>
-        Hdd = 0xF0A,
+        Hdd = 0xF0A0,
 
         /// <summary>
         /// The Font Awesome "heading" icon unicode character.
@@ -3175,7 +3175,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "headset" icon unicode character.
         /// </summary>
-        Headset = 0xF59,
+        Headset = 0xF590,
 
         /// <summary>
         /// The Font Awesome "heart" icon unicode character.
@@ -3220,7 +3220,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "hire-a-helper" icon unicode character.
         /// </summary>
-        HireAHelper = 0xF3B,
+        HireAHelper = 0xF3B0,
 
         /// <summary>
         /// The Font Awesome "history" icon unicode character.
@@ -3255,7 +3255,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "horse" icon unicode character.
         /// </summary>
-        Horse = 0xF6F,
+        Horse = 0xF6F0,
 
         /// <summary>
         /// The Font Awesome "horse-head" icon unicode character.
@@ -3350,7 +3350,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "ice-cream" icon unicode character.
         /// </summary>
-        IceCream = 0xF81,
+        IceCream = 0xF810,
 
         /// <summary>
         /// The Font Awesome "icicles" icon unicode character.
@@ -3460,7 +3460,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "invision" icon unicode character.
         /// </summary>
-        Invision = 0xF7B,
+        Invision = 0xF7B0,
 
         /// <summary>
         /// The Font Awesome "ioxhost" icon unicode character.
@@ -3735,7 +3735,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "line" icon unicode character.
         /// </summary>
-        Line = 0xF3C,
+        Line = 0xF3C0,
 
         /// <summary>
         /// The Font Awesome "link" icon unicode character.
@@ -3845,7 +3845,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "magic" icon unicode character.
         /// </summary>
-        Magic = 0xF0D,
+        Magic = 0xF0D0,
 
         /// <summary>
         /// The Font Awesome "magnet" icon unicode character.
@@ -3885,7 +3885,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "map-marked-alt" icon unicode character.
         /// </summary>
-        MapMarkedAlt = 0xF5A,
+        MapMarkedAlt = 0xF5A0,
 
         /// <summary>
         /// The Font Awesome "map-marker" icon unicode character.
@@ -3995,7 +3995,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "meetup" icon unicode character.
         /// </summary>
-        Meetup = 0xF2E,
+        Meetup = 0xF2E0,
 
         /// <summary>
         /// The Font Awesome "megaport" icon unicode character.
@@ -4055,7 +4055,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "microphone" icon unicode character.
         /// </summary>
-        Microphone = 0xF13,
+        Microphone = 0xF130,
 
         /// <summary>
         /// The Font Awesome "microphone-alt" icon unicode character.
@@ -4075,7 +4075,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "microscope" icon unicode character.
         /// </summary>
-        Microscope = 0xF61,
+        Microscope = 0xF610,
 
         /// <summary>
         /// The Font Awesome "microsoft" icon unicode character.
@@ -4140,7 +4140,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "monero" icon unicode character.
         /// </summary>
-        Monero = 0xF3D,
+        Monero = 0xF3D0,
 
         /// <summary>
         /// The Font Awesome "money-bill" icon unicode character.
@@ -4315,7 +4315,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "old-republic" icon unicode character.
         /// </summary>
-        OldRepublic = 0xF51,
+        OldRepublic = 0xF510,
 
         /// <summary>
         /// The Font Awesome "om" icon unicode character.
@@ -4355,7 +4355,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "otter" icon unicode character.
         /// </summary>
-        Otter = 0xF7,
+        Otter = 0xF700,
 
         /// <summary>
         /// The Font Awesome "outdent" icon unicode character.
@@ -4425,7 +4425,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "parking" icon unicode character.
         /// </summary>
-        Parking = 0xF54,
+        Parking = 0xF540,
 
         /// <summary>
         /// The Font Awesome "passport" icon unicode character.
@@ -4460,7 +4460,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "paw" icon unicode character.
         /// </summary>
-        Paw = 0xF1B,
+        Paw = 0xF1B0,
 
         /// <summary>
         /// The Font Awesome "paypal" icon unicode character.
@@ -4585,7 +4585,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "phone-volume" icon unicode character.
         /// </summary>
-        PhoneVolume = 0xF2A,
+        PhoneVolume = 0xF2A0,
 
         /// <summary>
         /// The Font Awesome "photo-video" icon unicode character.
@@ -4670,7 +4670,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "plane-departure" icon unicode character.
         /// </summary>
-        PlaneDeparture = 0xF5B,
+        PlaneDeparture = 0xF5B0,
 
         /// <summary>
         /// The Font Awesome "play" icon unicode character.
@@ -4740,7 +4740,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "portrait" icon unicode character.
         /// </summary>
-        Portrait = 0xF3E,
+        Portrait = 0xF3E0,
 
         /// <summary>
         /// The Font Awesome "pound-sign" icon unicode character.
@@ -4910,7 +4910,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "rebel" icon unicode character.
         /// </summary>
-        Rebel = 0xF1D,
+        Rebel = 0xF1D0,
 
         /// <summary>
         /// The Font Awesome "receipt" icon unicode character.
@@ -5145,7 +5145,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "satellite-dish" icon unicode character.
         /// </summary>
-        SatelliteDish = 0xF7C,
+        SatelliteDish = 0xF7C0,
 
         /// <summary>
         /// The Font Awesome "save" icon unicode character.
@@ -5205,7 +5205,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "search-minus" icon unicode character.
         /// </summary>
-        SearchMinus = 0xF01,
+        SearchMinus = 0xF010,
 
         /// <summary>
         /// The Font Awesome "search-plus" icon unicode character.
@@ -5250,7 +5250,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "share-alt" icon unicode character.
         /// </summary>
-        ShareAlt = 0xF1E,
+        ShareAlt = 0xF1E0,
 
         /// <summary>
         /// The Font Awesome "share-alt-square" icon unicode character.
@@ -5300,7 +5300,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "shopping-bag" icon unicode character.
         /// </summary>
-        ShoppingBag = 0xF29,
+        ShoppingBag = 0xF290,
 
         /// <summary>
         /// The Font Awesome "shopping-basket" icon unicode character.
@@ -5515,7 +5515,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "snowman" icon unicode character.
         /// </summary>
-        Snowman = 0xF7D,
+        Snowman = 0xF7D0,
 
         /// <summary>
         /// The Font Awesome "snowplow" icon unicode character.
@@ -5560,7 +5560,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "sort-amount-down" icon unicode character.
         /// </summary>
-        SortAmountDown = 0xF16,
+        SortAmountDown = 0xF160,
 
         /// <summary>
         /// The Font Awesome "sort-amount-down-alt" icon unicode character.
@@ -5650,7 +5650,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "spinner" icon unicode character.
         /// </summary>
-        Spinner = 0xF11,
+        Spinner = 0xF110,
 
         /// <summary>
         /// The Font Awesome "splotch" icon unicode character.
@@ -5725,7 +5725,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "star-half-alt" icon unicode character.
         /// </summary>
-        StarHalfAlt = 0xF5C,
+        StarHalfAlt = 0xF5C0,
 
         /// <summary>
         /// The Font Awesome "star-of-david" icon unicode character.
@@ -5815,7 +5815,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "stream" icon unicode character.
         /// </summary>
-        Stream = 0xF55,
+        Stream = 0xF550,
 
         /// <summary>
         /// The Font Awesome "street-view" icon unicode character.
@@ -5975,7 +5975,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "tablets" icon unicode character.
         /// </summary>
-        Tablets = 0xF49,
+        Tablets = 0xF490,
 
         /// <summary>
         /// The Font Awesome "tachometer-alt" icon unicode character.
@@ -6055,7 +6055,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "terminal" icon unicode character.
         /// </summary>
-        Terminal = 0xF12,
+        Terminal = 0xF120,
 
         /// <summary>
         /// The Font Awesome "text-height" icon unicode character.
@@ -6075,7 +6075,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "theater-masks" icon unicode character.
         /// </summary>
-        TheaterMasks = 0xF63,
+        TheaterMasks = 0xF630,
 
         /// <summary>
         /// The Font Awesome "themeco" icon unicode character.
@@ -6220,7 +6220,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "torah" icon unicode character.
         /// </summary>
-        Torah = 0xF6A,
+        Torah = 0xF6A0,
 
         /// <summary>
         /// The Font Awesome "torii-gate" icon unicode character.
@@ -6475,7 +6475,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "ups" icon unicode character.
         /// </summary>
-        Ups = 0xF7E,
+        Ups = 0xF7E0,
 
         /// <summary>
         /// The Font Awesome "usb" icon unicode character.
@@ -6530,7 +6530,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "user-friends" icon unicode character.
         /// </summary>
-        UserFriends = 0xF5,
+        UserFriends = 0xF500,
 
         /// <summary>
         /// The Font Awesome "user-graduate" icon unicode character.
@@ -6550,7 +6550,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "user-md" icon unicode character.
         /// </summary>
-        UserMd = 0xF0F,
+        UserMd = 0xF0F0,
 
         /// <summary>
         /// The Font Awesome "user-minus" icon unicode character.
@@ -6575,7 +6575,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "users" icon unicode character.
         /// </summary>
-        Users = 0xF0C,
+        Users = 0xF0C0,
 
         /// <summary>
         /// The Font Awesome "users-cog" icon unicode character.
@@ -6870,12 +6870,12 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "window-close" icon unicode character.
         /// </summary>
-        WindowClose = 0xF41,
+        WindowClose = 0xF410,
 
         /// <summary>
         /// The Font Awesome "window-maximize" icon unicode character.
         /// </summary>
-        WindowMaximize = 0xF2D,
+        WindowMaximize = 0xF2D0,
 
         /// <summary>
         /// The Font Awesome "window-minimize" icon unicode character.
@@ -6915,7 +6915,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "wizards-of-the-coast" icon unicode character.
         /// </summary>
-        WizardsOfTheCoast = 0xF73,
+        WizardsOfTheCoast = 0xF730,
 
         /// <summary>
         /// The Font Awesome "wolf-pack-battalion" icon unicode character.
@@ -6990,7 +6990,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// The Font Awesome "yammer" icon unicode character.
         /// </summary>
-        Yammer = 0xF84,
+        Yammer = 0xF840,
 
         /// <summary>
         /// The Font Awesome "yandex" icon unicode character.
