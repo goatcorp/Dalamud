@@ -130,6 +130,7 @@ namespace Dalamud.Interface.Internal.Windows
             DownloadCount,
             LastUpdate,
             NewOrNot,
+            NotInstalled,
         }
 
         /// <inheritdoc/>
@@ -203,6 +204,7 @@ namespace Dalamud.Interface.Internal.Windows
                 (Locs.SortBy_DownloadCounts, PluginSortKind.DownloadCount),
                 (Locs.SortBy_LastUpdate, PluginSortKind.LastUpdate),
                 (Locs.SortBy_NewOrNot, PluginSortKind.NewOrNot),
+                (Locs.SortBy_NotInstalled, PluginSortKind.NotInstalled),
             };
             var longestSelectableWidth = sortSelectables.Select(t => ImGui.CalcTextSize(t.Localization).X).Max();
             var selectableWidth = longestSelectableWidth + (style.FramePadding.X * 2);  // This does not include the label
@@ -1960,6 +1962,11 @@ namespace Dalamud.Interface.Internal.Windows
                     this.pluginListInstalled.Sort((p1, p2) => this.WasPluginSeen(p1.Manifest.InternalName)
                                                                   .CompareTo(this.WasPluginSeen(p2.Manifest.InternalName)));
                     break;
+                case PluginSortKind.NotInstalled:
+                    this.pluginListAvailable.Sort((p1, p2) => this.pluginListInstalled.Any(x => x.Manifest.InternalName == p1.InternalName)
+                                                                  .CompareTo(this.pluginListInstalled.Any(x => x.Manifest.InternalName == p2.InternalName)));
+                    this.pluginListInstalled.Sort((p1, p2) => p1.Manifest.Name.CompareTo(p2.Manifest.Name)); // Makes no sense for installed plugins
+                    break;
                 default:
                     throw new InvalidEnumArgumentException("Unknown plugin sort type.");
             }
@@ -2062,6 +2069,8 @@ namespace Dalamud.Interface.Internal.Windows
             public static string SortBy_LastUpdate => Loc.Localize("InstallerLastUpdate", "Last Update");
 
             public static string SortBy_NewOrNot => Loc.Localize("InstallerNewOrNot", "New or not");
+
+            public static string SortBy_NotInstalled => Loc.Localize("InstallerNotInstalled", "Not Installed");
 
             public static string SortBy_Label => Loc.Localize("InstallerSortBy", "Sort By");
 
