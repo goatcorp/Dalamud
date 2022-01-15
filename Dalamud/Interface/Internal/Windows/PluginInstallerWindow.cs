@@ -1080,7 +1080,7 @@ namespace Dalamud.Interface.Internal.Windows
                 ImGui.Image(this.imageCache.ThirdIcon.ImGuiHandle, iconSize);
                 ImGui.SameLine();
             }
-            else if (plugin != null)
+            else if (plugin is { IsLoaded: true })
             {
                 ImGui.SetCursorPos(cursorBeforeImage);
                 ImGui.Image(this.imageCache.InstalledIcon.ImGuiHandle, iconSize);
