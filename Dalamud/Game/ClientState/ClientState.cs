@@ -11,6 +11,7 @@ using Dalamud.Game.ClientState.Keys;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Party;
+using Dalamud.Game.Gui;
 using Dalamud.Game.Network.Internal;
 using Dalamud.Hooking;
 using Dalamud.IoC;
@@ -164,12 +165,14 @@ namespace Dalamud.Game.ClientState
         private void FrameworkOnOnUpdateEvent(Framework framework)
         {
             var condition = Service<Condition>.Get();
+            var gameGui = Service<GameGui>.Get();
             if (condition.Any() && this.lastConditionNone == true)
             {
                 Log.Debug("Is login");
                 this.lastConditionNone = false;
                 this.IsLoggedIn = true;
                 this.Login?.Invoke(this, null);
+                gameGui.ResetUiHideState();
             }
 
             if (!condition.Any() && this.lastConditionNone == false)
@@ -178,6 +181,7 @@ namespace Dalamud.Game.ClientState
                 this.lastConditionNone = true;
                 this.IsLoggedIn = false;
                 this.Logout?.Invoke(this, null);
+                gameGui.ResetUiHideState();
             }
         }
     }

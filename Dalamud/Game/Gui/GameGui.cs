@@ -459,6 +459,14 @@ namespace Dalamud.Game.Gui
             this.handleActionOutHook.Dispose();
         }
 
+        /// <summary>
+        /// Reset the stored "UI hide" state.
+        /// </summary>
+        internal void ResetUiHideState()
+        {
+            this.GameUiHidden = false;
+        }
+
         private IntPtr HandleSetGlobalBgmDetour(ushort bgmKey, byte a2, uint a3, uint a4, uint a5, byte a6)
         {
             var retVal = this.setGlobalBgmHook.Original(bgmKey, a2, a3, a4, a5, a6);
@@ -570,6 +578,7 @@ namespace Dalamud.Game.Gui
 
         private IntPtr ToggleUiHideDetour(IntPtr thisPtr, byte unknownByte)
         {
+            // TODO(goat): We should read this from memory directly, instead of relying on catching every toggle.
             this.GameUiHidden = !this.GameUiHidden;
 
             try
