@@ -62,6 +62,11 @@ namespace Dalamud.Game.ClientState.Party
         /// </summary>
         public IntPtr AllianceListAddress => (IntPtr)this.GroupManagerStruct->AllianceMembers;
 
+        /// <summary>
+        /// Gets the ID of the party.
+        /// </summary>
+        public long PartyId => this.GroupManagerStruct->PartyId;
+
         private static int PartyMemberSize { get; } = Marshal.SizeOf<FFXIVClientStructs.FFXIV.Client.Game.Group.PartyMember>();
 
         private FFXIVClientStructs.FFXIV.Client.Game.Group.GroupManager* GroupManagerStruct => (FFXIVClientStructs.FFXIV.Client.Game.Group.GroupManager*)this.GroupManagerAddress;
