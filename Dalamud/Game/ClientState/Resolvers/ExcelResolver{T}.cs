@@ -26,6 +26,13 @@ namespace Dalamud.Game.ClientState.Resolvers
         /// <summary>
         /// Gets GameData linked to this excel row.
         /// </summary>
-        public T GameData => Service<DataManager>.Get().GetExcelSheet<T>().GetRow(this.Id);
+        public T? GameData => Service<DataManager>.Get().GetExcelSheet<T>()?.GetRow(this.Id);
+
+        /// <summary>
+        /// Gets GameData linked to this excel row with the specified language.
+        /// </summary>
+        /// <param name="language">The language.</param>
+        /// <returns>The ExcelRow in the specified language.</returns>
+        public T? GetWithLanguage(ClientLanguage language) => Service<DataManager>.Get().GetExcelSheet<T>(language)?.GetRow(this.Id);
     }
 }
