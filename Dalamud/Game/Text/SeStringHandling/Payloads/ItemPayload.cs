@@ -135,6 +135,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         /// <summary>
         /// Gets or sets the kind of item represented by this payload.
         /// </summary>
+        [JsonProperty]
         public ItemKind Kind { get; set; } = ItemKind.Normal;
 
         /// <summary>
