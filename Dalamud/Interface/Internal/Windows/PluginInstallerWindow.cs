@@ -1062,6 +1062,8 @@ namespace Dalamud.Interface.Internal.Windows
             ImGui.Image(iconTex.ImGuiHandle, iconSize);
             ImGui.SameLine();
 
+            var isLoaded = plugin is { IsLoaded: true };
+
             if (updateAvailable)
             {
                 ImGui.SetCursorPos(cursorBeforeImage);
@@ -1074,13 +1076,19 @@ namespace Dalamud.Interface.Internal.Windows
                 ImGui.Image(this.imageCache.TroubleIcon.ImGuiHandle, iconSize);
                 ImGui.SameLine();
             }
+            else if (isLoaded && isThirdParty)
+            {
+                ImGui.SetCursorPos(cursorBeforeImage);
+                ImGui.Image(this.imageCache.ThirdInstalledIcon.ImGuiHandle, iconSize);
+                ImGui.SameLine();
+            }
             else if (isThirdParty)
             {
                 ImGui.SetCursorPos(cursorBeforeImage);
                 ImGui.Image(this.imageCache.ThirdIcon.ImGuiHandle, iconSize);
                 ImGui.SameLine();
             }
-            else if (plugin is { IsLoaded: true })
+            else if (isLoaded)
             {
                 ImGui.SetCursorPos(cursorBeforeImage);
                 ImGui.Image(this.imageCache.InstalledIcon.ImGuiHandle, iconSize);

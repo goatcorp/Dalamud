@@ -63,6 +63,7 @@ namespace Dalamud.Interface.Internal.Windows
             this.UpdateIcon = interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "updateIcon.png"))!;
             this.InstalledIcon = interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "installedIcon.png"))!;
             this.ThirdIcon = interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "thirdIcon.png"))!;
+            this.ThirdInstalledIcon = interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "thirdInstalledIcon.png"))!;
 
             this.downloadThread = new Thread(this.DownloadTask);
             this.downloadThread.Start();
@@ -93,6 +94,11 @@ namespace Dalamud.Interface.Internal.Windows
         /// </summary>
         public TextureWrap ThirdIcon { get; }
 
+        /// <summary>
+        /// Gets the installed third party plugin icon overlay.
+        /// </summary>
+        public TextureWrap ThirdInstalledIcon { get; }
+
         /// <inheritdoc/>
         public void Dispose()
         {
@@ -101,6 +107,7 @@ namespace Dalamud.Interface.Internal.Windows
             this.UpdateIcon?.Dispose();
             this.InstalledIcon?.Dispose();
             this.ThirdIcon?.Dispose();
+            this.ThirdInstalledIcon?.Dispose();
 
             this.downloadToken?.Cancel();
 
