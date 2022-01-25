@@ -714,6 +714,7 @@ namespace Dalamud.Interface.Internal
                     ImGui.BeginMenu(Util.GetGitHash(), false);
                     ImGui.BeginMenu(this.frameCount.ToString(), false);
                     ImGui.BeginMenu(ImGui.GetIO().Framerate.ToString("F2"), false);
+                    ImGui.BeginMenu($"{Util.FormatBytes(GC.GetTotalMemory(false))} total managed", false);
 
                     ImGui.EndMainMenuBar();
                 }

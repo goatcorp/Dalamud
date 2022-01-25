@@ -335,6 +335,24 @@ namespace Dalamud.Utility
             if (exit)
                 Environment.Exit(-1);
         }
+        
+        /// <summary>
+        /// Transform byte count to human readable format.
+        /// </summary>
+        /// <param name="bytes">Number of bytes.</param>
+        /// <returns>Human readable version.</returns>
+        public static string FormatBytes(long bytes)
+        {
+            string[] suffix = { "B", "KB", "MB", "GB", "TB" };
+            int i;
+            double dblSByte = bytes;
+            for (i = 0; i < suffix.Length && bytes >= 1024; i++, bytes /= 1024)
+            {
+                dblSByte = bytes / 1024.0;
+            }
+
+            return $"{dblSByte:0.##} {suffix[i]}";
+        }
 
         /// <summary>
         /// Retrieve a UTF8 string from a null terminated byte array.
