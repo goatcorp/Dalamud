@@ -67,7 +67,7 @@ namespace Dalamud.Support
             {
                 var payload = new TroubleshootingPayload
                 {
-                    LoadedPlugins = pluginManager?.InstalledPlugins?.Select(x => x.Manifest)?.ToArray(),
+                    LoadedPlugins = pluginManager?.InstalledPlugins?.Select(x => x.Manifest)?.OrderByDescending(x => x.InternalName).ToArray(),
                     DalamudVersion = Util.AssemblyVersion,
                     DalamudGitHash = Util.GetGitHash(),
                     GameVersion = startInfo.GameVersion.ToString(),
