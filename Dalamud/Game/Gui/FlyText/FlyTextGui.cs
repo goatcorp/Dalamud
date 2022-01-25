@@ -138,7 +138,7 @@ namespace Dalamud.Game.Gui.FlyText
                 return;
 
             // Get the number and string arrays we need
-            var atkArrayDataHolder = ui->RaptureAtkModule.AtkModule.AtkArrayDataHolder;
+            var atkArrayDataHolder = ui->GetRaptureAtkModule()->AtkModule.AtkArrayDataHolder;
             var numArray = atkArrayDataHolder._NumberArrays[numIndex];
             var strArray = atkArrayDataHolder._StringArrays[strIndex];
 
