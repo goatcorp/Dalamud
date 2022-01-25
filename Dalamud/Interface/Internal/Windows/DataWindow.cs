@@ -53,6 +53,7 @@ namespace Dalamud.Interface.Internal.Windows
         private readonly string[] dataKindNames = Enum.GetNames(typeof(DataKind)).Select(k => k.Replace("_", " ")).ToArray();
 
         private bool wasReady;
+        private bool isExcept;
         private string serverOpString;
         private DataKind currentKind;
 
@@ -345,9 +346,18 @@ namespace Dalamud.Interface.Internal.Windows
                 {
                     ImGui.TextUnformatted("Data not ready.");
                 }
+
+                this.isExcept = false;
             }
             catch (Exception ex)
             {
+                if (!this.isExcept)
+                {
+                    Log.Error(ex, "Could not draw data");
+                }
+
+                this.isExcept = true;
+
                 ImGui.TextUnformatted(ex.ToString());
             }
 
