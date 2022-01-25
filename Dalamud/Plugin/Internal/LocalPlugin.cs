@@ -11,6 +11,7 @@ using Dalamud.Plugin.Internal.Exceptions;
 using Dalamud.Plugin.Internal.Loader;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
+using Dalamud.Utility.Signatures;
 
 namespace Dalamud.Plugin.Internal
 {
@@ -337,6 +338,8 @@ namespace Dalamud.Plugin.Internal
                     Log.Error($"Error while loading {this.Name}, failed to bind and call the plugin constructor");
                     return;
                 }
+
+                SignatureHelper.Initialise(this.instance);
 
                 // In-case the manifest name was a placeholder. Can occur when no manifest was included.
                 if (this.instance.Name != this.Manifest.Name)
