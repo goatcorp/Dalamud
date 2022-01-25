@@ -97,7 +97,7 @@ namespace Dalamud.Game.ClientState.Objects.Types
         /// <summary>
         /// Gets the current online status of the character.
         /// </summary>
-        public ExcelResolver<OnlineStatus> OnlineStatus => new(this.Struct->Icon);
+        public ExcelResolver<OnlineStatus> OnlineStatus => new(this.Struct->OnlineStatus);
 
         /// <summary>
         /// Gets the status flags.
