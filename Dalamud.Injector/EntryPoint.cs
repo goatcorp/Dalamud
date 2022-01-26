@@ -255,7 +255,7 @@ namespace Dalamud.Injector
             return process;
         }
 
-        private static DalamudStartInfo GetStartInfo(string arg, Process process)
+        private static DalamudStartInfo GetStartInfo(string? arg, Process process)
         {
             DalamudStartInfo startInfo;
 
@@ -278,7 +278,7 @@ namespace Dalamud.Injector
                     ConfigurationPath = Path.Combine(xivlauncherDir, "dalamudConfig.json"),
                     PluginDirectory = Path.Combine(xivlauncherDir, "installedPlugins"),
                     DefaultPluginDirectory = Path.Combine(xivlauncherDir, "devPlugins"),
-                    AssetDirectory = Path.Combine(xivlauncherDir, "dalamudAssets"),
+                    AssetDirectory = Path.Combine(xivlauncherDir, "dalamudAssets", "dev"),
                     GameVersion = gameVer,
                     Language = ClientLanguage.English,
                     OptOutMbCollection = false,
