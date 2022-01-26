@@ -65,6 +65,12 @@ namespace Dalamud.Interface.Internal.Windows
             this.ThirdIcon = interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "thirdIcon.png"))!;
             this.ThirdInstalledIcon = interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "thirdInstalledIcon.png"))!;
 
+            if (this.DefaultIcon == null || this.TroubleIcon == null || this.UpdateIcon == null || this.InstalledIcon == null ||
+                this.ThirdIcon == null || this.ThirdInstalledIcon == null)
+            {
+                throw new Exception("Plugin overlay images could not be loaded.");
+            }
+
             this.downloadThread = new Thread(this.DownloadTask);
             this.downloadThread.Start();
         }
