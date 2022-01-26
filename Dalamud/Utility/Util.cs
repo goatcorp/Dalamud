@@ -335,7 +335,7 @@ namespace Dalamud.Utility
             if (exit)
                 Environment.Exit(-1);
         }
-        
+
         /// <summary>
         /// Transform byte count to human readable format.
         /// </summary>

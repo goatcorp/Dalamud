@@ -6,12 +6,30 @@ using System.Reflection;
 
 namespace Dalamud.Utility.Signatures
 {
+    /// <summary>
+    /// Class providing info about field, property or parameter nullability.
+    /// </summary>
     internal static class NullabilityUtil
     {
+        /// <summary>
+        /// Check if the provided property is nullable.
+        /// </summary>
+        /// <param name="property">The property to check.</param>
+        /// <returns>Whether or not the property is nullable.</returns>
         internal static bool IsNullable(PropertyInfo property) => IsNullableHelper(property.PropertyType, property.DeclaringType, property.CustomAttributes);
 
+        /// <summary>
+        /// Check if the provided field is nullable.
+        /// </summary>
+        /// <param name="field">The field to check.</param>
+        /// <returns>Whether or not the field is nullable.</returns>
         internal static bool IsNullable(FieldInfo field) => IsNullableHelper(field.FieldType, field.DeclaringType, field.CustomAttributes);
 
+        /// <summary>
+        /// Check if the provided parameter is nullable.
+        /// </summary>
+        /// <param name="parameter">The parameter to check.</param>
+        /// <returns>Whether or not the parameter is nullable.</returns>
         internal static bool IsNullable(ParameterInfo parameter) => IsNullableHelper(parameter.ParameterType, parameter.Member, parameter.CustomAttributes);
 
         private static bool IsNullableHelper(Type memberType, MemberInfo? declaringType, IEnumerable<CustomAttributeData> customAttributes)

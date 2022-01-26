@@ -12,6 +12,8 @@ namespace Dalamud.Utility.Signatures
         /// </summary>
         /// <param name="message">Message.</param>
         internal SignatureException(string message)
-            : base(message) { }
+            : base(message)
+        {
+        }
     }
 }

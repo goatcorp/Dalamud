@@ -61,7 +61,7 @@ namespace Dalamud.Utility.Signatures
         /// <summary>
         /// Initializes a new instance of the <see cref="SignatureAttribute"/> class.
         /// </summary>
-        /// <param name="signature">signature to scan for, see <see cref="Signature"/></param>
+        /// <param name="signature">signature to scan for, see <see cref="Signature"/>.</param>
         public SignatureAttribute(string signature)
         {
             this.Signature = signature;
