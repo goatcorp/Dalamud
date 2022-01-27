@@ -117,6 +117,14 @@ namespace Dalamud.Game.Text.SeStringHandling
             this.Add(new ItemPayload(itemId, kind, itemNameOverride));
 
         /// <summary>
+        /// Add an item link to the builder.
+        /// </summary>
+        /// <param name="rawItemId">The raw item ID.</param>
+        /// <returns>The current builder.</returns>
+        public SeStringBuilder AddItemLinkRaw(uint rawItemId) =>
+            this.Add(ItemPayload.FromRaw(rawItemId));
+
+        /// <summary>
         /// Add italicized raw text to the builder.
         /// </summary>
         /// <param name="text">The raw text.</param>

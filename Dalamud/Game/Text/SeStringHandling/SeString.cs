@@ -156,14 +156,50 @@ namespace Dalamud.Game.Text.SeStringHandling
         /// <param name="isHq">Whether to link the high-quality variant of the item.</param>
         /// <param name="displayNameOverride">An optional name override to display, instead of the actual item name.</param>
         /// <returns>An SeString containing all the payloads necessary to display an item link in the chat log.</returns>
-        public static SeString CreateItemLink(uint itemId, bool isHq, string? displayNameOverride = null)
+        public static SeString CreateItemLink(uint itemId, bool isHq, string? displayNameOverride = null) =>
+            CreateItemLink(itemId, isHq ? ItemPayload.ItemKind.Hq : ItemPayload.ItemKind.Normal, displayNameOverride);
+
+        /// <summary>
+        /// Creates an SeString representing an entire Payload chain that can be used to link an item in the chat log.
+        /// </summary>
+        /// <param name="itemId">The id of the item to link.</param>
+        /// <param name="kind">The kind of item to link.</param>
+        /// <param name="displayNameOverride">An optional name override to display, instead of the actual item name.</param>
+        /// <returns>An SeString containing all the payloads necessary to display an item link in the chat log.</returns>
+        public static SeString CreateItemLink(uint itemId, ItemPayload.ItemKind kind = ItemPayload.ItemKind.Normal, string? displayNameOverride = null)
         {
             var data = Service<DataManager>.Get();
 
-            var displayName = displayNameOverride ?? data.GetExcelSheet<Item>()?.GetRow(itemId)?.Name;
-            if (isHq)
+            var displayName = displayNameOverride;
+            if (displayName == null)
+            {
+                switch (kind)
+                {
+                    case ItemPayload.ItemKind.Normal:
+                    case ItemPayload.ItemKind.Collectible:
+                    case ItemPayload.ItemKind.Hq:
+                        displayName = data.GetExcelSheet<Item>()?.GetRow(itemId)?.Name;
+                        break;
+                    case ItemPayload.ItemKind.EventItem:
+                        displayName = data.GetExcelSheet<EventItem>()?.GetRow(itemId)?.Name;
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(kind), kind, null);
+                }
+            }
+
+            if (displayName == null)
+            {
+                throw new Exception("Invalid item ID specified, could not determine item name.");
+            }
+
+            if (kind == ItemPayload.ItemKind.Hq)
             {
                 displayName += $" {(char)SeIconChar.HighQuality}";
+            }
+            else if (kind == ItemPayload.ItemKind.Collectible)
+            {
+                displayName += $" {(char)SeIconChar.Collectible}";
             }
 
             // TODO: probably a cleaner way to build these than doing the bulk+insert
@@ -171,7 +207,7 @@ namespace Dalamud.Game.Text.SeStringHandling
             {
                 new UIForegroundPayload(0x0225),
                 new UIGlowPayload(0x0226),
-                new ItemPayload(itemId, isHq),
+                new ItemPayload(itemId, kind),
                 // arrow goes here
                 new TextPayload(displayName),
                 RawPayload.LinkTerminator,

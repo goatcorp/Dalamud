@@ -13,14 +13,14 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
     public class TextPayload : Payload, ITextProvider
     {
         [JsonProperty]
-        private string text;
+        private string? text;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TextPayload"/> class.
         /// Creates a new TextPayload for the given text.
         /// </summary>
         /// <param name="text">The text to include for this payload.</param>
-        public TextPayload(string text)
+        public TextPayload(string? text)
         {
             this.text = text;
         }
@@ -41,12 +41,9 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         /// This may contain SE's special unicode characters.
         /// </summary>
         [JsonIgnore]
-        public string Text
+        public string? Text
         {
-            get
-            {
-                return this.text;
-            }
+            get => this.text;
 
             set
             {

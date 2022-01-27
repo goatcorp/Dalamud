@@ -11,6 +11,7 @@ using Dalamud.Interface;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Utility;
+using FFXIVClientStructs.FFXIV.Client.System.String;
 using ImGuiNET;
 using Serilog;
 
@@ -21,7 +22,7 @@ namespace Dalamud.Game.Gui
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    public sealed class GameGui : IDisposable
+    public sealed unsafe class GameGui : IDisposable
     {
         private readonly GameGuiAddressResolver address;
 
@@ -36,6 +37,7 @@ namespace Dalamud.Game.Gui
         private readonly Hook<HandleActionOutDelegate> handleActionOutHook;
         private readonly Hook<HandleImmDelegate> handleImmHook;
         private readonly Hook<ToggleUiHideDelegate> toggleUiHideHook;
+        private readonly Hook<Utf8StringFromSequenceDelegate> utf8StringFromSequenceHook;
 
         private GetUIMapObjectDelegate getUIMapObject;
         private OpenMapWithFlagDelegate openMapWithFlag;
@@ -79,6 +81,8 @@ namespace Dalamud.Game.Gui
             this.toggleUiHideHook = new Hook<ToggleUiHideDelegate>(this.address.ToggleUiHide, this.ToggleUiHideDetour);
 
             this.getAgentModule = Marshal.GetDelegateForFunctionPointer<GetAgentModuleDelegate>(this.address.GetAgentModule);
+
+            this.utf8StringFromSequenceHook = new Hook<Utf8StringFromSequenceDelegate>(this.address.Utf8StringFromSequence, this.Utf8StringFromSequenceDetour);
         }
 
         // Marshaled delegates
@@ -92,6 +96,9 @@ namespace Dalamud.Game.Gui
         private delegate IntPtr GetAgentModuleDelegate(IntPtr uiModule);
 
         // Hooked delegates
+
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        private delegate Utf8String* Utf8StringFromSequenceDelegate(Utf8String* thisPtr, byte* sourcePtr, nuint sourceLen);
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         private delegate IntPtr GetUIMapObjectDelegate(IntPtr uiObject);
@@ -439,6 +446,7 @@ namespace Dalamud.Game.Gui
             this.toggleUiHideHook.Enable();
             this.handleActionHoverHook.Enable();
             this.handleActionOutHook.Enable();
+            this.utf8StringFromSequenceHook.Enable();
         }
 
         /// <summary>
@@ -457,6 +465,7 @@ namespace Dalamud.Game.Gui
             this.toggleUiHideHook.Dispose();
             this.handleActionHoverHook.Dispose();
             this.handleActionOutHook.Dispose();
+            this.utf8StringFromSequenceHook.Dispose();
         }
 
         /// <summary>
@@ -601,6 +610,16 @@ namespace Dalamud.Game.Gui
             return ImGui.GetIO().WantTextInput
                 ? (char)0
                 : result;
+        }
+
+        private Utf8String* Utf8StringFromSequenceDetour(Utf8String* thisPtr, byte* sourcePtr, nuint sourceLen)
+        {
+            if (sourcePtr != null)
+                this.utf8StringFromSequenceHook.Original(thisPtr, sourcePtr, sourceLen);
+            else
+                thisPtr->Ctor(); // this is in clientstructs but you could do it manually too
+
+            return thisPtr; // this function shouldn't need to return but the original asm moves this into rax before returning so be safe?
         }
     }
 }

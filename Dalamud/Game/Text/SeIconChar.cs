@@ -31,6 +31,11 @@ namespace Dalamud.Game.Text
         HighQuality = 0xE03C,
 
         /// <summary>
+        /// The collectible icon unicode character.
+        /// </summary>
+        Collectible = 0xE03D,
+
+        /// <summary>
         /// The clock icon unicode character.
         /// </summary>
         Clock = 0xE031,

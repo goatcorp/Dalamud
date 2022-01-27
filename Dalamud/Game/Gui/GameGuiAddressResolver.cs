@@ -76,6 +76,11 @@ namespace Dalamud.Game.Gui
         /// </summary>
         public IntPtr GetAgentModule { get; private set; }
 
+        /// <summary>
+        /// Gets the address of the native Utf8StringFromSequence method.
+        /// </summary>
+        public IntPtr Utf8StringFromSequence { get; private set; }
+
         /// <inheritdoc/>
         protected override void Setup64Bit(SigScanner sig)
         {
@@ -88,6 +93,7 @@ namespace Dalamud.Game.Gui
             this.GetMatrixSingleton = sig.ScanText("E8 ?? ?? ?? ?? 48 8D 4C 24 ?? 48 89 4c 24 ?? 4C 8D 4D ?? 4C 8D 44 24 ??");
             this.ScreenToWorld = sig.ScanText("48 83 EC 48 48 8B 05 ?? ?? ?? ?? 4D 8B D1");
             this.ToggleUiHide = sig.ScanText("48 89 5C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 0F B6 B9 ?? ?? ?? ?? B8 ?? ?? ?? ??");
+            this.Utf8StringFromSequence = sig.ScanText("48 89 5C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 48 8D 41 22 66 C7 41 ?? ?? ?? 48 89 01 49 8B D8");
 
             var uiModuleVtableSig = sig.GetStaticAddressFromSig("48 8D 05 ?? ?? ?? ?? 4C 89 61 28");
             this.GetAgentModule = Marshal.ReadIntPtr(uiModuleVtableSig, 34 * IntPtr.Size);
