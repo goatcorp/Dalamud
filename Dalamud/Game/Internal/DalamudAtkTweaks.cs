@@ -4,6 +4,9 @@ using System.Text;
 
 using CheapLoc;
 using Dalamud.Configuration.Internal;
+using Dalamud.Game.Text;
+using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Hooking;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Windowing;
@@ -143,8 +146,15 @@ namespace Dalamud.Game.Internal
             var secondStringEntry = &atkValueArgs[6 + 15];
             this.atkValueChangeType(secondStringEntry, ValueType.String);
 
-            var strPlugins = Encoding.UTF8.GetBytes(Loc.Localize("SystemMenuPlugins", "Dalamud Plugins"));
-            var strSettings = Encoding.UTF8.GetBytes(Loc.Localize("SystemMenuSettings", "Dalamud Settings"));
+            const int color = 539;
+            var strPlugins = new SeString().Append(new UIForegroundPayload(color))
+                                           .Append($"{SeIconChar.BoxedLetterD.ToIconString()} ")
+                                           .Append(new UIForegroundPayload(0))
+                                           .Append(Loc.Localize("SystemMenuPlugins", "Dalamud Plugins")).Encode();
+            var strSettings = new SeString().Append(new UIForegroundPayload(color))
+                                            .Append($"{SeIconChar.BoxedLetterD.ToIconString()} ")
+                                            .Append(new UIForegroundPayload(0))
+                                            .Append(Loc.Localize("SystemMenuSettings", "Dalamud Settings")).Encode();
 
             // do this the most terrible way possible since im lazy
             var bytes = stackalloc byte[strPlugins.Length + 1];
