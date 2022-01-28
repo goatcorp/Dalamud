@@ -5,6 +5,7 @@ using System.Text;
 
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Memory.Exceptions;
+using FFXIVClientStructs.FFXIV.Client.System.Memory;
 using FFXIVClientStructs.FFXIV.Client.System.String;
 
 using static Dalamud.NativeFunctions;
@@ -651,6 +652,82 @@ namespace Dalamud.Memory
         /// <returns>The size of the primitive or struct array.</returns>
         public static int SizeOf<T>(int elementCount, bool marshal)
             => SizeOf<T>(marshal) * elementCount;
+
+        #endregion
+
+        #region Game
+
+        /// <summary>
+        /// Allocate memory in the game's UI memory space.
+        /// </summary>
+        /// <param name="size">Amount of bytes to allocate.</param>
+        /// <param name="alignment">The alignment of the allocation.</param>
+        /// <returns>Pointer to the allocated region.</returns>
+        public static IntPtr GameAllocateUi(ulong size, ulong alignment = 0)
+        {
+            return new IntPtr(IMemorySpace.GetUISpace()->Malloc(size, alignment));
+        }
+
+        /// <summary>
+        /// Allocate memory in the game's default memory space.
+        /// </summary>
+        /// <param name="size">Amount of bytes to allocate.</param>
+        /// <param name="alignment">The alignment of the allocation.</param>
+        /// <returns>Pointer to the allocated region.</returns>
+        public static IntPtr GameAllocateDefault(ulong size, ulong alignment = 0)
+        {
+            return new IntPtr(IMemorySpace.GetDefaultSpace()->Malloc(size, alignment));
+        }
+
+        /// <summary>
+        /// Allocate memory in the game's animation memory space.
+        /// </summary>
+        /// <param name="size">Amount of bytes to allocate.</param>
+        /// <param name="alignment">The alignment of the allocation.</param>
+        /// <returns>Pointer to the allocated region.</returns>
+        public static IntPtr GameAllocateAnimation(ulong size, ulong alignment = 0)
+        {
+            return new IntPtr(IMemorySpace.GetAnimationSpace()->Malloc(size, alignment));
+        }
+
+        /// <summary>
+        /// Allocate memory in the game's apricot memory space.
+        /// </summary>
+        /// <param name="size">Amount of bytes to allocate.</param>
+        /// <param name="alignment">The alignment of the allocation.</param>
+        /// <returns>Pointer to the allocated region.</returns>
+        public static IntPtr GameAllocateApricot(ulong size, ulong alignment = 0)
+        {
+            return new IntPtr(IMemorySpace.GetApricotSpace()->Malloc(size, alignment));
+        }
+
+        /// <summary>
+        /// Allocate memory in the game's sound memory space.
+        /// </summary>
+        /// <param name="size">Amount of bytes to allocate.</param>
+        /// <param name="alignment">The alignment of the allocation.</param>
+        /// <returns>Pointer to the allocated region.</returns>
+        public static IntPtr GameAllocateSound(ulong size, ulong alignment = 0)
+        {
+            return new IntPtr(IMemorySpace.GetSoundSpace()->Malloc(size, alignment));
+        }
+
+        /// <summary>
+        /// Free memory in the game's memory space.
+        /// </summary>
+        /// <remarks>The memory you are freeing must be allocated with game allocators.</remarks>
+        /// <param name="ptr">Position at which the memory to be freed is located.</param>
+        /// <param name="size">Amount of bytes to free.</param>
+        public static void GameFree(ref IntPtr ptr, ulong size)
+        {
+            if (ptr == IntPtr.Zero)
+            {
+                return;
+            }
+
+            IMemorySpace.Free((void*)ptr, size);
+            ptr = IntPtr.Zero;
+        }
 
         #endregion
     }
