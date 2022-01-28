@@ -1,7 +1,7 @@
 ﻿namespace Dalamud.Game.Text
 {
     /// <summary>
-    /// Extension methods for <see cref="SeIconChar"/>
+    /// Extension methods for <see cref="SeIconChar"/>.
     /// </summary>
     public static class SeIconCharExtensions
     {

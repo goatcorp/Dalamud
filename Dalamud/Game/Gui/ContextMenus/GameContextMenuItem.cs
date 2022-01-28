@@ -8,11 +8,6 @@ namespace Dalamud.Game.Gui.ContextMenus
     public class GameContextMenuItem : ContextMenuItem
     {
         /// <summary>
-        /// The game action that will be handled when the item is selected.
-        /// </summary>
-        public byte SelectedAction { get; }
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="GameContextMenuItem"/> class.
         /// </summary>
         /// <param name="name">The name of the item.</param>
@@ -20,15 +15,21 @@ namespace Dalamud.Game.Gui.ContextMenus
         public GameContextMenuItem(SeString name, byte selectedAction)
             : base(name)
         {
-            SelectedAction = selectedAction;
+            this.SelectedAction = selectedAction;
         }
 
+        /// <summary>
+        /// Gets the game action that will be handled when the item is selected.
+        /// </summary>
+        public byte SelectedAction { get; }
+
+        /// <inheritdoc/>
         public override int GetHashCode()
         {
             unchecked
             {
-                int hash = base.GetHashCode();
-                hash = hash * 23 + SelectedAction;
+                var hash = base.GetHashCode();
+                hash = (hash * 23) + this.SelectedAction;
                 return hash;
             }
         }

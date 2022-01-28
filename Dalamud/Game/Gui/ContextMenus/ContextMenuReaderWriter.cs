@@ -14,6 +14,9 @@ using ValueType = FFXIVClientStructs.FFXIV.Component.GUI.ValueType;
 
 namespace Dalamud.Game.Gui.ContextMenus
 {
+    /// <summary>
+    /// Class responsible for reading and writing to context menu data.
+    /// </summary>
     internal unsafe class ContextMenuReaderWriter
     {
         private readonly AgentContextInterface* agentContextInterface;
@@ -42,12 +45,24 @@ namespace Dalamud.Game.Gui.ContextMenus
             Alternate,
         }
 
+        /// <summary>
+        /// Gets the number of AtkValues for this context menu.
+        /// </summary>
         public int AtkValueCount => this.atkValueCount;
 
+        /// <summary>
+        /// Gets the AtkValues for this context menu.
+        /// </summary>
         public AtkValue* AtkValues => this.atkValues;
 
+        /// <summary>
+        /// Gets the amount of items in the context menu.
+        /// </summary>
         public int ContextMenuItemCount => this.atkValues[0].Int;
 
+        /// <summary>
+        /// Gets a value indicating whether the context menu has a title.
+        /// </summary>
         public bool HasTitle
         {
             get
@@ -61,6 +76,9 @@ namespace Dalamud.Game.Gui.ContextMenus
             }
         }
 
+        /// <summary>
+        /// Gets the title of the context menu.
+        /// </summary>
         public SeString? Title
         {
             get
@@ -75,32 +93,9 @@ namespace Dalamud.Game.Gui.ContextMenus
             }
         }
 
-        public int HasPreviousIndicatorFlagsIndex
-        {
-            get
-            {
-                if (this.HasTitle)
-                {
-                    return 6;
-                }
-
-                return 2;
-            }
-        }
-
-        public int HasNextIndicatorFlagsIndex
-        {
-            get
-            {
-                if (this.HasTitle)
-                {
-                    return 5;
-                }
-
-                return 3;
-            }
-        }
-
+        /// <summary>
+        /// Gets the index of the first context menu item.
+        /// </summary>
         public int FirstContextMenuItemIndex
         {
             get
@@ -114,7 +109,46 @@ namespace Dalamud.Game.Gui.ContextMenus
             }
         }
 
-        public int NameIndexOffset
+        /// <summary>
+        /// Gets the position of the context menu.
+        /// </summary>
+        public Vector2? Position
+        {
+            get
+            {
+                if (this.HasTitle) return new Vector2(this.atkValues[2].Int, this.atkValues[3].Int);
+
+                return null;
+            }
+        }
+
+        private int HasPreviousIndicatorFlagsIndex
+        {
+            get
+            {
+                if (this.HasTitle)
+                {
+                    return 6;
+                }
+
+                return 2;
+            }
+        }
+
+        private int HasNextIndicatorFlagsIndex
+        {
+            get
+            {
+                if (this.HasTitle)
+                {
+                    return 5;
+                }
+
+                return 3;
+            }
+        }
+
+        private int NameIndexOffset
         {
             get
             {
@@ -127,7 +161,7 @@ namespace Dalamud.Game.Gui.ContextMenus
             }
         }
 
-        public int IsDisabledIndexOffset
+        private int IsDisabledIndexOffset
         {
             get
             {
@@ -140,6 +174,7 @@ namespace Dalamud.Game.Gui.ContextMenus
             }
         }
 
+        /*
         /// <summary>
         /// 0x14000000 | action
         /// </summary>
@@ -152,8 +187,9 @@ namespace Dalamud.Game.Gui.ContextMenus
                 return null;
             }
         }
+        */
 
-        public int SequentialAtkValuesPerContextMenuItem
+        private int SequentialAtkValuesPerContextMenuItem
         {
             get
             {
@@ -163,7 +199,7 @@ namespace Dalamud.Game.Gui.ContextMenus
             }
         }
 
-        public int TotalDesiredAtkValuesPerContextMenuItem
+        private int TotalDesiredAtkValuesPerContextMenuItem
         {
             get
             {
@@ -173,17 +209,7 @@ namespace Dalamud.Game.Gui.ContextMenus
             }
         }
 
-        public Vector2? Position
-        {
-            get
-            {
-                if (this.HasTitle) return new Vector2(this.atkValues[2].Int, this.atkValues[3].Int);
-
-                return null;
-            }
-        }
-
-        public unsafe bool IsInventoryContext
+        private bool IsInventoryContext
         {
             get
             {
@@ -200,58 +226,48 @@ namespace Dalamud.Game.Gui.ContextMenus
         {
             get
             {
-                if (HasTitle)
+                if (this.HasTitle)
                 {
                     if (this.atkValues[7].Int == 8)
-                    {
                         return SubContextMenuStructLayout.Alternate;
-                    }
-                    else if (this.atkValues[7].Int == 1)
-                    {
-                        return SubContextMenuStructLayout.Main;
-                    }
+
+                    if (this.atkValues[7].Int == 1) return SubContextMenuStructLayout.Main;
                 }
 
                 return null;
             }
         }
 
-        public byte NoopAction
+        private byte NoopAction
         {
             get
             {
-                if (IsInventoryContext)
-                {
+                if (this.IsInventoryContext)
                     return 0xff;
-                }
-                else
-                {
-                    return 0x67;
-                }
+                return 0x67;
             }
         }
 
-        public byte OpenSubContextMenuAction
+        private byte OpenSubContextMenuAction
         {
             get
             {
-                if (IsInventoryContext)
+                if (this.IsInventoryContext)
                 {
                     // This is actually the action to open the Second Tier context menu and we just hack around it
                     return 0x31;
                 }
-                else
-                {
-                    return 0x66;
-                }
+
+                return 0x66;
             }
         }
 
-        public byte? FirstUnhandledAction
+        private byte? FirstUnhandledAction
         {
             get
             {
-                if (this.StructLayout is SubContextMenuStructLayout.Alternate) return 0x68;
+                if (this.StructLayout is SubContextMenuStructLayout.Alternate)
+                    return 0x68;
 
                 return null;
             }
@@ -334,6 +350,11 @@ namespace Dalamud.Game.Gui.ContextMenus
             return gameContextMenuItems.ToArray();
         }
 
+        /// <summary>
+        /// Write items to the context menu.
+        /// </summary>
+        /// <param name="contextMenuItems">The items to write.</param>
+        /// <param name="allowReallocate">Whether or not reallocation is allowed.</param>
         public void Write(IEnumerable<ContextMenuItem> contextMenuItems, bool allowReallocate = true)
         {
             if (allowReallocate)
@@ -353,7 +374,7 @@ namespace Dalamud.Game.Gui.ContextMenus
 
                 // Zero the memory, then copy the atk values up to the first context menu item atk value
                 Marshal.Copy(new byte[newAtkValuesArraySize], 0, newAtkValuesArray, newAtkValuesArraySize);
-                Buffer.MemoryCopy(this.atkValues, newAtkValues, newAtkValuesArraySize - arrayCountSize, (long)sizeof(AtkValue) * FirstContextMenuItemIndex);
+                Buffer.MemoryCopy(this.atkValues, newAtkValues, newAtkValuesArraySize - arrayCountSize, (long)sizeof(AtkValue) * this.FirstContextMenuItemIndex);
 
                 // Free the old array
                 var oldArray = (IntPtr)this.atkValues - arrayCountSize;
@@ -467,12 +488,13 @@ namespace Dalamud.Game.Gui.ContextMenus
             }
         }
 
-        public void Log()
+        /*
+        private void Log()
         {
             Log(this.atkValueCount, this.atkValues);
         }
 
-        public static void Log(int atkValueCount, AtkValue* atkValues)
+        private static void Log(int atkValueCount, AtkValue* atkValues)
         {
             PluginLog.Debug($"ContextMenuReader.Log");
 
@@ -515,5 +537,6 @@ namespace Dalamud.Game.Gui.ContextMenus
                 PluginLog.Debug($"atkValues[{atkValueIndex}]={(IntPtr)atkValue:X}   {atkValue->Type}={value}");
             }
         }
+        */
     }
 }

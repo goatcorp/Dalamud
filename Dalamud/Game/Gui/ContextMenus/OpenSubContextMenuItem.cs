@@ -8,11 +8,6 @@ namespace Dalamud.Game.Gui.ContextMenus
     public class OpenSubContextMenuItem : ContextMenuItem
     {
         /// <summary>
-        /// The action that will be called when the item is selected.
-        /// </summary>
-        public ContextMenuOpenedDelegate Opened { get; set; }
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="OpenSubContextMenuItem"/> class.
         /// </summary>
         /// <param name="name">The name of the item.</param>
@@ -20,16 +15,22 @@ namespace Dalamud.Game.Gui.ContextMenus
         internal OpenSubContextMenuItem(SeString name, ContextMenuOpenedDelegate opened)
             : base(name)
         {
-            Opened = opened;
-            Indicator = ContextMenuItemIndicator.Next;
+            this.Opened = opened;
+            this.Indicator = ContextMenuItemIndicator.Next;
         }
 
+        /// <summary>
+        /// Gets the action that will be called when the item is selected.
+        /// </summary>
+        public ContextMenuOpenedDelegate Opened { get; }
+
+        /// <inheritdoc/>
         public override int GetHashCode()
         {
             unchecked
             {
                 int hash = base.GetHashCode();
-                hash = hash * 23 + Opened.GetHashCode();
+                hash = (hash * 23) + this.Opened.GetHashCode();
                 return hash;
             }
         }

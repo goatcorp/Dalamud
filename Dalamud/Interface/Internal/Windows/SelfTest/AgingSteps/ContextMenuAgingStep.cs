@@ -1,13 +1,11 @@
 ﻿using System;
-using System.Runtime.CompilerServices;
+
 using Dalamud.Data;
 using Dalamud.Game.Gui.ContextMenus;
 using Dalamud.Utility;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
-using Lumina.Text;
 using Serilog;
-using SeString = Dalamud.Game.Text.SeStringHandling.SeString;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
 {

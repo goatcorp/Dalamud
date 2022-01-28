@@ -9,13 +9,15 @@
         /// The item has no indicator.
         /// </summary>
         None,
+
         /// <summary>
         /// The item has a previous indicator.
         /// </summary>
         Previous,
+
         /// <summary>
         /// The item has a next indicator.
         /// </summary>
-        Next
+        Next,
     }
 }

@@ -12,7 +12,7 @@ using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using Serilog;
-using SignatureHelper = Dalamud.Utility.Signatures.SignatureHelper;
+
 using ValueType = FFXIVClientStructs.FFXIV.Component.GUI.ValueType;
 
 namespace Dalamud.Game.Gui.ContextMenus
@@ -48,7 +48,6 @@ namespace Dalamud.Game.Gui.ContextMenus
         /// <summary>
         /// Initializes a new instance of the <see cref="ContextMenu"/> class.
         /// </summary>
-        /// <param name="address">Address resolver for context menu hooks.</param>
         public ContextMenu()
         {
             this.Address = new ContextMenuAddressResolver();
@@ -65,7 +64,6 @@ namespace Dalamud.Game.Gui.ContextMenus
                 this.subContextMenuOpenedHook = new Hook<ContextMenuOpenedDelegate>(this.Address.SubContextMenuOpenedPtr, this.SubContextMenuOpenedDetour);
             }
         }
-
 
         #region Delegates
 

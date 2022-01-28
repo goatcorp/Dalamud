@@ -10,11 +10,6 @@ namespace Dalamud.Game.Gui.ContextMenus
     public class CustomContextMenuItem : ContextMenuItem
     {
         /// <summary>
-        /// The action that will be called when the item is selected.
-        /// </summary>
-        public CustomContextMenuItemSelectedDelegate ItemSelected { get; }
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="CustomContextMenuItem"/> class.
         /// </summary>
         /// <param name="name">The name of the item.</param>
@@ -22,15 +17,21 @@ namespace Dalamud.Game.Gui.ContextMenus
         internal CustomContextMenuItem(SeString name, CustomContextMenuItemSelectedDelegate itemSelected)
             : base(new SeString().Append(new UIForegroundPayload(539)).Append($"{SeIconChar.BoxedLetterD.ToIconString()} ").Append(new UIForegroundPayload(0)).Append(name))
         {
-            ItemSelected = itemSelected;
+            this.ItemSelected = itemSelected;
         }
 
+        /// <summary>
+        /// Gets the action that will be called when the item is selected.
+        /// </summary>
+        public CustomContextMenuItemSelectedDelegate ItemSelected { get; }
+
+        /// <inheritdoc/>
         public override int GetHashCode()
         {
             unchecked
             {
-                int hash = base.GetHashCode();
-                hash = hash * 23 + ItemSelected.GetHashCode();
+                var hash = base.GetHashCode();
+                hash = (hash * 23) + this.ItemSelected.GetHashCode();
                 return hash;
             }
         }
