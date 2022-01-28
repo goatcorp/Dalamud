@@ -35,6 +35,7 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
             TestGameObject,
             TestSubMenu,
             TestMultiple,
+            Finish,
         }
 
         /// <inheritdoc/>
@@ -118,7 +119,10 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
 
                 case SubStep.TestMultiple:
                     if (this.multipleTriggerOne && this.multipleTriggerTwo)
+                    {
+                        this.currentSubStep = SubStep.Finish;
                         return SelfTestStepResult.Pass;
+                    }
 
                     ImGui.Text("Select both options on any context menu.");
                     if (ImGui.Button("Skip"))
@@ -139,6 +143,8 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
 
             this.currentSubStep = SubStep.Start;
             this.clickedItemId = 0;
+            this.clickedPlayerName = null;
+            this.multipleTriggerOne = this.multipleTriggerTwo = false;
         }
 
         private void ContextMenuOnContextMenuOpened(ContextMenuOpenedArgs args)
@@ -174,6 +180,9 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
                     }));
 
                     return;
+                case SubStep.Finish:
+                    return;
+
                 default:
                     switch (args.ParentAddonName)
                     {
