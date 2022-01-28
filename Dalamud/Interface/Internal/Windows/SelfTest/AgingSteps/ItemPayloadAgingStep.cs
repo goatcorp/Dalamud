@@ -30,7 +30,7 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
         }
 
         /// <inheritdoc/>
-        public string Name => "Item Payloads";
+        public string Name => "Test Item Payloads";
 
         /// <inheritdoc/>
         public SelfTestStepResult RunStep()
