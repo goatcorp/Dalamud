@@ -20,16 +20,21 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
         private bool clickedItemHq;
         private uint clickedItemCount;
 
-        private string clickedPlayerName;
+        private string? clickedPlayerName;
         private ushort? clickedPlayerWorld;
         private ulong? clickedPlayerCid;
         private uint? clickedPlayerId;
+
+        private bool multipleTriggerOne;
+        private bool multipleTriggerTwo;
 
         private enum SubStep
         {
             Start,
             TestItem,
             TestGameObject,
+            TestSubMenu,
+            TestMultiple,
         }
 
         /// <inheritdoc/>
@@ -40,6 +45,8 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
         {
             var contextMenu = Service<ContextMenu>.Get();
             var dataMgr = Service<DataManager>.Get();
+
+            ImGui.Text(this.currentSubStep.ToString());
 
             switch (this.currentSubStep)
             {
@@ -64,6 +71,9 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
                     else
                     {
                         ImGui.Text("Right-click an item.");
+
+                        if (ImGui.Button("Skip"))
+                            this.currentSubStep++;
                     }
 
                     break;
@@ -74,7 +84,7 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
                         ImGui.Text($"Did you click \"{this.clickedPlayerName}\", world:{this.clickedPlayerWorld}, cid:{this.clickedPlayerCid}, id:{this.clickedPlayerId}?");
 
                         if (ImGui.Button("Yes"))
-                            return SelfTestStepResult.Pass;
+                            this.currentSubStep++;
 
                         ImGui.SameLine();
 
@@ -83,9 +93,36 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
                     }
                     else
                     {
-                        ImGui.Text("Right-click an item.");
+                        ImGui.Text("Right-click a character.");
+
+                        if (ImGui.Button("Skip"))
+                            this.currentSubStep++;
                     }
 
+                    break;
+                case SubStep.TestSubMenu:
+                    if (this.multipleTriggerOne && this.multipleTriggerTwo)
+                    {
+                        this.currentSubStep++;
+                        this.multipleTriggerOne = this.multipleTriggerTwo = false;
+                    }
+                    else
+                    {
+                        ImGui.Text("Right-click a character and select both options in the submenu.");
+
+                        if (ImGui.Button("Skip"))
+                            this.currentSubStep++;
+                    }
+
+                    break;
+
+                case SubStep.TestMultiple:
+                    if (this.multipleTriggerOne && this.multipleTriggerTwo)
+                        return SelfTestStepResult.Pass;
+
+                    ImGui.Text("Select both options on any context menu.");
+                    if (ImGui.Button("Skip"))
+                        this.currentSubStep++;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -107,45 +144,80 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
         private void ContextMenuOnContextMenuOpened(ContextMenuOpenedArgs args)
         {
             Log.Information("Got context menu with parent addon: {ParentAddonName}", args.ParentAddonName);
-            switch (args.ParentAddonName)
+
+            switch (this.currentSubStep)
             {
-                case "Inventory":
-                    if (this.currentSubStep != SubStep.TestItem)
-                        return;
-
-                    args.Items.Add(new CustomContextMenuItem("Aging Item Test", selectedArgs =>
+                case SubStep.TestSubMenu:
+                    args.Items.Add(new OpenSubContextMenuItem("Aging Submenu", openedArgs =>
                     {
-                        this.clickedItemId = args.InventoryItemContext!.Id;
-                        this.clickedItemHq = args.InventoryItemContext!.IsHighQuality;
-                        this.clickedItemCount = args.InventoryItemContext!.Count;
-                        Log.Warning("Clicked item: {Id} hq:{Hq} count:{Count}", this.clickedItemId, this.clickedItemHq, this.clickedItemCount);
+                        openedArgs.Items.Add(new CustomContextMenuItem("Submenu Item 1", args =>
+                        {
+                            this.multipleTriggerOne = true;
+                        }));
+
+                        openedArgs.Items.Add(new CustomContextMenuItem("Submenu Item 2", args =>
+                        {
+                            this.multipleTriggerTwo = true;
+                        }));
                     }));
-                    break;
 
-                case null:
-                case "_PartyList":
-                case "ChatLog":
-                case "ContactList":
-                case "ContentMemberList":
-                case "CrossWorldLinkshell":
-                case "FreeCompany":
-                case "FriendList":
-                case "LookingForGroup":
-                case "LinkShell":
-                case "PartyMemberList":
-                case "SocialList":
-                    if (this.currentSubStep != SubStep.TestGameObject || args.GameObjectContext == null || args.GameObjectContext.Name.IsNullOrEmpty())
-                        return;
-
-                    args.Items.Add(new CustomContextMenuItem("Aging Character Test", selectedArgs =>
+                    return;
+                case SubStep.TestMultiple:
+                    args.Items.Insert(0, new CustomContextMenuItem("Aging Item 1", args =>
                     {
-                        this.clickedPlayerName = args.GameObjectContext.Name!;
-                        this.clickedPlayerWorld = args.GameObjectContext.WorldId;
-                        this.clickedPlayerCid = args.GameObjectContext.ContentId;
-                        this.clickedPlayerId = args.GameObjectContext.Id;
-
-                        Log.Warning("Clicked player: {Name} world:{World} cid:{Cid} id:{Id}", this.clickedPlayerName, this.clickedPlayerWorld, this.clickedPlayerCid, this.clickedPlayerId);
+                        this.multipleTriggerOne = true;
                     }));
+
+                    args.Items.Add(new CustomContextMenuItem("Aging Item 2", args =>
+                    {
+                        this.multipleTriggerTwo = true;
+                    }));
+
+                    return;
+                default:
+                    switch (args.ParentAddonName)
+                    {
+                        case "Inventory":
+                            if (this.currentSubStep != SubStep.TestItem)
+                                return;
+
+                            args.Items.Add(new CustomContextMenuItem("Aging Item", selectedArgs =>
+                            {
+                                this.clickedItemId = args.InventoryItemContext!.Id;
+                                this.clickedItemHq = args.InventoryItemContext!.IsHighQuality;
+                                this.clickedItemCount = args.InventoryItemContext!.Count;
+                                Log.Warning("Clicked item: {Id} hq:{Hq} count:{Count}", this.clickedItemId, this.clickedItemHq, this.clickedItemCount);
+                            }));
+                            break;
+
+                        case null:
+                        case "_PartyList":
+                        case "ChatLog":
+                        case "ContactList":
+                        case "ContentMemberList":
+                        case "CrossWorldLinkshell":
+                        case "FreeCompany":
+                        case "FriendList":
+                        case "LookingForGroup":
+                        case "LinkShell":
+                        case "PartyMemberList":
+                        case "SocialList":
+                            if (this.currentSubStep != SubStep.TestGameObject || args.GameObjectContext == null || args.GameObjectContext.Name.IsNullOrEmpty())
+                                return;
+
+                            args.Items.Add(new CustomContextMenuItem("Aging Character", selectedArgs =>
+                            {
+                                this.clickedPlayerName = args.GameObjectContext.Name!;
+                                this.clickedPlayerWorld = args.GameObjectContext.WorldId;
+                                this.clickedPlayerCid = args.GameObjectContext.ContentId;
+                                this.clickedPlayerId = args.GameObjectContext.Id;
+
+                                Log.Warning("Clicked player: {Name} world:{World} cid:{Cid} id:{Id}", this.clickedPlayerName, this.clickedPlayerWorld, this.clickedPlayerCid, this.clickedPlayerId);
+                            }));
+
+                            break;
+                    }
+
                     break;
             }
         }
