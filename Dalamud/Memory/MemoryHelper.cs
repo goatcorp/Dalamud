@@ -730,5 +730,28 @@ namespace Dalamud.Memory
         }
 
         #endregion
+
+        #region Utility
+
+        /// <summary>
+        /// Null-terminate a byte array.
+        /// </summary>
+        /// <param name="bytes">The byte array to terminate.</param>
+        /// <returns>The terminated byte array.</returns>
+        public static byte[] NullTerminate(this byte[] bytes)
+        {
+            if (bytes.Length == 0 || bytes[^1] != 0)
+            {
+                var newBytes = new byte[bytes.Length + 1];
+                Array.Copy(bytes, newBytes, bytes.Length);
+                newBytes[^1] = 0;
+
+                return newBytes;
+            }
+
+            return bytes;
+        }
+
+        #endregion
     }
 }
