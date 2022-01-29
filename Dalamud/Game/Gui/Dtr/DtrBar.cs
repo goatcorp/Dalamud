@@ -33,6 +33,11 @@ namespace Dalamud.Game.Gui.Dtr
         public DtrBar()
         {
             Service<Framework>.Get().Update += this.Update;
+            var configuration = Service<DalamudConfiguration>.Get();
+
+            configuration.DtrOrder ??= new List<string>();
+            configuration.DtrIgnore ??= new List<string>();
+            configuration.Save();
         }
 
         /// <summary>
@@ -75,6 +80,47 @@ namespace Dalamud.Game.Gui.Dtr
         /// <returns>Whether or not an entry with that title is registered.</returns>
         internal bool HasEntry(string title) => this.entries.Any(x => x.Title == title);
 
+        /// <summary>
+        /// Dirty the DTR bar entry with the specified title.
+        /// </summary>
+        /// <param name="title">Title of the entry to dirty.</param>
+        /// <returns>Whether the entry was found.</returns>
+        internal bool MakeDirty(string title)
+        {
+            var entry = this.entries.FirstOrDefault(x => x.Title == title);
+            if (entry == null)
+                return false;
+
+            entry.Dirty = true;
+            return true;
+        }
+
+        /// <summary>
+        /// Reapply the DTR entry ordering from <see cref="DalamudConfiguration"/>.
+        /// </summary>
+        internal void ApplySort()
+        {
+            var configuration = Service<DalamudConfiguration>.Get();
+
+            // Sort the current entry list, based on the order in the configuration.
+            var ordered = configuration.DtrOrder.Select(entry => this.entries.FirstOrDefault(x => x.Title == entry)).Where(value => value != null).ToList();
+
+            // Add entries that weren't sorted to the end of the list.
+            if (ordered.Count != this.entries.Count)
+            {
+                ordered.AddRange(this.entries.Where(x => ordered.All(y => y.Title != x.Title)));
+            }
+
+            // Update the order list for new entries.
+            configuration.DtrOrder.Clear();
+            foreach (var dtrEntry in ordered)
+            {
+                configuration.DtrOrder.Add(dtrEntry.Title);
+            }
+
+            this.entries = ordered;
+        }
+
         private static AtkUnitBase* GetDtr() => (AtkUnitBase*)Service<GameGui>.Get().GetAddonByName("_DTR", 1).ToPointer();
 
         private void Update(Framework unused)
@@ -93,9 +139,12 @@ namespace Dalamud.Game.Gui.Dtr
             var collisionNode = dtr->UldManager.NodeList[1];
             var runningXPos = collisionNode->X;
 
+            var configuration = Service<DalamudConfiguration>.Get();
+
             for (var i = 0; i < this.entries.Count; i++)
             {
                 var data = this.entries[i];
+                var isHide = configuration.DtrIgnore!.Any(x => x == data.Title) || !data.Shown;
 
                 if (data.Dirty && data.Added && data.Text != null && data.TextNode != null)
                 {
@@ -103,7 +152,7 @@ namespace Dalamud.Game.Gui.Dtr
                     node->SetText(data.Text?.Encode());
                     ushort w = 0, h = 0;
 
-                    if (!data.Shown)
+                    if (isHide)
                     {
                         node->AtkResNode.ToggleVisibility(false);
                     }
@@ -122,7 +171,7 @@ namespace Dalamud.Game.Gui.Dtr
                     data.Added = this.AddNode(data.TextNode);
                 }
 
-                if (data.Shown)
+                if (!isHide)
                 {
                     runningXPos -= data.TextNode->AtkResNode.Width + ElementPadding;
                     data.TextNode->AtkResNode.SetPositionFloat(runningXPos, 2);
@@ -212,34 +261,6 @@ namespace Dalamud.Game.Gui.Dtr
             newTextNode->EdgeColor.A = 255;
 
             return newTextNode;
-        }
-
-        private void ApplySort()
-        {
-            var configuration = Service<DalamudConfiguration>.Get();
-            if (configuration.DtrOrder == null)
-            {
-                configuration.DtrOrder = new List<string>();
-                configuration.Save();
-            }
-
-            // Sort the current entry list, based on the order in the configuration.
-            var ordered = configuration.DtrOrder.Select(entry => this.entries.FirstOrDefault(x => x.Title == entry)).Where(value => value != null).ToList();
-
-            // Add entries that weren't sorted to the end of the list.
-            if (ordered.Count != this.entries.Count)
-            {
-                ordered.AddRange(this.entries.Where(x => ordered.All(y => y.Title != x.Title)));
-            }
-
-            // Update the order list for new entries.
-            configuration.DtrOrder.Clear();
-            foreach (var dtrEntry in ordered)
-            {
-                configuration.DtrOrder.Add(dtrEntry.Title);
-            }
-
-            this.entries = ordered;
         }
     }
 }

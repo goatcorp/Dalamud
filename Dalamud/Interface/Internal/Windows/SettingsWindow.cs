@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using CheapLoc;
 using Dalamud.Configuration;
 using Dalamud.Configuration.Internal;
+using Dalamud.Game.Gui.Dtr;
 using Dalamud.Game.Text;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
@@ -43,6 +44,9 @@ namespace Dalamud.Interface.Internal.Windows
         private bool doViewport;
         private bool doGamepad;
         private bool doFocus;
+
+        private List<string>? dtrOrder;
+        private List<string>? dtrIgnore;
 
         private List<ThirdPartyRepoSettings> thirdRepoList;
         private bool thirdRepoListChanged;
@@ -152,6 +156,10 @@ namespace Dalamud.Interface.Internal.Windows
         {
             this.thirdRepoListChanged = false;
             this.devPluginLocationsChanged = false;
+
+            var configuration = Service<DalamudConfiguration>.Get();
+            this.dtrOrder = configuration.DtrOrder;
+            this.dtrIgnore = configuration.DtrIgnore;
         }
 
         /// <inheritdoc/>
@@ -162,6 +170,9 @@ namespace Dalamud.Interface.Internal.Windows
             ImGui.GetIO().FontGlobalScale = configuration.GlobalUiScale;
             this.thirdRepoList = configuration.ThirdRepoList.Select(x => x.Clone()).ToList();
             this.devPluginLocations = configuration.DevPluginLoadLocations.Select(x => x.Clone()).ToList();
+
+            configuration.DtrOrder = this.dtrOrder;
+            configuration.DtrIgnore = this.dtrIgnore;
         }
 
         /// <inheritdoc/>
@@ -181,6 +192,12 @@ namespace Dalamud.Interface.Internal.Windows
                 if (ImGui.BeginTabItem(Loc.Localize("DalamudSettingsVisual", "Look & Feel")))
                 {
                     this.DrawLookAndFeelTab();
+                    ImGui.EndTabItem();
+                }
+
+                if (ImGui.BeginTabItem(Loc.Localize("DalamudSettingsServerInfoBar", "Server Info Bar")))
+                {
+                    this.DrawServerInfoBarTab();
                     ImGui.EndTabItem();
                 }
 
@@ -295,6 +312,96 @@ namespace Dalamud.Interface.Internal.Windows
 
             ImGui.Checkbox(Loc.Localize("DalamudSettingToggleGamepadNavigation", "Control plugins via gamepad"), ref this.doGamepad);
             ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingToggleGamepadNavigationHint", "This will allow you to toggle between game and plugin navigation via L1+L3.\nToggle the PluginInstaller window via R3 if ImGui navigation is enabled."));
+        }
+
+        private void DrawServerInfoBarTab()
+        {
+            ImGui.Text(Loc.Localize("DalamudSettingServerInfoBar", "Server Info Bar configuration"));
+            ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingServerInfoBarHint", "Plugins can put additional information into your server information bar(where world & time can be seen).\nYou can reorder and disable these here."));
+
+            ImGuiHelpers.ScaledDummy(10, 10);
+
+            var configuration = Service<DalamudConfiguration>.Get();
+            var dtrBar = Service<DtrBar>.Get();
+
+            var order = configuration.DtrOrder!;
+            var ignore = configuration.DtrIgnore!;
+
+            if (order.Count == 0)
+            {
+                ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingServerInfoBarDidNone", "You have no plugins that use this feature."));
+            }
+
+            var isOrderChange = false;
+            for (var i = 0; i < order.Count; i++)
+            {
+                var title = order[i];
+                if (!dtrBar.HasEntry(title))
+                    continue;
+
+                // TODO: Maybe we can also resort the rest of the bar in the future?
+                // var isRequired = search is Configuration.SearchSetting.Internal or Configuration.SearchSetting.MacroLinks;
+
+                ImGui.PushFont(UiBuilder.IconFont);
+
+                var arrowUpText = $"{FontAwesomeIcon.ArrowUp.ToIconString()}##{title}";
+                if (i == 0)
+                {
+                    ImGuiComponents.DisabledButton(arrowUpText);
+                }
+                else
+                {
+                    if (ImGui.Button(arrowUpText))
+                    {
+                        (order[i], order[i - 1]) = (order[i - 1], order[i]);
+                        isOrderChange = true;
+                    }
+                }
+
+                ImGui.SameLine();
+
+                var arrowDownText = $"{FontAwesomeIcon.ArrowDown.ToIconString()}##{title}";
+                if (i == order.Count - 1)
+                {
+                    ImGuiComponents.DisabledButton(arrowDownText);
+                }
+                else
+                {
+                    if (ImGui.Button(arrowDownText) && i != order.Count - 1)
+                    {
+                        (order[i], order[i + 1]) = (order[i + 1], order[i]);
+                        isOrderChange = true;
+                    }
+                }
+
+                ImGui.PopFont();
+
+                ImGui.SameLine();
+
+                // if (isRequired) {
+                //     ImGui.TextUnformatted($"Search in {name}");
+                // } else {
+
+                var isShown = ignore.All(x => x != title);
+                var nextIsShow = isShown;
+                if (ImGui.Checkbox($"{title}###dtrEntry{i}", ref nextIsShow) && nextIsShow != isShown)
+                {
+                    if (nextIsShow)
+                        ignore.Remove(title);
+                    else
+                        ignore.Add(title);
+
+                    dtrBar.MakeDirty(title);
+                }
+
+                // }
+            }
+
+            configuration.DtrOrder = order;
+            configuration.DtrIgnore = ignore;
+
+            if (isOrderChange)
+                dtrBar.ApplySort();
         }
 
         private void DrawExperimentalTab()
@@ -696,6 +803,9 @@ namespace Dalamud.Interface.Internal.Windows
                 ImGui.GetIO().BackendFlags |= ImGuiBackendFlags.HasGamepad;
                 ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.NavEnableSetMousePos;
             }
+
+            this.dtrOrder = configuration.DtrOrder;
+            this.dtrIgnore = configuration.DtrIgnore;
 
             configuration.DoPluginTest = this.doPluginTest;
             configuration.ThirdRepoList = this.thirdRepoList.Select(x => x.Clone()).ToList();
