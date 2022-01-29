@@ -3,7 +3,7 @@
     /// <summary>
     /// Provides data for <see cref="CustomContextMenuItemSelectedDelegate"/> methods.
     /// </summary>
-    public class CustomContextMenuItemSelectedArgs
+    public sealed class CustomContextMenuItemSelectedArgs
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="CustomContextMenuItemSelectedArgs"/> class.

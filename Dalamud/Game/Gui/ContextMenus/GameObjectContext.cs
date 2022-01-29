@@ -5,7 +5,7 @@ namespace Dalamud.Game.Gui.ContextMenus
     /// <summary>
     /// Provides game object context to a context menu.
     /// </summary>
-    public class GameObjectContext
+    public sealed class GameObjectContext
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="GameObjectContext"/> class.

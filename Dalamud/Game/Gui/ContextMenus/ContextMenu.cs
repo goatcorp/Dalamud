@@ -21,7 +21,7 @@ namespace Dalamud.Game.Gui.ContextMenus
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    public class ContextMenu : IDisposable
+    public sealed class ContextMenu : IDisposable
     {
         private const int MaxContextMenuItemsPerContextMenu = 32;
 

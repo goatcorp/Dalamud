@@ -7,7 +7,7 @@ namespace Dalamud.Game.Gui.ContextMenus
     /// <summary>
     /// An item in a context menu that can open a sub context menu.
     /// </summary>
-    public class OpenSubContextMenuItem : ContextMenuItem
+    public sealed class OpenSubContextMenuItem : ContextMenuItem
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="OpenSubContextMenuItem"/> class.

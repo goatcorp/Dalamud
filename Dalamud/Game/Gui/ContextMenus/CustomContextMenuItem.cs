@@ -7,7 +7,7 @@ namespace Dalamud.Game.Gui.ContextMenus
     /// <summary>
     /// An item in a context menu with a user defined action.
     /// </summary>
-    public class CustomContextMenuItem : ContextMenuItem
+    public sealed class CustomContextMenuItem : ContextMenuItem
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="CustomContextMenuItem"/> class.

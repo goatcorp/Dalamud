@@ -3,7 +3,7 @@
     /// <summary>
     /// Provides inventory item context to a context menu.
     /// </summary>
-    public class InventoryItemContext
+    public sealed class InventoryItemContext
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="InventoryItemContext"/> class.

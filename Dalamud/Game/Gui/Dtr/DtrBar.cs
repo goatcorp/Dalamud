@@ -17,7 +17,7 @@ namespace Dalamud.Game.Gui.Dtr
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    public unsafe class DtrBar : IDisposable
+    public sealed unsafe class DtrBar : IDisposable
     {
         /// <summary>
         /// The amount of padding between Server Info UI elements.
@@ -30,7 +30,7 @@ namespace Dalamud.Game.Gui.Dtr
         /// <summary>
         /// Initializes a new instance of the <see cref="DtrBar"/> class.
         /// </summary>
-        public DtrBar()
+        internal DtrBar()
         {
             Service<Framework>.Get().Update += this.Update;
             var configuration = Service<DalamudConfiguration>.Get();

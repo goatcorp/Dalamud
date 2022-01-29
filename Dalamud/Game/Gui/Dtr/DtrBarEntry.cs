@@ -8,7 +8,7 @@ namespace Dalamud.Game.Gui.Dtr
     /// <summary>
     /// Class representing an entry in the server info bar.
     /// </summary>
-    public unsafe class DtrBarEntry : IDisposable
+    public sealed unsafe class DtrBarEntry : IDisposable
     {
         private bool shownBacking = true;
         private SeString? textBacking = null;

@@ -9,7 +9,7 @@ namespace Dalamud.Game.Gui.ContextMenus
     /// <summary>
     /// Provides data for <see cref="ContextMenuOpenedDelegate"/> methods.
     /// </summary>
-    public unsafe class ContextMenuOpenedArgs
+    public sealed unsafe class ContextMenuOpenedArgs
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="ContextMenuOpenedArgs"/> class.
