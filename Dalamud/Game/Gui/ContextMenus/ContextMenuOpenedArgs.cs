@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 
+using Dalamud.Game.Text.SeStringHandling;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 
@@ -59,5 +60,22 @@ namespace Dalamud.Game.Gui.ContextMenus
         /// Gets the item context associated with the context menu.
         /// </summary>
         public InventoryItemContext? InventoryItemContext { get; init; }
+
+        /// <summary>
+        /// Append a custom context menu item to this context menu.
+        /// </summary>
+        /// <param name="name">The name of the item.</param>
+        /// <param name="selected">The action to be executed once selected.</param>
+        public void AddCustomItem(SeString name, CustomContextMenuItemSelectedDelegate selected) =>
+            this.Items.Add(new CustomContextMenuItem(name, selected));
+
+        /// <summary>
+        /// Append a custom submenu to this context menu.
+        /// Note that these cannot be nested, and will be ignored if they are.
+        /// </summary>
+        /// <param name="name">The name of the submenu.</param>
+        /// <param name="opened">The action to be executed once opened.</param>
+        public void AddCustomSubMenu(SeString name, ContextMenuOpenedDelegate opened) =>
+            this.Items.Add(new OpenSubContextMenuItem(name, opened));
     }
 }

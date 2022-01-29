@@ -19,9 +19,9 @@ namespace Dalamud.Game.Gui.ContextMenus
         }
 
         /// <summary>
-        /// Gets or sets the name of the item.
+        /// Gets the name of the item.
         /// </summary>
-        public SeString Name { get; set; }
+        public SeString Name { get; internal set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether or not the item is enabled. When enabled, an item is selectable.

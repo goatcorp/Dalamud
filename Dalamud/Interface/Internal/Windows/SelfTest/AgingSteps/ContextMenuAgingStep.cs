@@ -154,30 +154,30 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
             switch (this.currentSubStep)
             {
                 case SubStep.TestSubMenu:
-                    args.Items.Add(new OpenSubContextMenuItem("Aging Submenu", openedArgs =>
+                    args.AddCustomSubMenu("Aging Submenu", openedArgs =>
                     {
-                        openedArgs.Items.Add(new CustomContextMenuItem("Submenu Item 1", args =>
+                        openedArgs.AddCustomItem("Submenu Item 1", _ =>
                         {
                             this.multipleTriggerOne = true;
-                        }));
+                        });
 
-                        openedArgs.Items.Add(new CustomContextMenuItem("Submenu Item 2", args =>
+                        openedArgs.AddCustomItem("Submenu Item 2", _ =>
                         {
                             this.multipleTriggerTwo = true;
-                        }));
-                    }));
+                        });
+                    });
 
                     return;
                 case SubStep.TestMultiple:
-                    args.Items.Insert(0, new CustomContextMenuItem("Aging Item 1", args =>
+                    args.AddCustomItem("Aging Item 1", _ =>
                     {
                         this.multipleTriggerOne = true;
-                    }));
+                    });
 
-                    args.Items.Add(new CustomContextMenuItem("Aging Item 2", args =>
+                    args.AddCustomItem("Aging Item 2", _ =>
                     {
                         this.multipleTriggerTwo = true;
-                    }));
+                    });
 
                     return;
                 case SubStep.Finish:
@@ -190,13 +190,13 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
                             if (this.currentSubStep != SubStep.TestItem)
                                 return;
 
-                            args.Items.Add(new CustomContextMenuItem("Aging Item", selectedArgs =>
+                            args.AddCustomItem("Aging Item", _ =>
                             {
                                 this.clickedItemId = args.InventoryItemContext!.Id;
                                 this.clickedItemHq = args.InventoryItemContext!.IsHighQuality;
                                 this.clickedItemCount = args.InventoryItemContext!.Count;
                                 Log.Warning("Clicked item: {Id} hq:{Hq} count:{Count}", this.clickedItemId, this.clickedItemHq, this.clickedItemCount);
-                            }));
+                            });
                             break;
 
                         case null:
@@ -214,7 +214,7 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
                             if (this.currentSubStep != SubStep.TestGameObject || args.GameObjectContext == null || args.GameObjectContext.Name.IsNullOrEmpty())
                                 return;
 
-                            args.Items.Add(new CustomContextMenuItem("Aging Character", selectedArgs =>
+                            args.AddCustomItem("Aging Character", _ =>
                             {
                                 this.clickedPlayerName = args.GameObjectContext.Name!;
                                 this.clickedPlayerWorld = args.GameObjectContext.WorldId;
@@ -222,7 +222,7 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
                                 this.clickedPlayerId = args.GameObjectContext.Id;
 
                                 Log.Warning("Clicked player: {Name} world:{World} cid:{Cid} id:{Id}", this.clickedPlayerName, this.clickedPlayerWorld, this.clickedPlayerCid, this.clickedPlayerId);
-                            }));
+                            });
 
                             break;
                     }
