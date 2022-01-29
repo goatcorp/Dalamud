@@ -11,7 +11,6 @@ using Dalamud.Memory;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using Serilog;
 
 using ValueType = FFXIVClientStructs.FFXIV.Component.GUI.ValueType;
 
@@ -86,18 +85,6 @@ namespace Dalamud.Game.Gui.ContextMenus
 
         private ContextMenuAddressResolver Address { get; set; }
 
-        /// <summary>
-        /// Enable this subsystem.
-        /// </summary>
-        public void Enable()
-        {
-            this.contextMenuOpeningHook.Enable();
-            this.contextMenuOpenedHook.Enable();
-            this.contextMenuItemSelectedHook.Enable();
-            this.subContextMenuOpeningHook.Enable();
-            this.subContextMenuOpenedHook.Enable();
-        }
-
         /// <inheritdoc/>
         void IDisposable.Dispose()
         {
@@ -106,6 +93,18 @@ namespace Dalamud.Game.Gui.ContextMenus
             this.subContextMenuOpenedHook.Disable();
             this.contextMenuOpenedHook.Disable();
             this.contextMenuOpeningHook.Disable();
+        }
+
+        /// <summary>
+        /// Enable this subsystem.
+        /// </summary>
+        internal void Enable()
+        {
+            this.contextMenuOpeningHook.Enable();
+            this.contextMenuOpenedHook.Enable();
+            this.contextMenuItemSelectedHook.Enable();
+            this.subContextMenuOpeningHook.Enable();
+            this.subContextMenuOpenedHook.Enable();
         }
 
         private static unsafe bool IsInventoryContext(AgentContextInterface* agentContextInterface)
@@ -129,8 +128,6 @@ namespace Dalamud.Game.Gui.ContextMenus
 
         private unsafe bool ContextMenuOpenedDetour(AddonContextMenu* addonContextMenu, int atkValueCount, AtkValue* atkValues)
         {
-            Log.Information("Poop " + Marshal.PtrToStringUTF8(new IntPtr(((AtkUnitBase*)addonContextMenu)->Name)));
-
             try
             {
                 this.ContextMenuOpenedImplementation(addonContextMenu, ref atkValueCount, ref atkValues);

@@ -1,4 +1,6 @@
-﻿using Dalamud.Game.Text.SeStringHandling;
+﻿using Dalamud.Game.Text;
+using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Game.Text.SeStringHandling.Payloads;
 
 namespace Dalamud.Game.Gui.ContextMenus
 {
@@ -13,7 +15,7 @@ namespace Dalamud.Game.Gui.ContextMenus
         /// <param name="name">The name of the item.</param>
         /// <param name="opened">The action that will be called when the item is selected.</param>
         internal OpenSubContextMenuItem(SeString name, ContextMenuOpenedDelegate opened)
-            : base(name)
+            : base(new SeString().Append(new UIForegroundPayload(539)).Append($"{SeIconChar.BoxedLetterD.ToIconString()} ").Append(new UIForegroundPayload(0)).Append(name))
         {
             this.Opened = opened;
             this.Indicator = ContextMenuItemIndicator.Next;
