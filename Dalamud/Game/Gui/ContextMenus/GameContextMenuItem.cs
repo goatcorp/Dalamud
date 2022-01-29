@@ -12,7 +12,7 @@ namespace Dalamud.Game.Gui.ContextMenus
         /// </summary>
         /// <param name="name">The name of the item.</param>
         /// <param name="selectedAction">The game action that will be handled when the item is selected.</param>
-        public GameContextMenuItem(SeString name, byte selectedAction)
+        internal GameContextMenuItem(SeString name, byte selectedAction)
             : base(name)
         {
             this.SelectedAction = selectedAction;

@@ -14,7 +14,7 @@ namespace Dalamud.Game.Gui.ContextMenus
         /// </summary>
         /// <param name="name">The name of the item.</param>
         /// <param name="itemSelected">The action that will be called when the item is selected.</param>
-        internal CustomContextMenuItem(SeString name, CustomContextMenuItemSelectedDelegate itemSelected)
+        public CustomContextMenuItem(SeString name, CustomContextMenuItemSelectedDelegate itemSelected)
             : base(new SeString().Append(new UIForegroundPayload(539)).Append($"{SeIconChar.BoxedLetterD.ToIconString()} ").Append(new UIForegroundPayload(0)).Append(name))
         {
             this.ItemSelected = itemSelected;

@@ -952,7 +952,8 @@ namespace Dalamud.Plugin.Internal
         public bool IsManifestBanned(PluginManifest manifest)
         {
             var configuration = Service<DalamudConfiguration>.Get();
-            return !configuration.LoadBannedPlugins && this.bannedPlugins.Any(ban => ban.Name == manifest.InternalName && ban.AssemblyVersion >= manifest.AssemblyVersion);
+            return !configuration.LoadBannedPlugins && this.bannedPlugins.Any(ban => (ban.Name == manifest.InternalName || ban.Name == Hash.GetStringSha256Hash(manifest.InternalName))
+                                                                                  && ban.AssemblyVersion >= manifest.AssemblyVersion);
         }
 
         /// <summary>

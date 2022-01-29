@@ -14,7 +14,7 @@ namespace Dalamud.Game.Gui.ContextMenus
         /// <param name="contentId">The lower content id of the game object.</param>
         /// <param name="name">The name of the game object.</param>
         /// <param name="worldId">The world id of the game object.</param>
-        public GameObjectContext(uint? id, ulong? contentId, string? name, ushort? worldId)
+        internal GameObjectContext(uint? id, ulong? contentId, string? name, ushort? worldId)
         {
             this.Id = id;
             this.ContentId = contentId;

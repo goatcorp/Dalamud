@@ -11,7 +11,7 @@
         /// <param name="id">The id of the item.</param>
         /// <param name="count">The count of the item in the stack.</param>
         /// <param name="isHighQuality">Whether the item is high quality.</param>
-        public InventoryItemContext(uint id, uint count, bool isHighQuality)
+        internal InventoryItemContext(uint id, uint count, bool isHighQuality)
         {
             this.Id = id;
             this.Count = count;

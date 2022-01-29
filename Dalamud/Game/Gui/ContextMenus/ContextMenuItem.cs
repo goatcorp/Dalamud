@@ -13,7 +13,7 @@ namespace Dalamud.Game.Gui.ContextMenus
         ///     Initializes a new instance of the <see cref="ContextMenuItem" /> class.
         /// </summary>
         /// <param name="name">The name of the item.</param>
-        public ContextMenuItem(SeString name)
+        internal ContextMenuItem(SeString name)
         {
             this.Name = name;
         }

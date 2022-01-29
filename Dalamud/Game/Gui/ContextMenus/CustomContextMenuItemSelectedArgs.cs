@@ -10,7 +10,7 @@
         /// </summary>
         /// <param name="contextMenuOpenedArgs">The currently opened context menu.</param>
         /// <param name="selectedItem">The selected item within the currently opened context menu.</param>
-        public CustomContextMenuItemSelectedArgs(ContextMenuOpenedArgs contextMenuOpenedArgs, CustomContextMenuItem selectedItem)
+        internal CustomContextMenuItemSelectedArgs(ContextMenuOpenedArgs contextMenuOpenedArgs, CustomContextMenuItem selectedItem)
         {
             this.ContextMenuOpenedArgs = contextMenuOpenedArgs;
             this.SelectedItem = selectedItem;
