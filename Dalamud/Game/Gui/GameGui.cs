@@ -3,6 +3,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 
 using Dalamud.Game.Gui.ContextMenus;
+using Dalamud.Game.Gui.Dtr;
 using Dalamud.Game.Gui.FlyText;
 using Dalamud.Game.Gui.PartyFinder;
 using Dalamud.Game.Gui.Toast;
@@ -65,6 +66,7 @@ namespace Dalamud.Game.Gui
             Service<ToastGui>.Set();
             Service<FlyTextGui>.Set();
             Service<ContextMenu>.Set();
+            Service<DtrBar>.Set();
 
             this.setGlobalBgmHook = new Hook<SetGlobalBgmDelegate>(this.address.SetGlobalBgm, this.HandleSetGlobalBgmDetour);
 
@@ -462,6 +464,7 @@ namespace Dalamud.Game.Gui
             Service<FlyTextGui>.Get().ExplicitDispose();
             Service<PartyFinderGui>.Get().ExplicitDispose();
             Service<ContextMenu>.Get().ExplicitDispose();
+            Service<DtrBar>.Get().ExplicitDispose();
             this.setGlobalBgmHook.Dispose();
             this.handleItemHoverHook.Dispose();
             this.handleItemOutHook.Dispose();

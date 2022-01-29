@@ -25,6 +25,7 @@ using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.ClientState.Party;
 using Dalamud.Game.Command;
 using Dalamud.Game.Gui;
+using Dalamud.Game.Gui.Dtr;
 using Dalamud.Game.Gui.FlyText;
 using Dalamud.Game.Gui.Toast;
 using Dalamud.Game.Text;
@@ -108,6 +109,10 @@ namespace Dalamud.Interface.Internal.Windows
         private Vector4 inputTintCol = Vector4.One;
         private Vector2 inputTexScale = Vector2.Zero;
 
+        // DTR
+        private DtrBarEntry? dtrTest1;
+        private DtrBarEntry? dtrTest2;
+
         private uint copyButtonIndex = 0;
 
         /// <summary>
@@ -158,6 +163,7 @@ namespace Dalamud.Interface.Internal.Windows
             TaskSched,
             Hook,
             Aetherytes,
+            Dtr_Bar,
         }
 
         /// <inheritdoc/>
@@ -337,8 +343,13 @@ namespace Dalamud.Interface.Internal.Windows
                         case DataKind.Hook:
                             this.DrawHook();
                             break;
+
                         case DataKind.Aetherytes:
                             this.DrawAetherytes();
+                            break;
+
+                        case DataKind.Dtr_Bar:
+                            this.DrawDtr();
                             break;
                     }
                 }
@@ -1586,6 +1597,76 @@ namespace Dalamud.Interface.Internal.Windows
             }
 
             ImGui.EndTable();
+        }
+
+        private void DrawDtr()
+        {
+            var dtrBar = Service<DtrBar>.Get();
+
+            if (this.dtrTest1 != null)
+            {
+                ImGui.Text("DtrTest1");
+
+                var text = this.dtrTest1.Text?.TextValue ?? string.Empty;
+                if (ImGui.InputText("Text###dtr1t", ref text, 255))
+                    this.dtrTest1.Text = text;
+
+                var shown = this.dtrTest1.Shown;
+                if (ImGui.Checkbox("Shown###dtr1s", ref shown))
+                    this.dtrTest1.Shown = shown;
+
+                if (ImGui.Button("Remove###dtr1r"))
+                {
+                    this.dtrTest1.Remove();
+                    this.dtrTest1 = null;
+                }
+            }
+            else
+            {
+                if (ImGui.Button("Add #1"))
+                {
+                    this.dtrTest1 = dtrBar.Get("DTR Test #1");
+                }
+            }
+
+            ImGui.Separator();
+
+            if (this.dtrTest2 != null)
+            {
+                ImGui.Text("DtrTest2");
+
+                var text = this.dtrTest2.Text?.TextValue ?? string.Empty;
+                if (ImGui.InputText("Text###dtr2t", ref text, 255))
+                    this.dtrTest2.Text = text;
+
+                var shown = this.dtrTest2.Shown;
+                if (ImGui.Checkbox("Shown###dtr2s", ref shown))
+                    this.dtrTest2.Shown = shown;
+
+                if (ImGui.Button("Remove###dtr2r"))
+                {
+                    this.dtrTest2.Remove();
+                    this.dtrTest2 = null;
+                }
+            }
+            else
+            {
+                if (ImGui.Button("Add #2"))
+                {
+                    this.dtrTest2 = dtrBar.Get("DTR Test #2");
+                }
+            }
+
+            var configuration = Service<DalamudConfiguration>.Get();
+            if (configuration.DtrOrder != null)
+            {
+                ImGui.Separator();
+
+                foreach (var order in configuration.DtrOrder)
+                {
+                    ImGui.Text(order);
+                }
+            }
         }
 
         private async Task TestTaskInTaskDelay()

@@ -241,6 +241,11 @@ namespace Dalamud.Configuration.Internal
         public bool DisableRmtFiltering { get; set; }
 
         /// <summary>
+        /// Gets or sets the order of DTR elements, by title.
+        /// </summary>
+        public List<string>? DtrOrder { get; set; }
+
+        /// <summary>
         /// Load a configuration from the provided path.
         /// </summary>
         /// <param name="path">The path to load the configuration file from.</param>
