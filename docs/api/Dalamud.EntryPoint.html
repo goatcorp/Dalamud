@@ -10,7 +10,7 @@
     <meta name="viewport" content="width=device-width">
     <meta name="title" content="Class EntryPoint
    ">
-    <meta name="generator" content="docfx 2.58.9.0">
+    <meta name="generator" content="docfx 2.59.0.0">
     
     <link rel="shortcut icon" href="../favicon.ico">
     <link rel="stylesheet" href="../styles/docfx.vendor.css">
@@ -118,7 +118,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_EntryPoint_Initialize_System_IntPtr_.md&amp;value=---%0Auid%3A%20Dalamud.EntryPoint.Initialize(System.IntPtr)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/EntryPoint.cs/#L41">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/EntryPoint.cs/#L49">View Source</a>
   </span>
   <a id="Dalamud_EntryPoint_Initialize_" data-uid="Dalamud.EntryPoint.Initialize*"></a>
   <h4 id="Dalamud_EntryPoint_Initialize_System_IntPtr_" data-uid="Dalamud.EntryPoint.Initialize(System.IntPtr)">Initialize(IntPtr)</h4>
@@ -143,6 +143,52 @@
         <td><span class="xref">System.IntPtr</span></td>
         <td><span class="parametername">infoPtr</span></td>
         <td><p>Pointer to a serialized <a class="xref" href="Dalamud.DalamudStartInfo.html">DalamudStartInfo</a> data.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_EntryPoint_VehCallback_System_IntPtr_System_IntPtr_System_IntPtr_.md&amp;value=---%0Auid%3A%20Dalamud.EntryPoint.VehCallback(System.IntPtr%2CSystem.IntPtr%2CSystem.IntPtr)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/EntryPoint.cs/#L63">View Source</a>
+  </span>
+  <a id="Dalamud_EntryPoint_VehCallback_" data-uid="Dalamud.EntryPoint.VehCallback*"></a>
+  <h4 id="Dalamud_EntryPoint_VehCallback_System_IntPtr_System_IntPtr_System_IntPtr_" data-uid="Dalamud.EntryPoint.VehCallback(System.IntPtr,System.IntPtr,System.IntPtr)">VehCallback(IntPtr, IntPtr, IntPtr)</h4>
+  <div class="markdown level1 summary"><p>Show error message along with stack trace and exit.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void VehCallback(IntPtr dumpPath, IntPtr logPath, IntPtr log)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IntPtr</span></td>
+        <td><span class="parametername">dumpPath</span></td>
+        <td><p>Path to minidump file created in UTF-16.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.IntPtr</span></td>
+        <td><span class="parametername">logPath</span></td>
+        <td><p>Path to log file to create in UTF-16.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.IntPtr</span></td>
+        <td><span class="parametername">log</span></td>
+        <td><p>Log text in UTF-16.</p>
 </td>
       </tr>
     </tbody>
