@@ -1602,11 +1602,11 @@ namespace Dalamud.Interface.Internal.Windows
 
         private void DrawDtr()
         {
-            DrawDtrTestEntry(ref this.dtrTest1, "DTR Test #1");
+            this.DrawDtrTestEntry(ref this.dtrTest1, "DTR Test #1");
             ImGui.Separator();
-            DrawDtrTestEntry(ref this.dtrTest2, "DTR Test #2");
+            this.DrawDtrTestEntry(ref this.dtrTest2, "DTR Test #2");
             ImGui.Separator();
-            DrawDtrTestEntry(ref this.dtrTest3, "DTR Test #3");
+            this.DrawDtrTestEntry(ref this.dtrTest3, "DTR Test #3");
             ImGui.Separator();
 
             var configuration = Service<DalamudConfiguration>.Get();
