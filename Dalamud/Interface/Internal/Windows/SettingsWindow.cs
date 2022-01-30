@@ -324,8 +324,10 @@ namespace Dalamud.Interface.Internal.Windows
             var configuration = Service<DalamudConfiguration>.Get();
             var dtrBar = Service<DtrBar>.Get();
 
-            var order = configuration.DtrOrder!;
-            var ignore = configuration.DtrIgnore!;
+            var order = configuration.DtrOrder!.Where(x => dtrBar.HasEntry(x)).ToList();
+            var ignore = configuration.DtrIgnore!.Where(x => dtrBar.HasEntry(x)).ToList();
+            var orderLeft = configuration.DtrOrder!.Where(x => !order.Contains(x)).ToList();
+            var ignoreLeft = configuration.DtrIgnore!.Where(x => !ignore.Contains(x)).ToList();
 
             if (order.Count == 0)
             {
@@ -336,8 +338,6 @@ namespace Dalamud.Interface.Internal.Windows
             for (var i = 0; i < order.Count; i++)
             {
                 var title = order[i];
-                if (!dtrBar.HasEntry(title))
-                    continue;
 
                 // TODO: Maybe we can also resort the rest of the bar in the future?
                 // var isRequired = search is Configuration.SearchSetting.Internal or Configuration.SearchSetting.MacroLinks;
@@ -397,8 +397,8 @@ namespace Dalamud.Interface.Internal.Windows
                 // }
             }
 
-            configuration.DtrOrder = order;
-            configuration.DtrIgnore = ignore;
+            configuration.DtrOrder = order.Concat(orderLeft).ToList();
+            configuration.DtrIgnore = ignore.Concat(ignoreLeft).ToList();
 
             if (isOrderChange)
                 dtrBar.ApplySort();

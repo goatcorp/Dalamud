@@ -46,6 +46,7 @@ Aireil
 kalilistic
 MgAl2O4
 ascclemens
+r00telement
 
 
 
@@ -109,8 +110,7 @@ Copyright (c) Nate McMaster
 Licensed under the Apache License, Version 2.0
 See License.txt for license information.
 
-Thanks to everyone in the XIVLauncher
-Discord server
+Thanks to everyone in the XIVLauncher Discord server
 
 Join us at: https://discord.gg/3NMcUV5
 

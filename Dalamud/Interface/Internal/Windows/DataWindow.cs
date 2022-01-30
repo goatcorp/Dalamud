@@ -112,6 +112,7 @@ namespace Dalamud.Interface.Internal.Windows
         // DTR
         private DtrBarEntry? dtrTest1;
         private DtrBarEntry? dtrTest2;
+        private DtrBarEntry? dtrTest3;
 
         private uint copyButtonIndex = 0;
 
@@ -1601,61 +1602,12 @@ namespace Dalamud.Interface.Internal.Windows
 
         private void DrawDtr()
         {
-            var dtrBar = Service<DtrBar>.Get();
-
-            if (this.dtrTest1 != null)
-            {
-                ImGui.Text("DtrTest1");
-
-                var text = this.dtrTest1.Text?.TextValue ?? string.Empty;
-                if (ImGui.InputText("Text###dtr1t", ref text, 255))
-                    this.dtrTest1.Text = text;
-
-                var shown = this.dtrTest1.Shown;
-                if (ImGui.Checkbox("Shown###dtr1s", ref shown))
-                    this.dtrTest1.Shown = shown;
-
-                if (ImGui.Button("Remove###dtr1r"))
-                {
-                    this.dtrTest1.Remove();
-                    this.dtrTest1 = null;
-                }
-            }
-            else
-            {
-                if (ImGui.Button("Add #1"))
-                {
-                    this.dtrTest1 = dtrBar.Get("DTR Test #1");
-                }
-            }
-
+            DrawDtrTestEntry(ref this.dtrTest1, "DTR Test #1");
             ImGui.Separator();
-
-            if (this.dtrTest2 != null)
-            {
-                ImGui.Text("DtrTest2");
-
-                var text = this.dtrTest2.Text?.TextValue ?? string.Empty;
-                if (ImGui.InputText("Text###dtr2t", ref text, 255))
-                    this.dtrTest2.Text = text;
-
-                var shown = this.dtrTest2.Shown;
-                if (ImGui.Checkbox("Shown###dtr2s", ref shown))
-                    this.dtrTest2.Shown = shown;
-
-                if (ImGui.Button("Remove###dtr2r"))
-                {
-                    this.dtrTest2.Remove();
-                    this.dtrTest2 = null;
-                }
-            }
-            else
-            {
-                if (ImGui.Button("Add #2"))
-                {
-                    this.dtrTest2 = dtrBar.Get("DTR Test #2");
-                }
-            }
+            DrawDtrTestEntry(ref this.dtrTest2, "DTR Test #2");
+            ImGui.Separator();
+            DrawDtrTestEntry(ref this.dtrTest3, "DTR Test #3");
+            ImGui.Separator();
 
             var configuration = Service<DalamudConfiguration>.Get();
             if (configuration.DtrOrder != null)
@@ -1665,6 +1617,37 @@ namespace Dalamud.Interface.Internal.Windows
                 foreach (var order in configuration.DtrOrder)
                 {
                     ImGui.Text(order);
+                }
+            }
+        }
+
+        private void DrawDtrTestEntry(ref DtrBarEntry? entry, string title)
+        {
+            var dtrBar = Service<DtrBar>.Get();
+
+            if (entry != null)
+            {
+                ImGui.Text(title);
+
+                var text = entry.Text?.TextValue ?? string.Empty;
+                if (ImGui.InputText($"Text###{entry.Title}t", ref text, 255))
+                    entry.Text = text;
+
+                var shown = entry.Shown;
+                if (ImGui.Checkbox($"Shown###{entry.Title}s", ref shown))
+                    entry.Shown = shown;
+
+                if (ImGui.Button($"Remove###{entry.Title}r"))
+                {
+                    entry.Remove();
+                    entry = null;
+                }
+            }
+            else
+            {
+                if (ImGui.Button($"Add###{title}"))
+                {
+                    entry = dtrBar.Get(title, title);
                 }
             }
         }
