@@ -11,6 +11,7 @@ using Dalamud.Memory;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Component.GUI;
+using Serilog;
 
 using ValueType = FFXIVClientStructs.FFXIV.Component.GUI.ValueType;
 
@@ -276,6 +277,8 @@ namespace Dalamud.Game.Gui.ContextMenus
         private unsafe ContextMenuOpenedArgs? NotifyContextMenuOpened(AddonContextMenu* addonContextMenu, AgentContextInterface* agentContextInterface, string? title, ContextMenus.ContextMenuOpenedDelegate contextMenuOpenedDelegate, IEnumerable<ContextMenuItem> initialContextMenuItems)
         {
             var parentAddonName = this.GetParentAddonName(&addonContextMenu->AtkUnitBase);
+
+            Log.Warning($"AgentContextInterface at: {new IntPtr(agentContextInterface):X}");
 
             InventoryItemContext? inventoryItemContext = null;
             GameObjectContext? gameObjectContext = null;

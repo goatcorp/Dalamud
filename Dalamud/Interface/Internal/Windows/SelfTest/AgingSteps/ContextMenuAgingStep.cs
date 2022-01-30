@@ -149,7 +149,16 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
 
         private void ContextMenuOnContextMenuOpened(ContextMenuOpenedArgs args)
         {
-            Log.Information("Got context menu with parent addon: {ParentAddonName}", args.ParentAddonName);
+            Log.Information("Got context menu with parent addon: {ParentAddonName}, title:{Title}, itemcnt:{ItemCount}", args.ParentAddonName, args.Title, args.Items.Count);
+            if (args.GameObjectContext != null)
+            {
+                Log.Information("   => GameObject:{GameObjectName} world:{World} cid:{Cid} id:{Id}", args.GameObjectContext.Name, args.GameObjectContext.WorldId, args.GameObjectContext.ContentId, args.GameObjectContext.Id);
+            }
+
+            if (args.InventoryItemContext != null)
+            {
+                Log.Information("   => Inventory:{ItemId} hq:{Hq} count:{Count}", args.InventoryItemContext.Id, args.InventoryItemContext.IsHighQuality, args.InventoryItemContext.Count);
+            }
 
             switch (this.currentSubStep)
             {
