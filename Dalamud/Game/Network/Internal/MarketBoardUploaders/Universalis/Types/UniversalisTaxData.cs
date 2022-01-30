@@ -44,7 +44,7 @@ namespace Dalamud.Game.Network.Internal.MarketBoardUploaders.Universalis.Types
         public uint Crystarium { get; set; }
 
         /// <summary>
-        /// Gets or sets The Crystarium's current tax rate.
+        /// Gets or sets Old Sharlayan's current tax rate.
         /// </summary>
         [JsonProperty("sharlayan")]
         public uint Sharlayan { get; set; }

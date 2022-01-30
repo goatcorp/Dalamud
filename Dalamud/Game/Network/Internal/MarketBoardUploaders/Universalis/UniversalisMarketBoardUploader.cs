@@ -134,6 +134,7 @@ namespace Dalamud.Game.Network.Internal.MarketBoardUploaders.Universalis
                     Ishgard = taxRates.IshgardTax,
                     Kugane = taxRates.KuganeTax,
                     Crystarium = taxRates.CrystariumTax,
+                    Sharlayan = taxRates.SharlayanTax,
                 },
             };
 
