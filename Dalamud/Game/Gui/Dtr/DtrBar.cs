@@ -137,6 +137,7 @@ namespace Dalamud.Game.Gui.Dtr
 
             // The collision node on the DTR element is always the width of its content
             var collisionNode = dtr->UldManager.NodeList[1];
+            if (collisionNode == null) return;
             var runningXPos = collisionNode->X;
 
             var configuration = Service<DalamudConfiguration>.Get();
