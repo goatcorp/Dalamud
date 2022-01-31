@@ -401,21 +401,9 @@ namespace Dalamud.Interface.Internal
 
                 if (ImGui.Begin("DevMenu Opener", ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoSavedSettings))
                 {
-                    var cursor = ImGui.GetCursorPos();
+                    ImGui.SetNextItemWidth(40);
                     if (ImGui.Button("###devMenuOpener", imageSize))
                         this.isImGuiDrawDevMenu = true;
-
-#if !DEBUG
-                    if (config.DalamudBetaKey == DalamudConfiguration.DalamudCurrentBetaKey)
-                    {
-#endif
-#pragma warning disable SA1137
-                        ImGui.SetCursorPos(cursor);
-                        ImGui.Image(this.logoTexture.ImGuiHandle, imageSize);
-#pragma warning restore SA1137
-#if !DEBUG
-                    }
-#endif
 
                     ImGui.End();
                 }
