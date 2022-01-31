@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
 
+using Dalamud.Configuration.Internal;
 using Dalamud.Game;
 using Dalamud.Game.ClientState;
+using Dalamud.Game.Gui;
 using Dalamud.Interface.Animation.EasingFunctions;
 using Dalamud.Interface.Windowing;
 using ImGuiNET;
@@ -317,6 +319,16 @@ namespace Dalamud.Interface.Internal.Windows
         {
             var clientState = Service<ClientState>.Get();
             this.IsOpen = !clientState.IsLoggedIn;
+
+            var configuration = Service<DalamudConfiguration>.Get();
+            if (!configuration.ShowTsm)
+                this.IsOpen = false;
+
+            var gameGui = Service<GameGui>.Get();
+            var charaSelect = gameGui.GetAddonByName("CharaSelect", 1);
+            var charaMake = gameGui.GetAddonByName("CharaMake", 1);
+            if (charaMake != IntPtr.Zero || charaSelect != IntPtr.Zero)
+                this.IsOpen = false;
         }
     }
 }
