@@ -240,13 +240,18 @@ namespace Dalamud
                 var pluginManager = Service<PluginManager>.Set();
                 Service<CallGate>.Set();
 
+                Log.Information("[T3] PM OK!");
+
+                Service<DalamudInterface>.Set();
+                Log.Information("[T3] DUI OK!");
+
                 try
                 {
                     _ = pluginManager.SetPluginReposFromConfigAsync(false);
 
                     pluginManager.OnInstalledPluginsChanged += Troubleshooting.LogTroubleshooting;
 
-                    Log.Information("[T3] PM OK!");
+                    Log.Information("[T3] Sync plugins OK!");
 
                     pluginManager.CleanupPlugins();
                     Log.Information("[T3] PMC OK!");
@@ -258,9 +263,6 @@ namespace Dalamud
                 {
                     Log.Error(ex, "Plugin load failed.");
                 }
-
-                Service<DalamudInterface>.Set();
-                Log.Information("[T3] DUI OK!");
 
                 Troubleshooting.LogTroubleshooting();
 
