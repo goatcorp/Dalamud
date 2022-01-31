@@ -7,11 +7,11 @@ using System.Numerics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
+using CheapLoc;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Internal;
-using Dalamud.Interface.Colors;
 using Dalamud.Interface.Internal.ManagedAsserts;
 using Dalamud.Interface.Internal.Windows;
 using Dalamud.Interface.Internal.Windows.SelfTest;
@@ -51,8 +51,10 @@ namespace Dalamud.Interface.Internal
         private readonly SettingsWindow settingsWindow;
         private readonly SelfTestWindow selfTestWindow;
         private readonly StyleEditorWindow styleEditorWindow;
+        private readonly TitleScreenMenuWindow titleScreenMenuWindow;
 
         private readonly TextureWrap logoTexture;
+        private readonly TextureWrap tsmLogoTexture;
 
         private ulong frameCount = 0;
 
@@ -87,6 +89,7 @@ namespace Dalamud.Interface.Internal
             this.settingsWindow = new SettingsWindow() { IsOpen = false };
             this.selfTestWindow = new SelfTestWindow() { IsOpen = false };
             this.styleEditorWindow = new StyleEditorWindow() { IsOpen = false };
+            this.titleScreenMenuWindow = new TitleScreenMenuWindow() { IsOpen = false };
 
             this.WindowSystem.AddWindow(this.changelogWindow);
             this.WindowSystem.AddWindow(this.colorDemoWindow);
@@ -101,6 +104,7 @@ namespace Dalamud.Interface.Internal
             this.WindowSystem.AddWindow(this.settingsWindow);
             this.WindowSystem.AddWindow(this.selfTestWindow);
             this.WindowSystem.AddWindow(this.styleEditorWindow);
+            this.WindowSystem.AddWindow(this.titleScreenMenuWindow);
 
             ImGuiManagedAsserts.AssertsEnabled = configuration.AssertsEnabledAtStartup;
 
@@ -108,8 +112,27 @@ namespace Dalamud.Interface.Internal
             interfaceManager.Draw += this.OnDraw;
             var dalamud = Service<Dalamud>.Get();
 
-            this.logoTexture =
-                interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "logo.png"))!;
+            var logoTex =
+                interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "logo.png"));
+            var tsmLogoTex =
+                interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "tsmLogo.png"));
+
+            if (logoTex == null || tsmLogoTex == null)
+            {
+                throw new Exception("Failed to load logo textures");
+            }
+
+            this.logoTexture = logoTex;
+            this.tsmLogoTexture = tsmLogoTex;
+
+            var tsm = Service<TitleScreenMenu>.Get();
+            tsm.AddEntry(Loc.Localize("TSMDalamudPlugins", "Plugin Installer"), this.tsmLogoTexture, () => this.pluginWindow.IsOpen = true);
+            tsm.AddEntry(Loc.Localize("TSMDalamudSettings", "Dalamud Settings"), this.tsmLogoTexture, () => this.settingsWindow.IsOpen = true);
+
+            if (configuration.IsConventionalStaging)
+            {
+                tsm.AddEntry(Loc.Localize("TSMDalamudDevMenu", "Developer Menu"), this.tsmLogoTexture, () => this.isImGuiDrawDevMenu = true);
+            }
         }
 
         /// <summary>
@@ -131,14 +154,16 @@ namespace Dalamud.Interface.Internal
         {
             Service<InterfaceManager>.Get().Draw -= this.OnDraw;
 
-            this.logoTexture.Dispose();
-
             this.WindowSystem.RemoveAllWindows();
 
             this.changelogWindow.Dispose();
             this.creditsWindow.Dispose();
             this.consoleWindow.Dispose();
             this.pluginWindow.Dispose();
+            this.titleScreenMenuWindow.Dispose();
+
+            this.logoTexture.Dispose();
+            this.tsmLogoTexture.Dispose();
         }
 
         #region Open

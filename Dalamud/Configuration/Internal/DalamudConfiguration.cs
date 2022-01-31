@@ -43,6 +43,12 @@ namespace Dalamud.Configuration.Internal
         public event DalamudConfigurationSavedDelegate DalamudConfigurationSaved;
 
         /// <summary>
+        /// Gets a value indicating whether or not Dalamud staging is enabled.
+        /// </summary>
+        [JsonIgnore]
+        public bool IsConventionalStaging => this.DalamudBetaKey == DalamudCurrentBetaKey;
+
+        /// <summary>
         /// Gets or sets a list of muted works.
         /// </summary>
         public List<string> BadWords { get; set; }
@@ -249,6 +255,11 @@ namespace Dalamud.Configuration.Internal
         /// Gets or sets the list of ignored DTR elements, by title.
         /// </summary>
         public List<string>? DtrIgnore { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the title screen menu is shown.
+        /// </summary>
+        public bool ShowTsm { get; set; } = true;
 
         /// <summary>
         /// Load a configuration from the provided path.

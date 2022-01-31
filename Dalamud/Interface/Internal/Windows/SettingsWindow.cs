@@ -44,6 +44,7 @@ namespace Dalamud.Interface.Internal.Windows
         private bool doViewport;
         private bool doGamepad;
         private bool doFocus;
+        private bool doTsm;
 
         private List<string>? dtrOrder;
         private List<string>? dtrIgnore;
@@ -94,6 +95,7 @@ namespace Dalamud.Interface.Internal.Windows
             this.doViewport = !configuration.IsDisableViewport;
             this.doGamepad = configuration.IsGamepadNavigationEnabled;
             this.doFocus = configuration.IsFocusManagementEnabled;
+            this.doTsm = configuration.ShowTsm;
 
             this.doPluginTest = configuration.DoPluginTest;
             this.thirdRepoList = configuration.ThirdRepoList.Select(x => x.Clone()).ToList();
@@ -312,6 +314,9 @@ namespace Dalamud.Interface.Internal.Windows
 
             ImGui.Checkbox(Loc.Localize("DalamudSettingToggleGamepadNavigation", "Control plugins via gamepad"), ref this.doGamepad);
             ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingToggleGamepadNavigationHint", "This will allow you to toggle between game and plugin navigation via L1+L3.\nToggle the PluginInstaller window via R3 if ImGui navigation is enabled."));
+
+            ImGui.Checkbox(Loc.Localize("DalamudSettingToggleTsm", "Show title screen menu"), ref this.doTsm);
+            ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingToggleTsmHint", "This will allow you to access certain Dalamud and Plugin functionality from the title screen."));
         }
 
         private void DrawServerInfoBarTab()
@@ -778,6 +783,7 @@ namespace Dalamud.Interface.Internal.Windows
             configuration.IsDocking = this.doDocking;
             configuration.IsGamepadNavigationEnabled = this.doGamepad;
             configuration.IsFocusManagementEnabled = this.doFocus;
+            configuration.ShowTsm = this.doTsm;
 
             // This is applied every frame in InterfaceManager::CheckViewportState()
             configuration.IsDisableViewport = !this.doViewport;

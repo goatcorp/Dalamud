@@ -17,6 +17,7 @@ using Dalamud.Game.Network;
 using Dalamud.Game.Network.Internal;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Hooking.Internal;
+using Dalamud.Interface;
 using Dalamud.Interface.Internal;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
@@ -233,6 +234,8 @@ namespace Dalamud
             try
             {
                 Log.Information("[T3] START!");
+
+                Service<TitleScreenMenu>.Set();
 
                 var pluginManager = Service<PluginManager>.Set();
                 Service<CallGate>.Set();
