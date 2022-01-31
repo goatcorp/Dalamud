@@ -279,7 +279,7 @@ namespace Dalamud.Utility
                     ShowValue(addr, new List<string>(path) { f.Name }, f.FieldType, f.GetValue(obj));
                 }
 
-                foreach (var p in obj.GetType().GetProperties())
+                foreach (var p in obj.GetType().GetProperties().Where(p => p.GetGetMethod()?.GetParameters().Length == 0))
                 {
                     ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.9f, 1), $"{p.PropertyType.Name}");
                     ImGui.SameLine();
@@ -347,7 +347,7 @@ namespace Dalamud.Utility
 
             ImGui.Indent();
 
-            foreach (var propertyInfo in type.GetProperties())
+            foreach (var propertyInfo in type.GetProperties().Where(p => p.GetGetMethod()?.GetParameters().Length == 0))
             {
                 var value = propertyInfo.GetValue(obj);
                 var valueType = value?.GetType();
