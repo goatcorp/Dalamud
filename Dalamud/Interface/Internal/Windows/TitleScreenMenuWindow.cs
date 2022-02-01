@@ -327,7 +327,8 @@ namespace Dalamud.Interface.Internal.Windows
             var gameGui = Service<GameGui>.Get();
             var charaSelect = gameGui.GetAddonByName("CharaSelect", 1);
             var charaMake = gameGui.GetAddonByName("CharaMake", 1);
-            if (charaMake != IntPtr.Zero || charaSelect != IntPtr.Zero)
+            var titleDcWorldMap = gameGui.GetAddonByName("TitleDCWorldMap", 1);
+            if (charaMake != IntPtr.Zero || charaSelect != IntPtr.Zero || titleDcWorldMap != IntPtr.Zero)
                 this.IsOpen = false;
         }
     }
