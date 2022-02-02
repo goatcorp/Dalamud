@@ -257,6 +257,11 @@ namespace Dalamud.Configuration.Internal
         public List<string>? DtrIgnore { get; set; }
 
         /// <summary>
+        /// Gets or sets the spacing used for DTR entries.
+        /// </summary>
+        public int DtrSpacing { get; set; } = 10;
+
+        /// <summary>
         /// Gets or sets a value indicating whether the title screen menu is shown.
         /// </summary>
         public bool ShowTsm { get; set; } = true;

@@ -48,6 +48,7 @@ namespace Dalamud.Interface.Internal.Windows
 
         private List<string>? dtrOrder;
         private List<string>? dtrIgnore;
+        private int dtrSpacing;
 
         private List<ThirdPartyRepoSettings> thirdRepoList;
         private bool thirdRepoListChanged;
@@ -96,6 +97,8 @@ namespace Dalamud.Interface.Internal.Windows
             this.doGamepad = configuration.IsGamepadNavigationEnabled;
             this.doFocus = configuration.IsFocusManagementEnabled;
             this.doTsm = configuration.ShowTsm;
+
+            this.dtrSpacing = configuration.DtrSpacing;
 
             this.doPluginTest = configuration.DoPluginTest;
             this.thirdRepoList = configuration.ThirdRepoList.Select(x => x.Clone()).ToList();
@@ -324,7 +327,7 @@ namespace Dalamud.Interface.Internal.Windows
             ImGui.Text(Loc.Localize("DalamudSettingServerInfoBar", "Server Info Bar configuration"));
             ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingServerInfoBarHint", "Plugins can put additional information into your server information bar(where world & time can be seen).\nYou can reorder and disable these here."));
 
-            ImGuiHelpers.ScaledDummy(10, 10);
+            ImGuiHelpers.ScaledDummy(10);
 
             var configuration = Service<DalamudConfiguration>.Get();
             var dtrBar = Service<DtrBar>.Get();
@@ -407,6 +410,12 @@ namespace Dalamud.Interface.Internal.Windows
 
             if (isOrderChange)
                 dtrBar.ApplySort();
+
+            ImGuiHelpers.ScaledDummy(10);
+
+            ImGui.Text(Loc.Localize("DalamudSettingServerInfoBarSpacing", "Server Info Bar spacing"));
+            ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingServerInfoBarSpacingHint", "Configure the amount of space between entries in the server info bar here."));
+            ImGui.SliderInt("Spacing", ref this.dtrSpacing, 0, 40);
         }
 
         private void DrawExperimentalTab()
@@ -812,6 +821,8 @@ namespace Dalamud.Interface.Internal.Windows
 
             this.dtrOrder = configuration.DtrOrder;
             this.dtrIgnore = configuration.DtrIgnore;
+
+            configuration.DtrSpacing = this.dtrSpacing;
 
             configuration.DoPluginTest = this.doPluginTest;
             configuration.ThirdRepoList = this.thirdRepoList.Select(x => x.Clone()).ToList();

@@ -19,11 +19,6 @@ namespace Dalamud.Game.Gui.Dtr
     [InterfaceVersion("1.0")]
     public sealed unsafe class DtrBar : IDisposable
     {
-        /// <summary>
-        /// The amount of padding between Server Info UI elements.
-        /// </summary>
-        private const int ElementPadding = 30;
-
         private List<DtrBarEntry> entries = new();
         private uint runningNodeIds = 1000;
 
@@ -174,7 +169,7 @@ namespace Dalamud.Game.Gui.Dtr
 
                 if (!isHide)
                 {
-                    runningXPos -= data.TextNode->AtkResNode.Width + ElementPadding;
+                    runningXPos -= data.TextNode->AtkResNode.Width + configuration.DtrSpacing;
                     data.TextNode->AtkResNode.SetPositionFloat(runningXPos, 2);
                 }
 
