@@ -198,7 +198,9 @@ namespace Dalamud.Interface.Internal
                     var rtssModule = NativeFunctions.GetModuleHandleW("RTSSHooks64.dll");
                     var installAddr = NativeFunctions.GetProcAddress(rtssModule, "InstallRTSSHook");
 
+                    Log.Debug("Installing RTSS hook");
                     Marshal.GetDelegateForFunctionPointer<InstallRTSSHook>(installAddr).Invoke();
+                    Log.Debug("RTSS hook OK!");
                 }
             }
             catch (Exception ex)
