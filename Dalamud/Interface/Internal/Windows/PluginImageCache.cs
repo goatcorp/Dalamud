@@ -64,9 +64,10 @@ namespace Dalamud.Interface.Internal.Windows
             this.InstalledIcon = interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "installedIcon.png"))!;
             this.ThirdIcon = interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "thirdIcon.png"))!;
             this.ThirdInstalledIcon = interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "thirdInstalledIcon.png"))!;
+            this.CorePluginIcon = interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "tsmLogo.png"))!;
 
             if (this.DefaultIcon == null || this.TroubleIcon == null || this.UpdateIcon == null || this.InstalledIcon == null ||
-                this.ThirdIcon == null || this.ThirdInstalledIcon == null)
+                this.ThirdIcon == null || this.ThirdInstalledIcon == null || this.CorePluginIcon == null)
             {
                 throw new Exception("Plugin overlay images could not be loaded.");
             }
@@ -105,6 +106,11 @@ namespace Dalamud.Interface.Internal.Windows
         /// </summary>
         public TextureWrap ThirdInstalledIcon { get; }
 
+        /// <summary>
+        /// Gets the core plugin icon.
+        /// </summary>
+        public TextureWrap CorePluginIcon { get; }
+
         /// <inheritdoc/>
         public void Dispose()
         {
@@ -114,6 +120,7 @@ namespace Dalamud.Interface.Internal.Windows
             this.InstalledIcon?.Dispose();
             this.ThirdIcon?.Dispose();
             this.ThirdInstalledIcon?.Dispose();
+            this.CorePluginIcon?.Dispose();
 
             this.downloadToken?.Cancel();
 

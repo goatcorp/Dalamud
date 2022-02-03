@@ -15,7 +15,7 @@ namespace Dalamud.Plugin.Internal
     /// </summary>
     internal class PluginRepository
     {
-        private const string DalamudPluginsMasterUrl = "https://kamori.goats.dev/Plugin/GetPluginMaster";
+        private const string DalamudPluginsMasterUrl = "https://kamori.goats.dev/Plugin/PluginMaster";
 
         private static readonly ModuleLog Log = new("PLUGINR");
 

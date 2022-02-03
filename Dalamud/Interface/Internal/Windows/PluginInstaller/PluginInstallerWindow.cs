@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Numerics;
 using System.Threading.Tasks;
 
@@ -25,7 +26,7 @@ using Dalamud.Utility;
 using ImGuiNET;
 using ImGuiScene;
 
-namespace Dalamud.Interface.Internal.Windows
+namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 {
     /// <summary>
     /// Class responsible for drawing the plugin installer.
@@ -39,6 +40,9 @@ namespace Dalamud.Interface.Internal.Windows
 
         private readonly PluginCategoryManager categoryManager = new();
         private readonly PluginImageCache imageCache = new();
+        private readonly DalamudChangelogManager dalamudChangelogManager = new();
+
+        private readonly List<int> openPluginCollapsibles = new();
 
         #region Image Tester State
 
@@ -80,8 +84,6 @@ namespace Dalamud.Interface.Internal.Windows
 
         private OperationStatus installStatus = OperationStatus.Idle;
         private OperationStatus updateStatus = OperationStatus.Idle;
-
-        private List<int> openPluginCollapsibles = new();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PluginInstallerWindow"/> class.
@@ -150,6 +152,7 @@ namespace Dalamud.Interface.Internal.Windows
             var pluginManager = Service<PluginManager>.Get();
 
             _ = pluginManager.ReloadPluginMastersAsync();
+            _ = this.dalamudChangelogManager.ReloadChangelogAsync();
 
             this.searchText = string.Empty;
             this.sortKind = PluginSortKind.Alphabetical;
@@ -518,13 +521,28 @@ namespace Dalamud.Interface.Internal.Windows
                 return;
             }
 
-            var filteredList = this.pluginListInstalled
+            var pluginChangelogs = this.pluginListInstalled
                                    .Where(plugin => !this.IsManifestFiltered(plugin.Manifest)
                                                     && !plugin.Manifest.Changelog.IsNullOrEmpty())
-                                   .OrderByDescending(plugin => plugin.Manifest.LastUpdate)
-                                   .ToList();
+                                   .Select(x =>
+                                   {
+                                       var iconTex = this.imageCache.DefaultIcon;
+                                       var hasIcon = this.imageCache.TryGetIcon(x, x.Manifest, x.Manifest.IsThirdParty, out var cachedIconTex);
+                                       if (hasIcon && cachedIconTex != null)
+                                       {
+                                           iconTex = cachedIconTex;
+                                       }
 
-            if (!filteredList.Any())
+                                       var changelog = new PluginChangelogEntry(x, iconTex);
+                                       return (IChangelogEntry)changelog;
+                                   });
+
+            var changelogs = (this.dalamudChangelogManager.Changelogs != null
+                                 ? pluginChangelogs
+                                   .Concat(this.dalamudChangelogManager.Changelogs.Select(x => new DalamudChangelogEntry(x, this.imageCache.CorePluginIcon)))
+                                 : pluginChangelogs).OrderByDescending(x => x.Date).ToList();
+
+            if (!changelogs.Any())
             {
                 ImGui.TextColored(
                     ImGuiColors.DalamudGrey2,
@@ -535,9 +553,9 @@ namespace Dalamud.Interface.Internal.Windows
                 return;
             }
 
-            foreach (var plugin in filteredList)
+            foreach (var logEntry in changelogs)
             {
-                this.DrawChangelog(plugin);
+                this.DrawChangelog(logEntry);
             }
         }
 
@@ -1202,41 +1220,30 @@ namespace Dalamud.Interface.Internal.Windows
             return isOpen;
         }
 
-        private void DrawChangelog(LocalPlugin plugin)
+        private void DrawChangelog(IChangelogEntry log)
         {
             ImGui.Separator();
 
             var startCursor = ImGui.GetCursorPos();
 
-            var iconTex = this.imageCache.DefaultIcon;
-            var hasIcon = this.imageCache.TryGetIcon(plugin, plugin.Manifest, plugin.Manifest.IsThirdParty, out var cachedIconTex);
-            if (hasIcon && cachedIconTex != null)
-            {
-                iconTex = cachedIconTex;
-            }
-
             var iconSize = ImGuiHelpers.ScaledVector2(64, 64);
 
-            ImGui.Image(iconTex.ImGuiHandle, iconSize);
+            ImGui.Image(log.Icon.ImGuiHandle, iconSize);
             ImGui.SameLine();
 
             ImGuiHelpers.ScaledDummy(5);
 
             ImGui.SameLine();
             var cursor = ImGui.GetCursorPos();
-            ImGui.Text(plugin.Name);
+            ImGui.Text(log.Title);
 
             ImGui.SameLine();
-            var version = plugin.AssemblyName?.Version;
-            version ??= plugin.Manifest.Testing
-                            ? plugin.Manifest.TestingAssemblyVersion
-                            : plugin.Manifest.AssemblyVersion;
-            ImGui.TextColored(ImGuiColors.DalamudGrey3, $" v{version}");
+            ImGui.TextColored(ImGuiColors.DalamudGrey3, $" v{log.Version}");
 
             cursor.Y += ImGui.GetTextLineHeightWithSpacing();
             ImGui.SetCursorPos(cursor);
 
-            ImGui.TextWrapped(plugin.Manifest.Changelog);
+            ImGui.TextWrapped(log.Text);
 
             var endCursor = ImGui.GetCursorPos();
 

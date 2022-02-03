@@ -14,6 +14,7 @@ using Dalamud.Game.Gui;
 using Dalamud.Game.Internal;
 using Dalamud.Interface.Internal.ManagedAsserts;
 using Dalamud.Interface.Internal.Windows;
+using Dalamud.Interface.Internal.Windows.PluginInstaller;
 using Dalamud.Interface.Internal.Windows.SelfTest;
 using Dalamud.Interface.Internal.Windows.StyleEditor;
 using Dalamud.Interface.Style;
