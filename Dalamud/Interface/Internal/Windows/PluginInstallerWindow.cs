@@ -347,6 +347,10 @@ namespace Dalamud.Interface.Internal.Windows
                                 {
                                     pluginManager.PrintUpdatedPlugins(this.updatedPlugins, Locs.PluginUpdateHeader_Chatbox);
                                     notifications.AddNotification(Locs.Notifications_UpdatesInstalled(this.updatePluginCount), Locs.Notifications_UpdatesInstalledTitle, NotificationType.Success);
+
+                                    var installedGroupIdx = this.categoryManager.GroupList.TakeWhile(
+                                        x => x.GroupKind != PluginCategoryManager.GroupKind.Installed).Count();
+                                    this.categoryManager.CurrentGroupIdx = installedGroupIdx;
                                 }
                                 else if (this.updatePluginCount == 0)
                                 {
