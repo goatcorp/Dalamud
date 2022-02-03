@@ -30,6 +30,7 @@ namespace Dalamud.Interface.Internal.Windows
     => Please see the ""Are plugins safe to use"" part of the XIVLauncher FAQ(goatcorp.github.io/faq) or reach out on Discord if you have concerns about security or want details on how this is set up and ran.
     => Changelogs in-game/the plugin installer should now also be more common, as the new service takes changelogs from the developer pull request descriptions.
 • The ""Available Plugins"" list in the plugin installer now also shows installed plugins to make the split less confusing. A new filter mode that filters installed plugins has been added.
+• A ""Changelog"" category has been added in the plugin installer which will list all recent changes to your plugins, and recent changes to Dalamud.
 
 If you note any issues or need help, please make sure to ask on our discord server.
 Thanks and have fun!";
