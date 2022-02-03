@@ -19,10 +19,17 @@ namespace Dalamud.Interface.Internal.Windows
         /// <summary>
         /// Whether the latest update warrants a changelog window.
         /// </summary>
-        public const string WarrantsChangelogForMajorMinor = "6.2.";
+        public const string WarrantsChangelogForMajorMinor = "6.3.";
 
         private const string ChangeLog =
-            @"• Internal adjustments to allow plugins to work on the new version of the game
+            @"• Added a new menu to the title screen which allows you to access the plugin installer and various other plugins before logging in.
+  => You can disable this menu in the settings under ""Look & Feel"".
+• Added a way for plugins to add information to the game's server info bar (e.g. current song, ping, etc).
+  => You can disable and reorder this information in the settings, if any plugin provides it.
+• Switched the plugin download server to a self-hosted solution instead of GitHub, to circumvent API limits, country blocks and bad ISP routing.
+  => Please see the ""Are plugins safe to use"" part of the XIVLauncher FAQ(goatcorp.github.io/faq) or reach out on Discord if you have concerns about security or want details on how this is set up and ran.
+  => Changelogs in-game/the plugin installer should now also be more common, as the new service takes changelogs from the developer pull request descriptions.
+• The ""Available Plugins"" list in the plugin installer now also shows installed plugins to make the spit less confusing. A new filter mode that filters installed plugins has been added.
 
 If you note any issues or need help, please make sure to ask on our discord server.
 Thanks and have fun with the new expansion!";
@@ -74,11 +81,13 @@ Considering current queue times, this is why we recommend that for now, you only
 
             ImGui.TextWrapped(ChangeLog);
 
+            /*
             ImGuiHelpers.ScaledDummy(5);
 
             ImGui.TextColored(ImGuiColors.DalamudRed, " !!! ATTENTION !!!");
 
             ImGui.TextWrapped(UpdatePluginsInfo);
+            */
 
             ImGuiHelpers.ScaledDummy(10);
 
@@ -118,13 +127,13 @@ Considering current queue times, this is why we recommend that for now, you only
 
             if (ImGui.Button(FontAwesomeIcon.Globe.ToIconString()))
             {
-                Util.OpenLink("https://github.com/goatcorp/FFXIVQuickLauncher");
+                Util.OpenLink("https://goatcorp.github.io/faq/");
             }
 
             if (ImGui.IsItemHovered())
             {
                 ImGui.PopFont();
-                ImGui.SetTooltip("See our GitHub repository");
+                ImGui.SetTooltip("See the FAQ");
                 ImGui.PushFont(UiBuilder.IconFont);
             }
 
