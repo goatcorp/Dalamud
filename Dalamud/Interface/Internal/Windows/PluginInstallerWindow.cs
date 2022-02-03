@@ -510,6 +510,37 @@ namespace Dalamud.Interface.Internal.Windows
         }
         */
 
+        private void DrawChangelogList()
+        {
+            if (this.pluginListInstalled.Count == 0)
+            {
+                ImGui.TextColored(ImGuiColors.DalamudGrey, Locs.TabBody_SearchNoInstalled);
+                return;
+            }
+
+            var filteredList = this.pluginListInstalled
+                                   .Where(plugin => !this.IsManifestFiltered(plugin.Manifest)
+                                                    && !plugin.Manifest.Changelog.IsNullOrEmpty())
+                                   .OrderByDescending(plugin => plugin.Manifest.LastUpdate)
+                                   .ToList();
+
+            if (!filteredList.Any())
+            {
+                ImGui.TextColored(
+                    ImGuiColors.DalamudGrey2,
+                    this.pluginListInstalled.Any(plugin => !plugin.Manifest.Changelog.IsNullOrEmpty())
+                      ? Locs.TabBody_SearchNoMatching
+                      : Locs.TabBody_ChangelogNone);
+
+                return;
+            }
+
+            foreach (var plugin in filteredList)
+            {
+                this.DrawChangelog(plugin);
+            }
+        }
+
         private void DrawAvailablePluginList()
         {
             var pluginList = this.pluginListAvailable;
@@ -728,31 +759,35 @@ namespace Dalamud.Interface.Internal.Windows
                 }
             }
 
-            if (groupInfo.GroupKind == PluginCategoryManager.GroupKind.DevTools)
+            switch (groupInfo.GroupKind)
             {
-                // this one is never sorted and remains in hardcoded order from group ctor
-                switch (this.categoryManager.CurrentCategoryIdx)
-                {
-                    case 0:
-                        this.DrawInstalledDevPluginList();
-                        break;
+                case PluginCategoryManager.GroupKind.DevTools:
+                    // this one is never sorted and remains in hardcoded order from group ctor
+                    switch (this.categoryManager.CurrentCategoryIdx)
+                    {
+                        case 0:
+                            this.DrawInstalledDevPluginList();
+                            break;
 
-                    case 1:
-                        this.DrawImageTester();
-                        break;
+                        case 1:
+                            this.DrawImageTester();
+                            break;
 
-                    default:
-                        // umm, there's nothing else, keep handled set and just skip drawing...
-                        break;
-                }
-            }
-            else if (groupInfo.GroupKind == PluginCategoryManager.GroupKind.Installed)
-            {
-                this.DrawInstalledPluginList();
-            }
-            else
-            {
-                this.DrawAvailablePluginList();
+                        default:
+                            // umm, there's nothing else, keep handled set and just skip drawing...
+                            break;
+                    }
+
+                    break;
+                case PluginCategoryManager.GroupKind.Installed:
+                    this.DrawInstalledPluginList();
+                    break;
+                case PluginCategoryManager.GroupKind.Changelog:
+                    this.DrawChangelogList();
+                    break;
+                default:
+                    this.DrawAvailablePluginList();
+                    break;
             }
 
             ImGui.PopStyleVar();
@@ -1165,6 +1200,52 @@ namespace Dalamud.Interface.Internal.Windows
             ImGui.SetCursorPos(startCursor);
 
             return isOpen;
+        }
+
+        private void DrawChangelog(LocalPlugin plugin)
+        {
+            ImGui.Separator();
+
+            var startCursor = ImGui.GetCursorPos();
+
+            var iconTex = this.imageCache.DefaultIcon;
+            var hasIcon = this.imageCache.TryGetIcon(plugin, plugin.Manifest, plugin.Manifest.IsThirdParty, out var cachedIconTex);
+            if (hasIcon && cachedIconTex != null)
+            {
+                iconTex = cachedIconTex;
+            }
+
+            var iconSize = ImGuiHelpers.ScaledVector2(64, 64);
+
+            ImGui.Image(iconTex.ImGuiHandle, iconSize);
+            ImGui.SameLine();
+
+            ImGuiHelpers.ScaledDummy(5);
+
+            ImGui.SameLine();
+            var cursor = ImGui.GetCursorPos();
+            ImGui.Text(plugin.Name);
+
+            ImGui.SameLine();
+            var version = plugin.AssemblyName?.Version;
+            version ??= plugin.Manifest.Testing
+                            ? plugin.Manifest.TestingAssemblyVersion
+                            : plugin.Manifest.AssemblyVersion;
+            ImGui.TextColored(ImGuiColors.DalamudGrey3, $" v{version}");
+
+            cursor.Y += ImGui.GetTextLineHeightWithSpacing();
+            ImGui.SetCursorPos(cursor);
+
+            ImGui.TextWrapped(plugin.Manifest.Changelog);
+
+            var endCursor = ImGui.GetCursorPos();
+
+            var sectionSize = Math.Max(
+                66 * ImGuiHelpers.GlobalScale, // min size due to icons
+                endCursor.Y - startCursor.Y);
+
+            startCursor.Y += sectionSize;
+            ImGui.SetCursorPos(startCursor);
         }
 
         private void DrawAvailablePlugin(RemotePluginManifest manifest, int index)
@@ -2125,6 +2206,8 @@ namespace Dalamud.Interface.Internal.Windows
             public static string TabBody_SearchNoCompatible => Loc.Localize("InstallerNoCompatible", "No compatible plugins were found :( Please restart your game and try again.");
 
             public static string TabBody_SearchNoInstalled => Loc.Localize("InstallerNoInstalled", "No plugins are currently installed. You can install them from the \"All Plugins\" tab.");
+
+            public static string TabBody_ChangelogNone => Loc.Localize("InstallerNoChangelog", "None of your installed plugins have a changelog.");
 
             #endregion
 

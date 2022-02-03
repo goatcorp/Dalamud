@@ -39,6 +39,7 @@ namespace Dalamud.Interface.Internal
             new(GroupKind.DevTools, () => Locs.Group_DevTools, 10, 11),
             new(GroupKind.Installed, () => Locs.Group_Installed, 0),
             new(GroupKind.Available, () => Locs.Group_Available, 0),
+            new(GroupKind.Changelog, () => Locs.Group_Changelog, 0),
 
             // order important, used for drawing, keep in sync with defaults for currentGroupIdx
         };
@@ -69,6 +70,11 @@ namespace Dalamud.Interface.Internal
             /// UI group: plugins that can be installed.
             /// </summary>
             Available,
+
+            /// <summary>
+            /// UI group: changelog of plugins.
+            /// </summary>
+            Changelog,
         }
 
         /// <summary>
@@ -373,6 +379,8 @@ namespace Dalamud.Interface.Internal
             public static string Group_Installed => Loc.Localize("InstallerInstalledPlugins", "Installed Plugins");
 
             public static string Group_Available => Loc.Localize("InstallerAllPlugins", "All Plugins");
+
+            public static string Group_Changelog => Loc.Localize("InstallerChangelog", "Changelog");
 
             #endregion
 
