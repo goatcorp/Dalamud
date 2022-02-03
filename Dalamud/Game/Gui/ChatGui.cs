@@ -328,11 +328,36 @@ namespace Dalamud.Game.Gui
 
                 // Call events
                 var isHandled = false;
-                this.CheckMessageHandled?.Invoke(chattype, senderid, ref parsedSender, ref parsedMessage, ref isHandled);
+
+                var invocationList = this.CheckMessageHandled.GetInvocationList();
+                foreach (var @delegate in invocationList)
+                {
+                    try
+                    {
+                        var messageHandledDelegate = @delegate as OnCheckMessageHandledDelegate;
+                        messageHandledDelegate!.Invoke(chattype, senderid, ref parsedSender, ref parsedMessage, ref isHandled);
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Error(e, "Could not invoke registered OnCheckMessageHandledDelegate for {Name}", @delegate.Method.Name);
+                    }
+                }
 
                 if (!isHandled)
                 {
-                    this.ChatMessage?.Invoke(chattype, senderid, ref parsedSender, ref parsedMessage, ref isHandled);
+                    invocationList = this.ChatMessage.GetInvocationList();
+                    foreach (var @delegate in invocationList)
+                    {
+                        try
+                        {
+                            var messageHandledDelegate = @delegate as OnMessageDelegate;
+                            messageHandledDelegate!.Invoke(chattype, senderid, ref parsedSender, ref parsedMessage, ref isHandled);
+                        }
+                        catch (Exception e)
+                        {
+                            Log.Error(e, "Could not invoke registered OnMessageDelegate for {Name}", @delegate.Method.Name);
+                        }
+                    }
                 }
 
                 var newEdited = parsedMessage.Encode();
