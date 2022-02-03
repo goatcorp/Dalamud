@@ -1409,6 +1409,7 @@ namespace Dalamud.Interface.Internal.Windows
             }
 
             ImGui.PushID($"installed{index}{plugin.Manifest.InternalName}");
+            var hasChangelog = !plugin.Manifest.Changelog.IsNullOrEmpty();
 
             if (this.DrawPluginCollapsingHeader(label, plugin, plugin.Manifest, plugin.Manifest.IsThirdParty, trouble, availablePluginUpdate != default, false, () => this.DrawInstalledPluginContextMenu(plugin), index))
             {
@@ -1503,31 +1504,44 @@ namespace Dalamud.Interface.Internal.Windows
                     ImGuiHelpers.ScaledDummy(5);
 
                 ImGui.Unindent();
+
+                if (hasChangelog)
+                {
+                    if (ImGui.TreeNode($"Changelog (v{plugin.Manifest.AssemblyVersion})"))
+                    {
+                        this.DrawInstalledPluginChangelog(plugin.Manifest);
+                    }
+                }
             }
 
-            if (thisWasUpdated && !plugin.Manifest.Changelog.IsNullOrEmpty())
+            if (thisWasUpdated && hasChangelog)
             {
-                ImGuiHelpers.ScaledDummy(5);
-
-                ImGui.PushStyleColor(ImGuiCol.ChildBg, this.changelogBgColor);
-                ImGui.PushStyleColor(ImGuiCol.Text, this.changelogTextColor);
-
-                ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(7, 5));
-
-                if (ImGui.BeginChild("##changelog", new Vector2(-1, 100), true, ImGuiWindowFlags.NoNavFocus | ImGuiWindowFlags.NoNavInputs | ImGuiWindowFlags.AlwaysAutoResize))
-                {
-                    ImGui.Text("Changelog:");
-                    ImGuiHelpers.ScaledDummy(2);
-                    ImGui.TextWrapped(plugin.Manifest.Changelog);
-                }
-
-                ImGui.EndChild();
-
-                ImGui.PopStyleVar();
-                ImGui.PopStyleColor(2);
+                this.DrawInstalledPluginChangelog(plugin.Manifest);
             }
 
             ImGui.PopID();
+        }
+
+        private void DrawInstalledPluginChangelog(PluginManifest manifest)
+        {
+            ImGuiHelpers.ScaledDummy(5);
+
+            ImGui.PushStyleColor(ImGuiCol.ChildBg, this.changelogBgColor);
+            ImGui.PushStyleColor(ImGuiCol.Text, this.changelogTextColor);
+
+            ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(7, 5));
+
+            if (ImGui.BeginChild("##changelog", new Vector2(-1, 100), true, ImGuiWindowFlags.NoNavFocus | ImGuiWindowFlags.NoNavInputs | ImGuiWindowFlags.AlwaysAutoResize))
+            {
+                ImGui.Text("Changelog:");
+                ImGuiHelpers.ScaledDummy(2);
+                ImGui.TextWrapped(manifest.Changelog);
+            }
+
+            ImGui.EndChild();
+
+            ImGui.PopStyleVar();
+            ImGui.PopStyleColor(2);
         }
 
         private void DrawInstalledPluginContextMenu(LocalPlugin plugin)
