@@ -29,10 +29,10 @@ namespace Dalamud.Interface.Internal.Windows
 • Switched the plugin download server to a self-hosted solution instead of GitHub, to circumvent API limits, country blocks and bad ISP routing.
     => Please see the ""Are plugins safe to use"" part of the XIVLauncher FAQ(goatcorp.github.io/faq) or reach out on Discord if you have concerns about security or want details on how this is set up and ran.
     => Changelogs in-game/the plugin installer should now also be more common, as the new service takes changelogs from the developer pull request descriptions.
-• The ""Available Plugins"" list in the plugin installer now also shows installed plugins to make the spit less confusing. A new filter mode that filters installed plugins has been added.
+• The ""Available Plugins"" list in the plugin installer now also shows installed plugins to make the split less confusing. A new filter mode that filters installed plugins has been added.
 
 If you note any issues or need help, please make sure to ask on our discord server.
-Thanks and have fun with the new expansion!";
+Thanks and have fun!";
 
         private const string UpdatePluginsInfo =
             @"• All of your plugins were disabled automatically, due to this update. This is normal.
