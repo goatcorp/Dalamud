@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Net.Http;
 using System.Threading.Tasks;
 
 using Dalamud.Logging.Internal;
@@ -14,9 +13,9 @@ namespace Dalamud.Plugin.Internal
     /// <summary>
     /// This class represents a single plugin repository.
     /// </summary>
-    internal partial class PluginRepository
+    internal class PluginRepository
     {
-        private const string DalamudPluginsMasterUrl = "https://raw.githubusercontent.com/goatcorp/DalamudPlugins/api5/pluginmaster.json";
+        private const string DalamudPluginsMasterUrl = "https://kamori.goats.dev/Plugin/GetPluginMaster";
 
         private static readonly ModuleLog Log = new("PLUGINR");
 
