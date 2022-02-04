@@ -11,17 +11,13 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
     /// </summary>
     internal class PluginChangelogEntry : IChangelogEntry
     {
-        private readonly LocalPlugin plugin;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="PluginChangelogEntry"/> class.
         /// </summary>
         /// <param name="plugin">The plugin manifest.</param>
-        /// <param name="icon">The icon.</param>
-        public PluginChangelogEntry(LocalPlugin plugin, TextureWrap icon)
+        public PluginChangelogEntry(LocalPlugin plugin)
         {
-            this.plugin = plugin;
-            this.Icon = icon;
+            this.Plugin = plugin;
 
             if (plugin.Manifest.Changelog.IsNullOrEmpty())
                 throw new ArgumentException("Manifest has no changelog.");
@@ -34,19 +30,21 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             this.Version = version!.ToString();
         }
 
+        /// <summary>
+        /// Gets the respective plugin.
+        /// </summary>
+        public LocalPlugin Plugin { get; private set; }
+
         /// <inheritdoc/>
-        public string Title => this.plugin.Manifest.Name;
+        public string Title => this.Plugin.Manifest.Name;
 
         /// <inheritdoc/>
         public string Version { get; init; }
 
         /// <inheritdoc/>
-        public string Text => this.plugin.Manifest.Changelog!;
+        public string Text => this.Plugin.Manifest.Changelog!;
 
         /// <inheritdoc/>
-        public TextureWrap Icon { get; init; }
-
-        /// <inheritdoc/>
-        public DateTime Date => DateTimeOffset.FromUnixTimeSeconds(this.plugin.Manifest.LastUpdate).DateTime;
+        public DateTime Date => DateTimeOffset.FromUnixTimeSeconds(this.Plugin.Manifest.LastUpdate).DateTime;
     }
 }

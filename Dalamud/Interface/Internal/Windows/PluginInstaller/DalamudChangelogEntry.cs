@@ -15,11 +15,9 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
         /// Initializes a new instance of the <see cref="DalamudChangelogEntry"/> class.
         /// </summary>
         /// <param name="changelog">The changelog.</param>
-        /// <param name="icon">The icon.</param>
-        public DalamudChangelogEntry(DalamudChangelog changelog, TextureWrap icon)
+        public DalamudChangelogEntry(DalamudChangelog changelog)
         {
             this.changelog = changelog;
-            this.Icon = icon;
 
             var changelogText = string.Empty;
             for (var i = 0; i < changelog.Changes.Count; i++)
@@ -44,9 +42,6 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
         /// <inheritdoc/>
         public string Text { get; init; }
-
-        /// <inheritdoc/>
-        public TextureWrap Icon { get; init; }
 
         /// <inheritdoc/>
         public DateTime Date => this.changelog.Date;

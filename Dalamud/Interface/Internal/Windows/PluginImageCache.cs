@@ -239,9 +239,20 @@ namespace Dalamud.Interface.Internal.Windows
             var interfaceManager = Service<InterfaceManager>.Get();
             var pluginManager = Service<PluginManager>.Get();
 
-            static bool TryLoadIcon(byte[] bytes, string loc, PluginManifest manifest, InterfaceManager interfaceManager, out TextureWrap icon)
+            static bool TryLoadIcon(byte[] bytes, string? loc, PluginManifest manifest, InterfaceManager interfaceManager, out TextureWrap? icon)
             {
-                icon = interfaceManager.LoadImage(bytes);
+                // FIXME(goat): This is a hack around this call failing randomly in certain situations. Might be related to not being called on the main thread.
+                try
+                {
+                    icon = interfaceManager.LoadImage(bytes);
+                }
+                catch (AccessViolationException ex)
+                {
+                    Log.Error(ex, "Access violation during load plugin icon from {Loc}", loc);
+
+                    icon = null;
+                    return false;
+                }
 
                 if (icon == null)
                 {
@@ -332,9 +343,20 @@ namespace Dalamud.Interface.Internal.Windows
             var interfaceManager = Service<InterfaceManager>.Get();
             var pluginManager = Service<PluginManager>.Get();
 
-            static bool TryLoadImage(int i, byte[] bytes, string loc, PluginManifest manifest, InterfaceManager interfaceManager, out TextureWrap image)
+            static bool TryLoadImage(int i, byte[] bytes, string loc, PluginManifest manifest, InterfaceManager interfaceManager, out TextureWrap? image)
             {
-                image = interfaceManager.LoadImage(bytes);
+                // FIXME(goat): This is a hack around this call failing randomly in certain situations. Might be related to not being called on the main thread.
+                try
+                {
+                    image = interfaceManager.LoadImage(bytes);
+                }
+                catch (AccessViolationException ex)
+                {
+                    Log.Error(ex, "Access violation during load plugin image from {Loc}", loc);
+
+                    image = null;
+                    return false;
+                }
 
                 if (image == null)
                 {
@@ -351,43 +373,41 @@ namespace Dalamud.Interface.Internal.Windows
                 return true;
             }
 
-            if (plugin != null && plugin.IsDev)
+            if (plugin is { IsDev: true })
             {
                 var files = this.GetPluginImageFileInfos(plugin);
-                if (files != null)
+
+                var didAny = false;
+                var pluginImages = new TextureWrap[files.Count];
+                for (var i = 0; i < files.Count; i++)
                 {
-                    var didAny = false;
-                    var pluginImages = new TextureWrap[files.Count];
-                    for (var i = 0; i < files.Count; i++)
-                    {
-                        var file = files[i];
+                    var file = files[i];
 
-                        if (file == null)
-                            continue;
+                    if (file == null)
+                        continue;
 
-                        Log.Verbose($"Loading image{i + 1} for {manifest.InternalName} from {file.FullName}");
-                        var bytes = await File.ReadAllBytesAsync(file.FullName);
+                    Log.Verbose($"Loading image{i + 1} for {manifest.InternalName} from {file.FullName}");
+                    var bytes = await File.ReadAllBytesAsync(file.FullName);
 
-                        if (!TryLoadImage(i, bytes, file.FullName, manifest, interfaceManager, out var image))
-                            continue;
+                    if (!TryLoadImage(i, bytes, file.FullName, manifest, interfaceManager, out var image))
+                        continue;
 
-                        Log.Verbose($"Plugin image{i + 1} for {manifest.InternalName} loaded from disk");
-                        pluginImages[i] = image;
+                    Log.Verbose($"Plugin image{i + 1} for {manifest.InternalName} loaded from disk");
+                    pluginImages[i] = image;
 
-                        didAny = true;
-                    }
+                    didAny = true;
+                }
 
-                    if (didAny)
-                    {
-                        Log.Verbose($"Plugin images for {manifest.InternalName} loaded from disk");
+                if (didAny)
+                {
+                    Log.Verbose($"Plugin images for {manifest.InternalName} loaded from disk");
 
-                        if (pluginImages.Contains(null))
-                            pluginImages = pluginImages.Where(image => image != null).ToArray();
+                    if (pluginImages.Contains(null))
+                        pluginImages = pluginImages.Where(image => image != null).ToArray();
 
-                        this.pluginImagesMap[manifest.InternalName] = pluginImages;
+                    this.pluginImagesMap[manifest.InternalName] = pluginImages;
 
-                        return;
-                    }
+                    return;
                 }
 
                 // Dev plugins are likely going to look like a main repo plugin, the InstalledFrom field is going to be null.

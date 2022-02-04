@@ -25,11 +25,6 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
         string Text { get; }
 
         /// <summary>
-        /// Gets the icon of the entry.
-        /// </summary>
-        TextureWrap Icon { get; }
-
-        /// <summary>
         /// Gets the date of the entry.
         /// </summary>
         DateTime Date { get; }

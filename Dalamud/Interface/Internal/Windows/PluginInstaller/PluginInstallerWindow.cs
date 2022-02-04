@@ -467,52 +467,6 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             }
         }
 
-        /*
-        private void DrawPluginTabBar()
-        {
-            ImGui.SetCursorPosY(ImGui.GetCursorPosY() - (5 * ImGuiHelpers.GlobalScale));
-
-            ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, ImGuiHelpers.ScaledVector2(1, 3));
-
-            if (ImGui.BeginTabBar("PluginsTabBar", ImGuiTabBarFlags.NoTooltip))
-            {
-                this.DrawPluginTab(Locs.TabTitle_AvailablePlugins, this.DrawAvailablePluginList);
-                this.DrawPluginTab(Locs.TabTitle_InstalledPlugins, this.DrawInstalledPluginList);
-
-                if (this.hasDevPlugins)
-                {
-                    this.DrawPluginTab(Locs.TabTitle_InstalledDevPlugins, this.DrawInstalledDevPluginList);
-                    this.DrawPluginTab("Image/Icon Tester", this.DrawImageTester);
-                }
-            }
-
-            ImGui.PopStyleVar();
-        }
-        */
-
-        /*
-        private void DrawPluginTab(string title, Action drawPluginList)
-        {
-            if (ImGui.BeginTabItem(title))
-            {
-                ImGui.BeginChild($"Scrolling{title}", ImGuiHelpers.ScaledVector2(0, -30), true, ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.NoBackground);
-
-                ImGui.SetCursorPosY(ImGui.GetCursorPosY() - 5);
-
-                var ready = this.DrawPluginListLoading();
-
-                if (ready)
-                {
-                    drawPluginList();
-                }
-
-                ImGui.EndChild();
-
-                ImGui.EndTabItem();
-            }
-        }
-        */
-
         private void DrawChangelogList(bool displayDalamud, bool displayPlugins)
         {
             if (this.pluginListInstalled.Count == 0)
@@ -526,14 +480,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                                                     && !plugin.Manifest.Changelog.IsNullOrEmpty())
                                    .Select(x =>
                                    {
-                                       var iconTex = this.imageCache.DefaultIcon;
-                                       var hasIcon = this.imageCache.TryGetIcon(x, x.Manifest, x.Manifest.IsThirdParty, out var cachedIconTex);
-                                       if (hasIcon && cachedIconTex != null)
-                                       {
-                                           iconTex = cachedIconTex;
-                                       }
-
-                                       var changelog = new PluginChangelogEntry(x, iconTex);
+                                       var changelog = new PluginChangelogEntry(x);
                                        return (IChangelogEntry)changelog;
                                    });
 
@@ -542,12 +489,12 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             {
                 changelogs = pluginChangelogs
                              .Concat(this.dalamudChangelogManager.Changelogs.Select(
-                                         x => new DalamudChangelogEntry(x, this.imageCache.CorePluginIcon)));
+                                         x => new DalamudChangelogEntry(x)));
             }
             else if (displayDalamud && this.dalamudChangelogManager.Changelogs != null)
             {
                 changelogs = this.dalamudChangelogManager.Changelogs.Select(
-                    x => new DalamudChangelogEntry(x, this.imageCache.CorePluginIcon));
+                    x => new DalamudChangelogEntry(x));
             }
             else if (displayPlugins)
             {
@@ -1256,7 +1203,22 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
             var iconSize = ImGuiHelpers.ScaledVector2(64, 64);
 
-            ImGui.Image(log.Icon.ImGuiHandle, iconSize);
+            TextureWrap icon;
+            if (log is PluginChangelogEntry pluginLog)
+            {
+                icon = this.imageCache.DefaultIcon;
+                var hasIcon = this.imageCache.TryGetIcon(pluginLog.Plugin, pluginLog.Plugin.Manifest, pluginLog.Plugin.Manifest.IsThirdParty, out var cachedIconTex);
+                if (hasIcon && cachedIconTex != null)
+                {
+                    icon = cachedIconTex;
+                }
+            }
+            else
+            {
+                icon = this.imageCache.CorePluginIcon;
+            }
+
+            ImGui.Image(icon.ImGuiHandle, iconSize);
             ImGui.SameLine();
 
             ImGuiHelpers.ScaledDummy(5);
@@ -2055,8 +2017,10 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                 (manifest.Tags != null && manifest.Tags.Contains(searchString, StringComparer.InvariantCultureIgnoreCase)));
         }
 
-        private (bool IsInstalled, LocalPlugin Plugin) IsManifestInstalled(RemotePluginManifest manifest)
+        private (bool IsInstalled, LocalPlugin Plugin) IsManifestInstalled(RemotePluginManifest? manifest)
         {
+            if (manifest == null) return (false, default);
+
             var plugin = this.pluginListInstalled.FirstOrDefault(plugin => plugin.Manifest.InternalName == manifest.InternalName);
             var isInstalled = plugin != default;
 
