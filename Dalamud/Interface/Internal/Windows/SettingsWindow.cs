@@ -188,25 +188,25 @@ namespace Dalamud.Interface.Internal.Windows
 
             if (ImGui.BeginTabBar("SetTabBar"))
             {
-                if (ImGui.BeginTabItem(Loc.Localize("DalamudSettingsGeneral", "General")))
+                if (ImGui.BeginTabItem(Loc.Localize("DalamudSettingsGeneral", "General") + "###settingsTabGeneral"))
                 {
                     this.DrawGeneralTab();
                     ImGui.EndTabItem();
                 }
 
-                if (ImGui.BeginTabItem(Loc.Localize("DalamudSettingsVisual", "Look & Feel")))
+                if (ImGui.BeginTabItem(Loc.Localize("DalamudSettingsVisual", "Look & Feel") + "###settingsTabVisual"))
                 {
                     this.DrawLookAndFeelTab();
                     ImGui.EndTabItem();
                 }
 
-                if (ImGui.BeginTabItem(Loc.Localize("DalamudSettingsServerInfoBar", "Server Info Bar")))
+                if (ImGui.BeginTabItem(Loc.Localize("DalamudSettingsServerInfoBar", "Server Info Bar") + "###settingsTabInfoBar"))
                 {
                     this.DrawServerInfoBarTab();
                     ImGui.EndTabItem();
                 }
 
-                if (ImGui.BeginTabItem(Loc.Localize("DalamudSettingsExperimental", "Experimental")))
+                if (ImGui.BeginTabItem(Loc.Localize("DalamudSettingsExperimental", "Experimental") + "###settingsTabExperimental"))
                 {
                     this.DrawExperimentalTab();
                     ImGui.EndTabItem();
