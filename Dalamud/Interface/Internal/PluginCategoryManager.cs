@@ -22,6 +22,8 @@ namespace Dalamud.Interface.Internal
             new(0, "special.all", () => Locs.Category_All),
             new(10, "special.devInstalled", () => Locs.Category_DevInstalled),
             new(11, "special.devIconTester", () => Locs.Category_IconTester),
+            new(12, "special.dalamud", () => Locs.Category_Dalamud),
+            new(13, "special.plugins", () => Locs.Category_Plugins),
             new(FirstTagBasedCategoryId + 0, "other", () => Locs.Category_Other),
             new(FirstTagBasedCategoryId + 1, "jobs", () => Locs.Category_Jobs),
             new(FirstTagBasedCategoryId + 2, "ui", () => Locs.Category_UI),
@@ -39,7 +41,7 @@ namespace Dalamud.Interface.Internal
             new(GroupKind.DevTools, () => Locs.Group_DevTools, 10, 11),
             new(GroupKind.Installed, () => Locs.Group_Installed, 0),
             new(GroupKind.Available, () => Locs.Group_Available, 0),
-            new(GroupKind.Changelog, () => Locs.Group_Changelog, 0),
+            new(GroupKind.Changelog, () => Locs.Group_Changelog, 0, 12, 13),
 
             // order important, used for drawing, keep in sync with defaults for currentGroupIdx
         };
@@ -407,6 +409,10 @@ namespace Dalamud.Interface.Internal
             public static string Category_Social => Loc.Localize("InstallerCategorySocial", "Social");
 
             public static string Category_Utility => Loc.Localize("InstallerCategoryUtility", "Utility");
+
+            public static string Category_Plugins => Loc.Localize("InstallerCategoryPlugins", "Plugins");
+
+            public static string Category_Dalamud => Loc.Localize("InstallerCategoryDalamud", "Dalamud");
 
             #endregion
         }

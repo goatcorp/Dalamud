@@ -513,7 +513,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
         }
         */
 
-        private void DrawChangelogList()
+        private void DrawChangelogList(bool displayDalamud, bool displayPlugins)
         {
             if (this.pluginListInstalled.Count == 0)
             {
@@ -537,12 +537,26 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                                        return (IChangelogEntry)changelog;
                                    });
 
-            var changelogs = (this.dalamudChangelogManager.Changelogs != null
-                                 ? pluginChangelogs
-                                   .Concat(this.dalamudChangelogManager.Changelogs.Select(x => new DalamudChangelogEntry(x, this.imageCache.CorePluginIcon)))
-                                 : pluginChangelogs).OrderByDescending(x => x.Date).ToList();
+            IEnumerable<IChangelogEntry> changelogs = null;
+            if (displayDalamud && displayPlugins && this.dalamudChangelogManager.Changelogs != null)
+            {
+                changelogs = pluginChangelogs
+                             .Concat(this.dalamudChangelogManager.Changelogs.Select(
+                                         x => new DalamudChangelogEntry(x, this.imageCache.CorePluginIcon)));
+            }
+            else if (displayDalamud && this.dalamudChangelogManager.Changelogs != null)
+            {
+                changelogs = this.dalamudChangelogManager.Changelogs.Select(
+                    x => new DalamudChangelogEntry(x, this.imageCache.CorePluginIcon));
+            }
+            else if (displayPlugins)
+            {
+                changelogs = pluginChangelogs;
+            }
 
-            if (!changelogs.Any())
+            var sortedChangelogs = changelogs?.OrderByDescending(x => x.Date).ToList();
+
+            if (sortedChangelogs == null || !sortedChangelogs.Any())
             {
                 ImGui.TextColored(
                     ImGuiColors.DalamudGrey2,
@@ -553,7 +567,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                 return;
             }
 
-            foreach (var logEntry in changelogs)
+            foreach (var logEntry in sortedChangelogs)
             {
                 this.DrawChangelog(logEntry);
             }
@@ -801,7 +815,21 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                     this.DrawInstalledPluginList();
                     break;
                 case PluginCategoryManager.GroupKind.Changelog:
-                    this.DrawChangelogList();
+                    switch (this.categoryManager.CurrentCategoryIdx)
+                    {
+                        case 0:
+                            this.DrawChangelogList(true, true);
+                            break;
+
+                        case 1:
+                            this.DrawChangelogList(true, false);
+                            break;
+
+                        case 2:
+                            this.DrawChangelogList(false, true);
+                            break;
+                    }
+
                     break;
                 default:
                     this.DrawAvailablePluginList();
