@@ -7,7 +7,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-
+using Dalamud.Game;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
@@ -44,6 +44,7 @@ namespace Dalamud.Interface.Internal.Windows
         private const string MainRepoImageUrl = "https://raw.githubusercontent.com/goatcorp/DalamudPlugins/api5/{0}/{1}/images/{2}";
 
         private BlockingCollection<Func<Task>> downloadQueue = new();
+        private BlockingCollection<Action> loadQueue = new();
         private CancellationTokenSource downloadToken = new();
         private Thread downloadThread;
 
@@ -74,6 +75,24 @@ namespace Dalamud.Interface.Internal.Windows
 
             this.downloadThread = new Thread(this.DownloadTask);
             this.downloadThread.Start();
+
+            var framework = Service<Framework>.Get();
+            framework.Update += this.FrameworkOnUpdate;
+        }
+
+        private void FrameworkOnUpdate(Framework framework)
+        {
+            try
+            {
+                if (!this.loadQueue.TryTake(out var loadAction, 0, this.downloadToken.Token))
+                    return;
+
+                loadAction.Invoke();
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "An unhandled exception occurred in image loader framework dispatcher");
+            }
         }
 
         /// <summary>
@@ -114,6 +133,9 @@ namespace Dalamud.Interface.Internal.Windows
         /// <inheritdoc/>
         public void Dispose()
         {
+            var framework = Service<Framework>.Get();
+            framework.Update -= this.FrameworkOnUpdate;
+
             this.DefaultIcon?.Dispose();
             this.TroubleIcon?.Dispose();
             this.UpdateIcon?.Dispose();
@@ -126,7 +148,7 @@ namespace Dalamud.Interface.Internal.Windows
 
             if (!this.downloadThread.Join(4000))
             {
-                Log.Error("Plugin Image Download thread has not cancelled in time.");
+                Log.Error("Plugin Image Download thread has not cancelled in time");
             }
 
             this.downloadToken?.Dispose();
@@ -326,11 +348,14 @@ namespace Dalamud.Interface.Internal.Windows
                 data.EnsureSuccessStatusCode();
 
                 var bytes = await data.Content.ReadAsByteArrayAsync();
-                if (!TryLoadIcon(bytes, url, manifest, interfaceManager, out var icon))
-                    return;
+                this.loadQueue.Add(() =>
+                {
+                    if (!TryLoadIcon(bytes, url, manifest, interfaceManager, out var icon))
+                        return;
 
-                this.pluginIconMap[manifest.InternalName] = icon;
-                Log.Verbose($"Plugin icon for {manifest.InternalName} downloaded");
+                    this.pluginIconMap[manifest.InternalName] = icon;
+                    Log.Verbose($"Plugin icon for {manifest.InternalName} downloaded");
+                });
 
                 return;
             }
@@ -417,10 +442,13 @@ namespace Dalamud.Interface.Internal.Windows
 
             var useTesting = pluginManager.UseTesting(manifest);
             var urls = this.GetPluginImageUrls(manifest, isThirdParty, useTesting);
+
             if (urls != null)
             {
+                var imageBytes = new byte[urls.Count][];
+
                 var didAny = false;
-                var pluginImages = new TextureWrap[urls.Count];
+
                 for (var i = 0; i < urls.Count; i++)
                 {
                     var url = urls[i];
@@ -452,25 +480,41 @@ namespace Dalamud.Interface.Internal.Windows
                     data.EnsureSuccessStatusCode();
 
                     var bytes = await data.Content.ReadAsByteArrayAsync();
-                    if (!TryLoadImage(i, bytes, url, manifest, interfaceManager, out var image))
-                        continue;
+                    imageBytes[i] = bytes;
+
+
 
                     Log.Verbose($"Plugin image{i + 1} for {manifest.InternalName} downloaded");
-                    pluginImages[i] = image;
 
                     didAny = true;
+
                 }
 
                 if (didAny)
                 {
-                    Log.Verbose($"Plugin images for {manifest.InternalName} downloaded");
+                    this.loadQueue.Add(() =>
+                    {
+                        var pluginImages = new TextureWrap[urls.Count];
 
-                    if (pluginImages.Contains(null))
-                        pluginImages = pluginImages.Where(image => image != null).ToArray();
+                        for (var i = 0; i < imageBytes.Length; i++)
+                        {
+                            var bytes = imageBytes[i];
+                            if (bytes == null)
+                                continue;
 
-                    this.pluginImagesMap[manifest.InternalName] = pluginImages;
+                            if (!TryLoadImage(i, bytes, "queue", manifest, interfaceManager, out var image))
+                                continue;
 
-                    return;
+                            pluginImages[i] = image;
+                        }
+
+                        Log.Verbose($"Plugin images for {manifest.InternalName} downloaded");
+
+                        if (pluginImages.Contains(null))
+                            pluginImages = pluginImages.Where(image => image != null).ToArray();
+
+                        this.pluginImagesMap[manifest.InternalName] = pluginImages;
+                    });
                 }
             }
 
