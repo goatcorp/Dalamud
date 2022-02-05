@@ -48,10 +48,14 @@ namespace Dalamud.Game.Gui.Dtr
             if (this.entries.Any(x => x.Title == title))
                 throw new ArgumentException("An entry with the same title already exists.");
 
+            var configuration = Service<DalamudConfiguration>.Get();
             var node = this.MakeNode(++this.runningNodeIds);
             var entry = new DtrBarEntry(title, node);
             entry.Text = text;
 
+            // Add the entry to the end of the order list, if it's not there already.
+            if (!configuration.DtrOrder!.Contains(title))
+                configuration.DtrOrder!.Add(title);
             this.entries.Add(entry);
             this.ApplySort();
 
@@ -98,22 +102,16 @@ namespace Dalamud.Game.Gui.Dtr
             var configuration = Service<DalamudConfiguration>.Get();
 
             // Sort the current entry list, based on the order in the configuration.
-            var ordered = configuration.DtrOrder.Select(entry => this.entries.FirstOrDefault(x => x.Title == entry)).Where(value => value != null).ToList();
+            var positions = configuration.DtrOrder!
+                                         .Select(entry => (entry, index: configuration.DtrOrder!.IndexOf(entry)))
+                                         .ToDictionary(x => x.entry, x => x.index);
 
-            // Add entries that weren't sorted to the end of the list.
-            if (ordered.Count != this.entries.Count)
+            this.entries.Sort((x, y) =>
             {
-                ordered.AddRange(this.entries.Where(x => ordered.All(y => y.Title != x.Title)));
-            }
-
-            // Update the order list for new entries.
-            configuration.DtrOrder.Clear();
-            foreach (var dtrEntry in ordered)
-            {
-                configuration.DtrOrder.Add(dtrEntry.Title);
-            }
-
-            this.entries = ordered;
+                var xPos = positions.TryGetValue(x.Title, out var xIndex) ? xIndex : int.MaxValue;
+                var yPos = positions.TryGetValue(y.Title, out var yIndex) ? yIndex : int.MaxValue;
+                return xPos.CompareTo(yPos);
+            });
         }
 
         private static AtkUnitBase* GetDtr() => (AtkUnitBase*)Service<GameGui>.Get().GetAddonByName("_DTR", 1).ToPointer();
