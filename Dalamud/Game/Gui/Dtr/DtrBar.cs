@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -142,9 +142,12 @@ namespace Dalamud.Game.Gui.Dtr
 
             var collisionNode = dtr->UldManager.NodeList[1];
             if (collisionNode == null) return;
-            var runningXPos = collisionNode->X;
 
             var configuration = Service<DalamudConfiguration>.Get();
+
+            // If we are drawing backwards, we should start from the right side of the collision node. That is,
+            // collisionNode->X + collisionNode->Width.
+            var runningXPos = configuration.DtrSwapDirection ? collisionNode->X + collisionNode->Width : collisionNode->X;
 
             for (var i = 0; i < this.entries.Count; i++)
             {
@@ -178,8 +181,18 @@ namespace Dalamud.Game.Gui.Dtr
 
                 if (!isHide)
                 {
-                    runningXPos -= data.TextNode->AtkResNode.Width + configuration.DtrSpacing;
-                    data.TextNode->AtkResNode.SetPositionFloat(runningXPos, 2);
+                    var elementWidth = data.TextNode->AtkResNode.Width + configuration.DtrSpacing;
+
+                    if (configuration.DtrSwapDirection)
+                    {
+                        data.TextNode->AtkResNode.SetPositionFloat(runningXPos, 2);
+                        runningXPos += elementWidth;
+                    }
+                    else
+                    {
+                        runningXPos -= elementWidth;
+                        data.TextNode->AtkResNode.SetPositionFloat(runningXPos, 2);
+                    }
                 }
 
                 this.entries[i] = data;

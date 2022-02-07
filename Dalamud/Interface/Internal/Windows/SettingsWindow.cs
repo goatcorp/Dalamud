@@ -49,6 +49,7 @@ namespace Dalamud.Interface.Internal.Windows
         private List<string>? dtrOrder;
         private List<string>? dtrIgnore;
         private int dtrSpacing;
+        private bool dtrSwapDirection;
 
         private List<ThirdPartyRepoSettings> thirdRepoList;
         private bool thirdRepoListChanged;
@@ -99,6 +100,7 @@ namespace Dalamud.Interface.Internal.Windows
             this.doTsm = configuration.ShowTsm;
 
             this.dtrSpacing = configuration.DtrSpacing;
+            this.dtrSwapDirection = configuration.DtrSwapDirection;
 
             this.doPluginTest = configuration.DoPluginTest;
             this.thirdRepoList = configuration.ThirdRepoList.Select(x => x.Clone()).ToList();
@@ -416,6 +418,10 @@ namespace Dalamud.Interface.Internal.Windows
             ImGui.Text(Loc.Localize("DalamudSettingServerInfoBarSpacing", "Server Info Bar spacing"));
             ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingServerInfoBarSpacingHint", "Configure the amount of space between entries in the server info bar here."));
             ImGui.SliderInt("Spacing", ref this.dtrSpacing, 0, 40);
+
+            ImGui.Text(Loc.Localize("DalamudSettingServerInfoBarDirection", "Server Info Bar direction"));
+            ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingServerInfoBarDirectionHint", "If checked, the Server Info Bar elements will expand to the right instead of the left."));
+            ImGui.Checkbox("Swap Direction", ref this.dtrSwapDirection);
         }
 
         private void DrawExperimentalTab()
@@ -823,6 +829,7 @@ namespace Dalamud.Interface.Internal.Windows
             this.dtrIgnore = configuration.DtrIgnore;
 
             configuration.DtrSpacing = this.dtrSpacing;
+            configuration.DtrSwapDirection = this.dtrSwapDirection;
 
             configuration.DoPluginTest = this.doPluginTest;
             configuration.ThirdRepoList = this.thirdRepoList.Select(x => x.Clone()).ToList();
