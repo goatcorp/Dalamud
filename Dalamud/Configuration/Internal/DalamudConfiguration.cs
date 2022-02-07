@@ -262,6 +262,15 @@ namespace Dalamud.Configuration.Internal
         public int DtrSpacing { get; set; } = 10;
 
         /// <summary>
+        /// Gets or sets a value indicating whether to swap the
+        /// direction in which elements are drawn in the DTR.
+        /// False indicates that elements will be drawn from the end of
+        /// the left side of the Server Info bar, and continue leftwards.
+        /// True indicates the opposite.
+        /// </summary>
+        public bool DtrSwapDirection { get; set; } = false;
+
+        /// <summary>
         /// Gets or sets a value indicating whether the title screen menu is shown.
         /// </summary>
         public bool ShowTsm { get; set; } = true;

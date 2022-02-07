@@ -19,8 +19,10 @@ namespace Dalamud.Game.Gui.Dtr
     [InterfaceVersion("1.0")]
     public sealed unsafe class DtrBar : IDisposable
     {
+        private const uint BaseNodeId = 1000;
+
         private List<DtrBarEntry> entries = new();
-        private uint runningNodeIds = 1000;
+        private uint runningNodeIds = BaseNodeId;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DtrBar"/> class.
@@ -130,11 +132,20 @@ namespace Dalamud.Game.Gui.Dtr
 
             // The collision node on the DTR element is always the width of its content
             if (dtr->UldManager.NodeList == null) return;
+
+            // If we have an unmodified DTR but still have entries, we need to
+            // work to reset our state.
+            if (!this.CheckForDalamudNodes())
+                this.RecreateNodes();
+
             var collisionNode = dtr->UldManager.NodeList[1];
             if (collisionNode == null) return;
-            var runningXPos = collisionNode->X;
 
             var configuration = Service<DalamudConfiguration>.Get();
+
+            // If we are drawing backwards, we should start from the right side of the collision node. That is,
+            // collisionNode->X + collisionNode->Width.
+            var runningXPos = configuration.DtrSwapDirection ? collisionNode->X + collisionNode->Width : collisionNode->X;
 
             for (var i = 0; i < this.entries.Count; i++)
             {
@@ -168,11 +179,49 @@ namespace Dalamud.Game.Gui.Dtr
 
                 if (!isHide)
                 {
-                    runningXPos -= data.TextNode->AtkResNode.Width + configuration.DtrSpacing;
-                    data.TextNode->AtkResNode.SetPositionFloat(runningXPos, 2);
+                    var elementWidth = data.TextNode->AtkResNode.Width + configuration.DtrSpacing;
+
+                    if (configuration.DtrSwapDirection)
+                    {
+                        data.TextNode->AtkResNode.SetPositionFloat(runningXPos, 2);
+                        runningXPos += elementWidth;
+                    }
+                    else
+                    {
+                        runningXPos -= elementWidth;
+                        data.TextNode->AtkResNode.SetPositionFloat(runningXPos, 2);
+                    }
                 }
 
                 this.entries[i] = data;
+            }
+        }
+
+        /// <summary>
+        /// Checks if there are any Dalamud nodes in the DTR.
+        /// </summary>
+        /// <returns>True if there are nodes with an ID > 1000.</returns>
+        private bool CheckForDalamudNodes()
+        {
+            var dtr = GetDtr();
+            if (dtr == null || dtr->RootNode == null) return false;
+
+            for (int i = 0; i < dtr->UldManager.NodeListCount; i++)
+            {
+                if (dtr->UldManager.NodeList[i]->NodeID > 1000)
+                    return true;
+            }
+
+            return false;
+        }
+
+        private void RecreateNodes()
+        {
+            this.runningNodeIds = BaseNodeId;
+            foreach (var entry in this.entries)
+            {
+                entry.TextNode = this.MakeNode(++this.runningNodeIds);
+                entry.Added = false;
             }
         }
 
