@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -19,8 +19,11 @@ namespace Dalamud.Game.Gui.Dtr
     [InterfaceVersion("1.0")]
     public sealed unsafe class DtrBar : IDisposable
     {
+        private const uint BaseNodeCount = 17;
+        private const uint BaseNodeId = 1000;
+
         private List<DtrBarEntry> entries = new();
-        private uint runningNodeIds = 1000;
+        private uint runningNodeIds = BaseNodeId;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DtrBar"/> class.
@@ -130,6 +133,13 @@ namespace Dalamud.Game.Gui.Dtr
 
             // The collision node on the DTR element is always the width of its content
             if (dtr->UldManager.NodeList == null) return;
+
+            // If we have an unmodified DTR but still have entries, we need to
+            // work to reset our state.
+            var nodeCount = dtr->UldManager.NodeListCount;
+            if (nodeCount == BaseNodeCount)
+                this.Reset();
+
             var collisionNode = dtr->UldManager.NodeList[1];
             if (collisionNode == null) return;
             var runningXPos = collisionNode->X;
@@ -173,6 +183,16 @@ namespace Dalamud.Game.Gui.Dtr
                 }
 
                 this.entries[i] = data;
+            }
+        }
+
+        private void Reset()
+        {
+            this.runningNodeIds = BaseNodeId;
+            foreach (var entry in this.entries)
+            {
+                entry.TextNode = this.MakeNode(++this.runningNodeIds);
+                entry.Added = false;
             }
         }
 
