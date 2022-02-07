@@ -19,7 +19,6 @@ namespace Dalamud.Game.Gui.Dtr
     [InterfaceVersion("1.0")]
     public sealed unsafe class DtrBar : IDisposable
     {
-        private const uint BaseNodeCount = 17;
         private const uint BaseNodeId = 1000;
 
         private List<DtrBarEntry> entries = new();
@@ -136,9 +135,8 @@ namespace Dalamud.Game.Gui.Dtr
 
             // If we have an unmodified DTR but still have entries, we need to
             // work to reset our state.
-            var nodeCount = dtr->UldManager.NodeListCount;
-            if (nodeCount == BaseNodeCount)
-                this.Reset();
+            if (!this.CheckForDalamudNodes())
+                this.RecreateNodes();
 
             var collisionNode = dtr->UldManager.NodeList[1];
             if (collisionNode == null) return;
@@ -199,7 +197,25 @@ namespace Dalamud.Game.Gui.Dtr
             }
         }
 
-        private void Reset()
+        /// <summary>
+        /// Checks if there are any Dalamud nodes in the DTR.
+        /// </summary>
+        /// <returns>True if there are nodes with an ID > 1000.</returns>
+        private bool CheckForDalamudNodes()
+        {
+            var dtr = GetDtr();
+            if (dtr == null || dtr->RootNode == null) return false;
+
+            for (int i = 0; i < dtr->UldManager.NodeListCount; i++)
+            {
+                if (dtr->UldManager.NodeList[i]->NodeID > 1000)
+                    return true;
+            }
+
+            return false;
+        }
+
+        private void RecreateNodes()
         {
             this.runningNodeIds = BaseNodeId;
             foreach (var entry in this.entries)
