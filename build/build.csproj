@@ -7,8 +7,9 @@
         <NoWarn>IDE0002;IDE0051;IDE1006;CS0649;CS0169</NoWarn>
         <NukeRootDirectory>..</NukeRootDirectory>
         <NukeScriptDirectory>..</NukeScriptDirectory>
+        <NukeTelemetryVersion>1</NukeTelemetryVersion>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="Nuke.Common" Version="5.3.0" />
+        <PackageReference Include="Nuke.Common" Version="6.0.1" />
     </ItemGroup>
 </Project>
