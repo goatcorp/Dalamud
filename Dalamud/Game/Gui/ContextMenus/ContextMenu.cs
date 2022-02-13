@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -8,6 +8,7 @@ using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging;
 using Dalamud.Memory;
+using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Component.GUI;
@@ -38,7 +39,7 @@ namespace Dalamud.Game.Gui.ContextMenus
 
         #endregion
 
-        private unsafe AgentContextInterface* currentAgentContextInterface;
+        private unsafe AgentInterface* currentAgentContextInterface;
 
         private IntPtr currentSubContextMenuTitle;
 
@@ -69,7 +70,7 @@ namespace Dalamud.Game.Gui.ContextMenus
 
         private unsafe delegate bool OpenSubContextMenuDelegate(AgentContext* agentContext);
 
-        private unsafe delegate IntPtr ContextMenuOpeningDelegate(IntPtr a1, IntPtr a2, IntPtr a3, uint a4, IntPtr a5, AgentContextInterface* agentContextInterface, IntPtr a7, ushort a8);
+        private unsafe delegate IntPtr ContextMenuOpeningDelegate(IntPtr a1, IntPtr a2, IntPtr a3, uint a4, IntPtr a5, AgentInterface* agentContextInterface, IntPtr a7, ushort a8);
 
         private unsafe delegate bool ContextMenuOpenedDelegate(AddonContextMenu* addonContextMenu, int menuSize, AtkValue* atkValueArgs);
 
@@ -108,7 +109,7 @@ namespace Dalamud.Game.Gui.ContextMenus
             this.subContextMenuOpenedHook.Enable();
         }
 
-        private static unsafe bool IsInventoryContext(AgentContextInterface* agentContextInterface)
+        private static unsafe bool IsInventoryContext(AgentInterface* agentContextInterface)
         {
             return agentContextInterface == AgentInventoryContext.Instance();
         }
@@ -121,7 +122,7 @@ namespace Dalamud.Game.Gui.ContextMenus
             }
         }
 
-        private unsafe IntPtr ContextMenuOpeningDetour(IntPtr a1, IntPtr a2, IntPtr a3, uint a4, IntPtr a5, AgentContextInterface* agentContextInterface, IntPtr a7, ushort a8)
+        private unsafe IntPtr ContextMenuOpeningDetour(IntPtr a1, IntPtr a2, IntPtr a3, uint a4, IntPtr a5, AgentInterface* agentContextInterface, IntPtr a7, ushort a8)
         {
             this.currentAgentContextInterface = agentContextInterface;
             return this.contextMenuOpeningHook!.Original(a1, a2, a3, a4, a5, agentContextInterface, a7, a8);
@@ -148,6 +149,9 @@ namespace Dalamud.Game.Gui.ContextMenus
             {
                 return;
             }
+
+            if (!IsInventoryContext(this.currentAgentContextInterface) && ((AgentContext*)this.currentAgentContextInterface)->CurrentContextMenu == null)
+                return;
 
             var contextMenuReaderWriter = new ContextMenuReaderWriter(this.currentAgentContextInterface, atkValueCount, atkValues);
 
@@ -238,19 +242,20 @@ namespace Dalamud.Game.Gui.ContextMenus
             // The actual value doesn't matter at this point, we'll set it later.
             MemoryHelper.GameFree(ref this.currentSubContextMenuTitle, (ulong)IntPtr.Size);
             this.currentSubContextMenuTitle = MemoryHelper.GameAllocateUi(1);
-            *(&(&agentContext->AgentContextInterface)->SubContextMenuTitle) = (byte*)this.currentSubContextMenuTitle;
+            agentContext->SubContextMenu.ContextTitleString = (byte*)this.currentSubContextMenuTitle;
             *(byte*)this.currentSubContextMenuTitle = 0;
 
+            var atkParams = (AtkValue*)agentContext->CurrentContextMenu->EventParams;
             // Expect at least 1 context menu item.
-            (&agentContext->Items->AtkValues)[0].UInt = 1;
+            atkParams[0].UInt = 1;
 
             // Expect a title. This isn't needed by the game, it's needed by ContextMenuReaderWriter which uses this to check if it's a context menu
-            (&agentContext->Items->AtkValues)[1].ChangeType(ValueType.String);
+            atkParams[1].ChangeType(ValueType.String);
 
-            (&agentContext->Items->AtkValues)[1].String = (byte*)0;
+            atkParams[1].String = (byte*)0;
 
-            ContextMenuReaderWriter contextMenuReaderWriter = new ContextMenuReaderWriter(&agentContext->AgentContextInterface, agentContext->Items->AtkValueCount, &agentContext->Items->AtkValues);
-            *(&agentContext->Items->AtkValueCount) = (ushort)contextMenuReaderWriter.FirstContextMenuItemIndex;
+            ContextMenuReaderWriter contextMenuReaderWriter = new ContextMenuReaderWriter((AgentInterface*)agentContext, agentContext->CurrentContextMenu->CurrentEventIndex, atkParams);
+            agentContext->CurrentContextMenu->CurrentEventIndex = (short)contextMenuReaderWriter.FirstContextMenuItemIndex;
 
             return true;
         }
@@ -274,7 +279,7 @@ namespace Dalamud.Game.Gui.ContextMenus
             this.ContextMenuOpenedImplementation(addonContextMenu, ref atkValueCount, ref atkValues);
         }
 
-        private unsafe ContextMenuOpenedArgs? NotifyContextMenuOpened(AddonContextMenu* addonContextMenu, AgentContextInterface* agentContextInterface, string? title, ContextMenus.ContextMenuOpenedDelegate contextMenuOpenedDelegate, IEnumerable<ContextMenuItem> initialContextMenuItems)
+        private unsafe ContextMenuOpenedArgs? NotifyContextMenuOpened(AddonContextMenu* addonContextMenu, AgentInterface* agentContextInterface, string? title, ContextMenus.ContextMenuOpenedDelegate contextMenuOpenedDelegate, IEnumerable<ContextMenuItem> initialContextMenuItems)
         {
             var parentAddonName = this.GetParentAddonName(&addonContextMenu->AtkUnitBase);
 
@@ -285,31 +290,31 @@ namespace Dalamud.Game.Gui.ContextMenus
             if (IsInventoryContext(agentContextInterface))
             {
                 var agentInventoryContext = (AgentInventoryContext*)agentContextInterface;
-                inventoryItemContext = new InventoryItemContext(agentInventoryContext->InventoryItemId, agentInventoryContext->InventoryItemCount, agentInventoryContext->InventoryItemIsHighQuality);
+                inventoryItemContext = new InventoryItemContext(agentInventoryContext->TargetDummyItem.ItemID, agentInventoryContext->TargetDummyItem.Quantity, agentInventoryContext->TargetDummyItem.Flags.HasFlag(InventoryItem.ItemFlags.HQ));
             }
             else
             {
                 var agentContext = (AgentContext*)agentContextInterface;
 
-                uint? id = agentContext->GameObjectId;
+                uint? id = agentContext->TargetObjectId.ObjectID;
                 if (id == 0)
                 {
                     id = null;
                 }
 
-                ulong? contentId = agentContext->GameObjectContentId;
+                ulong? contentId = agentContext->TargetContentId;
                 if (contentId == 0)
                 {
                     contentId = null;
                 }
 
-                var name = MemoryHelper.ReadSeStringNullTerminated((IntPtr)agentContext->GameObjectName.StringPtr).TextValue;
+                var name = MemoryHelper.ReadSeStringNullTerminated((IntPtr)agentContext->TargetName.StringPtr).TextValue;
                 if (string.IsNullOrEmpty(name))
                 {
                     name = null;
                 }
 
-                ushort? worldId = agentContext->GameObjectWorldId;
+                ushort? worldId = (ushort)agentContext->TargetHomeWorldId;
                 if (worldId == 0)
                 {
                     worldId = null;
@@ -395,6 +400,9 @@ namespace Dalamud.Game.Gui.ContextMenus
                 this.selectedOpenSubContextMenuItem = null;
                 return;
             }
+
+            if (!IsInventoryContext(this.currentAgentContextInterface) && ((AgentContext*)this.currentAgentContextInterface)->CurrentContextMenu == null)
+                return;
 
             // Read the selected item directly from the game
             ContextMenuReaderWriter contextMenuReaderWriter = new ContextMenuReaderWriter(this.currentAgentContextInterface, addonContextMenu->AtkValuesCount, addonContextMenu->AtkValues);

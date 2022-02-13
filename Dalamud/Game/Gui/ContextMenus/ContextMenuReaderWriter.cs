@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -19,7 +19,7 @@ namespace Dalamud.Game.Gui.ContextMenus
     /// </summary>
     internal unsafe class ContextMenuReaderWriter
     {
-        private readonly AgentContextInterface* agentContextInterface;
+        private readonly AgentInterface* agentContextInterface;
 
         private int atkValueCount;
         private AtkValue* atkValues;
@@ -30,7 +30,7 @@ namespace Dalamud.Game.Gui.ContextMenus
         /// <param name="agentContextInterface">The AgentContextInterface to act upon.</param>
         /// <param name="atkValueCount">The number of ATK values to consider.</param>
         /// <param name="atkValues">Pointer to the array of ATK values.</param>
-        public ContextMenuReaderWriter(AgentContextInterface* agentContextInterface, int atkValueCount, AtkValue* atkValues)
+        public ContextMenuReaderWriter(AgentInterface* agentContextInterface, int atkValueCount, AtkValue* atkValues)
         {
             PluginLog.Warning($"{(IntPtr)atkValues:X}");
 
@@ -306,17 +306,17 @@ namespace Dalamud.Game.Gui.ContextMenus
                 byte action;
                 if (this.IsInventoryContext)
                 {
-                    var actions = &((AgentInventoryContext*)this.agentContextInterface)->Actions;
+                    var actions = ((AgentInventoryContext*)this.agentContextInterface)->EventIdArray;
                     action = *(actions + contextMenuItemAtkValueBaseIndex);
                 }
                 else if (this.StructLayout is SubContextMenuStructLayout.Alternate)
                 {
-                    var redButtonActions = &((AgentContext*)this.agentContextInterface)->Items->RedButtonActions;
+                    var redButtonActions = ((AgentContext*)this.agentContextInterface)->CurrentContextMenu->EventHandlerParamArray + 8;
                     action = (byte)*(redButtonActions + contextMenuItemIndex);
                 }
                 else
                 {
-                    var actions = &((AgentContext*)this.agentContextInterface)->Items->Actions;
+                    var actions = ((AgentContext*)this.agentContextInterface)->CurrentContextMenu->EventIdArray;
                     action = *(actions + contextMenuItemAtkValueBaseIndex);
                 }
 
@@ -438,27 +438,27 @@ namespace Dalamud.Game.Gui.ContextMenus
 
                 if (this.IsInventoryContext)
                 {
-                    var actions = &((AgentInventoryContext*)this.agentContextInterface)->Actions;
+                    var actions = ((AgentInventoryContext*)this.agentContextInterface)->EventIdArray;
                     *(actions + this.FirstContextMenuItemIndex + contextMenuItemIndex) = action;
                 }
                 else if (this.StructLayout is SubContextMenuStructLayout.Alternate && this.FirstUnhandledAction != null)
                 {
                     // Some weird placeholder goes here
-                    var actions = &((AgentContext*)this.agentContextInterface)->Items->Actions;
+                    var actions = ((AgentContext*)this.agentContextInterface)->CurrentContextMenu->EventIdArray;
                     *(actions + this.FirstContextMenuItemIndex + contextMenuItemIndex) = (byte)(this.FirstUnhandledAction.Value + contextMenuItemIndex);
 
                     // Make sure there's one of these function pointers for every item.
                     // The function needs to be the same, so we just copy the first one into every index.
-                    var unkFunctionPointers = &((AgentContext*)this.agentContextInterface)->Items->UnkFunctionPointers;
+                    var unkFunctionPointers = ((AgentContext*)this.agentContextInterface)->CurrentContextMenu->EventHandlerArray;
                     *(unkFunctionPointers + this.FirstContextMenuItemIndex + contextMenuItemIndex) = *(unkFunctionPointers + this.FirstContextMenuItemIndex);
 
                     // The real action goes here
-                    var redButtonActions = &((AgentContext*)this.agentContextInterface)->Items->RedButtonActions;
+                    var redButtonActions = ((AgentContext*)this.agentContextInterface)->CurrentContextMenu->EventHandlerParamArray + 8;
                     *(redButtonActions + contextMenuItemIndex) = action;
                 }
                 else
                 {
-                    var actions = &((AgentContext*)this.agentContextInterface)->Items->Actions;
+                    var actions = ((AgentContext*)this.agentContextInterface)->CurrentContextMenu->EventIdArray;
                     *(actions + this.FirstContextMenuItemIndex + contextMenuItemIndex) = action;
                 }
 
