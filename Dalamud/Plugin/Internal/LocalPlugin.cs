@@ -5,6 +5,7 @@ using System.Reflection;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
+using Dalamud.Game.Gui.Dtr;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Exceptions;
@@ -416,6 +417,11 @@ namespace Dalamud.Plugin.Internal
         public void Reload()
         {
             this.Unload(true);
+
+            // We need to handle removed DTR nodes here, as otherwise, plugins will not be able to re-add their bar entries after updates.
+            var dtr = Service<DtrBar>.Get();
+            dtr.HandleRemovedNodes();
+
             this.Load(PluginLoadReason.Reload, true);
         }
 
