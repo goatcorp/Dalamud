@@ -133,10 +133,10 @@ namespace Dalamud.Game.Gui.Dtr
 
         private void Update(Framework unused)
         {
+            this.HandleRemovedNodes();
+
             var dtr = GetDtr();
             if (dtr == null) return;
-
-            this.HandleRemovedNodes();
 
             // The collision node on the DTR element is always the width of its content
             if (dtr->UldManager.NodeList == null) return;
@@ -236,7 +236,7 @@ namespace Dalamud.Game.Gui.Dtr
         private bool AddNode(AtkTextNode* node)
         {
             var dtr = GetDtr();
-            if (dtr == null || dtr->RootNode == null || node == null) return false;
+            if (dtr == null || dtr->RootNode == null || dtr->UldManager.NodeList == null || node == null) return false;
 
             var lastChild = dtr->RootNode->ChildNode;
             while (lastChild->PrevSiblingNode != null) lastChild = lastChild->PrevSiblingNode;
@@ -256,7 +256,7 @@ namespace Dalamud.Game.Gui.Dtr
         private bool RemoveNode(AtkTextNode* node)
         {
             var dtr = GetDtr();
-            if (dtr == null || dtr->RootNode == null || node == null) return false;
+            if (dtr == null || dtr->RootNode == null || dtr->UldManager.NodeList == null || node == null) return false;
 
             var tmpPrevNode = node->AtkResNode.PrevSiblingNode;
             var tmpNextNode = node->AtkResNode.NextSiblingNode;
