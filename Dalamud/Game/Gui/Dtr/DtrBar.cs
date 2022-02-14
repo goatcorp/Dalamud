@@ -75,6 +75,19 @@ namespace Dalamud.Game.Gui.Dtr
         }
 
         /// <summary>
+        /// Remove nodes marked as "should be removed" from the bar.
+        /// </summary>
+        internal void HandleRemovedNodes()
+        {
+            foreach (var data in this.entries.Where(d => d.ShouldBeRemoved))
+            {
+                this.RemoveNode(data.TextNode);
+            }
+
+            this.entries.RemoveAll(d => d.ShouldBeRemoved);
+        }
+
+        /// <summary>
         /// Check whether an entry with the specified title exists.
         /// </summary>
         /// <param name="title">The title to check for.</param>
@@ -123,12 +136,7 @@ namespace Dalamud.Game.Gui.Dtr
             var dtr = GetDtr();
             if (dtr == null) return;
 
-            foreach (var data in this.entries.Where(d => d.ShouldBeRemoved))
-            {
-                this.RemoveNode(data.TextNode);
-            }
-
-            this.entries.RemoveAll(d => d.ShouldBeRemoved);
+            this.HandleRemovedNodes();
 
             // The collision node on the DTR element is always the width of its content
             if (dtr->UldManager.NodeList == null) return;
@@ -206,7 +214,7 @@ namespace Dalamud.Game.Gui.Dtr
             var dtr = GetDtr();
             if (dtr == null || dtr->RootNode == null) return false;
 
-            for (int i = 0; i < dtr->UldManager.NodeListCount; i++)
+            for (var i = 0; i < dtr->UldManager.NodeListCount; i++)
             {
                 if (dtr->UldManager.NodeList[i]->NodeID > 1000)
                     return true;
