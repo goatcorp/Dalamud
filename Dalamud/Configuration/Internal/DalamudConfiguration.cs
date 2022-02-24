@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 
 using Dalamud.Game.Text;
+using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Style;
 using Newtonsoft.Json;
 using Serilog;
@@ -127,6 +128,11 @@ namespace Dalamud.Configuration.Internal
         /// Gets or sets the global UI scale.
         /// </summary>
         public float GlobalUiScale { get; set; } = 1.0f;
+
+        /// <summary>
+        /// Gets or sets the game font to use for Dalamud UI.
+        /// </summary>
+        public GameFont DefaultFontFromGame { get; set; } = GameFont.Undefined;
 
         /// <summary>
         /// Gets or sets a value indicating whether or not plugin UI should be hidden.
