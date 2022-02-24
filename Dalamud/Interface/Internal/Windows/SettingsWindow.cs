@@ -12,6 +12,7 @@ using Dalamud.Game.Gui.Dtr;
 using Dalamud.Game.Text;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
+using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Internal;
 using Dalamud.Utility;
@@ -27,6 +28,8 @@ namespace Dalamud.Interface.Internal.Windows
         private const float MinScale = 0.3f;
         private const float MaxScale = 2.0f;
 
+        private readonly List<GameFont> validFontChoices;
+        private readonly string[] validFontNames;
         private readonly string[] languages;
         private readonly string[] locLanguages;
         private int langIndex;
@@ -65,6 +68,8 @@ namespace Dalamud.Interface.Internal.Windows
         private bool autoUpdatePlugins;
         private bool doButtonsSystemMenu;
         private bool disableRmtFiltering;
+
+        private int validFontIndex;
 
         #region Experimental
 
@@ -110,6 +115,10 @@ namespace Dalamud.Interface.Internal.Windows
             this.autoUpdatePlugins = configuration.AutoUpdatePlugins;
             this.doButtonsSystemMenu = configuration.DoButtonsSystemMenu;
             this.disableRmtFiltering = configuration.DisableRmtFiltering;
+
+            this.validFontChoices = Enum.GetValues<GameFont>().Where(x => x == GameFont.Undefined || GameFontManager.IsGenericPurposeFont(x)).ToList();
+            this.validFontNames = this.validFontChoices.Select(x => GameFontManager.DescribeFont(x)).ToArray();
+            this.validFontIndex = Math.Max(0, this.validFontChoices.IndexOf(configuration.DefaultFontFromGame));
 
             this.languages = Localization.ApplicableLangCodes.Prepend("en").ToArray();
             try
@@ -283,6 +292,11 @@ namespace Dalamud.Interface.Internal.Windows
                 ImGui.GetIO().FontGlobalScale = this.globalUiScale;
 
             ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsGlobalUiScaleHint", "Scale all XIVLauncher UI elements - useful for 4K displays."));
+
+            ImGuiHelpers.ScaledDummy(10, 16);
+
+            ImGui.Text(Loc.Localize("DalamudSettingsGlobalFont", "Global Font"));
+            ImGui.Combo("##DalamudSettingsGlobalFontDrag", ref this.validFontIndex, this.validFontNames, this.validFontNames.Length);
 
             ImGuiHelpers.ScaledDummy(10, 16);
 
@@ -800,6 +814,8 @@ namespace Dalamud.Interface.Internal.Windows
             configuration.IsFocusManagementEnabled = this.doFocus;
             configuration.ShowTsm = this.doTsm;
 
+            configuration.DefaultFontFromGame = this.validFontChoices[this.validFontIndex];
+
             // This is applied every frame in InterfaceManager::CheckViewportState()
             configuration.IsDisableViewport = !this.doViewport;
 
@@ -841,6 +857,8 @@ namespace Dalamud.Interface.Internal.Windows
             configuration.DisableRmtFiltering = this.disableRmtFiltering;
 
             configuration.Save();
+
+            Service<InterfaceManager>.Get().RebuildFonts();
 
             _ = Service<PluginManager>.Get().ReloadPluginMastersAsync();
         }
