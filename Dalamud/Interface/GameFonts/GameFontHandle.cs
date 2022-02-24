@@ -10,26 +10,40 @@ namespace Dalamud.Interface.GameFonts
     public class GameFontHandle : IDisposable
     {
         private readonly GameFontManager manager;
-        private readonly GameFont font;
+        private readonly GameFontStyle fontStyle;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GameFontHandle"/> class.
         /// </summary>
         /// <param name="manager">GameFontManager instance.</param>
         /// <param name="font">Font to use.</param>
-        internal GameFontHandle(GameFontManager manager, GameFont font)
+        internal GameFontHandle(GameFontManager manager, GameFontStyle font)
         {
             this.manager = manager;
-            this.font = font;
+            this.fontStyle = font;
         }
+
+        /// <summary>
+        /// Gets the font style.
+        /// </summary>
+        public GameFontStyle Style => this.fontStyle;
+
+        /// <summary>
+        /// Gets a value indicating whether this font is ready for use.
+        /// </summary>
+        public bool Available => this.manager.GetFont(this.fontStyle) != null;
 
         /// <summary>
         /// Gets the font.
         /// </summary>
-        /// <returns>Corresponding font or null.</returns>
-        public ImFontPtr? Get() => this.manager.GetFont(this.font);
+        public ImFontPtr ImFont => this.manager.GetFont(this.fontStyle).Value;
+
+        /// <summary>
+        /// Gets the FdtReader.
+        /// </summary>
+        public FdtReader FdtReader => this.manager.GetFdtReader(this.fontStyle.FamilyAndSize);
 
         /// <inheritdoc/>
-        public void Dispose() => this.manager.DecreaseFontRef(this.font);
+        public void Dispose() => this.manager.DecreaseFontRef(this.fontStyle);
     }
 }

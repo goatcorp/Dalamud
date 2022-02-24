@@ -33,10 +33,9 @@ namespace Dalamud.Interface.GameFonts
 
         private readonly FdtReader?[] fdts;
         private readonly List<byte[]> texturePixels;
-        private readonly ImFontPtr?[] fonts = new ImFontPtr?[FontNames.Length];
-
-        private readonly int[] fontUseCounter = new int[FontNames.Length];
-        private readonly List<Dictionary<char, Tuple<int, FdtReader.FontTableEntry>>> glyphRectIds = new();
+        private readonly Dictionary<GameFontStyle, ImFontPtr> fonts = new();
+        private readonly Dictionary<GameFontStyle, int> fontUseCounter = new();
+        private readonly Dictionary<GameFontStyle, Dictionary<char, Tuple<int, FdtReader.FontTableEntry>>> glyphRectIds = new();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GameFontManager"/> class.
@@ -60,34 +59,34 @@ namespace Dalamud.Interface.GameFonts
         /// </summary>
         /// <param name="font">Font to describe.</param>
         /// <returns>A string in a form of "FontName (NNNpt)".</returns>
-        public static string DescribeFont(GameFont font)
+        public static string DescribeFont(GameFontFamilyAndSize font)
         {
             return font switch
             {
-                GameFont.Undefined => "-",
-                GameFont.Axis96 => "AXIS (9.6pt)",
-                GameFont.Axis12 => "AXIS (12pt)",
-                GameFont.Axis14 => "AXIS (14pt)",
-                GameFont.Axis18 => "AXIS (18pt)",
-                GameFont.Axis36 => "AXIS (36pt)",
-                GameFont.Jupiter16 => "Jupiter (16pt)",
-                GameFont.Jupiter20 => "Jupiter (20pt)",
-                GameFont.Jupiter23 => "Jupiter (23pt)",
-                GameFont.Jupiter45 => "Jupiter Numeric (45pt)",
-                GameFont.Jupiter46 => "Jupiter (46pt)",
-                GameFont.Jupiter90 => "Jupiter Numeric (90pt)",
-                GameFont.Meidinger16 => "Meidinger Numeric (16pt)",
-                GameFont.Meidinger20 => "Meidinger Numeric (20pt)",
-                GameFont.Meidinger40 => "Meidinger Numeric (40pt)",
-                GameFont.MiedingerMid10 => "MiedingerMid (10pt)",
-                GameFont.MiedingerMid12 => "MiedingerMid (12pt)",
-                GameFont.MiedingerMid14 => "MiedingerMid (14pt)",
-                GameFont.MiedingerMid18 => "MiedingerMid (18pt)",
-                GameFont.MiedingerMid36 => "MiedingerMid (36pt)",
-                GameFont.TrumpGothic184 => "Trump Gothic (18.4pt)",
-                GameFont.TrumpGothic23 => "Trump Gothic (23pt)",
-                GameFont.TrumpGothic34 => "Trump Gothic (34pt)",
-                GameFont.TrumpGothic68 => "Trump Gothic (68pt)",
+                GameFontFamilyAndSize.Undefined => "-",
+                GameFontFamilyAndSize.Axis96 => "AXIS (9.6pt)",
+                GameFontFamilyAndSize.Axis12 => "AXIS (12pt)",
+                GameFontFamilyAndSize.Axis14 => "AXIS (14pt)",
+                GameFontFamilyAndSize.Axis18 => "AXIS (18pt)",
+                GameFontFamilyAndSize.Axis36 => "AXIS (36pt)",
+                GameFontFamilyAndSize.Jupiter16 => "Jupiter (16pt)",
+                GameFontFamilyAndSize.Jupiter20 => "Jupiter (20pt)",
+                GameFontFamilyAndSize.Jupiter23 => "Jupiter (23pt)",
+                GameFontFamilyAndSize.Jupiter45 => "Jupiter Numeric (45pt)",
+                GameFontFamilyAndSize.Jupiter46 => "Jupiter (46pt)",
+                GameFontFamilyAndSize.Jupiter90 => "Jupiter Numeric (90pt)",
+                GameFontFamilyAndSize.Meidinger16 => "Meidinger Numeric (16pt)",
+                GameFontFamilyAndSize.Meidinger20 => "Meidinger Numeric (20pt)",
+                GameFontFamilyAndSize.Meidinger40 => "Meidinger Numeric (40pt)",
+                GameFontFamilyAndSize.MiedingerMid10 => "MiedingerMid (10pt)",
+                GameFontFamilyAndSize.MiedingerMid12 => "MiedingerMid (12pt)",
+                GameFontFamilyAndSize.MiedingerMid14 => "MiedingerMid (14pt)",
+                GameFontFamilyAndSize.MiedingerMid18 => "MiedingerMid (18pt)",
+                GameFontFamilyAndSize.MiedingerMid36 => "MiedingerMid (36pt)",
+                GameFontFamilyAndSize.TrumpGothic184 => "Trump Gothic (18.4pt)",
+                GameFontFamilyAndSize.TrumpGothic23 => "Trump Gothic (23pt)",
+                GameFontFamilyAndSize.TrumpGothic34 => "Trump Gothic (34pt)",
+                GameFontFamilyAndSize.TrumpGothic68 => "Trump Gothic (68pt)",
                 _ => throw new ArgumentOutOfRangeException(nameof(font), font, "Invalid argument"),
             };
         }
@@ -97,15 +96,15 @@ namespace Dalamud.Interface.GameFonts
         /// </summary>
         /// <param name="font">Font to check.</param>
         /// <returns>True if it can.</returns>
-        public static bool IsGenericPurposeFont(GameFont font)
+        public static bool IsGenericPurposeFont(GameFontFamilyAndSize font)
         {
             return font switch
             {
-                GameFont.Axis96 => true,
-                GameFont.Axis12 => true,
-                GameFont.Axis14 => true,
-                GameFont.Axis18 => true,
-                GameFont.Axis36 => true,
+                GameFontFamilyAndSize.Axis96 => true,
+                GameFontFamilyAndSize.Axis12 => true,
+                GameFontFamilyAndSize.Axis14 => true,
+                GameFontFamilyAndSize.Axis18 => true,
+                GameFontFamilyAndSize.Axis36 => true,
                 _ => false,
             };
         }
@@ -174,32 +173,38 @@ namespace Dalamud.Interface.GameFonts
         /// <summary>
         /// Creates a new GameFontHandle, and increases internal font reference counter, and if it's first time use, then the font will be loaded on next font building process.
         /// </summary>
-        /// <param name="gameFont">Font to use.</param>
+        /// <param name="style">Font to use.</param>
         /// <returns>Handle to game font that may or may not be ready yet.</returns>
-        public GameFontHandle NewFontRef(GameFont gameFont)
+        public GameFontHandle NewFontRef(GameFontStyle style)
         {
-            var fontIndex = (int)gameFont;
             var needRebuild = false;
 
             lock (this.syncRoot)
             {
-                var prev = this.fontUseCounter[fontIndex] == 0;
-                this.fontUseCounter[fontIndex] += 1;
-                needRebuild = prev != (this.fontUseCounter[fontIndex] == 0);
+                var prevValue = this.fontUseCounter.GetValueOrDefault(style, 0);
+                var newValue = this.fontUseCounter[style] = prevValue + 1;
+                needRebuild = (prevValue == 0) != (newValue == 0);
             }
 
             if (needRebuild)
                 this.interfaceManager.RebuildFonts();
 
-            return new(this, gameFont);
+            return new(this, style);
         }
 
         /// <summary>
         /// Gets the font.
         /// </summary>
-        /// <param name="gameFont">Font to get.</param>
+        /// <param name="style">Font to get.</param>
         /// <returns>Corresponding font or null.</returns>
-        public ImFontPtr? GetFont(GameFont gameFont) => this.fonts[(int)gameFont];
+        public ImFontPtr? GetFont(GameFontStyle style) => this.fonts.GetValueOrDefault(style, null);
+
+        /// <summary>
+        /// Gets the corresponding FdtReader.
+        /// </summary>
+        /// <param name="family">Font to get.</param>
+        /// <returns>Corresponding FdtReader or null.</returns>
+        public FdtReader? GetFdtReader(GameFontFamilyAndSize family) => this.fdts[(int)family];
 
         /// <summary>
         /// Fills missing glyphs in target font from source font, if both are not null.
@@ -208,9 +213,9 @@ namespace Dalamud.Interface.GameFonts
         /// <param name="target">Target font.</param>
         /// <param name="missingOnly">Whether to copy missing glyphs only.</param>
         /// <param name="rebuildLookupTable">Whether to call target.BuildLookupTable().</param>
-        public void CopyGlyphsAcrossFonts(ImFontPtr? source, GameFont target, bool missingOnly, bool rebuildLookupTable)
+        public void CopyGlyphsAcrossFonts(ImFontPtr? source, GameFontStyle target, bool missingOnly, bool rebuildLookupTable)
         {
-            GameFontManager.CopyGlyphsAcrossFonts(source, this.fonts[(int)target], missingOnly, rebuildLookupTable);
+            GameFontManager.CopyGlyphsAcrossFonts(source, this.fonts[target], missingOnly, rebuildLookupTable);
         }
 
         /// <summary>
@@ -220,9 +225,9 @@ namespace Dalamud.Interface.GameFonts
         /// <param name="target">Target font.</param>
         /// <param name="missingOnly">Whether to copy missing glyphs only.</param>
         /// <param name="rebuildLookupTable">Whether to call target.BuildLookupTable().</param>
-        public void CopyGlyphsAcrossFonts(GameFont source, ImFontPtr? target, bool missingOnly, bool rebuildLookupTable)
+        public void CopyGlyphsAcrossFonts(GameFontStyle source, ImFontPtr? target, bool missingOnly, bool rebuildLookupTable)
         {
-            GameFontManager.CopyGlyphsAcrossFonts(this.fonts[(int)source], target, missingOnly, rebuildLookupTable);
+            GameFontManager.CopyGlyphsAcrossFonts(this.fonts[source], target, missingOnly, rebuildLookupTable);
         }
 
         /// <summary>
@@ -232,9 +237,9 @@ namespace Dalamud.Interface.GameFonts
         /// <param name="target">Target font.</param>
         /// <param name="missingOnly">Whether to copy missing glyphs only.</param>
         /// <param name="rebuildLookupTable">Whether to call target.BuildLookupTable().</param>
-        public void CopyGlyphsAcrossFonts(GameFont source, GameFont target, bool missingOnly, bool rebuildLookupTable)
+        public void CopyGlyphsAcrossFonts(GameFontStyle source, GameFontStyle target, bool missingOnly, bool rebuildLookupTable)
         {
-            GameFontManager.CopyGlyphsAcrossFonts(this.fonts[(int)source], this.fonts[(int)target], missingOnly, rebuildLookupTable);
+            GameFontManager.CopyGlyphsAcrossFonts(this.fonts[source], this.fonts[target], missingOnly, rebuildLookupTable);
         }
 
         /// <summary>
@@ -242,30 +247,38 @@ namespace Dalamud.Interface.GameFonts
         /// </summary>
         public void BuildFonts()
         {
-            this.glyphRectIds.Clear();
             var io = ImGui.GetIO();
             io.Fonts.TexDesiredWidth = 4096;
 
-            for (var i = 0; i < FontNames.Length; i++)
-            {
-                this.fonts[i] = null;
-                this.glyphRectIds.Add(new());
+            this.glyphRectIds.Clear();
+            this.fonts.Clear();
 
-                var fdt = this.fdts[i];
-                if (this.fontUseCounter[i] == 0 || fdt == null)
+            foreach (var style in this.fontUseCounter.Keys)
+            {
+                var rectIds = this.glyphRectIds[style] = new();
+
+                var fdt = this.fdts[(int)style.FamilyAndSize];
+                if (fdt == null)
                     continue;
 
-                Log.Information($"GameFontManager BuildFont: {FontNames[i]}");
-
                 var font = io.Fonts.AddFontDefault();
-                this.fonts[i] = font;
+                this.fonts[style] = font;
                 foreach (var glyph in fdt.Glyphs)
                 {
                     var c = glyph.Char;
                     if (c < 32 || c >= 0xFFFF)
                         continue;
 
-                    this.glyphRectIds[i][c] = Tuple.Create(io.Fonts.AddCustomRectFontGlyph(font, c, glyph.BoundingWidth + 1, glyph.BoundingHeight + 1, glyph.BoundingWidth + glyph.NextOffsetX, new Vector2(0, glyph.CurrentOffsetY)), glyph);
+                    var widthAdjustment = style.CalculateWidthAdjustment(fdt, glyph);
+                    rectIds[c] = Tuple.Create(
+                        io.Fonts.AddCustomRectFontGlyph(
+                            font,
+                            c,
+                            glyph.BoundingWidth + widthAdjustment + 1,
+                            glyph.BoundingHeight + 1,
+                            glyph.AdvanceWidth,
+                            new Vector2(0, glyph.CurrentOffsetY)),
+                        glyph);
                 }
             }
         }
@@ -279,13 +292,9 @@ namespace Dalamud.Interface.GameFonts
             io.Fonts.GetTexDataAsRGBA32(out byte* pixels8, out var width, out var height);
             var pixels32 = (uint*)pixels8;
 
-            for (var i = 0; i < this.fonts.Length; i++)
+            foreach (var (style, font) in this.fonts)
             {
-                if (!this.fonts[i].HasValue)
-                    continue;
-
-                var font = this.fonts[i]!.Value;
-                var fdt = this.fdts[i];
+                var fdt = this.fdts[(int)style.FamilyAndSize];
                 var fontPtr = font.NativePtr;
                 fontPtr->ConfigData->SizePixels = fontPtr->FontSize = fdt.FontHeader.LineHeight;
                 fontPtr->Ascent = fdt.FontHeader.Ascent;
@@ -301,75 +310,83 @@ namespace Dalamud.Interface.GameFonts
                     }
                 }
 
-                fixed (char* c = FontNames[i])
+                fixed (char* c = FontNames[(int)style.FamilyAndSize])
                 {
                     for (var j = 0; j < 40; j++)
                         fontPtr->ConfigData->Name[j] = 0;
-                    Encoding.UTF8.GetBytes(c, FontNames[i].Length, fontPtr->ConfigData->Name, 40);
+                    Encoding.UTF8.GetBytes(c, FontNames[(int)style.FamilyAndSize].Length, fontPtr->ConfigData->Name, 40);
                 }
 
-                foreach (var (c, (rectId, glyph)) in this.glyphRectIds[i])
+                foreach (var (c, (rectId, glyph)) in this.glyphRectIds[style])
                 {
                     var rc = io.Fonts.GetCustomRectByIndex(rectId);
                     var sourceBuffer = this.texturePixels[glyph.TextureFileIndex];
                     var sourceBufferDelta = glyph.TextureChannelByteIndex;
-                    for (var y = 0; y < glyph.BoundingHeight; y++)
+                    var widthAdjustment = style.CalculateWidthAdjustment(fdt, glyph);
+                    if (widthAdjustment == 0)
                     {
-                        for (var x = 0; x < glyph.BoundingWidth; x++)
+                        for (var y = 0; y < glyph.BoundingHeight; y++)
                         {
-                            var a = sourceBuffer[sourceBufferDelta + (4 * (((glyph.TextureOffsetY + y) * fdt.FontHeader.TextureWidth) + glyph.TextureOffsetX + x))];
-                            pixels32[((rc.Y + y) * width) + rc.X + x] = (uint)(a << 24) | 0xFFFFFFu;
+                            for (var x = 0; x < glyph.BoundingWidth; x++)
+                            {
+                                var a = sourceBuffer[sourceBufferDelta + (4 * (((glyph.TextureOffsetY + y) * fdt.FontHeader.TextureWidth) + glyph.TextureOffsetX + x))];
+                                pixels32[((rc.Y + y) * width) + rc.X + x] = (uint)(a << 24) | 0xFFFFFFu;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        for (var y = 0; y < glyph.BoundingHeight; y++)
+                        {
+                            for (var x = 0; x < glyph.BoundingWidth + widthAdjustment; x++)
+                                pixels32[((rc.Y + y) * width) + rc.X + x] = 0xFFFFFFu;
+                        }
+
+                        for (int xbold = 0, xbold_ = Math.Max(1, (int)Math.Ceiling(style.Weight + 1)); xbold < xbold_; xbold++)
+                        {
+                            var boldStrength = Math.Min(1f, style.Weight + 1 - xbold);
+                            for (var y = 0; y < glyph.BoundingHeight; y++)
+                            {
+                                float xDelta = xbold;
+                                if (style.SkewStrength > 0)
+                                    xDelta += style.SkewStrength * (fdt.FontHeader.LineHeight - glyph.CurrentOffsetY - y) / fdt.FontHeader.LineHeight;
+                                else if (style.SkewStrength < 0)
+                                    xDelta -= style.SkewStrength * (glyph.CurrentOffsetY + y) / fdt.FontHeader.LineHeight;
+                                var xDeltaInt = (int)Math.Floor(xDelta);
+                                var xness = xDelta - xDeltaInt;
+                                for (var x = 0; x < glyph.BoundingWidth; x++)
+                                {
+                                    var sourcePixelIndex = ((glyph.TextureOffsetY + y) * fdt.FontHeader.TextureWidth) + glyph.TextureOffsetX + x;
+                                    var a1 = sourceBuffer[sourceBufferDelta + (4 * sourcePixelIndex)];
+                                    var a2 = x == glyph.BoundingWidth - 1 ? 0 : sourceBuffer[sourceBufferDelta + (4 * (sourcePixelIndex + 1))];
+                                    var n = (a1 * xness) + (a2 * (1 - xness));
+                                    var targetOffset = ((rc.Y + y) * width) + rc.X + x + xDeltaInt;
+                                    pixels8[(targetOffset * 4) + 3] = Math.Max(pixels8[(targetOffset * 4) + 3], (byte)(boldStrength * n));
+                                }
+                            }
                         }
                     }
                 }
             }
 
-            this.CopyGlyphsAcrossFonts(InterfaceManager.DefaultFont, GameFont.Axis96, true, false);
-            this.CopyGlyphsAcrossFonts(InterfaceManager.DefaultFont, GameFont.Axis12, true, false);
-            this.CopyGlyphsAcrossFonts(InterfaceManager.DefaultFont, GameFont.Axis14, true, false);
-            this.CopyGlyphsAcrossFonts(InterfaceManager.DefaultFont, GameFont.Axis18, true, false);
-            this.CopyGlyphsAcrossFonts(InterfaceManager.DefaultFont, GameFont.Axis36, true, false);
-            this.CopyGlyphsAcrossFonts(GameFont.Axis18, GameFont.Jupiter16, true, false);
-            this.CopyGlyphsAcrossFonts(GameFont.Axis36, GameFont.Jupiter20, true, false);
-            this.CopyGlyphsAcrossFonts(GameFont.Axis36, GameFont.Jupiter23, true, false);
-            this.CopyGlyphsAcrossFonts(GameFont.Axis36, GameFont.Jupiter45, true, false);
-            this.CopyGlyphsAcrossFonts(GameFont.Axis36, GameFont.Jupiter46, true, false);
-            this.CopyGlyphsAcrossFonts(GameFont.Axis36, GameFont.Jupiter90, true, false);
-            this.CopyGlyphsAcrossFonts(GameFont.Axis18, GameFont.Meidinger16, true, false);
-            this.CopyGlyphsAcrossFonts(GameFont.Axis36, GameFont.Meidinger20, true, false);
-            this.CopyGlyphsAcrossFonts(GameFont.Axis36, GameFont.Meidinger40, true, false);
-            this.CopyGlyphsAcrossFonts(GameFont.Axis96, GameFont.MiedingerMid10, true, false);
-            this.CopyGlyphsAcrossFonts(GameFont.Axis12, GameFont.MiedingerMid12, true, false);
-            this.CopyGlyphsAcrossFonts(GameFont.Axis14, GameFont.MiedingerMid14, true, false);
-            this.CopyGlyphsAcrossFonts(GameFont.Axis18, GameFont.MiedingerMid18, true, false);
-            this.CopyGlyphsAcrossFonts(GameFont.Axis36, GameFont.MiedingerMid36, true, false);
-            this.CopyGlyphsAcrossFonts(GameFont.Axis18, GameFont.TrumpGothic184, true, false);
-            this.CopyGlyphsAcrossFonts(GameFont.Axis36, GameFont.TrumpGothic23, true, false);
-            this.CopyGlyphsAcrossFonts(GameFont.Axis36, GameFont.TrumpGothic34, true, false);
-            this.CopyGlyphsAcrossFonts(GameFont.Axis36, GameFont.TrumpGothic68, true, false);
-
-            foreach (var font in this.fonts)
-                font?.BuildLookupTable();
+            foreach (var font in this.fonts.Values)
+            {
+                CopyGlyphsAcrossFonts(InterfaceManager.DefaultFont, font, true, false);
+                font.BuildLookupTable();
+            }
         }
 
         /// <summary>
-        /// Decrease font reference counter and release if nobody is using it.
+        /// Decrease font reference counter.
         /// </summary>
-        /// <param name="gameFont">Font to release.</param>
-        internal void DecreaseFontRef(GameFont gameFont)
+        /// <param name="style">Font to release.</param>
+        internal void DecreaseFontRef(GameFontStyle style)
         {
-            var fontIndex = (int)gameFont;
-            var needRebuild = false;
-
             lock (this.syncRoot)
             {
-                var prev = this.fontUseCounter[fontIndex] == 0;
-                this.fontUseCounter[fontIndex] -= 1;
-                needRebuild = prev != (this.fontUseCounter[fontIndex] == 0);
+                if ((this.fontUseCounter[style] -= 1) == 0)
+                    this.fontUseCounter.Remove(style);
             }
-
-            if (needRebuild)
-                this.interfaceManager.RebuildFonts();
         }
 
         private struct ImFontGlyphReal

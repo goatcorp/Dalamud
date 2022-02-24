@@ -215,9 +215,9 @@ namespace Dalamud.Interface
         /// <summary>
         /// Gets a game font.
         /// </summary>
-        /// <param name="gameFont">Font to get.</param>
+        /// <param name="style">Font to get.</param>
         /// <returns>Handle to the game font which may or may not be available for use yet.</returns>
-        public GameFontHandle GetGameFontHandle(GameFont gameFont) => Service<GameFontManager>.Get().NewFontRef(gameFont);
+        public GameFontHandle GetGameFontHandle(GameFontStyle style) => Service<GameFontManager>.Get().NewFontRef(style);
 
         /// <summary>
         /// Call this to queue a rebuild of the font atlas.<br/>

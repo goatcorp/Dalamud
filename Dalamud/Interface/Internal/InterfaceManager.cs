@@ -57,8 +57,7 @@ namespace Dalamud.Interface.Internal
         private readonly SwapChainVtableResolver address;
         private RawDX11Scene? scene;
 
-        private GameFont overwriteDefaultFontFromGameFont = GameFont.Undefined;
-        private GameFontHandle? overwriteDefaultFontFromGameFontHandle;
+        private GameFontHandle? axisFontHandle;
 
         // can't access imgui IO before first present call
         private bool lastWantCapture = false;
@@ -313,16 +312,7 @@ namespace Dalamud.Interface.Internal
             if (!this.isRebuildingFonts)
             {
                 Log.Verbose("[FONT] RebuildFonts() trigger");
-                var configuration = Service<DalamudConfiguration>.Get();
-                if (this.overwriteDefaultFontFromGameFont != configuration.DefaultFontFromGame)
-                {
-                    this.overwriteDefaultFontFromGameFont = configuration.DefaultFontFromGame;
-                    this.overwriteDefaultFontFromGameFontHandle?.Dispose();
-                    if (configuration.DefaultFontFromGame == GameFont.Undefined)
-                        this.overwriteDefaultFontFromGameFontHandle = null;
-                    else
-                        this.overwriteDefaultFontFromGameFontHandle = Service<GameFontManager>.Get().NewFontRef(configuration.DefaultFontFromGame);
-                }
+                this.SetAxisFonts();
 
                 this.isRebuildingFonts = true;
                 this.scene.OnNewRenderFrame += this.RebuildFontsInternal;
@@ -340,6 +330,26 @@ namespace Dalamud.Interface.Internal
         private static void ShowFontError(string path)
         {
             Util.Fatal($"One or more files required by XIVLauncher were not found.\nPlease restart and report this error if it occurs again.\n\n{path}", "Error");
+        }
+
+        private void SetAxisFonts()
+        {
+            var configuration = Service<DalamudConfiguration>.Get();
+            if (configuration.UseAxisFontsFromGame)
+            {
+                var currentFamilyAndSize = GameFontStyle.GetRecommendedFamilyAndSize(GameFontFamily.Axis, this.axisFontHandle?.Style.Size ?? 0f);
+                var expectedFamilyAndSize = GameFontStyle.GetRecommendedFamilyAndSize(GameFontFamily.Axis, 12 * ImGui.GetIO().FontGlobalScale);
+                if (currentFamilyAndSize == expectedFamilyAndSize)
+                    return;
+
+                this.axisFontHandle?.Dispose();
+                this.axisFontHandle = Service<GameFontManager>.Get().NewFontRef(new(expectedFamilyAndSize));
+            }
+            else
+            {
+                this.axisFontHandle?.Dispose();
+                this.axisFontHandle = null;
+            }
         }
 
         /*
@@ -403,15 +413,7 @@ namespace Dalamud.Interface.Internal
                 this.scene.OnBuildUI += this.Display;
                 this.scene.OnNewInputFrame += this.OnNewInputFrame;
 
-                if (this.overwriteDefaultFontFromGameFont != configuration.DefaultFontFromGame)
-                {
-                    this.overwriteDefaultFontFromGameFont = configuration.DefaultFontFromGame;
-                    this.overwriteDefaultFontFromGameFontHandle?.Dispose();
-                    if (configuration.DefaultFontFromGame == GameFont.Undefined)
-                        this.overwriteDefaultFontFromGameFontHandle = null;
-                    else
-                        this.overwriteDefaultFontFromGameFontHandle = Service<GameFontManager>.Get().NewFontRef(configuration.DefaultFontFromGame);
-                }
+                this.SetAxisFonts();
 
                 this.SetupFonts();
 
@@ -591,7 +593,7 @@ namespace Dalamud.Interface.Internal
             ImGui.GetIO().Fonts.Build();
 
             gameFontManager.AfterBuildFonts();
-            GameFontManager.CopyGlyphsAcrossFonts(this.overwriteDefaultFontFromGameFontHandle?.Get(), DefaultFont, false, true);
+            GameFontManager.CopyGlyphsAcrossFonts(this.axisFontHandle?.ImFont, DefaultFont, false, true);
 
             Log.Verbose("[FONT] Invoke OnAfterBuildFonts");
             this.AfterBuildFonts?.Invoke();
