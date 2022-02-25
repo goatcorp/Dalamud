@@ -183,7 +183,7 @@ namespace Dalamud.Interface.GameFonts
             {
                 var prevValue = this.fontUseCounter.GetValueOrDefault(style, 0);
                 var newValue = this.fontUseCounter[style] = prevValue + 1;
-                needRebuild = (prevValue == 0) != (newValue == 0);
+                needRebuild = (prevValue == 0) != (newValue == 0) && !this.fonts.ContainsKey(style);
             }
 
             if (needRebuild)
