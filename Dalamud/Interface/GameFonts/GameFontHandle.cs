@@ -1,5 +1,5 @@
 using System;
-
+using System.Numerics;
 using ImGuiNET;
 
 namespace Dalamud.Interface.GameFonts
@@ -10,26 +10,92 @@ namespace Dalamud.Interface.GameFonts
     public class GameFontHandle : IDisposable
     {
         private readonly GameFontManager manager;
-        private readonly GameFont font;
+        private readonly GameFontStyle fontStyle;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GameFontHandle"/> class.
         /// </summary>
         /// <param name="manager">GameFontManager instance.</param>
         /// <param name="font">Font to use.</param>
-        internal GameFontHandle(GameFontManager manager, GameFont font)
+        internal GameFontHandle(GameFontManager manager, GameFontStyle font)
         {
             this.manager = manager;
-            this.font = font;
+            this.fontStyle = font;
         }
+
+        /// <summary>
+        /// Gets the font style.
+        /// </summary>
+        public GameFontStyle Style => this.fontStyle;
+
+        /// <summary>
+        /// Gets a value indicating whether this font is ready for use.
+        /// </summary>
+        public bool Available => this.manager.GetFont(this.fontStyle) != null;
 
         /// <summary>
         /// Gets the font.
         /// </summary>
-        /// <returns>Corresponding font or null.</returns>
-        public ImFontPtr? Get() => this.manager.GetFont(this.font);
+        public ImFontPtr ImFont => this.manager.GetFont(this.fontStyle).Value;
+
+        /// <summary>
+        /// Gets the FdtReader.
+        /// </summary>
+        public FdtReader FdtReader => this.manager.GetFdtReader(this.fontStyle.FamilyAndSize);
+
+        /// <summary>
+        /// Creates a new GameFontLayoutPlan.Builder.
+        /// </summary>
+        /// <param name="text">Text.</param>
+        /// <returns>A new builder for GameFontLayoutPlan.</returns>
+        public GameFontLayoutPlan.Builder LayoutBuilder(string text)
+        {
+            return new GameFontLayoutPlan.Builder(this.ImFont, this.FdtReader, text);
+        }
 
         /// <inheritdoc/>
-        public void Dispose() => this.manager.DecreaseFontRef(this.font);
+        public void Dispose() => this.manager.DecreaseFontRef(this.fontStyle);
+
+        /// <summary>
+        /// Draws text.
+        /// </summary>
+        /// <param name="text">Text to draw.</param>
+        public void Text(string text)
+        {
+            if (!this.Available)
+            {
+                ImGui.TextUnformatted(text);
+            }
+            else
+            {
+                this.LayoutBuilder(text)
+                    .Build()
+                    .Draw(ImGui.GetWindowDrawList(), ImGui.GetWindowPos() + ImGui.GetCursorPos(), ImGui.GetColorU32(ImGuiCol.Text));
+            }
+        }
+
+        /// <summary>
+        /// Draws text in given color.
+        /// </summary>
+        /// <param name="col">Color.</param>
+        /// <param name="text">Text to draw.</param>
+        public void TextColored(Vector4 col, string text)
+        {
+            ImGui.PushStyleColor(ImGuiCol.Text, col);
+            this.Text(text);
+            ImGui.PopStyleColor();
+        }
+
+        /// <summary>
+        /// Draws disabled text.
+        /// </summary>
+        /// <param name="text">Text to draw.</param>
+        public void TextDisabled(string text)
+        {
+            unsafe
+            {
+                this.TextColored(*ImGui.GetStyleColorVec4(ImGuiCol.TextDisabled), text);
+            }
+        }
     }
 }

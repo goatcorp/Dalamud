@@ -28,8 +28,6 @@ namespace Dalamud.Interface.Internal.Windows
         private const float MinScale = 0.3f;
         private const float MaxScale = 2.0f;
 
-        private readonly List<GameFont> validFontChoices;
-        private readonly string[] validFontNames;
         private readonly string[] languages;
         private readonly string[] locLanguages;
         private int langIndex;
@@ -40,6 +38,7 @@ namespace Dalamud.Interface.Internal.Windows
         private bool doCfChatMessage;
 
         private float globalUiScale;
+        private bool doUseAxisFontsFromGame;
         private bool doToggleUiHide;
         private bool doToggleUiHideDuringCutscenes;
         private bool doToggleUiHideDuringGpose;
@@ -69,8 +68,6 @@ namespace Dalamud.Interface.Internal.Windows
         private bool doButtonsSystemMenu;
         private bool disableRmtFiltering;
 
-        private int validFontIndex;
-
         #region Experimental
 
         private bool doPluginTest;
@@ -94,6 +91,7 @@ namespace Dalamud.Interface.Internal.Windows
             this.doCfChatMessage = configuration.DutyFinderChatMessage;
 
             this.globalUiScale = configuration.GlobalUiScale;
+            this.doUseAxisFontsFromGame = configuration.UseAxisFontsFromGame;
             this.doToggleUiHide = configuration.ToggleUiHide;
             this.doToggleUiHideDuringCutscenes = configuration.ToggleUiHideDuringCutscenes;
             this.doToggleUiHideDuringGpose = configuration.ToggleUiHideDuringGpose;
@@ -115,10 +113,6 @@ namespace Dalamud.Interface.Internal.Windows
             this.autoUpdatePlugins = configuration.AutoUpdatePlugins;
             this.doButtonsSystemMenu = configuration.DoButtonsSystemMenu;
             this.disableRmtFiltering = configuration.DisableRmtFiltering;
-
-            this.validFontChoices = Enum.GetValues<GameFont>().Where(x => x == GameFont.Undefined || GameFontManager.IsGenericPurposeFont(x)).ToList();
-            this.validFontNames = this.validFontChoices.Select(x => GameFontManager.DescribeFont(x)).ToArray();
-            this.validFontIndex = Math.Max(0, this.validFontChoices.IndexOf(configuration.DefaultFontFromGame));
 
             this.languages = Localization.ApplicableLangCodes.Prepend("en").ToArray();
             try
@@ -286,17 +280,16 @@ namespace Dalamud.Interface.Internal.Windows
             {
                 this.globalUiScale = 1.0f;
                 ImGui.GetIO().FontGlobalScale = this.globalUiScale;
+                Service<InterfaceManager>.Get().RebuildFonts();
             }
 
             if (ImGui.DragFloat("##DalamudSettingsGlobalUiScaleDrag", ref this.globalUiScale, 0.005f, MinScale, MaxScale, "%.2f"))
+            {
                 ImGui.GetIO().FontGlobalScale = this.globalUiScale;
+                Service<InterfaceManager>.Get().RebuildFonts();
+            }
 
             ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsGlobalUiScaleHint", "Scale all XIVLauncher UI elements - useful for 4K displays."));
-
-            ImGuiHelpers.ScaledDummy(10, 16);
-
-            ImGui.Text(Loc.Localize("DalamudSettingsGlobalFont", "Global Font"));
-            ImGui.Combo("##DalamudSettingsGlobalFontDrag", ref this.validFontIndex, this.validFontNames, this.validFontNames.Length);
 
             ImGuiHelpers.ScaledDummy(10, 16);
 
@@ -310,6 +303,9 @@ namespace Dalamud.Interface.Internal.Windows
             ImGuiHelpers.ScaledDummy(10, 16);
 
             ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingToggleUiHideOptOutNote", "Plugins may independently opt out of the settings below."));
+
+            ImGui.Checkbox(Loc.Localize("DalamudSettingToggleAxisFonts", "Use AXIS fonts as default Dalamud font"), ref this.doUseAxisFontsFromGame);
+            ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingToggleUiAxisFontsHint", "Use AXIS fonts (the game's main UI fonts) as default Dalamud font."));
 
             ImGui.Checkbox(Loc.Localize("DalamudSettingToggleUiHide", "Hide plugin UI when the game UI is toggled off"), ref this.doToggleUiHide);
             ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingToggleUiHideHint", "Hide any open windows by plugins when toggling the game overlay."));
@@ -814,7 +810,7 @@ namespace Dalamud.Interface.Internal.Windows
             configuration.IsFocusManagementEnabled = this.doFocus;
             configuration.ShowTsm = this.doTsm;
 
-            configuration.DefaultFontFromGame = this.validFontChoices[this.validFontIndex];
+            configuration.UseAxisFontsFromGame = this.doUseAxisFontsFromGame;
 
             // This is applied every frame in InterfaceManager::CheckViewportState()
             configuration.IsDisableViewport = !this.doViewport;
@@ -858,9 +854,8 @@ namespace Dalamud.Interface.Internal.Windows
 
             configuration.Save();
 
-            Service<InterfaceManager>.Get().RebuildFonts();
-
             _ = Service<PluginManager>.Get().ReloadPluginMastersAsync();
+            Service<InterfaceManager>.Get().RebuildFonts();
         }
     }
 }

@@ -130,9 +130,9 @@ namespace Dalamud.Configuration.Internal
         public float GlobalUiScale { get; set; } = 1.0f;
 
         /// <summary>
-        /// Gets or sets the game font to use for Dalamud UI.
+        /// Gets or sets a value indicating whether to use AXIS fonts from the game.
         /// </summary>
-        public GameFont DefaultFontFromGame { get; set; } = GameFont.Undefined;
+        public bool UseAxisFontsFromGame { get; set; } = false;
 
         /// <summary>
         /// Gets or sets a value indicating whether or not plugin UI should be hidden.

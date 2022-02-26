@@ -1,9 +1,9 @@
 namespace Dalamud.Interface.GameFonts
 {
     /// <summary>
-    /// Enum of available game fonts.
+    /// Enum of available game fonts in specific sizes.
     /// </summary>
-    public enum GameFont : int
+    public enum GameFontFamilyAndSize : int
     {
         /// <summary>
         /// Placeholder meaning unused.
