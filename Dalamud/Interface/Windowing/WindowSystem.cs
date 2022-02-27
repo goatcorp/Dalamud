@@ -85,6 +85,13 @@ namespace Dalamud.Interface.Windowing
         public void RemoveAllWindows() => this.windows.Clear();
 
         /// <summary>
+        /// Get a window by name.
+        /// </summary>
+        /// <param name="windowName">The name of the <see cref="Window"/></param>
+        /// <returns>The <see cref="Window"/> object with matching name or null.</returns>
+        public Window? GetWindow(string windowName) => this.windows.FirstOrDefault(w => w.WindowName == windowName);
+
+        /// <summary>
         /// Draw all registered windows using ImGui.
         /// </summary>
         public void Draw()
