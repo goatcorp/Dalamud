@@ -1,6 +1,8 @@
 using System;
 
 using Dalamud.Hooking;
+using Dalamud.IoC;
+using Dalamud.IoC.Internal;
 using ImGuiNET;
 using Serilog;
 
@@ -11,6 +13,8 @@ namespace Dalamud.Game.ClientState.GamePad
     ///
     /// Will block game's gamepad input if <see cref="ImGuiConfigFlags.NavEnableGamepad"/> is set.
     /// </summary>
+    [PluginInterface]
+    [InterfaceVersion("1.0.0")]
     public unsafe class GamepadState : IDisposable
     {
         private readonly Hook<ControllerPoll> gamepadPoll;
@@ -30,14 +34,6 @@ namespace Dalamud.Game.ClientState.GamePad
         {
             Log.Verbose($"GamepadPoll address 0x{resolver.GamepadPoll.ToInt64():X}");
             this.gamepadPoll = new Hook<ControllerPoll>(resolver.GamepadPoll, this.GamepadPollDetour);
-        }
-
-        /// <summary>
-        ///     Finalizes an instance of the <see cref="GamepadState" /> class.
-        /// </summary>
-        ~GamepadState()
-        {
-            this.Dispose(false);
         }
 
         private delegate int ControllerPoll(IntPtr controllerInput);
@@ -165,20 +161,20 @@ namespace Dalamud.Game.ClientState.GamePad
         public float Raw(GamepadButtons button) => (this.ButtonsRaw & (ushort)button) > 0 ? 1 : 0;
 
         /// <summary>
-        /// Enables the hook of the GamepadPoll function.
-        /// </summary>
-        public void Enable()
-        {
-            this.gamepadPoll.Enable();
-        }
-
-        /// <summary>
         /// Disposes this instance, alongside its hooks.
         /// </summary>
         void IDisposable.Dispose()
         {
             this.Dispose(true);
             GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Enables the hook of the GamepadPoll function.
+        /// </summary>
+        internal void Enable()
+        {
+            this.gamepadPoll.Enable();
         }
 
         private int GamepadPollDetour(IntPtr gamepadInput)

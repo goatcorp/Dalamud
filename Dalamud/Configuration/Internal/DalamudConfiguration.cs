@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 
 using Dalamud.Game.Text;
+using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Style;
 using Newtonsoft.Json;
 using Serilog;
@@ -127,6 +128,11 @@ namespace Dalamud.Configuration.Internal
         /// Gets or sets the global UI scale.
         /// </summary>
         public float GlobalUiScale { get; set; } = 1.0f;
+
+        /// <summary>
+        /// Gets or sets a value indicating whether to use AXIS fonts from the game.
+        /// </summary>
+        public bool UseAxisFontsFromGame { get; set; } = false;
 
         /// <summary>
         /// Gets or sets a value indicating whether or not plugin UI should be hidden.
@@ -260,6 +266,15 @@ namespace Dalamud.Configuration.Internal
         /// Gets or sets the spacing used for DTR entries.
         /// </summary>
         public int DtrSpacing { get; set; } = 10;
+
+        /// <summary>
+        /// Gets or sets a value indicating whether to swap the
+        /// direction in which elements are drawn in the DTR.
+        /// False indicates that elements will be drawn from the end of
+        /// the left side of the Server Info bar, and continue leftwards.
+        /// True indicates the opposite.
+        /// </summary>
+        public bool DtrSwapDirection { get; set; } = false;
 
         /// <summary>
         /// Gets or sets a value indicating whether the title screen menu is shown.

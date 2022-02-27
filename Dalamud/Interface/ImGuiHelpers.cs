@@ -131,6 +131,12 @@ namespace Dalamud.Interface
         }
 
         /// <summary>
+        /// Write unformatted text wrapped.
+        /// </summary>
+        /// <param name="text">The text to write.</param>
+        public static void SafeTextWrapped(string text) => ImGui.TextWrapped(text.Replace("%", "%%"));
+
+        /// <summary>
         /// Get data needed for each new frame.
         /// </summary>
         internal static void NewFrame()

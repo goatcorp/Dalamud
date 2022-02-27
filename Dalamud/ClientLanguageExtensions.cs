@@ -10,8 +10,8 @@ namespace Dalamud
         /// <summary>
         /// Converts a Dalamud ClientLanguage to the corresponding Lumina variant.
         /// </summary>
-        /// <param name="language">Langauge to convert.</param>
-        /// <returns>Converted langauge.</returns>
+        /// <param name="language">Language to convert.</param>
+        /// <returns>Converted language.</returns>
         public static Lumina.Data.Language ToLumina(this ClientLanguage language)
         {
             return language switch

@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Net.Http;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,6 +13,7 @@ using CheapLoc;
 using Dalamud.Configuration;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.Gui;
+using Dalamud.Game.Gui.Dtr;
 using Dalamud.Game.Text;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Exceptions;
@@ -789,6 +789,10 @@ namespace Dalamud.Plugin.Internal
                         return updateStatus;
                     }
                 }
+
+                // We need to handle removed DTR nodes here, as otherwise, plugins will not be able to re-add their bar entries after updates.
+                var dtr = Service<DtrBar>.Get();
+                dtr.HandleRemovedNodes();
 
                 try
                 {

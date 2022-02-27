@@ -122,6 +122,28 @@ namespace Dalamud.Interface.Windowing
         }
 
         /// <summary>
+        /// Code to always be executed before the open-state of the window is checked.
+        /// </summary>
+        public virtual void PreOpenCheck()
+        {
+        }
+
+        /// <summary>
+        /// Additional conditions for the window to be drawn, regardless of its open-state.
+        /// </summary>
+        /// <returns>
+        /// True if the window should be drawn, false otherwise.
+        /// </returns>
+        /// <remarks>
+        /// Not being drawn due to failing this condition will not change focus or trigger OnClose.
+        /// This is checked before PreDraw, but after Update.
+        /// </remarks>
+        public virtual bool DrawConditions()
+        {
+            return true;
+        }
+
+        /// <summary>
         /// Code to be executed before conditionals are applied and the window is drawn.
         /// </summary>
         public virtual void PreDraw()
@@ -170,6 +192,8 @@ namespace Dalamud.Interface.Windowing
         /// </summary>
         internal void DrawInternal()
         {
+            this.PreOpenCheck();
+
             if (!this.IsOpen)
             {
                 if (this.internalIsOpen != this.internalLastIsOpen)
@@ -184,6 +208,8 @@ namespace Dalamud.Interface.Windowing
             }
 
             this.Update();
+            if (!this.DrawConditions())
+                return;
 
             var hasNamespace = !string.IsNullOrEmpty(this.Namespace);
 

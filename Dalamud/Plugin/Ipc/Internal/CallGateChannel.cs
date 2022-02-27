@@ -105,13 +105,21 @@ namespace Dalamud.Plugin.Ipc.Internal
             var paramTypes = methodInfo.GetParameters()
                 .Select(pi => pi.ParameterType).ToArray();
 
-            if (args.Length != paramTypes.Length)
+            if (args?.Length != paramTypes.Length)
                 throw new IpcLengthMismatchError(this.Name, args.Length, paramTypes.Length);
 
             for (var i = 0; i < args.Length; i++)
             {
                 var arg = args[i];
                 var paramType = paramTypes[i];
+
+                if (arg == null)
+                {
+                    if (paramType.IsValueType)
+                        throw new IpcValueNullError(this.Name, paramType, i);
+
+                    continue;
+                }
 
                 var argType = arg.GetType();
                 if (argType != paramType)

@@ -5,6 +5,7 @@ using System.Diagnostics;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Gui;
+using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.ManagedAsserts;
 using Dalamud.Interface.Internal.Notifications;
@@ -39,6 +40,7 @@ namespace Dalamud.Interface
             var interfaceManager = Service<InterfaceManager>.Get();
             interfaceManager.Draw += this.OnDraw;
             interfaceManager.BuildFonts += this.OnBuildFonts;
+            interfaceManager.AfterBuildFonts += this.OnAfterBuildFonts;
             interfaceManager.ResizeBuffers += this.OnResizeBuffers;
         }
 
@@ -66,6 +68,15 @@ namespace Dalamud.Interface
         /// <strong>PLEASE remove this handler inside Dispose, or when you no longer need your fonts!</strong>
         /// </summary>
         public event Action BuildFonts;
+
+        /// <summary>
+        /// Gets or sets an action that is called any time right after ImGui fonts are rebuilt.<br/>
+        /// Any ImFontPtr objects that you store <strong>can be invalidated</strong> when fonts are rebuilt
+        /// (at any time), so you should both reload your custom fonts and restore those
+        /// pointers inside this handler.<br/>
+        /// <strong>PLEASE remove this handler inside Dispose, or when you no longer need your fonts!</strong>
+        /// </summary>
+        public event Action AfterBuildFonts;
 
         /// <summary>
         /// Gets the default Dalamud font based on Noto Sans CJK Medium in 17pt - supporting all game languages and icons.
@@ -202,6 +213,13 @@ namespace Dalamud.Interface
             => Service<InterfaceManager>.Get().LoadImageRaw(imageData, width, height, numChannels);
 
         /// <summary>
+        /// Gets a game font.
+        /// </summary>
+        /// <param name="style">Font to get.</param>
+        /// <returns>Handle to the game font which may or may not be available for use yet.</returns>
+        public GameFontHandle GetGameFontHandle(GameFontStyle style) => Service<GameFontManager>.Get().NewFontRef(style);
+
+        /// <summary>
         /// Call this to queue a rebuild of the font atlas.<br/>
         /// This will invoke any <see cref="OnBuildFonts"/> handlers and ensure that any loaded fonts are
         /// ready to be used on the next UI frame.
@@ -318,6 +336,11 @@ namespace Dalamud.Interface
         private void OnBuildFonts()
         {
             this.BuildFonts?.Invoke();
+        }
+
+        private void OnAfterBuildFonts()
+        {
+            this.AfterBuildFonts?.Invoke();
         }
 
         private void OnResizeBuffers()

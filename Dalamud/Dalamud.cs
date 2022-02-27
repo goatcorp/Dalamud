@@ -18,6 +18,7 @@ using Dalamud.Game.Network.Internal;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Hooking.Internal;
 using Dalamud.Interface;
+using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Internal;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
@@ -190,6 +191,9 @@ namespace Dalamud
 
                 Service<InterfaceManager>.Set().Enable();
                 Log.Information("[T2] IM OK!");
+
+                Service<GameFontManager>.Set();
+                Log.Information("[T2] GFM OK!");
 
 #pragma warning disable CS0618 // Type or member is obsolete
                 Service<SeStringManager>.Set();

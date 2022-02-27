@@ -7,6 +7,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Dalamud.Game;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Types;
@@ -78,21 +79,6 @@ namespace Dalamud.Interface.Internal.Windows
 
             var framework = Service<Framework>.Get();
             framework.Update += this.FrameworkOnUpdate;
-        }
-
-        private void FrameworkOnUpdate(Framework framework)
-        {
-            try
-            {
-                if (!this.loadQueue.TryTake(out var loadAction, 0, this.downloadToken.Token))
-                    return;
-
-                loadAction.Invoke();
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "An unhandled exception occurred in image loader framework dispatcher");
-            }
         }
 
         /// <summary>
@@ -229,6 +215,21 @@ namespace Dalamud.Interface.Internal.Windows
             }
 
             return false;
+        }
+
+        private void FrameworkOnUpdate(Framework framework)
+        {
+            try
+            {
+                if (!this.loadQueue.TryTake(out var loadAction, 0, this.downloadToken.Token))
+                    return;
+
+                loadAction.Invoke();
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "An unhandled exception occurred in image loader framework dispatcher");
+            }
         }
 
         private async void DownloadTask()
@@ -482,12 +483,9 @@ namespace Dalamud.Interface.Internal.Windows
                     var bytes = await data.Content.ReadAsByteArrayAsync();
                     imageBytes[i] = bytes;
 
-
-
                     Log.Verbose($"Plugin image{i + 1} for {manifest.InternalName} downloaded");
 
                     didAny = true;
-
                 }
 
                 if (didAny)

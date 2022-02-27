@@ -12,6 +12,7 @@ using Dalamud.Game.Gui.Dtr;
 using Dalamud.Game.Text;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
+using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Internal;
 using Dalamud.Utility;
@@ -37,6 +38,7 @@ namespace Dalamud.Interface.Internal.Windows
         private bool doCfChatMessage;
 
         private float globalUiScale;
+        private bool doUseAxisFontsFromGame;
         private bool doToggleUiHide;
         private bool doToggleUiHideDuringCutscenes;
         private bool doToggleUiHideDuringGpose;
@@ -49,6 +51,7 @@ namespace Dalamud.Interface.Internal.Windows
         private List<string>? dtrOrder;
         private List<string>? dtrIgnore;
         private int dtrSpacing;
+        private bool dtrSwapDirection;
 
         private List<ThirdPartyRepoSettings> thirdRepoList;
         private bool thirdRepoListChanged;
@@ -88,6 +91,7 @@ namespace Dalamud.Interface.Internal.Windows
             this.doCfChatMessage = configuration.DutyFinderChatMessage;
 
             this.globalUiScale = configuration.GlobalUiScale;
+            this.doUseAxisFontsFromGame = configuration.UseAxisFontsFromGame;
             this.doToggleUiHide = configuration.ToggleUiHide;
             this.doToggleUiHideDuringCutscenes = configuration.ToggleUiHideDuringCutscenes;
             this.doToggleUiHideDuringGpose = configuration.ToggleUiHideDuringGpose;
@@ -99,6 +103,7 @@ namespace Dalamud.Interface.Internal.Windows
             this.doTsm = configuration.ShowTsm;
 
             this.dtrSpacing = configuration.DtrSpacing;
+            this.dtrSwapDirection = configuration.DtrSwapDirection;
 
             this.doPluginTest = configuration.DoPluginTest;
             this.thirdRepoList = configuration.ThirdRepoList.Select(x => x.Clone()).ToList();
@@ -275,10 +280,14 @@ namespace Dalamud.Interface.Internal.Windows
             {
                 this.globalUiScale = 1.0f;
                 ImGui.GetIO().FontGlobalScale = this.globalUiScale;
+                Service<InterfaceManager>.Get().RebuildFonts();
             }
 
             if (ImGui.DragFloat("##DalamudSettingsGlobalUiScaleDrag", ref this.globalUiScale, 0.005f, MinScale, MaxScale, "%.2f"))
+            {
                 ImGui.GetIO().FontGlobalScale = this.globalUiScale;
+                Service<InterfaceManager>.Get().RebuildFonts();
+            }
 
             ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsGlobalUiScaleHint", "Scale all XIVLauncher UI elements - useful for 4K displays."));
 
@@ -294,6 +303,9 @@ namespace Dalamud.Interface.Internal.Windows
             ImGuiHelpers.ScaledDummy(10, 16);
 
             ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingToggleUiHideOptOutNote", "Plugins may independently opt out of the settings below."));
+
+            ImGui.Checkbox(Loc.Localize("DalamudSettingToggleAxisFonts", "Use AXIS fonts as default Dalamud font"), ref this.doUseAxisFontsFromGame);
+            ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingToggleUiAxisFontsHint", "Use AXIS fonts (the game's main UI fonts) as default Dalamud font."));
 
             ImGui.Checkbox(Loc.Localize("DalamudSettingToggleUiHide", "Hide plugin UI when the game UI is toggled off"), ref this.doToggleUiHide);
             ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingToggleUiHideHint", "Hide any open windows by plugins when toggling the game overlay."));
@@ -416,6 +428,10 @@ namespace Dalamud.Interface.Internal.Windows
             ImGui.Text(Loc.Localize("DalamudSettingServerInfoBarSpacing", "Server Info Bar spacing"));
             ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingServerInfoBarSpacingHint", "Configure the amount of space between entries in the server info bar here."));
             ImGui.SliderInt("Spacing", ref this.dtrSpacing, 0, 40);
+
+            ImGui.Text(Loc.Localize("DalamudSettingServerInfoBarDirection", "Server Info Bar direction"));
+            ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingServerInfoBarDirectionHint", "If checked, the Server Info Bar elements will expand to the right instead of the left."));
+            ImGui.Checkbox("Swap Direction", ref this.dtrSwapDirection);
         }
 
         private void DrawExperimentalTab()
@@ -794,6 +810,8 @@ namespace Dalamud.Interface.Internal.Windows
             configuration.IsFocusManagementEnabled = this.doFocus;
             configuration.ShowTsm = this.doTsm;
 
+            configuration.UseAxisFontsFromGame = this.doUseAxisFontsFromGame;
+
             // This is applied every frame in InterfaceManager::CheckViewportState()
             configuration.IsDisableViewport = !this.doViewport;
 
@@ -823,6 +841,7 @@ namespace Dalamud.Interface.Internal.Windows
             this.dtrIgnore = configuration.DtrIgnore;
 
             configuration.DtrSpacing = this.dtrSpacing;
+            configuration.DtrSwapDirection = this.dtrSwapDirection;
 
             configuration.DoPluginTest = this.doPluginTest;
             configuration.ThirdRepoList = this.thirdRepoList.Select(x => x.Clone()).ToList();
@@ -836,6 +855,7 @@ namespace Dalamud.Interface.Internal.Windows
             configuration.Save();
 
             _ = Service<PluginManager>.Get().ReloadPluginMastersAsync();
+            Service<InterfaceManager>.Get().RebuildFonts();
         }
     }
 }

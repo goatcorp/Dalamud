@@ -399,11 +399,11 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
             if (ImGui.BeginPopupModal(modalTitle, ref this.feedbackModalDrawing, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoScrollbar))
             {
-                ImGui.Text(Locs.FeedbackModal_Text(this.feedbackPlugin.Name));
+                ImGui.TextUnformatted(Locs.FeedbackModal_Text(this.feedbackPlugin.Name));
 
                 if (this.feedbackPlugin?.FeedbackMessage != null)
                 {
-                    ImGui.TextWrapped(this.feedbackPlugin.FeedbackMessage);
+                    ImGuiHelpers.SafeTextWrapped(this.feedbackPlugin.FeedbackMessage);
                 }
 
                 if (this.pluginListUpdatable.Any(
@@ -1133,7 +1133,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             var cursor = ImGui.GetCursorPos();
 
             // Name
-            ImGui.Text(label);
+            ImGui.TextUnformatted(label);
 
             // Download count
             var downloadCountText = manifest.DownloadCount > 0
@@ -1164,9 +1164,9 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             if (plugin is { IsBanned: true })
             {
                 ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
-                ImGui.TextWrapped(plugin.BanReason.IsNullOrEmpty()
-                                      ? Locs.PluginBody_Banned
-                                      : Locs.PluginBody_BannedReason(plugin.BanReason));
+                ImGuiHelpers.SafeTextWrapped(plugin.BanReason.IsNullOrEmpty()
+                                                 ? Locs.PluginBody_Banned
+                                                 : Locs.PluginBody_BannedReason(plugin.BanReason));
 
                 ImGui.PopStyleColor();
             }
@@ -1176,16 +1176,16 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             {
                 if (!string.IsNullOrWhiteSpace(manifest.Punchline))
                 {
-                    ImGui.TextWrapped(manifest.Punchline);
+                    ImGuiHelpers.SafeTextWrapped(manifest.Punchline);
                 }
                 else if (!string.IsNullOrWhiteSpace(manifest.Description))
                 {
                     const int punchlineLen = 200;
                     var firstLine = manifest.Description.Split(new[] { '\r', '\n' })[0];
 
-                    ImGui.TextWrapped(firstLine.Length < punchlineLen
-                                          ? firstLine
-                                          : firstLine[..punchlineLen]);
+                    ImGuiHelpers.SafeTextWrapped(firstLine.Length < punchlineLen
+                                                     ? firstLine
+                                                     : firstLine[..punchlineLen]);
                 }
             }
 
@@ -1225,7 +1225,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
             ImGui.SameLine();
             var cursor = ImGui.GetCursorPos();
-            ImGui.Text(log.Title);
+            ImGui.TextUnformatted(log.Title);
 
             ImGui.SameLine();
             ImGui.TextColored(ImGuiColors.DalamudGrey3, $" v{log.Version}");
@@ -1233,7 +1233,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             cursor.Y += ImGui.GetTextLineHeightWithSpacing();
             ImGui.SetCursorPos(cursor);
 
-            ImGui.TextWrapped(log.Text);
+            ImGuiHelpers.SafeTextWrapped(log.Text);
 
             var endCursor = ImGui.GetCursorPos();
 
@@ -1294,7 +1294,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                 // Description
                 if (!string.IsNullOrWhiteSpace(manifest.Description))
                 {
-                    ImGui.TextWrapped(manifest.Description);
+                    ImGuiHelpers.SafeTextWrapped(manifest.Description);
                 }
 
                 ImGuiHelpers.ScaledDummy(5);
@@ -1503,7 +1503,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                 ImGui.Indent();
 
                 // Name
-                ImGui.Text(manifest.Name);
+                ImGui.TextUnformatted(manifest.Name);
 
                 // Download count
                 var downloadText = plugin.IsDev
@@ -1533,7 +1533,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                 // Description
                 if (!string.IsNullOrWhiteSpace(manifest.Description))
                 {
-                    ImGui.TextWrapped(manifest.Description);
+                    ImGuiHelpers.SafeTextWrapped(manifest.Description);
                 }
 
                 // Available commands (if loaded)
@@ -1548,7 +1548,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                         ImGui.Dummy(ImGuiHelpers.ScaledVector2(10f, 10f));
                         foreach (var command in commands)
                         {
-                            ImGui.TextWrapped($"{command.Key} → {command.Value.HelpMessage}");
+                            ImGuiHelpers.SafeTextWrapped($"{command.Key} → {command.Value.HelpMessage}");
                         }
                     }
                 }
@@ -1617,7 +1617,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             {
                 ImGui.Text("Changelog:");
                 ImGuiHelpers.ScaledDummy(2);
-                ImGui.TextWrapped(manifest.Changelog);
+                ImGuiHelpers.SafeTextWrapped(manifest.Changelog);
             }
 
             ImGui.EndChild();

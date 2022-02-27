@@ -5,7 +5,7 @@ concurrency: build_dalamud
 jobs:
   build:
     name: Build on Windows
-    runs-on: windows-2019
+    runs-on: windows-2022
     steps:
       - name: Checkout Dalamud
         uses: actions/checkout@v2
