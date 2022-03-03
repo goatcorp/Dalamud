@@ -1,5 +1,6 @@
 using System;
 using System.Numerics;
+
 using ImGuiNET;
 
 namespace Dalamud.Interface.GameFonts
@@ -31,7 +32,16 @@ namespace Dalamud.Interface.GameFonts
         /// <summary>
         /// Gets a value indicating whether this font is ready for use.
         /// </summary>
-        public bool Available => this.manager.GetFont(this.fontStyle) != null;
+        public bool Available
+        {
+            get
+            {
+                unsafe
+                {
+                    return this.manager.GetFont(this.fontStyle).GetValueOrDefault(null).NativePtr != null;
+                }
+            }
+        }
 
         /// <summary>
         /// Gets the font.
@@ -68,9 +78,13 @@ namespace Dalamud.Interface.GameFonts
             }
             else
             {
-                this.LayoutBuilder(text)
-                    .Build()
-                    .Draw(ImGui.GetWindowDrawList(), ImGui.GetWindowPos() + ImGui.GetCursorPos(), ImGui.GetColorU32(ImGuiCol.Text));
+                var pos = ImGui.GetWindowPos() + ImGui.GetCursorPos();
+                pos.X -= ImGui.GetScrollX();
+                pos.Y -= ImGui.GetScrollY();
+
+                var layout = this.LayoutBuilder(text).Build();
+                layout.Draw(ImGui.GetWindowDrawList(), pos, ImGui.GetColorU32(ImGuiCol.Text));
+                ImGui.Dummy(new Vector2(layout.Width, layout.Height));
             }
         }
 

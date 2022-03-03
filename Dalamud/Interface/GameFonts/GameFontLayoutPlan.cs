@@ -73,7 +73,6 @@ namespace Dalamud.Interface.GameFonts
         /// <param name="col">Color.</param>
         public void Draw(ImDrawListPtr drawListPtr, Vector2 pos, uint col)
         {
-            ImGui.Dummy(new Vector2(this.Width, this.Height));
             foreach (var element in this.Elements)
             {
                 if (element.IsControl)

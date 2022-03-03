@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 
+using Dalamud.Configuration.Internal;
 using Dalamud.Data;
 using Dalamud.Interface.Internal;
 using ImGuiNET;
@@ -288,9 +289,10 @@ namespace Dalamud.Interface.GameFonts
         /// </summary>
         public unsafe void AfterBuildFonts()
         {
-            var io = ImGui.GetIO();
-            io.Fonts.GetTexDataAsRGBA32(out byte* pixels8, out var width, out var height);
+            var ioFonts = ImGui.GetIO().Fonts;
+            ioFonts.GetTexDataAsRGBA32(out byte* pixels8, out var width, out var height);
             var pixels32 = (uint*)pixels8;
+            var fontGamma = this.interfaceManager.FontGamma;
 
             foreach (var (style, font) in this.fonts)
             {
@@ -319,7 +321,7 @@ namespace Dalamud.Interface.GameFonts
 
                 foreach (var (c, (rectId, glyph)) in this.glyphRectIds[style])
                 {
-                    var rc = io.Fonts.GetCustomRectByIndex(rectId);
+                    var rc = ioFonts.GetCustomRectByIndex(rectId);
                     var sourceBuffer = this.texturePixels[glyph.TextureFileIndex];
                     var sourceBufferDelta = glyph.TextureChannelByteIndex;
                     var widthAdjustment = style.CalculateWidthAdjustment(fdt, glyph);
@@ -363,6 +365,19 @@ namespace Dalamud.Interface.GameFonts
                                     var targetOffset = ((rc.Y + y) * width) + rc.X + x + xDeltaInt;
                                     pixels8[(targetOffset * 4) + 3] = Math.Max(pixels8[(targetOffset * 4) + 3], (byte)(boldStrength * n));
                                 }
+                            }
+                        }
+                    }
+
+                    if (Math.Abs(fontGamma - 1.4f) >= 0.001)
+                    {
+                        // Gamma correction (stbtt/FreeType would output in linear space whereas most real world usages will apply 1.4 or 1.8 gamma; Windows/XIV prebaked uses 1.4)
+                        for (int y = rc.Y, y_ = rc.Y + rc.Height; y < y_; y++)
+                        {
+                            for (int x = rc.X, x_ = rc.X + rc.Width; x < x_; x++)
+                            {
+                                var i = (((y * width) + x) * 4) + 3;
+                                pixels8[i] = (byte)(Math.Pow(pixels8[i] / 255.0f, 1.4f / fontGamma) * 255.0f);
                             }
                         }
                     }
