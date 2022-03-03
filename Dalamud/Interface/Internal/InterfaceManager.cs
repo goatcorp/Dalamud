@@ -190,6 +190,16 @@ namespace Dalamud.Interface.Internal
         public bool IsReady => this.scene != null;
 
         /// <summary>
+        /// Gets or sets the overrided font gamma value, instead of using the value from configuration.
+        /// </summary>
+        public float? FontGammaOverride { get; set; } = null;
+
+        /// <summary>
+        /// Gets the font gamma value to use.
+        /// </summary>
+        public float FontGamma => Math.Max(0.1f, this.FontGammaOverride.GetValueOrDefault(Service<DalamudConfiguration>.Get().FontGamma));
+
+        /// <summary>
         /// Enable this module.
         /// </summary>
         public void Enable()
@@ -521,10 +531,12 @@ namespace Dalamud.Interface.Internal
         private unsafe void SetupFonts()
         {
             var dalamud = Service<Dalamud>.Get();
+            var ioFonts = ImGui.GetIO().Fonts;
+            var fontGamma = this.FontGamma;
 
             this.fontBuildSignal.Reset();
 
-            ImGui.GetIO().Fonts.Clear();
+            ioFonts.Clear();
 
             ImFontConfigPtr fontConfig = ImGuiNative.ImFontConfig_ImFontConfig();
             fontConfig.PixelSnapH = true;
@@ -536,7 +548,7 @@ namespace Dalamud.Interface.Internal
 
             var japaneseRangeHandle = GCHandle.Alloc(GlyphRangesJapanese.GlyphRanges, GCHandleType.Pinned);
 
-            DefaultFont = ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPathJp, 17.0f, null, japaneseRangeHandle.AddrOfPinnedObject());
+            DefaultFont = ioFonts.AddFontFromFileTTF(fontPathJp, 17.0f, null, japaneseRangeHandle.AddrOfPinnedObject());
 
             var fontPathGame = Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "gamesym.ttf");
 
@@ -553,7 +565,7 @@ namespace Dalamud.Interface.Internal
                 GCHandleType.Pinned);
 
             fontConfig.MergeMode = false;
-            ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPathGame, 17.0f, fontConfig, gameRangeHandle.AddrOfPinnedObject());
+            ioFonts.AddFontFromFileTTF(fontPathGame, 17.0f, fontConfig, gameRangeHandle.AddrOfPinnedObject());
             fontConfig.MergeMode = true;
 
             var fontPathIcon = Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "FontAwesome5FreeSolid.otf");
@@ -569,14 +581,14 @@ namespace Dalamud.Interface.Internal
                     0,
                 },
                 GCHandleType.Pinned);
-            IconFont = ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPathIcon, 17.0f, null, iconRangeHandle.AddrOfPinnedObject());
+            IconFont = ioFonts.AddFontFromFileTTF(fontPathIcon, 17.0f, null, iconRangeHandle.AddrOfPinnedObject());
 
             var fontPathMono = Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "Inconsolata-Regular.ttf");
 
             if (!File.Exists(fontPathMono))
                 ShowFontError(fontPathMono);
 
-            MonoFont = ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPathMono, 16.0f);
+            MonoFont = ioFonts.AddFontFromFileTTF(fontPathMono, 16.0f);
 
             var gameFontManager = Service<GameFontManager>.Get();
             gameFontManager.BuildFonts();
@@ -590,7 +602,15 @@ namespace Dalamud.Interface.Internal
                 Log.Verbose("{0} - {1}", i, ImGui.GetIO().Fonts.Fonts[i].GetDebugName());
             }
 
-            ImGui.GetIO().Fonts.Build();
+            ioFonts.Build();
+
+            if (Math.Abs(fontGamma - 1.0f) >= 0.001)
+            {
+                // Gamma correction (stbtt/FreeType would output in linear space whereas most real world usages will apply 1.4 or 1.8 gamma; Windows/XIV prebaked uses 1.4)
+                ioFonts.GetTexDataAsRGBA32(out byte* texPixels, out var texWidth, out var texHeight);
+                for (int i = 3, i_ = texWidth * texHeight * 4; i < i_; i += 4)
+                    texPixels[i] = (byte)(Math.Pow(texPixels[i] / 255.0f, 1.0f / fontGamma) * 255.0f);
+            }
 
             gameFontManager.AfterBuildFonts();
             GameFontManager.CopyGlyphsAcrossFonts(this.axisFontHandle?.ImFont, DefaultFont, false, true);

@@ -39,6 +39,7 @@ namespace Dalamud.Interface.Internal.Windows
 
         private float globalUiScale;
         private bool doUseAxisFontsFromGame;
+        private float fontGamma;
         private bool doToggleUiHide;
         private bool doToggleUiHideDuringCutscenes;
         private bool doToggleUiHideDuringGpose;
@@ -91,6 +92,7 @@ namespace Dalamud.Interface.Internal.Windows
             this.doCfChatMessage = configuration.DutyFinderChatMessage;
 
             this.globalUiScale = configuration.GlobalUiScale;
+            this.fontGamma = configuration.FontGamma;
             this.doUseAxisFontsFromGame = configuration.UseAxisFontsFromGame;
             this.doToggleUiHide = configuration.ToggleUiHide;
             this.doToggleUiHideDuringCutscenes = configuration.ToggleUiHideDuringCutscenes;
@@ -176,13 +178,20 @@ namespace Dalamud.Interface.Internal.Windows
         public override void OnClose()
         {
             var configuration = Service<DalamudConfiguration>.Get();
+            var interfaceManager = Service<InterfaceManager>.Get();
+
+            var rebuildFont = interfaceManager.FontGamma != configuration.FontGamma;
 
             ImGui.GetIO().FontGlobalScale = configuration.GlobalUiScale;
+            interfaceManager.FontGammaOverride = null;
             this.thirdRepoList = configuration.ThirdRepoList.Select(x => x.Clone()).ToList();
             this.devPluginLocations = configuration.DevPluginLoadLocations.Select(x => x.Clone()).ToList();
 
             configuration.DtrOrder = this.dtrOrder;
             configuration.DtrIgnore = this.dtrIgnore;
+
+            if (rebuildFont)
+                interfaceManager.RebuildFonts();
         }
 
         /// <inheritdoc/>
@@ -272,21 +281,23 @@ namespace Dalamud.Interface.Internal.Windows
 
         private void DrawLookAndFeelTab()
         {
+            var interfaceManager = Service<InterfaceManager>.Get();
+
             ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 3);
             ImGui.Text(Loc.Localize("DalamudSettingsGlobalUiScale", "Global UI Scale"));
             ImGui.SameLine();
             ImGui.SetCursorPosY(ImGui.GetCursorPosY() - 3);
-            if (ImGui.Button("Reset"))
+            if (ImGui.Button(Loc.Localize("DalamudSettingsIndividualConfigResetToDefaultValue", "Reset") + "##DalamudSettingsGlobalUiScaleReset"))
             {
                 this.globalUiScale = 1.0f;
                 ImGui.GetIO().FontGlobalScale = this.globalUiScale;
-                Service<InterfaceManager>.Get().RebuildFonts();
+                interfaceManager.RebuildFonts();
             }
 
             if (ImGui.DragFloat("##DalamudSettingsGlobalUiScaleDrag", ref this.globalUiScale, 0.005f, MinScale, MaxScale, "%.2f"))
             {
                 ImGui.GetIO().FontGlobalScale = this.globalUiScale;
-                Service<InterfaceManager>.Get().RebuildFonts();
+                interfaceManager.RebuildFonts();
             }
 
             ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsGlobalUiScaleHint", "Scale all XIVLauncher UI elements - useful for 4K displays."));
@@ -332,6 +343,28 @@ namespace Dalamud.Interface.Internal.Windows
 
             ImGui.Checkbox(Loc.Localize("DalamudSettingToggleTsm", "Show title screen menu"), ref this.doTsm);
             ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingToggleTsmHint", "This will allow you to access certain Dalamud and Plugin functionality from the title screen."));
+
+            ImGuiHelpers.ScaledDummy(10, 16);
+            ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 3);
+            ImGui.Text(Loc.Localize("DalamudSettingsFontGamma", "Font Gamma"));
+            ImGui.SameLine();
+            ImGui.SetCursorPosY(ImGui.GetCursorPosY() - 3);
+            if (ImGui.Button(Loc.Localize("DalamudSettingsIndividualConfigResetToDefaultValue", "Reset") + "##DalamudSettingsFontGammaReset"))
+            {
+                this.fontGamma = 1.4f;
+                interfaceManager.FontGammaOverride = this.fontGamma;
+                interfaceManager.RebuildFonts();
+            }
+
+            if (ImGui.DragFloat("##DalamudSettingsFontGammaDrag", ref this.fontGamma, 0.005f, MinScale, MaxScale, "%.2f"))
+            {
+                interfaceManager.FontGammaOverride = this.fontGamma;
+                interfaceManager.RebuildFonts();
+            }
+
+            ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsFontGammaHint", "Changes the thickness of text."));
+
+            ImGuiHelpers.ScaledDummy(10, 16);
         }
 
         private void DrawServerInfoBarTab()
@@ -811,6 +844,7 @@ namespace Dalamud.Interface.Internal.Windows
             configuration.ShowTsm = this.doTsm;
 
             configuration.UseAxisFontsFromGame = this.doUseAxisFontsFromGame;
+            configuration.FontGamma = this.fontGamma;
 
             // This is applied every frame in InterfaceManager::CheckViewportState()
             configuration.IsDisableViewport = !this.doViewport;
