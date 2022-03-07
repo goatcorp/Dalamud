@@ -393,23 +393,22 @@ namespace Dalamud.Interface.Internal
                 ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
                 ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, Vector2.Zero);
                 ImGui.PushStyleVar(ImGuiStyleVar.WindowBorderSize, 0);
+                ImGui.PushStyleVar(ImGuiStyleVar.FrameBorderSize, 0);
 
-                var windowPos = ImGui.GetMainViewport().Pos + new Vector2(40);
+                var windowPos = ImGui.GetMainViewport().Pos + new Vector2(20);
                 ImGui.SetNextWindowPos(windowPos, ImGuiCond.Always);
                 ImGui.SetNextWindowBgAlpha(1);
-
-                var imageSize = new Vector2(90);
 
                 if (ImGui.Begin("DevMenu Opener", ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoSavedSettings))
                 {
                     ImGui.SetNextItemWidth(40);
-                    if (ImGui.Button("###devMenuOpener", imageSize))
+                    if (ImGui.Button("###devMenuOpener", new Vector2(20, 20)))
                         this.isImGuiDrawDevMenu = true;
 
                     ImGui.End();
                 }
 
-                ImGui.PopStyleVar(3);
+                ImGui.PopStyleVar(4);
                 ImGui.PopStyleColor(8);
             }
         }
@@ -725,10 +724,14 @@ namespace Dalamud.Interface.Internal
                     if (Service<GameGui>.Get().GameUiHidden)
                         ImGui.BeginMenu("UI is hidden...", false);
 
+                    ImGui.PushFont(InterfaceManager.MonoFont);
+
                     ImGui.BeginMenu(Util.GetGitHash(), false);
-                    ImGui.BeginMenu(this.frameCount.ToString(), false);
-                    ImGui.BeginMenu(ImGui.GetIO().Framerate.ToString("F2"), false);
-                    ImGui.BeginMenu($"{Util.FormatBytes(GC.GetTotalMemory(false))} total managed", false);
+                    ImGui.BeginMenu(this.frameCount.ToString("000000"), false);
+                    ImGui.BeginMenu(ImGui.GetIO().Framerate.ToString("000"), false);
+                    ImGui.BeginMenu($"{Util.FormatBytes(GC.GetTotalMemory(false))}", false);
+
+                    ImGui.PopFont();
 
                     ImGui.EndMainMenuBar();
                 }

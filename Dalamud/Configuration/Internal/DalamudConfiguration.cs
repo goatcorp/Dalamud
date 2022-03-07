@@ -135,6 +135,15 @@ namespace Dalamud.Configuration.Internal
         public bool UseAxisFontsFromGame { get; set; } = false;
 
         /// <summary>
+        /// Gets or sets the gamma value to apply for Dalamud fonts. Effects text thickness.
+        ///
+        /// Before gamma is applied...
+        /// * ...TTF fonts loaded with stb or FreeType are in linear space.
+        /// * ...the game's prebaked AXIS fonts are in gamma space with gamma value of 1.4.
+        /// </summary>
+        public float FontGamma { get; set; } = 1.0f;
+
+        /// <summary>
         /// Gets or sets a value indicating whether or not plugin UI should be hidden.
         /// </summary>
         public bool ToggleUiHide { get; set; } = true;
