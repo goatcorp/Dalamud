@@ -292,7 +292,6 @@ namespace Dalamud.Interface.GameFonts
                 fontConfig.PixelSnapH = true;
 
                 var io = ImGui.GetIO();
-                io.Fonts.TexDesiredWidth = 4096;
 
                 this.glyphRectIds.Clear();
                 this.fonts.Clear();
