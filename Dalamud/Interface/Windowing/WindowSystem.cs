@@ -92,6 +92,12 @@ namespace Dalamud.Interface.Windowing
         public Window? GetWindow(string windowName) => this.windows.FirstOrDefault(w => w.WindowName == windowName);
 
         /// <summary>
+        /// Returns an array of all currently registered windows.
+        /// </summary>
+        /// <returns>Returns window collection as a <see cref="Window"/> array.</returns>
+        public Window[] GetWindows() => this.windows.ToArray();
+
+        /// <summary>
         /// Draw all registered windows using ImGui.
         /// </summary>
         public void Draw()
