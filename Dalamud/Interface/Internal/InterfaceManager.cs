@@ -604,6 +604,7 @@ namespace Dalamud.Interface.Internal
 
             this.fontBuildSignal.Reset();
             ioFonts.Clear();
+            ioFonts.TexDesiredWidth = 4096;
 
             ImFontConfigPtr fontConfig = ImGuiNative.ImFontConfig_ImFontConfig();
             fontConfig.OversampleH = 1;
@@ -658,6 +659,10 @@ namespace Dalamud.Interface.Internal
                     List<Tuple<ushort, ushort>> codepointRanges = new();
                     codepointRanges.Add(Tuple.Create(Fallback1Codepoint, Fallback1Codepoint));
                     codepointRanges.Add(Tuple.Create(Fallback2Codepoint, Fallback2Codepoint));
+                    
+                    // ImGui default ellipsis characters
+                    codepointRanges.Add(Tuple.Create<ushort, ushort>(0x2026, 0x2026));
+                    codepointRanges.Add(Tuple.Create<ushort, ushort>(0x0085, 0x0085));
 
                     foreach (var request in requests)
                     {
