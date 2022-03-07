@@ -94,7 +94,7 @@ namespace Dalamud.Interface.Windowing
         /// <summary>
         /// Returns a read only list of all currently registered windows.
         /// </summary>
-        /// <returns>Returns window collection as a <see cref="Window"/> array.</returns>
+        /// <returns>Returns a <see cref="IReadOnlyList{T}"/> of the registered windows.</returns>
         public IReadOnlyList GetWindows() => this.windows;
 
         /// <summary>
