@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Numerics;
 
 using Dalamud.Configuration.Internal;
@@ -20,16 +21,17 @@ namespace Dalamud.Interface.Internal.Windows
     /// </summary>
     internal class TitleScreenMenuWindow : Window, IDisposable
     {
-        private const float TargetFontSize = 16.2f;
+        private const float TargetFontSizePt = 18f;
+        private const float TargetFontSizePx = TargetFontSizePt * 4 / 3;
+
         private readonly TextureWrap shadeTexture;
 
         private readonly Dictionary<Guid, InOutCubic> shadeEasings = new();
         private readonly Dictionary<Guid, InOutQuint> moveEasings = new();
         private readonly Dictionary<Guid, InOutCubic> logoEasings = new();
+        private readonly Dictionary<string, InterfaceManager.SpecialGlyphRequest> specialGlyphRequests = new();
 
         private InOutCubic? fadeOutEasing;
-
-        private GameFontHandle? axisFontHandle;
 
         private State state = State.Hide;
 
@@ -71,19 +73,14 @@ namespace Dalamud.Interface.Internal.Windows
         /// <inheritdoc/>
         public override void PreDraw()
         {
-            this.SetAxisFonts();
             ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(0, 0));
             ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(0, 0));
-            if (this.axisFontHandle?.Available ?? false)
-                ImGui.PushFont(this.axisFontHandle.ImFont);
             base.PreDraw();
         }
 
         /// <inheritdoc/>
         public override void PostDraw()
         {
-            if (this.axisFontHandle?.Available ?? false)
-                ImGui.PopFont();
             ImGui.PopStyleVar(2);
             base.PostDraw();
         }
@@ -99,7 +96,7 @@ namespace Dalamud.Interface.Internal.Windows
         /// <inheritdoc/>
         public override void Draw()
         {
-            ImGui.SetWindowFontScale(TargetFontSize / ImGui.GetFont().FontSize * 4 / 3);
+            var scale = ImGui.GetIO().FontGlobalScale;
 
             var tsm = Service<TitleScreenMenu>.Get();
 
@@ -129,7 +126,7 @@ namespace Dalamud.Interface.Internal.Windows
 
                             moveEasing.Update();
 
-                            var finalPos = (i + 1) * this.shadeTexture.Height;
+                            var finalPos = (i + 1) * this.shadeTexture.Height * scale;
                             var pos = moveEasing.Value * finalPos;
 
                             // FIXME(goat): Sometimes, easings can overshoot and bring things out of alignment.
@@ -180,7 +177,7 @@ namespace Dalamud.Interface.Internal.Windows
                         {
                             var entry = tsm.Entries[i];
 
-                            var finalPos = (i + 1) * this.shadeTexture.Height;
+                            var finalPos = (i + 1) * this.shadeTexture.Height * scale;
 
                             this.DrawEntry(entry, i != 0, true, i == 0, false);
 
@@ -222,26 +219,35 @@ namespace Dalamud.Interface.Internal.Windows
                         break;
                     }
             }
-        }
 
-        private void SetAxisFonts()
-        {
-            var configuration = Service<DalamudConfiguration>.Get();
-            if (configuration.UseAxisFontsFromGame)
+            var srcText = tsm.Entries.Select(e => e.Name).ToHashSet();
+            var keys = this.specialGlyphRequests.Keys.ToHashSet();
+            keys.RemoveWhere(x => srcText.Contains(x));
+            foreach (var key in keys)
             {
-                if (this.axisFontHandle == null)
-                    this.axisFontHandle = Service<GameFontManager>.Get().NewFontRef(new(GameFontFamily.Axis, TargetFontSize));
-            }
-            else
-            {
-                this.axisFontHandle?.Dispose();
-                this.axisFontHandle = null;
+                this.specialGlyphRequests[key].Dispose();
+                this.specialGlyphRequests.Remove(key);
             }
         }
 
         private bool DrawEntry(
             TitleScreenMenu.TitleScreenMenuEntry entry, bool inhibitFadeout, bool showText, bool isFirst, bool overrideAlpha)
         {
+            InterfaceManager.SpecialGlyphRequest fontHandle;
+            if (this.specialGlyphRequests.TryGetValue(entry.Name, out fontHandle) && fontHandle.Size != TargetFontSizePx)
+            {
+                fontHandle.Dispose();
+                this.specialGlyphRequests.Remove(entry.Name);
+                fontHandle = null;
+            }
+
+            if (fontHandle == null)
+                this.specialGlyphRequests[entry.Name] = fontHandle = Service<InterfaceManager>.Get().NewFontSizeRef(TargetFontSizePx, entry.Name);
+
+            ImGui.PushFont(fontHandle.Font);
+
+            var scale = ImGui.GetIO().FontGlobalScale;
+
             if (!this.shadeEasings.TryGetValue(entry.Id, out var shadeEasing))
             {
                 shadeEasing = new InOutCubic(TimeSpan.FromMilliseconds(350));
@@ -251,7 +257,7 @@ namespace Dalamud.Interface.Internal.Windows
             var initialCursor = ImGui.GetCursorPos();
 
             ImGui.PushStyleVar(ImGuiStyleVar.Alpha, (float)shadeEasing.Value);
-            ImGui.Image(this.shadeTexture.ImGuiHandle, new Vector2(this.shadeTexture.Width, this.shadeTexture.Height));
+            ImGui.Image(this.shadeTexture.ImGuiHandle, new Vector2(this.shadeTexture.Width * scale, this.shadeTexture.Height * scale));
             ImGui.PopStyleVar();
 
             var isHover = ImGui.IsItemHovered();
@@ -305,7 +311,7 @@ namespace Dalamud.Interface.Internal.Windows
                 ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 1f);
             }
 
-            ImGui.Image(entry.Texture.ImGuiHandle, new Vector2(TitleScreenMenu.TextureSize));
+            ImGui.Image(entry.Texture.ImGuiHandle, new Vector2(TitleScreenMenu.TextureSize * scale));
             if (overrideAlpha || isFirst)
             {
                 ImGui.PopStyleVar();
@@ -319,22 +325,35 @@ namespace Dalamud.Interface.Internal.Windows
             var textHeight = ImGui.GetTextLineHeightWithSpacing();
             var cursor = ImGui.GetCursorPos();
 
-            cursor.Y += (entry.Texture.Height / 2) - (textHeight / 2);
-            ImGui.SetCursorPos(cursor);
+            cursor.Y += (entry.Texture.Height * scale / 2) - (textHeight / 2);
 
             if (overrideAlpha)
             {
                 ImGui.PushStyleVar(ImGuiStyleVar.Alpha, showText ? (float)logoEasing.Value : 0f);
             }
 
+            // Drop shadow
+            ImGui.PushStyleColor(ImGuiCol.Text, 0xFF000000);
+            for (int i = 0, i_ = (int)Math.Ceiling(1 * scale); i < i_; i++)
+            {
+                ImGui.SetCursorPos(new Vector2(cursor.X, cursor.Y + i));
+                ImGui.Text(entry.Name);
+            }
+
+            ImGui.PopStyleColor();
+
+            ImGui.SetCursorPos(cursor);
             ImGui.Text(entry.Name);
+
             if (overrideAlpha)
             {
                 ImGui.PopStyleVar();
             }
 
-            initialCursor.Y += entry.Texture.Height;
+            initialCursor.Y += entry.Texture.Height * scale;
             ImGui.SetCursorPos(initialCursor);
+
+            ImGui.PopFont();
 
             return isHover;
         }
