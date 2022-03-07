@@ -16,6 +16,7 @@ namespace Dalamud.Interface.Windowing
         private static DateTimeOffset lastAnyFocus;
 
         private readonly List<Window> windows = new();
+        public IReadOnlyList<Window> Windows => this.windows;
 
         private string lastFocusedWindowName = string.Empty;
 
@@ -90,12 +91,6 @@ namespace Dalamud.Interface.Windowing
         /// <param name="windowName">The name of the <see cref="Window"/></param>
         /// <returns>The <see cref="Window"/> object with matching name or null.</returns>
         public Window? GetWindow(string windowName) => this.windows.FirstOrDefault(w => w.WindowName == windowName);
-
-        /// <summary>
-        /// Returns a read only list of all currently registered windows.
-        /// </summary>
-        /// <returns>Returns a <see cref="IReadOnlyList{T}"/> of the registered windows.</returns>
-        public IReadOnlyList GetWindows() => this.windows;
 
         /// <summary>
         /// Draw all registered windows using ImGui.
