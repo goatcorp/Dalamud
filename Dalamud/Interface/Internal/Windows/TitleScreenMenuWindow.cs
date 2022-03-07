@@ -245,6 +245,7 @@ namespace Dalamud.Interface.Internal.Windows
                 this.specialGlyphRequests[entry.Name] = fontHandle = Service<InterfaceManager>.Get().NewFontSizeRef(TargetFontSizePx, entry.Name);
 
             ImGui.PushFont(fontHandle.Font);
+            ImGui.SetWindowFontScale(TargetFontSizePx / fontHandle.Size);
 
             var scale = ImGui.GetIO().FontGlobalScale;
 
