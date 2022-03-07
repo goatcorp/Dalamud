@@ -16,6 +16,7 @@ namespace Dalamud.Interface.Windowing
         private static DateTimeOffset lastAnyFocus;
 
         private readonly List<Window> windows = new();
+        public IReadOnlyList<Window> Windows => this.windows;
 
         private string lastFocusedWindowName = string.Empty;
 
