@@ -611,174 +611,189 @@ namespace Dalamud.Interface.Internal
             ioFonts.Clear();
             ioFonts.TexDesiredWidth = 4096;
 
-            ImFontConfigPtr fontConfig = ImGuiNative.ImFontConfig_ImFontConfig();
-            fontConfig.OversampleH = 1;
-            fontConfig.OversampleV = 1;
-            fontConfig.PixelSnapH = true;
+            ImFontConfigPtr fontConfig = null;
+            List<GCHandle> garbageList = new();
 
-            var fontPathJp = Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "NotoSansCJKjp-Medium.otf");
-            if (!File.Exists(fontPathJp))
-                ShowFontError(fontPathJp);
-
-            // Default font
+            try
             {
-                var japaneseRangeHandle = GCHandle.Alloc(GlyphRangesJapanese.GlyphRanges, GCHandleType.Pinned);
-                DefaultFont = ioFonts.AddFontFromFileTTF(fontPathJp, (DefaultFontSizePx + 1) * fontScale, fontConfig, japaneseRangeHandle.AddrOfPinnedObject());
-                japaneseRangeHandle.Free();
-                fontsToUnscale.Add(DefaultFont);
-            }
+                fontConfig = ImGuiNative.ImFontConfig_ImFontConfig();
+                fontConfig.OversampleH = 1;
+                fontConfig.OversampleV = 1;
+                fontConfig.PixelSnapH = true;
 
-            // FontAwesome icon font
-            {
-                var fontPathIcon = Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "FontAwesome5FreeSolid.otf");
-                if (!File.Exists(fontPathIcon))
-                    ShowFontError(fontPathIcon);
+                var fontPathJp = Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "NotoSansCJKjp-Medium.otf");
+                if (!File.Exists(fontPathJp))
+                    ShowFontError(fontPathJp);
 
-                var iconRangeHandle = GCHandle.Alloc(new ushort[] { 0xE000, 0xF8FF, 0, }, GCHandleType.Pinned);
-                IconFont = ioFonts.AddFontFromFileTTF(fontPathIcon, DefaultFontSizePx * fontScale, fontConfig, iconRangeHandle.AddrOfPinnedObject());
-                iconRangeHandle.Free();
-                fontsToUnscale.Add(IconFont);
-            }
-
-            // Monospace font
-            {
-                var fontPathMono = Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "Inconsolata-Regular.ttf");
-                if (!File.Exists(fontPathMono))
-                    ShowFontError(fontPathMono);
-                MonoFont = ioFonts.AddFontFromFileTTF(fontPathMono, DefaultFontSizePx * fontScale, fontConfig);
-                fontsToUnscale.Add(MonoFont);
-            }
-
-            // Default font but in requested size for requested glyphs
-            {
-                Dictionary<float, List<SpecialGlyphRequest>> extraFontRequests = new();
-                foreach (var extraFontRequest in this.glyphRequests)
+                // Default font
                 {
-                    if (!extraFontRequests.ContainsKey(extraFontRequest.Size))
-                        extraFontRequests[extraFontRequest.Size] = new();
-                    extraFontRequests[extraFontRequest.Size].Add(extraFontRequest);
+                    var japaneseRangeHandle = GCHandle.Alloc(GlyphRangesJapanese.GlyphRanges, GCHandleType.Pinned);
+                    garbageList.Add(japaneseRangeHandle);
+
+                    DefaultFont = ioFonts.AddFontFromFileTTF(fontPathJp, (DefaultFontSizePx + 1) * fontScale, fontConfig, japaneseRangeHandle.AddrOfPinnedObject());
+                    fontsToUnscale.Add(DefaultFont);
                 }
 
-                foreach (var (fontSize, requests) in extraFontRequests)
+                // FontAwesome icon font
                 {
-                    List<Tuple<ushort, ushort>> codepointRanges = new();
-                    codepointRanges.Add(Tuple.Create(Fallback1Codepoint, Fallback1Codepoint));
-                    codepointRanges.Add(Tuple.Create(Fallback2Codepoint, Fallback2Codepoint));
+                    var fontPathIcon = Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "FontAwesome5FreeSolid.otf");
+                    if (!File.Exists(fontPathIcon))
+                        ShowFontError(fontPathIcon);
 
-                    // ImGui default ellipsis characters
-                    codepointRanges.Add(Tuple.Create<ushort, ushort>(0x2026, 0x2026));
-                    codepointRanges.Add(Tuple.Create<ushort, ushort>(0x0085, 0x0085));
+                    var iconRangeHandle = GCHandle.Alloc(new ushort[] { 0xE000, 0xF8FF, 0, }, GCHandleType.Pinned);
+                    garbageList.Add(iconRangeHandle);
 
-                    foreach (var request in requests)
+                    IconFont = ioFonts.AddFontFromFileTTF(fontPathIcon, DefaultFontSizePx * fontScale, fontConfig, iconRangeHandle.AddrOfPinnedObject());
+                    fontsToUnscale.Add(IconFont);
+                }
+
+                // Monospace font
+                {
+                    var fontPathMono = Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "Inconsolata-Regular.ttf");
+                    if (!File.Exists(fontPathMono))
+                        ShowFontError(fontPathMono);
+                    MonoFont = ioFonts.AddFontFromFileTTF(fontPathMono, DefaultFontSizePx * fontScale, fontConfig);
+                    fontsToUnscale.Add(MonoFont);
+                }
+
+                // Default font but in requested size for requested glyphs
+                {
+                    Dictionary<float, List<SpecialGlyphRequest>> extraFontRequests = new();
+                    foreach (var extraFontRequest in this.glyphRequests)
                     {
-                        foreach (var range in request.CodepointRanges)
-                            codepointRanges.Add(range);
+                        if (!extraFontRequests.ContainsKey(extraFontRequest.Size))
+                            extraFontRequests[extraFontRequest.Size] = new();
+                        extraFontRequests[extraFontRequest.Size].Add(extraFontRequest);
                     }
 
-                    codepointRanges.Sort((x, y) => (x.Item1 == y.Item1 ? (x.Item2 < y.Item2 ? -1 : (x.Item2 == y.Item2 ? 0 : 1)) : (x.Item1 < y.Item1 ? -1 : 1)));
-
-                    List<ushort> flattenedRanges = new();
-                    foreach (var range in codepointRanges)
+                    foreach (var (fontSize, requests) in extraFontRequests)
                     {
-                        if (flattenedRanges.Any() && flattenedRanges[^1] >= range.Item1 - 1)
+                        List<Tuple<ushort, ushort>> codepointRanges = new();
+                        codepointRanges.Add(Tuple.Create(Fallback1Codepoint, Fallback1Codepoint));
+                        codepointRanges.Add(Tuple.Create(Fallback2Codepoint, Fallback2Codepoint));
+
+                        // ImGui default ellipsis characters
+                        codepointRanges.Add(Tuple.Create<ushort, ushort>(0x2026, 0x2026));
+                        codepointRanges.Add(Tuple.Create<ushort, ushort>(0x0085, 0x0085));
+
+                        foreach (var request in requests)
                         {
-                            flattenedRanges[^1] = Math.Max(flattenedRanges[^1], range.Item2);
+                            foreach (var range in request.CodepointRanges)
+                                codepointRanges.Add(range);
                         }
+
+                        codepointRanges.Sort((x, y) => (x.Item1 == y.Item1 ? (x.Item2 < y.Item2 ? -1 : (x.Item2 == y.Item2 ? 0 : 1)) : (x.Item1 < y.Item1 ? -1 : 1)));
+
+                        List<ushort> flattenedRanges = new();
+                        foreach (var range in codepointRanges)
+                        {
+                            if (flattenedRanges.Any() && flattenedRanges[^1] >= range.Item1 - 1)
+                            {
+                                flattenedRanges[^1] = Math.Max(flattenedRanges[^1], range.Item2);
+                            }
+                            else
+                            {
+                                flattenedRanges.Add(range.Item1);
+                                flattenedRanges.Add(range.Item2);
+                            }
+                        }
+
+                        flattenedRanges.Add(0);
+
+                        var rangeHandle = GCHandle.Alloc(flattenedRanges.ToArray(), GCHandleType.Pinned);
+                        garbageList.Add(rangeHandle);
+
+                        var sizedFont = ioFonts.AddFontFromFileTTF(fontPathJp, fontSize * fontScale, fontConfig, rangeHandle.AddrOfPinnedObject());
+                        fontsToUnscale.Add(sizedFont);
+
+                        foreach (var request in requests)
+                            request.FontInternal = sizedFont;
+                    }
+                }
+
+                var gameFontManager = Service<GameFontManager>.Get();
+                gameFontManager.BuildFonts();
+
+                Log.Verbose("[FONT] Invoke OnBuildFonts");
+                this.BuildFonts?.Invoke();
+                Log.Verbose("[FONT] OnBuildFonts OK!");
+
+                for (var i = 0; i < ImGui.GetIO().Fonts.Fonts.Size; i++)
+                {
+                    Log.Verbose("{0} - {1}", i, ImGui.GetIO().Fonts.Fonts[i].GetDebugName());
+                }
+
+                ioFonts.Build();
+
+                if (Math.Abs(fontGamma - 1.0f) >= 0.001)
+                {
+                    // Gamma correction (stbtt/FreeType would output in linear space whereas most real world usages will apply 1.4 or 1.8 gamma; Windows/XIV prebaked uses 1.4)
+                    ioFonts.GetTexDataAsRGBA32(out byte* texPixels, out var texWidth, out var texHeight);
+                    for (int i = 3, i_ = texWidth * texHeight * 4; i < i_; i += 4)
+                        texPixels[i] = (byte)(Math.Pow(texPixels[i] / 255.0f, 1.0f / fontGamma) * 255.0f);
+                }
+
+                foreach (var font in fontsToUnscale)
+                    GameFontManager.UnscaleFont(font, fontScale, false);
+
+                gameFontManager.AfterBuildFonts();
+
+                foreach (var font in fontsToUnscale)
+                {
+                    // Leave IconFont alone.
+                    if (font.NativePtr == IconFont.NativePtr)
+                        continue;
+
+                    // MonoFont will be filled later from DefaultFont.
+                    if (font.NativePtr == MonoFont.NativePtr)
+                        continue;
+
+                    var axisFont = this.axisFontHandles[^1];
+                    for (var i = this.axisFontHandles.Length - 2; i >= 0; i--)
+                    {
+                        if (this.axisFontHandles[i].Style.Size >= (font.FontSize - 1) * fontScale * 3 / 4)
+                            axisFont = this.axisFontHandles[i];
                         else
-                        {
-                            flattenedRanges.Add(range.Item1);
-                            flattenedRanges.Add(range.Item2);
-                        }
+                            break;
                     }
 
-                    flattenedRanges.Add(0);
-
-                    var rangeHandle = GCHandle.Alloc(flattenedRanges.ToArray(), GCHandleType.Pinned);
-                    var sizedFont = ioFonts.AddFontFromFileTTF(fontPathJp, fontSize * fontScale, fontConfig, rangeHandle.AddrOfPinnedObject());
-                    rangeHandle.Free();
-
-                    fontsToUnscale.Add(sizedFont);
-
-                    foreach (var request in requests)
-                        request.FontInternal = sizedFont;
-                }
-            }
-
-            var gameFontManager = Service<GameFontManager>.Get();
-            gameFontManager.BuildFonts();
-
-            Log.Verbose("[FONT] Invoke OnBuildFonts");
-            this.BuildFonts?.Invoke();
-            Log.Verbose("[FONT] OnBuildFonts OK!");
-
-            for (var i = 0; i < ImGui.GetIO().Fonts.Fonts.Size; i++)
-            {
-                Log.Verbose("{0} - {1}", i, ImGui.GetIO().Fonts.Fonts[i].GetDebugName());
-            }
-
-            ioFonts.Build();
-
-            if (Math.Abs(fontGamma - 1.0f) >= 0.001)
-            {
-                // Gamma correction (stbtt/FreeType would output in linear space whereas most real world usages will apply 1.4 or 1.8 gamma; Windows/XIV prebaked uses 1.4)
-                ioFonts.GetTexDataAsRGBA32(out byte* texPixels, out var texWidth, out var texHeight);
-                for (int i = 3, i_ = texWidth * texHeight * 4; i < i_; i += 4)
-                    texPixels[i] = (byte)(Math.Pow(texPixels[i] / 255.0f, 1.0f / fontGamma) * 255.0f);
-            }
-
-            foreach (var font in fontsToUnscale)
-                GameFontManager.UnscaleFont(font, fontScale, false);
-
-            gameFontManager.AfterBuildFonts();
-
-            foreach (var font in fontsToUnscale)
-            {
-                // Leave IconFont alone.
-                if (font.NativePtr == IconFont.NativePtr)
-                    continue;
-
-                // MonoFont will be filled later from DefaultFont.
-                if (font.NativePtr == MonoFont.NativePtr)
-                    continue;
-
-                var axisFont = this.axisFontHandles[^1];
-                for (var i = this.axisFontHandles.Length - 2; i >= 0; i--)
-                {
-                    if (this.axisFontHandles[i].Style.Size >= (font.FontSize - 1) * fontScale * 3 / 4)
-                        axisFont = this.axisFontHandles[i];
+                    if (this.overwriteAllNotoGlyphsWithAxis)
+                        GameFontManager.CopyGlyphsAcrossFonts(axisFont.ImFont, font, false, false);
                     else
-                        break;
+                        GameFontManager.CopyGlyphsAcrossFonts(axisFont.ImFont, font, false, false, 0xE020, 0xE0DB);
+
+                    // Fill missing glyphs in DefaultFont from Axis
+                    if (font.NativePtr == DefaultFont.NativePtr)
+                        GameFontManager.CopyGlyphsAcrossFonts(axisFont.ImFont, DefaultFont, true, false);
                 }
 
-                if (this.overwriteAllNotoGlyphsWithAxis)
-                    GameFontManager.CopyGlyphsAcrossFonts(axisFont.ImFont, font, false, false);
-                else
-                    GameFontManager.CopyGlyphsAcrossFonts(axisFont.ImFont, font, false, false, 0xE020, 0xE0DB);
+                // Fill missing glyphs in MonoFont from DefaultFont
+                GameFontManager.CopyGlyphsAcrossFonts(DefaultFont, MonoFont, true, false);
 
-                // Fill missing glyphs in DefaultFont from Axis
-                if (font.NativePtr == DefaultFont.NativePtr)
-                    GameFontManager.CopyGlyphsAcrossFonts(axisFont.ImFont, DefaultFont, true, false);
+                foreach (var font in fontsToUnscale)
+                {
+                    font.FallbackChar = Fallback1Codepoint;
+                    font.BuildLookupTable();
+                }
+
+                Log.Verbose("[FONT] Invoke OnAfterBuildFonts");
+                this.AfterBuildFonts?.Invoke();
+                Log.Verbose("[FONT] OnAfterBuildFonts OK!");
+
+                Log.Verbose("[FONT] Fonts built!");
+
+                this.fontBuildSignal.Set();
+
+                this.FontsReady = true;
             }
-
-            // Fill missing glyphs in MonoFont from DefaultFont
-            GameFontManager.CopyGlyphsAcrossFonts(DefaultFont, MonoFont, true, false);
-
-            foreach (var font in fontsToUnscale)
+            finally
             {
-                font.FallbackChar = Fallback1Codepoint;
-                font.BuildLookupTable();
+                if (fontConfig.NativePtr != null)
+                    fontConfig.Destroy();
+
+                foreach (var garbage in garbageList)
+                    garbage.Free();
             }
-
-            Log.Verbose("[FONT] Invoke OnAfterBuildFonts");
-            this.AfterBuildFonts?.Invoke();
-            Log.Verbose("[FONT] OnAfterBuildFonts OK!");
-
-            Log.Verbose("[FONT] Fonts built!");
-
-            fontConfig.Destroy();
-            this.fontBuildSignal.Set();
-
-            this.FontsReady = true;
         }
 
         private void Disable()
