@@ -109,52 +109,37 @@ struct TrampolineTemplate {
 };
 #pragma pack(pop)
 
-/// @brief Translate any open handle to nt path if a path exists.
-/// @param handle Handle to any open kernel object.
-/// @return Translated path in nt path (\\?\...)
-std::filesystem::path get_path_from_handle(HANDLE handle){
-    std::wstring result;
-    result.resize(PATHCCH_MAX_CCH);
-    result.resize(GetFinalPathNameByHandleW(handle, &result[0], static_cast<DWORD>(result.size()), VOLUME_NAME_DOS | FILE_NAME_NORMALIZED));
-    if (result.empty())
-        throw std::runtime_error("GetFinalPathNameByHandleW failure");
-
-    return { std::move(result) };
+void read_process_memory_or_throw(HANDLE hProcess, void* pAddress, void* data, size_t len) {
+    SIZE_T read = 0;
+    if (!ReadProcessMemory(hProcess, pAddress, data, len, &read))
+        throw std::runtime_error("ReadProcessMemory failure");
+    if (read != len)
+        throw std::runtime_error("ReadProcessMemory read size does not match requested size");
 }
 
-/// @brief Convert any path to dos path.
-/// @param Path in any format to convert.
-/// @return Dos path (L:\...)
-/// 
-/// Reloaded's FASM locator cannot handle nt paths, resulting in a crash when the DLL is loaded via nt path.
-/// 
-std::filesystem::path to_dos_path(const std::filesystem::path& path) {
-    const auto hFile = CreateFile(path.wstring().c_str(), 0, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, nullptr, OPEN_EXISTING, 0, nullptr);
-    if (hFile == INVALID_HANDLE_VALUE)
-        throw std::runtime_error("CreateFile failure");
-    try {
-        auto res = get_path_from_handle(hFile).wstring();
-        CloseHandle(hFile);
-        if (res.starts_with(LR"(\\?\)"))
-            return { res.substr(4) };
-        return { std::move(res) };
-    } catch (...) {
-        CloseHandle(hFile);
-        throw;
-    }
+template<typename T>
+void read_process_memory_or_throw(HANDLE hProcess, void* pAddress, T& data) {
+    return read_process_memory_or_throw(hProcess, pAddress, &data, sizeof data);
 }
 
-/// @brief Get the underlying file name from an memory-mapped file's virtual address.
-/// @param hProcess Process handle.
-/// @param lpMem Memory address in target process.
-/// @return Converted path in dos path (L:\...)
-std::filesystem::path get_mapped_image_path(HANDLE hProcess, void* lpMem) {
+void write_process_memory_or_throw(HANDLE hProcess, void* pAddress, const void* data, size_t len) {
+    SIZE_T written = 0;
+    if (!WriteProcessMemory(hProcess, pAddress, data, len, &written))
+        throw std::runtime_error("WriteProcessMemory failure");
+    if (written != len)
+        throw std::runtime_error("WriteProcessMemory written size does not match requested size");
+}
+
+template<typename T>
+void write_process_memory_or_throw(HANDLE hProcess, void* pAddress, const T& data) {
+    return write_process_memory_or_throw(hProcess, pAddress, &data, sizeof data);
+}
+
+std::filesystem::path get_path_from_local_module(HMODULE hModule) {
     std::wstring result;
     result.resize(PATHCCH_MAX_CCH);
-    result.resize(GetMappedFileNameW(hProcess, lpMem, &result[0], static_cast<DWORD>(result.size())));
-    if (!result.starts_with(LR"(\Device\)"))
-        throw std::runtime_error("GetMappedFileNameW failure");
-    return to_dos_path(LR"(\\?\)" + result.substr(8));
+    result.resize(GetModuleFileNameW(hModule, &result[0], static_cast<DWORD>(result.size())));
+    return result;
 }
 
 /// @brief Get the base address of the mapped file/image corresponding to the path given in the target process
@@ -162,16 +147,90 @@ std::filesystem::path get_mapped_image_path(HANDLE hProcess, void* lpMem) {
 /// @param path Path to the memory-mapped file to find.
 /// @return Base address (lowest address) of the memory mapped file in the target process.
 void* get_mapped_image_base_address(HANDLE hProcess, const std::filesystem::path& path) {
+    std::ifstream exe(path, std::ios::binary);
+
+    IMAGE_DOS_HEADER exe_dos_header;
+    exe.read(reinterpret_cast<char*>(&exe_dos_header), sizeof exe_dos_header);
+    if (!exe || exe_dos_header.e_magic != IMAGE_DOS_SIGNATURE)
+        throw std::runtime_error("Game executable is corrupt (DOS header).");
+
+    union {
+        IMAGE_NT_HEADERS32 exe_nt_header32;
+        IMAGE_NT_HEADERS64 exe_nt_header64;
+    };
+    exe.seekg(exe_dos_header.e_lfanew, std::ios::beg);
+    exe.read(reinterpret_cast<char*>(&exe_nt_header64), sizeof exe_nt_header64);
+    if (!exe || exe_nt_header64.Signature != IMAGE_NT_SIGNATURE)
+        throw std::runtime_error("Game executable is corrupt (NT header).");
+
+    std::vector<IMAGE_SECTION_HEADER> exe_section_headers(exe_nt_header64.FileHeader.NumberOfSections);
+    exe.seekg(exe_dos_header.e_lfanew + offsetof(IMAGE_NT_HEADERS32, OptionalHeader) + exe_nt_header64.FileHeader.SizeOfOptionalHeader, std::ios::beg);
+    exe.read(reinterpret_cast<char*>(&exe_section_headers[0]), sizeof IMAGE_SECTION_HEADER * exe_section_headers.size());
+    if (!exe)
+        throw std::runtime_error("Game executable is corrupt (Truncated section header).");
+    
     for (MEMORY_BASIC_INFORMATION mbi{};
         VirtualQueryEx(hProcess, mbi.BaseAddress, &mbi, sizeof mbi);
         mbi.BaseAddress = static_cast<char*>(mbi.BaseAddress) + mbi.RegionSize) {
         if (!(mbi.State & MEM_COMMIT) || mbi.Type != MEM_IMAGE)
             continue;
 
+        // Previous Wine versions do not support GetMappedFileName, so we check the content of memory instead.
+
         try {
-            const auto imagePath = get_mapped_image_path(hProcess, mbi.BaseAddress);
-            if (!imagePath.empty() && equivalent(imagePath, path))
-                return mbi.AllocationBase;
+            IMAGE_DOS_HEADER compare_dos_header;
+            read_process_memory_or_throw(hProcess, mbi.BaseAddress, compare_dos_header);
+            if (compare_dos_header.e_magic != exe_dos_header.e_magic)
+                continue;
+
+            union {
+                IMAGE_NT_HEADERS32 compare_nt_header32;
+                IMAGE_NT_HEADERS64 compare_nt_header64;
+            };
+            read_process_memory_or_throw(hProcess, static_cast<char*>(mbi.BaseAddress) + compare_dos_header.e_lfanew, &compare_nt_header32, offsetof(IMAGE_NT_HEADERS32, OptionalHeader));
+            if (compare_nt_header32.Signature != exe_nt_header32.Signature)
+                continue;
+
+            if (compare_nt_header32.FileHeader.TimeDateStamp != exe_nt_header32.FileHeader.TimeDateStamp)
+                continue;
+
+            if (compare_nt_header32.FileHeader.SizeOfOptionalHeader != exe_nt_header32.FileHeader.SizeOfOptionalHeader)
+                continue;
+
+            if (compare_nt_header32.FileHeader.NumberOfSections != exe_nt_header32.FileHeader.NumberOfSections)
+                continue;
+
+            if (compare_nt_header32.FileHeader.SizeOfOptionalHeader == sizeof IMAGE_OPTIONAL_HEADER32) {
+                read_process_memory_or_throw(hProcess, static_cast<char*>(mbi.BaseAddress) + compare_dos_header.e_lfanew + offsetof(IMAGE_NT_HEADERS32, OptionalHeader), compare_nt_header32.OptionalHeader);
+                if (compare_nt_header32.OptionalHeader.SizeOfImage != exe_nt_header32.OptionalHeader.SizeOfImage)
+                    continue;
+                if (compare_nt_header32.OptionalHeader.CheckSum != exe_nt_header32.OptionalHeader.CheckSum)
+                    continue;
+
+                std::vector<IMAGE_SECTION_HEADER> compare_section_headers(exe_nt_header32.FileHeader.NumberOfSections);
+                read_process_memory_or_throw(hProcess, static_cast<char*>(mbi.BaseAddress) + compare_dos_header.e_lfanew + sizeof compare_nt_header32, &compare_section_headers[0], sizeof IMAGE_SECTION_HEADER * compare_section_headers.size());
+                if (memcmp(&compare_section_headers[0], &exe_section_headers[0], sizeof IMAGE_SECTION_HEADER * compare_section_headers.size()) != 0)
+                    continue;
+
+            } else if (compare_nt_header32.FileHeader.SizeOfOptionalHeader == sizeof IMAGE_OPTIONAL_HEADER64) {
+                read_process_memory_or_throw(hProcess, static_cast<char*>(mbi.BaseAddress) + compare_dos_header.e_lfanew + offsetof(IMAGE_NT_HEADERS64, OptionalHeader), compare_nt_header64.OptionalHeader);
+                if (compare_nt_header64.OptionalHeader.SizeOfImage != exe_nt_header64.OptionalHeader.SizeOfImage)
+                    continue;
+                if (compare_nt_header64.OptionalHeader.CheckSum != exe_nt_header64.OptionalHeader.CheckSum)
+                    continue;
+
+                std::vector<IMAGE_SECTION_HEADER> compare_section_headers(exe_nt_header64.FileHeader.NumberOfSections);
+                read_process_memory_or_throw(hProcess, static_cast<char*>(mbi.BaseAddress) + compare_dos_header.e_lfanew + sizeof compare_nt_header64, &compare_section_headers[0], sizeof IMAGE_SECTION_HEADER * compare_section_headers.size());
+                if (memcmp(&compare_section_headers[0], &exe_section_headers[0], sizeof IMAGE_SECTION_HEADER * compare_section_headers.size()) != 0)
+                    continue;
+
+            } else
+                continue;
+
+            // Should be close enough(tm) at this point, as the only two loaded modules should be ntdll.dll and the game executable itself.
+
+            return mbi.AllocationBase;
+
         } catch (const std::filesystem::filesystem_error& e) {
             printf("%s", e.what());
             continue;
@@ -192,28 +251,6 @@ HWND try_find_game_window() {
             break;
     }
     return hwnd;
-}
-
-template<typename T>
-void read_process_memory_or_throw(HANDLE hProcess, void* pAddress, T& data) {
-    SIZE_T read = 0;
-    if (!ReadProcessMemory(hProcess, pAddress, &data, sizeof data, &read))
-        throw std::runtime_error("ReadProcessMemory failure");
-    if (read != sizeof data)
-        throw std::runtime_error("ReadProcessMemory read size does not match requested size");
-}
-
-void write_process_memory_or_throw(HANDLE hProcess, void* pAddress, const void* data, size_t len) {
-    SIZE_T written = 0;
-    if (!WriteProcessMemory(hProcess, pAddress, data, len, &written))
-        throw std::runtime_error("WriteProcessMemory failure");
-    if (written != len)
-        throw std::runtime_error("WriteProcessMemory written size does not match requested size");
-}
-
-template<typename T>
-void write_process_memory_or_throw(HANDLE hProcess, void* pAddress, const T& data) {
-    return write_process_memory_or_throw(hProcess, pAddress, &data, sizeof data);
 }
 
 std::string from_utf16(const std::wstring& wstr, UINT codePage = CP_UTF8) {
@@ -254,11 +291,11 @@ DllExport DWORD WINAPI RewriteRemoteEntryPointW(HANDLE hProcess, const wchar_t* 
             ? nt_header32.OptionalHeader.AddressOfEntryPoint
             : nt_header64.OptionalHeader.AddressOfEntryPoint);
 
-        auto path = get_mapped_image_path(GetCurrentProcess(), g_hModule).wstring();
+        auto path = get_path_from_local_module(g_hModule).wstring();
         path.resize(path.size() + 1);  // ensure null termination
         auto path_bytes = std::span(reinterpret_cast<const char*>(&path[0]), std::span(path).size_bytes());
 
-        auto nethost_path = (get_mapped_image_path(GetCurrentProcess(), g_hModule).parent_path() / L"nethost.dll").wstring();
+        auto nethost_path = (get_path_from_local_module(g_hModule).parent_path() / L"nethost.dll").wstring();
         nethost_path.resize(nethost_path.size() + 1);  // ensure null termination
         auto nethost_path_bytes = std::span(reinterpret_cast<const char*>(&nethost_path[0]), std::span(nethost_path).size_bytes());
 
