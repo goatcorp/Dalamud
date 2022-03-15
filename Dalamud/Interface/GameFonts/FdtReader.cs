@@ -31,7 +31,7 @@ namespace Dalamud.Interface.GameFonts
                         this.Glyphs.Add(glyphs[i]);
 
                     var kerns = (KerningTableEntry*)(ptr + this.FileHeader.KerningTableHeaderOffset + Marshal.SizeOf(this.KerningHeader));
-                    for (var i = 0; i < this.FontHeader.FontTableEntryCount; i++)
+                    for (var i = 0; i < this.FontHeader.KerningTableEntryCount; i++)
                         this.Distances.Add(kerns[i]);
                 }
             }
