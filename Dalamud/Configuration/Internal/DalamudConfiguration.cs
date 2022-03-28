@@ -20,7 +20,7 @@ namespace Dalamud.Configuration.Internal
         /// <summary>
         /// Currently used beta key for Dalamud staging builds.
         /// </summary>
-        public const string DalamudCurrentBetaKey = "proof of context";
+        public const string DalamudCurrentBetaKey = "If you read this you are a beta tester for the awesome .NET 6 version of Dalamud! Hell yeah!";
 
         private static readonly JsonSerializerSettings SerializerSettings = new()
         {
