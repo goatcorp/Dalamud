@@ -55,6 +55,7 @@ namespace Dalamud.Interface.Internal
         private readonly string rtssPath;
 
         private readonly HashSet<SpecialGlyphRequest> glyphRequests = new();
+        private readonly List<GameFontHandle> axisFontHandles = new();
 
         private readonly Hook<PresentDelegate> presentHook;
         private readonly Hook<ResizeBuffersDelegate> resizeBuffersHook;
@@ -63,9 +64,6 @@ namespace Dalamud.Interface.Internal
         private readonly ManualResetEvent fontBuildSignal;
         private readonly SwapChainVtableResolver address;
         private RawDX11Scene? scene;
-
-        private GameFontHandle[] axisFontHandles;
-        private bool overwriteAllNotoGlyphsWithAxis;
 
         // can't access imgui IO before first present call
         private bool lastWantCapture = false;
@@ -198,6 +196,16 @@ namespace Dalamud.Interface.Internal
         public bool IsReady => this.scene != null;
 
         /// <summary>
+        /// Gets or sets a value indicating whether to override configuration for UseAxis.
+        /// </summary>
+        public bool? UseAxisOverride { get; set; } = null;
+
+        /// <summary>
+        /// Gets a value indicating whether to use AXIS fonts.
+        /// </summary>
+        public bool UseAxis => this.UseAxisOverride ?? Service<DalamudConfiguration>.Get().UseAxisFontsFromGame;
+
+        /// <summary>
         /// Gets or sets the overrided font gamma value, instead of using the value from configuration.
         /// </summary>
         public float? FontGammaOverride { get; set; } = null;
@@ -206,6 +214,16 @@ namespace Dalamud.Interface.Internal
         /// Gets the font gamma value to use.
         /// </summary>
         public float FontGamma => Math.Max(0.1f, this.FontGammaOverride.GetValueOrDefault(Service<DalamudConfiguration>.Get().FontGamma));
+
+        /// <summary>
+        /// Gets or sets a value indicating whether to override configuration for AllowBigFontAtlas.
+        /// </summary>
+        public bool? AllowBigFontAtlasOverride { get; set; } = null;
+
+        /// <summary>
+        /// Gets a value indicating whether to allow big font atlas.
+        /// </summary>
+        public bool AllowBigFontAtlas => this.AllowBigFontAtlasOverride ?? Service<DalamudConfiguration>.Get().AllowBigFontAtlas;
 
         /// <summary>
         /// Enable this module.
@@ -330,8 +348,6 @@ namespace Dalamud.Interface.Internal
             if (!this.isRebuildingFonts)
             {
                 Log.Verbose("[FONT] RebuildFonts() trigger");
-                this.SetAxisFonts();
-
                 this.isRebuildingFonts = true;
                 this.scene.OnNewRenderFrame += this.RebuildFontsInternal;
             }
@@ -414,24 +430,6 @@ namespace Dalamud.Interface.Internal
             Util.Fatal($"One or more files required by XIVLauncher were not found.\nPlease restart and report this error if it occurs again.\n\n{path}", "Error");
         }
 
-        private void SetAxisFonts()
-        {
-            var configuration = Service<DalamudConfiguration>.Get();
-            this.overwriteAllNotoGlyphsWithAxis = configuration.UseAxisFontsFromGame;
-
-            if (this.axisFontHandles == null)
-            {
-                this.axisFontHandles = new GameFontHandle[]
-                {
-                    Service<GameFontManager>.Get().NewFontRef(new(GameFontFamilyAndSize.Axis96)),
-                    Service<GameFontManager>.Get().NewFontRef(new(GameFontFamilyAndSize.Axis12)),
-                    Service<GameFontManager>.Get().NewFontRef(new(GameFontFamilyAndSize.Axis14)),
-                    Service<GameFontManager>.Get().NewFontRef(new(GameFontFamilyAndSize.Axis18)),
-                    Service<GameFontManager>.Get().NewFontRef(new(GameFontFamilyAndSize.Axis36)),
-                };
-            }
-        }
-
         /*
          * NOTE(goat): When hooking ReShade DXGISwapChain::runtime_present, this is missing the syncInterval arg.
          *             Seems to work fine regardless, I guess, so whatever.
@@ -492,8 +490,6 @@ namespace Dalamud.Interface.Internal
                 this.scene.ImGuiIniPath = iniFileInfo.FullName;
                 this.scene.OnBuildUI += this.Display;
                 this.scene.OnNewInputFrame += this.OnNewInputFrame;
-
-                this.SetAxisFonts();
 
                 this.SetupFonts();
 
@@ -600,22 +596,40 @@ namespace Dalamud.Interface.Internal
 
         private unsafe void SetupFonts()
         {
+            var gameFontManager = Service<GameFontManager>.Get();
             var dalamud = Service<Dalamud>.Get();
             var io = ImGui.GetIO();
             var ioFonts = io.Fonts;
-            var fontScale = io.FontGlobalScale;
+            var fontLoadScale = this.AllowBigFontAtlas ? io.FontGlobalScale : 1;
             var fontGamma = this.FontGamma;
             List<ImFontPtr> fontsToUnscale = new();
+            List<bool> fontsToOverwriteFromAxis = new();
+            List<float?> fontsToReassignSizes = new();
 
             this.fontBuildSignal.Reset();
             ioFonts.Clear();
-            ioFonts.TexDesiredWidth = 4096;
+            ioFonts.TexDesiredWidth = this.AllowBigFontAtlas ? 4096 : 2048;
+
+            Log.Verbose("[FONT] SetupFonts - 1");
+
+            foreach (var v in this.axisFontHandles)
+            {
+                if (v != null)
+                    v.Dispose();
+            }
+
+            this.axisFontHandles.Clear();
+
+            Log.Verbose("[FONT] SetupFonts - 2");
 
             ImFontConfigPtr fontConfig = null;
             List<GCHandle> garbageList = new();
 
             try
             {
+                var dummyRangeHandle = GCHandle.Alloc(new ushort[] { '0', '0', 0 }, GCHandleType.Pinned);
+                garbageList.Add(dummyRangeHandle);
+
                 fontConfig = ImGuiNative.ImFontConfig_ImFontConfig();
                 fontConfig.OversampleH = 1;
                 fontConfig.OversampleV = 1;
@@ -626,15 +640,31 @@ namespace Dalamud.Interface.Internal
                     ShowFontError(fontPathJp);
 
                 // Default font
+                Log.Verbose("[FONT] SetupFonts - Default font");
+                this.axisFontHandles.Add(gameFontManager.NewFontRef(this.AllowBigFontAtlas ? new(GameFontFamily.Axis, DefaultFontSizePt * fontLoadScale) : new(GameFontFamilyAndSize.Axis12)));
+                if (this.UseAxis)
+                {
+                    fontConfig.GlyphRanges = dummyRangeHandle.AddrOfPinnedObject();
+                    fontConfig.SizePixels = DefaultFontSizePx * fontLoadScale;
+                    DefaultFont = ioFonts.AddFontDefault(fontConfig);
+                    fontsToUnscale.Add(DefaultFont);
+                    fontsToOverwriteFromAxis.Add(true);
+                    fontsToReassignSizes.Add(null);
+                }
+                else
                 {
                     var japaneseRangeHandle = GCHandle.Alloc(GlyphRangesJapanese.GlyphRanges, GCHandleType.Pinned);
                     garbageList.Add(japaneseRangeHandle);
 
-                    DefaultFont = ioFonts.AddFontFromFileTTF(fontPathJp, (DefaultFontSizePx + 1) * fontScale, fontConfig, japaneseRangeHandle.AddrOfPinnedObject());
+                    fontConfig.GlyphRanges = japaneseRangeHandle.AddrOfPinnedObject();
+                    DefaultFont = ioFonts.AddFontFromFileTTF(fontPathJp, (DefaultFontSizePx + 1) * fontLoadScale, fontConfig);
                     fontsToUnscale.Add(DefaultFont);
+                    fontsToOverwriteFromAxis.Add(false);
+                    fontsToReassignSizes.Add(null);
                 }
 
                 // FontAwesome icon font
+                Log.Verbose("[FONT] SetupFonts - FontAwesome icon font");
                 {
                     var fontPathIcon = Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "FontAwesome5FreeSolid.otf");
                     if (!File.Exists(fontPathIcon))
@@ -643,20 +673,31 @@ namespace Dalamud.Interface.Internal
                     var iconRangeHandle = GCHandle.Alloc(new ushort[] { 0xE000, 0xF8FF, 0, }, GCHandleType.Pinned);
                     garbageList.Add(iconRangeHandle);
 
-                    IconFont = ioFonts.AddFontFromFileTTF(fontPathIcon, DefaultFontSizePx * fontScale, fontConfig, iconRangeHandle.AddrOfPinnedObject());
+                    fontConfig.GlyphRanges = iconRangeHandle.AddrOfPinnedObject();
+                    IconFont = ioFonts.AddFontFromFileTTF(fontPathIcon, DefaultFontSizePx * fontLoadScale, fontConfig);
                     fontsToUnscale.Add(IconFont);
+                    this.axisFontHandles.Add(null);
+                    fontsToOverwriteFromAxis.Add(false);
+                    fontsToReassignSizes.Add(null);
                 }
 
                 // Monospace font
+                Log.Verbose("[FONT] SetupFonts - Monospace font");
                 {
                     var fontPathMono = Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "Inconsolata-Regular.ttf");
                     if (!File.Exists(fontPathMono))
                         ShowFontError(fontPathMono);
-                    MonoFont = ioFonts.AddFontFromFileTTF(fontPathMono, DefaultFontSizePx * fontScale, fontConfig);
+
+                    fontConfig.GlyphRanges = IntPtr.Zero;
+                    MonoFont = ioFonts.AddFontFromFileTTF(fontPathMono, DefaultFontSizePx * fontLoadScale, fontConfig);
                     fontsToUnscale.Add(MonoFont);
+                    this.axisFontHandles.Add(null);
+                    fontsToOverwriteFromAxis.Add(false);
+                    fontsToReassignSizes.Add(null);
                 }
 
                 // Default font but in requested size for requested glyphs
+                Log.Verbose("[FONT] SetupFonts - Default font but in requested size for requested glyphs");
                 {
                     Dictionary<float, List<SpecialGlyphRequest>> extraFontRequests = new();
                     foreach (var extraFontRequest in this.glyphRequests)
@@ -700,18 +741,30 @@ namespace Dalamud.Interface.Internal
 
                         flattenedRanges.Add(0);
 
-                        var rangeHandle = GCHandle.Alloc(flattenedRanges.ToArray(), GCHandleType.Pinned);
-                        garbageList.Add(rangeHandle);
+                        ImFontPtr sizedFont;
+                        this.axisFontHandles.Add(gameFontManager.NewFontRef(this.AllowBigFontAtlas ? new(GameFontFamily.Axis, fontSize * 3 / 4 * fontLoadScale) : new(GameFontFamilyAndSize.Axis12)));
+                        if (this.UseAxis)
+                        {
+                            fontConfig.GlyphRanges = dummyRangeHandle.AddrOfPinnedObject();
+                            fontConfig.SizePixels = (this.AllowBigFontAtlas ? fontSize : DefaultFontSizePx) * fontLoadScale;
+                            sizedFont = ioFonts.AddFontDefault(fontConfig);
+                        }
+                        else
+                        {
+                            var rangeHandle = GCHandle.Alloc(flattenedRanges.ToArray(), GCHandleType.Pinned);
+                            garbageList.Add(rangeHandle);
+                            sizedFont = ioFonts.AddFontFromFileTTF(fontPathJp, (this.AllowBigFontAtlas ? fontSize : DefaultFontSizePx) * fontLoadScale, fontConfig, rangeHandle.AddrOfPinnedObject());
+                        }
 
-                        var sizedFont = ioFonts.AddFontFromFileTTF(fontPathJp, fontSize * fontScale, fontConfig, rangeHandle.AddrOfPinnedObject());
                         fontsToUnscale.Add(sizedFont);
+                        fontsToOverwriteFromAxis.Add(true);
+                        fontsToReassignSizes.Add(this.AllowBigFontAtlas ? null : fontSize);
 
                         foreach (var request in requests)
                             request.FontInternal = sizedFont;
                     }
                 }
 
-                var gameFontManager = Service<GameFontManager>.Get();
                 gameFontManager.BuildFonts();
 
                 Log.Verbose("[FONT] Invoke OnBuildFonts");
@@ -734,37 +787,53 @@ namespace Dalamud.Interface.Internal
                 }
 
                 foreach (var font in fontsToUnscale)
-                    GameFontManager.UnscaleFont(font, fontScale, false);
+                    GameFontManager.UnscaleFont(font, fontLoadScale, false);
 
                 gameFontManager.AfterBuildFonts();
 
-                foreach (var font in fontsToUnscale)
+                for (var i = 0; i < fontsToUnscale.Count; i++)
                 {
-                    // Leave IconFont alone.
-                    if (font.NativePtr == IconFont.NativePtr)
+                    var font = fontsToUnscale[i];
+                    var fontPtr = font.NativePtr;
+                    var correspondingAxis = this.axisFontHandles[i];
+                    var overwrite = fontsToOverwriteFromAxis[i];
+                    var overwriteSize = fontsToReassignSizes[i];
+
+                    if (correspondingAxis == null)
                         continue;
 
-                    // MonoFont will be filled later from DefaultFont.
-                    if (font.NativePtr == MonoFont.NativePtr)
-                        continue;
-
-                    var axisFont = this.axisFontHandles[^1];
-                    for (var i = this.axisFontHandles.Length - 2; i >= 0; i--)
+                    if (overwrite)
                     {
-                        if (this.axisFontHandles[i].Style.Size >= (font.FontSize - 1) * fontScale * 3 / 4)
-                            axisFont = this.axisFontHandles[i];
-                        else
-                            break;
+                        var srcPtr = correspondingAxis.ImFont.NativePtr;
+                        var scale = fontPtr->ConfigData->SizePixels / srcPtr->ConfigData->SizePixels / fontLoadScale;
+                        Log.Verbose("[FONT] Font {0}: scale {1}", i, scale);
+                        fontPtr->FontSize = srcPtr->FontSize * scale;
+                        fontPtr->Ascent = srcPtr->Ascent * scale;
+                        fontPtr->Descent = srcPtr->Descent * scale;
+                        fontPtr->FallbackChar = srcPtr->FallbackChar;
+                        fontPtr->EllipsisChar = srcPtr->EllipsisChar;
                     }
 
-                    if (this.overwriteAllNotoGlyphsWithAxis)
-                        GameFontManager.CopyGlyphsAcrossFonts(axisFont.ImFont, font, false, false);
-                    else
-                        GameFontManager.CopyGlyphsAcrossFonts(axisFont.ImFont, font, false, false, 0xE020, 0xE0DB);
+                    if (overwriteSize != null)
+                    {
+                        var scale = overwriteSize.Value / fontPtr->ConfigData->SizePixels;
+                        fontPtr->FontSize *= scale;
+                        fontPtr->Ascent *= scale;
+                        fontPtr->Descent *= scale;
+                    }
 
-                    // Fill missing glyphs in DefaultFont from Axis
-                    if (font.NativePtr == DefaultFont.NativePtr)
-                        GameFontManager.CopyGlyphsAcrossFonts(axisFont.ImFont, DefaultFont, true, false);
+                    GameFontManager.CopyGlyphsAcrossFonts(correspondingAxis.ImFont, font, !overwrite, false);
+
+                    if (!this.UseAxis && fontPtr == DefaultFont.NativePtr)
+                    {
+                        fontPtr->FontSize -= 1;
+                        GameFontManager.CopyGlyphsAcrossFonts(correspondingAxis.ImFont, font, true, false, 0xE020, 0xE0DB);
+                        fontPtr->FontSize += 1;
+                    }
+                    else
+                    {
+                        GameFontManager.CopyGlyphsAcrossFonts(correspondingAxis.ImFont, font, true, false, 0xE020, 0xE0DB);
+                    }
                 }
 
                 // Fill missing glyphs in MonoFont from DefaultFont
