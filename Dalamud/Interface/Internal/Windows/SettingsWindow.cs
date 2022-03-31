@@ -26,7 +26,7 @@ namespace Dalamud.Interface.Internal.Windows
     internal class SettingsWindow : Window
     {
         private const float MinScale = 0.3f;
-        private const float MaxScale = 3.0f;
+        private const float MaxScale = 2.0f;
 
         private readonly string[] languages;
         private readonly string[] locLanguages;
