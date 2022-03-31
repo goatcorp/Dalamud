@@ -290,7 +290,7 @@ namespace Dalamud.Configuration.Internal
         /// </summary>
         public bool ShowTsm { get; set; } = true;
 
-        public bool Fools22 { get; set; } = true;
+        public bool? Fools22New { get; set; } = true;
 
         /// <summary>
         /// Load a configuration from the provided path.

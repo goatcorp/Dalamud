@@ -106,8 +106,6 @@ namespace Dalamud.Interface.Internal.Windows
             this.doFocus = configuration.IsFocusManagementEnabled;
             this.doTsm = configuration.ShowTsm;
 
-            this.doFools22 = configuration.Fools22;
-
             this.dtrSpacing = configuration.DtrSpacing;
             this.dtrSwapDirection = configuration.DtrSwapDirection;
 
@@ -176,6 +174,8 @@ namespace Dalamud.Interface.Internal.Windows
             var configuration = Service<DalamudConfiguration>.Get();
             this.dtrOrder = configuration.DtrOrder;
             this.dtrIgnore = configuration.DtrIgnore;
+
+            this.doFools22 = configuration.Fools22New ?? true;
         }
 
         /// <inheritdoc/>
@@ -853,7 +853,7 @@ namespace Dalamud.Interface.Internal.Windows
             configuration.IsFocusManagementEnabled = this.doFocus;
             configuration.ShowTsm = this.doTsm;
 
-            configuration.Fools22 = this.doFools22;
+            configuration.Fools22New = this.doFools22;
 
             configuration.UseAxisFontsFromGame = this.doUseAxisFontsFromGame;
             configuration.FontGamma = this.fontGamma;

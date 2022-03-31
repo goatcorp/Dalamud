@@ -323,16 +323,11 @@ public class Fools22 : IDisposable
     {
         var config = Service<DalamudConfiguration>.Get();
 
-        if (!config.Fools22)
+        if (!(config.Fools22New ?? true))
             return false;
 
         if (!(DateTime.Now.Month == 4 && DateTime.Now.Day == 1))
             return false;
-
-        var timeZone = TimeZoneInfo.Local;
-        var offset = timeZone.GetUtcOffset(DateTime.UtcNow);
-
-        Log.Information("Fools22: UTC offset: {0}", offset);
 
         return this.assetsReady;
     }
