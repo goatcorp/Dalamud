@@ -284,49 +284,39 @@ namespace Dalamud.Interface.GameFonts
         /// </summary>
         public void BuildFonts()
         {
-            unsafe
+            var io = ImGui.GetIO();
+            io.Fonts.TexDesiredWidth = 4096;
+
+            this.glyphRectIds.Clear();
+            this.fonts.Clear();
+
+            foreach (var style in this.fontUseCounter.Keys)
             {
-                ImFontConfigPtr fontConfig = ImGuiNative.ImFontConfig_ImFontConfig();
-                fontConfig.OversampleH = 1;
-                fontConfig.OversampleV = 1;
-                fontConfig.PixelSnapH = true;
+                var rectIds = this.glyphRectIds[style] = new();
 
-                var io = ImGui.GetIO();
-                io.Fonts.TexDesiredWidth = 4096;
+                var fdt = this.fdts[(int)style.FamilyAndSize];
+                if (fdt == null)
+                    continue;
 
-                this.glyphRectIds.Clear();
-                this.fonts.Clear();
-
-                foreach (var style in this.fontUseCounter.Keys)
+                var font = io.Fonts.AddFontDefault();
+                this.fonts[style] = font;
+                foreach (var glyph in fdt.Glyphs)
                 {
-                    var rectIds = this.glyphRectIds[style] = new();
-
-                    var fdt = this.fdts[(int)style.FamilyAndSize];
-                    if (fdt == null)
+                    var c = glyph.Char;
+                    if (c < 32 || c >= 0xFFFF)
                         continue;
 
-                    var font = io.Fonts.AddFontDefault(fontConfig);
-                    this.fonts[style] = font;
-                    foreach (var glyph in fdt.Glyphs)
-                    {
-                        var c = glyph.Char;
-                        if (c < 32 || c >= 0xFFFF)
-                            continue;
-
-                        var widthAdjustment = style.CalculateWidthAdjustment(fdt, glyph);
-                        rectIds[c] = Tuple.Create(
-                            io.Fonts.AddCustomRectFontGlyph(
-                                font,
-                                c,
-                                glyph.BoundingWidth + widthAdjustment + 1,
-                                glyph.BoundingHeight + 1,
-                                glyph.AdvanceWidth,
-                                new Vector2(0, glyph.CurrentOffsetY)),
-                            glyph);
-                    }
+                    var widthAdjustment = style.CalculateWidthAdjustment(fdt, glyph);
+                    rectIds[c] = Tuple.Create(
+                        io.Fonts.AddCustomRectFontGlyph(
+                            font,
+                            c,
+                            glyph.BoundingWidth + widthAdjustment + 1,
+                            glyph.BoundingHeight + 1,
+                            glyph.AdvanceWidth,
+                            new Vector2(0, glyph.CurrentOffsetY)),
+                        glyph);
                 }
-
-                fontConfig.Destroy();
             }
         }
 
