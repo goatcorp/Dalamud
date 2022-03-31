@@ -64,7 +64,7 @@ namespace Dalamud.Interface.Internal
         private readonly SwapChainVtableResolver address;
         private RawDX11Scene? scene;
 
-        private GameFontHandle[] axisFontHandles;
+        private GameFontHandle? axisFontHandle;
         private bool overwriteAllNotoGlyphsWithAxis;
 
         // can't access imgui IO before first present call
@@ -353,17 +353,16 @@ namespace Dalamud.Interface.Internal
         /// <returns>Requets handle.</returns>
         public SpecialGlyphRequest NewFontSizeRef(float size, List<Tuple<ushort, ushort>> ranges)
         {
-            var allContained = false;
+            var allContained = true;
             var fonts = ImGui.GetIO().Fonts.Fonts;
             ImFontPtr foundFont = null;
             unsafe
             {
-                for (int i = 0, i_ = fonts.Size; i < i_; i++)
+                for (int i = 0, i_ = fonts.Size; allContained && i < i_; i++)
                 {
                     if (!this.glyphRequests.Any(x => x.FontInternal.NativePtr == fonts[i].NativePtr))
                         continue;
 
-                    allContained = true;
                     foreach (var range in ranges)
                     {
                         if (!allContained)
@@ -419,16 +418,12 @@ namespace Dalamud.Interface.Internal
             var configuration = Service<DalamudConfiguration>.Get();
             this.overwriteAllNotoGlyphsWithAxis = configuration.UseAxisFontsFromGame;
 
-            if (this.axisFontHandles == null)
+            var currentFamilyAndSize = GameFontStyle.GetRecommendedFamilyAndSize(GameFontFamily.Axis, this.axisFontHandle?.Style.Size ?? 0f);
+            var expectedFamilyAndSize = GameFontStyle.GetRecommendedFamilyAndSize(GameFontFamily.Axis, DefaultFontSizePt * ImGui.GetIO().FontGlobalScale);
+            if (currentFamilyAndSize != expectedFamilyAndSize)
             {
-                this.axisFontHandles = new GameFontHandle[]
-                {
-                    Service<GameFontManager>.Get().NewFontRef(new(GameFontFamilyAndSize.Axis96)),
-                    Service<GameFontManager>.Get().NewFontRef(new(GameFontFamilyAndSize.Axis12)),
-                    Service<GameFontManager>.Get().NewFontRef(new(GameFontFamilyAndSize.Axis14)),
-                    Service<GameFontManager>.Get().NewFontRef(new(GameFontFamilyAndSize.Axis18)),
-                    Service<GameFontManager>.Get().NewFontRef(new(GameFontFamilyAndSize.Axis36)),
-                };
+                this.axisFontHandle?.Dispose();
+                this.axisFontHandle = Service<GameFontManager>.Get().NewFontRef(new(expectedFamilyAndSize));
             }
         }
 
@@ -664,7 +659,7 @@ namespace Dalamud.Interface.Internal
                     List<Tuple<ushort, ushort>> codepointRanges = new();
                     codepointRanges.Add(Tuple.Create(Fallback1Codepoint, Fallback1Codepoint));
                     codepointRanges.Add(Tuple.Create(Fallback2Codepoint, Fallback2Codepoint));
-
+                    
                     // ImGui default ellipsis characters
                     codepointRanges.Add(Tuple.Create<ushort, ushort>(0x2026, 0x2026));
                     codepointRanges.Add(Tuple.Create<ushort, ushort>(0x0085, 0x0085));
@@ -741,24 +736,14 @@ namespace Dalamud.Interface.Internal
                 if (font.NativePtr == MonoFont.NativePtr)
                     continue;
 
-                var axisFont = this.axisFontHandles[^1];
-                for (var i = this.axisFontHandles.Length - 2; i >= 0; i--)
-                {
-                    if (this.axisFontHandles[i].Style.Size >= (font.FontSize - 1) * fontScale * 3 / 4)
-                        axisFont = this.axisFontHandles[i];
-                    else
-                        break;
-                }
-
                 if (this.overwriteAllNotoGlyphsWithAxis)
-                    GameFontManager.CopyGlyphsAcrossFonts(axisFont.ImFont, font, false, false);
+                    GameFontManager.CopyGlyphsAcrossFonts(this.axisFontHandle?.ImFont, font, false, false);
                 else
-                    GameFontManager.CopyGlyphsAcrossFonts(axisFont.ImFont, font, false, false, 0xE020, 0xE0DB);
-
-                // Fill missing glyphs in DefaultFont from Axis
-                if (font.NativePtr == DefaultFont.NativePtr)
-                    GameFontManager.CopyGlyphsAcrossFonts(axisFont.ImFont, DefaultFont, true, false);
+                    GameFontManager.CopyGlyphsAcrossFonts(this.axisFontHandle?.ImFont, font, false, false, 0xE020, 0xE0DB);
             }
+
+            // Fill missing glyphs in DefaultFont from Axis
+            GameFontManager.CopyGlyphsAcrossFonts(this.axisFontHandle?.ImFont, DefaultFont, true, false);
 
             // Fill missing glyphs in MonoFont from DefaultFont
             GameFontManager.CopyGlyphsAcrossFonts(DefaultFont, MonoFont, true, false);
