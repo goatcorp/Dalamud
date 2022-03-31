@@ -3,12 +3,14 @@ using System.Diagnostics;
 using System.IO;
 using System.Media;
 using System.Numerics;
+using System.Threading.Tasks;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Data;
 using Dalamud.Game;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Gui;
+using Dalamud.Game.Network;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Interface;
@@ -20,6 +22,7 @@ using ImGuiNET;
 using ImGuiScene;
 using Lumina.Excel.GeneratedSheets;
 using Serilog;
+
 using Condition = Dalamud.Game.ClientState.Conditions.Condition;
 
 namespace Dalamud;
@@ -29,6 +32,7 @@ public class Fools22 : IDisposable
     private readonly TextureWrap erDeathBgTexture;
     private readonly TextureWrap erNormalDeathTexture;
     private readonly TextureWrap erCraftFailedTexture;
+    private readonly TextureWrap erEnemyFelledTexture;
 
     private readonly string synthesisFailsMessage;
 
@@ -53,6 +57,7 @@ public class Fools22 : IDisposable
     {
         DeathType.Death => this.erNormalDeathTexture,
         DeathType.CraftFailed => this.erCraftFailedTexture,
+        DeathType.EnemyFelled => this.erEnemyFelledTexture,
     };
 
     private enum AnimationState
@@ -67,6 +72,7 @@ public class Fools22 : IDisposable
     {
         Death,
         CraftFailed,
+        EnemyFelled,
     }
 
     public Fools22()
@@ -76,10 +82,12 @@ public class Fools22 : IDisposable
         var framework = Service<Framework>.Get();
         var chatGui = Service<ChatGui>.Get();
         var dataMgr = Service<DataManager>.Get();
+        var gameNetwork = Service<GameNetwork>.Get();
 
         this.erDeathBgTexture = interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "fools22", "er_death_bg.png"))!;
         this.erNormalDeathTexture = interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "fools22", "er_normal_death.png"))!;
         this.erCraftFailedTexture = interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "fools22", "er_craft_failed.png"))!;
+        this.erEnemyFelledTexture = interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "fools22", "er_enemy_felled.png"))!;
 
         var soundBytes = File.ReadAllBytes(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "fools22", "snd_death_er.wav"));
         this.player = new SoundPlayer(new MemoryStream(soundBytes));
@@ -97,6 +105,24 @@ public class Fools22 : IDisposable
         interfaceManager.Draw += this.Draw;
         framework.Update += this.FrameworkOnUpdate;
         chatGui.ChatMessage += this.ChatGuiOnChatMessage;
+        gameNetwork.NetworkMessage += this.GameNetworkOnNetworkMessage;
+    }
+
+    private unsafe void GameNetworkOnNetworkMessage(IntPtr dataptr, ushort opcode, uint sourceactorid, uint targetactorid, NetworkMessageDirection direction)
+    {
+        if (opcode != 0x301)
+            return;
+
+        var cat = *(ushort*)(dataptr + 0x00);
+        var updateType = *(uint*)(dataptr + 0x08);
+
+        if (cat == 0x6D && updateType == 0x40000003)
+        {
+            Task.Delay(1000).ContinueWith(t =>
+            {
+                this.PlayAnimation(DeathType.EnemyFelled);
+            });
+        }
     }
 
     private void ChatGuiOnChatMessage(XivChatType type, uint senderid, ref SeString sender, ref SeString message, ref bool ishandled)
@@ -135,6 +161,14 @@ public class Fools22 : IDisposable
             if (ImGui.Button("play craft failed"))
             {
                 this.PlayAnimation(DeathType.CraftFailed);
+            }
+
+            if (ImGui.Button("play enemy felled"))
+            {
+                Task.Delay(1000).ContinueWith(t =>
+                {
+                    this.PlayAnimation(DeathType.EnemyFelled);
+                });
             }
 
             ImGui.InputInt("fade in time", ref this.msFadeInTime);
