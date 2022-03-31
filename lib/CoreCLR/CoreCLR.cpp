@@ -37,12 +37,12 @@ int CoreCLR::load_hostfxr(const struct get_hostfxr_parameters* parameters)
         && m_hostfxr_close_fptr ? 0 : -1;
 }
 
-bool CoreCLR::load_runtime(const std::wstring& runtime_config_path)
+int CoreCLR::load_runtime(const std::wstring& runtime_config_path)
 {
     return CoreCLR::load_runtime(runtime_config_path, nullptr);
 }
 
-bool CoreCLR::load_runtime(const std::wstring& runtime_config_path, const struct hostfxr_initialize_parameters* parameters)
+int CoreCLR::load_runtime(const std::wstring& runtime_config_path, const struct hostfxr_initialize_parameters* parameters)
 {
     int result;
 
