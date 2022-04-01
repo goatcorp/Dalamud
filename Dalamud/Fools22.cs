@@ -324,7 +324,7 @@ public class Fools22 : IDisposable
     {
         var config = Service<DalamudConfiguration>.Get();
 
-        if (!(config.Fools22New ?? true))
+        if (!(config.Fools22Newer ?? true))
             return false;
 
         if (!(DateTime.Now.Month == 4 && DateTime.Now.Day == 1))

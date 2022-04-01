@@ -175,7 +175,7 @@ namespace Dalamud.Interface.Internal.Windows
             this.dtrOrder = configuration.DtrOrder;
             this.dtrIgnore = configuration.DtrIgnore;
 
-            this.doFools22 = configuration.Fools22New ?? true;
+            this.doFools22 = configuration.Fools22Newer ?? true;
         }
 
         /// <inheritdoc/>
@@ -853,7 +853,7 @@ namespace Dalamud.Interface.Internal.Windows
             configuration.IsFocusManagementEnabled = this.doFocus;
             configuration.ShowTsm = this.doTsm;
 
-            configuration.Fools22New = this.doFools22;
+            configuration.Fools22Newer = this.doFools22;
 
             configuration.UseAxisFontsFromGame = this.doUseAxisFontsFromGame;
             configuration.FontGamma = this.fontGamma;
