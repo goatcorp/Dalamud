@@ -334,11 +334,13 @@ public class Fools22 : IDisposable
         var volume = this.GetSfxVolume();
         if (volume > 0)
         {
+            Log.Information("Fools22: Vol {Volume}", volume);
+
             var waveStream = new WaveFileReader(new MemoryStream(this.soundBytes));
             var volumeStream = new WaveChannel32(waveStream);
+            volumeStream.Volume = volume;
             var player = new WaveOutEvent();
 
-            player.Volume = volume;
             player.Init(volumeStream);
             player.Play();
         }
