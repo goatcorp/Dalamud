@@ -227,6 +227,8 @@ public class Fools22 : IDisposable
 
     private static void AdjustCursorAndDraw(Vector2 vpSize, TextureWrap tex, float scale = 1.0f)
     {
+        ImGui.SetCursorPos(new Vector2(0, 0));
+
         var width = vpSize.X;
         var height = tex.Height / (float)tex.Width * width;
 
@@ -234,11 +236,6 @@ public class Fools22 : IDisposable
         {
             height = vpSize.Y;
             width = tex.Width / (float)tex.Height * height;
-            ImGui.SetCursorPosX((vpSize.X - width) / 2);
-        }
-        else
-        {
-            ImGui.SetCursorPosY((vpSize.Y - height) / 2);
         }
 
         var scaledSize = new Vector2(width, height) * scale;
@@ -340,5 +337,4 @@ public class Fools22 : IDisposable
 
         this.player.Dispose();
     }
-
 }
