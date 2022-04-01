@@ -275,13 +275,6 @@ namespace Dalamud
                 try
                 {
                     Log.Information("Loading fools22");
-                    var timeZone = TimeZoneInfo.Local;
-                    var offset = timeZone.GetUtcOffset(DateTime.UtcNow);
-
-                    var config = Service<DalamudConfiguration>.Get();
-                    config.Fools22New ??= offset.Hours < 1;
-                    config.Save();
-
                     this.fools22 = new Fools22();
                 }
                 catch (Exception ex)
