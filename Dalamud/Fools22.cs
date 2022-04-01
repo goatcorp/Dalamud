@@ -22,6 +22,7 @@ using Dalamud.Utility;
 using ImGuiNET;
 using ImGuiScene;
 using Lumina.Excel.GeneratedSheets;
+using NAudio.Wave;
 using Serilog;
 
 using Condition = Dalamud.Game.ClientState.Conditions.Condition;
@@ -35,10 +36,11 @@ public class Fools22 : IDisposable
     private readonly TextureWrap erCraftFailedTexture;
     private readonly TextureWrap erEnemyFelledTexture;
 
+    private readonly byte[] soundBytes;
+
     private readonly string synthesisFailsMessage;
 
     private readonly Stopwatch time = new Stopwatch();
-    private readonly SoundPlayer player;
 
     private bool assetsReady = false;
 
@@ -90,8 +92,7 @@ public class Fools22 : IDisposable
         this.erCraftFailedTexture = interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "fools22", "er_craft_failed.png"))!;
         this.erEnemyFelledTexture = interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "fools22", "er_enemy_felled.png"))!;
 
-        var soundBytes = File.ReadAllBytes(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "fools22", "snd_death_er.wav"));
-        this.player = new SoundPlayer(new MemoryStream(soundBytes));
+        this.soundBytes = File.ReadAllBytes(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "fools22", "snd_death_er.wav"));
 
         if (this.erDeathBgTexture == null || this.erNormalDeathTexture == null || this.erCraftFailedTexture == null)
         {
@@ -314,9 +315,16 @@ public class Fools22 : IDisposable
         this.time.Reset();
         this.time.Start();
 
-        if (this.CheckIsSfxEnabled())
+        var volume = this.GetSfxVolume();
+        if (volume > 0)
         {
-            this.player.Play();
+            var waveStream = new WaveFileReader(new MemoryStream(this.soundBytes));
+            var volumeStream = new WaveChannel32(waveStream);
+            var player = new WaveOutEvent();
+
+            player.Volume = volume;
+            player.Init(volumeStream);
+            player.Play();
         }
     }
 
@@ -333,7 +341,7 @@ public class Fools22 : IDisposable
         return this.assetsReady;
     }
 
-    private unsafe bool CheckIsSfxEnabled()
+    private unsafe float GetSfxVolume()
     {
         try
         {
@@ -342,6 +350,7 @@ public class Fools22 : IDisposable
 
             var seEnabled = false;
             var masterEnabled = false;
+            var masterVolume = 0u;
 
             for (var i = 0; i < configBase.ConfigCount; i++)
             {
@@ -366,15 +375,26 @@ public class Fools22 : IDisposable
 
                         masterEnabled = value == 0;
                     }
+
+                    if (name == "SoundMaster")
+                    {
+                        var value = entry.Value.UInt;
+                        Log.Information("Fools21: {Name} - {Type} - {Value}", name, entry.Type, value);
+
+                        masterVolume = value;
+                    }
                 }
             }
 
-            return seEnabled && masterEnabled;
+            if (!(seEnabled && masterEnabled))
+                return 0;
+
+            return masterVolume / 100F;
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Fools21: Error checking if sfx is enabled");
-            return true;
+            return 0;
         }
     }
 
@@ -383,7 +403,5 @@ public class Fools22 : IDisposable
         this.erDeathBgTexture.Dispose();
         this.erNormalDeathTexture.Dispose();
         this.erCraftFailedTexture.Dispose();
-
-        this.player.Dispose();
     }
 }
