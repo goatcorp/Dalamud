@@ -17,6 +17,7 @@ using Dalamud.Interface;
 using Dalamud.Interface.Animation;
 using Dalamud.Interface.Animation.EasingFunctions;
 using Dalamud.Interface.Internal;
+using Dalamud.Memory;
 using Dalamud.Utility;
 using ImGuiNET;
 using ImGuiScene;
@@ -313,7 +314,10 @@ public class Fools22 : IDisposable
         this.time.Reset();
         this.time.Start();
 
-        this.player.Play();
+        if (this.CheckIsSfxEnabled())
+        {
+            this.player.Play();
+        }
     }
 
     private bool CheckFoolsApplicable()
@@ -327,6 +331,51 @@ public class Fools22 : IDisposable
             return false;
 
         return this.assetsReady;
+    }
+
+    private unsafe bool CheckIsSfxEnabled()
+    {
+        try
+        {
+            var framework = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance();
+            var configBase = framework->SystemConfig.CommonSystemConfig.ConfigBase;
+
+            var seEnabled = false;
+            var masterEnabled = false;
+
+            for (var i = 0; i < configBase.ConfigCount; i++)
+            {
+                var entry = configBase.ConfigEntry[i];
+
+                if (entry.Name != null)
+                {
+                    var name = MemoryHelper.ReadStringNullTerminated(new IntPtr(entry.Name));
+
+                    if (name == "IsSndSe")
+                    {
+                        var value = entry.Value.UInt;
+                        Log.Information("Fools21: {Name} - {Type} - {Value}", name, entry.Type, value);
+
+                        seEnabled = value == 0;
+                    }
+
+                    if (name == "IsSndMaster")
+                    {
+                        var value = entry.Value.UInt;
+                        Log.Information("Fools21: {Name} - {Type} - {Value}", name, entry.Type, value);
+
+                        masterEnabled = value == 0;
+                    }
+                }
+            }
+
+            return seEnabled && masterEnabled;
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Fools21: Error checking if sfx is enabled");
+            return true;
+        }
     }
 
     public void Dispose()
