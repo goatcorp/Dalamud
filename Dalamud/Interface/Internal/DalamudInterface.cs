@@ -53,6 +53,7 @@ namespace Dalamud.Interface.Internal
         private readonly SelfTestWindow selfTestWindow;
         private readonly StyleEditorWindow styleEditorWindow;
         private readonly TitleScreenMenuWindow titleScreenMenuWindow;
+        private readonly FoolsAskWindow faWindow;
 
         private readonly TextureWrap logoTexture;
         private readonly TextureWrap tsmLogoTexture;
@@ -91,6 +92,7 @@ namespace Dalamud.Interface.Internal
             this.selfTestWindow = new SelfTestWindow() { IsOpen = false };
             this.styleEditorWindow = new StyleEditorWindow() { IsOpen = false };
             this.titleScreenMenuWindow = new TitleScreenMenuWindow() { IsOpen = false };
+            this.faWindow = new FoolsAskWindow() { IsOpen = false };
 
             this.WindowSystem.AddWindow(this.changelogWindow);
             this.WindowSystem.AddWindow(this.colorDemoWindow);
@@ -106,6 +108,7 @@ namespace Dalamud.Interface.Internal
             this.WindowSystem.AddWindow(this.selfTestWindow);
             this.WindowSystem.AddWindow(this.styleEditorWindow);
             this.WindowSystem.AddWindow(this.titleScreenMenuWindow);
+            this.WindowSystem.AddWindow(this.faWindow);
 
             ImGuiManagedAsserts.AssertsEnabled = configuration.AssertsEnabledAtStartup;
 
@@ -246,6 +249,8 @@ namespace Dalamud.Interface.Internal
         /// Opens the <see cref="StyleEditorWindow"/>.
         /// </summary>
         public void OpenStyleEditor() => this.styleEditorWindow.IsOpen = true;
+
+        public void OpenFaWindow() => this.faWindow.IsOpen = true;
 
         #endregion
 

@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
-using System.Media;
 using System.Numerics;
 using System.Threading.Tasks;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Data;
 using Dalamud.Game;
+using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Network;
@@ -86,6 +86,7 @@ public class Fools22 : IDisposable
         var chatGui = Service<ChatGui>.Get();
         var dataMgr = Service<DataManager>.Get();
         var gameNetwork = Service<GameNetwork>.Get();
+        var clientState = Service<ClientState>.Get();
 
         this.erDeathBgTexture = interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "fools22", "er_death_bg.png"))!;
         this.erNormalDeathTexture = interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "fools22", "er_normal_death.png"))!;
@@ -108,6 +109,21 @@ public class Fools22 : IDisposable
         framework.Update += this.FrameworkOnUpdate;
         chatGui.ChatMessage += this.ChatGuiOnChatMessage;
         gameNetwork.NetworkMessage += this.GameNetworkOnNetworkMessage;
+        clientState.Login += ClientStateOnLogin;
+    }
+
+    private void ClientStateOnLogin(object? sender, EventArgs e)
+    {
+        var config = Service<DalamudConfiguration>.Get();
+
+        if (!(DateTime.Now.Month == 4 && DateTime.Now.Day == 1))
+            return;
+
+        if (config.AskedFools22)
+            return;
+
+        var di = Service<DalamudInterface>.Get();
+        di.OpenFaWindow();
     }
 
     private unsafe void GameNetworkOnNetworkMessage(IntPtr dataptr, ushort opcode, uint sourceactorid, uint targetactorid, NetworkMessageDirection direction)
@@ -332,7 +348,7 @@ public class Fools22 : IDisposable
     {
         var config = Service<DalamudConfiguration>.Get();
 
-        if (!(config.Fools22Newer ?? true))
+        if (!config.Fools22Newer)
             return false;
 
         if (!(DateTime.Now.Month == 4 && DateTime.Now.Day == 1))
@@ -389,7 +405,8 @@ public class Fools22 : IDisposable
             if (!(seEnabled && masterEnabled))
                 return 0;
 
-            return masterVolume / 100F;
+            var vol = masterVolume / 100F;
+            return Math.Clamp(vol, 0f, 1f);
         }
         catch (Exception ex)
         {
