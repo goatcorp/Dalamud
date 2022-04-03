@@ -281,7 +281,6 @@ namespace Dalamud.Injector
                     AssetDirectory = Path.Combine(xivlauncherDir, "dalamudAssets", "dev"),
                     GameVersion = gameVer,
                     Language = ClientLanguage.English,
-                    OptOutMbCollection = false,
                 };
 
                 Log.Debug(
@@ -292,8 +291,7 @@ namespace Dalamud.Injector
                     $"    DefaultPluginDirectory: {startInfo.DefaultPluginDirectory}\n" +
                     $"    AssetDirectory: {startInfo.AssetDirectory}\n" +
                     $"    GameVersion: {startInfo.GameVersion}\n" +
-                    $"    Language: {startInfo.Language}\n" +
-                    $"    OptOutMbCollection: {startInfo.OptOutMbCollection}");
+                    $"    Language: {startInfo.Language}\n");
 
                 Log.Information("A Dalamud start info was not found in the program arguments. One has been generated for you.");
                 Log.Information("Copy the following contents into the program arguments:");

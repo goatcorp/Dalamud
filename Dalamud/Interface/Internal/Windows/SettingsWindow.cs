@@ -36,6 +36,7 @@ namespace Dalamud.Interface.Internal.Windows
 
         private bool doCfTaskBarFlash;
         private bool doCfChatMessage;
+        private bool doMbCollect;
 
         private float globalUiScale;
         private bool doUseAxisFontsFromGame;
@@ -91,6 +92,7 @@ namespace Dalamud.Interface.Internal.Windows
 
             this.doCfTaskBarFlash = configuration.DutyFinderTaskbarFlash;
             this.doCfChatMessage = configuration.DutyFinderChatMessage;
+            this.doMbCollect = configuration.DoMbCollect;
 
             this.globalUiScale = configuration.GlobalUiScale;
             this.fontGamma = configuration.FontGamma;
@@ -281,6 +283,9 @@ namespace Dalamud.Interface.Internal.Windows
 
             ImGui.Checkbox(Loc.Localize("DalamudSettingsDisableRmtFiltering", "Disable RMT Filtering"), ref this.disableRmtFiltering);
             ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsDisableRmtFilteringMsgHint", "Disable dalamud's built-in RMT ad filtering."));
+
+            ImGui.Checkbox(Loc.Localize("DalamudSettingDoMbCollect", "Anonymously upload market board data"), ref this.doMbCollect);
+            ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingDoMbCollectHint", "Anonymously provide data about in-game economics to Universalis when browsing the market board. This data can't be tied to you in any way and everyone benefits!"));
         }
 
         private void DrawLookAndFeelTab()
@@ -849,6 +854,7 @@ namespace Dalamud.Interface.Internal.Windows
 
             configuration.DutyFinderTaskbarFlash = this.doCfTaskBarFlash;
             configuration.DutyFinderChatMessage = this.doCfChatMessage;
+            configuration.DoMbCollect = this.doMbCollect;
 
             configuration.GlobalUiScale = this.globalUiScale;
             configuration.ToggleUiHide = this.doToggleUiHide;

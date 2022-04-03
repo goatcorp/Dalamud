@@ -296,6 +296,11 @@ namespace Dalamud.Configuration.Internal
         public bool ShowTsm { get; set; } = true;
 
         /// <summary>
+        /// Gets or sets a value indicating whether or not market board data should be uploaded.
+        /// </summary>
+        public bool DoMbCollect { get; set; } = false;
+
+        /// <summary>
         /// Load a configuration from the provided path.
         /// </summary>
         /// <param name="path">The path to load the configuration file from.</param>
