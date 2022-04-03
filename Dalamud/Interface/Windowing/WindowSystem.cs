@@ -16,7 +16,6 @@ namespace Dalamud.Interface.Windowing
         private static DateTimeOffset lastAnyFocus;
 
         private readonly List<Window> windows = new();
-        public IReadOnlyList<Window> Windows => this.windows;
 
         private string lastFocusedWindowName = string.Empty;
 
@@ -44,6 +43,11 @@ namespace Dalamud.Interface.Windowing
         /// Gets the timespan since the last time any window was focused.
         /// </summary>
         public static TimeSpan TimeSinceLastAnyFocus => DateTimeOffset.Now - lastAnyFocus;
+
+        /// <summary>
+        /// Gets a read-only list of all <see cref="Window"/>s in this <see cref="WindowSystem"/>.
+        /// </summary>
+        public IReadOnlyList<Window> Windows => this.windows;
 
         /// <summary>
         /// Gets a value indicating whether any window in this <see cref="WindowSystem"/> has focus and is
@@ -88,7 +92,7 @@ namespace Dalamud.Interface.Windowing
         /// <summary>
         /// Get a window by name.
         /// </summary>
-        /// <param name="windowName">The name of the <see cref="Window"/></param>
+        /// <param name="windowName">The name of the <see cref="Window"/>.</param>
         /// <returns>The <see cref="Window"/> object with matching name or null.</returns>
         public Window? GetWindow(string windowName) => this.windows.FirstOrDefault(w => w.WindowName == windowName);
 
