@@ -90,7 +90,7 @@ int InitializeClrAndGetEntryPoint(
     printf("Loading hostfxr... ");
     if ((result = g_clr->load_hostfxr(&init_parameters)) != 0)
     {
-        printf("\nError: Failed to load the `hostfxr` library (err=%d)\n", result);
+        printf("\nError: Failed to load the `hostfxr` library (err=0x%08x)\n", result);
         return result;
     }
     printf("Done!\n");

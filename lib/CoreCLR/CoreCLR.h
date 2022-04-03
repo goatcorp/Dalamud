@@ -12,8 +12,8 @@ class CoreCLR {
     int load_hostfxr();
     int load_hostfxr(const get_hostfxr_parameters* parameters);
 
-    bool load_runtime(const std::wstring& runtime_config_path);
-    bool load_runtime(
+    int load_runtime(const std::wstring& runtime_config_path);
+    int load_runtime(
         const std::wstring& runtime_config_path,
         const struct hostfxr_initialize_parameters* parameters);
 
