@@ -25,7 +25,6 @@ namespace Dalamud.Game.Network.Internal
     {
         private readonly List<MarketBoardItemRequest> marketBoardRequests = new();
 
-        private readonly bool optOutMbUploads;
         private readonly IMarketBoardUploader uploader;
 
         private MarketBoardPurchaseHandler marketBoardPurchaseHandler;
@@ -35,8 +34,6 @@ namespace Dalamud.Game.Network.Internal
         /// </summary>
         public NetworkHandlers()
         {
-            this.optOutMbUploads = Service<DalamudStartInfo>.Get().OptOutMbCollection;
-
             this.uploader = new UniversalisMarketBoardUploader();
 
             Service<GameNetwork>.Get().NetworkMessage += this.OnNetworkMessage;
@@ -58,7 +55,7 @@ namespace Dalamud.Game.Network.Internal
 
             if (direction == NetworkMessageDirection.ZoneUp)
             {
-                if (!this.optOutMbUploads)
+                if (configuration.DoMbCollect)
                 {
                     if (opCode == dataManager.ClientOpCodes["MarketBoardPurchaseHandler"])
                     {
@@ -76,7 +73,7 @@ namespace Dalamud.Game.Network.Internal
                 return;
             }
 
-            if (!this.optOutMbUploads)
+            if (configuration.DoMbCollect)
             {
                 if (opCode == dataManager.ServerOpCodes["MarketBoardItemRequestStart"])
                 {

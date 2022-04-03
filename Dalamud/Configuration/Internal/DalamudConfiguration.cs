@@ -141,7 +141,12 @@ namespace Dalamud.Configuration.Internal
         /// * ...TTF fonts loaded with stb or FreeType are in linear space.
         /// * ...the game's prebaked AXIS fonts are in gamma space with gamma value of 1.4.
         /// </summary>
-        public float FontGamma { get; set; } = 1.0f;
+        public float FontGamma { get; set; } = 1.4f;
+
+        /// <summary>
+        /// Gets or sets a value indicating whether to allow big font atlas.
+        /// </summary>
+        public bool AllowBigFontAtlas { get; set; } = false;
 
         /// <summary>
         /// Gets or sets a value indicating whether or not plugin UI should be hidden.
@@ -289,6 +294,11 @@ namespace Dalamud.Configuration.Internal
         /// Gets or sets a value indicating whether the title screen menu is shown.
         /// </summary>
         public bool ShowTsm { get; set; } = true;
+
+        /// <summary>
+        /// Gets or sets a value indicating whether or not market board data should be uploaded.
+        /// </summary>
+        public bool DoMbCollect { get; set; } = false;
 
         /// <summary>
         /// Load a configuration from the provided path.
