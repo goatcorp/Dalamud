@@ -295,10 +295,6 @@ namespace Dalamud.Configuration.Internal
         /// </summary>
         public bool ShowTsm { get; set; } = true;
 
-        public bool AskedFools22 { get; set; } = false;
-
-        public bool Fools22Newer { get; set; } = false;
-
         /// <summary>
         /// Load a configuration from the provided path.
         /// </summary>

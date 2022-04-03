@@ -50,8 +50,6 @@ namespace Dalamud.Interface.Internal.Windows
         private bool doFocus;
         private bool doTsm;
 
-        private bool doFools22;
-
         private List<string>? dtrOrder;
         private List<string>? dtrIgnore;
         private int dtrSpacing;
@@ -176,8 +174,6 @@ namespace Dalamud.Interface.Internal.Windows
             var configuration = Service<DalamudConfiguration>.Get();
             this.dtrOrder = configuration.DtrOrder;
             this.dtrIgnore = configuration.DtrIgnore;
-
-            this.doFools22 = configuration.Fools22Newer;
         }
 
         /// <inheritdoc/>
@@ -244,12 +240,6 @@ namespace Dalamud.Interface.Internal.Windows
 
         private void DrawGeneralTab()
         {
-            if (DateTime.Now.Month == 4 && DateTime.Now.Day == 1)
-            {
-                ImGui.Checkbox(Loc.Localize("Fools22", "Enable April Fools 2022"), ref this.doFools22);
-                ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("Fools22Hint", "Enables the April Fools 2022 funny joke. Turn this off if you don't think it's funny."));
-            }
-
             ImGui.Text(Loc.Localize("DalamudSettingsLanguage", "Language"));
             ImGui.Combo("##XlLangCombo", ref this.langIndex, this.locLanguages, this.locLanguages.Length);
             ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsLanguageHint", "Select the language Dalamud will be displayed in."));
@@ -869,8 +859,6 @@ namespace Dalamud.Interface.Internal.Windows
             configuration.IsGamepadNavigationEnabled = this.doGamepad;
             configuration.IsFocusManagementEnabled = this.doFocus;
             configuration.ShowTsm = this.doTsm;
-
-            configuration.Fools22Newer = this.doFools22;
 
             configuration.UseAxisFontsFromGame = this.doUseAxisFontsFromGame;
             configuration.AllowBigFontAtlas = this.doAllowBigFontAtlas;
