@@ -216,14 +216,14 @@ namespace Dalamud.Interface.Internal
         public float FontGamma => Math.Max(0.1f, this.FontGammaOverride.GetValueOrDefault(Service<DalamudConfiguration>.Get().FontGamma));
 
         /// <summary>
-        /// Gets or sets a value indicating whether to override configuration for AllowBigFontAtlas.
+        /// Gets or sets a value indicating whether to override configuration for FontResolutionLevel.
         /// </summary>
-        public bool? AllowBigFontAtlasOverride { get; set; } = null;
+        public int? FontResolutionLevelOverride { get; set; } = null;
 
         /// <summary>
-        /// Gets a value indicating whether to allow big font atlas.
+        /// Gets a value indicating the level of font resolution.
         /// </summary>
-        public bool AllowBigFontAtlas => this.AllowBigFontAtlasOverride ?? Service<DalamudConfiguration>.Get().AllowBigFontAtlas;
+        public int FontResolutionLevel => this.FontResolutionLevelOverride ?? Service<DalamudConfiguration>.Get().FontResolutionLevel;
 
         /// <summary>
         /// Enable this module.
@@ -594,21 +594,24 @@ namespace Dalamud.Interface.Internal
             ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;
         }
 
-        private unsafe void SetupFonts()
+        private unsafe void SetupFonts(int scaler = 0)
         {
             var gameFontManager = Service<GameFontManager>.Get();
             var dalamud = Service<Dalamud>.Get();
             var io = ImGui.GetIO();
             var ioFonts = io.Fonts;
-            var fontLoadScale = this.AllowBigFontAtlas ? io.FontGlobalScale : 1;
-            var fontGamma = this.FontGamma;
             List<ImFontPtr> fontsToUnscale = new();
             List<bool> fontsToOverwriteFromAxis = new();
             List<float?> fontsToReassignSizes = new();
 
+            var maxTexDimension = 1 << (10 + Math.Max(0, Math.Min(4, this.FontResolutionLevel)));
+            var disableBigFonts = scaler != 0;
+            var fontLoadScale = disableBigFonts ? Math.Min(io.FontGlobalScale, 1.0f / scaler) : io.FontGlobalScale;
+            var fontGamma = this.FontGamma;
+
             this.fontBuildSignal.Reset();
             ioFonts.Clear();
-            ioFonts.TexDesiredWidth = this.AllowBigFontAtlas ? 4096 : 2048;
+            ioFonts.TexDesiredWidth = maxTexDimension;
 
             Log.Verbose("[FONT] SetupFonts - 1");
 
@@ -633,7 +636,6 @@ namespace Dalamud.Interface.Internal
                 fontConfig = ImGuiNative.ImFontConfig_ImFontConfig();
                 fontConfig.OversampleH = 1;
                 fontConfig.OversampleV = 1;
-                fontConfig.PixelSnapH = true;
 
                 var fontPathJp = Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "NotoSansCJKjp-Medium.otf");
                 if (!File.Exists(fontPathJp))
@@ -641,15 +643,17 @@ namespace Dalamud.Interface.Internal
 
                 // Default font
                 Log.Verbose("[FONT] SetupFonts - Default font");
-                this.axisFontHandles.Add(gameFontManager.NewFontRef(this.AllowBigFontAtlas ? new(GameFontFamily.Axis, DefaultFontSizePt * fontLoadScale) : new(GameFontFamilyAndSize.Axis12)));
+                this.axisFontHandles.Add(gameFontManager.NewFontRef(new(GameFontFamily.Axis, DefaultFontSizePt * fontLoadScale)));
+                Log.Verbose("[FONT] SetupFonts - Default corresponding AXIS size: {0}pt ({1}px)", this.axisFontHandles.Last().Style.SizePt, this.axisFontHandles.Last().Style.SizePx);
                 if (this.UseAxis)
                 {
                     fontConfig.GlyphRanges = dummyRangeHandle.AddrOfPinnedObject();
                     fontConfig.SizePixels = DefaultFontSizePx * fontLoadScale;
+                    fontConfig.PixelSnapH = false;
                     DefaultFont = ioFonts.AddFontDefault(fontConfig);
                     fontsToUnscale.Add(DefaultFont);
                     fontsToOverwriteFromAxis.Add(true);
-                    fontsToReassignSizes.Add(null);
+                    fontsToReassignSizes.Add(disableBigFonts ? DefaultFontSizePx : null);
                 }
                 else
                 {
@@ -657,6 +661,7 @@ namespace Dalamud.Interface.Internal
                     garbageList.Add(japaneseRangeHandle);
 
                     fontConfig.GlyphRanges = japaneseRangeHandle.AddrOfPinnedObject();
+                    fontConfig.PixelSnapH = true;
                     DefaultFont = ioFonts.AddFontFromFileTTF(fontPathJp, (DefaultFontSizePx + 1) * fontLoadScale, fontConfig);
                     fontsToUnscale.Add(DefaultFont);
                     fontsToOverwriteFromAxis.Add(false);
@@ -674,6 +679,7 @@ namespace Dalamud.Interface.Internal
                     garbageList.Add(iconRangeHandle);
 
                     fontConfig.GlyphRanges = iconRangeHandle.AddrOfPinnedObject();
+                    fontConfig.PixelSnapH = true;
                     IconFont = ioFonts.AddFontFromFileTTF(fontPathIcon, DefaultFontSizePx * fontLoadScale, fontConfig);
                     fontsToUnscale.Add(IconFont);
                     this.axisFontHandles.Add(null);
@@ -689,6 +695,7 @@ namespace Dalamud.Interface.Internal
                         ShowFontError(fontPathMono);
 
                     fontConfig.GlyphRanges = IntPtr.Zero;
+                    fontConfig.PixelSnapH = true;
                     MonoFont = ioFonts.AddFontFromFileTTF(fontPathMono, DefaultFontSizePx * fontLoadScale, fontConfig);
                     fontsToUnscale.Add(MonoFont);
                     this.axisFontHandles.Add(null);
@@ -742,24 +749,26 @@ namespace Dalamud.Interface.Internal
                         flattenedRanges.Add(0);
 
                         ImFontPtr sizedFont;
-                        this.axisFontHandles.Add(gameFontManager.NewFontRef(this.AllowBigFontAtlas ? new(GameFontFamily.Axis, fontSize * 3 / 4 * fontLoadScale) : new(GameFontFamilyAndSize.Axis12)));
+                        this.axisFontHandles.Add(gameFontManager.NewFontRef(new(GameFontFamily.Axis, (disableBigFonts ? DefaultFontSizePt : fontSize * 3 / 4) * fontLoadScale)));
                         if (this.UseAxis)
                         {
                             fontConfig.GlyphRanges = dummyRangeHandle.AddrOfPinnedObject();
-                            fontConfig.SizePixels = (this.AllowBigFontAtlas ? fontSize : DefaultFontSizePx) * fontLoadScale;
+                            fontConfig.SizePixels = this.axisFontHandles.Last().Style.SizePx;
+                            fontConfig.PixelSnapH = false;
                             sizedFont = ioFonts.AddFontDefault(fontConfig);
                             fontsToUnscale.Add(sizedFont);
                             fontsToOverwriteFromAxis.Add(true);
-                            fontsToReassignSizes.Add(this.AllowBigFontAtlas ? null : fontSize);
+                            fontsToReassignSizes.Add(disableBigFonts ? fontSize : null);
                         }
                         else
                         {
                             var rangeHandle = GCHandle.Alloc(flattenedRanges.ToArray(), GCHandleType.Pinned);
                             garbageList.Add(rangeHandle);
-                            sizedFont = ioFonts.AddFontFromFileTTF(fontPathJp, (this.AllowBigFontAtlas ? fontSize : DefaultFontSizePx + 1) * fontLoadScale, fontConfig, rangeHandle.AddrOfPinnedObject());
+                            fontConfig.PixelSnapH = true;
+                            sizedFont = ioFonts.AddFontFromFileTTF(fontPathJp, (disableBigFonts ? DefaultFontSizePx + 1 : fontSize) * fontLoadScale, fontConfig, rangeHandle.AddrOfPinnedObject());
                             fontsToUnscale.Add(sizedFont);
                             fontsToOverwriteFromAxis.Add(false);
-                            fontsToReassignSizes.Add(this.AllowBigFontAtlas ? null : fontSize);
+                            fontsToReassignSizes.Add(disableBigFonts ? fontSize : null);
                         }
 
                         foreach (var request in requests)
@@ -769,16 +778,36 @@ namespace Dalamud.Interface.Internal
 
                 gameFontManager.BuildFonts();
 
+                var customFontFirstConfigIndex = ioFonts.ConfigData.Size;
+
                 Log.Verbose("[FONT] Invoke OnBuildFonts");
                 this.BuildFonts?.Invoke();
                 Log.Verbose("[FONT] OnBuildFonts OK!");
 
-                for (var i = 0; i < ImGui.GetIO().Fonts.Fonts.Size; i++)
+                for (int i = customFontFirstConfigIndex, i_ = ioFonts.ConfigData.Size; i < i_; i++)
                 {
-                    Log.Verbose("{0} - {1}", i, ImGui.GetIO().Fonts.Fonts[i].GetDebugName());
+                    var configPtr = ioFonts.ConfigData[i].NativePtr;
+                    configPtr->OversampleH = 1;
+                    configPtr->OversampleV = 1;
+                    if (disableBigFonts)
+                        configPtr->SizePixels = DefaultFontSizePx * fontLoadScale;
                 }
 
                 ioFonts.Build();
+
+                if (ioFonts.TexHeight > maxTexDimension)
+                {
+                    if (scaler < 4)
+                    {
+                        Log.Information("[FONT] Atlas size is {0}x{1} which is bigger than allowed {2}x{3}. Retrying with scale {4}.", ioFonts.TexWidth, ioFonts.TexHeight, maxTexDimension, maxTexDimension, scaler + 1);
+                        this.SetupFonts(scaler + 1);
+                        return;
+                    }
+                    else
+                    {
+                        Log.Warning("[FONT] Atlas size is {0}x{1} which is bigger than allowed {2}x{3}, but giving up trying to scale smaller.", ioFonts.TexWidth, ioFonts.TexHeight, maxTexDimension, maxTexDimension);
+                    }
+                }
 
                 if (Math.Abs(fontGamma - 1.0f) >= 0.001)
                 {
@@ -820,7 +849,7 @@ namespace Dalamud.Interface.Internal
                     }
 
                     if (overwriteSize != null)
-                        scale *= overwriteSize.Value / fontPtr->ConfigData->SizePixels;
+                        scale *= fontLoadScale * overwriteSize.Value / fontPtr->ConfigData->SizePixels;
 
                     if (scale != 1f)
                         GameFontManager.UnscaleFont(font, 1 / scale, false);

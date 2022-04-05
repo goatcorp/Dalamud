@@ -289,7 +289,7 @@ namespace Dalamud.Interface.GameFonts
                 ImFontConfigPtr fontConfig = ImGuiNative.ImFontConfig_ImFontConfig();
                 fontConfig.OversampleH = 1;
                 fontConfig.OversampleV = 1;
-                fontConfig.PixelSnapH = true;
+                fontConfig.PixelSnapH = false;
 
                 var io = ImGui.GetIO();
 
@@ -305,6 +305,7 @@ namespace Dalamud.Interface.GameFonts
                         continue;
 
                     var font = io.Fonts.AddFontDefault(fontConfig);
+
                     this.fonts[style] = font;
                     foreach (var glyph in fdt.Glyphs)
                     {
