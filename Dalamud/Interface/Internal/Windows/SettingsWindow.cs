@@ -127,8 +127,8 @@ namespace Dalamud.Interface.Internal.Windows
                 Loc.Localize("DalamudSettingsFontResolutionLevel0", "Least (1k x 1k texture)"),
                 Loc.Localize("DalamudSettingsFontResolutionLevel1", "Lesser (2k x 2k texture)"),
                 Loc.Localize("DalamudSettingsFontResolutionLevel2", "Normal (4k x 4k texture)"),
-                Loc.Localize("DalamudSettingsFontResolutionLevel3", "Better (8k x 8k texture)"),
-                Loc.Localize("DalamudSettingsFontResolutionLevel4", "Best (16k x 16k texture)"),
+                Loc.Localize("DalamudSettingsFontResolutionLevel3", "Better (8k x 8k texture, may crash your game)"),
+                Loc.Localize("DalamudSettingsFontResolutionLevel4", "Best (16k x 16k texture, may crash your game)"),
             };
 
             this.languages = Localization.ApplicableLangCodes.Prepend("en").ToArray();
