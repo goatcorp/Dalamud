@@ -298,7 +298,7 @@ namespace Dalamud.Configuration.Internal
         /// <summary>
         /// Gets or sets a value indicating whether or not market board data should be uploaded.
         /// </summary>
-        public bool DoMbCollect { get; set; } = false;
+        public bool IsMbCollect { get; set; } = true;
 
         /// <summary>
         /// Load a configuration from the provided path.
