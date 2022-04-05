@@ -217,7 +217,7 @@ namespace Dalamud.Interface.Internal.Windows
         public override void Draw()
         {
             var windowSize = ImGui.GetWindowSize();
-            ImGui.BeginChild("scrolling", new Vector2(windowSize.X - 5 - (5 * ImGuiHelpers.GlobalScale), windowSize.Y - 35 - (35 * ImGuiHelpers.GlobalScale)), false, ImGuiWindowFlags.HorizontalScrollbar);
+            ImGui.BeginChild("scrolling", new Vector2(windowSize.X - 5 - (5 * ImGuiHelpers.GlobalScale), windowSize.Y - 35 - (35 * ImGuiHelpers.GlobalScale)), false);
 
             if (ImGui.BeginTabBar("SetTabBar"))
             {
@@ -300,7 +300,10 @@ namespace Dalamud.Interface.Internal.Windows
             ImGuiHelpers.ScaledDummy(5);
 
             ImGui.Checkbox(Loc.Localize("DalamudSettingDoMbCollect", "Anonymously upload market board data"), ref this.doMbCollect);
-            ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingDoMbCollectHint", "Anonymously provide data about in-game economics to Universalis when browsing the market board. This data can't be tied to you in any way and everyone benefits!"));
+
+            ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudGrey);
+            ImGui.TextWrapped(Loc.Localize("DalamudSettingDoMbCollectHint", "Anonymously provide data about in-game economics to Universalis when browsing the market board. This data can't be tied to you in any way and everyone benefits!"));
+            ImGui.PopStyleColor();
         }
 
         private void DrawLookAndFeelTab()
@@ -367,9 +370,7 @@ namespace Dalamud.Interface.Internal.Windows
 
             ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsStyleEditorHint", "Modify the look & feel of Dalamud windows."));
 
-            ImGuiHelpers.ScaledDummy(10, 16);
-
-            ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingToggleUiHideOptOutNote", "Plugins may independently opt out of the settings below."));
+            ImGuiHelpers.ScaledDummy(10);
 
             if (ImGui.Checkbox(Loc.Localize("DalamudSettingToggleAxisFonts", "Use AXIS fonts as default Dalamud font"), ref this.doUseAxisFontsFromGame))
             {
@@ -379,6 +380,8 @@ namespace Dalamud.Interface.Internal.Windows
 
             ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingToggleUiAxisFontsHint", "Use AXIS fonts (the game's main UI fonts) as default Dalamud font."));
 
+            ImGuiHelpers.ScaledDummy(3);
+
             ImGui.Text(Loc.Localize("DalamudSettingsFontResolutionLevel", "Font resolution level"));
             if (ImGui.Combo("##DalamudSettingsFontResolutionLevelCombo", ref this.fontResolutionLevel, this.fontResolutionLevelStrings, this.fontResolutionLevelStrings.Length))
             {
@@ -386,10 +389,18 @@ namespace Dalamud.Interface.Internal.Windows
                 interfaceManager.RebuildFonts();
             }
 
-            ImGui.TextColored(ImGuiColors.DalamudGrey, string.Format(
+            ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudGrey);
+            ImGui.TextWrapped(string.Format(
                 Loc.Localize("DalamudSettingsFontResolutionLevel", "This option allows Dalamud fonts to look better. If your game crashes when changing this option, your PC does not support high font resolutions in Dalamud - you will have to use a lower one.\nCurrent font atlas size is {0}px * {1}px."),
                 ImGui.GetIO().Fonts.TexWidth,
                 ImGui.GetIO().Fonts.TexHeight));
+            ImGui.PopStyleColor();
+
+            ImGuiHelpers.ScaledDummy(10);
+
+            ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingToggleUiHideOptOutNote", "Plugins may independently opt out of the settings below."));
+
+            ImGuiHelpers.ScaledDummy(3);
 
             ImGui.Checkbox(Loc.Localize("DalamudSettingToggleUiHide", "Hide plugin UI when the game UI is toggled off"), ref this.doToggleUiHide);
             ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingToggleUiHideHint", "Hide any open windows by plugins when toggling the game overlay."));
