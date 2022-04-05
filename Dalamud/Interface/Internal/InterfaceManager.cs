@@ -653,7 +653,7 @@ namespace Dalamud.Interface.Internal
                     DefaultFont = ioFonts.AddFontDefault(fontConfig);
                     fontsToUnscale.Add(DefaultFont);
                     fontsToOverwriteFromAxis.Add(true);
-                    fontsToReassignSizes.Add(disableBigFonts ? DefaultFontSizePx * fontLoadScale : null);
+                    fontsToReassignSizes.Add(disableBigFonts ? DefaultFontSizePx : null);
                 }
                 else
                 {
@@ -758,14 +758,14 @@ namespace Dalamud.Interface.Internal
                             sizedFont = ioFonts.AddFontDefault(fontConfig);
                             fontsToUnscale.Add(sizedFont);
                             fontsToOverwriteFromAxis.Add(true);
-                            fontsToReassignSizes.Add(disableBigFonts ? fontLoadScale * fontSize : null);
+                            fontsToReassignSizes.Add(disableBigFonts ? fontSize : null);
                         }
                         else
                         {
                             var rangeHandle = GCHandle.Alloc(flattenedRanges.ToArray(), GCHandleType.Pinned);
                             garbageList.Add(rangeHandle);
                             fontConfig.PixelSnapH = true;
-                            sizedFont = ioFonts.AddFontFromFileTTF(fontPathJp, (disableBigFonts ? fontSize : DefaultFontSizePx + 1) * fontLoadScale, fontConfig, rangeHandle.AddrOfPinnedObject());
+                            sizedFont = ioFonts.AddFontFromFileTTF(fontPathJp, (disableBigFonts ? DefaultFontSizePx + 1 : fontSize) * fontLoadScale, fontConfig, rangeHandle.AddrOfPinnedObject());
                             fontsToUnscale.Add(sizedFont);
                             fontsToOverwriteFromAxis.Add(false);
                             fontsToReassignSizes.Add(disableBigFonts ? fontSize : null);
@@ -849,7 +849,7 @@ namespace Dalamud.Interface.Internal
                     }
 
                     if (overwriteSize != null)
-                        scale *= overwriteSize.Value / fontPtr->ConfigData->SizePixels;
+                        scale *= fontLoadScale * overwriteSize.Value / fontPtr->ConfigData->SizePixels;
 
                     if (scale != 1f)
                         GameFontManager.UnscaleFont(font, 1 / scale, false);
