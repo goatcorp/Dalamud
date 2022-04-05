@@ -30,6 +30,9 @@ namespace Dalamud.Interface.Internal.Windows
 
         private readonly string[] languages;
         private readonly string[] locLanguages;
+
+        private readonly string[] fontResolutionLevelStrings;
+
         private int langIndex;
 
         private XivChatType dalamudMessagesChatType;
@@ -38,7 +41,6 @@ namespace Dalamud.Interface.Internal.Windows
         private bool doCfChatMessage;
         private bool doMbCollect;
 
-        private readonly string[] fontResolutionLevelStrings;
         private int fontResolutionLevel;
 
         private float globalUiScale;
@@ -122,7 +124,7 @@ namespace Dalamud.Interface.Internal.Windows
             this.doButtonsSystemMenu = configuration.DoButtonsSystemMenu;
             this.disableRmtFiltering = configuration.DisableRmtFiltering;
 
-            this.fontResolutionLevelStrings = new string[]
+            this.fontResolutionLevelStrings = new[]
             {
                 Loc.Localize("DalamudSettingsFontResolutionLevel0", "Least (1k x 1k texture)"),
                 Loc.Localize("DalamudSettingsFontResolutionLevel1", "Lesser (2k x 2k texture)"),
