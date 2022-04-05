@@ -38,9 +38,11 @@ namespace Dalamud.Interface.Internal.Windows
         private bool doCfChatMessage;
         private bool doMbCollect;
 
+        private readonly string[] fontResolutionLevelStrings;
+        private int fontResolutionLevel;
+
         private float globalUiScale;
         private bool doUseAxisFontsFromGame;
-        private bool doAllowBigFontAtlas;
         private float fontGamma;
         private bool doToggleUiHide;
         private bool doToggleUiHideDuringCutscenes;
@@ -97,7 +99,7 @@ namespace Dalamud.Interface.Internal.Windows
             this.globalUiScale = configuration.GlobalUiScale;
             this.fontGamma = configuration.FontGamma;
             this.doUseAxisFontsFromGame = configuration.UseAxisFontsFromGame;
-            this.doAllowBigFontAtlas = configuration.AllowBigFontAtlas;
+            this.fontResolutionLevel = configuration.FontResolutionLevel;
             this.doToggleUiHide = configuration.ToggleUiHide;
             this.doToggleUiHideDuringCutscenes = configuration.ToggleUiHideDuringCutscenes;
             this.doToggleUiHideDuringGpose = configuration.ToggleUiHideDuringGpose;
@@ -119,6 +121,15 @@ namespace Dalamud.Interface.Internal.Windows
             this.autoUpdatePlugins = configuration.AutoUpdatePlugins;
             this.doButtonsSystemMenu = configuration.DoButtonsSystemMenu;
             this.disableRmtFiltering = configuration.DisableRmtFiltering;
+
+            this.fontResolutionLevelStrings = new string[]
+            {
+                Loc.Localize("DalamudSettingsFontResolutionLevel0", "Least (1k x 1k texture)"),
+                Loc.Localize("DalamudSettingsFontResolutionLevel1", "Lesser (2k x 2k texture)"),
+                Loc.Localize("DalamudSettingsFontResolutionLevel2", "Normal (4k x 4k texture)"),
+                Loc.Localize("DalamudSettingsFontResolutionLevel3", "Better (8k x 8k texture)"),
+                Loc.Localize("DalamudSettingsFontResolutionLevel4", "Best (16k x 16k texture)"),
+            };
 
             this.languages = Localization.ApplicableLangCodes.Prepend("en").ToArray();
             try
@@ -188,7 +199,7 @@ namespace Dalamud.Interface.Internal.Windows
 
             ImGui.GetIO().FontGlobalScale = configuration.GlobalUiScale;
             interfaceManager.FontGammaOverride = null;
-            interfaceManager.AllowBigFontAtlasOverride = null;
+            interfaceManager.FontResolutionLevelOverride = null;
             interfaceManager.UseAxisOverride = null;
             this.thirdRepoList = configuration.ThirdRepoList.Select(x => x.Clone()).ToList();
             this.devPluginLocations = configuration.DevPluginLoadLocations.Select(x => x.Clone()).ToList();
@@ -296,9 +307,41 @@ namespace Dalamud.Interface.Internal.Windows
             ImGui.Text(Loc.Localize("DalamudSettingsGlobalUiScale", "Global UI Scale"));
             ImGui.SameLine();
             ImGui.SetCursorPosY(ImGui.GetCursorPosY() - 3);
-            if (ImGui.Button(Loc.Localize("DalamudSettingsIndividualConfigResetToDefaultValue", "Reset") + "##DalamudSettingsGlobalUiScaleReset"))
+            if (ImGui.Button(Loc.Localize("DalamudSettingsIndividualConfigResetToDefaultValue", "9.6pt") + "##DalamudSettingsGlobalUiScaleReset96"))
+            {
+                this.globalUiScale = 9.6f / 12.0f;
+                ImGui.GetIO().FontGlobalScale = this.globalUiScale;
+                interfaceManager.RebuildFonts();
+            }
+
+            ImGui.SameLine();
+            if (ImGui.Button(Loc.Localize("DalamudSettingsIndividualConfigResetToDefaultValue", "Reset (12pt)") + "##DalamudSettingsGlobalUiScaleReset12"))
             {
                 this.globalUiScale = 1.0f;
+                ImGui.GetIO().FontGlobalScale = this.globalUiScale;
+                interfaceManager.RebuildFonts();
+            }
+
+            ImGui.SameLine();
+            if (ImGui.Button(Loc.Localize("DalamudSettingsIndividualConfigResetToDefaultValue", "14pt") + "##DalamudSettingsGlobalUiScaleReset14"))
+            {
+                this.globalUiScale = 14.0f / 12.0f;
+                ImGui.GetIO().FontGlobalScale = this.globalUiScale;
+                interfaceManager.RebuildFonts();
+            }
+
+            ImGui.SameLine();
+            if (ImGui.Button(Loc.Localize("DalamudSettingsIndividualConfigResetToDefaultValue", "18pt") + "##DalamudSettingsGlobalUiScaleReset18"))
+            {
+                this.globalUiScale = 18.0f / 12.0f;
+                ImGui.GetIO().FontGlobalScale = this.globalUiScale;
+                interfaceManager.RebuildFonts();
+            }
+
+            ImGui.SameLine();
+            if (ImGui.Button(Loc.Localize("DalamudSettingsIndividualConfigResetToDefaultValue", "36pt") + "##DalamudSettingsGlobalUiScaleReset36"))
+            {
+                this.globalUiScale = 36.0f / 12.0f;
                 ImGui.GetIO().FontGlobalScale = this.globalUiScale;
                 interfaceManager.RebuildFonts();
             }
@@ -332,13 +375,17 @@ namespace Dalamud.Interface.Internal.Windows
 
             ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingToggleUiAxisFontsHint", "Use AXIS fonts (the game's main UI fonts) as default Dalamud font."));
 
-            if (ImGui.Checkbox(Loc.Localize("DalamudSettingAllowBigFontAtlas", "Allow big font atlas"), ref this.doAllowBigFontAtlas))
+            ImGui.Text(Loc.Localize("DalamudSettingsFontResolutionLevel", "Font resolution level"));
+            if (ImGui.Combo("##DalamudSettingsFontResolutionLevelCombo", ref this.fontResolutionLevel, this.fontResolutionLevelStrings, this.fontResolutionLevelStrings.Length))
             {
-                interfaceManager.AllowBigFontAtlasOverride = this.doAllowBigFontAtlas;
+                interfaceManager.FontResolutionLevelOverride = this.fontResolutionLevel;
                 interfaceManager.RebuildFonts();
             }
 
-            ImGui.TextColored(ImGuiColors.DalamudGrey, string.Format(Loc.Localize("DalamudSettingAllowBigFontAtlas", "Displays text crisply, but may crash if your GPU does not support it.\nCurrent size: {0}px * {1}px"), ImGui.GetIO().Fonts.TexWidth, ImGui.GetIO().Fonts.TexHeight));
+            ImGui.TextColored(ImGuiColors.DalamudGrey, string.Format(
+                Loc.Localize("DalamudSettingsFontResolutionLevel", "Your PC may not support loading all font into memory at maximum sizes, and it may crash. Adjust this option to try to show more crisp text.\nCurrent font atlas size is {0}px * {1}px."),
+                ImGui.GetIO().Fonts.TexWidth,
+                ImGui.GetIO().Fonts.TexHeight));
 
             ImGui.Checkbox(Loc.Localize("DalamudSettingToggleUiHide", "Hide plugin UI when the game UI is toggled off"), ref this.doToggleUiHide);
             ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingToggleUiHideHint", "Hide any open windows by plugins when toggling the game overlay."));
@@ -867,7 +914,7 @@ namespace Dalamud.Interface.Internal.Windows
             configuration.ShowTsm = this.doTsm;
 
             configuration.UseAxisFontsFromGame = this.doUseAxisFontsFromGame;
-            configuration.AllowBigFontAtlas = this.doAllowBigFontAtlas;
+            configuration.FontResolutionLevel = this.fontResolutionLevel;
             configuration.FontGamma = this.fontGamma;
 
             // This is applied every frame in InterfaceManager::CheckViewportState()

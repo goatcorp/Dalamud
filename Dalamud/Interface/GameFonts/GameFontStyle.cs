@@ -87,9 +87,9 @@ namespace Dalamud.Interface.GameFonts
         };
 
         /// <summary>
-        /// Gets the font size.
+        /// Gets the font size in point unit.
         /// </summary>
-        public float Size => this.FamilyAndSize switch
+        public float SizePt => this.FamilyAndSize switch
         {
             GameFontFamilyAndSize.Undefined => 0,
             GameFontFamilyAndSize.Axis96 => 9.6f,
@@ -117,6 +117,11 @@ namespace Dalamud.Interface.GameFonts
             GameFontFamilyAndSize.TrumpGothic68 => 8,
             _ => throw new InvalidOperationException(),
         };
+
+        /// <summary>
+        /// Gets the font size in pixel unit.
+        /// </summary>
+        public float SizePx => this.SizePt * 4 / 3;
 
         /// <summary>
         /// Gets or sets a value indicating whether this font is bold.
@@ -153,59 +158,59 @@ namespace Dalamud.Interface.GameFonts
                     return GameFontFamilyAndSize.Undefined;
 
                 case GameFontFamily.Axis:
-                    if (size <= 9.6)
+                    if (size <= 9.601)
                         return GameFontFamilyAndSize.Axis96;
-                    else if (size <= 12)
+                    else if (size <= 12.001)
                         return GameFontFamilyAndSize.Axis12;
-                    else if (size <= 14)
+                    else if (size <= 14.001)
                         return GameFontFamilyAndSize.Axis14;
-                    else if (size <= 18)
+                    else if (size <= 18.001)
                         return GameFontFamilyAndSize.Axis18;
                     else
                         return GameFontFamilyAndSize.Axis36;
 
                 case GameFontFamily.Jupiter:
-                    if (size <= 16)
+                    if (size <= 16.001)
                         return GameFontFamilyAndSize.Jupiter16;
-                    else if (size <= 20)
+                    else if (size <= 20.001)
                         return GameFontFamilyAndSize.Jupiter20;
-                    else if (size <= 23)
+                    else if (size <= 23.001)
                         return GameFontFamilyAndSize.Jupiter23;
                     else
                         return GameFontFamilyAndSize.Jupiter46;
 
                 case GameFontFamily.JupiterNumeric:
-                    if (size <= 45)
+                    if (size <= 45.001)
                         return GameFontFamilyAndSize.Jupiter45;
                     else
                         return GameFontFamilyAndSize.Jupiter90;
 
                 case GameFontFamily.Meidinger:
-                    if (size <= 16)
+                    if (size <= 16.001)
                         return GameFontFamilyAndSize.Meidinger16;
-                    else if (size <= 20)
+                    else if (size <= 20.001)
                         return GameFontFamilyAndSize.Meidinger20;
                     else
                         return GameFontFamilyAndSize.Meidinger40;
 
                 case GameFontFamily.MiedingerMid:
-                    if (size <= 10)
+                    if (size <= 10.001)
                         return GameFontFamilyAndSize.MiedingerMid10;
-                    else if (size <= 12)
+                    else if (size <= 12.001)
                         return GameFontFamilyAndSize.MiedingerMid12;
-                    else if (size <= 14)
+                    else if (size <= 14.001)
                         return GameFontFamilyAndSize.MiedingerMid14;
-                    else if (size <= 18)
+                    else if (size <= 18.001)
                         return GameFontFamilyAndSize.MiedingerMid18;
                     else
                         return GameFontFamilyAndSize.MiedingerMid36;
 
                 case GameFontFamily.TrumpGothic:
-                    if (size <= 18.4)
+                    if (size <= 18.401)
                         return GameFontFamilyAndSize.TrumpGothic184;
-                    else if (size <= 23)
+                    else if (size <= 23.001)
                         return GameFontFamilyAndSize.TrumpGothic23;
-                    else if (size <= 34)
+                    else if (size <= 34.001)
                         return GameFontFamilyAndSize.TrumpGothic34;
                     else
                         return GameFontFamilyAndSize.TrumpGothic68;
