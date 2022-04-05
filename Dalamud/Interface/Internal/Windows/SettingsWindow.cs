@@ -306,10 +306,10 @@ namespace Dalamud.Interface.Internal.Windows
             var interfaceManager = Service<InterfaceManager>.Get();
 
             ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 3);
-            ImGui.Text(Loc.Localize("DalamudSettingsGlobalUiScale", "Global UI Scale"));
+            ImGui.Text(Loc.Localize("DalamudSettingsGlobalUiScale", "Global Font Scale"));
             ImGui.SameLine();
             ImGui.SetCursorPosY(ImGui.GetCursorPosY() - 3);
-            if (ImGui.Button(Loc.Localize("DalamudSettingsIndividualConfigResetToDefaultValue", "9.6pt") + "##DalamudSettingsGlobalUiScaleReset96"))
+            if (ImGui.Button(Loc.Localize("DalamudSettingsUiScalePreset6", "9.6pt") + "##DalamudSettingsGlobalUiScaleReset96"))
             {
                 this.globalUiScale = 9.6f / 12.0f;
                 ImGui.GetIO().FontGlobalScale = this.globalUiScale;
@@ -317,7 +317,7 @@ namespace Dalamud.Interface.Internal.Windows
             }
 
             ImGui.SameLine();
-            if (ImGui.Button(Loc.Localize("DalamudSettingsIndividualConfigResetToDefaultValue", "Reset (12pt)") + "##DalamudSettingsGlobalUiScaleReset12"))
+            if (ImGui.Button(Loc.Localize("DalamudSettingsUiScalePreset12", "Reset (12pt)") + "##DalamudSettingsGlobalUiScaleReset12"))
             {
                 this.globalUiScale = 1.0f;
                 ImGui.GetIO().FontGlobalScale = this.globalUiScale;
@@ -325,7 +325,7 @@ namespace Dalamud.Interface.Internal.Windows
             }
 
             ImGui.SameLine();
-            if (ImGui.Button(Loc.Localize("DalamudSettingsIndividualConfigResetToDefaultValue", "14pt") + "##DalamudSettingsGlobalUiScaleReset14"))
+            if (ImGui.Button(Loc.Localize("DalamudSettingsUiScalePreset14", "14pt") + "##DalamudSettingsGlobalUiScaleReset14"))
             {
                 this.globalUiScale = 14.0f / 12.0f;
                 ImGui.GetIO().FontGlobalScale = this.globalUiScale;
@@ -333,7 +333,7 @@ namespace Dalamud.Interface.Internal.Windows
             }
 
             ImGui.SameLine();
-            if (ImGui.Button(Loc.Localize("DalamudSettingsIndividualConfigResetToDefaultValue", "18pt") + "##DalamudSettingsGlobalUiScaleReset18"))
+            if (ImGui.Button(Loc.Localize("DalamudSettingsUiScalePreset18", "18pt") + "##DalamudSettingsGlobalUiScaleReset18"))
             {
                 this.globalUiScale = 18.0f / 12.0f;
                 ImGui.GetIO().FontGlobalScale = this.globalUiScale;
@@ -341,7 +341,7 @@ namespace Dalamud.Interface.Internal.Windows
             }
 
             ImGui.SameLine();
-            if (ImGui.Button(Loc.Localize("DalamudSettingsIndividualConfigResetToDefaultValue", "36pt") + "##DalamudSettingsGlobalUiScaleReset36"))
+            if (ImGui.Button(Loc.Localize("DalamudSettingsUiScalePreset36", "36pt") + "##DalamudSettingsGlobalUiScaleReset36"))
             {
                 this.globalUiScale = 36.0f / 12.0f;
                 ImGui.GetIO().FontGlobalScale = this.globalUiScale;
@@ -354,7 +354,7 @@ namespace Dalamud.Interface.Internal.Windows
                 interfaceManager.RebuildFonts();
             }
 
-            ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsGlobalUiScaleHint", "Scale all XIVLauncher UI elements - useful for 4K displays."));
+            ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsGlobalUiScaleHint", "Scale text in all XIVLauncher UI elements - this is useful for 4K displays."));
 
             ImGuiHelpers.ScaledDummy(10, 16);
 
@@ -385,7 +385,7 @@ namespace Dalamud.Interface.Internal.Windows
             }
 
             ImGui.TextColored(ImGuiColors.DalamudGrey, string.Format(
-                Loc.Localize("DalamudSettingsFontResolutionLevel", "Your PC may not support loading all font into memory at maximum sizes, and it may crash. Adjust this option to try to show more crisp text.\nCurrent font atlas size is {0}px * {1}px."),
+                Loc.Localize("DalamudSettingsFontResolutionLevel", "This option allows Dalamud fonts to look better. If your game crashes when changing this option, your PC does not support high font resolutions in Dalamud - you will have to use a lower one.\nCurrent font atlas size is {0}px * {1}px."),
                 ImGui.GetIO().Fonts.TexWidth,
                 ImGui.GetIO().Fonts.TexHeight));
 
