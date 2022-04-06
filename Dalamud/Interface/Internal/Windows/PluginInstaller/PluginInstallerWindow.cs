@@ -2389,7 +2389,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
             public static string FeedbackModal_Title => Loc.Localize("InstallerFeedback", "Send Feedback");
 
-            public static string FeedbackModal_Text(string pluginName) => Loc.Localize("InstallerFeedbackInfo", "You can send feedback to the developer of \"{0}\" here.\nYou can include your Discord tag or email address if you wish to give them the opportunity to answer.\n\nIf you want to report an error with the problem, we recommend you to join the XIVLauncher discord server.").Format(pluginName);
+            public static string FeedbackModal_Text(string pluginName) => Loc.Localize("InstallerFeedbackInfo", "You can send feedback to the developer of \"{0}\" here.\nYou can include your Discord tag or email address if you wish to give them the opportunity to answer.\n\nIf you put your Discord name into the contact information field, please join the XIVLauncher discord server so we can get in touch.").Format(pluginName);
 
             public static string FeedbackModal_HasUpdate => Loc.Localize("InstallerFeedbackHasUpdate", "A new version of this plugin is available, please update before reporting bugs.");
 
