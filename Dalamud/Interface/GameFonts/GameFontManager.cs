@@ -177,6 +177,9 @@ namespace Dalamud.Interface.GameFonts
         /// <param name="rebuildLookupTable">Whether to call target.BuildLookupTable().</param>
         public static void UnscaleFont(ImFontPtr fontPtr, float fontScale, bool rebuildLookupTable = true)
         {
+            if (fontScale == 1)
+                return;
+
             unsafe
             {
                 var font = fontPtr.NativePtr;
