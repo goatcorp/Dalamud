@@ -55,7 +55,7 @@ namespace Dalamud.Game.Network.Internal
 
             if (direction == NetworkMessageDirection.ZoneUp)
             {
-                if (configuration.DoMbCollect)
+                if (configuration.IsMbCollect)
                 {
                     if (opCode == dataManager.ClientOpCodes["MarketBoardPurchaseHandler"])
                     {
@@ -73,7 +73,7 @@ namespace Dalamud.Game.Network.Internal
                 return;
             }
 
-            if (configuration.DoMbCollect)
+            if (configuration.IsMbCollect)
             {
                 if (opCode == dataManager.ServerOpCodes["MarketBoardItemRequestStart"])
                 {

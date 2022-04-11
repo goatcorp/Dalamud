@@ -144,9 +144,10 @@ namespace Dalamud.Configuration.Internal
         public float FontGamma { get; set; } = 1.4f;
 
         /// <summary>
-        /// Gets or sets a value indicating whether to allow big font atlas.
+        /// Gets or sets a value indicating the level of font resolution between 1 to 5.
+        /// 0(1024x1024), 1(2048x2048), 2(4096x4096), 3(8192x8192), 4(16384x16384).
         /// </summary>
-        public bool AllowBigFontAtlas { get; set; } = false;
+        public int FontResolutionLevel { get; set; } = 2;
 
         /// <summary>
         /// Gets or sets a value indicating whether or not plugin UI should be hidden.
@@ -298,7 +299,7 @@ namespace Dalamud.Configuration.Internal
         /// <summary>
         /// Gets or sets a value indicating whether or not market board data should be uploaded.
         /// </summary>
-        public bool DoMbCollect { get; set; } = false;
+        public bool IsMbCollect { get; set; } = true;
 
         /// <summary>
         /// Load a configuration from the provided path.
