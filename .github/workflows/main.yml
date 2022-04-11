@@ -49,27 +49,44 @@ jobs:
         name: dalamud-artifact
         path: .\scratch
 
+    - name: Extract branch name
+      shell: bash
+      run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+      id: extract_branch
+
     - name: Generate dalamud-distrib version file
       shell: pwsh
+      env:
+        GH_BRANCH: ${{ steps.extract_branch.outputs.branch }}
       run: |
         Compress-Archive .\scratch\* .\canary.zip  # Recreate the release zip
+        
+        $branchName = $env:GH_BRANCH
+        
+        if ($branchName -eq "master") {
+          $branchName = "stg"
+        }
         
         $dllBytes = [System.IO.File]::ReadAllBytes("$(Get-Location)\scratch\Dalamud.dll")
         $assembly = [System.Reflection.Assembly]::Load($dllBytes)
         $newVersion = $assembly.GetCustomAttributes([System.Reflection.AssemblyMetadataAttribute]) | Where { $_.GetType() -eq [System.Reflection.AssemblyMetadataAttribute] } | Select -First 1 | Select -ExpandProperty "Value"
         Remove-Item -Force -Recurse .\scratch
-
-        $versionData = Get-Content .\stg\version | ConvertFrom-Json
-        $oldVersion = $versionData.AssemblyVersion
-        if ($oldVersion -eq $newVersion) {
-          Remove-Item .\canary.zip
-        } else {
-          Move-Item -Force .\canary.zip .\stg\latest.zip
-          $versionData.AssemblyVersion = $newVersion
-          $versionData | ConvertTo-Json -Compress | Out-File .\stg\version
-        }
         
-        echo "DVER=${newVersion}" >> $Env:GITHUB_ENV
+        if (Test-Path -Path $branchName) {
+            $versionData = Get-Content ".\${branchName}\version" | ConvertFrom-Json
+            $oldVersion = $versionData.AssemblyVersion
+            if ($oldVersion -eq $newVersion) {
+              Remove-Item .\canary.zip
+            } else {
+              Move-Item -Force ".\canary.zip" ".\${branchName}\latest.zip"
+              $versionData.AssemblyVersion = $newVersion
+              $versionData | ConvertTo-Json -Compress | Out-File ".\${branchName}\version"
+            }
+
+            echo "DVER=${newVersion}" >> $Env:GITHUB_ENV
+        } else {
+            Write-Host "Deployment folder doesn't exist. Not doing anything."
+        }
         
     - name: Commit changes
       shell: bash
