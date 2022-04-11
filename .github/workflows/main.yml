@@ -36,7 +36,7 @@ jobs:
   
   deploy_stg:
     name: Deploy dalamud-distrib staging
-    if: ${{ github.ref == 'refs/heads/master' && github.event_name == 'push' }}
+    if: ${{ github.event_name == 'push' }}
     needs: build
     runs-on: windows-latest
     steps:
