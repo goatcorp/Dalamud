@@ -141,7 +141,7 @@ namespace Dalamud.Configuration.Internal
         /// * ...TTF fonts loaded with stb or FreeType are in linear space.
         /// * ...the game's prebaked AXIS fonts are in gamma space with gamma value of 1.4.
         /// </summary>
-        public float FontGamma { get; set; } = 1.4f;
+        public float FontGammaLevel { get; set; } = 1.4f;
 
         /// <summary>
         /// Gets or sets a value indicating the level of font resolution between 1 to 5.
