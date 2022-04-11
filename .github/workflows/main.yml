@@ -86,6 +86,7 @@ jobs:
             echo "DVER=${newVersion}" >> $Env:GITHUB_ENV
         } else {
             Write-Host "Deployment folder doesn't exist. Not doing anything."
+            Remove-Item .\canary.zip
         }
         
     - name: Commit changes
