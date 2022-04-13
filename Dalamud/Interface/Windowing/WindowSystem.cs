@@ -106,7 +106,8 @@ namespace Dalamud.Interface.Windowing
             if (hasNamespace)
                 ImGui.PushID(this.Namespace);
 
-            foreach (var window in this.windows)
+            // Shallow clone the list of windows so that we can edit it without modifying it while the loop is iterating
+            foreach (var window in this.windows.ToArray())
             {
 #if DEBUG
                 // Log.Verbose($"[WS{(hasNamespace ? "/" + this.Namespace : string.Empty)}] Drawing {window.WindowName}");
