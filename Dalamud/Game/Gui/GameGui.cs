@@ -15,6 +15,7 @@ using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.System.String;
+using FFXIVClientStructs.FFXIV.Client.UI;
 using ImGuiNET;
 using Serilog;
 
@@ -31,7 +32,6 @@ namespace Dalamud.Game.Gui
 
         private readonly GetMatrixSingletonDelegate getMatrixSingleton;
         private readonly ScreenToWorldNativeDelegate screenToWorldNative;
-        private readonly GetAgentModuleDelegate getAgentModule;
 
         private readonly Hook<SetGlobalBgmDelegate> setGlobalBgmHook;
         private readonly Hook<HandleItemHoverDelegate> handleItemHoverHook;
@@ -60,7 +60,6 @@ namespace Dalamud.Game.Gui
             Log.Verbose($"HandleItemHover address 0x{this.address.HandleItemHover.ToInt64():X}");
             Log.Verbose($"HandleItemOut address 0x{this.address.HandleItemOut.ToInt64():X}");
             Log.Verbose($"HandleImm address 0x{this.address.HandleImm.ToInt64():X}");
-            Log.Verbose($"GetAgentModule address 0x{this.address.GetAgentModule.ToInt64():X}");
 
             Service<ChatGui>.Set(new ChatGui(this.address.ChatManager));
             Service<PartyFinderGui>.Set();
@@ -84,8 +83,6 @@ namespace Dalamud.Game.Gui
             this.screenToWorldNative = Marshal.GetDelegateForFunctionPointer<ScreenToWorldNativeDelegate>(this.address.ScreenToWorld);
 
             this.toggleUiHideHook = new Hook<ToggleUiHideDelegate>(this.address.ToggleUiHide, this.ToggleUiHideDetour);
-
-            this.getAgentModule = Marshal.GetDelegateForFunctionPointer<GetAgentModuleDelegate>(this.address.GetAgentModule);
 
             this.utf8StringFromSequenceHook = new Hook<Utf8StringFromSequenceDelegate>(this.address.Utf8StringFromSequence, this.Utf8StringFromSequenceDetour);
         }
@@ -397,14 +394,14 @@ namespace Dalamud.Game.Gui
             if (addon == IntPtr.Zero)
                 return IntPtr.Zero;
 
-            var uiModule = Service<GameGui>.Get().GetUIModule();
-            if (uiModule == IntPtr.Zero)
+            var uiModule = (UIModule*)Service<GameGui>.Get().GetUIModule();
+            if (uiModule == null)
             {
                 return IntPtr.Zero;
             }
 
-            var agentModule = this.getAgentModule(uiModule);
-            if (agentModule == IntPtr.Zero)
+            var agentModule = uiModule->GetAgentModule();
+            if (agentModule == null)
             {
                 return IntPtr.Zero;
             }
@@ -417,13 +414,13 @@ namespace Dalamud.Game.Gui
             if (id == 0)
                 return IntPtr.Zero;
 
-            for (var i = 0; i < 380; i++)
+            // Patch 6.1, 398 agents
+            for (var i = 0; i < 398; i++)
             {
-                var agent = Marshal.ReadIntPtr(agentModule, 0x20 + (i * 8));
-                if (agent == IntPtr.Zero)
-                    continue;
-                if (Marshal.ReadInt32(agent, 0x20) == id)
-                    return agent;
+                var agent = &agentModule->AgentArray[i];
+
+                if (agent->GetAddonID() == id)
+                    return new IntPtr(agent);
             }
 
             return IntPtr.Zero;
