@@ -412,7 +412,7 @@ namespace Dalamud.Game.Gui
             var unitBase = (FFXIVClientStructs.FFXIV.Component.GUI.AtkUnitBase*)addon;
             var id = unitBase->ParentID;
             if (id == 0)
-                id = unitBase->IDu;
+                id = unitBase->ID;
 
             if (id == 0)
                 return IntPtr.Zero;

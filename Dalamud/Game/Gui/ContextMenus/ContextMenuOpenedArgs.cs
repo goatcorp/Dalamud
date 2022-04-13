@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-
+using Dalamud.Game.Gui.ContextMenus.OldStructs;
 using Dalamud.Game.Text.SeStringHandling;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
@@ -18,7 +18,7 @@ namespace Dalamud.Game.Gui.ContextMenus
         /// <param name="agent">The agent associated with the context menu.</param>
         /// <param name="parentAddonName">The the name of the parent addon associated with the context menu.</param>
         /// <param name="items">The items in the context menu.</param>
-        public ContextMenuOpenedArgs(AddonContextMenu* addon, AgentContextInterface* agent, string? parentAddonName, IEnumerable<ContextMenuItem> items)
+        public ContextMenuOpenedArgs(AddonContextMenu* addon, OldAgentContextInterface* agent, string? parentAddonName, IEnumerable<ContextMenuItem> items)
         {
             this.Addon = addon;
             this.Agent = agent;
@@ -34,7 +34,7 @@ namespace Dalamud.Game.Gui.ContextMenus
         /// <summary>
         /// Gets the agent associated with the context menu.
         /// </summary>
-        public AgentContextInterface* Agent { get; }
+        public OldAgentContextInterface* Agent { get; }
 
         /// <summary>
         /// Gets the name of the parent addon associated with the context menu.
