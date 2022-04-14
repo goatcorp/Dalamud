@@ -419,7 +419,7 @@ namespace Dalamud.Game.Gui
             {
                 var agent = &agentModule->AgentArray[i];
 
-                if (agent->GetAddonID() == id)
+                if (agent->AddonId == id)
                     return new IntPtr(agent);
             }
 
@@ -441,14 +441,7 @@ namespace Dalamud.Game.Gui
             Service<ToastGui>.Get().Enable();
             Service<FlyTextGui>.Get().Enable();
             Service<PartyFinderGui>.Get().Enable();
-
-            // TODO(goat): Remove when stable
-            var config = Service<DalamudConfiguration>.Get();
-            if (config.DalamudBetaKey == DalamudConfiguration.DalamudCurrentBetaKey)
-            {
-                Log.Warning("TAKE CARE!!! You are using Dalamud Testing, so the new context menu feature is enabled.\nThis may cause crashes with unupdated plugins.");
-                Service<ContextMenu>.Get().Enable();
-            }
+            Service<ContextMenu>.Get().Enable();
 
             this.setGlobalBgmHook.Enable();
             this.handleItemHoverHook.Enable();
