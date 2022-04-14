@@ -2,6 +2,7 @@ using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
+using Dalamud.Configuration.Internal;
 using Dalamud.Game.Gui.ContextMenus;
 using Dalamud.Game.Gui.Dtr;
 using Dalamud.Game.Gui.FlyText;
@@ -426,7 +427,9 @@ namespace Dalamud.Game.Gui
             Service<ToastGui>.Get().Enable();
             Service<FlyTextGui>.Get().Enable();
             Service<PartyFinderGui>.Get().Enable();
-            Service<ContextMenu>.Get().Enable();
+
+            if (!EnvironmentConfiguration.DalamudNoContextMenu)
+                Service<ContextMenu>.Get().Enable();
 
             this.setGlobalBgmHook.Enable();
             this.handleItemHoverHook.Enable();

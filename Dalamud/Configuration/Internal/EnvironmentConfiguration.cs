@@ -32,6 +32,11 @@ namespace Dalamud.Configuration.Internal
         /// </summary>
         public static bool DalamudWaitForDebugger { get; } = GetEnvironmentVariable("DALAMUD_WAIT_DEBUGGER");
 
+        /// <summary>
+        /// Gets a value indicating whether or not Dalamud context menus should be disabled.
+        /// </summary>
+        public static bool DalamudNoContextMenu { get; } = GetEnvironmentVariable("DALAMUD_NO_CONTEXTMENU");
+
         private static bool GetEnvironmentVariable(string name)
             => bool.Parse(Environment.GetEnvironmentVariable(name) ?? "false");
     }
