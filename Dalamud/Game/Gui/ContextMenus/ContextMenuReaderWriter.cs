@@ -456,7 +456,7 @@ namespace Dalamud.Game.Gui.ContextMenus
                     var redButtonActions = &((OldAgentContext*)this.agentContextInterface)->Items->RedButtonActions;
                     *(redButtonActions + contextMenuItemIndex) = action;
                 }
-                else if (((AgentContext*)this.agentContextInterface)->Items != null)
+                else if (((OldAgentContext*)this.agentContextInterface)->Items != null)
                 {
                     // TODO: figure out why this branch is reached on inventory contexts and why Items is sometimes null.
                     var actions = &((OldAgentContext*)this.agentContextInterface)->Items->Actions;
