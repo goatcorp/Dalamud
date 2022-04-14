@@ -277,7 +277,7 @@ namespace Dalamud.Game.Gui.ContextMenus
         /// Read the context menu from the agent.
         /// </summary>
         /// <returns>Read menu items.</returns>
-        public GameContextMenuItem[] Read()
+        public GameContextMenuItem[]? Read()
         {
             var gameContextMenuItems = new List<GameContextMenuItem>();
             for (var contextMenuItemIndex = 0; contextMenuItemIndex < this.ContextMenuItemCount; contextMenuItemIndex++)
@@ -306,18 +306,23 @@ namespace Dalamud.Game.Gui.ContextMenus
                 byte action;
                 if (this.IsInventoryContext)
                 {
-                    var actions = &((AgentInventoryContext*)this.agentContextInterface)->EventIdArray;
-                    action = *actions[contextMenuItemAtkValueBaseIndex];
+                    var actions = &((OldAgentInventoryContext*)this.agentContextInterface)->Actions;
+                    action = *(actions + contextMenuItemAtkValueBaseIndex);
                 }
                 else if (this.StructLayout is SubContextMenuStructLayout.Alternate)
                 {
                     var redButtonActions = &((OldAgentContext*)this.agentContextInterface)->Items->RedButtonActions;
                     action = (byte)*(redButtonActions + contextMenuItemIndex);
                 }
-                else
+                else if (((OldAgentContext*)this.agentContextInterface)->Items != null)
                 {
                     var actions = &((OldAgentContext*)this.agentContextInterface)->Items->Actions;
                     action = *(actions + contextMenuItemAtkValueBaseIndex);
+                }
+                else
+                {
+                    PluginLog.Warning("Context Menu action failed, Items pointer was unexpectedly null.");
+                    return null;
                 }
 
                 // Get the has previous indicator flag
@@ -438,8 +443,8 @@ namespace Dalamud.Game.Gui.ContextMenus
 
                 if (this.IsInventoryContext)
                 {
-                    var actions = &((AgentInventoryContext*)this.agentContextInterface)->EventIdArray;
-                    *actions[this.FirstContextMenuItemIndex + contextMenuItemIndex] = action;
+                    var actions = &((OldAgentInventoryContext*)this.agentContextInterface)->Actions;
+                    *(actions + this.FirstContextMenuItemIndex + contextMenuItemIndex) = action;
                 }
                 else if (this.StructLayout is SubContextMenuStructLayout.Alternate && this.FirstUnhandledAction != null)
                 {

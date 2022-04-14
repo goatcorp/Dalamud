@@ -19,7 +19,7 @@ namespace Dalamud.Interface.Internal.Windows
         /// <summary>
         /// Whether the latest update warrants a changelog window.
         /// </summary>
-        public const string WarrantsChangelogForMajorMinor = "6.3.";
+        public const string WarrantsChangelogForMajorMinor = "6.4.";
 
         private const string ChangeLog =
             @"• Added a new menu to the title screen which allows you to access the plugin installer and various other plugins before logging in.
@@ -39,11 +39,7 @@ Thanks and have fun!";
             @"• All of your plugins were disabled automatically, due to this update. This is normal.
 • Open the plugin installer, then click 'update plugins'. Updated plugins should update and then re-enable themselves.
    => Please keep in mind that not all of your plugins may already be updated for the new version.
-   => If some plugins are displayed with a red cross in the 'Installed Plugins' tab, they may not yet be available.
-
-While we tested the released plugins considerably with a smaller set of people and believe that they are stable, we cannot guarantee to you that you will not run into crashes.
-
-Considering current queue times, this is why we recommend that for now, you only use a set of plugins that are most essential to you, so you can go on playing the game instead of waiting endlessly.";
+   => If some plugins are displayed with a red cross in the 'Installed Plugins' tab, they may not yet be available.";
 
         private readonly string assemblyVersion = Util.AssemblyVersion;
 
@@ -82,13 +78,11 @@ Considering current queue times, this is why we recommend that for now, you only
 
             ImGui.TextWrapped(ChangeLog);
 
-            /*
             ImGuiHelpers.ScaledDummy(5);
 
             ImGui.TextColored(ImGuiColors.DalamudRed, " !!! ATTENTION !!!");
 
             ImGui.TextWrapped(UpdatePluginsInfo);
-            */
 
             ImGuiHelpers.ScaledDummy(10);
 

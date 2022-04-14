@@ -183,6 +183,9 @@ namespace Dalamud.Game.Gui.ContextMenus
             // TODO: For inventory sub context menus, we take only the last item -- the return item.
             // This is because we're doing a hack to spawn a Second Tier sub context menu and then appropriating it.
             var contextMenuItems = contextMenuReaderWriter.Read();
+            if (contextMenuItems == null)
+                return;
+
             if (IsInventoryContext(this.currentAgentContextInterface) && this.selectedOpenSubContextMenuItem != null)
             {
                 contextMenuItems = contextMenuItems.TakeLast(1).ToArray();
@@ -400,6 +403,9 @@ namespace Dalamud.Game.Gui.ContextMenus
             // Read the selected item directly from the game
             ContextMenuReaderWriter contextMenuReaderWriter = new ContextMenuReaderWriter(this.currentAgentContextInterface, addonContextMenu->AtkValuesCount, addonContextMenu->AtkValues);
             var gameContextMenuItems = contextMenuReaderWriter.Read();
+            if (gameContextMenuItems == null)
+                return;
+
             var gameSelectedItem = gameContextMenuItems.ElementAtOrDefault(selectedIndex);
 
             // This should be impossible
