@@ -1,8 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+
 using Dalamud.Game.Gui.ContextMenus.OldStructs;
 using Dalamud.Game.Text.SeStringHandling;
 using FFXIVClientStructs.FFXIV.Client.UI;
-using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 
 namespace Dalamud.Game.Gui.ContextMenus
 {
@@ -75,7 +76,12 @@ namespace Dalamud.Game.Gui.ContextMenus
         /// </summary>
         /// <param name="name">The name of the submenu.</param>
         /// <param name="opened">The action to be executed once opened.</param>
-        public void AddCustomSubMenu(SeString name, ContextMenuOpenedDelegate opened) =>
+        public void AddCustomSubMenu(SeString name, ContextMenuOpenedDelegate opened)
+        {
+            if (this.GameObjectContext != null)
+                throw new Exception("Submenus on GameObjects are not supported yet.");
+
             this.Items.Add(new OpenSubContextMenuItem(name, opened));
+        }
     }
 }
