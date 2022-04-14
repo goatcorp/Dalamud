@@ -48,11 +48,6 @@ namespace Dalamud.Game.Gui.ContextMenus
         public string? Title { get; init; }
 
         /// <summary>
-        /// Gets the items in the context menu.
-        /// </summary>
-        public List<ContextMenuItem> Items { get; }
-
-        /// <summary>
         /// Gets the game object context associated with the context menu.
         /// </summary>
         public GameObjectContext? GameObjectContext { get; init; }
@@ -61,6 +56,11 @@ namespace Dalamud.Game.Gui.ContextMenus
         /// Gets the item context associated with the context menu.
         /// </summary>
         public InventoryItemContext? InventoryItemContext { get; init; }
+
+        /// <summary>
+        /// Gets the items in the context menu.
+        /// </summary>
+        internal List<ContextMenuItem> Items { get; }
 
         /// <summary>
         /// Append a custom context menu item to this context menu.
