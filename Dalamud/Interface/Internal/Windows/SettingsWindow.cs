@@ -99,7 +99,7 @@ namespace Dalamud.Interface.Internal.Windows
             this.doMbCollect = configuration.IsMbCollect;
 
             this.globalUiScale = configuration.GlobalUiScale;
-            this.fontGamma = configuration.FontGamma;
+            this.fontGamma = configuration.FontGammaLevel;
             this.doUseAxisFontsFromGame = configuration.UseAxisFontsFromGame;
             this.fontResolutionLevel = configuration.FontResolutionLevel;
             this.doToggleUiHide = configuration.ToggleUiHide;
@@ -197,7 +197,7 @@ namespace Dalamud.Interface.Internal.Windows
             var configuration = Service<DalamudConfiguration>.Get();
             var interfaceManager = Service<InterfaceManager>.Get();
 
-            var rebuildFont = interfaceManager.FontGamma != configuration.FontGamma;
+            var rebuildFont = interfaceManager.FontGamma != configuration.FontGammaLevel;
 
             ImGui.GetIO().FontGlobalScale = configuration.GlobalUiScale;
             interfaceManager.FontGammaOverride = null;
@@ -930,7 +930,7 @@ namespace Dalamud.Interface.Internal.Windows
 
             configuration.UseAxisFontsFromGame = this.doUseAxisFontsFromGame;
             configuration.FontResolutionLevel = this.fontResolutionLevel;
-            configuration.FontGamma = this.fontGamma;
+            configuration.FontGammaLevel = this.fontGamma;
 
             // This is applied every frame in InterfaceManager::CheckViewportState()
             configuration.IsDisableViewport = !this.doViewport;

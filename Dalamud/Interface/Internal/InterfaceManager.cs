@@ -213,7 +213,7 @@ namespace Dalamud.Interface.Internal
         /// <summary>
         /// Gets the font gamma value to use.
         /// </summary>
-        public float FontGamma => Math.Max(0.1f, this.FontGammaOverride.GetValueOrDefault(Service<DalamudConfiguration>.Get().FontGamma));
+        public float FontGamma => Math.Max(0.1f, this.FontGammaOverride.GetValueOrDefault(Service<DalamudConfiguration>.Get().FontGammaLevel));
 
         /// <summary>
         /// Gets or sets a value indicating whether to override configuration for FontResolutionLevel.

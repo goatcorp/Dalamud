@@ -138,18 +138,18 @@ namespace Dalamud.Game.Internal
                 return;
             }
 
-            // the max size (hardcoded) is 0xE/15, but the system menu currently uses 0xC/12
+            // the max size (hardcoded) is 0x11/17, but the system menu currently uses 0xC/12
             // this is a just in case that doesnt really matter
             // see if we can add 2 entries
-            if (menuSize >= 0xD)
+            if (menuSize >= 0x11)
             {
                 this.hookAgentHudOpenSystemMenu.Original(thisPtr, atkValueArgs, menuSize);
                 return;
             }
 
             // atkValueArgs is actually an array of AtkValues used as args. all their UI code works like this.
-            // in this case, menu size is stored in atkValueArgs[4], and the next 15 slots are the MainCommand
-            // the 15 slots after that, if they exist, are the entry names, but they are otherwise pulled from MainCommand EXD
+            // in this case, menu size is stored in atkValueArgs[4], and the next 17 slots are the MainCommand
+            // the 17 slots after that, if they exist, are the entry names, but they are otherwise pulled from MainCommand EXD
             // reference the original function for more details :)
 
             // step 1) move all the current menu items down so we can put Dalamud at the top like it deserves
@@ -173,9 +173,9 @@ namespace Dalamud.Game.Internal
             // step 3) create strings for them
             // since the game first checks for strings in the AtkValue argument before pulling them from the exd, if we create strings we dont have to worry
             // about hooking the exd reader, thank god
-            var firstStringEntry = &atkValueArgs[5 + 15];
+            var firstStringEntry = &atkValueArgs[5 + 17];
             this.atkValueChangeType(firstStringEntry, ValueType.String);
-            var secondStringEntry = &atkValueArgs[6 + 15];
+            var secondStringEntry = &atkValueArgs[6 + 17];
             this.atkValueChangeType(secondStringEntry, ValueType.String);
 
             const int color = 539;
