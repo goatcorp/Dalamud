@@ -353,7 +353,7 @@ namespace Dalamud.Interface.Internal.Windows
                 interfaceManager.RebuildFonts();
             }
 
-            if (ImGui.DragFloat("##DalamudSettingsGlobalUiScaleDrag", ref this.globalUiScale, 0.005f, MinScale, MaxScale, "%.2f"))
+            if (ImGui.DragFloat("##DalamudSettingsGlobalUiScaleDrag", ref this.globalUiScale, 0.005f, MinScale, MaxScale, "%.2f", ImGuiSliderFlags.AlwaysClamp))
             {
                 ImGui.GetIO().FontGlobalScale = this.globalUiScale;
                 interfaceManager.RebuildFonts();
@@ -440,7 +440,7 @@ namespace Dalamud.Interface.Internal.Windows
                 interfaceManager.RebuildFonts();
             }
 
-            if (ImGui.DragFloat("##DalamudSettingsFontGammaDrag", ref this.fontGamma, 0.005f, MinScale, MaxScale, "%.2f"))
+            if (ImGui.DragFloat("##DalamudSettingsFontGammaDrag", ref this.fontGamma, 0.005f, MinScale, MaxScale, "%.2f", ImGuiSliderFlags.AlwaysClamp))
             {
                 interfaceManager.FontGammaOverride = this.fontGamma;
                 interfaceManager.RebuildFonts();
