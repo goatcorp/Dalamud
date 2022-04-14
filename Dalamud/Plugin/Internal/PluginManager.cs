@@ -31,7 +31,7 @@ namespace Dalamud.Plugin.Internal
         /// <summary>
         /// The current Dalamud API level, used to handle breaking changes. Only plugins with this level will be loaded.
         /// </summary>
-        public const int DalamudApiLevel = 5;
+        public const int DalamudApiLevel = 6;
 
         private static readonly ModuleLog Log = new("PLUGINM");
 
