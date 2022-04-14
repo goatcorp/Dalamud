@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -456,10 +456,15 @@ namespace Dalamud.Game.Gui.ContextMenus
                     var redButtonActions = &((OldAgentContext*)this.agentContextInterface)->Items->RedButtonActions;
                     *(redButtonActions + contextMenuItemIndex) = action;
                 }
-                else
+                else if (((AgentContext*)this.agentContextInterface)->Items != null)
                 {
+                    // TODO: figure out why this branch is reached on inventory contexts and why Items is sometimes null.
                     var actions = &((OldAgentContext*)this.agentContextInterface)->Items->Actions;
                     *(actions + this.FirstContextMenuItemIndex + contextMenuItemIndex) = action;
+                }
+                else
+                {
+                    PluginLog.Warning("Context Menu action failed, Items pointer was unexpectedly null.");
                 }
 
                 if (contextMenuItem.Indicator == ContextMenuItemIndicator.Previous)
