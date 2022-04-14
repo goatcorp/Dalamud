@@ -2,7 +2,6 @@ using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
-using Dalamud.Configuration.Internal;
 using Dalamud.Game.Gui.ContextMenus;
 using Dalamud.Game.Gui.Dtr;
 using Dalamud.Game.Gui.FlyText;
@@ -15,7 +14,6 @@ using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.System.String;
-using FFXIVClientStructs.FFXIV.Client.UI;
 using ImGuiNET;
 using Serilog;
 
@@ -94,8 +92,6 @@ namespace Dalamud.Game.Gui
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         private unsafe delegate bool ScreenToWorldNativeDelegate(float* camPos, float* clipPos, float rayDistance, float* worldPos, int* unknown);
-
-        private delegate IntPtr GetAgentModuleDelegate(IntPtr uiModule);
 
         // Hooked delegates
 
@@ -394,36 +390,25 @@ namespace Dalamud.Game.Gui
             if (addon == IntPtr.Zero)
                 return IntPtr.Zero;
 
-            var uiModule = (UIModule*)Service<GameGui>.Get().GetUIModule();
+            var uiModule = (FFXIVClientStructs.FFXIV.Client.UI.UIModule*)this.GetUIModule();
             if (uiModule == null)
-            {
                 return IntPtr.Zero;
-            }
 
             var agentModule = uiModule->GetAgentModule();
             if (agentModule == null)
-            {
                 return IntPtr.Zero;
-            }
 
             var unitBase = (FFXIVClientStructs.FFXIV.Component.GUI.AtkUnitBase*)addon;
             var id = unitBase->ParentID;
             if (id == 0)
-                id = unitBase->ID;
-
-            if (id == 0)
-                return IntPtr.Zero;
-
-            // Patch 6.1, 398 agents
-            for (var i = 0; i < 398; i++)
             {
-                var agent = &agentModule->AgentArray[i];
-
-                if (agent->AddonId == id)
-                    return new IntPtr(agent);
+                id = unitBase->ID;
+                if (id == 0)
+                    return IntPtr.Zero;
             }
 
-            return IntPtr.Zero;
+            var agent = agentModule->GetAgentByInternalID(id);
+            return (IntPtr)agent;
         }
 
         /// <summary>
