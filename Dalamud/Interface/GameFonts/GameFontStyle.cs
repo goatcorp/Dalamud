@@ -17,6 +17,11 @@ namespace Dalamud.Interface.GameFonts
         public GameFontFamilyAndSize FamilyAndSize;
 
         /// <summary>
+        /// Size of the font in pixels unit.
+        /// </summary>
+        public float SizePx;
+
+        /// <summary>
         /// Weight of the font.
         ///
         /// 0 is unaltered.
@@ -37,11 +42,12 @@ namespace Dalamud.Interface.GameFonts
         /// Initializes a new instance of the <see cref="GameFontStyle"/> struct.
         /// </summary>
         /// <param name="family">Font family.</param>
-        /// <param name="size">Size in points.</param>
-        public GameFontStyle(GameFontFamily family, float size)
+        /// <param name="sizePx">Size in pixels.</param>
+        public GameFontStyle(GameFontFamily family, float sizePx)
         {
-            this.FamilyAndSize = GetRecommendedFamilyAndSize(family, size);
+            this.FamilyAndSize = GetRecommendedFamilyAndSize(family, sizePx * 3 / 4);
             this.Weight = this.SkewStrength = 0f;
+            this.SizePx = sizePx;
         }
 
         /// <summary>
@@ -52,6 +58,20 @@ namespace Dalamud.Interface.GameFonts
         {
             this.FamilyAndSize = familyAndSize;
             this.Weight = this.SkewStrength = 0f;
+
+            // Dummy assignment to satisfy requirements
+            this.SizePx = 0;
+
+            this.SizePx = this.BaseSizePx;
+        }
+
+        /// <summary>
+        /// Gets or sets the size of the font in points unit.
+        /// </summary>
+        public float SizePt
+        {
+            get => this.SizePx * 3 / 4;
+            set => this.SizePx = value * 4 / 3;
         }
 
         /// <summary>
@@ -87,9 +107,23 @@ namespace Dalamud.Interface.GameFonts
         };
 
         /// <summary>
-        /// Gets the font size in point unit.
+        /// Gets the corresponding GameFontFamilyAndSize but with minimum possible font sizes.
         /// </summary>
-        public float SizePt => this.FamilyAndSize switch
+        public GameFontFamilyAndSize FamilyWithMinimumSize => this.Family switch
+        {
+            GameFontFamily.Axis => GameFontFamilyAndSize.Axis96,
+            GameFontFamily.Jupiter => GameFontFamilyAndSize.Jupiter16,
+            GameFontFamily.JupiterNumeric => GameFontFamilyAndSize.Jupiter45,
+            GameFontFamily.Meidinger => GameFontFamilyAndSize.Meidinger16,
+            GameFontFamily.MiedingerMid => GameFontFamilyAndSize.MiedingerMid10,
+            GameFontFamily.TrumpGothic => GameFontFamilyAndSize.TrumpGothic184,
+            _ => GameFontFamilyAndSize.Undefined,
+        };
+
+        /// <summary>
+        /// Gets the base font size in point unit.
+        /// </summary>
+        public float BaseSizePt => this.FamilyAndSize switch
         {
             GameFontFamilyAndSize.Undefined => 0,
             GameFontFamilyAndSize.Axis96 => 9.6f,
@@ -119,9 +153,9 @@ namespace Dalamud.Interface.GameFonts
         };
 
         /// <summary>
-        /// Gets the font size in pixel unit.
+        /// Gets the base font size in pixel unit.
         /// </summary>
-        public float SizePx => this.SizePt * 4 / 3;
+        public float BaseSizePx => this.BaseSizePt * 4 / 3;
 
         /// <summary>
         /// Gets or sets a value indicating whether this font is bold.
@@ -138,7 +172,9 @@ namespace Dalamud.Interface.GameFonts
         public bool Italic
         {
             get => this.SkewStrength != 0;
-            set => this.SkewStrength = value ? 4 : 0;
+            set => this.SkewStrength = value ? this.SizePx / 8 : 0;
+
+            // Goat said that skewing by 4 pixels on 30px font looks the best, so 7.5 it is, but rounded.
         }
 
         /// <summary>
@@ -235,6 +271,12 @@ namespace Dalamud.Interface.GameFonts
                 widthDelta -= 1f * this.SkewStrength * (glyph.CurrentOffsetY + glyph.BoundingHeight) / reader.FontHeader.LineHeight;
 
             return (int)Math.Ceiling(widthDelta);
+        }
+
+        /// <inheritdoc/>
+        public override string ToString()
+        {
+            return $"GameFontStyle({this.FamilyAndSize}, {this.SizePt}pt, skew={this.SkewStrength}, weight={this.Weight})";
         }
     }
 }
