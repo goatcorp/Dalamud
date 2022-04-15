@@ -35,7 +35,7 @@ namespace Dalamud.Configuration.Internal
         /// <summary>
         /// Gets a value indicating whether or not Dalamud context menus should be disabled.
         /// </summary>
-        public static bool DalamudNoContextMenu { get; } = GetEnvironmentVariable("DALAMUD_NO_CONTEXTMENU");
+        public static bool DalamudDoContextMenu { get; } = GetEnvironmentVariable("DALAMUD_ENABLE_CONTEXTMENU");
 
         private static bool GetEnvironmentVariable(string name)
             => bool.Parse(Environment.GetEnvironmentVariable(name) ?? "false");

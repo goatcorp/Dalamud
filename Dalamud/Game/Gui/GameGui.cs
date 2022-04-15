@@ -428,7 +428,7 @@ namespace Dalamud.Game.Gui
             Service<FlyTextGui>.Get().Enable();
             Service<PartyFinderGui>.Get().Enable();
 
-            if (!EnvironmentConfiguration.DalamudNoContextMenu)
+            if (EnvironmentConfiguration.DalamudDoContextMenu)
                 Service<ContextMenu>.Get().Enable();
 
             this.setGlobalBgmHook.Enable();
