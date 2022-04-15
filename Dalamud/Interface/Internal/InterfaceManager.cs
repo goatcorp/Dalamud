@@ -845,8 +845,26 @@ namespace Dalamud.Interface.Internal
 
                     var name = Encoding.UTF8.GetString((byte*)config.Name.Data, config.Name.Count).TrimEnd('\0');
 
-                    // While the font will be loaded in the scaled size after FontScale is applied, the font will be treated as having the requested size when used from plugins.
-                    this.loadedFontInfo[config.DstFont.NativePtr] = new($"PluginRequest({name})", config.SizePixels);
+                    // ImFont information is reflected only if corresponding ImFontConfig has MergeMode not set.
+                    if (config.MergeMode)
+                    {
+                        if (!this.loadedFontInfo.ContainsKey(config.DstFont.NativePtr))
+                        {
+                            Log.Warning("MergeMode specified for {0} but not found in loadedFontInfo. Skipping.", name);
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        if (this.loadedFontInfo.ContainsKey(config.DstFont.NativePtr))
+                        {
+                            Log.Warning("MergeMode not specified for {0} but found in loadedFontInfo. Skipping.", name);
+                            continue;
+                        }
+
+                        // While the font will be loaded in the scaled size after FontScale is applied, the font will be treated as having the requested size when used from plugins.
+                        this.loadedFontInfo[config.DstFont.NativePtr] = new($"PlReq({name})", config.SizePixels);
+                    }
 
                     if (disableBigFonts)
                     {
