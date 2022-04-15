@@ -625,7 +625,7 @@ namespace Dalamud.Interface.Internal
                 this.Axis = axis;
                 this.TargetSizePx = sizePx;
                 this.Scale = scale;
-                this.SourceAxis = Service<GameFontManager>.Get().NewFontRef(new(GameFontFamily.Axis, sizePx * scale * 3 / 4));
+                this.SourceAxis = Service<GameFontManager>.Get().NewFontRef(new(GameFontFamily.Axis, sizePx * scale));
             }
 
             internal enum AxisMode
@@ -705,7 +705,7 @@ namespace Dalamud.Interface.Internal
                     this.UseAxis ? TargetFontModification.AxisMode.Overwrite : TargetFontModification.AxisMode.GameGlyphsOnly,
                     this.UseAxis ? DefaultFontSizePx : DefaultFontSizePx + 1,
                     fontLoadScale);
-                Log.Verbose("[FONT] SetupFonts - Default corresponding AXIS size: {0}pt ({1}px)", fontInfo.SourceAxis.Style.SizePt, fontInfo.SourceAxis.Style.SizePx);
+                Log.Verbose("[FONT] SetupFonts - Default corresponding AXIS size: {0}pt ({1}px)", fontInfo.SourceAxis.Style.BaseSizePt, fontInfo.SourceAxis.Style.BaseSizePx);
                 if (this.UseAxis)
                 {
                     fontConfig.GlyphRanges = dummyRangeHandle.AddrOfPinnedObject();
@@ -807,7 +807,7 @@ namespace Dalamud.Interface.Internal
                         if (this.UseAxis)
                         {
                             fontConfig.GlyphRanges = dummyRangeHandle.AddrOfPinnedObject();
-                            fontConfig.SizePixels = fontInfo.SourceAxis.Style.SizePx;
+                            fontConfig.SizePixels = fontInfo.SourceAxis.Style.BaseSizePx;
                             fontConfig.PixelSnapH = false;
 
                             var sizedFont = ioFonts.AddFontDefault(fontConfig);
@@ -829,7 +829,7 @@ namespace Dalamud.Interface.Internal
                     }
                 }
 
-                gameFontManager.BuildFonts();
+                gameFontManager.BuildFonts(disableBigFonts);
 
                 var customFontFirstConfigIndex = ioFonts.ConfigData.Size;
 
@@ -903,7 +903,7 @@ namespace Dalamud.Interface.Internal
                         texPixels[i] = (byte)(Math.Pow(texPixels[i] / 255.0f, 1.0f / fontGamma) * 255.0f);
                 }
 
-                gameFontManager.AfterBuildFonts();
+                gameFontManager.AfterBuildFonts(disableBigFonts);
 
                 foreach (var (font, mod) in this.loadedFontInfo)
                 {
