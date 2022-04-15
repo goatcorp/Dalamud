@@ -189,6 +189,50 @@ namespace Dalamud.Injector
             }
         }
 
+        private static Process GetProcessFromExecuting(string gamePath)
+        {
+            var gameVersion = File.ReadAllText(Path.Combine(Directory.GetParent(gamePath).FullName, "ffxivgame.ver"));
+            var sqpackPath = Path.Combine(Directory.GetParent(gamePath).FullName, "sqpack");
+            var maxEntitledExpansionId = 0;
+            while (File.Exists(Path.Combine(sqpackPath, $"ex{maxEntitledExpansionId + 1}", $"ex{maxEntitledExpansionId + 1}.ver")))
+                maxEntitledExpansionId++;
+
+            var process = Process.Start(gamePath, new string[]
+            {
+                "DEV.TestSID=0",
+                "DEV.UseSqPack=1",
+                "DEV.DataPathType=1",
+                "DEV.LobbyHost01=127.0.0.1",
+                "DEV.LobbyPort01=54994",
+                "DEV.LobbyHost02=127.0.0.2",
+                "DEV.LobbyPort02=54994",
+                "DEV.LobbyHost03=127.0.0.3",
+                "DEV.LobbyPort03=54994",
+                "DEV.LobbyHost04=127.0.0.4",
+                "DEV.LobbyPort04=54994",
+                "DEV.LobbyHost05=127.0.0.5",
+                "DEV.LobbyPort05=54994",
+                "DEV.LobbyHost06=127.0.0.6",
+                "DEV.LobbyPort06=54994",
+                "DEV.LobbyHost07=127.0.0.7",
+                "DEV.LobbyPort07=54994",
+                "DEV.LobbyHost08=127.0.0.8",
+                "DEV.LobbyPort08=54994",
+                "DEV.LobbyHost09=127.0.0.9",
+                "DEV.LobbyPort09=54994",
+                "SYS.Region=0",
+                "language=1",
+                $"ver={gameVersion}",
+                $"DEV.MaxEntitledExpansionID={maxEntitledExpansionId}",
+                "DEV.GMServerHost=127.0.0.100",
+                "DEV.GameQuitMessageBox=0",
+            });
+
+            Thread.Sleep(1000);
+
+            return process;
+        }
+
         private static Process? GetProcess(string? arg)
         {
             Process process = null;
@@ -196,7 +240,15 @@ namespace Dalamud.Injector
             var pid = -1;
             if (arg != default)
             {
-                pid = int.Parse(arg);
+                try
+                {
+                    pid = int.Parse(arg);
+                }
+                catch (FormatException)
+                {
+                    if (File.Exists(arg))
+                        return GetProcessFromExecuting(arg);
+                }
             }
 
             switch (pid)
@@ -223,22 +275,8 @@ namespace Dalamud.Injector
                     break;
 
                 case -2:
-                    var exePath = "C:\\Program Files (x86)\\SquareEnix\\FINAL FANTASY XIV - A Realm Reborn\\game\\ffxiv_dx11.exe";
-                    var exeArgs = new StringBuilder()
-                        .Append("DEV.TestSID=0 DEV.UseSqPack=1 DEV.DataPathType=1 ")
-                        .Append("DEV.LobbyHost01=127.0.0.1 DEV.LobbyPort01=54994 ")
-                        .Append("DEV.LobbyHost02=127.0.0.1 DEV.LobbyPort02=54994 ")
-                        .Append("DEV.LobbyHost03=127.0.0.1 DEV.LobbyPort03=54994 ")
-                        .Append("DEV.LobbyHost04=127.0.0.1 DEV.LobbyPort04=54994 ")
-                        .Append("DEV.LobbyHost05=127.0.0.1 DEV.LobbyPort05=54994 ")
-                        .Append("DEV.LobbyHost06=127.0.0.1 DEV.LobbyPort06=54994 ")
-                        .Append("DEV.LobbyHost07=127.0.0.1 DEV.LobbyPort07=54994 ")
-                        .Append("DEV.LobbyHost08=127.0.0.1 DEV.LobbyPort08=54994 ")
-                        .Append("SYS.Region=0 language=1 version=1.0.0.0 ")
-                        .Append("DEV.MaxEntitledExpansionID=2 DEV.GMServerHost=127.0.0.1 DEV.GameQuitMessageBox=0").ToString();
-                    process = Process.Start(exePath, exeArgs);
-                    Thread.Sleep(1000);
-                    break;
+                    return GetProcessFromExecuting("C:\\Program Files (x86)\\SquareEnix\\FINAL FANTASY XIV - A Realm Reborn\\game\\ffxiv_dx11.exe");
+
                 default:
                     try
                     {
