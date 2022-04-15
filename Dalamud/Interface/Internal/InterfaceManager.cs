@@ -596,6 +596,29 @@ namespace Dalamud.Interface.Internal
 
         private unsafe class TargetFontModification : IDisposable
         {
+            /// <summary>
+            /// Initializes a new instance of the <see cref="TargetFontModification"/> class.
+            /// Constructs new target font modification information, assuming that AXIS fonts will not be applied.
+            /// </summary>
+            /// <param name="name">Name of the font to write to ImGui font information.</param>
+            /// <param name="sizePx">Target font size in pixels, which will not be considered for further scaling.</param>
+            internal TargetFontModification(string name, float sizePx)
+            {
+                this.Name = name;
+                this.Axis = AxisMode.Suppress;
+                this.TargetSizePx = sizePx;
+                this.Scale = 1;
+                this.SourceAxis = null;
+            }
+
+            /// <summary>
+            /// Initializes a new instance of the <see cref="TargetFontModification"/> class.
+            /// Constructs new target font modification information.
+            /// </summary>
+            /// <param name="name">Name of the font to write to ImGui font information.</param>
+            /// <param name="axis">Whether and how to use AXIS fonts.</param>
+            /// <param name="sizePx">Target font size in pixels, which will not be considered for further scaling.</param>
+            /// <param name="scale">Font scale to be referred for loading AXIS font of appropriate size.</param>
             internal TargetFontModification(string name, AxisMode axis, float sizePx, float scale)
             {
                 this.Name = name;
@@ -630,6 +653,10 @@ namespace Dalamud.Interface.Internal
             }
         }
 
+        /// <summary>
+        /// Loads font for use in ImGui text functions.
+        /// </summary>
+        /// <param name="scaler">If non-zero, then glyphs will be loaded in smaller resolution to make all glyphs fit into given constraints.</param>
         private unsafe void SetupFonts(int scaler = 0)
         {
             var gameFontManager = Service<GameFontManager>.Get();
@@ -817,8 +844,39 @@ namespace Dalamud.Interface.Internal
                     config.OversampleV = 1;
 
                     var name = Encoding.UTF8.GetString((byte*)config.Name.Data, config.Name.Count).TrimEnd('\0');
-                    this.loadedFontInfo[config.DstFont.NativePtr] = new($"PluginRequest({name})", TargetFontModification.AxisMode.Suppress, config.SizePixels, 1);
-                    config.SizePixels = (disableBigFonts ? DefaultFontSizePx : config.SizePixels) * fontLoadScale;
+
+                    // ImFont information is reflected only if corresponding ImFontConfig has MergeMode not set.
+                    if (config.MergeMode)
+                    {
+                        if (!this.loadedFontInfo.ContainsKey(config.DstFont.NativePtr))
+                        {
+                            Log.Warning("MergeMode specified for {0} but not found in loadedFontInfo. Skipping.", name);
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        if (this.loadedFontInfo.ContainsKey(config.DstFont.NativePtr))
+                        {
+                            Log.Warning("MergeMode not specified for {0} but found in loadedFontInfo. Skipping.", name);
+                            continue;
+                        }
+
+                        // While the font will be loaded in the scaled size after FontScale is applied, the font will be treated as having the requested size when used from plugins.
+                        this.loadedFontInfo[config.DstFont.NativePtr] = new($"PlReq({name})", config.SizePixels);
+                    }
+
+                    if (disableBigFonts)
+                    {
+                        // If a plugin has requested a font size that is bigger than current restrictions, load it scaled down.
+                        // After loading glyphs onto font atlas, font information will be modified to make it look like the font of original size has been loaded.
+                        if (config.SizePixels > DefaultFontSizePx * fontLoadScale)
+                            config.SizePixels = DefaultFontSizePx * fontLoadScale;
+                    }
+                    else
+                    {
+                        config.SizePixels = config.SizePixels * fontLoadScale;
+                    }
                 }
 
                 ioFonts.Build();

@@ -189,6 +189,8 @@ namespace Dalamud.Interface.GameFonts
                 font->FontSize /= fontScale;
                 font->Ascent /= fontScale;
                 font->Descent /= fontScale;
+                for (int i = 0, i_ = font->ConfigDataCount; i < i_; i++)
+                    font->ConfigData[i].SizePixels /= fontScale;
                 var glyphs = (ImFontGlyphReal*)font->Glyphs.Data;
                 for (int i = 0, i_ = font->Glyphs.Size; i < i_; i++)
                 {
