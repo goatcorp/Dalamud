@@ -42,7 +42,7 @@ namespace Dalamud.Interface.Internal.Windows
         /// </summary>
         public const int PluginIconHeight = 512;
 
-        private const string MainRepoImageUrl = "https://raw.githubusercontent.com/goatcorp/DalamudPlugins/api5/{0}/{1}/images/{2}";
+        private const string MainRepoImageUrl = "https://raw.githubusercontent.com/goatcorp/DalamudPlugins/api6/{0}/{1}/images/{2}";
 
         private BlockingCollection<Func<Task>> downloadQueue = new();
         private BlockingCollection<Action> loadQueue = new();
