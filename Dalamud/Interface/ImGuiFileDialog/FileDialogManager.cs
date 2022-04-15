@@ -10,15 +10,18 @@ namespace Dalamud.Interface.ImGuiFileDialog
         private FileDialog dialog;
         private string savedPath = ".";
         private Action<bool, string> callback;
+        private char selectionSeparator;
 
         /// <summary>
         /// Create a dialog which selects an already existing folder.
         /// </summary>
         /// <param name="title">The header title of the dialog.</param>
         /// <param name="callback">The action to execute when the dialog is finished.</param>
-        public void OpenFolderDialog(string title, Action<bool, string> callback)
+        /// <param name="startPath">The directory which the dialog should start inside of.</param>
+        /// <param name="isModal">Whether the dialog should be a modal popup.</param>
+        public void OpenFolderDialog(string title, Action<bool, string> callback, string? startPath = null, bool isModal = false)
         {
-            this.SetDialog("OpenFolderDialog", title, string.Empty, this.savedPath, ".", string.Empty, 1, false, ImGuiFileDialogFlags.SelectOnly, callback);
+            this.SetDialog("OpenFolderDialog", title, string.Empty, startPath ?? this.savedPath, ".", string.Empty, 1, isModal, ImGuiFileDialogFlags.SelectOnly, callback);
         }
 
         /// <summary>
@@ -27,9 +30,11 @@ namespace Dalamud.Interface.ImGuiFileDialog
         /// <param name="title">The header title of the dialog.</param>
         /// <param name="defaultFolderName">The default name to use when creating a new folder.</param>
         /// <param name="callback">The action to execute when the dialog is finished.</param>
-        public void SaveFolderDialog(string title, string defaultFolderName, Action<bool, string> callback)
+        /// <param name="startPath">The directory which the dialog should start inside of.</param>
+        /// <param name="isModal">Whether the dialog should be a modal popup.</param>
+        public void SaveFolderDialog(string title, string defaultFolderName, Action<bool, string> callback, string? startPath = null, bool isModal = false)
         {
-            this.SetDialog("SaveFolderDialog", title, string.Empty, this.savedPath, defaultFolderName, string.Empty, 1, false, ImGuiFileDialogFlags.None, callback);
+            this.SetDialog("SaveFolderDialog", title, string.Empty, startPath ?? this.savedPath, defaultFolderName, string.Empty, 1, isModal, ImGuiFileDialogFlags.None, callback);
         }
 
         /// <summary>
@@ -38,9 +43,21 @@ namespace Dalamud.Interface.ImGuiFileDialog
         /// <param name="title">The header title of the dialog.</param>
         /// <param name="filters">Which files to show in the dialog.</param>
         /// <param name="callback">The action to execute when the dialog is finished.</param>
-        public void OpenFileDialog(string title, string filters, Action<bool, string> callback)
+        /// <param name="startPath">The directory which the dialog should start inside of.</param>
+        /// <param name="selectionCountMax">The maximum amount of files or directories which can be selected. Set to 0 for an infinite number.</param>
+        /// <param name="selectionSeparator">The separator to put between multiple selected entries.</param>
+        /// <param name="isModal">Whether the dialog should be a modal popup.</param>
+        public void OpenFileDialog(
+            string title,
+            string filters,
+            Action<bool, string> callback,
+            string? startPath = null,
+            int selectionCountMax = 1,
+            char selectionSeparator = '\0',
+            bool isModal = false)
         {
-            this.SetDialog("OpenFileDialog", title, filters, this.savedPath, ".", string.Empty, 1, false, ImGuiFileDialogFlags.SelectOnly, callback);
+            this.selectionSeparator = selectionSeparator;
+            this.SetDialog("OpenFileDialog", title, filters, startPath ?? this.savedPath, ".", string.Empty, selectionCountMax, isModal, ImGuiFileDialogFlags.SelectOnly, callback);
         }
 
         /// <summary>
@@ -51,9 +68,18 @@ namespace Dalamud.Interface.ImGuiFileDialog
         /// <param name="defaultFileName">The default name to use when creating a new file.</param>
         /// <param name="defaultExtension">The extension to use when creating a new file.</param>
         /// <param name="callback">The action to execute when the dialog is finished.</param>
-        public void SaveFileDialog(string title, string filters, string defaultFileName, string defaultExtension, Action<bool, string> callback)
+        /// <param name="startPath">The directory which the dialog should start inside of.</param>
+        /// <param name="isModal">Whether the dialog should be a modal popup.</param>
+        public void SaveFileDialog(
+            string title,
+            string filters,
+            string defaultFileName,
+            string defaultExtension,
+            Action<bool, string> callback,
+            string? startPath = null,
+            bool isModal = false)
         {
-            this.SetDialog("SaveFileDialog", title, filters, this.savedPath, defaultFileName, defaultExtension, 1, false, ImGuiFileDialogFlags.None, callback);
+            this.SetDialog("SaveFileDialog", title, filters, startPath ?? this.savedPath, defaultFileName, defaultExtension, 1, isModal, ImGuiFileDialogFlags.None, callback);
         }
 
         /// <summary>
@@ -64,7 +90,7 @@ namespace Dalamud.Interface.ImGuiFileDialog
             if (this.dialog == null) return;
             if (this.dialog.Draw())
             {
-                this.callback(this.dialog.GetIsOk(), this.dialog.GetResult());
+                this.callback(this.dialog.GetIsOk(), this.dialog.GetResult(this.selectionSeparator));
                 this.savedPath = this.dialog.GetCurrentPath();
                 this.Reset();
             }
@@ -78,6 +104,7 @@ namespace Dalamud.Interface.ImGuiFileDialog
             this.dialog?.Hide();
             this.dialog = null;
             this.callback = null;
+            this.selectionSeparator = '\0';
         }
 
         private void SetDialog(
