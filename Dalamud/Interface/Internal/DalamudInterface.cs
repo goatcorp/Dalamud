@@ -674,7 +674,7 @@ namespace Dalamud.Interface.Internal
                             configuration.Save();
                         }
 
-                        if (ImGui.MenuItem("Load banned plugins", null, configuration.LoadBannedPlugins))
+                        if (ImGui.MenuItem("Load blacklisted plugins", null, configuration.LoadBannedPlugins))
                         {
                             configuration.LoadBannedPlugins = !configuration.LoadBannedPlugins;
                             configuration.Save();
