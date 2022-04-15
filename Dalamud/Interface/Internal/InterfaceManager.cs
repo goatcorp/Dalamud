@@ -818,7 +818,6 @@ namespace Dalamud.Interface.Internal
 
                     var name = Encoding.UTF8.GetString((byte*)config.Name.Data, config.Name.Count).TrimEnd('\0');
                     this.loadedFontInfo[config.DstFont.NativePtr] = new($"PluginRequest({name})", TargetFontModification.AxisMode.Suppress, config.SizePixels, 1);
-                    config.SizePixels = (disableBigFonts ? DefaultFontSizePx : config.SizePixels) * fontLoadScale;
                 }
 
                 ioFonts.Build();
