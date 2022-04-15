@@ -408,8 +408,16 @@ namespace Dalamud.Game.Gui
                     return IntPtr.Zero;
             }
 
-            var agent = agentModule->GetAgentByInternalID(id);
-            return (IntPtr)agent;
+            // Patch 6.1, 398 agents
+            for (var i = 0; i < 398; i++)
+            {
+                var agent = &agentModule->AgentArray[i];
+
+                if (agent->AddonId == id)
+                    return new IntPtr(agent);
+            }
+
+            return IntPtr.Zero;
         }
 
         /// <summary>
