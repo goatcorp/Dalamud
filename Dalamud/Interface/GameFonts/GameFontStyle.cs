@@ -75,6 +75,15 @@ namespace Dalamud.Interface.GameFonts
         }
 
         /// <summary>
+        /// Gets or sets the base skew strength.
+        /// </summary>
+        public float BaseSkewStrength
+        {
+            get => this.SkewStrength * this.BaseSizePx / this.SizePx;
+            set => this.SkewStrength = value * this.SizePx / this.BaseSizePx;
+        }
+
+        /// <summary>
         /// Gets the font family.
         /// </summary>
         public GameFontFamily Family => this.FamilyAndSize switch
@@ -172,9 +181,7 @@ namespace Dalamud.Interface.GameFonts
         public bool Italic
         {
             get => this.SkewStrength != 0;
-            set => this.SkewStrength = value ? this.SizePx / 8 : 0;
-
-            // Goat said that skewing by 4 pixels on 30px font looks the best, so 7.5 it is, but rounded.
+            set => this.SkewStrength = value ? this.SizePx / 7 : 0;
         }
 
         /// <summary>
@@ -262,13 +269,13 @@ namespace Dalamud.Interface.GameFonts
         /// <param name="reader">Font information.</param>
         /// <param name="glyph">Glyph.</param>
         /// <returns>Width adjustment in pixel unit.</returns>
-        public int CalculateWidthAdjustment(FdtReader reader, FdtReader.FontTableEntry glyph)
+        public int CalculateBaseWidthAdjustment(FdtReader reader, FdtReader.FontTableEntry glyph)
         {
             var widthDelta = this.Weight;
-            if (this.SkewStrength > 0)
-                widthDelta += 1f * this.SkewStrength * (reader.FontHeader.LineHeight - glyph.CurrentOffsetY) / reader.FontHeader.LineHeight;
-            else if (this.SkewStrength < 0)
-                widthDelta -= 1f * this.SkewStrength * (glyph.CurrentOffsetY + glyph.BoundingHeight) / reader.FontHeader.LineHeight;
+            if (this.BaseSkewStrength > 0)
+                widthDelta += 1f * this.BaseSkewStrength * (reader.FontHeader.LineHeight - glyph.CurrentOffsetY) / reader.FontHeader.LineHeight;
+            else if (this.BaseSkewStrength < 0)
+                widthDelta -= 1f * this.BaseSkewStrength * (glyph.CurrentOffsetY + glyph.BoundingHeight) / reader.FontHeader.LineHeight;
 
             return (int)Math.Ceiling(widthDelta);
         }

@@ -323,7 +323,7 @@ namespace Dalamud.Interface.GameFonts
                         if (c < 32 || c >= 0xFFFF)
                             continue;
 
-                        var widthAdjustment = style.CalculateWidthAdjustment(fdt, glyph);
+                        var widthAdjustment = style.CalculateBaseWidthAdjustment(fdt, glyph);
                         rectIds[c] = Tuple.Create(
                             io.Fonts.AddCustomRectFontGlyph(
                                 font,
@@ -378,7 +378,7 @@ namespace Dalamud.Interface.GameFonts
                     var rc = ioFonts.GetCustomRectByIndex(rectId);
                     var sourceBuffer = this.texturePixels[glyph.TextureFileIndex];
                     var sourceBufferDelta = glyph.TextureChannelByteIndex;
-                    var widthAdjustment = style.CalculateWidthAdjustment(fdt, glyph);
+                    var widthAdjustment = style.CalculateBaseWidthAdjustment(fdt, glyph);
                     if (widthAdjustment == 0)
                     {
                         for (var y = 0; y < glyph.BoundingHeight; y++)
@@ -404,10 +404,10 @@ namespace Dalamud.Interface.GameFonts
                             for (var y = 0; y < glyph.BoundingHeight; y++)
                             {
                                 float xDelta = xbold;
-                                if (style.SkewStrength > 0)
-                                    xDelta += style.SkewStrength * (fdt.FontHeader.LineHeight - glyph.CurrentOffsetY - y) / fdt.FontHeader.LineHeight;
-                                else if (style.SkewStrength < 0)
-                                    xDelta -= style.SkewStrength * (glyph.CurrentOffsetY + y) / fdt.FontHeader.LineHeight;
+                                if (style.BaseSkewStrength > 0)
+                                    xDelta += style.BaseSkewStrength * (fdt.FontHeader.LineHeight - glyph.CurrentOffsetY - y) / fdt.FontHeader.LineHeight;
+                                else if (style.BaseSkewStrength < 0)
+                                    xDelta -= style.BaseSkewStrength * (glyph.CurrentOffsetY + y) / fdt.FontHeader.LineHeight;
                                 var xDeltaInt = (int)Math.Floor(xDelta);
                                 var xness = xDelta - xDeltaInt;
                                 for (var x = 0; x < glyph.BoundingWidth; x++)
