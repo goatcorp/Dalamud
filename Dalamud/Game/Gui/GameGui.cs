@@ -15,6 +15,8 @@ using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.System.String;
+using FFXIVClientStructs.FFXIV.Client.UI;
+using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
 using Serilog;
 
@@ -386,12 +388,12 @@ namespace Dalamud.Game.Gui
         /// </summary>
         /// <param name="addon">The addon address.</param>
         /// <returns>A pointer to the agent interface.</returns>
-        public unsafe IntPtr FindAgentInterface(IntPtr addon)
+        public unsafe IntPtr FindAgentInterface(IntPtr addonPtr)
         {
-            if (addon == IntPtr.Zero)
+            if (addonPtr == IntPtr.Zero)
                 return IntPtr.Zero;
 
-            var uiModule = (FFXIVClientStructs.FFXIV.Client.UI.UIModule*)this.GetUIModule();
+            var uiModule = (UIModule*)this.GetUIModule();
             if (uiModule == null)
                 return IntPtr.Zero;
 
@@ -399,21 +401,20 @@ namespace Dalamud.Game.Gui
             if (agentModule == null)
                 return IntPtr.Zero;
 
-            var unitBase = (FFXIVClientStructs.FFXIV.Component.GUI.AtkUnitBase*)addon;
-            var id = unitBase->ParentID;
-            if (id == 0)
-            {
-                id = unitBase->ID;
-                if (id == 0)
-                    return IntPtr.Zero;
-            }
+            var addon = (AtkUnitBase*)addonPtr;
+            var addonId = addon->ParentID == 0 ? addon->ID : addon->ParentID;
 
-            // Patch 6.1, 398 agents
-            for (var i = 0; i < 398; i++)
-            {
-                var agent = &agentModule->AgentArray[i];
+            if (addonId == 0)
+                return IntPtr.Zero;
 
-                if (agent->AddonId == id)
+            var index = 0;
+            while (true)
+            {
+                var agent = agentModule->GetAgentByInternalID((uint)index++);
+                if (agent == uiModule || agent == null)
+                    break;
+
+                if (agent->AddonId == addonId)
                     return new IntPtr(agent);
             }
 
