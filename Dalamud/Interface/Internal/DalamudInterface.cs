@@ -53,6 +53,7 @@ namespace Dalamud.Interface.Internal
         private readonly SelfTestWindow selfTestWindow;
         private readonly StyleEditorWindow styleEditorWindow;
         private readonly TitleScreenMenuWindow titleScreenMenuWindow;
+        private readonly FallbackFontNoticeWindow fallbackFontNoticeWindow;
 
         private readonly TextureWrap logoTexture;
         private readonly TextureWrap tsmLogoTexture;
@@ -74,6 +75,7 @@ namespace Dalamud.Interface.Internal
         public DalamudInterface()
         {
             var configuration = Service<DalamudConfiguration>.Get();
+            var interfaceManager = Service<InterfaceManager>.Get();
 
             this.WindowSystem = new WindowSystem("DalamudCore");
 
@@ -91,6 +93,7 @@ namespace Dalamud.Interface.Internal
             this.selfTestWindow = new SelfTestWindow() { IsOpen = false };
             this.styleEditorWindow = new StyleEditorWindow() { IsOpen = false };
             this.titleScreenMenuWindow = new TitleScreenMenuWindow() { IsOpen = false };
+            this.fallbackFontNoticeWindow = new FallbackFontNoticeWindow() { IsOpen = interfaceManager.IsFallbackFontMode && !configuration.DisableFontFallbackNotice };
 
             this.WindowSystem.AddWindow(this.changelogWindow);
             this.WindowSystem.AddWindow(this.colorDemoWindow);
@@ -106,10 +109,10 @@ namespace Dalamud.Interface.Internal
             this.WindowSystem.AddWindow(this.selfTestWindow);
             this.WindowSystem.AddWindow(this.styleEditorWindow);
             this.WindowSystem.AddWindow(this.titleScreenMenuWindow);
+            this.WindowSystem.AddWindow(this.fallbackFontNoticeWindow);
 
             ImGuiManagedAsserts.AssertsEnabled = configuration.AssertsEnabledAtStartup;
 
-            var interfaceManager = Service<InterfaceManager>.Get();
             interfaceManager.Draw += this.OnDraw;
             var dalamud = Service<Dalamud>.Get();
 
@@ -206,6 +209,11 @@ namespace Dalamud.Interface.Internal
         /// Opens the dev menu bar.
         /// </summary>
         public void OpenDevMenu() => this.isImGuiDrawDevMenu = true;
+
+        /// <summary>
+        /// Opens the fallback font notice window.
+        /// </summary>
+        public void OpenFallbackFontNoticeWindow() => this.fallbackFontNoticeWindow.IsOpen = true;
 
         /// <summary>
         /// Opens the <see cref="GamepadModeNotifierWindow"/>.
