@@ -47,6 +47,8 @@ namespace Dalamud.Interface.Internal
     /// </summary>
     internal class InterfaceManager : IDisposable
     {
+        private const float MinimumFallbackFontSizePt = 9.6f;  // Game's minimum AXIS font size
+        private const float MinimumFallbackFontSizePx = MinimumFallbackFontSizePt * 4.0f / 3.0f;
         private const float DefaultFontSizePt = 12.0f;
         private const float DefaultFontSizePx = DefaultFontSizePt * 4.0f / 3.0f;
         private const ushort Fallback1Codepoint = 0x3013; // Geta mark; FFXIV uses this to indicate that a glyph is missing.
@@ -68,6 +70,8 @@ namespace Dalamud.Interface.Internal
         // can't access imgui IO before first present call
         private bool lastWantCapture = false;
         private bool isRebuildingFonts = false;
+
+        private bool isFallbackFontMode = false;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InterfaceManager"/> class.
@@ -147,6 +151,11 @@ namespace Dalamud.Interface.Internal
         public event Action AfterBuildFonts;
 
         /// <summary>
+        /// Gets or sets an action that is executed right after font fallback mode has been changed.
+        /// </summary>
+        public event Action<bool> OnFallbackFontModeChange;
+
+        /// <summary>
         /// Gets the default ImGui font.
         /// </summary>
         public static ImFontPtr DefaultFont { get; private set; }
@@ -194,6 +203,22 @@ namespace Dalamud.Interface.Internal
         /// Gets a value indicating whether the Dalamud interface ready to use.
         /// </summary>
         public bool IsReady => this.scene != null;
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the font has been loaded in fallback mode.
+        /// </summary>
+        public bool IsFallbackFontMode
+        {
+            get => this.isFallbackFontMode;
+            internal set
+            {
+                if (value == this.isFallbackFontMode)
+                    return;
+
+                this.isFallbackFontMode = value;
+                this.OnFallbackFontModeChange?.Invoke(value);
+            }
+        }
 
         /// <summary>
         /// Gets or sets a value indicating whether to override configuration for UseAxis.
@@ -594,70 +619,11 @@ namespace Dalamud.Interface.Internal
             ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;
         }
 
-        private unsafe class TargetFontModification : IDisposable
-        {
-            /// <summary>
-            /// Initializes a new instance of the <see cref="TargetFontModification"/> class.
-            /// Constructs new target font modification information, assuming that AXIS fonts will not be applied.
-            /// </summary>
-            /// <param name="name">Name of the font to write to ImGui font information.</param>
-            /// <param name="sizePx">Target font size in pixels, which will not be considered for further scaling.</param>
-            internal TargetFontModification(string name, float sizePx)
-            {
-                this.Name = name;
-                this.Axis = AxisMode.Suppress;
-                this.TargetSizePx = sizePx;
-                this.Scale = 1;
-                this.SourceAxis = null;
-            }
-
-            /// <summary>
-            /// Initializes a new instance of the <see cref="TargetFontModification"/> class.
-            /// Constructs new target font modification information.
-            /// </summary>
-            /// <param name="name">Name of the font to write to ImGui font information.</param>
-            /// <param name="axis">Whether and how to use AXIS fonts.</param>
-            /// <param name="sizePx">Target font size in pixels, which will not be considered for further scaling.</param>
-            /// <param name="scale">Font scale to be referred for loading AXIS font of appropriate size.</param>
-            internal TargetFontModification(string name, AxisMode axis, float sizePx, float scale)
-            {
-                this.Name = name;
-                this.Axis = axis;
-                this.TargetSizePx = sizePx;
-                this.Scale = scale;
-                this.SourceAxis = Service<GameFontManager>.Get().NewFontRef(new(GameFontFamily.Axis, sizePx * scale));
-            }
-
-            internal enum AxisMode
-            {
-                Suppress,
-                GameGlyphsOnly,
-                Overwrite,
-            }
-
-            internal string Name { get; private init; }
-
-            internal AxisMode Axis { get; private init; }
-
-            internal float TargetSizePx { get; private init; }
-
-            internal float Scale { get; private init; }
-
-            internal GameFontHandle? SourceAxis { get; private init; }
-
-            internal bool SourceAxisAvailable => this.SourceAxis != null && this.SourceAxis.ImFont.NativePtr != null;
-
-            public void Dispose()
-            {
-                this.SourceAxis?.Dispose();
-            }
-        }
-
         /// <summary>
         /// Loads font for use in ImGui text functions.
         /// </summary>
-        /// <param name="scaler">If non-zero, then glyphs will be loaded in smaller resolution to make all glyphs fit into given constraints.</param>
-        private unsafe void SetupFonts(int scaler = 0)
+        /// <param name="disableBigFonts">If set, then glyphs will be loaded in smaller resolution to make all glyphs fit into given constraints.</param>
+        private unsafe void SetupFonts(bool disableBigFonts = false)
         {
             var gameFontManager = Service<GameFontManager>.Get();
             var dalamud = Service<Dalamud>.Get();
@@ -665,8 +631,6 @@ namespace Dalamud.Interface.Internal
             var ioFonts = io.Fonts;
 
             var maxTexDimension = 1 << (10 + Math.Max(0, Math.Min(4, this.FontResolutionLevel)));
-            var disableBigFonts = scaler != 0;
-            var fontLoadScale = disableBigFonts ? Math.Min(io.FontGlobalScale, 1.0f / scaler) : io.FontGlobalScale;
             var fontGamma = this.FontGamma;
 
             this.fontBuildSignal.Reset();
@@ -704,7 +668,8 @@ namespace Dalamud.Interface.Internal
                     "Default",
                     this.UseAxis ? TargetFontModification.AxisMode.Overwrite : TargetFontModification.AxisMode.GameGlyphsOnly,
                     this.UseAxis ? DefaultFontSizePx : DefaultFontSizePx + 1,
-                    fontLoadScale);
+                    io.FontGlobalScale,
+                    disableBigFonts);
                 Log.Verbose("[FONT] SetupFonts - Default corresponding AXIS size: {0}pt ({1}px)", fontInfo.SourceAxis.Style.BaseSizePt, fontInfo.SourceAxis.Style.BaseSizePx);
                 if (this.UseAxis)
                 {
@@ -721,7 +686,7 @@ namespace Dalamud.Interface.Internal
 
                     fontConfig.GlyphRanges = japaneseRangeHandle.AddrOfPinnedObject();
                     fontConfig.PixelSnapH = true;
-                    DefaultFont = ioFonts.AddFontFromFileTTF(fontPathJp, fontInfo.TargetSizePx * fontLoadScale, fontConfig);
+                    DefaultFont = ioFonts.AddFontFromFileTTF(fontPathJp, disableBigFonts ? Math.Min(MinimumFallbackFontSizePx, fontInfo.TargetSizePx) : fontInfo.TargetSizePx * io.FontGlobalScale, fontConfig);
                     this.loadedFontInfo[DefaultFont] = fontInfo;
                 }
 
@@ -737,8 +702,8 @@ namespace Dalamud.Interface.Internal
 
                     fontConfig.GlyphRanges = iconRangeHandle.AddrOfPinnedObject();
                     fontConfig.PixelSnapH = true;
-                    IconFont = ioFonts.AddFontFromFileTTF(fontPathIcon, DefaultFontSizePx * fontLoadScale, fontConfig);
-                    this.loadedFontInfo[IconFont] = new("Icon", TargetFontModification.AxisMode.GameGlyphsOnly, DefaultFontSizePx, fontLoadScale);
+                    IconFont = ioFonts.AddFontFromFileTTF(fontPathIcon, disableBigFonts ? Math.Min(MinimumFallbackFontSizePx, DefaultFontSizePx) : DefaultFontSizePx * io.FontGlobalScale, fontConfig);
+                    this.loadedFontInfo[IconFont] = new("Icon", TargetFontModification.AxisMode.GameGlyphsOnly, DefaultFontSizePx, io.FontGlobalScale, disableBigFonts);
                 }
 
                 // Monospace font
@@ -750,8 +715,8 @@ namespace Dalamud.Interface.Internal
 
                     fontConfig.GlyphRanges = IntPtr.Zero;
                     fontConfig.PixelSnapH = true;
-                    MonoFont = ioFonts.AddFontFromFileTTF(fontPathMono, DefaultFontSizePx * fontLoadScale, fontConfig);
-                    this.loadedFontInfo[MonoFont] = new("Mono", TargetFontModification.AxisMode.GameGlyphsOnly, DefaultFontSizePx, fontLoadScale);
+                    MonoFont = ioFonts.AddFontFromFileTTF(fontPathMono, disableBigFonts ? Math.Min(MinimumFallbackFontSizePx, DefaultFontSizePx) : DefaultFontSizePx * io.FontGlobalScale, fontConfig);
+                    this.loadedFontInfo[MonoFont] = new("Mono", TargetFontModification.AxisMode.GameGlyphsOnly, DefaultFontSizePx, io.FontGlobalScale, disableBigFonts);
                 }
 
                 // Default font but in requested size for requested glyphs
@@ -803,7 +768,8 @@ namespace Dalamud.Interface.Internal
                             $"Requested({fontSize}px)",
                             this.UseAxis ? TargetFontModification.AxisMode.Overwrite : TargetFontModification.AxisMode.GameGlyphsOnly,
                             fontSize,
-                            fontLoadScale);
+                            io.FontGlobalScale,
+                            disableBigFonts);
                         if (this.UseAxis)
                         {
                             fontConfig.GlyphRanges = dummyRangeHandle.AddrOfPinnedObject();
@@ -821,7 +787,7 @@ namespace Dalamud.Interface.Internal
                             garbageList.Add(rangeHandle);
                             fontConfig.PixelSnapH = true;
 
-                            var sizedFont = ioFonts.AddFontFromFileTTF(fontPathJp, (disableBigFonts ? DefaultFontSizePx + 1 : fontSize) * fontLoadScale, fontConfig, rangeHandle.AddrOfPinnedObject());
+                            var sizedFont = ioFonts.AddFontFromFileTTF(fontPathJp, disableBigFonts ? Math.Min(MinimumFallbackFontSizePx, fontSize) : fontSize * io.FontGlobalScale, fontConfig, rangeHandle.AddrOfPinnedObject());
                             this.loadedFontInfo[sizedFont] = fontInfo;
                             foreach (var request in requests)
                                 request.FontInternal = sizedFont;
@@ -870,30 +836,44 @@ namespace Dalamud.Interface.Internal
                     {
                         // If a plugin has requested a font size that is bigger than current restrictions, load it scaled down.
                         // After loading glyphs onto font atlas, font information will be modified to make it look like the font of original size has been loaded.
-                        if (config.SizePixels > DefaultFontSizePx * fontLoadScale)
-                            config.SizePixels = DefaultFontSizePx * fontLoadScale;
+                        if (config.SizePixels > MinimumFallbackFontSizePx)
+                            config.SizePixels = MinimumFallbackFontSizePx;
                     }
                     else
                     {
-                        config.SizePixels = config.SizePixels * fontLoadScale;
+                        config.SizePixels = config.SizePixels * io.FontGlobalScale;
                     }
                 }
 
+                Log.Verbose("[FONT] ImGui.IO.Build will be called.");
                 ioFonts.Build();
+                Log.Verbose("[FONT] ImGui.IO.Build OK!");
 
                 if (ioFonts.TexHeight > maxTexDimension)
                 {
-                    if (scaler < 4)
+                    var possibilityForScaling = false;
+                    foreach (var x in this.loadedFontInfo.Values)
                     {
-                        Log.Information("[FONT] Atlas size is {0}x{1} which is bigger than allowed {2}x{3}. Retrying with scale {4}.", ioFonts.TexWidth, ioFonts.TexHeight, maxTexDimension, maxTexDimension, scaler + 1);
-                        this.SetupFonts(scaler + 1);
+                        if (x.TargetSizePx * x.Scale > MinimumFallbackFontSizePx)
+                        {
+                            possibilityForScaling = true;
+                            break;
+                        }
+                    }
+
+                    if (possibilityForScaling && !disableBigFonts)
+                    {
+                        Log.Information("[FONT] Atlas size is {0}x{1} which is bigger than allowed {2}x{3}. Retrying with minimized font sizes.", ioFonts.TexWidth, ioFonts.TexHeight, maxTexDimension, maxTexDimension);
+                        this.SetupFonts(true);
                         return;
                     }
                     else
                     {
-                        Log.Warning("[FONT] Atlas size is {0}x{1} which is bigger than allowed {2}x{3}, but giving up trying to scale smaller.", ioFonts.TexWidth, ioFonts.TexHeight, maxTexDimension, maxTexDimension);
+                        Log.Warning("[FONT] Atlas size is {0}x{1} which is bigger than allowed {2}x{3} even when font sizes are minimized up to {4}px. This may result in crash.", ioFonts.TexWidth, ioFonts.TexHeight, maxTexDimension, maxTexDimension, MinimumFallbackFontSizePx);
                     }
                 }
+
+                this.IsFallbackFontMode = disableBigFonts;
 
                 if (Math.Abs(fontGamma - 1.0f) >= 0.001)
                 {
@@ -1159,6 +1139,66 @@ namespace Dalamud.Interface.Internal
             public void Dispose()
             {
                 this.Manager.glyphRequests.Remove(this);
+            }
+        }
+
+        private unsafe class TargetFontModification : IDisposable
+        {
+            /// <summary>
+            /// Initializes a new instance of the <see cref="TargetFontModification"/> class.
+            /// Constructs new target font modification information, assuming that AXIS fonts will not be applied.
+            /// </summary>
+            /// <param name="name">Name of the font to write to ImGui font information.</param>
+            /// <param name="sizePx">Target font size in pixels, which will not be considered for further scaling.</param>
+            internal TargetFontModification(string name, float sizePx)
+            {
+                this.Name = name;
+                this.Axis = AxisMode.Suppress;
+                this.TargetSizePx = sizePx;
+                this.Scale = 1;
+                this.SourceAxis = null;
+            }
+
+            /// <summary>
+            /// Initializes a new instance of the <see cref="TargetFontModification"/> class.
+            /// Constructs new target font modification information.
+            /// </summary>
+            /// <param name="name">Name of the font to write to ImGui font information.</param>
+            /// <param name="axis">Whether and how to use AXIS fonts.</param>
+            /// <param name="sizePx">Target font size in pixels, which will not be considered for further scaling.</param>
+            /// <param name="globalFontScale">Font scale to be referred for loading AXIS font of appropriate size.</param>
+            /// <param name="disableBigFonts">Whether to enable loading big AXIS fonts.</param>
+            internal TargetFontModification(string name, AxisMode axis, float sizePx, float globalFontScale, bool disableBigFonts)
+            {
+                this.Name = name;
+                this.Axis = axis;
+                this.TargetSizePx = sizePx;
+                this.Scale = disableBigFonts ? MinimumFallbackFontSizePx / sizePx : globalFontScale;
+                this.SourceAxis = Service<GameFontManager>.Get().NewFontRef(new(GameFontFamily.Axis, this.TargetSizePx * this.Scale));
+            }
+
+            internal enum AxisMode
+            {
+                Suppress,
+                GameGlyphsOnly,
+                Overwrite,
+            }
+
+            internal string Name { get; private init; }
+
+            internal AxisMode Axis { get; private init; }
+
+            internal float TargetSizePx { get; private init; }
+
+            internal float Scale { get; private init; }
+
+            internal GameFontHandle? SourceAxis { get; private init; }
+
+            internal bool SourceAxisAvailable => this.SourceAxis != null && this.SourceAxis.ImFont.NativePtr != null;
+
+            public void Dispose()
+            {
+                this.SourceAxis?.Dispose();
             }
         }
     }
