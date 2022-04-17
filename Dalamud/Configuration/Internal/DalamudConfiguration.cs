@@ -150,6 +150,11 @@ namespace Dalamud.Configuration.Internal
         public int FontResolutionLevel { get; set; } = 2;
 
         /// <summary>
+        /// Gets or sets a value indicating whether to disable font fallback notice.
+        /// </summary>
+        public bool DisableFontFallbackNotice { get; set; } = false;
+
+        /// <summary>
         /// Gets or sets a value indicating whether or not plugin UI should be hidden.
         /// </summary>
         public bool ToggleUiHide { get; set; } = true;

@@ -197,7 +197,9 @@ namespace Dalamud.Interface.Internal.Windows
             var configuration = Service<DalamudConfiguration>.Get();
             var interfaceManager = Service<InterfaceManager>.Get();
 
-            var rebuildFont = interfaceManager.FontGamma != configuration.FontGammaLevel;
+            var rebuildFont = interfaceManager.FontGamma != configuration.FontGammaLevel
+                || interfaceManager.FontResolutionLevel != configuration.FontResolutionLevel
+                || interfaceManager.UseAxis != configuration.UseAxisFontsFromGame;
 
             ImGui.GetIO().FontGlobalScale = configuration.GlobalUiScale;
             interfaceManager.FontGammaOverride = null;
@@ -395,6 +397,18 @@ namespace Dalamud.Interface.Internal.Windows
                 ImGui.GetIO().Fonts.TexWidth,
                 ImGui.GetIO().Fonts.TexHeight));
             ImGui.PopStyleColor();
+
+            if (Service<DalamudConfiguration>.Get().DisableFontFallbackNotice)
+            {
+                ImGui.Text(Loc.Localize("DalamudSettingsFontResolutionLevelWarningDisabled", "Warning will not be displayed even when the limits are enforced and fonts become blurry."));
+                if (ImGui.Button(Loc.Localize("DalamudSettingsFontResolutionLevelWarningReset", "Show warnings") + "##DalamudSettingsFontResolutionLevelWarningReset"))
+                {
+                    Service<DalamudConfiguration>.Get().DisableFontFallbackNotice = false;
+                    Service<DalamudConfiguration>.Get().Save();
+                    if (Service<InterfaceManager>.Get().IsFallbackFontMode)
+                        Service<DalamudInterface>.Get().OpenFallbackFontNoticeWindow();
+                }
+            }
 
             ImGuiHelpers.ScaledDummy(10);
 
