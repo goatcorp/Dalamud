@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Types;
-using Dalamud.Utility;
 using Newtonsoft.Json;
 
 namespace Dalamud.Plugin.Internal
@@ -18,6 +19,17 @@ namespace Dalamud.Plugin.Internal
         private const string DalamudPluginsMasterUrl = "https://kamori.goats.dev/Plugin/PluginMaster";
 
         private static readonly ModuleLog Log = new("PLUGINR");
+
+        private static HttpClient HttpClient = new()
+        {
+            DefaultRequestHeaders =
+            {
+                CacheControl = new CacheControlHeaderValue
+                {
+                    NoCache = true,
+                },
+            },
+        };
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PluginRepository"/> class.
@@ -74,8 +86,7 @@ namespace Dalamud.Plugin.Internal
             {
                 Log.Information($"Fetching repo: {this.PluginMasterUrl}");
 
-                // ?ticks causes a cache invalidation. Get a fresh repo every time.
-                using var response = await Util.HttpClient.GetAsync(this.PluginMasterUrl + "?" + DateTime.Now.Ticks);
+                using var response = await HttpClient.GetAsync(this.PluginMasterUrl);
                 response.EnsureSuccessStatusCode();
 
                 var data = await response.Content.ReadAsStringAsync();
