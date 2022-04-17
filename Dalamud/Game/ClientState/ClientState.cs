@@ -62,7 +62,7 @@ namespace Dalamud.Game.ClientState
 
             Service<GamepadState>.Set(this.address);
 
-            Service<Condition>.Set(this.address);
+            Service<Conditions.Condition>.Set(this.address);
 
             Service<TargetManager>.Set(this.address);
 
