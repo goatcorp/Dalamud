@@ -134,26 +134,9 @@ namespace Dalamud.Interface.Internal.Windows
             };
 
             this.languages = Localization.ApplicableLangCodes.Prepend("en").ToArray();
-            try
-            {
-                if (string.IsNullOrEmpty(configuration.LanguageOverride))
-                {
-                    var currentUiLang = CultureInfo.CurrentUICulture;
-
-                    if (Localization.ApplicableLangCodes.Any(x => currentUiLang.TwoLetterISOLanguageName == x))
-                        this.langIndex = Array.IndexOf(this.languages, currentUiLang.TwoLetterISOLanguageName);
-                    else
-                        this.langIndex = 0;
-                }
-                else
-                {
-                    this.langIndex = Array.IndexOf(this.languages, configuration.LanguageOverride);
-                }
-            }
-            catch (Exception)
-            {
+            this.langIndex = Array.IndexOf(this.languages, configuration.EffectiveLanguage);
+            if (this.langIndex == -1)
                 this.langIndex = 0;
-            }
 
             try
             {
