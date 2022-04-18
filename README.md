@@ -21,14 +21,28 @@ If you need any support regarding the API or usage of Dalamud, please [join our 
 
 Thanks to Mino, whose work has made this possible!
 
+## Components & Pipeline
+
+These components are used in order to load Dalamud into a target process.
+Dalamud can be loaded via DLL injection, or by rewriting a process' entrypoint.
+
+| Name | Purpose |
+|---|---|
+| *Dalamud.Injector.Boot* (C++) | Loads the .NET Core runtime into a process via hostfxr and kicks off Dalamud.Injector |
+| *Dalamud.Injector* (C#) | Performs DLL injection on the target process |
+| *Dalamud.Boot* (C++) | Loads the .NET Core runtime into the active process and kicks off Dalamud, or rewrites a target process' entrypoint to do so |
+| *Dalamud* (C#) | Core API, game bindings, plugin framework |
+| *Dalamud.CorePlugin* (C#) | Testbed plugin that can access Dalamud internals, to prototype new Dalamud features |
+
 ## Branches
 
 We are currently working from the following branches.
 
-| Name | Purpose | .NET Version |
-|---|---|---|
-| *master* | .NET Core rework, replaced api3 on 10/08/21 | .NET 5.0.6 (May 2021) |
-| *api3* | Legacy version, no longer in active use | .NET Framework 4.7.2 (April 2017) |
+| Name | Purpose | .NET Version | Track |
+|---|---|---|---|
+| *master* | Upgrade to .NET 6 | .NET 6.0.3 (March 2022) | Staging |
+| *net5* | Current release branch | .NET 5.0.6 (May 2021) | Release |
+| *api3* | Legacy version, no longer in active use | .NET Framework 4.7.2 (April 2017) | - |
 
 <br>
 
