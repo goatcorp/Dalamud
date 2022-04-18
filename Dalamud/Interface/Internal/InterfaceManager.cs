@@ -887,8 +887,19 @@ namespace Dalamud.Interface.Internal
 
                 foreach (var (font, mod) in this.loadedFontInfo)
                 {
-                    var nameBytes = Encoding.UTF8.GetBytes(mod.Name + "\0");
-                    Marshal.Copy(nameBytes, 0, (IntPtr)font.ConfigData.Name.Data, Math.Min(nameBytes.Length, font.ConfigData.Name.Count));
+                    // I have no idea what's causing NPE, so just to be safe
+                    try
+                    {
+                        if (font.NativePtr != null && font.NativePtr->ConfigData != null)
+                        {
+                            var nameBytes = Encoding.UTF8.GetBytes($"{mod.Name}\0");
+                            Marshal.Copy(nameBytes, 0, (IntPtr)font.ConfigData.Name.Data, Math.Min(nameBytes.Length, font.ConfigData.Name.Count));
+                        }
+                    }
+                    catch (NullReferenceException)
+                    {
+                        // do nothing
+                    }
 
                     Log.Verbose("[FONT] {0}: Unscale with scale value of {1}", mod.Name, mod.Scale);
                     GameFontManager.UnscaleFont(font, mod.Scale, false);

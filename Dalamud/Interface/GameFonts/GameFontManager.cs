@@ -190,8 +190,8 @@ namespace Dalamud.Interface.GameFonts
                 font->FontSize /= fontScale;
                 font->Ascent /= fontScale;
                 font->Descent /= fontScale;
-                for (int i = 0, i_ = font->ConfigDataCount; i < i_; i++)
-                    font->ConfigData[i].SizePixels /= fontScale;
+                if (font->ConfigData != null)
+                    font->ConfigData->SizePixels /= fontScale;
                 var glyphs = (ImFontGlyphReal*)font->Glyphs.Data;
                 for (int i = 0, i_ = font->Glyphs.Size; i < i_; i++)
                 {
@@ -356,7 +356,9 @@ namespace Dalamud.Interface.GameFonts
                 var fdt = this.fdts[(int)(forceMinSize ? style.FamilyWithMinimumSize : style.FamilyAndSize)];
                 var scale = style.SizePt / fdt.FontHeader.Size;
                 var fontPtr = font.NativePtr;
-                fontPtr->ConfigData->SizePixels = fontPtr->FontSize = fdt.FontHeader.Size * 4 / 3;
+                fontPtr->FontSize = fdt.FontHeader.Size * 4 / 3;
+                if (fontPtr->ConfigData != null)
+                    fontPtr->ConfigData->SizePixels = fontPtr->FontSize;
                 fontPtr->Ascent = fdt.FontHeader.Ascent;
                 fontPtr->Descent = fdt.FontHeader.Descent;
                 fontPtr->EllipsisChar = '…';
@@ -370,8 +372,19 @@ namespace Dalamud.Interface.GameFonts
                     }
                 }
 
-                var nameBytes = Encoding.UTF8.GetBytes(style.ToString() + "\0");
-                Marshal.Copy(nameBytes, 0, (IntPtr)font.ConfigData.Name.Data, Math.Min(nameBytes.Length, font.ConfigData.Name.Count));
+                // I have no idea what's causing NPE, so just to be safe
+                try
+                {
+                    if (font.NativePtr != null && font.NativePtr->ConfigData != null)
+                    {
+                        var nameBytes = Encoding.UTF8.GetBytes(style.ToString() + "\0");
+                        Marshal.Copy(nameBytes, 0, (IntPtr)font.ConfigData.Name.Data, Math.Min(nameBytes.Length, font.ConfigData.Name.Count));
+                    }
+                }
+                catch (NullReferenceException)
+                {
+                    // do nothing
+                }
 
                 foreach (var (c, (rectId, glyph)) in this.glyphRectIds[style])
                 {
