@@ -615,6 +615,11 @@ namespace Dalamud.Interface.Internal
                             Log.Information(info);
                         }
 
+                        if (ImGui.MenuItem("Show dev bar info", null, configuration.ShowDevBarInfo))
+                        {
+                            configuration.ShowDevBarInfo = !configuration.ShowDevBarInfo;
+                        }
+
                         ImGui.EndMenu();
                     }
 
@@ -732,14 +737,17 @@ namespace Dalamud.Interface.Internal
                     if (Service<GameGui>.Get().GameUiHidden)
                         ImGui.BeginMenu("UI is hidden...", false);
 
-                    ImGui.PushFont(InterfaceManager.MonoFont);
+                    if (configuration.ShowDevBarInfo)
+                    {
+                        ImGui.PushFont(InterfaceManager.MonoFont);
 
-                    ImGui.BeginMenu(Util.GetGitHash(), false);
-                    ImGui.BeginMenu(this.frameCount.ToString("000000"), false);
-                    ImGui.BeginMenu(ImGui.GetIO().Framerate.ToString("000"), false);
-                    ImGui.BeginMenu($"{Util.FormatBytes(GC.GetTotalMemory(false))}", false);
+                        ImGui.BeginMenu(Util.GetGitHash(), false);
+                        ImGui.BeginMenu(this.frameCount.ToString("000000"), false);
+                        ImGui.BeginMenu(ImGui.GetIO().Framerate.ToString("000"), false);
+                        ImGui.BeginMenu($"{Util.FormatBytes(GC.GetTotalMemory(false))}", false);
 
-                    ImGui.PopFont();
+                        ImGui.PopFont();
+                    }
 
                     ImGui.EndMainMenuBar();
                 }
