@@ -115,22 +115,31 @@ namespace Dalamud.Interface.ImGuiFileDialog
         /// <summary>
         /// Gets the result of the selection.
         /// </summary>
-        /// <param name="separator">The separator to put between multiple selected entries.</param>
-        /// <returns>The result of the selection (file or folder path). If multiple entries were selected, they are separated with the given separator, which is a comma by default.</returns>
-        public string GetResult(char separator = ',')
+        /// <returns>The result of the selection (file or folder path). If multiple entries were selected, they are separated with commas.</returns>
+        [Obsolete("Use GetResults() instead.", true)]
+        public string GetResult()
+        {
+            return string.Join(',', this.GetResults());
+        }
+
+        /// <summary>
+        /// Gets the result of the selection.
+        /// </summary>
+        /// <returns>The list of selected paths.</returns>
+        public List<string> GetResults()
         {
             if (!this.flags.HasFlag(ImGuiFileDialogFlags.SelectOnly))
             {
-                return this.GetFilePathName();
+                return new List<string> { this.GetFilePathName() };
             }
 
             if (this.IsDirectoryMode() && this.selectedFileNames.Count == 0)
             {
-                return this.GetFilePathName(); // current directory
+                return new List<string> { this.GetFilePathName() }; // current directory
             }
 
             var fullPaths = this.selectedFileNames.Where(x => !string.IsNullOrEmpty(x)).Select(x => Path.Combine(this.currentPath, x));
-            return string.Join(separator, fullPaths.ToArray());
+            return fullPaths.ToList();
         }
 
         /// <summary>
