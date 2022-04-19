@@ -386,7 +386,7 @@ namespace Dalamud.Game.Gui
         /// <summary>
         /// Find the agent associated with an addon, if possible.
         /// </summary>
-        /// <param name="addon">The addon address.</param>
+        /// <param name="addonPtr">The addon address.</param>
         /// <returns>A pointer to the agent interface.</returns>
         public unsafe IntPtr FindAgentInterface(IntPtr addonPtr)
         {

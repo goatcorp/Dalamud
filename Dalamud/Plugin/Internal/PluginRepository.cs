@@ -20,7 +20,7 @@ namespace Dalamud.Plugin.Internal
 
         private static readonly ModuleLog Log = new("PLUGINR");
 
-        private static HttpClient HttpClient = new()
+        private static readonly HttpClient HttpClient = new()
         {
             DefaultRequestHeaders =
             {
