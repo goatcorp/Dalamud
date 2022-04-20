@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -37,19 +38,66 @@ namespace Dalamud.Injector
         /// <param name="argvPtr">byte** string arguments.</param>
         public static void Main(int argc, IntPtr argvPtr)
         {
-            InitUnhandledException();
-            InitLogging();
+            Init();
 
-            var args = new string[argc];
-
+            List<string> args = new(argc);
             unsafe
             {
                 var argv = (IntPtr*)argvPtr;
                 for (var i = 0; i < argc; i++)
+                    args.Add(Marshal.PtrToStringUni(argv[i]));
+            }
+
+            DalamudStartInfo startInfo = null;
+            if (args.Count == 1)
+            {
+                // No command defaults to inject
+                args.Add("inject");
+                args.Add("--all");
+                args.Add("--warn");
+            }
+            else if (int.TryParse(args[1], out var _))
+            {
+                // Assume that PID has been passed.
+                args.Insert(1, "inject");
+
+                // If originally second parameter exists, then assume that it's a base64 encoded start info.
+                // Dalamud.Injector.exe inject [pid] [base64]
+                if (args.Count == 4)
                 {
-                    args[i] = Marshal.PtrToStringUni(argv[i]);
+                    startInfo = JsonConvert.DeserializeObject<DalamudStartInfo>(Encoding.UTF8.GetString(Convert.FromBase64String(args[2])));
+                    args.RemoveAt(3);
                 }
             }
+
+            startInfo = ExtractAndInitializeStartInfoFromArguments(startInfo, args);
+
+            switch (args[1].ToLowerInvariant())
+            {
+                case "inject":
+                    Environment.Exit(ProcessesFromInjectCommand(args, startInfo));
+                    break;
+
+                case "launch":
+                    Environment.Exit(ProcessesFromLaunchCommand(args, startInfo));
+                    break;
+
+                case "help":
+                    Environment.Exit(ProcessesFromHelpCommand(args, args.Count >= 3 ? args[2] : null));
+                    break;
+
+                default:
+                    Console.WriteLine("Invalid command: {0}", args[0]);
+                    ProcessesFromHelpCommand(args);
+                    Environment.Exit(-1);
+                    break;
+            }
+        }
+
+        private static void Init()
+        {
+            InitUnhandledException();
+            InitLogging();
 
             var cwd = new FileInfo(Assembly.GetExecutingAssembly().Location).Directory;
             if (cwd.FullName != Directory.GetCurrentDirectory())
@@ -57,25 +105,6 @@ namespace Dalamud.Injector
                 Log.Debug($"Changing cwd to {cwd}");
                 Directory.SetCurrentDirectory(cwd.FullName);
             }
-
-            var process = GetProcess(args.ElementAtOrDefault(1));
-            if (process == null)
-            {
-                Log.Error("Could not open process");
-                return;
-            }
-
-            var startInfo = GetStartInfo(args.ElementAtOrDefault(2), process);
-
-            // TODO: XL does not set this!!! we need to keep this line here for now, otherwise we crash in the Dalamud entrypoint
-            startInfo.WorkingDirectory = Directory.GetCurrentDirectory();
-
-            // This seems to help with the STATUS_INTERNAL_ERROR condition
-            Thread.Sleep(1000);
-
-            Inject(process, startInfo);
-
-            Thread.Sleep(1000);
         }
 
         private static void InitUnhandledException()
@@ -138,6 +167,7 @@ namespace Dalamud.Injector
             CullLogFile(logPath, 1 * 1024 * 1024);
 
             Log.Logger = new LoggerConfiguration()
+                .WriteTo.Console()
                 .WriteTo.Async(a => a.File(logPath))
                 .MinimumLevel.ControlledBy(levelSwitch)
                 .CreateLogger();
@@ -189,156 +219,349 @@ namespace Dalamud.Injector
             }
         }
 
-        private static Process GetProcessFromExecuting(string gamePath)
+        private static DalamudStartInfo ExtractAndInitializeStartInfoFromArguments(DalamudStartInfo? startInfo, List<string> args)
         {
-            var gameVersion = File.ReadAllText(Path.Combine(Directory.GetParent(gamePath).FullName, "ffxivgame.ver"));
-            var sqpackPath = Path.Combine(Directory.GetParent(gamePath).FullName, "sqpack");
-            var maxEntitledExpansionId = 0;
-            while (File.Exists(Path.Combine(sqpackPath, $"ex{maxEntitledExpansionId + 1}", $"ex{maxEntitledExpansionId + 1}.ver")))
-                maxEntitledExpansionId++;
+            if (startInfo == null)
+                startInfo = new();
 
-            var process = Process.Start(gamePath, new string[]
+            var workingDirectory = startInfo.WorkingDirectory;
+            var configurationPath = startInfo.ConfigurationPath;
+            var pluginDirectory = startInfo.PluginDirectory;
+            var defaultPluginDirectory = startInfo.DefaultPluginDirectory;
+            var assetDirectory = startInfo.AssetDirectory;
+            var delayInitializeMs = startInfo.DelayInitializeMs;
+
+            for (var i = 2; i < args.Count; i++)
             {
-                "DEV.TestSID=0",
-                "DEV.UseSqPack=1",
-                "DEV.DataPathType=1",
-                "DEV.LobbyHost01=127.0.0.1",
-                "DEV.LobbyPort01=54994",
-                "DEV.LobbyHost02=127.0.0.2",
-                "DEV.LobbyPort02=54994",
-                "DEV.LobbyHost03=127.0.0.3",
-                "DEV.LobbyPort03=54994",
-                "DEV.LobbyHost04=127.0.0.4",
-                "DEV.LobbyPort04=54994",
-                "DEV.LobbyHost05=127.0.0.5",
-                "DEV.LobbyPort05=54994",
-                "DEV.LobbyHost06=127.0.0.6",
-                "DEV.LobbyPort06=54994",
-                "DEV.LobbyHost07=127.0.0.7",
-                "DEV.LobbyPort07=54994",
-                "DEV.LobbyHost08=127.0.0.8",
-                "DEV.LobbyPort08=54994",
-                "DEV.LobbyHost09=127.0.0.9",
-                "DEV.LobbyPort09=54994",
-                "SYS.Region=0",
-                "language=1",
-                $"ver={gameVersion}",
-                $"DEV.MaxEntitledExpansionID={maxEntitledExpansionId}",
-                "DEV.GMServerHost=127.0.0.100",
-                "DEV.GameQuitMessageBox=0",
-            });
+                string key;
+                if (args[i].StartsWith(key = "--dalamud-working-directory="))
+                    workingDirectory = args[i][key.Length..];
+                else if (args[i].StartsWith(key = "--dalamud-configuration-path="))
+                    configurationPath = args[i][key.Length..];
+                else if (args[i].StartsWith(key = "--dalamud-plugin-directory="))
+                    pluginDirectory = args[i][key.Length..];
+                else if (args[i].StartsWith(key = "--dalamud-dev-plugin-directory="))
+                    defaultPluginDirectory = args[i][key.Length..];
+                else if (args[i].StartsWith(key = "--dalamud-asset-directory="))
+                    assetDirectory = args[i][key.Length..];
+                else if (args[i].StartsWith(key = "--dalamud-delay-initialize="))
+                    delayInitializeMs = int.Parse(args[i][key.Length..]);
+                else
+                    continue;
 
-            Thread.Sleep(1000);
-
-            return process;
-        }
-
-        private static Process? GetProcess(string? arg)
-        {
-            Process process = null;
-
-            var pid = -1;
-            if (arg != default)
-            {
-                try
-                {
-                    pid = int.Parse(arg);
-                }
-                catch (FormatException)
-                {
-                    if (File.Exists(arg))
-                        return GetProcessFromExecuting(arg);
-                }
+                args.RemoveAt(i);
+                i--;
             }
 
-            switch (pid)
+            var appDataDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            var xivlauncherDir = Path.Combine(appDataDir, "XIVLauncher");
+
+            workingDirectory ??= Directory.GetCurrentDirectory();
+            configurationPath ??= Path.Combine(xivlauncherDir, "dalamudConfig.json");
+            pluginDirectory ??= Path.Combine(xivlauncherDir, "installedPlugins");
+            defaultPluginDirectory ??= Path.Combine(xivlauncherDir, "devPlugins");
+            assetDirectory ??= Path.Combine(xivlauncherDir, "dalamudAssets", "dev");
+
+            return new()
             {
-                case -1:
-                    process = Process.GetProcessesByName("ffxiv_dx11").FirstOrDefault();
+                WorkingDirectory = workingDirectory,
+                ConfigurationPath = configurationPath,
+                PluginDirectory = pluginDirectory,
+                DefaultPluginDirectory = defaultPluginDirectory,
+                AssetDirectory = assetDirectory,
+                Language = ClientLanguage.English,
+                GameVersion = null,
+                DelayInitializeMs = delayInitializeMs,
+            };
+        }
 
-                    if (process == default)
-                    {
-                        throw new Exception("Could not find process");
-                    }
+        private static int ProcessesFromHelpCommand(List<string> args, string? particularCommand = default)
+        {
+            var exeName = Path.GetFileName(args[0]);
 
-                    #if !DEBUG
-                    var result = MessageBoxW(IntPtr.Zero, $"Take care: you are manually injecting Dalamud into FFXIV({process.Id}).\n\nIf you are doing this to use plugins before they are officially whitelisted on patch days, things may go wrong and you may get into trouble.\nWe discourage you from doing this and you won't be warned again in-game.", "Dalamud", MessageBoxType.IconWarning | MessageBoxType.OkCancel);
+            var exeSpaces = string.Empty;
+            for (var i = exeName.Length; i > 0; i--)
+                exeSpaces += " ";
 
-                    // IDCANCEL
-                    if (result == 2)
-                    {
-                        Log.Information("User cancelled injection");
-                        return null;
-                    }
-                    #endif
+            if (particularCommand is null or "help")
+                Console.WriteLine("{0} help [command]", exeName);
 
-                    break;
+            if (particularCommand is null or "inject")
+                Console.WriteLine("{0} inject [-h/--help] [-a/--all] [--warn] [pid1] [pid2] [pid3] ...", exeName);
 
-                case -2:
-                    return GetProcessFromExecuting("C:\\Program Files (x86)\\SquareEnix\\FINAL FANTASY XIV - A Realm Reborn\\game\\ffxiv_dx11.exe");
+            if (particularCommand is null or "launch")
+            {
+                Console.WriteLine("{0} launch [-h/--help] [-g path/to/ffxiv_dx11.exe]", exeName);
+                Console.WriteLine("{0}        [--game=path/to/ffxiv_dx11.exe] [-f/--fake-arguments]", exeSpaces);
+                Console.WriteLine("{0}        [-m entrypoint|inject] [--mode=entrypoint|inject]", exeSpaces);
+                Console.WriteLine("{0}        [-- game_arg1=value1 game_arg2=value2 ...]", exeSpaces);
+            }
 
-                default:
+            Console.WriteLine("Specifying dalamud start info: [--dalamud-working-directory path] [--dalamud-configuration-path path]");
+            Console.WriteLine("                               [--dalamud-plugin-directory path] [--dalamud-dev-plugin-directory path]");
+            Console.WriteLine("                               [--dalamud-asset-directory path] [--dalamud-delay-initialize 0(ms)]");
+
+            return 0;
+        }
+
+        private static int ProcessesFromInjectCommand(List<string> args, DalamudStartInfo dalamudStartInfo)
+        {
+            List<Process> processes = new();
+
+            var targetProcessSpecified = false;
+            var warnManualInjection = false;
+            var showHelp = args.Count <= 2;
+
+            for (var i = 2; i < args.Count; i++)
+            {
+                if (int.TryParse(args[i], out int pid))
+                {
+                    targetProcessSpecified = true;
                     try
                     {
-                        process = Process.GetProcessById(pid);
+                        processes.Add(Process.GetProcessById(pid));
                     }
                     catch (ArgumentException)
                     {
                         Log.Error("Could not find process with PID: {Pid}", pid);
                     }
 
-                    break;
+                    continue;
+                }
+
+                if (args[i] == "-h" || args[i] == "--help")
+                {
+                    showHelp = true;
+                }
+                else if (args[i] == "-a" || args[i] == "--all")
+                {
+                    targetProcessSpecified = true;
+                    processes.AddRange(Process.GetProcessesByName("ffxiv_dx11"));
+                }
+                else if (args[i] == "--warn")
+                {
+                    warnManualInjection = true;
+                }
+                else
+                {
+                    Log.Error("\"{0}\" is not a valid argument.", args[i]);
+                    return -1;
+                }
             }
 
-            return process;
+            if (showHelp)
+            {
+                ProcessesFromHelpCommand(args, "inject");
+                return args.Count <= 2 ? -1 : 0;
+            }
+
+            if (!targetProcessSpecified)
+            {
+                Log.Error("No target process has been specified.");
+                return -1;
+            }
+            else if (!processes.Any())
+            {
+                Log.Error("No suitable target process has been found.");
+                return -1;
+            }
+
+            if (warnManualInjection)
+            {
+                var result = MessageBoxW(IntPtr.Zero, $"Take care: you are manually injecting Dalamud into FFXIV({string.Join(", ", processes.Select(x => $"{x.Id}"))}).\n\nIf you are doing this to use plugins before they are officially whitelisted on patch days, things may go wrong and you may get into trouble.\nWe discourage you from doing this and you won't be warned again in-game.", "Dalamud", MessageBoxType.IconWarning | MessageBoxType.OkCancel);
+
+                // IDCANCEL
+                if (result == 2)
+                {
+                    Log.Information("User cancelled injection");
+                    return -2;
+                }
+            }
+
+            foreach (var process in processes)
+                Inject(process, AdjustStartInfo(dalamudStartInfo, process.MainModule.FileName));
+
+            return 0;
         }
 
-        private static DalamudStartInfo GetStartInfo(string? arg, Process process)
+        private static int ProcessesFromLaunchCommand(List<string> args, DalamudStartInfo dalamudStartInfo)
         {
-            DalamudStartInfo startInfo;
+            string? gamePath = null;
+            List<string> gameArguments = new();
+            string? mode = null;
+            var useFakeArguments = false;
+            var showHelp = args.Count <= 2;
 
-            if (arg != default)
+            var parsingGameArgument = false;
+            for (var i = 2; i < args.Count; i++)
             {
-                startInfo = JsonConvert.DeserializeObject<DalamudStartInfo>(Encoding.UTF8.GetString(Convert.FromBase64String(arg)));
+                if (parsingGameArgument)
+                {
+                    gameArguments.Add(args[i]);
+                    continue;
+                }
+
+                if (args[i] == "-h" || args[i] == "--help")
+                {
+                    showHelp = true;
+                }
+                else if (args[i] == "-f" || args[i] == "--fake-arguments")
+                {
+                    useFakeArguments = true;
+                }
+                else if (args[i] == "-g")
+                {
+                    gamePath = args[++i];
+                }
+                else if (args[i].StartsWith("--game="))
+                {
+                    gamePath = args[i][7..];
+                }
+                else if (args[i] == "-m")
+                {
+                    mode = args[++i];
+                }
+                else if (args[i].StartsWith("--mode="))
+                {
+                    gamePath = args[i][7..];
+                }
+                else if (args[i] == "--")
+                {
+                    parsingGameArgument = true;
+                }
+                else
+                {
+                    Log.Error("No such command found: {0}", args[i]);
+                    return -1;
+                }
+            }
+
+            if (showHelp)
+            {
+                ProcessesFromHelpCommand(args, "launch");
+                return args.Count <= 2 ? -1 : 0;
+            }
+
+            mode = mode == null ? "entrypoint" : mode.ToLowerInvariant();
+            if (mode.Length > 0 && mode.Length <= 10 && "entrypoint"[0..mode.Length] == mode)
+            {
+                mode = "entrypoint";
+            }
+            else if (mode.Length > 0 && mode.Length <= 6 && "inject"[0..mode.Length] == mode)
+            {
+                mode = "inject";
             }
             else
             {
-                var ffxivDir = Path.GetDirectoryName(process.MainModule.FileName);
-                var appDataDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-                var xivlauncherDir = Path.Combine(appDataDir, "XIVLauncher");
-
-                var gameVerStr = File.ReadAllText(Path.Combine(ffxivDir, "ffxivgame.ver"));
-                var gameVer = GameVersion.Parse(gameVerStr);
-
-                startInfo = new DalamudStartInfo
-                {
-                    WorkingDirectory = null,
-                    ConfigurationPath = Path.Combine(xivlauncherDir, "dalamudConfig.json"),
-                    PluginDirectory = Path.Combine(xivlauncherDir, "installedPlugins"),
-                    DefaultPluginDirectory = Path.Combine(xivlauncherDir, "devPlugins"),
-                    AssetDirectory = Path.Combine(xivlauncherDir, "dalamudAssets", "dev"),
-                    GameVersion = gameVer,
-                    Language = ClientLanguage.English,
-                };
-
-                Log.Debug(
-                    "Creating a new StartInfo with:\n" +
-                    $"    WorkingDirectory: {startInfo.WorkingDirectory}\n" +
-                    $"    ConfigurationPath: {startInfo.ConfigurationPath}\n" +
-                    $"    PluginDirectory: {startInfo.PluginDirectory}\n" +
-                    $"    DefaultPluginDirectory: {startInfo.DefaultPluginDirectory}\n" +
-                    $"    AssetDirectory: {startInfo.AssetDirectory}\n" +
-                    $"    GameVersion: {startInfo.GameVersion}\n" +
-                    $"    Language: {startInfo.Language}\n");
-
-                Log.Information("A Dalamud start info was not found in the program arguments. One has been generated for you.");
-                Log.Information("Copy the following contents into the program arguments:");
-
-                var startInfoJson = Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(startInfo)));
-                Log.Information(startInfoJson);
+                Log.Error("Invalid mode: {0}", mode);
+                return -1;
             }
 
-            return startInfo;
+            if (gamePath == null)
+            {
+                try
+                {
+                    var appDataDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+                    var xivlauncherDir = Path.Combine(appDataDir, "XIVLauncher");
+                    var launcherConfigPath = Path.Combine(xivlauncherDir, "launcherConfigV3.json");
+                    gamePath = Path.Combine(JsonSerializer.CreateDefault().Deserialize<Dictionary<string, string>>(new JsonTextReader(new StringReader(File.ReadAllText(launcherConfigPath))))["GamePath"], "game", "ffxiv_dx11.exe");
+                    Log.Information("Using game installation path configuration from from XIVLauncher: {0}", gamePath);
+                }
+                catch (Exception)
+                {
+                    gamePath = @"C:\Program Files (x86)\SquareEnix\FINAL FANTASY XIV - A Realm Reborn\game\ffxiv_dx11.exe";
+                    Log.Warning("Failed to read launcherConfigV3.json. Using default game installation path: {0}", gamePath);
+                }
+
+                if (!File.Exists(gamePath))
+                {
+                    Log.Error("File not found: {0}", gamePath);
+                    return -1;
+                }
+            }
+
+            if (useFakeArguments)
+            {
+                var gameVersion = File.ReadAllText(Path.Combine(Directory.GetParent(gamePath).FullName, "ffxivgame.ver"));
+                var sqpackPath = Path.Combine(Directory.GetParent(gamePath).FullName, "sqpack");
+                var maxEntitledExpansionId = 0;
+                while (File.Exists(Path.Combine(sqpackPath, $"ex{maxEntitledExpansionId + 1}", $"ex{maxEntitledExpansionId + 1}.ver")))
+                    maxEntitledExpansionId++;
+
+                gameArguments.InsertRange(0, new string[]
+                {
+                    "DEV.TestSID=0",
+                    "DEV.UseSqPack=1",
+                    "DEV.DataPathType=1",
+                    "DEV.LobbyHost01=127.0.0.1",
+                    "DEV.LobbyPort01=54994",
+                    "DEV.LobbyHost02=127.0.0.2",
+                    "DEV.LobbyPort02=54994",
+                    "DEV.LobbyHost03=127.0.0.3",
+                    "DEV.LobbyPort03=54994",
+                    "DEV.LobbyHost04=127.0.0.4",
+                    "DEV.LobbyPort04=54994",
+                    "DEV.LobbyHost05=127.0.0.5",
+                    "DEV.LobbyPort05=54994",
+                    "DEV.LobbyHost06=127.0.0.6",
+                    "DEV.LobbyPort06=54994",
+                    "DEV.LobbyHost07=127.0.0.7",
+                    "DEV.LobbyPort07=54994",
+                    "DEV.LobbyHost08=127.0.0.8",
+                    "DEV.LobbyPort08=54994",
+                    "DEV.LobbyHost09=127.0.0.9",
+                    "DEV.LobbyPort09=54994",
+                    "SYS.Region=0",
+                    "language=1",
+                    $"ver={gameVersion}",
+                    $"DEV.MaxEntitledExpansionID={maxEntitledExpansionId}",
+                    "DEV.GMServerHost=127.0.0.100",
+                    "DEV.GameQuitMessageBox=0",
+                });
+            }
+
+            var gameArgumentString = string.Join(" ", gameArguments.Select(x => EncodeParameterArgument(x)));
+            var process = NativeAclFix.LaunchGame(Path.GetDirectoryName(gamePath), gamePath, gameArgumentString, (Process p) =>
+            {
+                if (mode == "entrypoint")
+                {
+                    var startInfo = AdjustStartInfo(dalamudStartInfo, gamePath);
+                    Log.Information("Using start info: {0}", JsonConvert.SerializeObject(startInfo));
+                    if (RewriteRemoteEntryPointW(p.Handle, gamePath, JsonConvert.SerializeObject(startInfo)) != 0)
+                    {
+                        Log.Error("[HOOKS] RewriteRemoteEntryPointW failed");
+                        throw new Exception("RewriteRemoteEntryPointW failed");
+                    }
+                }
+            });
+
+            if (mode == "inject")
+            {
+                var startInfo = AdjustStartInfo(dalamudStartInfo, gamePath);
+                Log.Information("Using start info: {0}", JsonConvert.SerializeObject(startInfo));
+                Inject(process, startInfo);
+            }
+
+            return 0;
+        }
+
+        private static DalamudStartInfo AdjustStartInfo(DalamudStartInfo startInfo, string gamePath)
+        {
+            var ffxivDir = Path.GetDirectoryName(gamePath);
+            var gameVerStr = File.ReadAllText(Path.Combine(ffxivDir, "ffxivgame.ver"));
+            var gameVer = GameVersion.Parse(gameVerStr);
+
+            return new()
+            {
+                WorkingDirectory = startInfo.WorkingDirectory,
+                ConfigurationPath = startInfo.ConfigurationPath,
+                PluginDirectory = startInfo.PluginDirectory,
+                DefaultPluginDirectory = startInfo.DefaultPluginDirectory,
+                AssetDirectory = startInfo.AssetDirectory,
+                Language = ClientLanguage.English,
+                GameVersion = gameVer,
+                DelayInitializeMs = startInfo.DelayInitializeMs,
+            };
         }
 
         private static void Inject(Process process, DalamudStartInfo startInfo)
@@ -379,6 +602,74 @@ namespace Dalamud.Injector
             }
 
             Log.Information("Done");
+        }
+
+        [DllImport("Dalamud.Boot.dll")]
+        private static extern int RewriteRemoteEntryPointW(IntPtr hProcess, [MarshalAs(UnmanagedType.LPWStr)] string gamePath, [MarshalAs(UnmanagedType.LPWStr)] string loadInfoJson);
+
+        /// <summary>
+        ///     This routine appends the given argument to a command line such that
+        ///     CommandLineToArgvW will return the argument string unchanged. Arguments
+        ///     in a command line should be separated by spaces; this function does
+        ///     not add these spaces.
+        ///
+        ///     Taken from https://stackoverflow.com/questions/5510343/escape-command-line-arguments-in-c-sharp
+        ///     and https://blogs.msdn.microsoft.com/twistylittlepassagesallalike/2011/04/23/everyone-quotes-command-line-arguments-the-wrong-way/.
+        /// </summary>
+        /// <param name="argument">Supplies the argument to encode.</param>
+        /// <param name="force">
+        ///     Supplies an indication of whether we should quote the argument even if it 
+        ///     does not contain any characters that would ordinarily require quoting.
+        /// </param>
+        private static string EncodeParameterArgument(string argument, bool force = false)
+        {
+            if (argument == null) throw new ArgumentNullException(nameof(argument));
+
+            // Unless we're told otherwise, don't quote unless we actually
+            // need to do so --- hopefully avoid problems if programs won't
+            // parse quotes properly
+            if (force == false
+                && argument.Length > 0
+                && argument.IndexOfAny(" \t\n\v\"".ToCharArray()) == -1)
+            {
+                return argument;
+            }
+
+            var quoted = new StringBuilder();
+            quoted.Append('"');
+
+            var numberBackslashes = 0;
+
+            foreach (var chr in argument)
+            {
+                switch (chr)
+                {
+                    case '\\':
+                        numberBackslashes++;
+                        continue;
+                    case '"':
+                        // Escape all backslashes and the following
+                        // double quotation mark.
+                        quoted.Append('\\', (numberBackslashes * 2) + 1);
+                        quoted.Append(chr);
+                        break;
+                    default:
+                        // Backslashes aren't special here.
+                        quoted.Append('\\', numberBackslashes);
+                        quoted.Append(chr);
+                        break;
+                }
+
+                numberBackslashes = 0;
+            }
+
+            // Escape all backslashes, but let the terminating
+            // double quotation mark we add below be interpreted
+            // as a metacharacter.
+            quoted.Append('\\', numberBackslashes * 2);
+            quoted.Append('"');
+
+            return quoted.ToString();
         }
     }
 }
