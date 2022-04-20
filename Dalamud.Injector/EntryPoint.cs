@@ -72,25 +72,24 @@ namespace Dalamud.Injector
 
             startInfo = ExtractAndInitializeStartInfoFromArguments(startInfo, args);
 
-            switch (args[1].ToLowerInvariant())
+            var mainCommand = args[1].ToLowerInvariant();
+            if (mainCommand.Length > 0 && mainCommand.Length <= 6 && "inject"[..mainCommand.Length] == mainCommand)
             {
-                case "inject":
-                    Environment.Exit(ProcessesFromInjectCommand(args, startInfo));
-                    break;
-
-                case "launch":
-                    Environment.Exit(ProcessesFromLaunchCommand(args, startInfo));
-                    break;
-
-                case "help":
-                    Environment.Exit(ProcessesFromHelpCommand(args, args.Count >= 3 ? args[2] : null));
-                    break;
-
-                default:
-                    Console.WriteLine("Invalid command: {0}", args[0]);
-                    ProcessesFromHelpCommand(args);
-                    Environment.Exit(-1);
-                    break;
+                Environment.Exit(ProcessesFromInjectCommand(args, startInfo));
+            }
+            else if (mainCommand.Length > 0 && mainCommand.Length <= 6 && "launch"[..mainCommand.Length] == mainCommand)
+            {
+                Environment.Exit(ProcessesFromLaunchCommand(args, startInfo));
+            }
+            else if (mainCommand.Length > 0 && mainCommand.Length <= 4 && "help"[..mainCommand.Length] == mainCommand)
+            {
+                Environment.Exit(ProcessesFromHelpCommand(args, args.Count >= 3 ? args[2] : null));
+            }
+            else
+            {
+                Console.WriteLine("Invalid command: {0}", mainCommand);
+                ProcessesFromHelpCommand(args);
+                Environment.Exit(-1);
             }
         }
 
