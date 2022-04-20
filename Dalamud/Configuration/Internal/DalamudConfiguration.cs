@@ -312,6 +312,11 @@ namespace Dalamud.Configuration.Internal
         public bool IsMbCollect { get; set; } = true;
 
         /// <summary>
+        /// Gets or sets a value indicating whether or not to show info on dev bar.
+        /// </summary>
+        public bool ShowDevBarInfo { get; set; } = true;
+
+        /// <summary>
         /// Load a configuration from the provided path.
         /// </summary>
         /// <param name="path">The path to load the configuration file from.</param>
