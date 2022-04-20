@@ -303,7 +303,7 @@ namespace Dalamud.Injector
             #endregion
         }
 
-        private class ExistingProcess : Process
+        public class ExistingProcess : Process
         {
             public ExistingProcess(IntPtr handle)
             {

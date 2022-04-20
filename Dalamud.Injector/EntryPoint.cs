@@ -48,6 +48,12 @@ namespace Dalamud.Injector
                     args.Add(Marshal.PtrToStringUni(argv[i]));
             }
 
+            if (args[1].ToLowerInvariant() == "launch-test")
+            {
+                Environment.Exit(ProcessLaunchTestCommand(args));
+                return;
+            }
+
             DalamudStartInfo startInfo = null;
             if (args.Count == 1)
             {
@@ -75,20 +81,20 @@ namespace Dalamud.Injector
             var mainCommand = args[1].ToLowerInvariant();
             if (mainCommand.Length > 0 && mainCommand.Length <= 6 && "inject"[..mainCommand.Length] == mainCommand)
             {
-                Environment.Exit(ProcessesFromInjectCommand(args, startInfo));
+                Environment.Exit(ProcessInjectCommand(args, startInfo));
             }
             else if (mainCommand.Length > 0 && mainCommand.Length <= 6 && "launch"[..mainCommand.Length] == mainCommand)
             {
-                Environment.Exit(ProcessesFromLaunchCommand(args, startInfo));
+                Environment.Exit(ProcessLaunchCommand(args, startInfo));
             }
             else if (mainCommand.Length > 0 && mainCommand.Length <= 4 && "help"[..mainCommand.Length] == mainCommand)
             {
-                Environment.Exit(ProcessesFromHelpCommand(args, args.Count >= 3 ? args[2] : null));
+                Environment.Exit(ProcessHelpCommand(args, args.Count >= 3 ? args[2] : null));
             }
             else
             {
                 Console.WriteLine("Invalid command: {0}", mainCommand);
-                ProcessesFromHelpCommand(args);
+                ProcessHelpCommand(args);
                 Environment.Exit(-1);
             }
         }
@@ -166,7 +172,7 @@ namespace Dalamud.Injector
             CullLogFile(logPath, 1 * 1024 * 1024);
 
             Log.Logger = new LoggerConfiguration()
-                .WriteTo.Console()
+                .WriteTo.Console(standardErrorFromLevel: LogEventLevel.Verbose)
                 .WriteTo.Async(a => a.File(logPath))
                 .MinimumLevel.ControlledBy(levelSwitch)
                 .CreateLogger();
@@ -274,7 +280,7 @@ namespace Dalamud.Injector
             };
         }
 
-        private static int ProcessesFromHelpCommand(List<string> args, string? particularCommand = default)
+        private static int ProcessHelpCommand(List<string> args, string? particularCommand = default)
         {
             var exeName = Path.GetFileName(args[0]);
 
@@ -290,9 +296,10 @@ namespace Dalamud.Injector
 
             if (particularCommand is null or "launch")
             {
-                Console.WriteLine("{0} launch [-h/--help] [-g path/to/ffxiv_dx11.exe]", exeName);
-                Console.WriteLine("{0}        [--game=path/to/ffxiv_dx11.exe] [-f/--fake-arguments]", exeSpaces);
+                Console.WriteLine("{0} launch [-h/--help] [-f/--fake-arguments]", exeName);
+                Console.WriteLine("{0}        [-g path/to/ffxiv_dx11.exe] [--game=path/to/ffxiv_dx11.exe]", exeSpaces);
                 Console.WriteLine("{0}        [-m entrypoint|inject] [--mode=entrypoint|inject]", exeSpaces);
+                Console.WriteLine("{0}        [--handle-owner=inherited-handle-value]", exeSpaces);
                 Console.WriteLine("{0}        [-- game_arg1=value1 game_arg2=value2 ...]", exeSpaces);
             }
 
@@ -303,7 +310,7 @@ namespace Dalamud.Injector
             return 0;
         }
 
-        private static int ProcessesFromInjectCommand(List<string> args, DalamudStartInfo dalamudStartInfo)
+        private static int ProcessInjectCommand(List<string> args, DalamudStartInfo dalamudStartInfo)
         {
             List<Process> processes = new();
 
@@ -350,7 +357,7 @@ namespace Dalamud.Injector
 
             if (showHelp)
             {
-                ProcessesFromHelpCommand(args, "inject");
+                ProcessHelpCommand(args, "inject");
                 return args.Count <= 2 ? -1 : 0;
             }
 
@@ -383,13 +390,14 @@ namespace Dalamud.Injector
             return 0;
         }
 
-        private static int ProcessesFromLaunchCommand(List<string> args, DalamudStartInfo dalamudStartInfo)
+        private static int ProcessLaunchCommand(List<string> args, DalamudStartInfo dalamudStartInfo)
         {
             string? gamePath = null;
             List<string> gameArguments = new();
             string? mode = null;
             var useFakeArguments = false;
             var showHelp = args.Count <= 2;
+            var handleOwner = IntPtr.Zero;
 
             var parsingGameArgument = false;
             for (var i = 2; i < args.Count; i++)
@@ -414,7 +422,7 @@ namespace Dalamud.Injector
                 }
                 else if (args[i].StartsWith("--game="))
                 {
-                    gamePath = args[i][7..];
+                    gamePath = args[i].Split('=', 2)[1];
                 }
                 else if (args[i] == "-m")
                 {
@@ -422,7 +430,11 @@ namespace Dalamud.Injector
                 }
                 else if (args[i].StartsWith("--mode="))
                 {
-                    gamePath = args[i][7..];
+                    gamePath = args[i].Split('=', 2)[1];
+                }
+                else if (args[i].StartsWith("--handle-owner="))
+                {
+                    handleOwner = IntPtr.Parse(args[i].Split('=', 2)[1]);
                 }
                 else if (args[i] == "--")
                 {
@@ -437,7 +449,7 @@ namespace Dalamud.Injector
 
             if (showHelp)
             {
-                ProcessesFromHelpCommand(args, "launch");
+                ProcessHelpCommand(args, "launch");
                 return args.Count <= 2 ? -1 : 0;
             }
 
@@ -541,6 +553,57 @@ namespace Dalamud.Injector
                 Inject(process, startInfo);
             }
 
+            var processHandleForOwner = IntPtr.Zero;
+            if (handleOwner != IntPtr.Zero)
+            {
+                if (!DuplicateHandle(Process.GetCurrentProcess().Handle, process.Handle, handleOwner, out processHandleForOwner, 0, false, DuplicateOptions.SameAccess))
+                    Log.Warning("Failed to call DuplicateHandle: Win32 error code {0}", Marshal.GetLastWin32Error());
+            }
+
+            Console.WriteLine($"{{\"pid\": {process.Id}, \"handle\": {processHandleForOwner}}}");
+
+            return 0;
+        }
+
+        private static int ProcessLaunchTestCommand(List<string> args)
+        {
+            Console.WriteLine("Testing launch command.");
+            args[0] = Process.GetCurrentProcess().MainModule.FileName;
+            args[1] = "launch";
+
+            if (!DuplicateHandle(Process.GetCurrentProcess().Handle, Process.GetCurrentProcess().Handle, Process.GetCurrentProcess().Handle, out var inheritableCurrentProcessHandle, 0, true, DuplicateOptions.SameAccess))
+            {
+                Log.Error("Failed to call DuplicateHandle: Win32 error code {0}", Marshal.GetLastWin32Error());
+                return -1;
+            }
+
+            args.Insert(2, $"--handle-owner={inheritableCurrentProcessHandle}");
+
+            for (var i = 0; i < args.Count; i++)
+                Console.WriteLine("Argument {0}: {1}", i, args[i]);
+
+            Process helperProcess = new();
+            helperProcess.StartInfo.FileName = args[0];
+            for (var i = 1; i < args.Count; i++)
+                helperProcess.StartInfo.ArgumentList.Add(args[i]);
+            helperProcess.StartInfo.RedirectStandardOutput = true;
+            helperProcess.StartInfo.RedirectStandardError = true;
+            helperProcess.StartInfo.UseShellExecute = false;
+            helperProcess.ErrorDataReceived += new DataReceivedEventHandler((sendingProcess, errLine) => Console.WriteLine($"stderr: \"{errLine.Data}\""));
+            helperProcess.Start();
+            helperProcess.BeginErrorReadLine();
+            helperProcess.WaitForExit();
+            if (helperProcess.ExitCode != 0)
+                return -1;
+
+            var result = JsonSerializer.CreateDefault().Deserialize<Dictionary<string, int>>(new JsonTextReader(helperProcess.StandardOutput));
+            var pid = result["pid"];
+            var handle = (IntPtr)result["handle"];
+            var resultProcess = new NativeAclFix.ExistingProcess(handle);
+            Console.WriteLine("PID: {0}, Handle: {1}", pid, handle);
+            Console.WriteLine("Press Enter to force quit");
+            Console.ReadLine();
+            resultProcess.Kill();
             return 0;
         }
 
