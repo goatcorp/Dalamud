@@ -112,6 +112,7 @@ namespace Dalamud.Interface.Internal
             this.WindowSystem.AddWindow(this.fallbackFontNoticeWindow);
 
             ImGuiManagedAsserts.AssertsEnabled = configuration.AssertsEnabledAtStartup;
+            this.isImGuiDrawDevMenu = this.isImGuiDrawDevMenu || configuration.DevBarOpenAtStartup;
 
             interfaceManager.Draw += this.OnDraw;
             var dalamud = Service<Dalamud>.Get();
@@ -433,7 +434,13 @@ namespace Dalamud.Interface.Internal
 
                     if (ImGui.BeginMenu("Dalamud"))
                     {
-                        ImGui.MenuItem("Draw Dalamud dev menu", string.Empty, ref this.isImGuiDrawDevMenu);
+                        ImGui.MenuItem("Draw dev menu", string.Empty, ref this.isImGuiDrawDevMenu);
+                        var devBarAtStartup = configuration.DevBarOpenAtStartup;
+                        if (ImGui.MenuItem("Draw dev menu at startup", string.Empty, ref devBarAtStartup))
+                        {
+                            configuration.DevBarOpenAtStartup ^= true;
+                            configuration.Save();
+                        }
 
                         ImGui.Separator();
 
