@@ -565,19 +565,25 @@ namespace Dalamud.Injector
             return 0;
         }
 
+        private static Process GetInheritableCurrentProcessHandle()
+        {
+            if (!DuplicateHandle(Process.GetCurrentProcess().Handle, Process.GetCurrentProcess().Handle, Process.GetCurrentProcess().Handle, out var inheritableCurrentProcessHandle, 0, true, DuplicateOptions.SameAccess))
+            {
+                Log.Error("Failed to call DuplicateHandle: Win32 error code {0}", Marshal.GetLastWin32Error());
+                return null;
+            }
+
+            return new NativeAclFix.ExistingProcess(inheritableCurrentProcessHandle);
+        }
+
         private static int ProcessLaunchTestCommand(List<string> args)
         {
             Console.WriteLine("Testing launch command.");
             args[0] = Process.GetCurrentProcess().MainModule.FileName;
             args[1] = "launch";
 
-            if (!DuplicateHandle(Process.GetCurrentProcess().Handle, Process.GetCurrentProcess().Handle, Process.GetCurrentProcess().Handle, out var inheritableCurrentProcessHandle, 0, true, DuplicateOptions.SameAccess))
-            {
-                Log.Error("Failed to call DuplicateHandle: Win32 error code {0}", Marshal.GetLastWin32Error());
-                return -1;
-            }
-
-            args.Insert(2, $"--handle-owner={inheritableCurrentProcessHandle}");
+            var inheritableCurrentProcess = GetInheritableCurrentProcessHandle(); // so that it closes the handle when it's done
+            args.Insert(2, $"--handle-owner={inheritableCurrentProcess.Handle}");
 
             for (var i = 0; i < args.Count; i++)
                 Console.WriteLine("Argument {0}: {1}", i, args[i]);
