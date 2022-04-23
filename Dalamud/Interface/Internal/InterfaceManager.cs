@@ -658,9 +658,19 @@ namespace Dalamud.Interface.Internal
                 fontConfig.OversampleH = 1;
                 fontConfig.OversampleV = 1;
 
-                var fontPathJp = Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "NotoSansCJKjp-Medium.otf");
+                var fontPathJp = Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "NotoSansCJKjp-Regular.otf");
+                if (!File.Exists(fontPathJp))
+                    fontPathJp = Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "NotoSansCJKjp-Medium.otf");
                 if (!File.Exists(fontPathJp))
                     ShowFontError(fontPathJp);
+                Log.Verbose("[FONT] fontPathJp = {0}", fontPathJp);
+
+                var fontPathKr = Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "NotoSansCJKkr-Regular.otf");
+                if (!File.Exists(fontPathKr))
+                    fontPathKr = Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "NotoSansKR-Regular.otf");
+                if (!File.Exists(fontPathKr))
+                    fontPathKr = null;
+                Log.Verbose("[FONT] fontPathKr = {0}", fontPathKr);
 
                 // Default font
                 Log.Verbose("[FONT] SetupFonts - Default font");
@@ -671,10 +681,10 @@ namespace Dalamud.Interface.Internal
                     io.FontGlobalScale,
                     disableBigFonts);
                 Log.Verbose("[FONT] SetupFonts - Default corresponding AXIS size: {0}pt ({1}px)", fontInfo.SourceAxis.Style.BaseSizePt, fontInfo.SourceAxis.Style.BaseSizePx);
+                fontConfig.SizePixels = disableBigFonts ? Math.Min(MinimumFallbackFontSizePx, fontInfo.TargetSizePx) : fontInfo.TargetSizePx * io.FontGlobalScale;
                 if (this.UseAxis)
                 {
                     fontConfig.GlyphRanges = dummyRangeHandle.AddrOfPinnedObject();
-                    fontConfig.SizePixels = fontInfo.TargetSizePx;
                     fontConfig.PixelSnapH = false;
                     DefaultFont = ioFonts.AddFontDefault(fontConfig);
                     this.loadedFontInfo[DefaultFont] = fontInfo;
@@ -686,8 +696,17 @@ namespace Dalamud.Interface.Internal
 
                     fontConfig.GlyphRanges = japaneseRangeHandle.AddrOfPinnedObject();
                     fontConfig.PixelSnapH = true;
-                    DefaultFont = ioFonts.AddFontFromFileTTF(fontPathJp, disableBigFonts ? Math.Min(MinimumFallbackFontSizePx, fontInfo.TargetSizePx) : fontInfo.TargetSizePx * io.FontGlobalScale, fontConfig);
+                    DefaultFont = ioFonts.AddFontFromFileTTF(fontPathJp, fontConfig.SizePixels, fontConfig);
                     this.loadedFontInfo[DefaultFont] = fontInfo;
+                }
+
+                if (fontPathKr != null && Service<DalamudConfiguration>.Get().EffectiveLanguage == "ko")
+                {
+                    fontConfig.MergeMode = true;
+                    fontConfig.GlyphRanges = ioFonts.GetGlyphRangesKorean();
+                    fontConfig.PixelSnapH = true;
+                    ioFonts.AddFontFromFileTTF(fontPathKr, fontConfig.SizePixels, fontConfig);
+                    fontConfig.MergeMode = false;
                 }
 
                 // FontAwesome icon font
@@ -887,8 +906,19 @@ namespace Dalamud.Interface.Internal
 
                 foreach (var (font, mod) in this.loadedFontInfo)
                 {
-                    var nameBytes = Encoding.UTF8.GetBytes(mod.Name + "\0");
-                    Marshal.Copy(nameBytes, 0, (IntPtr)font.ConfigData.Name.Data, Math.Min(nameBytes.Length, font.ConfigData.Name.Count));
+                    // I have no idea what's causing NPE, so just to be safe
+                    try
+                    {
+                        if (font.NativePtr != null && font.NativePtr->ConfigData != null)
+                        {
+                            var nameBytes = Encoding.UTF8.GetBytes($"{mod.Name}\0");
+                            Marshal.Copy(nameBytes, 0, (IntPtr)font.ConfigData.Name.Data, Math.Min(nameBytes.Length, font.ConfigData.Name.Count));
+                        }
+                    }
+                    catch (NullReferenceException)
+                    {
+                        // do nothing
+                    }
 
                     Log.Verbose("[FONT] {0}: Unscale with scale value of {1}", mod.Name, mod.Scale);
                     GameFontManager.UnscaleFont(font, mod.Scale, false);

@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
-
+using System.Linq;
 using Dalamud.Game.Text;
 using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Style;
@@ -310,6 +311,37 @@ namespace Dalamud.Configuration.Internal
         /// Gets or sets a value indicating whether or not market board data should be uploaded.
         /// </summary>
         public bool IsMbCollect { get; set; } = true;
+
+        /// <summary>
+        /// Gets the ISO 639-1 two-letter code for the language of the effective Dalamud display language.
+        /// </summary>
+        public string EffectiveLanguage
+        {
+            get
+            {
+                var languages = Localization.ApplicableLangCodes.Prepend("en").ToArray();
+                try
+                {
+                    if (string.IsNullOrEmpty(this.LanguageOverride))
+                    {
+                        var currentUiLang = CultureInfo.CurrentUICulture;
+
+                        if (Localization.ApplicableLangCodes.Any(x => currentUiLang.TwoLetterISOLanguageName == x))
+                            return currentUiLang.TwoLetterISOLanguageName;
+                        else
+                            return languages[0];
+                    }
+                    else
+                    {
+                        return this.LanguageOverride;
+                    }
+                }
+                catch (Exception)
+                {
+                    return languages[0];
+                }
+            }
+        }
 
         /// <summary>
         /// Gets or sets a value indicating whether or not to show info on dev bar.
