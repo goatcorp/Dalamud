@@ -48,7 +48,7 @@ namespace Dalamud.Injector
                     args.Add(Marshal.PtrToStringUni(argv[i]));
             }
 
-            if (args[1].ToLowerInvariant() == "launch-test")
+            if (args.Count >= 2 && args[1].ToLowerInvariant() == "launch-test")
             {
                 Environment.Exit(ProcessLaunchTestCommand(args));
                 return;
