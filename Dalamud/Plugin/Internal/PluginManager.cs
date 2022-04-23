@@ -121,6 +121,82 @@ namespace Dalamud.Plugin.Internal
         /// </summary>
         public PluginConfigurations PluginConfigs { get; }
 
+         /// <summary>
+        /// Print to chat any plugin updates and whether they were successful.
+        /// </summary>
+        /// <param name="updateMetadata">The list of updated plugin metadata.</param>
+        /// <param name="header">The header text to send to chat prior to any update info.</param>
+        public static void PrintUpdatedPlugins(List<PluginUpdateStatus>? updateMetadata, string header)
+        {
+            var chatGui = Service<ChatGui>.Get();
+
+            if (updateMetadata is { Count: > 0 })
+            {
+                chatGui.Print(header);
+
+                foreach (var metadata in updateMetadata)
+                {
+                    if (metadata.WasUpdated)
+                    {
+                        chatGui.Print(Locs.DalamudPluginUpdateSuccessful(metadata.Name, metadata.Version));
+                    }
+                    else
+                    {
+                        chatGui.PrintChat(new XivChatEntry
+                        {
+                            Message = Locs.DalamudPluginUpdateFailed(metadata.Name, metadata.Version),
+                            Type = XivChatType.Urgent,
+                        });
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// For a given manifest, determine if the testing version should be used over the normal version.
+        /// The higher of the two versions is calculated after checking other settings.
+        /// </summary>
+        /// <param name="manifest">Manifest to check.</param>
+        /// <returns>A value indicating whether testing should be used.</returns>
+        public static bool UseTesting(PluginManifest manifest)
+        {
+            var configuration = Service<DalamudConfiguration>.Get();
+
+            if (!configuration.DoPluginTest)
+                return false;
+
+            if (manifest.IsTestingExclusive)
+                return true;
+
+            var av = manifest.AssemblyVersion;
+            var tv = manifest.TestingAssemblyVersion;
+            var hasTv = tv != null;
+
+            if (hasTv)
+            {
+                return tv > av;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether the given repo manifest should be visible to the user.
+        /// </summary>
+        /// <param name="manifest">Repo manifest.</param>
+        /// <returns>If the manifest is visible.</returns>
+        public static bool IsManifestVisible(RemotePluginManifest manifest)
+        {
+            var configuration = Service<DalamudConfiguration>.Get();
+
+            // Hidden by user
+            if (configuration.HiddenPluginInternalName.Contains(manifest.InternalName))
+                return false;
+
+            // Hidden by manifest
+            return !manifest.IsHide;
+        }
+
         /// <inheritdoc/>
         public void Dispose()
         {
@@ -198,7 +274,7 @@ namespace Dalamud.Plugin.Internal
 
                     var manifest = LocalPluginManifest.Load(manifestFile);
 
-                    pluginDefs.Add(new(dllFile, manifest, false));
+                    pluginDefs.Add(new PluginDef(dllFile, manifest, false));
                 }
             }
 
@@ -318,7 +394,7 @@ namespace Dalamud.Plugin.Internal
             this.AvailablePlugins = this.Repos
                 .SelectMany(repo => repo.PluginMaster)
                 .Where(this.IsManifestEligible)
-                .Where(this.IsManifestVisible)
+                .Where(IsManifestVisible)
                 .ToImmutableList();
 
             if (notify)
@@ -832,82 +908,6 @@ namespace Dalamud.Plugin.Internal
         }
 
         /// <summary>
-        /// Print to chat any plugin updates and whether they were successful.
-        /// </summary>
-        /// <param name="updateMetadata">The list of updated plugin metadata.</param>
-        /// <param name="header">The header text to send to chat prior to any update info.</param>
-        public void PrintUpdatedPlugins(List<PluginUpdateStatus>? updateMetadata, string header)
-        {
-            var chatGui = Service<ChatGui>.Get();
-
-            if (updateMetadata is { Count: > 0 })
-            {
-                chatGui.Print(header);
-
-                foreach (var metadata in updateMetadata)
-                {
-                    if (metadata.WasUpdated)
-                    {
-                        chatGui.Print(Locs.DalamudPluginUpdateSuccessful(metadata.Name, metadata.Version));
-                    }
-                    else
-                    {
-                        chatGui.PrintChat(new XivChatEntry
-                        {
-                            Message = Locs.DalamudPluginUpdateFailed(metadata.Name, metadata.Version),
-                            Type = XivChatType.Urgent,
-                        });
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// For a given manifest, determine if the testing version should be used over the normal version.
-        /// The higher of the two versions is calculated after checking other settings.
-        /// </summary>
-        /// <param name="manifest">Manifest to check.</param>
-        /// <returns>A value indicating whether testing should be used.</returns>
-        public bool UseTesting(PluginManifest manifest)
-        {
-            var configuration = Service<DalamudConfiguration>.Get();
-
-            if (!configuration.DoPluginTest)
-                return false;
-
-            if (manifest.IsTestingExclusive)
-                return true;
-
-            var av = manifest.AssemblyVersion;
-            var tv = manifest.TestingAssemblyVersion;
-            var hasTv = tv != null;
-
-            if (hasTv)
-            {
-                return tv > av;
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// Gets a value indicating whether the given repo manifest should be visible to the user.
-        /// </summary>
-        /// <param name="manifest">Repo manifest.</param>
-        /// <returns>If the manifest is visible.</returns>
-        public bool IsManifestVisible(RemotePluginManifest manifest)
-        {
-            var configuration = Service<DalamudConfiguration>.Get();
-
-            // Hidden by user
-            if (configuration.HiddenPluginInternalName.Contains(manifest.InternalName))
-                return false;
-
-            // Hidden by manifest
-            return !manifest.IsHide;
-        }
-
-        /// <summary>
         /// Gets a value indicating whether the given manifest is eligible for ANYTHING. These are hard
         /// checks that should not allow installation or loading.
         /// </summary>
@@ -970,7 +970,7 @@ namespace Dalamud.Plugin.Internal
                     .Where(remoteManifest => plugin.Manifest.InternalName == remoteManifest.InternalName)
                     .Select(remoteManifest =>
                     {
-                        var useTesting = this.UseTesting(remoteManifest);
+                        var useTesting = UseTesting(remoteManifest);
                         var candidateVersion = useTesting
                             ? remoteManifest.TestingAssemblyVersion
                             : remoteManifest.AssemblyVersion;
@@ -984,7 +984,7 @@ namespace Dalamud.Plugin.Internal
                 if (updates.Count > 0)
                 {
                     var update = updates.Aggregate((t1, t2) => t1.candidateVersion > t2.candidateVersion ? t1 : t2);
-                    updatablePlugins.Add(new(plugin, update.remoteManifest, update.useTesting));
+                    updatablePlugins.Add(new AvailablePluginUpdate(plugin, update.remoteManifest, update.useTesting));
                 }
             }
 

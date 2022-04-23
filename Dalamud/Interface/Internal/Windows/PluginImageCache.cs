@@ -320,7 +320,7 @@ namespace Dalamud.Interface.Internal.Windows
                 isThirdParty = true;
             }
 
-            var useTesting = pluginManager.UseTesting(manifest);
+            var useTesting = PluginManager.UseTesting(manifest);
             var url = this.GetPluginIconUrl(manifest, isThirdParty, useTesting);
 
             if (!url.IsNullOrEmpty())
@@ -441,7 +441,7 @@ namespace Dalamud.Interface.Internal.Windows
                 isThirdParty = true;
             }
 
-            var useTesting = pluginManager.UseTesting(manifest);
+            var useTesting = PluginManager.UseTesting(manifest);
             var urls = this.GetPluginImageUrls(manifest, isThirdParty, useTesting);
 
             if (urls != null)

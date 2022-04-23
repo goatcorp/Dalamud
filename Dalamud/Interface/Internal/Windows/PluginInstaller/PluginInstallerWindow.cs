@@ -348,7 +348,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
                                 if (this.updatePluginCount > 0)
                                 {
-                                    pluginManager.PrintUpdatedPlugins(this.updatedPlugins, Locs.PluginUpdateHeader_Chatbox);
+                                    PluginManager.PrintUpdatedPlugins(this.updatedPlugins, Locs.PluginUpdateHeader_Chatbox);
                                     notifications.AddNotification(Locs.Notifications_UpdatesInstalled(this.updatePluginCount), Locs.Notifications_UpdatesInstalledTitle, NotificationType.Success);
 
                                     var installedGroupIdx = this.categoryManager.GroupList.TakeWhile(
@@ -1251,7 +1251,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             var notifications = Service<NotificationManager>.Get();
             var pluginManager = Service<PluginManager>.Get();
 
-            var useTesting = pluginManager.UseTesting(manifest);
+            var useTesting = PluginManager.UseTesting(manifest);
             var wasSeen = this.WasPluginSeen(manifest.InternalName);
 
             // Check for valid versions
