@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
+
 using Dalamud.Game.Gui.ContextMenus.OldStructs;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Logging;

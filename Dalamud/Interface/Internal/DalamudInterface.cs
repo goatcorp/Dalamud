@@ -112,6 +112,7 @@ namespace Dalamud.Interface.Internal
             this.WindowSystem.AddWindow(this.fallbackFontNoticeWindow);
 
             ImGuiManagedAsserts.AssertsEnabled = configuration.AssertsEnabledAtStartup;
+            this.isImGuiDrawDevMenu = this.isImGuiDrawDevMenu || configuration.DevBarOpenAtStartup;
 
             interfaceManager.Draw += this.OnDraw;
             var dalamud = Service<Dalamud>.Get();
@@ -433,7 +434,13 @@ namespace Dalamud.Interface.Internal
 
                     if (ImGui.BeginMenu("Dalamud"))
                     {
-                        ImGui.MenuItem("Draw Dalamud dev menu", string.Empty, ref this.isImGuiDrawDevMenu);
+                        ImGui.MenuItem("Draw dev menu", string.Empty, ref this.isImGuiDrawDevMenu);
+                        var devBarAtStartup = configuration.DevBarOpenAtStartup;
+                        if (ImGui.MenuItem("Draw dev menu at startup", string.Empty, ref devBarAtStartup))
+                        {
+                            configuration.DevBarOpenAtStartup ^= true;
+                            configuration.Save();
+                        }
 
                         ImGui.Separator();
 
@@ -615,6 +622,11 @@ namespace Dalamud.Interface.Internal
                             Log.Information(info);
                         }
 
+                        if (ImGui.MenuItem("Show dev bar info", null, configuration.ShowDevBarInfo))
+                        {
+                            configuration.ShowDevBarInfo = !configuration.ShowDevBarInfo;
+                        }
+
                         ImGui.EndMenu();
                     }
 
@@ -732,14 +744,17 @@ namespace Dalamud.Interface.Internal
                     if (Service<GameGui>.Get().GameUiHidden)
                         ImGui.BeginMenu("UI is hidden...", false);
 
-                    ImGui.PushFont(InterfaceManager.MonoFont);
+                    if (configuration.ShowDevBarInfo)
+                    {
+                        ImGui.PushFont(InterfaceManager.MonoFont);
 
-                    ImGui.BeginMenu(Util.GetGitHash(), false);
-                    ImGui.BeginMenu(this.frameCount.ToString("000000"), false);
-                    ImGui.BeginMenu(ImGui.GetIO().Framerate.ToString("000"), false);
-                    ImGui.BeginMenu($"{Util.FormatBytes(GC.GetTotalMemory(false))}", false);
+                        ImGui.BeginMenu(Util.GetGitHash(), false);
+                        ImGui.BeginMenu(this.frameCount.ToString("000000"), false);
+                        ImGui.BeginMenu(ImGui.GetIO().Framerate.ToString("000"), false);
+                        ImGui.BeginMenu($"{Util.FormatBytes(GC.GetTotalMemory(false))}", false);
 
-                    ImGui.PopFont();
+                        ImGui.PopFont();
+                    }
 
                     ImGui.EndMainMenuBar();
                 }

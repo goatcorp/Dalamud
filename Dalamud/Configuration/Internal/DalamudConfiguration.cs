@@ -201,6 +201,11 @@ namespace Dalamud.Configuration.Internal
         public bool LogOpenAtStartup { get; set; }
 
         /// <summary>
+        /// Gets or sets a value indicating whether or not the dev bar should open at startup.
+        /// </summary>
+        public bool DevBarOpenAtStartup { get; set; }
+
+        /// <summary>
         /// Gets or sets a value indicating whether or not ImGui asserts should be enabled at startup.
         /// </summary>
         public bool AssertsEnabledAtStartup { get; set; }
@@ -337,6 +342,11 @@ namespace Dalamud.Configuration.Internal
                 }
             }
         }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether or not to show info on dev bar.
+        /// </summary>
+        public bool ShowDevBarInfo { get; set; } = true;
 
         /// <summary>
         /// Load a configuration from the provided path.

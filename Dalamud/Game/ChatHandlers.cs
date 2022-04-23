@@ -18,6 +18,7 @@ using Dalamud.Interface.Internal.Windows;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Internal;
+using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
 using Serilog;
 
@@ -302,7 +303,7 @@ namespace Dalamud.Game
                 {
                     if (configuration.AutoUpdatePlugins)
                     {
-                        pluginManager.PrintUpdatedPlugins(updatedPlugins, Loc.Localize("DalamudPluginAutoUpdate", "Auto-update:"));
+                        PluginManager.PrintUpdatedPlugins(updatedPlugins, Loc.Localize("DalamudPluginAutoUpdate", "Auto-update:"));
                         notifications.AddNotification(Loc.Localize("NotificationUpdatedPlugins", "{0} of your plugins were updated.").Format(updatedPlugins.Count), Loc.Localize("NotificationAutoUpdate", "Auto-Update"), NotificationType.Info);
                     }
                     else

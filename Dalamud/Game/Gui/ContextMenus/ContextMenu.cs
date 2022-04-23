@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+
 using Dalamud.Game.Gui.ContextMenus.OldStructs;
 using Dalamud.Hooking;
 using Dalamud.IoC;
