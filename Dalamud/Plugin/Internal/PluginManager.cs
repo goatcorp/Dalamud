@@ -1019,41 +1019,6 @@ namespace Dalamud.Plugin.Internal
             }
         }
 
-        private struct BannedPlugin
-        {
-            [JsonProperty]
-            public string Name { get; private set; }
-
-            [JsonProperty]
-            public Version AssemblyVersion { get; private set; }
-
-            [JsonProperty]
-            public string Reason { get; private set; }
-        }
-
-        private struct PluginDef
-        {
-            public PluginDef(FileInfo dllFile, LocalPluginManifest? manifest, bool isDev)
-            {
-                this.DllFile = dllFile;
-                this.Manifest = manifest;
-                this.IsDev = isDev;
-            }
-
-            public FileInfo DllFile { get; init; }
-
-            public LocalPluginManifest? Manifest { get; init; }
-
-            public bool IsDev { get; init; }
-
-            public static int Sorter(PluginDef def1, PluginDef def2)
-            {
-                var priority1 = def1.Manifest?.LoadPriority ?? 0;
-                var priority2 = def2.Manifest?.LoadPriority ?? 0;
-                return priority2.CompareTo(priority1);
-            }
-        }
-
         private static class Locs
         {
             public static string DalamudPluginUpdateSuccessful(string name, Version version) => Loc.Localize("DalamudPluginUpdateSuccessful", "    》 {0} updated to v{1}.").Format(name, version);
@@ -1165,29 +1130,6 @@ namespace Dalamud.Plugin.Internal
             #pragma warning restore CS0618
             var codebasePatch = typeof(PluginManager).GetMethod(nameof(AssemblyCodeBasePatch), BindingFlags.NonPublic | BindingFlags.Static);
             this.assemblyCodeBaseMonoHook = new MonoMod.RuntimeDetour.Hook(codebaseTarget, codebasePatch);
-        }
-
-        internal record PluginPatchData
-        {
-            /// <summary>
-            /// Initializes a new instance of the <see cref="PluginPatchData"/> class.
-            /// </summary>
-            /// <param name="dllFile">DLL file being loaded.</param>
-            public PluginPatchData(FileSystemInfo dllFile)
-            {
-                this.Location = dllFile.FullName;
-                this.CodeBase = new Uri(dllFile.FullName).AbsoluteUri;
-            }
-
-            /// <summary>
-            /// Gets simulated Assembly.Location output.
-            /// </summary>
-            public string Location { get; }
-
-            /// <summary>
-            /// Gets simulated Assembly.CodeBase output.
-            /// </summary>
-            public string CodeBase { get; }
         }
     }
 }
