@@ -74,6 +74,7 @@ namespace Dalamud.Support
                     Language = startInfo.Language.ToString(),
                     BetaKey = configuration.DalamudBetaKey,
                     DoPluginTest = configuration.DoPluginTest,
+                    LoadAllApiLevels = configuration.LoadAllApiLevels,
                     InterfaceLoaded = interfaceManager?.IsReady ?? false,
                     HasThirdRepo = configuration.ThirdRepoList is { Count: > 0 },
                     ForcedMinHook = EnvironmentConfiguration.DalamudForceMinHook,
@@ -114,6 +115,8 @@ namespace Dalamud.Support
             public string? BetaKey { get; set; }
 
             public bool DoPluginTest { get; set; }
+
+            public bool LoadAllApiLevels { get; set; }
 
             public bool InterfaceLoaded { get; set; }
 
