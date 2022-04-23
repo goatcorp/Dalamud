@@ -104,7 +104,7 @@ namespace Dalamud.Plugin.Internal
         /// <summary>
         /// Gets a value indicating whether plugins are not still loading from boot.
         /// </summary>
-        public bool PluginsReady { get; private set; } = false;
+        public bool PluginsReady { get; private set; }
 
         /// <summary>
         /// Gets a value indicating whether all added repos are not in progress.
@@ -144,7 +144,7 @@ namespace Dalamud.Plugin.Internal
         /// Set the list of repositories to use and downloads their contents.
         /// Should be called when the Settings window has been updated or at instantiation.
         /// </summary>
-        /// <param name="notify">Whether the available plugins changed should be evented after.</param>
+        /// <param name="notify">Whether the available plugins changed event should be sent after.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task SetPluginReposFromConfigAsync(bool notify)
         {
@@ -225,7 +225,7 @@ namespace Dalamud.Plugin.Internal
                 // Manifests are not required for devPlugins. the Plugin type will handle any null manifests.
                 var manifestFile = LocalPluginManifest.GetManifestFile(dllFile);
                 var manifest = manifestFile.Exists ? LocalPluginManifest.Load(manifestFile) : null;
-                devPluginDefs.Add(new(dllFile, manifest, true));
+                devPluginDefs.Add(new PluginDef(dllFile, manifest, true));
             }
 
             // Sort for load order - unloaded definitions have default priority of 0
@@ -235,9 +235,9 @@ namespace Dalamud.Plugin.Internal
             // Dev plugins should load first.
             pluginDefs.InsertRange(0, devPluginDefs);
 
-            void LoadPlugins(IEnumerable<PluginDef> pluginDefs)
+            void LoadPlugins(IEnumerable<PluginDef> pluginDefsList)
             {
-                foreach (var pluginDef in pluginDefs)
+                foreach (var pluginDef in pluginDefsList)
                 {
                     try
                     {
@@ -260,7 +260,7 @@ namespace Dalamud.Plugin.Internal
 
             var asyncPlugins = pluginDefs.Where(def => def.Manifest == null || def.Manifest.LoadPriority <= 0);
             Task.Run(() => LoadPlugins(asyncPlugins))
-                .ContinueWith(task =>
+                .ContinueWith(_ =>
                 {
                     this.PluginsReady = true;
                     this.NotifyInstalledPluginsChanged();
@@ -412,7 +412,7 @@ namespace Dalamud.Plugin.Internal
             var response = await Util.HttpClient.GetAsync(downloadUrl);
             response.EnsureSuccessStatusCode();
 
-            var outputDir = new DirectoryInfo(Path.Combine(this.pluginDirectory.FullName, repoManifest.InternalName, version.ToString()));
+            var outputDir = new DirectoryInfo(Path.Combine(this.pluginDirectory.FullName, repoManifest.InternalName, version?.ToString() ?? string.Empty));
 
             try
             {
@@ -568,7 +568,6 @@ namespace Dalamud.Plugin.Internal
                     {
                         // Out of date plugins get added so they can be updated.
                         Log.Information(ex, $"Plugin was outdated, adding anyways: {dllFile.Name}");
-                        // plugin.Disable(); // Don't disable, or it gets deleted next boot.
                     }
                     else
                     {
@@ -625,14 +624,12 @@ namespace Dalamud.Plugin.Internal
 
                             return version;
                         })
-                        .Where(version => version != null)
                         .ToArray();
 
                     if (versionDirs.Length == 0)
                     {
                         Log.Information($"No versions: cleaning up {pluginDir.FullName}");
                         pluginDir.Delete(true);
-                        continue;
                     }
                     else
                     {
@@ -675,7 +672,6 @@ namespace Dalamud.Plugin.Internal
                                 {
                                     Log.Information($"Inapplicable version: cleaning up {versionDir.FullName}");
                                     versionDir.Delete(true);
-                                    continue;
                                 }
                             }
                             catch (Exception ex)
@@ -737,12 +733,11 @@ namespace Dalamud.Plugin.Internal
             {
                 InternalName = plugin.Manifest.InternalName,
                 Name = plugin.Manifest.Name,
-                Version = metadata.UseTesting
-                    ? metadata.UpdateManifest.TestingAssemblyVersion
-                    : metadata.UpdateManifest.AssemblyVersion,
+                Version = (metadata.UseTesting
+                               ? metadata.UpdateManifest.TestingAssemblyVersion
+                               : metadata.UpdateManifest.AssemblyVersion)!,
+                WasUpdated = true,
             };
-
-            updateStatus.WasUpdated = true;
 
             if (!dryRun)
             {
@@ -841,11 +836,11 @@ namespace Dalamud.Plugin.Internal
         /// </summary>
         /// <param name="updateMetadata">The list of updated plugin metadata.</param>
         /// <param name="header">The header text to send to chat prior to any update info.</param>
-        public void PrintUpdatedPlugins(List<PluginUpdateStatus> updateMetadata, string header)
+        public void PrintUpdatedPlugins(List<PluginUpdateStatus>? updateMetadata, string header)
         {
             var chatGui = Service<ChatGui>.Get();
 
-            if (updateMetadata != null && updateMetadata.Count > 0)
+            if (updateMetadata is { Count: > 0 })
             {
                 chatGui.Print(header);
 
@@ -885,17 +880,14 @@ namespace Dalamud.Plugin.Internal
 
             var av = manifest.AssemblyVersion;
             var tv = manifest.TestingAssemblyVersion;
-            var hasAv = av != null;
             var hasTv = tv != null;
 
-            if (hasAv && hasTv)
+            if (hasTv)
             {
                 return tv > av;
             }
-            else
-            {
-                return hasTv;
-            }
+
+            return false;
         }
 
         /// <summary>
@@ -912,10 +904,7 @@ namespace Dalamud.Plugin.Internal
                 return false;
 
             // Hidden by manifest
-            if (manifest.IsHide)
-                return false;
-
-            return true;
+            return !manifest.IsHide;
         }
 
         /// <summary>
@@ -942,10 +931,7 @@ namespace Dalamud.Plugin.Internal
                 return false;
 
             // Banned
-            if (this.IsManifestBanned(manifest))
-                return false;
-
-            return true;
+            return !this.IsManifestBanned(manifest);
         }
 
         /// <summary>
@@ -1062,9 +1048,9 @@ namespace Dalamud.Plugin.Internal
 
             public static int Sorter(PluginDef def1, PluginDef def2)
             {
-                var prio1 = def1.Manifest?.LoadPriority ?? 0;
-                var prio2 = def2.Manifest?.LoadPriority ?? 0;
-                return prio2.CompareTo(prio1);
+                var priority1 = def1.Manifest?.LoadPriority ?? 0;
+                var priority2 = def2.Manifest?.LoadPriority ?? 0;
+                return priority2.CompareTo(priority1);
             }
         }
 
@@ -1162,7 +1148,7 @@ namespace Dalamud.Plugin.Internal
                 if (methodBase == null)
                     continue;
 
-                yield return methodBase.Module.Assembly.FullName;
+                yield return methodBase.Module.Assembly.FullName!;
             }
         }
 
@@ -1171,14 +1157,14 @@ namespace Dalamud.Plugin.Internal
             var targetType = typeof(PluginManager).Assembly.GetType();
 
             var locationTarget = targetType.GetProperty(nameof(Assembly.Location))!.GetGetMethod();
-            var locationPatch = typeof(PluginManager).GetMethod(nameof(PluginManager.AssemblyLocationPatch), BindingFlags.NonPublic | BindingFlags.Static);
+            var locationPatch = typeof(PluginManager).GetMethod(nameof(AssemblyLocationPatch), BindingFlags.NonPublic | BindingFlags.Static);
             this.assemblyLocationMonoHook = new MonoMod.RuntimeDetour.Hook(locationTarget, locationPatch);
 
-#pragma warning disable SYSLIB0012 // Type or member is obsolete
-            var codebaseTarget = targetType.GetProperty(nameof(Assembly.CodeBase)).GetGetMethod();
-            var codebasePatch = typeof(PluginManager).GetMethod(nameof(PluginManager.AssemblyCodeBasePatch), BindingFlags.NonPublic | BindingFlags.Static);
+            #pragma warning disable CS0618
+            var codebaseTarget = targetType.GetProperty(nameof(Assembly.CodeBase))?.GetGetMethod();
+            #pragma warning restore CS0618
+            var codebasePatch = typeof(PluginManager).GetMethod(nameof(AssemblyCodeBasePatch), BindingFlags.NonPublic | BindingFlags.Static);
             this.assemblyCodeBaseMonoHook = new MonoMod.RuntimeDetour.Hook(codebaseTarget, codebasePatch);
-#pragma warning restore SYSLIB0012 // Type or member is obsolete
         }
 
         internal record PluginPatchData
@@ -1187,7 +1173,7 @@ namespace Dalamud.Plugin.Internal
             /// Initializes a new instance of the <see cref="PluginPatchData"/> class.
             /// </summary>
             /// <param name="dllFile">DLL file being loaded.</param>
-            public PluginPatchData(FileInfo dllFile)
+            public PluginPatchData(FileSystemInfo dllFile)
             {
                 this.Location = dllFile.FullName;
                 this.CodeBase = new Uri(dllFile.FullName).AbsoluteUri;
