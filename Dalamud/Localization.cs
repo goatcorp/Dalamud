@@ -17,7 +17,7 @@ namespace Dalamud
         /// <summary>
         /// Array of language codes which have a valid translation in Dalamud.
         /// </summary>
-        public static readonly string[] ApplicableLangCodes = { "de", "ja", "fr", "it", "es", "ko", "no", "ru" };
+        public static readonly string[] ApplicableLangCodes = { "de", "ja", "fr", "it", "es", "ko", "no", "ru", "zh", "tw" };
 
         private const string FallbackLangCode = "en";
 
