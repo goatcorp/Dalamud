@@ -71,7 +71,7 @@ namespace Dalamud.Injector
                 // Dalamud.Injector.exe inject [pid] [base64]
                 if (args.Count == 4)
                 {
-                    startInfo = JsonConvert.DeserializeObject<DalamudStartInfo>(Encoding.UTF8.GetString(Convert.FromBase64String(args[2])));
+                    startInfo = JsonConvert.DeserializeObject<DalamudStartInfo>(Encoding.UTF8.GetString(Convert.FromBase64String(args[3])));
                     args.RemoveAt(3);
                 }
             }
