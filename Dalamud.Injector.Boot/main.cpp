@@ -21,6 +21,7 @@ int wmain(int argc, wchar_t** argv)
 
     void* entrypoint_vfn;
     int result = InitializeClrAndGetEntryPoint(
+        GetModuleHandleW(nullptr),
         runtimeconfig_path,
         module_path,
         L"Dalamud.Injector.EntryPoint, Dalamud.Injector",
