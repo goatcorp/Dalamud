@@ -634,17 +634,13 @@ namespace Dalamud.Injector
 
         private static void Inject(Process process, DalamudStartInfo startInfo)
         {
-            var nethostName = "nethost.dll";
             var bootName = "Dalamud.Boot.dll";
-
-            var nethostPath = Path.GetFullPath(nethostName);
             var bootPath = Path.GetFullPath(bootName);
 
             // ======================================================
 
-            using var injector = new Injector(process);
+            using var injector = new Injector(process, false);
 
-            injector.LoadLibrary(nethostPath, out _);
             injector.LoadLibrary(bootPath, out var bootModule);
 
             // ======================================================
