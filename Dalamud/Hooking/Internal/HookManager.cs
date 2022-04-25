@@ -4,11 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 
-using Dalamud.Configuration.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Memory;
 using Iced.Intel;
-using Microsoft.Win32;
 
 namespace Dalamud.Hooking.Internal
 {

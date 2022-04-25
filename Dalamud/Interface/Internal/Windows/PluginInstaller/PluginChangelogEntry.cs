@@ -2,7 +2,6 @@
 
 using Dalamud.Plugin.Internal;
 using Dalamud.Utility;
-using ImGuiScene;
 
 namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 {

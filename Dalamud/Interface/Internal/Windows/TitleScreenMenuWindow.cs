@@ -9,7 +9,6 @@ using Dalamud.Game;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.Gui;
 using Dalamud.Interface.Animation.EasingFunctions;
-using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Windowing;
 using ImGuiNET;
 using ImGuiScene;

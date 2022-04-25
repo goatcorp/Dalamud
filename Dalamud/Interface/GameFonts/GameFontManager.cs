@@ -5,7 +5,6 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 
-using Dalamud.Configuration.Internal;
 using Dalamud.Data;
 using Dalamud.Interface.Internal;
 using ImGuiNET;

@@ -7,7 +7,6 @@ using Dalamud.Game.ClientState.Resolvers;
 using Dalamud.Game.ClientState.Statuses;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Memory;
-using JetBrains.Annotations;
 
 namespace Dalamud.Game.ClientState.Party
 {

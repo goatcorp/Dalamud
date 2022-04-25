@@ -6,7 +6,6 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading;
 
 using Dalamud.Game;
 using Newtonsoft.Json;
@@ -573,7 +572,7 @@ namespace Dalamud.Injector
                 return null;
             }
 
-            return new NativeAclFix.ExistingProcess(inheritableCurrentProcessHandle);
+            return new ExistingProcess(inheritableCurrentProcessHandle);
         }
 
         private static int ProcessLaunchTestCommand(List<string> args)
@@ -605,7 +604,7 @@ namespace Dalamud.Injector
             var result = JsonSerializer.CreateDefault().Deserialize<Dictionary<string, int>>(new JsonTextReader(helperProcess.StandardOutput));
             var pid = result["pid"];
             var handle = (IntPtr)result["handle"];
-            var resultProcess = new NativeAclFix.ExistingProcess(handle);
+            var resultProcess = new ExistingProcess(handle);
             Console.WriteLine("PID: {0}, Handle: {1}", pid, handle);
             Console.WriteLine("Press Enter to force quit");
             Console.ReadLine();
@@ -682,7 +681,7 @@ namespace Dalamud.Injector
         /// </summary>
         /// <param name="argument">Supplies the argument to encode.</param>
         /// <param name="force">
-        ///     Supplies an indication of whether we should quote the argument even if it 
+        ///     Supplies an indication of whether we should quote the argument even if it
         ///     does not contain any characters that would ordinarily require quoting.
         /// </param>
         private static string EncodeParameterArgument(string argument, bool force = false)

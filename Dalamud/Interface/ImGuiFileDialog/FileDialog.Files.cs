@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-using Dalamud.Interface;
-
 namespace Dalamud.Interface.ImGuiFileDialog
 {
     /// <summary>

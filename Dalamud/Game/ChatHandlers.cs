@@ -18,7 +18,6 @@ using Dalamud.Interface.Internal.Windows;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Internal;
-using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
 using Serilog;
 

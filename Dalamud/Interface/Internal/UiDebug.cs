@@ -1,9 +1,5 @@
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Numerics;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 using Dalamud.Game;
@@ -19,7 +15,7 @@ namespace Dalamud.Interface.Internal
     /// <summary>
     /// This class displays a debug window to inspect native addons.
     /// </summary>
-    internal unsafe class UIDebug
+    internal unsafe class UiDebug
     {
         private const int UnitListCount = 18;
 
@@ -52,9 +48,9 @@ namespace Dalamud.Interface.Internal
         private AtkUnitBase* selectedUnitBase = null;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="UIDebug"/> class.
+        /// Initializes a new instance of the <see cref="UiDebug"/> class.
         /// </summary>
-        public UIDebug()
+        public UiDebug()
         {
             var sigScanner = Service<SigScanner>.Get();
             var getSingletonAddr = sigScanner.ScanText("E8 ?? ?? ?? ?? 41 B8 01 00 00 00 48 8D 15 ?? ?? ?? ?? 48 8B 48 20 E8 ?? ?? ?? ?? 48 8B CF");

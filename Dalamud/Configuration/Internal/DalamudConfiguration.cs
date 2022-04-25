@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+
 using Dalamud.Game.Text;
-using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Style;
 using Newtonsoft.Json;
 using Serilog;

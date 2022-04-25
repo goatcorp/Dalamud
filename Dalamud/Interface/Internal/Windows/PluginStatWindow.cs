@@ -4,8 +4,6 @@ using System.Linq;
 using System.Reflection;
 
 using Dalamud.Game;
-using Dalamud.Game.Internal;
-using Dalamud.Hooking;
 using Dalamud.Hooking.Internal;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Internal;

@@ -1126,7 +1126,9 @@ namespace Dalamud.Plugin.Internal
             this.assemblyLocationMonoHook = new MonoMod.RuntimeDetour.Hook(locationTarget, locationPatch);
 
             #pragma warning disable CS0618
+            #pragma warning disable SYSLIB0012
             var codebaseTarget = targetType.GetProperty(nameof(Assembly.CodeBase))?.GetGetMethod();
+            #pragma warning restore SYSLIB0012
             #pragma warning restore CS0618
             var codebasePatch = typeof(PluginManager).GetMethod(nameof(AssemblyCodeBasePatch), BindingFlags.NonPublic | BindingFlags.Static);
             this.assemblyCodeBaseMonoHook = new MonoMod.RuntimeDetour.Hook(codebaseTarget, codebasePatch);
