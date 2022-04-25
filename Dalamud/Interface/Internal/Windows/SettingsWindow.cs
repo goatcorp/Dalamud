@@ -12,7 +12,6 @@ using Dalamud.Game.Gui.Dtr;
 using Dalamud.Game.Text;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
-using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Internal;
 using Dalamud.Utility;
@@ -134,26 +133,9 @@ namespace Dalamud.Interface.Internal.Windows
             };
 
             this.languages = Localization.ApplicableLangCodes.Prepend("en").ToArray();
-            try
-            {
-                if (string.IsNullOrEmpty(configuration.LanguageOverride))
-                {
-                    var currentUiLang = CultureInfo.CurrentUICulture;
-
-                    if (Localization.ApplicableLangCodes.Any(x => currentUiLang.TwoLetterISOLanguageName == x))
-                        this.langIndex = Array.IndexOf(this.languages, currentUiLang.TwoLetterISOLanguageName);
-                    else
-                        this.langIndex = 0;
-                }
-                else
-                {
-                    this.langIndex = Array.IndexOf(this.languages, configuration.LanguageOverride);
-                }
-            }
-            catch (Exception)
-            {
+            this.langIndex = Array.IndexOf(this.languages, configuration.EffectiveLanguage);
+            if (this.langIndex == -1)
                 this.langIndex = 0;
-            }
 
             try
             {
@@ -197,7 +179,9 @@ namespace Dalamud.Interface.Internal.Windows
             var configuration = Service<DalamudConfiguration>.Get();
             var interfaceManager = Service<InterfaceManager>.Get();
 
-            var rebuildFont = interfaceManager.FontGamma != configuration.FontGammaLevel;
+            var rebuildFont = interfaceManager.FontGamma != configuration.FontGammaLevel
+                || interfaceManager.FontResolutionLevel != configuration.FontResolutionLevel
+                || interfaceManager.UseAxis != configuration.UseAxisFontsFromGame;
 
             ImGui.GetIO().FontGlobalScale = configuration.GlobalUiScale;
             interfaceManager.FontGammaOverride = null;
@@ -353,7 +337,7 @@ namespace Dalamud.Interface.Internal.Windows
                 interfaceManager.RebuildFonts();
             }
 
-            if (ImGui.DragFloat("##DalamudSettingsGlobalUiScaleDrag", ref this.globalUiScale, 0.005f, MinScale, MaxScale, "%.2f"))
+            if (ImGui.DragFloat("##DalamudSettingsGlobalUiScaleDrag", ref this.globalUiScale, 0.005f, MinScale, MaxScale, "%.2f", ImGuiSliderFlags.AlwaysClamp))
             {
                 ImGui.GetIO().FontGlobalScale = this.globalUiScale;
                 interfaceManager.RebuildFonts();
@@ -395,6 +379,18 @@ namespace Dalamud.Interface.Internal.Windows
                 ImGui.GetIO().Fonts.TexWidth,
                 ImGui.GetIO().Fonts.TexHeight));
             ImGui.PopStyleColor();
+
+            if (Service<DalamudConfiguration>.Get().DisableFontFallbackNotice)
+            {
+                ImGui.Text(Loc.Localize("DalamudSettingsFontResolutionLevelWarningDisabled", "Warning will not be displayed even when the limits are enforced and fonts become blurry."));
+                if (ImGui.Button(Loc.Localize("DalamudSettingsFontResolutionLevelWarningReset", "Show warnings") + "##DalamudSettingsFontResolutionLevelWarningReset"))
+                {
+                    Service<DalamudConfiguration>.Get().DisableFontFallbackNotice = false;
+                    Service<DalamudConfiguration>.Get().Save();
+                    if (Service<InterfaceManager>.Get().IsFallbackFontMode)
+                        Service<DalamudInterface>.Get().OpenFallbackFontNoticeWindow();
+                }
+            }
 
             ImGuiHelpers.ScaledDummy(10);
 
@@ -440,7 +436,7 @@ namespace Dalamud.Interface.Internal.Windows
                 interfaceManager.RebuildFonts();
             }
 
-            if (ImGui.DragFloat("##DalamudSettingsFontGammaDrag", ref this.fontGamma, 0.005f, MinScale, MaxScale, "%.2f"))
+            if (ImGui.DragFloat("##DalamudSettingsFontGammaDrag", ref this.fontGamma, 0.005f, MinScale, MaxScale, "%.2f", ImGuiSliderFlags.AlwaysClamp))
             {
                 interfaceManager.FontGammaOverride = this.fontGamma;
                 interfaceManager.RebuildFonts();
@@ -603,7 +599,9 @@ namespace Dalamud.Interface.Internal.Windows
             }
 
             ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingCustomRepoHint", "Add custom plugin repositories."));
-            ImGui.TextColored(ImGuiColors.DalamudRed, Loc.Localize("DalamudSettingCustomRepoWarning", "We cannot take any responsibility for third-party plugins and repositories.\nTake care when installing third-party plugins from untrusted sources."));
+            ImGui.TextColored(ImGuiColors.DalamudRed, Loc.Localize("DalamudSettingCustomRepoWarning", "We cannot take any responsibility for third-party plugins and repositories."));
+            ImGui.TextColored(ImGuiColors.DalamudRed, Loc.Localize("DalamudSettingCustomRepoWarning2", "Plugins have full control over your PC, like any other program, and may cause harm or crashes."));
+            ImGui.TextColored(ImGuiColors.DalamudRed, Loc.Localize("DalamudSettingCustomRepoWarning3", "Please make absolutely sure that you only install third-party plugins from developers you trust."));
 
             ImGuiHelpers.ScaledDummy(5);
 

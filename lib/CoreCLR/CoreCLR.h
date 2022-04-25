@@ -5,8 +5,10 @@
 #include "nethost/nethost.h"
 
 class CoreCLR {
-    public:
-    explicit CoreCLR();
+    void* const m_calling_module;
+
+public:
+    explicit CoreCLR(void* calling_module);
     ~CoreCLR() = default;
 
     int load_hostfxr();
@@ -32,7 +34,7 @@ class CoreCLR {
         void* reserved,
         void** delegate) const;
 
-    private:
+private:
     /* HostFXR delegates. */
     hostfxr_initialize_for_runtime_config_fn m_hostfxr_initialize_for_runtime_config_fptr{};
     hostfxr_get_runtime_delegate_fn m_hostfxr_get_runtime_delegate_fptr{};

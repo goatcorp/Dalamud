@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
+using Dalamud.Game.Gui.ContextMenus.OldStructs;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Logging;
 using Dalamud.Memory;
@@ -19,7 +20,7 @@ namespace Dalamud.Game.Gui.ContextMenus
     /// </summary>
     internal unsafe class ContextMenuReaderWriter
     {
-        private readonly AgentContextInterface* agentContextInterface;
+        private readonly OldAgentContextInterface* agentContextInterface;
 
         private int atkValueCount;
         private AtkValue* atkValues;
@@ -30,7 +31,7 @@ namespace Dalamud.Game.Gui.ContextMenus
         /// <param name="agentContextInterface">The AgentContextInterface to act upon.</param>
         /// <param name="atkValueCount">The number of ATK values to consider.</param>
         /// <param name="atkValues">Pointer to the array of ATK values.</param>
-        public ContextMenuReaderWriter(AgentContextInterface* agentContextInterface, int atkValueCount, AtkValue* atkValues)
+        public ContextMenuReaderWriter(OldAgentContextInterface* agentContextInterface, int atkValueCount, AtkValue* atkValues)
         {
             PluginLog.Warning($"{(IntPtr)atkValues:X}");
 
@@ -277,7 +278,7 @@ namespace Dalamud.Game.Gui.ContextMenus
         /// Read the context menu from the agent.
         /// </summary>
         /// <returns>Read menu items.</returns>
-        public GameContextMenuItem[] Read()
+        public GameContextMenuItem[]? Read()
         {
             var gameContextMenuItems = new List<GameContextMenuItem>();
             for (var contextMenuItemIndex = 0; contextMenuItemIndex < this.ContextMenuItemCount; contextMenuItemIndex++)
@@ -306,18 +307,23 @@ namespace Dalamud.Game.Gui.ContextMenus
                 byte action;
                 if (this.IsInventoryContext)
                 {
-                    var actions = &((AgentInventoryContext*)this.agentContextInterface)->Actions;
+                    var actions = &((OldAgentInventoryContext*)this.agentContextInterface)->Actions;
                     action = *(actions + contextMenuItemAtkValueBaseIndex);
                 }
                 else if (this.StructLayout is SubContextMenuStructLayout.Alternate)
                 {
-                    var redButtonActions = &((AgentContext*)this.agentContextInterface)->Items->RedButtonActions;
+                    var redButtonActions = &((OldAgentContext*)this.agentContextInterface)->Items->RedButtonActions;
                     action = (byte)*(redButtonActions + contextMenuItemIndex);
+                }
+                else if (((OldAgentContext*)this.agentContextInterface)->Items != null)
+                {
+                    var actions = &((OldAgentContext*)this.agentContextInterface)->Items->Actions;
+                    action = *(actions + contextMenuItemAtkValueBaseIndex);
                 }
                 else
                 {
-                    var actions = &((AgentContext*)this.agentContextInterface)->Items->Actions;
-                    action = *(actions + contextMenuItemAtkValueBaseIndex);
+                    PluginLog.Warning("Context Menu action failed, Items pointer was unexpectedly null.");
+                    return null;
                 }
 
                 // Get the has previous indicator flag
@@ -438,28 +444,33 @@ namespace Dalamud.Game.Gui.ContextMenus
 
                 if (this.IsInventoryContext)
                 {
-                    var actions = &((AgentInventoryContext*)this.agentContextInterface)->Actions;
+                    var actions = &((OldAgentInventoryContext*)this.agentContextInterface)->Actions;
                     *(actions + this.FirstContextMenuItemIndex + contextMenuItemIndex) = action;
                 }
                 else if (this.StructLayout is SubContextMenuStructLayout.Alternate && this.FirstUnhandledAction != null)
                 {
                     // Some weird placeholder goes here
-                    var actions = &((AgentContext*)this.agentContextInterface)->Items->Actions;
+                    var actions = &((OldAgentContext*)this.agentContextInterface)->Items->Actions;
                     *(actions + this.FirstContextMenuItemIndex + contextMenuItemIndex) = (byte)(this.FirstUnhandledAction.Value + contextMenuItemIndex);
 
                     // Make sure there's one of these function pointers for every item.
                     // The function needs to be the same, so we just copy the first one into every index.
-                    var unkFunctionPointers = &((AgentContext*)this.agentContextInterface)->Items->UnkFunctionPointers;
+                    var unkFunctionPointers = &((OldAgentContext*)this.agentContextInterface)->Items->UnkFunctionPointers;
                     *(unkFunctionPointers + this.FirstContextMenuItemIndex + contextMenuItemIndex) = *(unkFunctionPointers + this.FirstContextMenuItemIndex);
 
                     // The real action goes here
-                    var redButtonActions = &((AgentContext*)this.agentContextInterface)->Items->RedButtonActions;
+                    var redButtonActions = &((OldAgentContext*)this.agentContextInterface)->Items->RedButtonActions;
                     *(redButtonActions + contextMenuItemIndex) = action;
+                }
+                else if (((OldAgentContext*)this.agentContextInterface)->Items != null)
+                {
+                    // TODO: figure out why this branch is reached on inventory contexts and why Items is sometimes null.
+                    var actions = &((OldAgentContext*)this.agentContextInterface)->Items->Actions;
+                    *(actions + this.FirstContextMenuItemIndex + contextMenuItemIndex) = action;
                 }
                 else
                 {
-                    var actions = &((AgentContext*)this.agentContextInterface)->Items->Actions;
-                    *(actions + this.FirstContextMenuItemIndex + contextMenuItemIndex) = action;
+                    PluginLog.Warning("Context Menu action failed, Items pointer was unexpectedly null.");
                 }
 
                 if (contextMenuItem.Indicator == ContextMenuItemIndicator.Previous)

@@ -1,6 +1,4 @@
-﻿using Dalamud.Game.Text.SeStringHandling;
-
-namespace Dalamud.Game.Gui.ContextMenus
+﻿namespace Dalamud.Game.Gui.ContextMenus
 {
     /// <summary>
     /// Provides game object context to a context menu.

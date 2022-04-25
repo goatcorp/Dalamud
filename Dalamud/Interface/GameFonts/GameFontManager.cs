@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using System.Text;
 
-using Dalamud.Configuration.Internal;
 using Dalamud.Data;
 using Dalamud.Interface.Internal;
 using ImGuiNET;
@@ -189,6 +189,8 @@ namespace Dalamud.Interface.GameFonts
                 font->FontSize /= fontScale;
                 font->Ascent /= fontScale;
                 font->Descent /= fontScale;
+                if (font->ConfigData != null)
+                    font->ConfigData->SizePixels /= fontScale;
                 var glyphs = (ImFontGlyphReal*)font->Glyphs.Data;
                 for (int i = 0, i_ = font->Glyphs.Size; i < i_; i++)
                 {
@@ -227,7 +229,10 @@ namespace Dalamud.Interface.GameFonts
             }
 
             if (needRebuild)
+            {
+                Log.Information("[GameFontManager] Calling RebuildFonts because {0} has been requested.", style.ToString());
                 this.interfaceManager.RebuildFonts();
+            }
 
             return new(this, style);
         }
@@ -285,7 +290,8 @@ namespace Dalamud.Interface.GameFonts
         /// <summary>
         /// Build fonts before plugins do something more. To be called from InterfaceManager.
         /// </summary>
-        public void BuildFonts()
+        /// <param name="forceMinSize">Whether to load fonts in minimum sizes.</param>
+        public void BuildFonts(bool forceMinSize)
         {
             unsafe
             {
@@ -303,7 +309,7 @@ namespace Dalamud.Interface.GameFonts
                 {
                     var rectIds = this.glyphRectIds[style] = new();
 
-                    var fdt = this.fdts[(int)style.FamilyAndSize];
+                    var fdt = this.fdts[(int)(forceMinSize ? style.FamilyWithMinimumSize : style.FamilyAndSize)];
                     if (fdt == null)
                         continue;
 
@@ -316,7 +322,7 @@ namespace Dalamud.Interface.GameFonts
                         if (c < 32 || c >= 0xFFFF)
                             continue;
 
-                        var widthAdjustment = style.CalculateWidthAdjustment(fdt, glyph);
+                        var widthAdjustment = style.CalculateBaseWidthAdjustment(fdt, glyph);
                         rectIds[c] = Tuple.Create(
                             io.Fonts.AddCustomRectFontGlyph(
                                 font,
@@ -336,7 +342,8 @@ namespace Dalamud.Interface.GameFonts
         /// <summary>
         /// Post-build fonts before plugins do something more. To be called from InterfaceManager.
         /// </summary>
-        public unsafe void AfterBuildFonts()
+        /// <param name="forceMinSize">Whether to load fonts in minimum sizes.</param>
+        public unsafe void AfterBuildFonts(bool forceMinSize)
         {
             var ioFonts = ImGui.GetIO().Fonts;
             ioFonts.GetTexDataAsRGBA32(out byte* pixels8, out var width, out var height);
@@ -345,9 +352,12 @@ namespace Dalamud.Interface.GameFonts
 
             foreach (var (style, font) in this.fonts)
             {
-                var fdt = this.fdts[(int)style.FamilyAndSize];
+                var fdt = this.fdts[(int)(forceMinSize ? style.FamilyWithMinimumSize : style.FamilyAndSize)];
+                var scale = style.SizePt / fdt.FontHeader.Size;
                 var fontPtr = font.NativePtr;
-                fontPtr->ConfigData->SizePixels = fontPtr->FontSize = fdt.FontHeader.Size * 4 / 3;
+                fontPtr->FontSize = fdt.FontHeader.Size * 4 / 3;
+                if (fontPtr->ConfigData != null)
+                    fontPtr->ConfigData->SizePixels = fontPtr->FontSize;
                 fontPtr->Ascent = fdt.FontHeader.Ascent;
                 fontPtr->Descent = fdt.FontHeader.Descent;
                 fontPtr->EllipsisChar = '…';
@@ -361,11 +371,18 @@ namespace Dalamud.Interface.GameFonts
                     }
                 }
 
-                fixed (char* c = FontNames[(int)style.FamilyAndSize])
+                // I have no idea what's causing NPE, so just to be safe
+                try
                 {
-                    for (var j = 0; j < 40; j++)
-                        fontPtr->ConfigData->Name[j] = 0;
-                    Encoding.UTF8.GetBytes(c, FontNames[(int)style.FamilyAndSize].Length, fontPtr->ConfigData->Name, 40);
+                    if (font.NativePtr != null && font.NativePtr->ConfigData != null)
+                    {
+                        var nameBytes = Encoding.UTF8.GetBytes(style.ToString() + "\0");
+                        Marshal.Copy(nameBytes, 0, (IntPtr)font.ConfigData.Name.Data, Math.Min(nameBytes.Length, font.ConfigData.Name.Count));
+                    }
+                }
+                catch (NullReferenceException)
+                {
+                    // do nothing
                 }
 
                 foreach (var (c, (rectId, glyph)) in this.glyphRectIds[style])
@@ -373,7 +390,7 @@ namespace Dalamud.Interface.GameFonts
                     var rc = ioFonts.GetCustomRectByIndex(rectId);
                     var sourceBuffer = this.texturePixels[glyph.TextureFileIndex];
                     var sourceBufferDelta = glyph.TextureChannelByteIndex;
-                    var widthAdjustment = style.CalculateWidthAdjustment(fdt, glyph);
+                    var widthAdjustment = style.CalculateBaseWidthAdjustment(fdt, glyph);
                     if (widthAdjustment == 0)
                     {
                         for (var y = 0; y < glyph.BoundingHeight; y++)
@@ -399,10 +416,10 @@ namespace Dalamud.Interface.GameFonts
                             for (var y = 0; y < glyph.BoundingHeight; y++)
                             {
                                 float xDelta = xbold;
-                                if (style.SkewStrength > 0)
-                                    xDelta += style.SkewStrength * (fdt.FontHeader.LineHeight - glyph.CurrentOffsetY - y) / fdt.FontHeader.LineHeight;
-                                else if (style.SkewStrength < 0)
-                                    xDelta -= style.SkewStrength * (glyph.CurrentOffsetY + y) / fdt.FontHeader.LineHeight;
+                                if (style.BaseSkewStrength > 0)
+                                    xDelta += style.BaseSkewStrength * (fdt.FontHeader.LineHeight - glyph.CurrentOffsetY - y) / fdt.FontHeader.LineHeight;
+                                else if (style.BaseSkewStrength < 0)
+                                    xDelta -= style.BaseSkewStrength * (glyph.CurrentOffsetY + y) / fdt.FontHeader.LineHeight;
                                 var xDeltaInt = (int)Math.Floor(xDelta);
                                 var xness = xDelta - xDeltaInt;
                                 for (var x = 0; x < glyph.BoundingWidth; x++)
@@ -431,11 +448,9 @@ namespace Dalamud.Interface.GameFonts
                         }
                     }
                 }
-            }
 
-            foreach (var font in this.fonts.Values)
-            {
                 CopyGlyphsAcrossFonts(InterfaceManager.DefaultFont, font, true, false);
+                UnscaleFont(font, 1 / scale, false);
                 font.BuildLookupTable();
             }
         }

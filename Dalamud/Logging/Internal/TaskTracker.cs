@@ -6,7 +6,6 @@ using System.Reflection;
 using System.Threading.Tasks;
 
 using Dalamud.Game;
-using Serilog;
 
 namespace Dalamud.Logging.Internal
 {

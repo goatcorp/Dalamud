@@ -6,16 +6,8 @@
 #include "..\lib\CoreCLR\CoreCLR.h"
 #include "..\lib\CoreCLR\boot.h"
 
-int wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nShowCmd)
+int wmain(int argc, wchar_t** argv)
 {
-    #ifndef NDEBUG
-    ConsoleSetup(L"Dalamud.Injector");
-    #endif
-
-    int argc = 0;
-    LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &argc);
-    //ShowWindow(GetConsoleWindow(), SW_HIDE);
-
     printf("Dalamud.Injector, (c) 2021 XIVLauncher Contributors\nBuilt at: %s@%s\n\n", __DATE__, __TIME__);
 
     wchar_t _module_path[MAX_PATH];
@@ -29,6 +21,7 @@ int wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LP
 
     void* entrypoint_vfn;
     int result = InitializeClrAndGetEntryPoint(
+        GetModuleHandleW(nullptr),
         runtimeconfig_path,
         module_path,
         L"Dalamud.Injector.EntryPoint, Dalamud.Injector",
@@ -42,18 +35,9 @@ int wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LP
     typedef void (CORECLR_DELEGATE_CALLTYPE* custom_component_entry_point_fn)(int, wchar_t**);
     custom_component_entry_point_fn entrypoint_fn = reinterpret_cast<custom_component_entry_point_fn>(entrypoint_vfn);
 
-    printf("Running Dalamud Injector... ");
+    printf("Running Dalamud Injector...\n");
     entrypoint_fn(argc, argv);
     printf("Done!\n");
-
-    // =========================================================================== //
-
-    #ifndef NDEBUG
-    fclose(stdin);
-    fclose(stdout);
-    fclose(stderr);
-    FreeConsole();
-    #endif
 
     return 0;
 }

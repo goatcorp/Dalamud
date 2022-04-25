@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -26,6 +27,7 @@ namespace Dalamud.Injector
     internal sealed class Injector : IDisposable
     {
         private readonly Process targetProcess;
+        private readonly bool disposeTargetProcess;
         private readonly ExternalMemory extMemory;
         private readonly CircularBuffer circularBuffer;
         private readonly PrivateMemoryBuffer memoryBuffer;
@@ -40,9 +42,11 @@ namespace Dalamud.Injector
         /// Initializes a new instance of the <see cref="Injector"/> class.
         /// </summary>
         /// <param name="targetProcess">Process to inject.</param>
-        public Injector(Process targetProcess)
+        /// <param name="disposeTargetProcess">Dispose given process on disposing self.</param>
+        public Injector(Process targetProcess, bool disposeTargetProcess = true)
         {
             this.targetProcess = targetProcess;
+            this.disposeTargetProcess = disposeTargetProcess;
 
             this.extMemory = new ExternalMemory(targetProcess);
             this.circularBuffer = new CircularBuffer(4096, this.extMemory);
@@ -66,7 +70,8 @@ namespace Dalamud.Injector
         {
             GC.SuppressFinalize(this);
 
-            this.targetProcess?.Dispose();
+            if (this.disposeTargetProcess)
+                this.targetProcess?.Dispose();
             this.circularBuffer?.Dispose();
             this.memoryBuffer?.Dispose();
         }
@@ -83,23 +88,10 @@ namespace Dalamud.Injector
             if (lpParameter == IntPtr.Zero)
                 throw new Exception("Unable to allocate LoadLibraryW parameter");
 
-            Log.Verbose($"CreateRemoteThread:     call 0x{this.loadLibraryShellPtr.ToInt64():X} with 0x{lpParameter.ToInt64():X}");
-
-            var threadHandle = CreateRemoteThread(
-                this.targetProcess.Handle,
-                IntPtr.Zero,
-                UIntPtr.Zero,
-                this.loadLibraryShellPtr,
-                lpParameter,
-                CreateThreadFlags.RunImmediately,
-                out _);
-
-            _ = WaitForSingleObject(threadHandle, uint.MaxValue);
-
+            this.CallRemoteFunction(this.loadLibraryShellPtr, lpParameter, out var err);
             address = this.extMemory.Read<IntPtr>(this.loadLibraryRetPtr);
-
             if (address == IntPtr.Zero)
-                throw new Exception($"Error calling LoadLibraryW with {modulePath}");
+                throw new Exception($"LoadLibraryW(\"{modulePath}\") failure: {new Win32Exception((int)err).Message} ({err})");
         }
 
         /// <summary>
@@ -113,25 +105,13 @@ namespace Dalamud.Injector
             var functionNamePtr = this.WriteNullTerminatedASCIIString(functionName);
             var getProcAddressParams = new GetProcAddressParams(module, functionNamePtr);
             var lpParameter = this.circularBuffer.Add(ref getProcAddressParams);
-
             if (lpParameter == IntPtr.Zero)
                 throw new Exception("Unable to allocate GetProcAddress parameter ptr");
 
-            var threadHandle = CreateRemoteThread(
-                this.targetProcess.Handle,
-                IntPtr.Zero,
-                UIntPtr.Zero,
-                this.getProcAddressShellPtr,
-                lpParameter,
-                CreateThreadFlags.RunImmediately,
-                out _);
-
-            _ = WaitForSingleObject(threadHandle, uint.MaxValue);
-
-            this.extMemory.Read(this.getProcAddressRetPtr, out address);
-
+            this.CallRemoteFunction(this.getProcAddressShellPtr, lpParameter, out var err);
+            address = this.extMemory.Read<IntPtr>(this.getProcAddressRetPtr);
             if (address == IntPtr.Zero)
-                throw new Exception($"Error calling GetProcAddress with {functionName}");
+                throw new Exception($"GetProcAddress(0x{module:X}, \"{functionName}\") failure: {new Win32Exception((int)err).Message} ({err})");
         }
 
         /// <summary>
@@ -152,6 +132,9 @@ namespace Dalamud.Injector
                 CreateThreadFlags.RunImmediately,
                 out _);
 
+            if (threadHandle == IntPtr.Zero)
+                throw new Exception($"CreateRemoteThread failure: {Marshal.GetLastWin32Error()}");
+
             _ = WaitForSingleObject(threadHandle, uint.MaxValue);
 
             GetExitCodeThread(threadHandle, out exitCode);
@@ -161,8 +144,10 @@ namespace Dalamud.Injector
 
         private void SetupLoadLibrary(ProcessModule kernel32Module, ExportFunction[] kernel32Exports)
         {
-            var offset = this.GetExportedFunctionOffset(kernel32Exports, "LoadLibraryW");
-            var functionAddr = kernel32Module.BaseAddress + (int)offset;
+            var getLastErrorAddr = kernel32Module.BaseAddress + (int)this.GetExportedFunctionOffset(kernel32Exports, "GetLastError");
+            Log.Verbose($"GetLastError:           0x{getLastErrorAddr.ToInt64():X}");
+
+            var functionAddr = kernel32Module.BaseAddress + (int)this.GetExportedFunctionOffset(kernel32Exports, "LoadLibraryW");
             Log.Verbose($"LoadLibraryW:           0x{functionAddr.ToInt64():X}");
 
             var functionPtr = this.memoryBuffer.Add(ref functionAddr);
@@ -187,7 +172,9 @@ namespace Dalamud.Injector
             asm.call(__qword_ptr[__qword_ptr[func]]);       // call qword [qword func]       // CreateRemoteThread lpParameter with string already in ECX.
             asm.mov(__qword_ptr[__qword_ptr[retVal]], rax); // mov qword [qword retVal], rax //
             asm.add(rsp, 40);                               // add rsp, 40                   // Re-align stack to 16 byte boundary + shadow space.
-            asm.ret();                                      // ret                           // Restore stack ptr. (Callee cleanup)
+            asm.mov(rax, (ulong)getLastErrorAddr);          // mov rax, pfnGetLastError      // Change return address to GetLastError.
+            asm.push(rax);                                  // push rax                      //
+            asm.ret();                                      // ret                           // Jump to GetLastError.
 
             var bytes = this.Assemble(asm);
             this.loadLibraryShellPtr = this.memoryBuffer.Add(bytes);
@@ -212,6 +199,9 @@ namespace Dalamud.Injector
 
         private void SetupGetProcAddress(ProcessModule kernel32Module, ExportFunction[] kernel32Exports)
         {
+            var getLastErrorAddr = kernel32Module.BaseAddress + (int)this.GetExportedFunctionOffset(kernel32Exports, "GetLastError");
+            Log.Verbose($"GetLastError:           0x{getLastErrorAddr.ToInt64():X}");
+
             var offset = this.GetExportedFunctionOffset(kernel32Exports, "GetProcAddress");
             var functionAddr = kernel32Module.BaseAddress + (int)offset;
             Log.Verbose($"GetProcAddress:         0x{functionAddr.ToInt64():X}");
@@ -240,7 +230,9 @@ namespace Dalamud.Injector
             asm.call(__qword_ptr[__qword_ptr[func]]);        // call qword [qword func]        //
             asm.mov(__qword_ptr[__qword_ptr[retVal]], rax);  // mov qword [qword retVal]       //
             asm.add(rsp, 40);                                // add rsp, 40                    // Re-align stack to 16 byte boundary + shadow space.
-            asm.ret();                                       // ret                            // Restore stack ptr. (Callee cleanup)
+            asm.mov(rax, (ulong)getLastErrorAddr);           // mov rax, pfnGetLastError       // Change return address to GetLastError.
+            asm.push(rax);                                   // push rax                       //
+            asm.ret();                                       // ret                            // Jump to GetLastError.
 
             var bytes = this.Assemble(asm);
             this.getProcAddressShellPtr = this.memoryBuffer.Add(bytes);

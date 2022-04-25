@@ -72,7 +72,7 @@ namespace Dalamud.Interface.Internal.Windows
         private bool resolveGameData = false;
         private bool resolveObjects = false;
 
-        private UIDebug addonInspector = null;
+        private UiDebug addonInspector = null;
 
         private Hook<MessageBoxWDelegate>? messageBoxMinHook;
         private bool hookUseMinHook = false;
@@ -877,7 +877,7 @@ namespace Dalamud.Interface.Internal.Windows
 
         private void DrawAddonInspector()
         {
-            this.addonInspector ??= new UIDebug();
+            this.addonInspector ??= new UiDebug();
             this.addonInspector.Draw();
         }
 

@@ -1,7 +1,5 @@
 ﻿using System;
 
-using ImGuiScene;
-
 namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 {
     /// <summary>

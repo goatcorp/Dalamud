@@ -1,8 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
+using Dalamud.Game.Gui.ContextMenus.OldStructs;
 using Dalamud.Game.Text.SeStringHandling;
 using FFXIVClientStructs.FFXIV.Client.UI;
-using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 
 namespace Dalamud.Game.Gui.ContextMenus
 {
@@ -18,7 +19,7 @@ namespace Dalamud.Game.Gui.ContextMenus
         /// <param name="agent">The agent associated with the context menu.</param>
         /// <param name="parentAddonName">The the name of the parent addon associated with the context menu.</param>
         /// <param name="items">The items in the context menu.</param>
-        public ContextMenuOpenedArgs(AddonContextMenu* addon, AgentContextInterface* agent, string? parentAddonName, IEnumerable<ContextMenuItem> items)
+        public ContextMenuOpenedArgs(AddonContextMenu* addon, OldAgentContextInterface* agent, string? parentAddonName, IEnumerable<ContextMenuItem> items)
         {
             this.Addon = addon;
             this.Agent = agent;
@@ -34,7 +35,7 @@ namespace Dalamud.Game.Gui.ContextMenus
         /// <summary>
         /// Gets the agent associated with the context menu.
         /// </summary>
-        public AgentContextInterface* Agent { get; }
+        public OldAgentContextInterface* Agent { get; }
 
         /// <summary>
         /// Gets the name of the parent addon associated with the context menu.
@@ -47,11 +48,6 @@ namespace Dalamud.Game.Gui.ContextMenus
         public string? Title { get; init; }
 
         /// <summary>
-        /// Gets the items in the context menu.
-        /// </summary>
-        public List<ContextMenuItem> Items { get; }
-
-        /// <summary>
         /// Gets the game object context associated with the context menu.
         /// </summary>
         public GameObjectContext? GameObjectContext { get; init; }
@@ -60,6 +56,11 @@ namespace Dalamud.Game.Gui.ContextMenus
         /// Gets the item context associated with the context menu.
         /// </summary>
         public InventoryItemContext? InventoryItemContext { get; init; }
+
+        /// <summary>
+        /// Gets the items in the context menu.
+        /// </summary>
+        internal List<ContextMenuItem> Items { get; }
 
         /// <summary>
         /// Append a custom context menu item to this context menu.
@@ -75,7 +76,12 @@ namespace Dalamud.Game.Gui.ContextMenus
         /// </summary>
         /// <param name="name">The name of the submenu.</param>
         /// <param name="opened">The action to be executed once opened.</param>
-        public void AddCustomSubMenu(SeString name, ContextMenuOpenedDelegate opened) =>
+        public void AddCustomSubMenu(SeString name, ContextMenuOpenedDelegate opened)
+        {
+            if (this.GameObjectContext != null)
+                throw new Exception("Submenus on GameObjects are not supported yet.");
+
             this.Items.Add(new OpenSubContextMenuItem(name, opened));
+        }
     }
 }

@@ -1,8 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
 
-using Dalamud.Game.Internal;
-
 namespace Dalamud.Game
 {
     /// <summary>

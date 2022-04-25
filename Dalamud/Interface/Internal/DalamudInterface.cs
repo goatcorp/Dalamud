@@ -53,6 +53,7 @@ namespace Dalamud.Interface.Internal
         private readonly SelfTestWindow selfTestWindow;
         private readonly StyleEditorWindow styleEditorWindow;
         private readonly TitleScreenMenuWindow titleScreenMenuWindow;
+        private readonly FallbackFontNoticeWindow fallbackFontNoticeWindow;
 
         private readonly TextureWrap logoTexture;
         private readonly TextureWrap tsmLogoTexture;
@@ -74,6 +75,7 @@ namespace Dalamud.Interface.Internal
         public DalamudInterface()
         {
             var configuration = Service<DalamudConfiguration>.Get();
+            var interfaceManager = Service<InterfaceManager>.Get();
 
             this.WindowSystem = new WindowSystem("DalamudCore");
 
@@ -91,6 +93,7 @@ namespace Dalamud.Interface.Internal
             this.selfTestWindow = new SelfTestWindow() { IsOpen = false };
             this.styleEditorWindow = new StyleEditorWindow() { IsOpen = false };
             this.titleScreenMenuWindow = new TitleScreenMenuWindow() { IsOpen = false };
+            this.fallbackFontNoticeWindow = new FallbackFontNoticeWindow() { IsOpen = interfaceManager.IsFallbackFontMode && !configuration.DisableFontFallbackNotice };
 
             this.WindowSystem.AddWindow(this.changelogWindow);
             this.WindowSystem.AddWindow(this.colorDemoWindow);
@@ -106,10 +109,11 @@ namespace Dalamud.Interface.Internal
             this.WindowSystem.AddWindow(this.selfTestWindow);
             this.WindowSystem.AddWindow(this.styleEditorWindow);
             this.WindowSystem.AddWindow(this.titleScreenMenuWindow);
+            this.WindowSystem.AddWindow(this.fallbackFontNoticeWindow);
 
             ImGuiManagedAsserts.AssertsEnabled = configuration.AssertsEnabledAtStartup;
+            this.isImGuiDrawDevMenu = this.isImGuiDrawDevMenu || configuration.DevBarOpenAtStartup;
 
-            var interfaceManager = Service<InterfaceManager>.Get();
             interfaceManager.Draw += this.OnDraw;
             var dalamud = Service<Dalamud>.Get();
 
@@ -206,6 +210,11 @@ namespace Dalamud.Interface.Internal
         /// Opens the dev menu bar.
         /// </summary>
         public void OpenDevMenu() => this.isImGuiDrawDevMenu = true;
+
+        /// <summary>
+        /// Opens the fallback font notice window.
+        /// </summary>
+        public void OpenFallbackFontNoticeWindow() => this.fallbackFontNoticeWindow.IsOpen = true;
 
         /// <summary>
         /// Opens the <see cref="GamepadModeNotifierWindow"/>.
@@ -425,7 +434,13 @@ namespace Dalamud.Interface.Internal
 
                     if (ImGui.BeginMenu("Dalamud"))
                     {
-                        ImGui.MenuItem("Draw Dalamud dev menu", string.Empty, ref this.isImGuiDrawDevMenu);
+                        ImGui.MenuItem("Draw dev menu", string.Empty, ref this.isImGuiDrawDevMenu);
+                        var devBarAtStartup = configuration.DevBarOpenAtStartup;
+                        if (ImGui.MenuItem("Draw dev menu at startup", string.Empty, ref devBarAtStartup))
+                        {
+                            configuration.DevBarOpenAtStartup ^= true;
+                            configuration.Save();
+                        }
 
                         ImGui.Separator();
 
@@ -607,6 +622,11 @@ namespace Dalamud.Interface.Internal
                             Log.Information(info);
                         }
 
+                        if (ImGui.MenuItem("Show dev bar info", null, configuration.ShowDevBarInfo))
+                        {
+                            configuration.ShowDevBarInfo = !configuration.ShowDevBarInfo;
+                        }
+
                         ImGui.EndMenu();
                     }
 
@@ -674,7 +694,7 @@ namespace Dalamud.Interface.Internal
                             configuration.Save();
                         }
 
-                        if (ImGui.MenuItem("Load banned plugins", null, configuration.LoadBannedPlugins))
+                        if (ImGui.MenuItem("Load blacklisted plugins", null, configuration.LoadBannedPlugins))
                         {
                             configuration.LoadBannedPlugins = !configuration.LoadBannedPlugins;
                             configuration.Save();
@@ -724,14 +744,17 @@ namespace Dalamud.Interface.Internal
                     if (Service<GameGui>.Get().GameUiHidden)
                         ImGui.BeginMenu("UI is hidden...", false);
 
-                    ImGui.PushFont(InterfaceManager.MonoFont);
+                    if (configuration.ShowDevBarInfo)
+                    {
+                        ImGui.PushFont(InterfaceManager.MonoFont);
 
-                    ImGui.BeginMenu(Util.GetGitHash(), false);
-                    ImGui.BeginMenu(this.frameCount.ToString("000000"), false);
-                    ImGui.BeginMenu(ImGui.GetIO().Framerate.ToString("000"), false);
-                    ImGui.BeginMenu($"{Util.FormatBytes(GC.GetTotalMemory(false))}", false);
+                        ImGui.BeginMenu(Util.GetGitHash(), false);
+                        ImGui.BeginMenu(this.frameCount.ToString("000000"), false);
+                        ImGui.BeginMenu(ImGui.GetIO().Framerate.ToString("000"), false);
+                        ImGui.BeginMenu($"{Util.FormatBytes(GC.GetTotalMemory(false))}", false);
 
-                    ImGui.PopFont();
+                        ImGui.PopFont();
+                    }
 
                     ImGui.EndMainMenuBar();
                 }

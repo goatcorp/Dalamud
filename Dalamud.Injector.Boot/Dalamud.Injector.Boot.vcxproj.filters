@@ -13,9 +13,6 @@
       <UniqueIdentifier>{4faac519-3a73-4b2b-96e7-fb597f02c0be}</UniqueIdentifier>
       <Extensions>ico;rc</Extensions>
     </Filter>
-    <Filter Include="Library Files">
-      <UniqueIdentifier>{6aff1bed-6979-4bc9-94e8-ddafb626e6bf}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Image Include="dalamud.ico">
@@ -54,13 +51,5 @@
     <ClInclude Include="..\lib\CoreCLR\core\coreclr_delegates.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <Library Include="..\lib\CoreCLR\nethost\nethost.lib">
-      <Filter>Library Files</Filter>
-    </Library>
-    <Library Include="..\lib\CoreCLR\nethost\libnethost.lib">
-      <Filter>Library Files</Filter>
-    </Library>
   </ItemGroup>
 </Project>

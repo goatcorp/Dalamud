@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 
-using Dalamud.Game;
 using Dalamud.Game.Gui;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Internal;

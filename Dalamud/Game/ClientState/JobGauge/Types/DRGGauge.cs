@@ -1,7 +1,5 @@
 using System;
 
-using Dalamud.Game.ClientState.JobGauge.Enums;
-
 namespace Dalamud.Game.ClientState.JobGauge.Types
 {
     /// <summary>

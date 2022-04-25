@@ -1,10 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 
-using Dalamud.Data;
-using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Lumina.Excel.GeneratedSheets;

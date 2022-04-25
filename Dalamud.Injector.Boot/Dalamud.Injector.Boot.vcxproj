@@ -45,7 +45,7 @@
       <PreprocessorDefinitions>CPPDLLTEMPLATE_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <AdditionalLibraryDirectories>..\lib\CoreCLR;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -98,10 +98,6 @@
     <ClInclude Include="..\lib\CoreCLR\core\hostfxr.h" />
     <ClInclude Include="..\lib\CoreCLR\nethost\nethost.h" />
     <ClInclude Include="..\lib\CoreCLR\pch.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <Library Include="..\lib\CoreCLR\nethost\libnethost.lib" />
-    <Library Include="..\lib\CoreCLR\nethost\nethost.lib" />
   </ItemGroup>
   <Target Name="RemoveExtraFiles" AfterTargets="PostBuildEvent">
     <Delete Files="$(OutDir)$(TargetName).lib" />

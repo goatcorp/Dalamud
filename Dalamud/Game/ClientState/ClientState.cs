@@ -1,9 +1,9 @@
 using System;
 using System.Runtime.InteropServices;
 
+using Dalamud.Data;
 using Dalamud.Game.ClientState.Aetherytes;
 using Dalamud.Game.ClientState.Buddy;
-using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Fates;
 using Dalamud.Game.ClientState.GamePad;
 using Dalamud.Game.ClientState.JobGauge;
@@ -17,6 +17,7 @@ using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Utility;
+using Lumina.Excel.GeneratedSheets;
 using Serilog;
 
 namespace Dalamud.Game.ClientState
@@ -32,6 +33,7 @@ namespace Dalamud.Game.ClientState
         private readonly Hook<SetupTerritoryTypeDelegate> setupTerritoryTypeHook;
 
         private bool lastConditionNone = true;
+        private bool lastFramePvP = false;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ClientState"/> class.
@@ -60,7 +62,7 @@ namespace Dalamud.Game.ClientState
 
             Service<GamepadState>.Set(this.address);
 
-            Service<Condition>.Set(this.address);
+            Service<Conditions.Condition>.Set(this.address);
 
             Service<TargetManager>.Set(this.address);
 
@@ -96,6 +98,16 @@ namespace Dalamud.Game.ClientState
         public event EventHandler Logout;
 
         /// <summary>
+        /// Event that fires when a character is entering PvP.
+        /// </summary>
+        public event System.Action EnterPvP;
+
+        /// <summary>
+        /// Event that fires when a character is leaving PvP.
+        /// </summary>
+        public event System.Action LeavePvP;
+
+        /// <summary>
         /// Event that gets fired when a duty is ready.
         /// </summary>
         public event EventHandler<Lumina.Excel.GeneratedSheets.ContentFinderCondition> CfPop;
@@ -126,11 +138,16 @@ namespace Dalamud.Game.ClientState
         public bool IsLoggedIn { get; private set; }
 
         /// <summary>
+        /// Gets a value indicating whether or not the user is playing PvP.
+        /// </summary>
+        public bool IsPvP { get; private set; }
+
+        /// <summary>
         /// Enable this module.
         /// </summary>
         public void Enable()
         {
-            Service<Condition>.Get().Enable();
+            Service<Conditions.Condition>.Get().Enable();
             Service<GamepadState>.Get().Enable();
             this.setupTerritoryTypeHook.Enable();
         }
@@ -141,7 +158,7 @@ namespace Dalamud.Game.ClientState
         void IDisposable.Dispose()
         {
             this.setupTerritoryTypeHook.Dispose();
-            Service<Condition>.Get().ExplicitDispose();
+            Service<Conditions.Condition>.Get().ExplicitDispose();
             Service<GamepadState>.Get().ExplicitDispose();
             Service<Framework>.Get().Update -= this.FrameworkOnOnUpdateEvent;
             Service<NetworkHandlers>.Get().CfPop -= this.NetworkHandlersOnCfPop;
@@ -164,8 +181,10 @@ namespace Dalamud.Game.ClientState
 
         private void FrameworkOnOnUpdateEvent(Framework framework)
         {
-            var condition = Service<Condition>.Get();
+            var condition = Service<Conditions.Condition>.Get();
             var gameGui = Service<GameGui>.Get();
+            var data = Service<DataManager>.Get();
+
             if (condition.Any() && this.lastConditionNone == true)
             {
                 Log.Debug("Is login");
@@ -182,6 +201,26 @@ namespace Dalamud.Game.ClientState
                 this.IsLoggedIn = false;
                 this.Logout?.Invoke(this, null);
                 gameGui.ResetUiHideState();
+            }
+
+            if (this.TerritoryType != 0)
+            {
+                var terriRow = data.GetExcelSheet<TerritoryType>()!.GetRow(this.TerritoryType);
+                this.IsPvP = terriRow?.Bg.RawString.StartsWith("ffxiv/pvp") ?? false;
+            }
+
+            if (this.IsPvP != this.lastFramePvP)
+            {
+                this.lastFramePvP = this.IsPvP;
+
+                if (this.IsPvP)
+                {
+                    this.EnterPvP?.Invoke();
+                }
+                else
+                {
+                    this.LeavePvP?.Invoke();
+                }
             }
         }
     }

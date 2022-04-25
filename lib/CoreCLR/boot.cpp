@@ -26,6 +26,7 @@ void ConsoleTeardown()
 std::optional<CoreCLR> g_clr;
 
 int InitializeClrAndGetEntryPoint(
+    void* calling_module,
     std::wstring runtimeconfig_path,
     std::wstring module_path,
     std::wstring entrypoint_assembly_name,
@@ -33,7 +34,7 @@ int InitializeClrAndGetEntryPoint(
     std::wstring entrypoint_delegate_type_name,
     void** entrypoint_fn)
 {
-    g_clr = CoreCLR();
+    g_clr.emplace(calling_module);
 
     int result;
     SetEnvironmentVariable(L"DOTNET_MULTILEVEL_LOOKUP", L"0");

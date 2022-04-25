@@ -15,6 +15,8 @@ using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.System.String;
+using FFXIVClientStructs.FFXIV.Client.UI;
+using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
 using Serilog;
 
@@ -31,7 +33,6 @@ namespace Dalamud.Game.Gui
 
         private readonly GetMatrixSingletonDelegate getMatrixSingleton;
         private readonly ScreenToWorldNativeDelegate screenToWorldNative;
-        private readonly GetAgentModuleDelegate getAgentModule;
 
         private readonly Hook<SetGlobalBgmDelegate> setGlobalBgmHook;
         private readonly Hook<HandleItemHoverDelegate> handleItemHoverHook;
@@ -60,7 +61,6 @@ namespace Dalamud.Game.Gui
             Log.Verbose($"HandleItemHover address 0x{this.address.HandleItemHover.ToInt64():X}");
             Log.Verbose($"HandleItemOut address 0x{this.address.HandleItemOut.ToInt64():X}");
             Log.Verbose($"HandleImm address 0x{this.address.HandleImm.ToInt64():X}");
-            Log.Verbose($"GetAgentModule address 0x{this.address.GetAgentModule.ToInt64():X}");
 
             Service<ChatGui>.Set(new ChatGui(this.address.ChatManager));
             Service<PartyFinderGui>.Set();
@@ -85,8 +85,6 @@ namespace Dalamud.Game.Gui
 
             this.toggleUiHideHook = new Hook<ToggleUiHideDelegate>(this.address.ToggleUiHide, this.ToggleUiHideDetour);
 
-            this.getAgentModule = Marshal.GetDelegateForFunctionPointer<GetAgentModuleDelegate>(this.address.GetAgentModule);
-
             this.utf8StringFromSequenceHook = new Hook<Utf8StringFromSequenceDelegate>(this.address.Utf8StringFromSequence, this.Utf8StringFromSequenceDetour);
         }
 
@@ -97,8 +95,6 @@ namespace Dalamud.Game.Gui
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         private unsafe delegate bool ScreenToWorldNativeDelegate(float* camPos, float* clipPos, float rayDistance, float* worldPos, int* unknown);
-
-        private delegate IntPtr GetAgentModuleDelegate(IntPtr uiModule);
 
         // Hooked delegates
 
@@ -390,40 +386,36 @@ namespace Dalamud.Game.Gui
         /// <summary>
         /// Find the agent associated with an addon, if possible.
         /// </summary>
-        /// <param name="addon">The addon address.</param>
+        /// <param name="addonPtr">The addon address.</param>
         /// <returns>A pointer to the agent interface.</returns>
-        public unsafe IntPtr FindAgentInterface(IntPtr addon)
+        public unsafe IntPtr FindAgentInterface(IntPtr addonPtr)
         {
-            if (addon == IntPtr.Zero)
+            if (addonPtr == IntPtr.Zero)
                 return IntPtr.Zero;
 
-            var uiModule = Service<GameGui>.Get().GetUIModule();
-            if (uiModule == IntPtr.Zero)
+            var uiModule = (UIModule*)this.GetUIModule();
+            if (uiModule == null)
+                return IntPtr.Zero;
+
+            var agentModule = uiModule->GetAgentModule();
+            if (agentModule == null)
+                return IntPtr.Zero;
+
+            var addon = (AtkUnitBase*)addonPtr;
+            var addonId = addon->ParentID == 0 ? addon->ID : addon->ParentID;
+
+            if (addonId == 0)
+                return IntPtr.Zero;
+
+            var index = 0;
+            while (true)
             {
-                return IntPtr.Zero;
-            }
+                var agent = agentModule->GetAgentByInternalID((uint)index++);
+                if (agent == uiModule || agent == null)
+                    break;
 
-            var agentModule = this.getAgentModule(uiModule);
-            if (agentModule == IntPtr.Zero)
-            {
-                return IntPtr.Zero;
-            }
-
-            var unitBase = (FFXIVClientStructs.FFXIV.Component.GUI.AtkUnitBase*)addon;
-            var id = unitBase->ParentID;
-            if (id == 0)
-                id = unitBase->IDu;
-
-            if (id == 0)
-                return IntPtr.Zero;
-
-            for (var i = 0; i < 380; i++)
-            {
-                var agent = Marshal.ReadIntPtr(agentModule, 0x20 + (i * 8));
-                if (agent == IntPtr.Zero)
-                    continue;
-                if (Marshal.ReadInt32(agent, 0x20) == id)
-                    return agent;
+                if (agent->AddonId == addonId)
+                    return new IntPtr(agent);
             }
 
             return IntPtr.Zero;
@@ -445,13 +437,8 @@ namespace Dalamud.Game.Gui
             Service<FlyTextGui>.Get().Enable();
             Service<PartyFinderGui>.Get().Enable();
 
-            // TODO(goat): Remove when stable
-            var config = Service<DalamudConfiguration>.Get();
-            if (config.DalamudBetaKey == DalamudConfiguration.DalamudCurrentBetaKey)
-            {
-                Log.Warning("TAKE CARE!!! You are using Dalamud Testing, so the new context menu feature is enabled.\nThis may cause crashes with unupdated plugins.");
+            if (EnvironmentConfiguration.DalamudDoContextMenu)
                 Service<ContextMenu>.Get().Enable();
-            }
 
             this.setGlobalBgmHook.Enable();
             this.handleItemHoverHook.Enable();
