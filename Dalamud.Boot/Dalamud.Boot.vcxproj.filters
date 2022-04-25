@@ -1,10 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Library Files">
-      <UniqueIdentifier>{18be40ac-9367-46ff-b848-4c528aa97a8d}</UniqueIdentifier>
-      <Extensions>lib</Extensions>
-    </Filter>
     <Filter Include="CoreCLR">
       <UniqueIdentifier>{dc468303-865e-43bd-908f-a3542c4bb669}</UniqueIdentifier>
     </Filter>
@@ -55,13 +51,5 @@
     <ClInclude Include="pch.h">
       <Filter>Dalamud.Boot DLL</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <Library Include="..\lib\CoreCLR\nethost\nethost.lib">
-      <Filter>Library Files</Filter>
-    </Library>
-    <Library Include="..\lib\CoreCLR\nethost\libnethost.lib">
-      <Filter>Library Files</Filter>
-    </Library>
   </ItemGroup>
 </Project>

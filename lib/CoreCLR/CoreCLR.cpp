@@ -2,12 +2,14 @@
 
 #include "CoreCLR.h"
 #include <Windows.h>
+#include <filesystem>
 #include <iostream>
 #include "nethost/nethost.h"
 
-#pragma comment(lib, "nethost/libnethost.lib")
-
-CoreCLR::CoreCLR() {}
+CoreCLR::CoreCLR(void* calling_module)
+    : m_calling_module(calling_module)
+{
+}
 
 /* Core public functions */
 int CoreCLR::load_hostfxr()
@@ -18,19 +20,43 @@ int CoreCLR::load_hostfxr()
 int CoreCLR::load_hostfxr(const struct get_hostfxr_parameters* parameters)
 {
     // Get the path to CoreCLR's hostfxr
+    std::wstring calling_module_path(MAX_PATH, L'\0');
+    
+    do
+    {
+        calling_module_path.resize(GetModuleFileNameW(static_cast<HMODULE>(m_calling_module), &calling_module_path[0], static_cast<DWORD>(calling_module_path.size())));
+    }
+    while (!calling_module_path.empty() && GetLastError() == ERROR_INSUFFICIENT_BUFFER);
+    if (calling_module_path.empty())
+        return -1;
+
+    calling_module_path = (std::filesystem::path(calling_module_path).parent_path() / L"nethost.dll").wstring();
+
+    auto lib_nethost = reinterpret_cast<void*>(load_library(calling_module_path.c_str()));
+    if (!lib_nethost)
+        return -1;
+
+    auto get_hostfxr_path = reinterpret_cast<get_hostfxr_path_type>(
+        get_export(lib_nethost, "get_hostfxr_path"));
+    if (!get_hostfxr_path)
+        return -1;
+
     wchar_t buffer[MAX_PATH]{};
     size_t buffer_size = sizeof buffer / sizeof(wchar_t);
     if (int rc = get_hostfxr_path(buffer, &buffer_size, parameters); rc != 0)
         return rc;
 
     // Load hostfxr and get desired exports
-    auto lib = reinterpret_cast<void*>(load_library(buffer));
+    auto lib_hostfxr = reinterpret_cast<void*>(load_library(buffer));
+    if (!lib_hostfxr)
+        return -1;
+
     m_hostfxr_initialize_for_runtime_config_fptr = reinterpret_cast<hostfxr_initialize_for_runtime_config_fn>(
-        get_export(lib, "hostfxr_initialize_for_runtime_config"));
+        get_export(lib_hostfxr, "hostfxr_initialize_for_runtime_config"));
     m_hostfxr_get_runtime_delegate_fptr = reinterpret_cast<hostfxr_get_runtime_delegate_fn>(
-        get_export(lib, "hostfxr_get_runtime_delegate"));
+        get_export(lib_hostfxr, "hostfxr_get_runtime_delegate"));
     m_hostfxr_close_fptr = reinterpret_cast<hostfxr_close_fn>(
-        get_export(lib, "hostfxr_close"));
+        get_export(lib_hostfxr, "hostfxr_close"));
 
     return m_hostfxr_initialize_for_runtime_config_fptr
         && m_hostfxr_get_runtime_delegate_fptr

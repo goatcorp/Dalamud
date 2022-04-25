@@ -117,10 +117,6 @@
     <ClInclude Include="pch.h" />
     <ClInclude Include="veh.h" />
   </ItemGroup>
-  <ItemGroup>
-    <Library Include="..\lib\CoreCLR\nethost\libnethost.lib" />
-    <Library Include="..\lib\CoreCLR\nethost\nethost.lib" />
-  </ItemGroup>
   <Target Name="RemoveExtraFiles" AfterTargets="PostBuildEvent">
     <Delete Files="$(OutDir)$(TargetName).lib" />
     <Delete Files="$(OutDir)$(TargetName).exp" />

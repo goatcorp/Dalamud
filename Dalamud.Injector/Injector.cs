@@ -27,6 +27,7 @@ namespace Dalamud.Injector
     internal sealed class Injector : IDisposable
     {
         private readonly Process targetProcess;
+        private readonly bool disposeTargetProcess;
         private readonly ExternalMemory extMemory;
         private readonly CircularBuffer circularBuffer;
         private readonly PrivateMemoryBuffer memoryBuffer;
@@ -41,9 +42,11 @@ namespace Dalamud.Injector
         /// Initializes a new instance of the <see cref="Injector"/> class.
         /// </summary>
         /// <param name="targetProcess">Process to inject.</param>
-        public Injector(Process targetProcess)
+        /// <param name="disposeTargetProcess">Dispose given process on disposing self.</param>
+        public Injector(Process targetProcess, bool disposeTargetProcess = true)
         {
             this.targetProcess = targetProcess;
+            this.disposeTargetProcess = disposeTargetProcess;
 
             this.extMemory = new ExternalMemory(targetProcess);
             this.circularBuffer = new CircularBuffer(4096, this.extMemory);
@@ -67,7 +70,8 @@ namespace Dalamud.Injector
         {
             GC.SuppressFinalize(this);
 
-            this.targetProcess?.Dispose();
+            if (this.disposeTargetProcess)
+                this.targetProcess?.Dispose();
             this.circularBuffer?.Dispose();
             this.memoryBuffer?.Dispose();
         }
@@ -85,14 +89,9 @@ namespace Dalamud.Injector
                 throw new Exception("Unable to allocate LoadLibraryW parameter");
 
             this.CallRemoteFunction(this.loadLibraryShellPtr, lpParameter, out var err);
-
-            if (err != 0)
-                throw new Exception($"LoadLibraryW(\"{modulePath}\") failure: {new Win32Exception((int)err).Message} ({err})");
-
             address = this.extMemory.Read<IntPtr>(this.loadLibraryRetPtr);
-
             if (address == IntPtr.Zero)
-                throw new Exception($"LoadLibraryW(\"{modulePath}\") failure: Error code unavailable");
+                throw new Exception($"LoadLibraryW(\"{modulePath}\") failure: {new Win32Exception((int)err).Message} ({err})");
         }
 
         /// <summary>
@@ -110,12 +109,9 @@ namespace Dalamud.Injector
                 throw new Exception("Unable to allocate GetProcAddress parameter ptr");
 
             this.CallRemoteFunction(this.getProcAddressShellPtr, lpParameter, out var err);
-            if (err != 0)
-                throw new Exception($"GetProcAddress(0x{module:X}, \"{functionName}\") failure: {new Win32Exception((int)err).Message} ({err})");
-
-            this.extMemory.Read(this.getProcAddressRetPtr, out address);
+            address = this.extMemory.Read<IntPtr>(this.getProcAddressRetPtr);
             if (address == IntPtr.Zero)
-                throw new Exception($"GetProcAddress(0x{module:X}, \"{functionName}\") failure: Error code unavailable");
+                throw new Exception($"GetProcAddress(0x{module:X}, \"{functionName}\") failure: {new Win32Exception((int)err).Message} ({err})");
         }
 
         /// <summary>
