@@ -436,10 +436,7 @@ namespace Dalamud.Game.Gui
             Service<ToastGui>.Get().Enable();
             Service<FlyTextGui>.Get().Enable();
             Service<PartyFinderGui>.Get().Enable();
-
-            if (EnvironmentConfiguration.DalamudDoContextMenu)
-                Service<ContextMenu>.Get().Enable();
-
+            Service<ContextMenu>.Get().Enable();
             this.setGlobalBgmHook.Enable();
             this.handleItemHoverHook.Enable();
             this.handleItemOutHook.Enable();
