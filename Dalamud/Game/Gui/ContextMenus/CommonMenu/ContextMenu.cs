@@ -236,7 +236,6 @@ public class ContextMenu : IDisposable
         if (scanner.TryScanText(Signatures.SomeOpenAddonThing, out var thingPtr))
         {
             this.SomeOpenAddonThingHook = new Hook<SomeOpenAddonThingDelegate>(thingPtr, this.SomeOpenAddonThingDetour);
-            this.SomeOpenAddonThingHook.Enable();
         }
         else
         {
@@ -249,8 +248,7 @@ public class ContextMenu : IDisposable
             {
                 this.ContextMenuOpenHook = new Hook<ContextMenuOpenDelegate>(openPtr, this.OpenMenuDetour);
             }
-
-            this.ContextMenuOpenHook.Enable();
+            
         }
         else
         {
@@ -261,7 +259,6 @@ public class ContextMenu : IDisposable
         {
             this.ContextMenuItemSelectedHook =
                 new Hook<ContextMenuItemSelectedInternalDelegate>(selectedPtr, this.ItemSelectedDetour);
-            this.ContextMenuItemSelectedHook.Enable();
         }
 
         if (scanner.TryScanText(Signatures.TitleContextMenuOpen, out var titleOpenPtr))
@@ -272,14 +269,12 @@ public class ContextMenu : IDisposable
                     new Hook<ContextMenuOpenDelegate>(titleOpenPtr, this.TitleContextMenuOpenDetour);
             }
 
-            this.TitleContextMenuOpenHook.Enable();
         }
 
         if (scanner.TryScanText(Signatures.ContextMenuEvent66, out var event66Ptr))
         {
             this.ContextMenuEvent66Hook =
                 new Hook<ContextMenuEvent66Delegate>(event66Ptr, this.ContextMenuEvent66Detour);
-            this.ContextMenuEvent66Hook.Enable();
         }
 
         // TODO: uncomment when inv submenus
@@ -287,6 +282,18 @@ public class ContextMenu : IDisposable
         //     this.InventoryContextMenuEvent30Hook = new Hook<InventoryContextMenuEvent30Delegate>(event30Ptr, new InventoryContextMenuEvent30Delegate(this.InventoryContextMenuEvent30Detour));
         //     this.InventoryContextMenuEvent30Hook.Enable();
         // }
+    }
+
+    /// <summary>
+    /// Enable this subsystem.
+    /// </summary>
+    internal void Enable()
+    {
+        this.SomeOpenAddonThingHook?.Enable();
+        this.ContextMenuOpenHook?.Enable();
+        this.TitleContextMenuOpenHook?.Enable();
+        this.ContextMenuItemSelectedHook?.Enable();
+        this.ContextMenuEvent66Hook?.Enable();
     }
 
     /// <inheritdoc />
@@ -297,7 +304,6 @@ public class ContextMenu : IDisposable
         this.TitleContextMenuOpenHook?.Dispose();
         this.ContextMenuItemSelectedHook?.Dispose();
         this.ContextMenuEvent66Hook?.Dispose();
-        this.InventoryContextMenuEvent30Hook?.Dispose();
     }
 
     private IntPtr SomeOpenAddonThingDetour(
