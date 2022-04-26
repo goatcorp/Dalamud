@@ -1,4 +1,12 @@
-﻿namespace Dalamud.Game.Gui.ContextMenus.CommonMenu;
+﻿using Dalamud.Game.Gui.ContextMenus.CommonMenu.Helpers;
+using Dalamud.Game.Gui.ContextMenus.CommonMenu.Inventory;
+using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Hooking;
+using Dalamud.Logging;
+using Dalamud.Utility;
+using Serilog.Core;
+
+namespace Dalamud.Game.Gui.ContextMenus.CommonMenu;
 
 using System;
 using System.Collections.Generic;
@@ -168,24 +176,20 @@ public class ContextMenu : IDisposable
     private unsafe delegate void AtkValueSetStringDelegate(AtkValue* thisPtr, byte* bytes);
 
     private readonly AtkValueSetStringDelegate _atkValueSetString = null!;
-
-    private GameFunctions Functions { get; }
+    
     private ClientLanguage Language { get; }
     private IntPtr Agent { get; set; } = IntPtr.Zero;
     private List<BaseContextMenuItem> Items { get; } = new();
     private int NormalSize { get; set; }
+    private UiAlloc UiAlloc { get; set; }
 
-    internal ContextMenu(GameFunctions functions, SigScanner scanner, ClientLanguage language, Hooks hooks)
+    internal ContextMenu()
     {
-        this.Functions = functions;
-        this.Language = language;
+        this.Language = Service<DalamudStartInfo>.Get().Language;
+        var scanner = Service<SigScanner>.Get();
+        this.UiAlloc = new UiAlloc(scanner);
 
-        if (!hooks.HasFlag(Hooks.ContextMenu))
-        {
-            return;
-        }
-
-        if (scanner.TryScanText(Signatures.AtkValueChangeType, out var changeTypePtr, "Context Menu (change type)"))
+        if (scanner.TryScanText(Signatures.AtkValueChangeType, out var changeTypePtr))
         {
             this._atkValueChangeType = Marshal.GetDelegateForFunctionPointer<AtkValueChangeTypeDelegate>(changeTypePtr);
         }
@@ -194,7 +198,7 @@ public class ContextMenu : IDisposable
             return;
         }
 
-        if (scanner.TryScanText(Signatures.AtkValueSetString, out var setStringPtr, "Context Menu (set string)"))
+        if (scanner.TryScanText(Signatures.AtkValueSetString, out var setStringPtr))
         {
             this._atkValueSetString = Marshal.GetDelegateForFunctionPointer<AtkValueSetStringDelegate>(setStringPtr);
         }
@@ -203,7 +207,7 @@ public class ContextMenu : IDisposable
             return;
         }
 
-        if (scanner.TryScanText(Signatures.GetAddonByInternalId, out var getAddonPtr, "Context Menu (get addon)"))
+        if (scanner.TryScanText(Signatures.GetAddonByInternalId, out var getAddonPtr))
         {
             this._getAddonByInternalId =
                 Marshal.GetDelegateForFunctionPointer<GetAddonByInternalIdDelegate>(getAddonPtr);
@@ -213,7 +217,7 @@ public class ContextMenu : IDisposable
             return;
         }
 
-        if (scanner.TryScanText(Signatures.SetUpContextSubMenu, out var setUpSubPtr, "Context Menu (set up submenu)"))
+        if (scanner.TryScanText(Signatures.SetUpContextSubMenu, out var setUpSubPtr))
         {
             this._setUpContextSubMenu = Marshal.GetDelegateForFunctionPointer<SetUpContextSubMenuDelegate>(setUpSubPtr);
         }
@@ -229,7 +233,7 @@ public class ContextMenu : IDisposable
         //     return;
         // }
 
-        if (scanner.TryScanText(Signatures.SomeOpenAddonThing, out var thingPtr, "Context Menu (some OpenAddon thing)"))
+        if (scanner.TryScanText(Signatures.SomeOpenAddonThing, out var thingPtr))
         {
             this.SomeOpenAddonThingHook = new Hook<SomeOpenAddonThingDelegate>(thingPtr, this.SomeOpenAddonThingDetour);
             this.SomeOpenAddonThingHook.Enable();
@@ -239,7 +243,7 @@ public class ContextMenu : IDisposable
             return;
         }
 
-        if (scanner.TryScanText(Signatures.ContextMenuOpen, out var openPtr, "Context Menu open"))
+        if (scanner.TryScanText(Signatures.ContextMenuOpen, out var openPtr))
         {
             unsafe
             {
@@ -253,15 +257,14 @@ public class ContextMenu : IDisposable
             return;
         }
 
-        if (scanner.TryScanText(Signatures.ContextMenuSelected, out var selectedPtr, "Context Menu selected"))
+        if (scanner.TryScanText(Signatures.ContextMenuSelected, out var selectedPtr))
         {
             this.ContextMenuItemSelectedHook =
                 new Hook<ContextMenuItemSelectedInternalDelegate>(selectedPtr, this.ItemSelectedDetour);
             this.ContextMenuItemSelectedHook.Enable();
         }
 
-        if (scanner.TryScanText(Signatures.TitleContextMenuOpen, out var titleOpenPtr,
-                                "Context Menu (title menu open)"))
+        if (scanner.TryScanText(Signatures.TitleContextMenuOpen, out var titleOpenPtr))
         {
             unsafe
             {
@@ -272,7 +275,7 @@ public class ContextMenu : IDisposable
             this.TitleContextMenuOpenHook.Enable();
         }
 
-        if (scanner.TryScanText(Signatures.ContextMenuEvent66, out var event66Ptr, "Context Menu (event 66)"))
+        if (scanner.TryScanText(Signatures.ContextMenuEvent66, out var event66Ptr))
         {
             this.ContextMenuEvent66Hook =
                 new Hook<ContextMenuEvent66Delegate>(event66Ptr, this.ContextMenuEvent66Detour);
@@ -353,7 +356,7 @@ public class ContextMenu : IDisposable
 
         var stage = AtkStage.GetSingleton();
         var parentAddon = this._getAddonByInternalId((IntPtr)stage->RaptureAtkUnitManager, parentAddonId);
-        return Encoding.UTF8.GetString(Util.ReadTerminated(parentAddon + 8));
+        return Encoding.UTF8.GetString(CommonUtil.ReadTerminated(parentAddon + 8));
     }
 
     private unsafe IntPtr GetAddonFromAgent(IntPtr agent)
@@ -372,7 +375,7 @@ public class ContextMenu : IDisposable
     {
         var objectId = *(uint*)(agent + ObjectIdOffset);
         var contentIdLower = *(uint*)(agent + ContentIdLowerOffset);
-        var textBytes = Util.ReadTerminated(Marshal.ReadIntPtr(agent + TextPointerOffset));
+        var textBytes = CommonUtil.ReadTerminated(Marshal.ReadIntPtr(agent + TextPointerOffset));
         var text = textBytes.Length == 0 ? null : SeString.Parse(textBytes);
         var objectWorld = *(ushort*)(agent + WorldOffset);
         return (objectId, contentIdLower, text, objectWorld);
@@ -395,7 +398,7 @@ public class ContextMenu : IDisposable
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Exception in OpenMenuDetour");
+            PluginLog.LogError(ex, "Exception in OpenMenuDetour");
         }
 
         return this.ContextMenuOpenHook!.Original(addon, menuSize, atkValueArgs);
@@ -416,7 +419,7 @@ public class ContextMenu : IDisposable
 
         // reallocate
         var size = (ulong)sizeof(AtkValue) * newItemCount + 8;
-        var newArray = this.Functions.UiAlloc.Alloc(size);
+        var newArray = this.UiAlloc.Alloc(size);
         // zero new memory
         Marshal.Copy(new byte[size], 0, newArray, (int)size);
         // update size and pointer
@@ -428,7 +431,7 @@ public class ContextMenu : IDisposable
         if (oldArray != null)
         {
             Buffer.MemoryCopy(oldArray, (void*)(newArray + 8), size, (ulong)sizeof(AtkValue) * oldArrayItemCount);
-            this.Functions.UiAlloc.Free((IntPtr)oldArray - 8);
+            this.UiAlloc.Free((IntPtr)oldArray - 8);
         }
 
         return (AtkValue*)(newArray + 8);
@@ -472,7 +475,7 @@ public class ContextMenu : IDisposable
         {
             var atkItem = &atkValueArgs[offset + i];
 
-            var name = Util.ReadSeString((IntPtr)atkItem->String);
+            var name = CommonUtil.ReadSeString((IntPtr)atkItem->String);
 
             var enabled = true;
             if (hasGameDisabled)
@@ -586,7 +589,7 @@ public class ContextMenu : IDisposable
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Exception in OpenMenuDetour");
+                PluginLog.LogError(ex, "Exception in OpenMenuDetour");
                 return true;
             }
 
@@ -633,7 +636,7 @@ public class ContextMenu : IDisposable
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Exception in OpenMenuDetour");
+                PluginLog.LogError(ex, "Exception in OpenMenuDetour");
                 return true;
             }
 
@@ -661,7 +664,7 @@ public class ContextMenu : IDisposable
         {
             var toRemove = this.Items.Count - MaxItems;
             this.Items.RemoveRange(MaxItems, toRemove);
-            Logger.LogWarning($"Context menu item limit ({MaxItems}) exceeded. Removing {toRemove} item(s).");
+            PluginLog.LogWarning($"Context menu item limit ({MaxItems}) exceeded. Removing {toRemove} item(s).");
         }
 
         return false;
@@ -753,7 +756,7 @@ public class ContextMenu : IDisposable
                 }
                 catch (Exception ex)
                 {
-                    Logger.LogError(ex, "Exception in custom context menu item");
+                    PluginLog.LogError(ex, "Exception in custom context menu item");
                 }
 
                 break;
@@ -778,7 +781,7 @@ public class ContextMenu : IDisposable
                 }
                 catch (Exception ex)
                 {
-                    Logger.LogError(ex, "Exception in custom context menu item");
+                    PluginLog.LogError(ex, "Exception in custom context menu item");
                 }
 
                 break;
@@ -798,7 +801,7 @@ public class ContextMenu : IDisposable
             return;
         }
 
-        this.Functions.UiAlloc.Free(this.SubMenuTitle);
+        this.UiAlloc.Free(this.SubMenuTitle);
         this.SubMenuTitle = IntPtr.Zero;
     }
 
@@ -835,7 +838,7 @@ public class ContextMenu : IDisposable
 
         // step 2 (see SetUpContextSubMenu)
         var nameBytes = name.Encode().Terminate();
-        this.SubMenuTitle = this.Functions.UiAlloc.Alloc((ulong)nameBytes.Length);
+        this.SubMenuTitle = this.UiAlloc.Alloc((ulong)nameBytes.Length);
         Marshal.Copy(nameBytes, 0, this.SubMenuTitle, nameBytes.Length);
         var v10 = agent + 0x678 * *(byte*)(agent + 0x1740) + 0x28;
         *(byte**)(v10 + 0x668) = (byte*)this.SubMenuTitle;
