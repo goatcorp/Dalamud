@@ -249,6 +249,11 @@ namespace Dalamud.Interface.Internal
         public int FontResolutionLevel => this.FontResolutionLevelOverride ?? Service<DalamudConfiguration>.Get().FontResolutionLevel;
 
         /// <summary>
+        /// Gets a value indicating whether we're building fonts but haven't generated atlas yet.
+        /// </summary>
+        public bool IsBuildingFontsBeforeAtlasBuild => this.isRebuildingFonts && !this.fontBuildSignal.WaitOne(0);
+
+        /// <summary>
         /// Enable this module.
         /// </summary>
         public void Enable()
@@ -900,7 +905,7 @@ namespace Dalamud.Interface.Internal
                         texPixels[i] = (byte)(Math.Pow(texPixels[i] / 255.0f, 1.0f / fontGamma) * 255.0f);
                 }
 
-                gameFontManager.AfterBuildFonts(disableBigFonts);
+                gameFontManager.AfterBuildFonts();
 
                 foreach (var (font, mod) in this.loadedFontInfo)
                 {

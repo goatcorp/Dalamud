@@ -39,6 +39,9 @@ namespace Dalamud.Interface.GameFonts
         private readonly Dictionary<GameFontStyle, int> fontUseCounter = new();
         private readonly Dictionary<GameFontStyle, Dictionary<char, Tuple<int, FdtReader.FontTableEntry>>> glyphRectIds = new();
 
+        private bool isBetweenBuildFontsAndAfterBuildFonts = false;
+        private bool isBuildingAsFallbackFontMode = false;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="GameFontManager"/> class.
         /// </summary>
@@ -165,15 +168,22 @@ namespace Dalamud.Interface.GameFonts
 
             lock (this.syncRoot)
             {
-                var prevValue = this.fontUseCounter.GetValueOrDefault(style, 0);
-                var newValue = this.fontUseCounter[style] = prevValue + 1;
-                needRebuild = (prevValue == 0) != (newValue == 0) && !this.fonts.ContainsKey(style);
+                this.fontUseCounter[style] = this.fontUseCounter.GetValueOrDefault(style, 0) + 1;
             }
 
+            needRebuild = !this.fonts.ContainsKey(style);
             if (needRebuild)
             {
-                Log.Information("[GameFontManager] Calling RebuildFonts because {0} has been requested.", style.ToString());
-                this.interfaceManager.RebuildFonts();
+                if (Service<InterfaceManager>.Get().IsBuildingFontsBeforeAtlasBuild && this.isBetweenBuildFontsAndAfterBuildFonts)
+                {
+                    Log.Information("[GameFontManager] NewFontRef: Building {0} right now, as it is called while BuildFonts is already in progress yet atlas build has not been called yet.", style.ToString());
+                    this.EnsureFont(style);
+                }
+                else
+                {
+                    Log.Information("[GameFontManager] NewFontRef: Calling RebuildFonts because {0} has been requested.", style.ToString());
+                    this.interfaceManager.RebuildFonts();
+                }
             }
 
             return new(this, style);
@@ -235,57 +245,20 @@ namespace Dalamud.Interface.GameFonts
         /// <param name="forceMinSize">Whether to load fonts in minimum sizes.</param>
         public void BuildFonts(bool forceMinSize)
         {
-            unsafe
-            {
-                ImFontConfigPtr fontConfig = ImGuiNative.ImFontConfig_ImFontConfig();
-                fontConfig.OversampleH = 1;
-                fontConfig.OversampleV = 1;
-                fontConfig.PixelSnapH = false;
+            this.isBuildingAsFallbackFontMode = forceMinSize;
+            this.isBetweenBuildFontsAndAfterBuildFonts = true;
 
-                var io = ImGui.GetIO();
+            this.glyphRectIds.Clear();
+            this.fonts.Clear();
 
-                this.glyphRectIds.Clear();
-                this.fonts.Clear();
-
-                foreach (var style in this.fontUseCounter.Keys)
-                {
-                    var rectIds = this.glyphRectIds[style] = new();
-
-                    var fdt = this.fdts[(int)(forceMinSize ? style.FamilyWithMinimumSize : style.FamilyAndSize)];
-                    if (fdt == null)
-                        continue;
-
-                    var font = io.Fonts.AddFontDefault(fontConfig);
-
-                    this.fonts[style] = font;
-                    foreach (var glyph in fdt.Glyphs)
-                    {
-                        var c = glyph.Char;
-                        if (c < 32 || c >= 0xFFFF)
-                            continue;
-
-                        var widthAdjustment = style.CalculateBaseWidthAdjustment(fdt, glyph);
-                        rectIds[c] = Tuple.Create(
-                            io.Fonts.AddCustomRectFontGlyph(
-                                font,
-                                c,
-                                glyph.BoundingWidth + widthAdjustment + 1,
-                                glyph.BoundingHeight + 1,
-                                glyph.AdvanceWidth,
-                                new Vector2(0, glyph.CurrentOffsetY)),
-                            glyph);
-                    }
-                }
-
-                fontConfig.Destroy();
-            }
+            foreach (var style in this.fontUseCounter.Keys)
+                this.EnsureFont(style);
         }
 
         /// <summary>
         /// Post-build fonts before plugins do something more. To be called from InterfaceManager.
         /// </summary>
-        /// <param name="forceMinSize">Whether to load fonts in minimum sizes.</param>
-        public unsafe void AfterBuildFonts(bool forceMinSize)
+        public unsafe void AfterBuildFonts()
         {
             var ioFonts = ImGui.GetIO().Fonts;
             ioFonts.GetTexDataAsRGBA32(out byte* pixels8, out var width, out var height);
@@ -294,7 +267,7 @@ namespace Dalamud.Interface.GameFonts
 
             foreach (var (style, font) in this.fonts)
             {
-                var fdt = this.fdts[(int)(forceMinSize ? style.FamilyWithMinimumSize : style.FamilyAndSize)];
+                var fdt = this.fdts[(int)(this.isBuildingAsFallbackFontMode ? style.FamilyWithMinimumSize : style.FamilyAndSize)];
                 var scale = style.SizePt / fdt.FontHeader.Size;
                 var fontPtr = font.NativePtr;
                 fontPtr->FontSize = fdt.FontHeader.Size * 4 / 3;
@@ -395,6 +368,8 @@ namespace Dalamud.Interface.GameFonts
                 UnscaleFont(font, 1 / scale, false);
                 font.BuildLookupTable();
             }
+
+            this.isBetweenBuildFontsAndAfterBuildFonts = false;
         }
 
         /// <summary>
@@ -410,6 +385,44 @@ namespace Dalamud.Interface.GameFonts
 
                 if ((this.fontUseCounter[style] -= 1) == 0)
                     this.fontUseCounter.Remove(style);
+            }
+        }
+
+        private unsafe void EnsureFont(GameFontStyle style)
+        {
+            var rectIds = this.glyphRectIds[style] = new();
+
+            var fdt = this.fdts[(int)(this.isBuildingAsFallbackFontMode ? style.FamilyWithMinimumSize : style.FamilyAndSize)];
+            if (fdt == null)
+                return;
+
+            ImFontConfigPtr fontConfig = ImGuiNative.ImFontConfig_ImFontConfig();
+            fontConfig.OversampleH = 1;
+            fontConfig.OversampleV = 1;
+            fontConfig.PixelSnapH = false;
+
+            var io = ImGui.GetIO();
+            var font = io.Fonts.AddFontDefault(fontConfig);
+
+            fontConfig.Destroy();
+
+            this.fonts[style] = font;
+            foreach (var glyph in fdt.Glyphs)
+            {
+                var c = glyph.Char;
+                if (c < 32 || c >= 0xFFFF)
+                    continue;
+
+                var widthAdjustment = style.CalculateBaseWidthAdjustment(fdt, glyph);
+                rectIds[c] = Tuple.Create(
+                    io.Fonts.AddCustomRectFontGlyph(
+                        font,
+                        c,
+                        glyph.BoundingWidth + widthAdjustment + 1,
+                        glyph.BoundingHeight + 1,
+                        glyph.AdvanceWidth,
+                        new Vector2(0, glyph.CurrentOffsetY)),
+                    glyph);
             }
         }
     }
