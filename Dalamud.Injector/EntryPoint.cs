@@ -336,10 +336,10 @@ namespace Dalamud.Injector
                 Console.WriteLine("{0}        [-- game_arg1=value1 game_arg2=value2 ...]", exeSpaces);
             }
 
-            Console.WriteLine("Specifying dalamud start info: [--dalamud-working-directory path] [--dalamud-configuration-path path]");
-            Console.WriteLine("                               [--dalamud-plugin-directory path] [--dalamud-dev-plugin-directory path]");
-            Console.WriteLine("                               [--dalamud-asset-directory path] [--dalamud-delay-initialize 0(ms)]");
-            Console.WriteLine("                               [--dalamud-client-language 0-3|j(apanese)|e(nglish)|d|g(erman)|f(rench)]");
+            Console.WriteLine("Specifying dalamud start info: [--dalamud-working-directory=path] [--dalamud-configuration-path=path]");
+            Console.WriteLine("                               [--dalamud-plugin-directory=path] [--dalamud-dev-plugin-directory=path]");
+            Console.WriteLine("                               [--dalamud-asset-directory=path] [--dalamud-delay-initialize=0(ms)]");
+            Console.WriteLine("                               [--dalamud-client-language=0-3|j(apanese)|e(nglish)|d|g(erman)|f(rench)]");
 
             return 0;
         }
