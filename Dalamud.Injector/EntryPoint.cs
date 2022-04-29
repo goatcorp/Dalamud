@@ -37,9 +37,9 @@ namespace Dalamud.Injector
         /// <param name="argvPtr">byte** string arguments.</param>
         public static void Main(int argc, IntPtr argvPtr)
         {
-            Init();
-
             List<string> args = new(argc);
+            Init(args);
+
             unsafe
             {
                 var argv = (IntPtr*)argvPtr;
@@ -96,15 +96,13 @@ namespace Dalamud.Injector
             }
             else
             {
-                Console.WriteLine("Invalid command: {0}", mainCommand);
-                ProcessHelpCommand(args);
-                Environment.Exit(-1);
+                throw new CommandLineException($"\"{mainCommand}\" is not a valid command.");
             }
         }
 
-        private static void Init()
+        private static void Init(List<string> args)
         {
-            InitUnhandledException();
+            InitUnhandledException(args);
             InitLogging();
 
             var cwd = new FileInfo(Assembly.GetExecutingAssembly().Location).Directory;
@@ -115,25 +113,31 @@ namespace Dalamud.Injector
             }
         }
 
-        private static void InitUnhandledException()
+        private static void InitUnhandledException(List<string> args)
         {
             AppDomain.CurrentDomain.UnhandledException += (sender, eventArgs) =>
             {
-                if (Log.Logger == null)
+                var exObj = eventArgs.ExceptionObject;
+
+                if (exObj is CommandLineException clex)
+                {
+                    Console.WriteLine();
+                    Console.WriteLine("Command line error: {0}", clex.Message);
+                    Console.WriteLine();
+                    ProcessHelpCommand(args);
+                    Environment.Exit(-1);
+                }
+                else if (Log.Logger == null)
                 {
                     Console.WriteLine($"A fatal error has occurred: {eventArgs.ExceptionObject}");
                 }
+                else if (exObj is Exception ex)
+                {
+                    Log.Error(ex, "A fatal error has occurred.");
+                }
                 else
                 {
-                    var exObj = eventArgs.ExceptionObject;
-                    if (exObj is Exception ex)
-                    {
-                        Log.Error(ex, "A fatal error has occurred.");
-                    }
-                    else
-                    {
-                        Log.Error($"A fatal error has occurred: {eventArgs.ExceptionObject}");
-                    }
+                    Log.Error($"A fatal error has occurred: {eventArgs.ExceptionObject}");
                 }
 
 #if DEBUG
@@ -150,7 +154,7 @@ namespace Dalamud.Injector
 #endif
                 _ = MessageBoxW(IntPtr.Zero, message, caption, MessageBoxType.IconError | MessageBoxType.Ok);
 
-                Environment.Exit(0);
+                Environment.Exit(-1);
             };
         }
 
@@ -229,6 +233,9 @@ namespace Dalamud.Injector
 
         private static DalamudStartInfo ExtractAndInitializeStartInfoFromArguments(DalamudStartInfo? startInfo, List<string> args)
         {
+            int len;
+            string key;
+
             if (startInfo == null)
                 startInfo = new();
 
@@ -238,10 +245,10 @@ namespace Dalamud.Injector
             var defaultPluginDirectory = startInfo.DefaultPluginDirectory;
             var assetDirectory = startInfo.AssetDirectory;
             var delayInitializeMs = startInfo.DelayInitializeMs;
+            var languageStr = startInfo.Language.ToString().ToLowerInvariant();
 
             for (var i = 2; i < args.Count; i++)
             {
-                string key;
                 if (args[i].StartsWith(key = "--dalamud-working-directory="))
                     workingDirectory = args[i][key.Length..];
                 else if (args[i].StartsWith(key = "--dalamud-configuration-path="))
@@ -254,6 +261,8 @@ namespace Dalamud.Injector
                     assetDirectory = args[i][key.Length..];
                 else if (args[i].StartsWith(key = "--dalamud-delay-initialize="))
                     delayInitializeMs = int.Parse(args[i][key.Length..]);
+                else if (args[i].StartsWith(key = "--dalamud-client-language="))
+                    languageStr = args[i][key.Length..].ToLowerInvariant();
                 else
                     continue;
 
@@ -270,6 +279,26 @@ namespace Dalamud.Injector
             defaultPluginDirectory ??= Path.Combine(xivlauncherDir, "devPlugins");
             assetDirectory ??= Path.Combine(xivlauncherDir, "dalamudAssets", "dev");
 
+            ClientLanguage clientLanguage;
+            if (languageStr[0..(len = Math.Min(languageStr.Length, (key = "english").Length))] == key[0..len])
+                clientLanguage = ClientLanguage.English;
+            else if (languageStr[0..(len = Math.Min(languageStr.Length, (key = "japanese").Length))] == key[0..len])
+                clientLanguage = ClientLanguage.Japanese;
+            else if (languageStr[0..(len = Math.Min(languageStr.Length, (key = "日本語").Length))] == key[0..len])
+                clientLanguage = ClientLanguage.Japanese;
+            else if (languageStr[0..(len = Math.Min(languageStr.Length, (key = "german").Length))] == key[0..len])
+                clientLanguage = ClientLanguage.German;
+            else if (languageStr[0..(len = Math.Min(languageStr.Length, (key = "deutsche").Length))] == key[0..len])
+                clientLanguage = ClientLanguage.German;
+            else if (languageStr[0..(len = Math.Min(languageStr.Length, (key = "french").Length))] == key[0..len])
+                clientLanguage = ClientLanguage.French;
+            else if (languageStr[0..(len = Math.Min(languageStr.Length, (key = "français").Length))] == key[0..len])
+                clientLanguage = ClientLanguage.French;
+            else if (int.TryParse(languageStr, out var languageInt) && Enum.IsDefined((ClientLanguage)languageInt))
+                clientLanguage = (ClientLanguage)languageInt;
+            else
+                throw new CommandLineException($"\"{languageStr}\" is not a valid supported language.");
+
             return new()
             {
                 WorkingDirectory = workingDirectory,
@@ -277,7 +306,7 @@ namespace Dalamud.Injector
                 PluginDirectory = pluginDirectory,
                 DefaultPluginDirectory = defaultPluginDirectory,
                 AssetDirectory = assetDirectory,
-                Language = ClientLanguage.English,
+                Language = clientLanguage,
                 GameVersion = null,
                 DelayInitializeMs = delayInitializeMs,
             };
@@ -303,12 +332,14 @@ namespace Dalamud.Injector
                 Console.WriteLine("{0}        [-g path/to/ffxiv_dx11.exe] [--game=path/to/ffxiv_dx11.exe]", exeSpaces);
                 Console.WriteLine("{0}        [-m entrypoint|inject] [--mode=entrypoint|inject]", exeSpaces);
                 Console.WriteLine("{0}        [--handle-owner=inherited-handle-value]", exeSpaces);
+                Console.WriteLine("{0}        [--without-dalamud]", exeSpaces);
                 Console.WriteLine("{0}        [-- game_arg1=value1 game_arg2=value2 ...]", exeSpaces);
             }
 
-            Console.WriteLine("Specifying dalamud start info: [--dalamud-working-directory path] [--dalamud-configuration-path path]");
-            Console.WriteLine("                               [--dalamud-plugin-directory path] [--dalamud-dev-plugin-directory path]");
-            Console.WriteLine("                               [--dalamud-asset-directory path] [--dalamud-delay-initialize 0(ms)]");
+            Console.WriteLine("Specifying dalamud start info: [--dalamud-working-directory=path] [--dalamud-configuration-path=path]");
+            Console.WriteLine("                               [--dalamud-plugin-directory=path] [--dalamud-dev-plugin-directory=path]");
+            Console.WriteLine("                               [--dalamud-asset-directory=path] [--dalamud-delay-initialize=0(ms)]");
+            Console.WriteLine("                               [--dalamud-client-language=0-3|j(apanese)|e(nglish)|d|g(erman)|f(rench)]");
 
             return 0;
         }
@@ -353,8 +384,7 @@ namespace Dalamud.Injector
                 }
                 else
                 {
-                    Log.Error("\"{0}\" is not a valid argument.", args[i]);
-                    return -1;
+                    throw new CommandLineException($"\"{args[i]}\" is not a command line argument.");
                 }
             }
 
@@ -366,8 +396,7 @@ namespace Dalamud.Injector
 
             if (!targetProcessSpecified)
             {
-                Log.Error("No target process has been specified.");
-                return -1;
+                throw new CommandLineException("No target process has been specified. Use -a(--all) option to inject to all ffxiv_dx11.exe processes.");
             }
             else if (!processes.Any())
             {
@@ -401,6 +430,7 @@ namespace Dalamud.Injector
             var useFakeArguments = false;
             var showHelp = args.Count <= 2;
             var handleOwner = IntPtr.Zero;
+            var withoutDalamud = false;
 
             var parsingGameArgument = false;
             for (var i = 2; i < args.Count; i++)
@@ -412,42 +442,25 @@ namespace Dalamud.Injector
                 }
 
                 if (args[i] == "-h" || args[i] == "--help")
-                {
                     showHelp = true;
-                }
                 else if (args[i] == "-f" || args[i] == "--fake-arguments")
-                {
                     useFakeArguments = true;
-                }
+                else if (args[i] == "--without-dalamud")
+                    withoutDalamud = true;
                 else if (args[i] == "-g")
-                {
                     gamePath = args[++i];
-                }
                 else if (args[i].StartsWith("--game="))
-                {
                     gamePath = args[i].Split('=', 2)[1];
-                }
                 else if (args[i] == "-m")
-                {
                     mode = args[++i];
-                }
                 else if (args[i].StartsWith("--mode="))
-                {
                     gamePath = args[i].Split('=', 2)[1];
-                }
                 else if (args[i].StartsWith("--handle-owner="))
-                {
                     handleOwner = IntPtr.Parse(args[i].Split('=', 2)[1]);
-                }
                 else if (args[i] == "--")
-                {
                     parsingGameArgument = true;
-                }
                 else
-                {
-                    Log.Error("No such command found: {0}", args[i]);
-                    return -1;
-                }
+                    throw new CommandLineException($"\"{args[i]}\" is not a command line argument.");
             }
 
             if (showHelp)
@@ -467,8 +480,7 @@ namespace Dalamud.Injector
             }
             else
             {
-                Log.Error("Invalid mode: {0}", mode);
-                return -1;
+                throw new CommandLineException($"\"{mode}\" is not a valid Dalamud load mode.");
             }
 
             if (gamePath == null)
@@ -526,7 +538,7 @@ namespace Dalamud.Injector
                     "DEV.LobbyHost09=127.0.0.9",
                     "DEV.LobbyPort09=54994",
                     "SYS.Region=0",
-                    "language=1",
+                    $"language={(int)dalamudStartInfo.Language}",
                     $"ver={gameVersion}",
                     $"DEV.MaxEntitledExpansionID={maxEntitledExpansionId}",
                     "DEV.GMServerHost=127.0.0.100",
@@ -537,7 +549,7 @@ namespace Dalamud.Injector
             var gameArgumentString = string.Join(" ", gameArguments.Select(x => EncodeParameterArgument(x)));
             var process = NativeAclFix.LaunchGame(Path.GetDirectoryName(gamePath), gamePath, gameArgumentString, (Process p) =>
             {
-                if (mode == "entrypoint")
+                if (!withoutDalamud && mode == "entrypoint")
                 {
                     var startInfo = AdjustStartInfo(dalamudStartInfo, gamePath);
                     Log.Information("Using start info: {0}", JsonConvert.SerializeObject(startInfo));
@@ -549,7 +561,7 @@ namespace Dalamud.Injector
                 }
             });
 
-            if (mode == "inject")
+            if (!withoutDalamud && mode == "inject")
             {
                 var startInfo = AdjustStartInfo(dalamudStartInfo, gamePath);
                 Log.Information("Using start info: {0}", JsonConvert.SerializeObject(startInfo));
@@ -629,7 +641,7 @@ namespace Dalamud.Injector
                 PluginDirectory = startInfo.PluginDirectory,
                 DefaultPluginDirectory = startInfo.DefaultPluginDirectory,
                 AssetDirectory = startInfo.AssetDirectory,
-                Language = ClientLanguage.English,
+                Language = startInfo.Language,
                 GameVersion = gameVer,
                 DelayInitializeMs = startInfo.DelayInitializeMs,
             };
@@ -737,6 +749,14 @@ namespace Dalamud.Injector
             quoted.Append('"');
 
             return quoted.ToString();
+        }
+
+        private class CommandLineException : Exception
+        {
+            public CommandLineException(string cause)
+                : base(cause)
+            {
+            }
         }
     }
 }
