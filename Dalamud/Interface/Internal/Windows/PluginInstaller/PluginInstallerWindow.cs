@@ -2013,6 +2013,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             return hasSearchString && !(
                 manifest.Name.ToLowerInvariant().Contains(searchString) ||
                 (!manifest.Author.IsNullOrEmpty() && manifest.Author.Equals(this.searchText, StringComparison.InvariantCultureIgnoreCase)) ||
+                (!manifest.Punchline.IsNullOrEmpty() && manifest.Punchline.ToLowerInvariant().Contains(searchString)) ||
                 (manifest.Tags != null && manifest.Tags.Contains(searchString, StringComparer.InvariantCultureIgnoreCase)));
         }
 
