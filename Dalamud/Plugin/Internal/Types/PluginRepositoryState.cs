@@ -1,28 +1,27 @@
-namespace Dalamud.Plugin.Internal.Types
+namespace Dalamud.Plugin.Internal.Types;
+
+/// <summary>
+/// Values representing plugin repository state.
+/// </summary>
+internal enum PluginRepositoryState
 {
     /// <summary>
-    /// Values representing plugin repository state.
+    /// State is unknown.
     /// </summary>
-    internal enum PluginRepositoryState
-    {
-        /// <summary>
-        /// State is unknown.
-        /// </summary>
-        Unknown,
+    Unknown,
 
-        /// <summary>
-        /// Currently loading.
-        /// </summary>
-        InProgress,
+    /// <summary>
+    /// Currently loading.
+    /// </summary>
+    InProgress,
 
-        /// <summary>
-        /// Load was successful.
-        /// </summary>
-        Success,
+    /// <summary>
+    /// Load was successful.
+    /// </summary>
+    Success,
 
-        /// <summary>
-        /// Load failed.
-        /// </summary>
-        Fail,
-    }
+    /// <summary>
+    /// Load failed.
+    /// </summary>
+    Fail,
 }
