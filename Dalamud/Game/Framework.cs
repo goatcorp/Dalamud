@@ -52,6 +52,8 @@ namespace Dalamud.Game
 
             // Hook virtual functions
             this.HookVTable();
+
+            this.ResolveLaunchParameters();
         }
 
         /// <summary>
@@ -171,6 +173,73 @@ namespace Dalamud.Game
 
             var pRealDestroy = Marshal.ReadIntPtr(vtable, IntPtr.Size * 2);
             this.realDestroyHook = new Hook<OnRealDestroyDelegate>(pRealDestroy, this.HandleRealDestroy);
+        }
+
+        /// <summary>
+        /// Inspect Framework.Setup to look for client launch parameter values.
+        /// </summary>
+        private void ResolveLaunchParameters()
+        {
+            var scanner = Service<SigScanner>.Get();
+
+            List<IntPtr> strstrs = new();
+            try
+            {
+                var searchBase = 0;
+
+                // Avoid searching too much, in which case, something must has been changed a lot, and this whole function is very likely to fail anyway.
+                for (var i = 0; i < 128; i++)
+                {
+                    /*
+                     * Look for the following pattern:
+                     *
+                     * 0x00   MOV [rsi+?], AL                   // this->something = AL;
+                     * 0x06   MOV RCX, [?]                      // (Decoded) game command line argument string.
+                     * 0x09   MOV RDX, [ffxiv_dx11.exe + ?]
+                     * 0x10   CALL ffxiv_dx11.exe + ?           // strcmp(RCX, RDX)
+                     *
+                     * Assume the last call is strcmp.
+                     */
+                    var addr = SigScanner.Scan(scanner.TextSectionBase + searchBase, scanner.TextSectionSize - searchBase, "88 86 ?? ?? ?? ?? 48 8b ?? 48 8d 15 ?? ?? ?? ?? e8 ?? ?? ?? ?? 48 85 c0 74 ??");
+                    searchBase = (int)((long)addr - (long)scanner.TextSectionBase + 1);
+
+                    addr = (IntPtr)(addr.ToInt64() + scanner.Module.BaseAddress.ToInt64() - scanner.SearchBase.ToInt64());
+                    strstrs.Add(addr);
+                }
+            }
+            catch (KeyNotFoundException)
+            {
+                // done searching
+            }
+
+            for (var i = 0; i < strstrs.Count - 1; i++)
+            {
+                // Now that we have the list of matches, note that each searched address has the offset to the value that **previous** strstr parse result will go into.
+
+                // Resolve the address to the 2nd parameter to strcmp, which its offset can be taken from the 3rd op from the aforementioned pattern.
+                var strcmpParam2 = Marshal.PtrToStringUTF8(strstrs[i] + 0x10 + Marshal.ReadInt32(strstrs[i] + 0x0c))!;
+
+                // Resolve the offset of the byte value stored as a field of the Framework instance, from the **next** found pattern.
+                var offset = Marshal.ReadInt32(strstrs[i + 1] + 0x2);
+
+                // Resolve the byte value stored in the Framework instance.
+                var value = Marshal.ReadByte(this.Address.BaseAddress + offset);
+                if (strcmpParam2 == "language=")
+                {
+                    if (!Enum.IsDefined((ClientLanguage)value))
+                    {
+                        Log.Warning($"Game launch language has been specified as {value}, which is not a valid language value. Ignoring.");
+                        continue;
+                    }
+
+                    var dsi = Service<DalamudStartInfo>.Get();
+                    if (dsi.Language == (ClientLanguage)value)
+                        continue;
+
+                    Log.Warning($"Client language was set as {dsi.Language} but game launch language is {(ClientLanguage)value}. Changing DalamudStartInfo.");
+                    Service<DalamudStartInfo>.Set(dsi.Alter(language: (ClientLanguage)value));
+                }
+            }
         }
 
         private bool HandleFrameworkUpdate(IntPtr framework)
