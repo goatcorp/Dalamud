@@ -334,12 +334,17 @@ namespace Dalamud.Injector
                 Console.WriteLine("{0}        [--handle-owner=inherited-handle-value]", exeSpaces);
                 Console.WriteLine("{0}        [--without-dalamud]", exeSpaces);
                 Console.WriteLine("{0}        [-- game_arg1=value1 game_arg2=value2 ...]", exeSpaces);
+                Console.WriteLine(" * All arguments for injector MUST come before --.");
+                Console.WriteLine(" * Otherwise, they will all be passed to the game.");
+                Console.WriteLine();
             }
 
             Console.WriteLine("Specifying dalamud start info: [--dalamud-working-directory=path] [--dalamud-configuration-path=path]");
             Console.WriteLine("                               [--dalamud-plugin-directory=path] [--dalamud-dev-plugin-directory=path]");
-            Console.WriteLine("                               [--dalamud-asset-directory=path] [--dalamud-delay-initialize=0(ms)]");
+            Console.WriteLine("                               [--dalamud-asset-directory=path] [--dalamud-delay-initialize=0]");
             Console.WriteLine("                               [--dalamud-client-language=0-3|j(apanese)|e(nglish)|d|g(erman)|f(rench)]");
+            Console.WriteLine(" * --dalamud-delay-initialize takes integer parameter, which will be interpreted as in milliseconds unit.");
+            Console.WriteLine();
 
             return 0;
         }
