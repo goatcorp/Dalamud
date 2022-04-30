@@ -1,14 +1,19 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Text.RegularExpressions;
 
+using Dalamud.Data;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Lumina.Excel.GeneratedSheets;
 using Serilog;
+using static Dalamud.Utility.SeStringExtensions;
 
 namespace Dalamud.Game.Command
 {
@@ -19,6 +24,8 @@ namespace Dalamud.Game.Command
     [InterfaceVersion("1.0")]
     public sealed class CommandManager
     {
+        private static readonly byte[] HighlightedFirstValuePayloadBytes = new byte[] { 0x02, 0x29, 0x03, 0xea, 0x02, 0x03 };
+
         private readonly Dictionary<string, CommandInfo> commandMap = new();
         private readonly Regex commandRegexEn = new(@"^The command (?<command>.+) does not exist\.$", RegexOptions.Compiled);
         private readonly Regex commandRegexJp = new(@"^そのコマンドはありません。： (?<command>.+)$", RegexOptions.Compiled);
@@ -26,6 +33,7 @@ namespace Dalamud.Game.Command
         private readonly Regex commandRegexFr = new(@"^La commande texte “(?<command>.+)” n'existe pas\.$", RegexOptions.Compiled);
         private readonly Regex commandRegexCn = new(@"^^(“|「)(?<command>.+)(”|」)(出现问题：该命令不存在|出現問題：該命令不存在)。$", RegexOptions.Compiled);
         private readonly Regex currentLangCommandRegex;
+        private readonly XivChatType textCommandNotFoundLogKind;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CommandManager"/> class.
@@ -34,14 +42,72 @@ namespace Dalamud.Game.Command
         {
             var startInfo = Service<DalamudStartInfo>.Get();
 
-            this.currentLangCommandRegex = startInfo.Language switch
+            // rowId,logKind,u1,u2,u3,text
+            // 725,60,1,0,false,そのコマンドはありません。： <value>
+            // 725,60,1,0,false,"The command <value> does not exist."
+            // 725,60,1,0,false,„<value>“ existiert nicht als Textkommando.
+            // 725,60,1,0,false,La commande texte “<value>” n'existe pas.
+            // 725,60,1,0,false,“<value>”出现问题：该命令不存在。
+            // 725,60,1,0,false,<value><?0xd> 존재하지 않는 명령어입니다.
+
+            var logMessage = Service<DataManager>.Get().Excel.GetSheet<LogMessage>().GetRow(725);
+            this.textCommandNotFoundLogKind = (XivChatType)logMessage.LogKind;
+            if (this.textCommandNotFoundLogKind != XivChatType.ErrorMessage)
+                Log.Warning("[CommandManager] LogMessage[725] has log kind of {0}({1}), expected ErrorMessage(60).", this.textCommandNotFoundLogKind, logMessage.LogKind);
+
+            List<string> regexParts = new();
+            regexParts.Add("^");
+            var commandConsumed = false;
+            foreach (var payload in logMessage.Text.ToDalamudString().Payloads)
             {
-                ClientLanguage.Japanese => this.commandRegexJp,
-                ClientLanguage.English => this.commandRegexEn,
-                ClientLanguage.German => this.commandRegexDe,
-                ClientLanguage.French => this.commandRegexFr,
-                _ => this.currentLangCommandRegex,
-            };
+                if (payload is TextPayload text)
+                {
+                    regexParts.Add(Regex.Escape(text.Text));
+                }
+                else if (payload is NewLinePayload)
+                {
+                    regexParts.Add("(?:\\r|\\n|\\r\\n)");
+                }
+                else if (payload is RawPayload raw)
+                {
+                    if (raw.Encode().SequenceEqual(HighlightedFirstValuePayloadBytes))
+                    {
+                        if (!commandConsumed)
+                        {
+                            regexParts.Add("(?<command>.+)");
+                            commandConsumed = true;
+                        }
+                        else
+                        {
+                            Log.Verbose("[CommandManager] More than one value payload detected. Ignoring.");
+                        }
+                    }
+                    else
+                    {
+                        regexParts.Add(".*?");
+                    }
+                }
+            }
+
+            regexParts.Add("$");
+
+            if (commandConsumed)
+            {
+                var regex = string.Join(string.Empty, regexParts);
+                Log.Verbose("[CommandManager] Nonexistent command error message detection regex built: {0}", regex);
+                this.currentLangCommandRegex = new(regex, RegexOptions.Compiled);
+            }
+            else
+            {
+                this.currentLangCommandRegex = startInfo.Language switch
+                {
+                    ClientLanguage.Japanese => this.commandRegexJp,
+                    ClientLanguage.English => this.commandRegexEn,
+                    ClientLanguage.German => this.commandRegexDe,
+                    ClientLanguage.French => this.commandRegexFr,
+                    _ => this.currentLangCommandRegex,
+                };
+            }
 
             Service<ChatGui>.Get().CheckMessageHandled += this.OnCheckMessageHandled;
         }
@@ -151,7 +217,7 @@ namespace Dalamud.Game.Command
 
         private void OnCheckMessageHandled(XivChatType type, uint senderId, ref SeString sender, ref SeString message, ref bool isHandled)
         {
-            if (type == XivChatType.ErrorMessage && senderId == 0)
+            if (type == this.textCommandNotFoundLogKind && senderId == 0)
             {
                 var cmdMatch = this.currentLangCommandRegex.Match(message.TextValue).Groups["command"];
                 if (cmdMatch.Success)
