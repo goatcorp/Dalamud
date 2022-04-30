@@ -7,52 +7,76 @@ namespace Dalamud.Game.Gui.ContextMenus
     /// </summary>
     public class ContextMenuAddressResolver : BaseAddressResolver
     {
-        private const string SigOpenSubContextMenu = "E8 ?? ?? ?? ?? 44 39 A3 ?? ?? ?? ?? 0F 86";
-        private const string SigContextMenuOpening = "E8 ?? ?? ?? ?? 0F B7 C0 48 83 C4 60";
-        private const string SigContextMenuOpened = "48 8B C4 57 41 56 41 57 48 81 EC";
-        private const string SigContextMenuItemSelected = "48 89 5C 24 ?? 55 57 41 56 48 81 EC ?? ?? ?? ?? 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 44 24 ?? 80 B9";
-        private const string SigSubContextMenuOpening = "E8 ?? ?? ?? ?? 44 39 A3 ?? ?? ?? ?? 0F 84";
-        private const string SigSubContextMenuOpened = "48 8B C4 57 41 55 41 56 48 81 EC";
+        private const string SomeOpenAddonThing = "E8 ?? ?? ?? ?? 0F B7 C0 48 83 C4 60";
+        private const string ContextMenuOpen = "48 8B C4 57 41 56 41 57 48 81 EC";
+
+        private const string ContextMenuSelected =
+            "48 89 5C 24 ?? 55 57 41 56 48 81 EC ?? ?? ?? ?? 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 44 24 ?? 80 B9";
+
+        private const string ContextMenuEvent66 = "E8 ?? ?? ?? ?? 44 39 A3 ?? ?? ?? ?? 0F 84";
+        private const string SetUpContextSubMenu = "E8 ?? ?? ?? ?? 44 39 A3 ?? ?? ?? ?? 0F 86";
+        private const string TitleContextMenuOpen = "48 8B C4 57 41 55 41 56 48 81 EC";
+        private const string AtkValueChangeType = "E8 ?? ?? ?? ?? 45 84 F6 48 8D 4C 24";
+        private const string AtkValueSetString = "E8 ?? ?? ?? ?? 41 03 ED";
+        private const string GetAddonByInternalId = "E8 ?? ?? ?? ?? 8B 6B 20";
 
         /// <summary>
-        /// Gets the OpenSubContextMenu function address.
+        /// Gets the ContextMenuChangeTypePtr address.
         /// </summary>
-        public IntPtr OpenSubContextMenuPtr { get; private set; }
+        public IntPtr ContextMenuChangeTypePtr { get; private set; }
 
         /// <summary>
-        /// Gets the ContextMenuOpening function address.
+        /// Gets the ContextMenuSetStringPtr address.
         /// </summary>
-        public IntPtr ContextMenuOpeningPtr { get; private set; }
+        public IntPtr ContextMenuSetStringPtr { get; private set; }
 
         /// <summary>
-        /// Gets the ContextMenuOpened function address.
+        /// Gets the ContextMenuGetAddonPtr address.
         /// </summary>
-        public IntPtr ContextMenuOpenedPtr { get; private set; }
+        public IntPtr ContextMenuGetAddonPtr { get; private set; }
 
         /// <summary>
-        /// Gets the ContextMenuItemSelected function address.
+        /// Gets the ContextMenuSetupSubMenuPtr address.
         /// </summary>
-        public IntPtr ContextMenuItemSelectedPtr { get; private set; }
+        public IntPtr ContextMenuSetupSubMenuPtr { get; private set; }
 
         /// <summary>
-        /// Gets the SubContextMenuOpening function address.
+        /// Gets the ContextMenuOpenAddonPtr address.
         /// </summary>
-        public IntPtr SubContextMenuOpeningPtr { get; private set; }
+        public IntPtr ContextMenuOpenAddonPtr { get; private set; }
 
         /// <summary>
-        /// Gets the SubContextMenuOpened function address.
+        /// Gets the ContextMenuOpenPtr address.
         /// </summary>
-        public IntPtr SubContextMenuOpenedPtr { get; private set; }
+        public IntPtr ContextMenuOpenPtr { get; private set; }
+
+        /// <summary>
+        /// Gets the ContextMenuSelectedPtr address.
+        /// </summary>
+        public IntPtr ContextMenuSelectedPtr { get; private set; }
+
+        /// <summary>
+        /// Gets the ContextMenuTitleMenuOpenPtr address.
+        /// </summary>
+        public IntPtr ContextMenuTitleMenuOpenPtr { get; private set; }
+
+        /// <summary>
+        /// Gets the ContextMenuEvent66Ptr address.
+        /// </summary>
+        public IntPtr ContextMenuEvent66Ptr { get; private set; }
 
         /// <inheritdoc/>
         protected override void Setup64Bit(SigScanner scanner)
         {
-            this.OpenSubContextMenuPtr = scanner.ScanText(SigOpenSubContextMenu);
-            this.ContextMenuOpeningPtr = scanner.ScanText(SigContextMenuOpening);
-            this.ContextMenuOpenedPtr = scanner.ScanText(SigContextMenuOpened);
-            this.ContextMenuItemSelectedPtr = scanner.ScanText(SigContextMenuItemSelected);
-            this.SubContextMenuOpeningPtr = scanner.ScanText(SigSubContextMenuOpening);
-            this.SubContextMenuOpenedPtr = scanner.ScanText(SigSubContextMenuOpened);
+            this.ContextMenuChangeTypePtr = scanner.ScanText(AtkValueChangeType);
+            this.ContextMenuSetStringPtr = scanner.ScanText(AtkValueSetString);
+            this.ContextMenuGetAddonPtr = scanner.ScanText(GetAddonByInternalId);
+            this.ContextMenuSetupSubMenuPtr = scanner.ScanText(SetUpContextSubMenu);
+            this.ContextMenuOpenAddonPtr = scanner.ScanText(SomeOpenAddonThing);
+            this.ContextMenuOpenPtr = scanner.ScanText(ContextMenuOpen);
+            this.ContextMenuSelectedPtr = scanner.ScanText(ContextMenuSelected);
+            this.ContextMenuTitleMenuOpenPtr = scanner.ScanText(TitleContextMenuOpen);
+            this.ContextMenuEvent66Ptr = scanner.ScanText(ContextMenuEvent66);
         }
     }
 }

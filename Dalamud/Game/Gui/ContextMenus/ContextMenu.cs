@@ -1,463 +1,754 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
+using System.Text;
 
-using Dalamud.Game.Gui.ContextMenus.OldStructs;
+using Dalamud.Configuration.Internal;
+using Dalamud.Game.Text;
+using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging;
-using Dalamud.Memory;
-using FFXIVClientStructs.FFXIV.Client.Game;
-using FFXIVClientStructs.FFXIV.Client.UI;
+using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using Serilog;
 
+namespace Dalamud.Game.Gui.ContextMenus;
+
+using Framework = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework;
 using ValueType = FFXIVClientStructs.FFXIV.Component.GUI.ValueType;
 
-namespace Dalamud.Game.Gui.ContextMenus
+/// <summary>
+/// Context menu functions.
+/// Adopted from Anna Clemens' XivCommon Context Menu implementation.
+/// </summary>
+[PluginInterface]
+[InterfaceVersion("1.0")]
+public class ContextMenu : IDisposable
 {
+    private const int MaxItems = 32;
+
     /// <summary>
-    /// Provides an interface to modify context menus.
+    /// Offset from addon to menu type.
     /// </summary>
-    [PluginInterface]
-    [InterfaceVersion("1.0")]
-    public sealed class ContextMenu : IDisposable
+    private const int ParentAddonIdOffset = 0x1D2;
+
+    private const int AddonArraySizeOffset = 0x1CA;
+    private const int AddonArrayOffset = 0x160;
+
+    private const int ContextMenuItemOffset = 7;
+
+    /// <summary>
+    /// Offset from agent to actions byte array pointer (have to add the actions offset after).
+    /// </summary>
+    private const int MenuActionsPointerOffset = 0xD18;
+
+    /// <summary>
+    /// SetUpContextSubMenu checks this.
+    /// </summary>
+    private const int BooleanOffsetCheck = 0x690;
+
+    /// <summary>
+    /// Offset from [MenuActionsPointer] to actions byte array.
+    /// </summary>
+    private const int MenuActionsOffset = 0x428;
+
+    /// <summary>
+    /// Offset from inventory context agent to actions byte array.
+    /// </summary>
+    private const int InventoryMenuActionsOffset = 0x558;
+
+    private const int ObjectIdOffset = 0xEF0;
+    private const int ContentIdLowerOffset = 0xEE0;
+    private const int TextPointerOffset = 0xE08;
+    private const int WorldOffset = 0xF00;
+
+    private const int ItemIdOffset = 0x5F8;
+    private const int ItemAmountOffset = 0x5FC;
+    private const int ItemHqOffset = 0x604;
+
+    // Found in the first function in the agent's vtable
+    private const byte NoopContextId = 0x67;
+    private const byte InventoryNoopContextId = 0xFF;
+
+    private readonly GetAddonByInternalIdDelegate getAddonByInternalId;
+    private readonly AtkValueChangeTypeDelegate atkValueChangeType;
+    private readonly AtkValueSetStringDelegate atkValueSetString;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ContextMenu"/> class.
+    /// </summary>
+    internal ContextMenu()
     {
-        private const int MaxContextMenuItemsPerContextMenu = 32;
+        this.Language = Service<DalamudStartInfo>.Get().Language;
+        var scanner = Service<SigScanner>.Get();
+        this.UiAlloc = new UiAlloc(scanner);
 
-        private readonly OpenSubContextMenuDelegate? openSubContextMenu;
+        this.UiAlloc = new UiAlloc(scanner);
 
-        #region Hooks
+        this.Address = new ContextMenuAddressResolver();
+        this.Address.Setup();
 
-        private readonly Hook<ContextMenuOpenedDelegate> contextMenuOpenedHook;
-        private readonly Hook<ContextMenuOpenedDelegate> subContextMenuOpenedHook;
-        private readonly Hook<ContextMenuItemSelectedDelegate> contextMenuItemSelectedHook;
-        private readonly Hook<ContextMenuOpeningDelegate> contextMenuOpeningHook;
-        private readonly Hook<SubContextMenuOpeningDelegate> subContextMenuOpeningHook;
-
-        #endregion
-
-        private unsafe OldAgentContextInterface* currentAgentContextInterface;
-
-        private IntPtr currentSubContextMenuTitle;
-
-        private OpenSubContextMenuItem? selectedOpenSubContextMenuItem;
-        private ContextMenuOpenedArgs? currentContextMenuOpenedArgs;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ContextMenu"/> class.
-        /// </summary>
-        public ContextMenu()
+        unsafe
         {
-            this.Address = new ContextMenuAddressResolver();
-            this.Address.Setup();
+            this.atkValueChangeType = Marshal.GetDelegateForFunctionPointer<AtkValueChangeTypeDelegate>(this.Address.ContextMenuChangeTypePtr);
+            this.atkValueSetString = Marshal.GetDelegateForFunctionPointer<AtkValueSetStringDelegate>(this.Address.ContextMenuSetStringPtr);
+            this.getAddonByInternalId = Marshal.GetDelegateForFunctionPointer<GetAddonByInternalIdDelegate>(this.Address.ContextMenuGetAddonPtr);
+            this.SomeOpenAddonThingHook = new Hook<SomeOpenAddonThingDelegate>(this.Address.ContextMenuOpenAddonPtr, this.SomeOpenAddonThingDetour);
+            this.ContextMenuOpenHook = new Hook<ContextMenuOpenDelegate>(this.Address.ContextMenuOpenPtr, this.OpenMenuDetour);
+            this.ContextMenuItemSelectedHook = new Hook<ContextMenuItemSelectedInternalDelegate>(this.Address.ContextMenuSelectedPtr, this.ItemSelectedDetour);
+            this.TitleContextMenuOpenHook = new Hook<ContextMenuOpenDelegate>(this.Address.ContextMenuTitleMenuOpenPtr, this.TitleContextMenuOpenDetour);
+            this.ContextMenuEvent66Hook = new Hook<ContextMenuEvent66Delegate>(this.Address.ContextMenuEvent66Ptr, this.ContextMenuEvent66Detour);
+        }
+    }
 
-            unsafe
+    /// <summary>
+    /// The delegate for context menu events.
+    /// </summary>
+    /// <param name="args">context menu args.</param>
+    public delegate void GameObjectContextMenuOpenEventDelegate(GameObjectContextMenuOpenArgs args);
+
+    /// <summary>
+    /// The delegate for inventory context menu events.
+    /// </summary>
+    /// <param name="args">context menu args.</param>
+    public delegate void InventoryContextMenuOpenEventDelegate(InventoryContextMenuOpenArgs args);
+
+    /// <summary>
+    /// The delegate that is run when a context menu item is selected.
+    /// </summary>
+    /// <param name="args">context menu args.</param>
+    public delegate void GameObjectContextMenuItemSelectedDelegate(GameObjectContextMenuItemSelectedArgs args);
+
+    /// <summary>
+    /// The delegate that is run when an inventory context menu item is selected.
+    /// </summary>
+    /// <param name="args">context menu args.</param>
+    public delegate void InventoryContextMenuItemSelectedDelegate(InventoryContextMenuItemSelectedArgs args);
+
+    private delegate IntPtr SomeOpenAddonThingDelegate(IntPtr a1, IntPtr a2, IntPtr a3, uint a4, IntPtr a5, IntPtr a6, IntPtr a7, ushort a8);
+
+    private unsafe delegate byte ContextMenuOpenDelegate(IntPtr addon, int menuSize, AtkValue* atkValueArgs);
+
+    private delegate IntPtr GetAddonByInternalIdDelegate(IntPtr raptureAtkUnitManager, short id);
+
+    private delegate byte ContextMenuItemSelectedInternalDelegate(IntPtr addon, int index, byte a3);
+
+    private delegate byte ContextMenuEvent66Delegate(IntPtr agent);
+
+    private unsafe delegate void AtkValueChangeTypeDelegate(AtkValue* thisPtr, ValueType type);
+
+    private unsafe delegate void AtkValueSetStringDelegate(AtkValue* thisPtr, byte* bytes);
+
+    /// <summary>
+    /// Occurs when a context menu is opened by the game.
+    /// </summary>
+    [Obsolete("This is deprecated and no longer works. Use new context menu events instead.", false)]
+    #pragma warning disable CS0618, CS0067
+    // ReSharper disable once InconsistentNaming
+    public event ContextMenuOpenedDelegate? ContextMenuOpened;
+    #pragma warning restore CS0618, CS0067
+
+    /// <summary>
+    /// The event that is fired when a context menu is being prepared for opening.
+    /// </summary>
+    public event GameObjectContextMenuOpenEventDelegate? OnGameObjectContextMenuOpened;
+
+    /// <summary>
+    /// The event that is fired when an inventory context menu is being prepared for opening.
+    /// </summary>
+    public event InventoryContextMenuOpenEventDelegate? OnInventoryContextMenuOpened;
+
+    private enum AgentType
+    {
+        Normal,
+        Inventory,
+        Unknown,
+    }
+
+    private Hook<SomeOpenAddonThingDelegate>? SomeOpenAddonThingHook { get; }
+
+    private Hook<ContextMenuOpenDelegate>? ContextMenuOpenHook { get; }
+
+    private Hook<ContextMenuOpenDelegate>? TitleContextMenuOpenHook { get; }
+
+    private Hook<ContextMenuItemSelectedInternalDelegate>? ContextMenuItemSelectedHook { get; }
+
+    private Hook<ContextMenuEvent66Delegate>? ContextMenuEvent66Hook { get; }
+
+    private ClientLanguage Language { get; }
+
+    private IntPtr Agent { get; set; } = IntPtr.Zero;
+
+    private List<BaseContextMenuItem> Items { get; } = new();
+
+    private int NormalSize { get; set; }
+
+    private UiAlloc UiAlloc { get; set; }
+
+    private ContextMenuAddressResolver Address { get; set; }
+
+    private BaseContextMenuItem? SubMenuItem { get; set; }
+
+    private IntPtr SubMenuTitle { get; set; } = IntPtr.Zero;
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        this.SomeOpenAddonThingHook?.Dispose();
+        this.ContextMenuOpenHook?.Dispose();
+        this.TitleContextMenuOpenHook?.Dispose();
+        this.ContextMenuItemSelectedHook?.Dispose();
+        this.ContextMenuEvent66Hook?.Dispose();
+        GC.SuppressFinalize(this);
+    }
+
+    /// <summary>
+    /// Add dalamud indicator to context menu.
+    /// </summary>
+    /// <param name="name">context menu name.</param>
+    /// <returns>updated name.</returns>
+    internal static SeString AddDalamudContextMenuIndicator(SeString name)
+    {
+        return !Service<DalamudConfiguration>.Get().ShowCustomContextMenuIndicator ? name :
+                   new SeString().Append(new UIForegroundPayload(539))
+                                 .Append($"{SeIconChar.BoxedLetterD.ToIconString()} ")
+                                 .Append(new UIForegroundPayload(0))
+                                 .Append(name);
+    }
+
+    /// <summary>
+    /// Enable this subsystem.
+    /// </summary>
+    internal void Enable()
+    {
+        this.SomeOpenAddonThingHook?.Enable();
+        this.ContextMenuOpenHook?.Enable();
+        this.TitleContextMenuOpenHook?.Enable();
+        this.ContextMenuItemSelectedHook?.Enable();
+        this.ContextMenuEvent66Hook?.Enable();
+    }
+
+    private static unsafe (uint ObjectId, uint ContentIdLower, SeString? Text, ushort ObjectWorld) GetAgentInfo(IntPtr agent)
+    {
+        var objectId = *(uint*)(agent + ObjectIdOffset);
+        var contentIdLower = *(uint*)(agent + ContentIdLowerOffset);
+        var textBytes = Marshal.ReadIntPtr(agent + TextPointerOffset).ReadTerminated();
+        var text = textBytes.Length == 0 ? null : SeString.Parse(textBytes);
+        var objectWorld = *(ushort*)(agent + WorldOffset);
+        return (objectId, contentIdLower, text, objectWorld);
+    }
+
+    private static unsafe (uint ItemId, uint ItemAmount, bool ItemHq) GetInventoryAgentInfo(IntPtr agent)
+    {
+        var itemId = *(uint*)(agent + ItemIdOffset);
+        var itemAmount = *(uint*)(agent + ItemAmountOffset);
+        var itemHq = *(byte*)(agent + ItemHqOffset) == 1;
+        return (itemId, itemAmount, itemHq);
+    }
+
+    private IntPtr SomeOpenAddonThingDetour(
+        IntPtr a1, IntPtr a2, IntPtr a3, uint a4, IntPtr a5, IntPtr a6, IntPtr a7, ushort a8)
+    {
+        this.Agent = a6;
+        return this.SomeOpenAddonThingHook!.Original(a1, a2, a3, a4, a5, a6, a7, a8);
+    }
+
+    private unsafe byte TitleContextMenuOpenDetour(IntPtr addon, int menuSize, AtkValue* atkValueArgs)
+    {
+        if (this.SubMenuTitle == IntPtr.Zero)
+        {
+            this.Items.Clear();
+        }
+
+        return this.TitleContextMenuOpenHook!.Original(addon, menuSize, atkValueArgs);
+    }
+
+    private unsafe (AgentType AgentType, IntPtr Agent) GetContextMenuAgent(IntPtr? agent = null)
+    {
+        agent ??= this.Agent;
+
+        IntPtr GetAgent(AgentId id)
+        {
+            return (IntPtr)Framework.Instance()->GetUiModule()->GetAgentModule()->GetAgentByInternalId(id);
+        }
+
+        var agentType = AgentType.Unknown;
+        if (agent == GetAgent(AgentId.Context))
+        {
+            agentType = AgentType.Normal;
+        }
+        else if (agent == GetAgent(AgentId.InventoryContext))
+        {
+            agentType = AgentType.Inventory;
+        }
+
+        return (agentType, agent.Value);
+    }
+
+    private unsafe string? GetParentAddonName(IntPtr addon)
+    {
+        var parentAddonId = Marshal.ReadInt16(addon + ParentAddonIdOffset);
+        if (parentAddonId == 0)
+        {
+            return null;
+        }
+
+        var stage = AtkStage.GetSingleton();
+        var parentAddon = this.getAddonByInternalId((IntPtr)stage->RaptureAtkUnitManager, parentAddonId);
+        return Encoding.UTF8.GetString((parentAddon + 8).ReadTerminated());
+    }
+
+    [HandleProcessCorruptedStateExceptions]
+    private unsafe byte OpenMenuDetour(IntPtr addon, int menuSize, AtkValue* atkValueArgs)
+    {
+        try
+        {
+            this.OpenMenuDetourInner(addon, ref menuSize, ref atkValueArgs);
+        }
+        catch (Exception ex)
+        {
+            PluginLog.LogError(ex, "Exception in OpenMenuDetour");
+        }
+
+        return this.ContextMenuOpenHook!.Original(addon, menuSize, atkValueArgs);
+    }
+
+    private unsafe AtkValue* ExpandContextMenuArray(IntPtr addon)
+    {
+        const ulong newItemCount = (MaxItems * 2) + ContextMenuItemOffset;
+
+        var oldArray = *(AtkValue**)(addon + AddonArrayOffset);
+        var oldArrayItemCount = *(ushort*)(addon + AddonArraySizeOffset);
+
+        // if the array has enough room, don't reallocate
+        if (oldArrayItemCount >= newItemCount)
+        {
+            return oldArray;
+        }
+
+        // reallocate
+        var size = ((ulong)sizeof(AtkValue) * newItemCount) + 8;
+        var newArray = this.UiAlloc.Alloc(size);
+        // zero new memory
+        Marshal.Copy(new byte[size], 0, newArray, (int)size);
+        // update size and pointer
+        *(ulong*)newArray = newItemCount;
+        *(void**)(addon + AddonArrayOffset) = (void*)(newArray + 8);
+        *(ushort*)(addon + AddonArraySizeOffset) = (ushort)newItemCount;
+
+        // copy old memory if existing
+        if (oldArray != null)
+        {
+            Buffer.MemoryCopy(oldArray, (void*)(newArray + 8), size, (ulong)sizeof(AtkValue) * oldArrayItemCount);
+            this.UiAlloc.Free((IntPtr)oldArray - 8);
+        }
+
+        return (AtkValue*)(newArray + 8);
+    }
+
+    private unsafe void OpenMenuDetourInner(IntPtr addon, ref int menuSize, ref AtkValue* atkValueArgs)
+    {
+        this.Items.Clear();
+        this.FreeSubMenuTitle();
+
+        var (agentType, agent) = this.GetContextMenuAgent();
+        if (agent == IntPtr.Zero)
+        {
+            return;
+        }
+
+        if (agentType == AgentType.Unknown)
+        {
+            return;
+        }
+
+        atkValueArgs = this.ExpandContextMenuArray(addon);
+
+        var inventory = agentType == AgentType.Inventory;
+        var offset = ContextMenuItemOffset + (inventory ? 0 : *(long*)(agent + BooleanOffsetCheck) != 0 ? 1 : 0);
+
+        this.NormalSize = (int)(&atkValueArgs[0])->UInt;
+
+        // idx 3 is bitmask of indices that are submenus
+        var submenuArg = &atkValueArgs[3];
+        var submenus = (int)submenuArg->UInt;
+
+        var hasGameDisabled = menuSize - offset - this.NormalSize > 0;
+
+        var menuActions = inventory
+                              ? (byte*)(agent + InventoryMenuActionsOffset)
+                              : (byte*)(Marshal.ReadIntPtr(agent + MenuActionsPointerOffset) + MenuActionsOffset);
+
+        var nativeItems = new List<NativeContextMenuItem>();
+        for (var i = 0; i < this.NormalSize; i++)
+        {
+            var atkItem = &atkValueArgs[offset + i];
+
+            var name = ((IntPtr)atkItem->String).ReadSeString();
+
+            var enabled = true;
+            if (hasGameDisabled)
             {
-                this.openSubContextMenu = Marshal.GetDelegateForFunctionPointer<OpenSubContextMenuDelegate>(this.Address.OpenSubContextMenuPtr);
+                var disabledItem = &atkValueArgs[offset + this.NormalSize + i];
+                enabled = disabledItem->Int == 0;
+            }
 
-                this.contextMenuOpeningHook = new Hook<ContextMenuOpeningDelegate>(this.Address.ContextMenuOpeningPtr, this.ContextMenuOpeningDetour);
-                this.contextMenuOpenedHook = new Hook<ContextMenuOpenedDelegate>(this.Address.ContextMenuOpenedPtr, this.ContextMenuOpenedDetour);
-                this.contextMenuItemSelectedHook = new Hook<ContextMenuItemSelectedDelegate>(this.Address.ContextMenuItemSelectedPtr, this.ContextMenuItemSelectedDetour);
-                this.subContextMenuOpeningHook = new Hook<SubContextMenuOpeningDelegate>(this.Address.SubContextMenuOpeningPtr, this.SubContextMenuOpeningDetour);
-                this.subContextMenuOpenedHook = new Hook<ContextMenuOpenedDelegate>(this.Address.SubContextMenuOpenedPtr, this.SubContextMenuOpenedDetour);
+            var action = *(menuActions + offset + i);
+
+            var isSubMenu = (submenus & (1 << i)) > 0;
+
+            nativeItems.Add(new NativeContextMenuItem(action, name, enabled, isSubMenu));
+        }
+
+        if (this.PopulateItems(addon, agent, this.OnGameObjectContextMenuOpened, this.OnInventoryContextMenuOpened, nativeItems))
+        {
+            return;
+        }
+
+        var hasCustomDisabled = this.Items.Any(item => !item.Enabled);
+        var hasAnyDisabled = hasGameDisabled || hasCustomDisabled;
+
+        // clear all submenu flags
+        submenuArg->UInt = 0;
+
+        for (var i = 0; i < this.Items.Count; i++)
+        {
+            var item = this.Items[i];
+
+            if (hasAnyDisabled)
+            {
+                var disabledArg = &atkValueArgs[offset + this.Items.Count + i];
+                this.atkValueChangeType(disabledArg, ValueType.Int);
+                disabledArg->Int = item.Enabled ? 0 : 1;
+            }
+
+            // set up the agent to take the appropriate action for this item
+            *(menuActions + offset + i) = item switch
+            {
+                NativeContextMenuItem nativeItem => nativeItem.InternalAction,
+                _ => inventory ? InventoryNoopContextId : NoopContextId,
+            };
+
+            // set submenu flag
+            if (item.IsSubMenu)
+            {
+                submenuArg->UInt |= (uint)(1 << i);
+            }
+
+            // set up the menu item
+            var newItem = &atkValueArgs[offset + i];
+            this.atkValueChangeType(newItem, ValueType.String);
+
+            var name = this.GetItemName(item);
+            fixed (byte* nameBytesPtr = name.Encode().Terminate())
+            {
+                this.atkValueSetString(newItem, nameBytesPtr);
             }
         }
 
-        #region Delegates
+        (&atkValueArgs[0])->UInt = (uint)this.Items.Count;
 
-        private unsafe delegate bool OpenSubContextMenuDelegate(OldAgentContext* agentContext);
-
-        private unsafe delegate IntPtr ContextMenuOpeningDelegate(IntPtr a1, IntPtr a2, IntPtr a3, uint a4, IntPtr a5, OldAgentContextInterface* agentContextInterface, IntPtr a7, ushort a8);
-
-        private unsafe delegate bool ContextMenuOpenedDelegate(AddonContextMenu* addonContextMenu, int menuSize, AtkValue* atkValueArgs);
-
-        private unsafe delegate bool ContextMenuItemSelectedDelegate(AddonContextMenu* addonContextMenu, int selectedIndex, byte a3);
-
-        private unsafe delegate bool SubContextMenuOpeningDelegate(OldAgentContext* agentContext);
-
-        #endregion
-
-        /// <summary>
-        /// Occurs when a context menu is opened by the game.
-        /// </summary>
-        public event ContextMenus.ContextMenuOpenedDelegate? ContextMenuOpened;
-
-        private ContextMenuAddressResolver Address { get; set; }
-
-        /// <inheritdoc/>
-        void IDisposable.Dispose()
+        menuSize = (int)(&atkValueArgs[0])->UInt;
+        if (hasAnyDisabled)
         {
-            this.subContextMenuOpeningHook.Disable();
-            this.contextMenuItemSelectedHook.Disable();
-            this.subContextMenuOpenedHook.Disable();
-            this.contextMenuOpenedHook.Disable();
-            this.contextMenuOpeningHook.Disable();
+            menuSize *= 2;
         }
 
-        /// <summary>
-        /// Enable this subsystem.
-        /// </summary>
-        internal void Enable()
+        menuSize += offset;
+    }
+
+    /// <returns>true on error.</returns>
+    private bool PopulateItems(
+        IntPtr addon,
+        IntPtr agent,
+        GameObjectContextMenuOpenEventDelegate? normalAction,
+        InventoryContextMenuOpenEventDelegate? inventoryAction,
+        IReadOnlyCollection<NativeContextMenuItem>? nativeItems = null)
+    {
+        var (agentType, _) = this.GetContextMenuAgent(agent);
+        if (agentType == AgentType.Unknown)
         {
-            this.contextMenuOpeningHook.Enable();
-            this.contextMenuOpenedHook.Enable();
-            this.contextMenuItemSelectedHook.Enable();
-            this.subContextMenuOpeningHook.Enable();
-            this.subContextMenuOpenedHook.Enable();
-        }
-
-        private static unsafe bool IsInventoryContext(OldAgentContextInterface* agentContextInterface)
-        {
-            return agentContextInterface == AgentInventoryContext.Instance();
-        }
-
-        private static int GetContextMenuItemsHashCode(IEnumerable<ContextMenuItem> contextMenuItems)
-        {
-            unchecked
-            {
-                return contextMenuItems.Aggregate(17, (current, item) => (current * 23) + item.GetHashCode());
-            }
-        }
-
-        private unsafe IntPtr ContextMenuOpeningDetour(IntPtr a1, IntPtr a2, IntPtr a3, uint a4, IntPtr a5, OldAgentContextInterface* agentContextInterface, IntPtr a7, ushort a8)
-        {
-            this.currentAgentContextInterface = agentContextInterface;
-            return this.contextMenuOpeningHook!.Original(a1, a2, a3, a4, a5, agentContextInterface, a7, a8);
-        }
-
-        private unsafe bool ContextMenuOpenedDetour(AddonContextMenu* addonContextMenu, int atkValueCount, AtkValue* atkValues)
-        {
-            try
-            {
-                this.ContextMenuOpenedImplementation(addonContextMenu, ref atkValueCount, ref atkValues);
-            }
-            catch (Exception ex)
-            {
-                PluginLog.Error(ex, "ContextMenuOpenedDetour");
-            }
-
-            return this.contextMenuOpenedHook.Original(addonContextMenu, atkValueCount, atkValues);
-        }
-
-        private unsafe void ContextMenuOpenedImplementation(AddonContextMenu* addonContextMenu, ref int atkValueCount, ref AtkValue* atkValues)
-        {
-            if (this.ContextMenuOpened == null
-                || this.currentAgentContextInterface == null)
-            {
-                return;
-            }
-
-            var contextMenuReaderWriter = new ContextMenuReaderWriter(this.currentAgentContextInterface, atkValueCount, atkValues);
-
-            // Check for a title.
-            string? title = null;
-            if (this.selectedOpenSubContextMenuItem != null)
-            {
-                title = this.selectedOpenSubContextMenuItem.Name.TextValue;
-
-                // Write the custom title
-                var titleAtkValue = &atkValues[1];
-                fixed (byte* titlePtr = this.selectedOpenSubContextMenuItem.Name.Encode().NullTerminate())
-                {
-                    titleAtkValue->SetString(titlePtr);
-                }
-            }
-            else if (contextMenuReaderWriter.Title != null)
-            {
-                title = contextMenuReaderWriter.Title.TextValue;
-            }
-
-            // Determine which event to raise.
-            var contextMenuOpenedDelegate = this.ContextMenuOpened;
-
-            // this.selectedOpenSubContextMenuItem is OpenSubContextMenuItem openSubContextMenuItem
-            if (this.selectedOpenSubContextMenuItem != null)
-            {
-                contextMenuOpenedDelegate = this.selectedOpenSubContextMenuItem.Opened;
-            }
-
-            // Get the existing items from the game.
-            // TODO: For inventory sub context menus, we take only the last item -- the return item.
-            // This is because we're doing a hack to spawn a Second Tier sub context menu and then appropriating it.
-            var contextMenuItems = contextMenuReaderWriter.Read();
-            if (contextMenuItems == null)
-                return;
-
-            if (IsInventoryContext(this.currentAgentContextInterface) && this.selectedOpenSubContextMenuItem != null)
-            {
-                contextMenuItems = contextMenuItems.TakeLast(1).ToArray();
-            }
-
-            var beforeHashCode = GetContextMenuItemsHashCode(contextMenuItems);
-
-            // Raise the event and get the context menu changes.
-            this.currentContextMenuOpenedArgs = this.NotifyContextMenuOpened(addonContextMenu, this.currentAgentContextInterface, title, contextMenuOpenedDelegate, contextMenuItems);
-            if (this.currentContextMenuOpenedArgs == null)
-            {
-                return;
-            }
-
-            var afterHashCode = GetContextMenuItemsHashCode(this.currentContextMenuOpenedArgs.Items);
-
-            PluginLog.Warning($"{beforeHashCode}={afterHashCode}");
-
-            // Only write to memory if the items were actually changed.
-            if (beforeHashCode != afterHashCode)
-            {
-                // Write the new changes.
-                contextMenuReaderWriter.Write(this.currentContextMenuOpenedArgs.Items);
-
-                // Update the addon.
-                atkValueCount = *(&addonContextMenu->AtkValuesCount) = (ushort)contextMenuReaderWriter.AtkValueCount;
-                atkValues = *(&addonContextMenu->AtkValues) = contextMenuReaderWriter.AtkValues;
-            }
-        }
-
-        private unsafe bool SubContextMenuOpeningDetour(OldAgentContext* agentContext)
-        {
-            return this.SubContextMenuOpeningImplementation(agentContext) || this.subContextMenuOpeningHook.Original(agentContext);
-        }
-
-        private unsafe bool SubContextMenuOpeningImplementation(OldAgentContext* agentContext)
-        {
-            if (this.openSubContextMenu == null || this.selectedOpenSubContextMenuItem == null)
-            {
-                return false;
-            }
-
-            // The important things to make this work are:
-            // 1. Allocate a temporary sub context menu title. The value doesn't matter, we'll set it later.
-            // 2. Context menu item count must equal 1 to tell the game there is enough space for the "< Return" item.
-            // 3. Atk value count must equal the index of the first context menu item.
-            //    This is enough to keep the base data, but excludes the context menu item data.
-            //    We want to exclude context menu item data in this function because the game sometimes includes garbage items which can cause problems.
-            //    After this function, the game adds the "< Return" item, and THEN we add our own items after that.
-
-            this.openSubContextMenu(agentContext);
-
-            // Allocate a new 1 byte title. This is required for the game to render the titled context menu style.
-            // The actual value doesn't matter at this point, we'll set it later.
-            MemoryHelper.GameFree(ref this.currentSubContextMenuTitle, (ulong)IntPtr.Size);
-            this.currentSubContextMenuTitle = MemoryHelper.GameAllocateUi(1);
-            *(&(&agentContext->AgentContextInterface)->SubContextMenuTitle) = (byte*)this.currentSubContextMenuTitle;
-            *(byte*)this.currentSubContextMenuTitle = 0;
-
-            // Expect at least 1 context menu item.
-            (&agentContext->Items->AtkValues)[0].UInt = 1;
-
-            // Expect a title. This isn't needed by the game, it's needed by ContextMenuReaderWriter which uses this to check if it's a context menu
-            (&agentContext->Items->AtkValues)[1].ChangeType(ValueType.String);
-
-            (&agentContext->Items->AtkValues)[1].String = (byte*)0;
-
-            ContextMenuReaderWriter contextMenuReaderWriter = new ContextMenuReaderWriter(&agentContext->AgentContextInterface, agentContext->Items->AtkValueCount, &agentContext->Items->AtkValues);
-            *(&agentContext->Items->AtkValueCount) = (ushort)contextMenuReaderWriter.FirstContextMenuItemIndex;
-
             return true;
         }
 
-        private unsafe bool SubContextMenuOpenedDetour(AddonContextMenu* addonContextMenu, int atkValueCount, AtkValue* atkValues)
+        var inventory = agentType == AgentType.Inventory;
+        var parentAddonName = this.GetParentAddonName(addon);
+
+        if (inventory)
         {
-            try
+            var info = GetInventoryAgentInfo(agent);
+
+            var args = new InventoryContextMenuOpenArgs(
+                addon,
+                agent,
+                parentAddonName,
+                info.ItemId,
+                info.ItemAmount,
+                info.ItemHq);
+            if (nativeItems != null)
             {
-                this.SubContextMenuOpenedImplementation(addonContextMenu, ref atkValueCount, ref atkValues);
+                args.Items.AddRange(nativeItems);
             }
-            catch (Exception ex)
-            {
-                PluginLog.Error(ex, "SubContextMenuOpenedDetour");
-            }
-
-            return this.subContextMenuOpenedHook.Original(addonContextMenu, atkValueCount, atkValues);
-        }
-
-        private unsafe void SubContextMenuOpenedImplementation(AddonContextMenu* addonContextMenu, ref int atkValueCount, ref AtkValue* atkValues)
-        {
-            this.ContextMenuOpenedImplementation(addonContextMenu, ref atkValueCount, ref atkValues);
-        }
-
-        private unsafe ContextMenuOpenedArgs? NotifyContextMenuOpened(AddonContextMenu* addonContextMenu, OldAgentContextInterface* agentContextInterface, string? title, ContextMenus.ContextMenuOpenedDelegate contextMenuOpenedDelegate, IEnumerable<ContextMenuItem> initialContextMenuItems)
-        {
-            var parentAddonName = this.GetParentAddonName(&addonContextMenu->AtkUnitBase);
-
-            Log.Warning($"AgentContextInterface at: {new IntPtr(agentContextInterface):X}");
-
-            InventoryItemContext? inventoryItemContext = null;
-            GameObjectContext? gameObjectContext = null;
-            if (IsInventoryContext(agentContextInterface))
-            {
-                var agentInventoryContext = (AgentInventoryContext*)agentContextInterface;
-                inventoryItemContext = new InventoryItemContext(agentInventoryContext->TargetDummyItem.ItemID, agentInventoryContext->TargetDummyItem.Quantity, agentInventoryContext->TargetDummyItem.Flags.HasFlag(InventoryItem.ItemFlags.HQ));
-            }
-            else
-            {
-                var agentContext = (OldAgentContext*)agentContextInterface;
-
-                uint? id = agentContext->GameObjectId;
-                if (id == 0)
-                {
-                    id = null;
-                }
-
-                ulong? contentId = agentContext->GameObjectContentId;
-                if (contentId == 0)
-                {
-                    contentId = null;
-                }
-
-                var name = MemoryHelper.ReadSeStringNullTerminated((IntPtr)agentContext->GameObjectName.StringPtr).TextValue;
-                if (string.IsNullOrEmpty(name))
-                {
-                    name = null;
-                }
-
-                ushort? worldId = agentContext->GameObjectWorldId;
-                if (worldId == 0)
-                {
-                    worldId = null;
-                }
-
-                if (id != null
-                    || contentId != null
-                    || name != null
-                    || worldId != null)
-                {
-                    gameObjectContext = new GameObjectContext(id, contentId, name, worldId);
-                }
-            }
-
-            // Temporarily remove the < Return item, for UX we should enforce that it is always last in the list.
-            var lastContextMenuItem = initialContextMenuItems.LastOrDefault();
-            if (lastContextMenuItem is GameContextMenuItem gameContextMenuItem && gameContextMenuItem.SelectedAction == 102)
-            {
-                initialContextMenuItems = initialContextMenuItems.SkipLast(1);
-            }
-
-            var contextMenuOpenedArgs = new ContextMenuOpenedArgs(addonContextMenu, agentContextInterface, parentAddonName, initialContextMenuItems)
-            {
-                Title = title,
-                InventoryItemContext = inventoryItemContext,
-                GameObjectContext = gameObjectContext,
-            };
 
             try
             {
-                contextMenuOpenedDelegate.Invoke(contextMenuOpenedArgs);
+                inventoryAction?.Invoke(args);
             }
             catch (Exception ex)
             {
-                PluginLog.LogError(ex, "NotifyContextMenuOpened");
-                return null;
+                PluginLog.LogError(ex, "Exception in OpenMenuDetour");
+                return true;
             }
 
-            // Readd the < Return item
-            if (lastContextMenuItem is GameContextMenuItem gameContextMenuItem1 && gameContextMenuItem1.SelectedAction == 102)
-            {
-                contextMenuOpenedArgs.Items.Add(lastContextMenuItem);
-            }
+            // remove any NormalContextMenuItems that may have been added - these will crash the game
+            args.Items.RemoveAll(item => item is GameObjectContextMenuItem);
 
-            foreach (var contextMenuItem in contextMenuOpenedArgs.Items.ToArray())
+            // set the agent of any remaining custom items
+            foreach (var item in args.Items)
             {
-                // TODO: Game doesn't support nested sub context menus, but we might be able to.
-                if (contextMenuItem is OpenSubContextMenuItem && contextMenuOpenedArgs.Title != null)
+                switch (item)
                 {
-                    contextMenuOpenedArgs.Items.Remove(contextMenuItem);
-                    PluginLog.Warning($"Context menu '{contextMenuOpenedArgs.Title}' item '{contextMenuItem}' has been removed because nested sub context menus are not supported.");
+                    case InventoryContextMenuItem custom:
+                        custom.Agent = agent;
+                        break;
                 }
             }
 
-            if (contextMenuOpenedArgs.Items.Count > MaxContextMenuItemsPerContextMenu)
+            this.Items.AddRange(args.Items);
+        }
+        else
+        {
+            var info = GetAgentInfo(agent);
+
+            var args = new GameObjectContextMenuOpenArgs(
+                addon,
+                agent,
+                parentAddonName,
+                info.ObjectId,
+                info.ContentIdLower,
+                info.Text,
+                info.ObjectWorld);
+            if (nativeItems != null)
             {
-                PluginLog.LogWarning($"Context menu requesting {contextMenuOpenedArgs.Items.Count} of max {MaxContextMenuItemsPerContextMenu} items. Resizing list to compensate.");
-                contextMenuOpenedArgs.Items.RemoveRange(MaxContextMenuItemsPerContextMenu, contextMenuOpenedArgs.Items.Count - MaxContextMenuItemsPerContextMenu);
+                args.Items.AddRange(nativeItems);
             }
 
-            return contextMenuOpenedArgs;
-        }
-
-        private unsafe bool ContextMenuItemSelectedDetour(AddonContextMenu* addonContextMenu, int selectedIndex, byte a3)
-        {
             try
             {
-                this.ContextMenuItemSelectedImplementation(addonContextMenu, selectedIndex);
+                normalAction?.Invoke(args);
             }
             catch (Exception ex)
             {
-                PluginLog.Error(ex, "ContextMenuItemSelectedDetour");
+                PluginLog.LogError(ex, "Exception in OpenMenuDetour");
+                return true;
             }
 
-            return this.contextMenuItemSelectedHook.Original(addonContextMenu, selectedIndex, a3);
+            // remove any InventoryContextMenuItems that may have been added - these will crash the game
+            args.Items.RemoveAll(item => item is InventoryContextMenuItem);
+
+            // set the agent of any remaining custom items
+            foreach (var item in args.Items)
+            {
+                switch (item)
+                {
+                    case GameObjectContextMenuItem custom:
+                        custom.Agent = agent;
+                        break;
+                }
+            }
+
+            this.Items.AddRange(args.Items);
         }
 
-        private unsafe void ContextMenuItemSelectedImplementation(AddonContextMenu* addonContextMenu, int selectedIndex)
+        if (this.Items.Count > MaxItems)
         {
-            if (this.currentContextMenuOpenedArgs == null || selectedIndex == -1)
+            var toRemove = this.Items.Count - MaxItems;
+            this.Items.RemoveRange(MaxItems, toRemove);
+            PluginLog.LogWarning($"Context menu item limit ({MaxItems}) exceeded. Removing {toRemove} item(s).");
+        }
+
+        return false;
+    }
+
+    private SeString GetItemName(BaseContextMenuItem item)
+    {
+        return item switch
+        {
+            GameObjectContextMenuItem custom => this.Language switch
             {
-                this.currentContextMenuOpenedArgs = null;
-                this.selectedOpenSubContextMenuItem = null;
-                return;
-            }
-
-            // Read the selected item directly from the game
-            ContextMenuReaderWriter contextMenuReaderWriter = new ContextMenuReaderWriter(this.currentAgentContextInterface, addonContextMenu->AtkValuesCount, addonContextMenu->AtkValues);
-            var gameContextMenuItems = contextMenuReaderWriter.Read();
-            if (gameContextMenuItems == null)
-                return;
-
-            var gameSelectedItem = gameContextMenuItems.ElementAtOrDefault(selectedIndex);
-
-            // This should be impossible
-            if (gameSelectedItem == null)
+                ClientLanguage.Japanese => custom.NameJapanese,
+                ClientLanguage.English => custom.NameEnglish,
+                ClientLanguage.German => custom.NameGerman,
+                ClientLanguage.French => custom.NameFrench,
+                _ => custom.NameEnglish,
+            },
+            InventoryContextMenuItem custom => this.Language switch
             {
-                this.currentContextMenuOpenedArgs = null;
-                this.selectedOpenSubContextMenuItem = null;
-                return;
-            }
+                ClientLanguage.Japanese => custom.NameJapanese,
+                ClientLanguage.English => custom.NameEnglish,
+                ClientLanguage.German => custom.NameGerman,
+                ClientLanguage.French => custom.NameFrench,
+                _ => custom.NameEnglish,
+            },
+            NativeContextMenuItem native => native.Name,
+            _ => "Invalid context menu item",
+        };
+    }
 
-            // Match it with the items we already know about based on its name.
-            // We can get into a state where we have a game item we don't recognize when another plugin has added one.
-            var selectedItem = this.currentContextMenuOpenedArgs.Items.FirstOrDefault(item => item.Name.Encode().SequenceEqual(gameSelectedItem.Name.Encode()));
+    private byte ItemSelectedDetour(IntPtr addon, int index, byte a3)
+    {
+        this.FreeSubMenuTitle();
 
-            this.selectedOpenSubContextMenuItem = null;
-            if (selectedItem is CustomContextMenuItem customContextMenuItem)
+        if (index < 0 || index >= this.Items.Count)
+        {
+            goto Original;
+        }
+
+        var item = this.Items[index];
+        switch (item)
+        {
+            case GameObjectContextMenuItem custom:
             {
+                var addonName = this.GetParentAddonName(addon);
+                var info = GetAgentInfo(custom.Agent);
+
+                var args = new GameObjectContextMenuItemSelectedArgs(
+                    addon,
+                    custom.Agent,
+                    addonName,
+                    info.ObjectId,
+                    info.ContentIdLower,
+                    info.Text,
+                    info.ObjectWorld);
+
                 try
                 {
-                    var customContextMenuItemSelectedArgs = new CustomContextMenuItemSelectedArgs(this.currentContextMenuOpenedArgs, customContextMenuItem);
-                    customContextMenuItem.ItemSelected(customContextMenuItemSelectedArgs);
+                    custom.Action(args);
                 }
                 catch (Exception ex)
                 {
-                    PluginLog.LogError(ex, "ContextMenuItemSelectedImplementation");
+                    PluginLog.LogError(ex, "Exception in custom context menu item");
+                }
+
+                break;
+            }
+
+            case InventoryContextMenuItem custom:
+            {
+                var addonName = this.GetParentAddonName(addon);
+                var info = GetInventoryAgentInfo(custom.Agent);
+
+                var args = new InventoryContextMenuItemSelectedArgs(
+                    addon,
+                    custom.Agent,
+                    addonName,
+                    info.ItemId,
+                    info.ItemAmount,
+                    info.ItemHq);
+
+                try
+                {
+                    custom.Action(args);
+                }
+                catch (Exception ex)
+                {
+                    PluginLog.LogError(ex, "Exception in custom context menu item");
+                }
+
+                break;
+            }
+        }
+
+        Original:
+        return this.ContextMenuItemSelectedHook!.Original(addon, index, a3);
+    }
+
+    private void FreeSubMenuTitle()
+    {
+        if (this.SubMenuTitle == IntPtr.Zero)
+        {
+            return;
+        }
+
+        this.UiAlloc.Free(this.SubMenuTitle);
+        this.SubMenuTitle = IntPtr.Zero;
+    }
+
+    /// <returns>false if original should be called.</returns>
+    private unsafe bool SubMenuInner(IntPtr agent)
+    {
+        if (this.SubMenuItem == null)
+        {
+            return false;
+        }
+
+        var subMenuItem = this.SubMenuItem;
+        this.SubMenuItem = null;
+
+        // free our workaround pointer
+        this.FreeSubMenuTitle();
+
+        this.Items.Clear();
+
+        var name = this.GetItemName(subMenuItem);
+
+        // Since the game checks the agent's AtkValue array for the submenu title, and since we
+        // don't update that array, we need to work around this check.
+        // First, we will convince the game to make the submenu title pointer null by telling it
+        // that an invalid index was selected.
+        // Second, we will replace the null pointer with our own pointer.
+        // Third, we will restore the original selected index.
+
+        // step 1
+        var selectedIdx = (byte*)(agent + 0x670);
+        var wasSelected = *selectedIdx;
+        *selectedIdx = 0xFF;
+
+        // step 2 (see SetUpContextSubMenu)
+        var nameBytes = name.Encode().Terminate();
+        this.SubMenuTitle = this.UiAlloc.Alloc((ulong)nameBytes.Length);
+        Marshal.Copy(nameBytes, 0, this.SubMenuTitle, nameBytes.Length);
+        var v10 = agent + (0x678 * *(byte*)(agent + 0x1740)) + 0x28;
+        *(byte**)(v10 + 0x668) = (byte*)this.SubMenuTitle;
+
+        // step 3
+        *selectedIdx = wasSelected;
+
+        var secondaryArgsPtr = Marshal.ReadIntPtr(agent + MenuActionsPointerOffset);
+        var submenuArgs = (AtkValue*)(secondaryArgsPtr + 8);
+
+        var booleanOffset = *(long*)(agent + (*(byte*)(agent + 0x1740) * 0x678) + 0x690) != 0 ? 1 : 0;
+
+        for (var i = 0; i < this.Items.Count; i++)
+        {
+            var item = this.Items[i];
+
+            *(ushort*)secondaryArgsPtr += 1;
+            if (submenuArgs != null)
+            {
+                var arg = &submenuArgs[ContextMenuItemOffset + i + 1];
+                this.atkValueChangeType(arg, ValueType.String);
+                var itemName = this.GetItemName(item);
+                fixed (byte* namePtr = itemName.Encode().Terminate())
+                {
+                    this.atkValueSetString(arg, namePtr);
                 }
             }
-            else if (selectedItem is OpenSubContextMenuItem openSubContextMenuItem)
-            {
-                this.selectedOpenSubContextMenuItem = openSubContextMenuItem;
-            }
 
-            this.currentContextMenuOpenedArgs = null;
+            // set action to no-op
+            *(byte*)(secondaryArgsPtr + booleanOffset + i + ContextMenuItemOffset + 0x428) = NoopContextId;
         }
 
-        private unsafe string? GetParentAddonName(AtkUnitBase* addonInterface)
-        {
-            var parentAddonId = addonInterface->ContextMenuParentID;
-            if (parentAddonId == 0)
-            {
-                return null;
-            }
+        return true;
+    }
 
-            var atkStage = AtkStage.GetSingleton();
-            var parentAddon = atkStage->RaptureAtkUnitManager->GetAddonById(parentAddonId);
-            return Marshal.PtrToStringUTF8(new IntPtr(parentAddon->Name));
-        }
-
-        private unsafe AtkUnitBase* GetAddonFromAgent(AgentInterface* agentInterface)
-        {
-            return agentInterface->AddonId == 0 ? null : AtkStage.GetSingleton()->RaptureAtkUnitManager->GetAddonById((ushort)agentInterface->AddonId);
-        }
+    private byte ContextMenuEvent66Detour(IntPtr agent)
+    {
+        return this.SubMenuInner(agent) ? (byte)0 : this.ContextMenuEvent66Hook!.Original(agent);
     }
 }

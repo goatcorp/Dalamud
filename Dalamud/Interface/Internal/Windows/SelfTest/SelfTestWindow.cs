@@ -27,7 +27,6 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest
                 new WaitFramesAgingStep(1000),
                 new EnterTerritoryAgingStep(148, "Central Shroud"),
                 new ItemPayloadAgingStep(),
-                new ContextMenuAgingStep(),
                 new ActorTableAgingStep(),
                 new FateTableAgingStep(),
                 new AetheryteListAgingStep(),
@@ -46,8 +45,8 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest
 
         private readonly List<(SelfTestStepResult Result, TimeSpan? Duration)> stepResults = new();
 
-        private bool selfTestRunning = false;
-        private int currentStep = 0;
+        private bool selfTestRunning;
+        private int currentStep;
 
         private DateTimeOffset lastTestStart;
 

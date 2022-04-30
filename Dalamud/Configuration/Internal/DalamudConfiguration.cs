@@ -349,6 +349,11 @@ namespace Dalamud.Configuration.Internal
         public bool ShowDevBarInfo { get; set; } = true;
 
         /// <summary>
+        /// Gets or sets a value indicating whether to show dalamud indicator on custom context menu items.
+        /// </summary>
+        public bool ShowCustomContextMenuIndicator { get; set; } = true;
+
+        /// <summary>
         /// Load a configuration from the provided path.
         /// </summary>
         /// <param name="path">The path to load the configuration file from.</param>
