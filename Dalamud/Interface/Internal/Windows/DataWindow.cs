@@ -1433,6 +1433,14 @@ namespace Dalamud.Interface.Internal.Windows
                 Task.Run(async () => await Service<Framework>.Get().RunOnTick(() => throw new Exception("Test Exception"), cancellationToken: this.taskSchedCancelSource.Token, delay: TimeSpan.FromSeconds(1)));
             }
 
+            ImGui.SameLine();
+
+            if (ImGui.Button("As long as it's in Framework Thread"))
+            {
+                Task.Run(async () => await Service<Framework>.Get().RunOnFrameworkThread(() => { Log.Information("Task dispatched from non-framework.update thread"); }));
+                Service<Framework>.Get().RunOnFrameworkThread(() => { Log.Information("Task dispatched from framework.update thread"); }).Wait();
+            }
+
             if (ImGui.Button("Drown in tasks"))
             {
                 var token = this.taskSchedCancelSource.Token;

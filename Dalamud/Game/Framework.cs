@@ -38,6 +38,8 @@ namespace Dalamud.Game
         private Hook<OnDestroyDetour> destroyHook;
         private Hook<OnRealDestroyDelegate> realDestroyHook;
 
+        private Thread? frameworkUpdateThread;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="Framework"/> class.
         /// </summary>
@@ -116,6 +118,11 @@ namespace Dalamud.Game
         public TimeSpan UpdateDelta { get; private set; } = TimeSpan.Zero;
 
         /// <summary>
+        /// Gets a value indicating whether currently executing code is running in the game's framework update thread.
+        /// </summary>
+        public bool IsInFrameworkUpdateThread => Thread.CurrentThread == this.frameworkUpdateThread;
+
+        /// <summary>
         /// Gets or sets a value indicating whether to dispatch update events.
         /// </summary>
         internal bool DispatchUpdateEvents { get; set; } = true;
@@ -132,6 +139,39 @@ namespace Dalamud.Game
             this.updateHook.Enable();
             this.destroyHook.Enable();
             this.realDestroyHook.Enable();
+        }
+
+        /// <summary>
+        /// Run given function right away if this function has been called from game's Framework.Update thread, or otherwise run on next Framework.Update call.
+        /// </summary>
+        /// <typeparam name="T">Return type.</typeparam>
+        /// <param name="func">Function to call.</param>
+        /// <returns>Task representing the pending or already completed function.</returns>
+        public Task<T> RunOnFrameworkThread<T>(Func<T> func) => this.IsInFrameworkUpdateThread ? Task.FromResult(func()) : this.RunOnTick(func);
+
+        /// <summary>
+        /// Run given function right away if this function has been called from game's Framework.Update thread, or otherwise run on next Framework.Update call.
+        /// </summary>
+        /// <param name="action">Function to call.</param>
+        /// <returns>Task representing the pending or already completed function.</returns>
+        public Task RunOnFrameworkThread(Action action)
+        {
+            if (this.IsInFrameworkUpdateThread)
+            {
+                try
+                {
+                    action();
+                    return Task.CompletedTask;
+                }
+                catch (Exception ex)
+                {
+                    return Task.FromException(ex);
+                }
+            }
+            else
+            {
+                return this.RunOnTick(action);
+            }
         }
 
         /// <summary>
@@ -226,6 +266,8 @@ namespace Dalamud.Game
             // If any of the tier loads failed, just go to the original code.
             if (this.tierInitError)
                 goto original;
+
+            this.frameworkUpdateThread ??= Thread.CurrentThread;
 
             var dalamud = Service<Dalamud>.Get();
 
