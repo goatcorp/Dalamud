@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
-
+using System.Threading.Tasks;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Gui.Toast;
 using Dalamud.Game.Libc;
@@ -26,7 +26,9 @@ namespace Dalamud.Game
     public sealed class Framework : IDisposable
     {
         private static Stopwatch statsStopwatch = new();
-        private Stopwatch updateStopwatch = new();
+
+        private readonly List<RunOnNextTickTaskBase> runOnNextTickTaskList = new();
+        private readonly Stopwatch updateStopwatch = new();
 
         private bool tier2Initialized = false;
         private bool tier3Initialized = false;
@@ -133,6 +135,52 @@ namespace Dalamud.Game
         }
 
         /// <summary>
+        /// Run given function in upcoming Framework.Tick call.
+        /// </summary>
+        /// <typeparam name="T">Return type.</typeparam>
+        /// <param name="func">Function to call.</param>
+        /// <param name="delay">Wait for given timespan before calling this function.</param>
+        /// <param name="delayTicks">Count given number of Framework.Tick calls before calling this function. This takes precedence over delay parameter.</param>
+        /// <param name="cancellationToken">Cancellation token which will prevent the execution of this function if wait conditions are not met.</param>
+        /// <returns>Task representing the pending function.</returns>
+        public Task<T> RunOnTick<T>(Func<T> func, TimeSpan delay = default, int delayTicks = default, CancellationToken cancellationToken = default)
+        {
+            var tcs = new TaskCompletionSource<T>();
+            this.runOnNextTickTaskList.Add(new RunOnNextTickTaskFunc<T>()
+            {
+                RemainingTicks = delayTicks,
+                RunAfterTickCount = Environment.TickCount64 + (long)Math.Ceiling(delay.TotalMilliseconds),
+                CancellationToken = cancellationToken,
+                TaskCompletionSource = tcs,
+                Func = func,
+            });
+            return tcs.Task;
+        }
+
+        /// <summary>
+        /// Run given function in upcoming Framework.Tick call.
+        /// </summary>
+        /// <typeparam name="T">Return type.</typeparam>
+        /// <param name="action">Function to call.</param>
+        /// <param name="delay">Wait for given timespan before calling this function.</param>
+        /// <param name="delayTicks">Count given number of Framework.Tick calls before calling this function. This takes precedence over delay parameter.</param>
+        /// <param name="cancellationToken">Cancellation token which will prevent the execution of this function if wait conditions are not met.</param>
+        /// <returns>Task representing the pending function.</returns>
+        public Task RunOnTick(Action action, TimeSpan delay = default, int delayTicks = default, CancellationToken cancellationToken = default)
+        {
+            var tcs = new TaskCompletionSource();
+            this.runOnNextTickTaskList.Add(new RunOnNextTickTaskAction()
+            {
+                RemainingTicks = delayTicks,
+                RunAfterTickCount = Environment.TickCount64 + (long)Math.Ceiling(delay.TotalMilliseconds),
+                CancellationToken = cancellationToken,
+                TaskCompletionSource = tcs,
+                Action = action,
+            });
+            return tcs.Task;
+        }
+
+        /// <summary>
         /// Dispose of managed and unmanaged resources.
         /// </summary>
         void IDisposable.Dispose()
@@ -223,6 +271,8 @@ namespace Dalamud.Game
 
                 try
                 {
+                    this.runOnNextTickTaskList.RemoveAll(x => x.Run());
+
                     if (StatsEnabled && this.Update != null)
                     {
                         // Stat Tracking for Framework Updates
@@ -311,6 +361,89 @@ namespace Dalamud.Game
 
             // Return the original trampoline location to cleanly exit
             return originalPtr;
+        }
+
+        private abstract class RunOnNextTickTaskBase
+        {
+            internal int RemainingTicks { get; set; }
+
+            internal long RunAfterTickCount { get; init; }
+
+            internal CancellationToken CancellationToken { get; init; }
+
+            internal bool Run()
+            {
+                if (this.CancellationToken.IsCancellationRequested)
+                {
+                    this.CancelImpl();
+                    return true;
+                }
+
+                if (this.RemainingTicks > 0)
+                    this.RemainingTicks -= 1;
+                if (this.RemainingTicks > 0)
+                    return false;
+
+                if (this.RunAfterTickCount > Environment.TickCount64)
+                    return false;
+
+                this.RunImpl();
+
+                return true;
+            }
+
+            protected abstract void RunImpl();
+
+            protected abstract void CancelImpl();
+        }
+
+        private class RunOnNextTickTaskFunc<T> : RunOnNextTickTaskBase
+        {
+            internal TaskCompletionSource<T> TaskCompletionSource { get; init; }
+
+            internal Func<T> Func { get; init; }
+
+            protected override void RunImpl()
+            {
+                try
+                {
+                    this.TaskCompletionSource.SetResult(this.Func());
+                }
+                catch (Exception ex)
+                {
+                    this.TaskCompletionSource.SetException(ex);
+                }
+            }
+
+            protected override void CancelImpl()
+            {
+                this.TaskCompletionSource.SetCanceled();
+            }
+        }
+
+        private class RunOnNextTickTaskAction : RunOnNextTickTaskBase
+        {
+            internal TaskCompletionSource TaskCompletionSource { get; init; }
+
+            internal Action Action { get; init; }
+
+            protected override void RunImpl()
+            {
+                try
+                {
+                    this.Action();
+                    this.TaskCompletionSource.SetResult();
+                }
+                catch (Exception ex)
+                {
+                    this.TaskCompletionSource.SetException(ex);
+                }
+            }
+
+            protected override void CancelImpl()
+            {
+                this.TaskCompletionSource.SetCanceled();
+            }
         }
     }
 }
