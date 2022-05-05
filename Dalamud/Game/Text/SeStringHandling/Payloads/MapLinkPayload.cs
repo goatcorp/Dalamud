@@ -39,8 +39,8 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             // this fudge is necessary basically to ensure we don't shift down a full tenth
             // because essentially values are truncated instead of rounded, so 3.09999f will become
             // 3.0f and not 3.1f
-            this.RawX = this.ConvertMapCoordinateToRawPosition(niceXCoord + fudgeFactor, this.Map.SizeFactor);
-            this.RawY = this.ConvertMapCoordinateToRawPosition(niceYCoord + fudgeFactor, this.Map.SizeFactor);
+            this.RawX = this.ConvertMapCoordinateToRawPosition(niceXCoord + fudgeFactor, this.Map.SizeFactor, this.Map.OffsetX);
+            this.RawY = this.ConvertMapCoordinateToRawPosition(niceYCoord + fudgeFactor, this.Map.SizeFactor, this.Map.OffsetY);
         }
 
         /// <summary>
@@ -103,13 +103,13 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         /// <summary>
         /// Gets the readable x-coordinate position for this map link.  This value is approximate and unrounded.
         /// </summary>
-        public float XCoord => this.ConvertRawPositionToMapCoordinate(this.RawX, this.Map.SizeFactor);
+        public float XCoord => this.ConvertRawPositionToMapCoordinate(this.RawX, this.Map.SizeFactor, this.Map.OffsetX);
 
         /// <summary>
         /// Gets the readable y-coordinate position for this map link.  This value is approximate and unrounded.
         /// </summary>
         [JsonIgnore]
-        public float YCoord => this.ConvertRawPositionToMapCoordinate(this.RawY, this.Map.SizeFactor);
+        public float YCoord => this.ConvertRawPositionToMapCoordinate(this.RawY, this.Map.SizeFactor, this.Map.OffsetY);
 
         // there is no Z; it's purely in the text payload where applicable
 
@@ -211,24 +211,36 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         #region ugliness
 
         // from https://github.com/xivapi/ffxiv-datamining/blob/master/docs/MapCoordinates.md
-        // extra 1/1000 because that is how the network ints are done
-        private float ConvertRawPositionToMapCoordinate(int pos, float scale)
+        // from https://github.com/xivapi/xivapi-mappy/blob/master/Mappy/Helpers/MapHelper.cs
+        // the raw scale from the map needs to be scaled down by a factor of 100
+        // the raw pos also needs to be scaled down by a factor of 1000
+        // the tile scale is ~50, but is exactly 2048/41, more info in the md file
+        private float ConvertRawPositionToMapCoordinate(int pos, float scale, short offset)
         {
-            var c = scale / 100.0f;
-            var scaledPos = pos * c / 1000.0f;
+            // extra 1/1000 because that is how the network ints are done
+            const float networkAdjustment = 1f;
 
-            return (41.0f / c * ((scaledPos + 1024.0f) / 2048.0f)) + 1.0f;
+            // scaling
+            var trueScale = scale / 100f;
+            var truePos = pos / 1000f;
+
+            var computedPos = (truePos + offset) * trueScale;
+            // pretty weird formula, but obviously has something to do with the tile scaling
+            return (41f / trueScale * ((computedPos + 1024f) / 2048f)) + networkAdjustment;
         }
 
         // Created as the inverse of ConvertRawPositionToMapCoordinate(), since no one seemed to have a version of that
-        private int ConvertMapCoordinateToRawPosition(float pos, float scale)
+        private int ConvertMapCoordinateToRawPosition(float pos, float scale, short offset)
         {
-            var c = scale / 100.0f;
+            const float networkAdjustment = 1f;
 
-            var scaledPos = (((pos - 1.0f) * c / 41.0f * 2048.0f) - 1024.0f) / c;
-            scaledPos *= 1000.0f;
+            // scaling
+            var trueScale = scale / 100f;
 
-            return (int)scaledPos;
+            var num2 = (((pos - networkAdjustment) * trueScale / 41f * 2048f) - 1024f) / trueScale;
+            // (pos - offset) / scale, with the scaling on num2 done before for precision
+            num2 *= 1000f;
+            return (int)num2 - (offset * 1000);
         }
 
         #endregion
