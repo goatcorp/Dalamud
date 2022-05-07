@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 
 using Dalamud.Game;
+using Dalamud.Interface.Internal.Types;
 using Newtonsoft.Json;
 
 namespace Dalamud.Plugin.Internal.Types
@@ -176,5 +177,26 @@ namespace Dalamud.Plugin.Internal.Types
         /// Gets a value indicating the webhook URL feedback is sent to.
         /// </summary>
         public string? FeedbackWebhook { get; init; }
+
+        /// <summary>
+        /// Gets notice/warning to display for plugin (can be used where there is an issue but not ban worthy).
+        /// </summary>
+        public string Notice { get; init; } = string.Empty;
+
+        /// <summary>
+        /// Gets or sets developer support state.
+        /// </summary>
+        public DevSupportState DevSupportState { get; set; } = DevSupportState.Active;
+
+        /// <summary>
+        /// Gets or sets reason / comment for the current developer state.
+        /// </summary>
+        public string DevSupportStateReason { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Gets or sets incompatible type for display (outdated or unsupported).
+        /// </summary>
+        [JsonIgnore]
+        public IncompatibleType? IncompatibleType { get; internal set; }
     }
 }

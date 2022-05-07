@@ -15,6 +15,7 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Gui.Dtr;
 using Dalamud.Game.Text;
+using Dalamud.Interface.Internal.Types;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Exceptions;
 using Dalamud.Plugin.Internal.Types;
@@ -38,6 +39,7 @@ namespace Dalamud.Plugin.Internal
         private readonly DirectoryInfo pluginDirectory;
         private readonly DirectoryInfo devPluginDirectory;
         private readonly BannedPlugin[] bannedPlugins;
+        private readonly PluginMetaData[] pluginMetaData;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PluginManager"/> class.
@@ -68,6 +70,18 @@ namespace Dalamud.Plugin.Internal
             var bannedPluginsJson = File.ReadAllText(Path.Combine(startInfo.AssetDirectory, "UIRes", "bannedplugin.json"));
             this.bannedPlugins = JsonConvert.DeserializeObject<BannedPlugin[]>(bannedPluginsJson) ?? Array.Empty<BannedPlugin>();
 
+            try
+            {
+                var pluginMetaDataJson =
+                    File.ReadAllText(Path.Combine(startInfo.AssetDirectory, "UIRes", "pluginmetadata.json"));
+                this.pluginMetaData = JsonConvert.DeserializeObject<PluginMetaData[]>(pluginMetaDataJson) ??
+                                      Array.Empty<PluginMetaData>();
+            }
+            catch (Exception)
+            {
+                this.pluginMetaData = Array.Empty<PluginMetaData>();
+            }
+
             this.ApplyPatches();
         }
 
@@ -90,6 +104,11 @@ namespace Dalamud.Plugin.Internal
         /// Gets a list of all available plugins.
         /// </summary>
         public ImmutableList<RemotePluginManifest> AvailablePlugins { get; private set; } = ImmutableList.Create<RemotePluginManifest>();
+
+        /// <summary>
+        /// Gets a list of all incompatible plugins (outdated + unsupported).
+        /// </summary>
+        public ImmutableList<RemotePluginManifest> IncompatiblePlugins { get; private set; } = ImmutableList.Create<RemotePluginManifest>();
 
         /// <summary>
         /// Gets a list of all plugins with an available update.
@@ -396,6 +415,47 @@ namespace Dalamud.Plugin.Internal
                 .Where(this.IsManifestEligible)
                 .Where(IsManifestVisible)
                 .ToImmutableList();
+
+            // set incompatible plugins
+            var startInfo = Service<DalamudStartInfo>.Get();
+            var manifests = this.Repos.SelectMany(repo => repo.PluginMaster).ToList();
+            var incompatiblePlugins = new List<RemotePluginManifest>();
+            foreach (var manifest in manifests)
+            {
+                IncompatibleType type;
+                var metaData = this.GetMetaData(manifest);
+                switch (metaData.DevSupportState)
+                {
+                    case DevSupportState.Adoptable:
+                        type = IncompatibleType.Adoptable;
+                        break;
+                    case DevSupportState.Obsolete:
+                        type = IncompatibleType.Obsolete;
+                        break;
+                    case DevSupportState.Discontinued:
+                        type = IncompatibleType.Discontinued;
+                        break;
+                    case DevSupportState.Active:
+                    case DevSupportState.MaintenanceOnly:
+                        if (manifest.ApplicableVersion < startInfo.GameVersion ||
+                            manifest.DalamudApiLevel < DalamudApiLevel)
+                        {
+                            type = IncompatibleType.Outdated;
+                            break;
+                        }
+
+                        continue;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+
+                manifest.DevSupportState = metaData.DevSupportState;
+                manifest.DevSupportStateReason = metaData.DevSupportStateReason;
+                manifest.IncompatibleType = type;
+                incompatiblePlugins.Add(manifest);
+            }
+
+            this.IncompatiblePlugins = incompatiblePlugins.ToImmutableList();
 
             if (notify)
             {
@@ -954,6 +1014,28 @@ namespace Dalamud.Plugin.Internal
         public string GetBanReason(PluginManifest manifest)
         {
             return this.bannedPlugins.LastOrDefault(ban => ban.Name == manifest.InternalName).Reason;
+        }
+
+        /// <summary>
+        /// Get the plugin meta data.
+        /// If set in dalamud assets, this will take precedence. Otherwise, the plugin manifest is used.
+        /// </summary>
+        /// <param name="manifest">Manifest to inspect.</param>
+        /// <returns>Tuple with dev support state and reason.</returns>
+        public PluginMetaData GetMetaData(PluginManifest manifest)
+        {
+            var remoteMetaData = this.pluginMetaData.Where(data => data.Name == manifest.InternalName).ToList();
+            if (remoteMetaData.Any())
+            {
+                return remoteMetaData.First();
+            }
+
+            return new PluginMetaData
+            {
+                Notice = manifest.Notice,
+                DevSupportState = manifest.DevSupportState,
+                DevSupportStateReason = manifest.DevSupportStateReason,
+            };
         }
 
         private void DetectAvailablePluginUpdates()

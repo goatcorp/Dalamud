@@ -14,6 +14,7 @@ using Dalamud.Game.Command;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Internal.Notifications;
+using Dalamud.Interface.Internal.Types;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin;
@@ -72,6 +73,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
         private List<PluginUpdateStatus>? updatedPlugins;
 
         private List<RemotePluginManifest> pluginListAvailable = new();
+        private List<RemotePluginManifest> pluginListIncompatible = new();
         private List<LocalPlugin> pluginListInstalled = new();
         private List<AvailablePluginUpdate> pluginListUpdatable = new();
         private bool hasDevPlugins = false;
@@ -466,6 +468,147 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             }
         }
 
+        private void DrawIncompatibleList(IncompatibleType type)
+        {
+            if (this.pluginListIncompatible.Count == 0)
+            {
+                ImGui.TextColored(ImGuiColors.DalamudGrey, Locs.TabBody_SearchNoCompatible);
+                return;
+            }
+
+            var manifestEntries = this.pluginListIncompatible.Where(
+                manifest => !this.IsManifestFiltered(manifest) && manifest.IncompatibleType != null &&
+                            (type == IncompatibleType.All || manifest.IncompatibleType == type)).ToList();
+
+            if (!manifestEntries.Any())
+            {
+                ImGui.TextColored(ImGuiColors.DalamudGrey, Locs.TabBody_SearchNoCompatible);
+                return;
+            }
+
+            var sortedManifestEntries = manifestEntries.OrderBy(manifest => manifest.Name);
+
+            // heading
+            if (type != IncompatibleType.All)
+            {
+                string heading;
+                switch (type)
+                {
+                    case IncompatibleType.Outdated:
+                        heading = Locs.PluginBody_Incompatible_Outdated_Heading;
+                        break;
+                    case IncompatibleType.Adoptable:
+                        heading = Locs.PluginBody_Incompatible_Adoptable_Heading;
+                        break;
+                    case IncompatibleType.Obsolete:
+                        heading = Locs.PluginBody_Incompatible_Obsolete_Heading;
+                        break;
+                    case IncompatibleType.Discontinued:
+                        heading = Locs.PluginBody_Incompatible_Discontinued_Heading;
+                        break;
+                    case IncompatibleType.All:
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(type), type, null);
+                }
+
+                ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudYellow);
+                ImGuiHelpers.SafeTextWrapped(heading);
+                ImGui.PopStyleColor();
+            }
+
+            foreach (var manifest in sortedManifestEntries)
+            {
+                ImGui.Separator();
+
+                var startCursor = ImGui.GetCursorPos();
+
+                var iconSize = ImGuiHelpers.ScaledVector2(64, 64);
+
+                var icon = this.imageCache.DefaultIcon;
+                var hasIcon = this.imageCache.TryGetIcon(null, manifest, manifest.SourceRepo.IsThirdParty, out var cachedIconTex);
+                if (hasIcon && cachedIconTex != null)
+                {
+                    icon = cachedIconTex;
+                }
+
+                ImGui.Image(icon.ImGuiHandle, iconSize);
+                ImGui.SameLine();
+
+                ImGuiHelpers.ScaledDummy(5);
+
+                ImGui.SameLine();
+                var cursor = ImGui.GetCursorPos();
+                ImGui.TextUnformatted(manifest.Name);
+
+                var downloadCountText = Locs.PluginBody_AuthorWithDownloadCount(manifest.Author ?? string.Empty, manifest.DownloadCount);
+                ImGui.SameLine();
+                ImGui.TextColored(ImGuiColors.DalamudGrey3, downloadCountText);
+
+                cursor.Y += ImGui.GetTextLineHeightWithSpacing();
+                ImGui.SetCursorPos(cursor);
+
+                var message = string.Empty;
+                if (type == IncompatibleType.All)
+                {
+                    switch (manifest.DevSupportState)
+                    {
+                        case DevSupportState.Active:
+                        case DevSupportState.MaintenanceOnly:
+                            message = Locs.PluginBody_Incompatible_Outdated;
+                            break;
+                        case DevSupportState.Adoptable:
+                            message = Locs.PluginBody_Incompatible_Adoptable;
+                            break;
+                        case DevSupportState.Obsolete:
+                            message = Locs.PluginBody_Incompatible_Obsolete;
+                            break;
+                        case DevSupportState.Discontinued:
+                            message = Locs.PluginBody_Incompatible_Discontinued;
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
+                    }
+
+                    message += Environment.NewLine;
+                }
+
+                if (!string.IsNullOrEmpty(manifest.DevSupportStateReason))
+                {
+                    message += manifest.DevSupportStateReason + Environment.NewLine;
+                }
+
+                if (!string.IsNullOrWhiteSpace(manifest.Punchline))
+                {
+                    message += manifest.Punchline + Environment.NewLine;
+                }
+                else if (!string.IsNullOrWhiteSpace(manifest.Description))
+                {
+                    const int punchlineLen = 200;
+                    var firstLine = manifest.Description.Split(new[] { '\r', '\n' })[0];
+
+                    if (firstLine.Length < punchlineLen)
+                    {
+                        message += firstLine;
+                    }
+                    else
+                    {
+                        message += firstLine[..punchlineLen];
+                    }
+                }
+
+                ImGuiHelpers.SafeTextWrapped(message);
+
+                var endCursor = ImGui.GetCursorPos();
+
+                var sectionSize = Math.Max(
+                    66 * ImGuiHelpers.GlobalScale, // min size due to icons
+                    endCursor.Y - startCursor.Y);
+
+                startCursor.Y += sectionSize;
+                ImGui.SetCursorPos(startCursor);
+            }
+        }
+
         private void DrawChangelogList(bool displayDalamud, bool displayPlugins)
         {
             if (this.pluginListInstalled.Count == 0)
@@ -760,6 +903,27 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                 case PluginCategoryManager.GroupKind.Installed:
                     this.DrawInstalledPluginList();
                     break;
+                case PluginCategoryManager.GroupKind.Incompatible:
+                    switch (this.categoryManager.CurrentCategoryIdx)
+                    {
+                        case 0:
+                            this.DrawIncompatibleList(IncompatibleType.All);
+                            break;
+                        case 1:
+                            this.DrawIncompatibleList(IncompatibleType.Outdated);
+                            break;
+                        case 2:
+                            this.DrawIncompatibleList(IncompatibleType.Adoptable);
+                            break;
+                        case 3:
+                            this.DrawIncompatibleList(IncompatibleType.Obsolete);
+                            break;
+                        case 4:
+                            this.DrawIncompatibleList(IncompatibleType.Discontinued);
+                            break;
+                    }
+
+                    break;
                 case PluginCategoryManager.GroupKind.Changelog:
                     switch (this.categoryManager.CurrentCategoryIdx)
                     {
@@ -777,6 +941,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                     }
 
                     break;
+
                 default:
                     this.DrawAvailablePluginList();
                     break;
@@ -1047,6 +1212,8 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
         {
             ImGui.Separator();
 
+            var metaData = Service<PluginManager>.Get().GetMetaData(manifest);
+
             var isOpen = this.openPluginCollapsibles.Contains(index);
 
             var sectionSize = ImGuiHelpers.GlobalScale * 66;
@@ -1154,9 +1321,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             // Outdated warning
             if (plugin is { IsOutdated: true, IsBanned: false })
             {
-                ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
-                ImGui.TextWrapped(Locs.PluginBody_Outdated);
-                ImGui.PopStyleColor();
+                this.DrawUnsupportedWarning(metaData.DevSupportState, metaData.DevSupportStateReason);
             }
 
             // Banned warning
@@ -1192,6 +1357,38 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             ImGui.SetCursorPos(startCursor);
 
             return isOpen;
+        }
+
+        private void DrawUnsupportedWarning(DevSupportState state, string reason)
+        {
+            string message;
+            switch (state)
+            {
+                case DevSupportState.Active:
+                case DevSupportState.MaintenanceOnly:
+                    message = Locs.PluginBody_Outdated_Supported + Environment.NewLine;
+                    break;
+                case DevSupportState.Adoptable:
+                    message = Locs.PluginBody_Outdated_Adoptable + Environment.NewLine;
+                    break;
+                case DevSupportState.Obsolete:
+                    message = Locs.PluginBody_Outdated_Obsolete + Environment.NewLine;
+                    break;
+                case DevSupportState.Discontinued:
+                    message = Locs.PluginBody_Outdated_Discontinued + Environment.NewLine;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            if (!string.IsNullOrEmpty(reason))
+            {
+                message += reason + Environment.NewLine;
+            }
+
+            ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
+            ImGuiHelpers.SafeTextWrapped(message);
+            ImGui.PopStyleColor();
         }
 
         private void DrawChangelog(IChangelogEntry log)
@@ -1249,6 +1446,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             var configuration = Service<DalamudConfiguration>.Get();
             var notifications = Service<NotificationManager>.Get();
             var pluginManager = Service<PluginManager>.Get();
+            var metaData = pluginManager.GetMetaData(manifest);
 
             var useTesting = PluginManager.UseTesting(manifest);
             var wasSeen = this.WasPluginSeen(manifest.InternalName);
@@ -1288,6 +1486,21 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                     ImGui.TextColored(ImGuiColors.DalamudGrey3, repoText);
 
                     ImGuiHelpers.ScaledDummy(2);
+                }
+
+                // notice warning
+                if (!metaData.DevSupportState.IsSupported())
+                {
+                    this.DrawUnsupportedWarning(metaData.DevSupportState, metaData.DevSupportStateReason);
+                }
+
+                // notice warning
+                if (!string.IsNullOrEmpty(metaData.Notice))
+                {
+                    ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudYellow);
+                    ImGuiHelpers.SafeTextWrapped(metaData.Notice);
+                    ImGui.Spacing();
+                    ImGui.PopStyleColor();
                 }
 
                 // Description
@@ -1410,6 +1623,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             var commandManager = Service<CommandManager>.Get();
             var pluginManager = Service<PluginManager>.Get();
             var startInfo = Service<DalamudStartInfo>.Get();
+            var metaData = pluginManager.GetMetaData(plugin.Manifest);
 
             var trouble = false;
 
@@ -1489,6 +1703,12 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                 trouble = true;
             }
 
+            // Unsupported
+            if (!metaData.DevSupportState.IsSupported())
+            {
+                label += Locs.PluginTitleMod_UnsupportedWarning;
+            }
+
             ImGui.PushID($"installed{index}{plugin.Manifest.InternalName}");
             var hasChangelog = !plugin.Manifest.Changelog.IsNullOrEmpty();
 
@@ -1527,6 +1747,28 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                 {
                     var repoText = Locs.PluginBody_Plugin3rdPartyRepo(manifest.InstalledFromUrl);
                     ImGui.TextColored(ImGuiColors.DalamudGrey3, repoText);
+                }
+
+                // Unsupported
+                if (!metaData.DevSupportState.IsSupported())
+                {
+                    this.DrawUnsupportedWarning(metaData.DevSupportState, metaData.DevSupportStateReason);
+                }
+
+                // add notice
+                if (!string.IsNullOrEmpty(metaData.Notice))
+                {
+                    ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudYellow);
+                    ImGui.TextWrapped(metaData.Notice);
+                    ImGui.PopStyleColor();
+                }
+
+                // Maintenance only
+                if (metaData.DevSupportState == DevSupportState.MaintenanceOnly)
+                {
+                    ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.ParsedPink);
+                    ImGui.TextWrapped(Locs.PluginBody_MaintenanceOnly);
+                    ImGui.PopStyleColor();
                 }
 
                 // Description
@@ -2033,6 +2275,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             // By removing installed plugins only when the available plugin list changes (basically when the window is
             // opened), plugins that have been newly installed remain in the available plugin list as installed.
             this.pluginListAvailable = pluginManager.AvailablePlugins.ToList();
+            this.pluginListIncompatible = pluginManager.IncompatiblePlugins.ToList();
             this.pluginListUpdatable = pluginManager.UpdatablePlugins.ToList();
             this.ResortPlugins();
 
@@ -2233,6 +2476,8 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
             public static string PluginTitleMod_BannedError => Loc.Localize("InstallerBannedError", " (automatically disabled)");
 
+            public static string PluginTitleMod_UnsupportedWarning => Loc.Localize("InstallerAdoptableWarning", " (unsupported)");
+
             public static string PluginTitleMod_New => Loc.Localize("InstallerNewPlugin ", " New!");
 
             #endregion
@@ -2265,7 +2510,31 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
             public static string PluginBody_DeleteDevPlugin => Loc.Localize("InstallerDeleteDevPlugin ", " To delete this plugin, please remove it from the devPlugins folder.");
 
-            public static string PluginBody_Outdated => Loc.Localize("InstallerOutdatedPluginBody ", "This plugin is outdated and incompatible at the moment. Please wait for it to be updated by its author.");
+            public static string PluginBody_Incompatible_Outdated_Heading => Loc.Localize("InstallerIncompatibleHeadingOutdatedPluginBody", "These plugins haven't been updated yet for the latest patch but are expected to return eventually. There are no estimates nor SLAs and are subject to the developer's time/interest/motivation.");
+
+            public static string PluginBody_Incompatible_Adoptable_Heading => Loc.Localize("InstallerIncompatibleHeadingAdoptablePluginBody", "These plugins are abandoned by their original developer and haven't been adopted. If you're interested in taking over development, please reach out to the developer and let us know on discord.");
+
+            public static string PluginBody_Incompatible_Obsolete_Heading => Loc.Localize("InstallerIncompatibleHeadingObsoletePluginBody", "These plugins are now obsolete and no longer needed. This can be due to new features added to the game or by being replaced by another plugin. They won't be coming back.");
+
+            public static string PluginBody_Incompatible_Discontinued_Heading => Loc.Localize("InstallerIncompatibleHeadingDiscontinuedPluginBody", "These plugins have been discontinued due to our plugin rules or the developer's discretion. They won't be coming back.");
+
+            public static string PluginBody_Incompatible_Outdated => Loc.Localize("InstallerIncompatibleOutdatedPluginBody", "Outdated: Expected to return eventually but no estimate available");
+
+            public static string PluginBody_Incompatible_Adoptable => Loc.Localize("InstallerIncompatibleAdoptablePluginBody", "Adoptable: Needs new developer");
+
+            public static string PluginBody_Incompatible_Obsolete => Loc.Localize("InstallerIncompatibleObsoletePluginBody", "Obsolete: Replaced by game feature or new plugin");
+
+            public static string PluginBody_Incompatible_Discontinued => Loc.Localize("InstallerIncompatibleDiscontinuedPluginBody", "Discontinued: Not coming back due to rules or developer's discretion");
+
+            public static string PluginBody_Outdated_Supported => Loc.Localize("InstallerOutdatedSupportedPluginBody", "This plugin is outdated. Please be patient, it is expected to be updated by its author eventually.");
+
+            public static string PluginBody_Outdated_Adoptable => Loc.Localize("InstallerOutdatedAdoptablePluginBody", "This plugin is outdated. It's been abandoned so won't be updated unless another developer adopts the plugin.");
+
+            public static string PluginBody_Outdated_Obsolete => Loc.Localize("InstallerOutdatedObsoletePluginBody", "This plugin is outdated. It's been replaced by another plugin or base game feature so won't be updated.");
+
+            public static string PluginBody_Outdated_Discontinued => Loc.Localize("InstallerOutdatedDiscontinuedPluginBody", "This plugin is outdated. It won't be updated as it is no longer compliant or the developer has decided to retire it.");
+
+            public static string PluginBody_MaintenanceOnly => Loc.Localize("InstallerMaintenanceOnlyPluginBody", "This plugin is considered stable and the developer is only supporting bug fixes at this time.");
 
             public static string PluginBody_Banned => Loc.Localize("InstallerBannedPluginBody ", "This plugin was automatically disabled due to incompatibilities and is not available at the moment. Please wait for it to be updated by its author.");
 

@@ -24,6 +24,10 @@ namespace Dalamud.Interface.Internal
             new(11, "special.devIconTester", () => Locs.Category_IconTester),
             new(12, "special.dalamud", () => Locs.Category_Dalamud),
             new(13, "special.plugins", () => Locs.Category_Plugins),
+            new(14, "special.outdated", () => Locs.Category_Outdated),
+            new(15, "special.adoptable", () => Locs.Category_Adoptable),
+            new(16, "special.obsolete", () => Locs.Category_Obsolete),
+            new(17, "special.discontinued", () => Locs.Category_Discontinued),
             new(FirstTagBasedCategoryId + 0, "other", () => Locs.Category_Other),
             new(FirstTagBasedCategoryId + 1, "jobs", () => Locs.Category_Jobs),
             new(FirstTagBasedCategoryId + 2, "ui", () => Locs.Category_UI),
@@ -41,6 +45,7 @@ namespace Dalamud.Interface.Internal
             new(GroupKind.DevTools, () => Locs.Group_DevTools, 10, 11),
             new(GroupKind.Installed, () => Locs.Group_Installed, 0),
             new(GroupKind.Available, () => Locs.Group_Available, 0),
+            new(GroupKind.Incompatible, () => Locs.Group_Incompatible, 0, 14, 15, 16, 17),
             new(GroupKind.Changelog, () => Locs.Group_Changelog, 0, 12, 13),
 
             // order important, used for drawing, keep in sync with defaults for currentGroupIdx
@@ -77,6 +82,11 @@ namespace Dalamud.Interface.Internal
             /// UI group: changelog of plugins.
             /// </summary>
             Changelog,
+
+            /// <summary>
+            /// UI group: incompatible plugins.
+            /// </summary>
+            Incompatible,
         }
 
         /// <summary>
@@ -384,6 +394,8 @@ namespace Dalamud.Interface.Internal
 
             public static string Group_Changelog => Loc.Localize("InstallerChangelog", "Changelog");
 
+            public static string Group_Incompatible => Loc.Localize("InstallerIncompatible", "Incompatible Plugins");
+
             #endregion
 
             #region Categories
@@ -413,6 +425,14 @@ namespace Dalamud.Interface.Internal
             public static string Category_Plugins => Loc.Localize("InstallerCategoryPlugins", "Plugins");
 
             public static string Category_Dalamud => Loc.Localize("InstallerCategoryDalamud", "Dalamud");
+
+            public static string Category_Outdated => Loc.Localize("InstallerCategoryOutdated", "Pending Update");
+
+            public static string Category_Adoptable => Loc.Localize("InstallerCategoryAdoptable", "Needs New Developer");
+
+            public static string Category_Obsolete => Loc.Localize("InstallerCategoryObsolete", "Replaced by Game/Plugin");
+
+            public static string Category_Discontinued => Loc.Localize("InstallerCategoryDiscontinued", "Not Coming Back");
 
             #endregion
         }
