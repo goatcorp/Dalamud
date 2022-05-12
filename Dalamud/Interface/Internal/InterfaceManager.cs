@@ -249,6 +249,11 @@ namespace Dalamud.Interface.Internal
         public int FontResolutionLevel => this.FontResolutionLevelOverride ?? Service<DalamudConfiguration>.Get().FontResolutionLevel;
 
         /// <summary>
+        /// Gets a value indicating whether we're building fonts but haven't generated atlas yet.
+        /// </summary>
+        public bool IsBuildingFontsBeforeAtlasBuild => this.isRebuildingFonts && !this.fontBuildSignal.WaitOne(0);
+
+        /// <summary>
         /// Enable this module.
         /// </summary>
         public void Enable()
@@ -900,7 +905,7 @@ namespace Dalamud.Interface.Internal
                         texPixels[i] = (byte)(Math.Pow(texPixels[i] / 255.0f, 1.0f / fontGamma) * 255.0f);
                 }
 
-                gameFontManager.AfterBuildFonts(disableBigFonts);
+                gameFontManager.AfterBuildFonts();
 
                 foreach (var (font, mod) in this.loadedFontInfo)
                 {
@@ -929,14 +934,14 @@ namespace Dalamud.Interface.Internal
                         font.Descent = mod.SourceAxis.ImFont.Descent;
                         font.FallbackChar = mod.SourceAxis.ImFont.FallbackChar;
                         font.EllipsisChar = mod.SourceAxis.ImFont.EllipsisChar;
-                        GameFontManager.CopyGlyphsAcrossFonts(mod.SourceAxis.ImFont, font, false, false);
+                        ImGuiHelpers.CopyGlyphsAcrossFonts(mod.SourceAxis.ImFont, font, false, false);
                     }
                     else if (mod.Axis == TargetFontModification.AxisMode.GameGlyphsOnly)
                     {
                         Log.Verbose("[FONT] {0}: Overwrite game specific glyphs from AXIS of size {1}px", mod.Name, mod.SourceAxis.ImFont.FontSize, font.FontSize);
                         if (!this.UseAxis && font.NativePtr == DefaultFont.NativePtr)
                             mod.SourceAxis.ImFont.FontSize -= 1;
-                        GameFontManager.CopyGlyphsAcrossFonts(mod.SourceAxis.ImFont, font, true, false, 0xE020, 0xE0DB);
+                        ImGuiHelpers.CopyGlyphsAcrossFonts(mod.SourceAxis.ImFont, font, true, false, 0xE020, 0xE0DB);
                         if (!this.UseAxis && font.NativePtr == DefaultFont.NativePtr)
                             mod.SourceAxis.ImFont.FontSize += 1;
                     }
@@ -946,7 +951,7 @@ namespace Dalamud.Interface.Internal
                 }
 
                 // Fill missing glyphs in MonoFont from DefaultFont
-                GameFontManager.CopyGlyphsAcrossFonts(DefaultFont, MonoFont, true, false);
+                ImGuiHelpers.CopyGlyphsAcrossFonts(DefaultFont, MonoFont, true, false);
 
                 for (int i = 0, i_ = ioFonts.Fonts.Size; i < i_; i++)
                 {

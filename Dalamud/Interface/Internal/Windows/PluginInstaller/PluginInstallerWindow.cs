@@ -2013,6 +2013,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             return hasSearchString && !(
                 manifest.Name.ToLowerInvariant().Contains(searchString) ||
                 (!manifest.Author.IsNullOrEmpty() && manifest.Author.Equals(this.searchText, StringComparison.InvariantCultureIgnoreCase)) ||
+                (!manifest.Punchline.IsNullOrEmpty() && manifest.Punchline.ToLowerInvariant().Contains(searchString)) ||
                 (manifest.Tags != null && manifest.Tags.Contains(searchString, StringComparer.InvariantCultureIgnoreCase)));
         }
 
@@ -2253,7 +2254,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
             public static string PluginBody_AuthorWithoutDownloadCount(string author) => Loc.Localize("InstallerAuthorWithoutDownloadCount", " by {0}").Format(author);
 
-            public static string PluginBody_AuthorWithDownloadCount(string author, long count) => Loc.Localize("InstallerAuthorWithDownloadCount", " by {0}, {1} downloads").Format(author, count);
+            public static string PluginBody_AuthorWithDownloadCount(string author, long count) => Loc.Localize("InstallerAuthorWithDownloadCount", " by {0} ({1} downloads)").Format(author, count.ToString("N0"));
 
             public static string PluginBody_AuthorWithDownloadCountUnavailable(string author) => Loc.Localize("InstallerAuthorWithDownloadCountUnavailable", " by {0}, download count unavailable").Format(author);
 

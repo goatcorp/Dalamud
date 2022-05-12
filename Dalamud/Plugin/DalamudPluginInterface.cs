@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -138,11 +139,7 @@ namespace Dalamud.Plugin
         /// <summary>
         /// Gets a value indicating whether Dalamud is running in Debug mode or the /xldev menu is open. This can occur on release builds.
         /// </summary>
-#if DEBUG
-        public bool IsDebugging => true;
-#else
-        public bool IsDebugging => Service<DalamudInterface>.GetNullable() is {IsDevMenuOpen: true}; // Can be null during boot
-#endif
+        public bool IsDebugging => Debugger.IsAttached;
 
         /// <summary>
         /// Gets the current UI language in two-letter iso format.

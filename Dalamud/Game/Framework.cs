@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 
 using Dalamud.Game.Gui;
 using Dalamud.Game.Gui.Toast;
@@ -26,7 +27,9 @@ namespace Dalamud.Game
     public sealed class Framework : IDisposable
     {
         private static Stopwatch statsStopwatch = new();
-        private Stopwatch updateStopwatch = new();
+
+        private readonly List<RunOnNextTickTaskBase> runOnNextTickTaskList = new();
+        private readonly Stopwatch updateStopwatch = new();
 
         private bool tier2Initialized = false;
         private bool tier3Initialized = false;
@@ -35,6 +38,8 @@ namespace Dalamud.Game
         private Hook<OnUpdateDetour> updateHook;
         private Hook<OnDestroyDetour> destroyHook;
         private Hook<OnRealDestroyDelegate> realDestroyHook;
+
+        private Thread? frameworkUpdateThread;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Framework"/> class.
@@ -114,6 +119,11 @@ namespace Dalamud.Game
         public TimeSpan UpdateDelta { get; private set; } = TimeSpan.Zero;
 
         /// <summary>
+        /// Gets a value indicating whether currently executing code is running in the game's framework update thread.
+        /// </summary>
+        public bool IsInFrameworkUpdateThread => Thread.CurrentThread == this.frameworkUpdateThread;
+
+        /// <summary>
         /// Gets or sets a value indicating whether to dispatch update events.
         /// </summary>
         internal bool DispatchUpdateEvents { get; set; } = true;
@@ -130,6 +140,84 @@ namespace Dalamud.Game
             this.updateHook.Enable();
             this.destroyHook.Enable();
             this.realDestroyHook.Enable();
+        }
+
+        /// <summary>
+        /// Run given function right away if this function has been called from game's Framework.Update thread, or otherwise run on next Framework.Update call.
+        /// </summary>
+        /// <typeparam name="T">Return type.</typeparam>
+        /// <param name="func">Function to call.</param>
+        /// <returns>Task representing the pending or already completed function.</returns>
+        public Task<T> RunOnFrameworkThread<T>(Func<T> func) => this.IsInFrameworkUpdateThread ? Task.FromResult(func()) : this.RunOnTick(func);
+
+        /// <summary>
+        /// Run given function right away if this function has been called from game's Framework.Update thread, or otherwise run on next Framework.Update call.
+        /// </summary>
+        /// <param name="action">Function to call.</param>
+        /// <returns>Task representing the pending or already completed function.</returns>
+        public Task RunOnFrameworkThread(Action action)
+        {
+            if (this.IsInFrameworkUpdateThread)
+            {
+                try
+                {
+                    action();
+                    return Task.CompletedTask;
+                }
+                catch (Exception ex)
+                {
+                    return Task.FromException(ex);
+                }
+            }
+            else
+            {
+                return this.RunOnTick(action);
+            }
+        }
+
+        /// <summary>
+        /// Run given function in upcoming Framework.Tick call.
+        /// </summary>
+        /// <typeparam name="T">Return type.</typeparam>
+        /// <param name="func">Function to call.</param>
+        /// <param name="delay">Wait for given timespan before calling this function.</param>
+        /// <param name="delayTicks">Count given number of Framework.Tick calls before calling this function. This takes precedence over delay parameter.</param>
+        /// <param name="cancellationToken">Cancellation token which will prevent the execution of this function if wait conditions are not met.</param>
+        /// <returns>Task representing the pending function.</returns>
+        public Task<T> RunOnTick<T>(Func<T> func, TimeSpan delay = default, int delayTicks = default, CancellationToken cancellationToken = default)
+        {
+            var tcs = new TaskCompletionSource<T>();
+            this.runOnNextTickTaskList.Add(new RunOnNextTickTaskFunc<T>()
+            {
+                RemainingTicks = delayTicks,
+                RunAfterTickCount = Environment.TickCount64 + (long)Math.Ceiling(delay.TotalMilliseconds),
+                CancellationToken = cancellationToken,
+                TaskCompletionSource = tcs,
+                Func = func,
+            });
+            return tcs.Task;
+        }
+
+        /// <summary>
+        /// Run given function in upcoming Framework.Tick call.
+        /// </summary>
+        /// <param name="action">Function to call.</param>
+        /// <param name="delay">Wait for given timespan before calling this function.</param>
+        /// <param name="delayTicks">Count given number of Framework.Tick calls before calling this function. This takes precedence over delay parameter.</param>
+        /// <param name="cancellationToken">Cancellation token which will prevent the execution of this function if wait conditions are not met.</param>
+        /// <returns>Task representing the pending function.</returns>
+        public Task RunOnTick(Action action, TimeSpan delay = default, int delayTicks = default, CancellationToken cancellationToken = default)
+        {
+            var tcs = new TaskCompletionSource();
+            this.runOnNextTickTaskList.Add(new RunOnNextTickTaskAction()
+            {
+                RemainingTicks = delayTicks,
+                RunAfterTickCount = Environment.TickCount64 + (long)Math.Ceiling(delay.TotalMilliseconds),
+                CancellationToken = cancellationToken,
+                TaskCompletionSource = tcs,
+                Action = action,
+            });
+            return tcs.Task;
         }
 
         /// <summary>
@@ -179,6 +267,8 @@ namespace Dalamud.Game
             if (this.tierInitError)
                 goto original;
 
+            this.frameworkUpdateThread ??= Thread.CurrentThread;
+
             var dalamud = Service<Dalamud>.Get();
 
             // If this is the first time we are running this loop, we need to init Dalamud subsystems synchronously
@@ -223,6 +313,8 @@ namespace Dalamud.Game
 
                 try
                 {
+                    this.runOnNextTickTaskList.RemoveAll(x => x.Run());
+
                     if (StatsEnabled && this.Update != null)
                     {
                         // Stat Tracking for Framework Updates
@@ -311,6 +403,89 @@ namespace Dalamud.Game
 
             // Return the original trampoline location to cleanly exit
             return originalPtr;
+        }
+
+        private abstract class RunOnNextTickTaskBase
+        {
+            internal int RemainingTicks { get; set; }
+
+            internal long RunAfterTickCount { get; init; }
+
+            internal CancellationToken CancellationToken { get; init; }
+
+            internal bool Run()
+            {
+                if (this.CancellationToken.IsCancellationRequested)
+                {
+                    this.CancelImpl();
+                    return true;
+                }
+
+                if (this.RemainingTicks > 0)
+                    this.RemainingTicks -= 1;
+                if (this.RemainingTicks > 0)
+                    return false;
+
+                if (this.RunAfterTickCount > Environment.TickCount64)
+                    return false;
+
+                this.RunImpl();
+
+                return true;
+            }
+
+            protected abstract void RunImpl();
+
+            protected abstract void CancelImpl();
+        }
+
+        private class RunOnNextTickTaskFunc<T> : RunOnNextTickTaskBase
+        {
+            internal TaskCompletionSource<T> TaskCompletionSource { get; init; }
+
+            internal Func<T> Func { get; init; }
+
+            protected override void RunImpl()
+            {
+                try
+                {
+                    this.TaskCompletionSource.SetResult(this.Func());
+                }
+                catch (Exception ex)
+                {
+                    this.TaskCompletionSource.SetException(ex);
+                }
+            }
+
+            protected override void CancelImpl()
+            {
+                this.TaskCompletionSource.SetCanceled();
+            }
+        }
+
+        private class RunOnNextTickTaskAction : RunOnNextTickTaskBase
+        {
+            internal TaskCompletionSource TaskCompletionSource { get; init; }
+
+            internal Action Action { get; init; }
+
+            protected override void RunImpl()
+            {
+                try
+                {
+                    this.Action();
+                    this.TaskCompletionSource.SetResult();
+                }
+                catch (Exception ex)
+                {
+                    this.TaskCompletionSource.SetException(ex);
+                }
+            }
+
+            protected override void CancelImpl()
+            {
+                this.TaskCompletionSource.SetCanceled();
+            }
         }
     }
 }
