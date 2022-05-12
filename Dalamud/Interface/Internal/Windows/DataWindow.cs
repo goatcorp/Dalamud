@@ -1469,7 +1469,7 @@ namespace Dalamud.Interface.Internal.Windows
                                                     for (var i = 0; i < 100; i++)
                                                     {
                                                         token.ThrowIfCancellationRequested();
-                                                        Thread.Sleep(1);
+                                                        await Task.Delay(1);
                                                     }
                                                 });
                                             }

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Dalamud.Game.Gui;
 using Dalamud.Game.Gui.Toast;
 using Dalamud.Game.Libc;
@@ -200,7 +201,6 @@ namespace Dalamud.Game
         /// <summary>
         /// Run given function in upcoming Framework.Tick call.
         /// </summary>
-        /// <typeparam name="T">Return type.</typeparam>
         /// <param name="action">Function to call.</param>
         /// <param name="delay">Wait for given timespan before calling this function.</param>
         /// <param name="delayTicks">Count given number of Framework.Tick calls before calling this function. This takes precedence over delay parameter.</param>
