@@ -24,9 +24,6 @@ namespace Dalamud.Interface.Internal.Windows
     /// </summary>
     internal class SettingsWindow : Window
     {
-        private const float MinScale = 0.3f;
-        private const float MaxScale = 3.0f;
-
         private readonly string[] languages;
         private readonly string[] locLanguages;
 
@@ -298,7 +295,7 @@ namespace Dalamud.Interface.Internal.Windows
             ImGui.Text(Loc.Localize("DalamudSettingsGlobalUiScale", "Global Font Scale"));
             ImGui.SameLine();
             ImGui.SetCursorPosY(ImGui.GetCursorPosY() - 3);
-            if (ImGui.Button(Loc.Localize("DalamudSettingsUiScalePreset6", "9.6pt") + "##DalamudSettingsGlobalUiScaleReset96"))
+            if (ImGui.Button("9.6pt##DalamudSettingsGlobalUiScaleReset96"))
             {
                 this.globalUiScale = 9.6f / 12.0f;
                 ImGui.GetIO().FontGlobalScale = this.globalUiScale;
@@ -306,7 +303,7 @@ namespace Dalamud.Interface.Internal.Windows
             }
 
             ImGui.SameLine();
-            if (ImGui.Button(Loc.Localize("DalamudSettingsUiScalePreset12", "Reset (12pt)") + "##DalamudSettingsGlobalUiScaleReset12"))
+            if (ImGui.Button("12pt##DalamudSettingsGlobalUiScaleReset12"))
             {
                 this.globalUiScale = 1.0f;
                 ImGui.GetIO().FontGlobalScale = this.globalUiScale;
@@ -314,7 +311,7 @@ namespace Dalamud.Interface.Internal.Windows
             }
 
             ImGui.SameLine();
-            if (ImGui.Button(Loc.Localize("DalamudSettingsUiScalePreset14", "14pt") + "##DalamudSettingsGlobalUiScaleReset14"))
+            if (ImGui.Button("14pt##DalamudSettingsGlobalUiScaleReset14"))
             {
                 this.globalUiScale = 14.0f / 12.0f;
                 ImGui.GetIO().FontGlobalScale = this.globalUiScale;
@@ -322,7 +319,7 @@ namespace Dalamud.Interface.Internal.Windows
             }
 
             ImGui.SameLine();
-            if (ImGui.Button(Loc.Localize("DalamudSettingsUiScalePreset18", "18pt") + "##DalamudSettingsGlobalUiScaleReset18"))
+            if (ImGui.Button("18pt##DalamudSettingsGlobalUiScaleReset18"))
             {
                 this.globalUiScale = 18.0f / 12.0f;
                 ImGui.GetIO().FontGlobalScale = this.globalUiScale;
@@ -330,15 +327,17 @@ namespace Dalamud.Interface.Internal.Windows
             }
 
             ImGui.SameLine();
-            if (ImGui.Button(Loc.Localize("DalamudSettingsUiScalePreset36", "36pt") + "##DalamudSettingsGlobalUiScaleReset36"))
+            if (ImGui.Button("36pt##DalamudSettingsGlobalUiScaleReset36"))
             {
                 this.globalUiScale = 36.0f / 12.0f;
                 ImGui.GetIO().FontGlobalScale = this.globalUiScale;
                 interfaceManager.RebuildFonts();
             }
 
-            if (ImGui.DragFloat("##DalamudSettingsGlobalUiScaleDrag", ref this.globalUiScale, 0.005f, MinScale, MaxScale, "%.2f", ImGuiSliderFlags.AlwaysClamp))
+            var globalUiScaleInPt = 12f * this.globalUiScale;
+            if (ImGui.DragFloat("##DalamudSettingsGlobalUiScaleDrag", ref globalUiScaleInPt, 0.1f, 9.6f, 36f, "%.1fpt", ImGuiSliderFlags.AlwaysClamp))
             {
+                this.globalUiScale = globalUiScaleInPt / 12f;
                 ImGui.GetIO().FontGlobalScale = this.globalUiScale;
                 interfaceManager.RebuildFonts();
             }
@@ -436,7 +435,7 @@ namespace Dalamud.Interface.Internal.Windows
                 interfaceManager.RebuildFonts();
             }
 
-            if (ImGui.DragFloat("##DalamudSettingsFontGammaDrag", ref this.fontGamma, 0.005f, MinScale, MaxScale, "%.2f", ImGuiSliderFlags.AlwaysClamp))
+            if (ImGui.DragFloat("##DalamudSettingsFontGammaDrag", ref this.fontGamma, 0.005f, 0.3f, 3f, "%.2f", ImGuiSliderFlags.AlwaysClamp))
             {
                 interfaceManager.FontGammaOverride = this.fontGamma;
                 interfaceManager.RebuildFonts();
