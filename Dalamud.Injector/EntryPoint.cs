@@ -454,7 +454,7 @@ namespace Dalamud.Injector
                 else if (args[i] == "-m")
                     mode = args[++i];
                 else if (args[i].StartsWith("--mode="))
-                    gamePath = args[i].Split('=', 2)[1];
+                    mode = args[i].Split('=', 2)[1];
                 else if (args[i].StartsWith("--handle-owner="))
                     handleOwner = IntPtr.Parse(args[i].Split('=', 2)[1]);
                 else if (args[i] == "--")
