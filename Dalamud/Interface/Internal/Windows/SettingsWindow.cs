@@ -176,7 +176,8 @@ namespace Dalamud.Interface.Internal.Windows
             var configuration = Service<DalamudConfiguration>.Get();
             var interfaceManager = Service<InterfaceManager>.Get();
 
-            var rebuildFont = interfaceManager.FontGamma != configuration.FontGammaLevel
+            var rebuildFont = ImGui.GetIO().FontGlobalScale != configuration.GlobalUiScale
+                || interfaceManager.FontGamma != configuration.FontGammaLevel
                 || interfaceManager.FontResolutionLevel != configuration.FontResolutionLevel
                 || interfaceManager.UseAxis != configuration.UseAxisFontsFromGame;
 
