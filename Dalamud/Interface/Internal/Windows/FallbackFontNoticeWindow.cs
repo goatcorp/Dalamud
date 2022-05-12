@@ -29,7 +29,7 @@ namespace Dalamud.Interface.Internal.Windows
             var interfaceManager = Service<InterfaceManager>.Get();
             var dalamud = Service<Dalamud>.Get();
 
-            Service<InterfaceManager>.Get().OnFallbackFontModeChange += this.OnFallbackFontModeChange;
+            Service<InterfaceManager>.Get().FallbackFontModeChange += this.OnFallbackFontModeChange;
         }
 
         private static string Title => Loc.Localize("FallbackFontNoticeWindowTitle", "Fallback Font Mode Active");
@@ -80,7 +80,7 @@ namespace Dalamud.Interface.Internal.Windows
         /// </summary>
         public void Dispose()
         {
-            Service<InterfaceManager>.Get().OnFallbackFontModeChange -= this.OnFallbackFontModeChange;
+            Service<InterfaceManager>.Get().FallbackFontModeChange -= this.OnFallbackFontModeChange;
         }
 
         private void OnFallbackFontModeChange(bool mode)

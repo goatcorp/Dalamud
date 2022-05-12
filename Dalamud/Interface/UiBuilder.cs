@@ -25,7 +25,8 @@ namespace Dalamud.Interface
         private readonly Stopwatch stopwatch;
         private readonly string namespaceName;
 
-        private bool hasErrorWindow;
+        private bool hasErrorWindow = false;
+        private bool lastFrameUiHideState = false;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="UiBuilder"/> class and registers it.
@@ -77,6 +78,18 @@ namespace Dalamud.Interface
         /// <strong>PLEASE remove this handler inside Dispose, or when you no longer need your fonts!</strong>
         /// </summary>
         public event Action AfterBuildFonts;
+
+        /// <summary>
+        /// Gets or sets an action that is called when plugin UI or interface modifications are supposed to be hidden.
+        /// These may be fired consecutively.
+        /// </summary>
+        public event Action ShowUi;
+
+        /// <summary>
+        /// Gets or sets an action that is called when plugin UI or interface modifications are supposed to be shown.
+        /// These may be fired consecutively.
+        /// </summary>
+        public event Action HideUi;
 
         /// <summary>
         /// Gets the default Dalamud font based on Noto Sans CJK Medium in 17pt - supporting all game languages and icons.
@@ -138,6 +151,36 @@ namespace Dalamud.Interface
         public ulong FrameCount { get; private set; } = 0;
 
         /// <summary>
+        /// Gets a value indicating whether or not a cutscene is playing.
+        /// </summary>
+        public bool CutsceneActive
+        {
+            get
+            {
+                var condition = Service<Condition>.Get();
+                return condition[ConditionFlag.OccupiedInCutSceneEvent]
+                       || condition[ConditionFlag.WatchingCutscene78];
+            }
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether or not gpose is active.
+        /// </summary>
+        public bool GposeActive
+        {
+            get
+            {
+                var condition = Service<Condition>.Get();
+                return condition[ConditionFlag.WatchingCutscene];
+            }
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether this plugin should modify the game's interface at this time.
+        /// </summary>
+        public bool ShouldModifyUi => Service<InterfaceManager>.GetNullable()?.IsDispatchingEvents ?? true;
+
+        /// <summary>
         /// Gets or sets a value indicating whether statistics about UI draw time should be collected.
         /// </summary>
 #if DEBUG
@@ -165,25 +208,6 @@ namespace Dalamud.Interface
         /// Gets or sets a history of the last draw times, used to calculate an average.
         /// </summary>
         internal List<long> DrawTimeHistory { get; set; } = new List<long>();
-
-        private bool CutsceneActive
-        {
-            get
-            {
-                var condition = Service<Condition>.Get();
-                return condition[ConditionFlag.OccupiedInCutSceneEvent]
-                    || condition[ConditionFlag.WatchingCutscene78];
-            }
-        }
-
-        private bool GposeActive
-        {
-            get
-            {
-                var condition = Service<Condition>.Get();
-                return condition[ConditionFlag.WatchingCutscene];
-            }
-        }
 
         /// <summary>
         /// Loads an image from the specified file.
@@ -261,16 +285,49 @@ namespace Dalamud.Interface
             this.OpenConfigUi?.Invoke();
         }
 
+        /// <summary>
+        /// Notify this UiBuilder about plugin UI being hidden.
+        /// </summary>
+        internal void NotifyHideUi()
+        {
+            this.HideUi?.Invoke();
+        }
+
+        /// <summary>
+        /// Notify this UiBuilder about plugin UI being shown.
+        /// </summary>
+        internal void NotifyShowUi()
+        {
+            this.ShowUi?.Invoke();
+        }
+
         private void OnDraw()
         {
             var configuration = Service<DalamudConfiguration>.Get();
             var gameGui = Service<GameGui>.Get();
             var interfaceManager = Service<InterfaceManager>.Get();
 
-            if ((gameGui.GameUiHidden && configuration.ToggleUiHide && !(this.DisableUserUiHide || this.DisableAutomaticUiHide)) ||
-                (this.CutsceneActive && configuration.ToggleUiHideDuringCutscenes && !(this.DisableCutsceneUiHide || this.DisableAutomaticUiHide)) ||
-                (this.GposeActive && configuration.ToggleUiHideDuringGpose && !(this.DisableGposeUiHide || this.DisableAutomaticUiHide)))
+            if ((gameGui.GameUiHidden && configuration.ToggleUiHide &&
+                 !(this.DisableUserUiHide || this.DisableAutomaticUiHide)) ||
+                (this.CutsceneActive && configuration.ToggleUiHideDuringCutscenes &&
+                 !(this.DisableCutsceneUiHide || this.DisableAutomaticUiHide)) ||
+                (this.GposeActive && configuration.ToggleUiHideDuringGpose &&
+                 !(this.DisableGposeUiHide || this.DisableAutomaticUiHide)))
+            {
+                if (!this.lastFrameUiHideState)
+                {
+                    this.lastFrameUiHideState = true;
+                    this.HideUi?.Invoke();
+                }
+
                 return;
+            }
+
+            if (this.lastFrameUiHideState)
+            {
+                this.lastFrameUiHideState = false;
+                this.ShowUi?.Invoke();
+            }
 
             if (!interfaceManager.FontsReady)
                 return;

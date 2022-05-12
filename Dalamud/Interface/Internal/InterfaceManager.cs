@@ -151,7 +151,7 @@ namespace Dalamud.Interface.Internal
         /// <summary>
         /// Gets or sets an action that is executed right after font fallback mode has been changed.
         /// </summary>
-        public event Action<bool> OnFallbackFontModeChange;
+        public event Action<bool> FallbackFontModeChange;
 
         /// <summary>
         /// Gets the default ImGui font.
@@ -203,6 +203,11 @@ namespace Dalamud.Interface.Internal
         public bool IsReady => this.scene != null;
 
         /// <summary>
+        /// Gets or sets a value indicating whether or not Draw events should be dispatched.
+        /// </summary>
+        public bool IsDispatchingEvents { get; set; } = true;
+
+        /// <summary>
         /// Gets or sets a value indicating whether the font has been loaded in fallback mode.
         /// </summary>
         public bool IsFallbackFontMode
@@ -214,7 +219,7 @@ namespace Dalamud.Interface.Internal
                     return;
 
                 this.isFallbackFontMode = value;
-                this.OnFallbackFontModeChange?.Invoke(value);
+                this.FallbackFontModeChange?.Invoke(value);
             }
         }
 
@@ -1109,7 +1114,10 @@ namespace Dalamud.Interface.Internal
             WindowSystem.FocusedWindowSystemNamespace = string.Empty;
 
             var snap = ImGuiManagedAsserts.GetSnapshot();
-            this.Draw?.Invoke();
+
+            if (this.IsDispatchingEvents)
+                this.Draw?.Invoke();
+
             ImGuiManagedAsserts.ReportProblems("Dalamud Core", snap);
 
             Service<NotificationManager>.Get().Draw();
