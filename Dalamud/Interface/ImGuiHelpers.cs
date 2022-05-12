@@ -240,7 +240,7 @@ namespace Dalamud.Interface
             public int Codepoint
             {
                 get => (int)(this.ColoredVisibleCodepoint >> 2);
-                set => this.ColoredVisibleCodepoint = (this.ColoredVisibleCodepoint & 3u) | ((uint)this.Codepoint << 2);
+                set => this.ColoredVisibleCodepoint = (this.ColoredVisibleCodepoint & 3u) | ((uint)value << 2);
             }
         }
     }
