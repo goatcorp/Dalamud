@@ -1,4 +1,7 @@
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 
 using ImGuiNET;
@@ -137,11 +140,108 @@ namespace Dalamud.Interface
         public static void SafeTextWrapped(string text) => ImGui.TextWrapped(text.Replace("%", "%%"));
 
         /// <summary>
+        /// Fills missing glyphs in target font from source font, if both are not null.
+        /// </summary>
+        /// <param name="source">Source font.</param>
+        /// <param name="target">Target font.</param>
+        /// <param name="missingOnly">Whether to copy missing glyphs only.</param>
+        /// <param name="rebuildLookupTable">Whether to call target.BuildLookupTable().</param>
+        /// <param name="rangeLow">Low codepoint range to copy.</param>
+        /// <param name="rangeHigh">High codepoing range to copy.</param>
+        public static void CopyGlyphsAcrossFonts(ImFontPtr? source, ImFontPtr? target, bool missingOnly, bool rebuildLookupTable, int rangeLow = 32, int rangeHigh = 0xFFFE)
+        {
+            if (!source.HasValue || !target.HasValue)
+                return;
+
+            var scale = target.Value!.FontSize / source.Value!.FontSize;
+            unsafe
+            {
+                var glyphs = (ImFontGlyphReal*)source.Value!.Glyphs.Data;
+                for (int j = 0, k = source.Value!.Glyphs.Size; j < k; j++)
+                {
+                    Debug.Assert(glyphs != null, nameof(glyphs) + " != null");
+
+                    var glyph = &glyphs[j];
+                    if (glyph->Codepoint < rangeLow || glyph->Codepoint > rangeHigh)
+                        continue;
+
+                    var prevGlyphPtr = (ImFontGlyphReal*)target.Value!.FindGlyphNoFallback((ushort)glyph->Codepoint).NativePtr;
+                    if ((IntPtr)prevGlyphPtr == IntPtr.Zero)
+                    {
+                        target.Value!.AddGlyph(
+                            target.Value!.ConfigData,
+                            (ushort)glyph->Codepoint,
+                            glyph->X0 * scale,
+                            ((glyph->Y0 - source.Value!.Ascent) * scale) + target.Value!.Ascent,
+                            glyph->X1 * scale,
+                            ((glyph->Y1 - source.Value!.Ascent) * scale) + target.Value!.Ascent,
+                            glyph->U0,
+                            glyph->V0,
+                            glyph->U1,
+                            glyph->V1,
+                            glyph->AdvanceX * scale);
+                    }
+                    else if (!missingOnly)
+                    {
+                        prevGlyphPtr->X0 = glyph->X0 * scale;
+                        prevGlyphPtr->Y0 = ((glyph->Y0 - source.Value!.Ascent) * scale) + target.Value!.Ascent;
+                        prevGlyphPtr->X1 = glyph->X1 * scale;
+                        prevGlyphPtr->Y1 = ((glyph->Y1 - source.Value!.Ascent) * scale) + target.Value!.Ascent;
+                        prevGlyphPtr->U0 = glyph->U0;
+                        prevGlyphPtr->V0 = glyph->V0;
+                        prevGlyphPtr->U1 = glyph->U1;
+                        prevGlyphPtr->V1 = glyph->V1;
+                        prevGlyphPtr->AdvanceX = glyph->AdvanceX * scale;
+                    }
+                }
+            }
+
+            if (rebuildLookupTable)
+                target.Value!.BuildLookupTable();
+        }
+
+        /// <summary>
         /// Get data needed for each new frame.
         /// </summary>
         internal static void NewFrame()
         {
             GlobalScale = ImGui.GetIO().FontGlobalScale;
+        }
+
+        /// <summary>
+        /// ImFontGlyph the correct version.
+        /// </summary>
+        [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "ImGui internals")]
+        public struct ImFontGlyphReal
+        {
+            public uint ColoredVisibleCodepoint;
+            public float AdvanceX;
+            public float X0;
+            public float Y0;
+            public float X1;
+            public float Y1;
+            public float U0;
+            public float V0;
+            public float U1;
+            public float V1;
+
+            public bool Colored
+            {
+                get => ((this.ColoredVisibleCodepoint >> 0) & 1) != 0;
+                set => this.ColoredVisibleCodepoint = (this.ColoredVisibleCodepoint & 0xFFFFFFFEu) | (value ? 1u : 0u);
+            }
+
+            public bool Visible
+            {
+                get => ((this.ColoredVisibleCodepoint >> 1) & 1) != 0;
+                set => this.ColoredVisibleCodepoint = (this.ColoredVisibleCodepoint & 0xFFFFFFFDu) | (value ? 2u : 0u);
+            }
+
+            public int Codepoint
+            {
+                get => (int)(this.ColoredVisibleCodepoint >> 2);
+                set => this.ColoredVisibleCodepoint = (this.ColoredVisibleCodepoint & 3u) | ((uint)this.Codepoint << 2);
+            }
         }
     }
 }

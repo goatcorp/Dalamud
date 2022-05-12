@@ -136,7 +136,7 @@ namespace Dalamud.Interface.GameFonts
                 font->Descent /= fontScale;
                 if (font->ConfigData != null)
                     font->ConfigData->SizePixels /= fontScale;
-                var glyphs = (Util.ImFontGlyphReal*)font->Glyphs.Data;
+                var glyphs = (ImGuiHelpers.ImFontGlyphReal*)font->Glyphs.Data;
                 for (int i = 0, i_ = font->Glyphs.Size; i < i_; i++)
                 {
                     var glyph = &glyphs[i];
@@ -212,7 +212,7 @@ namespace Dalamud.Interface.GameFonts
         /// <param name="rebuildLookupTable">Whether to call target.BuildLookupTable().</param>
         public void CopyGlyphsAcrossFonts(ImFontPtr? source, GameFontStyle target, bool missingOnly, bool rebuildLookupTable)
         {
-            Util.CopyGlyphsAcrossFonts(source, this.fonts[target], missingOnly, rebuildLookupTable);
+            ImGuiHelpers.CopyGlyphsAcrossFonts(source, this.fonts[target], missingOnly, rebuildLookupTable);
         }
 
         /// <summary>
@@ -224,7 +224,7 @@ namespace Dalamud.Interface.GameFonts
         /// <param name="rebuildLookupTable">Whether to call target.BuildLookupTable().</param>
         public void CopyGlyphsAcrossFonts(GameFontStyle source, ImFontPtr? target, bool missingOnly, bool rebuildLookupTable)
         {
-            Util.CopyGlyphsAcrossFonts(this.fonts[source], target, missingOnly, rebuildLookupTable);
+            ImGuiHelpers.CopyGlyphsAcrossFonts(this.fonts[source], target, missingOnly, rebuildLookupTable);
         }
 
         /// <summary>
@@ -236,7 +236,7 @@ namespace Dalamud.Interface.GameFonts
         /// <param name="rebuildLookupTable">Whether to call target.BuildLookupTable().</param>
         public void CopyGlyphsAcrossFonts(GameFontStyle source, GameFontStyle target, bool missingOnly, bool rebuildLookupTable)
         {
-            Util.CopyGlyphsAcrossFonts(this.fonts[source], this.fonts[target], missingOnly, rebuildLookupTable);
+            ImGuiHelpers.CopyGlyphsAcrossFonts(this.fonts[source], this.fonts[target], missingOnly, rebuildLookupTable);
         }
 
         /// <summary>
@@ -364,7 +364,7 @@ namespace Dalamud.Interface.GameFonts
                     }
                 }
 
-                Util.CopyGlyphsAcrossFonts(InterfaceManager.DefaultFont, font, true, false);
+                ImGuiHelpers.CopyGlyphsAcrossFonts(InterfaceManager.DefaultFont, font, true, false);
                 UnscaleFont(font, 1 / scale, false);
                 font.BuildLookupTable();
             }

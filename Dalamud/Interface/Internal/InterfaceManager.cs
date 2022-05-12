@@ -934,14 +934,14 @@ namespace Dalamud.Interface.Internal
                         font.Descent = mod.SourceAxis.ImFont.Descent;
                         font.FallbackChar = mod.SourceAxis.ImFont.FallbackChar;
                         font.EllipsisChar = mod.SourceAxis.ImFont.EllipsisChar;
-                        Util.CopyGlyphsAcrossFonts(mod.SourceAxis.ImFont, font, false, false);
+                        ImGuiHelpers.CopyGlyphsAcrossFonts(mod.SourceAxis.ImFont, font, false, false);
                     }
                     else if (mod.Axis == TargetFontModification.AxisMode.GameGlyphsOnly)
                     {
                         Log.Verbose("[FONT] {0}: Overwrite game specific glyphs from AXIS of size {1}px", mod.Name, mod.SourceAxis.ImFont.FontSize, font.FontSize);
                         if (!this.UseAxis && font.NativePtr == DefaultFont.NativePtr)
                             mod.SourceAxis.ImFont.FontSize -= 1;
-                        Util.CopyGlyphsAcrossFonts(mod.SourceAxis.ImFont, font, true, false, 0xE020, 0xE0DB);
+                        ImGuiHelpers.CopyGlyphsAcrossFonts(mod.SourceAxis.ImFont, font, true, false, 0xE020, 0xE0DB);
                         if (!this.UseAxis && font.NativePtr == DefaultFont.NativePtr)
                             mod.SourceAxis.ImFont.FontSize += 1;
                     }
@@ -951,7 +951,7 @@ namespace Dalamud.Interface.Internal
                 }
 
                 // Fill missing glyphs in MonoFont from DefaultFont
-                Util.CopyGlyphsAcrossFonts(DefaultFont, MonoFont, true, false);
+                ImGuiHelpers.CopyGlyphsAcrossFonts(DefaultFont, MonoFont, true, false);
 
                 for (int i = 0, i_ = ioFonts.Fonts.Size; i < i_; i++)
                 {
