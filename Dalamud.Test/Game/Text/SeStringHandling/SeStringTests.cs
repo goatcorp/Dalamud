@@ -1,18 +1,54 @@
-﻿using Dalamud.Game.Text.SeStringHandling;
-using Newtonsoft.Json;
+﻿using System;
+using Dalamud.Configuration;
+using Dalamud.Game.Text.SeStringHandling;
 using Xunit;
 
 namespace Dalamud.Test.Game.Text.SeStringHandling
 {
     public class SeStringTests
     {
+        private class MockConfig : IPluginConfiguration, IEquatable<MockConfig>
+        {
+            public int Version { get; set; }
+            
+            public SeString Text { get; init; }
+
+            public bool Equals(MockConfig other)
+            {
+                if (ReferenceEquals(null, other)) return false;
+                if (ReferenceEquals(this, other)) return true;
+                return Version == other.Version && Equals(Text.TextValue, other.Text.TextValue);
+            }
+
+            public override bool Equals(object obj)
+            {
+                return Equals(obj as MockConfig);
+            }
+
+            public override int GetHashCode()
+            {
+                return HashCode.Combine(Text);
+            }
+
+            public static bool operator ==(MockConfig left, MockConfig right)
+            {
+                return Equals(left, right);
+            }
+
+            public static bool operator !=(MockConfig left, MockConfig right)
+            {
+                return !Equals(left, right);
+            }
+        }
+        
         // Dalamud#779
         [Fact]
         public void TestConfigSerializable()
         {
             var builder = new SeStringBuilder();
             var seString = builder.AddText("Some text").Build();
-            JsonConvert.SerializeObject(seString);
+            var config = new MockConfig { Text = seString };
+            PluginConfigurations.SerializeConfig(config);
         }
         
         [Fact]
@@ -20,9 +56,10 @@ namespace Dalamud.Test.Game.Text.SeStringHandling
         {
             var builder = new SeStringBuilder();
             var seString = builder.AddText("Some text").Build();
-            var serialized = JsonConvert.SerializeObject(seString);
-            var seStringD = JsonConvert.DeserializeObject<SeString>(serialized);
-            Assert.Equal(seString, seStringD);
+            var config = new MockConfig { Text = seString };
+            var configSerialized = PluginConfigurations.SerializeConfig(config);
+            var configDeserialized = (MockConfig)PluginConfigurations.DeserializeConfig(configSerialized);
+            Assert.Equal(config, configDeserialized);
         }
     }
 }
