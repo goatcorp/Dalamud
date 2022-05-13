@@ -8,7 +8,7 @@ namespace Dalamud.Test.Game.Text.SeStringHandling
     {
         // Dalamud#779
         [Fact]
-        public void TestJsonSerializable()
+        public void TestConfigSerializable()
         {
             var builder = new SeStringBuilder();
             var seString = builder.AddText("Some text").Build();
@@ -16,7 +16,7 @@ namespace Dalamud.Test.Game.Text.SeStringHandling
         }
         
         [Fact]
-        public void TestJsonDeserializable()
+        public void TestConfigDeserializable()
         {
             var builder = new SeStringBuilder();
             var seString = builder.AddText("Some text").Build();
