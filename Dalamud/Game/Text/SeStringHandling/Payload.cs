@@ -5,6 +5,7 @@ using System.IO;
 
 using Dalamud.Data;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
+using Newtonsoft.Json;
 using Serilog;
 
 // TODOs:
@@ -29,6 +30,7 @@ namespace Dalamud.Game.Text.SeStringHandling
         /// <summary>
         /// Gets the Lumina instance to use for any necessary data lookups.
         /// </summary>
+        [JsonIgnore]
         public DataManager DataResolver => Service<DataManager>.Get();
 
         /// <summary>
