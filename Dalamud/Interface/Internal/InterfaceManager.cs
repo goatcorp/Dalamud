@@ -524,8 +524,6 @@ namespace Dalamud.Interface.Internal
                 this.scene.OnBuildUI += this.Display;
                 this.scene.OnNewInputFrame += this.OnNewInputFrame;
 
-                this.SetupFonts();
-
                 StyleModel.TransferOldModels();
 
                 if (configuration.SavedStyles == null || configuration.SavedStyles.All(x => x.Name != StyleModelV1.DalamudStandard.Name))
@@ -556,6 +554,8 @@ namespace Dalamud.Interface.Internal
                 style.Apply();
 
                 ImGui.GetIO().FontGlobalScale = configuration.GlobalUiScale;
+
+                this.SetupFonts();
 
                 if (!configuration.IsDocking)
                 {
@@ -833,10 +833,15 @@ namespace Dalamud.Interface.Internal
                 for (int i = customFontFirstConfigIndex, i_ = ioFonts.ConfigData.Size; i < i_; i++)
                 {
                     var config = ioFonts.ConfigData[i];
+                    if (gameFontManager.OwnsFont(config.DstFont))
+                        continue;
+
                     config.OversampleH = 1;
                     config.OversampleV = 1;
 
                     var name = Encoding.UTF8.GetString((byte*)config.Name.Data, config.Name.Count).TrimEnd('\0');
+                    if (name.IsNullOrEmpty())
+                        name = $"{config.SizePixels}px";
 
                     // ImFont information is reflected only if corresponding ImFontConfig has MergeMode not set.
                     if (config.MergeMode)
@@ -874,6 +879,7 @@ namespace Dalamud.Interface.Internal
 
                 Log.Verbose("[FONT] ImGui.IO.Build will be called.");
                 ioFonts.Build();
+                gameFontManager.AfterIoFontsBuild();
                 Log.Verbose("[FONT] ImGui.IO.Build OK!");
 
                 if (ioFonts.TexHeight > maxTexDimension)
@@ -891,6 +897,7 @@ namespace Dalamud.Interface.Internal
                     if (possibilityForScaling && !disableBigFonts)
                     {
                         Log.Information("[FONT] Atlas size is {0}x{1} which is bigger than allowed {2}x{3}. Retrying with minimized font sizes.", ioFonts.TexWidth, ioFonts.TexHeight, maxTexDimension, maxTexDimension);
+                        this.IsFallbackFontMode = true;
                         this.SetupFonts(true);
                         return;
                     }
@@ -900,7 +907,8 @@ namespace Dalamud.Interface.Internal
                     }
                 }
 
-                this.IsFallbackFontMode = disableBigFonts;
+                if (!disableBigFonts)
+                    this.IsFallbackFontMode = false;
 
                 if (Math.Abs(fontGamma - 1.0f) >= 0.001)
                 {
