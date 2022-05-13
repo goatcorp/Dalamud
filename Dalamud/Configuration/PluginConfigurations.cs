@@ -77,13 +77,7 @@ namespace Dalamud.Configuration
             if (!path.Exists)
                 return null;
 
-            return JsonConvert.DeserializeObject<IPluginConfiguration>(
-                File.ReadAllText(path.FullName),
-                new JsonSerializerSettings
-                {
-                    TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple,
-                    TypeNameHandling = TypeNameHandling.Objects,
-                });
+            return DeserializeConfig(File.ReadAllText(path.FullName));
         }
 
         /// <summary>
