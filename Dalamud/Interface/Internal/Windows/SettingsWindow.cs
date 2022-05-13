@@ -375,7 +375,9 @@ namespace Dalamud.Interface.Internal.Windows
 
             ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudGrey);
             ImGui.TextWrapped(string.Format(
-                Loc.Localize("DalamudSettingsFontResolutionLevelHint", "This option allows Dalamud fonts to look better. If your game crashes when changing this option, your PC does not support high font resolutions in Dalamud - you will have to use a lower one.\nCurrent font atlas size is {0}px * {1}px."),
+                Loc.Localize(
+                    "DalamudSettingsFontResolutionLevelHint",
+                    "This option allows Dalamud fonts to look better.\n* If your game crashes right away when changing this option, your PC does not support high font resolutions in Dalamud - you will have to use a lower one.\n* If it doesn't crash immediately, then you can keep the new choice indefinitely as it's not going to crash your game once it worked.\n* Either choose the 3rd or 5th option. Use other options only when neither works well.\n* Current font atlas size is {0}px * {1}px."),
                 ImGui.GetIO().Fonts.TexWidth,
                 ImGui.GetIO().Fonts.TexHeight));
             ImGui.PopStyleColor();
