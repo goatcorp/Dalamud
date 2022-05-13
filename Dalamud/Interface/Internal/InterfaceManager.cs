@@ -977,6 +977,9 @@ namespace Dalamud.Interface.Internal
                 this.AfterBuildFonts?.Invoke();
                 Log.Verbose("[FONT] OnAfterBuildFonts OK!");
 
+                if (ioFonts.Fonts[0].NativePtr != DefaultFont.NativePtr)
+                    Log.Warning("[FONT] First font is not DefaultFont");
+
                 Log.Verbose("[FONT] Fonts built!");
 
                 this.fontBuildSignal.Set();
