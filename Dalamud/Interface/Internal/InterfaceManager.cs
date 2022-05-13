@@ -942,9 +942,10 @@ namespace Dalamud.Interface.Internal
                     if (mod.Axis == TargetFontModification.AxisMode.Overwrite)
                     {
                         Log.Verbose("[FONT] {0}: Overwrite from AXIS of size {1}px (was {2}px)", mod.Name, mod.SourceAxis.ImFont.FontSize, font.FontSize);
-                        font.FontSize = mod.SourceAxis.ImFont.FontSize;
-                        font.Ascent = mod.SourceAxis.ImFont.Ascent;
-                        font.Descent = mod.SourceAxis.ImFont.Descent;
+                        GameFontManager.UnscaleFont(font, font.FontSize / mod.SourceAxis.ImFont.FontSize, false);
+                        var ascentDiff = mod.SourceAxis.ImFont.Ascent - font.Ascent;
+                        font.Ascent += ascentDiff;
+                        font.Descent = ascentDiff;
                         font.FallbackChar = mod.SourceAxis.ImFont.FallbackChar;
                         font.EllipsisChar = mod.SourceAxis.ImFont.EllipsisChar;
                         ImGuiHelpers.CopyGlyphsAcrossFonts(mod.SourceAxis.ImFont, font, false, false);
