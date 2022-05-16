@@ -142,6 +142,11 @@ internal sealed class Injector : IDisposable
         CloseHandle(threadHandle);
     }
 
+    /// <summary>
+    /// Setup the "LoadLibraryW" routine in the <see cref="memoryBuffer"/>.
+    /// </summary>
+    /// <param name="kernel32Module">The KERNEL32 process module.</param>
+    /// <param name="kernel32Exports">The KERNEL32 exported functions.</param>
     private void SetupLoadLibrary(ProcessModule kernel32Module, ExportFunction[] kernel32Exports)
     {
         var getLastErrorAddr = kernel32Module.BaseAddress + (int)this.GetExportedFunctionOffset(kernel32Exports, "GetLastError");
@@ -197,6 +202,11 @@ internal sealed class Injector : IDisposable
 #endif
     }
 
+    /// <summary>
+    /// Setup the "GetProcAddress" routine in the <see cref="memoryBuffer"/>.
+    /// </summary>
+    /// <param name="kernel32Module">The KERNEL32 process module.</param>
+    /// <param name="kernel32Exports">The KERNEL32 exported functions.</param>
     private void SetupGetProcAddress(ProcessModule kernel32Module, ExportFunction[] kernel32Exports)
     {
         var getLastErrorAddr = kernel32Module.BaseAddress + (int)this.GetExportedFunctionOffset(kernel32Exports, "GetLastError");
@@ -255,6 +265,11 @@ internal sealed class Injector : IDisposable
 #endif
     }
 
+    /// <summary>
+    /// Assemble the instructions in the assembler into a sequence of bytes.
+    /// </summary>
+    /// <param name="assembler">Assembler.</param>
+    /// <returns>Assembly bytes.</returns>
     private byte[] Assemble(Assembler assembler)
     {
         using var stream = new MemoryStream();
@@ -273,6 +288,11 @@ internal sealed class Injector : IDisposable
         return bytes;
     }
 
+    /// <summary>
+    /// Get a process module with the given name.
+    /// </summary>
+    /// <param name="moduleName">Module name.</param>
+    /// <returns>The requested process module.</returns>
     private ProcessModule GetProcessModule(string moduleName)
     {
         var modules = this.targetProcess.Modules;
@@ -288,6 +308,12 @@ internal sealed class Injector : IDisposable
         throw new Exception($"Failed to find {moduleName} in target process' modules");
     }
 
+    /// <summary>
+    /// Get the exported function offset by name.
+    /// </summary>
+    /// <param name="exportFunctions">The exported functions for a given DLL.</param>
+    /// <param name="functionName">The name of the exported function.</param>
+    /// <returns>The exported function offset.</returns>
     private uint GetExportedFunctionOffset(ExportFunction[] exportFunctions, string functionName)
     {
         var exportFunction = exportFunctions.FirstOrDefault(func => func.Name == functionName);
@@ -298,6 +324,11 @@ internal sealed class Injector : IDisposable
         return exportFunction.Address;
     }
 
+    /// <summary>
+    /// Write a null terminated ASCII string into <see cref="circularBuffer"/>.
+    /// </summary>
+    /// <param name="value">The string value.</param>
+    /// <returns>A pointer to the string in the buffer.</returns>
     private IntPtr WriteNullTerminatedASCIIString(string value)
     {
         var bytes = Encoding.ASCII.GetBytes(value + '\0');
@@ -314,6 +345,11 @@ internal sealed class Injector : IDisposable
         return address;
     }
 
+    /// <summary>
+    /// Write a null terminated Unicode string into <see cref="circularBuffer"/>.
+    /// </summary>
+    /// <param name="value">The string value.</param>
+    /// <returns>A pointer to the string in the buffer.</returns>
     private IntPtr WriteNullTerminatedUnicodeString(string value)
     {
         var bytes = Encoding.Unicode.GetBytes(value + '\0');
