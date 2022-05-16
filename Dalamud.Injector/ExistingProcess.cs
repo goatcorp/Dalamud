@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Reflection;
 
@@ -28,7 +28,8 @@ internal class ExistingProcess : Process
 
         var setProcessHandleMethod = baseType.GetMethod(
             "SetProcessHandle",
-            BindingFlags.NonPublic | BindingFlags.Instance);
-        setProcessHandleMethod?.Invoke(this, new object[] { new SafeProcessHandle(handle, true) });
+            BindingFlags.NonPublic | BindingFlags.Instance)!;
+        var safeHandle = new SafeProcessHandle(handle, true);
+        setProcessHandleMethod.Invoke(this, new[] { safeHandle });
     }
 }
