@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Threading;
 
+using Dalamud.Injector.Exceptions;
 using Serilog;
 
 // ReSharper disable InconsistentNaming
@@ -234,20 +235,6 @@ public static class NativeAclFix
         }
 
         return hwnd;
-    }
-
-    /// <summary>
-    /// Exception thrown when the process has exited before a window could be found.
-    /// </summary>
-    public class GameExitedException : Exception
-    {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="GameExitedException"/> class.
-        /// </summary>
-        public GameExitedException()
-            : base("Game exited prematurely.")
-        {
-        }
     }
 
     // Definitions taken from PInvoke.net (with some changes)

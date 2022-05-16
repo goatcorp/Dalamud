@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 
 using Dalamud.Game;
+using Dalamud.Injector.Exceptions;
 using Newtonsoft.Json;
 using Reloaded.Memory.Buffers;
 using Serilog;
@@ -749,13 +750,5 @@ public sealed class EntryPoint
         quoted.Append('"');
 
         return quoted.ToString();
-    }
-
-    private class CommandLineException : Exception
-    {
-        public CommandLineException(string cause)
-            : base(cause)
-        {
-        }
     }
 }
