@@ -6,41 +6,41 @@ bool is_whitelist_exception(const DWORD code)
 {
     switch (code)
     {
-    case STATUS_ACCESS_VIOLATION:
-    case STATUS_IN_PAGE_ERROR:
-    case STATUS_INVALID_HANDLE:
-    case STATUS_INVALID_PARAMETER:
-    case STATUS_NO_MEMORY:
-    case STATUS_ILLEGAL_INSTRUCTION:
-    case STATUS_NONCONTINUABLE_EXCEPTION:
-    case STATUS_INVALID_DISPOSITION:
-    case STATUS_ARRAY_BOUNDS_EXCEEDED:
-    case STATUS_FLOAT_DENORMAL_OPERAND:
-    case STATUS_FLOAT_DIVIDE_BY_ZERO:
-    case STATUS_FLOAT_INEXACT_RESULT:
-    case STATUS_FLOAT_INVALID_OPERATION:
-    case STATUS_FLOAT_OVERFLOW:
-    case STATUS_FLOAT_STACK_CHECK:
-    case STATUS_FLOAT_UNDERFLOW:
-    case STATUS_INTEGER_DIVIDE_BY_ZERO:
-    case STATUS_INTEGER_OVERFLOW:
-    case STATUS_PRIVILEGED_INSTRUCTION:
-    case STATUS_STACK_OVERFLOW:
-    case STATUS_DLL_NOT_FOUND:
-    case STATUS_ORDINAL_NOT_FOUND:
-    case STATUS_ENTRYPOINT_NOT_FOUND:
-    case STATUS_DLL_INIT_FAILED:
-    case STATUS_CONTROL_STACK_VIOLATION:
-    case STATUS_FLOAT_MULTIPLE_FAULTS:
-    case STATUS_FLOAT_MULTIPLE_TRAPS:
-    case STATUS_HEAP_CORRUPTION:
-    case STATUS_STACK_BUFFER_OVERRUN:
-    case STATUS_INVALID_CRUNTIME_PARAMETER:
-    case STATUS_THREAD_NOT_RUNNING:
-    case STATUS_ALREADY_REGISTERED:
-        return true;
-    default:
-        return false;
+        case STATUS_ACCESS_VIOLATION:
+        case STATUS_IN_PAGE_ERROR:
+        case STATUS_INVALID_HANDLE:
+        case STATUS_INVALID_PARAMETER:
+        case STATUS_NO_MEMORY:
+        case STATUS_ILLEGAL_INSTRUCTION:
+        case STATUS_NONCONTINUABLE_EXCEPTION:
+        case STATUS_INVALID_DISPOSITION:
+        case STATUS_ARRAY_BOUNDS_EXCEEDED:
+        case STATUS_FLOAT_DENORMAL_OPERAND:
+        case STATUS_FLOAT_DIVIDE_BY_ZERO:
+        case STATUS_FLOAT_INEXACT_RESULT:
+        case STATUS_FLOAT_INVALID_OPERATION:
+        case STATUS_FLOAT_OVERFLOW:
+        case STATUS_FLOAT_STACK_CHECK:
+        case STATUS_FLOAT_UNDERFLOW:
+        case STATUS_INTEGER_DIVIDE_BY_ZERO:
+        case STATUS_INTEGER_OVERFLOW:
+        case STATUS_PRIVILEGED_INSTRUCTION:
+        case STATUS_STACK_OVERFLOW:
+        case STATUS_DLL_NOT_FOUND:
+        case STATUS_ORDINAL_NOT_FOUND:
+        case STATUS_ENTRYPOINT_NOT_FOUND:
+        case STATUS_DLL_INIT_FAILED:
+        case STATUS_CONTROL_STACK_VIOLATION:
+        case STATUS_FLOAT_MULTIPLE_FAULTS:
+        case STATUS_FLOAT_MULTIPLE_TRAPS:
+        case STATUS_HEAP_CORRUPTION:
+        case STATUS_STACK_BUFFER_OVERRUN:
+        case STATUS_INVALID_CRUNTIME_PARAMETER:
+        case STATUS_THREAD_NOT_RUNNING:
+        case STATUS_ALREADY_REGISTERED:
+            return true;
+        default:
+            return false;
     }
 }
 
@@ -97,7 +97,7 @@ std::wstring to_address_string(const DWORD64 address, const bool try_ptrderef = 
     bool is_mod_addr = get_module_file_and_base(address, module_base, module_path);
 
     DWORD64 value = 0;
-    if(try_ptrderef && address > 0x10000 && address < 0x7FFFFFFE0000)
+    if (try_ptrderef && address > 0x10000 && address < 0x7FFFFFFE0000)
     {
         ReadProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(address), &value, sizeof value, nullptr);
     }
@@ -132,7 +132,7 @@ void print_exception_info(const EXCEPTION_POINTERS* ex, std::wostringstream& log
             log << std::format(L"{:X}", rec->ExceptionInformation[i]);
         }
     }
-    
+
     log << L"\nCall Stack\n{";
 
     STACKFRAME64 sf;
@@ -183,11 +183,11 @@ void print_exception_info(const EXCEPTION_POINTERS* ex, std::wostringstream& log
 
     log << L"\n}" << std::endl;
 
-    if(0x10000 < ctx.Rsp && ctx.Rsp < 0x7FFFFFFE0000)
+    if (0x10000 < ctx.Rsp && ctx.Rsp < 0x7FFFFFFE0000)
     {
         log << L"\nStack\n{";
 
-        for(DWORD64 i = 0; i < 16; i++)
+        for (DWORD64 i = 0; i < 16; i++)
             log << std::format(L"\n  [RSP+{:X}]\t{}", i * 8, to_address_string(*reinterpret_cast<DWORD64*>(ctx.Rsp + i * 8ull)));
 
         log << L"\n}\n";
@@ -195,17 +195,16 @@ void print_exception_info(const EXCEPTION_POINTERS* ex, std::wostringstream& log
 
     log << L"\nModules\n{";
 
-    if(HANDLE snap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, GetCurrentProcessId()); snap != INVALID_HANDLE_VALUE)
+    if (HANDLE snap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, GetCurrentProcessId()); snap != INVALID_HANDLE_VALUE)
     {
         MODULEENTRY32 mod;
         mod.dwSize = sizeof MODULEENTRY32;
-        if(Module32First(snap, &mod))
+        if (Module32First(snap, &mod))
         {
             do
             {
                 log << std::format(L"\n  {:08X}\t{}", reinterpret_cast<DWORD64>(mod.modBaseAddr), mod.szExePath);
-            }
-            while (Module32Next(snap, &mod));
+            } while (Module32Next(snap, &mod));
         }
         CloseHandle(snap);
     }
@@ -254,12 +253,12 @@ LONG exception_handler(EXCEPTION_POINTERS* ex)
     HANDLE file = CreateFileW(dmp_path.c_str(), GENERIC_WRITE, FILE_SHARE_WRITE, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
     MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), file, MiniDumpWithDataSegs, &ex_info, nullptr, nullptr);
     CloseHandle(file);
-    
+
     void* fn;
     if (const auto err = static_cast<DWORD>(g_clr->get_function_pointer(
         L"Dalamud.EntryPoint, Dalamud",
         L"VehCallback",
-        L"Dalamud.EntryPoint+VehDelegate, Dalamud", 
+        L"Dalamud.EntryPoint+VehDelegate, Dalamud",
         nullptr, nullptr, &fn)))
     {
         const auto msg = L"An error within the game has occurred.\n\n"

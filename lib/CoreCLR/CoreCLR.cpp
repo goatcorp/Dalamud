@@ -21,12 +21,11 @@ int CoreCLR::load_hostfxr(const struct get_hostfxr_parameters* parameters)
 {
     // Get the path to CoreCLR's hostfxr
     std::wstring calling_module_path(MAX_PATH, L'\0');
-    
+
     do
     {
         calling_module_path.resize(GetModuleFileNameW(static_cast<HMODULE>(m_calling_module), &calling_module_path[0], static_cast<DWORD>(calling_module_path.size())));
-    }
-    while (!calling_module_path.empty() && GetLastError() == ERROR_INSUFFICIENT_BUFFER);
+    } while (!calling_module_path.empty() && GetLastError() == ERROR_INSUFFICIENT_BUFFER);
     if (calling_module_path.empty())
         return -1;
 
@@ -78,7 +77,7 @@ int CoreCLR::load_runtime(const std::wstring& runtime_config_path, const struct 
         runtime_config_path.c_str(),
         parameters,
         &context);
-    
+
     // Success_HostAlreadyInitialized
     if (result == 1)
     {

@@ -85,7 +85,7 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam)
     // ============================== VEH ======================================== //
 
     printf("Initializing VEH... ");
-    if(is_running_on_linux())
+    if (is_running_on_linux())
     {
         printf("VEH was disabled, running on linux\n");
     }

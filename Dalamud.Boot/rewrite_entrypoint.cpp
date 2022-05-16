@@ -168,10 +168,12 @@ void* get_mapped_image_base_address(HANDLE hProcess, const std::filesystem::path
     exe.read(reinterpret_cast<char*>(&exe_section_headers[0]), sizeof IMAGE_SECTION_HEADER * exe_section_headers.size());
     if (!exe)
         throw std::runtime_error("Game executable is corrupt (Truncated section header).");
-    
-    for (MEMORY_BASIC_INFORMATION mbi{};
+
+    for (
+        MEMORY_BASIC_INFORMATION mbi{};
         VirtualQueryEx(hProcess, mbi.BaseAddress, &mbi, sizeof mbi);
-        mbi.BaseAddress = static_cast<char*>(mbi.BaseAddress) + mbi.RegionSize) {
+        mbi.BaseAddress = static_cast<char*>(mbi.BaseAddress) + mbi.RegionSize)
+    {
         if (!(mbi.State & MEM_COMMIT) || mbi.Type != MEM_IMAGE)
             continue;
 
@@ -212,7 +214,8 @@ void* get_mapped_image_base_address(HANDLE hProcess, const std::filesystem::path
                 if (memcmp(&compare_section_headers[0], &exe_section_headers[0], sizeof IMAGE_SECTION_HEADER * compare_section_headers.size()) != 0)
                     continue;
 
-            } else if (compare_nt_header32.FileHeader.SizeOfOptionalHeader == sizeof IMAGE_OPTIONAL_HEADER64) {
+            }
+            else if (compare_nt_header32.FileHeader.SizeOfOptionalHeader == sizeof IMAGE_OPTIONAL_HEADER64) {
                 read_process_memory_or_throw(hProcess, static_cast<char*>(mbi.BaseAddress) + compare_dos_header.e_lfanew + offsetof(IMAGE_NT_HEADERS64, OptionalHeader), compare_nt_header64.OptionalHeader);
                 if (compare_nt_header64.OptionalHeader.SizeOfImage != exe_nt_header64.OptionalHeader.SizeOfImage)
                     continue;
@@ -224,14 +227,16 @@ void* get_mapped_image_base_address(HANDLE hProcess, const std::filesystem::path
                 if (memcmp(&compare_section_headers[0], &exe_section_headers[0], sizeof IMAGE_SECTION_HEADER * compare_section_headers.size()) != 0)
                     continue;
 
-            } else
+            }
+            else
                 continue;
 
             // Should be close enough(tm) at this point, as the only two loaded modules should be ntdll.dll and the game executable itself.
 
             return mbi.AllocationBase;
 
-        } catch (const std::filesystem::filesystem_error& e) {
+        }
+        catch (const std::filesystem::filesystem_error& e) {
             printf("%s", e.what());
             continue;
         }
@@ -319,7 +324,7 @@ DllExport DWORD WINAPI RewriteRemoteEntryPointW(HANDLE hProcess, const wchar_t* 
 
         // Allocate buffer in remote process, which will be used to fill addresses in the local buffer.
         const auto remote_buffer = reinterpret_cast<char*>(VirtualAllocEx(hProcess, nullptr, buffer.size(), MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE));
-    
+
         // Fill the values to be used in RewrittenEntryPoint
         trampoline.parameters = {
             .pAllocation = remote_buffer,
@@ -347,7 +352,8 @@ DllExport DWORD WINAPI RewriteRemoteEntryPointW(HANDLE hProcess, const wchar_t* 
         write_process_memory_or_throw(hProcess, entrypoint, thunk);
 
         return 0;
-    } catch (const std::exception& e) {
+    }
+    catch (const std::exception& e) {
         OutputDebugStringA(std::format("RewriteRemoteEntryPoint failure: {} (GetLastError: {})\n", e.what(), GetLastError()).c_str());
         return 1;
     }
@@ -397,7 +403,8 @@ DllExport void WINAPI RewrittenEntryPoint(RewrittenEntryPointParameters& params)
 
             Initialize(&loadInfo[0]);
             return 0;
-        } catch (const std::exception& e) {
+        }
+        catch (const std::exception& e) {
             MessageBoxA(nullptr, std::format("Failed to load Dalamud.\n\nError: {}", e.what()).c_str(), "Dalamud.Boot", MB_OK | MB_ICONERROR);
             ExitProcess(-1);
         }
