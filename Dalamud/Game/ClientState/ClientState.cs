@@ -17,7 +17,7 @@ using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Utility;
-using Lumina.Excel.GeneratedSheets;
+using FFXIVClientStructs.FFXIV.Client.Game;
 using Serilog;
 
 namespace Dalamud.Game.ClientState
@@ -203,11 +203,7 @@ namespace Dalamud.Game.ClientState
                 gameGui.ResetUiHideState();
             }
 
-            if (this.TerritoryType != 0)
-            {
-                var terriRow = data.GetExcelSheet<TerritoryType>()!.GetRow(this.TerritoryType);
-                this.IsPvP = terriRow?.Bg.RawString.StartsWith("ffxiv/pvp") ?? false;
-            }
+            this.IsPvP = GameMain.IsInPvPInstance();
 
             if (this.IsPvP != this.lastFramePvP)
             {
