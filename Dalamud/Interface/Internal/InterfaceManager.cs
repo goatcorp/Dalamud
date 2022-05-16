@@ -1012,7 +1012,36 @@ namespace Dalamud.Interface.Internal
 
             Log.Verbose("[FONT] RebuildFontsInternal() detaching");
             this.scene.OnNewRenderFrame -= this.RebuildFontsInternal;
-            this.scene.InvalidateFonts();
+
+            Log.Verbose("[FONT] Calling InvalidateFonts");
+            try
+            {
+                this.scene.InvalidateFonts();
+            }
+            catch (Exception ex)
+            {
+                if (this.FontResolutionLevel > 2)
+                {
+                    Log.Error(ex, "[FONT] Failed to create font textures; setting font resolution level to 2 and retrying");
+                    this.FontResolutionLevelOverride = 2;
+                    this.SetupFonts();
+                }
+                else
+                {
+                    Log.Error(ex, "[FONT] Failed to create font textures; forcing fallback font mode");
+                    this.SetupFonts(true);
+                }
+
+                Log.Verbose("[FONT] Calling InvalidateFonts again");
+                try
+                {
+                    this.scene.InvalidateFonts();
+                }
+                catch (Exception ex2)
+                {
+                    Log.Error(ex2, "[FONT] Giving up");
+                }
+            }
 
             Log.Verbose("[FONT] Font Rebuild OK!");
 
