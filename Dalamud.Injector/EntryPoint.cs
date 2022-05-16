@@ -153,7 +153,7 @@ public sealed class EntryPoint
                 "Failed to inject the XIVLauncher in-game addon.\nPlease try restarting your game and your PC.\n" +
                 "If this keeps happening, please report this error.";
 #endif
-            _ = MessageBoxW(IntPtr.Zero, message, caption, MessageBoxType.IconError | MessageBoxType.Ok);
+            _ = MessageBoxW(IntPtr.Zero, message, caption, MB_ICONERROR | MB_OK);
 
             Environment.Exit(-1);
         };
@@ -407,7 +407,7 @@ public sealed class EntryPoint
 
         if (warnManualInjection)
         {
-            var result = MessageBoxW(IntPtr.Zero, $"Take care: you are manually injecting Dalamud into FFXIV({string.Join(", ", processes.Select(x => $"{x.Id}"))}).\n\nIf you are doing this to use plugins before they are officially whitelisted on patch days, things may go wrong and you may get into trouble.\nWe discourage you from doing this and you won't be warned again in-game.", "Dalamud", MessageBoxType.IconWarning | MessageBoxType.OkCancel);
+            var result = MessageBoxW(IntPtr.Zero, $"Take care: you are manually injecting Dalamud into FFXIV({string.Join(", ", processes.Select(x => $"{x.Id}"))}).\n\nIf you are doing this to use plugins before they are officially whitelisted on patch days, things may go wrong and you may get into trouble.\nWe discourage you from doing this and you won't be warned again in-game.", "Dalamud", MB_ICONWARNING | MB_OKCANCEL);
 
             // IDCANCEL
             if (result == 2)
@@ -572,7 +572,7 @@ public sealed class EntryPoint
         var processHandleForOwner = IntPtr.Zero;
         if (handleOwner != IntPtr.Zero)
         {
-            if (!DuplicateHandle(Process.GetCurrentProcess().Handle, process.Handle, handleOwner, out processHandleForOwner, 0, false, DuplicateOptions.SameAccess))
+            if (!DuplicateHandle(Process.GetCurrentProcess().Handle, process.Handle, handleOwner, out processHandleForOwner, 0, false, DUPLICATE_SAME_ACCESS))
                 Log.Warning("Failed to call DuplicateHandle: Win32 error code {0}", Marshal.GetLastWin32Error());
         }
 
@@ -583,7 +583,7 @@ public sealed class EntryPoint
 
     private static Process GetInheritableCurrentProcessHandle()
     {
-        if (!DuplicateHandle(Process.GetCurrentProcess().Handle, Process.GetCurrentProcess().Handle, Process.GetCurrentProcess().Handle, out var inheritableCurrentProcessHandle, 0, true, DuplicateOptions.SameAccess))
+        if (!DuplicateHandle(Process.GetCurrentProcess().Handle, Process.GetCurrentProcess().Handle, Process.GetCurrentProcess().Handle, out var inheritableCurrentProcessHandle, 0, true, DUPLICATE_SAME_ACCESS))
         {
             Log.Error("Failed to call DuplicateHandle: Win32 error code {0}", Marshal.GetLastWin32Error());
             return null;

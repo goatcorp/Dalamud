@@ -129,7 +129,7 @@ internal sealed class Injector : IDisposable
             UIntPtr.Zero,
             methodAddress,
             parameterAddress,
-            CreateThreadFlags.RunImmediately,
+            RUN_IMMEDIATELY,
             out _);
 
         if (threadHandle == IntPtr.Zero)

@@ -11,3 +11,7 @@ using System.Diagnostics.CodeAnalysis;
 [assembly: SuppressMessage("StyleCop.CSharp.LayoutRules", "SA1512:Single-line comments should not be followed by blank line", Justification = "I like this better", Scope = "namespaceanddescendants", Target = "~N:Dalamud")]
 [assembly: SuppressMessage("StyleCop.CSharp.LayoutRules", "SA1515:Single-line comment should be preceded by blank line", Justification = "I like this better", Scope = "namespaceanddescendants", Target = "~N:Dalamud")]
 [assembly: SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "I'll make what I want static", Scope = "namespaceanddescendants", Target = "~N:Dalamud")]
+[assembly: SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1602:Enumeration items should be documented", Justification = "Check MSDN", Scope = "type", Target = "~T:Dalamud.Injector.NativeFunctions")]
+[assembly: SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "Check MSDN", Scope = "type", Target = "~T:Dalamud.Injector.NativeFunctions")]
+[assembly: SuppressMessage("StyleCop.CSharp.NamingRules", "SA1307:Accessible fields should begin with upper-case letter", Justification = "MSDN naming.", Scope = "type", Target = "~T:Dalamud.Injector.NativeFunctions")]
+[assembly: SuppressMessage("StyleCop.CSharp.NamingRules", "SA1310:Field names should not contain underscore", Justification = "MSDN naming.", Scope = "type", Target = "~T:Dalamud.Injector.NativeFunctions")]
