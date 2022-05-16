@@ -67,6 +67,7 @@ namespace Dalamud.Interface.Internal
 #endif
 
         private bool isImGuiDrawDemoWindow = false;
+        private bool isImGuiTestWindowsInMonospace = false;
         private bool isImGuiDrawMetricsWindow = false;
 
         /// <summary>
@@ -363,11 +364,17 @@ namespace Dalamud.Interface.Internal
 
                 this.WindowSystem.Draw();
 
+                if (this.isImGuiTestWindowsInMonospace)
+                    ImGui.PushFont(InterfaceManager.MonoFont);
+
                 if (this.isImGuiDrawDemoWindow)
                     ImGui.ShowDemoWindow(ref this.isImGuiDrawDemoWindow);
 
                 if (this.isImGuiDrawMetricsWindow)
                     ImGui.ShowMetricsWindow(ref this.isImGuiDrawMetricsWindow);
+
+                if (this.isImGuiTestWindowsInMonospace)
+                    ImGui.PopFont();
 
                 // Release focus of any ImGui window if we click into the game.
                 var io = ImGui.GetIO();
@@ -566,8 +573,8 @@ namespace Dalamud.Interface.Internal
 
                     if (ImGui.BeginMenu("GUI"))
                     {
+                        ImGui.MenuItem("Use Monospace font for following windows", string.Empty, ref this.isImGuiTestWindowsInMonospace);
                         ImGui.MenuItem("Draw ImGui demo", string.Empty, ref this.isImGuiDrawDemoWindow);
-
                         ImGui.MenuItem("Draw metrics", string.Empty, ref this.isImGuiDrawMetricsWindow);
 
                         ImGui.Separator();

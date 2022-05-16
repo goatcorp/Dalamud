@@ -1,8 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 
+using Dalamud.Hooking;
 using Dalamud.Interface.Internal;
 using Dalamud.Logging.Internal;
 using ImGuiNET;
@@ -14,7 +18,7 @@ namespace Dalamud.Game.Gui.Internal
     /// <summary>
     /// This class handles IME for non-English users.
     /// </summary>
-    internal class DalamudIME : IDisposable
+    internal unsafe class DalamudIME : IDisposable
     {
         private static readonly ModuleLog Log = new("IME");
 
@@ -22,6 +26,8 @@ namespace Dalamud.Game.Gui.Internal
         private IntPtr wndProcPtr;
         private IntPtr oldWndProcPtr;
         private WndProcDelegate wndProcDelegate;
+        private AsmHook imguiTextInputCursorHook;
+        private Vector2* cursorPos;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DalamudIME"/> class.
@@ -60,6 +66,18 @@ namespace Dalamud.Game.Gui.Internal
                 SetWindowLongPtrW(this.interfaceHandle, WindowLongType.WndProc, this.oldWndProcPtr);
                 this.oldWndProcPtr = IntPtr.Zero;
             }
+
+            this.imguiTextInputCursorHook?.Dispose();
+            Marshal.FreeHGlobal((IntPtr)this.cursorPos);
+        }
+
+        /// <summary>
+        /// Get the position of the cursor.
+        /// </summary>
+        /// <returns>The position of the cursor.</returns>
+        internal Vector2 GetCursorPos()
+        {
+            return new Vector2(this.cursorPos->X, this.cursorPos->Y);
         }
 
         /// <summary>
@@ -73,6 +91,31 @@ namespace Dalamud.Game.Gui.Internal
                 this.interfaceHandle = Service<InterfaceManager>.Get().WindowHandlePtr;
                 this.wndProcPtr = Marshal.GetFunctionPointerForDelegate(this.wndProcDelegate);
                 this.oldWndProcPtr = SetWindowLongPtrW(this.interfaceHandle, WindowLongType.WndProc, this.wndProcPtr);
+
+                var module = Process.GetCurrentProcess().Modules.Cast<ProcessModule>().First(m => m.ModuleName == "cimgui.dll");
+                var scanner = new SigScanner(module);
+                var cursorDrawingPtr = scanner.ScanModule("F3 0F 11 75 ?? 0F 28 CF");
+                Log.Debug($"Found cursorDrawingPtr at {cursorDrawingPtr:X}");
+
+                this.cursorPos = (Vector2*)Marshal.AllocHGlobal(sizeof(Vector2));
+                this.cursorPos->X = 0f;
+                this.cursorPos->Y = 0f;
+
+                var asm = new[]
+                {
+                "use64",
+                $"push rax",
+                $"mov rax, {(IntPtr)this.cursorPos + sizeof(float)}",
+                $"movss [rax],xmm7",
+                $"mov rax, {(IntPtr)this.cursorPos}",
+                $"movss [rax],xmm6",
+                $"pop rax",
+                };
+
+                Log.Debug($"Asm Code:\n{string.Join("\n", asm)}");
+                this.imguiTextInputCursorHook = new AsmHook(cursorDrawingPtr, asm, "ImguiTextInputCursorHook");
+                this.imguiTextInputCursorHook?.Enable();
+
                 this.IsEnabled = true;
                 Log.Information("Enabled!");
             }
