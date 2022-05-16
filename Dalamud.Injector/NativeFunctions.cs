@@ -266,7 +266,7 @@ internal static partial class NativeFunctions
        uint dwCreationFlags,
        IntPtr lpEnvironment,
        string lpCurrentDirectory,
-       [In] ref STARTUPINFO lpStartupInfo,
+       ref STARTUPINFO lpStartupInfo,
        out PROCESS_INFORMATION lpProcessInformation);
 
     [DllImport("kernel32.dll", SetLastError = true)]
@@ -343,13 +343,6 @@ internal static partial class NativeFunctions
         byte[] lpBuffer,
         int dwSize,
         out IntPtr lpNumberOfBytesWritten);
-
-    [DllImport("kernel32.dll", SetLastError = true)]
-    public static extern int VirtualQueryEx(
-        IntPtr hProcess,
-        IntPtr lpAddress,
-        out MEMORY_BASIC_INFORMATION lpBuffer,
-        int dwLength);
 }
 
 /// <summary>

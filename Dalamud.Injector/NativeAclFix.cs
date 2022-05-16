@@ -9,8 +9,6 @@ using Serilog;
 
 using static Dalamud.Injector.NativeFunctions;
 
-// ReSharper disable InconsistentNaming
-
 namespace Dalamud.Injector;
 
 /// <summary>
@@ -31,160 +29,142 @@ public static class NativeAclFix
     public static Process LaunchGame(string workingDir, string exePath, string arguments, Action<Process> beforeResume)
     {
         Process process = null;
+        var processInformation = default(PROCESS_INFORMATION);
+        var pSecDesc = IntPtr.Zero;
 
-        var userName = Environment.UserName;
-
-        var pExplicitAccess = default(EXPLICIT_ACCESS);
-        BuildExplicitAccessWithName(
-            ref pExplicitAccess,
-            userName,
-            STANDARD_RIGHTS_ALL | SPECIFIC_RIGHTS_ALL & ~PROCESS_VM_WRITE,
-            ACCESS_MODE.GRANT_ACCESS,
-            0);
-
-        if (SetEntriesInAcl(1, ref pExplicitAccess, IntPtr.Zero, out var newAcl) != 0)
-        {
-            throw new Win32Exception(Marshal.GetLastWin32Error());
-        }
-
-        if (!InitializeSecurityDescriptor(out var secDesc, SECURITY_DESCRIPTOR_REVISION))
-        {
-            throw new Win32Exception(Marshal.GetLastWin32Error());
-        }
-
-        if (!SetSecurityDescriptorDacl(ref secDesc, true, newAcl, false))
-        {
-            throw new Win32Exception(Marshal.GetLastWin32Error());
-        }
-
-        var psecDesc = Marshal.AllocHGlobal(Marshal.SizeOf<SECURITY_DESCRIPTOR>());
-        Marshal.StructureToPtr(secDesc, psecDesc, true);
-
-        var lpProcessInformation = default(PROCESS_INFORMATION);
         try
         {
-            var lpProcessAttributes = new SECURITY_ATTRIBUTES
-            {
-                nLength = Marshal.SizeOf<SECURITY_ATTRIBUTES>(),
-                lpSecurityDescriptor = psecDesc,
-                bInheritHandle = false,
-            };
-
-            var lpStartupInfo = new STARTUPINFO
-            {
-                cb = Marshal.SizeOf<STARTUPINFO>(),
-            };
-
-            var compatLayerPrev = Environment.GetEnvironmentVariable("__COMPAT_LAYER");
-
-            Environment.SetEnvironmentVariable("__COMPAT_LAYER", "RunAsInvoker");
-            try
-            {
-                if (!CreateProcess(
-                        null,
-                        $"\"{exePath}\" {arguments}",
-                        ref lpProcessAttributes,
-                        IntPtr.Zero,
-                        false,
-                        CREATE_SUSPENDED,
-                        IntPtr.Zero,
-                        workingDir,
-                        ref lpStartupInfo,
-                        out lpProcessInformation))
-                {
-                    throw new Win32Exception(Marshal.GetLastWin32Error());
-                }
-            }
-            finally
-            {
-                Environment.SetEnvironmentVariable("__COMPAT_LAYER", compatLayerPrev);
-            }
-
-            DisableSeDebug(lpProcessInformation.hProcess);
-
-            process = new ExistingProcess(lpProcessInformation.hProcess);
+            CreateSecurityDescriptor(out pSecDesc);
+            CreateProcessSuspended(exePath, arguments, workingDir, pSecDesc, ref process, ref processInformation);
+            DisableSeDebug(processInformation.hProcess);
 
             beforeResume?.Invoke(process);
 
-            ResumeThread(lpProcessInformation.hThread);
-
-            // Ensure that the game main window is prepared
-            try
-            {
-                do
-                {
-                    process.WaitForInputIdle();
-
-                    Thread.Sleep(100);
-                }
-                while (TryFindGameWindow(process) == IntPtr.Zero);
-            }
-            catch (InvalidOperationException)
-            {
-                throw new GameExitedException();
-            }
-
-            if (GetSecurityInfo(
-                    GetCurrentProcess(),
-                    SE_OBJECT_TYPE.SE_KERNEL_OBJECT,
-                    DACL_SECURITY_INFORMATION,
-                    IntPtr.Zero,
-                    IntPtr.Zero,
-                    out var pACL,
-                    IntPtr.Zero,
-                    IntPtr.Zero) != 0)
-            {
-                throw new Win32Exception(Marshal.GetLastWin32Error());
-            }
-
-            if (SetSecurityInfo(
-                    lpProcessInformation.hProcess,
-                    SE_OBJECT_TYPE.SE_KERNEL_OBJECT,
-                    DACL_SECURITY_INFORMATION | UNPROTECTED_DACL_SECURITY_INFORMATION,
-                    IntPtr.Zero,
-                    IntPtr.Zero,
-                    pACL,
-                    IntPtr.Zero) != 0)
-            {
-                throw new Win32Exception(Marshal.GetLastWin32Error());
-            }
+            ResumeProcess(processInformation);
+            WaitForGamewindow(process);
+            UpdateSecurityInfo(processInformation);
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "[NativeAclFix] Uncaught error during initialization, trying to kill process");
-
-            try
+            if (process is null || process.HasExited)
             {
-                process?.Kill();
+                Log.Error(ex, "[NativeAclFix] Uncaught error during initialization");
             }
-            catch (Exception killEx)
+            else
             {
-                Log.Error(killEx, "[NativeAclFix] Could not kill process");
+                Log.Error(ex, "[NativeAclFix] Uncaught error during initialization, trying to kill process");
+
+                try
+                {
+                    process?.Kill();
+                }
+                catch (Exception killEx)
+                {
+                    Log.Error(killEx, "[NativeAclFix] Could not kill process");
+                }
             }
 
             throw;
         }
         finally
         {
-            Marshal.FreeHGlobal(psecDesc);
-            CloseHandle(lpProcessInformation.hThread);
+            Marshal.FreeHGlobal(pSecDesc);
+            CloseHandle(processInformation.hThread);
         }
 
         return process;
     }
 
+    /// <summary>
+    /// Create a security descriptor.
+    /// </summary>
+    /// <param name="pSecDesc">Pointer to the new security descriptor.</param>
+    private static void CreateSecurityDescriptor(out IntPtr pSecDesc)
+    {
+        var pExplicitAccess = default(EXPLICIT_ACCESS);
+        BuildExplicitAccessWithName(
+            ref pExplicitAccess,
+            Environment.UserName,
+            (STANDARD_RIGHTS_ALL | SPECIFIC_RIGHTS_ALL) & ~PROCESS_VM_WRITE,
+            ACCESS_MODE.GRANT_ACCESS,
+            0);
+
+        if (SetEntriesInAcl(1, ref pExplicitAccess, IntPtr.Zero, out var newAcl) != 0)
+            throw new Win32Exception(Marshal.GetLastWin32Error());
+
+        if (!InitializeSecurityDescriptor(out var secDesc, SECURITY_DESCRIPTOR_REVISION))
+            throw new Win32Exception(Marshal.GetLastWin32Error());
+
+        if (!SetSecurityDescriptorDacl(ref secDesc, true, newAcl, false))
+            throw new Win32Exception(Marshal.GetLastWin32Error());
+
+        pSecDesc = Marshal.AllocHGlobal(Marshal.SizeOf<SECURITY_DESCRIPTOR>());
+        Marshal.StructureToPtr(secDesc, pSecDesc, true);
+    }
+
+    /// <summary>
+    /// Create a new process, suspended.
+    /// </summary>
+    /// <param name="exePath">Path to the exe.</param>
+    /// <param name="arguments">Stringified arguments.</param>
+    /// <param name="workingDir">Working directory.</param>
+    /// <param name="pSecDesc">Pointer to a security descriptor.</param>
+    /// <param name="process">Target process.</param>
+    /// <param name="processInformation">Target process information.</param>
+    private static void CreateProcessSuspended(string exePath, string arguments, string workingDir, IntPtr pSecDesc, ref Process process, ref PROCESS_INFORMATION processInformation)
+    {
+        var lpProcessAttributes = new SECURITY_ATTRIBUTES
+        {
+            nLength = Marshal.SizeOf<SECURITY_ATTRIBUTES>(),
+            lpSecurityDescriptor = pSecDesc,
+            bInheritHandle = false,
+        };
+
+        var lpStartupInfo = new STARTUPINFO
+        {
+            cb = Marshal.SizeOf<STARTUPINFO>(),
+        };
+
+        var compatLayerPrev = Environment.GetEnvironmentVariable("__COMPAT_LAYER");
+
+        Environment.SetEnvironmentVariable("__COMPAT_LAYER", "RunAsInvoker");
+        try
+        {
+            if (!CreateProcess(
+                    null,
+                    $"\"{exePath}\" {arguments}",
+                    ref lpProcessAttributes,
+                    IntPtr.Zero,
+                    false,
+                    CREATE_SUSPENDED,
+                    IntPtr.Zero,
+                    workingDir,
+                    ref lpStartupInfo,
+                    out processInformation))
+            {
+                throw new Win32Exception(Marshal.GetLastWin32Error());
+            }
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("__COMPAT_LAYER", compatLayerPrev);
+        }
+
+        process = new ExistingProcess(processInformation.hProcess);
+    }
+
+    /// <summary>
+    /// Disable SeDebug is present.
+    /// </summary>
+    /// <param name="processHandle">Process handle.</param>
     private static void DisableSeDebug(IntPtr processHandle)
     {
         if (!OpenProcessToken(processHandle, TOKEN_QUERY | TOKEN_ADJUST_PRIVILEGES, out var tokenHandle))
-        {
             throw new Win32Exception(Marshal.GetLastWin32Error());
-        }
 
         var luidDebugPrivilege = default(LUID);
         if (!LookupPrivilegeValue(null, "SeDebugPrivilege", ref luidDebugPrivilege))
-        {
             throw new Win32Exception(Marshal.GetLastWin32Error());
-        }
 
         var requiredPrivileges = new PRIVILEGE_SET
         {
@@ -196,13 +176,11 @@ public static class NativeAclFix
         requiredPrivileges.Privilege[0].Luid = luidDebugPrivilege;
         requiredPrivileges.Privilege[0].Attributes = SE_PRIVILEGE_ENABLED;
 
-        if (!PrivilegeCheck(tokenHandle, ref requiredPrivileges, out bool bResult))
-        {
+        if (!PrivilegeCheck(tokenHandle, ref requiredPrivileges, out var result))
             throw new Win32Exception(Marshal.GetLastWin32Error());
-        }
 
         // SeDebugPrivilege is enabled; try disabling it
-        if (bResult)
+        if (result)
         {
             var tokenPrivileges = new TOKEN_PRIVILEGES
             {
@@ -214,20 +192,54 @@ public static class NativeAclFix
             tokenPrivileges.Privileges[0].Attributes = SE_PRIVILEGE_REMOVED;
 
             if (!AdjustTokenPrivileges(tokenHandle, false, ref tokenPrivileges, 0, IntPtr.Zero, 0))
-            {
                 throw new Win32Exception(Marshal.GetLastWin32Error());
-            }
         }
 
         CloseHandle(tokenHandle);
     }
 
+    /// <summary>
+    /// Resume the suspended process.
+    /// </summary>
+    /// <param name="processInformation">Process information.</param>
+    private static void ResumeProcess(PROCESS_INFORMATION processInformation)
+    {
+        if (ResumeThread(processInformation.hThread) == 0xFFFF_FFFF)
+            throw new Win32Exception(Marshal.GetLastWin32Error());
+    }
+
+    /// <summary>
+    /// Wait for the game window to be reeady.
+    /// </summary>
+    /// <param name="process">Target process.</param>
+    private static void WaitForGamewindow(Process process)
+    {
+        try
+        {
+            do
+            {
+                process.WaitForInputIdle();
+                Thread.Sleep(100);
+            }
+            while (TryFindGameWindow(process) == IntPtr.Zero);
+        }
+        catch (InvalidOperationException ex)
+        {
+            throw new GameExitedException(ex);
+        }
+    }
+
+    /// <summary>
+    /// Loop until a window with FFXIVGAME is present.
+    /// </summary>
+    /// <param name="process">Process to match.</param>
+    /// <returns>A window handle.</returns>
     private static IntPtr TryFindGameWindow(Process process)
     {
-        IntPtr hwnd = IntPtr.Zero;
+        var hwnd = IntPtr.Zero;
         while ((hwnd = FindWindowEx(IntPtr.Zero, hwnd, "FFXIVGAME", IntPtr.Zero)) != IntPtr.Zero)
         {
-            GetWindowThreadProcessId(hwnd, out uint pid);
+            _ = GetWindowThreadProcessId(hwnd, out var pid);
 
             if (pid == process.Id && IsWindowVisible(hwnd))
             {
@@ -236,5 +248,37 @@ public static class NativeAclFix
         }
 
         return hwnd;
+    }
+
+    /// <summary>
+    /// Update the process security info.
+    /// </summary>
+    /// <param name="processInformation">Target process security info.</param>
+    private static void UpdateSecurityInfo(PROCESS_INFORMATION processInformation)
+    {
+        if (GetSecurityInfo(
+            GetCurrentProcess(),
+            SE_OBJECT_TYPE.SE_KERNEL_OBJECT,
+            DACL_SECURITY_INFORMATION,
+            IntPtr.Zero,
+            IntPtr.Zero,
+            out var pACL,
+            IntPtr.Zero,
+            IntPtr.Zero) != 0)
+        {
+            throw new Win32Exception(Marshal.GetLastWin32Error());
+        }
+
+        if (SetSecurityInfo(
+            processInformation.hProcess,
+            SE_OBJECT_TYPE.SE_KERNEL_OBJECT,
+            DACL_SECURITY_INFORMATION | UNPROTECTED_DACL_SECURITY_INFORMATION,
+            IntPtr.Zero,
+            IntPtr.Zero,
+            pACL,
+            IntPtr.Zero) != 0)
+        {
+            throw new Win32Exception(Marshal.GetLastWin32Error());
+        }
     }
 }
