@@ -39,7 +39,7 @@ namespace Dalamud
         /// <summary>
         /// Gets the language of the game client.
         /// </summary>
-        public ClientLanguage Language { get; init; }
+        public ClientLanguage Language { get; init; } = ClientLanguage.English;
 
         /// <summary>
         /// Gets the current game version code.
