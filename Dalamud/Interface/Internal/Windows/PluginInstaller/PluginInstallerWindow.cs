@@ -1047,6 +1047,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
         {
             ImGui.Separator();
 
+            var metaData = Service<PluginManager>.Get().GetMetaData(manifest);
             var isOpen = this.openPluginCollapsibles.Contains(index);
 
             var sectionSize = ImGuiHelpers.GlobalScale * 66;
@@ -1154,9 +1155,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             // Outdated warning
             if (plugin is { IsOutdated: true, IsBanned: false })
             {
-                ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
-                ImGui.TextWrapped(Locs.PluginBody_Outdated);
-                ImGui.PopStyleColor();
+                this.DrawUnsupportedWarning(metaData.DevSupportState, metaData.DevSupportStateReason);
             }
 
             // Banned warning
@@ -1249,6 +1248,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             var configuration = Service<DalamudConfiguration>.Get();
             var notifications = Service<NotificationManager>.Get();
             var pluginManager = Service<PluginManager>.Get();
+            var metaData = pluginManager.GetMetaData(manifest);
 
             var useTesting = PluginManager.UseTesting(manifest);
             var wasSeen = this.WasPluginSeen(manifest.InternalName);
@@ -1288,6 +1288,21 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                     ImGui.TextColored(ImGuiColors.DalamudGrey3, repoText);
 
                     ImGuiHelpers.ScaledDummy(2);
+                }
+
+                // notice warning
+                if (!metaData.DevSupportState.IsSupported())
+                {
+                    this.DrawUnsupportedWarning(metaData.DevSupportState, metaData.DevSupportStateReason);
+                }
+
+                // notice warning
+                if (!string.IsNullOrEmpty(metaData.Notice))
+                {
+                    ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudYellow);
+                    ImGuiHelpers.SafeTextWrapped(metaData.Notice);
+                    ImGui.Spacing();
+                    ImGui.PopStyleColor();
                 }
 
                 // Description
@@ -1410,6 +1425,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             var commandManager = Service<CommandManager>.Get();
             var pluginManager = Service<PluginManager>.Get();
             var startInfo = Service<DalamudStartInfo>.Get();
+            var metaData = pluginManager.GetMetaData(plugin.Manifest);
 
             var trouble = false;
 
@@ -1489,6 +1505,12 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                 trouble = true;
             }
 
+            // Unsupported
+            if (!metaData.DevSupportState.IsSupported())
+            {
+                label += Locs.PluginTitleMod_UnsupportedWarning;
+            }
+
             ImGui.PushID($"installed{index}{plugin.Manifest.InternalName}");
             var hasChangelog = !plugin.Manifest.Changelog.IsNullOrEmpty();
 
@@ -1527,6 +1549,28 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                 {
                     var repoText = Locs.PluginBody_Plugin3rdPartyRepo(manifest.InstalledFromUrl);
                     ImGui.TextColored(ImGuiColors.DalamudGrey3, repoText);
+                }
+
+                // Unsupported
+                if (!metaData.DevSupportState.IsSupported())
+                {
+                    this.DrawUnsupportedWarning(metaData.DevSupportState, metaData.DevSupportStateReason);
+                }
+
+                // add notice
+                if (!string.IsNullOrEmpty(metaData.Notice))
+                {
+                    ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudYellow);
+                    ImGui.TextWrapped(metaData.Notice);
+                    ImGui.PopStyleColor();
+                }
+
+                // Maintenance only
+                if (metaData.DevSupportState == DevSupportState.MaintenanceOnly)
+                {
+                    ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.ParsedPink);
+                    ImGui.TextWrapped(Locs.PluginBody_MaintenanceOnly);
+                    ImGui.PopStyleColor();
                 }
 
                 // Description
@@ -2153,6 +2197,38 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             this.UpdateCategoriesOnSearchChange();
         }
 
+        private void DrawUnsupportedWarning(DevSupportState state, string reason)
+        {
+            string message;
+            switch (state)
+            {
+                case DevSupportState.Active:
+                case DevSupportState.MaintenanceOnly:
+                    message = Locs.PluginBody_Outdated_Supported + Environment.NewLine;
+                    break;
+                case DevSupportState.Adoptable:
+                    message = Locs.PluginBody_Outdated_Adoptable + Environment.NewLine;
+                    break;
+                case DevSupportState.Obsolete:
+                    message = Locs.PluginBody_Outdated_Obsolete + Environment.NewLine;
+                    break;
+                case DevSupportState.Discontinued:
+                    message = Locs.PluginBody_Outdated_Discontinued + Environment.NewLine;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(state.ToString());
+            }
+
+            if (!string.IsNullOrEmpty(reason))
+            {
+                message += reason + Environment.NewLine;
+            }
+
+            ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
+            ImGuiHelpers.SafeTextWrapped(message);
+            ImGui.PopStyleColor();
+        }
+
         [SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1201:Elements should appear in the correct order", Justification = "Disregard here")]
         private static class Locs
         {
@@ -2234,6 +2310,8 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
             public static string PluginTitleMod_BannedError => Loc.Localize("InstallerBannedError", " (automatically disabled)");
 
+            public static string PluginTitleMod_UnsupportedWarning => Loc.Localize("InstallerAdoptableWarning", " (unsupported)");
+
             public static string PluginTitleMod_New => Loc.Localize("InstallerNewPlugin ", " New!");
 
             #endregion
@@ -2262,11 +2340,17 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
             public static string PluginBody_Plugin3rdPartyRepo(string url) => Loc.Localize("InstallerPlugin3rdPartyRepo", "From custom plugin repository {0}").Format(url);
 
-            public static string PluginBody_AvailableDevPlugin => Loc.Localize("InstallerDevPlugin", " This plugin is available in one of your repos, please remove it from the devPlugins folder.");
-
             public static string PluginBody_DeleteDevPlugin => Loc.Localize("InstallerDeleteDevPlugin ", " To delete this plugin, please remove it from the devPlugins folder.");
 
-            public static string PluginBody_Outdated => Loc.Localize("InstallerOutdatedPluginBody ", "This plugin is outdated and incompatible at the moment. Please wait for it to be updated by its author.");
+            public static string PluginBody_Outdated_Supported => Loc.Localize("InstallerOutdatedSupportedPluginBody", "This plugin is outdated. Please be patient, it is expected to be updated by its author eventually.");
+
+            public static string PluginBody_Outdated_Adoptable => Loc.Localize("InstallerOutdatedAdoptablePluginBody", "This plugin is outdated. It's been abandoned so won't be updated unless another developer adopts the plugin.");
+
+            public static string PluginBody_Outdated_Obsolete => Loc.Localize("InstallerOutdatedObsoletePluginBody", "This plugin is outdated. It's been replaced by another plugin or base game feature so won't be updated.");
+
+            public static string PluginBody_Outdated_Discontinued => Loc.Localize("InstallerOutdatedDiscontinuedPluginBody", "This plugin is outdated. It won't be updated as it is no longer compliant or the developer has decided to retire it.");
+
+            public static string PluginBody_MaintenanceOnly => Loc.Localize("InstallerMaintenanceOnlyPluginBody", "This plugin is considered stable and the developer is only supporting bug fixes at this time.");
 
             public static string PluginBody_Banned => Loc.Localize("InstallerBannedPluginBody ", "This plugin was automatically disabled due to incompatibilities and is not available at the moment. Please wait for it to be updated by its author.");
 
@@ -2302,6 +2386,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             public static string PluginButtonToolTip_VisitPluginUrl => Loc.Localize("InstallerVisitPluginUrl", "Visit plugin URL");
 
             public static string PluginButtonToolTip_UpdateSingle(string version) => Loc.Localize("InstallerUpdateSingle", "Update to {0}").Format(version);
+
 
             public static string PluginButtonToolTip_UnloadFailed => Loc.Localize("InstallerUnloadFailedTooltip", "Plugin unload failed, please restart your game and try again.");
 

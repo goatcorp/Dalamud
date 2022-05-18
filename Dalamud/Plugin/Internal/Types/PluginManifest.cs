@@ -159,4 +159,19 @@ internal record PluginManifest
     /// Gets a message that is shown to users when sending feedback.
     /// </summary>
     public string? FeedbackMessage { get; init; }
+
+    /// <summary>
+    /// Gets notice/warning to display for plugin (can be used where there is an issue but not ban worthy).
+    /// </summary>
+    public string Notice { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets developer support state.
+    /// </summary>
+    public DevSupportState DevSupportState { get; set; } = DevSupportState.Active;
+
+    /// <summary>
+    /// Gets or sets reason / comment for the current developer state.
+    /// </summary>
+    public string DevSupportStateReason { get; set; } = string.Empty;
 }

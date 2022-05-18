@@ -38,6 +38,7 @@ internal partial class PluginManager : IDisposable
     private readonly DirectoryInfo pluginDirectory;
     private readonly DirectoryInfo devPluginDirectory;
     private readonly BannedPlugin[] bannedPlugins;
+    private readonly PluginMetaData[] pluginMetaData;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PluginManager"/> class.
@@ -67,6 +68,18 @@ internal partial class PluginManager : IDisposable
 
         var bannedPluginsJson = File.ReadAllText(Path.Combine(startInfo.AssetDirectory, "UIRes", "bannedplugin.json"));
         this.bannedPlugins = JsonConvert.DeserializeObject<BannedPlugin[]>(bannedPluginsJson) ?? Array.Empty<BannedPlugin>();
+
+        try
+        {
+            var pluginMetaDataJson =
+                File.ReadAllText(Path.Combine(startInfo.AssetDirectory, "UIRes", "pluginmetadata.json"));
+            this.pluginMetaData = JsonConvert.DeserializeObject<PluginMetaData[]>(pluginMetaDataJson) ??
+                                  Array.Empty<PluginMetaData>();
+        }
+        catch (Exception)
+        {
+            this.pluginMetaData = Array.Empty<PluginMetaData>();
+        }
 
         this.ApplyPatches();
     }
@@ -954,6 +967,28 @@ internal partial class PluginManager : IDisposable
     public string GetBanReason(PluginManifest manifest)
     {
         return this.bannedPlugins.LastOrDefault(ban => ban.Name == manifest.InternalName).Reason;
+    }
+
+    /// <summary>
+    /// Get the plugin meta data.
+    /// If set in dalamud assets, this will take precedence. Otherwise, the plugin manifest is used.
+    /// </summary>
+    /// <param name="manifest">Manifest to inspect.</param>
+    /// <returns>Tuple with dev support state and reason.</returns>
+    public PluginMetaData GetMetaData(PluginManifest manifest)
+    {
+        var remoteMetaData = this.pluginMetaData.Where(data => data.Name == manifest.InternalName).ToList();
+        if (remoteMetaData.Any())
+        {
+            return remoteMetaData.First();
+        }
+
+        return new PluginMetaData
+        {
+            Notice = manifest.Notice,
+            DevSupportState = manifest.DevSupportState,
+            DevSupportStateReason = manifest.DevSupportStateReason,
+        };
     }
 
     private void DetectAvailablePluginUpdates()
