@@ -33,12 +33,31 @@ bool is_running_on_linux()
 bool is_veh_enabled()
 {
     size_t required_size;
-    getenv_s(&required_size, nullptr, 0, "DALAMUD_IS_STAGING");
+    getenv_s(&required_size, nullptr, 0, "DALAMUD_IS_VEH");
     if (required_size > 0)
     {
         if (char* is_no_veh = static_cast<char*>(malloc(required_size * sizeof(char))))
         {
-            getenv_s(&required_size, is_no_veh, required_size, "DALAMUD_IS_STAGING");
+            getenv_s(&required_size, is_no_veh, required_size, "DALAMUD_IS_VEH");
+            auto result = _stricmp(is_no_veh, "true");
+            free(is_no_veh);
+            if (result == 0)
+                return true;
+        }
+    }
+
+    return false;
+}
+
+bool is_full_dumps()
+{
+    size_t required_size;
+    getenv_s(&required_size, nullptr, 0, "DALAMUD_IS_VEH_FULL");
+    if (required_size > 0)
+    {
+        if (char* is_no_veh = static_cast<char*>(malloc(required_size * sizeof(char))))
+        {
+            getenv_s(&required_size, is_no_veh, required_size, "DALAMUD_IS_VEH_FULL");
             auto result = _stricmp(is_no_veh, "true");
             free(is_no_veh);
             if (result == 0)
@@ -91,7 +110,7 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam)
     }
     else if (is_veh_enabled())
     {
-        if (veh::add_handler())
+        if (veh::add_handler(is_full_dumps()))
             printf("Done!\n");
         else printf("Failed!\n");
     }

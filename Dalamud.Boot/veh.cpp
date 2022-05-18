@@ -2,6 +2,9 @@
 
 #include "veh.h"
 
+PVOID g_veh_handle = nullptr;
+bool g_veh_do_full_dump = false;
+
 bool is_whitelist_exception(const DWORD code)
 {
     switch (code)
@@ -251,8 +254,12 @@ LONG exception_handler(EXCEPTION_POINTERS* ex)
     ex_info.ExceptionPointers = ex;
     ex_info.ThreadId = GetCurrentThreadId();
 
+    auto miniDumpType = MiniDumpWithDataSegs;
+    if (g_veh_do_full_dump)
+        miniDumpType = MiniDumpWithFullMemory;
+
     HANDLE file = CreateFileW(dmp_path.c_str(), GENERIC_WRITE, FILE_SHARE_WRITE, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
-    MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), file, MiniDumpWithDataSegs, &ex_info, nullptr, nullptr);
+    MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), file, miniDumpType, &ex_info, nullptr, nullptr);
     CloseHandle(file);
     
     void* fn;
@@ -282,15 +289,15 @@ LONG exception_handler(EXCEPTION_POINTERS* ex)
     return EXCEPTION_CONTINUE_SEARCH;
 }
 
-
-PVOID g_veh_handle = nullptr;
-
-bool veh::add_handler()
+bool veh::add_handler(bool doFullDump)
 {
     if (g_veh_handle)
         return false;
     g_veh_handle = AddVectoredExceptionHandler(1, exception_handler);
     SetUnhandledExceptionFilter(nullptr);
+
+    g_veh_do_full_dump = doFullDump;
+
     return g_veh_handle != nullptr;
 }
 
