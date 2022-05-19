@@ -4,7 +4,7 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
-
+using Dalamud.Configuration.Internal;
 using Dalamud.Data;
 using Dalamud.Interface.Internal;
 using ImGuiNET;
@@ -315,23 +315,30 @@ namespace Dalamud.Interface.GameFonts
 
                     var font = io.Fonts.AddFontDefault(fontConfig);
 
-                    this.fonts[style] = font;
-                    foreach (var glyph in fdt.Glyphs)
+                    if (EnvironmentConfiguration.DalamudFontFallback)
                     {
-                        var c = glyph.Char;
-                        if (c < 32 || c >= 0xFFFF)
-                            continue;
+                        this.fonts[style] = InterfaceManager.MonoFont;
+                    }
+                    else
+                    {
+                        this.fonts[style] = font;
+                        foreach (var glyph in fdt.Glyphs)
+                        {
+                            var c = glyph.Char;
+                            if (c < 32 || c >= 0xFFFF)
+                                continue;
 
-                        var widthAdjustment = style.CalculateBaseWidthAdjustment(fdt, glyph);
-                        rectIds[c] = Tuple.Create(
-                            io.Fonts.AddCustomRectFontGlyph(
-                                font,
-                                c,
-                                glyph.BoundingWidth + widthAdjustment + 1,
-                                glyph.BoundingHeight + 1,
-                                glyph.AdvanceWidth,
-                                new Vector2(0, glyph.CurrentOffsetY)),
-                            glyph);
+                            var widthAdjustment = style.CalculateBaseWidthAdjustment(fdt, glyph);
+                            rectIds[c] = Tuple.Create(
+                                io.Fonts.AddCustomRectFontGlyph(
+                                    font,
+                                    c,
+                                    glyph.BoundingWidth + widthAdjustment + 1,
+                                    glyph.BoundingHeight + 1,
+                                    glyph.AdvanceWidth,
+                                    new Vector2(0, glyph.CurrentOffsetY)),
+                                glyph);
+                        }
                     }
                 }
 
