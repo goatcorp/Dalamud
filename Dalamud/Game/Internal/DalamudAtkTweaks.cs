@@ -9,6 +9,7 @@ using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Hooking;
+using Dalamud.Interface;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Windowing;
 using FFXIVClientStructs.FFXIV.Component.GUI;
@@ -90,8 +91,9 @@ namespace Dalamud.Game.Internal
         {
             var systemText = Service<DataManager>.Get().GetExcelSheet<Addon>()!.GetRow(1059)!.Text.RawString; // "System"
             var configuration = Service<DalamudConfiguration>.Get();
+            var interfaceManager = Service<InterfaceManager>.Get();
 
-            if (args.Title == systemText && configuration.DoButtonsSystemMenu)
+            if (args.Title == systemText && configuration.DoButtonsSystemMenu && interfaceManager.IsDispatchingEvents)
             {
                 var dalamudInterface = Service<DalamudInterface>.Get();
 
@@ -131,8 +133,9 @@ namespace Dalamud.Game.Internal
             }
 
             var configuration = Service<DalamudConfiguration>.Get();
+            var interfaceManager = Service<InterfaceManager>.Get();
 
-            if (!configuration.DoButtonsSystemMenu)
+            if (!configuration.DoButtonsSystemMenu || !interfaceManager.IsDispatchingEvents)
             {
                 this.hookAgentHudOpenSystemMenu.Original(thisPtr, atkValueArgs, menuSize);
                 return;
