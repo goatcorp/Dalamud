@@ -74,10 +74,19 @@ namespace Dalamud.Injector
                 };
 
                 var compatLayerPrev = Environment.GetEnvironmentVariable("__COMPAT_LAYER");
+                if (compatLayerPrev != null && !compatLayerPrev.Contains("RunAsInvoker"))
+                {
+                    Environment.SetEnvironmentVariable("__COMPAT_LAYER", $"RunAsInvoker {compatLayerPrev}");
+                }
+                else
+                {
+                    Environment.SetEnvironmentVariable("__COMPAT_LAYER", "RunAsInvoker");
+                }
 
-                Environment.SetEnvironmentVariable("__COMPAT_LAYER", "RunAsInvoker");
                 try
                 {
+                    Log.Information("Starting with __COMPAT_LAYER={CompatLayer}", Environment.GetEnvironmentVariable("__COMPAT_LAYER"));
+
                     if (!PInvoke.CreateProcess(
                             null,
                             $"\"{exePath}\" {arguments}",
