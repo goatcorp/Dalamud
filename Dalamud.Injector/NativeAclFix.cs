@@ -1,7 +1,9 @@
 using System;
+using System.Collections;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 
@@ -87,11 +89,20 @@ namespace Dalamud.Injector
 
                 try
                 {
-                    Log.Information("Starting with __COMPAT_LAYER={CompatLayer}", Environment.GetEnvironmentVariable("__COMPAT_LAYER"));
+                    var commandLine = $"\"{exePath}\" {arguments}";
+                    Log.Information("Starting with:");
+                    Log.Information("lpCommandLine: {CommandLine}", commandLine);
+                    Log.Information("lpCurrentDirectory: {CurrentDirectory}", workingDir);
+
+                    Log.Information("Environment:");
+                    foreach (var envVar in Environment.GetEnvironmentVariables().Cast<DictionaryEntry>())
+                    {
+                        Log.Information("\t{Key}={Value}", envVar.Key, envVar.Value);
+                    }
 
                     if (!PInvoke.CreateProcess(
                             null,
-                            $"\"{exePath}\" {arguments}",
+                            commandLine,
                             ref lpProcessAttributes,
                             IntPtr.Zero,
                             false,
