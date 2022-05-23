@@ -139,8 +139,9 @@ namespace Dalamud.Injector
                     }
                     while (TryFindGameWindow(process) == IntPtr.Zero);
                 }
-                catch (InvalidOperationException)
+                catch (InvalidOperationException ex)
                 {
+                    Log.Error(ex, "Failed to find game window");
                     throw new GameExitedException();
                 }
 
