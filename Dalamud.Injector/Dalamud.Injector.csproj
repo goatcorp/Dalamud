@@ -61,6 +61,7 @@
 
     <ItemGroup>
         <PackageReference Include="Iced" Version="1.13.0" />
+        <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="4.0.1" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
         <PackageReference Include="PeNet" Version="2.6.4" />
         <PackageReference Include="Reloaded.Memory" Version="4.1.1" />
