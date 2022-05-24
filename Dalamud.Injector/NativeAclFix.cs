@@ -1,6 +1,8 @@
 using System;
+using System.Collections;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 
@@ -126,8 +128,18 @@ public static class NativeAclFix
         };
 
         var compatLayerPrev = Environment.GetEnvironmentVariable("__COMPAT_LAYER");
-
         Environment.SetEnvironmentVariable("__COMPAT_LAYER", "RunAsInvoker");
+
+        Log.Debug($"Starting game process suspended:");
+        Log.Debug($"  lpApplicationName:  {exePath}");
+        Log.Debug($"  lpCommandLine:      {arguments}");
+        Log.Debug($"  lpCurrentDirectory: {workingDir}");
+        Log.Debug($"Environment:");
+        foreach (var env in Environment.GetEnvironmentVariables().Cast<DictionaryEntry>())
+        {
+            Log.Debug($"  {env.Key}={env.Value}");
+        }
+
         try
         {
             if (!CreateProcess(
