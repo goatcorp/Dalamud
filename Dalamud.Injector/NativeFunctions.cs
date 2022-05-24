@@ -164,6 +164,128 @@ internal static partial class NativeFunctions
 
     // winnt.h
     [StructLayout(LayoutKind.Sequential)]
+    public struct IMAGE_DOS_HEADER
+    {
+        public ushort e_magic;    // Magic number
+        public ushort e_cblp;     // Bytes on last page of file
+        public ushort e_cp;       // Pages in file
+        public ushort e_crlc;     // Relocations
+        public ushort e_cparhdr;  // Size of header in paragraphs
+        public ushort e_minalloc; // Minimum extra paragraphs needed
+        public ushort e_maxalloc; // Maximum extra paragraphs needed
+        public ushort e_ss;       // Initial (relative) SS value
+        public ushort e_sp;       // Initial SP value
+        public ushort e_csum;     // Checksum
+        public ushort e_ip;       // Initial IP value
+        public ushort e_cs;       // Initial (relative) CS value
+        public ushort e_lfarlc;   // File address of relocation table
+        public ushort e_ovno;     // Overlay number
+
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
+        public ushort[] e_res;    // Reserved words
+        public ushort e_oemid;    // OEM identifier (for e_oeminfo)
+        public ushort e_oeminfo;  // OEM information; e_oemid specific
+
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 10)]
+        public ushort[] e_res2;   // Reserved words
+        public int e_lfanew;      // File address of new exe header
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct IMAGE_NT_HEADERS64
+    {
+        public uint Signature;
+        public IMAGE_FILE_HEADER FileHeader;
+        public IMAGE_OPTIONAL_HEADER64 OptionalHeader;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct IMAGE_FILE_HEADER
+    {
+        public ushort Machine;
+        public ushort NumberOfSections;
+        public uint TimeDateStamp;
+        public uint PointerToSymbolTable;
+        public uint NumberOfSymbols;
+        public ushort SizeOfOptionalHeader;
+        public ushort Characteristics;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct IMAGE_OPTIONAL_HEADER64
+    {
+        public ushort Magic;
+        public byte MajorLinkerVersion;
+        public byte MinorLinkerVersion;
+        public uint SizeOfCode;
+        public uint SizeOfInitializedData;
+        public uint SizeOfUninitializedData;
+        public uint AddressOfEntryPoint;
+        public uint BaseOfCode;
+        public ulong ImageBase;
+        public uint SectionAlignment;
+        public uint FileAlignment;
+        public ushort MajorOperatingSystemVersion;
+        public ushort MinorOperatingSystemVersion;
+        public ushort MajorImageVersion;
+        public ushort MinorImageVersion;
+        public ushort MajorSubsystemVersion;
+        public ushort MinorSubsystemVersion;
+        public uint Win32VersionValue;
+        public uint SizeOfImage;
+        public uint SizeOfHeaders;
+        public uint CheckSum;
+        public ushort Subsystem;
+        public ushort DllCharacteristics;
+        public ulong SizeOfStackReserve;
+        public ulong SizeOfStackCommit;
+        public ulong SizeOfHeapReserve;
+        public ulong SizeOfHeapCommit;
+        public uint LoaderFlags;
+        public uint NumberOfRvaAndSizes;
+        public IMAGE_DATA_DIRECTORY ExportTable;
+        public IMAGE_DATA_DIRECTORY ImportTable;
+        public IMAGE_DATA_DIRECTORY ResourceTable;
+        public IMAGE_DATA_DIRECTORY ExceptionTable;
+        public IMAGE_DATA_DIRECTORY CertificateTable;
+        public IMAGE_DATA_DIRECTORY BaseRelocationTable;
+        public IMAGE_DATA_DIRECTORY Debug;
+        public IMAGE_DATA_DIRECTORY Architecture;
+        public IMAGE_DATA_DIRECTORY GlobalPtr;
+        public IMAGE_DATA_DIRECTORY TLSTable;
+        public IMAGE_DATA_DIRECTORY LoadConfigTable;
+        public IMAGE_DATA_DIRECTORY BoundImport;
+        public IMAGE_DATA_DIRECTORY IAT;
+        public IMAGE_DATA_DIRECTORY DelayImportDescriptor;
+        public IMAGE_DATA_DIRECTORY CLRRuntimeHeader;
+        public IMAGE_DATA_DIRECTORY Reserved;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct IMAGE_DATA_DIRECTORY
+    {
+        public uint VirtualAddress;
+        public uint Size;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct IMAGE_SECTION_HEADER
+    {
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 8)]
+        public byte[] Name;
+
+        public uint VirtualSize;
+        public uint VirtualAddress;
+        public uint SizeOfRawData;
+        public uint PointerToRawData;
+        public uint PointerToRelocations;
+        public uint PointerToLinenumbers;
+        public ushort NumberOfRelocations;
+        public ushort NumberOfLinenumbers;
+        public uint Characteristics;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
     public struct LUID
     {
         public uint LowPart;
@@ -175,6 +297,18 @@ internal static partial class NativeFunctions
     {
         public LUID Luid;
         public uint Attributes;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct MEMORY_BASIC_INFORMATION
+    {
+        public IntPtr BaseAddress;
+        public IntPtr AllocationBase;
+        public uint AllocationProtect;
+        public IntPtr RegionSize;
+        public uint State;
+        public uint Protect;
+        public uint Type;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -313,6 +447,38 @@ internal static partial class NativeFunctions
         int dwSize,
         out IntPtr lpNumberOfBytesRead);
 
+    [DllImport("kernel32.dll", EntryPoint = "ReadProcessMemory", SetLastError = true)]
+    public static extern bool ReadProcessMemoryT(
+        IntPtr hProcess,
+        IntPtr lpBaseAddress,
+        out IMAGE_DOS_HEADER lpBuffer,
+        int dwSize,
+        out IntPtr lpNumberOfBytesRead);
+
+    [DllImport("kernel32.dll", EntryPoint = "ReadProcessMemory", SetLastError = true)]
+    public static extern bool ReadProcessMemoryT(
+        IntPtr hProcess,
+        IntPtr lpBaseAddress,
+        out IMAGE_NT_HEADERS64 lpBuffer,
+        int dwSize,
+        out IntPtr lpNumberOfBytesRead);
+
+    [DllImport("kernel32.dll", EntryPoint = "ReadProcessMemory", SetLastError = true)]
+    public static extern bool ReadProcessMemoryT(
+        IntPtr hProcess,
+        IntPtr lpBaseAddress,
+        out IMAGE_OPTIONAL_HEADER64 lpBuffer,
+        int dwSize,
+        out IntPtr lpNumberOfBytesRead);
+
+    [DllImport("kernel32.dll", EntryPoint = "ReadProcessMemory", SetLastError = true)]
+    public static extern bool ReadProcessMemoryT(
+        IntPtr hProcess,
+        IntPtr lpBaseAddress,
+        out IMAGE_SECTION_HEADER lpBuffer,
+        int dwSize,
+        out IntPtr lpNumberOfBytesRead);
+
     [DllImport("kernel32.dll", SetLastError = true)]
     public static extern uint ResumeThread(IntPtr hThread);
 
@@ -343,6 +509,13 @@ internal static partial class NativeFunctions
         byte[] lpBuffer,
         int dwSize,
         out IntPtr lpNumberOfBytesWritten);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    public static extern int VirtualQueryEx(
+        IntPtr hProcess,
+        IntPtr lpAddress,
+        out MEMORY_BASIC_INFORMATION lpBuffer,
+        int dwLength);
 }
 
 /// <summary>

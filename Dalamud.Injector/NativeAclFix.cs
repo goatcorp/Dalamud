@@ -131,8 +131,8 @@ public static class NativeAclFix
         try
         {
             if (!CreateProcess(
-                    null,
-                    $"\"{exePath}\" {arguments}",
+                    exePath,
+                    arguments,
                     ref lpProcessAttributes,
                     IntPtr.Zero,
                     false,

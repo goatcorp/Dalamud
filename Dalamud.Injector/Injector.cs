@@ -1,13 +1,11 @@
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 
 using Iced.Intel;
-using PeNet;
 using PeNet.Header.Pe;
 using Reloaded.Memory.Buffers;
 using Reloaded.Memory.Sources;
@@ -52,9 +50,8 @@ internal sealed class Injector : IDisposable
         this.circularBuffer = new CircularBuffer(4096, this.extMemory);
         this.memoryBuffer = new MemoryBufferHelper(targetProcess).CreatePrivateMemoryBuffer(4096);
 
-        using var kernel32Module = this.GetProcessModule("KERNEL32.DLL");
-        var kernel32PeFile = new PeFile(kernel32Module.FileName);
-        var kernel32Exports = kernel32PeFile.ExportedFunctions;
+        using var kernel32Module = Util.GetProcessModule(this.targetProcess, "KERNEL32.DLL");
+        var kernel32Exports = Util.GetExportedFunctions(kernel32Module.FileName);
 
         this.SetupLoadLibrary(kernel32Module, kernel32Exports);
         this.SetupGetProcAddress(kernel32Module, kernel32Exports);
@@ -149,10 +146,10 @@ internal sealed class Injector : IDisposable
     /// <param name="kernel32Exports">The KERNEL32 exported functions.</param>
     private void SetupLoadLibrary(ProcessModule kernel32Module, ExportFunction[] kernel32Exports)
     {
-        var getLastErrorAddr = kernel32Module.BaseAddress + (int)this.GetExportedFunctionOffset(kernel32Exports, "GetLastError");
+        var getLastErrorAddr = Util.GetExportedFunctionAddress(kernel32Module, kernel32Exports, "GetLastError");
         Log.Verbose($"GetLastError:           0x{getLastErrorAddr.ToInt64():X}");
 
-        var functionAddr = kernel32Module.BaseAddress + (int)this.GetExportedFunctionOffset(kernel32Exports, "LoadLibraryW");
+        var functionAddr = Util.GetExportedFunctionAddress(kernel32Module, kernel32Exports, "LoadLibraryW");
         Log.Verbose($"LoadLibraryW:           0x{functionAddr.ToInt64():X}");
 
         var functionPtr = this.memoryBuffer.Add(ref functionAddr);
@@ -181,7 +178,7 @@ internal sealed class Injector : IDisposable
         asm.push(rax);                                  // push rax                      //
         asm.ret();                                      // ret                           // Jump to GetLastError.
 
-        var bytes = this.Assemble(asm);
+        var bytes = asm.AssembleBytes();
         this.loadLibraryShellPtr = this.memoryBuffer.Add(bytes);
         Log.Verbose($"LoadLibraryShellPtr:    0x{this.loadLibraryShellPtr.ToInt64():X}");
 
@@ -209,10 +206,10 @@ internal sealed class Injector : IDisposable
     /// <param name="kernel32Exports">The KERNEL32 exported functions.</param>
     private void SetupGetProcAddress(ProcessModule kernel32Module, ExportFunction[] kernel32Exports)
     {
-        var getLastErrorAddr = kernel32Module.BaseAddress + (int)this.GetExportedFunctionOffset(kernel32Exports, "GetLastError");
+        var getLastErrorAddr = kernel32Module.BaseAddress + (int)Util.GetExportedFunctionOffset(kernel32Exports, "GetLastError");
         Log.Verbose($"GetLastError:           0x{getLastErrorAddr.ToInt64():X}");
 
-        var offset = this.GetExportedFunctionOffset(kernel32Exports, "GetProcAddress");
+        var offset = Util.GetExportedFunctionOffset(kernel32Exports, "GetProcAddress");
         var functionAddr = kernel32Module.BaseAddress + (int)offset;
         Log.Verbose($"GetProcAddress:         0x{functionAddr.ToInt64():X}");
 
@@ -244,7 +241,7 @@ internal sealed class Injector : IDisposable
         asm.push(rax);                                   // push rax                       //
         asm.ret();                                       // ret                            // Jump to GetLastError.
 
-        var bytes = this.Assemble(asm);
+        var bytes = asm.AssembleBytes();
         this.getProcAddressShellPtr = this.memoryBuffer.Add(bytes);
         Log.Verbose($"GetProcAddressShellPtr: 0x{this.getProcAddressShellPtr.ToInt64():X}");
 
@@ -263,65 +260,6 @@ internal sealed class Injector : IDisposable
         this.extMemory.ReadRaw(this.getProcAddressShellPtr, out var outBytes, bytes.Length);
         Log.Verbose($"GetProcAddressShellPtr: {this.GetResultMarker(Enumerable.SequenceEqual(bytes, outBytes))}");
 #endif
-    }
-
-    /// <summary>
-    /// Assemble the instructions in the assembler into a sequence of bytes.
-    /// </summary>
-    /// <param name="assembler">Assembler.</param>
-    /// <returns>Assembly bytes.</returns>
-    private byte[] Assemble(Assembler assembler)
-    {
-        using var stream = new MemoryStream();
-        assembler.Assemble(new StreamCodeWriter(stream), 0);
-
-        stream.Position = 0;
-        var reader = new StreamCodeReader(stream);
-
-        int next;
-        var bytes = new byte[stream.Length];
-        while ((next = reader.ReadByte()) >= 0)
-        {
-            bytes[stream.Position - 1] = (byte)next;
-        }
-
-        return bytes;
-    }
-
-    /// <summary>
-    /// Get a process module with the given name.
-    /// </summary>
-    /// <param name="moduleName">Module name.</param>
-    /// <returns>The requested process module.</returns>
-    private ProcessModule GetProcessModule(string moduleName)
-    {
-        var modules = this.targetProcess.Modules;
-        for (var i = 0; i < modules.Count; i++)
-        {
-            var module = modules[i];
-            if (module.ModuleName.Equals(moduleName, StringComparison.InvariantCultureIgnoreCase))
-            {
-                return module;
-            }
-        }
-
-        throw new Exception($"Failed to find {moduleName} in target process' modules");
-    }
-
-    /// <summary>
-    /// Get the exported function offset by name.
-    /// </summary>
-    /// <param name="exportFunctions">The exported functions for a given DLL.</param>
-    /// <param name="functionName">The name of the exported function.</param>
-    /// <returns>The exported function offset.</returns>
-    private uint GetExportedFunctionOffset(ExportFunction[] exportFunctions, string functionName)
-    {
-        var exportFunction = exportFunctions.FirstOrDefault(func => func.Name == functionName);
-
-        if (exportFunction == default)
-            throw new Exception($"Failed to find exported function {functionName} in target module's exports");
-
-        return exportFunction.Address;
     }
 
     /// <summary>

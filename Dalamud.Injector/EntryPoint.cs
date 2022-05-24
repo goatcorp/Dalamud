@@ -46,15 +46,6 @@ public sealed class EntryPoint
     {
         var args = Environment.GetCommandLineArgs()[1..].ToList();
 
-        // List<string> args = new(argc);
-        //
-        // unsafe
-        // {
-        //     var argv = (IntPtr*)argvPtr;
-        //     for (var i = 0; i < argc; i++)
-        //         args.Add(Marshal.PtrToStringUni(argv[i]));
-        // }
-
         InitUnhandledException(args);
         InitLogging();
         InitWorkspace();
@@ -553,10 +544,15 @@ public sealed class EntryPoint
         {
             if (!withoutDalamud && mode == DalamudLoadMode.Entrypoint)
             {
-                if (RewriteRemoteEntryPointW(p.Handle, gamePath, startInfoJson) != 0)
+                try
                 {
-                    Log.Error("[HOOKS] RewriteRemoteEntryPointW failed");
-                    throw new Exception("RewriteRemoteEntryPointW failed");
+                    using var rewrite = new RewriteOriginalEntrypoint(p, false);
+                    rewrite.Rewrite(gamePath, startInfoJson);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error("[HOOKS] RewriteRemoteEntryPoint failed");
+                    throw new Exception("RewriteRemoteEntryPoint failed", ex);
                 }
             }
         });
@@ -716,9 +712,6 @@ public sealed class EntryPoint
         Log.Information("Done");
         return exitCode;
     }
-
-    [DllImport("Dalamud.Boot.dll")]
-    private static extern int RewriteRemoteEntryPointW(IntPtr hProcess, [MarshalAs(UnmanagedType.LPWStr)] string gamePath, [MarshalAs(UnmanagedType.LPWStr)] string loadInfoJson);
 
     /// <summary>
     /// Stdout from the "launch" command.
