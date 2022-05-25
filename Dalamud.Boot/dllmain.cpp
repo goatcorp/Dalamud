@@ -4,6 +4,25 @@
 
 HMODULE g_hModule;
 
+bool check_env_var(std::string name)
+{
+    size_t required_size;
+    getenv_s(&required_size, nullptr, 0, name.c_str());
+    if (required_size > 0)
+    {
+        if (char* is_no_veh = static_cast<char*>(malloc(required_size * sizeof(char))))
+        {
+            getenv_s(&required_size, is_no_veh, required_size, name.c_str());
+            auto result = _stricmp(is_no_veh, "true");
+            free(is_no_veh);
+            if (result == 0)
+                return true;
+        }
+    }
+
+    return false;
+}
+
 bool is_running_on_linux()
 {
     size_t required_size;
@@ -32,40 +51,12 @@ bool is_running_on_linux()
 
 bool is_veh_enabled()
 {
-    size_t required_size;
-    getenv_s(&required_size, nullptr, 0, "DALAMUD_IS_VEH");
-    if (required_size > 0)
-    {
-        if (char* is_no_veh = static_cast<char*>(malloc(required_size * sizeof(char))))
-        {
-            getenv_s(&required_size, is_no_veh, required_size, "DALAMUD_IS_VEH");
-            auto result = _stricmp(is_no_veh, "true");
-            free(is_no_veh);
-            if (result == 0)
-                return true;
-        }
-    }
-
-    return false;
+    return check_env_var("DALAMUD_IS_VEH");
 }
 
 bool is_full_dumps()
 {
-    size_t required_size;
-    getenv_s(&required_size, nullptr, 0, "DALAMUD_IS_VEH_FULL");
-    if (required_size > 0)
-    {
-        if (char* is_no_veh = static_cast<char*>(malloc(required_size * sizeof(char))))
-        {
-            getenv_s(&required_size, is_no_veh, required_size, "DALAMUD_IS_VEH_FULL");
-            auto result = _stricmp(is_no_veh, "true");
-            free(is_no_veh);
-            if (result == 0)
-                return true;
-        }
-    }
-
-    return false;
+    return check_env_var("DALAMUD_IS_VEH_FULL");
 }
 
 DllExport DWORD WINAPI Initialize(LPVOID lpParam)
@@ -75,6 +66,14 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam)
     #endif
 
     printf("Dalamud.Boot Injectable, (c) 2021 XIVLauncher Contributors\nBuilt at: %s@%s\n\n", __DATE__, __TIME__);
+
+    if (check_env_var("DALAMUD_WAIT_DEBUGGER"))
+    {
+        printf("Waiting for debugger to attach...\n");
+        while (!IsDebuggerPresent())
+            Sleep(100);
+        printf("Debugger attached.\n");
+    }
 
     wchar_t _module_path[MAX_PATH];
     GetModuleFileNameW(g_hModule, _module_path, sizeof _module_path / 2);
