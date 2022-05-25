@@ -1,7 +1,7 @@
 using System.Numerics;
+
 using Dalamud.Game.ClientState.Keys;
 using Dalamud.Game.Gui.Internal;
-using Dalamud.Interface.Colors;
 using Dalamud.Interface.Windowing;
 using ImGuiNET;
 

@@ -140,7 +140,7 @@ namespace Dalamud.Plugin
         /// <summary>
         /// Gets a value indicating whether Dalamud is running in Debug mode or the /xldev menu is open. This can occur on release builds.
         /// </summary>
-        public bool IsDevMenuOpen => Service<DalamudInterface>.GetNullable() is {IsDevMenuOpen: true}; // Can be null during boot
+        public bool IsDevMenuOpen => Service<DalamudInterface>.GetNullable() is { IsDevMenuOpen: true }; // Can be null during boot
 
         /// <summary>
         /// Gets a value indicating whether a debugger is attached.
