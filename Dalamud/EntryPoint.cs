@@ -212,7 +212,7 @@ namespace Dalamud
 
             var levelSwitch = new LoggingLevelSwitch(LogEventLevel.Verbose);
             Log.Logger = new LoggerConfiguration()
-                .WriteTo.Async(a => a.File(logPath))
+                .WriteTo.Async(a => a.File(logPath, fileSizeLimitBytes: null, buffered: false, flushToDiskInterval: TimeSpan.FromSeconds(1)))
                 .WriteTo.Sink(SerilogEventSink.Instance)
                 .MinimumLevel.ControlledBy(levelSwitch)
                 .CreateLogger();
