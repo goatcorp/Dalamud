@@ -108,14 +108,6 @@ namespace Dalamud
         /// <param name="info">The <see cref="DalamudStartInfo"/> containing information needed to initialize Dalamud.</param>
         private static void RunThread(DalamudStartInfo info)
         {
-            if (EnvironmentConfiguration.DalamudWaitForDebugger)
-            {
-                while (!Debugger.IsAttached)
-                {
-                    Thread.Sleep(100);
-                }
-            }
-
             // Setup logger
             var levelSwitch = InitLogging(info.WorkingDirectory);
 

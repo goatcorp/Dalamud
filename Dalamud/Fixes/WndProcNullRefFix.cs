@@ -1,6 +1,8 @@
 using System;
+
 using Dalamud.Game;
 using Dalamud.Hooking;
+using Dalamud.Memory;
 using Serilog;
 
 namespace Dalamud.Fixes;
@@ -12,28 +14,39 @@ namespace Dalamud.Fixes;
 /// </summary>
 internal class WndProcNullRefFix : IGameFix, IDisposable
 {
-    private AsmHook? wndProcHook;
+    private Hook<WndProcDelegate>? wndProcHook;
+
+    private IntPtr object1Address;
+    private IntPtr object2Address;
+
+    private delegate IntPtr WndProcDelegate(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
 
     /// <inheritdoc/>
     public void Apply()
     {
         var sigScanner = Service<SigScanner>.Get();
 
-        if (!sigScanner.TryScanText("E8 ?? ?? ?? ?? 48 83 38 00 74 14", out var patchAddress))
+        if (!sigScanner.TryScanText("40 55 53 41 54 41 56 48 8D 6C 24 ??", out var patchAddress))
         {
-            Log.Error("Failed to find WndProc patch address");
+            Log.Error("Failed to find WndProc address");
             return;
         }
 
-        Log.Information($"Applying WndProcNullRefFix at {patchAddress:X}");
-
-        var patchAsm = new byte[]
+        if (!sigScanner.TryGetStaticAddressFromSig("74 1F E8 ?? ?? ?? ?? 48 83 38 00 ", out this.object1Address))
         {
-            0x48, 0x85, 0xc0, // test rax, rax
-            0x74, 0x15, // jz +0x1A
-        };
+            Log.Error("Failed to find object1 address");
+            return;
+        }
 
-        this.wndProcHook = new AsmHook(patchAddress, patchAsm, "WndProcNullRefFix");
+        if (!sigScanner.TryGetStaticAddressFromSig("E8 ?? ?? ?? ?? 48 83 38 00 74 14", out this.object2Address, 0x7))
+        {
+            Log.Error("Failed to find object2 address");
+            return;
+        }
+
+        Log.Information($"Applying WndProcNullRefFix at {patchAddress:X} with o1 {this.object1Address:X}, o2 {this.object2Address:X}");
+
+        this.wndProcHook = new Hook<WndProcDelegate>(patchAddress, this.WndProcDetour);
         this.wndProcHook.Enable();
     }
 
@@ -41,5 +54,16 @@ internal class WndProcNullRefFix : IGameFix, IDisposable
     public void Dispose()
     {
         this.wndProcHook?.Dispose();
+    }
+
+    private IntPtr WndProcDetour(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam)
+    {
+        if (msg == 0x219 && wParam.ToInt64() == 7 && (MemoryHelper.Read<IntPtr>(this.object1Address) == IntPtr.Zero || MemoryHelper.Read<IntPtr>(this.object2Address) == IntPtr.Zero))
+        {
+            Log.Information("Filtered WM_DEVICE_CHANGE message");
+            return IntPtr.Zero;
+        }
+
+        return this.wndProcHook!.Original(hWnd, msg, wParam, lParam);
     }
 }
