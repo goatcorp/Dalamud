@@ -78,7 +78,7 @@ namespace Dalamud
 
             this.finishUnloadSignal = finishSignal;
             this.finishUnloadSignal.Reset();
-            
+
             this.mainThreadContinueEvent = mainThreadContinueEvent;
         }
 

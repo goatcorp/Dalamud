@@ -1,17 +1,12 @@
-
-
-#define BOOT_AGING
-
 using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Numerics;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
+
 using CheapLoc;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.ClientState.Conditions;
@@ -34,6 +29,7 @@ using ImGuiNET;
 using ImGuiScene;
 using PInvoke;
 using Serilog.Events;
+
 namespace Dalamud.Interface.Internal
 {
     /// <summary>
@@ -68,6 +64,10 @@ namespace Dalamud.Interface.Internal
         private bool isImGuiDrawDevMenu = true;
 #else
         private bool isImGuiDrawDevMenu = false;
+#endif
+
+#if BOOT_AGING
+        private bool signaledBoot = false;
 #endif
 
         private bool isImGuiDrawDemoWindow = false;
@@ -353,8 +353,6 @@ namespace Dalamud.Interface.Internal
         public void ToggleStyleEditorWindow() => this.selfTestWindow.Toggle();
 
         #endregion
-
-        private bool signaledBoot = false;
 
         private void OnDraw()
         {
