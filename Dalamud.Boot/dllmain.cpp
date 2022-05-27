@@ -59,7 +59,7 @@ bool is_full_dumps()
     return check_env_var("DALAMUD_IS_VEH_FULL");
 }
 
-DllExport DWORD WINAPI Initialize(LPVOID lpParam)
+DllExport DWORD WINAPI Initialize(LPVOID lpParam, HANDLE hMainThreadContinue)
 {
     #ifndef NDEBUG
     ConsoleSetup(L"Dalamud Boot");
@@ -97,7 +97,7 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam)
     if (result != 0)
         return result;
 
-    typedef void (CORECLR_DELEGATE_CALLTYPE* custom_component_entry_point_fn)(LPVOID);
+    typedef void (CORECLR_DELEGATE_CALLTYPE* custom_component_entry_point_fn)(LPVOID, HANDLE);
     custom_component_entry_point_fn entrypoint_fn = reinterpret_cast<custom_component_entry_point_fn>(entrypoint_vfn);
 
     // ============================== VEH ======================================== //
@@ -121,7 +121,7 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam)
     // ============================== Dalamud ==================================== //
 
     printf("Initializing Dalamud... ");
-    entrypoint_fn(lpParam);
+    entrypoint_fn(lpParam, hMainThreadContinue);
     printf("Done!\n");
 
     #ifndef NDEBUG

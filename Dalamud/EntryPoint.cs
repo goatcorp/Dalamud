@@ -29,7 +29,8 @@ namespace Dalamud
         /// A delegate used during initialization of the CLR from Dalamud.Boot.
         /// </summary>
         /// <param name="infoPtr">Pointer to a serialized <see cref="DalamudStartInfo"/> data.</param>
-        public delegate void InitDelegate(IntPtr infoPtr);
+        /// <param name="mainThreadContinueEvent">Event used to signal the main thread to continue.</param>
+        public delegate void InitDelegate(IntPtr infoPtr, IntPtr mainThreadContinueEvent);
 
         /// <summary>
         /// A delegate used from VEH handler on exception which CoreCLR will fast fail by default.
@@ -43,12 +44,13 @@ namespace Dalamud
         /// Initialize Dalamud.
         /// </summary>
         /// <param name="infoPtr">Pointer to a serialized <see cref="DalamudStartInfo"/> data.</param>
-        public static void Initialize(IntPtr infoPtr)
+        /// <param name="mainThreadContinueEvent">Event used to signal the main thread to continue.</param>
+        public static void Initialize(IntPtr infoPtr, IntPtr mainThreadContinueEvent)
         {
             var infoStr = Marshal.PtrToStringUTF8(infoPtr);
             var info = JsonConvert.DeserializeObject<DalamudStartInfo>(infoStr);
 
-            new Thread(() => RunThread(info)).Start();
+            new Thread(() => RunThread(info, mainThreadContinueEvent)).Start();
         }
 
         /// <summary>
@@ -106,7 +108,8 @@ namespace Dalamud
         /// Initialize all Dalamud subsystems and start running on the main thread.
         /// </summary>
         /// <param name="info">The <see cref="DalamudStartInfo"/> containing information needed to initialize Dalamud.</param>
-        private static void RunThread(DalamudStartInfo info)
+        /// <param name="mainThreadContinueEvent">Event used to signal the main thread to continue.</param>
+        private static void RunThread(DalamudStartInfo info, IntPtr mainThreadContinueEvent)
         {
             // Setup logger
             var levelSwitch = InitLogging(info.WorkingDirectory);
@@ -142,11 +145,12 @@ namespace Dalamud
                 if (!Util.IsLinux())
                     InitSymbolHandler(info);
 
-                var dalamud = new Dalamud(info, levelSwitch, finishSignal, configuration);
+                var dalamud = new Dalamud(info, levelSwitch, finishSignal, configuration, mainThreadContinueEvent);
                 Log.Information("Starting a session..");
 
                 // Run session
                 dalamud.LoadTier1();
+
                 dalamud.WaitForUnload();
 
                 dalamud.Dispose();

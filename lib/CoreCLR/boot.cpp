@@ -105,7 +105,7 @@ int InitializeClrAndGetEntryPoint(
         dotnet_path,
     };
 
-    printf("Loading coreclr... ");;
+    printf("Loading coreclr... ");
     if ((result = g_clr->load_runtime(runtimeconfig_path, &runtime_parameters)) != 0)
     {
         printf("\nError: Failed to load coreclr (err=%d)\n", result);

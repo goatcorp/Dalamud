@@ -49,6 +49,7 @@ namespace Dalamud
 
         private readonly ManualResetEvent unloadSignal;
         private readonly ManualResetEvent finishUnloadSignal;
+        private readonly IntPtr mainThreadContinueEvent;
         private MonoMod.RuntimeDetour.Hook processMonoHook;
         private bool hasDisposedPlugins = false;
 
@@ -61,7 +62,8 @@ namespace Dalamud
         /// <param name="loggingLevelSwitch">LoggingLevelSwitch to control Serilog level.</param>
         /// <param name="finishSignal">Signal signalling shutdown.</param>
         /// <param name="configuration">The Dalamud configuration.</param>
-        public Dalamud(DalamudStartInfo info, LoggingLevelSwitch loggingLevelSwitch, ManualResetEvent finishSignal, DalamudConfiguration configuration)
+        /// <param name="mainThreadContinueEvent">Event used to signal the main thread to continue.</param>
+        public Dalamud(DalamudStartInfo info, LoggingLevelSwitch loggingLevelSwitch, ManualResetEvent finishSignal, DalamudConfiguration configuration, IntPtr mainThreadContinueEvent)
         {
             this.ApplyProcessPatch();
 
@@ -76,6 +78,8 @@ namespace Dalamud
 
             this.finishUnloadSignal = finishSignal;
             this.finishUnloadSignal.Reset();
+            
+            this.mainThreadContinueEvent = mainThreadContinueEvent;
         }
 
         /// <summary>
@@ -106,6 +110,13 @@ namespace Dalamud
                 // Initialize game fixes
                 var gameFixes = Service<GameFixes>.Set();
                 gameFixes.Apply();
+
+                Log.Information("[T1] GameFixes OK!");
+
+                // Signal the main game thread to continue
+                NativeFunctions.SetEvent(this.mainThreadContinueEvent);
+
+                Log.Information("[T1] Game thread continued!");
 
                 // Initialize FFXIVClientStructs function resolver
                 FFXIVClientStructs.Resolver.Initialize();

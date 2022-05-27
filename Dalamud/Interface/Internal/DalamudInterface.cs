@@ -1,12 +1,17 @@
+
+
+#define BOOT_AGING
+
 using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Numerics;
 using System.Reflection;
 using System.Runtime.InteropServices;
-
+using System.Threading.Tasks;
 using CheapLoc;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.ClientState.Conditions;
@@ -29,7 +34,6 @@ using ImGuiNET;
 using ImGuiScene;
 using PInvoke;
 using Serilog.Events;
-
 namespace Dalamud.Interface.Internal
 {
     /// <summary>
@@ -350,9 +354,24 @@ namespace Dalamud.Interface.Internal
 
         #endregion
 
+        private bool signaledBoot = false;
+
         private void OnDraw()
         {
             this.frameCount++;
+
+#if BOOT_AGING
+            if (this.frameCount > 500 && !this.signaledBoot)
+            {
+                this.signaledBoot = true;
+
+                Task.Run(async () =>
+                {
+                    using var client = new HttpClient();
+                    await client.PostAsync("http://localhost:1415/aging/success", new StringContent(string.Empty));
+                });
+            }
+#endif
 
             try
             {

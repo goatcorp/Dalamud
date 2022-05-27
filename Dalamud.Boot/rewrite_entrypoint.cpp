@@ -1,6 +1,6 @@
 #include "pch.h"
 
-DllExport DWORD WINAPI Initialize(LPVOID lpParam);
+DllExport DWORD WINAPI Initialize(LPVOID lpParam, HANDLE hMainThreadContinue);
 
 struct RewrittenEntryPointParameters {
     void* pAllocation;
@@ -379,8 +379,9 @@ DllExport void WINAPI RewrittenEntryPoint(RewrittenEntryPointParameters& params)
     params.hMainThread = CreateThread(nullptr, 0, [](void* p) -> DWORD {
         try {
             std::string loadInfo;
+            auto& params = *reinterpret_cast<RewrittenEntryPointParameters*>(p);
             {
-                auto& params = *reinterpret_cast<RewrittenEntryPointParameters*>(p);
+                
 
                 // Restore original entry point.
                 // Use WriteProcessMemory instead of memcpy to avoid having to fiddle with VirtualProtect.
@@ -390,12 +391,12 @@ DllExport void WINAPI RewrittenEntryPoint(RewrittenEntryPointParameters& params)
                 loadInfo = params.pLoadInfo;
 
                 // Let the game initialize.
-                SetEvent(params.hMainThreadContinue);
+                //SetEvent(params.hMainThreadContinue);
             }
 
-            wait_for_game_window();
+            //wait_for_game_window();
 
-            Initialize(&loadInfo[0]);
+            Initialize(&loadInfo[0], params.hMainThreadContinue);
             return 0;
         } catch (const std::exception& e) {
             MessageBoxA(nullptr, std::format("Failed to load Dalamud.\n\nError: {}", e.what()).c_str(), "Dalamud.Boot", MB_OK | MB_ICONERROR);

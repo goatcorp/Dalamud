@@ -46,8 +46,10 @@ internal class WndProcNullRefFix : IGameFix, IDisposable
 
         Log.Information($"Applying WndProcNullRefFix at {patchAddress:X} with o1 {this.object1Address:X}, o2 {this.object2Address:X}");
 
-        this.wndProcHook = new Hook<WndProcDelegate>(patchAddress, this.WndProcDetour);
+        this.wndProcHook = new Hook<WndProcDelegate>(patchAddress, this.WndProcDetour, true);
+        Log.Information("Set up hook");
         this.wndProcHook.Enable();
+        Log.Information("Enabled hook");
     }
 
     /// <inheritdoc/>
