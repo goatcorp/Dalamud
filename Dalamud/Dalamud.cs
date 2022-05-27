@@ -99,6 +99,8 @@ namespace Dalamud
         {
             try
             {
+                ThreadSafety.MarkMainThread();
+
                 SerilogEventSink.Instance.LogLine += SerilogOnLogLine;
 
                 Service<ServiceContainer>.Set();
@@ -115,7 +117,6 @@ namespace Dalamud
 
                 // Signal the main game thread to continue
                 NativeFunctions.SetEvent(this.mainThreadContinueEvent);
-
                 Log.Information("[T1] Game thread continued!");
 
                 // Initialize FFXIVClientStructs function resolver
