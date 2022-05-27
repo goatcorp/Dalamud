@@ -21,6 +21,7 @@ using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.Style;
 using Dalamud.Interface.Windowing;
 using Dalamud.Utility;
+using Dalamud.Utility.Timing;
 using ImGuiNET;
 using ImGuiScene;
 using PInvoke;
@@ -633,6 +634,8 @@ namespace Dalamud.Interface.Internal
         /// <param name="disableBigFonts">If set, then glyphs will be loaded in smaller resolution to make all glyphs fit into given constraints.</param>
         private unsafe void SetupFonts(bool disableBigFonts = false)
         {
+            using var setupFontsTimings = Timings.Start("IM SetupFonts");
+
             var gameFontManager = Service<GameFontManager>.Get();
             var dalamud = Service<Dalamud>.Get();
             var io = ImGui.GetIO();

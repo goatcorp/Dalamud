@@ -27,6 +27,7 @@ using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Ipc.Internal;
 using Dalamud.Support;
 using Dalamud.Utility;
+using Dalamud.Utility.Timing;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
@@ -97,10 +98,10 @@ namespace Dalamud
         /// </summary>
         public void LoadTier1()
         {
+            using var tier1Timing = Timings.Start("Tier 1 Init");
+
             try
             {
-                ThreadSafety.MarkMainThread();
-
                 SerilogEventSink.Instance.LogLine += SerilogOnLogLine;
 
                 Service<ServiceContainer>.Set();
@@ -112,7 +113,6 @@ namespace Dalamud
                 // Initialize game fixes
                 var gameFixes = Service<GameFixes>.Set();
                 gameFixes.Apply();
-
                 Log.Information("[T1] GameFixes OK!");
 
                 // Signal the main game thread to continue
@@ -120,8 +120,11 @@ namespace Dalamud
                 Log.Information("[T1] Game thread continued!");
 
                 // Initialize FFXIVClientStructs function resolver
-                FFXIVClientStructs.Resolver.Initialize();
-                Log.Information("[T1] FFXIVClientStructs initialized!");
+                using (Timings.Start("FFXIVClientStructs Resolver Init"))
+                {
+                    FFXIVClientStructs.Resolver.Initialize();
+                    Log.Information("[T1] FFXIVClientStructs initialized!");
+                }
 
                 // Initialize game subsystem
                 var framework = Service<Framework>.Set();
@@ -151,6 +154,11 @@ namespace Dalamud
         /// <returns>Whether or not the load succeeded.</returns>
         public bool LoadTier2()
         {
+            // This marks the first time we are actually on the game's main thread
+            ThreadSafety.MarkMainThread();
+
+            using var tier2Timing = Timings.Start("Tier 2 Init");
+
             try
             {
                 var configuration = Service<DalamudConfiguration>.Get();
@@ -252,33 +260,48 @@ namespace Dalamud
         /// <returns>Whether or not the load succeeded.</returns>
         public bool LoadTier3()
         {
+            using var tier3Timing = Timings.Start("Tier 3 Init");
+
+            ThreadSafety.AssertMainThread();
+
             try
             {
                 Log.Information("[T3] START!");
 
                 Service<TitleScreenMenu>.Set();
 
-                var pluginManager = Service<PluginManager>.Set();
-                Service<CallGate>.Set();
-
-                Log.Information("[T3] PM OK!");
+                PluginManager pluginManager;
+                using (Timings.Start("PM Init"))
+                {
+                    pluginManager = Service<PluginManager>.Set();
+                    Service<CallGate>.Set();
+                    Log.Information("[T3] PM OK!");
+                }
 
                 Service<DalamudInterface>.Set();
                 Log.Information("[T3] DUI OK!");
 
                 try
                 {
-                    _ = pluginManager.SetPluginReposFromConfigAsync(false);
+                    using (Timings.Start("PM Load Plugin Repos"))
+                    {
+                        _ = pluginManager.SetPluginReposFromConfigAsync(false);
+                        pluginManager.OnInstalledPluginsChanged += Troubleshooting.LogTroubleshooting;
 
-                    pluginManager.OnInstalledPluginsChanged += Troubleshooting.LogTroubleshooting;
+                        Log.Information("[T3] PM repos OK!");
+                    }
 
-                    Log.Information("[T3] Sync plugins OK!");
+                    using (Timings.Start("PM Cleanup Plugins"))
+                    {
+                        pluginManager.CleanupPlugins();
+                        Log.Information("[T3] PMC OK!");
+                    }
 
-                    pluginManager.CleanupPlugins();
-                    Log.Information("[T3] PMC OK!");
-
-                    pluginManager.LoadAllPlugins();
-                    Log.Information("[T3] PML OK!");
+                    using (Timings.Start("PM Load Sync Plugins"))
+                    {
+                        pluginManager.LoadAllPlugins();
+                        Log.Information("[T3] PML OK!");
+                    }
                 }
                 catch (Exception ex)
                 {
