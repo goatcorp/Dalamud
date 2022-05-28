@@ -17,6 +17,7 @@
 #include <Psapi.h>
 #include <Shlobj.h>
 #include <TlHelp32.h>
+#include <Dbt.h>
 
 // C++ Standard Libraries
 #include <cassert>
@@ -24,8 +25,14 @@
 #include <filesystem>
 #include <format>
 #include <fstream>
+#include <functional>
+#include <ranges>
 #include <span>
 #include <mutex>
+#include <type_traits>
+
+// https://www.akenotsuki.com/misc/srell/en/
+#include "srell.h"
 
 // https://github.com/dotnet/coreclr
 #include "..\lib\CoreCLR\CoreCLR.h"
@@ -36,6 +43,7 @@
 
 // Global variables
 extern HMODULE g_hModule;
+extern HINSTANCE g_hGameInstance;
 extern std::optional<CoreCLR> g_clr;
 
 #endif //PCH_H

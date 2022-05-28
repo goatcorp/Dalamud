@@ -1,17 +1,16 @@
 #include "pch.h"
 
+#include "budget_hooks.h"
 #include "veh.h"
 
 HMODULE g_hModule;
+HINSTANCE g_hGameInstance = GetModuleHandleW(nullptr);
 
-bool check_env_var(std::string name)
-{
+bool check_env_var(std::string name) {
     size_t required_size;
     getenv_s(&required_size, nullptr, 0, name.c_str());
-    if (required_size > 0)
-    {
-        if (char* is_no_veh = static_cast<char*>(malloc(required_size * sizeof(char))))
-        {
+    if (required_size > 0) {
+        if (char* is_no_veh = static_cast<char*>(malloc(required_size * sizeof(char)))) {
             getenv_s(&required_size, is_no_veh, required_size, name.c_str());
             auto result = _stricmp(is_no_veh, "true");
             free(is_no_veh);
@@ -23,14 +22,11 @@ bool check_env_var(std::string name)
     return false;
 }
 
-bool is_running_on_linux()
-{
+bool is_running_on_linux() {
     size_t required_size;
     getenv_s(&required_size, nullptr, 0, "XL_WINEONLINUX");
-    if (required_size > 0)
-    {
-        if (char* is_wine_on_linux = static_cast<char*>(malloc(required_size * sizeof(char))))
-        {
+    if (required_size > 0) {
+        if (char* is_wine_on_linux = static_cast<char*>(malloc(required_size * sizeof(char)))) {
             getenv_s(&required_size, is_wine_on_linux, required_size, "XL_WINEONLINUX");
             auto result = _stricmp(is_wine_on_linux, "true");
             free(is_wine_on_linux);
@@ -49,26 +45,27 @@ bool is_running_on_linux()
     return pwine_get_version != nullptr || pwine_get_host_version != nullptr;
 }
 
-bool is_veh_enabled()
-{
+bool is_veh_enabled() {
     return check_env_var("DALAMUD_IS_VEH");
 }
 
-bool is_full_dumps()
-{
+bool is_full_dumps() {
     return check_env_var("DALAMUD_IS_VEH_FULL");
 }
 
-DllExport DWORD WINAPI Initialize(LPVOID lpParam, HANDLE hMainThreadContinue)
-{
-    #ifndef NDEBUG
+DllExport DWORD WINAPI Initialize(LPVOID lpParam, HANDLE hMainThreadContinue) {
+#ifndef NDEBUG
     ConsoleSetup(L"Dalamud Boot");
-    #endif
+#endif
+    try {
+        budget_hooks::fixes::apply_all(true);
+    } catch (const std::exception& e) {
+        MessageBoxA(nullptr, e.what(), e.what(), MB_OK);
+    }
 
     printf("Dalamud.Boot Injectable, (c) 2021 XIVLauncher Contributors\nBuilt at: %s@%s\n\n", __DATE__, __TIME__);
 
-    if (check_env_var("DALAMUD_WAIT_DEBUGGER"))
-    {
+    if (check_env_var("DALAMUD_WAIT_DEBUGGER")) {
         printf("Waiting for debugger to attach...\n");
         while (!IsDebuggerPresent())
             Sleep(100);
@@ -103,18 +100,13 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam, HANDLE hMainThreadContinue)
     // ============================== VEH ======================================== //
 
     printf("Initializing VEH... ");
-    if(is_running_on_linux())
-    {
+    if (is_running_on_linux()) {
         printf("VEH was disabled, running on linux\n");
-    }
-    else if (is_veh_enabled())
-    {
+    } else if (is_veh_enabled()) {
         if (veh::add_handler(is_full_dumps()))
             printf("Done!\n");
         else printf("Failed!\n");
-    }
-    else
-    {
+    } else {
         printf("VEH was disabled manually\n");
     }
 
@@ -124,12 +116,12 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam, HANDLE hMainThreadContinue)
     entrypoint_fn(lpParam, hMainThreadContinue);
     printf("Done!\n");
 
-    #ifndef NDEBUG
+#ifndef NDEBUG
     fclose(stdin);
     fclose(stdout);
     fclose(stderr);
     FreeConsole();
-    #endif
+#endif
 
     return 0;
 }
@@ -137,12 +129,12 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam, HANDLE hMainThreadContinue)
 BOOL APIENTRY DllMain(const HMODULE hModule, const DWORD dwReason, LPVOID lpReserved) {
     DisableThreadLibraryCalls(hModule);
 
-    switch (dwReason)
-    {
+    switch (dwReason) {
         case DLL_PROCESS_ATTACH:
             g_hModule = hModule;
             break;
         case DLL_PROCESS_DETACH:
+            budget_hooks::fixes::apply_all(false);
             veh::remove_handler();
             break;
     }

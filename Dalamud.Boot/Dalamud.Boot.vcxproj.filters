@@ -28,6 +28,9 @@
     <ClCompile Include="..\lib\CoreCLR\boot.cpp">
       <Filter>CoreCLR</Filter>
     </ClCompile>
+    <ClCompile Include="budget_hooks.cpp">
+      <Filter>Dalamud.Boot DLL</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\lib\CoreCLR\CoreCLR.h">
@@ -49,6 +52,12 @@
       <Filter>Dalamud.Boot DLL</Filter>
     </ClInclude>
     <ClInclude Include="pch.h">
+      <Filter>Dalamud.Boot DLL</Filter>
+    </ClInclude>
+    <ClInclude Include="budget_hooks.h">
+      <Filter>Dalamud.Boot DLL</Filter>
+    </ClInclude>
+    <ClInclude Include="srell.h">
       <Filter>Dalamud.Boot DLL</Filter>
     </ClInclude>
   </ItemGroup>
