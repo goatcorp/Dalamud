@@ -88,16 +88,20 @@
     <ResourceCompile Include="resources.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\Dalamud.Boot\logging.cpp" />
+    <ClCompile Include="..\Dalamud.Boot\unicode.cpp" />
     <ClCompile Include="..\lib\CoreCLR\boot.cpp" />
     <ClCompile Include="..\lib\CoreCLR\CoreCLR.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\Dalamud.Boot\logging.h" />
+    <ClInclude Include="..\Dalamud.Boot\unicode.h" />
     <ClInclude Include="..\lib\CoreCLR\CoreCLR.h" />
     <ClInclude Include="..\lib\CoreCLR\core\coreclr_delegates.h" />
     <ClInclude Include="..\lib\CoreCLR\core\hostfxr.h" />
     <ClInclude Include="..\lib\CoreCLR\nethost\nethost.h" />
-    <ClInclude Include="..\lib\CoreCLR\pch.h" />
+    <ClInclude Include="pch.h" />
   </ItemGroup>
   <Target Name="RemoveExtraFiles" AfterTargets="PostBuildEvent">
     <Delete Files="$(OutDir)$(TargetName).lib" />

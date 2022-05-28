@@ -34,11 +34,14 @@
     <ClCompile Include="..\lib\CoreCLR\CoreCLR.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\Dalamud.Boot\logging.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dalamud.Boot\unicode.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\lib\CoreCLR\pch.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\lib\CoreCLR\CoreCLR.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -49,6 +52,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\lib\CoreCLR\core\coreclr_delegates.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dalamud.Boot\logging.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="pch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dalamud.Boot\unicode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

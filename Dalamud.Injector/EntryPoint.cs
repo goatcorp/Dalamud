@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -324,7 +325,7 @@ namespace Dalamud.Injector
                 Console.WriteLine("{0} help [command]", exeName);
 
             if (particularCommand is null or "inject")
-                Console.WriteLine("{0} inject [-h/--help] [-a/--all] [--warn] [pid1] [pid2] [pid3] ...", exeName);
+                Console.WriteLine("{0} inject [-h/--help] [-a/--all] [--warn] [--fix-acl] [--se-debug-privilege] [pid1] [pid2] [pid3] ...", exeName);
 
             if (particularCommand is null or "launch")
             {
@@ -332,7 +333,7 @@ namespace Dalamud.Injector
                 Console.WriteLine("{0}        [-g path/to/ffxiv_dx11.exe] [--game=path/to/ffxiv_dx11.exe]", exeSpaces);
                 Console.WriteLine("{0}        [-m entrypoint|inject] [--mode=entrypoint|inject]", exeSpaces);
                 Console.WriteLine("{0}        [--handle-owner=inherited-handle-value]", exeSpaces);
-                Console.WriteLine("{0}        [--without-dalamud]", exeSpaces);
+                Console.WriteLine("{0}        [--without-dalamud] [--no-fix-acl]", exeSpaces);
                 Console.WriteLine("{0}        [-- game_arg1=value1 game_arg2=value2 ...]", exeSpaces);
             }
 
@@ -351,6 +352,8 @@ namespace Dalamud.Injector
             var targetProcessSpecified = false;
             var warnManualInjection = false;
             var showHelp = args.Count <= 2;
+            var tryFixAcl = false;
+            var tryClaimSeDebugPrivilege = false;
 
             for (var i = 2; i < args.Count; i++)
             {
@@ -377,6 +380,14 @@ namespace Dalamud.Injector
                 {
                     targetProcessSpecified = true;
                     processes.AddRange(Process.GetProcessesByName("ffxiv_dx11"));
+                }
+                else if (args[i] == "--fix-acl" || args[i] == "--acl-fix")
+                {
+                    tryFixAcl = true;
+                }
+                else if (args[i] == "--se-debug-privilege")
+                {
+                    tryClaimSeDebugPrivilege = true;
                 }
                 else if (args[i] == "--warn")
                 {
@@ -416,8 +427,21 @@ namespace Dalamud.Injector
                 }
             }
 
+            if (tryClaimSeDebugPrivilege)
+            {
+                try
+                {
+                    NativeAclFix.ClaimSeDebug();
+                    Log.Information("SeDebugPrivilege claimed.");
+                }
+                catch (Win32Exception e2)
+                {
+                    Log.Warning(e2, "Failed to claim SeDebugPrivilege");
+                }
+            }
+
             foreach (var process in processes)
-                Inject(process, AdjustStartInfo(dalamudStartInfo, process.MainModule.FileName));
+                Inject(process, AdjustStartInfo(dalamudStartInfo, process.MainModule.FileName), tryFixAcl);
 
             return 0;
         }
@@ -431,6 +455,7 @@ namespace Dalamud.Injector
             var showHelp = args.Count <= 2;
             var handleOwner = IntPtr.Zero;
             var withoutDalamud = false;
+            var noFixAcl = false;
 
             var parsingGameArgument = false;
             for (var i = 2; i < args.Count; i++)
@@ -447,6 +472,8 @@ namespace Dalamud.Injector
                     useFakeArguments = true;
                 else if (args[i] == "--without-dalamud")
                     withoutDalamud = true;
+                else if (args[i] == "--no-fix-acl" || args[i] == "--no-acl-fix")
+                    noFixAcl = true;
                 else if (args[i] == "-g")
                     gamePath = args[++i];
                 else if (args[i].StartsWith("--game="))
@@ -547,7 +574,7 @@ namespace Dalamud.Injector
             }
 
             var gameArgumentString = string.Join(" ", gameArguments.Select(x => EncodeParameterArgument(x)));
-            var process = NativeAclFix.LaunchGame(Path.GetDirectoryName(gamePath), gamePath, gameArgumentString, (Process p) =>
+            var process = NativeAclFix.LaunchGame(Path.GetDirectoryName(gamePath), gamePath, gameArgumentString, noFixAcl, (Process p) =>
             {
                 if (!withoutDalamud && mode == "entrypoint")
                 {
@@ -565,7 +592,7 @@ namespace Dalamud.Injector
             {
                 var startInfo = AdjustStartInfo(dalamudStartInfo, gamePath);
                 Log.Information("Using start info: {0}", JsonConvert.SerializeObject(startInfo));
-                Inject(process, startInfo);
+                Inject(process, startInfo, false);
             }
 
             var processHandleForOwner = IntPtr.Zero;
@@ -647,8 +674,20 @@ namespace Dalamud.Injector
             };
         }
 
-        private static void Inject(Process process, DalamudStartInfo startInfo)
+        private static void Inject(Process process, DalamudStartInfo startInfo, bool tryFixAcl = false)
         {
+            if (tryFixAcl)
+            {
+                try
+                {
+                    NativeAclFix.CopyAclFromSelfToTargetProcess(process.SafeHandle.DangerousGetHandle());
+                }
+                catch (Win32Exception e1)
+                {
+                    Log.Warning(e1, "Failed to copy ACL");
+                }
+            }
+
             var bootName = "Dalamud.Boot.dll";
             var bootPath = Path.GetFullPath(bootName);
 

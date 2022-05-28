@@ -3,12 +3,14 @@
 #include <filesystem>
 #include <Windows.h>
 #include <shellapi.h>
+#include "..\Dalamud.Boot\logging.h"
 #include "..\lib\CoreCLR\CoreCLR.h"
 #include "..\lib\CoreCLR\boot.h"
 
 int wmain(int argc, wchar_t** argv)
 {
-    printf("Dalamud.Injector, (c) 2021 XIVLauncher Contributors\nBuilt at: %s@%s\n\n", __DATE__, __TIME__);
+    logging::print<logging::I>("Dalamud Injector, (c) 2021 XIVLauncher Contributors");
+    logging::print<logging::I>("Built at : " __DATE__ "@" __TIME__);
 
     wchar_t _module_path[MAX_PATH];
     GetModuleFileNameW(NULL, _module_path, sizeof _module_path / 2);
@@ -35,9 +37,9 @@ int wmain(int argc, wchar_t** argv)
     typedef void (CORECLR_DELEGATE_CALLTYPE* custom_component_entry_point_fn)(int, wchar_t**);
     custom_component_entry_point_fn entrypoint_fn = reinterpret_cast<custom_component_entry_point_fn>(entrypoint_vfn);
 
-    printf("Running Dalamud Injector...\n");
+    logging::print<logging::I>("Running Dalamud Injector...");
     entrypoint_fn(argc, argv);
-    printf("Done!\n");
+    logging::print<logging::I>("Done!");
 
     return 0;
 }
