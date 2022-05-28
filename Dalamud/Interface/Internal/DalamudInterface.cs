@@ -54,6 +54,7 @@ namespace Dalamud.Interface.Internal
         private readonly StyleEditorWindow styleEditorWindow;
         private readonly TitleScreenMenuWindow titleScreenMenuWindow;
         private readonly FallbackFontNoticeWindow fallbackFontNoticeWindow;
+        private readonly ProfilerWindow profilerWindow;
 
         private readonly TextureWrap logoTexture;
         private readonly TextureWrap tsmLogoTexture;
@@ -99,6 +100,7 @@ namespace Dalamud.Interface.Internal
             this.styleEditorWindow = new StyleEditorWindow() { IsOpen = false };
             this.titleScreenMenuWindow = new TitleScreenMenuWindow() { IsOpen = false };
             this.fallbackFontNoticeWindow = new FallbackFontNoticeWindow() { IsOpen = interfaceManager.IsFallbackFontMode && !configuration.DisableFontFallbackNotice };
+            this.profilerWindow = new ProfilerWindow() { IsOpen = false };
 
             this.WindowSystem.AddWindow(this.changelogWindow);
             this.WindowSystem.AddWindow(this.colorDemoWindow);
@@ -115,6 +117,7 @@ namespace Dalamud.Interface.Internal
             this.WindowSystem.AddWindow(this.styleEditorWindow);
             this.WindowSystem.AddWindow(this.titleScreenMenuWindow);
             this.WindowSystem.AddWindow(this.fallbackFontNoticeWindow);
+            this.WindowSystem.AddWindow(this.profilerWindow);
 
             ImGuiManagedAsserts.AssertsEnabled = configuration.AssertsEnabledAtStartup;
             this.isImGuiDrawDevMenu = this.isImGuiDrawDevMenu || configuration.DevBarOpenAtStartup;
@@ -260,6 +263,11 @@ namespace Dalamud.Interface.Internal
         /// Opens the <see cref="StyleEditorWindow"/>.
         /// </summary>
         public void OpenStyleEditor() => this.styleEditorWindow.IsOpen = true;
+        
+        /// <summary>
+        /// Opens the <see cref="ProfilerWindow>"/>.
+        /// </summary>
+        public void OpenProfiler() => this.profilerWindow.IsOpen = true;
 
         #endregion
 
@@ -351,6 +359,11 @@ namespace Dalamud.Interface.Internal
         /// Toggles the <see cref="StyleEditorWindow"/>.
         /// </summary>
         public void ToggleStyleEditorWindow() => this.selfTestWindow.Toggle();
+        
+        /// <summary>
+        /// Toggles the <see cref="ProfilerWindow"/>.
+        /// </summary>
+        public void ToggleProfilerWindow() => this.profilerWindow.Toggle();
 
         #endregion
 
@@ -541,6 +554,11 @@ namespace Dalamud.Interface.Internal
                         if (ImGui.MenuItem("Open Style Editor"))
                         {
                             this.OpenStyleEditor();
+                        }
+
+                        if (ImGui.MenuItem("Open Profiler"))
+                        {
+                            this.OpenProfiler();
                         }
 
                         ImGui.Separator();
