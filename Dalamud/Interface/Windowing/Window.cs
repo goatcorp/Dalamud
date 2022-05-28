@@ -65,7 +65,7 @@ namespace Dalamud.Interface.Windowing
         public ImGuiCond PositionCondition { get; set; }
 
         /// <summary>
-        /// Gets or sets the size of the window.
+        /// Gets or sets the size of the window. The size provided will be scaled by the global scale.
         /// </summary>
         public Vector2? Size { get; set; }
 
@@ -75,7 +75,7 @@ namespace Dalamud.Interface.Windowing
         public ImGuiCond SizeCondition { get; set; }
 
         /// <summary>
-        /// Gets or sets the size constraints of the window.
+        /// Gets or sets the size constraints of the window. The size constraints provided will be scaled by the global scale.
         /// </summary>
         public WindowSizeConstraints? SizeConstraints { get; set; }
 
