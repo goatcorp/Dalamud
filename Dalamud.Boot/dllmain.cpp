@@ -1,8 +1,8 @@
 #include "pch.h"
 
 #include "bootconfig.h"
-#include "hooks.h"
 #include "veh.h"
+#include "xivfixes.h"
 
 HMODULE g_hModule;
 HINSTANCE g_hGameInstance = GetModuleHandleW(nullptr);

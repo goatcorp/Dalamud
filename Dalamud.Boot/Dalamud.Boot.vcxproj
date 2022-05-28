@@ -123,6 +123,7 @@
     <ClInclude Include="utils.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="veh.h" />
+    <ClInclude Include="xivfixes.h" />
   </ItemGroup>
   <Target Name="RemoveExtraFiles" AfterTargets="PostBuildEvent">
     <Delete Files="$(OutDir)$(TargetName).lib" />

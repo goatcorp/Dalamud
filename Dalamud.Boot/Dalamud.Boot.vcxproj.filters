@@ -78,5 +78,8 @@
     <ClInclude Include="bootconfig.h">
       <Filter>Dalamud.Boot DLL</Filter>
     </ClInclude>
+    <ClInclude Include="xivfixes.h">
+      <Filter>Dalamud.Boot DLL</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,7 +1,9 @@
 #include "pch.h"
 
-#include "utils.h"
+#include "xivfixes.h"
+
 #include "hooks.h"
+#include "utils.h"
 
 using TFnGetInputDeviceManager = void* ();
 static TFnGetInputDeviceManager* GetGetInputDeviceManager(HWND hwnd) {
