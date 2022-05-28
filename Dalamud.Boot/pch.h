@@ -30,8 +30,10 @@
 #include <format>
 #include <fstream>
 #include <functional>
+#include <iostream>
 #include <ranges>
 #include <span>
+#include <string>
 #include <mutex>
 #include <type_traits>
 
@@ -44,6 +46,8 @@
 // https://github.com/dotnet/coreclr
 #include "../lib/CoreCLR/CoreCLR.h"
 #include "../lib/CoreCLR/boot.h"
+
+#include "unicode.h"
 
 // Commonly used macros
 #define DllExport extern "C" __declspec(dllexport)
