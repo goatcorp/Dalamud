@@ -7,7 +7,6 @@ using System.Threading;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Data;
-using Dalamud.Fixes;
 using Dalamud.Game;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.Command;
@@ -109,11 +108,6 @@ namespace Dalamud
                 // Initialize the process information.
                 Service<SigScanner>.Set(new SigScanner(true));
                 Service<HookManager>.Set();
-
-                // Initialize game fixes
-                var gameFixes = Service<GameFixes>.Set();
-                gameFixes.Apply();
-                Log.Information("[T1] GameFixes OK!");
 
                 // Signal the main game thread to continue
                 NativeFunctions.SetEvent(this.mainThreadContinueEvent);
@@ -387,8 +381,6 @@ namespace Dalamud
 
                 Service<Framework>.GetNullable()?.ExplicitDispose();
                 Service<ClientState>.GetNullable()?.ExplicitDispose();
-
-                Service<GameFixes>.GetNullable()?.ExplicitDispose();
 
                 this.unloadSignal?.Dispose();
 

@@ -265,7 +265,7 @@ namespace Dalamud.Interface.Internal
         public void OpenStyleEditor() => this.styleEditorWindow.IsOpen = true;
         
         /// <summary>
-        /// Opens the <see cref="ProfilerWindow>"/>.
+        /// Opens the <see cref="ProfilerWindow"/>.
         /// </summary>
         public void OpenProfiler() => this.profilerWindow.IsOpen = true;
 
@@ -376,10 +376,10 @@ namespace Dalamud.Interface.Internal
             {
                 this.signaledBoot = true;
 
-                Task.Run(async () =>
+                System.Threading.Tasks.Task.Run(async () =>
                 {
-                    using var client = new HttpClient();
-                    await client.PostAsync("http://localhost:1415/aging/success", new StringContent(string.Empty));
+                    using var client = new System.Net.Http.HttpClient();
+                    await client.PostAsync("http://localhost:1415/aging/success", new System.Net.Http.StringContent(string.Empty));
                 });
             }
 #endif
