@@ -381,7 +381,7 @@ namespace Dalamud.Injector
                     targetProcessSpecified = true;
                     processes.AddRange(Process.GetProcessesByName("ffxiv_dx11"));
                 }
-                else if (args[i] == "--fix-acl")
+                else if (args[i] == "--fix-acl" || args[i] == "--acl-fix")
                 {
                     tryFixAcl = true;
                 }
@@ -472,7 +472,7 @@ namespace Dalamud.Injector
                     useFakeArguments = true;
                 else if (args[i] == "--without-dalamud")
                     withoutDalamud = true;
-                else if (args[i] == "--no-fix-acl")
+                else if (args[i] == "--no-fix-acl" || args[i] == "--no-acl-fix")
                     noFixAcl = true;
                 else if (args[i] == "-g")
                     gamePath = args[++i];

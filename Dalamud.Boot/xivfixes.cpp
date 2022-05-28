@@ -3,6 +3,7 @@
 #include "xivfixes.h"
 
 #include "hooks.h"
+#include "logging.h"
 #include "utils.h"
 
 using TFnGetInputDeviceManager = void* ();
@@ -34,6 +35,7 @@ static TFnGetInputDeviceManager* GetGetInputDeviceManager(HWND hwnd) {
 }
 
 void xivfixes::prevent_devicechange_crashes(bool bApply) {
+    static const char* LogTag = "[xivfixes:prevent_devicechange_crashes]";
     static std::optional<hooks::import_hook<decltype(CreateWindowExA)>> s_hookCreateWindowExA;
     static std::optional<hooks::wndproc_hook> s_hookWndProc;
 
@@ -47,8 +49,8 @@ void xivfixes::prevent_devicechange_crashes(bool bApply) {
                 || 0 != strcmp(lpClassName, "FFXIVGAME"))
                 return hWnd;
 
-            std::cerr << std::format("[prevent_devicechange_crashes] CreateWindow(0x{:08X}, \"{}\", \"{}\", 0x{:08X}, {}, {}, {}, {}, 0x{:X}, 0x{:X}, 0x{:X}, 0x{:X}) called; unhooking CreateWindowExA and hooking WndProc.\n",
-                dwExStyle, lpClassName, lpWindowName, dwStyle, X, Y, nWidth, nHeight, reinterpret_cast<size_t>(hWndParent), reinterpret_cast<size_t>(hMenu), reinterpret_cast<size_t>(hInstance), reinterpret_cast<size_t>(lpParam));
+            logging::print<logging::I>("{} CreateWindow(0x{:08X}, \"{}\", \"{}\", 0x{:08X}, {}, {}, {}, {}, 0x{:X}, 0x{:X}, 0x{:X}, 0x{:X}) called; unhooking CreateWindowExA and hooking WndProc.",
+                LogTag, dwExStyle, lpClassName, lpWindowName, dwStyle, X, Y, nWidth, nHeight, reinterpret_cast<size_t>(hWndParent), reinterpret_cast<size_t>(hMenu), reinterpret_cast<size_t>(hInstance), reinterpret_cast<size_t>(lpParam));
 
             s_hookCreateWindowExA.reset();
 
@@ -56,7 +58,7 @@ void xivfixes::prevent_devicechange_crashes(bool bApply) {
             s_hookWndProc->set_detour([](HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) -> LRESULT {
                 if (uMsg == WM_DEVICECHANGE && wParam == DBT_DEVNODES_CHANGED) {
                     if (!GetGetInputDeviceManager(hWnd)()) {
-                        std::cerr << std::format("[prevent_devicechange_crashes] WndProc(0x{:X}, WM_DEVICECHANGE, DBT_DEVNODES_CHANGED, {}) called but the game does not have InputDeviceManager initialized; doing nothing.\n", lParam);
+                        logging::print<logging::I>("{} WndProc(0x{:X}, WM_DEVICECHANGE, DBT_DEVNODES_CHANGED, {}) called but the game does not have InputDeviceManager initialized; doing nothing.", LogTag, reinterpret_cast<size_t>(hWnd), lParam);
                         return 0;
                     }
                 }
@@ -68,6 +70,8 @@ void xivfixes::prevent_devicechange_crashes(bool bApply) {
         });
 
     } else {
+        logging::print<logging::I>("{} Disable", LogTag);
+
         s_hookCreateWindowExA.reset();
 
         // This will effectively revert any other WndProc alterations, including Dalamud.
@@ -76,17 +80,18 @@ void xivfixes::prevent_devicechange_crashes(bool bApply) {
 }
 
 void xivfixes::disable_game_openprocess_access_check(bool bApply) {
+    static const char* LogTag = "[xivfixes:disable_game_openprocess_access_check]";
     static std::optional<hooks::import_hook<decltype(OpenProcess)>> hook;
 
     if (bApply) {
         hook.emplace("kernel32.dll", "OpenProcess", 0);
         hook->set_detour([](DWORD dwDesiredAccess, BOOL bInheritHandle, DWORD dwProcessId)->HANDLE {
             if (dwProcessId == GetCurrentProcessId()) {
-                std::cerr << std::format("[xivfixes:disable_game_openprocess_access_check] OpenProcess(0{:08X}, {}, {}) was invoked by thread {}.\n", dwDesiredAccess, bInheritHandle, dwProcessId, GetCurrentThreadId());
+                logging::print<logging::I>("{} OpenProcess(0{:08X}, {}, {}) was invoked by thread {}.", LogTag, dwDesiredAccess, bInheritHandle, dwProcessId, GetCurrentThreadId());
 
                 // Prevent game from feeling unsafe that it restarts
                 if (dwDesiredAccess & PROCESS_VM_WRITE) {
-                    std::cerr << "Returning failure with last error code set to ERROR_ACCESS_DENIED(5).\n";
+                    logging::print<logging::I>("{} Returning failure with last error code set to ERROR_ACCESS_DENIED(5).", LogTag);
                     SetLastError(ERROR_ACCESS_DENIED);
                     return {};
                 }
@@ -95,18 +100,22 @@ void xivfixes::disable_game_openprocess_access_check(bool bApply) {
             return hook->call_original(dwDesiredAccess, bInheritHandle, dwProcessId);
         });
 
-    } else
+    } else {
+        logging::print<logging::I>("{} Disable", LogTag);
         hook.reset();
+    }
 }
 
 void xivfixes::redirect_openprocess(bool bApply) {
+    static const char* LogTag = "[xivfixes:redirect_openprocess]";
     static std::optional<hooks::export_hook<decltype(OpenProcess)>> hook;
 
     if (bApply) {
+        logging::print<logging::I>("{} Enable", LogTag);
         hook.emplace(::OpenProcess);
         hook->set_detour([](DWORD dwDesiredAccess, BOOL bInheritHandle, DWORD dwProcessId)->HANDLE {
             if (dwProcessId == GetCurrentProcessId()) {
-                std::cerr << std::format("[xivfixes:redirect_openprocess] OpenProcess(0{:08X}, {}, {}) was invoked by thread {}. Redirecting to DuplicateHandle.\n", dwDesiredAccess, bInheritHandle, dwProcessId, GetCurrentThreadId());
+                logging::print<logging::I>("{} OpenProcess(0{:08X}, {}, {}) was invoked by thread {}. Redirecting to DuplicateHandle.", LogTag, dwDesiredAccess, bInheritHandle, dwProcessId, GetCurrentThreadId());
 
                 if (HANDLE res; DuplicateHandle(GetCurrentProcess(), GetCurrentProcess(), GetCurrentProcess(), &res, dwDesiredAccess, bInheritHandle, 0))
                     return res;
@@ -116,6 +125,8 @@ void xivfixes::redirect_openprocess(bool bApply) {
             return hook->call_original(dwDesiredAccess, bInheritHandle, dwProcessId);
         });
 
-    } else
+    } else {
+        logging::print<logging::I>("{} Disable", LogTag);
         hook.reset();
+    }
 }

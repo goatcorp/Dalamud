@@ -5,6 +5,7 @@
 #include <Windows.h>
 #include <Shlobj.h>
 #include "CoreCLR.h"
+#include "..\..\Dalamud.Boot\logging.h"
 
 FILE* g_CmdStream;
 void ConsoleSetup(const std::wstring console_name)
@@ -16,6 +17,7 @@ void ConsoleSetup(const std::wstring console_name)
     freopen_s(&g_CmdStream, "CONOUT$", "w", stdout);
     freopen_s(&g_CmdStream, "CONOUT$", "w", stderr);
     freopen_s(&g_CmdStream, "CONIN$", "r", stdin);
+    SetConsoleOutputCP(CP_UTF8);
 }
 
 void ConsoleTeardown()
@@ -61,7 +63,7 @@ int InitializeClrAndGetEntryPoint(
 
         if (result != 0)
         {
-            printf("Error: Unable to get RoamingAppData path (err=%d)\n", result);
+            logging::print<logging::E>("Unable to get RoamingAppData path (err={})", result);
             return result;
         }
 
@@ -71,13 +73,13 @@ int InitializeClrAndGetEntryPoint(
 
     // =========================================================================== //
 
-    wprintf(L"with dotnet_path: %s\n", dotnet_path);
-    wprintf(L"with config_path: %s\n", runtimeconfig_path.c_str());
-    wprintf(L"with module_path: %s\n", module_path.c_str());
+    logging::print<logging::I>(L"with dotnet_path: %s", dotnet_path);
+    logging::print<logging::I>(L"with config_path: %s", runtimeconfig_path.c_str());
+    logging::print<logging::I>(L"with module_path: %s", module_path.c_str());
 
     if (!std::filesystem::exists(dotnet_path))
     {
-        printf("Error: Unable to find .NET runtime path\n");
+        logging::print<logging::E>("Error: Unable to find .NET runtime path");
         return 1;
     }
 
@@ -88,13 +90,13 @@ int InitializeClrAndGetEntryPoint(
         dotnet_path,
     };
 
-    printf("Loading hostfxr... ");
+    logging::print<logging::I>("Loading hostfxr...");
     if ((result = g_clr->load_hostfxr(&init_parameters)) != 0)
     {
-        printf("\nError: Failed to load the `hostfxr` library (err=0x%08x)\n", result);
+        logging::print<logging::E>("Failed to load the `hostfxr` library (err=0x{:08x})", result);
         return result;
     }
-    printf("Done!\n");
+    logging::print<logging::I>("Done!");
 
     // =========================================================================== //
 
@@ -105,17 +107,17 @@ int InitializeClrAndGetEntryPoint(
         dotnet_path,
     };
 
-    printf("Loading coreclr... ");
+    logging::print<logging::I>("Loading coreclr... ");
     if ((result = g_clr->load_runtime(runtimeconfig_path, &runtime_parameters)) != 0)
     {
-        printf("\nError: Failed to load coreclr (err=%d)\n", result);
+        logging::print<logging::E>("Failed to load coreclr (err={})", result);
         return result;
     }
-    printf("Done!\n");
+    logging::print<logging::I>("Done!");
 
     // =========================================================================== //
 
-    printf("Loading module... ");
+    logging::print<logging::I>("Loading module...");
     if ((result = g_clr->load_assembly_and_get_function_pointer(
         module_path.c_str(),
         entrypoint_assembly_name.c_str(),
@@ -123,10 +125,10 @@ int InitializeClrAndGetEntryPoint(
         entrypoint_delegate_type_name.c_str(),
         nullptr, entrypoint_fn)) != 0)
     {
-        printf("\nError: Failed to load module (err=%d)\n", result);
+        logging::print<logging::E>("Failed to load module (err={})", result);
         return result;
     }
-    printf("Done!\n");
+    logging::print<logging::I>("Done!");
 
     // =========================================================================== //
 

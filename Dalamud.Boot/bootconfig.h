@@ -3,6 +3,14 @@
 #include "utils.h"
 
 namespace bootconfig {
+    inline bool is_wait_messagebox() {
+        return utils::get_env<bool>(L"DALAMUD_WAIT_MESSAGEBOX");
+    }
+
+    inline bool is_show_console() {
+        return utils::get_env<bool>(L"DALAMUD_SHOW_CONSOLE");
+    }
+
     inline bool is_wait_debugger() {
         return utils::get_env<bool>(L"DALAMUD_WAIT_DEBUGGER");
     }

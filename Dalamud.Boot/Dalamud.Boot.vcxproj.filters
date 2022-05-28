@@ -40,6 +40,9 @@
     <ClCompile Include="xivfixes.cpp">
       <Filter>Dalamud.Boot DLL</Filter>
     </ClCompile>
+    <ClCompile Include="logging.cpp">
+      <Filter>Dalamud.Boot DLL</Filter>
+    </ClCompile>
     <ClCompile Include="unicode.cpp">
       <Filter>Dalamud.Boot DLL</Filter>
     </ClCompile>
@@ -72,13 +75,16 @@
     <ClInclude Include="hooks.h">
       <Filter>Dalamud.Boot DLL</Filter>
     </ClInclude>
-    <ClInclude Include="unicode.h">
-      <Filter>Dalamud.Boot DLL</Filter>
-    </ClInclude>
     <ClInclude Include="bootconfig.h">
       <Filter>Dalamud.Boot DLL</Filter>
     </ClInclude>
     <ClInclude Include="xivfixes.h">
+      <Filter>Dalamud.Boot DLL</Filter>
+    </ClInclude>
+    <ClInclude Include="logging.h">
+      <Filter>Dalamud.Boot DLL</Filter>
+    </ClInclude>
+    <ClInclude Include="unicode.h">
       <Filter>Dalamud.Boot DLL</Filter>
     </ClInclude>
   </ItemGroup>

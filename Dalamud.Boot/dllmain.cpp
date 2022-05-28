@@ -1,6 +1,7 @@
 #include "pch.h"
 
 #include "bootconfig.h"
+#include "logging.h"
 #include "veh.h"
 #include "xivfixes.h"
 
@@ -8,22 +9,27 @@ HMODULE g_hModule;
 HINSTANCE g_hGameInstance = GetModuleHandleW(nullptr);
 
 DllExport DWORD WINAPI Initialize(LPVOID lpParam, HANDLE hMainThreadContinue) {
-#ifndef NDEBUG
-    ConsoleSetup(L"Dalamud Boot");
-#endif
+    if (bootconfig::is_show_console())
+        ConsoleSetup(L"Dalamud Boot");
+
+    if (bootconfig::is_wait_messagebox())
+        MessageBoxW(nullptr, L"Press OK to continue", L"Dalamud Boot", MB_OK);
+
     try {
         xivfixes::apply_all(true);
     } catch (const std::exception& e) {
-        std::cerr << std::format("Failed to do general fixups. Some things might not work.\nError: {}\n", e.what());
+        logging::print<logging::W>("Failed to do general fixups. Some things might not work.");
+        logging::print<logging::W>("Error: {}", e.what());
     }
 
-    std::cerr << "Dalamud.Boot Injectable, (c) 2021 XIVLauncher Contributors\nBuilt at: " __DATE__ "@" __TIME__ "\n\n";
+    logging::print<logging::I>("Dalamud.Boot Injectable, (c) 2021 XIVLauncher Contributors");
+    logging::print<logging::I>("Built at : " __DATE__ "@" __TIME__);
 
     if (bootconfig::is_wait_debugger()) {
-        std::cerr << "Waiting for debugger to attach...\n";
+        logging::print<logging::I>("Waiting for debugger to attach...");
         while (!IsDebuggerPresent())
             Sleep(100);
-        std::cerr << "Debugger attached.\n";
+        logging::print<logging::I>("Debugger attached.");
     }
 
     const auto fs_module_path = utils::get_module_path(g_hModule);
@@ -50,30 +56,23 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam, HANDLE hMainThreadContinue) {
 
     // ============================== VEH ======================================== //
 
-    std::cerr << "Initializing VEH...\n";
+    logging::print<logging::I>("Initializing VEH...");
     if (utils::is_running_on_linux()) {
-        std::cerr << "=> VEH was disabled, running on linux\n";
+        logging::print<logging::I>("=> VEH was disabled, running on linux");
     } else if (bootconfig::is_veh_enabled()) {
         if (veh::add_handler(bootconfig::is_veh_full()))
-            std::cerr << "=> Done!\n";
+            logging::print<logging::I>("=> Done!");
         else
-            std::cerr << "=> Failed!\n";
+            logging::print<logging::I>("=> Failed!");
     } else {
-        std::cerr << "VEH was disabled manually\n";
+        logging::print<logging::I>("VEH was disabled manually");
     }
 
     // ============================== Dalamud ==================================== //
 
-    std::cerr << "Initializing Dalamud... ";
+    logging::print<logging::I>("Initializing Dalamud...");
     entrypoint_fn(lpParam, hMainThreadContinue);
-    std::cerr << "Done!\n";
-
-#ifndef NDEBUG
-    fclose(stdin);
-    fclose(stdout);
-    fclose(stderr);
-    FreeConsole();
-#endif
+    logging::print<logging::I>("Done!");
 
     return 0;
 }
