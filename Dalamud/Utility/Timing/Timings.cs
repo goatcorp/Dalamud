@@ -25,6 +25,8 @@ public static class Timings
     /// All active timings.
     /// </summary>
     internal static readonly List<TimingHandle> ActiveTimings = new();
+    
+    internal static readonly List<TimingEvent> Events = new();
 
     /// <summary>
     /// Current active timing entry.
@@ -47,5 +49,27 @@ public static class Timings
             FileName = sourceFilePath,
             LineNumber = sourceLineNumber,
         };
+    }
+    
+    /// <summary>
+    /// Record a one-time event.
+    /// </summary>
+    /// <param name="name">The name of the timing.</param>
+    /// <param name="memberName">Name of the calling member.</param>
+    /// <param name="sourceFilePath">Name of the calling file.</param>
+    /// <param name="sourceLineNumber">Name of the calling line number.</param>
+    /// <returns>Disposable that stops the timing once disposed.</returns>
+    public static void Event(string name, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "",
+                             [CallerLineNumber] int sourceLineNumber = 0)
+    {
+        lock (Events)
+        {
+            Events.Add(new TimingEvent(name)
+            {
+                MemberName = memberName,
+                FileName = sourceFilePath,
+                LineNumber = sourceLineNumber,
+            });
+        }
     }
 }

@@ -475,118 +475,121 @@ namespace Dalamud.Interface.Internal
 
             if (this.scene == null)
             {
-                try
+                using (Timings.Start("IM Scene Init"))
                 {
-                    this.scene = new RawDX11Scene(swapChain);
-                }
-                catch (DllNotFoundException ex)
-                {
-                    Log.Error(ex, "Could not load ImGui dependencies.");
-
-                    var res = PInvoke.User32.MessageBox(
-                        IntPtr.Zero,
-                        "Dalamud plugins require the Microsoft Visual C++ Redistributable to be installed.\nPlease install the runtime from the official Microsoft website or disable Dalamud.\n\nDo you want to download the redistributable now?",
-                        "Dalamud Error",
-                        User32.MessageBoxOptions.MB_YESNO | User32.MessageBoxOptions.MB_TOPMOST | User32.MessageBoxOptions.MB_ICONERROR);
-
-                    if (res == User32.MessageBoxResult.IDYES)
+                    try
                     {
-                        var psi = new ProcessStartInfo
+                        this.scene = new RawDX11Scene(swapChain);
+                    }
+                    catch (DllNotFoundException ex)
+                    {
+                        Log.Error(ex, "Could not load ImGui dependencies.");
+
+                        var res = PInvoke.User32.MessageBox(
+                            IntPtr.Zero,
+                            "Dalamud plugins require the Microsoft Visual C++ Redistributable to be installed.\nPlease install the runtime from the official Microsoft website or disable Dalamud.\n\nDo you want to download the redistributable now?",
+                            "Dalamud Error",
+                            User32.MessageBoxOptions.MB_YESNO | User32.MessageBoxOptions.MB_TOPMOST | User32.MessageBoxOptions.MB_ICONERROR);
+
+                        if (res == User32.MessageBoxResult.IDYES)
                         {
-                            FileName = "https://aka.ms/vs/16/release/vc_redist.x64.exe",
-                            UseShellExecute = true,
-                        };
-                        Process.Start(psi);
+                            var psi = new ProcessStartInfo
+                            {
+                                FileName = "https://aka.ms/vs/16/release/vc_redist.x64.exe",
+                                UseShellExecute = true,
+                            };
+                            Process.Start(psi);
+                        }
+
+                        Environment.Exit(-1);
                     }
 
-                    Environment.Exit(-1);
-                }
+                    var startInfo = Service<DalamudStartInfo>.Get();
+                    var configuration = Service<DalamudConfiguration>.Get();
 
-                var startInfo = Service<DalamudStartInfo>.Get();
-                var configuration = Service<DalamudConfiguration>.Get();
+                    var iniFileInfo = new FileInfo(Path.Combine(Path.GetDirectoryName(startInfo.ConfigurationPath), "dalamudUI.ini"));
 
-                var iniFileInfo = new FileInfo(Path.Combine(Path.GetDirectoryName(startInfo.ConfigurationPath), "dalamudUI.ini"));
-
-                try
-                {
-                    if (iniFileInfo.Length > 1200000)
+                    try
                     {
-                        Log.Warning("dalamudUI.ini was over 1mb, deleting");
-                        iniFileInfo.CopyTo(Path.Combine(iniFileInfo.DirectoryName, $"dalamudUI-{DateTimeOffset.Now.ToUnixTimeSeconds()}.ini"));
-                        iniFileInfo.Delete();
+                        if (iniFileInfo.Length > 1200000)
+                        {
+                            Log.Warning("dalamudUI.ini was over 1mb, deleting");
+                            iniFileInfo.CopyTo(Path.Combine(iniFileInfo.DirectoryName, $"dalamudUI-{DateTimeOffset.Now.ToUnixTimeSeconds()}.ini"));
+                            iniFileInfo.Delete();
+                        }
                     }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, "Could not delete dalamudUI.ini");
+                    }
+
+                    this.scene.ImGuiIniPath = iniFileInfo.FullName;
+                    this.scene.OnBuildUI += this.Display;
+                    this.scene.OnNewInputFrame += this.OnNewInputFrame;
+
+                    StyleModel.TransferOldModels();
+
+                    if (configuration.SavedStyles == null || configuration.SavedStyles.All(x => x.Name != StyleModelV1.DalamudStandard.Name))
+                    {
+                        configuration.SavedStyles = new List<StyleModel> { StyleModelV1.DalamudStandard, StyleModelV1.DalamudClassic };
+                        configuration.ChosenStyle = StyleModelV1.DalamudStandard.Name;
+                    }
+                    else if (configuration.SavedStyles.Count == 1)
+                    {
+                        configuration.SavedStyles.Add(StyleModelV1.DalamudClassic);
+                    }
+                    else if (configuration.SavedStyles[1].Name != StyleModelV1.DalamudClassic.Name)
+                    {
+                        configuration.SavedStyles.Insert(1, StyleModelV1.DalamudClassic);
+                    }
+
+                    configuration.SavedStyles[0] = StyleModelV1.DalamudStandard;
+                    configuration.SavedStyles[1] = StyleModelV1.DalamudClassic;
+
+                    var style = configuration.SavedStyles.FirstOrDefault(x => x.Name == configuration.ChosenStyle);
+                    if (style == null)
+                    {
+                        style = StyleModelV1.DalamudStandard;
+                        configuration.ChosenStyle = style.Name;
+                        configuration.Save();
+                    }
+
+                    style.Apply();
+
+                    ImGui.GetIO().FontGlobalScale = configuration.GlobalUiScale;
+
+                    this.SetupFonts();
+
+                    if (!configuration.IsDocking)
+                    {
+                        ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.DockingEnable;
+                    }
+                    else
+                    {
+                        ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.DockingEnable;
+                    }
+
+                    // NOTE (Chiv) Toggle gamepad navigation via setting
+                    if (!configuration.IsGamepadNavigationEnabled)
+                    {
+                        ImGui.GetIO().BackendFlags &= ~ImGuiBackendFlags.HasGamepad;
+                        ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.NavEnableSetMousePos;
+                    }
+                    else
+                    {
+                        ImGui.GetIO().BackendFlags |= ImGuiBackendFlags.HasGamepad;
+                        ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.NavEnableSetMousePos;
+                    }
+
+                    // NOTE (Chiv) Explicitly deactivate on dalamud boot
+                    ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.NavEnableGamepad;
+
+                    ImGuiHelpers.MainViewport = ImGui.GetMainViewport();
+
+                    Log.Information("[IM] Scene & ImGui setup OK!");
+
+                    Service<DalamudIME>.Get().Enable();
                 }
-                catch (Exception ex)
-                {
-                    Log.Error(ex, "Could not delete dalamudUI.ini");
-                }
-
-                this.scene.ImGuiIniPath = iniFileInfo.FullName;
-                this.scene.OnBuildUI += this.Display;
-                this.scene.OnNewInputFrame += this.OnNewInputFrame;
-
-                StyleModel.TransferOldModels();
-
-                if (configuration.SavedStyles == null || configuration.SavedStyles.All(x => x.Name != StyleModelV1.DalamudStandard.Name))
-                {
-                    configuration.SavedStyles = new List<StyleModel> { StyleModelV1.DalamudStandard, StyleModelV1.DalamudClassic };
-                    configuration.ChosenStyle = StyleModelV1.DalamudStandard.Name;
-                }
-                else if (configuration.SavedStyles.Count == 1)
-                {
-                    configuration.SavedStyles.Add(StyleModelV1.DalamudClassic);
-                }
-                else if (configuration.SavedStyles[1].Name != StyleModelV1.DalamudClassic.Name)
-                {
-                    configuration.SavedStyles.Insert(1, StyleModelV1.DalamudClassic);
-                }
-
-                configuration.SavedStyles[0] = StyleModelV1.DalamudStandard;
-                configuration.SavedStyles[1] = StyleModelV1.DalamudClassic;
-
-                var style = configuration.SavedStyles.FirstOrDefault(x => x.Name == configuration.ChosenStyle);
-                if (style == null)
-                {
-                    style = StyleModelV1.DalamudStandard;
-                    configuration.ChosenStyle = style.Name;
-                    configuration.Save();
-                }
-
-                style.Apply();
-
-                ImGui.GetIO().FontGlobalScale = configuration.GlobalUiScale;
-
-                this.SetupFonts();
-
-                if (!configuration.IsDocking)
-                {
-                    ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.DockingEnable;
-                }
-                else
-                {
-                    ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.DockingEnable;
-                }
-
-                // NOTE (Chiv) Toggle gamepad navigation via setting
-                if (!configuration.IsGamepadNavigationEnabled)
-                {
-                    ImGui.GetIO().BackendFlags &= ~ImGuiBackendFlags.HasGamepad;
-                    ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.NavEnableSetMousePos;
-                }
-                else
-                {
-                    ImGui.GetIO().BackendFlags |= ImGuiBackendFlags.HasGamepad;
-                    ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.NavEnableSetMousePos;
-                }
-
-                // NOTE (Chiv) Explicitly deactivate on dalamud boot
-                ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.NavEnableGamepad;
-
-                ImGuiHelpers.MainViewport = ImGui.GetMainViewport();
-
-                Log.Information("[IM] Scene & ImGui setup OK!");
-
-                Service<DalamudIME>.Get().Enable();
             }
 
             if (this.address.IsReshade)

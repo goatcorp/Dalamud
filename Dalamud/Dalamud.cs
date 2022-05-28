@@ -120,7 +120,7 @@ namespace Dalamud
                 Log.Information("[T1] Game thread continued!");
 
                 // Initialize FFXIVClientStructs function resolver
-                using (Timings.Start("FFXIVClientStructs Resolver Init"))
+                using (Timings.Start("CS Resolver Init"))
                 {
                     FFXIVClientStructs.Resolver.Initialize();
                     Log.Information("[T1] FFXIVClientStructs initialized!");
@@ -311,6 +311,7 @@ namespace Dalamud
                 Troubleshooting.LogTroubleshooting();
 
                 Log.Information("Dalamud is ready.");
+                Timings.Event("Dalamud ready");
             }
             catch (Exception ex)
             {

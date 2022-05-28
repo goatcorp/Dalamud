@@ -8,16 +8,14 @@ namespace Dalamud.Utility.Timing;
 /// Class used for tracking a time interval taken.
 /// </summary>
 [DebuggerDisplay("{Name} - {Duration}")]
-public sealed class TimingHandle : IDisposable
+public sealed class TimingHandle : TimingEvent, IDisposable
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="TimingHandle"/> class.
     /// </summary>
     /// <param name="name">The name of this timing.</param>
-    internal TimingHandle(string name)
+    internal TimingHandle(string name) : base(name)
     {
-        this.Name = name;
-
         this.Parent = Timings.Current.Value;
         Timings.Current.Value = this;
 
@@ -27,8 +25,7 @@ public sealed class TimingHandle : IDisposable
             {
                 this.ChildCount++;
             }
-
-            this.StartTime = Timings.Stopwatch.Elapsed.TotalMilliseconds;
+            
             this.EndTime = this.StartTime;
             this.IsMainThread = ThreadSafety.IsMainThread;
 
@@ -40,11 +37,6 @@ public sealed class TimingHandle : IDisposable
             Timings.ActiveTimings.Add(this);
         }
     }
-
-    /// <summary>
-    /// Gets the time this timing started.
-    /// </summary>
-    public double StartTime { get; private set; }
 
     /// <summary>
     /// Gets the time this timing ended.
@@ -80,26 +72,6 @@ public sealed class TimingHandle : IDisposable
     /// Gets the depth of this timing.
     /// </summary>
     public uint Depth { get; private set; }
-
-    /// <summary>
-    /// Gets the name of the timing.
-    /// </summary>
-    public string Name { get; init; }
-
-    /// <summary>
-    /// Gets the member that created this timing.
-    /// </summary>
-    public string? MemberName { get; init; }
-
-    /// <summary>
-    /// Gets the file name that created this timing.
-    /// </summary>
-    public string? FileName { get; init; }
-
-    /// <summary>
-    /// Gets the line number that created this timing.
-    /// </summary>
-    public int LineNumber { get; init; }
 
     /// <inheritdoc/>
     public void Dispose()
