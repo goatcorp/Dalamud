@@ -57,6 +57,7 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam, HANDLE hMainThreadContinue) {
 #ifndef NDEBUG
     ConsoleSetup(L"Dalamud Boot");
 #endif
+    // MessageBoxA(nullptr, "Waiting", "Waiting", MB_OK);
     try {
         budget_hooks::fixes::apply_all(true);
     } catch (const std::exception& e) {

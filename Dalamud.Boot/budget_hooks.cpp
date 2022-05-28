@@ -21,10 +21,8 @@ namespace budget_hooks::utils {
         // Since this does not refer to OptionalHeader32/64 else than its offset, we can use either.
         const auto sections = std::span(IMAGE_FIRST_SECTION(&ntHeader32), ntHeader32.FileHeader.NumberOfSections);
         for (const auto& section : sections) {
-            if (strncmp(reinterpret_cast<const char*>(section.Name), sectionName, IMAGE_SIZEOF_SHORT_NAME) != 0)
-                break;
-
-            look_in(pcBaseAddress + section.VirtualAddress, section.Misc.VirtualSize);
+            if (strncmp(reinterpret_cast<const char*>(section.Name), sectionName, IMAGE_SIZEOF_SHORT_NAME) == 0)
+                look_in(pcBaseAddress + section.VirtualAddress, section.Misc.VirtualSize);
         }
         return *this;
     }
@@ -155,8 +153,8 @@ namespace budget_hooks::utils {
         return res;
     }
 
-    budget_hooks::utils::signature_finder::result signature_finder::find_one() const {
-        return find(1, 1, false).front();
+    std::span<const char> signature_finder::find_one() const {
+        return find(1, 1, false).front().Match;
     }
 
     void* resolve_unconditional_jump_target(void* pfn) {
@@ -459,6 +457,34 @@ namespace budget_hooks::singleton_hooks {
     };
 }
 
+using TFnGetInputDeviceManager = void*();
+static TFnGetInputDeviceManager* GetGetInputDeviceManager(HWND hwnd) {
+    static TFnGetInputDeviceManager* pCached = nullptr;
+    if (pCached)
+        return pCached;
+
+    char szClassName[256];
+    GetClassNameA(hwnd, szClassName, static_cast<int>(sizeof szClassName));
+
+    WNDCLASSEXA wcx{};
+    GetClassInfoExA(g_hGameInstance, szClassName, &wcx);
+    const auto match = budget_hooks::utils::signature_finder()
+        .look_in(g_hGameInstance, ".text")
+        .look_for_hex("41 81 fe 19 02 00 00 0f 87 ?? ?? 00 00 0f 84 ?? ?? 00 00")
+        .find_one();
+
+    auto ptr = match.data() + match.size() + *reinterpret_cast<const int*>(match.data() + match.size() - 4);
+    ptr += 4;  // CMP RBX, 0x7
+    ptr += 2;  // JNZ <giveup>
+    ptr += 7;  // MOV RCX, <Framework::Instance>
+    ptr += 3;  // TEST RCX, RCX
+    ptr += 2;  // JZ <giveup>
+    ptr += 5;  // CALL <GetInputDeviceManagerInstance()>
+    ptr += *reinterpret_cast<const int*>(ptr - 4);
+
+    return pCached = reinterpret_cast<TFnGetInputDeviceManager*>(ptr);
+}
+
 void budget_hooks::fixes::prevent_devicechange_crashes(bool bApply) {
     struct Tag {};
     static std::optional<singleton_hooks::import_hook<Tag, decltype(CreateWindowExA)>> s_hookCreateWindow;
@@ -476,47 +502,23 @@ void budget_hooks::fixes::prevent_devicechange_crashes(bool bApply) {
 
             s_hookCreateWindow.reset();
 
-            WNDCLASSEXA wcx{};
-            GetClassInfoExA(hInstance, lpClassName, &wcx);
-            const auto match = utils::signature_finder()
-                .look_in(g_hGameInstance, ".text")
-                .look_for_hex("41 81 fe 19 02 00 00 0f 87 ?? ?? 00 00 0f 84 ?? ?? 00 00")
-                .find_one().Match;
-
-            auto ptr = match.data() + match.size() + *reinterpret_cast<const int*>(match.data() + match.size() - 4);
-            ptr += 4;  // CMP RBX, 0x7
-            ptr += 2;  // JNZ <giveup>
-            ptr += 7;  // MOV RCX, <Framework::Instance>
-            ptr += 3;  // TEST RCX, RCX
-            ptr += 2;  // JZ <giveup>
-            ptr += 5;  // CALL <GetInputDeviceManagerInstance()>
-            ptr += *reinterpret_cast<const int*>(ptr - 4);
-
-            const auto pfnGetInputDeviceManagerInstance = reinterpret_cast<void* (*)()>(ptr);
-
-            std::thread([hWnd]() {
-                while (true)
-                    PostMessage(hWnd, WM_DEVICECHANGE, DBT_DEVNODES_CHANGED, 0);
-            }).detach();
-            /*
             s_hookWndProc.emplace(hWnd);
-            s_hookWndProc->set_detour([pfnGetInputDeviceManagerInstance](HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) -> LRESULT {
-                if (false && uMsg == WM_DEVICECHANGE && wParam == DBT_DEVNODES_CHANGED) {
-                    if (!pfnGetInputDeviceManagerInstance())
+            s_hookWndProc->set_detour([](HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) -> LRESULT {
+                if (uMsg == WM_DEVICECHANGE && wParam == DBT_DEVNODES_CHANGED) {
+                    if (!GetGetInputDeviceManager(hWnd)())
                         return 0;
                 }
 
-                s_hookWndProc->call_original(hWnd, WM_DEVICECHANGE, wParam, 0);
-
                 return s_hookWndProc->call_original(hWnd, uMsg, wParam, lParam);
             });
-            //*/
 
             return hWnd;
         });
 
     } else {
         s_hookCreateWindow.reset();
+
+        // This will effectively revert any other WndProc alterations, including Dalamud.
         s_hookWndProc.reset();
     }
 }

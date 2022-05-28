@@ -32,7 +32,7 @@ namespace budget_hooks {
 
             std::vector<result> find(size_t minCount, size_t maxCount, bool bErrorOnMoreThanMaximum) const;
             
-            result find_one() const;
+            std::span<const char> find_one() const;
         };
 
         void* resolve_unconditional_jump_target(void* pfn);
