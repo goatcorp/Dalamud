@@ -157,6 +157,79 @@ namespace budget_hooks::utils {
         return find(1, 1, false).front().Match;
     }
 
+    memory_tenderizer::memory_tenderizer(const void* pAddress, size_t length, DWORD dwNewProtect) : m_data(reinterpret_cast<char*>(const_cast<void*>(pAddress)), length) {
+        try {
+            for (auto pCoveredAddress = &m_data[0];
+                pCoveredAddress < &m_data[0] + m_data.size();
+                pCoveredAddress = reinterpret_cast<char*>(m_regions.back().BaseAddress) + m_regions.back().RegionSize) {
+
+                MEMORY_BASIC_INFORMATION region{};
+                if (!VirtualQuery(pCoveredAddress, &region, sizeof region)) {
+                    throw std::runtime_error(std::format(
+                        "VirtualQuery(addr=0x{:X}, ..., cb={}) failed with Win32 code 0x{:X}",
+                        reinterpret_cast<size_t>(pCoveredAddress),
+                        sizeof region,
+                        GetLastError()));
+                }
+
+                if (!VirtualProtect(region.BaseAddress, region.RegionSize, dwNewProtect, &region.Protect)) {
+                    throw std::runtime_error(std::format(
+                        "(Change)VirtualProtect(addr=0x{:X}, size=0x{:X}, ..., ...) failed with Win32 code 0x{:X}",
+                        reinterpret_cast<size_t>(region.BaseAddress),
+                        region.RegionSize,
+                        GetLastError()));
+                }
+
+                m_regions.emplace_back(region);
+            }
+
+        } catch (...) {
+            for (auto& region : std::ranges::reverse_view(m_regions)) {
+                if (!VirtualProtect(region.BaseAddress, region.RegionSize, region.Protect, &region.Protect)) {
+                    // Could not restore; fast fail
+                    __fastfail(GetLastError());
+                }
+            }
+
+            throw;
+        }
+    }
+
+    memory_tenderizer::~memory_tenderizer() {
+        for (auto& region : std::ranges::reverse_view(m_regions)) {
+            if (!VirtualProtect(region.BaseAddress, region.RegionSize, region.Protect, &region.Protect)) {
+                // Could not restore; fast fail
+                __fastfail(GetLastError());
+            }
+        }
+    }
+
+    std::shared_ptr<void> allocate_executable_heap(size_t len) {
+        static std::weak_ptr<void> s_hHeap;
+
+        std::shared_ptr<void> hHeap;
+        if (hHeap = s_hHeap.lock(); !hHeap) {
+            static std::mutex m_mtx;
+            const auto lock = std::lock_guard(m_mtx);
+
+            if (hHeap = s_hHeap.lock(); !hHeap) {
+                if (const auto hHeapRaw = HeapCreate(HEAP_CREATE_ENABLE_EXECUTE, 0, 0); hHeapRaw)
+                    s_hHeap = hHeap = std::shared_ptr<void>(hHeapRaw, HeapDestroy);
+                else
+                    throw std::runtime_error("Failed to create heap.");
+            }
+        }
+
+        const auto pAllocRaw = HeapAlloc(hHeap.get(), 0, len);
+        if (!pAllocRaw)
+            throw std::runtime_error("Failed to allocate memory.");
+
+        return {
+            pAllocRaw,
+            [hHeap = std::move(hHeap)](void* pAddress) { HeapFree(hHeap.get(), 0, pAddress); },
+        };
+    }
+
     void* resolve_unconditional_jump_target(void* pfn) {
         const auto bytes = reinterpret_cast<uint8_t*>(pfn);
 
@@ -269,112 +342,136 @@ namespace budget_hooks::utils {
         throw std::runtime_error("Failed to find import for kernel32!OpenProcess.");
     }
 
-    memory_tenderizer::memory_tenderizer(const void* pAddress, size_t length, DWORD dwNewProtect) : m_data(reinterpret_cast<char*>(const_cast<void*>(pAddress)), length) {
-        try {
-            for (auto pCoveredAddress = &m_data[0];
-                pCoveredAddress < &m_data[0] + m_data.size();
-                pCoveredAddress = reinterpret_cast<char*>(m_regions.back().BaseAddress) + m_regions.back().RegionSize) {
+    std::shared_ptr<void> create_thunk(void* pfnFunction, void* pThis) {
+        const auto pcBaseFn = reinterpret_cast<const uint8_t*>(pfnFunction);
+        auto sourceCode = std::vector<uint8_t>(pcBaseFn, pcBaseFn + 256);
 
-                MEMORY_BASIC_INFORMATION region{};
-                if (!VirtualQuery(pCoveredAddress, &region, sizeof region)) {
-                    throw std::runtime_error(std::format(
-                        "VirtualQuery(addr=0x{:X}, ..., cb={}) failed with Win32 code 0x{:X}",
-                        reinterpret_cast<size_t>(pCoveredAddress),
-                        sizeof region,
-                        GetLastError()));
-                }
-
-                if (!VirtualProtect(region.BaseAddress, region.RegionSize, dwNewProtect, &region.Protect)) {
-                    throw std::runtime_error(std::format(
-                        "(Change)VirtualProtect(addr=0x{:X}, size=0x{:X}, ..., ...) failed with Win32 code 0x{:X}",
-                        reinterpret_cast<size_t>(region.BaseAddress),
-                        region.RegionSize,
-                        GetLastError()));
-                }
-
-                m_regions.emplace_back(region);
+        size_t i = 0;
+        auto placeholderFound = false;
+        for (nmd_x86_instruction instruction{}; ; i += instruction.length) {
+            if (i == sourceCode.size() || !nmd_x86_decode(&sourceCode[i], sourceCode.size() - i, &instruction, NMD_X86_MODE_64, NMD_X86_DECODER_FLAGS_ALL)) {
+                sourceCode.insert(sourceCode.end(), &pcBaseFn[sourceCode.size()], &pcBaseFn[sourceCode.size() + 512]);
+                if (!nmd_x86_decode(&sourceCode[i], sourceCode.size() - i, &instruction, NMD_X86_MODE_64, NMD_X86_DECODER_FLAGS_ALL))
+                    throw std::runtime_error("Failed to find detour function");
             }
 
-        } catch (...) {
-            for (auto& region : std::ranges::reverse_view(m_regions)) {
-                if (!VirtualProtect(region.BaseAddress, region.RegionSize, region.Protect, &region.Protect)) {
-                    // Could not restore; fast fail
-                    __fastfail(GetLastError());
-                }
+            if (instruction.opcode == 0xCC)
+                throw std::runtime_error("Failed to find detour function");
+
+            // msvc debugger related
+            if ((instruction.group & NMD_GROUP_CALL) && (instruction.imm_mask & NMD_X86_IMM_ANY))
+                std::fill_n(&sourceCode[i], instruction.length, 0x90);
+
+            if ((instruction.group & NMD_GROUP_JUMP) || (instruction.group & NMD_GROUP_RET)) {
+                sourceCode.resize(i + instruction.length);
+                break;
             }
 
-            throw;
-        }
-    }
-
-    memory_tenderizer::~memory_tenderizer() {
-        for (auto& region : std::ranges::reverse_view(m_regions)) {
-            if (!VirtualProtect(region.BaseAddress, region.RegionSize, region.Protect, &region.Protect)) {
-                // Could not restore; fast fail
-                __fastfail(GetLastError());
+            if (instruction.opcode == 0xB8  // mov <register>, <thunk placeholder 64bit value>
+                && (instruction.imm_mask & NMD_X86_IMM64)
+                && instruction.immediate == ThunkTemplateFunctionThisPointerPlaceholder) {
+                *reinterpret_cast<void**>(&sourceCode[i + instruction.length - 8]) = pThis;
+                placeholderFound = true;
             }
         }
+
+        if (!placeholderFound)
+            throw std::runtime_error("Failed to find detour function");
+
+        return allocate_executable_heap(std::span(sourceCode));
     }
-}
 
-namespace budget_hooks::singleton_hooks {
-    template<typename TTag, typename>
-    class singleton_hook;
+    template<typename>
+    class thunk;
 
-    template<typename TTag, typename TReturn, typename ... TArgs>
-    class singleton_hook<TTag, TReturn(TArgs...)> {
-    public:
+    template<typename TReturn, typename ... TArgs>
+    class thunk<TReturn(TArgs...)> {
         using TFn = TReturn(TArgs...);
 
-    protected:
-        inline static TFn* s_pfnOriginal = nullptr;
-        inline static std::function<TFn> s_fnDetour;
+        const std::shared_ptr<void> m_pThunk;
+        std::function<TFn> m_fnTarget;
 
     public:
-        singleton_hook(TFn* pfnOriginal) {
-            if (s_pfnOriginal)
-                throw std::runtime_error("Only one instance of this class can be instantiated at a time.");
-
-            s_pfnOriginal = pfnOriginal;
-            s_fnDetour = nullptr;
+        thunk(std::function<TFn> target)
+            : m_pThunk(utils::create_thunk(&detour_static, this))
+            , m_fnTarget(std::move(target)) {
         }
 
-        virtual ~singleton_hook() {
-            s_pfnOriginal = nullptr;
-            s_fnDetour = nullptr;
+        void set_target(std::function<TFn> detour) {
+            m_fnTarget = std::move(detour);
         }
+
+        TFn* get_thunk() const {
+            return reinterpret_cast<TFn*>(m_pThunk.get());
+        }
+
+    private:
+        // mark it as virtual to prevent compiler from inlining
+        virtual TReturn detour(TArgs... args) {
+            return m_fnTarget(std::forward<TArgs>(args)...);
+        }
+
+        static TReturn detour_static(TArgs... args) {
+            const volatile auto pThis = reinterpret_cast<thunk<TFn>*>(ThunkTemplateFunctionThisPointerPlaceholder);
+            return pThis->detour(args...);
+        }
+    };
+}
+
+namespace budget_hooks::hooks {
+    template<typename>
+    class base_hook;
+
+    template<typename TReturn, typename ... TArgs>
+    class base_hook<TReturn(TArgs...)> {
+        using TFn = TReturn(TArgs...);
+
+    private:
+        TFn* const m_pfnOriginal;
+        utils::thunk<TReturn(TArgs...)> m_thunk;
+
+    public:
+        base_hook(TFn* pfnOriginal)
+            : m_pfnOriginal(pfnOriginal)
+            , m_thunk(m_pfnOriginal) {
+        }
+
+        virtual ~base_hook() = default;
 
         virtual void set_detour(std::function<TFn> fn) {
-            s_fnDetour = fn;
+            if (!fn)
+                m_thunk.set_target(m_pfnOriginal);
+            else
+                m_thunk.set_target(std::move(fn));
         }
 
         virtual TReturn call_original(TArgs... args) {
-            return s_pfnOriginal(std::forward<TArgs>(args)...);
+            return m_pfnOriginal(std::forward<TArgs>(args)...);
         }
 
     protected:
-        static TReturn detour_static(TArgs... args) {
-            if (s_fnDetour)
-                return s_fnDetour(std::forward<TArgs>(args)...);
-            else
-                return s_pfnOriginal(std::forward<TArgs>(args)...);
+        TFn* get_original() const {
+            return m_pfnOriginal;
+        }
+
+        TFn* get_thunk() const {
+            return m_thunk.get_thunk();
         }
     };
 
-    template<typename TTag, typename TFn>
-    class import_hook : public singleton_hook<import_hook<TTag, TFn>, TFn> {
-        using Base = singleton_hook<import_hook<TTag, TFn>, TFn>;
+    template<typename TFn>
+    class import_hook : public base_hook<TFn> {
+        using Base = base_hook<TFn>;
 
-        inline static TFn** s_ppfnImportTableItem = nullptr;
+        TFn** const m_ppfnImportTableItem;
 
     public:
         import_hook(TFn** ppfnImportTableItem)
-            : Base(*ppfnImportTableItem) {
+            : Base(*ppfnImportTableItem)
+            , m_ppfnImportTableItem(ppfnImportTableItem) {
 
             const utils::memory_tenderizer tenderizer(ppfnImportTableItem, sizeof * ppfnImportTableItem, PAGE_READWRITE);
-
-            s_ppfnImportTableItem = ppfnImportTableItem;
-            *ppfnImportTableItem = Base::detour_static;
+            *ppfnImportTableItem = Base::get_thunk();
         }
 
         import_hook(const char* pcszDllName, const char* pcszFunctionName, int hintOrOrdinal)
@@ -382,28 +479,28 @@ namespace budget_hooks::singleton_hooks {
         }
 
         ~import_hook() override {
-            const utils::memory_tenderizer tenderizer(s_ppfnImportTableItem, sizeof * s_ppfnImportTableItem, PAGE_READWRITE);
+            const utils::memory_tenderizer tenderizer(m_ppfnImportTableItem, sizeof * m_ppfnImportTableItem, PAGE_READWRITE);
 
-            *s_ppfnImportTableItem = Base::s_pfnOriginal;
-            s_ppfnImportTableItem = nullptr;
+            *m_ppfnImportTableItem = Base::get_original();
         }
     };
 
-    template<typename TTag, typename TFn>
-    class export_hook : public singleton_hook<export_hook<TTag, TFn>, TFn> {
-        using Base = singleton_hook<export_hook<TTag, TFn>, TFn>;
+    template<typename TFn>
+    class export_hook : public base_hook<TFn> {
+        using Base = base_hook<TFn>;
 
         static constexpr uint8_t DetouringThunkTemplate[12]{
             0x48, 0xB8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  // movabs rax, 0x0000000000000000
             0xFF, 0xE0, // jmp rax
         };
 
-        inline static TFn* s_pfnExportThunk = nullptr;
-        inline static uint8_t s_originalThunk[sizeof DetouringThunkTemplate]{};
+        TFn* const m_pfnExportThunk;
+        uint8_t s_originalThunk[sizeof DetouringThunkTemplate]{};
 
     public:
         export_hook(TFn* pfnExportThunk)
-            : Base(reinterpret_cast<TFn*>(utils::resolve_unconditional_jump_target(pfnExportThunk))) {
+            : Base(reinterpret_cast<TFn*>(utils::resolve_unconditional_jump_target(pfnExportThunk)))
+            , m_pfnExportThunk(pfnExportThunk) {
             auto pExportThunk = reinterpret_cast<uint8_t*>(pfnExportThunk);
 
             // Make it writeable.
@@ -415,49 +512,44 @@ namespace budget_hooks::singleton_hooks {
             // Write thunk template.
             memcpy(pExportThunk, DetouringThunkTemplate, sizeof DetouringThunkTemplate);
 
-            s_pfnExportThunk = pfnExportThunk;
-
             // Write target address.
-            *reinterpret_cast<TFn**>(&pExportThunk[2]) = &Base::detour_static;
+            *reinterpret_cast<TFn**>(&pExportThunk[2]) = Base::get_thunk();
         }
 
         ~export_hook() override {
-            const utils::memory_tenderizer tenderizer(s_pfnExportThunk, sizeof DetouringThunkTemplate, PAGE_EXECUTE_READWRITE);
+            const utils::memory_tenderizer tenderizer(m_pfnExportThunk, sizeof DetouringThunkTemplate, PAGE_EXECUTE_READWRITE);
 
             // Restore original thunk bytes.
-            memcpy(s_pfnExportThunk, s_originalThunk, sizeof s_originalThunk);
+            memcpy(m_pfnExportThunk, s_originalThunk, sizeof s_originalThunk);
 
             // Clear state.
-            s_pfnExportThunk = nullptr;
             memset(s_originalThunk, 0, sizeof s_originalThunk);
         }
     };
 
-    template<typename TTag>
-    class wndproc_hook : public singleton_hook<wndproc_hook<TTag>, std::remove_pointer_t<WNDPROC>> {
-        using Base = singleton_hook<wndproc_hook<TTag>, std::remove_pointer_t<WNDPROC>>;
+    class wndproc_hook : public base_hook<std::remove_pointer_t<WNDPROC>> {
+        using Base = base_hook<std::remove_pointer_t<WNDPROC>>;
 
-        inline static HWND s_hwnd;
+        const HWND s_hwnd;
 
     public:
         wndproc_hook(HWND hwnd)
-            : Base(reinterpret_cast<WNDPROC>(GetWindowLongPtrW(hwnd, GWLP_WNDPROC))) {
-            SetWindowLongPtrW(hwnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(&Base::detour_static));
-            s_hwnd = hwnd;
+            : Base(reinterpret_cast<WNDPROC>(GetWindowLongPtrW(hwnd, GWLP_WNDPROC)))
+            , s_hwnd(hwnd) {
+            SetWindowLongPtrW(hwnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(Base::get_thunk()));
         }
 
         ~wndproc_hook() override {
-            SetWindowLongPtrW(s_hwnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(Base::s_pfnOriginal));
-            s_hwnd = nullptr;
+            SetWindowLongPtrW(s_hwnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(Base::get_original()));
         }
 
         LRESULT call_original(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) override {
-            return CallWindowProcW(Base::s_pfnOriginal, hwnd, msg, wParam, lParam);
+            return CallWindowProcW(Base::get_original(), hwnd, msg, wParam, lParam);
         }
     };
 }
 
-using TFnGetInputDeviceManager = void*();
+using TFnGetInputDeviceManager = void* ();
 static TFnGetInputDeviceManager* GetGetInputDeviceManager(HWND hwnd) {
     static TFnGetInputDeviceManager* pCached = nullptr;
     if (pCached)
@@ -486,9 +578,8 @@ static TFnGetInputDeviceManager* GetGetInputDeviceManager(HWND hwnd) {
 }
 
 void budget_hooks::fixes::prevent_devicechange_crashes(bool bApply) {
-    struct Tag {};
-    static std::optional<singleton_hooks::import_hook<Tag, decltype(CreateWindowExA)>> s_hookCreateWindow;
-    static std::optional<singleton_hooks::wndproc_hook<Tag>> s_hookWndProc;
+    static std::optional<hooks::import_hook<decltype(CreateWindowExA)>> s_hookCreateWindow;
+    static std::optional<hooks::wndproc_hook> s_hookWndProc;
 
     if (bApply) {
         s_hookCreateWindow.emplace("user32.dll", "CreateWindowExA", 0);
@@ -524,8 +615,7 @@ void budget_hooks::fixes::prevent_devicechange_crashes(bool bApply) {
 }
 
 void budget_hooks::fixes::disable_game_openprocess_access_check(bool bApply) {
-    struct Tag {};
-    static std::optional<singleton_hooks::import_hook<Tag, decltype(OpenProcess)>> hook;
+    static std::optional<hooks::import_hook<decltype(OpenProcess)>> hook;
 
     if (bApply) {
         hook.emplace("kernel32.dll", "OpenProcess", 0);
@@ -546,8 +636,7 @@ void budget_hooks::fixes::disable_game_openprocess_access_check(bool bApply) {
 }
 
 void budget_hooks::fixes::redirect_openprocess_currentprocess_to_duplicatehandle_currentprocess(bool bApply) {
-    struct Tag {};
-    static std::optional<singleton_hooks::export_hook<Tag, decltype(OpenProcess)>> hook;
+    static std::optional<hooks::export_hook<decltype(OpenProcess)>> hook;
 
     if (bApply) {
         hook.emplace(::OpenProcess);

@@ -19,6 +19,9 @@
 #include <TlHelp32.h>
 #include <Dbt.h>
 
+// MSVC Compiler Intrinsic
+#include <intrin.h>
+
 // C++ Standard Libraries
 #include <cassert>
 #include <cstdio>
@@ -32,11 +35,14 @@
 #include <type_traits>
 
 // https://www.akenotsuki.com/misc/srell/en/
-#include "srell.h"
+#include "../lib/srell3_009/single-header/srell.hpp"
+
+// https://github.com/Nomade040/nmd
+#include "../lib/Nomade040-nmd/nmd_assembly.h"
 
 // https://github.com/dotnet/coreclr
-#include "..\lib\CoreCLR\CoreCLR.h"
-#include "..\lib\CoreCLR\boot.h"
+#include "../lib/CoreCLR/CoreCLR.h"
+#include "../lib/CoreCLR/boot.h"
 
 // Commonly used macros
 #define DllExport extern "C" __declspec(dllexport)

@@ -57,11 +57,10 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam, HANDLE hMainThreadContinue) {
 #ifndef NDEBUG
     ConsoleSetup(L"Dalamud Boot");
 #endif
-    // MessageBoxA(nullptr, "Waiting", "Waiting", MB_OK);
     try {
         budget_hooks::fixes::apply_all(true);
     } catch (const std::exception& e) {
-        MessageBoxA(nullptr, e.what(), e.what(), MB_OK);
+        MessageBoxA(nullptr, std::format("Failed to do general fixups. Some things might not work.\n\nDescription: {}", e.what()).c_str(), "Dalamud Boot", MB_OK);
     }
 
     printf("Dalamud.Boot Injectable, (c) 2021 XIVLauncher Contributors\nBuilt at: %s@%s\n\n", __DATE__, __TIME__);

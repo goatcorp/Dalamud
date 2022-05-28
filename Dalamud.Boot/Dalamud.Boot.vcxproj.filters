@@ -8,12 +8,12 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
+    <Filter Include="Project Files">
+      <UniqueIdentifier>{0c915688-91ea-431f-8b68-845cad422a50}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
-      <Filter>Dalamud.Boot DLL</Filter>
-    </ClCompile>
-    <ClCompile Include="pch.cpp">
       <Filter>Dalamud.Boot DLL</Filter>
     </ClCompile>
     <ClCompile Include="veh.cpp">
@@ -30,6 +30,12 @@
     </ClCompile>
     <ClCompile Include="budget_hooks.cpp">
       <Filter>Dalamud.Boot DLL</Filter>
+    </ClCompile>
+    <ClCompile Include="pch_nmd_assembly_impl.cpp">
+      <Filter>Project Files</Filter>
+    </ClCompile>
+    <ClCompile Include="pch.cpp">
+      <Filter>Project Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -51,14 +57,11 @@
     <ClInclude Include="veh.h">
       <Filter>Dalamud.Boot DLL</Filter>
     </ClInclude>
-    <ClInclude Include="pch.h">
-      <Filter>Dalamud.Boot DLL</Filter>
-    </ClInclude>
     <ClInclude Include="budget_hooks.h">
       <Filter>Dalamud.Boot DLL</Filter>
     </ClInclude>
-    <ClInclude Include="srell.h">
-      <Filter>Dalamud.Boot DLL</Filter>
+    <ClInclude Include="pch.h">
+      <Filter>Project Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

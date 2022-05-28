@@ -35,17 +35,6 @@ namespace budget_hooks {
             std::span<const char> find_one() const;
         };
 
-        void* resolve_unconditional_jump_target(void* pfn);
-
-        bool find_imported_function_pointer(HMODULE hModule, const char* pcszDllName, const char* pcszFunctionName, uint32_t hintOrOrdinal, void*& ppFunctionAddress);
-
-        void* get_imported_function_pointer(HMODULE hModule, const char* pcszDllName, const char* pcszFunctionName, uint32_t hintOrOrdinal);
-
-        template<typename TFn>
-        TFn** get_imported_function_pointer(HMODULE hModule, const char* pcszDllName, const char* pcszFunctionName, uint32_t hintOrOrdinal) {
-            return reinterpret_cast<TFn**>(get_imported_function_pointer(hModule, pcszDllName, pcszFunctionName, hintOrOrdinal));
-        }
-
         class memory_tenderizer {
             std::span<char> m_data;
             std::vector<MEMORY_BASIC_INFORMATION> m_regions;
@@ -61,9 +50,33 @@ namespace budget_hooks {
 
             ~memory_tenderizer();
         };
+
+        void* resolve_unconditional_jump_target(void* pfn);
+
+        bool find_imported_function_pointer(HMODULE hModule, const char* pcszDllName, const char* pcszFunctionName, uint32_t hintOrOrdinal, void*& ppFunctionAddress);
+
+        void* get_imported_function_pointer(HMODULE hModule, const char* pcszDllName, const char* pcszFunctionName, uint32_t hintOrOrdinal);
+
+        template<typename TFn>
+        TFn** get_imported_function_pointer(HMODULE hModule, const char* pcszDllName, const char* pcszFunctionName, uint32_t hintOrOrdinal) {
+            return reinterpret_cast<TFn**>(get_imported_function_pointer(hModule, pcszDllName, pcszFunctionName, hintOrOrdinal));
+        }
+
+        static constexpr uint64_t ThunkTemplateFunctionThisPointerPlaceholder = 0xCC90CC90CC90CC90ULL;
+
+        std::shared_ptr<void> allocate_executable_heap(size_t len);
+
+        template<typename T>
+        std::shared_ptr<void> allocate_executable_heap(std::span<T> data) {
+            auto res = allocate_executable_heap(data.size_bytes());
+            memcpy(res.get(), data.data(), data.size_bytes());
+            return res;
+        }
+
+        std::shared_ptr<void> create_thunk(void* pfnFunction, void* pThis);
     }
 
-    namespace singleton_hooks {
+    namespace hooks {
     }
 
     namespace fixes {
