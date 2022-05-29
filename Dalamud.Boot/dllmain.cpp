@@ -9,8 +9,17 @@ HMODULE g_hModule;
 HINSTANCE g_hGameInstance = GetModuleHandleW(nullptr);
 
 DllExport DWORD WINAPI Initialize(LPVOID lpParam, HANDLE hMainThreadContinue) {
+    logging::log_file.open(utils::get_env<std::wstring>("DALAMUD_BOOT_LOGFILE"), std::ios_base::out | std::ios_base::app);
+
     if (bootconfig::is_show_console())
         ConsoleSetup(L"Dalamud Boot");
+    
+    if (!logging::log_file) {
+        logging::print<logging::E>("Couldn't open log file!");
+    }
+    
+    logging::print<logging::I>("Dalamud.Boot Injectable, (c) 2021 XIVLauncher Contributors");
+    logging::print<logging::I>("Built at: " __DATE__ "@" __TIME__);
 
     if (bootconfig::is_wait_messagebox())
         MessageBoxW(nullptr, L"Press OK to continue", L"Dalamud Boot", MB_OK);
@@ -21,9 +30,6 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam, HANDLE hMainThreadContinue) {
         logging::print<logging::W>("Failed to do general fixups. Some things might not work.");
         logging::print<logging::W>("Error: {}", e.what());
     }
-
-    logging::print<logging::I>("Dalamud.Boot Injectable, (c) 2021 XIVLauncher Contributors");
-    logging::print<logging::I>("Built at : " __DATE__ "@" __TIME__);
 
     if (bootconfig::is_wait_debugger()) {
         logging::print<logging::I>("Waiting for debugger to attach...");
@@ -87,6 +93,7 @@ BOOL APIENTRY DllMain(const HMODULE hModule, const DWORD dwReason, LPVOID lpRese
         case DLL_PROCESS_DETACH:
             xivfixes::apply_all(false);
             veh::remove_handler();
+            //logging::log_file.close();
             break;
     }
     return TRUE;

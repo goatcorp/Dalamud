@@ -73,9 +73,9 @@ int InitializeClrAndGetEntryPoint(
 
     // =========================================================================== //
 
-    logging::print<logging::I>(L"with dotnet_path: %s", dotnet_path);
-    logging::print<logging::I>(L"with config_path: %s", runtimeconfig_path.c_str());
-    logging::print<logging::I>(L"with module_path: %s", module_path.c_str());
+    logging::print<logging::I>(L"with dotnet_path: {}", dotnet_path);
+    logging::print<logging::I>(L"with config_path: {}", runtimeconfig_path.c_str());
+    logging::print<logging::I>(L"with module_path: {}", module_path.c_str());
 
     if (!std::filesystem::exists(dotnet_path))
     {

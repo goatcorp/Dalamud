@@ -101,6 +101,19 @@ namespace Dalamud.Injector
             }
         }
 
+        private static string GetLogPath(string filename)
+        {
+            var baseDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+
+#if DEBUG
+            var logPath = Path.Combine(baseDirectory, $"{filename}.log");
+#else
+            var logPath = Path.Combine(baseDirectory, "..", "..", "..", "dalamud.injector.log");
+#endif
+
+            return logPath;
+        }
+
         private static void Init(List<string> args)
         {
             InitUnhandledException(args);
@@ -161,14 +174,6 @@ namespace Dalamud.Injector
 
         private static void InitLogging()
         {
-            var baseDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-
-#if DEBUG
-            var logPath = Path.Combine(baseDirectory, "dalamud.injector.log");
-#else
-            var logPath = Path.Combine(baseDirectory, "..", "..", "..", "dalamud.injector.log");
-#endif
-
             var levelSwitch = new LoggingLevelSwitch();
 
 #if DEBUG
@@ -176,6 +181,10 @@ namespace Dalamud.Injector
 #else
             levelSwitch.MinimumLevel = LogEventLevel.Information;
 #endif
+
+            var logPath = GetLogPath("dalamud.injector");
+
+            Environment.SetEnvironmentVariable("DALAMUD_BOOT_LOGFILE", GetLogPath("dalamud.boot"));
 
             CullLogFile(logPath, 1 * 1024 * 1024);
 

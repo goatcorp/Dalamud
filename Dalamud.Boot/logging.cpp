@@ -32,4 +32,10 @@ void logging::print(Level level, const char* s) {
 
     DWORD wr;
     WriteFile(GetStdHandle(STD_ERROR_HANDLE), &estr[0], static_cast<DWORD>(estr.size()), &wr, nullptr);
+
+    if (log_file.is_open())
+    {
+        log_file << estr;
+        log_file.flush();
+    }
 }
