@@ -42,6 +42,11 @@
 
 // https://github.com/TsudaKageyu/minhook
 #include "../lib/TsudaKageyu-minhook/include/MinHook.h"
+#ifdef _DEBUG
+#pragma comment(lib, "../lib/Debug/libMinHook.x64.lib")
+#else
+#pragma comment(lib, "../lib/Release/libMinHook.x64.lib")
+#endif
 
 // https://github.com/Nomade040/nmd
 #include "../lib/Nomade040-nmd/nmd_assembly.h"
