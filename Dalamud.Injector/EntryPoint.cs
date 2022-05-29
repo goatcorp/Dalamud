@@ -108,7 +108,7 @@ namespace Dalamud.Injector
 #if DEBUG
             var logPath = Path.Combine(baseDirectory, $"{filename}.log");
 #else
-            var logPath = Path.Combine(baseDirectory, "..", "..", "..", "dalamud.injector.log");
+            var logPath = Path.Combine(baseDirectory, "..", "..", "..", $"{filename}.log");
 #endif
 
             return logPath;

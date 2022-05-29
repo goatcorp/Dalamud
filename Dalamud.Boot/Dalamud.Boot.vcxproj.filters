@@ -11,6 +11,9 @@
     <Filter Include="Project Files">
       <UniqueIdentifier>{0c915688-91ea-431f-8b68-845cad422a50}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Common Boot">
+      <UniqueIdentifier>{e31f7ca0-db29-4198-8b91-bb11b339705f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -41,10 +44,10 @@
       <Filter>Dalamud.Boot DLL</Filter>
     </ClCompile>
     <ClCompile Include="logging.cpp">
-      <Filter>Dalamud.Boot DLL</Filter>
+      <Filter>Common Boot</Filter>
     </ClCompile>
     <ClCompile Include="unicode.cpp">
-      <Filter>Dalamud.Boot DLL</Filter>
+      <Filter>Common Boot</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -82,10 +85,10 @@
       <Filter>Dalamud.Boot DLL</Filter>
     </ClInclude>
     <ClInclude Include="logging.h">
-      <Filter>Dalamud.Boot DLL</Filter>
+      <Filter>Common Boot</Filter>
     </ClInclude>
     <ClInclude Include="unicode.h">
-      <Filter>Dalamud.Boot DLL</Filter>
+      <Filter>Common Boot</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

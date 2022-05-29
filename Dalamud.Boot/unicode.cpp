@@ -1,5 +1,3 @@
-#include "pch.h"
-
 #include "unicode.h"
 
 size_t unicode::decode(EncodingTag<char8_t>, char32_t& out, const char8_t* in, size_t nRemainingBytes, bool strict) {
