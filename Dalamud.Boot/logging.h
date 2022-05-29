@@ -3,10 +3,13 @@
 #include <format>
 #include <numeric>
 #include <string>
+#include <fstream>
 
 #include "unicode.h"
 
 namespace logging {
+    inline std::ofstream log_file;
+    
     enum Level : int {
         Verbose = 0,
         V = 0,
