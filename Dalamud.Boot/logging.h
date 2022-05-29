@@ -1,15 +1,13 @@
 #pragma once
 
+#include <filesystem>
 #include <format>
 #include <numeric>
 #include <string>
-#include <fstream>
 
 #include "unicode.h"
 
 namespace logging {
-    inline std::ofstream log_file;
-    
     enum Level : int {
         Verbose = 0,
         V = 0,
@@ -64,6 +62,8 @@ namespace logging {
     inline void print(const T* pcszFormat, Arg arg1, Args...args) {
         print(level, std::format(pcszFormat, std::forward<Arg>(arg1), std::forward<Args>(args)...));
     }
+
+    void start_file_logging(const std::filesystem::path& path);
 
     void update_dll_load_status(bool loaded);
 };

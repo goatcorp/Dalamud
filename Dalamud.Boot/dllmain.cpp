@@ -9,13 +9,19 @@ HMODULE g_hModule;
 HINSTANCE g_hGameInstance = GetModuleHandleW(nullptr);
 
 DllExport DWORD WINAPI Initialize(LPVOID lpParam, HANDLE hMainThreadContinue) {
-    logging::log_file.open(utils::get_env<std::wstring>("DALAMUD_BOOT_LOGFILE"), std::ios_base::out | std::ios_base::app);
-
     if (bootconfig::is_show_console())
         ConsoleSetup(L"Dalamud Boot");
-    
-    if (!logging::log_file) {
-        logging::print<logging::E>("Couldn't open log file!");
+
+    if (const auto logFilePath = utils::get_env<std::wstring>("DALAMUD_BOOT_LOGFILE"); logFilePath.empty())
+        logging::print<logging::I>("No log file path given; not logging to file.");
+    else {
+        try {
+            logging::start_file_logging(logFilePath);
+            logging::print<logging::I>(L"Logging to file: {}", logFilePath);
+        } catch (const std::exception& e) {
+            logging::print<logging::E>(L"Couldn't open log file: {}", logFilePath);
+            logging::print<logging::E>("Error: {} / {}", errno, e.what());
+        }
     }
     
     logging::print<logging::I>("Dalamud.Boot Injectable, (c) 2021 XIVLauncher Contributors");
