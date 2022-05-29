@@ -30,7 +30,9 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam, HANDLE hMainThreadContinue) {
     if (bootconfig::is_wait_messagebox())
         MessageBoxW(nullptr, L"Press OK to continue", L"Dalamud Boot", MB_OK);
 
+    logging::print<logging::I>("Applying fixes...");
     xivfixes::apply_all(true);
+    logging::print<logging::I>("Fixes OK");
 
     if (bootconfig::is_wait_debugger()) {
         logging::print<logging::I>("Waiting for debugger to attach...");
@@ -44,6 +46,8 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam, HANDLE hMainThreadContinue) {
     const auto module_path = std::filesystem::path(fs_module_path).replace_filename(L"Dalamud.dll").wstring();
 
     // ============================== CLR ========================================= //
+
+    logging::print<logging::I>("Calling InitializeClrAndGetEntryPoint");
 
     void* entrypoint_vfn;
     int result = InitializeClrAndGetEntryPoint(

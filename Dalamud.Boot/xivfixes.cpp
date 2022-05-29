@@ -69,6 +69,7 @@ void xivfixes::prevent_devicechange_crashes(bool bApply) {
             return hWnd;
         });
 
+        logging::print<logging::I>("{} Enable", LogTag);
     } else {
         logging::print<logging::I>("{} Disable", LogTag);
 
@@ -86,9 +87,9 @@ void xivfixes::disable_game_openprocess_access_check(bool bApply) {
     if (bApply) {
         hook.emplace("kernel32.dll", "OpenProcess", 0);
         hook->set_detour([](DWORD dwDesiredAccess, BOOL bInheritHandle, DWORD dwProcessId)->HANDLE {
-            if (dwProcessId == GetCurrentProcessId()) {
-                logging::print<logging::I>("{} OpenProcess(0{:08X}, {}, {}) was invoked by thread {}.", LogTag, dwDesiredAccess, bInheritHandle, dwProcessId, GetCurrentThreadId());
+            logging::print<logging::I>("{} OpenProcess(0{:08X}, {}, {}) was invoked by thread {}.", LogTag, dwDesiredAccess, bInheritHandle, dwProcessId, GetCurrentThreadId());
 
+            if (dwProcessId == GetCurrentProcessId()) {
                 // Prevent game from feeling unsafe that it restarts
                 if (dwDesiredAccess & PROCESS_VM_WRITE) {
                     logging::print<logging::I>("{} Returning failure with last error code set to ERROR_ACCESS_DENIED(5).", LogTag);
@@ -100,6 +101,7 @@ void xivfixes::disable_game_openprocess_access_check(bool bApply) {
             return hook->call_original(dwDesiredAccess, bInheritHandle, dwProcessId);
         });
 
+        logging::print<logging::I>("{} Enable", LogTag);
     } else {
         logging::print<logging::I>("{} Disable", LogTag);
         hook.reset();
@@ -111,7 +113,6 @@ void xivfixes::redirect_openprocess(bool bApply) {
     static std::optional<hooks::direct_hook<decltype(OpenProcess)>> hook;
 
     if (bApply) {
-        logging::print<logging::I>("{} Enable", LogTag);
         hook.emplace(OpenProcess);
         hook->set_detour([](DWORD dwDesiredAccess, BOOL bInheritHandle, DWORD dwProcessId)->HANDLE {
             if (dwProcessId == GetCurrentProcessId()) {
@@ -124,6 +125,8 @@ void xivfixes::redirect_openprocess(bool bApply) {
             }
             return hook->call_original(dwDesiredAccess, bInheritHandle, dwProcessId);
         });
+
+        logging::print<logging::I>("{} Enable", LogTag);
 
     } else {
         logging::print<logging::I>("{} Disable", LogTag);
