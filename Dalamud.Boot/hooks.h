@@ -71,45 +71,31 @@ namespace hooks {
         }
     };
 
-    template<typename TFn>
-    class export_hook : public base_hook<TFn> {
+    template<typename>
+    class direct_hook;
+
+    template<typename TReturn, typename ... TArgs>
+    class direct_hook<TReturn(TArgs...)> : public base_hook<TReturn(TArgs...)> {
+        using TFn = TReturn(TArgs...);
         using Base = base_hook<TFn>;
 
-        static constexpr uint8_t DetouringThunkTemplate[12]{
-            0x48, 0xB8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  // movabs rax, 0x0000000000000000
-            0xFF, 0xE0, // jmp rax
-        };
-
-        TFn* const m_pfnExportThunk;
-        uint8_t s_originalThunk[sizeof DetouringThunkTemplate]{};
+        TFn* m_pfnMinHookBridge;
 
     public:
-        export_hook(TFn* pfnExportThunk)
-            : Base(reinterpret_cast<TFn*>(utils::resolve_unconditional_jump_target(pfnExportThunk)))
-            , m_pfnExportThunk(pfnExportThunk) {
-            auto pExportThunk = reinterpret_cast<uint8_t*>(pfnExportThunk);
+        direct_hook(TFn* pfnFunction)
+            : Base(pfnFunction) {
+            if (const auto mhStatus = MH_CreateHook(pfnFunction, Base::get_thunk(), reinterpret_cast<void**>(&m_pfnMinHookBridge)); mhStatus != MH_OK)
+                throw std::runtime_error(std::format("MH_CreateHook(0x{:X}, ...) failure: {}", reinterpret_cast<size_t>(pfnFunction), static_cast<int>(mhStatus)));
 
-            // Make it writeable.
-            const utils::memory_tenderizer tenderizer(pfnExportThunk, sizeof DetouringThunkTemplate, PAGE_EXECUTE_READWRITE);
-
-            // Back up original thunk bytes.
-            memcpy(s_originalThunk, pExportThunk, sizeof s_originalThunk);
-
-            // Write thunk template.
-            memcpy(pExportThunk, DetouringThunkTemplate, sizeof DetouringThunkTemplate);
-
-            // Write target address.
-            *reinterpret_cast<TFn**>(&pExportThunk[2]) = Base::get_thunk();
+            MH_EnableHook(Base::get_original());
         }
 
-        ~export_hook() override {
-            const utils::memory_tenderizer tenderizer(m_pfnExportThunk, sizeof DetouringThunkTemplate, PAGE_EXECUTE_READWRITE);
+        ~direct_hook() override {
+            MH_DisableHook(Base::get_original());
+        }
 
-            // Restore original thunk bytes.
-            memcpy(m_pfnExportThunk, s_originalThunk, sizeof s_originalThunk);
-
-            // Clear state.
-            memset(s_originalThunk, 0, sizeof s_originalThunk);
+        TReturn call_original(TArgs... args) override {
+            return m_pfnMinHookBridge(std::forward<TArgs>(args)...);
         }
     };
 

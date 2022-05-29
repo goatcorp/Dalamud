@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "logging.h"
 
+static bool s_bLoaded = false;
+
 void logging::print(Level level, const char* s) {
     SYSTEMTIME st;
     GetLocalTime(&st);
@@ -30,12 +32,21 @@ void logging::print(Level level, const char* s) {
             break;
     }
 
-    DWORD wr;
-    WriteFile(GetStdHandle(STD_ERROR_HANDLE), &estr[0], static_cast<DWORD>(estr.size()), &wr, nullptr);
+    OutputDebugStringW(unicode::convert<std::wstring>(estr).c_str());
 
-    if (log_file.is_open())
-    {
-        log_file << estr;
-        log_file.flush();
+    // Handle accesses should not be done during DllMain process attach/detach calls
+    if (s_bLoaded) {
+        DWORD wr{};
+        WriteFile(GetStdHandle(STD_ERROR_HANDLE), &estr[0], static_cast<DWORD>(estr.size()), &wr, nullptr);
+      
+        if (log_file.is_open())
+        {
+            log_file << estr;
+            log_file.flush();
+        }
     }
+}
+
+void logging::update_dll_load_status(bool loaded) {
+    s_bLoaded = loaded;
 }

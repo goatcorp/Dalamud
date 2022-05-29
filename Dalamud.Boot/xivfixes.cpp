@@ -108,11 +108,11 @@ void xivfixes::disable_game_openprocess_access_check(bool bApply) {
 
 void xivfixes::redirect_openprocess(bool bApply) {
     static const char* LogTag = "[xivfixes:redirect_openprocess]";
-    static std::optional<hooks::export_hook<decltype(OpenProcess)>> hook;
+    static std::optional<hooks::direct_hook<decltype(OpenProcess)>> hook;
 
     if (bApply) {
         logging::print<logging::I>("{} Enable", LogTag);
-        hook.emplace(::OpenProcess);
+        hook.emplace(OpenProcess);
         hook->set_detour([](DWORD dwDesiredAccess, BOOL bInheritHandle, DWORD dwProcessId)->HANDLE {
             if (dwProcessId == GetCurrentProcessId()) {
                 logging::print<logging::I>("{} OpenProcess(0{:08X}, {}, {}) was invoked by thread {}. Redirecting to DuplicateHandle.", LogTag, dwDesiredAccess, bInheritHandle, dwProcessId, GetCurrentThreadId());
@@ -128,5 +128,32 @@ void xivfixes::redirect_openprocess(bool bApply) {
     } else {
         logging::print<logging::I>("{} Disable", LogTag);
         hook.reset();
+    }
+}
+
+void xivfixes::apply_all(bool bApply) {
+    for (const auto& [taskName, taskFunction] : std::initializer_list<std::pair<const char*, void(*)(bool)>>
+        {
+            { "prevent_devicechange_crashes", &prevent_devicechange_crashes },
+            { "disable_game_openprocess_access_check", &disable_game_openprocess_access_check },
+            { "redirect_openprocess", &redirect_openprocess },
+        }
+        ) {
+        try {
+            taskFunction(bApply);
+
+        } catch (const std::exception& e) {
+            if (bApply)
+                logging::print<logging::W>("Error trying to activate fixup [{}]: {}", taskName, e.what());
+            else
+                logging::print<logging::W>("Error trying to deactivate fixup [{}]: {}", taskName, e.what());
+
+            continue;
+        }
+
+        if (bApply)
+            logging::print<logging::I>("Fixup [{}] activated.", taskName);
+        else
+            logging::print<logging::I>("Fixup [{}] deactivated.", taskName);
     }
 }

@@ -5,9 +5,5 @@ namespace xivfixes {
     void disable_game_openprocess_access_check(bool bApply);
     void redirect_openprocess(bool bApply);
 
-    inline void apply_all(bool bApply) {
-        prevent_devicechange_crashes(bApply);
-        disable_game_openprocess_access_check(bApply);
-        redirect_openprocess(bApply);
-    }
+    void apply_all(bool bApply);
 }

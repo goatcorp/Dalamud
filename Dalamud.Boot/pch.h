@@ -40,6 +40,9 @@
 // https://www.akenotsuki.com/misc/srell/en/
 #include "../lib/srell3_009/single-header/srell.hpp"
 
+// https://github.com/TsudaKageyu/minhook
+#include "../lib/TsudaKageyu-minhook/include/MinHook.h"
+
 // https://github.com/Nomade040/nmd
 #include "../lib/Nomade040-nmd/nmd_assembly.h"
 

@@ -24,12 +24,7 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam, HANDLE hMainThreadContinue) {
     if (bootconfig::is_wait_messagebox())
         MessageBoxW(nullptr, L"Press OK to continue", L"Dalamud Boot", MB_OK);
 
-    try {
-        xivfixes::apply_all(true);
-    } catch (const std::exception& e) {
-        logging::print<logging::W>("Failed to do general fixups. Some things might not work.");
-        logging::print<logging::W>("Error: {}", e.what());
-    }
+    xivfixes::apply_all(true);
 
     if (bootconfig::is_wait_debugger()) {
         logging::print<logging::I>("Waiting for debugger to attach...");
@@ -89,9 +84,24 @@ BOOL APIENTRY DllMain(const HMODULE hModule, const DWORD dwReason, LPVOID lpRese
     switch (dwReason) {
         case DLL_PROCESS_ATTACH:
             g_hModule = hModule;
+            if (const auto mhStatus = MH_Initialize(); MH_OK != mhStatus) {
+                logging::print<logging::E>("Failed to initialize MinHook (status={})", static_cast<int>(mhStatus));
+                return FALSE;
+            }
+
+            logging::update_dll_load_status(true);
             break;
+
         case DLL_PROCESS_DETACH:
+            logging::update_dll_load_status(false);
+
             xivfixes::apply_all(false);
+
+            if (const auto mhStatus = MH_Uninitialize(); MH_OK != mhStatus) {
+                logging::print<logging::E>("Failed to uninitialize MinHook (status={})", static_cast<int>(mhStatus));
+                __fastfail(logging::MinHookUnload);
+            }
+
             veh::remove_handler();
             //logging::log_file.close();
             break;

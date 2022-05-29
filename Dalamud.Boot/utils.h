@@ -57,8 +57,6 @@ namespace utils {
         ~memory_tenderizer();
     };
 
-    void* resolve_unconditional_jump_target(void* pfn);
-
     bool find_imported_function_pointer(HMODULE hModule, const char* pcszDllName, const char* pcszFunctionName, uint32_t hintOrOrdinal, void*& ppFunctionAddress);
 
     void* get_imported_function_pointer(HMODULE hModule, const char* pcszDllName, const char* pcszFunctionName, uint32_t hintOrOrdinal);
