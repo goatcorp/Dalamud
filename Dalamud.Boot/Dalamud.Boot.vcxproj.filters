@@ -14,6 +14,9 @@
     <Filter Include="Common Boot">
       <UniqueIdentifier>{e31f7ca0-db29-4198-8b91-bb11b339705f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="MinHook">
+      <UniqueIdentifier>{6ec5597d-e293-4d2a-a307-7444c8fac04b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -48,6 +51,21 @@
     </ClCompile>
     <ClCompile Include="unicode.cpp">
       <Filter>Common Boot</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lib\TsudaKageyu-minhook\src\buffer.c">
+      <Filter>MinHook</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lib\TsudaKageyu-minhook\src\HDE\hde32.c">
+      <Filter>MinHook</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lib\TsudaKageyu-minhook\src\HDE\hde64.c">
+      <Filter>MinHook</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lib\TsudaKageyu-minhook\src\hook.c">
+      <Filter>MinHook</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lib\TsudaKageyu-minhook\src\trampoline.c">
+      <Filter>MinHook</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -89,6 +107,30 @@
     </ClInclude>
     <ClInclude Include="unicode.h">
       <Filter>Common Boot</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lib\TsudaKageyu-minhook\src\trampoline.h">
+      <Filter>MinHook</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lib\TsudaKageyu-minhook\src\buffer.h">
+      <Filter>MinHook</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lib\TsudaKageyu-minhook\src\HDE\hde32.h">
+      <Filter>MinHook</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lib\TsudaKageyu-minhook\src\HDE\hde64.h">
+      <Filter>MinHook</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lib\TsudaKageyu-minhook\include\MinHook.h">
+      <Filter>MinHook</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lib\TsudaKageyu-minhook\src\HDE\pstdint.h">
+      <Filter>MinHook</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lib\TsudaKageyu-minhook\src\HDE\table32.h">
+      <Filter>MinHook</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lib\TsudaKageyu-minhook\src\HDE\table64.h">
+      <Filter>MinHook</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

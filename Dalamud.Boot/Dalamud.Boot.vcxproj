@@ -33,7 +33,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LibraryPath>$(SolutionDir)bin\lib\$(Configuration)\libMinHook\;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LibraryPath>$(SolutionDir)bin\lib\$(Configuration)\libMinHook\;$(LibraryPath)</LibraryPath>
@@ -53,7 +53,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>dbghelp.lib;libMinHook.x64.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\lib\CoreCLR;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -99,6 +99,23 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="..\lib\TsudaKageyu-minhook\src\buffer.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\lib\TsudaKageyu-minhook\src\HDE\hde32.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\lib\TsudaKageyu-minhook\src\HDE\hde64.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\lib\TsudaKageyu-minhook\src\hook.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\lib\TsudaKageyu-minhook\src\trampoline.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="logging.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
@@ -130,6 +147,14 @@
     <ClInclude Include="..\lib\CoreCLR\core\coreclr_delegates.h" />
     <ClInclude Include="..\lib\CoreCLR\core\hostfxr.h" />
     <ClInclude Include="..\lib\CoreCLR\nethost\nethost.h" />
+    <ClInclude Include="..\lib\TsudaKageyu-minhook\include\MinHook.h" />
+    <ClInclude Include="..\lib\TsudaKageyu-minhook\src\buffer.h" />
+    <ClInclude Include="..\lib\TsudaKageyu-minhook\src\HDE\hde32.h" />
+    <ClInclude Include="..\lib\TsudaKageyu-minhook\src\HDE\hde64.h" />
+    <ClInclude Include="..\lib\TsudaKageyu-minhook\src\HDE\pstdint.h" />
+    <ClInclude Include="..\lib\TsudaKageyu-minhook\src\HDE\table32.h" />
+    <ClInclude Include="..\lib\TsudaKageyu-minhook\src\HDE\table64.h" />
+    <ClInclude Include="..\lib\TsudaKageyu-minhook\src\trampoline.h" />
     <ClInclude Include="bootconfig.h" />
     <ClInclude Include="hooks.h" />
     <ClInclude Include="logging.h" />
@@ -138,11 +163,6 @@
     <ClInclude Include="pch.h" />
     <ClInclude Include="veh.h" />
     <ClInclude Include="xivfixes.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\lib\libMinHook.vcxproj">
-      <Project>{f142a341-5ee0-442d-a15f-98ae9b48dbae}</Project>
-    </ProjectReference>
   </ItemGroup>
   <Target Name="RemoveExtraFiles" AfterTargets="PostBuildEvent">
     <Delete Files="$(OutDir)$(TargetName).lib" />
