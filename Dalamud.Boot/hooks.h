@@ -85,7 +85,7 @@ namespace hooks {
         direct_hook(TFn* pfnFunction)
             : Base(pfnFunction) {
             if (const auto mhStatus = MH_CreateHook(pfnFunction, Base::get_thunk(), reinterpret_cast<void**>(&m_pfnMinHookBridge)); mhStatus != MH_OK)
-                throw std::runtime_error(std::format("MH_CreateHook(0x{:X}, ...) failure: {}", static_cast<size_t>(pfnFunction), static_cast<int>(mhStatus)));
+                throw std::runtime_error(std::format("MH_CreateHook(0x{:X}, ...) failure: {}", reinterpret_cast<size_t>(pfnFunction), static_cast<int>(mhStatus)));
 
             MH_EnableHook(Base::get_original());
         }
