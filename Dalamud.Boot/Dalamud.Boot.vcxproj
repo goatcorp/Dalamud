@@ -59,6 +59,7 @@
       <IntrinsicFunctions>false</IntrinsicFunctions>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">26812</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
@@ -71,6 +72,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">26812</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -126,6 +128,11 @@
     <ClInclude Include="pch.h" />
     <ClInclude Include="veh.h" />
     <ClInclude Include="xivfixes.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\lib\TsudaKageyu-minhook\build\VC16\libMinHook.vcxproj">
+      <Project>{f142a341-5ee0-442d-a15f-98ae9b48dbae}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Target Name="RemoveExtraFiles" AfterTargets="PostBuildEvent">
     <Delete Files="$(OutDir)$(TargetName).lib" />

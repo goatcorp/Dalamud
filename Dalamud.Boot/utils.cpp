@@ -229,17 +229,6 @@ std::shared_ptr<void> utils::allocate_executable_heap(size_t len) {
     };
 }
 
-void* utils::resolve_unconditional_jump_target(void* pfn) {
-    const auto bytes = reinterpret_cast<uint8_t*>(pfn);
-
-    // JMP QWORD PTR [RIP + int32]
-    // 48 FF 25 ?? ?? ?? ??
-    if (bytes[0] == 0x48 && bytes[1] == 0xFF && bytes[2] == 0x25)
-        return *reinterpret_cast<void**>(&bytes[7 + *reinterpret_cast<int*>(&bytes[3])]);
-
-    throw std::runtime_error("Unexpected thunk bytes.");
-}
-
 template<typename TEntryType>
 static bool find_imported_function_pointer_helper(const char* pcBaseAddress, const IMAGE_IMPORT_DESCRIPTOR& desc, const IMAGE_DATA_DIRECTORY& dir, std::string_view reqFunc, uint32_t hintOrOrdinal, void*& ppFunctionAddress) {
     const auto importLookupsOversizedSpan = std::span(reinterpret_cast<const TEntryType*>(&pcBaseAddress[desc.OriginalFirstThunk]), (dir.Size - desc.OriginalFirstThunk) / sizeof TEntryType);

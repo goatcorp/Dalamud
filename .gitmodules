@@ -7,3 +7,6 @@
 [submodule "lib/Nomade040-nmd"]
 	path = lib/Nomade040-nmd
 	url = https://github.com/Nomade040/nmd
+[submodule "lib/TsudaKageyu-minhook"]
+	path = lib/TsudaKageyu-minhook
+	url = git@github.com:TsudaKageyu/minhook.git

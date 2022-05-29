@@ -22,6 +22,11 @@ namespace logging {
         F = 5,
     };
 
+    enum FastFailErrorCode : int {
+        Unspecified = 12345,
+        MinHookUnload,
+    };
+
     void print(Level level, const char* s);
 
     inline void print(Level level, const wchar_t* s) {
@@ -56,4 +61,6 @@ namespace logging {
     inline void print(const T* pcszFormat, Arg arg1, Args...args) {
         print(level, std::format(pcszFormat, std::forward<Arg>(arg1), std::forward<Args>(args)...));
     }
+
+    void update_dll_load_status(bool loaded);
 };
