@@ -245,9 +245,7 @@ void xivfixes::disable_game_openprocess_access_check(bool bApply) {
 
 void xivfixes::redirect_openprocess(bool bApply) {
     static const char* LogTag = "[xivfixes:redirect_openprocess]";
-    static std::vector<std::shared_ptr<hooks::base_untyped_hook>> s_hooks;
-
-    static void* dllLoadCookie = nullptr;
+    static std::shared_ptr<hooks::base_untyped_hook> s_hook;
 
     if (bApply) {
         if (!bootconfig::gamefix_is_enabled(L"redirect_openprocess")) {
@@ -268,7 +266,7 @@ void xivfixes::redirect_openprocess(bool bApply) {
                 }
                 return hook->call_original(dwDesiredAccess, bInheritHandle, dwProcessId);
             });
-            s_hooks.emplace_back(std::dynamic_pointer_cast<hooks::base_untyped_hook>(std::move(hook)));
+            s_hook = std::dynamic_pointer_cast<hooks::base_untyped_hook>(std::move(hook));
 
             logging::print<logging::I>("{} Enable via import_hook", LogTag);
 
@@ -285,20 +283,15 @@ void xivfixes::redirect_openprocess(bool bApply) {
                 }
                 return hook->call_original(dwDesiredAccess, bInheritHandle, dwProcessId);
             });
-            s_hooks.emplace_back(std::dynamic_pointer_cast<hooks::base_untyped_hook>(std::move(hook)));
+            s_hook = std::dynamic_pointer_cast<hooks::base_untyped_hook>(std::move(hook));
 
             logging::print<logging::I>("{} Enable via direct_hook", LogTag);
         }
 
     } else {
-        if (!s_hooks.empty() || dllLoadCookie) {
-            if (dllLoadCookie) {
-                // LdrUnregisterDllNotification(dllLoadCookie);
-                dllLoadCookie = nullptr;
-            }
-
+        if (s_hook) {
             logging::print<logging::I>("{} Disable OpenProcess", LogTag);
-            s_hooks.clear();
+            s_hook.reset();
         }
     }
 }
