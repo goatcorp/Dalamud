@@ -270,67 +270,6 @@ void xivfixes::redirect_openprocess(bool bApply) {
             });
             s_hooks.emplace_back(std::dynamic_pointer_cast<hooks::base_untyped_hook>(std::move(hook)));
 
-            /*
-            if (!dllLoadCookie) {
-                static const auto AddImportHook = [](const utils::loaded_module& mod) {
-                    if (mod.is_self())
-                        return;
-
-                    if (void* pOpenProcessImport; mod.find_imported_function_pointer("kernel32.dll", "OpenProcess", 0, pOpenProcessImport)) {
-                        logging::print<logging::I>("{} Hooking OpenProcess imported by {}", LogTag, unicode::convert<std::string>(mod.path().wstring()));
-
-                        auto hook = std::make_shared<hooks::import_hook<decltype(OpenProcess)>>(reinterpret_cast<decltype(OpenProcess)**>(pOpenProcessImport));
-                        hook->set_detour([hook = hook.get()](DWORD dwDesiredAccess, BOOL bInheritHandle, DWORD dwProcessId)->HANDLE {
-                            if (dwProcessId == GetCurrentProcessId()) {
-                                logging::print<logging::I>("{} OpenProcess(0x{:08X}, {}, {}) was invoked by thread {}. Redirecting to DuplicateHandle.", LogTag, dwDesiredAccess, bInheritHandle, dwProcessId, GetCurrentThreadId());
-
-                                if (HANDLE res; DuplicateHandle(GetCurrentProcess(), GetCurrentProcess(), GetCurrentProcess(), &res, dwDesiredAccess, bInheritHandle, 0))
-                                    return res;
-
-                                return {};
-                            }
-                            return hook->call_original(dwDesiredAccess, bInheritHandle, dwProcessId);
-                        });
-                        s_hooks.emplace_back(std::dynamic_pointer_cast<hooks::base_untyped_hook>(std::move(hook)));
-                    }
-
-                    if (void* pGetProcAddressImport; mod.find_imported_function_pointer("kernel32.dll", "GetProcAddress", 0, pGetProcAddressImport)) {
-                        logging::print<logging::I>("{} Hooking OpenProcess imported by {}", LogTag, unicode::convert<std::string>(mod.path().wstring()));
-
-                        auto hook = std::make_shared<hooks::import_hook<decltype(GetProcAddress)>>(reinterpret_cast<decltype(GetProcAddress)**>(pGetProcAddressImport));
-                        hook->set_detour([hook = hook.get()](HMODULE hModule, LPCSTR lpProcName)->FARPROC {
-                            logging::print<logging::I>("{} GetProcAddress: {}", LogTag, lpProcName);
-
-                            if (strcmp(lpProcName, "OpenProcess") == 0) {
-                                return reinterpret_cast<FARPROC>(static_cast<decltype(OpenProcess)*>([](DWORD dwDesiredAccess, BOOL bInheritHandle, DWORD dwProcessId) -> HANDLE {
-                                    if (dwProcessId == GetCurrentProcessId()) {
-                                        logging::print<logging::I>("{} OpenProcess(0x{:08X}, {}, {}) was invoked by thread {}. Redirecting to DuplicateHandle.", LogTag, dwDesiredAccess, bInheritHandle, dwProcessId, GetCurrentThreadId());
-
-                                        if (HANDLE res; DuplicateHandle(GetCurrentProcess(), GetCurrentProcess(), GetCurrentProcess(), &res, dwDesiredAccess, bInheritHandle, 0))
-                                            return res;
-
-                                        return {};
-                                    }
-
-                                    return ::OpenProcess(dwDesiredAccess, bInheritHandle, dwProcessId);
-                                }));
-                            }
-                            return hook->call_original(hModule, lpProcName);
-                        });
-                        s_hooks.emplace_back(std::dynamic_pointer_cast<hooks::base_untyped_hook>(std::move(hook)));
-                    }
-                };
-
-                for (const auto& mod : utils::loaded_module::all_modules())
-                    AddImportHook(mod);
-
-                LdrRegisterDllNotification(0, [](ULONG notiReason, const LDR_DLL_NOTIFICATION_DATA* pData, void* context) {
-                    if (notiReason == LDR_DLL_NOTIFICATION_REASON_LOADED)
-                        AddImportHook(utils::loaded_module(pData->Loaded.DllBase));
-                }, nullptr, &dllLoadCookie);
-            }
-            //*/
-
             logging::print<logging::I>("{} Enable via import_hook", LogTag);
 
         } else {

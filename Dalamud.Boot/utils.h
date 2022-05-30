@@ -20,7 +20,7 @@ namespace utils {
 
         std::filesystem::path path() const;
 
-        bool is_self() const { return m_hModule == GetModuleHandleW(nullptr); }
+        bool is_current_process() const { return m_hModule == GetModuleHandleW(nullptr); }
         bool owns_address(const void* pAddress) const;
 
         operator HMODULE() const {

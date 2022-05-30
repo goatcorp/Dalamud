@@ -55,6 +55,18 @@ void logging::start_file_logging(const std::filesystem::path& path) {
     if (s_hLogFile)
         return;
 
+    try {
+        if (exists(path) && file_size(path) > 1048576) {
+            auto oldPath = std::filesystem::path(path);
+            oldPath.replace_extension(".log.old");
+            if (exists(oldPath))
+                remove(oldPath);
+            rename(path, oldPath);
+        }
+    } catch (...) {
+        // whatever
+    }
+
     const auto h = CreateFile(path.wstring().c_str(),
         GENERIC_WRITE,
         FILE_SHARE_READ | FILE_SHARE_WRITE,

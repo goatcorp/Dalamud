@@ -113,7 +113,6 @@ void hooks::getprocaddress_singleton_import_hook::initialize() {
     }, this, &m_ldrDllNotificationCookie);
 }
 
-
 FARPROC hooks::getprocaddress_singleton_import_hook::get_proc_address_handler(HMODULE hModule, LPCSTR lpProcName) {
     if (const auto it1 = m_targetFns.find(hModule); it1 != m_targetFns.end()) {
         if (const auto it2 = it1->second.find(lpProcName); it2 != it1->second.end()) {
@@ -126,6 +125,9 @@ FARPROC hooks::getprocaddress_singleton_import_hook::get_proc_address_handler(HM
 }
 
 void hooks::getprocaddress_singleton_import_hook::hook_module(const utils::loaded_module& mod) {
+    if (mod.is_current_process())
+        return;
+
     const auto path = unicode::convert<std::string>(mod.path().wstring());
 
     for (const auto& [hModule, targetFns] : m_targetFns) {
