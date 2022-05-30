@@ -110,7 +110,7 @@ int InitializeClrAndGetEntryPoint(
     logging::print<logging::I>("Loading coreclr... ");
     if ((result = g_clr->load_runtime(runtimeconfig_path, &runtime_parameters)) != 0)
     {
-        logging::print<logging::E>("Failed to load coreclr (err={})", result);
+        logging::print<logging::E>("Failed to load coreclr (err=0x{:08X})", static_cast<uint32_t>(result));
         return result;
     }
     logging::print<logging::I>("Done!");

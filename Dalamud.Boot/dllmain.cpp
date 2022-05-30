@@ -27,7 +27,7 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam, HANDLE hMainThreadContinue) {
     logging::print<logging::I>("Dalamud.Boot Injectable, (c) 2021 XIVLauncher Contributors");
     logging::print<logging::I>("Built at: " __DATE__ "@" __TIME__);
 
-    if (bootconfig::is_wait_messagebox())
+    if (bootconfig::wait_messagebox() & bootconfig::WaitMessageboxFlags::BeforeInitialize)
         MessageBoxW(nullptr, L"Press OK to continue", L"Dalamud Boot", MB_OK);
 
     logging::print<logging::I>("Applying fixes...");
@@ -80,6 +80,9 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam, HANDLE hMainThreadContinue) {
     }
 
     // ============================== Dalamud ==================================== //
+
+    if (bootconfig::wait_messagebox() & bootconfig::WaitMessageboxFlags::BeforeDalamudEntrypoint)
+        MessageBoxW(nullptr, L"Press OK to continue", L"Dalamud Boot", MB_OK);
 
     logging::print<logging::I>("Initializing Dalamud...");
     entrypoint_fn(lpParam, hMainThreadContinue);
