@@ -2,6 +2,167 @@
 
 #include "utils.h"
 
+std::filesystem::path utils::loaded_module::path() const {
+    std::wstring buf(MAX_PATH, L'\0');
+    for (;;) {
+        if (const auto len = GetModuleFileNameExW(GetCurrentProcess(), m_hModule, &buf[0], static_cast<DWORD>(buf.size())); len != buf.size()) {
+            if (buf.empty())
+                throw std::runtime_error(std::format("Failed to resolve module path: Win32 error {}", GetLastError()));
+            buf.resize(len);
+            return buf;
+        }
+
+        if (buf.size() * 2 < PATHCCH_MAX_CCH)
+            buf.resize(buf.size() * 2);
+        else if (auto p = std::filesystem::path(buf); exists(p))
+            return p;
+        else
+            throw std::runtime_error("Failed to resolve module path: no amount of buffer size would fit the data");
+    }
+}
+
+bool utils::loaded_module::owns_address(const void* pAddress) const {
+    const auto pcAddress = reinterpret_cast<const char*>(pAddress);
+    const auto pcModule = reinterpret_cast<const char*>(m_hModule);
+    return pcModule <= pcAddress && pcAddress <= pcModule + (is_pe64() ? nt_header64().OptionalHeader.SizeOfImage : nt_header32().OptionalHeader.SizeOfImage);
+}
+
+std::span<IMAGE_SECTION_HEADER> utils::loaded_module::section_headers() const {
+    const auto& dosHeader = ref_as<IMAGE_DOS_HEADER>(0);
+    const auto& ntHeader32 = ref_as<IMAGE_NT_HEADERS32>(dosHeader.e_lfanew);
+    // Since this does not refer to OptionalHeader32/64 else than its offset, we can use either.
+    return { IMAGE_FIRST_SECTION(&ntHeader32), ntHeader32.FileHeader.NumberOfSections };
+}
+
+IMAGE_SECTION_HEADER& utils::loaded_module::section_header(const char* pcszSectionName) const {
+    for (auto& section : section_headers()) {
+        if (strncmp(reinterpret_cast<const char*>(section.Name), pcszSectionName, IMAGE_SIZEOF_SHORT_NAME) == 0)
+            return section;
+    }
+
+    throw std::out_of_range(std::format("Section [{}] not found", pcszSectionName));
+}
+
+std::span<char> utils::loaded_module::section(size_t index) const {
+    auto& sectionHeader = section_headers()[index];
+    return { address(sectionHeader.VirtualAddress), sectionHeader.Misc.VirtualSize };
+}
+
+std::span<char> utils::loaded_module::section(const char* pcszSectionName) const {
+    auto& sectionHeader = section_header(pcszSectionName);
+    return { address(sectionHeader.VirtualAddress), sectionHeader.Misc.VirtualSize };
+}
+
+template<typename TEntryType>
+static bool find_imported_function_pointer_helper(const char* pcBaseAddress, const IMAGE_IMPORT_DESCRIPTOR& desc, const IMAGE_DATA_DIRECTORY& dir, std::string_view reqFunc, uint32_t hintOrOrdinal, void*& ppFunctionAddress) {
+    const auto importLookupsOversizedSpan = std::span(reinterpret_cast<const TEntryType*>(&pcBaseAddress[desc.OriginalFirstThunk]), (dir.Size - desc.OriginalFirstThunk) / sizeof TEntryType);
+    const auto importAddressesOversizedSpan = std::span(reinterpret_cast<const TEntryType*>(&pcBaseAddress[desc.FirstThunk]), (dir.Size - desc.FirstThunk) / sizeof TEntryType);
+
+    for (size_t i = 0, i_ = (std::min)(importLookupsOversizedSpan.size(), importAddressesOversizedSpan.size()); i < i_ && importLookupsOversizedSpan[i] && importAddressesOversizedSpan[i]; i++) {
+        const auto& importLookup = importLookupsOversizedSpan[i];
+        const auto& importAddress = importAddressesOversizedSpan[i];
+        const auto& importByName = *reinterpret_cast<const IMAGE_IMPORT_BY_NAME*>(&pcBaseAddress[importLookup]);
+
+        // Is this entry importing by ordinals? A lot of socket functions are the case.
+        if (IMAGE_SNAP_BY_ORDINAL32(importLookup)) {
+
+            // Is this the entry?
+            if (!hintOrOrdinal || IMAGE_ORDINAL32(importLookup) != hintOrOrdinal)
+                continue;
+
+            // Is this entry not importing by ordinals, and are we using hint exclusively to find the entry?
+        } else if (reqFunc.empty()) {
+
+            // Is this the entry?
+            if (importByName.Hint != hintOrOrdinal)
+                continue;
+
+        } else {
+
+            // Name must be contained in this directory.
+            auto currFunc = std::string_view(importByName.Name, (std::min<size_t>)(&pcBaseAddress[dir.Size] - importByName.Name, reqFunc.size()));
+            currFunc = currFunc.substr(0, strnlen(currFunc.data(), currFunc.size()));
+
+            // Is this the entry? (Case sensitive)
+            if (reqFunc != currFunc)
+                continue;
+        }
+
+        // Found the entry; return the address of the pointer to the target function.
+        ppFunctionAddress = const_cast<void*>(reinterpret_cast<const void*>(&importAddress));
+        return true;
+    }
+
+    return false;
+}
+
+bool utils::loaded_module::find_imported_function_pointer(const char* pcszDllName, const char* pcszFunctionName, uint32_t hintOrOrdinal, void*& ppFunctionAddress) const {
+    const auto requestedDllName = std::string_view(pcszDllName, strlen(pcszDllName));
+    const auto requestedFunctionName = pcszFunctionName ? std::string_view(pcszFunctionName, strlen(pcszFunctionName)) : std::string_view();
+    const auto& directory = data_directory(IMAGE_DIRECTORY_ENTRY_IMPORT);
+    ppFunctionAddress = nullptr;
+
+    // This span might be too long in terms of meaningful data; it only serves to prevent accessing memory outsides boundaries.
+    for (const auto& importDescriptor : span_as<IMAGE_IMPORT_DESCRIPTOR>(directory.VirtualAddress, directory.Size / sizeof IMAGE_IMPORT_DESCRIPTOR)) {
+
+        // Having all zero values signals the end of the table. We didn't find anything.
+        if (!importDescriptor.OriginalFirstThunk && !importDescriptor.TimeDateStamp && !importDescriptor.ForwarderChain && !importDescriptor.FirstThunk)
+            return false;
+
+        // Skip invalid entries, just in case.
+        if (!importDescriptor.Name || !importDescriptor.OriginalFirstThunk)
+            continue;
+
+        // Name must be contained in this directory.
+        if (importDescriptor.Name < directory.VirtualAddress)
+            continue;
+        auto currentDllName = std::string_view(address_as<char>(importDescriptor.Name), (std::min<size_t>)(directory.Size - importDescriptor.Name, requestedDllName.size()));
+        currentDllName = currentDllName.substr(0, strnlen(currentDllName.data(), currentDllName.size()));
+
+        // Is this entry about the DLL that we're looking for? (Case insensitive)
+        if (requestedDllName.size() != currentDllName.size() || _strcmpi(requestedDllName.data(), currentDllName.data()))
+            continue;
+
+        if (is_pe64()) {
+            if (find_imported_function_pointer_helper<uint64_t>(address(), importDescriptor, directory, requestedFunctionName, hintOrOrdinal, ppFunctionAddress))
+                return true;
+        } else {
+            if (find_imported_function_pointer_helper<uint32_t>(address(), importDescriptor, directory, requestedFunctionName, hintOrOrdinal, ppFunctionAddress))
+                return true;
+        }
+    }
+
+    // Found nothing.
+    return false;
+}
+
+void* utils::loaded_module::get_imported_function_pointer(const char* pcszDllName, const char* pcszFunctionName, uint32_t hintOrOrdinal) const {
+    if (void* ppImportTableItem{}; find_imported_function_pointer(pcszDllName, pcszFunctionName, hintOrOrdinal, ppImportTableItem))
+        return ppImportTableItem;
+
+    throw std::runtime_error("Failed to find import for kernel32!OpenProcess.");
+}
+
+utils::loaded_module utils::loaded_module::current_process() {
+    return { GetModuleHandleW(nullptr) };
+}
+
+std::vector<utils::loaded_module> utils::loaded_module::all_modules() {
+    std::vector<HMODULE> hModules(128);
+    for (DWORD dwNeeded{}; EnumProcessModules(GetCurrentProcess(), &hModules[0], static_cast<DWORD>(std::span(hModules).size_bytes()), &dwNeeded) && hModules.size() < dwNeeded;)
+        hModules.resize(hModules.size() + 128);
+
+    std::vector<loaded_module> modules;
+    modules.reserve(hModules.size());
+    for (const auto hModule : hModules) {
+        if (!hModule)
+            break;
+        modules.emplace_back(hModule);
+    }
+
+    return modules;
+}
+
 utils::signature_finder& utils::signature_finder::look_in(const void* pFirst, size_t length) {
     if (length)
         m_ranges.emplace_back(std::span(reinterpret_cast<const char*>(pFirst), length));
@@ -9,21 +170,8 @@ utils::signature_finder& utils::signature_finder::look_in(const void* pFirst, si
     return *this;
 }
 
-utils::signature_finder& utils::signature_finder::look_in(const void* pFirst, const void* pLast) {
-    return look_in(pFirst, reinterpret_cast<const char*>(pLast) - reinterpret_cast<const char*>(pFirst));
-}
-
-utils::signature_finder& utils::signature_finder::look_in(HMODULE hModule, const char* sectionName) {
-    const auto pcBaseAddress = reinterpret_cast<char*>(hModule);
-    const auto& dosHeader = *reinterpret_cast<const IMAGE_DOS_HEADER*>(&pcBaseAddress[0]);
-    const auto& ntHeader32 = *reinterpret_cast<const IMAGE_NT_HEADERS32*>(&pcBaseAddress[dosHeader.e_lfanew]);
-    // Since this does not refer to OptionalHeader32/64 else than its offset, we can use either.
-    const auto sections = std::span(IMAGE_FIRST_SECTION(&ntHeader32), ntHeader32.FileHeader.NumberOfSections);
-    for (const auto& section : sections) {
-        if (strncmp(reinterpret_cast<const char*>(section.Name), sectionName, IMAGE_SIZEOF_SHORT_NAME) == 0)
-            look_in(pcBaseAddress + section.VirtualAddress, section.Misc.VirtualSize);
-    }
-    return *this;
+utils::signature_finder& utils::signature_finder::look_in(const loaded_module& m, const char* sectionName) {
+    return look_in(m.section(sectionName));
 }
 
 utils::signature_finder& utils::signature_finder::look_for(std::string_view pattern, std::string_view mask, char cExactMatch, char cWildcard) {
@@ -229,107 +377,6 @@ std::shared_ptr<void> utils::allocate_executable_heap(size_t len) {
     };
 }
 
-template<typename TEntryType>
-static bool find_imported_function_pointer_helper(const char* pcBaseAddress, const IMAGE_IMPORT_DESCRIPTOR& desc, const IMAGE_DATA_DIRECTORY& dir, std::string_view reqFunc, uint32_t hintOrOrdinal, void*& ppFunctionAddress) {
-    const auto importLookupsOversizedSpan = std::span(reinterpret_cast<const TEntryType*>(&pcBaseAddress[desc.OriginalFirstThunk]), (dir.Size - desc.OriginalFirstThunk) / sizeof TEntryType);
-    const auto importAddressesOversizedSpan = std::span(reinterpret_cast<const TEntryType*>(&pcBaseAddress[desc.FirstThunk]), (dir.Size - desc.FirstThunk) / sizeof TEntryType);
-
-    for (size_t i = 0, i_ = (std::min)(importLookupsOversizedSpan.size(), importAddressesOversizedSpan.size()); i < i_ && importLookupsOversizedSpan[i] && importAddressesOversizedSpan[i]; i++) {
-        const auto& importLookup = importLookupsOversizedSpan[i];
-        const auto& importAddress = importAddressesOversizedSpan[i];
-        const auto& importByName = *reinterpret_cast<const IMAGE_IMPORT_BY_NAME*>(&pcBaseAddress[importLookup]);
-
-        // Is this entry importing by ordinals? A lot of socket functions are the case.
-        if (IMAGE_SNAP_BY_ORDINAL32(importLookup)) {
-
-            // Is this the entry?
-            if (!hintOrOrdinal || IMAGE_ORDINAL32(importLookup) != hintOrOrdinal)
-                continue;
-
-            // Is this entry not importing by ordinals, and are we using hint exclusively to find the entry?
-        } else if (reqFunc.empty()) {
-
-            // Is this the entry?
-            if (importByName.Hint != hintOrOrdinal)
-                continue;
-
-        } else {
-
-            // Name must be contained in this directory.
-            auto currFunc = std::string_view(importByName.Name, (std::min<size_t>)(&pcBaseAddress[dir.Size] - importByName.Name, reqFunc.size()));
-            currFunc = currFunc.substr(0, strnlen(currFunc.data(), currFunc.size()));
-
-            // Is this the entry? (Case sensitive)
-            if (reqFunc != currFunc)
-                continue;
-        }
-
-        // Found the entry; return the address of the pointer to the target function.
-        ppFunctionAddress = const_cast<void*>(reinterpret_cast<const void*>(&importAddress));
-        return true;
-    }
-
-    return false;
-}
-
-bool utils::find_imported_function_pointer(HMODULE hModule, const char* pcszDllName, const char* pcszFunctionName, uint32_t hintOrOrdinal, void*& ppFunctionAddress) {
-    const auto requestedDllName = std::string_view(pcszDllName, strlen(pcszDllName));
-    const auto requestedFunctionName = pcszFunctionName ? std::string_view(pcszFunctionName, strlen(pcszFunctionName)) : std::string_view();
-
-    ppFunctionAddress = nullptr;
-
-    const auto pcBaseAddress = reinterpret_cast<char*>(hModule);
-    const auto& dosHeader = *reinterpret_cast<const IMAGE_DOS_HEADER*>(&pcBaseAddress[0]);
-    const auto& ntHeader32 = *reinterpret_cast<const IMAGE_NT_HEADERS32*>(&pcBaseAddress[dosHeader.e_lfanew]);
-    const auto& ntHeader64 = *reinterpret_cast<const IMAGE_NT_HEADERS64*>(&pcBaseAddress[dosHeader.e_lfanew]);
-    const auto bPE32 = ntHeader32.OptionalHeader.Magic == IMAGE_NT_OPTIONAL_HDR32_MAGIC;
-    const auto pDirectory = bPE32
-        ? &ntHeader32.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT]
-        : &ntHeader64.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT];
-
-    // There should always be an import directory, but the world may break down anytime nowadays.
-    if (!pDirectory)
-        return false;
-
-    // This span might be too long in terms of meaningful data; it only serves to prevent accessing memory outsides boundaries.
-    const auto importDescriptorsOversizedSpan = std::span(reinterpret_cast<const IMAGE_IMPORT_DESCRIPTOR*>(&pcBaseAddress[pDirectory->VirtualAddress]), pDirectory->Size / sizeof IMAGE_IMPORT_DESCRIPTOR);
-    for (const auto& importDescriptor : importDescriptorsOversizedSpan) {
-
-        // Having all zero values signals the end of the table. We didn't find anything.
-        if (!importDescriptor.OriginalFirstThunk && !importDescriptor.TimeDateStamp && !importDescriptor.ForwarderChain && !importDescriptor.FirstThunk)
-            return false;
-
-        // Skip invalid entries, just in case.
-        if (!importDescriptor.Name || !importDescriptor.OriginalFirstThunk)
-            continue;
-
-        // Name must be contained in this directory.
-        if (importDescriptor.Name < pDirectory->VirtualAddress)
-            continue;
-        auto currentDllName = std::string_view(&pcBaseAddress[importDescriptor.Name], (std::min<size_t>)(pDirectory->Size - importDescriptor.Name, requestedDllName.size()));
-        currentDllName = currentDllName.substr(0, strnlen(currentDllName.data(), currentDllName.size()));
-
-        // Is this entry about the DLL that we're looking for? (Case insensitive)
-        if (requestedDllName.size() != currentDllName.size() || _strcmpi(requestedDllName.data(), currentDllName.data()))
-            continue;
-
-        if (bPE32 && find_imported_function_pointer_helper<uint32_t>(pcBaseAddress, importDescriptor, *pDirectory, requestedFunctionName, hintOrOrdinal, ppFunctionAddress))
-            return true;
-        else if (!bPE32 && find_imported_function_pointer_helper<uint64_t>(pcBaseAddress, importDescriptor, *pDirectory, requestedFunctionName, hintOrOrdinal, ppFunctionAddress))
-            return true;
-    }
-
-    // Found nothing.
-    return false;
-}
-
-void* utils::get_imported_function_pointer(HMODULE hModule, const char* pcszDllName, const char* pcszFunctionName, uint32_t hintOrOrdinal) {
-    if (void* ppImportTableItem{}; find_imported_function_pointer(GetModuleHandleW(nullptr), pcszDllName, pcszFunctionName, hintOrOrdinal, ppImportTableItem))
-        return ppImportTableItem;
-
-    throw std::runtime_error("Failed to find import for kernel32!OpenProcess.");
-}
-
 std::shared_ptr<void> utils::create_thunk(void* pfnFunction, void* pThis, uint64_t placeholderValue) {
     const auto pcBaseFn = reinterpret_cast<const uint8_t*>(pfnFunction);
     auto sourceCode = std::vector<uint8_t>(pcBaseFn, pcBaseFn + 256);
@@ -378,7 +425,16 @@ std::wstring utils::get_env(const wchar_t* pcwzName) {
 
 template<>
 std::string utils::get_env(const wchar_t* pcwzName) {
-	return unicode::convert<std::string>(get_env<std::wstring>(pcwzName));
+    return unicode::convert<std::string>(get_env<std::wstring>(pcwzName));
+}
+
+template<>
+int utils::get_env(const wchar_t* pcwzName) {
+    auto env = get_env<std::wstring>(pcwzName);
+    const auto trimmed = trim(std::wstring_view(env));
+    if (trimmed.empty())
+        return 0;
+    return std::wcstol(&trimmed[0], nullptr, 0);
 }
 
 template<>
@@ -394,6 +450,17 @@ bool utils::get_env(const wchar_t* pcwzName) {
         || trimmed == L"t"
         || trimmed == L"yes"
         || trimmed == L"y";
+}
+
+template<>
+std::vector<std::wstring> utils::get_env_list(const wchar_t* pcszName) {
+    const auto src = utils::get_env<std::wstring>(pcszName);
+    auto res = utils::split(src, L",");
+    for (auto& s : res)
+        s = utils::trim(s);
+    if (res.size() == 1 && res[0].empty())
+        return {};
+    return res;
 }
 
 bool utils::is_running_on_linux() {

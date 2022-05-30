@@ -67,6 +67,9 @@
     <ClCompile Include="..\lib\TsudaKageyu-minhook\src\trampoline.c">
       <Filter>MinHook</Filter>
     </ClCompile>
+    <ClCompile Include="hooks.cpp">
+      <Filter>Dalamud.Boot DLL</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\lib\CoreCLR\CoreCLR.h">

@@ -19,6 +19,7 @@
 #include <Shlobj.h>
 #include <TlHelp32.h>
 #include <Dbt.h>
+#include <SubAuth.h>
 
 // MSVC Compiler Intrinsic
 #include <intrin.h>
@@ -26,6 +27,7 @@
 // C++ Standard Libraries
 #include <cassert>
 #include <cstdio>
+#include <deque>
 #include <filesystem>
 #include <format>
 #include <fstream>
