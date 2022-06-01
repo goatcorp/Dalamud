@@ -15,8 +15,11 @@ namespace Dalamud.Game.Text
         public XivChatType Type { get; set; } = XivChatType.Debug;
 
         /// <summary>
-        /// Gets or sets the sender ID.
+        /// Gets or sets the Unix timestamp of the log entry.
+        /// This property was incorrectly named, and is not related to the message sender.
+        /// When printing this chat entry to the log, a value of zero will use the current time.
         /// </summary>
+        [Obsolete("This is actually the Unix timestamp of the log entry, and not the sender's ID.  Use with caution.")]
         public uint SenderId { get; set; }
 
         /// <summary>

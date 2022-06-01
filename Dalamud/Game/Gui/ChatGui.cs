@@ -54,7 +54,7 @@ namespace Dalamud.Game.Gui
         /// A delegate type used with the <see cref="ChatGui.ChatMessage"/> event.
         /// </summary>
         /// <param name="type">The type of chat.</param>
-        /// <param name="senderId">The sender ID.</param>
+        /// <param name="senderId">This is the Unix timestamp of the message, and was named incorrectly.  It is not the sender ID.  If this is zero, the timestamp in the chat log is set automatically.</param>
         /// <param name="sender">The sender name.</param>
         /// <param name="message">The message sent.</param>
         /// <param name="isHandled">A value indicating whether the message was handled or should be propagated.</param>
@@ -64,7 +64,7 @@ namespace Dalamud.Game.Gui
         /// A delegate type used with the <see cref="ChatGui.CheckMessageHandled"/> event.
         /// </summary>
         /// <param name="type">The type of chat.</param>
-        /// <param name="senderId">The sender ID.</param>
+        /// <param name="senderId">This is the Unix timestamp of the message, and was named incorrectly.  It is not the sender ID.  If this is zero, the timestamp in the chat log is set automatically.</param>
         /// <param name="sender">The sender name.</param>
         /// <param name="message">The message sent.</param>
         /// <param name="isHandled">A value indicating whether the message was handled or should be propagated.</param>
@@ -74,7 +74,7 @@ namespace Dalamud.Game.Gui
         /// A delegate type used with the <see cref="ChatGui.ChatMessageHandled"/> event.
         /// </summary>
         /// <param name="type">The type of chat.</param>
-        /// <param name="senderId">The sender ID.</param>
+        /// <param name="senderId">This is the Unix timestamp of the message, and was named incorrectly.  It is not the sender ID.  If this is zero, the timestamp in the chat log is set automatically.</param>
         /// <param name="sender">The sender name.</param>
         /// <param name="message">The message sent.</param>
         public delegate void OnMessageHandledDelegate(XivChatType type, uint senderId, SeString sender, SeString message);
@@ -83,13 +83,13 @@ namespace Dalamud.Game.Gui
         /// A delegate type used with the <see cref="ChatGui.ChatMessageUnhandled"/> event.
         /// </summary>
         /// <param name="type">The type of chat.</param>
-        /// <param name="senderId">The sender ID.</param>
+        /// <param name="senderId">This is the Unix timestamp of the message, and was named incorrectly.  It is not the sender ID.  If this is zero, the timestamp in the chat log is set automatically.</param>
         /// <param name="sender">The sender name.</param>
         /// <param name="message">The message sent.</param>
         public delegate void OnMessageUnhandledDelegate(XivChatType type, uint senderId, SeString sender, SeString message);
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-        private delegate IntPtr PrintMessageDelegate(IntPtr manager, XivChatType chatType, IntPtr senderName, IntPtr message, uint senderId, IntPtr parameter);
+        private delegate IntPtr PrintMessageDelegate(IntPtr manager, XivChatType chatType, IntPtr senderName, IntPtr message, uint timestamp, IntPtr parameter);
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         private delegate void PopulateItemLinkDelegate(IntPtr linkObjectPtr, IntPtr itemInfoPtr);
@@ -302,7 +302,7 @@ namespace Dalamud.Game.Gui
             }
         }
 
-        private IntPtr HandlePrintMessageDetour(IntPtr manager, XivChatType chattype, IntPtr pSenderName, IntPtr pMessage, uint senderid, IntPtr parameter)
+        private IntPtr HandlePrintMessageDetour(IntPtr manager, XivChatType chattype, IntPtr pSenderName, IntPtr pMessage, uint timestamp, IntPtr parameter)
         {
             var retVal = IntPtr.Zero;
 
@@ -335,7 +335,7 @@ namespace Dalamud.Game.Gui
                     try
                     {
                         var messageHandledDelegate = @delegate as OnCheckMessageHandledDelegate;
-                        messageHandledDelegate!.Invoke(chattype, senderid, ref parsedSender, ref parsedMessage, ref isHandled);
+                        messageHandledDelegate!.Invoke(chattype, timestamp, ref parsedSender, ref parsedMessage, ref isHandled);
                     }
                     catch (Exception e)
                     {
@@ -351,7 +351,7 @@ namespace Dalamud.Game.Gui
                         try
                         {
                             var messageHandledDelegate = @delegate as OnMessageDelegate;
-                            messageHandledDelegate!.Invoke(chattype, senderid, ref parsedSender, ref parsedMessage, ref isHandled);
+                            messageHandledDelegate!.Invoke(chattype, timestamp, ref parsedSender, ref parsedMessage, ref isHandled);
                         }
                         catch (Exception e)
                         {
@@ -394,12 +394,12 @@ namespace Dalamud.Game.Gui
                 // Print the original chat if it's handled.
                 if (isHandled)
                 {
-                    this.ChatMessageHandled?.Invoke(chattype, senderid, parsedSender, parsedMessage);
+                    this.ChatMessageHandled?.Invoke(chattype, timestamp, parsedSender, parsedMessage);
                 }
                 else
                 {
-                    retVal = this.printMessageHook.Original(manager, chattype, senderPtr, messagePtr, senderid, parameter);
-                    this.ChatMessageUnhandled?.Invoke(chattype, senderid, parsedSender, parsedMessage);
+                    retVal = this.printMessageHook.Original(manager, chattype, senderPtr, messagePtr, timestamp, parameter);
+                    this.ChatMessageUnhandled?.Invoke(chattype, timestamp, parsedSender, parsedMessage);
                 }
 
                 if (this.baseAddress == IntPtr.Zero)
@@ -411,7 +411,7 @@ namespace Dalamud.Game.Gui
             catch (Exception ex)
             {
                 Log.Error(ex, "Exception on OnChatMessage hook.");
-                retVal = this.printMessageHook.Original(manager, chattype, pSenderName, pMessage, senderid, parameter);
+                retVal = this.printMessageHook.Original(manager, chattype, pSenderName, pMessage, timestamp, parameter);
             }
 
             return retVal;

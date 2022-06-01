@@ -146,7 +146,7 @@ namespace Dalamud.Game
         public static SeString MakeItalics(TextPayload text)
             => new(EmphasisItalicPayload.ItalicsOn, text, EmphasisItalicPayload.ItalicsOff);
 
-        private void OnCheckMessageHandled(XivChatType type, uint senderid, ref SeString sender, ref SeString message, ref bool isHandled)
+        private void OnCheckMessageHandled(XivChatType type, uint timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
         {
             var configuration = Service<DalamudConfiguration>.Get();
 
@@ -174,7 +174,7 @@ namespace Dalamud.Game
             }
         }
 
-        private void OnChatMessage(XivChatType type, uint senderId, ref SeString sender, ref SeString message, ref bool isHandled)
+        private void OnChatMessage(XivChatType type, uint timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
         {
             var startInfo = Service<DalamudStartInfo>.Get();
             var clientState = Service<ClientState.ClientState>.Get();
