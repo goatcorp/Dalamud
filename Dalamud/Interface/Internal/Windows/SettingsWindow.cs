@@ -277,7 +277,7 @@ namespace Dalamud.Interface.Internal.Windows
             ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsSystemMenuMsgHint", "Add buttons for Dalamud plugins and settings to the system menu."));
 
             ImGui.Checkbox(Loc.Localize("DalamudSettingsDisableRmtFiltering", "Disable RMT Filtering"), ref this.disableRmtFiltering);
-            ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsDisableRmtFilteringMsgHint", "Disable dalamud's built-in RMT ad filtering."));
+            ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsDisableRmtFilteringMsgHint", "Disable Dalamud's built-in RMT ad filtering."));
 
             ImGuiHelpers.ScaledDummy(5);
 
