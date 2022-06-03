@@ -7,6 +7,13 @@
 #include "logging.h"
 #include "utils.h"
 
+template<typename T>
+static std::span<T> assume_nonempty_span(std::span<T> t, const char* descr) {
+    if (t.empty())
+        throw std::runtime_error(std::format("Unexpected empty span found: {}", descr));
+    return t;
+}
+
 void xivfixes::unhook_dll(bool bApply) {
     static const auto LogTag = "[xivfixes:unhook_dll]";
     static const auto LogTagW = L"[xivfixes:unhook_dll]";
@@ -17,13 +24,14 @@ void xivfixes::unhook_dll(bool bApply) {
         return;
 
     const auto mods = utils::loaded_module::all_modules();
-    for (const auto& mod : mods) {
+    for (size_t i = 0; i < mods.size(); i++) {
+        const auto& mod = mods[i];
         std::filesystem::path path;
         try {
             path = mod.path();
-            logging::print<logging::I>(L"{} Module 0x{:X} ~ 0x{:X} (0x{:X}): \"{}\"", LogTagW, mod.address_int(), mod.address_int() + mod.image_size(), mod.image_size(), path.wstring());
+            logging::print<logging::I>(L"{} [{}/{}] Module 0x{:X} ~ 0x{:X} (0x{:X}): \"{}\"", LogTagW, i + 1, mods.size(), mod.address_int(), mod.address_int() + mod.image_size(), mod.image_size(), path.wstring());
         } catch (const std::exception& e) {
-            logging::print<logging::W>("{} Module 0x{:X}: Failed to resolve path: {}", LogTag, mod.address_int(), e.what());
+            logging::print<logging::W>("{} [{}/{}] Module 0x{:X}: Failed to resolve path: {}", LogTag, i + 1, mods.size(),  mod.address_int(), e.what());
             continue;
         }
 
@@ -33,7 +41,7 @@ void xivfixes::unhook_dll(bool bApply) {
         std::string formatBuf;
         try {
             const auto& sectionHeader = mod.section_header(".text");
-            const auto section = mod.span_as<char>(sectionHeader.VirtualAddress, sectionHeader.Misc.VirtualSize);
+            const auto section = assume_nonempty_span(mod.span_as<char>(sectionHeader.VirtualAddress, sectionHeader.Misc.VirtualSize), ".text[VA:VA+VS]");
             auto hFsDllRaw = CreateFileW(path.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, 0, nullptr);
             if (hFsDllRaw == INVALID_HANDLE_VALUE) {
                 logging::print<logging::W>("{} Module loaded in current process but could not open file: Win32 error {}", LogTag, GetLastError());
@@ -88,15 +96,28 @@ void xivfixes::unhook_dll(bool bApply) {
                         const auto names = mod.span_as<DWORD>(exportDirectory.AddressOfNames, exportDirectory.NumberOfNames);
                         const auto ordinals = mod.span_as<WORD>(exportDirectory.AddressOfNameOrdinals, exportDirectory.NumberOfNames);
                         const auto functions = mod.span_as<DWORD>(exportDirectory.AddressOfFunctions, exportDirectory.NumberOfFunctions);
-
+                        
                         std::string resolvedExportName;
-                        for (auto j = 0; j < names.size(); ++j) {
-                            if (ordinals[j] > functions.size())
+                        for (size_t j = 0; j < names.size(); ++j) {
+                            std::string_view name;
+                            if (const char* pcszName = mod.address_as<char>(names[j]); pcszName < mod.address() || pcszName >= mod.address() + mod.image_size()) {
+                                if (IsBadReadPtr(pcszName, 256)) {
+                                    logging::print<logging::W>("{} Name #{} points to an invalid address outside the executable. Skipping.", LogTag, j);
+                                    continue;
+                                }
+
+                                name = std::string_view(pcszName, strnlen(pcszName, 256));
+                                logging::print<logging::W>("{} Name #{} points to a seemingly valid address outside the executable: {}", LogTag, j, name);
+                            }
+                            
+                            if (ordinals[j] >= functions.size()) {
+                                logging::print<logging::W>("{} Ordinal #{} points to function index #{} >= #{}. Skipping.", LogTag, j, ordinals[j], functions.size());
                                 continue;
+                            }
 
                             const auto rva = functions[ordinals[j]];
                             if (rva == &section[i] - mod.address()) {
-                                resolvedExportName = std::format("[export:{}]", mod.address_as<char>(names[j]));
+                                resolvedExportName = std::format("[export:{}]", name);
                                 break;
                             }
                         }
