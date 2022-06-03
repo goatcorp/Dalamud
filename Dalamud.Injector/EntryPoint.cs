@@ -54,6 +54,16 @@ namespace Dalamud.Injector
                 return;
             }
 
+            // Set boot defaults
+            var prevFixList = Environment.GetEnvironmentVariable("DALAMUD_GAMEFIX_LIST");
+            if (string.IsNullOrWhiteSpace(prevFixList))
+            {
+                Environment.SetEnvironmentVariable("DALAMUD_GAMEFIX_LIST", "prevent_devicechange_crashes,disable_game_openprocess_access_check,redirect_openprocess");
+            }
+
+            Environment.SetEnvironmentVariable("DALAMUD_DOTNET_OPENPROCESS_HOOKMODE", "0");
+            Environment.SetEnvironmentVariable("DALAMUD_UNHOOK_DLLS", "kernel32.dll,ntdll.dll,user32.dll");
+
             DalamudStartInfo startInfo = null;
             if (args.Count == 1)
             {
