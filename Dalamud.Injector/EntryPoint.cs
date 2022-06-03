@@ -55,14 +55,9 @@ namespace Dalamud.Injector
             }
 
             // Set boot defaults
-            var prevFixList = Environment.GetEnvironmentVariable("DALAMUD_GAMEFIX_LIST");
-            if (string.IsNullOrWhiteSpace(prevFixList))
-            {
-                Environment.SetEnvironmentVariable("DALAMUD_GAMEFIX_LIST", "prevent_devicechange_crashes,disable_game_openprocess_access_check,redirect_openprocess");
-            }
-
-            Environment.SetEnvironmentVariable("DALAMUD_DOTNET_OPENPROCESS_HOOKMODE", "0");
-            Environment.SetEnvironmentVariable("DALAMUD_UNHOOK_DLLS", "kernel32.dll,ntdll.dll,user32.dll");
+            SetEnvDefaultIfNotExist("DALAMUD_GAMEFIX_LIST", "prevent_devicechange_crashes,disable_game_openprocess_access_check,redirect_openprocess");
+            SetEnvDefaultIfNotExist("DALAMUD_DOTNET_OPENPROCESS_HOOKMODE", "0");
+            SetEnvDefaultIfNotExist("DALAMUD_UNHOOK_DLLS", "kernel32.dll,ntdll.dll,user32.dll");
 
             DalamudStartInfo startInfo = null;
             if (args.Count == 1)
@@ -108,6 +103,15 @@ namespace Dalamud.Injector
             else
             {
                 throw new CommandLineException($"\"{mainCommand}\" is not a valid command.");
+            }
+        }
+
+        private static void SetEnvDefaultIfNotExist(string name, string value)
+        {
+            var prevValue = Environment.GetEnvironmentVariable(name);
+            if (string.IsNullOrWhiteSpace(prevValue))
+            {
+                Environment.SetEnvironmentVariable(name, value);
             }
         }
 
