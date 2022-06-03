@@ -393,10 +393,10 @@ DllExport void WINAPI RewrittenEntryPoint(RewrittenEntryPointParameters& params)
                 loadInfo = params.pLoadInfo;
 
                 // Let the game initialize.
-                //SetEvent(params.hMainThreadContinue);
+                SetEvent(params.hMainThreadContinue);
             }
 
-            //wait_for_game_window();
+            wait_for_game_window();
 
             Initialize(&loadInfo[0], params.hMainThreadContinue);
             return 0;

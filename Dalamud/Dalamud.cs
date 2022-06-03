@@ -110,8 +110,9 @@ namespace Dalamud
                 Service<HookManager>.Set();
 
                 // Signal the main game thread to continue
-                NativeFunctions.SetEvent(this.mainThreadContinueEvent);
-                Log.Information("[T1] Game thread continued!");
+                // TODO: This is done in rewrite_entrypoint.cpp again to avoid a race condition. Should be fixed!
+                // NativeFunctions.SetEvent(this.mainThreadContinueEvent);
+                // Log.Information("[T1] Game thread continued!");
 
                 // Initialize FFXIVClientStructs function resolver
                 using (Timings.Start("CS Resolver Init"))
