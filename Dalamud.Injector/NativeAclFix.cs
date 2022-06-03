@@ -79,7 +79,6 @@ namespace Dalamud.Injector
                 };
 
                 var compatLayerPrev = Environment.GetEnvironmentVariable("__COMPAT_LAYER");
-                Log.Verbose("Has preset __COMPAT_LAYER={CompatLayer}", compatLayerPrev);
 
                 if (!string.IsNullOrEmpty(compatLayerPrev) && !compatLayerPrev.Contains("RunAsInvoker"))
                 {
@@ -92,8 +91,6 @@ namespace Dalamud.Injector
 
                 try
                 {
-                    Log.Information("Starting with __COMPAT_LAYER={CompatLayer}", Environment.GetEnvironmentVariable("__COMPAT_LAYER"));
-
                     if (!PInvoke.CreateProcess(
                             null,
                             $"\"{exePath}\" {arguments}",
