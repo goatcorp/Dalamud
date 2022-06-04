@@ -16,7 +16,7 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam, HANDLE hMainThreadContinue) {
         logging::print<logging::I>("No log file path given; not logging to file.");
     else {
         try {
-            logging::start_file_logging(logFilePath);
+            logging::start_file_logging(logFilePath, !bootconfig::is_show_console());
             logging::print<logging::I>(L"Logging to file: {}", logFilePath);
         } catch (const std::exception& e) {
             logging::print<logging::E>(L"Couldn't open log file: {}", logFilePath);

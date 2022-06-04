@@ -63,7 +63,7 @@ namespace logging {
         print(level, std::format(pcszFormat, std::forward<Arg>(arg1), std::forward<Args>(args)...));
     }
 
-    void start_file_logging(const std::filesystem::path& path);
+    void start_file_logging(const std::filesystem::path& path, bool redirect_stderrout = false);
 
     void update_dll_load_status(bool loaded);
 };
