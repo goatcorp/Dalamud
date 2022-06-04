@@ -9,29 +9,31 @@ namespace Dalamud.Interface.GameFonts
     /// </summary>
     public class FdtReader
     {
+        private static unsafe T StructureFromByteArray<T> (byte[] data, int offset)
+        {
+            var len = Marshal.SizeOf<T>();
+            if (offset + len > data.Length)
+                throw new Exception("Data too short");
+
+            fixed (byte* ptr = data)
+                return Marshal.PtrToStructure<T>(new(ptr + offset));
+        }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="FdtReader"/> class.
         /// </summary>
         /// <param name="data">Content of a FDT file.</param>
         public FdtReader(byte[] data)
         {
-            unsafe
-            {
-                fixed (byte* ptr = data)
-                {
-                    this.FileHeader = *(FdtHeader*)ptr;
-                    this.FontHeader = *(FontTableHeader*)(ptr + this.FileHeader.FontTableHeaderOffset);
-                    this.KerningHeader = *(KerningTableHeader*)(ptr + this.FileHeader.KerningTableHeaderOffset);
+            this.FileHeader = StructureFromByteArray<FdtHeader>(data, 0);
+            this.FontHeader = StructureFromByteArray<FontTableHeader>(data, this.FileHeader.FontTableHeaderOffset);
+            this.KerningHeader = StructureFromByteArray<KerningTableHeader>(data, this.FileHeader.KerningTableHeaderOffset);
 
-                    var glyphs = (FontTableEntry*)(ptr + this.FileHeader.FontTableHeaderOffset + Marshal.SizeOf(this.FontHeader));
-                    for (var i = 0; i < this.FontHeader.FontTableEntryCount; i++)
-                        this.Glyphs.Add(glyphs[i]);
+            for (var i = 0; i < this.FontHeader.FontTableEntryCount; i++)
+                this.Glyphs.Add(StructureFromByteArray<FontTableEntry>(data, this.FileHeader.FontTableHeaderOffset + Marshal.SizeOf<FontTableHeader>() + (Marshal.SizeOf<FontTableEntry>() * i)));
 
-                    var kerns = (KerningTableEntry*)(ptr + this.FileHeader.KerningTableHeaderOffset + Marshal.SizeOf(this.KerningHeader));
-                    for (var i = 0; i < this.FontHeader.KerningTableEntryCount; i++)
-                        this.Distances.Add(kerns[i]);
-                }
-            }
+            for (int i = 0, i_ = Math.Min(this.FontHeader.KerningTableEntryCount, this.KerningHeader.Count); i < i_; i++)
+                this.Distances.Add(StructureFromByteArray<KerningTableEntry>(data, this.FileHeader.KerningTableHeaderOffset+ Marshal.SizeOf<KerningTableHeader>() + (Marshal.SizeOf<KerningTableEntry>() * i)));
         }
 
         /// <summary>

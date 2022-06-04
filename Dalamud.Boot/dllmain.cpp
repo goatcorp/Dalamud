@@ -16,7 +16,7 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam, HANDLE hMainThreadContinue) {
         logging::print<logging::I>("No log file path given; not logging to file.");
     else {
         try {
-            logging::start_file_logging(logFilePath);
+            logging::start_file_logging(logFilePath, !bootconfig::is_show_console());
             logging::print<logging::I>(L"Logging to file: {}", logFilePath);
         } catch (const std::exception& e) {
             logging::print<logging::E>(L"Couldn't open log file: {}", logFilePath);
@@ -83,6 +83,13 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam, HANDLE hMainThreadContinue) {
 
     if (bootconfig::wait_messagebox() & bootconfig::WaitMessageboxFlags::BeforeDalamudEntrypoint)
         MessageBoxW(nullptr, L"Press OK to continue", L"Dalamud Boot", MB_OK);
+
+    if (hMainThreadContinue) {
+        // Let the game initialize.
+        SetEvent(hMainThreadContinue);
+    }
+
+    utils::wait_for_game_window();
 
     logging::print<logging::I>("Initializing Dalamud...");
     entrypoint_fn(lpParam, hMainThreadContinue);

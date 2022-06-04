@@ -7,8 +7,23 @@
 
 namespace hooks {
     class base_untyped_hook {
+        std::string m_name;
+
     public:
+        base_untyped_hook(std::string name) : m_name(name) {}
+
         virtual ~base_untyped_hook() = default;
+
+        virtual bool check_consistencies() const {
+            return true;
+        }
+
+        virtual void assert_dominance() const {
+        }
+
+        const std::string& name() const {
+            return m_name;
+        }
     };
 
     template<typename>
@@ -23,9 +38,10 @@ namespace hooks {
         utils::thunk<TReturn(TArgs...)> m_thunk;
 
     public:
-        base_hook(TFn* pfnOriginal)
-            : m_pfnOriginal(pfnOriginal)
-            , m_thunk(m_pfnOriginal) {
+        base_hook(std::string name, TFn* pfnOriginal)
+            : base_untyped_hook(name)
+            , m_pfnOriginal(pfnOriginal)
+            , m_thunk(std::move(name), m_pfnOriginal) {
         }
 
         virtual void set_detour(std::function<TFn> fn) {
@@ -56,22 +72,33 @@ namespace hooks {
         TFn** const m_ppfnImportTableItem;
 
     public:
-        import_hook(TFn** ppfnImportTableItem)
-            : Base(*ppfnImportTableItem)
+        import_hook(std::string name, TFn** ppfnImportTableItem)
+            : Base(std::move(name), *ppfnImportTableItem)
             , m_ppfnImportTableItem(ppfnImportTableItem) {
 
             const utils::memory_tenderizer tenderizer(ppfnImportTableItem, sizeof * ppfnImportTableItem, PAGE_READWRITE);
             *ppfnImportTableItem = Base::get_thunk();
         }
 
-        import_hook(const char* pcszDllName, const char* pcszFunctionName, int hintOrOrdinal)
-            : import_hook(utils::loaded_module::current_process().get_imported_function_pointer<TFn>(pcszDllName, pcszFunctionName, hintOrOrdinal)) {
+        import_hook(std::string name, const char* pcszDllName, const char* pcszFunctionName, int hintOrOrdinal)
+            : import_hook(std::move(name), utils::loaded_module::current_process().get_imported_function_pointer<TFn>(pcszDllName, pcszFunctionName, hintOrOrdinal)) {
         }
 
         ~import_hook() override {
             const utils::memory_tenderizer tenderizer(m_ppfnImportTableItem, sizeof * m_ppfnImportTableItem, PAGE_READWRITE);
-
             *m_ppfnImportTableItem = Base::get_original();
+        }
+
+        bool check_consistencies() const override {
+            return *m_ppfnImportTableItem == Base::get_thunk();
+        }
+
+        void assert_dominance() const override {
+            if (check_consistencies())
+                return;
+
+            const utils::memory_tenderizer tenderizer(m_ppfnImportTableItem, sizeof * m_ppfnImportTableItem, PAGE_READWRITE);
+            *m_ppfnImportTableItem = Base::get_thunk();
         }
     };
 
@@ -86,8 +113,8 @@ namespace hooks {
         TFn* m_pfnMinHookBridge;
 
     public:
-        direct_hook(TFn* pfnFunction)
-            : Base(pfnFunction) {
+        direct_hook(std::string name, TFn* pfnFunction)
+            : Base(std::move(name), pfnFunction) {
             if (const auto mhStatus = MH_CreateHook(pfnFunction, Base::get_thunk(), reinterpret_cast<void**>(&m_pfnMinHookBridge)); mhStatus != MH_OK)
                 throw std::runtime_error(std::format("MH_CreateHook(0x{:X}, ...) failure: {}", reinterpret_cast<size_t>(pfnFunction), static_cast<int>(mhStatus)));
 
@@ -106,21 +133,32 @@ namespace hooks {
     class wndproc_hook : public base_hook<std::remove_pointer_t<WNDPROC>> {
         using Base = base_hook<std::remove_pointer_t<WNDPROC>>;
 
-        const HWND s_hwnd;
+        const HWND m_hwnd;
 
     public:
-        wndproc_hook(HWND hwnd)
-            : Base(reinterpret_cast<WNDPROC>(GetWindowLongPtrW(hwnd, GWLP_WNDPROC)))
-            , s_hwnd(hwnd) {
+        wndproc_hook(std::string name, HWND hwnd)
+            : Base(std::move(name), reinterpret_cast<WNDPROC>(GetWindowLongPtrW(hwnd, GWLP_WNDPROC)))
+            , m_hwnd(hwnd) {
             SetWindowLongPtrW(hwnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(Base::get_thunk()));
         }
 
         ~wndproc_hook() override {
-            SetWindowLongPtrW(s_hwnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(Base::get_original()));
+            SetWindowLongPtrW(m_hwnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(Base::get_original()));
         }
 
         LRESULT call_original(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) override {
             return CallWindowProcW(Base::get_original(), hwnd, msg, wParam, lParam);
+        }
+
+        bool check_consistencies() const override {
+            return GetWindowLongPtrW(m_hwnd, GWLP_WNDPROC) == reinterpret_cast<LONG_PTR>(Base::get_thunk());
+        }
+
+        void assert_dominance() const override {
+            if (check_consistencies())
+                return;
+
+            SetWindowLongPtrW(m_hwnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(Base::get_thunk()));
         }
     };
 
@@ -129,8 +167,9 @@ namespace hooks {
         void* const m_pfnOriginalImport;
 
     public:
-        untyped_import_hook(void** ppfnImportTableItem, void* pThunk)
-            : m_pfnOriginalImport(*ppfnImportTableItem)
+        untyped_import_hook(std::string name, void** ppfnImportTableItem, void* pThunk)
+            : base_untyped_hook(std::move(name))
+            , m_pfnOriginalImport(*ppfnImportTableItem)
             , m_ppfnImportTableItem(ppfnImportTableItem) {
 
             const utils::memory_tenderizer tenderizer(ppfnImportTableItem, sizeof * ppfnImportTableItem, PAGE_READWRITE);
@@ -165,7 +204,7 @@ namespace hooks {
         getprocaddress_singleton_import_hook();
         ~getprocaddress_singleton_import_hook();
 
-        std::shared_ptr<void> set_handler(std::wstring dllName, std::string functionName, void* pfnDetour);
+        std::shared_ptr<void> set_handler(std::wstring dllName, std::string functionName, void* pfnDetour, std::function<void(void*)> fnOnOriginalAddressAvailable);
 
         static std::shared_ptr<getprocaddress_singleton_import_hook> get_instance();
 
@@ -187,11 +226,16 @@ namespace hooks {
         std::shared_ptr<void> m_singleImportHook;
 
     public:
-        global_import_hook(std::wstring dllName, std::string functionName)
-            : m_thunk(nullptr) {
+        global_import_hook(std::string name, std::wstring dllName, std::string functionName)
+            : base_untyped_hook(name)
+            , m_thunk(std::move(name), nullptr) {
 
-            m_singleImportHook = getprocaddress_singleton_import_hook::get_instance()->set_handler(dllName, functionName, m_thunk.get_thunk());
-            m_thunk.set_target(reinterpret_cast<TFn*>(m_singleImportHook.get()));
+            m_singleImportHook = getprocaddress_singleton_import_hook::get_instance()->set_handler(
+                dllName,
+                functionName,
+                m_thunk.get_thunk(),
+                [this](void* p) { m_thunk.set_target(reinterpret_cast<TFn*>(p)); }
+            );
         }
 
         virtual void set_detour(std::function<TFn> fn) {

@@ -488,3 +488,24 @@ std::filesystem::path utils::get_module_path(HMODULE hModule) {
             buf.resize(buf.size() * 2);
     }
 }
+
+HWND utils::try_find_game_window() {
+    HWND hwnd = nullptr;
+    while ((hwnd = FindWindowExW(nullptr, hwnd, L"FFXIVGAME", nullptr))) {
+        DWORD pid;
+        GetWindowThreadProcessId(hwnd, &pid);
+
+        if (pid == GetCurrentProcessId() && IsWindowVisible(hwnd))
+            break;
+    }
+    return hwnd;
+}
+
+void utils::wait_for_game_window() {
+	HWND game_window;
+	while (!(game_window = try_find_game_window())) {
+		WaitForInputIdle(GetCurrentProcess(), INFINITE);
+		Sleep(100);
+	};
+	SendMessageW(game_window, WM_NULL, 0, 0);
+}

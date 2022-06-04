@@ -241,20 +241,6 @@ void* get_mapped_image_base_address(HANDLE hProcess, const std::filesystem::path
     throw std::runtime_error("corresponding base address not found");
 }
 
-/// @brief Find the game main window.
-/// @return Handle to the game main window, or nullptr if it doesn't exist (yet).
-HWND try_find_game_window() {
-    HWND hwnd = nullptr;
-    while ((hwnd = FindWindowExW(nullptr, hwnd, L"FFXIVGAME", nullptr))) {
-        DWORD pid;
-        GetWindowThreadProcessId(hwnd, &pid);
-
-        if (pid == GetCurrentProcessId() && IsWindowVisible(hwnd))
-            break;
-    }
-    return hwnd;
-}
-
 std::string from_utf16(const std::wstring& wstr, UINT codePage = CP_UTF8) {
     std::string str(WideCharToMultiByte(codePage, 0, &wstr[0], static_cast<int>(wstr.size()), nullptr, 0, nullptr, nullptr), 0);
     WideCharToMultiByte(codePage, 0, &wstr[0], static_cast<int>(wstr.size()), &str[0], static_cast<int>(str.size()), nullptr, nullptr);
@@ -360,15 +346,6 @@ DllExport DWORD WINAPI RewriteRemoteEntryPoint(HANDLE hProcess, const wchar_t* p
     return RewriteRemoteEntryPointW(hProcess, pcwzPath, to_utf16(pcszLoadInfo).c_str());
 }
 
-void wait_for_game_window() {
-    HWND game_window;
-    while (!(game_window = try_find_game_window())) {
-        WaitForInputIdle(GetCurrentProcess(), INFINITE);
-        Sleep(100);
-    };
-    SendMessageW(game_window, WM_NULL, 0, 0);
-}
-
 /// @brief Entry point function "called" instead of game's original main entry point.
 /// @param params Parameters set up from RewriteRemoteEntryPoint.
 DllExport void WINAPI RewrittenEntryPoint(RewrittenEntryPointParameters& params) {
@@ -383,20 +360,13 @@ DllExport void WINAPI RewrittenEntryPoint(RewrittenEntryPointParameters& params)
             std::string loadInfo;
             auto& params = *reinterpret_cast<RewrittenEntryPointParameters*>(p);
             {
-                
-
                 // Restore original entry point.
                 // Use WriteProcessMemory instead of memcpy to avoid having to fiddle with VirtualProtect.
                 write_process_memory_or_throw(GetCurrentProcess(), params.pEntrypoint, params.pEntrypointBytes, params.entrypointLength);
 
                 // Make a copy of load info, as the whole params will be freed after this code block.
                 loadInfo = params.pLoadInfo;
-
-                // Let the game initialize.
-                SetEvent(params.hMainThreadContinue);
             }
-
-            wait_for_game_window();
 
             Initialize(&loadInfo[0], params.hMainThreadContinue);
             return 0;

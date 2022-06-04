@@ -184,7 +184,7 @@ void xivfixes::prevent_devicechange_crashes(bool bApply) {
             return;
         }
 
-        s_hookCreateWindowExA.emplace("user32.dll", "CreateWindowExA", 0);
+        s_hookCreateWindowExA.emplace("user32.dll!CreateWindowExA (prevent_devicechange_crashes)", "user32.dll", "CreateWindowExA", 0);
         s_hookCreateWindowExA->set_detour([](DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle, int X, int Y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam)->HWND {
             const auto hWnd = s_hookCreateWindowExA->call_original(dwExStyle, lpClassName, lpWindowName, dwStyle, X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
 
@@ -198,7 +198,7 @@ void xivfixes::prevent_devicechange_crashes(bool bApply) {
 
             s_hookCreateWindowExA.reset();
 
-            s_hookWndProc.emplace(hWnd);
+            s_hookWndProc.emplace("FFXIVGAME:WndProc (prevent_devicechange_crashes)", hWnd);
             s_hookWndProc->set_detour([](HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) -> LRESULT {
                 if (uMsg == WM_DEVICECHANGE && wParam == DBT_DEVNODES_CHANGED) {
                     if (!GetGetInputDeviceManager(hWnd)()) {
@@ -239,7 +239,7 @@ void xivfixes::disable_game_openprocess_access_check(bool bApply) {
             return;
         }
 
-        s_hook.emplace("kernel32.dll", "OpenProcess", 0);
+        s_hook.emplace("kernel32.dll!OpenProcess (import, disable_game_openprocess_access_check)", "kernel32.dll", "OpenProcess", 0);
         s_hook->set_detour([](DWORD dwDesiredAccess, BOOL bInheritHandle, DWORD dwProcessId)->HANDLE {
             logging::print<logging::I>("{} OpenProcess(0x{:08X}, {}, {}) was invoked by thread {}.", LogTag, dwDesiredAccess, bInheritHandle, dwProcessId, GetCurrentThreadId());
 
@@ -267,6 +267,8 @@ void xivfixes::disable_game_openprocess_access_check(bool bApply) {
 void xivfixes::redirect_openprocess(bool bApply) {
     static const char* LogTag = "[xivfixes:redirect_openprocess]";
     static std::shared_ptr<hooks::base_untyped_hook> s_hook;
+    static std::mutex s_silenceSetMtx;
+    static std::set<DWORD> s_silenceSet;
 
     if (bApply) {
         if (!bootconfig::gamefix_is_enabled(L"redirect_openprocess")) {
@@ -275,10 +277,11 @@ void xivfixes::redirect_openprocess(bool bApply) {
         }
 
         if (bootconfig::dotnet_openprocess_hook_mode() == bootconfig::ImportHooks) {
-            auto hook = std::make_shared<hooks::global_import_hook<decltype(OpenProcess)>>(L"kernel32.dll", "OpenProcess");
+            auto hook = std::make_shared<hooks::global_import_hook<decltype(OpenProcess)>>("kernel32.dll!OpenProcess (global import, redirect_openprocess)", L"kernel32.dll", "OpenProcess");
             hook->set_detour([hook = hook.get()](DWORD dwDesiredAccess, BOOL bInheritHandle, DWORD dwProcessId)->HANDLE {
                 if (dwProcessId == GetCurrentProcessId()) {
-                    logging::print<logging::I>("{} OpenProcess(0x{:08X}, {}, {}) was invoked by thread {}. Redirecting to DuplicateHandle.", LogTag, dwDesiredAccess, bInheritHandle, dwProcessId, GetCurrentThreadId());
+                    if (s_silenceSet.emplace(GetCurrentThreadId()).second)
+                        logging::print<logging::I>("{} OpenProcess(0x{:08X}, {}, {}) was invoked by thread {}. Redirecting to DuplicateHandle.", LogTag, dwDesiredAccess, bInheritHandle, dwProcessId, GetCurrentThreadId());
 
                     if (HANDLE res; DuplicateHandle(GetCurrentProcess(), GetCurrentProcess(), GetCurrentProcess(), &res, dwDesiredAccess, bInheritHandle, 0))
                         return res;
@@ -292,10 +295,11 @@ void xivfixes::redirect_openprocess(bool bApply) {
             logging::print<logging::I>("{} Enable via import_hook", LogTag);
 
         } else {
-            auto hook = std::make_shared<hooks::direct_hook<decltype(OpenProcess)>>(OpenProcess);
+            auto hook = std::make_shared<hooks::direct_hook<decltype(OpenProcess)>>("kernel32.dll!OpenProcess (direct, redirect_openprocess)", OpenProcess);
             hook->set_detour([hook = hook.get()](DWORD dwDesiredAccess, BOOL bInheritHandle, DWORD dwProcessId)->HANDLE {
                 if (dwProcessId == GetCurrentProcessId()) {
-                    logging::print<logging::I>("{} OpenProcess(0x{:08X}, {}, {}) was invoked by thread {}. Redirecting to DuplicateHandle.", LogTag, dwDesiredAccess, bInheritHandle, dwProcessId, GetCurrentThreadId());
+                    if (s_silenceSet.emplace(GetCurrentThreadId()).second)
+                        logging::print<logging::I>("{} OpenProcess(0x{:08X}, {}, {}) was invoked by thread {}. Redirecting to DuplicateHandle.", LogTag, dwDesiredAccess, bInheritHandle, dwProcessId, GetCurrentThreadId());
 
                     if (HANDLE res; DuplicateHandle(GetCurrentProcess(), GetCurrentProcess(), GetCurrentProcess(), &res, dwDesiredAccess, bInheritHandle, 0))
                         return res;
@@ -308,6 +312,12 @@ void xivfixes::redirect_openprocess(bool bApply) {
 
             logging::print<logging::I>("{} Enable via direct_hook", LogTag);
         }
+
+        //std::thread([]() {
+        //    SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_IDLE);
+        //    for (const auto to = GetTickCount64() + 3000; GetTickCount64() < to;)
+        //        s_hook->assert_dominance();
+        //}).detach();
 
     } else {
         if (s_hook) {

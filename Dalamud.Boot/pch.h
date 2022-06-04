@@ -34,6 +34,7 @@
 #include <functional>
 #include <iostream>
 #include <ranges>
+#include <set>
 #include <span>
 #include <string>
 #include <mutex>

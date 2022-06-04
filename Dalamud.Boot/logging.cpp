@@ -7,6 +7,7 @@
 #include "logging.h"
 
 static bool s_bLoaded = false;
+static bool s_bSkipLogFileWrite = false;
 static std::shared_ptr<void> s_hLogFile;
 
 void logging::print(Level level, const char* s) {
@@ -45,13 +46,13 @@ void logging::print(Level level, const char* s) {
         DWORD wr{};
         WriteFile(GetStdHandle(STD_ERROR_HANDLE), &estr[0], static_cast<DWORD>(estr.size()), &wr, nullptr);
       
-        if (s_hLogFile) {
+        if (s_hLogFile && !s_bSkipLogFileWrite) {
             WriteFile(s_hLogFile.get(), &estr[0], static_cast<DWORD>(estr.size()), &wr, nullptr);
         }
     }
 }
 
-void logging::start_file_logging(const std::filesystem::path& path) {
+void logging::start_file_logging(const std::filesystem::path& path, bool redirect_stderrout) {
     if (s_hLogFile)
         return;
 
@@ -76,6 +77,12 @@ void logging::start_file_logging(const std::filesystem::path& path) {
     
     SetFilePointer(h, 0, 0, FILE_END);
     s_hLogFile = { h, &CloseHandle };
+
+    if (redirect_stderrout) {
+        SetStdHandle(STD_ERROR_HANDLE, h);
+        SetStdHandle(STD_OUTPUT_HANDLE, h);
+        s_bSkipLogFileWrite = true;
+    }
 }
 
 void logging::update_dll_load_status(bool loaded) {

@@ -37,14 +37,15 @@ static const auto LdrUnregisterDllNotification = utils::loaded_module(GetModuleH
 
 hooks::getprocaddress_singleton_import_hook::getprocaddress_singleton_import_hook()
     : m_pfnGetProcAddress(GetProcAddress)
-    , m_thunk([this](HMODULE hModule, LPCSTR lpProcName) { return get_proc_address_handler(hModule, lpProcName); }) {
+    , m_thunk("kernel32!GetProcAddress(Singleton Import Hook)",
+        [this](HMODULE hModule, LPCSTR lpProcName) { return get_proc_address_handler(hModule, lpProcName); }) {
 }
 
 hooks::getprocaddress_singleton_import_hook::~getprocaddress_singleton_import_hook() {
     LdrUnregisterDllNotification(m_ldrDllNotificationCookie);
 }
 
-std::shared_ptr<void> hooks::getprocaddress_singleton_import_hook::set_handler(std::wstring dllName, std::string functionName, void* pfnDetour) {
+std::shared_ptr<void> hooks::getprocaddress_singleton_import_hook::set_handler(std::wstring dllName, std::string functionName, void* pfnDetour, std::function<void(void*)> fnOnOriginalAddressAvailable) {
     const auto hModule = GetModuleHandleW(dllName.c_str());
     if (!hModule)
         throw std::out_of_range("Specified DLL is not found.");
@@ -52,6 +53,8 @@ std::shared_ptr<void> hooks::getprocaddress_singleton_import_hook::set_handler(s
     const auto pfn = m_pfnGetProcAddress(hModule, functionName.c_str());
     if (!pfn)
         throw std::out_of_range("Could not find the specified function.");
+
+    fnOnOriginalAddressAvailable(pfn);
 
     auto& target = m_targetFns[hModule][functionName];
     if (target)
@@ -95,7 +98,7 @@ std::shared_ptr<hooks::getprocaddress_singleton_import_hook> hooks::getprocaddre
 }
 
 void hooks::getprocaddress_singleton_import_hook::initialize() {
-    m_getProcAddressHandler = set_handler(L"kernel32.dll", "GetProcAddress", m_thunk.get_thunk());
+    m_getProcAddressHandler = set_handler(L"kernel32.dll", "GetProcAddress", m_thunk.get_thunk(), [this](void*) {});
 
     LdrRegisterDllNotification(0, [](ULONG notiReason, const LDR_DLL_NOTIFICATION_DATA* pData, void* context) {
         if (notiReason == LDR_DLL_NOTIFICATION_REASON_LOADED) {
@@ -138,7 +141,7 @@ void hooks::getprocaddress_singleton_import_hook::hook_module(const utils::loade
                 if (!hook) {
                     logging::print<logging::I>("{} Hooking {}!{} imported by {}", LogTag, dllName, targetFn, unicode::convert<std::string>(mod.path().wstring()));
 
-                    hook.emplace(static_cast<void**>(pGetProcAddressImport), pfnThunk);
+                    hook.emplace(std::format("getprocaddress_singleton_import_hook::hook_module({}!{})", dllName, targetFn), static_cast<void**>(pGetProcAddressImport), pfnThunk);
                 }
             }
         }
