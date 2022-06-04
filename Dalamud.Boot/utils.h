@@ -137,12 +137,14 @@ namespace utils {
         static constexpr uint64_t Placeholder = 0xCC90CC90CC90CC90ULL;
 
         const std::shared_ptr<void> m_pThunk;
+        std::string m_name;
         std::function<TFn> m_fnTarget;
 
     public:
-        thunk(std::function<TFn> target)
+        thunk(std::string name, std::function<TFn> target)
             : m_pThunk(utils::create_thunk(&detour_static, this, Placeholder))
-            , m_fnTarget(std::move(target)) {
+            , m_fnTarget(std::move(target))
+            , m_name(name) {
         }
 
         void set_target(std::function<TFn> detour) {
@@ -151,6 +153,10 @@ namespace utils {
 
         TFn* get_thunk() const {
             return reinterpret_cast<TFn*>(m_pThunk.get());
+        }
+
+        const std::string& name() const {
+            return m_name;
         }
 
     private:
