@@ -249,4 +249,10 @@ namespace utils {
     bool is_running_on_linux();
 
     std::filesystem::path get_module_path(HMODULE hModule);
+
+    /// @brief Find the game main window.
+    /// @return Handle to the game main window, or nullptr if it doesn't exist (yet).
+    HWND try_find_game_window();
+
+    void wait_for_game_window();
 }

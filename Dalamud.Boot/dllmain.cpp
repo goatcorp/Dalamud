@@ -84,6 +84,13 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam, HANDLE hMainThreadContinue) {
     if (bootconfig::wait_messagebox() & bootconfig::WaitMessageboxFlags::BeforeDalamudEntrypoint)
         MessageBoxW(nullptr, L"Press OK to continue", L"Dalamud Boot", MB_OK);
 
+    if (hMainThreadContinue) {
+        // Let the game initialize.
+        SetEvent(hMainThreadContinue);
+    }
+
+    utils::wait_for_game_window();
+
     logging::print<logging::I>("Initializing Dalamud...");
     entrypoint_fn(lpParam, hMainThreadContinue);
     logging::print<logging::I>("Done!");
