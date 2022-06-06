@@ -61,8 +61,8 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam)
     GetModuleFileNameW(g_hModule, _module_path, sizeof _module_path / 2);
     std::filesystem::path fs_module_path(_module_path);
 
-    std::wstring runtimeconfig_path = _wcsdup(fs_module_path.replace_filename(L"Dalamud.runtimeconfig.json").c_str());
-    std::wstring module_path = _wcsdup(fs_module_path.replace_filename(L"Dalamud.dll").c_str());
+    std::wstring runtimeconfig_path = fs_module_path.replace_filename(L"Dalamud.runtimeconfig.json").c_str();
+    std::wstring module_path = fs_module_path.replace_filename(L"Dalamud.dll").c_str();
 
     // ============================== CLR ========================================= //
 
@@ -116,6 +116,41 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam)
     return 0;
 }
 
+bool has_startup_info()
+{
+    size_t required_size;
+    getenv_s(&required_size, nullptr, 0, "DALAMUD_STARTUP_INFO");
+    if (required_size > 0)
+        return true;
+
+    return false;
+}
+
+bool get_startup_info(std::string& dalamudStartInfo)
+{
+    size_t required_size;
+    getenv_s(&required_size, nullptr, 0, "DALAMUD_STARTUP_INFO");
+    if (required_size > 0)
+    {
+        if (char* startup_info = static_cast<char*>(malloc(required_size * sizeof(char))))
+        {
+            getenv_s(&required_size, startup_info, required_size, "DALAMUD_STARTUP_INFO");
+            dalamudStartInfo = startup_info;
+            free(startup_info);
+            return true;
+        }
+    }
+
+    return false;
+}
+
+DWORD AutoInitialize(LPVOID lpParam)
+{
+    std::string startupInfo;
+    get_startup_info(startupInfo);
+    return Initialize((LPVOID)startupInfo.c_str());
+}
+
 BOOL APIENTRY DllMain(const HMODULE hModule, const DWORD dwReason, LPVOID lpReserved) {
     DisableThreadLibraryCalls(hModule);
 
@@ -123,6 +158,12 @@ BOOL APIENTRY DllMain(const HMODULE hModule, const DWORD dwReason, LPVOID lpRese
     {
         case DLL_PROCESS_ATTACH:
             g_hModule = hModule;
+            {                
+                if (has_startup_info())
+                {
+                    ::CreateThread(0, 0, AutoInitialize, 0, 0, 0);
+                }
+            }
             break;
         case DLL_PROCESS_DETACH:
             veh::remove_handler();
