@@ -139,7 +139,7 @@ namespace Dalamud.Game.Network
             {
                 // Call events
                 // TODO: Implement actor IDs
-                this.NetworkMessage?.Invoke(dataPtr + 0x20, (ushort)Marshal.ReadInt16(dataPtr), 0x0, 0x0, NetworkMessageDirection.ZoneUp);
+                // this.NetworkMessage?.Invoke(dataPtr + 0x20, (ushort)Marshal.ReadInt16(dataPtr), 0x0, 0x0, NetworkMessageDirection.ZoneUp);
             }
             catch (Exception ex)
             {
