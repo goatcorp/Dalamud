@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using ImGuiNET;
 
 namespace Dalamud.Interface.ImGuiFileDialog
 {
@@ -8,6 +9,12 @@ namespace Dalamud.Interface.ImGuiFileDialog
     /// </summary>
     public class FileDialogManager
     {
+        /// <summary> Additional quick access items for the side bar.</summary>
+        public readonly List<(string Name, string Path, FontAwesomeIcon Icon, int Position)> CustomSideBarItems = new();
+
+        /// <summary> Additional flags with which to draw the window. </summary>
+        public ImGuiWindowFlags AddedWindowFlags = ImGuiWindowFlags.None;
+
         private FileDialog? dialog;
         private Action<bool, string>? callback;
         private Action<bool, List<string>>? multiCallback;
@@ -181,6 +188,9 @@ namespace Dalamud.Interface.ImGuiFileDialog
             }
 
             this.dialog = new FileDialog(id, title, filters, path, defaultFileName, defaultExtension, selectionCountMax, isModal, flags);
+            this.dialog.WindowFlags |= this.AddedWindowFlags;
+            foreach (var (name, location, icon, position) in this.CustomSideBarItems)
+                this.dialog.SetQuickAccess(name, location, icon, position);
             this.dialog.Show();
         }
     }

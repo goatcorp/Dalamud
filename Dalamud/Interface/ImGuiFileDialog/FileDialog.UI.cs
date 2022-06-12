@@ -43,11 +43,11 @@ namespace Dalamud.Interface.ImGuiFileDialog
             if (this.isModal && !this.okResultToConfirm)
             {
                 ImGui.OpenPopup(name);
-                windowVisible = ImGui.BeginPopupModal(name, ref this.visible, ImGuiWindowFlags.NoScrollbar);
+                windowVisible = ImGui.BeginPopupModal(name, ref this.visible, this.WindowFlags);
             }
             else
             {
-                windowVisible = ImGui.Begin(name, ref this.visible, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoNav);
+                windowVisible = ImGui.Begin(name, ref this.visible, this.WindowFlags);
             }
 
             bool wasClosed = false;

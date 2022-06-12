@@ -19,12 +19,7 @@ namespace Dalamud.Interface.ImGuiFileDialog
             public string FileModifiedDate;
         }
 
-        private struct SideBarItem
-        {
-            public char Icon;
-            public string Text;
-            public string Location;
-        }
+        private record struct SideBarItem(string Text, string Location, char Icon);
 
         private struct FilterStruct
         {
