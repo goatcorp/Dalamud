@@ -189,7 +189,7 @@ namespace Dalamud.Interface.ImGuiFileDialog
                 }
                 else
                 {
-                    this.quickAccess[idx] = new SideBarItem(name, path, (char) icon);
+                    this.quickAccess[idx] = new SideBarItem(name, path, icon);
                     return;
                 }
             }
@@ -198,11 +198,11 @@ namespace Dalamud.Interface.ImGuiFileDialog
 
             if (position < 0 || position >= this.quickAccess.Count)
             {
-                this.quickAccess.Add(new SideBarItem(name, path, (char) icon));
+                this.quickAccess.Add(new SideBarItem(name, path, icon));
             }
             else
             {
-                this.quickAccess.Insert(position, new SideBarItem(name, path, (char) icon));
+                this.quickAccess.Insert(position, new SideBarItem(name, path, icon));
             }
         }
 

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Numerics;
 
 using ImGuiNET;
@@ -99,7 +100,7 @@ namespace Dalamud.Interface.ImGuiFileDialog
             return wasClosed || this.ConfirmOrOpenOverWriteFileDialogIfNeeded(res);
         }
 
-        private static void AddToIconMap(string[] extensions, char icon, Vector4 color)
+        private static void AddToIconMap(string[] extensions, FontAwesomeIcon icon, Vector4 color)
         {
             foreach (var ext in extensions)
             {
@@ -116,19 +117,19 @@ namespace Dalamud.Interface.ImGuiFileDialog
             if (iconMap == null)
             {
                 iconMap = new();
-                AddToIconMap(new[] { "mp4", "gif", "mov", "avi" }, (char)FontAwesomeIcon.FileVideo, miscTextColor);
-                AddToIconMap(new[] { "pdf" }, (char)FontAwesomeIcon.FilePdf, miscTextColor);
-                AddToIconMap(new[] { "png", "jpg", "jpeg", "tiff" }, (char)FontAwesomeIcon.FileImage, imageTextColor);
-                AddToIconMap(new[] { "cs", "json", "cpp", "h", "py", "xml", "yaml", "js", "html", "css", "ts", "java" }, (char)FontAwesomeIcon.FileCode, codeTextColor);
-                AddToIconMap(new[] { "txt", "md" }, (char)FontAwesomeIcon.FileAlt, standardTextColor);
-                AddToIconMap(new[] { "zip", "7z", "gz", "tar" }, (char)FontAwesomeIcon.FileArchive, miscTextColor);
-                AddToIconMap(new[] { "mp3", "m4a", "ogg", "wav" }, (char)FontAwesomeIcon.FileAudio, miscTextColor);
-                AddToIconMap(new[] { "csv" }, (char)FontAwesomeIcon.FileCsv, miscTextColor);
+                AddToIconMap(new[] { "mp4", "gif", "mov", "avi" }, FontAwesomeIcon.FileVideo, miscTextColor);
+                AddToIconMap(new[] { "pdf" }, FontAwesomeIcon.FilePdf, miscTextColor);
+                AddToIconMap(new[] { "png", "jpg", "jpeg", "tiff" }, FontAwesomeIcon.FileImage, imageTextColor);
+                AddToIconMap(new[] { "cs", "json", "cpp", "h", "py", "xml", "yaml", "js", "html", "css", "ts", "java" }, FontAwesomeIcon.FileCode, codeTextColor);
+                AddToIconMap(new[] { "txt", "md" }, FontAwesomeIcon.FileAlt, standardTextColor);
+                AddToIconMap(new[] { "zip", "7z", "gz", "tar" }, FontAwesomeIcon.FileArchive, miscTextColor);
+                AddToIconMap(new[] { "mp3", "m4a", "ogg", "wav" }, FontAwesomeIcon.FileAudio, miscTextColor);
+                AddToIconMap(new[] { "csv" }, FontAwesomeIcon.FileCsv, miscTextColor);
             }
 
             return iconMap.TryGetValue(ext.ToLower(), out var icon) ? icon : new IconColorItem
             {
-                Icon = (char)FontAwesomeIcon.File,
+                Icon = FontAwesomeIcon.File,
                 Color = standardTextColor,
             };
         }
@@ -222,7 +223,7 @@ namespace Dalamud.Interface.ImGuiFileDialog
             if (!this.createDirectoryMode)
             {
                 ImGui.SameLine();
-                ImGui.Text("Search :");
+                ImGui.TextUnformatted("Search :");
                 ImGui.SameLine();
                 ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X);
                 var edited = ImGui.InputText("##InputImGuiFileDialogSearchField", ref this.searchBuffer, 255);
@@ -239,7 +240,7 @@ namespace Dalamud.Interface.ImGuiFileDialog
             if (this.flags.HasFlag(ImGuiFileDialogFlags.DisableCreateDirectoryButton)) return;
 
             ImGui.PushFont(UiBuilder.IconFont);
-            if (ImGui.Button($"{(char)FontAwesomeIcon.FolderPlus}"))
+            if (ImGui.Button(FontAwesomeIcon.FolderPlus.ToIconString()))
             {
                 if (!this.createDirectoryMode)
                 {
@@ -258,7 +259,7 @@ namespace Dalamud.Interface.ImGuiFileDialog
             if (this.createDirectoryMode)
             {
                 ImGui.SameLine();
-                ImGui.Text("New Directory Name");
+                ImGui.TextUnformatted("New Directory Name");
 
                 ImGui.SameLine();
                 ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X - 100f);
@@ -317,41 +318,29 @@ namespace Dalamud.Interface.ImGuiFileDialog
 
             ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 5);
 
-            foreach (var drive in this.drives)
+            var idx = 0;
+            foreach (var (name, location, icon) in this.drives.Concat(this.quickAccess))
             {
-                ImGui.PushFont(UiBuilder.IconFont);
-                if (ImGui.Selectable($"{drive.Icon}##{drive.Text}", drive.Text == this.selectedSideBar))
-                {
-                    this.SetPath(drive.Location);
-                    this.selectedSideBar = drive.Text;
-                }
-
-                ImGui.PopFont();
-
-                ImGui.SameLine(25);
-
-                ImGui.Text(drive.Text);
-            }
-
-            foreach (var quick in this.quickAccess)
-            {
-                if (string.IsNullOrEmpty(quick.Location))
+                if (string.IsNullOrEmpty(location) || !Directory.Exists(location))
                 {
                     continue;
                 }
 
-                ImGui.PushFont(UiBuilder.IconFont);
-                if (ImGui.Selectable($"{quick.Icon}##{quick.Text}", quick.Text == this.selectedSideBar))
+                ImGui.PushID(idx++);
+                ImGui.SetCursorPosX(25);
+                if (ImGui.Selectable(name, name == this.selectedSideBar))
                 {
-                    this.SetPath(quick.Location);
-                    this.selectedSideBar = quick.Text;
+                    this.SetPath(location);
+                    this.selectedSideBar = name;
                 }
 
+                ImGui.PushFont(UiBuilder.IconFont);
+                ImGui.SameLine();
+                ImGui.SetCursorPosX(0);
+                ImGui.TextUnformatted(icon.ToIconString());
+
                 ImGui.PopFont();
-
-                ImGui.SameLine(25);
-
-                ImGui.Text(quick.Text);
+                ImGui.PopID();
             }
 
             ImGui.EndChild();
@@ -429,7 +418,7 @@ namespace Dalamud.Interface.ImGuiFileDialog
                                 var item = !dir ? GetIcon(file.Ext) : new IconColorItem
                                 {
                                     Color = dirTextColor,
-                                    Icon = (char)FontAwesomeIcon.Folder,
+                                    Icon = FontAwesomeIcon.Folder,
                                 };
 
                                 ImGui.PushStyleColor(ImGuiCol.Text, item.Color);
@@ -444,18 +433,18 @@ namespace Dalamud.Interface.ImGuiFileDialog
 
                                 if (ImGui.TableNextColumn())
                                 {
-                                    ImGui.Text(file.Ext);
+                                    ImGui.TextUnformatted(file.Ext);
                                 }
 
                                 if (ImGui.TableNextColumn())
                                 {
                                     if (file.Type == FileStructType.File)
                                     {
-                                        ImGui.Text(file.FormattedFileSize + " ");
+                                        ImGui.TextUnformatted(file.FormattedFileSize + " ");
                                     }
                                     else
                                     {
-                                        ImGui.Text(" ");
+                                        ImGui.TextUnformatted(" ");
                                     }
                                 }
 
@@ -463,7 +452,7 @@ namespace Dalamud.Interface.ImGuiFileDialog
                                 {
                                     var sz = ImGui.CalcTextSize(file.FileModifiedDate);
                                     ImGui.PushItemWidth(sz.X + 5);
-                                    ImGui.Text(file.FileModifiedDate + " ");
+                                    ImGui.TextUnformatted(file.FileModifiedDate + " ");
                                     ImGui.PopItemWidth();
                                 }
 
@@ -503,13 +492,13 @@ namespace Dalamud.Interface.ImGuiFileDialog
             ImGui.EndChild();
         }
 
-        private bool SelectableItem(FileStruct file, bool selected, char icon)
+        private bool SelectableItem(FileStruct file, bool selected, FontAwesomeIcon icon)
         {
-            var flags = ImGuiSelectableFlags.AllowDoubleClick | ImGuiSelectableFlags.SpanAllColumns;
+            const ImGuiSelectableFlags flags = ImGuiSelectableFlags.AllowDoubleClick | ImGuiSelectableFlags.SpanAllColumns;
 
             ImGui.PushFont(UiBuilder.IconFont);
 
-            ImGui.Text($"{icon}");
+            ImGui.TextUnformatted(icon.ToIconString());
             ImGui.PopFont();
 
             ImGui.SameLine(25f);
@@ -712,11 +701,11 @@ namespace Dalamud.Interface.ImGuiFileDialog
 
             if (this.IsDirectoryMode())
             {
-                ImGui.Text("Directory Path :");
+                ImGui.TextUnformatted("Directory Path :");
             }
             else
             {
-                ImGui.Text("File Name :");
+                ImGui.TextUnformatted("File Name :");
             }
 
             ImGui.SameLine();
@@ -839,7 +828,7 @@ namespace Dalamud.Interface.ImGuiFileDialog
                 ImGui.OpenPopup(name);
                 if (ImGui.BeginPopupModal(name, ref open, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove))
                 {
-                    ImGui.Text("Would you like to Overwrite it ?");
+                    ImGui.TextUnformatted("Would you like to Overwrite it ?");
                     if (ImGui.Button("Confirm"))
                     {
                         this.okResultToConfirm = false;
