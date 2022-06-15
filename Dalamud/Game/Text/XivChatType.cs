@@ -185,6 +185,16 @@ namespace Dalamud.Game.Text
         ErrorMessage = 60,
 
         /// <summary>
+        /// The NPC Dialogue chat type.
+        /// </summary>
+        NPCDialogue = 61,
+
+        /// <summary>
+        /// The NPC Dialogue (Announcements) chat type.
+        /// </summary>
+        NPCDialogueAnnouncements = 68,
+
+        /// <summary>
         /// The retainer sale chat type.
         /// </summary>
         /// <remarks>
