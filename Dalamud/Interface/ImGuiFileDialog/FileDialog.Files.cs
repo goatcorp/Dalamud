@@ -303,7 +303,7 @@ namespace Dalamud.Interface.ImGuiFileDialog
             {
                 this.drives.Add(new SideBarItem
                 {
-                    Icon = (char)FontAwesomeIcon.Server,
+                    Icon = FontAwesomeIcon.Server,
                     Location = drive.Name,
                     Text = drive.Name,
                 });
@@ -313,14 +313,14 @@ namespace Dalamud.Interface.ImGuiFileDialog
 
             this.quickAccess.Add(new SideBarItem
             {
-                Icon = (char)FontAwesomeIcon.Desktop,
+                Icon = FontAwesomeIcon.Desktop,
                 Location = Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
                 Text = "Desktop",
             });
 
             this.quickAccess.Add(new SideBarItem
             {
-                Icon = (char)FontAwesomeIcon.File,
+                Icon = FontAwesomeIcon.File,
                 Location = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
                 Text = "Documents",
             });
@@ -329,7 +329,7 @@ namespace Dalamud.Interface.ImGuiFileDialog
             {
                 this.quickAccess.Add(new SideBarItem
                 {
-                    Icon = (char)FontAwesomeIcon.Download,
+                    Icon = FontAwesomeIcon.Download,
                     Location = Path.Combine(personal, "Downloads"),
                     Text = "Downloads",
                 });
@@ -337,28 +337,28 @@ namespace Dalamud.Interface.ImGuiFileDialog
 
             this.quickAccess.Add(new SideBarItem
             {
-                Icon = (char)FontAwesomeIcon.Star,
+                Icon = FontAwesomeIcon.Star,
                 Location = Environment.GetFolderPath(Environment.SpecialFolder.Favorites),
                 Text = "Favorites",
             });
 
             this.quickAccess.Add(new SideBarItem
             {
-                Icon = (char)FontAwesomeIcon.Music,
+                Icon = FontAwesomeIcon.Music,
                 Location = Environment.GetFolderPath(Environment.SpecialFolder.MyMusic),
                 Text = "Music",
             });
 
             this.quickAccess.Add(new SideBarItem
             {
-                Icon = (char)FontAwesomeIcon.Image,
+                Icon = FontAwesomeIcon.Image,
                 Location = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures),
                 Text = "Pictures",
             });
 
             this.quickAccess.Add(new SideBarItem
             {
-                Icon = (char)FontAwesomeIcon.Video,
+                Icon = FontAwesomeIcon.Video,
                 Location = Environment.GetFolderPath(Environment.SpecialFolder.MyVideos),
                 Text = "Videos",
             });
