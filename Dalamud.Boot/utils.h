@@ -218,9 +218,7 @@ namespace utils {
     }
 
     template<typename T>
-    T get_env(const wchar_t* pcwzName) {
-        static_assert(false);
-    }
+    T get_env(const wchar_t* pcwzName) = delete;
 
     template<>
     std::wstring get_env(const wchar_t* pcwzName);
@@ -240,9 +238,7 @@ namespace utils {
     }
 
     template<typename T>
-    std::vector<T> get_env_list(const wchar_t* pcwzName) {
-        static_assert(false);
-    }
+    std::vector<T> get_env_list(const wchar_t* pcwzName) = delete;
 
     template<>
     std::vector<std::wstring> get_env_list(const wchar_t* pcwzName);

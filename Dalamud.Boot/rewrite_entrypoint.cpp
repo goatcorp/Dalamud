@@ -234,7 +234,7 @@ void* get_mapped_image_base_address(HANDLE hProcess, const std::filesystem::path
             return mbi.AllocationBase;
 
         } catch (const std::exception& e) {
-            logging::print<logging::W>("Failed to check memory block 0x{:X}(len=0x{:X}): {}", mbi.BaseAddress, mbi.RegionSize, e.what());
+            logging::W("Failed to check memory block 0x{:X}(len=0x{:X}): {}", mbi.BaseAddress, mbi.RegionSize, e.what());
             continue;
         }
     }

@@ -48,7 +48,7 @@ namespace unicode {
         char32_t c{};
         for (size_t decLen = 0, decIdx = 0; decIdx < in.size() && (decLen = unicode::decode(c, &in[decIdx], in.size() - decIdx, strict)); decIdx += decLen) {
             const auto encIdx = out.size();
-            const auto encLen = unicode::encode<TTo::value_type>(nullptr, c, strict);
+            const auto encLen = unicode::encode<typename TTo::value_type>(nullptr, c, strict);
             out.resize(encIdx + encLen);
             unicode::encode(&out[encIdx], c, strict);
         }

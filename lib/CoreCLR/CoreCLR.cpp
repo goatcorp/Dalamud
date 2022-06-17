@@ -83,7 +83,7 @@ int CoreCLR::load_runtime(const std::wstring& runtime_config_path, const struct 
     // Success_HostAlreadyInitialized
     if (result == 1)
     {
-        logging::print<logging::I>("Success_HostAlreadyInitialized (0x1)");
+        logging::I("Success_HostAlreadyInitialized (0x1)");
         result = 0;
     }
 

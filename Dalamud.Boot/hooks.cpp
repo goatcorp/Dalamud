@@ -103,7 +103,7 @@ void hooks::getprocaddress_singleton_import_hook::initialize() {
     LdrRegisterDllNotification(0, [](ULONG notiReason, const LDR_DLL_NOTIFICATION_DATA* pData, void* context) {
         if (notiReason == LDR_DLL_NOTIFICATION_REASON_LOADED) {
             const auto dllName = unicode::convert<std::string>(pData->Loaded.FullDllName->Buffer);
-            logging::print<logging::I>(R"({} "{}" has been loaded at 0x{:X} ~ 0x{:X} (0x{:X}); finding import table items to hook.)",
+            logging::I(R"({} "{}" has been loaded at 0x{:X} ~ 0x{:X} (0x{:X}); finding import table items to hook.)",
                 LogTag, dllName, 
                 reinterpret_cast<size_t>(pData->Loaded.DllBase),
                 reinterpret_cast<size_t>(pData->Loaded.DllBase) + pData->Loaded.SizeOfImage,
@@ -111,7 +111,7 @@ void hooks::getprocaddress_singleton_import_hook::initialize() {
             reinterpret_cast<getprocaddress_singleton_import_hook*>(context)->hook_module(utils::loaded_module(pData->Loaded.DllBase));
         } else if (notiReason == LDR_DLL_NOTIFICATION_REASON_UNLOADED) {
             const auto dllName = unicode::convert<std::string>(pData->Unloaded.FullDllName->Buffer);
-            logging::print<logging::I>(R"({} "{}" has been unloaded.)", LogTag, dllName);
+            logging::I(R"({} "{}" has been unloaded.)", LogTag, dllName);
         }
     }, this, &m_ldrDllNotificationCookie);
 }
@@ -119,7 +119,7 @@ void hooks::getprocaddress_singleton_import_hook::initialize() {
 FARPROC hooks::getprocaddress_singleton_import_hook::get_proc_address_handler(HMODULE hModule, LPCSTR lpProcName) {
     if (const auto it1 = m_targetFns.find(hModule); it1 != m_targetFns.end()) {
         if (const auto it2 = it1->second.find(lpProcName); it2 != it1->second.end()) {
-            logging::print<logging::I>(R"({} Redirecting GetProcAddress("{}", "{}"))", LogTag, m_dllNameMap[hModule], lpProcName);
+            logging::I(R"({} Redirecting GetProcAddress("{}", "{}"))", LogTag, m_dllNameMap[hModule], lpProcName);
 
             return reinterpret_cast<FARPROC>(it2->second);
         }
@@ -139,7 +139,7 @@ void hooks::getprocaddress_singleton_import_hook::hook_module(const utils::loade
             if (void* pGetProcAddressImport; mod.find_imported_function_pointer(dllName.c_str(), targetFn.c_str(), 0, pGetProcAddressImport)) {
                 auto& hook = m_hooks[hModule][targetFn][mod];
                 if (!hook) {
-                    logging::print<logging::I>("{} Hooking {}!{} imported by {}", LogTag, dllName, targetFn, unicode::convert<std::string>(mod.path().wstring()));
+                    logging::I("{} Hooking {}!{} imported by {}", LogTag, dllName, targetFn, unicode::convert<std::string>(mod.path().wstring()));
 
                     hook.emplace(std::format("getprocaddress_singleton_import_hook::hook_module({}!{})", dllName, targetFn), static_cast<void**>(pGetProcAddressImport), pfnThunk);
                 }

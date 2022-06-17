@@ -29,9 +29,9 @@ void xivfixes::unhook_dll(bool bApply) {
         std::filesystem::path path;
         try {
             path = mod.path();
-            logging::print<logging::I>(L"{} [{}/{}] Module 0x{:X} ~ 0x{:X} (0x{:X}): \"{}\"", LogTagW, i + 1, mods.size(), mod.address_int(), mod.address_int() + mod.image_size(), mod.image_size(), path.wstring());
+            logging::I("{} [{}/{}] Module 0x{:X} ~ 0x{:X} (0x{:X}): \"{}\"", LogTagW, i + 1, mods.size(), mod.address_int(), mod.address_int() + mod.image_size(), mod.image_size(), path.wstring());
         } catch (const std::exception& e) {
-            logging::print<logging::W>("{} [{}/{}] Module 0x{:X}: Failed to resolve path: {}", LogTag, i + 1, mods.size(),  mod.address_int(), e.what());
+            logging::W("{} [{}/{}] Module 0x{:X}: Failed to resolve path: {}", LogTag, i + 1, mods.size(),  mod.address_int(), e.what());
             continue;
         }
 
@@ -44,7 +44,7 @@ void xivfixes::unhook_dll(bool bApply) {
             const auto section = assume_nonempty_span(mod.span_as<char>(sectionHeader.VirtualAddress, sectionHeader.Misc.VirtualSize), ".text[VA:VA+VS]");
             auto hFsDllRaw = CreateFileW(path.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, 0, nullptr);
             if (hFsDllRaw == INVALID_HANDLE_VALUE) {
-                logging::print<logging::W>("{} Module loaded in current process but could not open file: Win32 error {}", LogTag, GetLastError());
+                logging::W("{} Module loaded in current process but could not open file: Win32 error {}", LogTag, GetLastError());
                 continue;
             }
             auto hFsDll = std::unique_ptr<void, decltype(CloseHandle)*>(hFsDllRaw, &CloseHandle);
@@ -53,11 +53,11 @@ void xivfixes::unhook_dll(bool bApply) {
             SetFilePointer(hFsDll.get(), sectionHeader.PointerToRawData, nullptr, FILE_CURRENT);
             if (DWORD read{}; ReadFile(hFsDll.get(), &buf[0], static_cast<DWORD>(buf.size()), &read, nullptr)) {
                 if (read < section.size_bytes()) {
-                    logging::print<logging::W>(L"{} ReadFile: read {} bytes < requested {} bytes", LogTagW, read, section.size_bytes());
+                    logging::W("{} ReadFile: read {} bytes < requested {} bytes", LogTagW, read, section.size_bytes());
                     continue;
                 }
             } else {
-                logging::print<logging::I>(L"{} ReadFile: Win32 error {}", LogTagW, GetLastError());
+                logging::I("{} ReadFile: Win32 error {}", LogTagW, GetLastError());
                 continue;
             }
 
@@ -81,7 +81,7 @@ void xivfixes::unhook_dll(bool bApply) {
                 if (!nmd_x86_decode(&section[i], section.size() - i, &instruction, NMD_X86_MODE_64, NMD_X86_DECODER_FLAGS_ALL)) {
                     instructionLength = 1;
                     if (printed < 64) {
-                        logging::print<logging::W>("{} {}+0x{:0X}: dd {:02X}", LogTag, moduleName, rva, static_cast<uint8_t>(section[i]));
+                        logging::W("{} {}+0x{:0X}: dd {:02X}", LogTag, moduleName, rva, static_cast<uint8_t>(section[i]));
                         printed++;
                     }
                 } else {
@@ -102,16 +102,16 @@ void xivfixes::unhook_dll(bool bApply) {
                             std::string_view name;
                             if (const char* pcszName = mod.address_as<char>(names[j]); pcszName < mod.address() || pcszName >= mod.address() + mod.image_size()) {
                                 if (IsBadReadPtr(pcszName, 256)) {
-                                    logging::print<logging::W>("{} Name #{} points to an invalid address outside the executable. Skipping.", LogTag, j);
+                                    logging::W("{} Name #{} points to an invalid address outside the executable. Skipping.", LogTag, j);
                                     continue;
                                 }
 
                                 name = std::string_view(pcszName, strnlen(pcszName, 256));
-                                logging::print<logging::W>("{} Name #{} points to a seemingly valid address outside the executable: {}", LogTag, j, name);
+                                logging::W("{} Name #{} points to a seemingly valid address outside the executable: {}", LogTag, j, name);
                             }
                             
                             if (ordinals[j] >= functions.size()) {
-                                logging::print<logging::W>("{} Ordinal #{} points to function index #{} >= #{}. Skipping.", LogTag, j, ordinals[j], functions.size());
+                                logging::W("{} Ordinal #{} points to function index #{} >= #{}. Skipping.", LogTag, j, ordinals[j], functions.size());
                                 continue;
                             }
 
@@ -122,7 +122,7 @@ void xivfixes::unhook_dll(bool bApply) {
                             }
                         }
 
-                        logging::print<logging::W>("{} {}+0x{:0X}{}: {}", LogTag, moduleName, rva, resolvedExportName, formatBuf);
+                        logging::W("{} {}+0x{:0X}{}: {}", LogTag, moduleName, rva, resolvedExportName, formatBuf);
                         printed++;
                     }
                 }
@@ -135,12 +135,12 @@ void xivfixes::unhook_dll(bool bApply) {
             }
 
             if (tenderizer)
-                logging::print<logging::I>("{} Verification and overwriting complete.", LogTag);
+                logging::I("{} Verification and overwriting complete.", LogTag);
             else if (doRestore)
-                logging::print<logging::I>("{} Verification complete. Overwriting was not required.", LogTag);
+                logging::I("{} Verification complete. Overwriting was not required.", LogTag);
 
         } catch (const std::exception& e) {
-            logging::print<logging::W>("{} Error: {}", LogTag, e.what());
+            logging::W("{} Error: {}", LogTag, e.what());
         }
     }
 }
@@ -180,7 +180,7 @@ void xivfixes::prevent_devicechange_crashes(bool bApply) {
 
     if (bApply) {
         if (!bootconfig::gamefix_is_enabled(L"prevent_devicechange_crashes")) {
-            logging::print<logging::I>("{} Turned off via environment variable.", LogTag);
+            logging::I("{} Turned off via environment variable.", LogTag);
             return;
         }
 
@@ -193,7 +193,7 @@ void xivfixes::prevent_devicechange_crashes(bool bApply) {
                 || 0 != strcmp(lpClassName, "FFXIVGAME"))
                 return hWnd;
 
-            logging::print<logging::I>(R"({} CreateWindow(0x{:08X}, "{}", "{}", 0x{:08X}, {}, {}, {}, {}, 0x{:X}, 0x{:X}, 0x{:X}, 0x{:X}) called; unhooking CreateWindowExA and hooking WndProc.)",
+            logging::I(R"({} CreateWindow(0x{:08X}, "{}", "{}", 0x{:08X}, {}, {}, {}, {}, 0x{:X}, 0x{:X}, 0x{:X}, 0x{:X}) called; unhooking CreateWindowExA and hooking WndProc.)",
                 LogTag, dwExStyle, lpClassName, lpWindowName, dwStyle, X, Y, nWidth, nHeight, reinterpret_cast<size_t>(hWndParent), reinterpret_cast<size_t>(hMenu), reinterpret_cast<size_t>(hInstance), reinterpret_cast<size_t>(lpParam));
 
             s_hookCreateWindowExA.reset();
@@ -202,7 +202,7 @@ void xivfixes::prevent_devicechange_crashes(bool bApply) {
             s_hookWndProc->set_detour([](HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) -> LRESULT {
                 if (uMsg == WM_DEVICECHANGE && wParam == DBT_DEVNODES_CHANGED) {
                     if (!GetGetInputDeviceManager(hWnd)()) {
-                        logging::print<logging::I>("{} WndProc(0x{:X}, WM_DEVICECHANGE, DBT_DEVNODES_CHANGED, {}) called but the game does not have InputDeviceManager initialized; doing nothing.", LogTag, reinterpret_cast<size_t>(hWnd), lParam);
+                        logging::I("{} WndProc(0x{:X}, WM_DEVICECHANGE, DBT_DEVNODES_CHANGED, {}) called but the game does not have InputDeviceManager initialized; doing nothing.", LogTag, reinterpret_cast<size_t>(hWnd), lParam);
                         return 0;
                     }
                 }
@@ -213,17 +213,17 @@ void xivfixes::prevent_devicechange_crashes(bool bApply) {
             return hWnd;
         });
 
-        logging::print<logging::I>("{} Enable", LogTag);
+        logging::I("{} Enable", LogTag);
 
     } else {
         if (s_hookCreateWindowExA) {
-            logging::print<logging::I>("{} Disable CreateWindowExA", LogTag);
+            logging::I("{} Disable CreateWindowExA", LogTag);
             s_hookCreateWindowExA.reset();
         }
 
         // This will effectively revert any other WndProc alterations, including Dalamud.
         if (s_hookWndProc) {
-            logging::print<logging::I>("{} Disable WndProc", LogTag);
+            logging::I("{} Disable WndProc", LogTag);
             s_hookWndProc.reset();
         }
     }
@@ -235,18 +235,18 @@ void xivfixes::disable_game_openprocess_access_check(bool bApply) {
 
     if (bApply) {
         if (!bootconfig::gamefix_is_enabled(L"disable_game_openprocess_access_check")) {
-            logging::print<logging::I>("{} Turned off via environment variable.", LogTag);
+            logging::I("{} Turned off via environment variable.", LogTag);
             return;
         }
 
         s_hook.emplace("kernel32.dll!OpenProcess (import, disable_game_openprocess_access_check)", "kernel32.dll", "OpenProcess", 0);
         s_hook->set_detour([](DWORD dwDesiredAccess, BOOL bInheritHandle, DWORD dwProcessId)->HANDLE {
-            logging::print<logging::I>("{} OpenProcess(0x{:08X}, {}, {}) was invoked by thread {}.", LogTag, dwDesiredAccess, bInheritHandle, dwProcessId, GetCurrentThreadId());
+            logging::I("{} OpenProcess(0x{:08X}, {}, {}) was invoked by thread {}.", LogTag, dwDesiredAccess, bInheritHandle, dwProcessId, GetCurrentThreadId());
 
             if (dwProcessId == GetCurrentProcessId()) {
                 // Prevent game from feeling unsafe that it restarts
                 if (dwDesiredAccess & PROCESS_VM_WRITE) {
-                    logging::print<logging::I>("{} Returning failure with last error code set to ERROR_ACCESS_DENIED(5).", LogTag);
+                    logging::I("{} Returning failure with last error code set to ERROR_ACCESS_DENIED(5).", LogTag);
                     SetLastError(ERROR_ACCESS_DENIED);
                     return {};
                 }
@@ -255,10 +255,10 @@ void xivfixes::disable_game_openprocess_access_check(bool bApply) {
             return s_hook->call_original(dwDesiredAccess, bInheritHandle, dwProcessId);
         });
 
-        logging::print<logging::I>("{} Enable", LogTag);
+        logging::I("{} Enable", LogTag);
     } else {
         if (s_hook) {
-            logging::print<logging::I>("{} Disable OpenProcess", LogTag);
+            logging::I("{} Disable OpenProcess", LogTag);
             s_hook.reset();
         }
     }
@@ -272,7 +272,7 @@ void xivfixes::redirect_openprocess(bool bApply) {
 
     if (bApply) {
         if (!bootconfig::gamefix_is_enabled(L"redirect_openprocess")) {
-            logging::print<logging::I>("{} Turned off via environment variable.", LogTag);
+            logging::I("{} Turned off via environment variable.", LogTag);
             return;
         }
 
@@ -281,7 +281,7 @@ void xivfixes::redirect_openprocess(bool bApply) {
             hook->set_detour([hook = hook.get()](DWORD dwDesiredAccess, BOOL bInheritHandle, DWORD dwProcessId)->HANDLE {
                 if (dwProcessId == GetCurrentProcessId()) {
                     if (s_silenceSet.emplace(GetCurrentThreadId()).second)
-                        logging::print<logging::I>("{} OpenProcess(0x{:08X}, {}, {}) was invoked by thread {}. Redirecting to DuplicateHandle.", LogTag, dwDesiredAccess, bInheritHandle, dwProcessId, GetCurrentThreadId());
+                        logging::I("{} OpenProcess(0x{:08X}, {}, {}) was invoked by thread {}. Redirecting to DuplicateHandle.", LogTag, dwDesiredAccess, bInheritHandle, dwProcessId, GetCurrentThreadId());
 
                     if (HANDLE res; DuplicateHandle(GetCurrentProcess(), GetCurrentProcess(), GetCurrentProcess(), &res, dwDesiredAccess, bInheritHandle, 0))
                         return res;
@@ -292,14 +292,14 @@ void xivfixes::redirect_openprocess(bool bApply) {
             });
             s_hook = std::dynamic_pointer_cast<hooks::base_untyped_hook>(std::move(hook));
 
-            logging::print<logging::I>("{} Enable via import_hook", LogTag);
+            logging::I("{} Enable via import_hook", LogTag);
 
         } else {
             auto hook = std::make_shared<hooks::direct_hook<decltype(OpenProcess)>>("kernel32.dll!OpenProcess (direct, redirect_openprocess)", OpenProcess);
             hook->set_detour([hook = hook.get()](DWORD dwDesiredAccess, BOOL bInheritHandle, DWORD dwProcessId)->HANDLE {
                 if (dwProcessId == GetCurrentProcessId()) {
                     if (s_silenceSet.emplace(GetCurrentThreadId()).second)
-                        logging::print<logging::I>("{} OpenProcess(0x{:08X}, {}, {}) was invoked by thread {}. Redirecting to DuplicateHandle.", LogTag, dwDesiredAccess, bInheritHandle, dwProcessId, GetCurrentThreadId());
+                        logging::I("{} OpenProcess(0x{:08X}, {}, {}) was invoked by thread {}. Redirecting to DuplicateHandle.", LogTag, dwDesiredAccess, bInheritHandle, dwProcessId, GetCurrentThreadId());
 
                     if (HANDLE res; DuplicateHandle(GetCurrentProcess(), GetCurrentProcess(), GetCurrentProcess(), &res, dwDesiredAccess, bInheritHandle, 0))
                         return res;
@@ -310,7 +310,7 @@ void xivfixes::redirect_openprocess(bool bApply) {
             });
             s_hook = std::dynamic_pointer_cast<hooks::base_untyped_hook>(std::move(hook));
 
-            logging::print<logging::I>("{} Enable via direct_hook", LogTag);
+            logging::I("{} Enable via direct_hook", LogTag);
         }
 
         //std::thread([]() {
@@ -321,7 +321,7 @@ void xivfixes::redirect_openprocess(bool bApply) {
 
     } else {
         if (s_hook) {
-            logging::print<logging::I>("{} Disable OpenProcess", LogTag);
+            logging::I("{} Disable OpenProcess", LogTag);
             s_hook.reset();
         }
     }
@@ -341,16 +341,16 @@ void xivfixes::apply_all(bool bApply) {
 
         } catch (const std::exception& e) {
             if (bApply)
-                logging::print<logging::W>("Error trying to activate fixup [{}]: {}", taskName, e.what());
+                logging::W("Error trying to activate fixup [{}]: {}", taskName, e.what());
             else
-                logging::print<logging::W>("Error trying to deactivate fixup [{}]: {}", taskName, e.what());
+                logging::W("Error trying to deactivate fixup [{}]: {}", taskName, e.what());
 
             continue;
         }
 
         if (bApply)
-            logging::print<logging::I>("Fixup [{}] activated.", taskName);
+            logging::I("Fixup [{}] activated.", taskName);
         else
-            logging::print<logging::I>("Fixup [{}] deactivated.", taskName);
+            logging::I("Fixup [{}] deactivated.", taskName);
     }
 }

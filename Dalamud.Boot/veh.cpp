@@ -269,16 +269,18 @@ LONG exception_handler(EXCEPTION_POINTERS* ex)
         L"Dalamud.EntryPoint+VehDelegate, Dalamud", 
         nullptr, nullptr, &fn)))
     {
-        const auto msg = L"An error within the game has occurred.\n\n"
+        const auto formatted = std::format(
+            L"An error within the game has occurred.\n\n"
             L"This may be caused by a faulty plugin, a broken TexTools modification, any other third-party tool or simply a bug in the game.\n"
             L"Please try \"Start Over\" or \"Download Index Backup\" in TexTools, an integrity check in the XIVLauncher settings, and disabling plugins you don't need.\n\n"
             L"The log file is located at:\n"
             L"{1}\n\n"
-            L"Press OK to exit the application.\n\nFailed to read stack trace: {2:08x}";
+            L"Press OK to exit the application.\n\nFailed to read stack trace: {2:08x}",
+            dmp_path, log_path, err);
 
         // show in another thread to prevent messagebox from pumping messages of current thread
         std::thread([&]() {
-            MessageBoxW(nullptr, std::format(msg, dmp_path, log_path, err).c_str(), L"Dalamud Error", MB_OK | MB_ICONERROR | MB_TOPMOST);
+            MessageBoxW(nullptr, formatted.c_str(), L"Dalamud Error", MB_OK | MB_ICONERROR | MB_TOPMOST);
             }).join();
     }
     else
