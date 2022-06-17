@@ -39,7 +39,6 @@ namespace Dalamud.Injector
         public static void Main(int argc, IntPtr argvPtr)
         {
             List<string> args = new(argc);
-            Init(args);
 
             unsafe
             {
@@ -47,6 +46,9 @@ namespace Dalamud.Injector
                 for (var i = 0; i < argc; i++)
                     args.Add(Marshal.PtrToStringUni(argv[i]));
             }
+
+            Init(args);
+            args.Remove("-v"); // Remove "verbose" flag
 
             if (args.Count >= 2 && args[1].ToLowerInvariant() == "launch-test")
             {
@@ -130,8 +132,8 @@ namespace Dalamud.Injector
 
         private static void Init(List<string> args)
         {
+            InitLogging(args.Any(x => x == "-v"));
             InitUnhandledException(args);
-            InitLogging();
 
             var cwd = new FileInfo(Assembly.GetExecutingAssembly().Location).Directory;
             if (cwd.FullName != Directory.GetCurrentDirectory())
@@ -186,15 +188,16 @@ namespace Dalamud.Injector
             };
         }
 
-        private static void InitLogging()
+        private static void InitLogging(bool verbose)
         {
-            var levelSwitch = new LoggingLevelSwitch();
-
 #if DEBUG
-            levelSwitch.MinimumLevel = LogEventLevel.Verbose;
-#else
-            levelSwitch.MinimumLevel = LogEventLevel.Information;
+            verbose = true;
 #endif
+
+            var levelSwitch = new LoggingLevelSwitch
+            {
+                MinimumLevel = verbose ? LogEventLevel.Verbose : LogEventLevel.Information,
+            };
 
             var logPath = GetLogPath("dalamud.injector");
 
@@ -364,6 +367,8 @@ namespace Dalamud.Injector
             Console.WriteLine("                               [--dalamud-plugin-directory=path] [--dalamud-dev-plugin-directory=path]");
             Console.WriteLine("                               [--dalamud-asset-directory=path] [--dalamud-delay-initialize=0(ms)]");
             Console.WriteLine("                               [--dalamud-client-language=0-3|j(apanese)|e(nglish)|d|g(erman)|f(rench)]");
+
+            Console.WriteLine("Verbose logging: [-v]");
 
             return 0;
         }
