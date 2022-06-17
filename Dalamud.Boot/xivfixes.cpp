@@ -143,7 +143,8 @@ void xivfixes::unhook_dll(bool bApply) {
         }
     };
 
-    const auto aaaa = [&]() {
+    // This is needed since try and __try cannot be used in the same function. Lambdas circumvent the limitation.
+    const auto windows_exception_handler = [&]() {
         for (size_t i = 0; i < mods.size(); i++) {
             const auto& mod = mods[i];
             __try {
@@ -154,7 +155,7 @@ void xivfixes::unhook_dll(bool bApply) {
         }
     };
 
-    aaaa();
+    windows_exception_handler();
 }
 
 using TFnGetInputDeviceManager = void* ();
