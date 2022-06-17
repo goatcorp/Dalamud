@@ -212,9 +212,7 @@ void xivfixes::prevent_devicechange_crashes(bool bApply) {
             s_hookWndProc.emplace("FFXIVGAME:WndProc (prevent_devicechange_crashes)", hWnd);
             s_hookWndProc->set_detour([](HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) -> LRESULT {
 
-                if (uMsg == WM_CREATE) {
-                    s_hookCreateWindowExA.reset();
-                } else if (uMsg == WM_DEVICECHANGE && wParam == DBT_DEVNODES_CHANGED) {
+                if (uMsg == WM_DEVICECHANGE && wParam == DBT_DEVNODES_CHANGED) {
                     if (!GetGetInputDeviceManager(hWnd)()) {
                         logging::I("{} WndProc(0x{:X}, WM_DEVICECHANGE, DBT_DEVNODES_CHANGED, {}) called but the game does not have InputDeviceManager initialized; doing nothing.", LogTag, reinterpret_cast<size_t>(hWnd), lParam);
                         return 0;
