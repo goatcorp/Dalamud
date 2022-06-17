@@ -100,12 +100,12 @@ namespace Dalamud.Game.ClientState
         /// <summary>
         /// Event that fires when a character is entering PvP.
         /// </summary>
-        public event System.Action EnterPvP;
+        public event Action EnterPvP;
 
         /// <summary>
         /// Event that fires when a character is leaving PvP.
         /// </summary>
-        public event System.Action LeavePvP;
+        public event Action LeavePvP;
 
         /// <summary>
         /// Event that gets fired when a duty is ready.
@@ -141,6 +141,11 @@ namespace Dalamud.Game.ClientState
         /// Gets a value indicating whether or not the user is playing PvP.
         /// </summary>
         public bool IsPvP { get; private set; }
+
+        /// <summary>
+        /// Gets a value indicating whether or not the user is playing PvP, excluding the Wolves' Den.
+        /// </summary>
+        public bool IsPvPExcludingDen { get; private set; }
 
         /// <summary>
         /// Enable this module.
@@ -203,7 +208,8 @@ namespace Dalamud.Game.ClientState
                 gameGui.ResetUiHideState();
             }
 
-            this.IsPvP = GameMain.IsInPvPInstance();
+            this.IsPvP = GameMain.IsInPvPArea();
+            this.IsPvPExcludingDen = this.IsPvP && this.TerritoryType != 250;
 
             if (this.IsPvP != this.lastFramePvP)
             {
