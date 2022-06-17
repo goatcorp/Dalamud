@@ -63,7 +63,7 @@ int InitializeClrAndGetEntryPoint(
 
         if (result != 0)
         {
-            logging::print<logging::E>("Unable to get RoamingAppData path (err={})", result);
+            logging::E("Unable to get RoamingAppData path (err={})", result);
             return result;
         }
 
@@ -73,13 +73,13 @@ int InitializeClrAndGetEntryPoint(
 
     // =========================================================================== //
 
-    logging::print<logging::I>(L"with dotnet_path: {}", dotnet_path);
-    logging::print<logging::I>(L"with config_path: {}", runtimeconfig_path.c_str());
-    logging::print<logging::I>(L"with module_path: {}", module_path.c_str());
+    logging::I("with dotnet_path: {}", dotnet_path);
+    logging::I("with config_path: {}", runtimeconfig_path);
+    logging::I("with module_path: {}", module_path);
 
     if (!std::filesystem::exists(dotnet_path))
     {
-        logging::print<logging::E>("Error: Unable to find .NET runtime path");
+        logging::E("Error: Unable to find .NET runtime path");
         return 1;
     }
 
@@ -90,13 +90,13 @@ int InitializeClrAndGetEntryPoint(
         dotnet_path,
     };
 
-    logging::print<logging::I>("Loading hostfxr...");
+    logging::I("Loading hostfxr...");
     if ((result = g_clr->load_hostfxr(&init_parameters)) != 0)
     {
-        logging::print<logging::E>("Failed to load the `hostfxr` library (err=0x{:08x})", result);
+        logging::E("Failed to load the `hostfxr` library (err=0x{:08x})", result);
         return result;
     }
-    logging::print<logging::I>("Done!");
+    logging::I("Done!");
 
     // =========================================================================== //
 
@@ -107,17 +107,17 @@ int InitializeClrAndGetEntryPoint(
         dotnet_path,
     };
 
-    logging::print<logging::I>("Loading coreclr... ");
+    logging::I("Loading coreclr... ");
     if ((result = g_clr->load_runtime(runtimeconfig_path, &runtime_parameters)) != 0)
     {
-        logging::print<logging::E>("Failed to load coreclr (err=0x{:08X})", static_cast<uint32_t>(result));
+        logging::E("Failed to load coreclr (err=0x{:08X})", static_cast<uint32_t>(result));
         return result;
     }
-    logging::print<logging::I>("Done!");
+    logging::I("Done!");
 
     // =========================================================================== //
 
-    logging::print<logging::I>("Loading module...");
+    logging::I("Loading module...");
     if ((result = g_clr->load_assembly_and_get_function_pointer(
         module_path.c_str(),
         entrypoint_assembly_name.c_str(),
@@ -125,10 +125,10 @@ int InitializeClrAndGetEntryPoint(
         entrypoint_delegate_type_name.c_str(),
         nullptr, entrypoint_fn)) != 0)
     {
-        logging::print<logging::E>("Failed to load module (err={})", result);
+        logging::E("Failed to load module (err={})", result);
         return result;
     }
-    logging::print<logging::I>("Done!");
+    logging::I("Done!");
 
     // =========================================================================== //
 
