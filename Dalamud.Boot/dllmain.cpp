@@ -14,9 +14,9 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam, HANDLE hMainThreadContinue) {
     
     logging::update_dll_load_status(true);
 
+    auto attemptFallbackLog = false;
     if (const auto logFilePath = utils::get_env<std::wstring>("DALAMUD_BOOT_LOGFILE"); logFilePath.empty()) {
-        if (!bootconfig::is_show_console() && !bootconfig::is_disable_fallback_console())
-            ConsoleSetup(L"Dalamud Boot - Fallback Console");
+        attemptFallbackLog = true;
         
         logging::I("No log file path given; not logging to file.");
     } else {
@@ -25,10 +25,35 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam, HANDLE hMainThreadContinue) {
             logging::I("Logging to file: {}", logFilePath);
             
         } catch (const std::exception& e) {
+            attemptFallbackLog = true;
+            
+            logging::E("Couldn't open log file: {}", logFilePath);
+            logging::E("Error: {} / {}", errno, e.what());
+        }
+    }
+
+    if (attemptFallbackLog) {
+        std::wstring logFilePath(PATHCCH_MAX_CCH + 1, L'\0');
+        logFilePath.resize(GetTempPathW(static_cast<DWORD>(logFilePath.size()), &logFilePath[0]));
+        if (logFilePath.empty()) {
+            logFilePath.resize(PATHCCH_MAX_CCH + 1);
+            logFilePath.resize(GetCurrentDirectoryW(static_cast<DWORD>(logFilePath.size()), &logFilePath[0]));
+        }
+        if (!logFilePath.empty() && logFilePath.back() != '/' && logFilePath.back() != '\\')
+            logFilePath += L"\\";
+        SYSTEMTIME st;
+        GetLocalTime(&st);
+        logFilePath += std::format(L"Dalamud.Boot.{:04}{:02}{:02}.{:02}{:02}{:02}.{:03}.{}.log", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds, GetCurrentProcessId());
+        
+        try {
+            logging::start_file_logging(logFilePath, !bootconfig::is_show_console());
+            logging::I("Logging to fallback log file: {}", logFilePath);
+            
+        } catch (const std::exception& e) {
             if (!bootconfig::is_show_console() && !bootconfig::is_disable_fallback_console())
                 ConsoleSetup(L"Dalamud Boot - Fallback Console");
             
-            logging::E("Couldn't open log file: {}", logFilePath);
+            logging::E("Couldn't open fallback log file: {}", logFilePath);
             logging::E("Error: {} / {}", errno, e.what());
         }
     }
