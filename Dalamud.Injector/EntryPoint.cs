@@ -56,11 +56,6 @@ namespace Dalamud.Injector
                 return;
             }
 
-            // Set boot defaults
-            SetEnvDefaultIfNotExist("DALAMUD_GAMEFIX_LIST", "prevent_devicechange_crashes,disable_game_openprocess_access_check,redirect_openprocess");
-            SetEnvDefaultIfNotExist("DALAMUD_DOTNET_OPENPROCESS_HOOKMODE", "0");
-            //SetEnvDefaultIfNotExist("DALAMUD_UNHOOK_DLLS", "kernel32.dll,ntdll.dll,user32.dll");
-
             DalamudStartInfo startInfo = null;
             if (args.Count == 1)
             {
@@ -105,15 +100,6 @@ namespace Dalamud.Injector
             else
             {
                 throw new CommandLineException($"\"{mainCommand}\" is not a valid command.");
-            }
-        }
-
-        private static void SetEnvDefaultIfNotExist(string name, string value)
-        {
-            var prevValue = Environment.GetEnvironmentVariable(name);
-            if (string.IsNullOrWhiteSpace(prevValue))
-            {
-                Environment.SetEnvironmentVariable(name, value);
             }
         }
 
@@ -263,8 +249,7 @@ namespace Dalamud.Injector
             int len;
             string key;
 
-            if (startInfo == null)
-                startInfo = new();
+            startInfo ??= new DalamudStartInfo();
 
             var workingDirectory = startInfo.WorkingDirectory;
             var configurationPath = startInfo.ConfigurationPath;
@@ -315,7 +300,7 @@ namespace Dalamud.Injector
                 clientLanguage = ClientLanguage.Japanese;
             else if (languageStr[0..(len = Math.Min(languageStr.Length, (key = "german").Length))] == key[0..len])
                 clientLanguage = ClientLanguage.German;
-            else if (languageStr[0..(len = Math.Min(languageStr.Length, (key = "deutsche").Length))] == key[0..len])
+            else if (languageStr[0..(len = Math.Min(languageStr.Length, (key = "deutsch").Length))] == key[0..len])
                 clientLanguage = ClientLanguage.German;
             else if (languageStr[0..(len = Math.Min(languageStr.Length, (key = "french").Length))] == key[0..len])
                 clientLanguage = ClientLanguage.French;
@@ -326,17 +311,21 @@ namespace Dalamud.Injector
             else
                 throw new CommandLineException($"\"{languageStr}\" is not a valid supported language.");
 
-            return new()
-            {
-                WorkingDirectory = workingDirectory,
-                ConfigurationPath = configurationPath,
-                PluginDirectory = pluginDirectory,
-                DefaultPluginDirectory = defaultPluginDirectory,
-                AssetDirectory = assetDirectory,
-                Language = clientLanguage,
-                GameVersion = null,
-                DelayInitializeMs = delayInitializeMs,
-            };
+            startInfo.WorkingDirectory = workingDirectory;
+            startInfo.ConfigurationPath = configurationPath;
+            startInfo.PluginDirectory = pluginDirectory;
+            startInfo.DefaultPluginDirectory = defaultPluginDirectory;
+            startInfo.AssetDirectory = assetDirectory;
+            startInfo.Language = clientLanguage;
+            startInfo.DelayInitializeMs = delayInitializeMs;
+            startInfo.GameVersion = null;
+
+            // Set boot defaults
+            startInfo.BootEnabledGameFixes = new List<string> { "prevent_devicechange_crashes", "disable_game_openprocess_access_check", "redirect_openprocess" };
+            startInfo.BootDotnetOpenProcessHookMode = 0;
+            //startInfo.BootUnhookDlls = new List<string>() { "kernel32.dll", "ntdll.dll", "user32.dll" };
+
+            return startInfo;
         }
 
         private static int ProcessHelpCommand(List<string> args, string? particularCommand = default)
@@ -689,16 +678,9 @@ namespace Dalamud.Injector
             var gameVerStr = File.ReadAllText(Path.Combine(ffxivDir, "ffxivgame.ver"));
             var gameVer = GameVersion.Parse(gameVerStr);
 
-            return new()
+            return new DalamudStartInfo(startInfo)
             {
-                WorkingDirectory = startInfo.WorkingDirectory,
-                ConfigurationPath = startInfo.ConfigurationPath,
-                PluginDirectory = startInfo.PluginDirectory,
-                DefaultPluginDirectory = startInfo.DefaultPluginDirectory,
-                AssetDirectory = startInfo.AssetDirectory,
-                Language = startInfo.Language,
                 GameVersion = gameVer,
-                DelayInitializeMs = startInfo.DelayInitializeMs,
             };
         }
 

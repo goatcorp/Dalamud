@@ -1,7 +1,5 @@
 #include "pch.h"
 
-#include <codecvt>
-
 #include "DalamudStartInfo.h"
 #include "logging.h"
 #include "utils.h"
@@ -12,8 +10,6 @@ HMODULE g_hModule;
 HINSTANCE g_hGameInstance = GetModuleHandleW(nullptr);
 
 DllExport DWORD WINAPI Initialize(LPVOID lpParam, HANDLE hMainThreadContinue) {
-    MessageBoxW(nullptr, L"", L"", MB_OK);
-
     g_startInfo.from_envvars();
     
     std::string jsonParseError;
