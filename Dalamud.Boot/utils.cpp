@@ -463,6 +463,17 @@ std::vector<std::wstring> utils::get_env_list(const wchar_t* pcszName) {
     return res;
 }
 
+template<>
+std::vector<std::string> utils::get_env_list(const wchar_t* pcszName) {
+    const auto src = utils::get_env<std::string>(pcszName);
+    auto res = utils::split(src, ",");
+    for (auto& s : res)
+        s = utils::trim(s);
+    if (res.size() == 1 && res[0].empty())
+        return {};
+    return res;
+}
+
 bool utils::is_running_on_linux() {
     if (get_env<bool>(L"XL_WINEONLINUX"))
         return true;

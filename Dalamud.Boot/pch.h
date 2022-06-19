@@ -53,6 +53,9 @@
 #include "../lib/CoreCLR/CoreCLR.h"
 #include "../lib/CoreCLR/boot.h"
 
+// https://github.com/nlohmann/json
+#include "../lib/nlohmann-json/json.hpp"
+
 #include "unicode.h"
 
 // Commonly used macros

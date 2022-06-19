@@ -2,7 +2,7 @@
 
 #include "xivfixes.h"
 
-#include "bootconfig.h"
+#include "DalamudStartInfo.h"
 #include "hooks.h"
 #include "logging.h"
 #include "utils.h"
@@ -16,8 +16,6 @@ static std::span<T> assume_nonempty_span(std::span<T> t, const char* descr) {
 void xivfixes::unhook_dll(bool bApply) {
     static const auto LogTag = "[xivfixes:unhook_dll]";
     static const auto LogTagW = L"[xivfixes:unhook_dll]";
-
-    const auto targetDllNames = bootconfig::gamefix_unhookdll_list();
 
     if (!bApply)
         return;
@@ -60,13 +58,7 @@ void xivfixes::unhook_dll(bool bApply) {
                 return;
             }
 
-            auto doRestore = false;
-            for (const auto& targetDllName : targetDllNames) {
-                if (0 == _wcsicmp(path.filename().wstring().c_str(), targetDllName.c_str())) {
-                    doRestore = true;
-                    break;
-                }
-            }
+            const auto doRestore = g_startInfo.BootUnhookDlls.contains(unicode::convert<std::string>(path.filename().u8string()));
 
             std::optional<utils::memory_tenderizer> tenderizer;
             for (size_t i = 0, instructionLength = 1, printed = 0; i < buf.size(); i += instructionLength) {
@@ -192,7 +184,7 @@ void xivfixes::prevent_devicechange_crashes(bool bApply) {
     static std::optional<hooks::wndproc_hook> s_hookWndProc;
 
     if (bApply) {
-        if (!bootconfig::gamefix_is_enabled(L"prevent_devicechange_crashes")) {
+        if (!g_startInfo.BootEnabledGameFixes.contains("prevent_devicechange_crashes")) {
             logging::I("{} Turned off via environment variable.", LogTag);
             return;
         }
@@ -304,7 +296,7 @@ void xivfixes::disable_game_openprocess_access_check(bool bApply) {
     static std::optional<hooks::import_hook<decltype(OpenProcess)>> s_hook;
 
     if (bApply) {
-        if (!bootconfig::gamefix_is_enabled(L"disable_game_openprocess_access_check")) {
+        if (!g_startInfo.BootEnabledGameFixes.contains("disable_game_openprocess_access_check")) {
             logging::I("{} Turned off via environment variable.", LogTag);
             return;
         }
@@ -345,7 +337,7 @@ void xivfixes::redirect_openprocess(bool bApply) {
     static std::set<DWORD> s_silenceSet;
 
     if (bApply) {
-        if (!bootconfig::gamefix_is_enabled(L"redirect_openprocess")) {
+        if (!g_startInfo.BootEnabledGameFixes.contains("redirect_openprocess")) {
             logging::I("{} Turned off via environment variable.", LogTag);
             return;
         }
@@ -354,7 +346,7 @@ void xivfixes::redirect_openprocess(bool bApply) {
             return;
         }
 
-        if (bootconfig::dotnet_openprocess_hook_mode() == bootconfig::ImportHooks) {
+        if (g_startInfo.BootDotnetOpenProcessHookMode == DalamudStartInfo::DotNetOpenProcessHookMode::ImportHooks) {
             auto hook = std::make_shared<hooks::global_import_hook<decltype(OpenProcess)>>("kernel32.dll!OpenProcess (global import, redirect_openprocess)", L"kernel32.dll", "OpenProcess");
             hook->set_detour([hook = hook.get()](DWORD dwDesiredAccess, BOOL bInheritHandle, DWORD dwProcessId)->HANDLE {
                 if (dwProcessId == GetCurrentProcessId()) {
