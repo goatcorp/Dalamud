@@ -106,7 +106,12 @@ namespace Dalamud
                 Service<ServiceContainer>.Set();
 
                 // Initialize the process information.
-                Service<SigScanner>.Set(new SigScanner(true));
+                var info = Service<DalamudStartInfo>.Get();
+                var cacheDir = new DirectoryInfo(Path.Combine(info.WorkingDirectory!, "cachedSigs"));
+                if (!cacheDir.Exists)
+                    cacheDir.Create();
+
+                Service<SigScanner>.Set(new SigScanner(true, new FileInfo(Path.Combine(cacheDir.FullName, $"{info.GameVersion}.json"))));
                 Service<HookManager>.Set();
 
                 // Signal the main game thread to continue
@@ -117,7 +122,7 @@ namespace Dalamud
                 // Initialize FFXIVClientStructs function resolver
                 using (Timings.Start("CS Resolver Init"))
                 {
-                    FFXIVClientStructs.Resolver.Initialize();
+                    FFXIVClientStructs.Resolver.InitializeParallel();
                     Log.Information("[T1] FFXIVClientStructs initialized!");
                 }
 
@@ -390,7 +395,10 @@ namespace Dalamud
                 Service<AntiDebug>.GetNullable()?.Dispose();
                 Service<DalamudAtkTweaks>.GetNullable()?.Dispose();
                 Service<HookManager>.GetNullable()?.Dispose();
-                Service<SigScanner>.GetNullable()?.Dispose();
+
+                var sigScanner = Service<SigScanner>.Get();
+                sigScanner.Save();
+                sigScanner.Dispose();
 
                 SerilogEventSink.Instance.LogLine -= SerilogOnLogLine;
 
