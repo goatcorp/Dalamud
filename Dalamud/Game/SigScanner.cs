@@ -308,7 +308,6 @@ namespace Dalamud.Game
         {
             if (this.textCache != null && this.textCache.TryGetValue(signature, out var address))
             {
-                Log.Information("Found signature {Signature} in cache: {Address}", signature, address);
                 return address;
             }
 
