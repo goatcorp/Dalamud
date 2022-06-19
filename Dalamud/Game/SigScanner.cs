@@ -25,7 +25,7 @@ namespace Dalamud.Game
         private IntPtr moduleCopyPtr;
         private long moduleCopyOffset;
 
-        private Dictionary<string, IntPtr>? textCache;
+        private Dictionary<string, long>? textCache;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SigScanner"/> class using the main module of the current process.
@@ -308,11 +308,10 @@ namespace Dalamud.Game
         {
             if (this.textCache != null && this.textCache.TryGetValue(signature, out var address))
             {
-                return address;
+                return new IntPtr(address + this.Module.BaseAddress.ToInt64());
             }
 
             var mBase = this.IsCopy ? this.moduleCopyPtr : this.TextSectionBase;
-
             var scanRet = Scan(mBase, this.TextSectionSize, signature);
 
             if (this.IsCopy)
@@ -323,7 +322,7 @@ namespace Dalamud.Game
             if (insnByte == 0xE8 || insnByte == 0xE9)
                 return ReadJmpCallSig(scanRet);
 
-            this.textCache?.Add(signature, scanRet);
+            this.textCache?.Add(signature, scanRet.ToInt64() - this.Module.BaseAddress.ToInt64());
 
             return scanRet;
         }
@@ -518,7 +517,7 @@ namespace Dalamud.Game
                 return;
             }
 
-            this.textCache = JsonConvert.DeserializeObject<Dictionary<string, IntPtr>>(File.ReadAllText(this.cacheFile.FullName)) ?? new Dictionary<string, IntPtr>();
+            this.textCache = JsonConvert.DeserializeObject<Dictionary<string, long>>(File.ReadAllText(this.cacheFile.FullName)) ?? new Dictionary<string, long>();
         }
     }
 }
