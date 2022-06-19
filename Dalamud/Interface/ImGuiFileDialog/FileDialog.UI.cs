@@ -163,7 +163,6 @@ namespace Dalamud.Interface.ImGuiFileDialog
                 {
                     ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
                     ImGui.InputText("##pathedit", ref this.pathInputBuffer, 255);
-                    ImGui.PopItemWidth();
                 }
                 else
                 {
