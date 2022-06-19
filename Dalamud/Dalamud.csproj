@@ -94,6 +94,13 @@
         <AdditionalFiles Include="..\stylecop.json" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Remove="licenses.txt" />
+      <Content Include="licenses.txt">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+    </ItemGroup>
+
     <Target Name="AddRuntimeDependenciesToContent" BeforeTargets="GetCopyToOutputDirectoryItems" DependsOnTargets="GenerateBuildDependencyFile;GenerateBuildRuntimeConfigurationFiles">
         <ItemGroup>
             <ContentWithTargetPath Include="$(ProjectDepsFilePath)" CopyToOutputDirectory="PreserveNewest" TargetPath="$(ProjectDepsFileName)" />

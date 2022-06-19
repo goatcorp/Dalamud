@@ -28,24 +28,30 @@ Version D{0}
 created by:
 
 goat
-Mino
-Meli
-attick
-Aida-Enna
-perchbird
-Wintermute
-fmauNeko
-Caraxi
-Adam
-nibs/Poliwrath
-karashiiro
-Pohky
 daemitus
-Aireil
-kalilistic
-MgAl2O4
+Soreepeong
+ff-meli
+attickdoor
+Caraxi
 ascclemens
-r00telement
+kalilistic
+0ceal0t
+lmcintyre
+pohky
+Aireil
+fitzchivalrik
+MgAl2O4
+NotAdam
+marimelon
+karashiiro
+pmgr
+Ottermandias
+aers
+Poliwrath
+Minizbot2021
+MalRD
+SheepGoMeh
+philpax
 
 
 
@@ -99,15 +105,31 @@ Franz
 aers
 
 
-We use these awesome C# libraries:
+We use these awesome libraries:
 
 Lumina by Adam
 FFXIVClientStructs by aers ({2})
 
 DotNetCorePlugins
-Copyright (c) Nate McMaster 
+Copyright (c) Nate McMaster
 Licensed under the Apache License, Version 2.0
-See License.txt for license information.
+
+json
+Copyright (c) 2013-2022 Niels Lohmann
+Licensed under the MIT License
+
+nmd by Nomade040
+Licensed under the Unlicense
+
+MinHook
+Copyright (C) 2009-2017 Tsuda Kageyu
+Licensed under the BSD 2-Clause License
+
+SRELL
+Copyright (c) 2012-2022, Nozomu Katoo
+
+Please see licenses.txt for more information.
+
 
 Thanks to everyone in the XIVLauncher Discord server
 
