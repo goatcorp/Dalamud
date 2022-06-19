@@ -1,5 +1,7 @@
 #include "pch.h"
 
+#include <codecvt>
+
 #include "DalamudStartInfo.h"
 #include "logging.h"
 #include "utils.h"
@@ -26,8 +28,10 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam, HANDLE hMainThreadContinue) {
     
     logging::update_dll_load_status(true);
 
+    const auto logFilePath = unicode::convert<std::wstring>(g_startInfo.BootLogPath);
+
     auto attemptFallbackLog = false;
-    if (const auto logFilePath = utils::get_env<std::wstring>("DALAMUD_BOOT_LOGFILE"); logFilePath.empty()) {
+    if (logFilePath.empty()) {
         attemptFallbackLog = true;
         
         logging::I("No log file path given; not logging to file.");

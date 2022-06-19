@@ -79,6 +79,7 @@ void from_json(const nlohmann::json& json, DalamudStartInfo& config) {
     config.GameVersion = json.value("GameVersion", config.GameVersion);
     config.DelayInitializeMs = json.value("DelayInitializeMs", config.DelayInitializeMs);
 
+    config.BootLogPath = json.value("BootLogPath", config.BootLogPath);
     config.BootShowConsole = json.value("BootShowConsole", config.BootShowConsole);
     config.BootDisableFallbackConsole = json.value("BootDisableFallbackConsole", config.BootDisableFallbackConsole);
     config.BootWaitMessageBox = json.value("BootWaitMessageBox", config.BootWaitMessageBox);
@@ -99,6 +100,7 @@ void from_json(const nlohmann::json& json, DalamudStartInfo& config) {
 }
 
 void DalamudStartInfo::from_envvars() {
+    BootLogPath = utils::get_env<std::string>(L"DALAMUD_BOOT_LOGFILE");
     BootShowConsole = utils::get_env<bool>(L"DALAMUD_SHOW_CONSOLE");
     BootDisableFallbackConsole = utils::get_env<bool>(L"DALAMUD_DISABLE_FALLBACK_CONSOLE");
     BootWaitMessageBox = static_cast<WaitMessageboxFlags>(utils::get_env<int>(L"DALAMUD_WAIT_MESSAGEBOX"));

@@ -31,6 +31,7 @@ struct DalamudStartInfo {
     std::string GameVersion;
     int DelayInitializeMs = 0;
 
+    std::string BootLogPath;
     bool BootShowConsole = false;
     bool BootDisableFallbackConsole = false;
     WaitMessageboxFlags BootWaitMessageBox = WaitMessageboxFlags::None;
