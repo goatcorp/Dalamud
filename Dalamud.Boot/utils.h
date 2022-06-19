@@ -243,6 +243,9 @@ namespace utils {
     template<>
     std::vector<std::wstring> get_env_list(const wchar_t* pcwzName);
 
+    template<>
+    std::vector<std::string> get_env_list(const wchar_t* pcwzName);
+
     template<typename T>
     std::vector<T> get_env_list(const char* pcszName) {
         return get_env_list<T>(unicode::convert<std::wstring>(pcszName).c_str());

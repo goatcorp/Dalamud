@@ -1,7 +1,8 @@
 #include "pch.h"
 
-#include "bootconfig.h"
+#include "DalamudStartInfo.h"
 #include "logging.h"
+#include "utils.h"
 #include "veh.h"
 #include "xivfixes.h"
 
@@ -9,7 +10,18 @@ HMODULE g_hModule;
 HINSTANCE g_hGameInstance = GetModuleHandleW(nullptr);
 
 DllExport DWORD WINAPI Initialize(LPVOID lpParam, HANDLE hMainThreadContinue) {
-    if (bootconfig::is_show_console())
+    MessageBoxW(nullptr, L"", L"", MB_OK);
+
+    g_startInfo.from_envvars();
+    
+    std::string jsonParseError;
+    try {
+        from_json(nlohmann::json::parse(std::string_view(static_cast<char*>(lpParam))), g_startInfo);
+    } catch (const std::exception& e) {
+        jsonParseError = e.what();
+    }
+
+    if (g_startInfo.BootShowConsole)
         ConsoleSetup(L"Dalamud Boot");
     
     logging::update_dll_load_status(true);
@@ -21,7 +33,7 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam, HANDLE hMainThreadContinue) {
         logging::I("No log file path given; not logging to file.");
     } else {
         try {
-            logging::start_file_logging(logFilePath, !bootconfig::is_show_console());
+            logging::start_file_logging(logFilePath, !g_startInfo.BootShowConsole);
             logging::I("Logging to file: {}", logFilePath);
             
         } catch (const std::exception& e) {
@@ -31,6 +43,9 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam, HANDLE hMainThreadContinue) {
             logging::E("Error: {} / {}", errno, e.what());
         }
     }
+
+    if (!jsonParseError.empty())
+        logging::E("Couldn't parse input JSON: {}", jsonParseError);
 
     if (attemptFallbackLog) {
         std::wstring logFilePath(PATHCCH_MAX_CCH + 1, L'\0');
@@ -46,11 +61,11 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam, HANDLE hMainThreadContinue) {
         logFilePath += std::format(L"Dalamud.Boot.{:04}{:02}{:02}.{:02}{:02}{:02}.{:03}.{}.log", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds, GetCurrentProcessId());
         
         try {
-            logging::start_file_logging(logFilePath, !bootconfig::is_show_console());
+            logging::start_file_logging(logFilePath, !g_startInfo.BootShowConsole);
             logging::I("Logging to fallback log file: {}", logFilePath);
             
         } catch (const std::exception& e) {
-            if (!bootconfig::is_show_console() && !bootconfig::is_disable_fallback_console())
+            if (!g_startInfo.BootShowConsole && !g_startInfo.BootDisableFallbackConsole)
                 ConsoleSetup(L"Dalamud Boot - Fallback Console");
             
             logging::E("Couldn't open fallback log file: {}", logFilePath);
@@ -72,7 +87,7 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam, HANDLE hMainThreadContinue) {
     logging::I("Dalamud.Boot Injectable, (c) 2021 XIVLauncher Contributors");
     logging::I("Built at: " __DATE__ "@" __TIME__);
 
-    if (bootconfig::wait_messagebox() & bootconfig::WaitMessageboxFlags::BeforeInitialize)
+    if (static_cast<int>(g_startInfo.BootWaitMessageBox) & static_cast<int>(DalamudStartInfo::WaitMessageboxFlags::BeforeInitialize))
         MessageBoxW(nullptr, L"Press OK to continue", L"Dalamud Boot", MB_OK);
 
     if (minHookLoaded) {
@@ -83,7 +98,7 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam, HANDLE hMainThreadContinue) {
         logging::W("Skipping fixes, as MinHook has failed to load.");
     }
 
-    if (bootconfig::is_wait_debugger()) {
+    if (g_startInfo.BootWaitDebugger) {
         logging::I("Waiting for debugger to attach...");
         while (!IsDebuggerPresent())
             Sleep(100);
@@ -119,8 +134,8 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam, HANDLE hMainThreadContinue) {
     logging::I("Initializing VEH...");
     if (utils::is_running_on_linux()) {
         logging::I("=> VEH was disabled, running on linux");
-    } else if (bootconfig::is_veh_enabled()) {
-        if (veh::add_handler(bootconfig::is_veh_full()))
+    } else if (g_startInfo.BootVehEnabled) {
+        if (veh::add_handler(g_startInfo.BootVehFull))
             logging::I("=> Done!");
         else
             logging::I("=> Failed!");
@@ -130,7 +145,7 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam, HANDLE hMainThreadContinue) {
 
     // ============================== Dalamud ==================================== //
 
-    if (bootconfig::wait_messagebox() & bootconfig::WaitMessageboxFlags::BeforeDalamudEntrypoint)
+    if (static_cast<int>(g_startInfo.BootWaitMessageBox) & static_cast<int>(DalamudStartInfo::WaitMessageboxFlags::BeforeDalamudEntrypoint))
         MessageBoxW(nullptr, L"Press OK to continue", L"Dalamud Boot", MB_OK);
 
     if (hMainThreadContinue) {
