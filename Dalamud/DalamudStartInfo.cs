@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+
 using Dalamud.Game;
 using Newtonsoft.Json;
 
@@ -33,6 +34,7 @@ namespace Dalamud
             this.Language = other.Language;
             this.GameVersion = other.GameVersion;
             this.DelayInitializeMs = other.DelayInitializeMs;
+            this.BootLogPath = other.BootLogPath;
             this.BootShowConsole = other.BootShowConsole;
             this.BootDisableFallbackConsole = other.BootDisableFallbackConsole;
             this.BootWaitMessageBox = other.BootWaitMessageBox;
@@ -84,6 +86,11 @@ namespace Dalamud
         /// Gets or sets a value that specifies how much to wait before a new Dalamud session.
         /// </summary>
         public int DelayInitializeMs { get; set; } = 0;
+
+        /// <summary>
+        /// Gets or sets the path the boot log file is supposed to be written to.
+        /// </summary>
+        public string BootLogPath { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether a Boot console should be shown.

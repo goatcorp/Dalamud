@@ -187,8 +187,6 @@ namespace Dalamud.Injector
 
             var logPath = GetLogPath("dalamud.injector");
 
-            Environment.SetEnvironmentVariable("DALAMUD_BOOT_LOGFILE", GetLogPath("dalamud.boot"));
-
             CullLogFile(logPath, 1 * 1024 * 1024);
 
             Log.Logger = new LoggerConfiguration()
@@ -321,9 +319,10 @@ namespace Dalamud.Injector
             startInfo.GameVersion = null;
 
             // Set boot defaults
+            startInfo.BootLogPath = GetLogPath("dalamud.boot");
             startInfo.BootEnabledGameFixes = new List<string> { "prevent_devicechange_crashes", "disable_game_openprocess_access_check", "redirect_openprocess" };
             startInfo.BootDotnetOpenProcessHookMode = 0;
-            //startInfo.BootUnhookDlls = new List<string>() { "kernel32.dll", "ntdll.dll", "user32.dll" };
+            // startInfo.BootUnhookDlls = new List<string>() { "kernel32.dll", "ntdll.dll", "user32.dll" };
 
             return startInfo;
         }
