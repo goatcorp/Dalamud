@@ -229,7 +229,7 @@ namespace Dalamud.Interface.ImGuiFileDialog
             var result = this.fileNameBuffer;
 
             // a collection like {.cpp, .h}, so can't decide on an extension
-            if (this.selectedFilter.CollectionFilters != null && this.selectedFilter.CollectionFilters.Count > 0)
+            if (this.selectedFilter.CollectionFilters is { Count: > 0 })
             {
                 return result;
             }
@@ -240,7 +240,7 @@ namespace Dalamud.Interface.ImGuiFileDialog
                 var lastPoint = result.LastIndexOf('.');
                 if (lastPoint != -1)
                 {
-                    result = result.Substring(0, lastPoint);
+                    result = result[..lastPoint];
                 }
 
                 result += this.selectedFilter.Filter;
@@ -275,7 +275,7 @@ namespace Dalamud.Interface.ImGuiFileDialog
             this.currentPath = dir.FullName;
             if (this.currentPath[^1] == Path.DirectorySeparatorChar)
             { // handle selecting a drive, like C: -> C:\
-                this.currentPath = this.currentPath[0..^1];
+                this.currentPath = this.currentPath[..^1];
             }
 
             this.pathInputBuffer = this.currentPath;
