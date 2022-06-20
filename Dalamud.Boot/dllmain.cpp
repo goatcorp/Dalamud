@@ -88,7 +88,7 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam, HANDLE hMainThreadContinue) {
     logging::I("Built at: " __DATE__ "@" __TIME__);
 
     if (static_cast<int>(g_startInfo.BootWaitMessageBox) & static_cast<int>(DalamudStartInfo::WaitMessageboxFlags::BeforeInitialize))
-        MessageBoxW(nullptr, L"Press OK to continue", L"Dalamud Boot", MB_OK);
+        MessageBoxW(nullptr, L"Press OK to continue (BeforeInitialize)", L"Dalamud Boot", MB_OK);
 
     if (minHookLoaded) {
         logging::I("Applying fixes...");
@@ -146,7 +146,7 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam, HANDLE hMainThreadContinue) {
     // ============================== Dalamud ==================================== //
 
     if (static_cast<int>(g_startInfo.BootWaitMessageBox) & static_cast<int>(DalamudStartInfo::WaitMessageboxFlags::BeforeDalamudEntrypoint))
-        MessageBoxW(nullptr, L"Press OK to continue", L"Dalamud Boot", MB_OK);
+        MessageBoxW(nullptr, L"Press OK to continue (BeforeDalamudEntrypoint)", L"Dalamud Boot", MB_OK);
 
     if (hMainThreadContinue) {
         // Let the game initialize.
