@@ -604,8 +604,12 @@ namespace Dalamud.Injector
                         Log.Error("[HOOKS] RewriteRemoteEntryPointW failed");
                         throw new Exception("RewriteRemoteEntryPointW failed");
                     }
+
+                    Log.Verbose("RewriteRemoteEntryPointW called!");
                 }
             });
+
+            Log.Verbose("Game process started with PID {0}", process.Id);
 
             if (!withoutDalamud && mode == "inject")
             {
