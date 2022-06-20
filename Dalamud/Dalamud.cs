@@ -65,8 +65,6 @@ namespace Dalamud
         /// <param name="mainThreadContinueEvent">Event used to signal the main thread to continue.</param>
         public Dalamud(DalamudStartInfo info, LoggingLevelSwitch loggingLevelSwitch, ManualResetEvent finishSignal, DalamudConfiguration configuration, IntPtr mainThreadContinueEvent)
         {
-            this.ApplyProcessPatch();
-
             Service<Dalamud>.Set(this);
             Service<DalamudStartInfo>.Set(info);
             Service<DalamudConfiguration>.Set(configuration);
@@ -111,18 +109,14 @@ namespace Dalamud
                 if (!cacheDir.Exists)
                     cacheDir.Create();
 
-                Service<SigScanner>.Set(new SigScanner(true, new FileInfo(Path.Combine(cacheDir.FullName, $"{info.GameVersion}.json"))));
+                Service<SigScanner>.Set(
+                    new SigScanner(true, new FileInfo(Path.Combine(cacheDir.FullName, $"{info.GameVersion}.json"))));
                 Service<HookManager>.Set();
-
-                // Signal the main game thread to continue
-                // TODO: This is done in rewrite_entrypoint.cpp again to avoid a race condition. Should be fixed!
-                // NativeFunctions.SetEvent(this.mainThreadContinueEvent);
-                // Log.Information("[T1] Game thread continued!");
 
                 // Initialize FFXIVClientStructs function resolver
                 using (Timings.Start("CS Resolver Init"))
                 {
-                    FFXIVClientStructs.Resolver.InitializeParallel();
+                    FFXIVClientStructs.Resolver.InitializeParallel(new FileInfo(Path.Combine(cacheDir.FullName, $"{info.GameVersion}_cs.json")));
                     Log.Information("[T1] FFXIVClientStructs initialized!");
                 }
 
@@ -143,8 +137,17 @@ namespace Dalamud
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Tier 1 load failed.");
+                Log.Error(ex, "Tier 1 load failed");
                 this.Unload();
+            }
+            finally
+            {
+                // Signal the main game thread to continue
+                // TODO: This is done in rewrite_entrypoint.cpp again to avoid a race condition. Should be fixed!
+                // NativeFunctions.SetEvent(this.mainThreadContinueEvent);
+
+                // Timings.Event("Game kickoff");
+                // Log.Information("[T1] Game thread continued!");
             }
         }
 
@@ -431,36 +434,6 @@ namespace Dalamud
                 return;
 
             Troubleshooting.LogException(e.Exception, e.Line);
-        }
-
-        /// <summary>
-        /// Patch method for the class Process.Handle. This patch facilitates fixing Reloaded so that it
-        /// uses pseudo-handles to access memory, to prevent permission errors.
-        /// It should never be called manually.
-        /// </summary>
-        /// <param name="orig">A delegate that acts as the original method.</param>
-        /// <param name="self">The equivalent of `this`.</param>
-        /// <returns>A pseudo-handle for the current process, or the result from the original method.</returns>
-        private static IntPtr ProcessHandlePatch(Func<Process, IntPtr> orig, Process self)
-        {
-            var result = orig(self);
-
-            if (self.Id == Environment.ProcessId)
-            {
-                result = (IntPtr)0xFFFFFFFF;
-            }
-
-            // Log.Verbose($"Process.Handle // {self.ProcessName} // {result:X}");
-            return result;
-        }
-
-        private void ApplyProcessPatch()
-        {
-            var targetType = typeof(Process);
-
-            var handleTarget = targetType.GetProperty(nameof(Process.Handle)).GetGetMethod();
-            var handlePatch = typeof(Dalamud).GetMethod(nameof(Dalamud.ProcessHandlePatch), BindingFlags.NonPublic | BindingFlags.Static);
-            this.processMonoHook = new MonoMod.RuntimeDetour.Hook(handleTarget, handlePatch);
         }
     }
 }
