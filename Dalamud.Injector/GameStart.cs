@@ -155,7 +155,7 @@ namespace Dalamud.Injector
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "[NativeAclFix] Uncaught error during initialization, trying to kill process");
+                Log.Error(ex, "[GameStart] Uncaught error during initialization, trying to kill process");
 
                 try
                 {
@@ -163,7 +163,7 @@ namespace Dalamud.Injector
                 }
                 catch (Exception killEx)
                 {
-                    Log.Error(killEx, "[NativeAclFix] Could not kill process");
+                    Log.Error(killEx, "[GameStart] Could not kill process");
                 }
 
                 throw;

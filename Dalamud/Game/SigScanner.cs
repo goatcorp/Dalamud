@@ -320,7 +320,7 @@ namespace Dalamud.Game
             var insnByte = Marshal.ReadByte(scanRet);
 
             if (insnByte == 0xE8 || insnByte == 0xE9)
-                return ReadJmpCallSig(scanRet);
+                scanRet = ReadJmpCallSig(scanRet);
 
             this.textCache?.Add(signature, scanRet.ToInt64() - this.Module.BaseAddress.ToInt64());
 
