@@ -153,7 +153,8 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam, HANDLE hMainThreadContinue) {
         SetEvent(hMainThreadContinue);
     }
 
-    utils::wait_for_game_window();
+    // We don't need to do this anymore, Dalamud now loads without needing the window to be there. Speed!
+    // utils::wait_for_game_window();
 
     logging::I("Initializing Dalamud...");
     entrypoint_fn(lpParam, hMainThreadContinue);
