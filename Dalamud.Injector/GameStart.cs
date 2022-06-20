@@ -12,9 +12,9 @@ using Serilog;
 namespace Dalamud.Injector
 {
     /// <summary>
-    /// Class responsible for stripping ACL protections from processes.
+    /// Class responsible for starting the game and stripping ACL protections from processes.
     /// </summary>
-    public static class NativeAclFix
+    public static class GameStart
     {
         /// <summary>
         /// Start a process without ACL protections.

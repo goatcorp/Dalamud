@@ -450,7 +450,7 @@ namespace Dalamud.Injector
             {
                 try
                 {
-                    NativeAclFix.ClaimSeDebug();
+                    GameStart.ClaimSeDebug();
                     Log.Information("SeDebugPrivilege claimed.");
                 }
                 catch (Win32Exception e2)
@@ -593,7 +593,7 @@ namespace Dalamud.Injector
             }
 
             var gameArgumentString = string.Join(" ", gameArguments.Select(x => EncodeParameterArgument(x)));
-            var process = NativeAclFix.LaunchGame(Path.GetDirectoryName(gamePath), gamePath, gameArgumentString, noFixAcl, (Process p) =>
+            var process = GameStart.LaunchGame(Path.GetDirectoryName(gamePath), gamePath, gameArgumentString, noFixAcl, (Process p) =>
             {
                 if (!withoutDalamud && mode == "entrypoint")
                 {
@@ -696,7 +696,7 @@ namespace Dalamud.Injector
             {
                 try
                 {
-                    NativeAclFix.CopyAclFromSelfToTargetProcess(process.SafeHandle.DangerousGetHandle());
+                    GameStart.CopyAclFromSelfToTargetProcess(process.SafeHandle.DangerousGetHandle());
                 }
                 catch (Win32Exception e1)
                 {
