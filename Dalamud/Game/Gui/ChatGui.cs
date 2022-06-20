@@ -38,12 +38,10 @@ namespace Dalamud.Game.Gui
         /// Initializes a new instance of the <see cref="ChatGui"/> class.
         /// </summary>
         /// <param name="baseAddress">The base address of the ChatManager.</param>
-        internal ChatGui(IntPtr baseAddress)
+        internal ChatGui()
         {
-            this.address = new ChatGuiAddressResolver(baseAddress);
+            this.address = new ChatGuiAddressResolver();
             this.address.Setup();
-
-            Log.Verbose($"Chat manager address 0x{this.address.BaseAddress.ToInt64():X}");
 
             this.printMessageHook = new Hook<PrintMessageDelegate>(this.address.PrintMessage, this.HandlePrintMessageDetour);
             this.populateItemLinkHook = new Hook<PopulateItemLinkDelegate>(this.address.PopulateItemLinkObject, this.HandlePopulateItemLinkDetour);

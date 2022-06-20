@@ -324,6 +324,7 @@ namespace Dalamud.Injector
             startInfo.BootLogPath = GetLogPath("dalamud.boot");
             startInfo.BootEnabledGameFixes = new List<string> { "prevent_devicechange_crashes", "disable_game_openprocess_access_check", "redirect_openprocess" };
             startInfo.BootDotnetOpenProcessHookMode = 0;
+            // startInfo.BootWaitMessageBox = 2;
             // startInfo.BootUnhookDlls = new List<string>() { "kernel32.dll", "ntdll.dll", "user32.dll" };
 
             return startInfo;
