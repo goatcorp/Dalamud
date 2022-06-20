@@ -112,7 +112,7 @@ namespace Dalamud
         private static void RunThread(DalamudStartInfo info, IntPtr mainThreadContinueEvent)
         {
             // Setup logger
-            var levelSwitch = InitLogging(info.WorkingDirectory);
+            var levelSwitch = InitLogging(info.WorkingDirectory, info.BootShowConsole);
 
             // Load configuration first to get some early persistent state, like log level
             var configuration = DalamudConfiguration.Load(info.ConfigurationPath);
@@ -193,7 +193,7 @@ namespace Dalamud
             }
         }
 
-        private static LoggingLevelSwitch InitLogging(string baseDirectory)
+        private static LoggingLevelSwitch InitLogging(string baseDirectory, bool logConsole)
         {
 #if DEBUG
             var logPath = Path.Combine(baseDirectory, "dalamud.log");
@@ -207,11 +207,15 @@ namespace Dalamud
             CullLogFile(oldPath, null, 10 * 1024 * 1024);
 
             var levelSwitch = new LoggingLevelSwitch(LogEventLevel.Verbose);
-            Log.Logger = new LoggerConfiguration()
-                .WriteTo.Async(a => a.File(logPath, fileSizeLimitBytes: null, buffered: false, flushToDiskInterval: TimeSpan.FromSeconds(1)))
-                .WriteTo.Sink(SerilogEventSink.Instance)
-                .MinimumLevel.ControlledBy(levelSwitch)
-                .CreateLogger();
+            var config = new LoggerConfiguration()
+                         .WriteTo.Async(a => a.File(logPath, fileSizeLimitBytes: null, buffered: false, flushToDiskInterval: TimeSpan.FromSeconds(1)))
+                         .WriteTo.Sink(SerilogEventSink.Instance)
+                         .MinimumLevel.ControlledBy(levelSwitch);
+
+            if (logConsole)
+                config = config.WriteTo.Console();
+
+            Log.Logger = config.CreateLogger();
 
             return levelSwitch;
         }

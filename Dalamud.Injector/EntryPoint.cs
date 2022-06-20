@@ -83,6 +83,7 @@ namespace Dalamud.Injector
             }
 
             startInfo = ExtractAndInitializeStartInfoFromArguments(startInfo, args);
+            args.Remove("--console"); // Remove "console" flag
 
             var mainCommand = args[1].ToLowerInvariant();
             if (mainCommand.Length > 0 && mainCommand.Length <= 6 && "inject"[..mainCommand.Length] == mainCommand)
@@ -319,6 +320,7 @@ namespace Dalamud.Injector
             startInfo.GameVersion = null;
 
             // Set boot defaults
+            startInfo.BootShowConsole = args.Contains("--console");
             startInfo.BootLogPath = GetLogPath("dalamud.boot");
             startInfo.BootEnabledGameFixes = new List<string> { "prevent_devicechange_crashes", "disable_game_openprocess_access_check", "redirect_openprocess" };
             startInfo.BootDotnetOpenProcessHookMode = 0;
@@ -356,7 +358,8 @@ namespace Dalamud.Injector
             Console.WriteLine("                               [--dalamud-asset-directory=path] [--dalamud-delay-initialize=0(ms)]");
             Console.WriteLine("                               [--dalamud-client-language=0-3|j(apanese)|e(nglish)|d|g(erman)|f(rench)]");
 
-            Console.WriteLine("Verbose logging: [-v]");
+            Console.WriteLine("Verbose logging:\t[-v]");
+            Console.WriteLine("Show Console:\t[--console]");
 
             return 0;
         }
