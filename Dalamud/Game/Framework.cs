@@ -36,8 +36,8 @@ namespace Dalamud.Game
         private bool tierInitError = false;
 
         private Hook<OnUpdateDetour> updateHook;
-        private Hook<OnDestroyDetour> destroyHook;
-        private Hook<OnRealDestroyDelegate> realDestroyHook;
+        private Hook<OnDestroyDetour> freeHook;
+        private Hook<OnRealDestroyDelegate> destroyHook;
 
         private Thread? frameworkUpdateThread;
 
@@ -50,8 +50,8 @@ namespace Dalamud.Game
             this.Address.Setup();
 
             this.updateHook = new Hook<OnUpdateDetour>(this.Address.TickAddress, this.HandleFrameworkUpdate);
-            this.destroyHook = new Hook<OnDestroyDetour>(this.Address.FreeAddress, this.HandleFrameworkDestroy);
-            this.realDestroyHook = new Hook<OnRealDestroyDelegate>(this.Address.DestroyAddress, this.HandleRealDestroy);
+            this.freeHook = new Hook<OnDestroyDetour>(this.Address.FreeAddress, this.HandleFrameworkFree);
+            this.destroyHook = new Hook<OnRealDestroyDelegate>(this.Address.DestroyAddress, this.HandleFrameworkDestroy);
         }
 
         /// <summary>
@@ -133,8 +133,8 @@ namespace Dalamud.Game
             Service<GameNetwork>.Get().Enable();
 
             this.updateHook.Enable();
+            this.freeHook.Enable();
             this.destroyHook.Enable();
-            this.realDestroyHook.Enable();
         }
 
         /// <summary>
@@ -224,13 +224,13 @@ namespace Dalamud.Game
             Service<GameNetwork>.GetNullable()?.ExplicitDispose();
 
             this.updateHook?.Disable();
+            this.freeHook?.Disable();
             this.destroyHook?.Disable();
-            this.realDestroyHook?.Disable();
             Thread.Sleep(500);
 
             this.updateHook?.Dispose();
+            this.freeHook?.Dispose();
             this.destroyHook?.Dispose();
-            this.realDestroyHook?.Dispose();
 
             this.updateStopwatch.Reset();
             statsStopwatch.Reset();
@@ -346,7 +346,7 @@ namespace Dalamud.Game
             return this.updateHook.Original(framework);
         }
 
-        private bool HandleRealDestroy(IntPtr framework)
+        private bool HandleFrameworkDestroy(IntPtr framework)
         {
             if (this.DispatchUpdateEvents)
             {
@@ -360,15 +360,15 @@ namespace Dalamud.Game
 
             this.DispatchUpdateEvents = false;
 
-            return this.realDestroyHook.Original(framework);
+            return this.destroyHook.Original(framework);
         }
 
-        private IntPtr HandleFrameworkDestroy()
+        private IntPtr HandleFrameworkFree()
         {
             Log.Information("Framework::Free!");
 
             // Store the pointer to the original trampoline location
-            var originalPtr = Marshal.GetFunctionPointerForDelegate(this.destroyHook.Original);
+            var originalPtr = Marshal.GetFunctionPointerForDelegate(this.freeHook.Original);
 
             var dalamud = Service<Dalamud>.Get();
             dalamud.Unload();
