@@ -9,6 +9,7 @@ using Dalamud.Interface.Internal;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Utility;
+using Dalamud.Utility.Timing;
 using ImGuiScene;
 using JetBrains.Annotations;
 using Lumina;
@@ -298,24 +299,31 @@ namespace Dalamud.Data
 
                 Log.Verbose("Loaded {0} ClientOpCodes.", clientOpCodeDict.Count);
 
-                var luminaOptions = new LuminaOptions
+                using (Timings.Start("Lumina Init"))
                 {
-                    CacheFileResources = true,
+                    var luminaOptions = new LuminaOptions
+                    {
+                        CacheFileResources = true,
 #if DEBUG
-                    PanicOnSheetChecksumMismatch = true,
+                        PanicOnSheetChecksumMismatch = true,
 #else
-                    PanicOnSheetChecksumMismatch = false,
+                        PanicOnSheetChecksumMismatch = false,
 #endif
-                    DefaultExcelLanguage = this.Language.ToLumina(),
-                };
+                        DefaultExcelLanguage = this.Language.ToLumina(),
+                    };
 
-                var processModule = Process.GetCurrentProcess().MainModule;
-                if (processModule != null)
-                {
-                    this.GameData = new GameData(Path.Combine(Path.GetDirectoryName(processModule.FileName), "sqpack"), luminaOptions);
+                    var processModule = Process.GetCurrentProcess().MainModule;
+                    if (processModule != null)
+                    {
+                        this.GameData = new GameData(Path.Combine(Path.GetDirectoryName(processModule.FileName), "sqpack"), luminaOptions);
+                    }
+                    else
+                    {
+                        throw new Exception("Could not main module.");
+                    }
+
+                    Log.Information("Lumina is ready: {0}", this.GameData.DataPath);
                 }
-
-                Log.Information("Lumina is ready: {0}", this.GameData.DataPath);
 
                 this.IsDataReady = true;
 

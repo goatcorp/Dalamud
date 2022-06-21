@@ -185,21 +185,27 @@ namespace Dalamud
                 Service<NetworkHandlers>.Set();
                 Log.Information("[T2] NH OK!");
 
-                try
+                using (Timings.Start("DM Init"))
                 {
-                    Service<DataManager>.Set().Initialize(this.AssetDirectory.FullName);
-                }
-                catch (Exception e)
-                {
-                    Log.Error(e, "Could not initialize DataManager.");
-                    this.Unload();
-                    return false;
+                    try
+                    {
+                        Service<DataManager>.Set().Initialize(this.AssetDirectory.FullName);
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Error(e, "Could not initialize DataManager");
+                        this.Unload();
+                        return false;
+                    }
                 }
 
                 Log.Information("[T2] Data OK!");
 
-                var clientState = Service<ClientState>.Set();
-                Log.Information("[T2] CS OK!");
+                using (Timings.Start("CS Init"))
+                {
+                    Service<ClientState>.Set();
+                    Log.Information("[T2] CS OK!");
+                }
 
                 var localization = Service<Localization>.Set(new Localization(Path.Combine(this.AssetDirectory.FullName, "UIRes", "loc", "dalamud"), "dalamud_"));
                 if (!string.IsNullOrEmpty(configuration.LanguageOverride))
@@ -214,14 +220,23 @@ namespace Dalamud
                 Log.Information("[T2] LOC OK!");
 
                 // This is enabled in ImGuiScene setup
-                Service<DalamudIME>.Set();
-                Log.Information("[T2] IME OK!");
+                using (Timings.Start("IME Init"))
+                {
+                    Service<DalamudIME>.Set();
+                    Log.Information("[T2] IME OK!");
+                }
 
-                Service<InterfaceManager>.Set().Enable();
-                Log.Information("[T2] IM OK!");
+                using (Timings.Start("IM Enable"))
+                {
+                    Service<InterfaceManager>.Set().Enable();
+                    Log.Information("[T2] IM OK!");
+                }
 
-                Service<GameFontManager>.Set();
-                Log.Information("[T2] GFM OK!");
+                using (Timings.Start("GFM Init"))
+                {
+                    Service<GameFontManager>.Set();
+                    Log.Information("[T2] GFM OK!");
+                }
 
 #pragma warning disable CS0618 // Type or member is obsolete
                 Service<SeStringManager>.Set();
@@ -229,27 +244,30 @@ namespace Dalamud
 
                 Log.Information("[T2] SeString OK!");
 
-                // Initialize managers. Basically handlers for the logic
-                Service<CommandManager>.Set();
-
-                Service<DalamudCommands>.Set().SetupCommands();
-
-                Log.Information("[T2] CM OK!");
+                using (Timings.Start("CM Init"))
+                {
+                    Service<CommandManager>.Set();
+                    Service<DalamudCommands>.Set().SetupCommands();
+                    Log.Information("[T2] CM OK!");
+                }
 
                 Service<ChatHandlers>.Set();
-
                 Log.Information("[T2] CH OK!");
 
-                clientState.Enable();
-                Log.Information("[T2] CS ENABLE!");
+                using (Timings.Start("CS Enable"))
+                {
+                    Service<ClientState>.Get().Enable();
+                    Log.Information("[T2] CS ENABLE!");
+                }
 
                 Service<DalamudAtkTweaks>.Set().Enable();
+                Log.Information("[T2] ATKTWEAKS ENABLE!");
 
                 Log.Information("[T2] Load complete!");
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Tier 2 load failed.");
+                Log.Error(ex, "Tier 2 load failed");
                 this.Unload();
                 return false;
             }
@@ -308,17 +326,17 @@ namespace Dalamud
                 }
                 catch (Exception ex)
                 {
-                    Log.Error(ex, "Plugin load failed.");
+                    Log.Error(ex, "Plugin load failed");
                 }
 
                 Troubleshooting.LogTroubleshooting();
 
-                Log.Information("Dalamud is ready.");
+                Log.Information("Dalamud is ready");
                 Timings.Event("Dalamud ready");
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Tier 3 load failed.");
+                Log.Error(ex, "Tier 3 load failed");
                 this.Unload();
 
                 return false;
