@@ -87,7 +87,7 @@ void from_json(const nlohmann::json& json, DalamudStartInfo& config) {
     config.BootVehEnabled = json.value("BootVehEnabled", config.BootVehEnabled);
     config.BootVehFull = json.value("BootVehFull", config.BootVehFull);
     config.BootDotnetOpenProcessHookMode = json.value("BootDotnetOpenProcessHookMode", config.BootDotnetOpenProcessHookMode);
-    if (const auto it = json.find("EnabledGameFixes"); it != json.end() && it->is_array()) {
+    if (const auto it = json.find("BootEnabledGameFixes"); it != json.end() && it->is_array()) {
         config.BootEnabledGameFixes.clear();
         for (const auto& val : *it)
             config.BootEnabledGameFixes.insert(unicode::convert<std::string>(val.get<std::string>(), &unicode::lower));
