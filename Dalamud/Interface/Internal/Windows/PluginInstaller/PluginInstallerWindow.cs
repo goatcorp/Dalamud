@@ -386,6 +386,10 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
             if (this.errorModalOnNextFrame)
             {
+                // NOTE(goat): ImGui cannot open a modal if no window is focused, at the moment.
+                // If people click out of the installer into the game while a plugin is installing, we won't be able to show a modal if we don't grab focus.
+                ImGui.SetWindowFocus(this.WindowName);
+
                 ImGui.OpenPopup(modalTitle);
                 this.errorModalOnNextFrame = false;
                 this.errorModalDrawing = true;
