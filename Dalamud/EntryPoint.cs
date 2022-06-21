@@ -146,7 +146,7 @@ namespace Dalamud
                     InitSymbolHandler(info);
 
                 var dalamud = new Dalamud(info, levelSwitch, finishSignal, configuration, mainThreadContinueEvent);
-                Log.Information("Starting a session..");
+                Log.Information("This is Dalamud - Core: {GitHash}, CS: {CsGitHash}", Util.GetGitHash(), Util.GetGitHashClientStructs());
 
                 // Run session
                 dalamud.LoadTier1();
