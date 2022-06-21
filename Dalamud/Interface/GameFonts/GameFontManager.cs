@@ -7,7 +7,7 @@ using System.Text;
 
 using Dalamud.Data;
 using Dalamud.Interface.Internal;
-using Dalamud.Utility;
+using Dalamud.Utility.Timing;
 using ImGuiNET;
 using Lumina.Data.Files;
 using Serilog;
@@ -49,12 +49,31 @@ namespace Dalamud.Interface.GameFonts
         {
             var dataManager = Service<DataManager>.Get();
 
-            this.fdts = FontNames.Select(fontName =>
+            using (Timings.Start("Load FDTs"))
             {
-                var file = fontName == null ? null : dataManager.GetFile($"common/font/{fontName}.fdt");
-                return file == null ? null : new FdtReader(file!.Data);
-            }).ToArray();
-            this.texturePixels = Enumerable.Range(1, 1 + this.fdts.Where(x => x != null).Select(x => x.Glyphs.Select(x => x.TextureFileIndex).Max()).Max()).Select(x => dataManager.GameData.GetFile<TexFile>($"common/font/font{x}.tex").ImageData).ToList();
+                this.fdts = FontNames.Select(fontName =>
+                {
+                    var fileName = $"common/font/{fontName}.fdt";
+                    using (Timings.Start($"Loading FDT: {fileName}"))
+                    {
+                        var file = fontName == null ? null : dataManager.GetFile(fileName);
+                        return file == null ? null : new FdtReader(file!.Data);
+                    }
+                }).ToArray();
+            }
+
+            using (Timings.Start("Getting texture data"))
+            {
+                this.texturePixels = Enumerable.Range(1, 1 + this.fdts.Where(x => x != null).Select(x => x.Glyphs.Select(x => x.TextureFileIndex).Max()).Max()).Select(
+                    x =>
+                    {
+                        var fileName = $"common/font/font{x}.tex";
+                        using (Timings.Start($"Get tex: {fileName}"))
+                        {
+                            return dataManager.GameData.GetFile<TexFile>(fileName)!.ImageData;
+                        }
+                    }).ToList();
+            }
 
             this.interfaceManager = Service<InterfaceManager>.Get();
         }
