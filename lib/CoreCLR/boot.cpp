@@ -44,6 +44,11 @@ int InitializeClrAndGetEntryPoint(
     SetEnvironmentVariable(L"DOTNET_legacyCorruptedStateExceptionsPolicy", L"1");
     SetEnvironmentVariable(L"COMPLUS_ForceENC", L"1");
 
+#if NDEBUG
+    // This might fix extremely bad performance in some algorithms on insider builds
+    SetEnvironmentVariable(L"COMPlus_ETWEnabled", L"0");
+#endif
+
     wchar_t* dotnet_path;
     wchar_t* _appdata;
 
