@@ -41,6 +41,7 @@ namespace Dalamud
             this.BootWaitDebugger = other.BootWaitDebugger;
             this.BootVehEnabled = other.BootVehEnabled;
             this.BootVehFull = other.BootVehFull;
+            this.BootEnableEtw = other.BootEnableEtw;
             this.BootDotnetOpenProcessHookMode = other.BootDotnetOpenProcessHookMode;
             this.BootEnabledGameFixes = other.BootEnabledGameFixes;
             this.BootUnhookDlls = other.BootUnhookDlls;
@@ -121,6 +122,11 @@ namespace Dalamud
         /// Gets or sets a value indicating whether the VEH should be doing full crash dumps.
         /// </summary>
         public bool BootVehFull { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether or not ETW should be enabled.
+        /// </summary>
+        public bool BootEnableEtw { get; set; }
 
         /// <summary>
         /// Gets or sets a value choosing the OpenProcess hookmode.

@@ -116,6 +116,7 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam, HANDLE hMainThreadContinue) {
     void* entrypoint_vfn;
     int result = InitializeClrAndGetEntryPoint(
         g_hModule,
+        g_startInfo.BootEnableEtw,
         runtimeconfig_path,
         module_path,
         L"Dalamud.EntryPoint, Dalamud",

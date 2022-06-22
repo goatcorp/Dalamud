@@ -29,6 +29,7 @@ std::optional<CoreCLR> g_clr;
 
 int InitializeClrAndGetEntryPoint(
     void* calling_module,
+    bool enableEtw,
     std::wstring runtimeconfig_path,
     std::wstring module_path,
     std::wstring entrypoint_assembly_name,
@@ -49,10 +50,7 @@ int InitializeClrAndGetEntryPoint(
     SetEnvironmentVariable(L"DOTNET_TC_QuickJitForLoops", L"1");
     SetEnvironmentVariable(L"DOTNET_ReadyToRun", L"1");
 
-#if NDEBUG
-    // This might fix extremely bad performance in some algorithms on insider builds
-    SetEnvironmentVariable(L"COMPlus_ETWEnabled", L"0");
-#endif
+    SetEnvironmentVariable(L"COMPlus_ETWEnabled", enableEtw ? L"1" : L"0");
 
     wchar_t* dotnet_path;
     wchar_t* _appdata;

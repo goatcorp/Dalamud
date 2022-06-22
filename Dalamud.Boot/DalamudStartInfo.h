@@ -38,6 +38,7 @@ struct DalamudStartInfo {
     bool BootWaitDebugger = false;
     bool BootVehEnabled = false;
     bool BootVehFull = false;
+    bool BootEnableEtw = false;
     DotNetOpenProcessHookMode BootDotnetOpenProcessHookMode = DotNetOpenProcessHookMode::ImportHooks;
     std::set<std::string> BootEnabledGameFixes{};
     std::set<std::string> BootUnhookDlls{};

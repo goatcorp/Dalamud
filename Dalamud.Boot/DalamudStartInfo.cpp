@@ -86,6 +86,7 @@ void from_json(const nlohmann::json& json, DalamudStartInfo& config) {
     config.BootWaitDebugger = json.value("BootWaitDebugger", config.BootWaitDebugger);
     config.BootVehEnabled = json.value("BootVehEnabled", config.BootVehEnabled);
     config.BootVehFull = json.value("BootVehFull", config.BootVehFull);
+    config.BootEnableEtw = json.value("BootEnableEtw", config.BootEnableEtw);
     config.BootDotnetOpenProcessHookMode = json.value("BootDotnetOpenProcessHookMode", config.BootDotnetOpenProcessHookMode);
     if (const auto it = json.find("BootEnabledGameFixes"); it != json.end() && it->is_array()) {
         config.BootEnabledGameFixes.clear();
@@ -107,6 +108,7 @@ void DalamudStartInfo::from_envvars() {
     BootWaitDebugger = utils::get_env<bool>(L"DALAMUD_WAIT_DEBUGGER");
     BootVehEnabled = utils::get_env<bool>(L"DALAMUD_IS_VEH");
     BootVehFull = utils::get_env<bool>(L"DALAMUD_IS_VEH_FULL");
+    BootEnableEtw = utils::get_env<bool>(L"DALAMUD_ENABLE_ETW");
     BootDotnetOpenProcessHookMode = static_cast<DotNetOpenProcessHookMode>(utils::get_env<int>(L"DALAMUD_DOTNET_OPENPROCESS_HOOKMODE"));
     for (const auto& item : utils::get_env_list<std::string>(L"DALAMUD_GAMEFIX_LIST"))
         BootEnabledGameFixes.insert(unicode::convert<std::string>(item, &unicode::lower));

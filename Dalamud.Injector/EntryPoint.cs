@@ -83,7 +83,8 @@ namespace Dalamud.Injector
             }
 
             startInfo = ExtractAndInitializeStartInfoFromArguments(startInfo, args);
-            args.Remove("--console"); // Remove "console" flag
+            args.Remove("--console"); // Remove "console" flag, already handled
+            args.Remove("--etw"); // Remove "etw" flag, already handled
 
             var mainCommand = args[1].ToLowerInvariant();
             if (mainCommand.Length > 0 && mainCommand.Length <= 6 && "inject"[..mainCommand.Length] == mainCommand)
@@ -321,6 +322,7 @@ namespace Dalamud.Injector
 
             // Set boot defaults
             startInfo.BootShowConsole = args.Contains("--console");
+            startInfo.BootEnableEtw = args.Contains("--etw");
             startInfo.BootLogPath = GetLogPath("dalamud.boot");
             startInfo.BootEnabledGameFixes = new List<string> { "prevent_devicechange_crashes", "disable_game_openprocess_access_check", "redirect_openprocess" };
             startInfo.BootDotnetOpenProcessHookMode = 0;
@@ -361,6 +363,7 @@ namespace Dalamud.Injector
 
             Console.WriteLine("Verbose logging:\t[-v]");
             Console.WriteLine("Show Console:\t[--console]");
+            Console.WriteLine("Enable ETW:\t[--etw]");
 
             return 0;
         }
