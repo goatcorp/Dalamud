@@ -29,7 +29,7 @@ std::optional<CoreCLR> g_clr;
 
 int InitializeClrAndGetEntryPoint(
     void* calling_module,
-    bool enableEtw,
+    bool enable_etw,
     std::wstring runtimeconfig_path,
     std::wstring module_path,
     std::wstring entrypoint_assembly_name,
@@ -50,7 +50,7 @@ int InitializeClrAndGetEntryPoint(
     SetEnvironmentVariable(L"DOTNET_TC_QuickJitForLoops", L"1");
     SetEnvironmentVariable(L"DOTNET_ReadyToRun", L"1");
 
-    SetEnvironmentVariable(L"COMPlus_ETWEnabled", enableEtw ? L"1" : L"0");
+    SetEnvironmentVariable(L"COMPlus_ETWEnabled", enable_etw ? L"1" : L"0");
 
     wchar_t* dotnet_path;
     wchar_t* _appdata;
