@@ -44,6 +44,11 @@ int InitializeClrAndGetEntryPoint(
     SetEnvironmentVariable(L"DOTNET_legacyCorruptedStateExceptionsPolicy", L"1");
     SetEnvironmentVariable(L"COMPLUS_ForceENC", L"1");
 
+    // Enable Dynamic PGO
+    SetEnvironmentVariable(L"DOTNET_TieredPGO", L"1");
+    SetEnvironmentVariable(L"DOTNET_TC_QuickJitForLoops", L"1");
+    SetEnvironmentVariable(L"DOTNET_ReadyToRun", L"1");
+
 #if NDEBUG
     // This might fix extremely bad performance in some algorithms on insider builds
     SetEnvironmentVariable(L"COMPlus_ETWEnabled", L"0");
