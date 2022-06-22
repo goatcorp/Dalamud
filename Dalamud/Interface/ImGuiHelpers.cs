@@ -26,6 +26,13 @@ namespace Dalamud.Interface
         /// <summary>
         /// Gets a <see cref="Vector2"/> that is pre-scaled with the <see cref="GlobalScale"/> multiplier.
         /// </summary>
+        /// <param name="x">Vector2 X & Y parameter.</param>
+        /// <returns>A scaled Vector2.</returns>
+        public static Vector2 ScaledVector2(float x) => new Vector2(x, x) * GlobalScale;
+
+        /// <summary>
+        /// Gets a <see cref="Vector2"/> that is pre-scaled with the <see cref="GlobalScale"/> multiplier.
+        /// </summary>
         /// <param name="x">Vector2 X parameter.</param>
         /// <param name="y">Vector2 Y parameter.</param>
         /// <returns>A scaled Vector2.</returns>

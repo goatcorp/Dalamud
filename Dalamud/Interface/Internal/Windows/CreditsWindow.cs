@@ -5,6 +5,7 @@ using System.Linq;
 using System.Numerics;
 
 using Dalamud.Game.Gui;
+using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Internal;
 using Dalamud.Utility;
@@ -139,21 +140,21 @@ Join us at: https://discord.gg/3NMcUV5
 
 Dalamud is licensed under AGPL v3 or later
 Contribute at: https://github.com/goatsoft/Dalamud
-
-
-Thank you for using XIVLauncher and Dalamud!
 ";
 
         private readonly TextureWrap logoTexture;
         private readonly Stopwatch creditsThrottler;
+        private readonly GameFontHandle thankYouFont;
 
         private string creditsText;
+
+        private const string thankYouText = "Thank you!";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CreditsWindow"/> class.
         /// </summary>
         public CreditsWindow()
-            : base("Dalamud Credits", ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize, true)
+            : base("Dalamud Credits", ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoTitleBar, true)
         {
             var dalamud = Service<Dalamud>.Get();
             var interfaceManager = Service<InterfaceManager>.Get();
@@ -167,6 +168,9 @@ Thank you for using XIVLauncher and Dalamud!
             this.PositionCondition = ImGuiCond.Always;
 
             this.BgAlpha = 0.8f;
+
+            var gfm = Service<GameFontManager>.Get();
+            this.thankYouFont = gfm.NewFontRef(new GameFontStyle(GameFontFamilyAndSize.TrumpGothic34));
         }
 
         /// <inheritdoc/>
@@ -218,11 +222,12 @@ Thank you for using XIVLauncher and Dalamud!
 
             ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, Vector2.Zero);
 
-            ImGuiHelpers.ScaledDummy(0, 340f);
+            ImGuiHelpers.ScaledDummy(0, windowSize.Y + 20f);
             ImGui.Text(string.Empty);
 
-            ImGui.SameLine(150f);
-            ImGui.Image(this.logoTexture.ImGuiHandle, ImGuiHelpers.ScaledVector2(190f, 190f));
+            const float imageSize = 190f;
+            ImGui.SameLine((ImGui.GetWindowWidth() / 2) - (imageSize / 2));
+            ImGui.Image(this.logoTexture.ImGuiHandle, ImGuiHelpers.ScaledVector2(imageSize));
 
             ImGuiHelpers.ScaledDummy(0, 20f);
 
@@ -237,6 +242,19 @@ Thank you for using XIVLauncher and Dalamud!
                 ImGui.TextUnformatted(creditsLine);
             }
 
+            ImGuiHelpers.ScaledDummy(0, 40f);
+
+            ImGui.PushFont(this.thankYouFont.ImFont);
+            var thankYouLenX = ImGui.CalcTextSize(thankYouText).X;
+
+            ImGui.Dummy(new Vector2((windowX / 2) - (thankYouLenX / 2), 0f));
+            ImGui.SameLine();
+            ImGui.TextUnformatted(thankYouText);
+
+            ImGui.PopFont();
+
+            ImGuiHelpers.ScaledDummy(0, windowSize.Y + 50f);
+
             ImGui.PopStyleVar();
 
             if (this.creditsThrottler.Elapsed.TotalMilliseconds > (1000.0f / CreditFPS))
@@ -248,8 +266,31 @@ Thank you for using XIVLauncher and Dalamud!
                 {
                     ImGui.SetScrollY(curY + 1);
                 }
+                else
+                {
+                    ImGui.SetScrollY(0);
+                }
             }
 
+            ImGui.EndChild();
+
+            ImGui.SetCursorPos(new Vector2(0));
+            ImGui.BeginChild("button", Vector2.Zero, false, ImGuiWindowFlags.NoScrollbar);
+
+            var closeButtonSize = new Vector2(30);
+            ImGui.PushFont(InterfaceManager.IconFont);
+            ImGui.SetCursorPos(new Vector2(windowSize.X - closeButtonSize.X - 5, 5));
+            ImGui.PushStyleColor(ImGuiCol.Button, Vector4.Zero);
+            ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Vector4.Zero);
+            ImGui.PushStyleColor(ImGuiCol.ButtonActive, Vector4.Zero);
+
+            if (ImGui.Button(FontAwesomeIcon.Times.ToIconString(), closeButtonSize))
+            {
+                this.IsOpen = false;
+            }
+
+            ImGui.PopStyleColor(3);
+            ImGui.PopFont();
             ImGui.EndChild();
         }
 
@@ -259,6 +300,7 @@ Thank you for using XIVLauncher and Dalamud!
         public void Dispose()
         {
             this.logoTexture?.Dispose();
+            this.thankYouFont?.Dispose();
         }
     }
 }
