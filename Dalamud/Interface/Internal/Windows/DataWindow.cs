@@ -452,7 +452,6 @@ namespace Dalamud.Interface.Internal.Windows
             }
             else
             {
-                stateString += $"FrameworkBase: {framework.Address.BaseAddress.ToInt64():X}\n";
                 stateString += $"ObjectTableLen: {objectTable.Length}\n";
                 stateString += $"LocalPlayerName: {clientState.LocalPlayer.Name}\n";
                 stateString += $"CurrentWorldName: {(this.resolveGameData ? clientState.LocalPlayer.CurrentWorld.GameData.Name : clientState.LocalPlayer.CurrentWorld.Id.ToString())}\n";
@@ -530,7 +529,6 @@ namespace Dalamud.Interface.Internal.Windows
             }
             else
             {
-                stateString += $"FrameworkBase: {framework.Address.BaseAddress.ToInt64():X}\n";
                 stateString += $"FateTableLen: {fateTable.Length}\n";
 
                 ImGui.TextUnformatted(stateString);

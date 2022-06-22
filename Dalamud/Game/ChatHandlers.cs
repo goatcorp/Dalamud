@@ -65,8 +65,8 @@ namespace Dalamud.Game
         // };
 
         private readonly Regex rmtRegex = new(
-                @"4KGOLD|We have sufficient stock|VPK\.OM|Gil for free|www\.so9\.com|Fast & Convenient|Cheap & Safety Guarantee|【Code|A O A U E|igfans|4KGOLD\.COM|Cheapest Gil with|pvp and bank on google|Selling Cheap GIL|ff14mogstation\.com|Cheap Gil 1000k|gilsforyou|server 1000K =|gils_selling|E A S Y\.C O M|bonus code|mins delivery guarantee|Sell cheap|Salegm\.com|cheap Mog|Off Code:|FF14Mog.com|使用する5％オ|Off Code( *):|offers Fantasia",
-                RegexOptions.Compiled);
+                @"4KGOLD|We have sufficient stock|VPK\.OM|[Gg]il for free|[Gg]il [Cc]heap|5GOLD|www\.so9\.com|Fast & Convenient|Cheap & Safety Guarantee|【Code|A O A U E|igfans|4KGOLD\.COM|Cheapest Gil with|pvp and bank on google|Selling Cheap GIL|ff14mogstation\.com|Cheap Gil 1000k|gilsforyou|server 1000K =|gils_selling|E A S Y\.C O M|bonus code|mins delivery guarantee|Sell cheap|Salegm\.com|cheap Mog|Off Code:|FF14Mog.com|使用する5％オ|[Oo][Ff][Ff] [Cc]ode( *)[:;]|offers Fantasia",
+                RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         private readonly Dictionary<ClientLanguage, Regex[]> retainerSaleRegexes = new()
         {

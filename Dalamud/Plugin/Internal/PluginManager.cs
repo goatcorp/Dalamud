@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using CheapLoc;
 using Dalamud.Configuration;
 using Dalamud.Configuration.Internal;
+using Dalamud.Game;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Gui.Dtr;
 using Dalamud.Game.Text;
@@ -340,6 +341,9 @@ internal partial class PluginManager : IDisposable
             {
                 this.PluginsReady = true;
                 this.NotifyInstalledPluginsChanged();
+
+                // Save signatures, makes sense to do it here since all plugins will be loaded
+                Service<SigScanner>.Get().Save();
             });
     }
 

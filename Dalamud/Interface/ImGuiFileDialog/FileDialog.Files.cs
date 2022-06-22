@@ -298,70 +298,25 @@ namespace Dalamud.Interface.ImGuiFileDialog
 
         private void SetupSideBar()
         {
-            var drives = DriveInfo.GetDrives();
-            foreach (var drive in drives)
+            foreach (var drive in DriveInfo.GetDrives())
             {
-                this.drives.Add(new SideBarItem
-                {
-                    Icon = (char)FontAwesomeIcon.Server,
-                    Location = drive.Name,
-                    Text = drive.Name,
-                });
+                this.drives.Add(new SideBarItem(drive.Name, drive.Name, FontAwesomeIcon.Server));
             }
 
             var personal = Path.GetDirectoryName(Environment.GetFolderPath(Environment.SpecialFolder.Personal));
 
-            this.quickAccess.Add(new SideBarItem
-            {
-                Icon = (char)FontAwesomeIcon.Desktop,
-                Location = Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-                Text = "Desktop",
-            });
-
-            this.quickAccess.Add(new SideBarItem
-            {
-                Icon = (char)FontAwesomeIcon.File,
-                Location = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-                Text = "Documents",
-            });
+            this.quickAccess.Add(new SideBarItem("Desktop", Environment.GetFolderPath(Environment.SpecialFolder.Desktop), FontAwesomeIcon.Desktop));
+            this.quickAccess.Add(new SideBarItem("Documents", Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), FontAwesomeIcon.File));
 
             if (!string.IsNullOrEmpty(personal))
             {
-                this.quickAccess.Add(new SideBarItem
-                {
-                    Icon = (char)FontAwesomeIcon.Download,
-                    Location = Path.Combine(personal, "Downloads"),
-                    Text = "Downloads",
-                });
+                this.quickAccess.Add(new SideBarItem("Downloads", Path.Combine(personal, "Downloads"), FontAwesomeIcon.Download));
             }
 
-            this.quickAccess.Add(new SideBarItem
-            {
-                Icon = (char)FontAwesomeIcon.Star,
-                Location = Environment.GetFolderPath(Environment.SpecialFolder.Favorites),
-                Text = "Favorites",
-            });
-
-            this.quickAccess.Add(new SideBarItem
-            {
-                Icon = (char)FontAwesomeIcon.Music,
-                Location = Environment.GetFolderPath(Environment.SpecialFolder.MyMusic),
-                Text = "Music",
-            });
-
-            this.quickAccess.Add(new SideBarItem
-            {
-                Icon = (char)FontAwesomeIcon.Image,
-                Location = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures),
-                Text = "Pictures",
-            });
-
-            this.quickAccess.Add(new SideBarItem
-            {
-                Icon = (char)FontAwesomeIcon.Video,
-                Location = Environment.GetFolderPath(Environment.SpecialFolder.MyVideos),
-                Text = "Videos",
-            });
+            this.quickAccess.Add(new SideBarItem("Favorites", Environment.GetFolderPath(Environment.SpecialFolder.Favorites), FontAwesomeIcon.Star));
+            this.quickAccess.Add(new SideBarItem("Music", Environment.GetFolderPath(Environment.SpecialFolder.MyMusic), FontAwesomeIcon.Music));
+            this.quickAccess.Add(new SideBarItem("Pictures", Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), FontAwesomeIcon.Image));
+            this.quickAccess.Add(new SideBarItem("Videos", Environment.GetFolderPath(Environment.SpecialFolder.MyVideos), FontAwesomeIcon.Video));
         }
 
         private void SortFields(SortingField sortingField, bool canChangeOrder = false)

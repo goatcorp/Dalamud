@@ -36,8 +36,8 @@ namespace Dalamud.Game
         private bool tierInitError = false;
 
         private Hook<OnUpdateDetour> updateHook;
-        private Hook<OnDestroyDetour> destroyHook;
-        private Hook<OnRealDestroyDelegate> realDestroyHook;
+        private Hook<OnDestroyDetour> freeHook;
+        private Hook<OnRealDestroyDelegate> destroyHook;
 
         private Thread? frameworkUpdateThread;
 
@@ -49,14 +49,9 @@ namespace Dalamud.Game
             this.Address = new FrameworkAddressResolver();
             this.Address.Setup();
 
-            Log.Verbose($"Framework address 0x{this.Address.BaseAddress.ToInt64():X}");
-            if (this.Address.BaseAddress == IntPtr.Zero)
-            {
-                throw new InvalidOperationException("Framework is not initalized yet.");
-            }
-
-            // Hook virtual functions
-            this.HookVTable();
+            this.updateHook = new Hook<OnUpdateDetour>(this.Address.TickAddress, this.HandleFrameworkUpdate);
+            this.freeHook = new Hook<OnDestroyDetour>(this.Address.FreeAddress, this.HandleFrameworkFree);
+            this.destroyHook = new Hook<OnRealDestroyDelegate>(this.Address.DestroyAddress, this.HandleFrameworkDestroy);
         }
 
         /// <summary>
@@ -138,8 +133,8 @@ namespace Dalamud.Game
             Service<GameNetwork>.Get().Enable();
 
             this.updateHook.Enable();
+            this.freeHook.Enable();
             this.destroyHook.Enable();
-            this.realDestroyHook.Enable();
         }
 
         /// <summary>
@@ -229,36 +224,16 @@ namespace Dalamud.Game
             Service<GameNetwork>.GetNullable()?.ExplicitDispose();
 
             this.updateHook?.Disable();
+            this.freeHook?.Disable();
             this.destroyHook?.Disable();
-            this.realDestroyHook?.Disable();
             Thread.Sleep(500);
 
             this.updateHook?.Dispose();
+            this.freeHook?.Dispose();
             this.destroyHook?.Dispose();
-            this.realDestroyHook?.Dispose();
 
             this.updateStopwatch.Reset();
             statsStopwatch.Reset();
-        }
-
-        private void HookVTable()
-        {
-            var vtable = Marshal.ReadIntPtr(this.Address.BaseAddress);
-            // Virtual function layout:
-            // .rdata:00000001411F1FE0 dq offset Xiv__Framework___dtor
-            // .rdata:00000001411F1FE8 dq offset Xiv__Framework__init
-            // .rdata:00000001411F1FF0 dq offset Xiv__Framework__destroy
-            // .rdata:00000001411F1FF8 dq offset Xiv__Framework__free
-            // .rdata:00000001411F2000 dq offset Xiv__Framework__update
-
-            var pUpdate = Marshal.ReadIntPtr(vtable, IntPtr.Size * 4);
-            this.updateHook = new Hook<OnUpdateDetour>(pUpdate, this.HandleFrameworkUpdate);
-
-            var pDestroy = Marshal.ReadIntPtr(vtable, IntPtr.Size * 3);
-            this.destroyHook = new Hook<OnDestroyDetour>(pDestroy, this.HandleFrameworkDestroy);
-
-            var pRealDestroy = Marshal.ReadIntPtr(vtable, IntPtr.Size * 2);
-            this.realDestroyHook = new Hook<OnRealDestroyDelegate>(pRealDestroy, this.HandleRealDestroy);
         }
 
         private bool HandleFrameworkUpdate(IntPtr framework)
@@ -371,7 +346,7 @@ namespace Dalamud.Game
             return this.updateHook.Original(framework);
         }
 
-        private bool HandleRealDestroy(IntPtr framework)
+        private bool HandleFrameworkDestroy(IntPtr framework)
         {
             if (this.DispatchUpdateEvents)
             {
@@ -385,15 +360,15 @@ namespace Dalamud.Game
 
             this.DispatchUpdateEvents = false;
 
-            return this.realDestroyHook.Original(framework);
+            return this.destroyHook.Original(framework);
         }
 
-        private IntPtr HandleFrameworkDestroy()
+        private IntPtr HandleFrameworkFree()
         {
             Log.Information("Framework::Free!");
 
             // Store the pointer to the original trampoline location
-            var originalPtr = Marshal.GetFunctionPointerForDelegate(this.destroyHook.Original);
+            var originalPtr = Marshal.GetFunctionPointerForDelegate(this.freeHook.Original);
 
             var dalamud = Service<Dalamud>.Get();
             dalamud.Unload();

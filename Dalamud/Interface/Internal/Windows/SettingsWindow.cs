@@ -277,7 +277,7 @@ namespace Dalamud.Interface.Internal.Windows
             ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsSystemMenuMsgHint", "Add buttons for Dalamud plugins and settings to the system menu."));
 
             ImGui.Checkbox(Loc.Localize("DalamudSettingsDisableRmtFiltering", "Disable RMT Filtering"), ref this.disableRmtFiltering);
-            ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsDisableRmtFilteringMsgHint", "Disable dalamud's built-in RMT ad filtering."));
+            ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsDisableRmtFilteringMsgHint", "Disable Dalamud's built-in RMT ad filtering."));
 
             ImGuiHelpers.ScaledDummy(5);
 
@@ -367,6 +367,8 @@ namespace Dalamud.Interface.Internal.Windows
             ImGuiHelpers.ScaledDummy(3);
 
             ImGui.Text(Loc.Localize("DalamudSettingsFontResolutionLevel", "Font resolution level"));
+            if (interfaceManager.FontResolutionLevelOverride != null)
+                this.fontResolutionLevel = interfaceManager.FontResolutionLevelOverride.Value;
             if (ImGui.Combo("##DalamudSettingsFontResolutionLevelCombo", ref this.fontResolutionLevel, this.fontResolutionLevelStrings, this.fontResolutionLevelStrings.Length))
             {
                 interfaceManager.FontResolutionLevelOverride = this.fontResolutionLevel;
@@ -375,7 +377,9 @@ namespace Dalamud.Interface.Internal.Windows
 
             ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudGrey);
             ImGui.TextWrapped(string.Format(
-                Loc.Localize("DalamudSettingsFontResolutionLevelHint", "This option allows Dalamud fonts to look better. If your game crashes when changing this option, your PC does not support high font resolutions in Dalamud - you will have to use a lower one.\nCurrent font atlas size is {0}px * {1}px."),
+                Loc.Localize(
+                    "DalamudSettingsFontResolutionLevelHint",
+                    "This option allows Dalamud fonts to look better.\n* If your game crashes right away, or the option reverts, when changing this option, your PC does not support high font resolutions in Dalamud - you will have to use a lower one.\n* If it doesn't crash or revert immediately, then you can keep the new choice indefinitely as it's not going to crash your game once it worked.\n* Either choose the 3rd or 5th option. Use other options only when neither works well.\n* Current font atlas size is {0}px * {1}px."),
                 ImGui.GetIO().Fonts.TexWidth,
                 ImGui.GetIO().Fonts.TexHeight));
             ImGui.PopStyleColor();

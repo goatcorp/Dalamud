@@ -26,6 +26,7 @@ using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Ipc.Internal;
 using Dalamud.Support;
 using Dalamud.Utility;
+using Dalamud.Utility.Timing;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
@@ -48,6 +49,7 @@ namespace Dalamud
 
         private readonly ManualResetEvent unloadSignal;
         private readonly ManualResetEvent finishUnloadSignal;
+        private readonly IntPtr mainThreadContinueEvent;
         private MonoMod.RuntimeDetour.Hook processMonoHook;
         private bool hasDisposedPlugins = false;
 
@@ -60,10 +62,9 @@ namespace Dalamud
         /// <param name="loggingLevelSwitch">LoggingLevelSwitch to control Serilog level.</param>
         /// <param name="finishSignal">Signal signalling shutdown.</param>
         /// <param name="configuration">The Dalamud configuration.</param>
-        public Dalamud(DalamudStartInfo info, LoggingLevelSwitch loggingLevelSwitch, ManualResetEvent finishSignal, DalamudConfiguration configuration)
+        /// <param name="mainThreadContinueEvent">Event used to signal the main thread to continue.</param>
+        public Dalamud(DalamudStartInfo info, LoggingLevelSwitch loggingLevelSwitch, ManualResetEvent finishSignal, DalamudConfiguration configuration, IntPtr mainThreadContinueEvent)
         {
-            this.ApplyProcessPatch();
-
             Service<Dalamud>.Set(this);
             Service<DalamudStartInfo>.Set(info);
             Service<DalamudConfiguration>.Set(configuration);
@@ -75,6 +76,8 @@ namespace Dalamud
 
             this.finishUnloadSignal = finishSignal;
             this.finishUnloadSignal.Reset();
+
+            this.mainThreadContinueEvent = mainThreadContinueEvent;
         }
 
         /// <summary>
@@ -92,6 +95,8 @@ namespace Dalamud
         /// </summary>
         public void LoadTier1()
         {
+            using var tier1Timing = Timings.Start("Tier 1 Init");
+
             try
             {
                 SerilogEventSink.Instance.LogLine += SerilogOnLogLine;
@@ -99,12 +104,21 @@ namespace Dalamud
                 Service<ServiceContainer>.Set();
 
                 // Initialize the process information.
-                Service<SigScanner>.Set(new SigScanner(true));
+                var info = Service<DalamudStartInfo>.Get();
+                var cacheDir = new DirectoryInfo(Path.Combine(info.WorkingDirectory!, "cachedSigs"));
+                if (!cacheDir.Exists)
+                    cacheDir.Create();
+
+                Service<SigScanner>.Set(
+                    new SigScanner(true, new FileInfo(Path.Combine(cacheDir.FullName, $"{info.GameVersion}.json"))));
                 Service<HookManager>.Set();
 
                 // Initialize FFXIVClientStructs function resolver
-                FFXIVClientStructs.Resolver.Initialize();
-                Log.Information("[T1] FFXIVClientStructs initialized!");
+                using (Timings.Start("CS Resolver Init"))
+                {
+                    FFXIVClientStructs.Resolver.InitializeParallel(new FileInfo(Path.Combine(cacheDir.FullName, $"{info.GameVersion}_cs.json")));
+                    Log.Information("[T1] FFXIVClientStructs initialized!");
+                }
 
                 // Initialize game subsystem
                 var framework = Service<Framework>.Set();
@@ -123,8 +137,17 @@ namespace Dalamud
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Tier 1 load failed.");
+                Log.Error(ex, "Tier 1 load failed");
                 this.Unload();
+            }
+            finally
+            {
+                // Signal the main game thread to continue
+                // TODO: This is done in rewrite_entrypoint.cpp again to avoid a race condition. Should be fixed!
+                // NativeFunctions.SetEvent(this.mainThreadContinueEvent);
+
+                // Timings.Event("Game kickoff");
+                // Log.Information("[T1] Game thread continued!");
             }
         }
 
@@ -134,6 +157,11 @@ namespace Dalamud
         /// <returns>Whether or not the load succeeded.</returns>
         public bool LoadTier2()
         {
+            // This marks the first time we are actually on the game's main thread
+            ThreadSafety.MarkMainThread();
+
+            using var tier2Timing = Timings.Start("Tier 2 Init");
+
             try
             {
                 var configuration = Service<DalamudConfiguration>.Get();
@@ -157,21 +185,27 @@ namespace Dalamud
                 Service<NetworkHandlers>.Set();
                 Log.Information("[T2] NH OK!");
 
-                try
+                using (Timings.Start("DM Init"))
                 {
-                    Service<DataManager>.Set().Initialize(this.AssetDirectory.FullName);
-                }
-                catch (Exception e)
-                {
-                    Log.Error(e, "Could not initialize DataManager.");
-                    this.Unload();
-                    return false;
+                    try
+                    {
+                        Service<DataManager>.Set().Initialize(this.AssetDirectory.FullName);
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Error(e, "Could not initialize DataManager");
+                        this.Unload();
+                        return false;
+                    }
                 }
 
                 Log.Information("[T2] Data OK!");
 
-                var clientState = Service<ClientState>.Set();
-                Log.Information("[T2] CS OK!");
+                using (Timings.Start("CS Init"))
+                {
+                    Service<ClientState>.Set();
+                    Log.Information("[T2] CS OK!");
+                }
 
                 var localization = Service<Localization>.Set(new Localization(Path.Combine(this.AssetDirectory.FullName, "UIRes", "loc", "dalamud"), "dalamud_"));
                 if (!string.IsNullOrEmpty(configuration.LanguageOverride))
@@ -186,14 +220,23 @@ namespace Dalamud
                 Log.Information("[T2] LOC OK!");
 
                 // This is enabled in ImGuiScene setup
-                Service<DalamudIME>.Set();
-                Log.Information("[T2] IME OK!");
+                using (Timings.Start("IME Init"))
+                {
+                    Service<DalamudIME>.Set();
+                    Log.Information("[T2] IME OK!");
+                }
 
-                Service<InterfaceManager>.Set().Enable();
-                Log.Information("[T2] IM OK!");
+                using (Timings.Start("IM Enable"))
+                {
+                    Service<InterfaceManager>.Set().Enable();
+                    Log.Information("[T2] IM OK!");
+                }
 
-                Service<GameFontManager>.Set();
-                Log.Information("[T2] GFM OK!");
+                using (Timings.Start("GFM Init"))
+                {
+                    Service<GameFontManager>.Set();
+                    Log.Information("[T2] GFM OK!");
+                }
 
 #pragma warning disable CS0618 // Type or member is obsolete
                 Service<SeStringManager>.Set();
@@ -201,27 +244,30 @@ namespace Dalamud
 
                 Log.Information("[T2] SeString OK!");
 
-                // Initialize managers. Basically handlers for the logic
-                Service<CommandManager>.Set();
-
-                Service<DalamudCommands>.Set().SetupCommands();
-
-                Log.Information("[T2] CM OK!");
+                using (Timings.Start("CM Init"))
+                {
+                    Service<CommandManager>.Set();
+                    Service<DalamudCommands>.Set().SetupCommands();
+                    Log.Information("[T2] CM OK!");
+                }
 
                 Service<ChatHandlers>.Set();
-
                 Log.Information("[T2] CH OK!");
 
-                clientState.Enable();
-                Log.Information("[T2] CS ENABLE!");
+                using (Timings.Start("CS Enable"))
+                {
+                    Service<ClientState>.Get().Enable();
+                    Log.Information("[T2] CS ENABLE!");
+                }
 
                 Service<DalamudAtkTweaks>.Set().Enable();
+                Log.Information("[T2] ATKTWEAKS ENABLE!");
 
                 Log.Information("[T2] Load complete!");
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Tier 2 load failed.");
+                Log.Error(ex, "Tier 2 load failed");
                 this.Unload();
                 return false;
             }
@@ -235,46 +281,62 @@ namespace Dalamud
         /// <returns>Whether or not the load succeeded.</returns>
         public bool LoadTier3()
         {
+            using var tier3Timing = Timings.Start("Tier 3 Init");
+
+            ThreadSafety.AssertMainThread();
+
             try
             {
                 Log.Information("[T3] START!");
 
                 Service<TitleScreenMenu>.Set();
 
-                var pluginManager = Service<PluginManager>.Set();
-                Service<CallGate>.Set();
-
-                Log.Information("[T3] PM OK!");
+                PluginManager pluginManager;
+                using (Timings.Start("PM Init"))
+                {
+                    pluginManager = Service<PluginManager>.Set();
+                    Service<CallGate>.Set();
+                    Log.Information("[T3] PM OK!");
+                }
 
                 Service<DalamudInterface>.Set();
                 Log.Information("[T3] DUI OK!");
 
                 try
                 {
-                    _ = pluginManager.SetPluginReposFromConfigAsync(false);
+                    using (Timings.Start("PM Load Plugin Repos"))
+                    {
+                        _ = pluginManager.SetPluginReposFromConfigAsync(false);
+                        pluginManager.OnInstalledPluginsChanged += Troubleshooting.LogTroubleshooting;
 
-                    pluginManager.OnInstalledPluginsChanged += Troubleshooting.LogTroubleshooting;
+                        Log.Information("[T3] PM repos OK!");
+                    }
 
-                    Log.Information("[T3] Sync plugins OK!");
+                    using (Timings.Start("PM Cleanup Plugins"))
+                    {
+                        pluginManager.CleanupPlugins();
+                        Log.Information("[T3] PMC OK!");
+                    }
 
-                    pluginManager.CleanupPlugins();
-                    Log.Information("[T3] PMC OK!");
-
-                    pluginManager.LoadAllPlugins();
-                    Log.Information("[T3] PML OK!");
+                    using (Timings.Start("PM Load Sync Plugins"))
+                    {
+                        pluginManager.LoadAllPlugins();
+                        Log.Information("[T3] PML OK!");
+                    }
                 }
                 catch (Exception ex)
                 {
-                    Log.Error(ex, "Plugin load failed.");
+                    Log.Error(ex, "Plugin load failed");
                 }
 
                 Troubleshooting.LogTroubleshooting();
 
-                Log.Information("Dalamud is ready.");
+                Log.Information("Dalamud is ready");
+                Timings.Event("Dalamud ready");
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Tier 3 load failed.");
+                Log.Error(ex, "Tier 3 load failed");
                 this.Unload();
 
                 return false;
@@ -354,7 +416,10 @@ namespace Dalamud
                 Service<AntiDebug>.GetNullable()?.Dispose();
                 Service<DalamudAtkTweaks>.GetNullable()?.Dispose();
                 Service<HookManager>.GetNullable()?.Dispose();
-                Service<SigScanner>.GetNullable()?.Dispose();
+
+                var sigScanner = Service<SigScanner>.Get();
+                sigScanner.Save();
+                sigScanner.Dispose();
 
                 SerilogEventSink.Instance.LogLine -= SerilogOnLogLine;
 
@@ -387,36 +452,6 @@ namespace Dalamud
                 return;
 
             Troubleshooting.LogException(e.Exception, e.Line);
-        }
-
-        /// <summary>
-        /// Patch method for the class Process.Handle. This patch facilitates fixing Reloaded so that it
-        /// uses pseudo-handles to access memory, to prevent permission errors.
-        /// It should never be called manually.
-        /// </summary>
-        /// <param name="orig">A delegate that acts as the original method.</param>
-        /// <param name="self">The equivalent of `this`.</param>
-        /// <returns>A pseudo-handle for the current process, or the result from the original method.</returns>
-        private static IntPtr ProcessHandlePatch(Func<Process, IntPtr> orig, Process self)
-        {
-            var result = orig(self);
-
-            if (self.Id == Environment.ProcessId)
-            {
-                result = (IntPtr)0xFFFFFFFF;
-            }
-
-            // Log.Verbose($"Process.Handle // {self.ProcessName} // {result:X}");
-            return result;
-        }
-
-        private void ApplyProcessPatch()
-        {
-            var targetType = typeof(Process);
-
-            var handleTarget = targetType.GetProperty(nameof(Process.Handle)).GetGetMethod();
-            var handlePatch = typeof(Dalamud).GetMethod(nameof(Dalamud.ProcessHandlePatch), BindingFlags.NonPublic | BindingFlags.Static);
-            this.processMonoHook = new MonoMod.RuntimeDetour.Hook(handleTarget, handlePatch);
         }
     }
 }

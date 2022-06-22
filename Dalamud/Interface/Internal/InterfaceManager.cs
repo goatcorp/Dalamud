@@ -21,6 +21,7 @@ using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.Style;
 using Dalamud.Interface.Windowing;
 using Dalamud.Utility;
+using Dalamud.Utility.Timing;
 using ImGuiNET;
 using ImGuiScene;
 using PInvoke;
@@ -151,7 +152,7 @@ namespace Dalamud.Interface.Internal
         /// <summary>
         /// Gets or sets an action that is executed right after font fallback mode has been changed.
         /// </summary>
-        public event Action<bool> OnFallbackFontModeChange;
+        public event Action<bool> FallbackFontModeChange;
 
         /// <summary>
         /// Gets the default ImGui font.
@@ -203,6 +204,11 @@ namespace Dalamud.Interface.Internal
         public bool IsReady => this.scene != null;
 
         /// <summary>
+        /// Gets or sets a value indicating whether or not Draw events should be dispatched.
+        /// </summary>
+        public bool IsDispatchingEvents { get; set; } = true;
+
+        /// <summary>
         /// Gets or sets a value indicating whether the font has been loaded in fallback mode.
         /// </summary>
         public bool IsFallbackFontMode
@@ -214,7 +220,7 @@ namespace Dalamud.Interface.Internal
                     return;
 
                 this.isFallbackFontMode = value;
-                this.OnFallbackFontModeChange?.Invoke(value);
+                this.FallbackFontModeChange?.Invoke(value);
             }
         }
 
@@ -469,118 +475,121 @@ namespace Dalamud.Interface.Internal
 
             if (this.scene == null)
             {
-                try
+                using (Timings.Start("IM Scene Init"))
                 {
-                    this.scene = new RawDX11Scene(swapChain);
-                }
-                catch (DllNotFoundException ex)
-                {
-                    Log.Error(ex, "Could not load ImGui dependencies.");
-
-                    var res = PInvoke.User32.MessageBox(
-                        IntPtr.Zero,
-                        "Dalamud plugins require the Microsoft Visual C++ Redistributable to be installed.\nPlease install the runtime from the official Microsoft website or disable Dalamud.\n\nDo you want to download the redistributable now?",
-                        "Dalamud Error",
-                        User32.MessageBoxOptions.MB_YESNO | User32.MessageBoxOptions.MB_TOPMOST | User32.MessageBoxOptions.MB_ICONERROR);
-
-                    if (res == User32.MessageBoxResult.IDYES)
+                    try
                     {
-                        var psi = new ProcessStartInfo
+                        this.scene = new RawDX11Scene(swapChain);
+                    }
+                    catch (DllNotFoundException ex)
+                    {
+                        Log.Error(ex, "Could not load ImGui dependencies.");
+
+                        var res = PInvoke.User32.MessageBox(
+                            IntPtr.Zero,
+                            "Dalamud plugins require the Microsoft Visual C++ Redistributable to be installed.\nPlease install the runtime from the official Microsoft website or disable Dalamud.\n\nDo you want to download the redistributable now?",
+                            "Dalamud Error",
+                            User32.MessageBoxOptions.MB_YESNO | User32.MessageBoxOptions.MB_TOPMOST | User32.MessageBoxOptions.MB_ICONERROR);
+
+                        if (res == User32.MessageBoxResult.IDYES)
                         {
-                            FileName = "https://aka.ms/vs/16/release/vc_redist.x64.exe",
-                            UseShellExecute = true,
-                        };
-                        Process.Start(psi);
+                            var psi = new ProcessStartInfo
+                            {
+                                FileName = "https://aka.ms/vs/16/release/vc_redist.x64.exe",
+                                UseShellExecute = true,
+                            };
+                            Process.Start(psi);
+                        }
+
+                        Environment.Exit(-1);
                     }
 
-                    Environment.Exit(-1);
-                }
+                    var startInfo = Service<DalamudStartInfo>.Get();
+                    var configuration = Service<DalamudConfiguration>.Get();
 
-                var startInfo = Service<DalamudStartInfo>.Get();
-                var configuration = Service<DalamudConfiguration>.Get();
+                    var iniFileInfo = new FileInfo(Path.Combine(Path.GetDirectoryName(startInfo.ConfigurationPath), "dalamudUI.ini"));
 
-                var iniFileInfo = new FileInfo(Path.Combine(Path.GetDirectoryName(startInfo.ConfigurationPath), "dalamudUI.ini"));
-
-                try
-                {
-                    if (iniFileInfo.Length > 1200000)
+                    try
                     {
-                        Log.Warning("dalamudUI.ini was over 1mb, deleting");
-                        iniFileInfo.CopyTo(Path.Combine(iniFileInfo.DirectoryName, $"dalamudUI-{DateTimeOffset.Now.ToUnixTimeSeconds()}.ini"));
-                        iniFileInfo.Delete();
+                        if (iniFileInfo.Length > 1200000)
+                        {
+                            Log.Warning("dalamudUI.ini was over 1mb, deleting");
+                            iniFileInfo.CopyTo(Path.Combine(iniFileInfo.DirectoryName, $"dalamudUI-{DateTimeOffset.Now.ToUnixTimeSeconds()}.ini"));
+                            iniFileInfo.Delete();
+                        }
                     }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, "Could not delete dalamudUI.ini");
+                    }
+
+                    this.scene.ImGuiIniPath = iniFileInfo.FullName;
+                    this.scene.OnBuildUI += this.Display;
+                    this.scene.OnNewInputFrame += this.OnNewInputFrame;
+
+                    StyleModel.TransferOldModels();
+
+                    if (configuration.SavedStyles == null || configuration.SavedStyles.All(x => x.Name != StyleModelV1.DalamudStandard.Name))
+                    {
+                        configuration.SavedStyles = new List<StyleModel> { StyleModelV1.DalamudStandard, StyleModelV1.DalamudClassic };
+                        configuration.ChosenStyle = StyleModelV1.DalamudStandard.Name;
+                    }
+                    else if (configuration.SavedStyles.Count == 1)
+                    {
+                        configuration.SavedStyles.Add(StyleModelV1.DalamudClassic);
+                    }
+                    else if (configuration.SavedStyles[1].Name != StyleModelV1.DalamudClassic.Name)
+                    {
+                        configuration.SavedStyles.Insert(1, StyleModelV1.DalamudClassic);
+                    }
+
+                    configuration.SavedStyles[0] = StyleModelV1.DalamudStandard;
+                    configuration.SavedStyles[1] = StyleModelV1.DalamudClassic;
+
+                    var style = configuration.SavedStyles.FirstOrDefault(x => x.Name == configuration.ChosenStyle);
+                    if (style == null)
+                    {
+                        style = StyleModelV1.DalamudStandard;
+                        configuration.ChosenStyle = style.Name;
+                        configuration.Save();
+                    }
+
+                    style.Apply();
+
+                    ImGui.GetIO().FontGlobalScale = configuration.GlobalUiScale;
+
+                    this.SetupFonts();
+
+                    if (!configuration.IsDocking)
+                    {
+                        ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.DockingEnable;
+                    }
+                    else
+                    {
+                        ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.DockingEnable;
+                    }
+
+                    // NOTE (Chiv) Toggle gamepad navigation via setting
+                    if (!configuration.IsGamepadNavigationEnabled)
+                    {
+                        ImGui.GetIO().BackendFlags &= ~ImGuiBackendFlags.HasGamepad;
+                        ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.NavEnableSetMousePos;
+                    }
+                    else
+                    {
+                        ImGui.GetIO().BackendFlags |= ImGuiBackendFlags.HasGamepad;
+                        ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.NavEnableSetMousePos;
+                    }
+
+                    // NOTE (Chiv) Explicitly deactivate on dalamud boot
+                    ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.NavEnableGamepad;
+
+                    ImGuiHelpers.MainViewport = ImGui.GetMainViewport();
+
+                    Log.Information("[IM] Scene & ImGui setup OK!");
+
+                    Service<DalamudIME>.Get().Enable();
                 }
-                catch (Exception ex)
-                {
-                    Log.Error(ex, "Could not delete dalamudUI.ini");
-                }
-
-                this.scene.ImGuiIniPath = iniFileInfo.FullName;
-                this.scene.OnBuildUI += this.Display;
-                this.scene.OnNewInputFrame += this.OnNewInputFrame;
-
-                this.SetupFonts();
-
-                StyleModel.TransferOldModels();
-
-                if (configuration.SavedStyles == null || configuration.SavedStyles.All(x => x.Name != StyleModelV1.DalamudStandard.Name))
-                {
-                    configuration.SavedStyles = new List<StyleModel> { StyleModelV1.DalamudStandard, StyleModelV1.DalamudClassic };
-                    configuration.ChosenStyle = StyleModelV1.DalamudStandard.Name;
-                }
-                else if (configuration.SavedStyles.Count == 1)
-                {
-                    configuration.SavedStyles.Add(StyleModelV1.DalamudClassic);
-                }
-                else if (configuration.SavedStyles[1].Name != StyleModelV1.DalamudClassic.Name)
-                {
-                    configuration.SavedStyles.Insert(1, StyleModelV1.DalamudClassic);
-                }
-
-                configuration.SavedStyles[0] = StyleModelV1.DalamudStandard;
-                configuration.SavedStyles[1] = StyleModelV1.DalamudClassic;
-
-                var style = configuration.SavedStyles.FirstOrDefault(x => x.Name == configuration.ChosenStyle);
-                if (style == null)
-                {
-                    style = StyleModelV1.DalamudStandard;
-                    configuration.ChosenStyle = style.Name;
-                    configuration.Save();
-                }
-
-                style.Apply();
-
-                ImGui.GetIO().FontGlobalScale = configuration.GlobalUiScale;
-
-                if (!configuration.IsDocking)
-                {
-                    ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.DockingEnable;
-                }
-                else
-                {
-                    ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.DockingEnable;
-                }
-
-                // NOTE (Chiv) Toggle gamepad navigation via setting
-                if (!configuration.IsGamepadNavigationEnabled)
-                {
-                    ImGui.GetIO().BackendFlags &= ~ImGuiBackendFlags.HasGamepad;
-                    ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.NavEnableSetMousePos;
-                }
-                else
-                {
-                    ImGui.GetIO().BackendFlags |= ImGuiBackendFlags.HasGamepad;
-                    ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.NavEnableSetMousePos;
-                }
-
-                // NOTE (Chiv) Explicitly deactivate on dalamud boot
-                ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.NavEnableGamepad;
-
-                ImGuiHelpers.MainViewport = ImGui.GetMainViewport();
-
-                Log.Information("[IM] Scene & ImGui setup OK!");
-
-                Service<DalamudIME>.Get().Enable();
             }
 
             if (this.address.IsReshade)
@@ -628,6 +637,8 @@ namespace Dalamud.Interface.Internal
         /// <param name="disableBigFonts">If set, then glyphs will be loaded in smaller resolution to make all glyphs fit into given constraints.</param>
         private unsafe void SetupFonts(bool disableBigFonts = false)
         {
+            using var setupFontsTimings = Timings.Start("IM SetupFonts");
+
             var gameFontManager = Service<GameFontManager>.Get();
             var dalamud = Service<Dalamud>.Get();
             var io = ImGui.GetIO();
@@ -828,10 +839,15 @@ namespace Dalamud.Interface.Internal
                 for (int i = customFontFirstConfigIndex, i_ = ioFonts.ConfigData.Size; i < i_; i++)
                 {
                     var config = ioFonts.ConfigData[i];
+                    if (gameFontManager.OwnsFont(config.DstFont))
+                        continue;
+
                     config.OversampleH = 1;
                     config.OversampleV = 1;
 
                     var name = Encoding.UTF8.GetString((byte*)config.Name.Data, config.Name.Count).TrimEnd('\0');
+                    if (name.IsNullOrEmpty())
+                        name = $"{config.SizePixels}px";
 
                     // ImFont information is reflected only if corresponding ImFontConfig has MergeMode not set.
                     if (config.MergeMode)
@@ -869,6 +885,7 @@ namespace Dalamud.Interface.Internal
 
                 Log.Verbose("[FONT] ImGui.IO.Build will be called.");
                 ioFonts.Build();
+                gameFontManager.AfterIoFontsBuild();
                 Log.Verbose("[FONT] ImGui.IO.Build OK!");
 
                 if (ioFonts.TexHeight > maxTexDimension)
@@ -886,6 +903,7 @@ namespace Dalamud.Interface.Internal
                     if (possibilityForScaling && !disableBigFonts)
                     {
                         Log.Information("[FONT] Atlas size is {0}x{1} which is bigger than allowed {2}x{3}. Retrying with minimized font sizes.", ioFonts.TexWidth, ioFonts.TexHeight, maxTexDimension, maxTexDimension);
+                        this.IsFallbackFontMode = true;
                         this.SetupFonts(true);
                         return;
                     }
@@ -895,7 +913,8 @@ namespace Dalamud.Interface.Internal
                     }
                 }
 
-                this.IsFallbackFontMode = disableBigFonts;
+                if (!disableBigFonts)
+                    this.IsFallbackFontMode = false;
 
                 if (Math.Abs(fontGamma - 1.0f) >= 0.001)
                 {
@@ -929,9 +948,10 @@ namespace Dalamud.Interface.Internal
                     if (mod.Axis == TargetFontModification.AxisMode.Overwrite)
                     {
                         Log.Verbose("[FONT] {0}: Overwrite from AXIS of size {1}px (was {2}px)", mod.Name, mod.SourceAxis.ImFont.FontSize, font.FontSize);
-                        font.FontSize = mod.SourceAxis.ImFont.FontSize;
-                        font.Ascent = mod.SourceAxis.ImFont.Ascent;
-                        font.Descent = mod.SourceAxis.ImFont.Descent;
+                        GameFontManager.UnscaleFont(font, font.FontSize / mod.SourceAxis.ImFont.FontSize, false);
+                        var ascentDiff = mod.SourceAxis.ImFont.Ascent - font.Ascent;
+                        font.Ascent += ascentDiff;
+                        font.Descent = ascentDiff;
                         font.FallbackChar = mod.SourceAxis.ImFont.FallbackChar;
                         font.EllipsisChar = mod.SourceAxis.ImFont.EllipsisChar;
                         ImGuiHelpers.CopyGlyphsAcrossFonts(mod.SourceAxis.ImFont, font, false, false);
@@ -964,6 +984,9 @@ namespace Dalamud.Interface.Internal
                 this.AfterBuildFonts?.Invoke();
                 Log.Verbose("[FONT] OnAfterBuildFonts OK!");
 
+                if (ioFonts.Fonts[0].NativePtr != DefaultFont.NativePtr)
+                    Log.Warning("[FONT] First font is not DefaultFont");
+
                 Log.Verbose("[FONT] Fonts built!");
 
                 this.fontBuildSignal.Set();
@@ -995,7 +1018,36 @@ namespace Dalamud.Interface.Internal
 
             Log.Verbose("[FONT] RebuildFontsInternal() detaching");
             this.scene.OnNewRenderFrame -= this.RebuildFontsInternal;
-            this.scene.InvalidateFonts();
+
+            Log.Verbose("[FONT] Calling InvalidateFonts");
+            try
+            {
+                this.scene.InvalidateFonts();
+            }
+            catch (Exception ex)
+            {
+                if (this.FontResolutionLevel > 2)
+                {
+                    Log.Error(ex, "[FONT] Failed to create font textures; setting font resolution level to 2 and retrying");
+                    this.FontResolutionLevelOverride = 2;
+                    this.SetupFonts();
+                }
+                else
+                {
+                    Log.Error(ex, "[FONT] Failed to create font textures; forcing fallback font mode");
+                    this.SetupFonts(true);
+                }
+
+                Log.Verbose("[FONT] Calling InvalidateFonts again");
+                try
+                {
+                    this.scene.InvalidateFonts();
+                }
+                catch (Exception ex2)
+                {
+                    Log.Error(ex2, "[FONT] Giving up");
+                }
+            }
 
             Log.Verbose("[FONT] Font Rebuild OK!");
 
@@ -1109,7 +1161,10 @@ namespace Dalamud.Interface.Internal
             WindowSystem.FocusedWindowSystemNamespace = string.Empty;
 
             var snap = ImGuiManagedAsserts.GetSnapshot();
-            this.Draw?.Invoke();
+
+            if (this.IsDispatchingEvents)
+                this.Draw?.Invoke();
+
             ImGuiManagedAsserts.ReportProblems("Dalamud Core", snap);
 
             Service<NotificationManager>.Get().Draw();

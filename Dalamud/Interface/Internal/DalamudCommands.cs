@@ -131,6 +131,13 @@ namespace Dalamud.Interface.Internal
                 HelpMessage = "Dalamud version info",
             });
 
+            commandManager.AddHandler("/xlui", new CommandInfo(this.OnUiCommand)
+            {
+                HelpMessage = Loc.Localize(
+                    "DalamudUiModeHelp",
+                    "Toggle Dalamud UI display modes. Native UI modifications may also be affected by this, but that depends on the plugin."),
+            });
+
             commandManager.AddHandler("/imdebug", new CommandInfo(this.OnDebugImInfoCommand)
             {
                 HelpMessage = "ImGui DEBUG",
@@ -365,6 +372,32 @@ namespace Dalamud.Interface.Internal
         private void OnOpenSettingsCommand(string command, string arguments)
         {
             Service<DalamudInterface>.Get().ToggleSettingsWindow();
+        }
+
+        private void OnUiCommand(string command, string arguments)
+        {
+            var im = Service<InterfaceManager>.Get();
+
+            im.IsDispatchingEvents = arguments switch
+            {
+                "show" => true,
+                "hide" => false,
+                _ => !im.IsDispatchingEvents,
+            };
+
+            var pm = Service<PluginManager>.Get();
+
+            foreach (var plugin in pm.InstalledPlugins)
+            {
+                if (im.IsDispatchingEvents)
+                {
+                    plugin.DalamudInterface?.UiBuilder.NotifyShowUi();
+                }
+                else
+                {
+                    plugin.DalamudInterface?.UiBuilder.NotifyHideUi();
+                }
+            }
         }
     }
 }

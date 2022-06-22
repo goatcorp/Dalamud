@@ -3,6 +3,7 @@ void ConsoleTeardown();
 
 int InitializeClrAndGetEntryPoint(
     void* calling_module,
+    bool enable_etw,
     std::wstring runtimeconfig_path,
     std::wstring module_path,
     std::wstring entrypoint_assembly_name,

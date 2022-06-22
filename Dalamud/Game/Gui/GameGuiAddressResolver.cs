@@ -8,22 +8,9 @@ namespace Dalamud.Game.Gui
     internal sealed class GameGuiAddressResolver : BaseAddressResolver
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="GameGuiAddressResolver"/> class.
-        /// </summary>
-        public GameGuiAddressResolver()
-        {
-            this.BaseAddress = Service<Framework>.Get().Address.BaseAddress;
-        }
-
-        /// <summary>
         /// Gets the base address of the native GuiManager class.
         /// </summary>
         public IntPtr BaseAddress { get; private set; }
-
-        /// <summary>
-        /// Gets the address of the native ChatManager class.
-        /// </summary>
-        public IntPtr ChatManager { get; private set; }
 
         /// <summary>
         /// Gets the address of the native SetGlobalBgm method.
@@ -88,14 +75,6 @@ namespace Dalamud.Game.Gui
             this.ScreenToWorld = sig.ScanText("48 83 EC 48 48 8B 05 ?? ?? ?? ?? 4D 8B D1");
             this.ToggleUiHide = sig.ScanText("48 89 5C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 0F B6 B9 ?? ?? ?? ?? B8 ?? ?? ?? ??");
             this.Utf8StringFromSequence = sig.ScanText("48 89 5C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 48 8D 41 22 66 C7 41 ?? ?? ?? 48 89 01 49 8B D8");
-        }
-
-        /// <inheritdoc/>
-        protected override void SetupInternal(SigScanner scanner)
-        {
-            // Xiv__UiManager__GetChatManager   000   lea     rax, [rcx+13E0h]
-            // Xiv__UiManager__GetChatManager+7 000   retn
-            this.ChatManager = this.BaseAddress + 0x13E0;
         }
     }
 }

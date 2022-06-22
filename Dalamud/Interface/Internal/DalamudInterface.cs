@@ -54,6 +54,7 @@ namespace Dalamud.Interface.Internal
         private readonly StyleEditorWindow styleEditorWindow;
         private readonly TitleScreenMenuWindow titleScreenMenuWindow;
         private readonly FallbackFontNoticeWindow fallbackFontNoticeWindow;
+        private readonly ProfilerWindow profilerWindow;
 
         private readonly TextureWrap logoTexture;
         private readonly TextureWrap tsmLogoTexture;
@@ -66,7 +67,12 @@ namespace Dalamud.Interface.Internal
         private bool isImGuiDrawDevMenu = false;
 #endif
 
+#if BOOT_AGING
+        private bool signaledBoot = false;
+#endif
+
         private bool isImGuiDrawDemoWindow = false;
+        private bool isImGuiTestWindowsInMonospace = false;
         private bool isImGuiDrawMetricsWindow = false;
 
         /// <summary>
@@ -94,6 +100,7 @@ namespace Dalamud.Interface.Internal
             this.styleEditorWindow = new StyleEditorWindow() { IsOpen = false };
             this.titleScreenMenuWindow = new TitleScreenMenuWindow() { IsOpen = false };
             this.fallbackFontNoticeWindow = new FallbackFontNoticeWindow() { IsOpen = interfaceManager.IsFallbackFontMode && !configuration.DisableFontFallbackNotice };
+            this.profilerWindow = new ProfilerWindow() { IsOpen = false };
 
             this.WindowSystem.AddWindow(this.changelogWindow);
             this.WindowSystem.AddWindow(this.colorDemoWindow);
@@ -110,6 +117,7 @@ namespace Dalamud.Interface.Internal
             this.WindowSystem.AddWindow(this.styleEditorWindow);
             this.WindowSystem.AddWindow(this.titleScreenMenuWindow);
             this.WindowSystem.AddWindow(this.fallbackFontNoticeWindow);
+            this.WindowSystem.AddWindow(this.profilerWindow);
 
             ImGuiManagedAsserts.AssertsEnabled = configuration.AssertsEnabledAtStartup;
             this.isImGuiDrawDevMenu = this.isImGuiDrawDevMenu || configuration.DevBarOpenAtStartup;
@@ -255,6 +263,11 @@ namespace Dalamud.Interface.Internal
         /// Opens the <see cref="StyleEditorWindow"/>.
         /// </summary>
         public void OpenStyleEditor() => this.styleEditorWindow.IsOpen = true;
+        
+        /// <summary>
+        /// Opens the <see cref="ProfilerWindow"/>.
+        /// </summary>
+        public void OpenProfiler() => this.profilerWindow.IsOpen = true;
 
         #endregion
 
@@ -346,12 +359,30 @@ namespace Dalamud.Interface.Internal
         /// Toggles the <see cref="StyleEditorWindow"/>.
         /// </summary>
         public void ToggleStyleEditorWindow() => this.selfTestWindow.Toggle();
+        
+        /// <summary>
+        /// Toggles the <see cref="ProfilerWindow"/>.
+        /// </summary>
+        public void ToggleProfilerWindow() => this.profilerWindow.Toggle();
 
         #endregion
 
         private void OnDraw()
         {
             this.frameCount++;
+
+#if BOOT_AGING
+            if (this.frameCount > 500 && !this.signaledBoot)
+            {
+                this.signaledBoot = true;
+
+                System.Threading.Tasks.Task.Run(async () =>
+                {
+                    using var client = new System.Net.Http.HttpClient();
+                    await client.PostAsync("http://localhost:1415/aging/success", new System.Net.Http.StringContent(string.Empty));
+                });
+            }
+#endif
 
             try
             {
@@ -363,11 +394,17 @@ namespace Dalamud.Interface.Internal
 
                 this.WindowSystem.Draw();
 
+                if (this.isImGuiTestWindowsInMonospace)
+                    ImGui.PushFont(InterfaceManager.MonoFont);
+
                 if (this.isImGuiDrawDemoWindow)
                     ImGui.ShowDemoWindow(ref this.isImGuiDrawDemoWindow);
 
                 if (this.isImGuiDrawMetricsWindow)
                     ImGui.ShowMetricsWindow(ref this.isImGuiDrawMetricsWindow);
+
+                if (this.isImGuiTestWindowsInMonospace)
+                    ImGui.PopFont();
 
                 // Release focus of any ImGui window if we click into the game.
                 var io = ImGui.GetIO();
@@ -519,6 +556,11 @@ namespace Dalamud.Interface.Internal
                             this.OpenStyleEditor();
                         }
 
+                        if (ImGui.MenuItem("Open Profiler"))
+                        {
+                            this.OpenProfiler();
+                        }
+
                         ImGui.Separator();
 
                         if (ImGui.MenuItem("Unload Dalamud"))
@@ -566,8 +608,8 @@ namespace Dalamud.Interface.Internal
 
                     if (ImGui.BeginMenu("GUI"))
                     {
+                        ImGui.MenuItem("Use Monospace font for following windows", string.Empty, ref this.isImGuiTestWindowsInMonospace);
                         ImGui.MenuItem("Draw ImGui demo", string.Empty, ref this.isImGuiDrawDemoWindow);
-
                         ImGui.MenuItem("Draw metrics", string.Empty, ref this.isImGuiDrawMetricsWindow);
 
                         ImGui.Separator();
