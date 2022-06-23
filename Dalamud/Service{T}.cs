@@ -92,15 +92,9 @@ namespace Dalamud
         /// <returns>The object.</returns>
         public static T Get()
         {
-#if DEBUG
-            if (!InstanceTask.IsCompleted)
-            {
-                InstanceTask.Wait();
-                ServiceManager.Log.Debug("Waiting for Service<{0}>", typeof(T).Name);
-            }
-#endif
             InstanceTask.Wait();
-
+            if (InstanceTask.IsFaulted)
+                throw InstanceTask.Exception!;
             return instance;
         }
 
