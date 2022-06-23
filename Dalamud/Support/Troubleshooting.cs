@@ -99,7 +99,7 @@ namespace Dalamud.Support
 
         private class TroubleshootingPayload
         {
-            public PluginManifest[] LoadedPlugins { get; set; }
+            public LocalPluginManifest[] LoadedPlugins { get; set; }
 
             public string DalamudVersion { get; set; }
 
