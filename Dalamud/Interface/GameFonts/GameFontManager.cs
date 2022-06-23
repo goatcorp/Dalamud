@@ -19,7 +19,7 @@ namespace Dalamud.Interface.GameFonts
     /// </summary>
     internal class GameFontManager : IDisposable, IServiceObject
     {
-        private static readonly string[] FontNames =
+        private static readonly string?[] FontNames =
         {
             null,
             "AXIS_96", "AXIS_12", "AXIS_14", "AXIS_18", "AXIS_36",
@@ -52,7 +52,7 @@ namespace Dalamud.Interface.GameFonts
 
             using (Timings.Start("Getting fdt data"))
             {
-                this.fdts = FontNames.Select(fontName => new FdtReader(dataManager.GetFile($"common/font/{fontName}.fdt")!.Data)).ToArray();
+                this.fdts = FontNames.Select(fontName => fontName == null ? null : new FdtReader(dataManager.GetFile($"common/font/{fontName}.fdt")!.Data)).ToArray();
             }
 
             using (Timings.Start("Getting texture data"))
