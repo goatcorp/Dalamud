@@ -12,7 +12,7 @@ namespace Dalamud.Logging.Internal
     /// <summary>
     /// Class responsible for tracking asynchronous tasks.
     /// </summary>
-    internal class TaskTracker : IDisposable
+    internal class TaskTracker : IDisposable, IServiceObject
     {
         private static readonly ModuleLog Log = new("TT");
         private static readonly List<TaskInfo> TrackedTasksInternal = new();
@@ -20,16 +20,17 @@ namespace Dalamud.Logging.Internal
         private static bool clearRequested = false;
 
         private MonoMod.RuntimeDetour.Hook? scheduleAndStartHook;
+        private bool enabled = false;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TaskTracker"/> class.
         /// </summary>
-        public TaskTracker()
+        /// <param name="tag">Tag.</param>
+        public TaskTracker(ServiceManager.Tag tag)
         {
-            this.ApplyPatch();
-
-            var framework = Service<Framework>.Get();
-            framework.Update += this.FrameworkOnUpdate;
+#if DEBUG
+            this.Enable();
+#endif
         }
 
         /// <summary>
@@ -100,6 +101,21 @@ namespace Dalamud.Logging.Internal
                     taskInfo.FinishTime = DateTime.Now;
                 }
             }
+        }
+
+        /// <summary>
+        /// Enables TaskTracker.
+        /// </summary>
+        public void Enable()
+        {
+            if (this.enabled)
+                return;
+
+            this.ApplyPatch();
+
+            var framework = Service<Framework>.Get();
+            framework.Update += this.FrameworkOnUpdate;
+            this.enabled = true;
         }
 
         /// <inheritdoc/>

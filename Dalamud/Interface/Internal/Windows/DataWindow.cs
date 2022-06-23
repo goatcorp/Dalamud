@@ -1485,7 +1485,7 @@ namespace Dalamud.Interface.Internal.Windows
             ImGuiHelpers.ScaledDummy(20);
 
             // Needed to init the task tracker, if we're not on a debug build
-            var tracker = Service<TaskTracker>.GetNullable() ?? Service<TaskTracker>.Set();
+            Service<TaskTracker>.Get().Enable();
 
             for (var i = 0; i < TaskTracker.Tasks.Count; i++)
             {

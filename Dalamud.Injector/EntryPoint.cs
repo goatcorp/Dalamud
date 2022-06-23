@@ -83,8 +83,11 @@ namespace Dalamud.Injector
             }
 
             startInfo = ExtractAndInitializeStartInfoFromArguments(startInfo, args);
-            args.Remove("--console"); // Remove "console" flag, already handled
-            args.Remove("--etw"); // Remove "etw" flag, already handled
+            // Remove already handled arguments
+            args.Remove("--console");
+            args.Remove("--msgbox1");
+            args.Remove("--msgbox2");
+            args.Remove("--etw");
 
             var mainCommand = args[1].ToLowerInvariant();
             if (mainCommand.Length > 0 && mainCommand.Length <= 6 && "inject"[..mainCommand.Length] == mainCommand)
@@ -311,7 +314,8 @@ namespace Dalamud.Injector
             startInfo.BootLogPath = GetLogPath("dalamud.boot");
             startInfo.BootEnabledGameFixes = new List<string> { "prevent_devicechange_crashes", "disable_game_openprocess_access_check", "redirect_openprocess" };
             startInfo.BootDotnetOpenProcessHookMode = 0;
-            // startInfo.BootWaitMessageBox = 2;
+            startInfo.BootWaitMessageBox |= args.Contains("--msgbox1") ? 1 : 0;
+            startInfo.BootWaitMessageBox |= args.Contains("--msgbox2") ? 2 : 0;
             // startInfo.BootUnhookDlls = new List<string>() { "kernel32.dll", "ntdll.dll", "user32.dll" };
 
             return startInfo;
@@ -349,6 +353,7 @@ namespace Dalamud.Injector
             Console.WriteLine("Verbose logging:\t[-v]");
             Console.WriteLine("Show Console:\t[--console]");
             Console.WriteLine("Enable ETW:\t[--etw]");
+            Console.WriteLine("Show messagebox:\t[--msgbox1], [--msgbox2]");
 
             return 0;
         }

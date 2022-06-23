@@ -5,14 +5,15 @@ namespace Dalamud.Plugin.Ipc.Internal
     /// <summary>
     /// This class facilitates inter-plugin communication.
     /// </summary>
-    internal class CallGate
+    internal class CallGate : IEarlyLoadableServiceObject
     {
         private readonly Dictionary<string, CallGateChannel> gates = new();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CallGate"/> class.
         /// </summary>
-        internal CallGate()
+        /// <param name="tag">Tag.</param>
+        internal CallGate(ServiceManager.Tag tag)
         {
         }
 

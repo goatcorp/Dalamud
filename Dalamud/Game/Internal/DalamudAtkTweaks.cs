@@ -23,7 +23,7 @@ namespace Dalamud.Game.Internal
     /// <summary>
     /// This class implements in-game Dalamud options in the in-game System menu.
     /// </summary>
-    internal sealed unsafe partial class DalamudAtkTweaks
+    internal sealed unsafe partial class DalamudAtkTweaks : IEarlyLoadableServiceObject
     {
         private readonly AtkValueChangeType atkValueChangeType;
         private readonly AtkValueSetString atkValueSetString;
@@ -40,7 +40,8 @@ namespace Dalamud.Game.Internal
         /// <summary>
         /// Initializes a new instance of the <see cref="DalamudAtkTweaks"/> class.
         /// </summary>
-        public DalamudAtkTweaks()
+        /// <param name="tag">Tag.</param>
+        public DalamudAtkTweaks(ServiceManager.Tag tag)
         {
             var sigScanner = Service<SigScanner>.Get();
 

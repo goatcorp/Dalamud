@@ -44,7 +44,7 @@ namespace Dalamud.Interface.Internal
     /// <summary>
     /// This class manages interaction with the ImGui interface.
     /// </summary>
-    internal class InterfaceManager : IDisposable
+    internal class InterfaceManager : IDisposable, IServiceObject
     {
         private const float MinimumFallbackFontSizePt = 9.6f;  // Game's minimum AXIS font size
         private const float MinimumFallbackFontSizePx = MinimumFallbackFontSizePt * 4.0f / 3.0f;
@@ -75,10 +75,9 @@ namespace Dalamud.Interface.Internal
         /// <summary>
         /// Initializes a new instance of the <see cref="InterfaceManager"/> class.
         /// </summary>
-        public InterfaceManager()
+        /// <param name="tag">Tag.</param>
+        public InterfaceManager(ServiceManager.Tag tag)
         {
-            Service<NotificationManager>.Set();
-
             var scanner = Service<SigScanner>.Get();
 
             this.fontBuildSignal = new ManualResetEvent(false);
@@ -116,6 +115,8 @@ namespace Dalamud.Interface.Internal
             Log.Verbose($"SetCursor address 0x{setCursorAddress.ToInt64():X}");
             Log.Verbose($"Present address 0x{this.presentHook.Address.ToInt64():X}");
             Log.Verbose($"ResizeBuffers address 0x{this.resizeBuffersHook.Address.ToInt64():X}");
+
+            Service<Framework>.Get().RunOnFrameworkThread(this.Enable);
         }
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
@@ -1093,6 +1094,9 @@ namespace Dalamud.Interface.Internal
             var dalamudInterface = Service<DalamudInterface>.GetNullable();
             var gamepadState = Service<GamepadState>.GetNullable();
             var keyState = Service<KeyState>.GetNullable();
+
+            if (dalamudInterface == null || gamepadState == null || keyState == null)
+                return;
 
             // fix for keys in game getting stuck, if you were holding a game key (like run)
             // and then clicked on an imgui textbox - imgui would swallow the keyup event,

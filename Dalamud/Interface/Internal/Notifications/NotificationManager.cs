@@ -13,7 +13,7 @@ namespace Dalamud.Interface.Internal.Notifications
     /// Class handling notifications/toasts in ImGui.
     /// Ported from https://github.com/patrickcjk/imgui-notify.
     /// </summary>
-    internal class NotificationManager
+    internal class NotificationManager : IEarlyLoadableServiceObject
     {
         /// <summary>
         /// Value indicating the bottom-left X padding.
@@ -53,6 +53,14 @@ namespace Dalamud.Interface.Internal.Notifications
             ImGuiWindowFlags.NoNav | ImGuiWindowFlags.NoBringToFrontOnFocus | ImGuiWindowFlags.NoFocusOnAppearing;
 
         private readonly List<Notification> notifications = new();
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="NotificationManager"/> class.
+        /// </summary>
+        /// <param name="tag">Tag.</param>
+        internal NotificationManager(ServiceManager.Tag tag)
+        {
+        }
 
         /// <summary>
         /// Add a notification to the notification queue.

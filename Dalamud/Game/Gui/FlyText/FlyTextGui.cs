@@ -16,7 +16,7 @@ namespace Dalamud.Game.Gui.FlyText
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    public sealed class FlyTextGui : IDisposable
+    public sealed class FlyTextGui : IDisposable, IServiceObject
     {
         /// <summary>
         /// The native function responsible for adding fly text to the UI. See <see cref="FlyTextGuiAddressResolver.AddFlyText"/>.
@@ -31,7 +31,8 @@ namespace Dalamud.Game.Gui.FlyText
         /// <summary>
         /// Initializes a new instance of the <see cref="FlyTextGui"/> class.
         /// </summary>
-        internal FlyTextGui()
+        /// <param name="tag">Tag.</param>
+        internal FlyTextGui(ServiceManager.Tag tag)
         {
             this.Address = new FlyTextGuiAddressResolver();
             this.Address.Setup();

@@ -14,7 +14,7 @@ namespace Dalamud.Game.ClientState.Aetherytes
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    public sealed partial class AetheryteList
+    public sealed partial class AetheryteList : IEarlyLoadableServiceObject
     {
         private readonly ClientStateAddressResolver address;
         private readonly UpdateAetheryteListDelegate updateAetheryteListFunc;
@@ -22,10 +22,10 @@ namespace Dalamud.Game.ClientState.Aetherytes
         /// <summary>
         /// Initializes a new instance of the <see cref="AetheryteList"/> class.
         /// </summary>
-        /// <param name="addressResolver">Client state address resolver.</param>
-        internal AetheryteList(ClientStateAddressResolver addressResolver)
+        /// <param name="tag">Tag.</param>
+        internal AetheryteList(ServiceManager.Tag tag)
         {
-            this.address = addressResolver;
+            this.address = Service<ClientState>.Get().AddressResolver;
             this.updateAetheryteListFunc = Marshal.GetDelegateForFunctionPointer<UpdateAetheryteListDelegate>(this.address.UpdateAetheryteList);
 
             Log.Verbose($"Teleport address 0x{this.address.Telepo.ToInt64():X}");

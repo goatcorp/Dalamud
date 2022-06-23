@@ -14,7 +14,7 @@ namespace Dalamud.Game.Gui.Toast
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    public sealed partial class ToastGui : IDisposable
+    public sealed partial class ToastGui : IDisposable, IServiceObject
     {
         private const uint QuestToastCheckmarkMagic = 60081;
 
@@ -31,7 +31,8 @@ namespace Dalamud.Game.Gui.Toast
         /// <summary>
         /// Initializes a new instance of the <see cref="ToastGui"/> class.
         /// </summary>
-        internal ToastGui()
+        /// <param name="tag">Tag.</param>
+        internal ToastGui(ServiceManager.Tag tag)
         {
             this.address = new ToastGuiAddressResolver();
             this.address.Setup();

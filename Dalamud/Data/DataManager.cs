@@ -26,7 +26,7 @@ namespace Dalamud.Data
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    public sealed class DataManager : IDisposable
+    public sealed class DataManager : IDisposable, IServiceObject
     {
         private const string IconFileFormat = "ui/icon/{0:D3}000/{1}{2:D6}.tex";
 
@@ -36,12 +36,83 @@ namespace Dalamud.Data
         /// <summary>
         /// Initializes a new instance of the <see cref="DataManager"/> class.
         /// </summary>
-        internal DataManager()
+        /// <param name="tag">Tag.</param>
+        internal DataManager(ServiceManager.Tag tag)
         {
             this.Language = Service<DalamudStartInfo>.Get().Language;
 
             // Set up default values so plugins do not null-reference when data is being loaded.
             this.ClientOpCodes = this.ServerOpCodes = new ReadOnlyDictionary<string, ushort>(new Dictionary<string, ushort>());
+
+            var baseDir = Service<Dalamud>.Get().AssetDirectory.FullName;
+            try
+            {
+                Log.Verbose("Starting data load...");
+
+                var zoneOpCodeDict = JsonConvert.DeserializeObject<Dictionary<string, ushort>>(
+                    File.ReadAllText(Path.Combine(baseDir, "UIRes", "serveropcode.json")));
+                this.ServerOpCodes = new ReadOnlyDictionary<string, ushort>(zoneOpCodeDict);
+
+                Log.Verbose("Loaded {0} ServerOpCodes.", zoneOpCodeDict.Count);
+
+                var clientOpCodeDict = JsonConvert.DeserializeObject<Dictionary<string, ushort>>(
+                    File.ReadAllText(Path.Combine(baseDir, "UIRes", "clientopcode.json")));
+                this.ClientOpCodes = new ReadOnlyDictionary<string, ushort>(clientOpCodeDict);
+
+                Log.Verbose("Loaded {0} ClientOpCodes.", clientOpCodeDict.Count);
+
+                using (Timings.Start("Lumina Init"))
+                {
+                    var luminaOptions = new LuminaOptions
+                    {
+                        LoadMultithreaded = true,
+                        CacheFileResources = true,
+#if DEBUG
+                        PanicOnSheetChecksumMismatch = true,
+#else
+                        PanicOnSheetChecksumMismatch = false,
+#endif
+                        DefaultExcelLanguage = this.Language.ToLumina(),
+                    };
+
+                    var processModule = Process.GetCurrentProcess().MainModule;
+                    if (processModule != null)
+                    {
+                        this.GameData = new GameData(Path.Combine(Path.GetDirectoryName(processModule.FileName), "sqpack"), luminaOptions);
+                    }
+                    else
+                    {
+                        throw new Exception("Could not main module.");
+                    }
+
+                    Log.Information("Lumina is ready: {0}", this.GameData.DataPath);
+                }
+
+                this.IsDataReady = true;
+
+                this.luminaCancellationTokenSource = new();
+
+                var luminaCancellationToken = this.luminaCancellationTokenSource.Token;
+                this.luminaResourceThread = new(() =>
+                {
+                    while (!luminaCancellationToken.IsCancellationRequested)
+                    {
+                        if (this.GameData.FileHandleManager.HasPendingFileLoads)
+                        {
+                            this.GameData.ProcessFileHandleQueue();
+                        }
+                        else
+                        {
+                            Thread.Sleep(5);
+                        }
+                    }
+                });
+                this.luminaResourceThread.Start();
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Could not download data.");
+            }
         }
 
         /// <summary>
@@ -275,82 +346,6 @@ namespace Dalamud.Data
         void IDisposable.Dispose()
         {
             this.luminaCancellationTokenSource.Cancel();
-        }
-
-        /// <summary>
-        /// Initialize this data manager.
-        /// </summary>
-        /// <param name="baseDir">The directory to load data from.</param>
-        internal void Initialize(string baseDir)
-        {
-            try
-            {
-                Log.Verbose("Starting data load...");
-
-                var zoneOpCodeDict = JsonConvert.DeserializeObject<Dictionary<string, ushort>>(
-                    File.ReadAllText(Path.Combine(baseDir, "UIRes", "serveropcode.json")));
-                this.ServerOpCodes = new ReadOnlyDictionary<string, ushort>(zoneOpCodeDict);
-
-                Log.Verbose("Loaded {0} ServerOpCodes.", zoneOpCodeDict.Count);
-
-                var clientOpCodeDict = JsonConvert.DeserializeObject<Dictionary<string, ushort>>(
-                    File.ReadAllText(Path.Combine(baseDir, "UIRes", "clientopcode.json")));
-                this.ClientOpCodes = new ReadOnlyDictionary<string, ushort>(clientOpCodeDict);
-
-                Log.Verbose("Loaded {0} ClientOpCodes.", clientOpCodeDict.Count);
-
-                using (Timings.Start("Lumina Init"))
-                {
-                    var luminaOptions = new LuminaOptions
-                    {
-                        LoadMultithreaded = true,
-                        CacheFileResources = true,
-#if DEBUG
-                        PanicOnSheetChecksumMismatch = true,
-#else
-                        PanicOnSheetChecksumMismatch = false,
-#endif
-                        DefaultExcelLanguage = this.Language.ToLumina(),
-                    };
-
-                    var processModule = Process.GetCurrentProcess().MainModule;
-                    if (processModule != null)
-                    {
-                        this.GameData = new GameData(Path.Combine(Path.GetDirectoryName(processModule.FileName), "sqpack"), luminaOptions);
-                    }
-                    else
-                    {
-                        throw new Exception("Could not main module.");
-                    }
-
-                    Log.Information("Lumina is ready: {0}", this.GameData.DataPath);
-                }
-
-                this.IsDataReady = true;
-
-                this.luminaCancellationTokenSource = new();
-
-                var luminaCancellationToken = this.luminaCancellationTokenSource.Token;
-                this.luminaResourceThread = new(() =>
-                {
-                    while (!luminaCancellationToken.IsCancellationRequested)
-                    {
-                        if (this.GameData.FileHandleManager.HasPendingFileLoads)
-                        {
-                            this.GameData.ProcessFileHandleQueue();
-                        }
-                        else
-                        {
-                            Thread.Sleep(5);
-                        }
-                    }
-                });
-                this.luminaResourceThread.Start();
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Could not download data.");
-            }
         }
     }
 }

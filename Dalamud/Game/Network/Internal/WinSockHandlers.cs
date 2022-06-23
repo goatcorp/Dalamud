@@ -9,14 +9,15 @@ namespace Dalamud.Game.Network.Internal
     /// <summary>
     /// This class enables TCP optimizations in the game socket for better performance.
     /// </summary>
-    internal sealed class WinSockHandlers : IDisposable
+    internal sealed class WinSockHandlers : IDisposable, IServiceObject
     {
         private Hook<SocketDelegate> ws2SocketHook;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="WinSockHandlers"/> class.
         /// </summary>
-        public WinSockHandlers()
+        /// <param name="tag">Tag.</param>
+        public WinSockHandlers(ServiceManager.Tag tag)
         {
             this.ws2SocketHook = Hook<SocketDelegate>.FromSymbol("ws2_32.dll", "socket", this.OnSocket, true);
             this.ws2SocketHook?.Enable();

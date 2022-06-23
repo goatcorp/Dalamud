@@ -18,13 +18,15 @@ namespace Dalamud.Interface.Internal
     /// <summary>
     /// Class handling Dalamud core commands.
     /// </summary>
-    internal class DalamudCommands
+    internal class DalamudCommands : IEarlyLoadableServiceObject
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="DalamudCommands"/> class.
         /// </summary>
-        public DalamudCommands()
+        /// <param name="tag">Tag.</param>
+        public DalamudCommands(ServiceManager.Tag tag)
         {
+            this.SetupCommands();
         }
 
         /// <summary>

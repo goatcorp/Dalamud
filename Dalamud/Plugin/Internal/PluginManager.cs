@@ -19,7 +19,9 @@ using Dalamud.Game.Text;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Exceptions;
 using Dalamud.Plugin.Internal.Types;
+using Dalamud.Support;
 using Dalamud.Utility;
+using Dalamud.Utility.Timing;
 using Newtonsoft.Json;
 
 namespace Dalamud.Plugin.Internal;
@@ -27,7 +29,7 @@ namespace Dalamud.Plugin.Internal;
 /// <summary>
 /// Class responsible for loading and unloading plugins.
 /// </summary>
-internal partial class PluginManager : IDisposable
+internal partial class PluginManager : IEarlyLoadableServiceObject, IDisposable
 {
     /// <summary>
     /// The current Dalamud API level, used to handle breaking changes. Only plugins with this level will be loaded.
@@ -43,7 +45,8 @@ internal partial class PluginManager : IDisposable
     /// <summary>
     /// Initializes a new instance of the <see cref="PluginManager"/> class.
     /// </summary>
-    public PluginManager()
+    /// <param name="tag">Tag.</param>
+    public PluginManager(ServiceManager.Tag tag)
     {
         var startInfo = Service<DalamudStartInfo>.Get();
         var configuration = Service<DalamudConfiguration>.Get();
@@ -70,6 +73,35 @@ internal partial class PluginManager : IDisposable
         this.bannedPlugins = JsonConvert.DeserializeObject<BannedPlugin[]>(bannedPluginsJson) ?? Array.Empty<BannedPlugin>();
 
         this.ApplyPatches();
+
+        try
+        {
+            using (Timings.Start("PM Load Plugin Repos"))
+            {
+                _ = this.SetPluginReposFromConfigAsync(false);
+                this.OnInstalledPluginsChanged += () => new Task(Troubleshooting.LogTroubleshooting).Start();
+
+                Log.Information("[T3] PM repos OK!");
+            }
+
+            using (Timings.Start("PM Cleanup Plugins"))
+            {
+                this.CleanupPlugins();
+                Log.Information("[T3] PMC OK!");
+            }
+
+            using (Timings.Start("PM Load Sync Plugins"))
+            {
+                this.LoadAllPlugins();
+                Log.Information("[T3] PML OK!");
+            }
+
+            new Task(Troubleshooting.LogTroubleshooting).Start();
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Plugin load failed");
+        }
     }
 
     /// <summary>

@@ -11,7 +11,7 @@ namespace Dalamud.Game.ClientState.Conditions
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    public sealed partial class Condition
+    public sealed partial class Condition : IEarlyLoadableServiceObject
     {
         /// <summary>
         /// The current max number of conditions. You can get this just by looking at the condition sheet and how many rows it has.
@@ -23,9 +23,10 @@ namespace Dalamud.Game.ClientState.Conditions
         /// <summary>
         /// Initializes a new instance of the <see cref="Condition"/> class.
         /// </summary>
-        /// <param name="resolver">The ClientStateAddressResolver instance.</param>
-        internal Condition(ClientStateAddressResolver resolver)
+        /// <param name="tag">Tag.</param>
+        internal Condition(ServiceManager.Tag tag)
         {
+            var resolver = Service<ClientState>.Get().AddressResolver;
             this.Address = resolver.ConditionFlags;
         }
 

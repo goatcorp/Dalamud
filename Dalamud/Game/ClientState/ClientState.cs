@@ -27,7 +27,7 @@ namespace Dalamud.Game.ClientState
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    public sealed class ClientState : IDisposable
+    public sealed class ClientState : IDisposable, IServiceObject
     {
         private readonly ClientStateAddressResolver address;
         private readonly Hook<SetupTerritoryTypeDelegate> setupTerritoryTypeHook;
@@ -36,10 +36,16 @@ namespace Dalamud.Game.ClientState
         private bool lastFramePvP = false;
 
         /// <summary>
+        /// Gets client state address resolver.
+        /// </summary>
+        internal ClientStateAddressResolver AddressResolver => this.address;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="ClientState"/> class.
         /// Set up client state access.
         /// </summary>
-        internal ClientState()
+        /// <param name="tag">Tag.</param>
+        internal ClientState(ServiceManager.Tag tag)
         {
             this.address = new ClientStateAddressResolver();
             this.address.Setup();
@@ -47,26 +53,6 @@ namespace Dalamud.Game.ClientState
             Log.Verbose("===== C L I E N T  S T A T E =====");
 
             this.ClientLanguage = Service<DalamudStartInfo>.Get().Language;
-
-            Service<ObjectTable>.Set(this.address);
-
-            Service<FateTable>.Set(this.address);
-
-            Service<PartyList>.Set(this.address);
-
-            Service<BuddyList>.Set(this.address);
-
-            Service<JobGauges>.Set(this.address);
-
-            Service<KeyState>.Set(this.address);
-
-            Service<GamepadState>.Set(this.address);
-
-            Service<Conditions.Condition>.Set(this.address);
-
-            Service<TargetManager>.Set(this.address);
-
-            Service<AetheryteList>.Set(this.address);
 
             Log.Verbose($"SetupTerritoryType address 0x{this.address.SetupTerritoryType.ToInt64():X}");
 

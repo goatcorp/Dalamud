@@ -35,7 +35,7 @@ namespace Dalamud.Interface.Internal
     /// <summary>
     /// This plugin implements all of the Dalamud interface separately, to allow for reloading of the interface and rapid prototyping.
     /// </summary>
-    internal class DalamudInterface : IDisposable
+    internal class DalamudInterface : IDisposable, IServiceObject
     {
         private static readonly ModuleLog Log = new("DUI");
 
@@ -78,7 +78,8 @@ namespace Dalamud.Interface.Internal
         /// <summary>
         /// Initializes a new instance of the <see cref="DalamudInterface"/> class.
         /// </summary>
-        public DalamudInterface()
+        /// <param name="tag">Tag.</param>
+        public DalamudInterface(ServiceManager.Tag tag)
         {
             var configuration = Service<DalamudConfiguration>.Get();
             var interfaceManager = Service<InterfaceManager>.Get();

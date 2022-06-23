@@ -16,7 +16,7 @@ namespace Dalamud.Configuration.Internal
     /// Class containing Dalamud settings.
     /// </summary>
     [Serializable]
-    internal sealed class DalamudConfiguration
+    internal sealed class DalamudConfiguration : IProvidedServiceObject
     {
         /// <summary>
         /// Currently used beta key for Dalamud staging builds.

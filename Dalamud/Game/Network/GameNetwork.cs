@@ -14,7 +14,7 @@ namespace Dalamud.Game.Network
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    public sealed class GameNetwork : IDisposable
+    public sealed class GameNetwork : IDisposable, IServiceObject
     {
         private readonly GameNetworkAddressResolver address;
         private readonly Hook<ProcessZonePacketDownDelegate> processZonePacketDownHook;
@@ -26,7 +26,8 @@ namespace Dalamud.Game.Network
         /// <summary>
         /// Initializes a new instance of the <see cref="GameNetwork"/> class.
         /// </summary>
-        internal GameNetwork()
+        /// <param name="tag">Tag.</param>
+        internal GameNetwork(ServiceManager.Tag tag)
         {
             this.address = new GameNetworkAddressResolver();
             this.address.Setup();

@@ -55,11 +55,13 @@ namespace Dalamud.Game
             this.SetupInternal(scanner);
 
             var className = this.GetType().Name;
-            DebugScannedValues[className] = new List<(string, IntPtr)>();
+            var list = new List<(string, IntPtr)>();
+            lock (DebugScannedValues)
+                DebugScannedValues[className] = list;
 
             foreach (var property in this.GetType().GetProperties().Where(x => x.PropertyType == typeof(IntPtr)))
             {
-                DebugScannedValues[className].Add((property.Name, (IntPtr)property.GetValue(this)));
+                list.Add((property.Name, (IntPtr)property.GetValue(this)));
             }
 
             this.IsResolved = true;

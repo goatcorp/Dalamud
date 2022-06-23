@@ -15,7 +15,7 @@ namespace Dalamud.Game.Gui.PartyFinder
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    public sealed class PartyFinderGui : IDisposable
+    public sealed class PartyFinderGui : IDisposable, IServiceObject
     {
         private readonly PartyFinderAddressResolver address;
         private readonly IntPtr memory;
@@ -25,7 +25,8 @@ namespace Dalamud.Game.Gui.PartyFinder
         /// <summary>
         /// Initializes a new instance of the <see cref="PartyFinderGui"/> class.
         /// </summary>
-        internal PartyFinderGui()
+        /// <param name="tag">Tag.</param>
+        internal PartyFinderGui(ServiceManager.Tag tag)
         {
             this.address = new PartyFinderAddressResolver();
             this.address.Setup();

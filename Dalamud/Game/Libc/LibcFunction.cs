@@ -12,7 +12,7 @@ namespace Dalamud.Game.Libc
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    public sealed class LibcFunction
+    public sealed class LibcFunction : IEarlyLoadableServiceObject
     {
         private readonly LibcFunctionAddressResolver address;
         private readonly StdStringFromCStringDelegate stdStringCtorCString;
@@ -21,7 +21,8 @@ namespace Dalamud.Game.Libc
         /// <summary>
         /// Initializes a new instance of the <see cref="LibcFunction"/> class.
         /// </summary>
-        public LibcFunction()
+        /// <param name="tag">Tag.</param>
+        internal LibcFunction(ServiceManager.Tag tag)
         {
             this.address = new LibcFunctionAddressResolver();
             this.address.Setup();

@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-
+using Dalamud.Configuration.Internal;
 using Serilog;
 
 namespace Dalamud.Game.Internal
@@ -8,7 +8,7 @@ namespace Dalamud.Game.Internal
     /// <summary>
     /// This class disables anti-debug functionality in the game client.
     /// </summary>
-    internal sealed partial class AntiDebug
+    internal sealed partial class AntiDebug : IEarlyLoadableServiceObject
     {
         private readonly byte[] nop = new byte[] { 0x31, 0xC0, 0x90, 0x90, 0x90, 0x90 };
         private byte[] original;
@@ -17,7 +17,8 @@ namespace Dalamud.Game.Internal
         /// <summary>
         /// Initializes a new instance of the <see cref="AntiDebug"/> class.
         /// </summary>
-        public AntiDebug()
+        /// <param name="tag">Tag.</param>
+        internal AntiDebug(ServiceManager.Tag tag)
         {
             var scanner = Service<SigScanner>.Get();
 
@@ -31,6 +32,16 @@ namespace Dalamud.Game.Internal
             }
 
             Log.Verbose($"Debug check address 0x{this.debugCheckAddress.ToInt64():X}");
+
+            if (!this.IsEnabled)
+            {
+#if DEBUG
+                this.Enable();
+#else
+                if (Service<DalamudConfiguration>.Get().IsAntiAntiDebugEnabled)
+                    this.Enable();
+#endif
+            }
         }
 
         /// <summary>

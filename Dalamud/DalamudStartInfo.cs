@@ -10,7 +10,7 @@ namespace Dalamud
     /// Struct containing information needed to initialize Dalamud.
     /// </summary>
     [Serializable]
-    public record DalamudStartInfo
+    public record DalamudStartInfo : IProvidedServiceObject
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="DalamudStartInfo"/> class.

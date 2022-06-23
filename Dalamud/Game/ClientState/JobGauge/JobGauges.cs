@@ -14,17 +14,17 @@ namespace Dalamud.Game.ClientState.JobGauge
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    public class JobGauges
+    public class JobGauges : IEarlyLoadableServiceObject
     {
         private Dictionary<Type, JobGaugeBase> cache = new();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="JobGauges"/> class.
         /// </summary>
-        /// <param name="addressResolver">Address resolver with the JobGauge memory location(s).</param>
-        public JobGauges(ClientStateAddressResolver addressResolver)
+        /// <param name="tag">Tag.</param>
+        internal JobGauges(ServiceManager.Tag tag)
         {
-            this.Address = addressResolver.JobGaugeData;
+            this.Address = Service<ClientState>.Get().AddressResolver.JobGaugeData;
 
             Log.Verbose($"JobGaugeData address 0x{this.Address.ToInt64():X}");
         }

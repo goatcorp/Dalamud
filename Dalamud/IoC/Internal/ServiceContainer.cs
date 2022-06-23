@@ -11,11 +11,20 @@ namespace Dalamud.IoC.Internal
     /// <summary>
     /// A simple singleton-only IOC container that provides (optional) version-based dependency resolution.
     /// </summary>
-    internal class ServiceContainer : IServiceProvider
+    internal class ServiceContainer : IEarlyLoadableServiceObject, IServiceProvider
     {
         private static readonly ModuleLog Log = new("SERVICECONTAINER");
 
         private readonly Dictionary<Type, ObjectInstance> instances = new();
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ServiceContainer"/> class.
+        /// </summary>
+        /// <param name="tag">Tag.</param>
+        // ReSharper disable once UnusedParameter.Local
+        internal ServiceContainer(ServiceManager.Tag tag)
+        {
+        }
 
         /// <summary>
         /// Register a singleton object of any type into the current IOC container.

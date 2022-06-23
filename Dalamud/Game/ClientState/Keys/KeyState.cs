@@ -22,7 +22,7 @@ namespace Dalamud.Game.ClientState.Keys
     /// </remarks>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    public class KeyState
+    public class KeyState : IEarlyLoadableServiceObject
     {
         // The array is accessed in a way that this limit doesn't appear to exist
         // but there is other state data past this point, and keys beyond here aren't
@@ -35,11 +35,11 @@ namespace Dalamud.Game.ClientState.Keys
         /// <summary>
         /// Initializes a new instance of the <see cref="KeyState"/> class.
         /// </summary>
-        /// <param name="addressResolver">The ClientStateAddressResolver instance.</param>
-        public KeyState(ClientStateAddressResolver addressResolver)
+        /// <param name="tag">Tag.</param>
+        internal KeyState(ServiceManager.Tag tag)
         {
             var moduleBaseAddress = Service<SigScanner>.Get().Module.BaseAddress;
-
+            var addressResolver = Service<ClientState>.Get().AddressResolver;
             this.bufferBase = moduleBaseAddress + Marshal.ReadInt32(addressResolver.KeyboardState);
             this.indexBase = moduleBaseAddress + Marshal.ReadInt32(addressResolver.KeyboardStateIndexArray);
 

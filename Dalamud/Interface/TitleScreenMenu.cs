@@ -12,7 +12,7 @@ namespace Dalamud.Interface
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    public class TitleScreenMenu
+    public class TitleScreenMenu : IEarlyLoadableServiceObject
     {
         /// <summary>
         /// Gets the texture size needed for title screen menu logos.
@@ -20,6 +20,14 @@ namespace Dalamud.Interface
         internal const uint TextureSize = 64;
 
         private readonly List<TitleScreenMenuEntry> entries = new();
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TitleScreenMenu"/> class.
+        /// </summary>
+        /// <param name="tag">Tag.</param>
+        internal TitleScreenMenu(ServiceManager.Tag tag)
+        {
+        }
 
         /// <summary>
         /// Gets the list of entries in the title screen menu.

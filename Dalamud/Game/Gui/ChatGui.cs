@@ -21,7 +21,7 @@ namespace Dalamud.Game.Gui
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    public sealed class ChatGui : IDisposable
+    public sealed class ChatGui : IDisposable, IServiceObject
     {
         private readonly ChatGuiAddressResolver address;
 
@@ -37,8 +37,8 @@ namespace Dalamud.Game.Gui
         /// <summary>
         /// Initializes a new instance of the <see cref="ChatGui"/> class.
         /// </summary>
-        /// <param name="baseAddress">The base address of the ChatManager.</param>
-        internal ChatGui()
+        /// <param name="tag">Tag.</param>
+        internal ChatGui(ServiceManager.Tag tag)
         {
             this.address = new ChatGuiAddressResolver();
             this.address.Setup();

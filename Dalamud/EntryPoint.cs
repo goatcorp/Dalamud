@@ -148,9 +148,6 @@ namespace Dalamud
                 var dalamud = new Dalamud(info, levelSwitch, finishSignal, configuration, mainThreadContinueEvent);
                 Log.Information("This is Dalamud - Core: {GitHash}, CS: {CsGitHash}", Util.GetGitHash(), Util.GetGitHashClientStructs());
 
-                // Run session
-                dalamud.LoadTier1();
-
                 dalamud.WaitForUnload();
 
                 dalamud.Dispose();

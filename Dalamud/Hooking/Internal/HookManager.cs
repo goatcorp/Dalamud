@@ -13,14 +13,15 @@ namespace Dalamud.Hooking.Internal
     /// <summary>
     /// This class manages the final disposition of hooks, cleaning up any that have not reverted their changes.
     /// </summary>
-    internal class HookManager : IDisposable
+    internal class HookManager : IDisposable, IServiceObject
     {
         private static readonly ModuleLog Log = new("HM");
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HookManager"/> class.
         /// </summary>
-        public HookManager()
+        /// <param name="tag">Tag.</param>
+        internal HookManager(ServiceManager.Tag tag)
         {
         }
 

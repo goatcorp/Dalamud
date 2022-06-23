@@ -24,16 +24,12 @@ namespace Dalamud.Game
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    public sealed class Framework : IDisposable
+    public sealed class Framework : IDisposable, IServiceObject
     {
         private static Stopwatch statsStopwatch = new();
 
         private readonly List<RunOnNextTickTaskBase> runOnNextTickTaskList = new();
         private readonly Stopwatch updateStopwatch = new();
-
-        private bool tier2Initialized = false;
-        private bool tier3Initialized = false;
-        private bool tierInitError = false;
 
         private Hook<OnUpdateDetour> updateHook;
         private Hook<OnDestroyDetour> freeHook;
@@ -44,7 +40,8 @@ namespace Dalamud.Game
         /// <summary>
         /// Initializes a new instance of the <see cref="Framework"/> class.
         /// </summary>
-        internal Framework()
+        /// <param name="tag">Tag.</param>
+        internal Framework(ServiceManager.Tag tag)
         {
             this.Address = new FrameworkAddressResolver();
             this.Address.Setup();
@@ -52,6 +49,13 @@ namespace Dalamud.Game
             this.updateHook = new Hook<OnUpdateDetour>(this.Address.TickAddress, this.HandleFrameworkUpdate);
             this.freeHook = new Hook<OnDestroyDetour>(this.Address.FreeAddress, this.HandleFrameworkFree);
             this.destroyHook = new Hook<OnRealDestroyDelegate>(this.Address.DestroyAddress, this.HandleFrameworkDestroy);
+
+            Service<GameGui>.Get().Enable();
+            Service<GameNetwork>.Get().Enable();
+
+            this.updateHook.Enable();
+            this.freeHook.Enable();
+            this.destroyHook.Enable();
         }
 
         /// <summary>
@@ -122,20 +126,6 @@ namespace Dalamud.Game
         /// Gets or sets a value indicating whether to dispatch update events.
         /// </summary>
         internal bool DispatchUpdateEvents { get; set; } = true;
-
-        /// <summary>
-        /// Enable this module.
-        /// </summary>
-        public void Enable()
-        {
-            Service<LibcFunction>.Set();
-            Service<GameGui>.Get().Enable();
-            Service<GameNetwork>.Get().Enable();
-
-            this.updateHook.Enable();
-            this.freeHook.Enable();
-            this.destroyHook.Enable();
-        }
 
         /// <summary>
         /// Run given function right away if this function has been called from game's Framework.Update thread, or otherwise run on next Framework.Update call.
@@ -238,39 +228,21 @@ namespace Dalamud.Game
 
         private bool HandleFrameworkUpdate(IntPtr framework)
         {
-            // If any of the tier loads failed, just go to the original code.
-            if (this.tierInitError)
-                goto original;
-
             this.frameworkUpdateThread ??= Thread.CurrentThread;
 
-            var dalamud = Service<Dalamud>.Get();
-
-            // If this is the first time we are running this loop, we need to init Dalamud subsystems synchronously
-            if (!this.tier2Initialized)
-            {
-                this.tier2Initialized = dalamud.LoadTier2();
-                if (!this.tier2Initialized)
-                    this.tierInitError = true;
-
-                goto original;
-            }
-
-            // Plugins expect the interface to be available and ready, so we need to wait with plugins until we have init'd ImGui
-            if (!this.tier3Initialized && Service<InterfaceManager>.GetNullable()?.IsReady == true)
-            {
-                this.tier3Initialized = dalamud.LoadTier3();
-                if (!this.tier3Initialized)
-                    this.tierInitError = true;
-
-                goto original;
-            }
+            ThreadSafety.MarkMainThread();
 
             try
             {
-                Service<ChatGui>.Get().UpdateQueue();
-                Service<ToastGui>.Get().UpdateQueue();
-                Service<GameNetwork>.Get().UpdateQueue();
+                var chatGui = Service<ChatGui>.GetNullable();
+                var toastGui = Service<ToastGui>.GetNullable();
+                var gameNetwork = Service<GameNetwork>.GetNullable();
+                if (chatGui == null || toastGui == null || gameNetwork == null)
+                    goto original;
+;
+                chatGui!.UpdateQueue();
+                toastGui.UpdateQueue();
+                gameNetwork.UpdateQueue();
             }
             catch (Exception ex)
             {
