@@ -4,7 +4,7 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
-
+using System.Threading.Tasks;
 using Dalamud.Data;
 using Dalamud.Interface.Internal;
 using Dalamud.Utility.Timing;
@@ -50,30 +50,24 @@ namespace Dalamud.Interface.GameFonts
         {
             var dataManager = Service<DataManager>.Get();
 
-            using (Timings.Start("Load FDTs"))
+            using (Timings.Start("Getting fdt data"))
             {
-                this.fdts = FontNames.Select(fontName =>
-                {
-                    var fileName = $"common/font/{fontName}.fdt";
-                    using (Timings.Start($"Loading FDT: {fileName}"))
-                    {
-                        var file = fontName == null ? null : dataManager.GetFile(fileName);
-                        return file == null ? null : new FdtReader(file!.Data);
-                    }
-                }).ToArray();
+                this.fdts = FontNames.Select(fontName => new FdtReader(dataManager.GetFile($"common/font/{fontName}.fdt")!.Data)).ToArray();
             }
 
             using (Timings.Start("Getting texture data"))
             {
-                this.texturePixels = Enumerable.Range(1, 1 + this.fdts.Where(x => x != null).Select(x => x.Glyphs.Select(x => x.TextureFileIndex).Max()).Max()).Select(
-                    x =>
-                    {
-                        var fileName = $"common/font/font{x}.tex";
-                        using (Timings.Start($"Get tex: {fileName}"))
-                        {
-                            return dataManager.GameData.GetFile<TexFile>(fileName)!.ImageData;
-                        }
-                    }).ToList();
+                var texTasks = Enumerable
+                               .Range(1, 1 + this.fdts
+                                                 .Where(x => x != null)
+                                                 .Select(x => x.Glyphs.Select(y => y.TextureFileIndex).Max())
+                                                 .Max())
+                               .Select(x => dataManager.GetFile<TexFile>($"common/font/font{x}.tex")!)
+                               .Select(x => new Task<byte[]>(() => x.ImageData!))
+                               .ToArray();
+                foreach (var task in texTasks)
+                    task.Start();
+                this.texturePixels = texTasks.Select(x => x.GetAwaiter().GetResult()).ToList();
             }
 
             this.interfaceManager = Service<InterfaceManager>.Get();
