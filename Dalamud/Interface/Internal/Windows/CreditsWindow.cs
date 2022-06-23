@@ -104,6 +104,7 @@ Truci
 Haplo
 Franz
 aers
+philpax
 
 
 We use these awesome libraries:
@@ -144,10 +145,10 @@ Contribute at: https://github.com/goatsoft/Dalamud
 
         private readonly TextureWrap logoTexture;
         private readonly Stopwatch creditsThrottler;
-        private readonly GameFontHandle thankYouFont;
 
         private string creditsText;
 
+        private GameFontHandle? thankYouFont;
         private const string thankYouText = "Thank you!";
 
         /// <summary>
@@ -168,9 +169,6 @@ Contribute at: https://github.com/goatsoft/Dalamud
             this.PositionCondition = ImGuiCond.Always;
 
             this.BgAlpha = 0.8f;
-
-            var gfm = Service<GameFontManager>.Get();
-            this.thankYouFont = gfm.NewFontRef(new GameFontStyle(GameFontFamilyAndSize.TrumpGothic34));
         }
 
         /// <inheritdoc/>
@@ -183,8 +181,14 @@ Contribute at: https://github.com/goatsoft/Dalamud
 
             this.creditsText = string.Format(CreditsTextTempl, typeof(Dalamud).Assembly.GetName().Version, pluginCredits, Util.GetGitHashClientStructs());
 
-            Service<GameGui>.Get().SetBgm(132);
+            Service<GameGui>.Get().SetBgm(833);
             this.creditsThrottler.Restart();
+
+            if (this.thankYouFont == null)
+            {
+                var gfm = Service<GameFontManager>.Get();
+                this.thankYouFont = gfm.NewFontRef(new GameFontStyle(GameFontFamilyAndSize.TrumpGothic34));
+            }
         }
 
         /// <inheritdoc/>
@@ -244,14 +248,17 @@ Contribute at: https://github.com/goatsoft/Dalamud
 
             ImGuiHelpers.ScaledDummy(0, 40f);
 
-            ImGui.PushFont(this.thankYouFont.ImFont);
-            var thankYouLenX = ImGui.CalcTextSize(thankYouText).X;
+            if (this.thankYouFont != null)
+            {
+                ImGui.PushFont(this.thankYouFont.ImFont);
+                var thankYouLenX = ImGui.CalcTextSize(thankYouText).X;
 
-            ImGui.Dummy(new Vector2((windowX / 2) - (thankYouLenX / 2), 0f));
-            ImGui.SameLine();
-            ImGui.TextUnformatted(thankYouText);
+                ImGui.Dummy(new Vector2((windowX / 2) - (thankYouLenX / 2), 0f));
+                ImGui.SameLine();
+                ImGui.TextUnformatted(thankYouText);
 
-            ImGui.PopFont();
+                ImGui.PopFont();
+            }
 
             ImGuiHelpers.ScaledDummy(0, windowSize.Y + 50f);
 
