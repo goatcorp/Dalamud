@@ -29,7 +29,8 @@ namespace Dalamud
         /// <summary>
         /// Kicks off construction of services that can handle early loading.
         /// </summary>
-        public static void InitializeEarlyLoadableServices()
+        /// <returns>Task for initializing all services.</returns>
+        public static async Task InitializeEarlyLoadableServices()
         {
             Service<ServiceContainer>.Provide(new ServiceContainer());
 
@@ -68,46 +69,67 @@ namespace Dalamud
                                     null);
             }
 
-            Task.Run(async () =>
+            _ = Task.WhenAll(blockingEarlyLoadingServices).ContinueWith(x =>
             {
                 try
                 {
-                    var tasks = new List<Task>();
-                    while (dependencyServicesMap.Any())
+                    if (x.IsFaulted)
+                        BlockingServicesLoadedTaskCompletionSource.SetException(x.Exception!);
+                    else
+                        BlockingServicesLoadedTaskCompletionSource.SetResult();
+                }
+                catch (Exception)
+                {
+                    // don't care, as this means task result/exception has already been set
+                }
+            }).ConfigureAwait(false);
+
+            try
+            {
+                var tasks = new List<Task>();
+                while (dependencyServicesMap.Any())
+                {
+                    tasks.Clear();
+                    foreach (var (serviceType, dependencies) in dependencyServicesMap.ToList())
                     {
-                        foreach (var (serviceType, dependencies) in dependencyServicesMap.ToList())
-                        {
-                            if (!dependencies.All(
-                                    x => !getAsyncTaskMap.ContainsKey(x) || getAsyncTaskMap[x].IsCompleted))
-                                continue;
+                        if (!dependencies.All(
+                                x => !getAsyncTaskMap.ContainsKey(x) || getAsyncTaskMap[x].IsCompleted))
+                            continue;
 
-                            tasks.Add((Task)service.MakeGenericType(serviceType).InvokeMember(
-                                          "StartLoader",
-                                          BindingFlags.InvokeMethod | BindingFlags.Static | BindingFlags.Public,
-                                          null,
-                                          null,
-                                          null));
-                            dependencyServicesMap.Remove(serviceType);
-                        }
+                        tasks.Add((Task)service.MakeGenericType(serviceType).InvokeMember(
+                                      "StartLoader",
+                                      BindingFlags.InvokeMethod | BindingFlags.Static | BindingFlags.Public,
+                                      null,
+                                      null,
+                                      null));
+                        dependencyServicesMap.Remove(serviceType);
+                    }
 
-                        if (!tasks.Any())
-                            throw new InvalidOperationException("Unresolvable dependency cycle detected");
+                    if (!tasks.Any())
+                        throw new InvalidOperationException("Unresolvable dependency cycle detected");
 
-                        // This will (re)throw if any of the tasks has failed.
-                        await Task.WhenAll(tasks);
-
-                        if (blockingEarlyLoadingServices.All(x => x.IsCompleted)
-                            && !BlockingServicesLoadedTaskCompletionSource.Task.IsCompleted)
-                            BlockingServicesLoadedTaskCompletionSource.SetResult();
+                    await Task.WhenAll(tasks);
+                    foreach (var task in tasks)
+                    {
+                        if (task.IsFaulted)
+                            throw task.Exception!;
                     }
                 }
-                catch (Exception e)
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "Failed resolving services");
+                try
                 {
-                    Log.Error(e, "Failed resolving services");
-                    if (!BlockingServicesLoadedTaskCompletionSource.Task.IsCompleted)
-                        BlockingServicesLoadedTaskCompletionSource.SetException(e);
+                    BlockingServicesLoadedTaskCompletionSource.SetException(e);
                 }
-            });
+                catch (Exception)
+                {
+                    // don't care, as this means task result/exception has already been set
+                }
+
+                throw;
+            }
         }
 
         /// <summary>

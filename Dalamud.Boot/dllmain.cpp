@@ -9,7 +9,7 @@
 HMODULE g_hModule;
 HINSTANCE g_hGameInstance = GetModuleHandleW(nullptr);
 
-DllExport DWORD WINAPI Initialize(LPVOID lpParam, HANDLE hMainThreadContinue) {
+DWORD WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
     g_startInfo.from_envvars();
     
     std::string jsonParseError;
@@ -157,6 +157,10 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam, HANDLE hMainThreadContinue) {
     logging::I("Done!");
 
     return 0;
+}
+
+DllExport DWORD WINAPI Initialize(LPVOID lpParam) {
+    return InitializeImpl(lpParam, CreateEvent(nullptr, TRUE, FALSE, nullptr));
 }
 
 BOOL APIENTRY DllMain(const HMODULE hModule, const DWORD dwReason, LPVOID lpReserved) {

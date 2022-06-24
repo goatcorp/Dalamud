@@ -74,27 +74,52 @@ namespace Dalamud
 
             SerilogEventSink.Instance.LogLine += SerilogOnLogLine;
 
-            try
-            {
-                Service<Dalamud>.Provide(this);
-                Service<DalamudStartInfo>.Provide(info);
-                Service<DalamudConfiguration>.Provide(configuration);
-                ServiceManager.InitializeEarlyLoadableServices();
+            Service<Dalamud>.Provide(this);
+            Service<DalamudStartInfo>.Provide(info);
+            Service<DalamudConfiguration>.Provide(configuration);
 
-                if (configuration.IsResumeGameAfterPluginLoad)
-                {
-                    ServiceManager.BlockingResolved.ContinueWith(
-                        _ => NativeFunctions.SetEvent(mainThreadContinueEvent));
-                }
-                else
-                {
-                    NativeFunctions.SetEvent(mainThreadContinueEvent);
-                }
-            }
-            catch (Exception e)
+            if (!configuration.IsResumeGameAfterPluginLoad)
             {
-                Log.Error(e, "Failed to initialize services");
                 NativeFunctions.SetEvent(mainThreadContinueEvent);
+                _ = ServiceManager.InitializeEarlyLoadableServices();
+            }
+            else
+            {
+                Task.Run(async () =>
+                {
+                    try
+                    {
+                        var tasks = new[]
+                        {
+                            ServiceManager.InitializeEarlyLoadableServices(),
+                            ServiceManager.BlockingResolved,
+                        };
+
+                        await Task.WhenAny(tasks);
+                        foreach (var task in tasks)
+                        {
+                            if (task.IsFaulted)
+                                throw task.Exception!;
+                        }
+
+                        NativeFunctions.SetEvent(mainThreadContinueEvent);
+
+                        await Task.WhenAll(tasks);
+                        foreach (var task in tasks)
+                        {
+                            if (task.IsFaulted)
+                                throw task.Exception!;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Error(e, "Service initialization failure");
+                    }
+                    finally
+                    {
+                        NativeFunctions.SetEvent(mainThreadContinueEvent);
+                    }
+                });
             }
         }
 
