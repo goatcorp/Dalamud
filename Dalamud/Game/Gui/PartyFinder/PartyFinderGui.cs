@@ -26,7 +26,7 @@ namespace Dalamud.Game.Gui.PartyFinder
         /// Initializes a new instance of the <see cref="PartyFinderGui"/> class.
         /// </summary>
         /// <param name="tag">Tag.</param>
-        internal PartyFinderGui(ServiceManager.Tag tag)
+        private PartyFinderGui(ServiceManager.Tag tag)
         {
             this.address = new PartyFinderAddressResolver();
             this.address.Setup();

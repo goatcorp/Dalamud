@@ -58,7 +58,7 @@ namespace Dalamud.Interface.Internal.Notifications
         /// Initializes a new instance of the <see cref="NotificationManager"/> class.
         /// </summary>
         /// <param name="tag">Tag.</param>
-        internal NotificationManager(ServiceManager.Tag tag)
+        private NotificationManager(ServiceManager.Tag tag)
         {
         }
 

@@ -25,7 +25,7 @@ namespace Dalamud.Game.ClientState.Buddy
         /// Initializes a new instance of the <see cref="BuddyList"/> class.
         /// </summary>
         /// <param name="tag">Tag.</param>
-        internal BuddyList(ServiceManager.Tag tag)
+        private BuddyList(ServiceManager.Tag tag)
         {
             this.address = Service<ClientState>.Get().AddressResolver;
 

@@ -24,7 +24,7 @@ namespace Dalamud.Game.ClientState.Conditions
         /// Initializes a new instance of the <see cref="Condition"/> class.
         /// </summary>
         /// <param name="tag">Tag.</param>
-        internal Condition(ServiceManager.Tag tag)
+        private Condition(ServiceManager.Tag tag)
         {
             var resolver = Service<ClientState>.Get().AddressResolver;
             this.Address = resolver.ConditionFlags;

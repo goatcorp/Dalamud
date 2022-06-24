@@ -32,7 +32,7 @@ namespace Dalamud.Game.Gui.FlyText
         /// Initializes a new instance of the <see cref="FlyTextGui"/> class.
         /// </summary>
         /// <param name="tag">Tag.</param>
-        internal FlyTextGui(ServiceManager.Tag tag)
+        private FlyTextGui(ServiceManager.Tag tag)
         {
             this.Address = new FlyTextGuiAddressResolver();
             this.Address.Setup();

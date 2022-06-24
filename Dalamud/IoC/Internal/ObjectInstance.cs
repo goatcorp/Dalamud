@@ -1,5 +1,6 @@
 using System;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace Dalamud.IoC.Internal
 {
@@ -11,11 +12,11 @@ namespace Dalamud.IoC.Internal
         /// <summary>
         /// Initializes a new instance of the <see cref="ObjectInstance"/> class.
         /// </summary>
-        /// <param name="instance">The underlying instance.</param>
-        public ObjectInstance(object instance)
+        /// <param name="instanceTask">The underlying instance.</param>
+        public ObjectInstance(Task<WeakReference> instanceTask)
         {
-            this.Instance = new WeakReference(instance);
-            this.Version = instance.GetType().GetCustomAttribute<InterfaceVersionAttribute>();
+            this.InstanceTask = instanceTask;
+            this.Version = instanceTask.GetType().GetCustomAttribute<InterfaceVersionAttribute>();
         }
 
         /// <summary>
@@ -26,6 +27,7 @@ namespace Dalamud.IoC.Internal
         /// <summary>
         /// Gets a reference to the underlying instance.
         /// </summary>
-        public WeakReference Instance { get; }
+        /// <returns>The underlying instance.</returns>
+        public Task<WeakReference> InstanceTask { get; }
     }
 }

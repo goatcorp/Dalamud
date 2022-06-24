@@ -26,7 +26,7 @@ namespace Dalamud.Logging.Internal
         /// Initializes a new instance of the <see cref="TaskTracker"/> class.
         /// </summary>
         /// <param name="tag">Tag.</param>
-        public TaskTracker(ServiceManager.Tag tag)
+        private TaskTracker(ServiceManager.Tag tag)
         {
 #if DEBUG
             this.Enable();

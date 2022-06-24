@@ -21,7 +21,7 @@ namespace Dalamud.Hooking.Internal
         /// Initializes a new instance of the <see cref="HookManager"/> class.
         /// </summary>
         /// <param name="tag">Tag.</param>
-        internal HookManager(ServiceManager.Tag tag)
+        private HookManager(ServiceManager.Tag tag)
         {
         }
 

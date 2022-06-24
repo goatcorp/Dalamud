@@ -24,7 +24,7 @@ namespace Dalamud.Interface.Internal
         /// Initializes a new instance of the <see cref="DalamudCommands"/> class.
         /// </summary>
         /// <param name="tag">Tag.</param>
-        public DalamudCommands(ServiceManager.Tag tag)
+        private DalamudCommands(ServiceManager.Tag tag)
         {
             this.SetupCommands();
         }

@@ -32,7 +32,7 @@ namespace Dalamud.Game
         /// Initializes a new instance of the <see cref="SigScanner"/> class.
         /// </summary>
         /// <param name="tag">Tag.</param>
-        internal SigScanner(ServiceManager.Tag tag)
+        private SigScanner(ServiceManager.Tag tag)
         {
             // Initialize the process information.
             var info = Service<DalamudStartInfo>.Get();

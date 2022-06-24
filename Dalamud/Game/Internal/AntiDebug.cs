@@ -18,7 +18,7 @@ namespace Dalamud.Game.Internal
         /// Initializes a new instance of the <see cref="AntiDebug"/> class.
         /// </summary>
         /// <param name="tag">Tag.</param>
-        internal AntiDebug(ServiceManager.Tag tag)
+        private AntiDebug(ServiceManager.Tag tag)
         {
             var scanner = Service<SigScanner>.Get();
 

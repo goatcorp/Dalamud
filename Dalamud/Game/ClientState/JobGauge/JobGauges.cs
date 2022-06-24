@@ -22,7 +22,7 @@ namespace Dalamud.Game.ClientState.JobGauge
         /// Initializes a new instance of the <see cref="JobGauges"/> class.
         /// </summary>
         /// <param name="tag">Tag.</param>
-        internal JobGauges(ServiceManager.Tag tag)
+        private JobGauges(ServiceManager.Tag tag)
         {
             this.Address = Service<ClientState>.Get().AddressResolver.JobGaugeData;
 

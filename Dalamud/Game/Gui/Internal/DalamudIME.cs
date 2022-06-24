@@ -33,7 +33,7 @@ namespace Dalamud.Game.Gui.Internal
         /// Initializes a new instance of the <see cref="DalamudIME"/> class.
         /// </summary>
         /// <param name="tag">Tag.</param>
-        internal DalamudIME(ServiceManager.Tag tag)
+        private DalamudIME(ServiceManager.Tag tag)
         {
         }
 

@@ -30,7 +30,7 @@ namespace Dalamud.Game.ClientState.GamePad
         /// Initializes a new instance of the <see cref="GamepadState" /> class.
         /// </summary>
         /// <param name="tag">Tag.</param>
-        internal GamepadState(ServiceManager.Tag tag)
+        private GamepadState(ServiceManager.Tag tag)
         {
             var resolver = Service<ClientState>.Get().AddressResolver;
             Log.Verbose($"GamepadPoll address 0x{resolver.GamepadPoll.ToInt64():X}");

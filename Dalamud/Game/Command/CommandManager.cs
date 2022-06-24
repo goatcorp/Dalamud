@@ -31,7 +31,7 @@ namespace Dalamud.Game.Command
         /// Initializes a new instance of the <see cref="CommandManager"/> class.
         /// </summary>
         /// <param name="tag">Tag.</param>
-        internal CommandManager(ServiceManager.Tag tag)
+        private CommandManager(ServiceManager.Tag tag)
         {
             var startInfo = Service<DalamudStartInfo>.Get();
 

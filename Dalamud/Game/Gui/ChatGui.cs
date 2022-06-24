@@ -38,7 +38,7 @@ namespace Dalamud.Game.Gui
         /// Initializes a new instance of the <see cref="ChatGui"/> class.
         /// </summary>
         /// <param name="tag">Tag.</param>
-        internal ChatGui(ServiceManager.Tag tag)
+        private ChatGui(ServiceManager.Tag tag)
         {
             this.address = new ChatGuiAddressResolver();
             this.address.Setup();

@@ -46,7 +46,7 @@ namespace Dalamud.Interface.GameFonts
         /// Initializes a new instance of the <see cref="GameFontManager"/> class.
         /// </summary>
         /// <param name="tag">Tag.</param>
-        public GameFontManager(ServiceManager.Tag tag)
+        private GameFontManager(ServiceManager.Tag tag)
         {
             var dataManager = Service<DataManager>.Get();
 

@@ -42,17 +42,21 @@ internal partial class PluginManager : IEarlyLoadableServiceObject, IDisposable
     private readonly DirectoryInfo devPluginDirectory;
     private readonly BannedPlugin[] bannedPlugins;
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="PluginManager"/> class.
-    /// </summary>
-    /// <param name="tag">Tag.</param>
-    public PluginManager(ServiceManager.Tag tag)
-    {
-        var startInfo = Service<DalamudStartInfo>.Get();
-        var configuration = Service<DalamudConfiguration>.Get();
+    [ServiceAttribute]
+    private DalamudConfiguration Configuration { get; set; } = null!;
 
-        this.pluginDirectory = new DirectoryInfo(startInfo.PluginDirectory);
-        this.devPluginDirectory = new DirectoryInfo(startInfo.DefaultPluginDirectory);
+    [ServiceAttribute]
+    private DalamudStartInfo StartInfo { get; set; } = null!;
+
+    /// <summary>
+    /// A task that gets completed when all plugin load has been fired.
+    /// </summary>
+    public readonly Task InitializationTask;
+
+    private PluginManager(ServiceManager.Tag tag)
+    {
+        this.pluginDirectory = new DirectoryInfo(this.StartInfo.PluginDirectory!);
+        this.devPluginDirectory = new DirectoryInfo(this.StartInfo.DefaultPluginDirectory!);
 
         if (!this.pluginDirectory.Exists)
             this.pluginDirectory.Create();
@@ -60,48 +64,51 @@ internal partial class PluginManager : IEarlyLoadableServiceObject, IDisposable
         if (!this.devPluginDirectory.Exists)
             this.devPluginDirectory.Create();
 
-        this.SafeMode = EnvironmentConfiguration.DalamudNoPlugins || configuration.PluginSafeMode;
+        this.SafeMode = EnvironmentConfiguration.DalamudNoPlugins || this.Configuration.PluginSafeMode;
         if (this.SafeMode)
         {
-            configuration.PluginSafeMode = false;
-            configuration.Save();
+            this.Configuration.PluginSafeMode = false;
+            this.Configuration.Save();
         }
 
-        this.PluginConfigs = new PluginConfigurations(Path.Combine(Path.GetDirectoryName(startInfo.ConfigurationPath) ?? string.Empty, "pluginConfigs"));
+        this.PluginConfigs = new PluginConfigurations(Path.Combine(Path.GetDirectoryName(this.StartInfo.ConfigurationPath) ?? string.Empty, "pluginConfigs"));
 
-        var bannedPluginsJson = File.ReadAllText(Path.Combine(startInfo.AssetDirectory, "UIRes", "bannedplugin.json"));
+        var bannedPluginsJson = File.ReadAllText(Path.Combine(this.StartInfo.AssetDirectory!, "UIRes", "bannedplugin.json"));
         this.bannedPlugins = JsonConvert.DeserializeObject<BannedPlugin[]>(bannedPluginsJson) ?? Array.Empty<BannedPlugin>();
 
         this.ApplyPatches();
 
-        try
+        this.InitializationTask = Task.Run(() =>
         {
-            using (Timings.Start("PM Load Plugin Repos"))
+            try
             {
-                _ = this.SetPluginReposFromConfigAsync(false);
-                this.OnInstalledPluginsChanged += () => new Task(Troubleshooting.LogTroubleshooting).Start();
+                using (Timings.Start("PM Load Plugin Repos"))
+                {
+                    _ = this.SetPluginReposFromConfigAsync(false);
+                    this.OnInstalledPluginsChanged += () => Task.Run(Troubleshooting.LogTroubleshooting);
 
-                Log.Information("[T3] PM repos OK!");
+                    Log.Information("[T3] PM repos OK!");
+                }
+
+                using (Timings.Start("PM Cleanup Plugins"))
+                {
+                    this.CleanupPlugins();
+                    Log.Information("[T3] PMC OK!");
+                }
+
+                using (Timings.Start("PM Load Sync Plugins"))
+                {
+                    this.LoadAllPlugins();
+                    Log.Information("[T3] PML OK!");
+                }
+
+                new Task(Troubleshooting.LogTroubleshooting).Start();
             }
-
-            using (Timings.Start("PM Cleanup Plugins"))
+            catch (Exception ex)
             {
-                this.CleanupPlugins();
-                Log.Information("[T3] PMC OK!");
+                Log.Error(ex, "Plugin load failed");
             }
-
-            using (Timings.Start("PM Load Sync Plugins"))
-            {
-                this.LoadAllPlugins();
-                Log.Information("[T3] PML OK!");
-            }
-
-            new Task(Troubleshooting.LogTroubleshooting).Start();
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Plugin load failed");
-        }
+        });
     }
 
     /// <summary>
@@ -257,12 +264,10 @@ internal partial class PluginManager : IEarlyLoadableServiceObject, IDisposable
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public async Task SetPluginReposFromConfigAsync(bool notify)
     {
-        var configuration = Service<DalamudConfiguration>.Get();
-
         var repos = new List<PluginRepository>() { PluginRepository.MainRepo };
-        repos.AddRange(configuration.ThirdRepoList
-                                    .Where(repo => repo.IsEnabled)
-                                    .Select(repo => new PluginRepository(repo.Url, repo.IsEnabled)));
+        repos.AddRange(this.Configuration.ThirdRepoList
+                           .Where(repo => repo.IsEnabled)
+                           .Select(repo => new PluginRepository(repo.Url, repo.IsEnabled)));
 
         this.Repos = repos;
         await this.ReloadPluginMastersAsync(notify);
@@ -282,8 +287,6 @@ internal partial class PluginManager : IEarlyLoadableServiceObject, IDisposable
             Log.Information("PluginSafeMode was enabled, not loading any plugins.");
             return;
         }
-
-        var configuration = Service<DalamudConfiguration>.Get();
 
         var pluginDefs = new List<PluginDef>();
         var devPluginDefs = new List<PluginDef>();
@@ -314,7 +317,7 @@ internal partial class PluginManager : IEarlyLoadableServiceObject, IDisposable
         // devPlugins are more freeform. Look for any dll and hope to get lucky.
         var devDllFiles = this.devPluginDirectory.GetFiles("*.dll", SearchOption.AllDirectories).ToList();
 
-        foreach (var setting in configuration.DevPluginLoadLocations)
+        foreach (var setting in this.Configuration.DevPluginLoadLocations)
         {
             if (!setting.IsEnabled)
                 continue;
@@ -452,15 +455,13 @@ internal partial class PluginManager : IEarlyLoadableServiceObject, IDisposable
             return;
         }
 
-        var configuration = Service<DalamudConfiguration>.Get();
-
         if (!this.devPluginDirectory.Exists)
             this.devPluginDirectory.Create();
 
         // devPlugins are more freeform. Look for any dll and hope to get lucky.
         var devDllFiles = this.devPluginDirectory.GetFiles("*.dll", SearchOption.AllDirectories).ToList();
 
-        foreach (var setting in configuration.DevPluginLoadLocations)
+        foreach (var setting in this.Configuration.DevPluginLoadLocations)
         {
             if (!setting.IsEnabled)
                 continue;
@@ -714,9 +715,6 @@ internal partial class PluginManager : IEarlyLoadableServiceObject, IDisposable
     /// </summary>
     public void CleanupPlugins()
     {
-        var configuration = Service<DalamudConfiguration>.Get();
-        var startInfo = Service<DalamudStartInfo>.Get();
-
         foreach (var pluginDir in this.pluginDirectory.GetDirectories())
         {
             try
@@ -773,14 +771,14 @@ internal partial class PluginManager : IEarlyLoadableServiceObject, IDisposable
                                 continue;
                             }
 
-                            if (manifest.DalamudApiLevel < DalamudApiLevel - 1 && !configuration.LoadAllApiLevels)
+                            if (manifest.DalamudApiLevel < DalamudApiLevel - 1 && !Configuration.LoadAllApiLevels)
                             {
                                 Log.Information($"Lower API: cleaning up {versionDir.FullName}");
                                 versionDir.Delete(true);
                                 continue;
                             }
 
-                            if (manifest.ApplicableVersion < startInfo.GameVersion)
+                            if (manifest.ApplicableVersion <this.StartInfo.GameVersion)
                             {
                                 Log.Information($"Inapplicable version: cleaning up {versionDir.FullName}");
                                 versionDir.Delete(true);
@@ -951,19 +949,16 @@ internal partial class PluginManager : IEarlyLoadableServiceObject, IDisposable
     /// <returns>If the manifest is eligible.</returns>
     public bool IsManifestEligible(PluginManifest manifest)
     {
-        var configuration = Service<DalamudConfiguration>.Get();
-        var startInfo = Service<DalamudStartInfo>.Get();
-
         // Testing exclusive
-        if (manifest.IsTestingExclusive && !configuration.DoPluginTest)
+        if (manifest.IsTestingExclusive && !Configuration.DoPluginTest)
             return false;
 
         // Applicable version
-        if (manifest.ApplicableVersion < startInfo.GameVersion)
+        if (manifest.ApplicableVersion <this.StartInfo.GameVersion)
             return false;
 
         // API level
-        if (manifest.DalamudApiLevel < DalamudApiLevel && !configuration.LoadAllApiLevels)
+        if (manifest.DalamudApiLevel < DalamudApiLevel && !Configuration.LoadAllApiLevels)
             return false;
 
         // Banned
@@ -977,8 +972,7 @@ internal partial class PluginManager : IEarlyLoadableServiceObject, IDisposable
     /// <returns>A value indicating whether the plugin/manifest has been banned.</returns>
     public bool IsManifestBanned(PluginManifest manifest)
     {
-        var configuration = Service<DalamudConfiguration>.Get();
-        return !configuration.LoadBannedPlugins && this.bannedPlugins.Any(ban => (ban.Name == manifest.InternalName || ban.Name == Hash.GetStringSha256Hash(manifest.InternalName))
+        return !Configuration.LoadBannedPlugins && this.bannedPlugins.Any(ban => (ban.Name == manifest.InternalName || ban.Name == Hash.GetStringSha256Hash(manifest.InternalName))
                                                                               && ban.AssemblyVersion >= manifest.AssemblyVersion);
     }
 

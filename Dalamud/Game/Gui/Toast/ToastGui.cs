@@ -32,7 +32,7 @@ namespace Dalamud.Game.Gui.Toast
         /// Initializes a new instance of the <see cref="ToastGui"/> class.
         /// </summary>
         /// <param name="tag">Tag.</param>
-        internal ToastGui(ServiceManager.Tag tag)
+        private ToastGui(ServiceManager.Tag tag)
         {
             this.address = new ToastGuiAddressResolver();
             this.address.Setup();

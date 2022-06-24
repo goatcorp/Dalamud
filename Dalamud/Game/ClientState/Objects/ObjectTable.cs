@@ -26,7 +26,7 @@ namespace Dalamud.Game.ClientState.Objects
         /// Initializes a new instance of the <see cref="ObjectTable"/> class.
         /// </summary>
         /// <param name="tag">Tag.</param>
-        internal ObjectTable(ServiceManager.Tag tag)
+        private ObjectTable(ServiceManager.Tag tag)
         {
             this.address = Service<ClientState>.Get().AddressResolver;
 

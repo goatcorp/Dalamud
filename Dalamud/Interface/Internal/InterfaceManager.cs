@@ -76,7 +76,7 @@ namespace Dalamud.Interface.Internal
         /// Initializes a new instance of the <see cref="InterfaceManager"/> class.
         /// </summary>
         /// <param name="tag">Tag.</param>
-        public InterfaceManager(ServiceManager.Tag tag)
+        private InterfaceManager(ServiceManager.Tag tag)
         {
             var scanner = Service<SigScanner>.Get();
 

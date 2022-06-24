@@ -13,7 +13,7 @@ namespace Dalamud.Plugin.Ipc.Internal
         /// Initializes a new instance of the <see cref="CallGate"/> class.
         /// </summary>
         /// <param name="tag">Tag.</param>
-        internal CallGate(ServiceManager.Tag tag)
+        private CallGate(ServiceManager.Tag tag)
         {
         }
 

@@ -19,7 +19,7 @@ namespace Dalamud.Game.Text.SeStringHandling
         /// Initializes a new instance of the <see cref="SeStringManager"/> class.
         /// </summary>
         /// <param name="tag">Tag.</param>
-        internal SeStringManager(ServiceManager.Tag tag)
+        private SeStringManager(ServiceManager.Tag tag)
         {
         }
 

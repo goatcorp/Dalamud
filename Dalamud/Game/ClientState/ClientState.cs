@@ -45,7 +45,7 @@ namespace Dalamud.Game.ClientState
         /// Set up client state access.
         /// </summary>
         /// <param name="tag">Tag.</param>
-        internal ClientState(ServiceManager.Tag tag)
+        private ClientState(ServiceManager.Tag tag)
         {
             this.address = new ClientStateAddressResolver();
             this.address.Setup();

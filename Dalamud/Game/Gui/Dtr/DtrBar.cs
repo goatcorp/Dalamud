@@ -28,7 +28,7 @@ namespace Dalamud.Game.Gui.Dtr
         /// Initializes a new instance of the <see cref="DtrBar"/> class.
         /// </summary>
         /// <param name="tag">Tag.</param>
-        internal DtrBar(ServiceManager.Tag tag)
+        private DtrBar(ServiceManager.Tag tag)
         {
             Service<Framework>.Get().Update += this.Update;
             var configuration = Service<DalamudConfiguration>.Get();

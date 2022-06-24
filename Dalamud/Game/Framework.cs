@@ -41,7 +41,7 @@ namespace Dalamud.Game
         /// Initializes a new instance of the <see cref="Framework"/> class.
         /// </summary>
         /// <param name="tag">Tag.</param>
-        internal Framework(ServiceManager.Tag tag)
+        private Framework(ServiceManager.Tag tag)
         {
             this.Address = new FrameworkAddressResolver();
             this.Address.Setup();

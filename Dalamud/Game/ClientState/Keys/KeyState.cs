@@ -36,7 +36,7 @@ namespace Dalamud.Game.ClientState.Keys
         /// Initializes a new instance of the <see cref="KeyState"/> class.
         /// </summary>
         /// <param name="tag">Tag.</param>
-        internal KeyState(ServiceManager.Tag tag)
+        private KeyState(ServiceManager.Tag tag)
         {
             var moduleBaseAddress = Service<SigScanner>.Get().Module.BaseAddress;
             var addressResolver = Service<ClientState>.Get().AddressResolver;

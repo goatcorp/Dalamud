@@ -27,7 +27,7 @@ namespace Dalamud.Game.Network
         /// Initializes a new instance of the <see cref="GameNetwork"/> class.
         /// </summary>
         /// <param name="tag">Tag.</param>
-        internal GameNetwork(ServiceManager.Tag tag)
+        private GameNetwork(ServiceManager.Tag tag)
         {
             this.address = new GameNetworkAddressResolver();
             this.address.Setup();

@@ -41,7 +41,7 @@ namespace Dalamud.Game.Internal
         /// Initializes a new instance of the <see cref="DalamudAtkTweaks"/> class.
         /// </summary>
         /// <param name="tag">Tag.</param>
-        public DalamudAtkTweaks(ServiceManager.Tag tag)
+        private DalamudAtkTweaks(ServiceManager.Tag tag)
         {
             var sigScanner = Service<SigScanner>.Get();
 

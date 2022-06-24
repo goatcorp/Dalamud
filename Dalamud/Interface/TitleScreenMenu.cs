@@ -25,7 +25,7 @@ namespace Dalamud.Interface
         /// Initializes a new instance of the <see cref="TitleScreenMenu"/> class.
         /// </summary>
         /// <param name="tag">Tag.</param>
-        internal TitleScreenMenu(ServiceManager.Tag tag)
+        private TitleScreenMenu(ServiceManager.Tag tag)
         {
         }
 

@@ -33,18 +33,14 @@ namespace Dalamud.Data
         private Thread luminaResourceThread;
         private CancellationTokenSource luminaCancellationTokenSource;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="DataManager"/> class.
-        /// </summary>
-        /// <param name="tag">Tag.</param>
-        internal DataManager(ServiceManager.Tag tag)
+        private DataManager(ServiceManager.Tag tag, DalamudStartInfo dalamudStartInfo, Dalamud dalamud)
         {
-            this.Language = Service<DalamudStartInfo>.Get().Language;
+            this.Language = dalamudStartInfo.Language;
 
             // Set up default values so plugins do not null-reference when data is being loaded.
             this.ClientOpCodes = this.ServerOpCodes = new ReadOnlyDictionary<string, ushort>(new Dictionary<string, ushort>());
 
-            var baseDir = Service<Dalamud>.Get().AssetDirectory.FullName;
+            var baseDir = dalamud.AssetDirectory.FullName;
             try
             {
                 Log.Verbose("Starting data load...");

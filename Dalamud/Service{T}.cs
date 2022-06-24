@@ -1,6 +1,8 @@
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
+using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
@@ -18,62 +20,58 @@ namespace Dalamud
     internal static class Service<T> where T : IServiceObject
     {
         // ReSharper disable once StaticMemberInGenericType
-        private static readonly TaskCompletionSource? InstanceTcs;
+        private static readonly TaskCompletionSource<T>? InstanceTcs;
 
         // ReSharper disable once StaticMemberInGenericType
-        private static readonly Task InstanceTask;
-
-        // ReSharper disable once StaticMemberInGenericType
-        private static T? instance;
+        private static readonly Task<T> InstanceTask;
 
         static Service()
         {
             if (!typeof(IProvidedServiceObject).IsAssignableFrom(typeof(T)))
             {
-                ServiceManager.Log.Debug("Service<{0}>: Begin task", typeof(T).Name);
                 InstanceTcs = null;
-                InstanceTask = new Task(() =>
+                InstanceTask = Task.Run(async () =>
                 {
                     using (Timings.Start($"{typeof(T).Namespace} Enable"))
                     {
-                        const BindingFlags flags =
-                            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic |
-                            BindingFlags.CreateInstance | BindingFlags.OptionalParamBinding;
-
                         ServiceManager.Log.Debug("Service<{0}>: Begin construction", typeof(T).Name);
                         try
                         {
-                            var obj = (T)Activator.CreateInstance(
-                                typeof(T), flags, null, new object[] {ServiceManager.TagInstance}, null, null);
-                            SetInstanceObject(obj);
+                            var x = await ConstructObject();
                             ServiceManager.Log.Debug("Service<{0}>: Construction complete", typeof(T).Name);
+                            return x;
                         }
                         catch (Exception e)
                         {
                             ServiceManager.Log.Error(e, "Service<{0}>: Construction failure", typeof(T).Name);
+                            throw;
                         }
                     }
                 });
-                InstanceTask.ConfigureAwait(false);
-                InstanceTask.Start();
             }
             else
             {
                 ServiceManager.Log.Debug("Service<{0}>: Placeholder set", typeof(T).Name);
-                InstanceTcs = new TaskCompletionSource();
+                InstanceTcs = new TaskCompletionSource<T>();
                 InstanceTask = InstanceTcs.Task;
+            }
+
+            var attr = typeof(T).GetCustomAttribute<PluginInterfaceAttribute>();
+            if (attr != null)
+            {
+                Service<ServiceContainer>.Get().RegisterSingleton(InstanceTask);
+                ServiceManager.Log.Debug("Service<{0}>: Exposed to plugins", typeof(T).Name);
             }
         }
 
         /// <summary>
         /// Dummy function for calling static constructor.
         /// </summary>
-        public static void Initialize()
-        {
-        }
+        public static void Initialize() { }
 
         /// <summary>
         /// Sets the type in the service locator to the given object.
+        /// Only applicable for Service&lt;IProvidedServiceObject&gt;.
         /// </summary>
         /// <param name="obj">Object to set.</param>
         public static void Provide(T obj)
@@ -82,7 +80,7 @@ namespace Dalamud
                 typeof(IProvidedServiceObject).IsAssignableFrom(typeof(T)),
                 "Provide is usable only when the service is an IProvidedServiceObject.");
 
-            SetInstanceObject(obj);
+            InstanceTcs?.SetResult(obj);
             ServiceManager.Log.Debug("Service<{0}>: Provided", typeof(T).Name);
         }
 
@@ -92,54 +90,78 @@ namespace Dalamud
         /// <returns>The object.</returns>
         public static T Get()
         {
-            InstanceTask.Wait();
-            if (InstanceTask.IsFaulted)
-                throw InstanceTask.Exception!;
-            return instance;
+            if (!InstanceTask.IsCompleted)
+                InstanceTask.Wait();
+            return InstanceTask.Result;
         }
 
         /// <summary>
         /// Pull the instance out of the service locator, waiting if necessary.
         /// </summary>
         /// <returns>The object.</returns>
-        public static async Task<T> GetAsync()
-        {
-            await InstanceTask;
-            return instance;
-        }
+        public static async Task<T> GetAsync() => await InstanceTask;
 
         /// <summary>
         /// Attempt to pull the instance out of the service locator.
         /// </summary>
         /// <returns>The object if registered, null otherwise.</returns>
-        public static T? GetNullable() => instance;
+        public static T? GetNullable() => InstanceTask.IsCompleted ? InstanceTask.Result : default;
 
-        private static void SetInstanceObject(T newInstance)
+        private static async Task<object?> GetServiceObjectConstructArgument(Type type)
         {
-            instance = newInstance;
-            InstanceTcs?.SetResult();
+            if (type == typeof(ServiceManager.Tag))
+                return null;
 
-            var availableToPlugins = RegisterInIoCContainer(newInstance);
-
-            ServiceManager.Log.Information(
-                availableToPlugins
-                    ? $"Registered {typeof(T).FullName} into service locator and exposed to plugins"
-                    : $"Registered {typeof(T).FullName} into service locator privately");
+            var task = (Task)typeof(Service<>)
+                             .MakeGenericType(type)
+                             .InvokeMember(
+                                 "GetAsync",
+                                 BindingFlags.InvokeMethod |
+                                 BindingFlags.Static |
+                                 BindingFlags.Public,
+                                 null,
+                                 null,
+                                 null)!;
+            await task;
+            return typeof(Task<>).MakeGenericType(type)
+                                 .GetProperty("Result", BindingFlags.Instance | BindingFlags.Public)!
+                                 .GetValue(task);
         }
 
-        private static bool RegisterInIoCContainer(T newInstance)
+        private static async Task<T> ConstructObject()
         {
-            var attr = typeof(T).GetCustomAttribute<PluginInterfaceAttribute>();
-            if (attr == null)
-                return false;
+            const BindingFlags flags =
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic |
+                BindingFlags.CreateInstance | BindingFlags.OptionalParamBinding;
 
-            var ioc = Service<ServiceContainer>.GetNullable();
-            if (ioc == null)
-                return false;
+            foreach (var ctor in typeof(T).GetConstructors(flags))
+            {
+                var arginfo = ctor.GetParameters();
+                if (arginfo[0].ParameterType != typeof(ServiceManager.Tag))
+                    continue;
 
-            ioc.RegisterSingleton(newInstance);
+                var instance = (T)FormatterServices.GetUninitializedObject(typeof(T));
+                foreach (var prop in typeof(T).GetProperties(
+                             BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public |
+                             BindingFlags.NonPublic))
+                {
+                    if (!prop.GetCustomAttributes(typeof(ServiceAttribute)).Any())
+                        continue;
+                    prop.SetValue(
+                        instance,
+                        await GetServiceObjectConstructArgument(prop.PropertyType),
+                        BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance,
+                        null,
+                        null,
+                        null);
+                }
 
-            return true;
+                var args = await Task.WhenAll(arginfo.Select(x => GetServiceObjectConstructArgument(x.ParameterType)));
+                ctor.Invoke(instance, args);
+                return instance;
+            }
+
+            throw new InvalidOperationException("Missing constructor whose first parameter type is ServiceManager.Tag");
         }
     }
 }

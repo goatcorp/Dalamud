@@ -79,7 +79,7 @@ namespace Dalamud.Interface.Internal
         /// Initializes a new instance of the <see cref="DalamudInterface"/> class.
         /// </summary>
         /// <param name="tag">Tag.</param>
-        public DalamudInterface(ServiceManager.Tag tag)
+        private DalamudInterface(ServiceManager.Tag tag)
         {
             var configuration = Service<DalamudConfiguration>.Get();
             var interfaceManager = Service<InterfaceManager>.Get();

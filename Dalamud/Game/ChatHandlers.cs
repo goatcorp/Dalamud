@@ -113,7 +113,7 @@ namespace Dalamud.Game
         /// Initializes a new instance of the <see cref="ChatHandlers"/> class.
         /// </summary>
         /// <param name="tag">Tag.</param>
-        internal ChatHandlers(ServiceManager.Tag tag)
+        private ChatHandlers(ServiceManager.Tag tag)
         {
             var chatGui = Service<ChatGui>.Get();
 

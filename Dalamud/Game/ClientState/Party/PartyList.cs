@@ -25,7 +25,7 @@ namespace Dalamud.Game.ClientState.Party
         /// Initializes a new instance of the <see cref="PartyList"/> class.
         /// </summary>
         /// <param name="tag">Tag.</param>
-        internal PartyList(ServiceManager.Tag tag)
+        private PartyList(ServiceManager.Tag tag)
         {
             this.address = Service<ClientState>.Get().AddressResolver;
 

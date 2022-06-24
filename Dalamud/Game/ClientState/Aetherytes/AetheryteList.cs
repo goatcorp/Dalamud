@@ -19,13 +19,12 @@ namespace Dalamud.Game.ClientState.Aetherytes
         private readonly ClientStateAddressResolver address;
         private readonly UpdateAetheryteListDelegate updateAetheryteListFunc;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="AetheryteList"/> class.
-        /// </summary>
-        /// <param name="tag">Tag.</param>
-        internal AetheryteList(ServiceManager.Tag tag)
+        [ServiceAttribute]
+        private ClientState ClientState { get; set; } = null!;
+
+        private AetheryteList(ServiceManager.Tag tag)
         {
-            this.address = Service<ClientState>.Get().AddressResolver;
+            this.address = this.ClientState.AddressResolver;
             this.updateAetheryteListFunc = Marshal.GetDelegateForFunctionPointer<UpdateAetheryteListDelegate>(this.address.UpdateAetheryteList);
 
             Log.Verbose($"Teleport address 0x{this.address.Telepo.ToInt64():X}");
@@ -40,9 +39,7 @@ namespace Dalamud.Game.ClientState.Aetherytes
         {
             get
             {
-                var clientState = Service<ClientState>.Get();
-
-                if (clientState.LocalPlayer == null)
+                if (this.ClientState.LocalPlayer == null)
                     return 0;
 
                 this.Update();
@@ -70,9 +67,7 @@ namespace Dalamud.Game.ClientState.Aetherytes
                     return null;
                 }
 
-                var clientState = Service<ClientState>.Get();
-
-                if (clientState.LocalPlayer == null)
+                if (this.ClientState.LocalPlayer == null)
                     return null;
 
                 return new AetheryteEntry(TelepoStruct->TeleportList.Get((ulong)index));
@@ -81,10 +76,8 @@ namespace Dalamud.Game.ClientState.Aetherytes
 
         private void Update()
         {
-            var clientState = Service<ClientState>.Get();
-
             // this is very very important as otherwise it crashes
-            if (clientState.LocalPlayer == null)
+            if (this.ClientState.LocalPlayer == null)
                 return;
 
             this.updateAetheryteListFunc(this.address.Telepo, 0);

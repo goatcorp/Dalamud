@@ -17,7 +17,7 @@ namespace Dalamud.Game.Network.Internal
         /// Initializes a new instance of the <see cref="WinSockHandlers"/> class.
         /// </summary>
         /// <param name="tag">Tag.</param>
-        public WinSockHandlers(ServiceManager.Tag tag)
+        private WinSockHandlers(ServiceManager.Tag tag)
         {
             this.ws2SocketHook = Hook<SocketDelegate>.FromSymbol("ws2_32.dll", "socket", this.OnSocket, true);
             this.ws2SocketHook?.Enable();

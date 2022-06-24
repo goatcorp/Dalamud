@@ -45,7 +45,7 @@ namespace Dalamud
         /// Initializes a new instance of the <see cref="Localization"/> class.
         /// </summary>
         /// <param name="tag">Tag.</param>
-        internal Localization(ServiceManager.Tag tag)
+        private Localization(ServiceManager.Tag tag)
             : this(Path.Combine(Service<Dalamud>.Get().AssetDirectory.FullName, "UIRes", "loc", "dalamud"), "dalamud_")
         {
             var configuration = Service<DalamudConfiguration>.Get();

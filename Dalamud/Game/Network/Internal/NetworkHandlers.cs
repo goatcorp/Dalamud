@@ -33,7 +33,7 @@ namespace Dalamud.Game.Network.Internal
         /// Initializes a new instance of the <see cref="NetworkHandlers"/> class.
         /// </summary>
         /// <param name="tag">Tag.</param>
-        public NetworkHandlers(ServiceManager.Tag tag)
+        private NetworkHandlers(ServiceManager.Tag tag)
         {
             this.uploader = new UniversalisMarketBoardUploader();
 

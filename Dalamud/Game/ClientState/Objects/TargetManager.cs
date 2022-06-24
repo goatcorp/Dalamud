@@ -19,7 +19,7 @@ namespace Dalamud.Game.ClientState.Objects
         /// Initializes a new instance of the <see cref="TargetManager"/> class.
         /// </summary>
         /// <param name="tag">Tag.</param>
-        internal TargetManager(ServiceManager.Tag tag)
+        private TargetManager(ServiceManager.Tag tag)
         {
             this.address = Service<ClientState>.Get().AddressResolver;
         }

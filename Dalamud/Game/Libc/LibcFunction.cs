@@ -22,7 +22,7 @@ namespace Dalamud.Game.Libc
         /// Initializes a new instance of the <see cref="LibcFunction"/> class.
         /// </summary>
         /// <param name="tag">Tag.</param>
-        internal LibcFunction(ServiceManager.Tag tag)
+        private LibcFunction(ServiceManager.Tag tag)
         {
             this.address = new LibcFunctionAddressResolver();
             this.address.Setup();

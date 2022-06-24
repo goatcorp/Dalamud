@@ -21,7 +21,7 @@ namespace Dalamud.Game.ClientState.Fates
         /// Initializes a new instance of the <see cref="FateTable"/> class.
         /// </summary>
         /// <param name="tag">Tag.</param>
-        internal FateTable(ServiceManager.Tag tag)
+        private FateTable(ServiceManager.Tag tag)
         {
             this.address = Service<ClientState>.Get().AddressResolver;
 

@@ -51,7 +51,7 @@ namespace Dalamud.Game.Gui
         /// This class is responsible for many aspects of interacting with the native game UI.
         /// </summary>
         /// <param name="tag">Tag.</param>
-        internal GameGui(ServiceManager.Tag tag)
+        private GameGui(ServiceManager.Tag tag)
         {
             this.address = new GameGuiAddressResolver();
             this.address.Setup();
