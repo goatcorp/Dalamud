@@ -44,7 +44,7 @@ namespace Dalamud.Interface.Internal
     /// <summary>
     /// This class manages interaction with the ImGui interface.
     /// </summary>
-    [ServiceManager.EarlyLoadedService]
+    [ServiceManager.BlockingEarlyLoadedService]
     internal class InterfaceManager : IDisposable
     {
         private const float MinimumFallbackFontSizePt = 9.6f;  // Game's minimum AXIS font size
@@ -59,14 +59,14 @@ namespace Dalamud.Interface.Internal
         private readonly HashSet<SpecialGlyphRequest> glyphRequests = new();
         private readonly Dictionary<ImFontPtr, TargetFontModification> loadedFontInfo = new();
 
-        private readonly Hook<PresentDelegate> presentHook;
-        private readonly Hook<ResizeBuffersDelegate> resizeBuffersHook;
-        private readonly Hook<SetCursorDelegate> setCursorHook;
-
         private readonly ManualResetEvent fontBuildSignal;
         private readonly SwapChainVtableResolver address;
         private readonly TaskCompletionSource sceneInitializeTaskCompletionSource = new();
         private RawDX11Scene? scene;
+
+        private Hook<PresentDelegate>? presentHook;
+        private Hook<ResizeBuffersDelegate>? resizeBuffersHook;
+        private Hook<SetCursorDelegate>? setCursorHook;
 
         // can't access imgui IO before first present call
         private bool lastWantCapture = false;
@@ -77,12 +77,9 @@ namespace Dalamud.Interface.Internal
         [ServiceManager.ServiceConstructor]
         private InterfaceManager()
         {
-            var scanner = Service<SigScanner>.Get();
-
             this.fontBuildSignal = new ManualResetEvent(false);
 
             this.address = new SwapChainVtableResolver();
-            this.address.Setup(scanner);
 
             try
             {
@@ -104,18 +101,12 @@ namespace Dalamud.Interface.Internal
                 Log.Error(e, "RTSS Free failed");
             }
 
-            this.setCursorHook = Hook<SetCursorDelegate>.FromSymbol("user32.dll", "SetCursor", this.SetCursorDetour, true);
-            this.presentHook = new Hook<PresentDelegate>(this.address.Present, this.PresentDetour);
-            this.resizeBuffersHook = new Hook<ResizeBuffersDelegate>(this.address.ResizeBuffers, this.ResizeBuffersDetour);
-
-            var setCursorAddress = this.setCursorHook?.Address ?? IntPtr.Zero;
-
-            Log.Verbose("===== S W A P C H A I N =====");
-            Log.Verbose($"SetCursor address 0x{setCursorAddress.ToInt64():X}");
-            Log.Verbose($"Present address 0x{this.presentHook.Address.ToInt64():X}");
-            Log.Verbose($"ResizeBuffers address 0x{this.resizeBuffersHook.Address.ToInt64():X}");
-
-            Service<Framework>.Get().RunOnFrameworkThread(this.Enable);
+            Task.Run(async () =>
+            {
+                var framework = await Service<Framework>.GetAsync();
+                var sigScanner = await Service<SigScanner>.GetAsync();
+                await framework.RunOnFrameworkThread(() => this.Enable(sigScanner));
+            });
         }
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
@@ -265,34 +256,6 @@ namespace Dalamud.Interface.Internal
         public bool IsBuildingFontsBeforeAtlasBuild => this.isRebuildingFonts && !this.fontBuildSignal.WaitOne(0);
 
         /// <summary>
-        /// Enable this module.
-        /// </summary>
-        public void Enable()
-        {
-            this.setCursorHook?.Enable();
-            this.presentHook.Enable();
-            this.resizeBuffersHook.Enable();
-
-            try
-            {
-                if (!string.IsNullOrEmpty(this.rtssPath))
-                {
-                    NativeFunctions.LoadLibraryW(this.rtssPath);
-                    var rtssModule = NativeFunctions.GetModuleHandleW("RTSSHooks64.dll");
-                    var installAddr = NativeFunctions.GetProcAddress(rtssModule, "InstallRTSSHook");
-
-                    Log.Debug("Installing RTSS hook");
-                    Marshal.GetDelegateForFunctionPointer<InstallRTSSHook>(installAddr).Invoke();
-                    Log.Debug("RTSS hook OK!");
-                }
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Could not reload RTSS");
-            }
-        }
-
-        /// <summary>
         /// Dispose of managed and unmanaged resources.
         /// </summary>
         public void Dispose()
@@ -308,8 +271,8 @@ namespace Dalamud.Interface.Internal
 
             this.scene?.Dispose();
             this.setCursorHook?.Dispose();
-            this.presentHook.Dispose();
-            this.resizeBuffersHook.Dispose();
+            this.presentHook?.Dispose();
+            this.resizeBuffersHook?.Dispose();
         }
 
 #nullable enable
@@ -1007,6 +970,43 @@ namespace Dalamud.Interface.Internal
 
                 foreach (var garbage in garbageList)
                     garbage.Free();
+            }
+        }
+
+        private void Enable(SigScanner sigScanner)
+        {
+            this.address.Setup(sigScanner);
+            this.setCursorHook = Hook<SetCursorDelegate>.FromSymbol("user32.dll", "SetCursor", this.SetCursorDetour, true);
+            this.presentHook = new Hook<PresentDelegate>(this.address.Present, this.PresentDetour);
+            this.resizeBuffersHook = new Hook<ResizeBuffersDelegate>(this.address.ResizeBuffers, this.ResizeBuffersDetour);
+
+            var setCursorAddress = this.setCursorHook?.Address ?? IntPtr.Zero;
+
+            Log.Verbose("===== S W A P C H A I N =====");
+            Log.Verbose($"SetCursor address 0x{setCursorAddress.ToInt64():X}");
+            Log.Verbose($"Present address 0x{this.presentHook.Address.ToInt64():X}");
+            Log.Verbose($"ResizeBuffers address 0x{this.resizeBuffersHook.Address.ToInt64():X}");
+
+            this.setCursorHook?.Enable();
+            this.presentHook.Enable();
+            this.resizeBuffersHook.Enable();
+
+            try
+            {
+                if (!string.IsNullOrEmpty(this.rtssPath))
+                {
+                    NativeFunctions.LoadLibraryW(this.rtssPath);
+                    var rtssModule = NativeFunctions.GetModuleHandleW("RTSSHooks64.dll");
+                    var installAddr = NativeFunctions.GetProcAddress(rtssModule, "InstallRTSSHook");
+
+                    Log.Debug("Installing RTSS hook");
+                    Marshal.GetDelegateForFunctionPointer<InstallRTSSHook>(installAddr).Invoke();
+                    Log.Debug("RTSS hook OK!");
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Could not reload RTSS");
             }
         }
 

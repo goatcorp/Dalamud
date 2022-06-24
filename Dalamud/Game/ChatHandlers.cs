@@ -28,7 +28,7 @@ namespace Dalamud.Game
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    [ServiceManager.EarlyLoadedService]
+    [ServiceManager.BlockingEarlyLoadedService]
     public class ChatHandlers
     {
         // private static readonly Dictionary<string, string> UnicodeToDiscordEmojiDict = new()
@@ -111,10 +111,8 @@ namespace Dalamud.Game
         private bool hasAutoUpdatedPlugins;
 
         [ServiceManager.ServiceConstructor]
-        private ChatHandlers()
+        private ChatHandlers(ChatGui chatGui)
         {
-            var chatGui = Service<ChatGui>.Get();
-
             chatGui.CheckMessageHandled += this.OnCheckMessageHandled;
             chatGui.ChatMessage += this.OnChatMessage;
 

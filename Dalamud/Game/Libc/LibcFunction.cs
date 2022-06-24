@@ -12,7 +12,7 @@ namespace Dalamud.Game.Libc
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    [ServiceManager.EarlyLoadedService]
+    [ServiceManager.BlockingEarlyLoadedService]
     public sealed class LibcFunction
     {
         private readonly LibcFunctionAddressResolver address;
@@ -20,10 +20,10 @@ namespace Dalamud.Game.Libc
         private readonly StdStringDeallocateDelegate stdStringDeallocate;
 
         [ServiceManager.ServiceConstructor]
-        private LibcFunction()
+        private LibcFunction(SigScanner sigScanner)
         {
             this.address = new LibcFunctionAddressResolver();
-            this.address.Setup();
+            this.address.Setup(sigScanner);
 
             this.stdStringCtorCString = Marshal.GetDelegateForFunctionPointer<StdStringFromCStringDelegate>(this.address.StdStringFromCstring);
             this.stdStringDeallocate = Marshal.GetDelegateForFunctionPointer<StdStringDeallocateDelegate>(this.address.StdStringDeallocate);

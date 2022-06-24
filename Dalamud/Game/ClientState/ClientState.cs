@@ -27,7 +27,7 @@ namespace Dalamud.Game.ClientState
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    [ServiceManager.EarlyLoadedService]
+    [ServiceManager.BlockingEarlyLoadedService]
     public sealed class ClientState : IDisposable
     {
         private readonly ClientStateAddressResolver address;
@@ -42,23 +42,21 @@ namespace Dalamud.Game.ClientState
         internal ClientStateAddressResolver AddressResolver => this.address;
 
         [ServiceManager.ServiceConstructor]
-        private ClientState()
+        private ClientState(Framework framework, NetworkHandlers networkHandlers, SigScanner sigScanner, DalamudStartInfo startInfo)
         {
             this.address = new ClientStateAddressResolver();
-            this.address.Setup();
+            this.address.Setup(sigScanner);
 
             Log.Verbose("===== C L I E N T  S T A T E =====");
 
-            this.ClientLanguage = Service<DalamudStartInfo>.Get().Language;
+            this.ClientLanguage = startInfo.Language;
 
             Log.Verbose($"SetupTerritoryType address 0x{this.address.SetupTerritoryType.ToInt64():X}");
 
             this.setupTerritoryTypeHook = new Hook<SetupTerritoryTypeDelegate>(this.address.SetupTerritoryType, this.SetupTerritoryTypeDetour);
 
-            var framework = Service<Framework>.Get();
             framework.Update += this.FrameworkOnOnUpdateEvent;
 
-            var networkHandlers = Service<NetworkHandlers>.Get();
             networkHandlers.CfPop += this.NetworkHandlersOnCfPop;
         }
 

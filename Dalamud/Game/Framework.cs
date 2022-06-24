@@ -24,7 +24,7 @@ namespace Dalamud.Game
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    [ServiceManager.EarlyLoadedService]
+    [ServiceManager.BlockingEarlyLoadedService]
     public sealed class Framework : IDisposable
     {
         private static Stopwatch statsStopwatch = new();
@@ -39,17 +39,17 @@ namespace Dalamud.Game
         private Thread? frameworkUpdateThread;
 
         [ServiceManager.ServiceConstructor]
-        private Framework()
+        private Framework(GameGui gameGui, GameNetwork gameNetwork, SigScanner sigScanner)
         {
             this.Address = new FrameworkAddressResolver();
-            this.Address.Setup();
+            this.Address.Setup(sigScanner);
 
             this.updateHook = new Hook<OnUpdateDetour>(this.Address.TickAddress, this.HandleFrameworkUpdate);
             this.freeHook = new Hook<OnDestroyDetour>(this.Address.FreeAddress, this.HandleFrameworkFree);
             this.destroyHook = new Hook<OnRealDestroyDelegate>(this.Address.DestroyAddress, this.HandleFrameworkDestroy);
 
-            Service<GameGui>.Get().Enable();
-            Service<GameNetwork>.Get().Enable();
+            gameGui.Enable();
+            gameNetwork.Enable();
 
             this.updateHook.Enable();
             this.freeHook.Enable();

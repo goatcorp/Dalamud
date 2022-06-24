@@ -35,6 +35,10 @@ namespace Dalamud
 
             var service = typeof(Service<>);
             var blockingEarlyLoadingServices = new List<Task>();
+
+            var dependencyServicesMap = new Dictionary<Type, List<Type>>();
+            var getAsyncTaskMap = new Dictionary<Type, Task>();
+
             foreach (var serviceType in Assembly.GetExecutingAssembly().GetTypes())
             {
                 var attr = serviceType.GetCustomAttribute<Service>(true)?.GetType();
@@ -48,8 +52,47 @@ namespace Dalamud
                     null,
                     null);
                 if (attr.IsAssignableTo(typeof(BlockingEarlyLoadedService)))
+                {
+                    getAsyncTaskMap[serviceType] = getTask;
                     blockingEarlyLoadingServices.Add(getTask);
+                }
+
+                dependencyServicesMap[serviceType] =
+                    (List<Type>)service
+                                .MakeGenericType(serviceType)
+                                .InvokeMember(
+                                    "GetDependencyServices",
+                                    BindingFlags.InvokeMethod | BindingFlags.Static | BindingFlags.Public,
+                                    null,
+                                    null,
+                                    null);
             }
+
+            Task.Run(async () =>
+            {
+                var tasks = new List<Task>();
+                while (dependencyServicesMap.Any())
+                {
+                    foreach (var (serviceType, dependencies) in dependencyServicesMap.ToList())
+                    {
+                        if (!dependencies.All(x => !getAsyncTaskMap.ContainsKey(x) || getAsyncTaskMap[x].IsCompleted))
+                            continue;
+
+                        tasks.Add((Task)service.MakeGenericType(serviceType).InvokeMember(
+                            "StartLoader",
+                            BindingFlags.InvokeMethod | BindingFlags.Static | BindingFlags.Public,
+                            null,
+                            null,
+                            null));
+                        dependencyServicesMap.Remove(serviceType);
+                    }
+
+                    if (!tasks.Any())
+                        throw new InvalidOperationException("Unresolvable dependency cycle detected");
+
+                    await Task.WhenAll(tasks);
+                }
+            });
 
             Task.WhenAll(blockingEarlyLoadingServices)
                 .ContinueWith(_ => BlockingServicesLoadedTaskCompletionSource.SetResult());
@@ -61,6 +104,14 @@ namespace Dalamud
         [AttributeUsage(AttributeTargets.Constructor)]
         [MeansImplicitUse(ImplicitUseKindFlags.InstantiatedNoFixedConstructorSignature)]
         public class ServiceConstructor : Attribute
+        {
+        }
+
+        /// <summary>
+        /// Indicates that the field is a service that should be loaded before constructing the class.
+        /// </summary>
+        [AttributeUsage(AttributeTargets.Field)]
+        public class ServiceDependency : Attribute
         {
         }
 

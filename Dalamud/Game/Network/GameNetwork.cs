@@ -14,7 +14,7 @@ namespace Dalamud.Game.Network
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    [ServiceManager.EarlyLoadedService]
+    [ServiceManager.BlockingEarlyLoadedService]
     public sealed class GameNetwork : IDisposable
     {
         private readonly GameNetworkAddressResolver address;
@@ -25,10 +25,10 @@ namespace Dalamud.Game.Network
         private IntPtr baseAddress;
 
         [ServiceManager.ServiceConstructor]
-        private GameNetwork()
+        private GameNetwork(SigScanner sigScanner)
         {
             this.address = new GameNetworkAddressResolver();
-            this.address.Setup();
+            this.address.Setup(sigScanner);
 
             Log.Verbose("===== G A M E N E T W O R K =====");
             Log.Verbose($"ProcessZonePacketDown address 0x{this.address.ProcessZonePacketDown.ToInt64():X}");

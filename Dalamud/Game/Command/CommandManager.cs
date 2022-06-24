@@ -17,7 +17,7 @@ namespace Dalamud.Game.Command
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    [ServiceManager.EarlyLoadedService]
+    [ServiceManager.BlockingEarlyLoadedService]
     public sealed class CommandManager
     {
         private readonly Dictionary<string, CommandInfo> commandMap = new();
@@ -29,10 +29,8 @@ namespace Dalamud.Game.Command
         private readonly Regex currentLangCommandRegex;
 
         [ServiceManager.ServiceConstructor]
-        private CommandManager()
+        private CommandManager(DalamudStartInfo startInfo)
         {
-            var startInfo = Service<DalamudStartInfo>.Get();
-
             this.currentLangCommandRegex = startInfo.Language switch
             {
                 ClientLanguage.Japanese => this.commandRegexJp,

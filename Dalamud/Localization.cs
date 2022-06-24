@@ -43,10 +43,9 @@ namespace Dalamud
         }
 
         [ServiceManager.ServiceConstructor]
-        private Localization()
-            : this(Path.Combine(Service<Dalamud>.Get().AssetDirectory.FullName, "UIRes", "loc", "dalamud"), "dalamud_")
+        private Localization(Dalamud dalamud, DalamudConfiguration configuration)
+            : this(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "loc", "dalamud"), "dalamud_")
         {
-            var configuration = Service<DalamudConfiguration>.Get();
             if (!string.IsNullOrEmpty(configuration.LanguageOverride))
                 this.SetupWithLangCode(configuration.LanguageOverride);
             else

@@ -19,7 +19,7 @@ namespace Dalamud.Game
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    [ServiceManager.EarlyLoadedService]
+    [ServiceManager.BlockingEarlyLoadedService]
     public class SigScanner : IDisposable
     {
         private readonly FileInfo? cacheFile;
@@ -30,15 +30,14 @@ namespace Dalamud.Game
         private Dictionary<string, long>? textCache;
 
         [ServiceManager.ServiceConstructor]
-        private SigScanner()
+        private SigScanner(DalamudStartInfo startInfo)
         {
             // Initialize the process information.
-            var info = Service<DalamudStartInfo>.Get();
-            var cacheDir = new DirectoryInfo(Path.Combine(info.WorkingDirectory!, "cachedSigs"));
+            var cacheDir = new DirectoryInfo(Path.Combine(startInfo.WorkingDirectory!, "cachedSigs"));
             if (!cacheDir.Exists)
                 cacheDir.Create();
 
-            this.cacheFile = new FileInfo(Path.Combine(cacheDir.FullName, $"{info.GameVersion}.json"));
+            this.cacheFile = new FileInfo(Path.Combine(cacheDir.FullName, $"{startInfo.GameVersion}.json"));
             this.Module = Process.GetCurrentProcess().MainModule!;
             this.Is32BitProcess = !Environment.Is64BitProcess;
             this.IsCopy = true;
@@ -58,7 +57,7 @@ namespace Dalamud.Game
             // Initialize FFXIVClientStructs function resolver
             using (Timings.Start("CS Resolver Init"))
             {
-                FFXIVClientStructs.Resolver.InitializeParallel(new FileInfo(Path.Combine(cacheDir.FullName, $"{info.GameVersion}_cs.json")));
+                FFXIVClientStructs.Resolver.InitializeParallel(new FileInfo(Path.Combine(cacheDir.FullName, $"{startInfo.GameVersion}_cs.json")));
             }
         }
 

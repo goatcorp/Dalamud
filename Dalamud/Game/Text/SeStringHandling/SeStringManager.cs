@@ -12,7 +12,7 @@ namespace Dalamud.Game.Text.SeStringHandling
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    [ServiceManager.EarlyLoadedService]
+    [ServiceManager.BlockingEarlyLoadedService]
     [Obsolete("This class is obsolete. Please use the static methods on SeString instead.")]
     public sealed class SeStringManager
     {

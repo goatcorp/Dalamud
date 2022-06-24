@@ -16,7 +16,7 @@ namespace Dalamud.Game.Gui.FlyText
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    [ServiceManager.EarlyLoadedService]
+    [ServiceManager.BlockingEarlyLoadedService]
     public sealed class FlyTextGui : IDisposable
     {
         /// <summary>
@@ -30,10 +30,10 @@ namespace Dalamud.Game.Gui.FlyText
         private readonly Hook<CreateFlyTextDelegate> createFlyTextHook;
 
         [ServiceManager.ServiceConstructor]
-        private FlyTextGui()
+        private FlyTextGui(SigScanner sigScanner)
         {
             this.Address = new FlyTextGuiAddressResolver();
-            this.Address.Setup();
+            this.Address.Setup(sigScanner);
 
             this.addFlyTextNative = Marshal.GetDelegateForFunctionPointer<AddFlyTextDelegate>(this.Address.AddFlyText);
             this.createFlyTextHook = new Hook<CreateFlyTextDelegate>(this.Address.CreateFlyText, this.CreateFlyTextDetour);

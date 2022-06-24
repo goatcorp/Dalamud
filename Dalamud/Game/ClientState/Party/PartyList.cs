@@ -14,7 +14,7 @@ namespace Dalamud.Game.ClientState.Party
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    [ServiceManager.EarlyLoadedService]
+    [ServiceManager.BlockingEarlyLoadedService]
     public sealed unsafe partial class PartyList
     {
         private const int GroupLength = 8;
@@ -23,9 +23,9 @@ namespace Dalamud.Game.ClientState.Party
         private readonly ClientStateAddressResolver address;
 
         [ServiceManager.ServiceConstructor]
-        private PartyList()
+        private PartyList(ClientState clientState)
         {
-            this.address = Service<ClientState>.Get().AddressResolver;
+            this.address = clientState.AddressResolver;
 
             Log.Verbose($"Group manager address 0x{this.address.GroupManager.ToInt64():X}");
         }

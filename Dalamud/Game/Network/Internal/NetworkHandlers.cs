@@ -31,11 +31,11 @@ namespace Dalamud.Game.Network.Internal
         private MarketBoardPurchaseHandler marketBoardPurchaseHandler;
 
         [ServiceManager.ServiceConstructor]
-        private NetworkHandlers()
+        private NetworkHandlers(GameNetwork gameNetwork)
         {
             this.uploader = new UniversalisMarketBoardUploader();
 
-            Service<GameNetwork>.Get().NetworkMessage += this.OnNetworkMessage;
+            gameNetwork.NetworkMessage += this.OnNetworkMessage;
         }
 
         /// <summary>

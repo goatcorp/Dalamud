@@ -19,9 +19,7 @@ using Dalamud.Game.Text;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Exceptions;
 using Dalamud.Plugin.Internal.Types;
-using Dalamud.Support;
 using Dalamud.Utility;
-using Dalamud.Utility.Timing;
 using Newtonsoft.Json;
 
 namespace Dalamud.Plugin.Internal;
@@ -42,13 +40,12 @@ internal partial class PluginManager : IDisposable
     private readonly DirectoryInfo pluginDirectory;
     private readonly DirectoryInfo devPluginDirectory;
     private readonly BannedPlugin[] bannedPlugins;
-    private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
-    private readonly DalamudStartInfo startInfo = Service<DalamudStartInfo>.Get();
 
-    /// <summary>
-    /// A task that gets completed when all plugin load has been fired.
-    /// </summary>
-    public readonly Task InitializationTask;
+    [ServiceManager.ServiceDependency]
+    private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
+
+    [ServiceManager.ServiceDependency]
+    private readonly DalamudStartInfo startInfo = Service<DalamudStartInfo>.Get();
 
     [ServiceManager.ServiceConstructor]
     private PluginManager()
@@ -75,38 +72,6 @@ internal partial class PluginManager : IDisposable
         this.bannedPlugins = JsonConvert.DeserializeObject<BannedPlugin[]>(bannedPluginsJson) ?? Array.Empty<BannedPlugin>();
 
         this.ApplyPatches();
-
-        this.InitializationTask = Task.Run(() =>
-        {
-            try
-            {
-                using (Timings.Start("PM Load Plugin Repos"))
-                {
-                    _ = this.SetPluginReposFromConfigAsync(false);
-                    this.OnInstalledPluginsChanged += () => Task.Run(Troubleshooting.LogTroubleshooting);
-
-                    Log.Information("[T3] PM repos OK!");
-                }
-
-                using (Timings.Start("PM Cleanup Plugins"))
-                {
-                    this.CleanupPlugins();
-                    Log.Information("[T3] PMC OK!");
-                }
-
-                using (Timings.Start("PM Load Sync Plugins"))
-                {
-                    this.LoadAllPlugins();
-                    Log.Information("[T3] PML OK!");
-                }
-
-                new Task(Troubleshooting.LogTroubleshooting).Start();
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Plugin load failed");
-            }
-        });
     }
 
     /// <summary>

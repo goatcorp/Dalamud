@@ -15,7 +15,7 @@ namespace Dalamud.Game.Gui.PartyFinder
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    [ServiceManager.EarlyLoadedService]
+    [ServiceManager.BlockingEarlyLoadedService]
     public sealed class PartyFinderGui : IDisposable
     {
         private readonly PartyFinderAddressResolver address;
@@ -28,10 +28,10 @@ namespace Dalamud.Game.Gui.PartyFinder
         /// </summary>
         /// <param name="tag">Tag.</param>
         [ServiceManager.ServiceConstructor]
-        private PartyFinderGui()
+        private PartyFinderGui(SigScanner sigScanner)
         {
             this.address = new PartyFinderAddressResolver();
-            this.address.Setup();
+            this.address.Setup(sigScanner);
 
             this.memory = Marshal.AllocHGlobal(PartyFinderPacket.PacketSize);
 

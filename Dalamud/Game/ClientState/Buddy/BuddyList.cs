@@ -15,7 +15,7 @@ namespace Dalamud.Game.ClientState.Buddy
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    [ServiceManager.EarlyLoadedService]
+    [ServiceManager.BlockingEarlyLoadedService]
     public sealed partial class BuddyList
     {
         private const uint InvalidObjectID = 0xE0000000;
@@ -23,9 +23,9 @@ namespace Dalamud.Game.ClientState.Buddy
         private readonly ClientStateAddressResolver address;
 
         [ServiceManager.ServiceConstructor]
-        private BuddyList()
+        private BuddyList(ClientState clientState)
         {
-            this.address = Service<ClientState>.Get().AddressResolver;
+            this.address = clientState.AddressResolver;
 
             Log.Verbose($"Buddy list address 0x{this.address.BuddyList.ToInt64():X}");
         }

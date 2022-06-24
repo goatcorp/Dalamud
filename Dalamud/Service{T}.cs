@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
@@ -19,10 +21,10 @@ namespace Dalamud
     internal static class Service<T>
     {
         // ReSharper disable once StaticMemberInGenericType
-        private static readonly TaskCompletionSource<T>? InstanceTcs;
+        private static readonly TaskCompletionSource<T> InstanceTcs = new();
 
         // ReSharper disable once StaticMemberInGenericType
-        private static readonly Task<T> InstanceTask;
+        private static bool startLoaderInvoked = false;
 
         static Service()
         {
@@ -32,37 +34,48 @@ namespace Dalamud
             else
                 ServiceManager.Log.Debug("Service<{0}>: Static ctor called", typeof(T).Name);
 
-            var attr = typeof(T).GetCustomAttribute<ServiceManager.Service>(true)?.GetType();
-            if (attr?.IsAssignableTo(typeof(ServiceManager.EarlyLoadedService)) == true)
-            {
-                InstanceTcs = null;
-                InstanceTask = Task.Run(async () =>
-                {
-                    using (Timings.Start($"{typeof(T).Namespace} Enable"))
-                    {
-                        ServiceManager.Log.Debug("Service<{0}>: Begin construction", typeof(T).Name);
-                        try
-                        {
-                            var x = await ConstructObject();
-                            ServiceManager.Log.Debug("Service<{0}>: Construction complete", typeof(T).Name);
-                            return x;
-                        }
-                        catch (Exception e)
-                        {
-                            ServiceManager.Log.Error(e, "Service<{0}>: Construction failure", typeof(T).Name);
-                            throw;
-                        }
-                    }
-                });
-            }
-            else
-            {
-                InstanceTcs = new TaskCompletionSource<T>();
-                InstanceTask = InstanceTcs.Task;
-            }
-
             if (exposeToPlugins)
-                Service<ServiceContainer>.Get().RegisterSingleton(InstanceTask);
+                Service<ServiceContainer>.Get().RegisterSingleton(InstanceTcs.Task);
+        }
+
+        /// <summary>
+        /// Initializes the service.
+        /// </summary>
+        /// <returns>The object.</returns>
+        [UsedImplicitly]
+        public static Task<T> StartLoader()
+        {
+            if (startLoaderInvoked)
+                throw new InvalidOperationException("StartLoader has already been called.");
+
+            var attr = typeof(T).GetCustomAttribute<ServiceManager.Service>(true)?.GetType();
+            if (attr?.IsAssignableTo(typeof(ServiceManager.EarlyLoadedService)) != true)
+                throw new InvalidOperationException($"{typeof(T).Name} is not an EarlyLoadedService");
+
+            startLoaderInvoked = true;
+            return Task.Run(async () =>
+            {
+                using (Timings.Start($"{typeof(T).Namespace} Enable"))
+                {
+                    if (attr?.IsAssignableTo(typeof(ServiceManager.BlockingEarlyLoadedService)) == true)
+                        ServiceManager.Log.Debug("Service<{0}>: Begin construction", typeof(T).Name);
+                    try
+                    {
+                        var x = await ConstructObject();
+                        if (attr?.IsAssignableTo(typeof(ServiceManager.BlockingEarlyLoadedService)) == true)
+                            ServiceManager.Log.Debug("Service<{0}>: Construction complete", typeof(T).Name);
+                        InstanceTcs.SetResult(x);
+                        return x;
+                    }
+                    catch (Exception e)
+                    {
+                        InstanceTcs.SetException(e);
+                        if (attr?.IsAssignableTo(typeof(ServiceManager.BlockingEarlyLoadedService)) == true)
+                            ServiceManager.Log.Error(e, "Service<{0}>: Construction failure", typeof(T).Name);
+                        throw;
+                    }
+                }
+            });
         }
 
         /// <summary>
@@ -81,9 +94,9 @@ namespace Dalamud
         /// <returns>The object.</returns>
         public static T Get()
         {
-            if (!InstanceTask.IsCompleted)
-                InstanceTask.Wait();
-            return InstanceTask.Result;
+            if (!InstanceTcs.Task.IsCompleted)
+                InstanceTcs.Task.Wait();
+            return InstanceTcs.Task.Result;
         }
 
         /// <summary>
@@ -91,13 +104,33 @@ namespace Dalamud
         /// </summary>
         /// <returns>The object.</returns>
         [UsedImplicitly]
-        public static async Task<T> GetAsync() => await InstanceTask;
+        public static async Task<T> GetAsync() => await InstanceTcs.Task;
 
         /// <summary>
         /// Attempt to pull the instance out of the service locator.
         /// </summary>
         /// <returns>The object if registered, null otherwise.</returns>
-        public static T? GetNullable() => InstanceTask.IsCompleted ? InstanceTask.Result : default;
+        public static T? GetNullable() => InstanceTcs.Task.IsCompleted ? InstanceTcs.Task.Result : default;
+
+        /// <summary>
+        /// Gets an enumerable containing Service&lt;T&gt;s that are required for this Service to initialize without blocking.
+        /// </summary>
+        /// <returns>List of dependency services.</returns>
+        public static List<Type> GetDependencyServices()
+        {
+            var res = new List<Type>();
+            res.AddRange(GetServiceConstructor()
+                .GetParameters()
+                .Select(x => x.ParameterType));
+            res.AddRange(typeof(T)
+                .GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                .Select(x => x.FieldType)
+                .Where(x => x.GetCustomAttribute<ServiceManager.ServiceDependency>(true) != null));
+            return res
+                .Distinct()
+                .Select(x => typeof(Service<>).MakeGenericType(x))
+                .ToList();
+        }
 
         private static async Task<object?> GetServiceObjectConstructArgument(Type type)
         {
@@ -117,14 +150,19 @@ namespace Dalamud
                                  .GetValue(task);
         }
 
-        private static async Task<T> ConstructObject()
+        private static ConstructorInfo GetServiceConstructor()
         {
             const BindingFlags ctorBindingFlags =
                 BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic |
                 BindingFlags.CreateInstance | BindingFlags.OptionalParamBinding;
-            var ctor = typeof(T)
-                       .GetConstructors(ctorBindingFlags)
-                       .Single(x => x.GetCustomAttributes(typeof(ServiceManager.ServiceConstructor), true).Any());
+            return typeof(T)
+                .GetConstructors(ctorBindingFlags)
+                .Single(x => x.GetCustomAttributes(typeof(ServiceManager.ServiceConstructor), true).Any());
+        }
+
+        private static async Task<T> ConstructObject()
+        {
+            var ctor = GetServiceConstructor();
             var args = await Task.WhenAll(
                            ctor.GetParameters().Select(x => GetServiceObjectConstructArgument(x.ParameterType)));
             return (T)ctor.Invoke(args)!;

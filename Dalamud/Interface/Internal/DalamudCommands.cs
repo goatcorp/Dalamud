@@ -22,18 +22,8 @@ namespace Dalamud.Interface.Internal
     internal class DalamudCommands
     {
         [ServiceManager.ServiceConstructor]
-        private DalamudCommands()
+        private DalamudCommands(CommandManager commandManager)
         {
-            this.SetupCommands();
-        }
-
-        /// <summary>
-        /// Register all command handlers with the Dalamud instance.
-        /// </summary>
-        public void SetupCommands()
-        {
-            var commandManager = Service<CommandManager>.Get();
-
             commandManager.AddHandler("/xldclose", new CommandInfo(this.OnUnloadCommand)
             {
                 HelpMessage = Loc.Localize("DalamudUnloadHelp", "Unloads XIVLauncher in-game addon."),

@@ -11,7 +11,7 @@ namespace Dalamud.Game.ClientState.Conditions
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    [ServiceManager.EarlyLoadedService]
+    [ServiceManager.BlockingEarlyLoadedService]
     public sealed partial class Condition
     {
         /// <summary>
@@ -19,12 +19,13 @@ namespace Dalamud.Game.ClientState.Conditions
         /// </summary>
         public const int MaxConditionEntries = 100;
 
+        [ServiceManager.ServiceDependency]
         private readonly bool[] cache = new bool[MaxConditionEntries];
 
         [ServiceManager.ServiceConstructor]
-        private Condition()
+        private Condition(ClientState clientState)
         {
-            var resolver = Service<ClientState>.Get().AddressResolver;
+            var resolver = clientState.AddressResolver;
             this.Address = resolver.ConditionFlags;
         }
 

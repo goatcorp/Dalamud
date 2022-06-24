@@ -21,7 +21,7 @@ namespace Dalamud.Game.Gui
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    [ServiceManager.EarlyLoadedService]
+    [ServiceManager.BlockingEarlyLoadedService]
     public sealed class ChatGui : IDisposable
     {
         private readonly ChatGuiAddressResolver address;
@@ -36,10 +36,10 @@ namespace Dalamud.Game.Gui
         private IntPtr baseAddress = IntPtr.Zero;
 
         [ServiceManager.ServiceConstructor]
-        private ChatGui()
+        private ChatGui(SigScanner sigScanner)
         {
             this.address = new ChatGuiAddressResolver();
-            this.address.Setup();
+            this.address.Setup(sigScanner);
 
             this.printMessageHook = new Hook<PrintMessageDelegate>(this.address.PrintMessage, this.HandlePrintMessageDetour);
             this.populateItemLinkHook = new Hook<PopulateItemLinkDelegate>(this.address.PopulateItemLinkObject, this.HandlePopulateItemLinkDetour);

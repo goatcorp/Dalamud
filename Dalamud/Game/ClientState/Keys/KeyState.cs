@@ -22,7 +22,7 @@ namespace Dalamud.Game.ClientState.Keys
     /// </remarks>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    [ServiceManager.EarlyLoadedService]
+    [ServiceManager.BlockingEarlyLoadedService]
     public class KeyState
     {
         // The array is accessed in a way that this limit doesn't appear to exist
@@ -34,10 +34,10 @@ namespace Dalamud.Game.ClientState.Keys
         private VirtualKey[] validVirtualKeyCache = null;
 
         [ServiceManager.ServiceConstructor]
-        private KeyState()
+        private KeyState(SigScanner sigScanner, ClientState clientState)
         {
-            var moduleBaseAddress = Service<SigScanner>.Get().Module.BaseAddress;
-            var addressResolver = Service<ClientState>.Get().AddressResolver;
+            var moduleBaseAddress = sigScanner.Module.BaseAddress;
+            var addressResolver = clientState.AddressResolver;
             this.bufferBase = moduleBaseAddress + Marshal.ReadInt32(addressResolver.KeyboardState);
             this.indexBase = moduleBaseAddress + Marshal.ReadInt32(addressResolver.KeyboardStateIndexArray);
 

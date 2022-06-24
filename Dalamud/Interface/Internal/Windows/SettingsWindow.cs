@@ -33,6 +33,7 @@ namespace Dalamud.Interface.Internal.Windows
 
         private XivChatType dalamudMessagesChatType;
 
+        private bool doWaitForPluginsOnStartup;
         private bool doCfTaskBarFlash;
         private bool doCfChatMessage;
         private bool doMbCollect;
@@ -90,6 +91,7 @@ namespace Dalamud.Interface.Internal.Windows
 
             this.dalamudMessagesChatType = configuration.GeneralChatType;
 
+            this.doWaitForPluginsOnStartup = configuration.IsResumeGameAfterPluginLoad;
             this.doCfTaskBarFlash = configuration.DutyFinderTaskbarFlash;
             this.doCfChatMessage = configuration.DutyFinderChatMessage;
             this.doMbCollect = configuration.IsMbCollect;
@@ -260,6 +262,9 @@ namespace Dalamud.Interface.Internal.Windows
             ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsChannelHint", "Select the chat channel that is to be used for general Dalamud messages."));
 
             ImGuiHelpers.ScaledDummy(5);
+
+            ImGui.Checkbox(Loc.Localize("DalamudSettingsWaitForPluginsOnStartup", "Wait for plugins before game loads"), ref this.doWaitForPluginsOnStartup);
+            ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsWaitForPluginsOnStartupHint", "Do not let the game load, until plugins are loaded."));
 
             ImGui.Checkbox(Loc.Localize("DalamudSettingsFlash", "Flash FFXIV window on duty pop"), ref this.doCfTaskBarFlash);
             ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsFlashHint", "Flash the FFXIV window in your task bar when a duty is ready."));
@@ -916,6 +921,7 @@ namespace Dalamud.Interface.Internal.Windows
 
             configuration.GeneralChatType = this.dalamudMessagesChatType;
 
+            configuration.IsResumeGameAfterPluginLoad = this.doWaitForPluginsOnStartup;
             configuration.DutyFinderTaskbarFlash = this.doCfTaskBarFlash;
             configuration.DutyFinderChatMessage = this.doCfChatMessage;
             configuration.IsMbCollect = this.doMbCollect;

@@ -16,13 +16,11 @@ namespace Dalamud.Game.Internal
         private IntPtr debugCheckAddress;
 
         [ServiceManager.ServiceConstructor]
-        private AntiDebug()
+        private AntiDebug(SigScanner sigScanner)
         {
-            var scanner = Service<SigScanner>.Get();
-
             try
             {
-                this.debugCheckAddress = scanner.ScanText("FF 15 ?? ?? ?? ?? 85 C0 74 11 41");
+                this.debugCheckAddress = sigScanner.ScanText("FF 15 ?? ?? ?? ?? 85 C0 74 11 41");
             }
             catch (KeyNotFoundException)
             {

@@ -12,7 +12,7 @@ namespace Dalamud.Interface
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    [ServiceManager.EarlyLoadedService]
+    [ServiceManager.BlockingEarlyLoadedService]
     public class TitleScreenMenu
     {
         /// <summary>

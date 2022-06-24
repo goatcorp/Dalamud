@@ -49,7 +49,6 @@ namespace Dalamud
 
         private readonly ManualResetEvent unloadSignal;
         private readonly ManualResetEvent finishUnloadSignal;
-        private readonly IntPtr mainThreadContinueEvent;
         private MonoMod.RuntimeDetour.Hook processMonoHook;
         private bool hasDisposedPlugins = false;
 
@@ -80,8 +79,10 @@ namespace Dalamud
             Service<DalamudConfiguration>.Provide(configuration);
             ServiceManager.InitializeEarlyLoadableServices();
 
-            this.mainThreadContinueEvent = mainThreadContinueEvent;
-            ServiceManager.BlockingResolved.ContinueWith(_ => NativeFunctions.SetEvent(this.mainThreadContinueEvent));
+            if (configuration.IsResumeGameAfterPluginLoad)
+                ServiceManager.BlockingResolved.ContinueWith(_ => NativeFunctions.SetEvent(mainThreadContinueEvent));
+            else
+                NativeFunctions.SetEvent(mainThreadContinueEvent);
         }
 
         /// <summary>

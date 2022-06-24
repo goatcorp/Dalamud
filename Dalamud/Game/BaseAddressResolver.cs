@@ -23,15 +23,6 @@ namespace Dalamud.Game
         /// <summary>
         /// Setup the resolver, calling the appopriate method based on the process architecture.
         /// </summary>
-        public void Setup()
-        {
-            var scanner = Service<SigScanner>.Get();
-            this.Setup(scanner);
-        }
-
-        /// <summary>
-        /// Setup the resolver, calling the appopriate method based on the process architecture.
-        /// </summary>
         /// <param name="scanner">The SigScanner instance.</param>
         public void Setup(SigScanner scanner)
         {

@@ -77,11 +77,8 @@ namespace Dalamud.Interface.Internal
         private bool isImGuiDrawMetricsWindow = false;
 
         [ServiceManager.ServiceConstructor]
-        private DalamudInterface()
+        private DalamudInterface(Dalamud dalamud, DalamudConfiguration configuration, InterfaceManager interfaceManager)
         {
-            var configuration = Service<DalamudConfiguration>.Get();
-            var interfaceManager = Service<InterfaceManager>.Get();
-
             this.WindowSystem = new WindowSystem("DalamudCore");
 
             this.changelogWindow = new ChangelogWindow() { IsOpen = false };
@@ -122,7 +119,6 @@ namespace Dalamud.Interface.Internal
             this.isImGuiDrawDevMenu = this.isImGuiDrawDevMenu || configuration.DevBarOpenAtStartup;
 
             interfaceManager.Draw += this.OnDraw;
-            var dalamud = Service<Dalamud>.Get();
 
             var logoTex =
                 interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "logo.png"));

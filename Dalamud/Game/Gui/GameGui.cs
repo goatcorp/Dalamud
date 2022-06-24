@@ -27,7 +27,7 @@ namespace Dalamud.Game.Gui
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    [ServiceManager.EarlyLoadedService]
+    [ServiceManager.BlockingEarlyLoadedService]
     public sealed unsafe class GameGui : IDisposable
     {
         private readonly GameGuiAddressResolver address;
@@ -48,10 +48,10 @@ namespace Dalamud.Game.Gui
         private OpenMapWithFlagDelegate openMapWithFlag;
 
         [ServiceManager.ServiceConstructor]
-        private GameGui()
+        private GameGui(SigScanner sigScanner)
         {
             this.address = new GameGuiAddressResolver();
-            this.address.Setup();
+            this.address.Setup(sigScanner);
 
             Log.Verbose("===== G A M E G U I =====");
             Log.Verbose($"GameGuiManager address 0x{this.address.BaseAddress.ToInt64():X}");

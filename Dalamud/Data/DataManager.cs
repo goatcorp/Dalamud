@@ -26,7 +26,7 @@ namespace Dalamud.Data
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    [ServiceManager.EarlyLoadedService]
+    [ServiceManager.BlockingEarlyLoadedService]
     public sealed class DataManager : IDisposable
     {
         private const string IconFileFormat = "ui/icon/{0:D3}000/{1}{2:D6}.tex";

@@ -15,7 +15,7 @@ namespace Dalamud.Game.ClientState.GamePad
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0.0")]
-    [ServiceManager.EarlyLoadedService]
+    [ServiceManager.BlockingEarlyLoadedService]
     public unsafe class GamepadState : IDisposable
     {
         private readonly Hook<ControllerPoll> gamepadPoll;
@@ -28,9 +28,9 @@ namespace Dalamud.Game.ClientState.GamePad
         private int rightStickY;
 
         [ServiceManager.ServiceConstructor]
-        private GamepadState()
+        private GamepadState(ClientState clientState)
         {
-            var resolver = Service<ClientState>.Get().AddressResolver;
+            var resolver = clientState.AddressResolver;
             Log.Verbose($"GamepadPoll address 0x{resolver.GamepadPoll.ToInt64():X}");
             this.gamepadPoll = new Hook<ControllerPoll>(resolver.GamepadPoll, this.GamepadPollDetour);
         }

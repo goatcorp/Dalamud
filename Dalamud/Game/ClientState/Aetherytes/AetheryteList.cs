@@ -14,9 +14,10 @@ namespace Dalamud.Game.ClientState.Aetherytes
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    [ServiceManager.EarlyLoadedService]
+    [ServiceManager.BlockingEarlyLoadedService]
     public sealed partial class AetheryteList
     {
+        [ServiceManager.ServiceDependency]
         private readonly ClientState clientState = Service<ClientState>.Get();
         private readonly ClientStateAddressResolver address;
         private readonly UpdateAetheryteListDelegate updateAetheryteListFunc;

@@ -32,8 +32,6 @@ namespace Dalamud.Interface.GameFonts
 
         private readonly object syncRoot = new();
 
-        private readonly InterfaceManager interfaceManager;
-
         private readonly FdtReader?[] fdts;
         private readonly List<byte[]> texturePixels;
         private readonly Dictionary<GameFontStyle, ImFontPtr> fonts = new();
@@ -43,15 +41,9 @@ namespace Dalamud.Interface.GameFonts
         private bool isBetweenBuildFontsAndRightAfterImGuiIoFontsBuild = false;
         private bool isBuildingAsFallbackFontMode = false;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="GameFontManager"/> class.
-        /// </summary>
-        /// <param name="tag">Tag.</param>
         [ServiceManager.ServiceConstructor]
-        private GameFontManager()
+        private GameFontManager(DataManager dataManager)
         {
-            var dataManager = Service<DataManager>.Get();
-
             using (Timings.Start("Getting fdt data"))
             {
                 this.fdts = FontNames.Select(fontName => fontName == null ? null : new FdtReader(dataManager.GetFile($"common/font/{fontName}.fdt")!.Data)).ToArray();
@@ -71,8 +63,6 @@ namespace Dalamud.Interface.GameFonts
                     task.Start();
                 this.texturePixels = texTasks.Select(x => x.GetAwaiter().GetResult()).ToList();
             }
-
-            this.interfaceManager = Service<InterfaceManager>.Get();
         }
 
         /// <summary>
@@ -180,6 +170,7 @@ namespace Dalamud.Interface.GameFonts
         /// <returns>Handle to game font that may or may not be ready yet.</returns>
         public GameFontHandle NewFontRef(GameFontStyle style)
         {
+            var interfaceManager = Service<InterfaceManager>.Get();
             var needRebuild = false;
 
             lock (this.syncRoot)
@@ -190,7 +181,7 @@ namespace Dalamud.Interface.GameFonts
             needRebuild = !this.fonts.ContainsKey(style);
             if (needRebuild)
             {
-                if (Service<InterfaceManager>.Get().IsBuildingFontsBeforeAtlasBuild && this.isBetweenBuildFontsAndRightAfterImGuiIoFontsBuild)
+                if (interfaceManager.IsBuildingFontsBeforeAtlasBuild && this.isBetweenBuildFontsAndRightAfterImGuiIoFontsBuild)
                 {
                     Log.Information("[GameFontManager] NewFontRef: Building {0} right now, as it is called while BuildFonts is already in progress yet atlas build has not been called yet.", style.ToString());
                     this.EnsureFont(style);
@@ -198,7 +189,7 @@ namespace Dalamud.Interface.GameFonts
                 else
                 {
                     Log.Information("[GameFontManager] NewFontRef: Calling RebuildFonts because {0} has been requested.", style.ToString());
-                    this.interfaceManager.RebuildFonts();
+                    interfaceManager.RebuildFonts();
                 }
             }
 
@@ -291,10 +282,11 @@ namespace Dalamud.Interface.GameFonts
         /// </summary>
         public unsafe void AfterBuildFonts()
         {
+            var interfaceManager = Service<InterfaceManager>.Get();
             var ioFonts = ImGui.GetIO().Fonts;
             ioFonts.GetTexDataAsRGBA32(out byte* pixels8, out var width, out var height);
             var pixels32 = (uint*)pixels8;
-            var fontGamma = this.interfaceManager.FontGamma;
+            var fontGamma = interfaceManager.FontGamma;
 
             foreach (var (style, font) in this.fonts)
             {
