@@ -74,15 +74,28 @@ namespace Dalamud
 
             SerilogEventSink.Instance.LogLine += SerilogOnLogLine;
 
-            Service<Dalamud>.Provide(this);
-            Service<DalamudStartInfo>.Provide(info);
-            Service<DalamudConfiguration>.Provide(configuration);
-            ServiceManager.InitializeEarlyLoadableServices();
+            try
+            {
+                Service<Dalamud>.Provide(this);
+                Service<DalamudStartInfo>.Provide(info);
+                Service<DalamudConfiguration>.Provide(configuration);
+                ServiceManager.InitializeEarlyLoadableServices();
 
-            if (configuration.IsResumeGameAfterPluginLoad)
-                ServiceManager.BlockingResolved.ContinueWith(_ => NativeFunctions.SetEvent(mainThreadContinueEvent));
-            else
+                if (configuration.IsResumeGameAfterPluginLoad)
+                {
+                    ServiceManager.BlockingResolved.ContinueWith(
+                        _ => NativeFunctions.SetEvent(mainThreadContinueEvent));
+                }
+                else
+                {
+                    NativeFunctions.SetEvent(mainThreadContinueEvent);
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "Failed to initialize services");
                 NativeFunctions.SetEvent(mainThreadContinueEvent);
+            }
         }
 
         /// <summary>

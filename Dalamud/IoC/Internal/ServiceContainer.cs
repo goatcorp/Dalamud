@@ -36,7 +36,7 @@ namespace Dalamud.IoC.Internal
                 throw new ArgumentNullException(nameof(instance));
             }
 
-            this.instances[typeof(T)] = new(instance.ContinueWith(x => new WeakReference(x.Result)));
+            this.instances[typeof(T)] = new(instance.ContinueWith(x => new WeakReference(x.Result)), typeof(T));
         }
 
         /// <summary>

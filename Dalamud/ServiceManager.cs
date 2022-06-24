@@ -70,32 +70,44 @@ namespace Dalamud
 
             Task.Run(async () =>
             {
-                var tasks = new List<Task>();
-                while (dependencyServicesMap.Any())
+                try
                 {
-                    foreach (var (serviceType, dependencies) in dependencyServicesMap.ToList())
+                    var tasks = new List<Task>();
+                    while (dependencyServicesMap.Any())
                     {
-                        if (!dependencies.All(x => !getAsyncTaskMap.ContainsKey(x) || getAsyncTaskMap[x].IsCompleted))
-                            continue;
+                        foreach (var (serviceType, dependencies) in dependencyServicesMap.ToList())
+                        {
+                            if (!dependencies.All(
+                                    x => !getAsyncTaskMap.ContainsKey(x) || getAsyncTaskMap[x].IsCompleted))
+                                continue;
 
-                        tasks.Add((Task)service.MakeGenericType(serviceType).InvokeMember(
-                            "StartLoader",
-                            BindingFlags.InvokeMethod | BindingFlags.Static | BindingFlags.Public,
-                            null,
-                            null,
-                            null));
-                        dependencyServicesMap.Remove(serviceType);
+                            tasks.Add((Task)service.MakeGenericType(serviceType).InvokeMember(
+                                          "StartLoader",
+                                          BindingFlags.InvokeMethod | BindingFlags.Static | BindingFlags.Public,
+                                          null,
+                                          null,
+                                          null));
+                            dependencyServicesMap.Remove(serviceType);
+                        }
+
+                        if (!tasks.Any())
+                            throw new InvalidOperationException("Unresolvable dependency cycle detected");
+
+                        // This will (re)throw if any of the tasks has failed.
+                        await Task.WhenAll(tasks);
+
+                        if (blockingEarlyLoadingServices.All(x => x.IsCompleted)
+                            && !BlockingServicesLoadedTaskCompletionSource.Task.IsCompleted)
+                            BlockingServicesLoadedTaskCompletionSource.SetResult();
                     }
-
-                    if (!tasks.Any())
-                        throw new InvalidOperationException("Unresolvable dependency cycle detected");
-
-                    await Task.WhenAll(tasks);
+                }
+                catch (Exception e)
+                {
+                    Log.Error(e, "Failed resolving services");
+                    if (!BlockingServicesLoadedTaskCompletionSource.Task.IsCompleted)
+                        BlockingServicesLoadedTaskCompletionSource.SetException(e);
                 }
             });
-
-            Task.WhenAll(blockingEarlyLoadingServices)
-                .ContinueWith(_ => BlockingServicesLoadedTaskCompletionSource.SetResult());
         }
 
         /// <summary>

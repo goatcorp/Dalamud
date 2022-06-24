@@ -19,7 +19,6 @@ namespace Dalamud.Game.ClientState.Conditions
         /// </summary>
         public const int MaxConditionEntries = 100;
 
-        [ServiceManager.ServiceDependency]
         private readonly bool[] cache = new bool[MaxConditionEntries];
 
         [ServiceManager.ServiceConstructor]

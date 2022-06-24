@@ -104,7 +104,7 @@ namespace Dalamud
         /// </summary>
         /// <returns>The object.</returns>
         [UsedImplicitly]
-        public static async Task<T> GetAsync() => await InstanceTcs.Task;
+        public static Task<T> GetAsync() => InstanceTcs.Task;
 
         /// <summary>
         /// Attempt to pull the instance out of the service locator.

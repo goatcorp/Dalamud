@@ -12,11 +12,12 @@ namespace Dalamud.IoC.Internal
         /// <summary>
         /// Initializes a new instance of the <see cref="ObjectInstance"/> class.
         /// </summary>
-        /// <param name="instanceTask">The underlying instance.</param>
-        public ObjectInstance(Task<WeakReference> instanceTask)
+        /// <param name="instanceTask">Weak reference to the underlying instance.</param>
+        /// <param name="type">Type of the underlying instance.</param>
+        public ObjectInstance(Task<WeakReference> instanceTask, Type type)
         {
             this.InstanceTask = instanceTask;
-            this.Version = instanceTask.GetType().GetCustomAttribute<InterfaceVersionAttribute>();
+            this.Version = type.GetCustomAttribute<InterfaceVersionAttribute>();
         }
 
         /// <summary>
