@@ -62,6 +62,8 @@ namespace Dalamud.Game.Internal
 
             var contextMenu = Service<ContextMenu>.Get();
             contextMenu.ContextMenuOpened += this.ContextMenuOnContextMenuOpened;
+
+            this.Enable();
         }
 
         private delegate void AgentHudOpenSystemMenuPrototype(void* thisPtr, AtkValue* atkValueArgs, uint menuSize);
