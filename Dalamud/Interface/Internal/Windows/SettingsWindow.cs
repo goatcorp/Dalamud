@@ -952,6 +952,9 @@ namespace Dalamud.Interface.Internal.Windows
             {
                 ImGui.GetIO().BackendFlags &= ~ImGuiBackendFlags.HasGamepad;
                 ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.NavEnableSetMousePos;
+
+                var di = Service<DalamudInterface>.Get();
+                di.CloseGamepadModeNotifierWindow();
             }
             else
             {

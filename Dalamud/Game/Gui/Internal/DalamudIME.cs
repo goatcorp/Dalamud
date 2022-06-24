@@ -128,9 +128,9 @@ namespace Dalamud.Game.Gui.Internal
         private void ToggleWindow(bool visible)
         {
             if (visible)
-                Service<DalamudInterface>.Get().OpenIMEWindow();
+                Service<DalamudInterface>.Get().OpenImeWindow();
             else
-                Service<DalamudInterface>.Get().CloseIMEWindow();
+                Service<DalamudInterface>.Get().CloseImeWindow();
         }
 
         private long WndProcDetour(IntPtr hWnd, uint msg, ulong wParam, long lParam)

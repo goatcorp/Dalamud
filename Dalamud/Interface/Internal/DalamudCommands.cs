@@ -289,7 +289,7 @@ namespace Dalamud.Interface.Internal
 
         private void OnDebugDrawIMEPanel(string command, string arguments)
         {
-            Service<DalamudInterface>.Get().OpenIMEWindow();
+            Service<DalamudInterface>.Get().OpenImeWindow();
         }
 
         private void OnOpenLog(string command, string arguments)
