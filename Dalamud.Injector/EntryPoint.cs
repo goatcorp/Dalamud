@@ -89,6 +89,8 @@ namespace Dalamud.Injector
             args.Remove("--msgbox2");
             args.Remove("--msgbox3");
             args.Remove("--etw");
+            args.Remove("--veh");
+            args.Remove("--veh-full");
 
             var mainCommand = args[1].ToLowerInvariant();
             if (mainCommand.Length > 0 && mainCommand.Length <= 6 && "inject"[..mainCommand.Length] == mainCommand)
@@ -318,6 +320,8 @@ namespace Dalamud.Injector
             startInfo.BootWaitMessageBox |= args.Contains("--msgbox1") ? 1 : 0;
             startInfo.BootWaitMessageBox |= args.Contains("--msgbox2") ? 2 : 0;
             startInfo.BootWaitMessageBox |= args.Contains("--msgbox3") ? 4 : 0;
+            startInfo.BootVehEnabled = args.Contains("--veh");
+            startInfo.BootVehFull = args.Contains("--veh-full");
             // startInfo.BootUnhookDlls = new List<string>() { "kernel32.dll", "ntdll.dll", "user32.dll" };
 
             return startInfo;
@@ -356,7 +360,8 @@ namespace Dalamud.Injector
             Console.WriteLine("Verbose logging:\t[-v]");
             Console.WriteLine("Show Console:\t[--console]");
             Console.WriteLine("Enable ETW:\t[--etw]");
-            Console.WriteLine("Show messagebox:\t[--msgbox1], [--msgbox2]");
+            Console.WriteLine("Enable VEH:\t[--veh], [--veh-full]");
+            Console.WriteLine("Show messagebox:\t[--msgbox1], [--msgbox2], [--msgbox3]");
 
             return 0;
         }
